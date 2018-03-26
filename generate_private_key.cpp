@@ -18,8 +18,6 @@ Copyright 2018 Ilja Honkonen
 
 int main(int argc, char* argv[]) {
 
-	std::string data;
-
 	boost::program_options::options_description options(
 		"Generates a key and prints it's private exponent to standard output, "
 		"which can be given e.g. to print_key_info.\n"

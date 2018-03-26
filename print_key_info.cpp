@@ -18,8 +18,6 @@ Copyright 2018 Ilja Honkonen
 
 int main(int argc, char* argv[]) {
 
-	std::string data;
-
 	boost::program_options::options_description options(
 		"Prints information about a key read from standard input.\n"
 		"Usage: program_name [options], where options are:"
