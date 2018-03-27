@@ -2,7 +2,9 @@ PROGRAMS = generate_private_key print_key_info sign_message verify_message
 
 COMPILE = @echo CC $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
-all: dependencies $(PROGRAMS)
+HEADERS = bin2hex2bin.hpp signatures.hpp
+
+all: dependencies $(PROGRAMS) $(HEADERS)
 
 dependencies: submodules/cryptopp submodules/cryptopp/libcryptopp.a
 

@@ -4,6 +4,7 @@ Copyright 2018 Ilja Honkonen
 
 
 #include "bin2hex2bin.hpp"
+#include "signatures.hpp"
 
 #include <boost/program_options.hpp>
 #include <cryptopp/eccrypto.h>
@@ -67,19 +68,7 @@ int main(int argc, char* argv[]) {
 		y_bin = taraxa::hex2bin(y_hex),
 		signature_bin = taraxa::hex2bin(signature_hex);
 
-	CryptoPP::Integer x, y;
-	x.Decode(reinterpret_cast<const CryptoPP::byte*>(x_bin.data()), x_bin.size());
-	y.Decode(reinterpret_cast<const CryptoPP::byte*>(y_bin.data()), y_bin.size());
-
-	const CryptoPP::ECP::Point point{x, y};
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
-	public_key.Initialize(CryptoPP::ASN1::secp256r1(), point);
-
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier verifier(public_key);
-	const bool verified = verifier.VerifyMessage(
-		reinterpret_cast<const CryptoPP::byte*>(message.data()), message.size(),
-		reinterpret_cast<const CryptoPP::byte*>(signature_bin.data()), signature_bin.size()
-	);
+	const bool verified = taraxa::verify_signature(signature_bin, message, x_bin, y_bin);
 
 	if (verified) {
 		if (option_variables.count("verbose") > 0) {

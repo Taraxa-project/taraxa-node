@@ -4,6 +4,7 @@ Copyright 2018 Ilja Honkonen
 
 
 #include "bin2hex2bin.hpp"
+#include "signatures.hpp"
 
 #include <boost/program_options.hpp>
 #include <cryptopp/eccrypto.h>
@@ -49,24 +50,11 @@ int main(int argc, char* argv[]) {
 	}
 
 	const std::string exp_bin = taraxa::hex2bin(exp_hex);
-	CryptoPP::Integer exponent;
-	exponent.Decode(reinterpret_cast<const CryptoPP::byte*>(exp_bin.data()), exp_bin.size());
 
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
-	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exponent);
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer(private_key);
-
-	std::string message, signature(signer.MaxSignatureLength(), 0);
+	std::string message;
 	std::cin >> message;
 
-	CryptoPP::AutoSeededRandomPool prng;
-	const auto signature_length = signer.SignMessage(
-		prng,
-		reinterpret_cast<const CryptoPP::byte*>(message.data()),
-		message.size(),
-		reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(signature.data()))
-	);
-	signature.resize(signature_length);
+	const auto signature = taraxa::sign_message(message, exp_bin);
 
 	std::cout << taraxa::bin2hex(signature);
 
