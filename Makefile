@@ -12,7 +12,7 @@ submodules/cryptopp:
 	@echo cryptopp submodule does not seem to exists, did you use --recursive in git clone?
 
 submodules/cryptopp/libcryptopp.a: submodules/cryptopp
-	@echo Attampting to compile cryptopp, if it fails try compiling it manually
+	@echo Attempting to compile cryptopp, if it fails try compiling it manually
 	$(MAKE) -C submodules/cryptopp && touch $@
 
 generate_private_key: generate_private_key.cpp Makefile
