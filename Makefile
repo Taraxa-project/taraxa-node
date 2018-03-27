@@ -1,4 +1,6 @@
-PROGRAMS = generate_private_key print_key_info
+PROGRAMS = generate_private_key print_key_info sign_message verify_message
+
+COMPILE = @echo CC $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
 all: dependencies $(PROGRAMS)
 
@@ -12,10 +14,16 @@ submodules/cryptopp/libcryptopp.a: submodules/cryptopp
 	$(MAKE) -C submodules/cryptopp && touch $@
 
 generate_private_key: generate_private_key.cpp Makefile
-	g++ -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
+	$(COMPILE)
 
 print_key_info: print_key_info.cpp Makefile
-	g++ -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
+	$(COMPILE)
+
+sign_message: sign_message.cpp Makefile
+	$(COMPILE)
+
+verify_message: verify_message.cpp Makefile
+	$(COMPILE)
 
 c: clean
 clean:
