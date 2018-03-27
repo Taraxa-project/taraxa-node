@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 	exponent.Decode(reinterpret_cast<const CryptoPP::byte*>(exp_bin.data()), exp_bin.size());
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
-	private_key.Initialize(CryptoPP::ASN1::secp160r1(), exponent);
+	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exponent);
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
 	private_key.MakePublicKey(public_key);
@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
 		&y_pub = public_element.y;
 
 	std::string x_bin, y_bin;
-	x_bin.resize(20);
-	y_bin.resize(20);
+	x_bin.resize(32); // TODO use named constant
+	y_bin.resize(32);
 
 	x_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(x_bin.data())), x_bin.size());
 	y_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(y_bin.data())), y_bin.size());
