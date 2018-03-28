@@ -22,8 +22,9 @@ int main(int argc, char* argv[]) {
 	std::string exp_hex;
 
 	boost::program_options::options_description options(
-		"Sign a message given on standard input using a key produced "
-		"with generate_private_key, for example.\n"
+		"Sign a hex encoded message without the leading 0x given on "
+		"standard input using a key produced with generate_private_key, "
+		"for example. Prints the hex encoded result to standard output.\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
@@ -51,10 +52,10 @@ int main(int argc, char* argv[]) {
 
 	const std::string exp_bin = taraxa::hex2bin(exp_hex);
 
-	std::string message;
-	std::cin >> message;
+	std::string message_hex;
+	std::cin >> message_hex;
 
-	const auto signature = taraxa::sign_message(message, exp_bin);
+	const auto signature = taraxa::sign_message(taraxa::hex2bin(message_hex), exp_bin);
 
 	std::cout << taraxa::bin2hex(signature);
 

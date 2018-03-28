@@ -19,7 +19,7 @@ Copyright 2018 Ilja Honkonen
 
 int main(int argc, char* argv[]) {
 
-	std::string x_hex, y_hex, message;
+	std::string x_hex, y_hex, message_hex;
 
 	boost::program_options::options_description options(
 		"Verify a signature given on standard input.\n"
@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
 		("y", boost::program_options::value<std::string>(&y_hex),
 			"Verify using arg as the y coordinate of public point "
 			"given as hex encoded string without the leading 0x")
-		("message", boost::program_options::value<std::string>(&message),
-			"Verify arg");
+		("message", boost::program_options::value<std::string>(&message_hex),
+			"Verify arg given as hex encoded string without the leading 0x");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -66,9 +66,10 @@ int main(int argc, char* argv[]) {
 	const std::string
 		x_bin = taraxa::hex2bin(x_hex),
 		y_bin = taraxa::hex2bin(y_hex),
-		signature_bin = taraxa::hex2bin(signature_hex);
+		signature_bin = taraxa::hex2bin(signature_hex),
+		message_bin = taraxa::hex2bin(message_hex);
 
-	const bool verified = taraxa::verify_signature(signature_bin, message, x_bin, y_bin);
+	const bool verified = taraxa::verify_signature(signature_bin, message_bin, x_bin, y_bin);
 
 	if (verified) {
 		if (option_variables.count("verbose") > 0) {
