@@ -1,4 +1,4 @@
-PROGRAMS = generate_private_key print_key_info sign_message verify_message
+PROGRAMS = generate_private_key print_key_info sign_message verify_message create_send
 
 COMPILE = @echo CC $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
@@ -25,6 +25,9 @@ sign_message: sign_message.cpp Makefile
 	$(COMPILE)
 
 verify_message: verify_message.cpp Makefile
+	$(COMPILE)
+
+create_send: create_send.cpp Makefile
 	$(COMPILE)
 
 c: clean
