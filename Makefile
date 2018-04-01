@@ -1,6 +1,6 @@
-PROGRAMS = generate_private_key print_key_info sign_message verify_message create_send
+PROGRAMS = generate_private_key print_key_info sign_message verify_message create_send create_receive
 
-COMPILE = @echo CC $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
+COMPILE = @echo CXX $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
 HEADERS = bin2hex2bin.hpp signatures.hpp
 
@@ -28,6 +28,9 @@ verify_message: verify_message.cpp Makefile
 	$(COMPILE)
 
 create_send: create_send.cpp Makefile
+	$(COMPILE)
+
+create_receive: create_receive.cpp Makefile
 	$(COMPILE)
 
 c: clean
