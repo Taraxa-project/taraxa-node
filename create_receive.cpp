@@ -2,6 +2,7 @@
 Copyright 2018 Ilja Honkonen
 */
 
+#define RAPIDJSON_HAS_STDSTRING 1
 
 #include "bin2hex2bin.hpp"
 #include "signatures.hpp"
@@ -12,6 +13,9 @@ Copyright 2018 Ilja Honkonen
 #include <cryptopp/hex.h>
 #include <cryptopp/oids.h>
 #include <cryptopp/osrng.h>
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -19,6 +23,10 @@ Copyright 2018 Ilja Honkonen
 
 
 int main(int argc, char* argv[]) {
+
+	/*
+	Parse command line options and validate input
+	*/
 
 	std::string exp_hex, send_hex, previous_hex;
 
@@ -66,16 +74,39 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	const std::string
+	/*
+	Convert input to binary and sign
+	*/
+
+	auto
 		exp_bin = taraxa::hex2bin(exp_hex),
 		send_bin = taraxa::hex2bin(send_hex),
 		previous_bin = taraxa::hex2bin(previous_hex);
 
-	const auto signature = taraxa::sign_message(previous_bin + send_bin, exp_bin);
+	const auto
+		signature_bin = taraxa::sign_message(previous_bin + send_bin, exp_bin),
+		signature_hex = taraxa::bin2hex(signature_bin);
 
-	std::cout << taraxa::bin2hex(signature) << " "
-		<< taraxa::bin2hex(previous_bin) << " "
-		<< taraxa::bin2hex(send_bin) << std::endl;
+	/*
+	Convert send to JSON and print to stdout
+	*/
+
+	rapidjson::Document document;
+	document.SetObject();
+
+	// output what was signed
+	send_hex = taraxa::bin2hex(send_bin);
+	previous_hex = taraxa::bin2hex(previous_bin);
+
+	auto& allocator = document.GetAllocator();
+	document.AddMember("signature", rapidjson::StringRef(signature_hex), allocator);
+	document.AddMember("previous", rapidjson::StringRef(previous_hex), allocator);
+	document.AddMember("send", rapidjson::StringRef(send_hex), allocator);
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+	document.Accept(writer);
+	std::cout << buffer.GetString() << std::endl;
 
 	return EXIT_SUCCESS;
 }
