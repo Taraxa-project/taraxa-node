@@ -1,19 +1,29 @@
 PROGRAMS = generate_private_key print_key_info sign_message verify_message create_send create_receive
 
-COMPILE = @echo CXX $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
+COMPILE = @echo CXX $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -I submodules/rapidjson/include -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
 HEADERS = bin2hex2bin.hpp signatures.hpp
 
 all: dependencies $(PROGRAMS) $(HEADERS)
 
-dependencies: submodules/cryptopp submodules/cryptopp/libcryptopp.a
+dependencies: \
+    submodules/cryptopp \
+    submodules/cryptopp/libcryptopp.a \
+    submodules/rapidjson \
+    submodules/rapidjson/include/rapidjson/document.h
 
 submodules/cryptopp:
-	@echo cryptopp submodule does not seem to exists, did you use --recursive in git clone?
+	@echo cryptopp submodule does not seem to exists, did you use --recursive in git clone? && exit 1
 
 submodules/cryptopp/libcryptopp.a: submodules/cryptopp
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
 	$(MAKE) -C submodules/cryptopp && touch $@
+
+submodules/rapidjson:
+	@echo rapidjson submodule does not seem to exists, did you use --recursive in git clone? && exit 1
+
+submodules/rapidjson/include/rapidjson/document.h: submodules/rapidjson
+	@touch $@
 
 generate_private_key: generate_private_key.cpp Makefile
 	$(COMPILE)

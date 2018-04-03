@@ -2,6 +2,7 @@
 Copyright 2018 Ilja Honkonen
 */
 
+#define RAPIDJSON_HAS_STDSTRING 1
 
 #include "bin2hex2bin.hpp"
 #include "signatures.hpp"
@@ -12,6 +13,9 @@ Copyright 2018 Ilja Honkonen
 #include <cryptopp/hex.h>
 #include <cryptopp/oids.h>
 #include <cryptopp/osrng.h>
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -19,6 +23,10 @@ Copyright 2018 Ilja Honkonen
 
 
 int main(int argc, char* argv[]) {
+
+	/*
+	Parse command line options and validate input
+	*/
 
 	std::string exp_hex, receiver_hex, new_balance_str, payload_hex, previous_hex;
 
@@ -70,7 +78,12 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	const std::string
+
+	/*
+	Convert input to binary and sign
+	*/
+
+	auto
 		exp_bin = taraxa::hex2bin(exp_hex),
 		receiver_bin = taraxa::hex2bin(receiver_hex),
 		payload_bin = taraxa::hex2bin(payload_hex),
@@ -83,15 +96,38 @@ int main(int argc, char* argv[]) {
 		8
 	);
 
-	const auto signature = taraxa::sign_message(
-		previous_bin + new_balance_bin + receiver_bin + payload_bin,
-	exp_bin);
+	const auto
+		signature_bin = taraxa::sign_message(
+			previous_bin + new_balance_bin + receiver_bin + payload_bin,
+			exp_bin
+		),
+		signature_hex = taraxa::bin2hex(signature_bin);
 
-	std::cout << taraxa::bin2hex(signature) << " "
-		<< taraxa::bin2hex(previous_bin) << " "
-		<< taraxa::bin2hex(new_balance_bin) << " "
-		<< taraxa::bin2hex(receiver_bin) << " "
-		<< taraxa::bin2hex(payload_bin) << std::endl;
+
+	/*
+	Convert send to JSON and print to stdout
+	*/
+
+	rapidjson::Document document;
+	document.SetObject();
+
+	// output what was signed
+	previous_hex = taraxa::bin2hex(previous_bin);
+	receiver_hex = taraxa::bin2hex(receiver_bin);
+	payload_hex = taraxa::bin2hex(payload_bin);
+	const auto new_balance_hex = taraxa::bin2hex(new_balance_bin);
+
+	auto& allocator = document.GetAllocator();
+	document.AddMember("signature", rapidjson::StringRef(signature_hex), allocator);
+	document.AddMember("previous", rapidjson::StringRef(previous_hex), allocator);
+	document.AddMember("receiver", rapidjson::StringRef(receiver_hex), allocator);
+	document.AddMember("payload", rapidjson::StringRef(payload_hex), allocator);
+	document.AddMember("new-balance", rapidjson::StringRef(new_balance_hex), allocator);
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+	document.Accept(writer);
+	std::cout << buffer.GetString() << std::endl;
 
 	return EXIT_SUCCESS;
 }
