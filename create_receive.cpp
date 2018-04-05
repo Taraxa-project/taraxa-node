@@ -78,8 +78,12 @@ int main(int argc, char* argv[]) {
 	Convert input to binary and sign
 	*/
 
+	const auto keys = taraxa::get_public_key_hex(exp_hex);
+	const auto
+		exp_bin = taraxa::hex2bin(keys[0]),
+		pub_hex = keys[1] + keys[2];
+
 	auto
-		exp_bin = taraxa::hex2bin(exp_hex),
 		send_bin = taraxa::hex2bin(send_hex),
 		previous_bin = taraxa::hex2bin(previous_hex);
 
@@ -102,6 +106,7 @@ int main(int argc, char* argv[]) {
 	document.AddMember("signature", rapidjson::StringRef(signature_hex), allocator);
 	document.AddMember("previous", rapidjson::StringRef(previous_hex), allocator);
 	document.AddMember("send", rapidjson::StringRef(send_hex), allocator);
+	document.AddMember("public-key", rapidjson::StringRef(pub_hex), allocator);
 
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
