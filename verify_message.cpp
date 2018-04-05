@@ -49,27 +49,9 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 
-	if (x_hex.size() != 64) {
-		std::cerr << "X coordinate of public point must be 64 characters but is "
-			<< x_hex.size() << std::endl;
-		return EXIT_FAILURE;
-	}
-	if (y_hex.size() != 64) {
-		std::cerr << "Y coordinate of public point must be 64 characters but is "
-			<< y_hex.size() << std::endl;
-		return EXIT_FAILURE;
-	}
-
 	std::string signature_hex;
 	std::cin >> signature_hex;
-
-	const std::string
-		x_bin = taraxa::hex2bin(x_hex),
-		y_bin = taraxa::hex2bin(y_hex),
-		signature_bin = taraxa::hex2bin(signature_hex),
-		message_bin = taraxa::hex2bin(message_hex);
-
-	const bool verified = taraxa::verify_signature(signature_bin, message_bin, x_bin, y_bin);
+	const bool verified = taraxa::verify_signature_hex(signature_hex, message_hex, x_hex, y_hex);
 
 	if (verified) {
 		if (option_variables.count("verbose") > 0) {

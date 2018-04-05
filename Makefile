@@ -1,10 +1,16 @@
-PROGRAMS = generate_private_key print_key_info sign_message verify_message create_send create_receive
+PROGRAMS = \
+    generate_private_key \
+    print_key_info \
+    sign_message \
+    verify_message \
+    create_send \
+    create_receive
 
 COMPILE = @echo CXX $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -I submodules/rapidjson/include -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
 HEADERS = bin2hex2bin.hpp signatures.hpp
 
-all: dependencies $(PROGRAMS) $(HEADERS)
+all: dependencies $(PROGRAMS)
 
 dependencies: \
     submodules/cryptopp \
@@ -25,22 +31,22 @@ submodules/rapidjson:
 submodules/rapidjson/include/rapidjson/document.h: submodules/rapidjson
 	@touch $@
 
-generate_private_key: generate_private_key.cpp Makefile
+generate_private_key: generate_private_key.cpp $(HEADERS) Makefile
 	$(COMPILE)
 
-print_key_info: print_key_info.cpp Makefile
+print_key_info: print_key_info.cpp $(HEADERS) Makefile
 	$(COMPILE)
 
-sign_message: sign_message.cpp Makefile
+sign_message: sign_message.cpp $(HEADERS) Makefile
 	$(COMPILE)
 
-verify_message: verify_message.cpp Makefile
+verify_message: verify_message.cpp $(HEADERS) Makefile
 	$(COMPILE)
 
-create_send: create_send.cpp Makefile
+create_send: create_send.cpp $(HEADERS) Makefile
 	$(COMPILE)
 
-create_receive: create_receive.cpp Makefile
+create_receive: create_receive.cpp $(HEADERS) Makefile
 	$(COMPILE)
 
 c: clean

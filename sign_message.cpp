@@ -50,12 +50,9 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	const std::string exp_bin = taraxa::hex2bin(exp_hex);
-
 	std::string message_hex;
 	std::cin >> message_hex;
-
-	const auto signature = taraxa::sign_message(taraxa::hex2bin(message_hex), exp_bin);
+	const auto signature = taraxa::sign_message_hex(message_hex, exp_hex);
 
 	std::cout << taraxa::bin2hex(signature);
 

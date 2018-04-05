@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 		previous_bin = taraxa::hex2bin(previous_hex);
 
 	const auto
-		signature_bin = taraxa::sign_message(previous_bin + send_bin, exp_bin),
+		signature_bin = taraxa::sign_message_bin(previous_bin + send_bin, exp_bin),
 		signature_hex = taraxa::bin2hex(signature_bin);
 
 	/*

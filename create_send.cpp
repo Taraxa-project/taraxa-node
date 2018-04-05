@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 	);
 
 	const auto
-		signature_bin = taraxa::sign_message(
+		signature_bin = taraxa::sign_message_bin(
 			previous_bin + new_balance_bin + receiver_bin + payload_bin,
 			exp_bin
 		),

@@ -5,12 +5,14 @@ Copyright 2018 Ilja Honkonen
 #ifndef SIGNATURES_HPP
 #define SIGNATURES_HPP
 
+#include "bin2hex2bin.hpp"
 
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/oids.h>
 #include <cryptopp/osrng.h>
 
+#include <stdexcept>
 #include <string>
 
 
@@ -22,10 +24,12 @@ namespace taraxa {
 
 Usually @Chars = std::string.
 */
-template<class Chars> Chars sign_message(
+template<class Chars> Chars sign_message_bin(
 	const Chars& message,
 	const Chars& exponent
 ) {
+	// TODO: add error checking
+
 	CryptoPP::Integer exp;
 	exp.Decode(reinterpret_cast<const CryptoPP::byte*>(exponent.data()), exponent.size());
 
@@ -48,6 +52,18 @@ template<class Chars> Chars sign_message(
 }
 
 
+//! As sign_message_bin but first converts inputs from hex to binary
+template<class Chars> Chars sign_message_hex(
+	const Chars& message_hex,
+	const Chars& exponent_hex
+) {
+	return sign_message_bin(
+		hex2bin(message_hex),
+		hex2bin(exponent_hex)
+	);
+}
+
+
 /*
 Verifies @signature of @message.
 
@@ -56,12 +72,13 @@ All parameters must be given in binary form.
 
 Usually @Chars = std::string.
 */
-template<class Chars> bool verify_signature(
+template<class Chars> bool verify_signature_bin(
 	const Chars& signature,
 	const Chars& message,
 	const Chars& x_bin,
 	const Chars& y_bin
 ) {
+	//TODO: add error checking
 
 	CryptoPP::Integer x, y;
 	x.Decode(reinterpret_cast<const CryptoPP::byte*>(x_bin.data()), x_bin.size());
@@ -75,6 +92,36 @@ template<class Chars> bool verify_signature(
 	return verifier.VerifyMessage(
 		reinterpret_cast<const CryptoPP::byte*>(message.data()), message.size(),
 		reinterpret_cast<const CryptoPP::byte*>(signature.data()), signature.size()
+	);
+}
+
+
+//! As verify_signature_bin but first converts inputs from hex to binary
+template<class Chars> bool verify_signature_hex(
+	const Chars& signature,
+	const Chars& message,
+	const Chars& x_hex,
+	const Chars& y_hex
+) {
+	if (x_hex.size() != 64) {
+		throw std::invalid_argument(
+			"X coordinate of public point must be 64 characters but is "
+			+ std::to_string(x_hex.size())
+		);
+	}
+
+	if (y_hex.size() != 64) {
+		throw std::invalid_argument(
+			"Y coordinate of public point must be 64 characters but is "
+			+ std::to_string(y_hex.size())
+		);
+	}
+
+	return verify_signature_bin(
+		hex2bin(signature),
+		hex2bin(message),
+		hex2bin(x_hex),
+		hex2bin(y_hex)
 	);
 }
 
