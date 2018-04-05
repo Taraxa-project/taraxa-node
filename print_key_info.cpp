@@ -3,7 +3,7 @@ Copyright 2018 Ilja Honkonen
 */
 
 
-#include "bin2hex2bin.hpp"
+#include "signatures.hpp"
 
 #include <boost/program_options.hpp>
 #include <cryptopp/eccrypto.h>
@@ -39,31 +39,16 @@ int main(int argc, char* argv[]) {
 
 	std::string exp_hex;
 	std::cin >> exp_hex;
-	std::cout << "Private key:                " << exp_hex << std::endl;
 
-	const std::string exp_bin = taraxa::hex2bin(exp_hex);
-	CryptoPP::Integer exponent;
-	exponent.Decode(reinterpret_cast<const CryptoPP::byte*>(exp_bin.data()), exp_bin.size());
-
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
-	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exponent);
-
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
-	private_key.MakePublicKey(public_key);
-	const auto public_element = public_key.GetPublicElement();
-	const auto
-		&x_pub = public_element.x,
-		&y_pub = public_element.y;
-
-	std::string x_bin, y_bin;
-	x_bin.resize(32); // TODO use named constant
-	y_bin.resize(32);
-
-	x_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(x_bin.data())), x_bin.size());
-	y_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(y_bin.data())), y_bin.size());
-
-	std::cout << "Public key, first element:  " << taraxa::bin2hex(x_bin) << std::endl;
-	std::cout << "Public key, second element: " << taraxa::bin2hex(y_bin) << std::endl;
+	try {
+		const auto keys = taraxa::get_public_key_hex(exp_hex);
+		std::cout << "Private key:                " << keys[0] << std::endl;
+		std::cout << "Public key, first element:  " << keys[1] << std::endl;
+		std::cout << "Public key, second element: " << keys[2] << std::endl;
+	} catch (const std::exception& e) {
+		std::cerr << "Couldn't derive public key from private key: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }

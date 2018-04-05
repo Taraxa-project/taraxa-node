@@ -12,11 +12,64 @@ Copyright 2018 Ilja Honkonen
 #include <cryptopp/oids.h>
 #include <cryptopp/osrng.h>
 
+#include <array>
 #include <stdexcept>
 #include <string>
 
 
 namespace taraxa {
+
+
+/*
+Returns private exponent and public X and Y coordinates derived from it.
+
+Arguments must be, and returned values are, hex encoded without the leading 0x.
+
+Usually Chars = std::string.
+*/
+template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& private_exponent) {
+	using std::to_string;
+
+	if (private_exponent.size() != 64) {
+		throw std::invalid_argument(
+			"Private exponent must be 64 chars but is "
+			+ to_string(private_exponent.size()) + " chars."
+		);
+	}
+	const std::string exp_bin = taraxa::hex2bin(private_exponent);
+
+	CryptoPP::Integer exponent;
+	exponent.Decode(reinterpret_cast<const CryptoPP::byte*>(exp_bin.data()), exp_bin.size());
+
+	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
+	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exponent);
+
+	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
+	private_key.MakePublicKey(public_key);
+	const auto public_element = public_key.GetPublicElement();
+	const auto
+		&x_pub = public_element.x,
+		&y_pub = public_element.y;
+
+	std::string x_bin, y_bin;
+	x_bin.resize(32); // TODO use named constant
+	y_bin.resize(32);
+
+	x_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(x_bin.data())), x_bin.size());
+	y_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(y_bin.data())), y_bin.size());
+
+	// return private exponent that was used, padded to 64 characters
+	auto exp_hex = taraxa::bin2hex(exp_bin);
+	if (exp_hex.size() < 64) {
+		exp_hex.insert(0, 64 - exp_hex.size(), '0');
+	}
+	if (exp_hex.size() > 64) {
+		throw std::logic_error(
+			"Private exponent is " + to_string(exp_hex.size()) + " chars."
+		);
+	}
+	return {exp_hex, taraxa::bin2hex(x_bin), taraxa::bin2hex(y_bin)};
+}
 
 
 /*
