@@ -4,7 +4,8 @@ PROGRAMS = \
     sign_message \
     verify_message \
     create_send \
-    create_receive
+    create_receive \
+    append_to_ledger
 
 COMPILE = @echo CXX $@ && g++ -std=c++17 -O3 -W -Wall -Wextra -pedantic $< -o $@ -I submodules -I submodules/rapidjson/include -lboost_program_options -L submodules/cryptopp -lcryptopp -DCRYPTOPP_DISABLE_ASM
 
@@ -48,6 +49,9 @@ create_send: create_send.cpp $(HEADERS) Makefile
 
 create_receive: create_receive.cpp $(HEADERS) Makefile
 	$(COMPILE)
+
+append_to_ledger: append_to_ledger.cpp $(HEADERS) Makefile
+	$(COMPILE) -lboost_filesystem -lboost_system
 
 c: clean
 clean:
