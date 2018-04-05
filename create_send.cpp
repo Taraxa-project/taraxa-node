@@ -67,8 +67,9 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	if (previous_hex.size() != 2 * CryptoPP::BLAKE2s::DIGESTSIZE) {
-		std::cerr << "Hash of previous transaction must be " << 2 * CryptoPP::BLAKE2s::DIGESTSIZE
+	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
+	if (previous_hex.size() != nr_hash_chars) {
+		std::cerr << "Hash of previous transaction must be " << nr_hash_chars
 			<< " characters but is " << previous_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
