@@ -6,6 +6,7 @@ Copyright 2018 Ilja Honkonen
 #define RAPIDJSON_HAS_STDSTRING 1
 
 #include "bin2hex2bin.hpp"
+#include "hashes.hpp"
 #include "ledger_storage.hpp"
 #include "signatures.hpp"
 
@@ -23,6 +24,7 @@ Copyright 2018 Ilja Honkonen
 #include "rapidjson/error/en.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -155,7 +157,7 @@ int main(int argc, char* argv[]) {
 		std::cerr << "Value of previous is not a string." << std::endl;
 		return EXIT_FAILURE;
 	}
-	// normalize hex representation of previous
+	// normalize hex representation of previous transaction
 	const auto previous_hex
 		= taraxa::bin2hex(
 			taraxa::hex2bin(
@@ -172,63 +174,213 @@ int main(int argc, char* argv[]) {
 		std::cout << "Previous transaction: " << previous_hex << std::endl;
 	}
 
-	// check for signature
+	// check for signature and normalize
 	if (not document.HasMember("signature")) {
 		std::cerr << "JSON object doesn't have a signature key." << std::endl;
 		return EXIT_FAILURE;
 	}
-
 	const auto& signature_json = document["signature"];
 	if (not signature_json.IsString()) {
 		std::cerr << "Value of signature is not a string." << std::endl;
 		return EXIT_FAILURE;
 	}
-	const auto signature_hex = signature_json.GetString();
+	const auto signature_hex
+		= taraxa::bin2hex(
+			taraxa::hex2bin(
+				std::string(signature_json.GetString())
+			)
+		);
+	if (verbose) {
+		std::cout << "Signature: " << signature_hex << std::endl;
+	}
 
 	// check for public key
 	if (not document.HasMember("public-key")) {
 		std::cerr << "JSON object doesn't have a public-key key." << std::endl;
 		return EXIT_FAILURE;
 	}
-
 	const auto& pubkey_json = document["public-key"];
 	if (not pubkey_json.IsString()) {
 		std::cerr << "Value of public-key is not a string." << std::endl;
 		return EXIT_FAILURE;
 	}
-	// normalize
 	const auto pubkey_hex
 		= taraxa::bin2hex(
 			taraxa::hex2bin(
 				std::string(pubkey_json.GetString())
 			)
 		);
+	if (pubkey_hex.size() != 128) {
+		std::cerr << "Public key must be " << 128
+			<< " characters but is " << pubkey_hex.size() << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (verbose) {
+		std::cout << "Public key: " << pubkey_hex << std::endl;
+	}
+
+	/*
+	Verify signature
+	*/
+
+	std::string signature_payload_hex;
 
 	// send or receive?
-
-	/*
-	Find previous transaction in ledger data
-
-	Assume existing transactions in ledger data are correct
-	*/
-
-	const auto previous_path = taraxa::get_transaction_path(previous_hex, transactions_path);
-	if (not boost::filesystem::exists(previous_path)) {
-		std::cerr << "Previous transaction " << previous_path
-			<< " doesn't exist." << std::endl;
+	if (not document.HasMember("send") and not document.HasMember("receiver")) {
+		std::cerr << "JSON object doesn't have send or receiver key." << std::endl;
 		return EXIT_FAILURE;
+	}
+	if (document.HasMember("send") and document.HasMember("receiver")) {
+		std::cerr << "JSON object has send and receiver key." << std::endl;
+		return EXIT_FAILURE;
+	}
+	// receive
+	if (document.HasMember("send")) {
+
+		const auto& send_json = document["send"];
+		if (not send_json.IsString()) {
+			std::cerr << "Value of send is not string." << std::endl;
+			return EXIT_FAILURE;
+		}
+		const auto send_hex
+			= taraxa::bin2hex(
+				taraxa::hex2bin(
+					std::string(send_json.GetString())
+				)
+			);
+
+		const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
+		if (send_hex.size() != nr_hash_chars) {
+			std::cerr << "Hash of send transaction must be " << nr_hash_chars
+				<< " characters but is " << send_hex.size() << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		signature_payload_hex = previous_hex + send_hex;
+
+	// send
+	} else {
+
+		const auto& receiver_json = document["receiver"];
+		if (not receiver_json.IsString()) {
+			std::cerr << "Value of receiver is not string." << std::endl;
+		}
+		const auto receiver_hex
+			= taraxa::bin2hex(
+				taraxa::hex2bin(
+					std::string(receiver_json.GetString())
+				)
+			);
+		if (verbose) {
+			std::cout << "Receiver: " << receiver_hex << std::endl;
+		}
+
+		if (not document.HasMember("new-balance")) {
+			std::cerr << "JSON object doesn't have new-balance key." << std::endl;
+			return EXIT_FAILURE;
+		}
+		const auto& new_balance_json = document["new-balance"];
+		if (not new_balance_json.IsString()) {
+			std::cerr << "Value of new-balance is not string." << std::endl;
+			return EXIT_FAILURE;
+		}
+		const auto new_balance_hex
+			= taraxa::bin2hex(
+				taraxa::hex2bin(
+					std::string(new_balance_json.GetString())
+				)
+			);
+		if (verbose) {
+			std::cout << "New balance: " << new_balance_hex << std::endl;
+		}
+
+		if (not document.HasMember("payload")) {
+			std::cerr << "JSON object doesn't have payload key." << std::endl;
+			return EXIT_FAILURE;
+		}
+		const auto& payload_json = document["payload"];
+		if (not payload_json.IsString()) {
+			std::cerr << "Value of payload is not string." << std::endl;
+			return EXIT_FAILURE;
+		}
+		const auto payload_hex
+			= taraxa::bin2hex(
+				taraxa::hex2bin(
+					std::string(payload_json.GetString())
+				)
+			);
+		if (verbose) {
+			std::cout << "Payload: " << payload_hex << std::endl;
+		}
+
+		signature_payload_hex = previous_hex + new_balance_hex + receiver_hex + payload_hex;
+	}
+
+	if (not taraxa::verify_signature_hex(
+		signature_hex,
+		signature_payload_hex,
+		pubkey_hex.substr(0, pubkey_hex.size() / 2),
+		pubkey_hex.substr(pubkey_hex.size() / 2, pubkey_hex.size() / 2)
+	)) {
+		std::cerr << "Signature verification failed" << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (verbose) {
+		std::cout << "Signature OK" << std::endl;
 	}
 
 	/*
-	Check signature of transaction from stdin
+	Calcualte hash
 	*/
 
+	const auto
+		hash_payload_hex = signature_hex + signature_payload_hex,
+		hash_hex = taraxa::get_hash_hex<CryptoPP::BLAKE2s>(hash_payload_hex),
+		hash_comment = "hash:" + hash_hex;
 
-/*
-	if (not document.HasMember("")) {
-		std::cerr << << std::endl;
+	/*
+	TODO: append current hash to previous transaction for easier seeking
+	*/
+
+	// genesis transaction doesn't have a previous one
+	if (previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
+		const auto previous_path = taraxa::get_transaction_path(previous_hex, transactions_path);
+		if (not boost::filesystem::exists(previous_path)) {
+			std::cerr << "Previous transaction " << previous_path
+				<< " doesn't exist." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		// TODO: check that a genesis transaction doesn't exist for this account
+	}
+
+	/*
+	Add transaction given on stdin to ledger data
+	*/
+
+	const auto
+		transaction_path = taraxa::get_transaction_path(hash_hex, transactions_path),
+		transaction_dir = transaction_path.parent_path();
+
+	if (boost::filesystem::exists(transaction_path)) {
+		std::cerr << "Transaction already exists." << std::endl;
 		return EXIT_FAILURE;
 	}
-*/
+	if (not boost::filesystem::exists(transaction_dir)) {
+		if (verbose) {
+			std::cout << "Transaction directory doesn't exist, creating..." << std::endl;
+		}
+		boost::filesystem::create_directories(transaction_dir);
+	}
+	if (verbose) {
+		std::cout << "Writing transaction to " << transaction_path << std::endl;
+	}
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+	document.Accept(writer);
+	std::ofstream transaction_file(transaction_path.c_str());
+	transaction_file << buffer.GetString() << std::endl;
+
 	return EXIT_SUCCESS;
 }
