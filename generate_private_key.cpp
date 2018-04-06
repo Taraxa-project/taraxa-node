@@ -41,6 +41,10 @@ int main(int argc, char* argv[]) {
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
 	CryptoPP::AutoSeededRandomPool prng;
 	private_key.Initialize(prng, CryptoPP::ASN1::secp256r1());
+	if (not private_key.Validate(prng, 3)) {
+		std::cerr << "Validation of private key failed!" << std::endl;
+		return EXIT_FAILURE;
+	}
 	const CryptoPP::Integer& exponent = private_key.GetPrivateExponent();
 
 	std::string exp_bin;
