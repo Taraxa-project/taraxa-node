@@ -43,9 +43,16 @@ template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& priva
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
 	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exponent);
+	CryptoPP::AutoSeededRandomPool prng;
+	if (not private_key.Validate(prng, 3)) {
+		throw std::invalid_argument("Validation of private key failed!");
+	}
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
 	private_key.MakePublicKey(public_key);
+	if (not public_key.Validate(prng, 3)) {
+		throw std::invalid_argument("Validation of public key failed!");
+	}
 	const auto public_element = public_key.GetPublicElement();
 	const auto
 		&x_pub = public_element.x,
@@ -88,11 +95,14 @@ template<class Chars> Chars sign_message_bin(
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
 	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exp);
+	CryptoPP::AutoSeededRandomPool prng;
+	if (not private_key.Validate(prng, 3)) {
+		throw std::invalid_argument("Validation of private key failed!");
+	}
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer(private_key);
 	Chars signature(signer.MaxSignatureLength(), 0);
 
-	CryptoPP::AutoSeededRandomPool prng;
 	const auto signature_length = signer.SignMessage(
 		prng,
 		reinterpret_cast<const CryptoPP::byte*>(message.data()),
@@ -140,6 +150,10 @@ template<class Chars> bool verify_signature_bin(
 	const CryptoPP::ECP::Point point{x, y};
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
 	public_key.Initialize(CryptoPP::ASN1::secp256r1(), point);
+	CryptoPP::AutoSeededRandomPool prng;
+	if (not public_key.Validate(prng, 3)) {
+		throw std::invalid_argument("Validation of public key failed!");
+	}
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier verifier(public_key);
 	return verifier.VerifyMessage(
