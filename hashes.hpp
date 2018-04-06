@@ -22,7 +22,7 @@ template<class Hasher, class Chars> Chars get_hash_bin(const Chars& payload) {
 	Hasher hasher;
 	Chars digest_bin(Hasher::DIGESTSIZE, 0);
 	hasher.CalculateDigest(
-		reinterpret_cast<CryptoPP::byte*>(digest_bin.data()),
+		reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(digest_bin.data())),
 		reinterpret_cast<const CryptoPP::byte*>(payload.data()),
 		payload.size()
 	);
