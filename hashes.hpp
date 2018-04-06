@@ -32,7 +32,7 @@ template<class Hasher, class Chars> Chars get_hash_bin(const Chars& payload) {
 
 //! As get-hash_bin but argument and result are hex encoded without leading 0x.
 template<class Hasher, class Chars> Chars get_hash_hex(const Chars& payload) {
-	return bin2hex(get_hash_bin(hex2bin(payload)));
+	return bin2hex(get_hash_bin<Hasher>(hex2bin(payload)));
 }
 
 } // namespace taraxa
