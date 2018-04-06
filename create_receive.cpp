@@ -5,6 +5,7 @@ Copyright 2018 Ilja Honkonen
 #define RAPIDJSON_HAS_STDSTRING 1
 
 #include "bin2hex2bin.hpp"
+#include "hashes.hpp"
 #include "signatures.hpp"
 
 #include <boost/program_options.hpp>
@@ -75,21 +76,23 @@ int main(int argc, char* argv[]) {
 	}
 
 	/*
-	Convert input to binary and sign
+	Convert input to binary, sign and hash
 	*/
 
 	const auto keys = taraxa::get_public_key_hex(exp_hex);
 	const auto
 		exp_bin = taraxa::hex2bin(keys[0]),
-		pub_hex = keys[1] + keys[2];
+		pub_hex = keys[1] + keys[2],
 
-	auto
 		send_bin = taraxa::hex2bin(send_hex),
-		previous_bin = taraxa::hex2bin(previous_hex);
+		previous_bin = taraxa::hex2bin(previous_hex),
+		signature_payload_bin = previous_bin + send_bin,
+		signature_bin = taraxa::sign_message_bin(signature_payload_bin, exp_bin),
 
-	const auto
-		signature_bin = taraxa::sign_message_bin(previous_bin + send_bin, exp_bin),
-		signature_hex = taraxa::bin2hex(signature_bin);
+		hash_payload_bin = signature_bin + signature_payload_bin,
+		signature_hex = taraxa::bin2hex(signature_bin),
+		// hash added only to make users' life easier
+		digest_hex = "hash:" + taraxa::bin2hex(taraxa::get_hash_bin<CryptoPP::BLAKE2s>(hash_payload_bin));
 
 	/*
 	Convert send to JSON and print to stdout
@@ -107,6 +110,7 @@ int main(int argc, char* argv[]) {
 	document.AddMember("previous", rapidjson::StringRef(previous_hex), allocator);
 	document.AddMember("send", rapidjson::StringRef(send_hex), allocator);
 	document.AddMember("public-key", rapidjson::StringRef(pub_hex), allocator);
+	document.AddMember("comment", rapidjson::StringRef(digest_hex), allocator);
 
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
