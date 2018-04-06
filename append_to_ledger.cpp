@@ -363,8 +363,10 @@ int main(int argc, char* argv[]) {
 		transaction_dir = transaction_path.parent_path();
 
 	if (boost::filesystem::exists(transaction_path)) {
-		std::cerr << "Transaction already exists." << std::endl;
-		return EXIT_FAILURE;
+		if (verbose) {
+			std::cerr << "Transaction already exists." << std::endl;
+		}
+		return EXIT_SUCCESS;
 	}
 	if (not boost::filesystem::exists(transaction_dir)) {
 		if (verbose) {
