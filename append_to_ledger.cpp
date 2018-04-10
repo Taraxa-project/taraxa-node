@@ -112,6 +112,21 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	// create subdirectory for account data
+	auto accounts_path = ledger_path;
+	accounts_path /= "accounts";
+	if (not boost::filesystem::exists(accounts_path)) {
+		try {
+			if (verbose) {
+				std::cout << "Accounts directory doesn't exist, creating..." << std::endl;
+			}
+			boost::filesystem::create_directory(accounts_path);
+		} catch (const std::exception& e) {
+			std::cerr << "Couldn't create a directory for accounts: " << e.what() << std::endl;
+			return EXIT_FAILURE;
+		}
+	}
+
 	/*
 	Read and verify input
 	*/
@@ -351,7 +366,35 @@ int main(int argc, char* argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		// TODO: check that a genesis transaction doesn't exist for this account
+	// check that a genesis transaction doesn't exist for this account
+	} else {
+		const auto
+			genesis_path = taraxa::get_account_path(pubkey_hex, accounts_path),
+			genesis_dir = genesis_path.parent_path();
+		if (boost::filesystem::exists(genesis_path)) {
+			// TODO: only error out if different genesis provided
+			std::cerr << "Genesis transaction already exists for account "
+				<< pubkey_hex << std::endl;
+			return EXIT_FAILURE;
+		}
+		if (not boost::filesystem::exists(genesis_dir)) {
+			if (verbose) {
+				std::cout << "Account directory doesn't exist, creating..." << std::endl;
+			}
+			boost::filesystem::create_directories(genesis_dir);
+		}
+
+		if (verbose) {
+			std::cout << "Recording genesis to " << genesis_path << std::endl;
+		}
+		rapidjson::StringBuffer buffer;
+		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+		rapidjson::Document account_data;
+		account_data.SetObject();
+		account_data.AddMember("genesis", rapidjson::StringRef(hash_hex), account_data.GetAllocator());
+		account_data.Accept(writer);
+		std::ofstream account_file(genesis_path.c_str());
+		account_file << buffer.GetString() << std::endl;
 	}
 
 	/*

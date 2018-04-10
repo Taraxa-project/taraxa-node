@@ -42,6 +42,28 @@ template<class Path> Path get_transaction_path(
 	return transaction_path;
 }
 
+//! Usually Path == boost::filesystem::path
+template<class Path> Path get_account_path(
+	const std::string& pubkey_hex,
+	const Path& accounts_path
+) {
+	using std::to_string;
+
+	const auto nr_pubkey_chars = 128;
+	if (pubkey_hex.size() != nr_pubkey_chars) {
+		throw std::invalid_argument(
+			"Hash of previous transaction must be " + to_string(nr_pubkey_chars)
+			+ " characters but is " + to_string(pubkey_hex.size())
+		);
+	}
+
+	auto account_path = accounts_path;
+	account_path /= pubkey_hex.substr(0, 2);
+	account_path /= pubkey_hex.substr(2);
+
+	return account_path;
+}
+
 } // namespace taraxa
 
 #endif // ifndef LEDGER_STORAGE_HPP
