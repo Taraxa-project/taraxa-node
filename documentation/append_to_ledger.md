@@ -18,7 +18,7 @@ Add this transaction to the ledger located in ledger_data directory:
 ./append_to_ledger --ledger-path ledger_data < genesis_transaction
 ```
 
-Create a send of one coin to another account with the hash of the above transaction as previous and the address of target account as receiver:
+Create a send of one coin, by decreasing balance of this account from 9 to 8, to another account with the hash of the above transaction as previous and the address of target account as receiver:
 ```bash
 ./create_send \
   --key 0000000000000000000000000000000000000000000000000000000000000001 \
