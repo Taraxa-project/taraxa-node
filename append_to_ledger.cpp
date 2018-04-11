@@ -345,7 +345,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	/*
-	Calcualte hash
+	Add transaction to ledger data
 	*/
 
 	const auto
@@ -353,11 +353,7 @@ int main(int argc, char* argv[]) {
 		hash_hex = taraxa::get_hash_hex<CryptoPP::BLAKE2s>(hash_payload_hex),
 		hash_comment = "hash:" + hash_hex;
 
-	/*
-	TODO: append current hash to previous transaction for easier seeking
-	*/
-
-	// genesis transaction doesn't have a previous one
+	// make sure previous transaction exists and doesn't already have a next one
 	if (previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
 		const auto previous_path = taraxa::get_transaction_path(previous_hex, transactions_path);
 		if (not boost::filesystem::exists(previous_path)) {
@@ -365,6 +361,46 @@ int main(int argc, char* argv[]) {
 				<< " doesn't exist." << std::endl;
 			return EXIT_FAILURE;
 		}
+
+		std::ifstream previous_file_old(previous_path.c_str());
+		std::string previous_str;
+		while (previous_file_old.good()) {
+			std::string temp;
+			std::getline(previous_file_old, temp);
+			if (temp.size() > 0) {
+				previous_str += temp;
+			}
+		}
+		previous_file_old.close();
+
+		rapidjson::Document previous_data;
+		previous_data.Parse(previous_str.c_str());
+		if (previous_data.HasParseError()) {
+			std::cerr << "Couldn't parse json data of previous transaction at character position "
+				<< previous_data.GetErrorOffset() << ": "
+				<< rapidjson::GetParseError_En(previous_data.GetParseError())
+				<< std::endl;
+			return EXIT_FAILURE;
+		}
+
+		if (previous_data.HasMember("next")) {
+			// TODO: only error out if previous has different next transaction
+			std::cerr << "Previous transaction already has a next transaction." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		// add current one as next of previous to make seeking easier
+		if (verbose) {
+			std::cout << "Appending transaction hash to previous transaction at "
+				<< previous_path << std::endl;
+		}
+		previous_data.AddMember("next", rapidjson::StringRef(hash_hex), previous_data.GetAllocator());
+		rapidjson::StringBuffer buffer;
+		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+		previous_data.Accept(writer);
+		std::ofstream previous_file_new(previous_path.c_str());
+		previous_file_new << buffer.GetString() << std::endl;
+		previous_file_new.close();
 
 	// check that a genesis transaction doesn't exist for this account
 	} else {
