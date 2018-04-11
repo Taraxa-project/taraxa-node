@@ -1,6 +1,6 @@
 # Basics
 
-Create a send transaction without payload, self as receiver, previous as 0 to signify genesis transaction and without payload:
+Create a send transaction without payload, self as receiver, previous as 0 to signify genesis transaction:
 ```bash
 ./create_send \
   --key 0000000000000000000000000000000000000000000000000000000000000001 \
