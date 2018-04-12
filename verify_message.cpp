@@ -7,10 +7,6 @@ Copyright 2018 Ilja Honkonen
 #include "signatures.hpp"
 
 #include <boost/program_options.hpp>
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/oids.h>
-#include <cryptopp/osrng.h>
 
 #include <cstdlib>
 #include <iostream>
