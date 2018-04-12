@@ -6,10 +6,6 @@ Copyright 2018 Ilja Honkonen
 #include "signatures.hpp"
 
 #include <boost/program_options.hpp>
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/oids.h>
-#include <cryptopp/osrng.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -19,8 +15,9 @@ Copyright 2018 Ilja Honkonen
 int main(int argc, char* argv[]) {
 
 	boost::program_options::options_description options(
-		"Prints information about a key read from standard input.\n"
-		"Usage: program_name [options], where options are:"
+		"Prints information about hex encoded (without leading 0x) "
+		"private key read from standard input.\nUsage: program_name "
+		"[options], where options are:"
 	);
 	options.add_options()
 		("help", "print this help message and exit");
