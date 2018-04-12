@@ -10,13 +10,8 @@ Copyright 2018 Ilja Honkonen
 
 #include <boost/program_options.hpp>
 #include <cryptopp/blake2.h>
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/oids.h>
-#include <cryptopp/osrng.h>
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
 
 #include <cstdlib>
 #include <iostream>
