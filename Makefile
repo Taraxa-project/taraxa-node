@@ -19,7 +19,7 @@ dependencies: \
     submodules/rapidjson \
     submodules/rapidjson/include/rapidjson/document.h
 
-submodules/cryptopp:
+submodules/cryptopp/Readme.txt:
 	@echo cryptopp submodule does not seem to exists, did you use --recursive in git clone? && exit 1
 
 submodules/cryptopp/libcryptopp.a: submodules/cryptopp
