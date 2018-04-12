@@ -14,7 +14,7 @@ HEADERS = bin2hex2bin.hpp signatures.hpp
 all: dependencies $(PROGRAMS)
 
 dependencies: \
-    submodules/cryptopp \
+    submodules/cryptopp/Readme.txt \
     submodules/cryptopp/libcryptopp.a \
     submodules/rapidjson \
     submodules/rapidjson/include/rapidjson/document.h
