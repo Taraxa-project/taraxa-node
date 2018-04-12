@@ -59,18 +59,21 @@ append_to_ledger: append_to_ledger.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 
 c: clean
 clean:
-	rm -f $(PROGRAMS)
+	rm -rf $(PROGRAMS) tests/append_to_ledger/test1/accounts tests/append_to_ledger/test1/transactions
 
 
 TESTS = \
     tests/append_to_ledger/test1/accounts/6B/17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C2964FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5 \
-    tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE
+    tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE \
+    signature_fail1.ok
 
 tests/append_to_ledger/test1/accounts/6B/17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C2964FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5: tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE
 
-tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE: append_to_ledger
-	./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/01_genesis
+tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE: append_to_ledger tests/append_to_ledger/test1/01_genesis
+	@echo -n "TEST 01_genesis... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/01_genesis && echo PASS
 
+signature_fail1.ok: tests/append_to_ledger/test1/02_signature_fail tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE
+	@echo -n "TEST 02_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/02_signature_fail 2> /dev/null || touch signature_fail1.ok && echo PASS
 
 t: test
 test: $(TESTS)
