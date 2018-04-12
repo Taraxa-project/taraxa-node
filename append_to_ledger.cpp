@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 	boost::filesystem::path ledger_path(ledger_path_str);
 
 	if (ledger_path.size() > 0) {
-		if (not boost::filesystem::portable_directory_name(ledger_path_str)) {
+		if (verbose and not boost::filesystem::portable_directory_name(ledger_path_str)) {
 			std::cout << "WARNING: ledger-path isn't portable." << std::endl;
 		}
 
