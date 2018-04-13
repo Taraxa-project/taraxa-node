@@ -20,12 +20,12 @@ Copyright 2018 Ilja Honkonen
 namespace taraxa {
 
 
-/*
+/*!
 Returns private exponent and public X and Y coordinates derived from it.
 
 Arguments must be, and returned values are, hex encoded without the leading 0x.
 
-Usually Chars = std::string.
+Usually @Chars = std::string.
 */
 template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& private_exponent) {
 	using std::to_string;
@@ -79,7 +79,7 @@ template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& priva
 }
 
 
-/*
+/*!
 @exponent must be in binary form.
 
 Usually @Chars = std::string.
@@ -127,7 +127,7 @@ template<class Chars> Chars sign_message_hex(
 }
 
 
-/*
+/*!
 Verifies @signature of @message.
 
 Uses x and y coordinates of public point.
