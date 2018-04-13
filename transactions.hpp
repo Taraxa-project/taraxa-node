@@ -37,7 +37,8 @@ std::string
 	payload_hex,
 	hash_hex, // hash of this transaction's data
 	new_balance_hex,
-	signature_hex;
+	signature_hex,
+	next_hex; // hash of next transaction on creator's chain
 
 
 void load(const std::string& json_file_name, const bool verbose) {
@@ -303,6 +304,25 @@ void load_from_json(const std::string& json, const bool verbose) {
 		}
 	}
 
+	if (document.HasMember("next")) {
+		const auto& next_json = document["next"];
+		if (not next_json.IsString()) {
+			throw std::invalid_argument(
+				__FILE__ "(" + to_string(__LINE__) + ") "
+				"Value of next is not a string"
+			);
+		}
+		next_hex
+			= taraxa::bin2hex(
+				taraxa::hex2bin(
+					std::string(next_json.GetString())
+				)
+			);
+	}
+	if (verbose) {
+		std::cout << "Next: " << next_hex << std::endl;
+	}
+
 	try {
 		update_hash();
 	} catch (const std::exception& e) {
@@ -312,6 +332,7 @@ void load_from_json(const std::string& json, const bool verbose) {
 		);
 	}
 	if (verbose) {
+		std::cout << "Hash: " << hash_hex << std::endl;
 		std::cout << "Signature OK" << std::endl;
 	}
 
@@ -344,6 +365,9 @@ rapidjson::Document to_json() const {
 	}
 	if (send_hex.size() > 0) {
 		document.AddMember("send", rapidjson::StringRef(send_hex), allocator);
+	}
+	if (next_hex.size() > 0) {
+		document.AddMember("next", rapidjson::StringRef(next_hex), allocator);
 	}
 	return document;
 }

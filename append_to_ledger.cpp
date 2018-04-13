@@ -148,30 +148,20 @@ int main(int argc, char* argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		std::ifstream previous_file_old(previous_path.c_str());
-		std::string previous_str;
-		while (previous_file_old.good()) {
-			std::string temp;
-			std::getline(previous_file_old, temp);
-			if (temp.size() > 0) {
-				previous_str += temp;
-			}
-		}
-		previous_file_old.close();
-
-		rapidjson::Document previous_data;
-		previous_data.Parse(previous_str.c_str());
-		if (previous_data.HasParseError()) {
-			std::cerr << "Couldn't parse json data of previous transaction at character position "
-				<< previous_data.GetErrorOffset() << ": "
-				<< rapidjson::GetParseError_En(previous_data.GetParseError())
-				<< std::endl;
+		taraxa::Transaction<CryptoPP::BLAKE2s, std::string> previous_transaction;
+		try {
+			previous_transaction.load(previous_path.string(), verbose);
+		} catch (const std::exception& e) {
+			std::cerr << "Couldn't load previous transaction from "
+				<< previous_path << ": " << e.what() << std::endl;
 			return EXIT_FAILURE;
 		}
 
-		if (previous_data.HasMember("next")) {
-			// TODO: only error out if previous has different next transaction
-			std::cerr << "Previous transaction already has a next transaction." << std::endl;
+		if (
+			previous_transaction.next_hex.size() > 0
+			and previous_transaction.next_hex != transaction.hash_hex
+		) {
+			std::cerr << "Previous transaction already has different next transaction" << std::endl;
 			return EXIT_FAILURE;
 		}
 
@@ -180,13 +170,9 @@ int main(int argc, char* argv[]) {
 			std::cout << "Appending transaction hash to previous transaction at "
 				<< previous_path << std::endl;
 		}
-		previous_data.AddMember("next", rapidjson::StringRef(transaction.hash_hex), previous_data.GetAllocator());
-		rapidjson::StringBuffer buffer;
-		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-		previous_data.Accept(writer);
-		std::ofstream previous_file_new(previous_path.c_str());
-		previous_file_new << buffer.GetString() << std::endl;
-		previous_file_new.close();
+
+		previous_transaction.next_hex = transaction.hash_hex;
+		previous_transaction.to_json_file(previous_path.string());
 
 	// check that a genesis transaction doesn't exist for this account
 	} else {
