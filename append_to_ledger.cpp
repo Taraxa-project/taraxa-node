@@ -9,6 +9,7 @@ Copyright 2018 Ilja Honkonen
 #include "hashes.hpp"
 #include "ledger_storage.hpp"
 #include "signatures.hpp"
+#include "transactions.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -124,6 +125,8 @@ int main(int argc, char* argv[]) {
 	Read and verify input
 	*/
 
+	taraxa::Transaction<CryptoPP::BLAKE2s, std::string> transaction;
+
 	// parse json
 	std::string transaction_json;
 	while (std::cin.good()) {
@@ -166,20 +169,20 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 	// normalize hex representation of previous transaction
-	const auto previous_hex
+	transaction.previous_hex
 		= taraxa::bin2hex(
 			taraxa::hex2bin(
 				std::string(previous_json.GetString())
 			)
 		);
 	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
-	if (previous_hex.size() != nr_hash_chars) {
+	if (transaction.previous_hex.size() != nr_hash_chars) {
 		std::cerr << "Hash of previous transaction must be " << nr_hash_chars 
-			<< " characters but is " << previous_hex.size() << std::endl;
+			<< " characters but is " << transaction.previous_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 	if (verbose) {
-		std::cout << "Previous transaction: " << previous_hex << std::endl;
+		std::cout << "Previous transaction: " << transaction.previous_hex << std::endl;
 	}
 
 	// check for signature and normalize
@@ -192,14 +195,14 @@ int main(int argc, char* argv[]) {
 		std::cerr << "Value of signature is not a string." << std::endl;
 		return EXIT_FAILURE;
 	}
-	const auto signature_hex
+	transaction.signature_hex
 		= taraxa::bin2hex(
 			taraxa::hex2bin(
 				std::string(signature_json.GetString())
 			)
 		);
 	if (verbose) {
-		std::cout << "Signature: " << signature_hex << std::endl;
+		std::cout << "Signature: " << transaction.signature_hex << std::endl;
 	}
 
 	// check for public key
@@ -212,19 +215,19 @@ int main(int argc, char* argv[]) {
 		std::cerr << "Value of public-key is not a string." << std::endl;
 		return EXIT_FAILURE;
 	}
-	const auto pubkey_hex
+	transaction.pubkey_hex
 		= taraxa::bin2hex(
 			taraxa::hex2bin(
 				std::string(pubkey_json.GetString())
 			)
 		);
-	if (pubkey_hex.size() != 128) {
+	if (transaction.pubkey_hex.size() != 128) {
 		std::cerr << "Public key must be " << 128
-			<< " characters but is " << pubkey_hex.size() << std::endl;
+			<< " characters but is " << transaction.pubkey_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 	if (verbose) {
-		std::cout << "Public key: " << pubkey_hex << std::endl;
+		std::cout << "Public key: " << transaction.pubkey_hex << std::endl;
 	}
 
 	/*
@@ -250,7 +253,7 @@ int main(int argc, char* argv[]) {
 			std::cerr << "Value of send is not string." << std::endl;
 			return EXIT_FAILURE;
 		}
-		const auto send_hex
+		transaction.send_hex
 			= taraxa::bin2hex(
 				taraxa::hex2bin(
 					std::string(send_json.GetString())
@@ -258,13 +261,11 @@ int main(int argc, char* argv[]) {
 			);
 
 		const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
-		if (send_hex.size() != nr_hash_chars) {
+		if (transaction.send_hex.size() != nr_hash_chars) {
 			std::cerr << "Hash of send transaction must be " << nr_hash_chars
-				<< " characters but is " << send_hex.size() << std::endl;
+				<< " characters but is " << transaction.send_hex.size() << std::endl;
 			return EXIT_FAILURE;
 		}
-
-		signature_payload_hex = previous_hex + send_hex;
 
 	// send
 	} else {
@@ -273,14 +274,14 @@ int main(int argc, char* argv[]) {
 		if (not receiver_json.IsString()) {
 			std::cerr << "Value of receiver is not string." << std::endl;
 		}
-		const auto receiver_hex
+		transaction.receiver_hex
 			= taraxa::bin2hex(
 				taraxa::hex2bin(
 					std::string(receiver_json.GetString())
 				)
 			);
 		if (verbose) {
-			std::cout << "Receiver: " << receiver_hex << std::endl;
+			std::cout << "Receiver: " << transaction.receiver_hex << std::endl;
 		}
 
 		if (not document.HasMember("new-balance")) {
@@ -292,14 +293,14 @@ int main(int argc, char* argv[]) {
 			std::cerr << "Value of new-balance is not string." << std::endl;
 			return EXIT_FAILURE;
 		}
-		const auto new_balance_hex
+		transaction.new_balance_hex
 			= taraxa::bin2hex(
 				taraxa::hex2bin(
 					std::string(new_balance_json.GetString())
 				)
 			);
 		if (verbose) {
-			std::cout << "New balance: " << new_balance_hex << std::endl;
+			std::cout << "New balance: " << transaction.new_balance_hex << std::endl;
 		}
 
 		if (not document.HasMember("payload")) {
@@ -311,26 +312,22 @@ int main(int argc, char* argv[]) {
 			std::cerr << "Value of payload is not string." << std::endl;
 			return EXIT_FAILURE;
 		}
-		const auto payload_hex
+		transaction.payload_hex
 			= taraxa::bin2hex(
 				taraxa::hex2bin(
 					std::string(payload_json.GetString())
 				)
 			);
 		if (verbose) {
-			std::cout << "Payload: " << payload_hex << std::endl;
+			std::cout << "Payload: " << transaction.payload_hex << std::endl;
 		}
 
-		signature_payload_hex = previous_hex + new_balance_hex + receiver_hex + payload_hex;
 	}
 
-	if (not taraxa::verify_signature_hex(
-		signature_hex,
-		signature_payload_hex,
-		pubkey_hex.substr(0, pubkey_hex.size() / 2),
-		pubkey_hex.substr(pubkey_hex.size() / 2, pubkey_hex.size() / 2)
-	)) {
-		std::cerr << "Signature verification failed" << std::endl;
+	try {
+		transaction.update_hash();
+	} catch (const std::exception& e) {
+		std::cerr << "Transaction processing failed: " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 	if (verbose) {
@@ -341,14 +338,11 @@ int main(int argc, char* argv[]) {
 	Add transaction to ledger data
 	*/
 
-	const auto
-		hash_payload_hex = signature_hex + signature_payload_hex,
-		hash_hex = taraxa::get_hash_hex<CryptoPP::BLAKE2s>(hash_payload_hex),
-		hash_comment = "hash:" + hash_hex;
+	const auto hash_comment = "hash:" + transaction.hash_hex;
 
 	// make sure previous transaction exists and doesn't already have a next one
-	if (previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
-		const auto previous_path = taraxa::get_transaction_path(previous_hex, transactions_path);
+	if (transaction.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
+		const auto previous_path = taraxa::get_transaction_path(transaction.previous_hex, transactions_path);
 		if (not boost::filesystem::exists(previous_path)) {
 			std::cerr << "Previous transaction " << previous_path
 				<< " doesn't exist." << std::endl;
@@ -387,7 +381,7 @@ int main(int argc, char* argv[]) {
 			std::cout << "Appending transaction hash to previous transaction at "
 				<< previous_path << std::endl;
 		}
-		previous_data.AddMember("next", rapidjson::StringRef(hash_hex), previous_data.GetAllocator());
+		previous_data.AddMember("next", rapidjson::StringRef(transaction.hash_hex), previous_data.GetAllocator());
 		rapidjson::StringBuffer buffer;
 		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
 		previous_data.Accept(writer);
@@ -398,12 +392,12 @@ int main(int argc, char* argv[]) {
 	// check that a genesis transaction doesn't exist for this account
 	} else {
 		const auto
-			genesis_path = taraxa::get_account_path(pubkey_hex, accounts_path),
+			genesis_path = taraxa::get_account_path(transaction.pubkey_hex, accounts_path),
 			genesis_dir = genesis_path.parent_path();
 		if (boost::filesystem::exists(genesis_path)) {
 			// TODO: only error out if different genesis provided
 			std::cerr << "Genesis transaction already exists for account "
-				<< pubkey_hex << std::endl;
+				<< transaction.pubkey_hex << std::endl;
 			return EXIT_FAILURE;
 		}
 		if (not boost::filesystem::exists(genesis_dir)) {
@@ -420,7 +414,7 @@ int main(int argc, char* argv[]) {
 		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
 		rapidjson::Document account_data;
 		account_data.SetObject();
-		account_data.AddMember("genesis", rapidjson::StringRef(hash_hex), account_data.GetAllocator());
+		account_data.AddMember("genesis", rapidjson::StringRef(transaction.hash_hex), account_data.GetAllocator());
 		account_data.Accept(writer);
 		std::ofstream account_file(genesis_path.c_str());
 		account_file << buffer.GetString() << std::endl;
@@ -431,7 +425,7 @@ int main(int argc, char* argv[]) {
 	*/
 
 	const auto
-		transaction_path = taraxa::get_transaction_path(hash_hex, transactions_path),
+		transaction_path = taraxa::get_transaction_path(transaction.hash_hex, transactions_path),
 		transaction_dir = transaction_path.parent_path();
 
 	if (boost::filesystem::exists(transaction_path)) {
