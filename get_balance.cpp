@@ -10,11 +10,13 @@ Copyright 2018 Ilja Honkonen
 #include "hashes.hpp"
 #include "ledger_storage.hpp"
 #include "signatures.hpp"
+#include "transactions.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <cryptopp/blake2.h>
 #include <rapidjson/document.h>
-#include "rapidjson/error/en.h"
+#include <rapidjson/error/en.h>
 
 #include <cstdlib>
 #include <fstream>
@@ -95,14 +97,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	auto transactions_path = ledger_path;
-	transactions_path /= "transactions";
-	if (not boost::filesystem::exists(transactions_path)) {
-		std::cerr << "Transactions directory "
-			<< transactions_path << " doesn't exist." << std::endl;
-		return EXIT_FAILURE;
-	}
-
+	// load account data
 	auto accounts_path = ledger_path;
 	accounts_path /= "accounts";
 	if (not boost::filesystem::exists(accounts_path)) {
@@ -110,8 +105,6 @@ int main(int argc, char* argv[]) {
 			<< accounts_path << " doesn't exist." << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	// load account data
 	if (verbose) {
 		std::cout << "Reading account data from "
 			<< accounts_path << std::endl;
@@ -166,6 +159,37 @@ int main(int argc, char* argv[]) {
 		account.genesis_transaction_hex = genesis_json.GetString();
 		accounts[account.pubkey_hex] = account;
 	}
+
+	// load transaction data
+	auto transactions_path = ledger_path;
+	transactions_path /= "transactions";
+	if (not boost::filesystem::exists(transactions_path)) {
+		std::cerr << "Transactions directory "
+			<< transactions_path << " doesn't exist." << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (verbose) {
+		std::cout << "Reading transaction data from "
+			<< transactions_path << std::endl;
+	}
+
+	std::map<
+		std::string,
+		taraxa::Transaction<CryptoPP::BLAKE2s, std::string>
+	> transactions; // key == hex hash
+	for (const auto& transaction_path: boost::filesystem::recursive_directory_iterator(transactions_path)) {
+		if (boost::filesystem::is_directory(transaction_path)) {
+			continue;
+		}
+
+		taraxa::Transaction<CryptoPP::BLAKE2s, std::string> transaction;
+		transaction.load(transaction_path.path().string(), verbose);
+		transactions[transaction.hash_hex] = transaction;
+	}
+	if (verbose) {
+		std::cout << "Loaded " << transactions.size() << " transactions" << std::endl;
+	}
+
 
 	return EXIT_SUCCESS;
 }

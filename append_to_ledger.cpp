@@ -15,7 +15,7 @@ Copyright 2018 Ilja Honkonen
 #include <boost/program_options.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
-#include "rapidjson/error/en.h"
+#include <rapidjson/error/en.h>
 
 #include <cstdlib>
 #include <fstream>
@@ -126,212 +126,11 @@ int main(int argc, char* argv[]) {
 	*/
 
 	taraxa::Transaction<CryptoPP::BLAKE2s, std::string> transaction;
-
-	// parse json
-	std::string transaction_json;
-	while (std::cin.good()) {
-		std::string temp;
-		std::getline(std::cin, temp);
-		if (temp.size() > 0) {
-			transaction_json += temp;
-		}
-	}
-
-	if (verbose) {
-		std::cout << "Read " << transaction_json.size()
-			<< " characters from stdin" << std::endl;
-	}
-
-	rapidjson::Document document;
-	document.Parse(transaction_json.c_str());
-	if (document.HasParseError()) {
-		std::cerr << "Couldn't parse json data at character position "
-			<< document.GetErrorOffset() << ": "
-			<< rapidjson::GetParseError_En(document.GetParseError())
-			<< std::endl;
-		return EXIT_FAILURE;
-	}
-
-	if (not document.IsObject()) {
-		std::cerr << "JSON data doesn't represent an object ( {...} )." << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	// check for previous transaction
-	if (not document.HasMember("previous")) {
-		std::cerr << "JSON object doesn't have a previous key." << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	const auto& previous_json = document["previous"];
-	if (not previous_json.IsString()) {
-		std::cerr << "Value of previous is not a string." << std::endl;
-		return EXIT_FAILURE;
-	}
-	// normalize hex representation of previous transaction
-	transaction.previous_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
-				std::string(previous_json.GetString())
-			)
-		);
-	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
-	if (transaction.previous_hex.size() != nr_hash_chars) {
-		std::cerr << "Hash of previous transaction must be " << nr_hash_chars 
-			<< " characters but is " << transaction.previous_hex.size() << std::endl;
-		return EXIT_FAILURE;
-	}
-	if (verbose) {
-		std::cout << "Previous transaction: " << transaction.previous_hex << std::endl;
-	}
-
-	// check for signature and normalize
-	if (not document.HasMember("signature")) {
-		std::cerr << "JSON object doesn't have a signature key." << std::endl;
-		return EXIT_FAILURE;
-	}
-	const auto& signature_json = document["signature"];
-	if (not signature_json.IsString()) {
-		std::cerr << "Value of signature is not a string." << std::endl;
-		return EXIT_FAILURE;
-	}
-	transaction.signature_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
-				std::string(signature_json.GetString())
-			)
-		);
-	if (verbose) {
-		std::cout << "Signature: " << transaction.signature_hex << std::endl;
-	}
-
-	// check for public key
-	if (not document.HasMember("public-key")) {
-		std::cerr << "JSON object doesn't have a public-key key." << std::endl;
-		return EXIT_FAILURE;
-	}
-	const auto& pubkey_json = document["public-key"];
-	if (not pubkey_json.IsString()) {
-		std::cerr << "Value of public-key is not a string." << std::endl;
-		return EXIT_FAILURE;
-	}
-	transaction.pubkey_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
-				std::string(pubkey_json.GetString())
-			)
-		);
-	if (transaction.pubkey_hex.size() != 128) {
-		std::cerr << "Public key must be " << 128
-			<< " characters but is " << transaction.pubkey_hex.size() << std::endl;
-		return EXIT_FAILURE;
-	}
-	if (verbose) {
-		std::cout << "Public key: " << transaction.pubkey_hex << std::endl;
-	}
-
-	/*
-	Verify signature
-	*/
-
-	std::string signature_payload_hex;
-
-	// send or receive?
-	if (not document.HasMember("send") and not document.HasMember("receiver")) {
-		std::cerr << "JSON object doesn't have send or receiver key." << std::endl;
-		return EXIT_FAILURE;
-	}
-	if (document.HasMember("send") and document.HasMember("receiver")) {
-		std::cerr << "JSON object has send and receiver key." << std::endl;
-		return EXIT_FAILURE;
-	}
-	// receive
-	if (document.HasMember("send")) {
-
-		const auto& send_json = document["send"];
-		if (not send_json.IsString()) {
-			std::cerr << "Value of send is not string." << std::endl;
-			return EXIT_FAILURE;
-		}
-		transaction.send_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
-					std::string(send_json.GetString())
-				)
-			);
-
-		const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
-		if (transaction.send_hex.size() != nr_hash_chars) {
-			std::cerr << "Hash of send transaction must be " << nr_hash_chars
-				<< " characters but is " << transaction.send_hex.size() << std::endl;
-			return EXIT_FAILURE;
-		}
-
-	// send
-	} else {
-
-		const auto& receiver_json = document["receiver"];
-		if (not receiver_json.IsString()) {
-			std::cerr << "Value of receiver is not string." << std::endl;
-		}
-		transaction.receiver_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
-					std::string(receiver_json.GetString())
-				)
-			);
-		if (verbose) {
-			std::cout << "Receiver: " << transaction.receiver_hex << std::endl;
-		}
-
-		if (not document.HasMember("new-balance")) {
-			std::cerr << "JSON object doesn't have new-balance key." << std::endl;
-			return EXIT_FAILURE;
-		}
-		const auto& new_balance_json = document["new-balance"];
-		if (not new_balance_json.IsString()) {
-			std::cerr << "Value of new-balance is not string." << std::endl;
-			return EXIT_FAILURE;
-		}
-		transaction.new_balance_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
-					std::string(new_balance_json.GetString())
-				)
-			);
-		if (verbose) {
-			std::cout << "New balance: " << transaction.new_balance_hex << std::endl;
-		}
-
-		if (not document.HasMember("payload")) {
-			std::cerr << "JSON object doesn't have payload key." << std::endl;
-			return EXIT_FAILURE;
-		}
-		const auto& payload_json = document["payload"];
-		if (not payload_json.IsString()) {
-			std::cerr << "Value of payload is not string." << std::endl;
-			return EXIT_FAILURE;
-		}
-		transaction.payload_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
-					std::string(payload_json.GetString())
-				)
-			);
-		if (verbose) {
-			std::cout << "Payload: " << transaction.payload_hex << std::endl;
-		}
-
-	}
-
 	try {
-		transaction.update_hash();
+		transaction.load(std::cin, verbose);
 	} catch (const std::exception& e) {
-		std::cerr << "Transaction processing failed: " << e.what() << std::endl;
+		std::cerr << "Couldn't load transaction from stdin: " << e.what() << std::endl;
 		return EXIT_FAILURE;
-	}
-	if (verbose) {
-		std::cout << "Signature OK" << std::endl;
 	}
 
 	/*
@@ -444,11 +243,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Writing transaction to " << transaction_path << std::endl;
 	}
 
-	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-	document.Accept(writer);
-	std::ofstream transaction_file(transaction_path.c_str());
-	transaction_file << buffer.GetString() << std::endl;
+	transaction.to_json_file(transaction_path.string());
 
 	return EXIT_SUCCESS;
 }
