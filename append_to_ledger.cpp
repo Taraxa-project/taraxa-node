@@ -5,6 +5,7 @@ Copyright 2018 Ilja Honkonen
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 #define RAPIDJSON_HAS_STDSTRING 1
 
+#include "accounts.hpp"
 #include "bin2hex2bin.hpp"
 #include "hashes.hpp"
 #include "ledger_storage.hpp"
@@ -125,7 +126,7 @@ int main(int argc, char* argv[]) {
 	Read and verify input
 	*/
 
-	taraxa::Transaction<CryptoPP::BLAKE2s, std::string> transaction;
+	taraxa::Transaction<CryptoPP::BLAKE2s> transaction;
 	try {
 		transaction.load(std::cin, verbose);
 	} catch (const std::exception& e) {
@@ -148,7 +149,7 @@ int main(int argc, char* argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		taraxa::Transaction<CryptoPP::BLAKE2s, std::string> previous_transaction;
+		taraxa::Transaction<CryptoPP::BLAKE2s> previous_transaction;
 		try {
 			previous_transaction.load(previous_path.string(), verbose);
 		} catch (const std::exception& e) {
@@ -195,14 +196,12 @@ int main(int argc, char* argv[]) {
 		if (verbose) {
 			std::cout << "Recording genesis to " << genesis_path << std::endl;
 		}
-		rapidjson::StringBuffer buffer;
-		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-		rapidjson::Document account_data;
-		account_data.SetObject();
-		account_data.AddMember("genesis", rapidjson::StringRef(transaction.hash_hex), account_data.GetAllocator());
-		account_data.Accept(writer);
-		std::ofstream account_file(genesis_path.c_str());
-		account_file << buffer.GetString() << std::endl;
+
+		taraxa::Account<CryptoPP::BLAKE2s> account;
+		account.pubkey_hex = transaction.pubkey_hex;
+		account.genesis_transaction_hex = transaction.hash_hex;
+		account.balance_hex = "0000000000000000";
+		account.to_json_file(genesis_path.string());
 	}
 
 	/*

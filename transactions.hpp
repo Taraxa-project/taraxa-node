@@ -21,11 +21,8 @@ Copyright 2018 Ilja Honkonen
 
 namespace taraxa {
 
-//! Usually @Hasher == CryptoPP::BLAKE2s and @Chars == std::string
-template<
-	class Hasher,
-	class Chars
-> class Transaction {
+//! Usually @Hasher == CryptoPP::BLAKE2s
+template<class Hasher> class Transaction {
 
 public:
 
@@ -441,7 +438,7 @@ void update_hash() {
 		);
 	}
 
-	Chars signature_payload_hex;
+	std::string signature_payload_hex;
 	if (send_hex.size() > 0) {
 		signature_payload_hex = previous_hex + send_hex;
 	} else {

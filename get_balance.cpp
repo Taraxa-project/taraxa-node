@@ -110,54 +110,21 @@ int main(int argc, char* argv[]) {
 			<< accounts_path << std::endl;
 	}
 
-	std::map<std::string, taraxa::Account> accounts; // key == hex address
+	std::map<std::string, taraxa::Account<CryptoPP::BLAKE2s>> accounts; // key == hex address
 	for (const auto& account_path: boost::filesystem::recursive_directory_iterator(accounts_path)) {
 		if (boost::filesystem::is_directory(account_path)) {
 			continue;
 		}
 
-		taraxa::Account account;
-		account.pubkey_hex
-			= account_path.path().parent_path().filename().string()
-			+ account_path.path().filename().string();
-
-		// get genesis transaction
-		std::ifstream account_file(account_path.path().string());
-		std::string json_str;
-		while (account_file.good()) {
-			std::string temp;
-			std::getline(account_file, temp);
-			if (temp.size() > 0) {
-				json_str += temp;
-			}
-		}
-		account_file.close();
-
-		rapidjson::Document json;
-		json.Parse(json_str.c_str());
-		if (json.HasParseError()) {
-			std::cerr << "Couldn't parse json data of account "
-				<< account.pubkey_hex << " at character position "
-				<< json.GetErrorOffset() << ": "
-				<< rapidjson::GetParseError_En(json.GetParseError())
-				<< std::endl;
+		taraxa::Account<CryptoPP::BLAKE2s> account;
+		try {
+			account.load(account_path.path().string(), verbose);
+		} catch (const std::exception& e) {
+			std::cerr << "Couldn't load account data from "
+				<< account_path.path().string() << ": " << e.what() << std::endl;
 			return EXIT_FAILURE;
 		}
-
-		if (not json.HasMember("genesis")) {
-			std::cerr << "Account " << account.pubkey_hex
-				<< " doesn't have a genesis transaction." << std::endl;
-			return EXIT_FAILURE;
-		}
-		const auto& genesis_json = json["genesis"];
-		if (not genesis_json.IsString()) {
-			std::cerr << "Value of genesis transaction for account "
-				<< account.pubkey_hex << " isn't a string." << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		account.genesis_transaction_hex = genesis_json.GetString();
-		accounts[account.pubkey_hex] = account;
+		accounts[account.address_hex] = account;
 	}
 	if (verbose) {
 		std::cout << "Loaded " << accounts.size() << " accounts" << std::endl;
@@ -178,14 +145,14 @@ int main(int argc, char* argv[]) {
 
 	std::map<
 		std::string,
-		taraxa::Transaction<CryptoPP::BLAKE2s, std::string>
+		taraxa::Transaction<CryptoPP::BLAKE2s>
 	> transactions; // key == hex hash
 	for (const auto& transaction_path: boost::filesystem::recursive_directory_iterator(transactions_path)) {
 		if (boost::filesystem::is_directory(transaction_path)) {
 			continue;
 		}
 
-		taraxa::Transaction<CryptoPP::BLAKE2s, std::string> transaction;
+		taraxa::Transaction<CryptoPP::BLAKE2s> transaction;
 		transaction.load(transaction_path.path().string(), verbose);
 		transactions[transaction.hash_hex] = transaction;
 	}
