@@ -159,6 +159,9 @@ int main(int argc, char* argv[]) {
 		account.genesis_transaction_hex = genesis_json.GetString();
 		accounts[account.pubkey_hex] = account;
 	}
+	if (verbose) {
+		std::cout << "Loaded " << accounts.size() << " accounts" << std::endl;
+	}
 
 	// load transaction data
 	auto transactions_path = ledger_path;
