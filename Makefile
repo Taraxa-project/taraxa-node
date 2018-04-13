@@ -18,7 +18,13 @@ PROGRAMS = \
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 
-HEADERS = bin2hex2bin.hpp signatures.hpp
+HEADERS = \
+    accounts.hpp \
+    bin2hex2bin.hpp \
+    hashes.hpp \
+    ledger_storage.hpp \
+    signatures.hpp \
+    transactions.hpp
 
 all: $(DEPENDENCIES) $(PROGRAMS)
 
