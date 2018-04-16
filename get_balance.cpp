@@ -21,6 +21,8 @@ Copyright 2018 Ilja Honkonen
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <set>
 #include <string>
 
 
@@ -160,6 +162,43 @@ int main(int argc, char* argv[]) {
 		std::cout << "Loaded " << transactions.size() << " transactions" << std::endl;
 	}
 
+	/*
+	Process genesis transactions without corresponding sends
+	*/
+
+	std::map<
+		std::string, // hex hash
+		taraxa::Transaction<CryptoPP::BLAKE2s>
+	> processed_transactions;
+
+	if (verbose) {
+		std::cout << "Processing genesis transaction(s)" << std::endl;
+	}
+	for (const auto& item: transactions) {
+		const auto& transaction = item.second;
+
+		if (transaction.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
+			continue;
+		}
+
+		// regular first transactions receive from another account
+		if (transaction.receiver_hex != transaction.pubkey_hex) {
+			continue;
+		}
+
+		auto& account = accounts.at(transaction.pubkey_hex);
+		if (verbose) {
+			std::cout << "Setting initial balance for account " << account.address_hex
+				<< " to " << transaction.new_balance_hex << std::endl;
+		}
+		account.balance_hex = transaction.new_balance_hex;
+
+		processed_transactions[transaction.hash_hex] = transaction;
+	}
+
+	/*
+	Iterate through transactions to discover requested balance(s).
+	*/
 
 	return EXIT_SUCCESS;
 }

@@ -29,8 +29,9 @@ public:
 std::string
 	pubkey_hex, // creator's public key
 	previous_hex, // hash of previous transaction on creator's chain
-	send_hex, // corresponding send for a receive
-	receiver_hex, // account that must create corresponding receive
+	send_hex, // for receive transaction, corresponding send
+	receiver_hex, // for send transaction, account that must create receive
+	receive_hex, // for send, corresponding receive
 	payload_hex,
 	hash_hex, // hash of this transaction's data
 	new_balance_hex,
@@ -254,6 +255,25 @@ void load_from_json(const std::string& json, const bool verbose) {
 			std::cout << "Receiver: " << receiver_hex << std::endl;
 		}
 
+		if (document.HasMember("receive")) {
+			const auto& receive_json = document["receive"];
+			if (not receive_json.IsString()) {
+				throw std::invalid_argument(
+					__FILE__ "(" + to_string(__LINE__) + ") "
+					"Value of receive is not string"
+				);
+			}
+			receive_hex
+				= taraxa::bin2hex(
+					taraxa::hex2bin(
+						std::string(receive_json.GetString())
+					)
+				);
+			if (verbose) {
+				std::cout << "Receive: " << receive_hex << std::endl;
+			}
+		}
+
 		if (not document.HasMember("new-balance")) {
 			throw std::invalid_argument(
 				__FILE__ "(" + to_string(__LINE__) + ") "
@@ -352,6 +372,7 @@ rapidjson::Document to_json() const {
 	}
 	if (receiver_hex.size() > 0) {
 		document.AddMember("receiver", rapidjson::StringRef(receiver_hex), allocator);
+		document.AddMember("receive", rapidjson::StringRef(receive_hex), allocator);
 	}
 	document.AddMember("payload", rapidjson::StringRef(payload_hex), allocator);
 	if (new_balance_hex.size() > 0) {

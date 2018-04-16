@@ -178,30 +178,58 @@ int main(int argc, char* argv[]) {
 	// check that a genesis transaction doesn't exist for this account
 	} else {
 		const auto
-			genesis_path = taraxa::get_account_path(transaction.pubkey_hex, accounts_path),
-			genesis_dir = genesis_path.parent_path();
-		if (boost::filesystem::exists(genesis_path)) {
+			account_info_path = taraxa::get_account_path(transaction.pubkey_hex, accounts_path),
+			account_info_dir = account_info_path.parent_path();
+		if (boost::filesystem::exists(account_info_path)) {
 			// TODO: only error out if different genesis provided
 			std::cerr << "Genesis transaction already exists for account "
 				<< transaction.pubkey_hex << std::endl;
 			return EXIT_FAILURE;
 		}
-		if (not boost::filesystem::exists(genesis_dir)) {
+		if (not boost::filesystem::exists(account_info_dir)) {
 			if (verbose) {
 				std::cout << "Account directory doesn't exist, creating..." << std::endl;
 			}
-			boost::filesystem::create_directories(genesis_dir);
+			boost::filesystem::create_directories(account_info_dir);
 		}
 
 		if (verbose) {
-			std::cout << "Recording genesis to " << genesis_path << std::endl;
+			std::cout << "Writing account info to " << account_info_path << std::endl;
 		}
 
 		taraxa::Account<CryptoPP::BLAKE2s> account;
 		account.pubkey_hex = transaction.pubkey_hex;
 		account.genesis_transaction_hex = transaction.hash_hex;
 		account.balance_hex = "0000000000000000";
-		account.to_json_file(genesis_path.string());
+		account.to_json_file(account_info_path.string());
+	}
+
+	// in case of receive, add it to sending transaction for easier seeking
+	if (transaction.send_hex.size() > 0) {
+		const auto send_path = taraxa::get_transaction_path(transaction.send_hex, transactions_path);
+		if (not boost::filesystem::exists(send_path)) {
+			std::cerr << "Matching send " << transaction.send_hex
+				<< " for receive " << transaction.hash_hex
+				<< " doesn't exist" << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		taraxa::Transaction<CryptoPP::BLAKE2s> send_transaction;
+		try {
+			send_transaction.load(send_path.string(), verbose);
+		} catch (const std::exception& e) {
+			std::cerr << "Couldn't load send transaction from "
+				<< send_path << ": " << e.what() << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		if (verbose) {
+			std::cout << "Appending receive hash to send at "
+				<< send_path << std::endl;
+		}
+
+		send_transaction.receive_hex = transaction.hash_hex;
+		send_transaction.to_json_file(send_path.string());
 	}
 
 	/*
