@@ -387,7 +387,7 @@ int main(int argc, char* argv[]) {
 		const auto& account = item.second;
 		std::cout << account.address_hex.substr(0, 5) << "..."
 			<< account.address_hex.substr(account.address_hex.size() - 6, 5)
-			<< ": " << account.balance_hex << std::endl;
+			<< ": " << CryptoPP::Integer(account.balance_hex.c_str()) << std::endl;
 	}
 	return EXIT_SUCCESS;
 }
