@@ -67,13 +67,15 @@ append_to_ledger: append_to_ledger.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 get_balance: get_balance.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
-c: clean
-clean:
-	rm -rf $(PROGRAMS) tests/append_to_ledger/test1/accounts tests/append_to_ledger/test1/transactions signature_fail1.ok signature_fail2.ok signature_fail3.ok
-
 TESTS =
+CLEAN_TESTS =
 include \
-    tests/append_to_ledger/test_include
+    tests/append_to_ledger/test_include \
+    tests/get_balance/test_include
 
 t: test
-test: append_to_ledger get_balance $(TESTS)
+test: $(TESTS)
+
+c: clean
+clean:
+	rm -rf $(PROGRAMS) $(CLEAN_TESTS)
