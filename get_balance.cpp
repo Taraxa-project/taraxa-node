@@ -214,6 +214,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	std::set<std::string> invalid_transactions;
 	while (transactions_to_process.size() > 0) {
 
 		// find next one
@@ -225,6 +226,24 @@ int main(int argc, char* argv[]) {
 					}
 
 					const auto& transaction = transactions.at(transaction_hex);
+
+					if (invalid_transactions.count(transaction.hash_hex) > 0) {
+						if (verbose) {
+							std::cout << "Skipping invalid transaction "
+								<< transaction.hash_hex << std::endl;
+						}
+						continue;
+					}
+
+					if (invalid_transactions.count(transaction.previous_hex) > 0) {
+						invalid_transactions.insert(transaction.hash_hex);
+						if (verbose) {
+							std::cout << "Marking child " << transaction.hash_hex
+								<< " of invalid transaction " << transaction.previous_hex
+								<< " as invalid" << std::endl;
+						}
+						continue;
+					}
 
 					// must process previous first
 					if (
@@ -270,6 +289,17 @@ int main(int argc, char* argv[]) {
 		// receive
 		if (transaction_to_process.send_hex.size() > 0) {
 
+			if (invalid_transactions.count(transaction_to_process.send_hex) > 0) {
+				if (verbose) {
+					std::cout << "Receive " << transaction_to_process.hash_hex
+						<< " is invalid because matched send is invalid: "
+						<< transaction_to_process.send_hex << std::endl;
+				}
+				invalid_transactions.insert(transaction_to_process.hash_hex);
+				transactions_to_process.erase(transaction_to_process.hash_hex);
+				continue;
+			}
+
 			if (processed_transactions.count(transaction_to_process.send_hex) == 0) {
 				std::cerr << "Send " << transaction_to_process.send_hex
 					<< " not processed for receive" << std::endl;
@@ -305,13 +335,14 @@ int main(int argc, char* argv[]) {
 			CryptoPP::Integer new_balance_receiver = old_balance_receiver + old_balance_sender - new_balance_sender;
 
 			if (new_balance_receiver <= old_balance_receiver) {
-				std::cerr << "New balance of receiver must be larger than old:\n"
-					<< "Old transaction: " << transaction_to_process.previous_hex
-					<< ", balance: " << old_balance_receiver
-					<< "\nNew transaction: " << transaction_to_process.hash_hex
-					<< ", balance: " << new_balance_receiver
-					<< std::endl;
-				return EXIT_FAILURE;
+				if (verbose) {
+					std::cout << "Transaction " << transaction_to_process.hash_hex
+						<< " is invalid, new balance of receiver is smaller than old: "
+						<< old_balance_receiver << " -> " << new_balance_receiver << std::endl;
+				}
+				invalid_transactions.insert(transaction_to_process.hash_hex);
+				transactions_to_process.erase(transaction_to_process.hash_hex);
+				continue;
 			}
 
 			if (verbose) {
@@ -347,13 +378,14 @@ int main(int argc, char* argv[]) {
 				new_balance(transaction_to_process.new_balance_hex.c_str());
 
 			if (new_balance >= old_balance) {
-				std::cerr << "New balance of sender must be smaller than old:\n"
-					<< "Old transaction: " << transaction_to_process.previous_hex
-					<< ", new-balance: " << old_balance
-					<< "\nNew transaction: " << transaction_to_process.hash_hex
-					<< ", new-balance: " << new_balance
-					<< std::endl;
-				return EXIT_FAILURE;
+				if (verbose) {
+					std::cout << "Transaction " << transaction_to_process.hash_hex
+						<< " is invalid, new balance of sender is not smaller than old: "
+						<< old_balance << " -> " << new_balance << std::endl;
+				}
+				invalid_transactions.insert(transaction_to_process.hash_hex);
+				transactions_to_process.erase(transaction_to_process.hash_hex);
+				continue;
 			}
 
 			if (verbose) {
@@ -373,9 +405,6 @@ int main(int argc, char* argv[]) {
 
 		processed_transactions[transaction_to_process.hash_hex] = transaction_to_process;
 		transactions_to_process.erase(transaction_to_process.hash_hex);
-		if (transaction_to_process.next_hex.size() > 0) {
-			transactions_to_process.insert(transaction_to_process.next_hex);
-		}
 	}
 
 	std::cout << "Final balances:" << std::endl;
