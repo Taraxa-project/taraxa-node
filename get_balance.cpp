@@ -200,10 +200,6 @@ int main(int argc, char* argv[]) {
 		account.balance_hex = transaction.new_balance_hex;
 
 		processed_transactions[transaction.hash_hex] = transaction;
-
-		if (transaction.next_hex.size() == 0) {
-			continue;
-		}
 	}
 
 	/*
