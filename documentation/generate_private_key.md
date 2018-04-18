@@ -1,4 +1,4 @@
-This program generates a private key and prints it to standard output.
+This program generates a random private key and prints it to standard output.
 
 You can pipe the output to print_key_info to see all relevant
 information about a randomly generated private key:
