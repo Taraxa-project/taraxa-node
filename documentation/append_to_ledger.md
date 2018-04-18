@@ -1,5 +1,7 @@
 # Basics
 
+## Genesis transactions
+
 Create a send transaction with some balance, without payload, self as receiver and previous as 0 to signify genesis transaction:
 ```bash
 ./create_send \
@@ -17,6 +19,8 @@ Add this transaction to the ledger located in ledger_data directory:
 ```bash
 ./append_to_ledger --ledger-path ledger_data < genesis_transaction
 ```
+
+## Regular send/receive
 
 Create a send of one coin, by decreasing balance of this account from 9 to 8, to another account with the hash of the above transaction as previous and the address of target account as receiver:
 ```bash
