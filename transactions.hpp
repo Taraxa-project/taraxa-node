@@ -64,7 +64,7 @@ void load(std::istream& json_file, const bool verbose) {
 
 	if (verbose) {
 		std::cout << "Read " << json.size()
-			<< " characters from stdin" << std::endl;
+			<< " characters from stream" << std::endl;
 	}
 
 	try {

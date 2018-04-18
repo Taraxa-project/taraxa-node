@@ -164,26 +164,38 @@ int main(int argc, char* argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		// add current one as next of previous to make seeking easier
-		if (verbose) {
-			std::cout << "Appending transaction hash to previous transaction at "
-				<< previous_path << std::endl;
+		if (previous_transaction.next_hex.size() == 0) {
+			// add current one as next of previous to make seeking easier
+			if (verbose) {
+				std::cout << "Appending transaction hash to previous transaction at "
+					<< previous_path << std::endl;
+			}
+
+			previous_transaction.next_hex = transaction.hash_hex;
+			previous_transaction.to_json_file(previous_path.string());
 		}
 
-		previous_transaction.next_hex = transaction.hash_hex;
-		previous_transaction.to_json_file(previous_path.string());
-
-	// check that a genesis transaction doesn't exist for this account
+	// check for different genesis transaction
 	} else {
 		const auto
 			account_info_path = taraxa::get_account_path(transaction.pubkey_hex, accounts_path),
 			account_info_dir = account_info_path.parent_path();
+
 		if (boost::filesystem::exists(account_info_path)) {
-			// TODO: only error out if different genesis provided
-			std::cerr << "Genesis transaction already exists for account "
-				<< transaction.pubkey_hex << std::endl;
-			return EXIT_FAILURE;
+			taraxa::Account<CryptoPP::BLAKE2s> existing_account;
+			existing_account.load(account_info_path.string(), verbose);
+			if (existing_account.genesis_transaction_hex != transaction.hash_hex) {
+				std::cerr << "Different genesis transaction already exists for account "
+					<< transaction.pubkey_hex << std::endl;
+				return EXIT_FAILURE;
+			} else {
+				if (verbose) {
+					std::cerr << "Transaction already exists." << std::endl;
+				}
+				return EXIT_SUCCESS;
+			}
 		}
+
 		if (not boost::filesystem::exists(account_info_dir)) {
 			if (verbose) {
 				std::cout << "Account directory doesn't exist, creating..." << std::endl;
