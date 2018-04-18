@@ -1,4 +1,5 @@
-Reads a private key from standard input and prints information about it:
+Reads a private key from standard input and prints
+information about it to standard output:
 ```bash
 $ echo 0000000000000000000000000000000000000000000000000000000000000001 | ../print_key_info 
 Private key:                0000000000000000000000000000000000000000000000000000000000000001
