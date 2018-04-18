@@ -138,8 +138,6 @@ int main(int argc, char* argv[]) {
 	Add transaction to ledger data
 	*/
 
-	const auto hash_comment = "hash:" + transaction.hash_hex;
-
 	// make sure previous transaction exists and doesn't already have a next one
 	if (transaction.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
 		const auto previous_path = taraxa::get_transaction_path(transaction.previous_hex, transactions_path);

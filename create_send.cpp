@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 		hash_payload_bin = signature_bin + signature_payload_bin,
 		signature_hex = taraxa::bin2hex(signature_bin),
 		// hash added only to make users' life easier
-		digest_hex = "hash:" + taraxa::bin2hex(taraxa::get_hash_bin<CryptoPP::BLAKE2s>(hash_payload_bin));
+		hash_hex = taraxa::bin2hex(taraxa::get_hash_bin<CryptoPP::BLAKE2s>(hash_payload_bin));
 
 	/*
 	Convert send to JSON and print to stdout
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 	document.AddMember("payload", rapidjson::StringRef(payload_hex), allocator);
 	document.AddMember("new-balance", rapidjson::StringRef(new_balance_hex), allocator);
 	document.AddMember("public-key", rapidjson::StringRef(pub_hex), allocator);
-	document.AddMember("comment", rapidjson::StringRef(digest_hex), allocator);
+	document.AddMember("hash", rapidjson::StringRef(hash_hex), allocator);
 
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
