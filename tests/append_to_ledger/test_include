@@ -1,23 +1,48 @@
-TESTS += append_to_ledger tests/append_to_ledger/test1/transactions/15/CA/69743C3060E3F4C47512B0561694B3558C2871DDCB24625DC249F3918092
+TESTS += \
+  tests/append_to_ledger/test1/transactions/15/CA/69743C3060E3F4C47512B0561694B3558C2871DDCB24625DC249F3918092 \
+  tests/append_to_ledger/test2/transactions/F2/F3/43F9B1D723BAE82A168A16A622366189B0BB362126941D94BD5FBDECECA9
 
-CLEAN_TESTS += signature_fail1.ok signature_fail2.ok signature_fail3.ok tests/append_to_ledger/test1/accounts tests/append_to_ledger/test1/transactions
+CLEAN_TESTS += signature_fail1.ok signature_fail2.ok signature_fail3.ok tests/append_to_ledger/test1/accounts tests/append_to_ledger/test1/transactions tests/append_to_ledger/test2/accounts tests/append_to_ledger/test2/transactions
 
 tests/append_to_ledger/test1/accounts/6B/17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C2964FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5: tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE
 
-tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE: append_to_ledger tests/append_to_ledger/test1/01_genesis
-	@echo -n "TEST append_to_ledger 01_genesis... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/01_genesis && touch $@ && echo PASS
+tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE: append_to_ledger append_to_ledger tests/append_to_ledger/test1/01_genesis
+	@echo -n "TEST append_to_ledger/test1 01_genesis... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/01_genesis && touch $@ && echo PASS
 
 signature_fail1.ok: tests/append_to_ledger/test1/02_signature_fail tests/append_to_ledger/test1/transactions/A6/1A/5A801BD537E613CC6D48A9CEC10C45F0625D26F66F7A5EB85D184C6CE9FE
-	@echo -n "TEST append_to_ledger 02_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/02_signature_fail 2> /dev/null || touch $@ && echo PASS
+	@echo -n "TEST append_to_ledger/test1 02_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/02_signature_fail 2> /dev/null || touch $@ && echo PASS
 
 signature_fail2.ok: signature_fail1.ok tests/append_to_ledger/test1/03_signature_fail
-	@echo -n "TEST append_to_ledger 03_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/03_signature_fail 2> /dev/null || touch $@ && echo PASS
+	@echo -n "TEST append_to_ledger/test1 03_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/03_signature_fail 2> /dev/null || touch $@ && echo PASS
 
 signature_fail3.ok: signature_fail2.ok tests/append_to_ledger/test1/04_signature_fail
-	@echo -n "TEST append_to_ledger 04_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/04_signature_fail 2> /dev/null || touch $@ && echo PASS
+	@echo -n "TEST append_to_ledger/test1 04_signature_fail... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/04_signature_fail 2> /dev/null || touch $@ && echo PASS
 
 tests/append_to_ledger/test1/transactions/04/39/54BA0E0FFD6972E2410C443AE672B66DFB2DF72FF1B165AC5A21CABF0F5E: signature_fail3.ok tests/append_to_ledger/test1/05_send1
-	@echo -n "TEST append_to_ledger 05_send1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/05_send1 && touch $@ && echo PASS
+	@echo -n "TEST append_to_ledger/test1 05_send1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/05_send1 && touch $@ && echo PASS
 
 tests/append_to_ledger/test1/transactions/15/CA/69743C3060E3F4C47512B0561694B3558C2871DDCB24625DC249F3918092: tests/append_to_ledger/test1/transactions/04/39/54BA0E0FFD6972E2410C443AE672B66DFB2DF72FF1B165AC5A21CABF0F5E
-	@echo -n "TEST append_to_ledger 06_receive1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/06_receive1 && touch $@ && echo PASS
+	@echo -n "TEST append_to_ledger/test1 06_receive1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test1 < tests/append_to_ledger/test1/06_receive1 && touch $@ && echo PASS
+
+
+tests/append_to_ledger/test2/accounts/6B/17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C2964FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5: tests/append_to_ledger/test2/transactions/29/F4/148A8905384D6D6E09021CADEF2BA6EE63CC4B71A85C9ACB94302C5C9E4F
+
+tests/append_to_ledger/test2/transactions/29/F4/148A8905384D6D6E09021CADEF2BA6EE63CC4B71A85C9ACB94302C5C9E4F: append_to_ledger tests/append_to_ledger/test2/01_genesis1
+	@echo -n "TEST append_to_ledger/test2 01_genesis1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test2 < tests/append_to_ledger/test2/01_genesis1 && touch $@ && echo PASS
+
+tests/append_to_ledger/test2/accounts/7C/F27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC4766997807775510DB8ED040293D9AC69F7430DBBA7DADE63CE982299E04B79D227873D1: tests/append_to_ledger/test2/transactions/C2/36/6C72B5FC56BB1B25A185C3DC5FE861A58401EFF7257038692D589444C184
+
+tests/append_to_ledger/test2/transactions/C2/36/6C72B5FC56BB1B25A185C3DC5FE861A58401EFF7257038692D589444C184: tests/append_to_ledger/test2/02_genesis2 tests/append_to_ledger/test2/transactions/29/F4/148A8905384D6D6E09021CADEF2BA6EE63CC4B71A85C9ACB94302C5C9E4F
+	@echo -n "TEST append_to_ledger/test2 02_genesis2... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test2 < tests/append_to_ledger/test2/02_genesis2 && touch $@ && echo PASS
+
+tests/append_to_ledger/test2/transactions/F0/10/D0627FE32972C3B07AF1487D37E404A3504BDFF28BB6CA9F335DFD8DD1F5: tests/append_to_ledger/test2/03_send1 tests/append_to_ledger/test2/transactions/C2/36/6C72B5FC56BB1B25A185C3DC5FE861A58401EFF7257038692D589444C184
+	@echo -n "TEST append_to_ledger/test2 03_send1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test2 < tests/append_to_ledger/test2/03_send1 && touch $@ && echo PASS
+
+tests/append_to_ledger/test2/transactions/D2/9C/37E172A1476AF684C6EC92BD9805DD87D6AC69A85F301A21B3BC52C1DDFC: tests/append_to_ledger/test2/04_send2 tests/append_to_ledger/test2/transactions/F0/10/D0627FE32972C3B07AF1487D37E404A3504BDFF28BB6CA9F335DFD8DD1F5
+	@echo -n "TEST append_to_ledger/test2 04_send2... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test2 < tests/append_to_ledger/test2/04_send2 && touch $@ && echo PASS
+
+tests/append_to_ledger/test2/transactions/C4/E1/3B972B8E5E2C18C8D9C6B489F0DA959926172D98804506EAAD0E817A5C33: tests/append_to_ledger/test2/05_recv1 tests/append_to_ledger/test2/transactions/D2/9C/37E172A1476AF684C6EC92BD9805DD87D6AC69A85F301A21B3BC52C1DDFC
+	@echo -n "TEST append_to_ledger/test2 05_recv1... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test2 < tests/append_to_ledger/test2/05_recv1 && touch $@ && echo PASS
+
+tests/append_to_ledger/test2/transactions/F2/F3/43F9B1D723BAE82A168A16A622366189B0BB362126941D94BD5FBDECECA9: tests/append_to_ledger/test2/06_recv2 tests/append_to_ledger/test2/transactions/C4/E1/3B972B8E5E2C18C8D9C6B489F0DA959926172D98804506EAAD0E817A5C33
+	@echo -n "TEST append_to_ledger/test2 06_recv2... " && ./append_to_ledger --ledger-path tests/append_to_ledger/test2 < tests/append_to_ledger/test2/06_recv2 && touch $@ && echo PASS
