@@ -25,6 +25,7 @@ Copyright 2018 Ilja Honkonen
 #include <map>
 #include <set>
 #include <string>
+#include <type_traits>
 
 
 int main(int argc, char* argv[]) {
@@ -226,8 +227,11 @@ int main(int argc, char* argv[]) {
 	while (transactions_to_process.size() > 0) {
 
 		// find next one
-		const auto
-			&transaction_to_process = [&](){
+		std::remove_reference_t<decltype(transactions.at(""))> transaction_to_process;
+		try {
+			transaction_to_process = [&](){
+				std::set<std::string> transactions_to_remove;
+
 				for (const auto& transaction_hex: transactions_to_process) {
 					if (transactions.count(transaction_hex) == 0) {
 						throw std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + ")");
@@ -244,6 +248,7 @@ int main(int argc, char* argv[]) {
 					}
 
 					if (invalid_transactions.count(transaction.previous_hex) > 0) {
+						transactions_to_remove.insert(transaction.hash_hex);
 						invalid_transactions.insert(transaction.hash_hex);
 						if (verbose) {
 							std::cout << "Marking child " << transaction.hash_hex
@@ -269,6 +274,17 @@ int main(int argc, char* argv[]) {
 					if (transaction.send_hex.size() > 0) {
 
 						// process send first
+						if (invalid_transactions.count(transaction.send_hex) > 0) {
+							transactions_to_remove.insert(transaction.hash_hex);
+							invalid_transactions.insert(transaction.hash_hex);
+							if (verbose) {
+								std::cout << "Marking receive " << transaction.hash_hex
+									<< " as invalid because matching send " << transaction.send_hex
+									<< " is invalid" << std::endl;
+							}
+							continue;
+						}
+
 						if (processed_transactions.count(transaction.send_hex) == 0) {
 							if (verbose) {
 								std::cout << "Skipping " << transaction.hash_hex
@@ -285,8 +301,18 @@ int main(int argc, char* argv[]) {
 					}
 				}
 
+				for (const auto& remove: transactions_to_remove) {
+					transactions_to_process.erase(remove);
+				}
+
 				throw std::runtime_error("Couldn't process any transaction");
 			}();
+		} catch (...) {
+			if (verbose) {
+				std::cout << "No transactions left to process" << std::endl;
+			}
+			break;
+		}
 
 		if (verbose) {
 			std::cout << "Processing " << transaction_to_process.hash_hex << std::endl;
