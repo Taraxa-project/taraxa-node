@@ -51,10 +51,10 @@ int main(int argc, char* argv[]) {
 			"Ledger data is located in directory arg")
 		("transaction",
 		 	boost::program_options::value<std::string>(&transaction_str),
-			"Print balance of transaction's account after transaction arg")
+			"TODO: Print balance of transaction's account after transaction arg")
 		("account",
 		 	boost::program_options::value<std::string>(&account_str),
-			"Print final balance of account arg");
+			"TODO: Print final balance of account arg");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -194,8 +194,16 @@ int main(int argc, char* argv[]) {
 
 		auto& account = accounts.at(transaction.pubkey_hex);
 		if (verbose) {
-			std::cout << "Setting initial balance of account " << account.address_hex
-				<< " to " << transaction.new_balance_hex << std::endl;
+			const auto balance_bin = taraxa::hex2bin(transaction.new_balance_hex);
+			CryptoPP::Integer balance(0l);
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				balance_bin.size()
+			);
+			std::cout << "Setting initial balance of account "
+				<< account.address_hex.substr(0, 5) << "..."
+				<< account.address_hex.substr(account.address_hex.size() - 6, 5)
+				<< " to " << balance << std::endl;
 		}
 		account.balance_hex = transaction.new_balance_hex;
 
@@ -284,8 +292,6 @@ int main(int argc, char* argv[]) {
 			std::cout << "Processing " << transaction_to_process.hash_hex << std::endl;
 		}
 
-		CryptoPP::Integer old_balance_sender, new_balance_sender, old_balance_receiver;
-
 		// receive
 		if (transaction_to_process.send_hex.size() > 0) {
 
@@ -315,21 +321,33 @@ int main(int argc, char* argv[]) {
 			}
 
 			CryptoPP::Integer
-				old_balance_sender(
-					processed_transactions
-						.at(send.previous_hex)
-						.new_balance_hex.c_str()
-				),
-				new_balance_sender(send.new_balance_hex.c_str()),
+				old_balance_sender(0l),
+				new_balance_sender(0l),
 				old_balance_receiver(0l);
 
+			const auto old_balance_sender_bin = taraxa::hex2bin(
+				processed_transactions.at(send.previous_hex).new_balance_hex
+			);
+			old_balance_sender.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(old_balance_sender_bin.data())),
+				old_balance_sender_bin.size()
+			);
+
+			const auto new_balance_sender_bin = taraxa::hex2bin(send.new_balance_hex);
+			new_balance_sender.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(new_balance_sender_bin.data())),
+				new_balance_sender_bin.size()
+			);
+
+			// continue from previous balance if not first transaction of receiving account
 			if (transaction_to_process.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
-				old_balance_receiver
-					= CryptoPP::Integer(
-						transactions
-							.at(transaction_to_process.previous_hex)
-							.new_balance_hex.c_str()
-					);
+				const auto& old_balance_receiver_bin = taraxa::hex2bin(
+					transactions.at(transaction_to_process.previous_hex).new_balance_hex
+				);
+				old_balance_receiver.Decode(
+					reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(old_balance_receiver_bin.data())),
+					old_balance_receiver_bin.size()
+				);
 			}
 
 			CryptoPP::Integer new_balance_receiver = old_balance_receiver + old_balance_sender - new_balance_sender;
@@ -346,7 +364,10 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (verbose) {
-				std::cout << "Balance before receive: " << old_balance_receiver
+				const auto& pubkey_hex = transaction_to_process.pubkey_hex;
+				std::cout << "Balance of " << pubkey_hex.substr(0, 5)
+					<< "..." << pubkey_hex.substr(pubkey_hex.size() - 6, 5)
+					<< " before receive: " << old_balance_receiver
 					<< ", balance after receive: " << new_balance_receiver << std::endl;
 			}
 
@@ -361,7 +382,7 @@ int main(int argc, char* argv[]) {
 			std::string new_balance_receiver_bin(8, 0);
 			new_balance_receiver.Encode(
 				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(new_balance_receiver_bin.data())),
-				8
+				new_balance_receiver_bin.size()
 			);
 
 			receiver.balance_hex = taraxa::bin2hex(new_balance_receiver_bin);
@@ -369,13 +390,23 @@ int main(int argc, char* argv[]) {
 		// send
 		} else {
 
-			CryptoPP::Integer
-				old_balance(
-					transactions
-						.at(transaction_to_process.previous_hex)
-						.new_balance_hex.c_str()
-				),
-				new_balance(transaction_to_process.new_balance_hex.c_str());
+			CryptoPP::Integer old_balance(0l), new_balance(0l);
+
+			const auto old_balance_bin = taraxa::hex2bin(
+				transactions.at(transaction_to_process.previous_hex).new_balance_hex
+			);
+			old_balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(old_balance_bin.data())),
+				old_balance_bin.size()
+			);
+
+			const auto new_balance_bin = taraxa::hex2bin(
+				transaction_to_process.new_balance_hex
+			);
+			new_balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(new_balance_bin.data())),
+				new_balance_bin.size()
+			);
 
 			if (new_balance >= old_balance) {
 				if (verbose) {
@@ -389,7 +420,10 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (verbose) {
-				std::cout << "Balance before send: " << old_balance
+				const auto& pubkey_hex = transaction_to_process.pubkey_hex;
+				std::cout << "Balance of " << pubkey_hex.substr(0, 5)
+					<< "..." << pubkey_hex.substr(pubkey_hex.size() - 6, 5)
+					<< " before send: " << old_balance
 					<< ", balance after send: " << new_balance << std::endl;
 			}
 
@@ -410,9 +444,18 @@ int main(int argc, char* argv[]) {
 	std::cout << "Final balances:" << std::endl;
 	for (const auto& item: accounts) {
 		const auto& account = item.second;
+
+		//const auto balance_bin = taraxa::hex2bin(account.balance_hex);
+		CryptoPP::Integer balance;
+		const auto balance_bin = taraxa::hex2bin(account.balance_hex);
+		balance.Decode(
+			reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+			balance_bin.size()
+		);
+
 		std::cout << account.address_hex.substr(0, 5) << "..."
 			<< account.address_hex.substr(account.address_hex.size() - 6, 5)
-			<< ": " << CryptoPP::Integer(account.balance_hex.c_str()) << std::endl;
+			<< ": " << balance << std::endl;
 	}
 	return EXIT_SUCCESS;
 }
