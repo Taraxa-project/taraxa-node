@@ -40,9 +40,7 @@ int main(int argc, char* argv[]) {
 		("payload", boost::program_options::value<std::string>(&payload_hex),
 			"Payload of the transaction (hex)")
 		("new-balance", boost::program_options::value<std::string>(&new_balance_str),
-			"Balance of sending account after the transaction, given as (decimal) "
-			"number. Fee paid for the transaction is equal to balance before "
-			"the transaction - balance after the transaction")
+			"Balance of sending account after the transaction, given as (decimal) number.")
 		("key", boost::program_options::value<std::string>(&exp_hex),
 			"Private exponent of the key used to sign the transaction (hex)");
 
