@@ -35,7 +35,7 @@ std::string
 	payload_hex,
 	hash_hex, // hash of this transaction's data
 	new_balance_hex,
-	signature_hex,
+	signature_hex, // creator's signature
 	next_hex; // hash of next transaction on creator's chain
 
 

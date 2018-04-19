@@ -14,7 +14,8 @@ PROGRAMS = \
     create_send \
     create_receive \
     append_to_ledger \
-    get_balance
+    get_balance \
+    create_transient_vote
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 
@@ -65,6 +66,9 @@ append_to_ledger: append_to_ledger.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 get_balance: get_balance.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE)
+
+create_transient_vote: create_transient_vote.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 TESTS =
