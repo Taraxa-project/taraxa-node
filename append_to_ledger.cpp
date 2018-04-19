@@ -233,13 +233,24 @@ int main(int argc, char* argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		if (verbose) {
-			std::cout << "Appending receive hash to send at "
-				<< send_path << std::endl;
+		if (
+			send_transaction.receive_hex.size() > 0
+			and send_transaction.receive_hex != transaction.hash_hex
+		) {
+			std::cerr << "Send transaction " << send_transaction.hash_hex
+				<< " already has a different receive " << send_transaction.receive_hex
+				<< " instead of " << transaction.hash_hex << std::endl;
+			return EXIT_FAILURE;
 		}
 
-		send_transaction.receive_hex = transaction.hash_hex;
-		send_transaction.to_json_file(send_path.string());
+		if (send_transaction.receive_hex.size() == 0) {
+			if (verbose) {
+				std::cout << "Appending receive hash to send at "
+					<< send_path << std::endl;
+			}
+			send_transaction.receive_hex = transaction.hash_hex;
+			send_transaction.to_json_file(send_path.string());
+		}
 	}
 
 	/*
