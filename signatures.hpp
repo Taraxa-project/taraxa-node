@@ -21,22 +21,24 @@ namespace taraxa {
 
 
 /*!
-Returns private exponent and public X and Y coordinates derived from it.
+Returns private key first and public key second, derived from private key.
 
-Arguments must be, and returned values are, hex encoded without the leading 0x.
+Input and output are hex encoded strings without the leading 0x.
+Non hex characters in input are ignored.
 
 Usually @Chars = std::string.
 */
-template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& private_exponent) {
+template<class Chars> std::array<Chars, 2> get_public_key_hex(const Chars& private_key_hex) {
 	using std::to_string;
 
-	if (private_exponent.size() != 64) {
+	// TODO use named constant
+	if (private_key_hex.size() != 64) {
 		throw std::invalid_argument(
-			"Private exponent must be 64 chars but is "
-			+ to_string(private_exponent.size()) + " chars."
+			"Hex encoded private key must be 64 chars but is "
+			+ to_string(private_key_hex.size()) + " chars."
 		);
 	}
-	const std::string exp_bin = taraxa::hex2bin(private_exponent);
+	const std::string exp_bin = hex2bin(private_key_hex);
 
 	CryptoPP::Integer exponent;
 	exponent.Decode(reinterpret_cast<const CryptoPP::byte*>(exp_bin.data()), exp_bin.size());
@@ -53,20 +55,22 @@ template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& priva
 	if (not public_key.Validate(prng, 3)) {
 		throw std::invalid_argument("Validation of public key failed!");
 	}
-	const auto public_element = public_key.GetPublicElement();
-	const auto
-		&x_pub = public_element.x,
-		&y_pub = public_element.y;
 
-	std::string x_bin, y_bin;
-	x_bin.resize(32); // TODO use named constant
-	y_bin.resize(32);
+	const CryptoPP::ECP::Point point{
+		public_key.GetPublicElement().x,
+		public_key.GetPublicElement().y
+	};
 
-	x_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(x_bin.data())), x_bin.size());
-	y_pub.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(y_bin.data())), y_bin.size());
+	const auto& curve = public_key.GetGroupParameters().GetCurve();
+	std::string pubkey_bin(curve.EncodedPointSize(true), 0);
+	curve.EncodePoint(
+		reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(pubkey_bin.data())),
+		point,
+		true
+	);
 
 	// return private exponent that was used, padded to 64 characters
-	auto exp_hex = taraxa::bin2hex(exp_bin);
+	auto exp_hex = bin2hex(exp_bin);
 	if (exp_hex.size() < 64) {
 		exp_hex.insert(0, 64 - exp_hex.size(), '0');
 	}
@@ -75,26 +79,36 @@ template<class Chars> std::array<Chars, 3> get_public_key_hex(const Chars& priva
 			"Private exponent is " + to_string(exp_hex.size()) + " chars."
 		);
 	}
-	return {exp_hex, taraxa::bin2hex(x_bin), taraxa::bin2hex(y_bin)};
+	return {exp_hex, bin2hex(pubkey_bin)};
 }
 
 
 /*!
-@exponent must be in binary form.
+Returns signature from signing @message with @private_key_bin.
+
+Input and output is in binary form.
 
 Usually @Chars = std::string.
 */
 template<class Chars> Chars sign_message_bin(
 	const Chars& message,
-	const Chars& exponent
+	const Chars& private_key_bin
 ) {
-	// TODO: add error checking
+	if (private_key_bin.size() != 32) {
+		throw std::invalid_argument(
+			"Binary private key must be 32 bytes but is "
+			+ std::to_string(private_key_bin.size()) + " bytes."
+		);
+	}
 
-	CryptoPP::Integer exp;
-	exp.Decode(reinterpret_cast<const CryptoPP::byte*>(exponent.data()), exponent.size());
+	CryptoPP::Integer exponent;
+	exponent.Decode(
+		reinterpret_cast<const CryptoPP::byte*>(private_key_bin.data()),
+		private_key_bin.size()
+	);
 
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey private_key;
-	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exp);
+	private_key.Initialize(CryptoPP::ASN1::secp256r1(), exponent);
 	CryptoPP::AutoSeededRandomPool prng;
 	if (not private_key.Validate(prng, 3)) {
 		throw std::invalid_argument("Validation of private key failed!");
@@ -115,41 +129,71 @@ template<class Chars> Chars sign_message_bin(
 }
 
 
-//! As sign_message_bin but first converts inputs from hex to binary
+//! As sign_message_bin but input and output are in hex format without leading 0x
 template<class Chars> Chars sign_message_hex(
 	const Chars& message_hex,
-	const Chars& exponent_hex
+	const Chars& private_key_hex
 ) {
-	return sign_message_bin(
-		hex2bin(message_hex),
-		hex2bin(exponent_hex)
-	);
+	if (private_key_hex.size() != 64) {
+		throw std::invalid_argument(
+			"Hex encoded private key must be 64 chars but is "
+			+ std::to_string(private_key_hex.size()) + " chars."
+		);
+	}
+
+	return bin2hex(sign_message_bin(hex2bin(message_hex), hex2bin(private_key_hex)));
 }
 
 
 /*!
-Verifies @signature of @message.
+Verifies @signature of @message agains public key @pubkey.
 
-Uses x and y coordinates of public point.
-All parameters must be given in binary form.
+All parameters must be given in binary.
 
 Usually @Chars = std::string.
 */
 template<class Chars> bool verify_signature_bin(
 	const Chars& signature,
 	const Chars& message,
-	const Chars& x_bin,
-	const Chars& y_bin
-) {
-	//TODO: add error checking
+	const Chars& pubkey
+) try {
+	using std::to_string;
 
-	CryptoPP::Integer x, y;
-	x.Decode(reinterpret_cast<const CryptoPP::byte*>(x_bin.data()), x_bin.size());
-	y.Decode(reinterpret_cast<const CryptoPP::byte*>(y_bin.data()), y_bin.size());
-
-	const CryptoPP::ECP::Point point{x, y};
 	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
+
+	/*
+	Chack that pubkey has correct size
+	*/
+
+	// segfault without Initialize before GetCurve and EncodedPointSize
+	public_key.Initialize(CryptoPP::ASN1::secp256r1(), CryptoPP::ECP::Point());
+	const auto point_size = public_key.GetGroupParameters().GetCurve().EncodedPointSize(true);
+	if (pubkey.size() != point_size) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + "): "
+			" Size of binary public key is " + to_string(pubkey.size())
+			+ " but should be " + to_string(point_size)
+		);
+	}
+
+	/*
+	Initialize public key from @pubkey
+	*/
+
+	const auto& curve = public_key.GetGroupParameters().GetCurve();
+	CryptoPP::ECP::Point point;
+	if (not curve.DecodePoint(
+		point,
+		reinterpret_cast<const CryptoPP::byte*>(pubkey.data()),
+		pubkey.size()
+	)) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + "): "
+			" Couldn't decode binary public key"
+		);
+	}
 	public_key.Initialize(CryptoPP::ASN1::secp256r1(), point);
+
 	CryptoPP::AutoSeededRandomPool prng;
 	if (not public_key.Validate(prng, 3)) {
 		throw std::invalid_argument("Validation of public key failed!");
@@ -160,36 +204,31 @@ template<class Chars> bool verify_signature_bin(
 		reinterpret_cast<const CryptoPP::byte*>(message.data()), message.size(),
 		reinterpret_cast<const CryptoPP::byte*>(signature.data()), signature.size()
 	);
+} catch (...) {
+	throw;
 }
 
 
-//! As verify_signature_bin but first converts inputs from hex to binary
+//! As verify_signature_bin but input and output is in hex without leading 0x
 template<class Chars> bool verify_signature_hex(
 	const Chars& signature,
 	const Chars& message,
-	const Chars& x_hex,
-	const Chars& y_hex
+	const Chars& pubkey_hex
 ) {
-	if (x_hex.size() != 64) {
+	using std::to_string;
+
+	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey dummy_key;
+	dummy_key.Initialize(CryptoPP::ASN1::secp256r1(), CryptoPP::ECP::Point());
+	const auto point_size = 2 * dummy_key.GetGroupParameters().GetCurve().EncodedPointSize(true);
+
+	if (pubkey_hex.size() != point_size) {
 		throw std::invalid_argument(
-			"X coordinate of public point must be 64 characters but is "
-			+ std::to_string(x_hex.size())
+			"Hex encoded public key must be " + to_string(point_size)
+			+ " characters but is " + to_string(pubkey_hex.size())
 		);
 	}
 
-	if (y_hex.size() != 64) {
-		throw std::invalid_argument(
-			"Y coordinate of public point must be 64 characters but is "
-			+ std::to_string(y_hex.size())
-		);
-	}
-
-	return verify_signature_bin(
-		hex2bin(signature),
-		hex2bin(message),
-		hex2bin(x_hex),
-		hex2bin(y_hex)
-	);
+	return verify_signature_bin(hex2bin(signature), hex2bin(message), hex2bin(pubkey_hex));
 }
 
 } // namespace taraxa

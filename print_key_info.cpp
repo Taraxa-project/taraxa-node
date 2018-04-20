@@ -39,9 +39,8 @@ int main(int argc, char* argv[]) {
 
 	try {
 		const auto keys = taraxa::get_public_key_hex(exp_hex);
-		std::cout << "Private key:                " << keys[0] << std::endl;
-		std::cout << "Public key, first element:  " << keys[1] << std::endl;
-		std::cout << "Public key, second element: " << keys[2] << std::endl;
+		std::cout << "Private key: " << keys[0] << std::endl;
+		std::cout << "Public key:  " << keys[1] << std::endl;
 	} catch (const std::exception& e) {
 		std::cerr << "Couldn't derive public key from private key: " << e.what() << std::endl;
 		return EXIT_FAILURE;

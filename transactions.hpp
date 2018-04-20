@@ -435,10 +435,10 @@ void update_hash() {
 		);
 	}
 
-	if (receiver_hex.size() > 0 and receiver_hex.size() != 128) {
+	if (receiver_hex.size() > 0 and receiver_hex.size() != 66) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Receiver must be 128 characters but is "
+			"Receiver must be 66 characters but is "
 			+ to_string(receiver_hex.size())
 		);
 	}
@@ -451,10 +451,10 @@ void update_hash() {
 		);
 	}
 
-	if (pubkey_hex.size() != 128) {
+	if (pubkey_hex.size() != 66) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Public key must be 128 characters but is "
+			"Public key must be 66 characters but is "
 			+ to_string(pubkey_hex.size())
 		);
 	}
@@ -480,8 +480,7 @@ void update_hash() {
 	if (not taraxa::verify_signature_hex(
 		signature_hex,
 		signature_payload_hex,
-		pubkey_hex.substr(0, pubkey_hex.size() / 2),
-		pubkey_hex.substr(pubkey_hex.size() / 2, pubkey_hex.size() / 2)
+		pubkey_hex
 	)) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "

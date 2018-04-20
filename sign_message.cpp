@@ -18,16 +18,16 @@ int main(int argc, char* argv[]) {
 	std::string exp_hex;
 
 	boost::program_options::options_description options(
-		"Sign a hex encoded message without the leading 0x given on "
-		"standard input using a key produced with generate_private_key, "
-		"for example. Prints the hex encoded result to standard output.\n"
+		"Sign a hex encoded message given on standard input using a key "
+		"produced with generate_private_key, for example. Prints the hex "
+		"encoded result to standard output.\n"
+		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
 		("help", "print this help message and exit")
 		("key", boost::program_options::value<std::string>(&exp_hex),
-			"Sign using arg as the private exponent of the key "
-			"given as hex encoded string without the leading 0x");
+			"Private key to sign with (hex)");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -41,16 +41,15 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 
-	if (exp_hex.size() != 64) {
-		std::cerr << "Key must be 64 characters but is " << exp_hex.size() << std::endl;
-		return EXIT_FAILURE;
-	}
-
 	std::string message_hex;
 	std::cin >> message_hex;
-	const auto signature = taraxa::sign_message_hex(message_hex, exp_hex);
 
-	std::cout << taraxa::bin2hex(signature);
+	try {
+		std::cout << taraxa::sign_message_hex(message_hex, exp_hex);
+	} catch (const std::exception& e) {
+		std::cerr << "Couldn't sign message: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }
