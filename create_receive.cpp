@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 		("send", boost::program_options::value<std::string>(&send_hex),
 			"Hash of send transaction that is accepted by the receive (hex)")
 		("key", boost::program_options::value<std::string>(&exp_hex),
-			"Private exponent of the key used to sign the receive (hex)");
+			"Private key used to sign the receive (hex)");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
