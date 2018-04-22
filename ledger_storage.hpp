@@ -6,6 +6,7 @@ Copyright 2018 Ilja Honkonen
 #define LEDGER_STORAGE_HPP
 
 #include "bin2hex2bin.hpp"
+#include "signatures.hpp"
 
 #include <cryptopp/blake2.h>
 #include <cryptopp/eccrypto.h>
@@ -29,7 +30,7 @@ template<class Path> Path get_transaction_path(
 	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
 	if (previous_hex.size() != nr_hash_chars) {
 		throw std::invalid_argument(
-			"Hash of previous transaction must be " + to_string(nr_hash_chars)
+			"Hex format hash of previous transaction must be " + to_string(nr_hash_chars)
 			+ " characters but is " + to_string(previous_hex.size())
 		);
 	}
@@ -49,10 +50,12 @@ template<class Path> Path get_account_path(
 ) {
 	using std::to_string;
 
-	const auto nr_pubkey_chars = 128;
-	if (pubkey_hex.size() != nr_pubkey_chars) {
+	const auto pubkey_hex_size = 2 * taraxa::public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (pubkey_hex.size() != pubkey_hex_size) {
 		throw std::invalid_argument(
-			"Hash of previous transaction must be " + to_string(nr_pubkey_chars)
+			"Hex format public key must be " + to_string(pubkey_hex_size)
 			+ " characters but is " + to_string(pubkey_hex.size())
 		);
 	}

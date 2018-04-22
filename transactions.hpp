@@ -123,7 +123,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 	if (previous_hex.size() != nr_hash_chars) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Hash of previous transaction must be " + to_string(nr_hash_chars) + " characters but is "
+			"Hex format hash of previous transaction must be "
+			+ to_string(nr_hash_chars) + " characters but is "
 			+ to_string(previous_hex.size())
 		);
 	}
@@ -175,11 +176,14 @@ void load_from_json(const std::string& json, const bool verbose) {
 				std::string(pubkey_json.GetString())
 			)
 		);
-	if (pubkey_hex.size() != 128) {
+	const auto pubkey_hex_size = 2 * public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (pubkey_hex.size() != pubkey_hex_size) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Public key must be 128 characters but is "
-			+ to_string(pubkey_hex.size())
+			"Hex format public key must be " + to_string(pubkey_hex_size)
+			+ " characters but is " + to_string(pubkey_hex.size())
 		);
 	}
 	if (verbose) {
@@ -229,7 +233,7 @@ void load_from_json(const std::string& json, const bool verbose) {
 		if (send_hex.size() != nr_hash_chars) {
 			throw std::invalid_argument(
 				__FILE__ "(" + to_string(__LINE__) + ") "
-				"Hash of send must be "
+				"Hex format hash of send must be "
 				+ to_string(nr_hash_chars) + " characters but is "
 				+ to_string(send_hex.size())
 			);
@@ -416,7 +420,7 @@ void update_hash() {
 	if (previous_hex.size() != nr_hash_chars) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Hash of previous transaction must be " + to_string(nr_hash_chars)
+			"Hex format hash of previous transaction must be " + to_string(nr_hash_chars)
 			+ " characters but is " + to_string(previous_hex.size())
 		);
 	}
@@ -438,7 +442,7 @@ void update_hash() {
 	if (receiver_hex.size() > 0 and receiver_hex.size() != 66) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Receiver must be 66 characters but is "
+			"Hex format receiver must be 66 characters but is "
 			+ to_string(receiver_hex.size())
 		);
 	}
@@ -446,7 +450,7 @@ void update_hash() {
 	if (send_hex.size() > 0 and send_hex.size() != nr_hash_chars) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Send must be " + to_string(nr_hash_chars)
+			"Hex format send must be " + to_string(nr_hash_chars)
 			+ " characters but is " + to_string(send_hex.size())
 		);
 	}
@@ -454,7 +458,7 @@ void update_hash() {
 	if (pubkey_hex.size() != 66) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Public key must be 66 characters but is "
+			"Hex format public key must be 66 characters but is "
 			+ to_string(pubkey_hex.size())
 		);
 	}
@@ -466,7 +470,7 @@ void update_hash() {
 		if (new_balance_hex.size() != 16) {
 			throw std::invalid_argument(
 				__FILE__ "(" + to_string(__LINE__) + ") "
-				"New balance must be 16 characters but is "
+				"Hex format new balance must be 16 characters but is "
 				+ to_string(new_balance_hex.size())
 			);
 		}

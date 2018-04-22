@@ -68,8 +68,12 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	if (receiver_hex.size() != 128) {
-		std::cerr << "Receiver address must be 128 characters but is " << receiver_hex.size() << std::endl;
+	const auto pubkey_hex_size = 2 * taraxa::public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (receiver_hex.size() != pubkey_hex_size) {
+		std::cerr << "Receiver address must be " << pubkey_hex_size
+			<< " characters but is " << receiver_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -81,7 +85,7 @@ int main(int argc, char* argv[]) {
 	const auto keys = taraxa::get_public_key_hex(exp_hex);
 	const auto
 		exp_bin = taraxa::hex2bin(keys[0]),
-		pub_hex = keys[1] + keys[2],
+		pub_hex = keys[1],
 		receiver_bin = taraxa::hex2bin(receiver_hex),
 		payload_bin = taraxa::hex2bin(payload_hex),
 		previous_bin = taraxa::hex2bin(previous_hex);

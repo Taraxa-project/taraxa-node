@@ -74,8 +74,9 @@ create_transient_vote: create_transient_vote.cpp $(HEADERS) $(DEPENDENCIES) Make
 TESTS =
 CLEAN_TESTS =
 include \
-    tests/append_to_ledger/test_include \
-    tests/get_balance/test_include
+    tests/append_to_ledger/test1/test_include \
+    tests/append_to_ledger/test2/test_include \
+    tests/get_balance/test1/test_include
 
 t: test
 test: $(TESTS)

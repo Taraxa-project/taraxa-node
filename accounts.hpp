@@ -6,6 +6,7 @@ Copyright 2018 Ilja Honkonen
 #define ACCOUNTS_HPP
 
 #include "bin2hex2bin.hpp"
+#include "signatures.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -110,11 +111,14 @@ void load_from_json(const std::string& json, const bool verbose) {
 				std::string(pubkey_json.GetString())
 			)
 		);
-	if (pubkey_hex.size() != 128) {
+	const auto pubkey_hex_size = 2 * public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (pubkey_hex.size() != pubkey_hex_size) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
-			"Public key must be 128 characters but is "
-			+ to_string(pubkey_hex.size())
+			"Public key must be " + to_string(pubkey_hex_size)
+			+ " characters but is " + to_string(pubkey_hex.size())
 		);
 	}
 	if (verbose) {

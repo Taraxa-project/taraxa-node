@@ -53,19 +53,19 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (exp_hex.size() != 64) {
-		std::cerr << "Key must be 64 characters but is " << exp_hex.size() << std::endl;
+		std::cerr << "Hex format private key must be 64 characters but is " << exp_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
 	if (previous_hex.size() != nr_hash_chars) {
-		std::cerr << "Hash of previous transaction must be " << nr_hash_chars
+		std::cerr << "Hex format hash of previous transaction must be " << nr_hash_chars
 			<< " characters but is " << previous_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	if (send_hex.size() != nr_hash_chars) {
-		std::cerr << "Hash of send must be " << nr_hash_chars
+		std::cerr << "Hex format hash of send must be " << nr_hash_chars
 			<< " characters but is " << send_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 	const auto keys = taraxa::get_public_key_hex(exp_hex);
 	const auto
 		exp_bin = taraxa::hex2bin(keys[0]),
-		pub_hex = keys[1] + keys[2],
+		pub_hex = keys[1],
 
 		send_bin = taraxa::hex2bin(send_hex),
 		previous_bin = taraxa::hex2bin(previous_hex),

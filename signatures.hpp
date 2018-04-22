@@ -20,6 +20,17 @@ Copyright 2018 Ilja Honkonen
 namespace taraxa {
 
 
+/*
+Usually @Public_Key == CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey
+*/
+template<class Public_Key> size_t public_key_size(const Public_Key&) {
+	Public_Key key;
+	// segfault without Initialize before GetCurve and EncodedPointSize
+	key.Initialize(CryptoPP::ASN1::secp256r1(), CryptoPP::ECP::Point());
+	return key.GetGroupParameters().GetCurve().EncodedPointSize(true);
+}
+
+
 /*!
 Returns private key first and public key second, derived from private key.
 
@@ -159,20 +170,14 @@ template<class Chars> bool verify_signature_bin(
 ) try {
 	using std::to_string;
 
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
-
-	/*
-	Chack that pubkey has correct size
-	*/
-
-	// segfault without Initialize before GetCurve and EncodedPointSize
-	public_key.Initialize(CryptoPP::ASN1::secp256r1(), CryptoPP::ECP::Point());
-	const auto point_size = public_key.GetGroupParameters().GetCurve().EncodedPointSize(true);
-	if (pubkey.size() != point_size) {
+	const auto pubkey_size = public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (pubkey.size() != pubkey_size) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + "): "
 			" Size of binary public key is " + to_string(pubkey.size())
-			+ " but should be " + to_string(point_size)
+			+ " but should be " + to_string(pubkey_size)
 		);
 	}
 
@@ -180,9 +185,11 @@ template<class Chars> bool verify_signature_bin(
 	Initialize public key from @pubkey
 	*/
 
-	const auto& curve = public_key.GetGroupParameters().GetCurve();
+	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey public_key;
+	// segfault without Initialize before GetCurve
+	public_key.Initialize(CryptoPP::ASN1::secp256r1(), CryptoPP::ECP::Point());
 	CryptoPP::ECP::Point point;
-	if (not curve.DecodePoint(
+	if (not public_key.GetGroupParameters().GetCurve().DecodePoint(
 		point,
 		reinterpret_cast<const CryptoPP::byte*>(pubkey.data()),
 		pubkey.size()
@@ -217,13 +224,13 @@ template<class Chars> bool verify_signature_hex(
 ) {
 	using std::to_string;
 
-	CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey dummy_key;
-	dummy_key.Initialize(CryptoPP::ASN1::secp256r1(), CryptoPP::ECP::Point());
-	const auto point_size = 2 * dummy_key.GetGroupParameters().GetCurve().EncodedPointSize(true);
+	const auto pubkey_hex_size = 2 * public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
 
-	if (pubkey_hex.size() != point_size) {
+	if (pubkey_hex.size() != pubkey_hex_size) {
 		throw std::invalid_argument(
-			"Hex encoded public key must be " + to_string(point_size)
+			"Hex encoded public key must be " + to_string(pubkey_hex_size)
 			+ " characters but is " + to_string(pubkey_hex.size())
 		);
 	}
