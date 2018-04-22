@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 				std::cout << "Appending transaction hash to previous transaction at "
 					<< previous_path << std::endl;
 			}
-
+			// TODO if receive, only add if matching send exists
 			previous_transaction.next_hex = transaction.hash_hex;
 			previous_transaction.to_json_file(previous_path.string());
 		}

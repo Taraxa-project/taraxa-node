@@ -1,4 +1,4 @@
-TESTS += tests/get_balance/test1/transactions/42/C2/24FD586A73DAD195F7005BF33650A5E219F480E0CE9FC139DC4B579743EA
+TESTS += tests/get_balance/test1/transactions/15/DC/24DFC7AEA4BE2605DE94D7DD9DED82A79EB6BC1A8B47D46A500606FF84FD
 
 CLEAN_TESTS += tests/get_balance/test1/accounts tests/get_balance/test1/transactions
 
@@ -17,8 +17,8 @@ tests/get_balance/test1/accounts/02/5ECBE4D1A6330A44C8F7EF951D4BF165E6C6B721EFAD
 tests/get_balance/test1/transactions/A8/9B/D653FAC65ABDC1F18284726E1E4CC1B7A47C1C256B367A6AB9D5B6386466: tests/get_balance/test1/03_genesis3 tests/get_balance/test1/transactions/9E/AB/7BD858796CD9729C197DDD2274106A431415B02454B930E19E6BC562FBA2
 	@echo -n "TEST get_balance/test1 (append) 03_genesis3... " && ./append_to_ledger --ledger-path tests/get_balance/test1 < tests/get_balance/test1/03_genesis3 && touch $@ && echo PASS
 
-tests/get_balance/test1/transactions/35/6B/FD4DF4374EB595C416720DF404914A756AF888EEECA91BE33F8E09308E02: tests/get_balance/test1/04_send_1_to_2_fail tests/get_balance/test1/transactions/A8/9B/D653FAC65ABDC1F18284726E1E4CC1B7A47C1C256B367A6AB9D5B6386466
+tests/get_balance/test1/transactions/6F/C1/E4A5A58BD4FF6E5A7AB94B0A8EC1093179ED1EAD1B7CAAD5215F235B5E64: tests/get_balance/test1/04_send_1_to_2_fail tests/get_balance/test1/transactions/A8/9B/D653FAC65ABDC1F18284726E1E4CC1B7A47C1C256B367A6AB9D5B6386466
 	@echo -n "TEST get_balance/test1 (append) 04_send_1_to_2_fail... " && ./append_to_ledger --ledger-path tests/get_balance/test1 < tests/get_balance/test1/04_send_1_to_2_fail && touch $@ && echo PASS
 
-tests/get_balance/test1/transactions/42/C2/24FD586A73DAD195F7005BF33650A5E219F480E0CE9FC139DC4B579743EA: tests/get_balance/test1/05_receive_1_to_2 tests/get_balance/test1/transactions/35/6B/FD4DF4374EB595C416720DF404914A756AF888EEECA91BE33F8E09308E02
+tests/get_balance/test1/transactions/15/DC/24DFC7AEA4BE2605DE94D7DD9DED82A79EB6BC1A8B47D46A500606FF84FD: tests/get_balance/test1/05_receive_1_to_2 tests/get_balance/test1/transactions/6F/C1/E4A5A58BD4FF6E5A7AB94B0A8EC1093179ED1EAD1B7CAAD5215F235B5E64
 	@echo -n "TEST get_balance/test1 (append) 05_receive_1_to_2... " && ./append_to_ledger --ledger-path tests/get_balance/test1 < tests/get_balance/test1/05_receive_1_to_2 && touch $@ && echo PASS
