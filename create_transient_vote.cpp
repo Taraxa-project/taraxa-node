@@ -34,11 +34,11 @@ int main(int argc, char* argv[]) {
 	options.add_options()
 		("help", "print this help message and exit")
 		("latest", boost::program_options::value<std::string>(&latest_hex),
-			"Hash of latest transaction from the account (hex)")
+			"Hash of latest transaction from voting account (hex)")
 		("candidate", boost::program_options::value<std::string>(&candidate_hex),
 			"Hash of transaction that is voted for (hex)")
 		("key", boost::program_options::value<std::string>(&exp_hex),
-			"Private exponent of the key used to sign the transaction (hex)");
+			"Private key used to sign the vote (hex)");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -65,9 +65,9 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	if (candidate_hex.size() != 64) {
-		std::cerr << "Hex format hash of candidate must be 64 characters but is "
-			<< candidate_hex.size() << std::endl;
+	if (candidate_hex.size() != nr_hash_chars) {
+		std::cerr << "Hex format hash of candidate must be " << nr_hash_chars
+			<< " characters but is " << candidate_hex.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 
