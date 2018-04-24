@@ -13,7 +13,7 @@ PROGRAMS = \
     verify_message \
     create_send \
     create_receive \
-    append_to_ledger \
+    add_transaction \
     get_balance \
     create_transient_vote
 
@@ -62,7 +62,7 @@ create_send: create_send.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 create_receive: create_receive.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
-append_to_ledger: append_to_ledger.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+add_transaction: add_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 get_balance: get_balance.cpp $(HEADERS) $(DEPENDENCIES) Makefile
@@ -74,8 +74,8 @@ create_transient_vote: create_transient_vote.cpp $(HEADERS) $(DEPENDENCIES) Make
 TESTS =
 CLEAN_TESTS =
 include \
-    tests/append_to_ledger/test1/test_include \
-    tests/append_to_ledger/test2/test_include \
+    tests/add_transaction/test1/test_include \
+    tests/add_transaction/test2/test_include \
     tests/get_balance/test1/test_include
 
 t: test
