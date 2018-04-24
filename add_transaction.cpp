@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 	std::string ledger_path_str;
 
 	boost::program_options::options_description options(
-		"Reads a transaction from standard input and appends it to the ledger.\n"
+		"Reads a transaction from standard input and adds it to the ledger.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);

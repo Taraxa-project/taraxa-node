@@ -52,10 +52,12 @@ int main(int argc, char* argv[]) {
 			"Ledger data is located in directory arg")
 		("transaction",
 		 	boost::program_options::value<std::string>(&transaction_str),
-			"TODO: Print balance of transaction's account after transaction arg")
+			"Print balance of transaction's account after transaction arg "
+			"(hex), overrides --account")
 		("account",
 		 	boost::program_options::value<std::string>(&account_str),
-			"TODO: Print final balance of account arg");
+			"Print final balance of account arg (hex) instead of all "
+			"accounts, overridden by --transaction");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -73,15 +75,19 @@ int main(int argc, char* argv[]) {
 		verbose = true;
 	}
 
-	if (transaction_str.size() > 0 and transaction_str.size() != 64) {
-		std::cerr << "Transaction must be 64 characters but is "
-			<< transaction_str.size() << std::endl;
+	const auto hash_hex_size = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
+	if (transaction_str.size() > 0 and transaction_str.size() != hash_hex_size) {
+		std::cerr << "Hex hash of transaction must be " << hash_hex_size
+			<< " characters but is " << transaction_str.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	if (account_str.size() > 0 and account_str.size() != 128) {
-		std::cerr << "Account must be 128 characters but is "
-			<< account_str.size() << std::endl;
+	const auto pubkey_hex_size = 2 * taraxa::public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (account_str.size() > 0 and account_str.size() != pubkey_hex_size) {
+		std::cerr << "Account must be " << pubkey_hex_size
+			<< " characters but is " << account_str.size() << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -168,10 +174,15 @@ int main(int argc, char* argv[]) {
 	Process genesis transactions without corresponding sends
 	*/
 
+	std::string final_balance_hex(16, '0');
+
 	std::map<
 		std::string, // hex hash
 		taraxa::Transaction<CryptoPP::BLAKE2s>
 	> processed_transactions;
+
+	taraxa::Transaction<CryptoPP::BLAKE2s> transaction_to_print;
+	taraxa::Account<CryptoPP::BLAKE2s> account_to_print;
 
 	if (verbose) {
 		std::cout << "Processing genesis transaction(s)" << std::endl;
@@ -203,10 +214,17 @@ int main(int argc, char* argv[]) {
 			);
 			std::cout << "Setting initial balance of account "
 				<< account.address_hex.substr(0, 5) << "..."
-				<< account.address_hex.substr(account.address_hex.size() - 6, 5)
+				<< account.address_hex.substr(account.address_hex.size() - 5)
 				<< " to " << balance << std::endl;
 		}
 		account.balance_hex = transaction.new_balance_hex;
+
+		if (account_str.size() > 0 and account_str == account.pubkey_hex) {
+			account_to_print = account;
+		}
+		if (transaction_str.size() > 0 and transaction_str == transaction.hash_hex) {
+			transaction_to_print = transaction;
+		}
 
 		processed_transactions[transaction.hash_hex] = transaction;
 	}
@@ -392,7 +410,7 @@ int main(int argc, char* argv[]) {
 			if (verbose) {
 				const auto& pubkey_hex = transaction_to_process.pubkey_hex;
 				std::cout << "Balance of " << pubkey_hex.substr(0, 5)
-					<< "..." << pubkey_hex.substr(pubkey_hex.size() - 6, 5)
+					<< "..." << pubkey_hex.substr(pubkey_hex.size() - 5)
 					<< " before receive: " << old_balance_receiver
 					<< ", balance after receive: " << new_balance_receiver << std::endl;
 			}
@@ -412,6 +430,13 @@ int main(int argc, char* argv[]) {
 			);
 
 			receiver.balance_hex = taraxa::bin2hex(new_balance_receiver_bin);
+
+			if (account_str.size() > 0 and account_str == receiver.pubkey_hex) {
+				account_to_print = receiver;
+			}
+			if (transaction_str.size() > 0 and transaction_str == transaction_to_process.hash_hex) {
+				transaction_to_print = transaction_to_process;
+			}
 
 		// send
 		} else {
@@ -448,7 +473,7 @@ int main(int argc, char* argv[]) {
 			if (verbose) {
 				const auto& pubkey_hex = transaction_to_process.pubkey_hex;
 				std::cout << "Balance of " << pubkey_hex.substr(0, 5)
-					<< "..." << pubkey_hex.substr(pubkey_hex.size() - 6, 5)
+					<< "..." << pubkey_hex.substr(pubkey_hex.size() - 5)
 					<< " before send: " << old_balance
 					<< ", balance after send: " << new_balance << std::endl;
 			}
@@ -461,27 +486,71 @@ int main(int argc, char* argv[]) {
 
 			auto& sender = accounts.at(transaction_to_process.pubkey_hex);
 			sender.balance_hex = transaction_to_process.new_balance_hex;
+
+			if (account_str.size() > 0 and account_str == sender.pubkey_hex) {
+				account_to_print = sender;
+			}
+			if (transaction_str.size() > 0 and transaction_str == transaction_to_process.hash_hex) {
+				transaction_to_print = transaction_to_process;
+			}
 		}
 
 		processed_transactions[transaction_to_process.hash_hex] = transaction_to_process;
 		transactions_to_process.erase(transaction_to_process.hash_hex);
 	}
 
-	std::cout << "Final balances:" << std::endl;
-	for (const auto& item: accounts) {
-		const auto& account = item.second;
+	if (account_str.size() == 0 and transaction_str.size() == 0) {
+		std::cout << "Final balances:" << std::endl;
+		for (const auto& item: accounts) {
+			const auto& account = item.second;
 
-		//const auto balance_bin = taraxa::hex2bin(account.balance_hex);
-		CryptoPP::Integer balance;
-		const auto balance_bin = taraxa::hex2bin(account.balance_hex);
-		balance.Decode(
-			reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
-			balance_bin.size()
-		);
+			CryptoPP::Integer balance;
+			const auto balance_bin = taraxa::hex2bin(account.balance_hex);
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				balance_bin.size()
+			);
 
-		std::cout << account.address_hex.substr(0, 5) << "..."
-			<< account.address_hex.substr(account.address_hex.size() - 6, 5)
-			<< ": " << balance << std::endl;
+			std::cout << account.address_hex.substr(0, 5) << "..."
+				<< account.address_hex.substr(account.address_hex.size() - 5)
+				<< ": " << balance << std::endl;
+		}
+
+	} else {
+
+		if (account_str.size() > 0) {
+			CryptoPP::Integer balance;
+			const auto balance_bin = taraxa::hex2bin(account_to_print.balance_hex);
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				balance_bin.size()
+			);
+			std::cout << "Final balance of " << account_str.substr(0, 5)
+				<< "..." << account_str.substr(account_str.size() - 5)
+				<< ": " << balance << std::endl;
+		}
+
+		if (transaction_str.size() > 0) {
+			if (processed_transactions.count(transaction_str) == 0) {
+				std::cerr << "Transaction " << transaction_str.substr(0, 5)
+					<< "..." << transaction_str.substr(transaction_str.size() - 5)
+					<< " not found" << std::endl;
+				return EXIT_FAILURE;
+			}
+
+			CryptoPP::Integer balance;
+			const auto balance_bin = taraxa::hex2bin(transaction_to_print.new_balance_hex);
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				balance_bin.size()
+			);
+			account_str = transaction_to_print.pubkey_hex;
+			const auto hash = transaction_to_print.hash_hex;
+			std::cout << "Balance of " << account_str.substr(0, 5)
+				<< "..." << account_str.substr(account_str.size() - 5)
+				<< " at " << hash.substr(0, 5) << "..." << hash.substr(hash.size() - 5)
+				<< ": " << balance << std::endl;
+		}
 	}
 	return EXIT_SUCCESS;
 }
