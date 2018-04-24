@@ -436,6 +436,7 @@ int main(int argc, char* argv[]) {
 			}
 			if (transaction_str.size() > 0 and transaction_str == transaction_to_process.hash_hex) {
 				transaction_to_print = transaction_to_process;
+				transaction_to_print.new_balance_hex = receiver.balance_hex;
 			}
 
 		// send
@@ -519,6 +520,13 @@ int main(int argc, char* argv[]) {
 	} else {
 
 		if (account_str.size() > 0) {
+			if (accounts.count(account_str) == 0) {
+				std::cerr << "Account " << account_str.substr(0, 5)
+					<< "..." << account_str.substr(account_str.size() - 5)
+					<< " not found" << std::endl;
+				return EXIT_SUCCESS;
+			}
+
 			CryptoPP::Integer balance;
 			const auto balance_bin = taraxa::hex2bin(account_to_print.balance_hex);
 			balance.Decode(
