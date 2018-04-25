@@ -7,6 +7,7 @@ Copyright 2018 Ilja Honkonen
 #include "bin2hex2bin.hpp"
 #include "hashes.hpp"
 #include "signatures.hpp"
+#include "transactions.hpp"
 
 #include <boost/program_options.hpp>
 #include <cryptopp/blake2.h>
@@ -77,40 +78,14 @@ int main(int argc, char* argv[]) {
 	*/
 
 	const auto keys = taraxa::get_public_key_hex(exp_hex);
-	const auto
-		exp_bin = taraxa::hex2bin(keys[0]),
-		pub_hex = keys[1],
-		candidate_bin = taraxa::hex2bin(candidate_hex),
-		latest_bin = taraxa::hex2bin(latest_hex),
-		signature_payload_bin = latest_bin + candidate_bin,
-		signature_bin = taraxa::sign_message_bin(signature_payload_bin, exp_bin),
-		hash_payload_bin = signature_bin + signature_payload_bin,
-		signature_hex = taraxa::bin2hex(signature_bin),
-		// hash added only to make users' life easier
-		hash_hex = taraxa::bin2hex(taraxa::get_hash_bin<CryptoPP::BLAKE2s>(hash_payload_bin));
+	taraxa::Transient_Vote<CryptoPP::BLAKE2s> vote;
+	vote.pubkey_hex = keys[1];
+	vote.latest_hex = latest_hex;
+	vote.candidate_hex = candidate_hex;
+	vote.signature_hex = taraxa::sign_message_hex(latest_hex + candidate_hex, keys[0]);
+	vote.update_hash();
 
-	/*
-	Convert send to JSON and print to stdout
-	*/
-
-	rapidjson::Document document;
-	document.SetObject();
-
-	// output what was signed
-	latest_hex = taraxa::bin2hex(latest_bin);
-	candidate_hex = taraxa::bin2hex(candidate_bin);
-
-	auto& allocator = document.GetAllocator();
-	document.AddMember("signature", rapidjson::StringRef(signature_hex), allocator);
-	document.AddMember("latest", rapidjson::StringRef(latest_hex), allocator);
-	document.AddMember("candidate", rapidjson::StringRef(candidate_hex), allocator);
-	document.AddMember("public-key", rapidjson::StringRef(pub_hex), allocator);
-	document.AddMember("hash", rapidjson::StringRef(hash_hex), allocator);
-
-	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-	document.Accept(writer);
-	std::cout << buffer.GetString() << std::endl;
+	std::cout << vote.to_json_str() << std::endl;
 
 	return EXIT_SUCCESS;
 }
