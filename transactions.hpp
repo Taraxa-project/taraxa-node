@@ -119,7 +119,7 @@ void load_from_json(const std::string& json, const bool verbose) {
 				std::string(previous_json.GetString())
 			)
 		);
-	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
+	const auto nr_hash_chars = 2 * Hasher::DIGESTSIZE;
 	if (previous_hex.size() != nr_hash_chars) {
 		throw std::invalid_argument(
 			__FILE__ "(" + to_string(__LINE__) + ") "
@@ -229,7 +229,7 @@ void load_from_json(const std::string& json, const bool verbose) {
 			std::cout << "Send: " << send_hex << std::endl;
 		}
 
-		const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
+		const auto nr_hash_chars = 2 * Hasher::DIGESTSIZE;
 		if (send_hex.size() != nr_hash_chars) {
 			throw std::invalid_argument(
 				__FILE__ "(" + to_string(__LINE__) + ") "
@@ -497,7 +497,274 @@ void update_hash() {
 	);
 }
 
-};
+}; // class Transaction
+
+
+//! Usually @Hasher == CryptoPP::BLAKE2s
+template<class Hasher> class Transient_Vote {
+
+public:
+
+std::string
+	pubkey_hex, // voter's public key
+	latest_hex, // hash of latest transaction on voter's chain
+	candidate_hex, // hash of transaction that's voted for
+	hash_hex, // hash of this vote's data
+	signature_hex; // voter's signature
+
+
+void load(const std::string& json_file_name, const bool verbose) {
+	try {
+		std::ifstream json_file(json_file_name);
+		load(json_file, verbose);
+	} catch (const std::exception& e) {
+		throw std::invalid_argument(
+			"Couldn't load vote from file " + json_file_name
+			+ ": " + e.what()
+		);
+	}
+}
+
+
+void load(std::istream& json_file, const bool verbose) {
+	std::string json;
+	while (json_file.good()) {
+		std::string temp;
+		std::getline(json_file, temp);
+		if (temp.size() > 0) {
+			json += temp;
+		}
+	}
+
+	if (verbose) {
+		std::cout << "Read " << json.size()
+			<< " characters from stream" << std::endl;
+	}
+
+	try {
+		load_from_json(json, verbose);
+	} catch (const std::exception& e) {
+		throw std::invalid_argument(
+			std::string("Couldn't read transaction: ") + e.what()
+		);
+	}
+}
+
+
+void load_from_json(const std::string& json, const bool verbose) {
+	using std::to_string;
+
+	rapidjson::Document document;
+	document.Parse(json.c_str());
+	if (document.HasParseError()) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Couldn't parse json data at character position " + to_string(document.GetErrorOffset())
+			+ ": " + rapidjson::GetParseError_En(document.GetParseError())
+		);
+	}
+
+	if (not document.IsObject()) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"JSON data doesn't represent an object ( {...} )"
+		);
+	}
+
+	// check for latest transaction
+	if (not document.HasMember("latest")) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			 "JSON object doesn't have a latest key"
+		);
+	}
+
+	const auto& latest_json = document["latest"];
+	if (not latest_json.IsString()) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Value of latest is not a string"
+		);
+	}
+	// normalize hex representation of latest transaction
+	latest_hex
+		= taraxa::bin2hex(
+			taraxa::hex2bin(
+				std::string(latest_json.GetString())
+			)
+		);
+	const auto nr_hash_chars = 2 * Hasher::DIGESTSIZE;
+	if (latest_hex.size() != nr_hash_chars) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Hex format hash of latest transaction must be "
+			+ to_string(nr_hash_chars) + " characters but is "
+			+ to_string(latest_hex.size())
+		);
+	}
+	if (verbose) {
+		std::cout << "Previous transaction: " << latest_hex << std::endl;
+	}
+
+	// check for signature and normalize
+	if (not document.HasMember("signature")) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"JSON object doesn't have a signature key"
+		);
+	}
+	const auto& signature_json = document["signature"];
+	if (not signature_json.IsString()) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Value of signature is not a string"
+		);
+	}
+	signature_hex
+		= taraxa::bin2hex(
+			taraxa::hex2bin(
+				std::string(signature_json.GetString())
+			)
+		);
+	if (verbose) {
+		std::cout << "Signature: " << signature_hex << std::endl;
+	}
+
+	// check for public key
+	if (not document.HasMember("public-key")) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"JSON object doesn't have a public-key key"
+		);
+	}
+	const auto& pubkey_json = document["public-key"];
+	if (not pubkey_json.IsString()) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Value of public-key is not a string"
+		);
+	}
+	pubkey_hex
+		= taraxa::bin2hex(
+			taraxa::hex2bin(
+				std::string(pubkey_json.GetString())
+			)
+		);
+	const auto pubkey_hex_size = 2 * public_key_size(
+		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
+	);
+	if (pubkey_hex.size() != pubkey_hex_size) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Hex format public key must be " + to_string(pubkey_hex_size)
+			+ " characters but is " + to_string(pubkey_hex.size())
+		);
+	}
+	if (verbose) {
+		std::cout << "Public key: " << pubkey_hex << std::endl;
+	}
+
+	const auto& candidate_json = document["candidate"];
+	if (not candidate_json.IsString()) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Value of receiver is not string"
+		);
+	}
+	candidate_hex
+		= taraxa::bin2hex(
+			taraxa::hex2bin(
+				std::string(candidate_json.GetString())
+			)
+		);
+	if (verbose) {
+		std::cout << "Candidate: " << candidate_hex << std::endl;
+	}
+
+	/*
+	Verify signature
+	*/
+
+	try {
+		update_hash();
+	} catch (const std::exception& e) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Couldn't update transaction hash: " + e.what()
+		);
+	}
+	if (verbose) {
+		std::cout << "Hash: " << hash_hex << std::endl;
+		std::cout << "Signature OK" << std::endl;
+	}
+}
+
+
+rapidjson::Document to_json() const {
+	// TODO add error checking
+	rapidjson::Document document;
+	auto& allocator = document.GetAllocator();
+	document.SetObject();
+	if (pubkey_hex.size() > 0) {
+		document.AddMember("public-key", rapidjson::StringRef(pubkey_hex), allocator);
+	}
+	if (signature_hex.size() > 0) {
+		document.AddMember("signature", rapidjson::StringRef(signature_hex), allocator);
+	}
+	if (latest_hex.size() > 0) {
+		document.AddMember("latest", rapidjson::StringRef(latest_hex), allocator);
+	}
+	if (candidate_hex.size() > 0) {
+		document.AddMember("candidate", rapidjson::StringRef(candidate_hex), allocator);
+	}
+	if (hash_hex.size() > 0) {
+		document.AddMember("hash", rapidjson::StringRef(hash_hex), allocator);
+	}
+	return document;
+}
+
+
+std::string to_json_str() const {
+	const auto document = to_json();
+	rapidjson::StringBuffer buffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+	document.Accept(writer);
+	return buffer.GetString();
+}
+
+
+void to_json_file(const std::string& file_name) const try {
+	const auto json_str = to_json_str();
+	std::ofstream json_file(file_name);
+	json_file << json_str << std::endl;
+} catch (const std::exception& e) {
+	throw std::invalid_argument(__func__ + std::string(": ") + e.what());
+}
+
+
+void update_hash() {
+	using std::to_string;
+
+	// TODO add input checking
+	const std::string signature_payload_hex = latest_hex + candidate_hex;
+
+	if (not taraxa::verify_signature_hex(
+		signature_hex,
+		signature_payload_hex,
+		pubkey_hex
+	)) {
+		throw std::invalid_argument(
+			__FILE__ "(" + to_string(__LINE__) + ") "
+			"Signature verification failed"
+		);
+	}
+
+	hash_hex = taraxa::get_hash_hex<Hasher>(
+		signature_hex + signature_payload_hex
+	);
+}
+
+}; // class Transient_Vote
 
 } // namespace taraxa
 

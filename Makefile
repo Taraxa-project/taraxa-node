@@ -15,7 +15,8 @@ PROGRAMS = \
     create_receive \
     add_transaction \
     get_balance \
-    create_transient_vote
+    create_transient_vote \
+    add_vote
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 
@@ -69,6 +70,9 @@ get_balance: get_balance.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 create_transient_vote: create_transient_vote.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE)
+
+add_vote: add_vote.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 TESTS =

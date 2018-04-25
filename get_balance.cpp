@@ -25,6 +25,7 @@ Copyright 2018 Ilja Honkonen
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <type_traits>
 
 
@@ -91,84 +92,10 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	/*
-	Load ledger data
-	*/
-	boost::filesystem::path ledger_path(ledger_path_str);
 
-	if (ledger_path.size() > 0) {
-		if (not boost::filesystem::exists(ledger_path)) {
-			std::cerr << "Ledger directory doesn't exist." << std::endl;
-			return EXIT_FAILURE;
-		}
-		if (not boost::filesystem::is_directory(ledger_path)) {
-			std::cerr << "Ledger path isn't a directory." << std::endl;
-			return EXIT_FAILURE;
-		}
-	}
-
-	// load account data
-	auto accounts_path = ledger_path;
-	accounts_path /= "accounts";
-	if (not boost::filesystem::exists(accounts_path)) {
-		std::cerr << "Accounts directory "
-			<< accounts_path << " doesn't exist." << std::endl;
-		return EXIT_FAILURE;
-	}
-	if (verbose) {
-		std::cout << "Reading account data from "
-			<< accounts_path << std::endl;
-	}
-
-	std::map<std::string, taraxa::Account<CryptoPP::BLAKE2s>> accounts; // key == hex address
-	for (const auto& account_path: boost::filesystem::recursive_directory_iterator(accounts_path)) {
-		if (boost::filesystem::is_directory(account_path)) {
-			continue;
-		}
-
-		taraxa::Account<CryptoPP::BLAKE2s> account;
-		try {
-			account.load(account_path.path().string(), verbose);
-		} catch (const std::exception& e) {
-			std::cerr << "Couldn't load account data from "
-				<< account_path.path().string() << ": " << e.what() << std::endl;
-			return EXIT_FAILURE;
-		}
-		accounts[account.address_hex] = account;
-	}
-	if (verbose) {
-		std::cout << "Loaded " << accounts.size() << " accounts" << std::endl;
-	}
-
-	// load transaction data
-	auto transactions_path = ledger_path;
-	transactions_path /= "transactions";
-	if (not boost::filesystem::exists(transactions_path)) {
-		std::cerr << "Transactions directory "
-			<< transactions_path << " doesn't exist." << std::endl;
-		return EXIT_FAILURE;
-	}
-	if (verbose) {
-		std::cout << "Reading transaction data from "
-			<< transactions_path << std::endl;
-	}
-
-	std::map<
-		std::string,
-		taraxa::Transaction<CryptoPP::BLAKE2s>
-	> transactions; // key == hex hash
-	for (const auto& transaction_path: boost::filesystem::recursive_directory_iterator(transactions_path)) {
-		if (boost::filesystem::is_directory(transaction_path)) {
-			continue;
-		}
-
-		taraxa::Transaction<CryptoPP::BLAKE2s> transaction;
-		transaction.load(transaction_path.path().string(), verbose);
-		transactions[transaction.hash_hex] = transaction;
-	}
-	if (verbose) {
-		std::cout << "Loaded " << transactions.size() << " transactions" << std::endl;
-	}
+	auto [accounts, transactions, votes]
+		= taraxa::load_ledger_data<CryptoPP::BLAKE2s>(ledger_path_str, verbose);
+	(void)votes; // silence compiler warning
 
 	/*
 	Process genesis transactions without corresponding sends
