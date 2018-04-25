@@ -101,8 +101,6 @@ int main(int argc, char* argv[]) {
 	Process genesis transactions without corresponding sends
 	*/
 
-	std::string final_balance_hex(16, '0');
-
 	std::map<
 		std::string, // hex hash
 		taraxa::Transaction<CryptoPP::BLAKE2s>
