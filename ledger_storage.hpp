@@ -6,16 +6,10 @@ Copyright 2018 Ilja Honkonen
 #define LEDGER_STORAGE_HPP
 
 #include "accounts.hpp"
-#include "bin2hex2bin.hpp"
-#include "signatures.hpp"
 #include "transactions.hpp"
 
 #include <boost/filesystem.hpp>
 #include <cryptopp/blake2.h>
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/oids.h>
-#include <cryptopp/osrng.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -81,7 +75,7 @@ template<class Path> Path get_account_path(
 ) {
 	using std::to_string;
 
-	const auto pubkey_hex_size = 2 * taraxa::public_key_size(
+	const auto pubkey_hex_size = 2 * public_key_size(
 		CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey()
 	);
 	if (pubkey_hex.size() != pubkey_hex_size) {
@@ -102,9 +96,9 @@ template<class Path> Path get_account_path(
 template<
 	class Hasher
 > std::tuple<
-	std::map<std::string, taraxa::Account<Hasher>>,
-	std::map<std::string, taraxa::Transaction<Hasher>>,
-	std::map<std::string, taraxa::Transient_Vote<Hasher>>
+	std::map<std::string, Account<Hasher>>,
+	std::map<std::string, Transaction<Hasher>>,
+	std::map<std::string, Transient_Vote<Hasher>>
 > load_ledger_data(
 	const std::string& ledger_path_str,
 	const bool verbose
@@ -128,7 +122,7 @@ template<
 	}
 
 	// load account data
-	std::map<std::string, taraxa::Account<Hasher>> accounts;
+	std::map<std::string, Account<Hasher>> accounts;
 	auto accounts_path = ledger_path;
 	accounts_path /= "accounts";
 	if (
@@ -144,7 +138,7 @@ template<
 				continue;
 			}
 
-			taraxa::Account<Hasher> account;
+			Account<Hasher> account;
 			try {
 				account.load(account_path.path().string(), verbose);
 			} catch (...) {
@@ -158,7 +152,7 @@ template<
 	}
 
 	// load transaction data
-	std::map<std::string, taraxa::Transaction<Hasher>> transactions;
+	std::map<std::string, Transaction<Hasher>> transactions;
 	auto transactions_path = ledger_path;
 	transactions_path /= "transactions";
 	if (boost::filesystem::exists(transactions_path)) {
@@ -171,7 +165,7 @@ template<
 				continue;
 			}
 
-			taraxa::Transaction<Hasher> transaction;
+			Transaction<Hasher> transaction;
 			try {
 				transaction.load(transaction_path.path().string(), verbose);
 			} catch (...) {
@@ -185,7 +179,7 @@ template<
 	}
 
 	// load vote data
-	std::map<std::string, taraxa::Transient_Vote<Hasher>> votes;
+	std::map<std::string, Transient_Vote<Hasher>> votes;
 	auto votes_path = ledger_path;
 	votes_path /= "votes";
 	if (boost::filesystem::exists(votes_path)) {
@@ -198,7 +192,7 @@ template<
 				continue;
 			}
 
-			taraxa::Transient_Vote<Hasher> vote;
+			Transient_Vote<Hasher> vote;
 			try {
 				vote.load(vote_path.path().string(), verbose);
 			} catch (...) {

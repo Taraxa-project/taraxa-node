@@ -22,6 +22,7 @@ COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(L
 
 HEADERS = \
     accounts.hpp \
+    balances.hpp \
     bin2hex2bin.hpp \
     hashes.hpp \
     ledger_storage.hpp \
