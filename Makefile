@@ -7,6 +7,7 @@ LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
 
 
 PROGRAMS = \
+    bin2hex \
     generate_private_key \
     print_key_info \
     sign_message \
@@ -45,6 +46,9 @@ submodules/cryptopp/libcryptopp.a: submodules/cryptopp/Readme.txt
 
 submodules/rapidjson/readme.md:
 	@echo rapidjson submodule does not seem to exists, did you use --recursive in git clone? && exit 1
+
+bin2hex: bin2hex.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE)
 
 generate_private_key: generate_private_key.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
