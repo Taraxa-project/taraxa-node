@@ -40,9 +40,6 @@ template <
 	*/
 	std::map<std::string, Transaction<Hasher>> processed_transactions;
 
-	Transaction<Hasher> transaction_to_print;
-	Account<Hasher> account_to_print;
-
 	if (verbose) {
 		std::cout << "Processing genesis transaction(s)" << std::endl;
 	}
