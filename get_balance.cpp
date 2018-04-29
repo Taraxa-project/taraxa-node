@@ -95,11 +95,9 @@ int main(int argc, char* argv[]) {
 		= taraxa::load_ledger_data<CryptoPP::BLAKE2s>(ledger_path_str, verbose);
 	(void)votes; // unused, silence compiler warning
 
-	const auto final_data = taraxa::get_balances<CryptoPP::BLAKE2s>(
+	taraxa::update_balances<CryptoPP::BLAKE2s>(
 		accounts,
 		transactions,
-		account_str,
-		transaction_str,
 		verbose
 	);
 
@@ -129,10 +127,18 @@ int main(int argc, char* argv[]) {
 					<< " not found" << std::endl;
 				return EXIT_FAILURE;
 			}
+			const auto& account = accounts.at(account_str);
+
+			CryptoPP::Integer balance;
+			const auto balance_bin = taraxa::hex2bin(account.balance_hex);
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				balance_bin.size()
+			);
 
 			std::cout << "Final balance of " << account_str.substr(0, 5)
 				<< "..." << account_str.substr(account_str.size() - 5)
-				<< ": " << final_data[0].second << std::endl;
+				<< ": " << balance << std::endl;
 		}
 
 		if (transaction_str.size() > 0) {
@@ -142,13 +148,21 @@ int main(int argc, char* argv[]) {
 					<< " not found" << std::endl;
 				return EXIT_FAILURE;
 			}
+			const auto& transaction = transactions.at(transaction_str);
 
-			account_str = final_data[0].first;
-			const auto hash = final_data[1].first;
+			CryptoPP::Integer balance;
+			const auto balance_bin = taraxa::hex2bin(transaction.new_balance_hex);
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				balance_bin.size()
+			);
+
+			account_str = transaction.pubkey_hex;
+			const auto hash = transaction.hash_hex;
 			std::cout << "Balance of " << account_str.substr(0, 5)
 				<< "..." << account_str.substr(account_str.size() - 5)
 				<< " at " << hash.substr(0, 5) << "..." << hash.substr(hash.size() - 5)
-				<< ": " << final_data[1].second << std::endl;
+				<< ": " << balance << std::endl;
 		}
 	}
 	return EXIT_SUCCESS;

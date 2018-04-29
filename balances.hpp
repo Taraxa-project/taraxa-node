@@ -20,22 +20,17 @@ Copyright 2018 Ilja Honkonen
 namespace taraxa {
 
 /*!
-Updates balances of @accounts.
+Updates current and final balances of @accounts.
 
-Returns final balance of account @account_str if non-empty
-and current balance as of transaction @transaction_str of
-account that owns @transaction_str.
+Updates the final balance of each account in @accounts.
+Updates the current balance of each account after every transaction
+in @transactions.
 */
 template <
 	class Hasher
-> std::array<
-	std::pair<std::string, CryptoPP::Integer>,
-	2
-> get_balances(
+> void update_balances(
 	std::map<std::string, Account<Hasher>>& accounts,
-	const std::map<std::string, Transaction<Hasher>>& transactions,
-	const std::string& account_str,
-	const std::string& transaction_str,
+	std::map<std::string, Transaction<Hasher>>& transactions,
 	const bool verbose
 ) {
 	using std::to_string;
@@ -80,15 +75,8 @@ template <
 				<< account.address_hex.substr(account.address_hex.size() - 5)
 				<< " to " << balance << std::endl;
 		}
+
 		account.balance_hex = transaction.new_balance_hex;
-
-		if (account_str.size() > 0 and account_str == account.pubkey_hex) {
-			account_to_print = account;
-		}
-		if (transaction_str.size() > 0 and transaction_str == transaction.hash_hex) {
-			transaction_to_print = transaction;
-		}
-
 		processed_transactions[transaction.hash_hex] = transaction;
 	}
 
@@ -238,13 +226,15 @@ template <
 				processed_transactions.at(send.previous_hex).new_balance_hex
 			);
 			old_balance_sender.Decode(
-				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(old_balance_sender_bin.data())),
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+					old_balance_sender_bin.data())),
 				old_balance_sender_bin.size()
 			);
 
 			const auto new_balance_sender_bin = hex2bin(send.new_balance_hex);
 			new_balance_sender.Decode(
-				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(new_balance_sender_bin.data())),
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+					new_balance_sender_bin.data())),
 				new_balance_sender_bin.size()
 			);
 
@@ -254,7 +244,8 @@ template <
 					transactions.at(transaction_to_process.previous_hex).new_balance_hex
 				);
 				old_balance_receiver.Decode(
-					reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(old_balance_receiver_bin.data())),
+					reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+						old_balance_receiver_bin.data())),
 					old_balance_receiver_bin.size()
 				);
 			}
@@ -301,14 +292,7 @@ template <
 			);
 
 			receiver.balance_hex = bin2hex(new_balance_receiver_bin);
-
-			if (account_str.size() > 0 and account_str == receiver.pubkey_hex) {
-				account_to_print = receiver;
-			}
-			if (transaction_str.size() > 0 and transaction_str == transaction_to_process.hash_hex) {
-				transaction_to_print = transaction_to_process;
-				transaction_to_print.new_balance_hex = receiver.balance_hex;
-			}
+			transaction_to_process.new_balance_hex = receiver.balance_hex;
 
 		// send
 		} else {
@@ -360,62 +344,13 @@ template <
 
 			auto& sender = accounts.at(transaction_to_process.pubkey_hex);
 			sender.balance_hex = transaction_to_process.new_balance_hex;
-
-			if (account_str.size() > 0 and account_str == sender.pubkey_hex) {
-				account_to_print = sender;
-			}
-			if (transaction_str.size() > 0 and transaction_str == transaction_to_process.hash_hex) {
-				transaction_to_print = transaction_to_process;
-			}
 		}
 
 		processed_transactions[transaction_to_process.hash_hex] = transaction_to_process;
 		transactions_to_process.erase(transaction_to_process.hash_hex);
 	}
 
-	// account hex, final balance
-	std::pair<std::string, CryptoPP::Integer> final_balance;
-	if (account_str.size() > 0) {
-		if (accounts.count(account_str) == 0) {
-			throw std::logic_error(
-				__FILE__ "(" + to_string(__LINE__) + ") Account "
-				+ account_str.substr(0, 5) + "..."
-				+ account_str.substr(account_str.size() - 5) + " not found"
-			);
-		}
-
-		final_balance.first = account_to_print.address_hex;
-
-		const auto balance_bin = taraxa::hex2bin(account_to_print.balance_hex);
-		final_balance.second.Decode(
-			reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
-			balance_bin.size()
-		);
-	}
-
-	// transaction hex, balance of signning account after transaction
-	std::pair<std::string, CryptoPP::Integer> balance_at;
-	if (transaction_str.size() > 0) {
-		if (processed_transactions.count(transaction_str) == 0) {
-			throw std::logic_error(
-				__FILE__ "(" + to_string(__LINE__) + ") Transaction "
-				+ transaction_str.substr(0, 5) + "..."
-				+ transaction_str.substr(transaction_str.size() - 5) + " not found"
-			);
-		}
-
-		balance_at.first = transaction_to_print.hash_hex;
-
-		const auto balance_bin = taraxa::hex2bin(transaction_to_print.new_balance_hex);
-		balance_at.second.Decode(
-			reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
-			balance_bin.size()
-		);
-
-		final_balance.first = transaction_to_print.pubkey_hex;
-	}
-
-	return {final_balance, balance_at};
+	transactions = processed_transactions;
 }
 
 } // namespace taraxa
