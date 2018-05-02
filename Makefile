@@ -18,7 +18,8 @@ PROGRAMS = \
     get_balance \
     create_transient_vote \
     add_vote \
-    serialize_payloads
+    serialize_payloads \
+    replace_transaction
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 
@@ -82,6 +83,9 @@ add_vote: add_vote.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 serialize_payloads: serialize_payloads.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE)
+
+replace_transaction: replace_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 TESTS =
