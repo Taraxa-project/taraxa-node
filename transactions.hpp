@@ -41,6 +41,10 @@ std::string
 
 void load(const std::string& json_file_name, const bool verbose) {
 	try {
+		if (verbose) {
+			std::cout << "Reading from file " << json_file_name
+				<< "..." << std::endl;
+		}
 		std::ifstream json_file(json_file_name);
 		load(json_file, verbose);
 	} catch (const std::exception& e) {
@@ -63,8 +67,7 @@ void load(std::istream& json_file, const bool verbose) {
 	}
 
 	if (verbose) {
-		std::cout << "Read " << json.size()
-			<< " characters from stream" << std::endl;
+		std::cout << "Read " << json.size() << " characters" << std::endl;
 	}
 
 	try {
