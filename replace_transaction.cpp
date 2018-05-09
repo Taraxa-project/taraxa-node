@@ -164,10 +164,18 @@ int main(int argc, char* argv[]) {
 	);
 
 	// find conflicting transaction
+	taraxa::Transaction<CryptoPP::BLAKE2s> old_transaction;
 	for (const auto& item: transactions) {
 		const auto& old_candidate =  item.second;
 		if (old_candidate.previous_hex != new_candidate.previous_hex) {
 			continue;
+		}
+
+		if (old_candidate.hash_hex == new_candidate.hash_hex) {
+			if (verbose) {
+				std::cout << "Candidate already exists" << std::endl;
+			}
+			return EXIT_SUCCESS;
 		}
 
 		if (verbose) {
@@ -215,6 +223,7 @@ int main(int argc, char* argv[]) {
 			return EXIT_SUCCESS;
 		}
 
+		old_transaction = old_candidate;
 		break;
 	}
 
@@ -254,10 +263,8 @@ int main(int argc, char* argv[]) {
 		new_candidate_dir = new_candidate_path.parent_path();
 
 	if (boost::filesystem::exists(new_candidate_path)) {
-		if (verbose) {
-			std::cerr << "New transaction already exists." << std::endl;
-		}
-		return EXIT_SUCCESS;
+		std::cerr << "Internal error: new transaction already exists." << std::endl;
+		return EXIT_FAILURE;
 	}
 	if (not boost::filesystem::exists(new_candidate_dir)) {
 		if (verbose) {
@@ -272,8 +279,31 @@ int main(int argc, char* argv[]) {
 	new_candidate.to_json_file(new_candidate_path.string());
 
 	/*
-	TODO: Remove old transaction and all that depend on it from ledger.
+	TODO: Also remove transactions that depend on old one from ledger.
 	*/
+	const auto old_transaction_path = taraxa::get_transaction_path(old_transaction.hash_hex, transactions_path);
+	if (boost::filesystem::exists(old_transaction_path)) {
+		if (verbose) {
+			std::cout << "Removing transaction " << old_transaction.hash_hex.substr(0, 5)
+				<< "..." << old_transaction.hash_hex.substr(old_transaction.hash_hex.size() - 5)
+				<< " with fewer votes" << std::endl;
+		}
+		boost::filesystem::remove(old_transaction_path);
+		const auto parent = old_transaction_path.parent_path();
+		if (boost::filesystem::is_empty(parent)) {
+			if (verbose) {
+				std::cout << "Removing empty parent directory" << std::endl;
+			}
+			boost::filesystem::remove(parent);
+			const auto gparent = parent.parent_path();
+			if (boost::filesystem::is_empty(gparent)) {
+				if (verbose) {
+					std::cout << "Removing empty grandparent directory" << std::endl;
+				}
+				boost::filesystem::remove(gparent);
+			}
+		}
+	}
 
 	return EXIT_SUCCESS;
 }
