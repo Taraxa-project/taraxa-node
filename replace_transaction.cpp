@@ -171,10 +171,14 @@ int main(int argc, char* argv[]) {
 			continue;
 		}
 
+		const auto old_candidate_path = taraxa::get_transaction_path(old_candidate.hash_hex, transactions_path);
+
 		if (old_candidate.hash_hex == new_candidate.hash_hex) {
 			if (verbose) {
 				std::cout << "Candidate already exists" << std::endl;
 			}
+			// update modification time to make test makefiles simpler
+			boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
 			return EXIT_SUCCESS;
 		}
 
@@ -220,6 +224,7 @@ int main(int argc, char* argv[]) {
 			if (verbose) {
 				std::cout << "Keeping old transaction" << std::endl;
 			}
+			boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
 			return EXIT_SUCCESS;
 		}
 

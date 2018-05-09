@@ -9,23 +9,23 @@ CLEAN_TESTS += \
 tests/get_balance/test1/accounts/03/6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296: tests/get_balance/test1/transactions/35/C8/8F393FC23D71D6C37E41EF1C48979FDDD817C7DBBF51231B3E1DA089CDBA
 
 tests/get_balance/test1/transactions/35/C8/8F393FC23D71D6C37E41EF1C48979FDDD817C7DBBF51231B3E1DA089CDBA: get_balance tests/get_balance/test1/01_genesis1 tests/get_balance/test1/test_include
-	@echo -n "TEST get_balance/test1 (append) 01_genesis1... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/01_genesis1 && touch $@ && echo PASS
+	@echo -n "TEST get_balance/test1 (append) 01_genesis1... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/01_genesis1 && echo PASS
 
 tests/get_balance/test1/accounts/03/7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978: tests/get_balance/test1/transactions/9E/AB/7BD858796CD9729C197DDD2274106A431415B02454B930E19E6BC562FBA2
 
 tests/get_balance/test1/transactions/9E/AB/7BD858796CD9729C197DDD2274106A431415B02454B930E19E6BC562FBA2: tests/get_balance/test1/02_genesis2 tests/get_balance/test1/transactions/35/C8/8F393FC23D71D6C37E41EF1C48979FDDD817C7DBBF51231B3E1DA089CDBA
-	@echo -n "TEST get_balance/test1 (append) 02_genesis2... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/02_genesis2 && touch $@ && echo PASS
+	@echo -n "TEST get_balance/test1 (append) 02_genesis2... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/02_genesis2 && echo PASS
 
 tests/get_balance/test1/accounts/02/5ECBE4D1A6330A44C8F7EF951D4BF165E6C6B721EFADA985FB41661BC6E7FD6C: tests/get_balance/test1/transactions/A8/9B/D653FAC65ABDC1F18284726E1E4CC1B7A47C1C256B367A6AB9D5B6386466
 
 tests/get_balance/test1/transactions/A8/9B/D653FAC65ABDC1F18284726E1E4CC1B7A47C1C256B367A6AB9D5B6386466: tests/get_balance/test1/03_genesis3 tests/get_balance/test1/transactions/9E/AB/7BD858796CD9729C197DDD2274106A431415B02454B930E19E6BC562FBA2
-	@echo -n "TEST get_balance/test1 (append) 03_genesis3... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/03_genesis3 && touch $@ && echo PASS
+	@echo -n "TEST get_balance/test1 (append) 03_genesis3... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/03_genesis3 && echo PASS
 
 tests/get_balance/test1/transactions/6F/C1/E4A5A58BD4FF6E5A7AB94B0A8EC1093179ED1EAD1B7CAAD5215F235B5E64: tests/get_balance/test1/04_send_1_to_2_fail tests/get_balance/test1/transactions/A8/9B/D653FAC65ABDC1F18284726E1E4CC1B7A47C1C256B367A6AB9D5B6386466
-	@echo -n "TEST get_balance/test1 (append) 04_send_1_to_2_fail... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/04_send_1_to_2_fail && touch $@ && echo PASS
+	@echo -n "TEST get_balance/test1 (append) 04_send_1_to_2_fail... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/04_send_1_to_2_fail && echo PASS
 
 tests/get_balance/test1/transactions/15/DC/24DFC7AEA4BE2605DE94D7DD9DED82A79EB6BC1A8B47D46A500606FF84FD: tests/get_balance/test1/05_receive_1_to_2 tests/get_balance/test1/transactions/6F/C1/E4A5A58BD4FF6E5A7AB94B0A8EC1093179ED1EAD1B7CAAD5215F235B5E64
-	@echo -n "TEST get_balance/test1 (append) 05_receive_1_to_2... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/05_receive_1_to_2 && touch $@ && echo PASS
+	@echo -n "TEST get_balance/test1 (append) 05_receive_1_to_2... " && ./add_transaction --ledger-path tests/get_balance/test1 < tests/get_balance/test1/05_receive_1_to_2 && echo PASS
 
 tests/get_balance/test1/final_balance.ok: tests/get_balance/test1/transactions/15/DC/24DFC7AEA4BE2605DE94D7DD9DED82A79EB6BC1A8B47D46A500606FF84FD
 	@echo -n "TEST get_balance/test1 final balance... " && ./get_balance --ledger-path tests/get_balance/test1 | sort > tests/get_balance/test1/final_balance && diff -u tests/get_balance/test1/final_balance tests/get_balance/test1/reference && touch $@ && echo PASS

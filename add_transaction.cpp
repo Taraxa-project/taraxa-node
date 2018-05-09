@@ -19,6 +19,7 @@ Copyright 2018 Ilja Honkonen
 #include <rapidjson/error/en.h>
 
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -137,6 +138,9 @@ int main(int argc, char* argv[]) {
 	/*
 	Add transaction to ledger data
 	*/
+	const auto
+		transaction_path = taraxa::get_transaction_path(transaction.hash_hex, transactions_path),
+		transaction_dir = transaction_path.parent_path();
 
 	// make sure previous transaction exists and doesn't already have a next one
 	if (transaction.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
@@ -190,8 +194,10 @@ int main(int argc, char* argv[]) {
 				return EXIT_FAILURE;
 			} else {
 				if (verbose) {
-					std::cerr << "Transaction already exists." << std::endl;
+					std::cout << "Genesis transaction already exists." << std::endl;
 				}
+				// update modification time to make test makefiles simpler
+				boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
 				return EXIT_SUCCESS;
 			}
 		}
@@ -256,15 +262,12 @@ int main(int argc, char* argv[]) {
 	/*
 	Add transaction given on stdin to ledger data
 	*/
-
-	const auto
-		transaction_path = taraxa::get_transaction_path(transaction.hash_hex, transactions_path),
-		transaction_dir = transaction_path.parent_path();
-
 	if (boost::filesystem::exists(transaction_path)) {
 		if (verbose) {
 			std::cerr << "Transaction already exists." << std::endl;
 		}
+		// update modification time to make test makefiles simpler
+		boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
 		return EXIT_SUCCESS;
 	}
 	if (not boost::filesystem::exists(transaction_dir)) {
