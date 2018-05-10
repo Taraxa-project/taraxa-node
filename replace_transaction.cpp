@@ -171,7 +171,13 @@ int main(int argc, char* argv[]) {
 			continue;
 		}
 
-		const auto old_candidate_path = taraxa::get_transaction_path(old_candidate.hash_hex, transactions_path);
+		const auto old_candidate_path = [&](){
+			try {
+				return taraxa::get_transaction_path(old_candidate.hash_hex, transactions_path);
+			} catch (const std::exception& e) {
+				throw std::invalid_argument(std::string("Couldn't get path for old candidate: ") + e.what());
+			}
+		}();
 
 		if (old_candidate.hash_hex == new_candidate.hash_hex) {
 			if (verbose) {
@@ -233,10 +239,14 @@ int main(int argc, char* argv[]) {
 	}
 
 	// update next transaction in previous to new candidate with more votes
-	const auto previous_path = taraxa::get_transaction_path(
-		new_candidate.previous_hex,
-		transactions_path
-	);
+	const auto previous_path = [&](){
+		try {
+			return taraxa::get_transaction_path(new_candidate.previous_hex, transactions_path);
+		} catch (const std::exception& e) {
+			throw std::invalid_argument(std::string("Couldn't get path for previous transaction: ") + e.what());
+		}
+	}();
+
 	if (not boost::filesystem::exists(previous_path)) {
 		std::cerr << "Previous transaction " << previous_path
 			<< " doesn't exist." << std::endl;
@@ -264,7 +274,13 @@ int main(int argc, char* argv[]) {
 	*/
 
 	const auto
-		new_candidate_path = taraxa::get_transaction_path(new_candidate.hash_hex, transactions_path),
+		new_candidate_path = [&](){
+			try {
+				return taraxa::get_transaction_path(new_candidate.hash_hex, transactions_path);
+			} catch (const std::exception& e) {
+				throw std::invalid_argument(std::string("Couldn't get path for new candidate: ") + e.what());
+			}
+		}(),
 		new_candidate_dir = new_candidate_path.parent_path();
 
 	if (boost::filesystem::exists(new_candidate_path)) {
@@ -283,10 +299,24 @@ int main(int argc, char* argv[]) {
 
 	new_candidate.to_json_file(new_candidate_path.string());
 
+	if (old_transaction.hash_hex.size() == 0) {
+		return EXIT_SUCCESS;
+	}
+
 	/*
 	TODO: Also remove transactions that depend on old one from ledger.
 	*/
-	const auto old_transaction_path = taraxa::get_transaction_path(old_transaction.hash_hex, transactions_path);
+	const auto old_transaction_path = [&](){
+		try {
+			return taraxa::get_transaction_path(old_transaction.hash_hex, transactions_path);
+		} catch (const std::exception& e) {
+			throw std::invalid_argument(
+				std::string("Couldn't get path for old transaction ")
+				+ old_transaction.hash_hex + ": " + e.what()
+			);
+		}
+	}();
+
 	if (boost::filesystem::exists(old_transaction_path)) {
 		if (verbose) {
 			std::cout << "Removing transaction " << old_transaction.hash_hex.substr(0, 5)
