@@ -8,10 +8,10 @@ CLEAN_TESTS += \
 
 tests/replace_transaction/test1/accounts/03/6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296: tests/replace_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397
 
-tests/replace_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397: tests/replace_transaction/test1/test_include add_transaction tests/replace_transaction/test1/01_genesis
+tests/replace_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397: tests/replace_transaction/test1/test_include add_transaction tests/replace_transaction/test1/01_genesis add_transaction
 	@echo -n "TEST replace_transaction/test1 01_genesis... " && ./add_transaction --ledger-path tests/replace_transaction/test1 < tests/replace_transaction/test1/01_genesis && echo PASS
 
-tests/replace_transaction/test1/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3: tests/replace_transaction/test1/02_send1 tests/replace_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397
+tests/replace_transaction/test1/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3: tests/replace_transaction/test1/02_send1 tests/replace_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397 replace_transaction
 	@echo -n "TEST replace_transaction/test1 02_send1... " && ./replace_transaction --ledger-path tests/replace_transaction/test1 < tests/replace_transaction/test1/02_send1 && echo PASS
 
 tests/replace_transaction/test1/transactions/7B/6F/001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0: tests/replace_transaction/test1/03_receive1 tests/replace_transaction/test1/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3
