@@ -9,6 +9,7 @@ LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
 PROGRAMS = \
     bin2hex \
     generate_private_key \
+    generate_private_key_from_seed \
     print_key_info \
     sign_message \
     verify_message \
@@ -55,6 +56,9 @@ bin2hex: bin2hex.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 generate_private_key: generate_private_key.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
+generate_private_key_from_seed: generate_private_key_from_seed.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE)
+
 print_key_info: print_key_info.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
@@ -91,6 +95,7 @@ replace_transaction: replace_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 TESTS =
 CLEAN_TESTS =
 include \
+    tests/generate_private_key_from_seed/test_include \
     tests/add_transaction/test1/test_include \
     tests/add_transaction/test2/test_include \
     tests/get_balance/test1/test_include \
