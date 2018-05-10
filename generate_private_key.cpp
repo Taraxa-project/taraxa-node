@@ -18,7 +18,7 @@ Copyright 2018 Ilja Honkonen
 int main(int argc, char* argv[]) {
 
 	boost::program_options::options_description options(
-		"Generates a key and prints it's private exponent to standard output, "
+		"Prints a random private key to standard output, "
 		"which can be given e.g. to print_key_info.\n"
 		"Usage: program_name [options], where options are:"
 	);
@@ -48,7 +48,11 @@ int main(int argc, char* argv[]) {
 
 	std::string exp_bin;
 	exp_bin.resize(32); // TODO: use named constant
-	exponent.Encode(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(exp_bin.data())), exp_bin.size());
+	exponent.Encode(
+		reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+			exp_bin.data())),
+		exp_bin.size()
+	);
 	std::cout << taraxa::bin2hex(exp_bin) << std::endl;
 
 	return EXIT_SUCCESS;
