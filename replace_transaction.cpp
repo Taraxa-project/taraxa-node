@@ -184,7 +184,9 @@ int main(int argc, char* argv[]) {
 				std::cout << "Candidate already exists" << std::endl;
 			}
 			// update modification time to make test makefiles simpler
-			boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
+			if (boost::filesystem::exists(old_candidate_path)) {
+				boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
+			}
 			return EXIT_SUCCESS;
 		}
 
@@ -230,7 +232,9 @@ int main(int argc, char* argv[]) {
 			if (verbose) {
 				std::cout << "Keeping old transaction" << std::endl;
 			}
-			boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
+			if (boost::filesystem::exists(old_candidate_path)) {
+				boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
+			}
 			return EXIT_SUCCESS;
 		}
 
@@ -303,41 +307,86 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 
-	/*
-	TODO: Also remove transactions that depend on old one from ledger.
-	*/
-	const auto old_transaction_path = [&](){
-		try {
-			return taraxa::get_transaction_path(old_transaction.hash_hex, transactions_path);
-		} catch (const std::exception& e) {
-			throw std::invalid_argument(
-				std::string("Couldn't get path for old transaction ")
-				+ old_transaction.hash_hex + ": " + e.what()
-			);
-		}
-	}();
+	std::set<std::string> transactions_to_remove{old_transaction.hash_hex};
+	while (transactions_to_remove.size() > 0) {
+		const auto remove_hash = [&](){
+			for (const auto& item: transactions_to_remove) {
+				return item;
+			}
 
-	if (boost::filesystem::exists(old_transaction_path)) {
-		if (verbose) {
-			std::cout << "Removing transaction " << old_transaction.hash_hex.substr(0, 5)
-				<< "..." << old_transaction.hash_hex.substr(old_transaction.hash_hex.size() - 5)
-				<< " with fewer votes" << std::endl;
+			throw std::logic_error("No transactions left to remove");
+		}();
+
+		if (transactions.count(remove_hash) == 0) {
+			std::cerr << "Transaction to remove " << remove_hash
+				<< " doesn't exist" << std::endl;
+			return EXIT_FAILURE;
 		}
-		boost::filesystem::remove(old_transaction_path);
-		const auto parent = old_transaction_path.parent_path();
-		if (boost::filesystem::is_empty(parent)) {
+
+		const auto remove_path = [&](){
+			try {
+				return taraxa::get_transaction_path(remove_hash, transactions_path);
+			} catch (const std::exception& e) {
+				throw std::invalid_argument(
+					std::string("Couldn't get path for transaction to be removed ")
+					+ remove_hash + ": " + e.what()
+				);
+			}
+		}();
+
+		if (boost::filesystem::exists(remove_path)) {
 			if (verbose) {
-				std::cout << "Removing empty parent directory" << std::endl;
+				std::cout << "Removing transaction " << remove_hash.substr(0, 5)
+					<< "..." << remove_hash.substr(remove_hash.size() - 5) << std::endl;
 			}
-			boost::filesystem::remove(parent);
-			const auto gparent = parent.parent_path();
-			if (boost::filesystem::is_empty(gparent)) {
+			boost::filesystem::remove(remove_path);
+			const auto parent = remove_path.parent_path();
+			if (boost::filesystem::is_empty(parent)) {
 				if (verbose) {
-					std::cout << "Removing empty grandparent directory" << std::endl;
+					std::cout << "Removing empty parent directory" << std::endl;
 				}
-				boost::filesystem::remove(gparent);
+				boost::filesystem::remove(parent);
+				const auto gparent = parent.parent_path();
+				if (boost::filesystem::is_empty(gparent)) {
+					if (verbose) {
+						std::cout << "Removing empty grandparent directory" << std::endl;
+					}
+					boost::filesystem::remove(gparent);
+				}
 			}
 		}
+
+		const auto& remove = transactions.at(remove_hash);
+
+		if (transactions.count(remove.next_hex) > 0) {
+			if (verbose) {
+				std::cout << "Next transaction to remove: " << remove.next_hex << std::endl;
+			}
+			transactions_to_remove.insert(remove.next_hex);
+		}
+
+		if (
+			remove.send_hex.size() > 0
+			and transactions.count(remove.send_hex) > 0
+		) {
+			if (verbose) {
+				std::cout << "Send transaction to remove: " << remove.send_hex << std::endl;
+			}
+			transactions_to_remove.insert(remove.send_hex);
+		}
+
+		if (
+			remove.receive_hex.size() > 0
+			and transactions.count(remove.receive_hex) > 0
+		) {
+			if (verbose) {
+				std::cout << "Receive transaction to remove: " << remove.next_hex << std::endl;
+			}
+			transactions_to_remove.insert(remove.receive_hex);
+		}
+
+		transactions.erase(remove_hash);
+		transactions_to_remove.erase(remove_hash);
 	}
 
 	return EXIT_SUCCESS;
