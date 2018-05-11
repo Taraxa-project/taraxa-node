@@ -197,7 +197,9 @@ int main(int argc, char* argv[]) {
 					std::cout << "Genesis transaction already exists." << std::endl;
 				}
 				// update modification time to make test makefiles simpler
-				boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
+				if (boost::filesystem::exists(transaction_path)) {
+					boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
+				}
 				return EXIT_SUCCESS;
 			}
 		}
@@ -267,7 +269,9 @@ int main(int argc, char* argv[]) {
 			std::cerr << "Transaction already exists." << std::endl;
 		}
 		// update modification time to make test makefiles simpler
-		boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
+		if (boost::filesystem::exists(transaction_path)) {
+			boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
+		}
 		return EXIT_SUCCESS;
 	}
 	if (not boost::filesystem::exists(transaction_dir)) {
