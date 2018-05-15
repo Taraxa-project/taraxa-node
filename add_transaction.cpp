@@ -138,153 +138,18 @@ int main(int argc, char* argv[]) {
 	/*
 	Add transaction to ledger data
 	*/
-	const auto
-		transaction_path = taraxa::get_transaction_path(transaction.hash_hex, transactions_path),
-		transaction_dir = transaction_path.parent_path();
 
-	// make sure previous transaction exists and doesn't already have a next one
-	if (transaction.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
-		const auto previous_path = taraxa::get_transaction_path(transaction.previous_hex, transactions_path);
-		if (not boost::filesystem::exists(previous_path)) {
-			std::cerr << "Previous transaction " << previous_path
-				<< " doesn't exist." << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		taraxa::Transaction<CryptoPP::BLAKE2s> previous_transaction;
-		try {
-			previous_transaction.load(previous_path.string(), verbose);
-		} catch (const std::exception& e) {
-			std::cerr << "Couldn't load previous transaction from "
-				<< previous_path << ": " << e.what() << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if (
-			previous_transaction.next_hex.size() > 0
-			and previous_transaction.next_hex != transaction.hash_hex
-		) {
-			std::cerr << "Previous transaction already has different next transaction" << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if (previous_transaction.next_hex.size() == 0) {
-			// add current one as next of previous to make seeking easier
-			if (verbose) {
-				std::cout << "Appending transaction hash to previous transaction at "
-					<< previous_path << std::endl;
-			}
-			// TODO if receive, only add if matching send exists
-			previous_transaction.next_hex = transaction.hash_hex;
-			previous_transaction.to_json_file(previous_path.string());
-		}
-
-	// check for different genesis transaction
-	} else {
-		const auto
-			account_info_path = taraxa::get_account_path(transaction.pubkey_hex, accounts_path),
-			account_info_dir = account_info_path.parent_path();
-
-		if (boost::filesystem::exists(account_info_path)) {
-			taraxa::Account<CryptoPP::BLAKE2s> existing_account;
-			existing_account.load(account_info_path.string(), verbose);
-			if (existing_account.genesis_transaction_hex != transaction.hash_hex) {
-				std::cerr << "Different genesis transaction already exists for account "
-					<< transaction.pubkey_hex << std::endl;
-				return EXIT_FAILURE;
-			} else {
-				if (verbose) {
-					std::cout << "Genesis transaction already exists." << std::endl;
-				}
-				// update modification time to make test makefiles simpler
-				if (boost::filesystem::exists(transaction_path)) {
-					boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
-				}
-				return EXIT_SUCCESS;
-			}
-		}
-
-		if (not boost::filesystem::exists(account_info_dir)) {
-			if (verbose) {
-				std::cout << "Account directory doesn't exist, creating..." << std::endl;
-			}
-			boost::filesystem::create_directories(account_info_dir);
-		}
-
-		if (verbose) {
-			std::cout << "Writing account info to " << account_info_path << std::endl;
-		}
-
-		taraxa::Account<CryptoPP::BLAKE2s> account;
-		account.pubkey_hex = transaction.pubkey_hex;
-		account.genesis_transaction_hex = transaction.hash_hex;
-		account.balance_hex = "0000000000000000";
-		account.to_json_file(account_info_path.string());
+	try {
+		taraxa::add_transaction(
+			transaction,
+			transactions_path,
+			accounts_path,
+			verbose
+		);
+	} catch (const std::exception& e) {
+		std::cerr << "Couldn't add transaction to ledger data: " << e.what() << std::endl;
+		return EXIT_FAILURE;
 	}
-
-	// in case of receive, add it to sending transaction for easier seeking
-	if (transaction.send_hex.size() > 0) {
-		const auto send_path = taraxa::get_transaction_path(transaction.send_hex, transactions_path);
-		if (not boost::filesystem::exists(send_path)) {
-			std::cerr << "Matching send " << transaction.send_hex
-				<< " for receive " << transaction.hash_hex
-				<< " doesn't exist" << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		taraxa::Transaction<CryptoPP::BLAKE2s> send_transaction;
-		try {
-			send_transaction.load(send_path.string(), verbose);
-		} catch (const std::exception& e) {
-			std::cerr << "Couldn't load send transaction from "
-				<< send_path << ": " << e.what() << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if (
-			send_transaction.receive_hex.size() > 0
-			and send_transaction.receive_hex != transaction.hash_hex
-		) {
-			std::cerr << "Send transaction " << send_transaction.hash_hex
-				<< " already has a different receive " << send_transaction.receive_hex
-				<< " instead of " << transaction.hash_hex << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		if (send_transaction.receive_hex.size() == 0) {
-			if (verbose) {
-				std::cout << "Appending receive hash to send at "
-					<< send_path << std::endl;
-			}
-			send_transaction.receive_hex = transaction.hash_hex;
-			send_transaction.to_json_file(send_path.string());
-		}
-	}
-
-	/*
-	Add transaction given on stdin to ledger data
-	*/
-	if (boost::filesystem::exists(transaction_path)) {
-		if (verbose) {
-			std::cerr << "Transaction already exists." << std::endl;
-		}
-		// update modification time to make test makefiles simpler
-		if (boost::filesystem::exists(transaction_path)) {
-			boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
-		}
-		return EXIT_SUCCESS;
-	}
-	if (not boost::filesystem::exists(transaction_dir)) {
-		if (verbose) {
-			std::cout << "Transaction directory doesn't exist, creating..." << std::endl;
-		}
-		boost::filesystem::create_directories(transaction_dir);
-	}
-	if (verbose) {
-		std::cout << "Writing transaction to " << transaction_path << std::endl;
-	}
-
-	transaction.to_json_file(transaction_path.string());
 
 	return EXIT_SUCCESS;
 }
