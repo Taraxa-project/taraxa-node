@@ -36,8 +36,8 @@ int main(int argc, char* argv[]) {
 
 	boost::program_options::options_description options(
 		"Reads a transaction from standard input and adds it to the ledger,\n"
-		"potentially replacing an existing transaction and subsequent transactions\n"
-		"in that blockchain, if the replacement has more votes as weighted by balance.\n"
+		"potentially replacing an existing transaction and subsequent transactions,\n"
+		"if the replacement has more votes as weighted by balance.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
@@ -149,129 +149,191 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	if (new_candidate.previous_hex == "0000000000000000000000000000000000000000000000000000000000000000") {
-		std::cerr << "Genesis transaction(s) cannot be replaced" << std::endl;
-		return EXIT_FAILURE;
-	}
-
 	auto [accounts, transactions, votes]
 		= taraxa::load_ledger_data<CryptoPP::BLAKE2s>(ledger_path_str, verbose);
 
-	taraxa::update_balances<CryptoPP::BLAKE2s>(
-		accounts,
-		transactions,
-		verbose
-	);
-
-	// find conflicting transaction
-	taraxa::Transaction<CryptoPP::BLAKE2s> old_transaction;
+	// check for conflicting transaction
+	bool have_conflict = false;
+	taraxa::Transaction<CryptoPP::BLAKE2s> old_candidate;
 	for (const auto& item: transactions) {
-		const auto& old_candidate =  item.second;
-		if (old_candidate.previous_hex != new_candidate.previous_hex) {
-			continue;
-		}
+		const auto& transaction =  item.second;
 
-		const auto old_candidate_path = [&](){
-			try {
-				return taraxa::get_transaction_path(old_candidate.hash_hex, transactions_path);
-			} catch (const std::exception& e) {
-				throw std::invalid_argument(std::string("Couldn't get path for old candidate: ") + e.what());
-			}
-		}();
-
-		if (old_candidate.hash_hex == new_candidate.hash_hex) {
-			if (verbose) {
-				std::cout << "Candidate already exists" << std::endl;
-			}
-			// update modification time to make test makefiles simpler
-			if (boost::filesystem::exists(old_candidate_path)) {
-				boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
-			}
-			return EXIT_SUCCESS;
-		}
-
-		if (verbose) {
-			std::cout << "Found conflicting transaction: " << old_candidate.hash_hex << std::endl;
-		}
-
-		// tally votes
-		CryptoPP::Integer old_total(0l), new_total(0l);
-		for (const auto& vote_i: votes) {
-			const auto& vote = vote_i.second;
-
-			if (accounts.count(vote.pubkey_hex) == 0) {
-				std::cerr << "Account " << vote.pubkey_hex
-					<< " doesn't exist for vote "<< vote.hash_hex << std::endl;
+		if (
+			transaction.hash_hex != new_candidate.hash_hex
+			and transaction.pubkey_hex == new_candidate.pubkey_hex
+			and transaction.previous_hex == new_candidate.previous_hex
+		) {
+			if (
+				new_candidate.previous_hex == "0000000000000000000000000000000000000000000000000000000000000000"
+				and new_candidate.send_hex.size() == 0
+			) {
+				std::cerr << "Genesis transaction(s) cannot be replaced" << std::endl;
 				return EXIT_FAILURE;
 			}
 
-			/*
-			TODO: use better algorithm than last known balance of voter
-			*/
-			const auto balance_bin = taraxa::hex2bin(accounts.at(vote.pubkey_hex).balance_hex);
-			CryptoPP::Integer balance;
-			balance.Decode(
-				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
-					balance_bin.data())),
-				balance_bin.size()
-			);
-
-			if (vote.candidate_hex == old_candidate.hash_hex) {
-				old_total += balance;
-			} else if (vote.candidate_hex == new_candidate.hash_hex) {
-				new_total += balance;
+			if (transactions.count(transaction.hash_hex) == 0) {
+				std::cerr << "Internal error: Old candidate not in transactions" << std::endl;
+				return EXIT_FAILURE;
 			}
-		}
 
-		if (verbose) {
-			std::cout << "Voting results, old transaction: " << old_total
-				<< ", new transaction: " << new_total << std::endl;
+			old_candidate = transactions.at(transaction.hash_hex);
+			have_conflict = true;
+			break;
 		}
-
-		if (new_total <= old_total) {
-			if (verbose) {
-				std::cout << "Keeping old transaction" << std::endl;
-			}
-			if (boost::filesystem::exists(old_candidate_path)) {
-				boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
-			}
-			return EXIT_SUCCESS;
-		}
-
-		old_transaction = old_candidate;
-		break;
 	}
 
-	// update next transaction in previous to new candidate with more votes
-	const auto previous_path = [&](){
+	if (not have_conflict) {
 		try {
-			return taraxa::get_transaction_path(new_candidate.previous_hex, transactions_path);
+			taraxa::add_transaction(
+				new_candidate,
+				transactions_path,
+				accounts_path,
+				verbose
+			);
 		} catch (const std::exception& e) {
-			throw std::invalid_argument(std::string("Couldn't get path for previous transaction: ") + e.what());
+			std::cerr << "Couldn't add transaction to ledger data: " << e.what() << std::endl;
+			return EXIT_FAILURE;
 		}
-	}();
 
-	if (not boost::filesystem::exists(previous_path)) {
-		std::cerr << "Previous transaction " << previous_path
-			<< " doesn't exist." << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	taraxa::Transaction<CryptoPP::BLAKE2s> previous_transaction;
-	try {
-		previous_transaction.load(previous_path.string(), verbose);
-	} catch (const std::exception& e) {
-		std::cerr << "Couldn't load previous transaction from "
-			<< previous_path << ": " << e.what() << std::endl;
-		return EXIT_FAILURE;
+		return EXIT_SUCCESS;
 	}
 
 	if (verbose) {
-		std::cout << "Updating previous transaction at "
-			<< previous_path << std::endl;
+		std::cout << "Found conflicting transaction " << old_candidate.hash_hex
+			<< " for account " << old_candidate.pubkey_hex << std::endl;
 	}
-	previous_transaction.next_hex = new_candidate.hash_hex;
-	previous_transaction.to_json_file(previous_path.string());
+
+	const auto old_candidate_path = [&](){
+		try {
+			return taraxa::get_transaction_path(old_candidate.hash_hex, transactions_path);
+		} catch (const std::exception& e) {
+			throw std::invalid_argument(std::string("Couldn't get path for old candidate: ") + e.what());
+		}
+	}();
+
+	if (old_candidate.hash_hex == new_candidate.hash_hex) {
+		if (verbose) {
+			std::cout << "Candidate already exists" << std::endl;
+		}
+		// update modification time to make test makefiles simpler
+		if (boost::filesystem::exists(old_candidate_path)) {
+			boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
+		}
+		return EXIT_SUCCESS;
+	}
+
+	try {
+		taraxa::update_balances<CryptoPP::BLAKE2s>(
+			accounts,
+			transactions,
+			verbose
+		);
+	} catch (const std::exception& e) {
+		std::cerr << "Couldn't update balances: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	// tally votes
+	CryptoPP::Integer old_total(0l), new_total(0l);
+	for (const auto& vote_i: votes) {
+		const auto& vote = vote_i.second;
+
+		if (accounts.count(vote.pubkey_hex) == 0) {
+			std::cerr << "Account " << vote.pubkey_hex
+				<< " doesn't exist for vote "<< vote.hash_hex << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		/*
+		TODO: use better algorithm than last known balance of voter
+		*/
+		const auto balance_bin = taraxa::hex2bin(accounts.at(vote.pubkey_hex).balance_hex);
+		CryptoPP::Integer balance;
+		balance.Decode(
+			reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+				balance_bin.data())),
+			balance_bin.size()
+		);
+
+		if (vote.candidate_hex == old_candidate.hash_hex) {
+			old_total += balance;
+		} else if (vote.candidate_hex == new_candidate.hash_hex) {
+			new_total += balance;
+		}
+	}
+
+	if (verbose) {
+		std::cout << "Voting results, old transaction: " << old_total
+			<< ", new transaction: " << new_total << std::endl;
+	}
+
+	if (new_total <= old_total) {
+		if (verbose) {
+			std::cout << "Keeping old transaction" << std::endl;
+		}
+		if (boost::filesystem::exists(old_candidate_path)) {
+			boost::filesystem::last_write_time(old_candidate_path, std::time(nullptr));
+		}
+		return EXIT_SUCCESS;
+	}
+
+	// update next transaction in previous to new candidate with more votes
+	if (new_candidate.previous_hex != "0000000000000000000000000000000000000000000000000000000000000000") {
+		const auto previous_path = [&](){
+			try {
+				return taraxa::get_transaction_path(new_candidate.previous_hex, transactions_path);
+			} catch (const std::exception& e) {
+				throw std::invalid_argument(std::string("Couldn't get path for previous transaction: ") + e.what());
+			}
+		}();
+
+		if (not boost::filesystem::exists(previous_path)) {
+			std::cerr << "Previous transaction " << previous_path
+				<< " doesn't exist." << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		taraxa::Transaction<CryptoPP::BLAKE2s> previous_transaction;
+		try {
+			previous_transaction.load(previous_path.string(), verbose);
+		} catch (const std::exception& e) {
+			std::cerr << "Couldn't load previous transaction from "
+				<< previous_path << ": " << e.what() << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		if (verbose) {
+			std::cout << "Updating previous transaction at "
+				<< previous_path << std::endl;
+		}
+		previous_transaction.next_hex = new_candidate.hash_hex;
+		previous_transaction.to_json_file(previous_path.string());
+
+	} else {
+		// add account for first receive
+		const auto
+			account_info_path = taraxa::get_account_path(new_candidate.pubkey_hex, accounts_path),
+			account_info_dir = account_info_path.parent_path();
+
+		if (not boost::filesystem::exists(account_info_path)) {
+			if (not boost::filesystem::exists(account_info_dir)) {
+				if (verbose) {
+					std::cout << "Account directory doesn't exist, creating..." << std::endl;
+				}
+				boost::filesystem::create_directories(account_info_dir);
+			}
+
+			if (verbose) {
+				std::cout << "Writing account info to " << account_info_path << std::endl;
+			}
+
+			taraxa::Account<CryptoPP::BLAKE2s> account;
+			account.pubkey_hex = new_candidate.pubkey_hex;
+			account.genesis_transaction_hex = new_candidate.hash_hex;
+			account.balance_hex = "0000000000000000";
+			account.to_json_file(account_info_path.string());
+		}
+	}
 
 	/*
 	Add transaction given on stdin to ledger data
@@ -303,11 +365,10 @@ int main(int argc, char* argv[]) {
 
 	new_candidate.to_json_file(new_candidate_path.string());
 
-	if (old_transaction.hash_hex.size() == 0) {
-		return EXIT_SUCCESS;
-	}
-
-	std::set<std::string> transactions_to_remove{old_transaction.hash_hex};
+	/*
+	Remove old candidate and all transactions that depend on it
+	*/
+	std::set<std::string> transactions_to_remove{old_candidate.hash_hex};
 	while (transactions_to_remove.size() > 0) {
 		const auto remove_hash = [&](){
 			for (const auto& item: transactions_to_remove) {
@@ -358,6 +419,28 @@ int main(int argc, char* argv[]) {
 
 		const auto& remove = transactions.at(remove_hash);
 
+		// remove account if first receive removed
+		if (accounts.count(remove.pubkey_hex) == 0) {
+			std::cerr << "Internal error: no account for transaction to remove" << std::endl;
+			return EXIT_FAILURE;
+		}
+		if (accounts.at(remove.pubkey_hex).genesis_transaction_hex == remove.hash_hex) {
+			accounts.erase(remove.pubkey_hex);
+
+			const auto
+				account_info_path = taraxa::get_account_path(remove.pubkey_hex, accounts_path),
+				account_info_dir = account_info_path.parent_path();
+			if (boost::filesystem::exists(account_info_path)) {
+				boost::filesystem::remove(account_info_path);
+			}
+			if (
+				boost::filesystem::exists(account_info_dir)
+				and boost::filesystem::is_empty(account_info_dir)
+			) {
+				boost::filesystem::remove(account_info_dir);
+			}
+		}
+
 		if (transactions.count(remove.next_hex) > 0) {
 			if (verbose) {
 				std::cout << "Next transaction to remove: " << remove.next_hex << std::endl;
@@ -380,7 +463,7 @@ int main(int argc, char* argv[]) {
 			and transactions.count(remove.receive_hex) > 0
 		) {
 			if (verbose) {
-				std::cout << "Receive transaction to remove: " << remove.next_hex << std::endl;
+				std::cout << "Receive transaction to remove: " << remove.receive_hex << std::endl;
 			}
 			transactions_to_remove.insert(remove.receive_hex);
 		}
