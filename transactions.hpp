@@ -117,8 +117,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 	}
 	// normalize hex representation of previous transaction
 	previous_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(previous_json.GetString())
 			)
 		);
@@ -150,8 +150,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 		);
 	}
 	signature_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(signature_json.GetString())
 			)
 		);
@@ -174,8 +174,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 		);
 	}
 	pubkey_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(pubkey_json.GetString())
 			)
 		);
@@ -223,8 +223,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 			);
 		}
 		send_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
+			= bin2hex(
+				hex2bin(
 					std::string(send_json.GetString())
 				)
 			);
@@ -253,8 +253,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 			);
 		}
 		receiver_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
+			= bin2hex(
+				hex2bin(
 					std::string(receiver_json.GetString())
 				)
 			);
@@ -271,8 +271,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 				);
 			}
 			receive_hex
-				= taraxa::bin2hex(
-					taraxa::hex2bin(
+				= bin2hex(
+					hex2bin(
 						std::string(receive_json.GetString())
 					)
 				);
@@ -295,8 +295,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 			);
 		}
 		new_balance_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
+			= bin2hex(
+				hex2bin(
 					std::string(new_balance_json.GetString())
 				)
 			);
@@ -318,8 +318,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 			);
 		}
 		payload_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
+			= bin2hex(
+				hex2bin(
 					std::string(payload_json.GetString())
 				)
 			);
@@ -337,8 +337,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 			);
 		}
 		next_hex
-			= taraxa::bin2hex(
-				taraxa::hex2bin(
+			= bin2hex(
+				hex2bin(
 					std::string(next_json.GetString())
 				)
 			);
@@ -484,7 +484,7 @@ void update_hash() {
 			+ payload_hex;
 	}
 
-	if (not taraxa::verify_signature_hex(
+	if (not verify_signature_hex(
 		signature_hex,
 		signature_payload_hex,
 		pubkey_hex
@@ -495,7 +495,7 @@ void update_hash() {
 		);
 	}
 
-	hash_hex = taraxa::get_hash_hex<Hasher>(
+	hash_hex = get_hash_hex<Hasher>(
 		signature_hex + signature_payload_hex
 	);
 }
@@ -591,8 +591,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 	}
 	// normalize hex representation of latest transaction
 	latest_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(latest_json.GetString())
 			)
 		);
@@ -624,8 +624,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 		);
 	}
 	signature_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(signature_json.GetString())
 			)
 		);
@@ -648,8 +648,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 		);
 	}
 	pubkey_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(pubkey_json.GetString())
 			)
 		);
@@ -675,8 +675,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 		);
 	}
 	candidate_hex
-		= taraxa::bin2hex(
-			taraxa::hex2bin(
+		= bin2hex(
+			hex2bin(
 				std::string(candidate_json.GetString())
 			)
 		);
@@ -751,7 +751,7 @@ void update_hash() {
 	// TODO add input checking
 	const std::string signature_payload_hex = latest_hex + candidate_hex;
 
-	if (not taraxa::verify_signature_hex(
+	if (not verify_signature_hex(
 		signature_hex,
 		signature_payload_hex,
 		pubkey_hex
@@ -762,7 +762,7 @@ void update_hash() {
 		);
 	}
 
-	hash_hex = taraxa::get_hash_hex<Hasher>(
+	hash_hex = get_hash_hex<Hasher>(
 		signature_hex + signature_payload_hex
 	);
 }
