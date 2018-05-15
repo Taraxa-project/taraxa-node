@@ -132,6 +132,8 @@ int main(int argc, char* argv[]) {
 		if (verbose) {
 			std::cerr << "Vote already exists." << std::endl;
 		}
+		// update modification time to make test makefiles simpler
+		boost::filesystem::last_write_time(vote_path, std::time(nullptr));
 		return EXIT_SUCCESS;
 	}
 	if (not boost::filesystem::exists(vote_dir)) {
