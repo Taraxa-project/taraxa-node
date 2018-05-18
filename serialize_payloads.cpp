@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	std::string ledger_path_str, transaction_str, account_str;
 
 	boost::program_options::options_description options(
-		"Prints the payload(s) of transactions stored ledger.\n"
+		"Prints the payload(s) of transactions stored in ledger.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
