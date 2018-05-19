@@ -1,5 +1,5 @@
 Replaces (or adds) transactions to ledger data based on votes in ledger data.
-After running commands in [add_transaction)(add_transaction.md):
+After running commands in [add_transaction](add_transaction.md):
 
 Create a send of one coin to another account that also refers to genesis transaction
 of this account:
