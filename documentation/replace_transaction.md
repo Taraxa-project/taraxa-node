@@ -19,12 +19,7 @@ Add the corresponding receive to ledger:
   --key 0000000000000000000000000000000000000000000000000000000000000003 \
   --previous 0000000000000000000000000000000000000000000000000000000000000000 \
   --send 324ADE3C21261CD810C555EC7C24683FEAA1B19E3F7FC96078B241C0CA91CAAD \
-  > receive2
-```
-
-Append receive to ledger:
-```bash
-../append_to_ledger --ledger-path ledger_data < receive2
+| ../append_to_ledger --ledger-path ledger_data < receive2
 ```
 
 Add a vote from sending account to second receive, with genesis as latest valid
@@ -33,7 +28,8 @@ transaction:
 ../create_transient_vote \
   --key 0000000000000000000000000000000000000000000000000000000000000001 \
   --latest 0000000000000000000000000000000000000000000000000000000000000000 \
-  --candidate 324ADE3C21261CD810C555EC7C24683FEAA1B19E3F7FC96078B241C0CA91CAAD
+  --candidate 324ADE3C21261CD810C555EC7C24683FEAA1B19E3F7FC96078B241C0CA91CAAD \
+| ../add_vote --ledger-path ledger_data
 ```
 
 Replace first send+receive with second one:
