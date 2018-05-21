@@ -18,9 +18,8 @@ int main(int argc, char* argv[]) {
 	std::string exp_hex;
 
 	boost::program_options::options_description options(
-		"Sign a hex encoded message given on standard input using a key "
-		"produced with generate_private_key, for example. Prints the hex "
-		"encoded result to standard output.\n"
+		"Signs hex encoded message given on standard input\n"
+		"Prints hex encoded signature to standard output.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
