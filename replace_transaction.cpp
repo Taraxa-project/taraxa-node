@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
 		"Reads a transaction from standard input and adds it to the ledger,\n"
 		"potentially replacing an existing transaction and subsequent transactions,\n"
 		"if the replacement has more votes as weighted by balance.\n"
+		"If transaction was added/replaced, prints new transaction's path to standard output.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
@@ -184,12 +185,13 @@ int main(int argc, char* argv[]) {
 
 	if (not have_conflict) {
 		try {
-			taraxa::add_transaction(
+			const auto transaction_path = taraxa::add_transaction(
 				new_candidate,
 				transactions_path,
 				accounts_path,
 				verbose
 			);
+			std::cout << transaction_path << std::endl;
 		} catch (const std::exception& e) {
 			std::cerr << "Couldn't add transaction to ledger data: " << e.what() << std::endl;
 			return EXIT_FAILURE;
@@ -364,6 +366,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	new_candidate.to_json_file(new_candidate_path.string());
+
+	std::cout << new_candidate_path.string() << std::endl;
 
 	/*
 	Remove old candidate and all transactions that depend on it

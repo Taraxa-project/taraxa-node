@@ -210,7 +210,10 @@ template<
 }
 
 
-template<template<typename> class Transaction, class Hasher> void add_transaction(
+template<
+	template<typename> class Transaction,
+	class Hasher
+> std::string add_transaction(
 	const Transaction<Hasher>& transaction,
 	const boost::filesystem::path& transactions_path,
 	const boost::filesystem::path& accounts_path,
@@ -287,7 +290,7 @@ template<template<typename> class Transaction, class Hasher> void add_transactio
 				if (boost::filesystem::exists(transaction_path)) {
 					boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
 				}
-				return;
+				return "";
 			}
 		}
 
@@ -363,7 +366,7 @@ template<template<typename> class Transaction, class Hasher> void add_transactio
 		if (boost::filesystem::exists(transaction_path)) {
 			boost::filesystem::last_write_time(transaction_path, std::time(nullptr));
 		}
-		return;
+		return "";
 	}
 	if (not boost::filesystem::exists(transaction_dir)) {
 		if (verbose) {
@@ -376,6 +379,8 @@ template<template<typename> class Transaction, class Hasher> void add_transactio
 	}
 
 	transaction.to_json_file(transaction_path.string());
+
+	return transaction_path.string();
 }
 
 

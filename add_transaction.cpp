@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
 	boost::program_options::options_description options(
 		"Reads a transaction from standard input and adds it to the ledger.\n"
+		"If transaction was added, prints its path to standard output.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
@@ -140,12 +141,13 @@ int main(int argc, char* argv[]) {
 	*/
 
 	try {
-		taraxa::add_transaction(
+		const auto transaction_path = taraxa::add_transaction(
 			transaction,
 			transactions_path,
 			accounts_path,
 			verbose
 		);
+		std::cout << transaction_path << std::endl;
 	} catch (const std::exception& e) {
 		std::cerr << "Couldn't add transaction to ledger data: " << e.what() << std::endl;
 		return EXIT_FAILURE;

@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
 
 	boost::program_options::options_description options(
 		"Reads a vote from standard input and adds it to the ledger.\n"
+		"If vote was added, prints its path to standard output.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
@@ -147,6 +148,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	vote.to_json_file(vote_path.string());
+
+	std::cout << vote_path.string() << std::endl;
 
 	return EXIT_SUCCESS;
 }
