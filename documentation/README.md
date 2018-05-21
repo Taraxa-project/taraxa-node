@@ -41,7 +41,8 @@ You can use programs described in ledger operations to store transactions and vo
 
 Programs [add_transaction](add_transaction.md) and [replace_transaction](replace_transaction.md)
 are used to create a persistend ledger of transactions and votes
-created by various create_* programs.
+created by various create_* programs. replace_transaction does
+everything that add_transaction can do.
 
 ## Payload serialization (smart contracts)
 
