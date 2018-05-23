@@ -22,11 +22,19 @@ This is comparable to btc HD wallet, iota wallet, etc.
 Private and public keys are used by all other taraxa tools for
 signing and verifying transactions, etc.
 
+* to create a private key run `generate_private_key`, keep the printed key safe
+* to find out your public key give your private key to `print_key_info`
+
+
 ## Signatures
 
 Programs [sign_message](sign_message.md) and [verify_message](verify_message.md)
 can be used to sign messages with a private key and to verify
 message signatures with corresponding public key.
+
+* to sign a message run `sign_message` and give it your private key and the message
+* to verify a signature run `verify_message` and give it the message and the public key, which is obtained from private key with `print_key_info`
+
 
 ## Creating transactions and votes
 
@@ -37,12 +45,23 @@ carry arbitrary payload which can be used e.g. for smart contracts.
 These program print their results to standard output.
 You can use programs described in ledger operations to store transactions and votes permanently.
 
+* to send coins from account A to account B:
+  * A runs `create_send` giving it address of B
+  * B runs `create_receive` giving it hash of above send
+* to vote for a transactionwith your balance, in order to resolve conflicts, run `create_transient_vote` giving it hash of your candidate
+
+
 ## Ledger operations
 
 Programs [add_transaction](add_transaction.md) and [replace_transaction](replace_transaction.md)
 are used to create a persistend ledger of transactions and votes
 created by various create_* programs. replace_transaction does
 everything that add_transaction can do.
+
+* to validate a transaction and add it to local storage run `add_transaction` giving it the transaction, path to local ledger and other info
+* to replace a transaction in local storage with another one that has more votes run `replace_transaction` giving it the new transaction, path to local ledger, etc.
+  * you can vote for transactions with `create_transient_vote` and add the vote to local ledger with `add_vote`
+
 
 ## Payload serialization (smart contracts)
 
@@ -54,3 +73,6 @@ pairs of ledger.
 
 TODO: better payload serialization that only enforces required
 ordering between transaction payloads
+
+* to print the payload of all transactions in local ledger run `serialize_payloads` giving it the path of local ledger
+  * order of payloads is defined by the ledger DAG, payloads of transactions that aren't ordered relative to each other by DAG are printed in random order with respect to each other
