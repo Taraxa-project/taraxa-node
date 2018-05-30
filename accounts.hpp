@@ -29,6 +29,7 @@ public:
 		pubkey_hex,
 		address_hex,
 		genesis_transaction_hex,
+		vote_delegate_pubkey_hex,
 		balance_hex; // TODO: switch to CryptoPP::Integer
 
 
@@ -124,6 +125,8 @@ void load_from_json(const std::string& json, const bool verbose) {
 	if (verbose) {
 		std::cout << "Public key: " << pubkey_hex << std::endl;
 	}
+
+	vote_delegate_pubkey_hex = pubkey_hex;
 
 	// TODO: compress address
 	address_hex = pubkey_hex;

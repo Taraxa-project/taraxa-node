@@ -249,18 +249,37 @@ int main(int argc, char* argv[]) {
 		/*
 		TODO: use better algorithm than last known balance of voter
 		*/
-		const auto balance_bin = taraxa::hex2bin(accounts.at(vote.pubkey_hex).balance_hex);
-		CryptoPP::Integer balance;
-		balance.Decode(
-			reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
-				balance_bin.data())),
-			balance_bin.size()
-		);
+		CryptoPP::Integer voting_balance;
+
+		for (const auto& account_i: accounts) {
+			const auto& account = account_i.second;
+
+			if (account.vote_delegate_pubkey_hex != vote.pubkey_hex) {
+				continue;
+			}
+
+			const auto balance_bin = taraxa::hex2bin(account.balance_hex);
+			CryptoPP::Integer balance;
+			balance.Decode(
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+					balance_bin.data())),
+				balance_bin.size()
+			);
+
+			voting_balance += balance;
+
+			if (verbose and account.pubkey_hex != vote.pubkey_hex) {
+				std::cout << "Vote of " << account.pubkey_hex.substr(0, 5) << "..."
+					<< account.pubkey_hex.substr(account.pubkey_hex.size() - 5)
+					<< " delegated to " << vote.pubkey_hex.substr(0, 5) << "..."
+					<< vote.pubkey_hex.substr(vote.pubkey_hex.size() - 5) << std::endl;
+			}
+		}
 
 		if (vote.candidate_hex == old_candidate.hash_hex) {
-			old_total += balance;
+			old_total += voting_balance;
 		} else if (vote.candidate_hex == new_candidate.hash_hex) {
-			new_total += balance;
+			new_total += voting_balance;
 		}
 	}
 

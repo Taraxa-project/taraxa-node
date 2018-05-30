@@ -74,6 +74,14 @@ template <
 				<< " to " << balance << std::endl;
 		}
 
+		if (transaction.payload_hex.size() > 0) {
+			throw std::invalid_argument(
+				__FILE__ "(" + to_string(__LINE__) + ") "
+				" Genesis transaction cannot have a payload: "
+				+ transaction.payload_hex
+			);
+		}
+
 		account.balance_hex = transaction.new_balance_hex;
 		processed_transactions[transaction.hash_hex] = transaction;
 	}
@@ -89,6 +97,8 @@ template <
 			transactions_to_process.insert(transaction.hash_hex);
 		}
 	}
+
+	std::map<std::string, std::string> new_vote_delegates;
 
 	std::set<std::string> invalid_transactions;
 	while (transactions_to_process.size() > 0) {
@@ -253,7 +263,7 @@ template <
 				+ old_balance_sender
 				- new_balance_sender;
 
-			if (new_balance_receiver <= old_balance_receiver) {
+			if (new_balance_receiver < old_balance_receiver) {
 				if (verbose) {
 					std::cout << "Transaction " << transaction_to_process.hash_hex
 						<< " is invalid, new balance of receiver is smaller than old: "
@@ -281,6 +291,16 @@ template <
 			}
 
 			auto& receiver = accounts.at(transaction_to_process.pubkey_hex);
+
+			// check if vote delegation has been accepted
+			for (auto& item: new_vote_delegates) {
+				if (item.second != transaction_to_process.send_hex) {
+					continue;
+				}
+
+				item.second = receiver.pubkey_hex;
+				break;
+			}
 
 			std::string new_balance_receiver_bin(8, 0);
 			new_balance_receiver.Encode(
@@ -313,10 +333,10 @@ template <
 				new_balance_bin.size()
 			);
 
-			if (new_balance >= old_balance) {
+			if (new_balance > old_balance) {
 				if (verbose) {
 					std::cout << "Transaction " << transaction_to_process.hash_hex
-						<< " is invalid, new balance of sender is not smaller than old: "
+						<< " is invalid, new balance of sender is larger than old: "
 						<< old_balance << " -> " << new_balance << std::endl;
 				}
 				invalid_transactions.insert(transaction_to_process.hash_hex);
@@ -341,6 +361,13 @@ template <
 			}
 
 			auto& sender = accounts.at(transaction_to_process.pubkey_hex);
+
+			const std::string payload_bin = hex2bin(transaction_to_process.payload_hex);
+			if (payload_bin == "delegate_vote") {
+				// wait for corresponding receive
+				new_vote_delegates[sender.pubkey_hex] = transaction_to_process.hash_hex;
+			}
+
 			sender.balance_hex = transaction_to_process.new_balance_hex;
 		}
 
@@ -349,6 +376,18 @@ template <
 	}
 
 	transactions = processed_transactions;
+
+	// update vote delegates
+	for (const auto& item: new_vote_delegates) {
+		if (accounts.count(item.first) == 0) {
+			throw std::runtime_error(__FILE__ "(" + to_string(__LINE__) + ")");
+		}
+		if (accounts.count(item.second) == 0) {
+			throw std::runtime_error(__FILE__ "(" + to_string(__LINE__) + ")");
+		}
+
+		accounts.at(item.first).vote_delegate_pubkey_hex = item.second;
+	}
 }
 
 } // namespace taraxa
