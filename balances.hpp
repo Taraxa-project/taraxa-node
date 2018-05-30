@@ -64,7 +64,8 @@ template <
 			const auto balance_bin = hex2bin(transaction.new_balance_hex);
 			CryptoPP::Integer balance(0l);
 			balance.Decode(
-				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+					balance_bin.data())),
 				balance_bin.size()
 			);
 			std::cout << "Setting initial balance of account "

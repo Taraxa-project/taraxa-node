@@ -153,7 +153,8 @@ int main(int argc, char* argv[]) {
 			CryptoPP::Integer balance;
 			const auto balance_bin = taraxa::hex2bin(transaction.new_balance_hex);
 			balance.Decode(
-				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(balance_bin.data())),
+				reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(
+					balance_bin.data())),
 				balance_bin.size()
 			);
 
