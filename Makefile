@@ -20,7 +20,8 @@ PROGRAMS = \
     create_transient_vote \
     add_vote \
     serialize_payloads \
-    replace_transaction
+    replace_transaction \
+    vrf_participate
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 
@@ -90,6 +91,9 @@ serialize_payloads: serialize_payloads.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 replace_transaction: replace_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE)
+
+vrf_participate: vrf_participate.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 TESTS =
