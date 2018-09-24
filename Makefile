@@ -94,7 +94,7 @@ replace_transaction: replace_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE)
 
 vrf_participate: vrf_participate.cpp $(HEADERS) $(DEPENDENCIES) Makefile
-	$(COMPILE)
+	$(COMPILE) $(shell pkg-config --cflags --libs "libcrypto >= 1.1")
 
 TESTS =
 CLEAN_TESTS =
