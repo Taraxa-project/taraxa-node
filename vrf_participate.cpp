@@ -8,6 +8,7 @@ Modified from https://github.com/fcelda/nsec5-crypto/blob/486e3114b8986b1342ff06
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <vector>
 
 #include <arpa/inet.h>
@@ -27,8 +28,6 @@ struct ecvrf_suite {
 	const size_t c_size;
 	const size_t s_size;
 };
-
-typedef struct ecvrf_suite ecvrf_suite;
 
 /**
  * Get EC-VRF-P256-SHA256 implementation.
@@ -166,28 +165,28 @@ static EC_POINT *RS2ECP(const EC_GROUP *group, const uint8_t *data, size_t size)
 static EC_POINT *ECVRF_hash_to_curve1(const ecvrf_suite *vrf, const EC_POINT *pubkey, const uint8_t *data, size_t size)
 {
 	int degree = bits_in_bytes(EC_GROUP_get_degree(vrf->group));
-	uint8_t _pubkey[degree + 1];
-	if (EC_POINT_point2oct(vrf->group, pubkey, POINT_CONVERSION_COMPRESSED, _pubkey, sizeof(_pubkey), NULL) != sizeof(_pubkey)) {
-		return NULL;
+	std::vector<uint8_t> _pubkey(degree + 1, 0);
+	if (EC_POINT_point2oct(vrf->group, pubkey, POINT_CONVERSION_COMPRESSED, _pubkey.data(), _pubkey.size(), NULL) != _pubkey.size()) {
+		return nullptr;
 	}
 
-	EC_POINT *result = NULL;
+	EC_POINT *result = nullptr;
 
 	EVP_MD_CTX *md_template = EVP_MD_CTX_new();
 	if (!md_template) {
-		return NULL;
+		return nullptr;
 	}
 	EVP_DigestInit_ex(md_template, vrf->hash, NULL);
-	EVP_DigestUpdate(md_template, _pubkey, sizeof(_pubkey));
+	EVP_DigestUpdate(md_template, _pubkey.data(), _pubkey.size());
 	EVP_DigestUpdate(md_template, data, size);
 
 	EVP_MD_CTX *md = EVP_MD_CTX_new();
 	if (!md) {
 		EVP_MD_CTX_free(md_template);
-		return NULL;
+		return nullptr;
 	}
 
-	for (uint32_t _counter = 0; result == NULL || EC_POINT_is_at_infinity(vrf->group, result); _counter++) {
+	for (uint32_t _counter = 0; result == nullptr || EC_POINT_is_at_infinity(vrf->group, result); _counter++) {
 		assert(_counter < 256); // hard limit for debugging
 		uint32_t counter = htonl(_counter);
 		static_assert(sizeof(counter) == 4, "counter is 4-byte");
@@ -200,7 +199,7 @@ static EC_POINT *ECVRF_hash_to_curve1(const ecvrf_suite *vrf, const EC_POINT *pu
 		EVP_DigestUpdate(md, &counter, sizeof(counter));
 		if (EVP_DigestFinal_ex(md, hash, &hash_size) != 1) {
 			EC_POINT_clear_free(result);
-			result = NULL;
+			result = nullptr;
 			break;
 		}
 
@@ -208,12 +207,12 @@ static EC_POINT *ECVRF_hash_to_curve1(const ecvrf_suite *vrf, const EC_POINT *pu
 		const BIGNUM *cofactor = EC_GROUP_get0_cofactor(vrf->group);
 		assert(cofactor);
 		result = RS2ECP(vrf->group, hash, hash_size);
-		if (result != NULL && !BN_is_one(cofactor)) {
+		if (result != nullptr && !BN_is_one(cofactor)) {
 			EC_POINT *tmp = EC_POINT_new(vrf->group);
 			if (EC_POINT_mul(vrf->group, tmp, NULL, result, cofactor, NULL) != 1) {
 				EC_POINT_clear_free(tmp);
 				EC_POINT_clear_free(result);
-				result = NULL;
+				result = nullptr;
 				break;
 			}
 			EC_POINT_clear_free(result);
@@ -241,11 +240,11 @@ static BIGNUM *ECVRF_hash_points(const ecvrf_suite *vrf, const EC_POINT **points
 	EVP_DigestInit_ex(md, vrf->hash, NULL);
 
 	for (size_t i = 0; i < count; i++) {
-		uint8_t buffer[vrf->ecp_size];
-		if (EC_POINT_point2oct(vrf->group, points[i], POINT_CONVERSION_COMPRESSED, buffer, sizeof(buffer), NULL) != sizeof(buffer)) {
+		std::vector<uint8_t> buffer(vrf->ecp_size, 0);
+		if (EC_POINT_point2oct(vrf->group, points[i], POINT_CONVERSION_COMPRESSED, buffer.data(), buffer.size(), NULL) != buffer.size()) {
 			return nullptr;
 		}
-		EVP_DigestUpdate(md, buffer, sizeof(buffer));
+		EVP_DigestUpdate(md, buffer.data(), buffer.size());
 	}
 
 	uint8_t hash[EVP_MAX_MD_SIZE] = {0};
@@ -275,7 +274,7 @@ static BIGNUM *ECVRF_hash_points(const ecvrf_suite *vrf, const EC_POINT **points
 static bool ECVRF_prove(
 	const ecvrf_suite *vrf, const EC_POINT *pubkey, const BIGNUM *privkey,
 	const uint8_t *data, size_t size,
-	uint8_t *proof, size_t proof_size)
+	uint8_t *proof, size_t /*proof_size*/)
 {
 	// TODO: check input constraints
 
@@ -336,7 +335,10 @@ static bool ECVRF_prove(
 
 	// write result
 	int wrote = EC_POINT_point2oct(vrf->group, gamma, POINT_CONVERSION_COMPRESSED, proof, vrf->ecp_size, NULL);
-	assert(wrote == vrf->ecp_size);
+	if (wrote < 0) {
+		return false;
+	}
+	assert(size_t(wrote) == vrf->ecp_size);
 	(void)wrote;
 	bn2bin(c, proof + vrf->ecp_size, vrf->c_size);
 	bn2bin(s, proof + vrf->ecp_size + vrf->c_size, vrf->s_size);
@@ -457,32 +459,7 @@ static void hex_dump(const uint8_t *data, size_t size)
 
 int main(int, char **)
 {
-	// Sample EC P256 key
-
-	static const std::array<uint8_t, 65> pk{
-   		0x04,0xdb,0x72,0x4c,0xdd,0x2d,0x65,
-		0xd9,0x0d,0xe9,0x82,0xd2,0xc6,0x94,
-		0x3d,0x66,0x18,0x85,0x28,0xc2,0x84,
-		0x6b,0x1f,0xeb,0x95,0x8d,0x25,0xf5,
-		0xf1,0xbb,0x2b,0xc6,0xbe,0x16,0xab,
-		0xce,0xbe,0x01,0xd6,0x31,0xd3,0x4e,
-		0x69,0xfe,0xeb,0x87,0x49,0x1e,0x5d,
-		0xfd,0x1a,0x04,0xf2,0x71,0x89,0x78,
-		0x30,0x26,0xad,0x50,0xcd,0xcb,0xec,
-		0x78,0x7c
-	};
-
-	static const std::array<uint8_t, 33> sk{
-		0x00,0xe3,0xd3,0x78,0x92,0x71,0xe6,
-		0x30,0x67,0x3c,0x10,0x98,0xe7,0x67,
-		0x00,0xc4,0x13,0xb0,0xee,0x9a,0xd5,
-		0x2b,0x6a,0xe1,0x71,0x5c,0x1e,0x8d,
-		0x2e,0xea,0x9b,0x2d,0xe9
-	};
-
 	ecvrf_suite *vrf = nullptr;
-	EC_POINT *pubkey = nullptr;
-	BIGNUM *privkey = nullptr;
 	uint8_t *proof = nullptr;
 
 	vrf = ecvrf_p256();
@@ -491,17 +468,24 @@ int main(int, char **)
 		return EXIT_FAILURE;
 	}
 
-	pubkey = EC_POINT_new(vrf->group);
-	if (EC_POINT_oct2point(vrf->group, pubkey, pk.data(), pk.size(), NULL) != 1) {
-		fprintf(stderr, "failed to create public key\n");
+	EC_KEY* new_key = EC_KEY_new();
+	if (new_key == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	privkey = BN_bin2bn(sk.data(), sk.size(), NULL);
-	if (!privkey) {
-		fprintf(stderr, "failed to create private key\n");
+	if (EC_KEY_set_group(new_key, vrf->group) != 1) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	if (EC_KEY_generate_key(new_key) != 1) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	const auto* const pubkey = EC_KEY_get0_public_key(new_key);
+	const auto* const privkey = EC_KEY_get0_private_key(new_key);
 
 	proof = (uint8_t*) calloc(vrf->proof_size, 1);
 	if (!proof) {
@@ -523,8 +507,7 @@ int main(int, char **)
 	bool valid = ECVRF_verify(vrf, pubkey, message, sizeof(message), proof, vrf->proof_size);
 	printf("valid = %s\n", valid ? "true" : "false");
 
-	EC_POINT_clear_free(pubkey);
-	BN_clear_free(privkey);
+	EC_KEY_free(new_key);
 	ecvfr_free(vrf);
 	free(proof);
 
