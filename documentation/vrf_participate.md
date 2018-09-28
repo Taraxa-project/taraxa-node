@@ -1,5 +1,5 @@
 Prints the hash of proof of public key hash of given message
-for given private key:
+with given private key:
 ```bash
 $ ../vrf_participate \
     --key 0000000000000000000000000000000000000000000000000000000000000001 \
