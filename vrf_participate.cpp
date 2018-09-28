@@ -12,10 +12,17 @@ Modified from https://github.com/fcelda/nsec5-crypto/blob/486e3114b8986b1342ff06
 #include <vector>
 
 #include <arpa/inet.h>
+//#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <cryptopp/blake2.h>
 #include <openssl/bn.h>
 #include <openssl/ec.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/obj_mac.h>
+
+#include "hashes.hpp"
+#include "signatures.hpp"
 
 /**
  * EC VRF suite.
@@ -93,7 +100,9 @@ static void bn2bin(const BIGNUM *num, uint8_t *buf, size_t size)
 	}
 
 	size_t ret = BN_bn2bin(num, buf + pad);
-	assert(ret == need);
+	if (ret != need) {
+		throw std::runtime_error(__FILE__ "(" + std::to_string(__LINE__) + ")");
+	}
 }
 
 /**
@@ -164,6 +173,10 @@ static EC_POINT *RS2ECP(const EC_GROUP *group, const uint8_t *data, size_t size)
  */
 static EC_POINT *ECVRF_hash_to_curve1(const ecvrf_suite *vrf, const EC_POINT *pubkey, const uint8_t *data, size_t size)
 {
+	if (pubkey == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return nullptr;
+	}
 	int degree = bits_in_bytes(EC_GROUP_get_degree(vrf->group));
 	std::vector<uint8_t> _pubkey(degree + 1, 0);
 	if (EC_POINT_point2oct(vrf->group, pubkey, POINT_CONVERSION_COMPRESSED, _pubkey.data(), _pubkey.size(), NULL) != _pubkey.size()) {
@@ -277,6 +290,31 @@ static bool ECVRF_prove(
 	uint8_t *proof, size_t /*proof_size*/)
 {
 	// TODO: check input constraints
+
+	if (vrf == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return false;
+	}
+
+	if (privkey == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return false;
+	}
+
+	if (pubkey == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return false;
+	}
+
+	if (data == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return false;
+	}
+
+	if (proof == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return false;
+	}
 
 	const EC_POINT *generator = EC_GROUP_get0_generator(vrf->group);
 	assert(generator);
@@ -457,12 +495,101 @@ static void hex_dump(const uint8_t *data, size_t size)
 	}
 }
 
-int main(int, char **)
+static void hex_dump(const std::string& data)
 {
-	ecvrf_suite *vrf = nullptr;
-	uint8_t *proof = nullptr;
+	for (size_t i = 0; i < data.size(); i++) {
+		bool last = i + 1 == data.size();
+		printf("%02x%c", (unsigned int)data[i], last ? '\n' : ':');
+	}
+}
 
-	vrf = ecvrf_p256();
+int main(int argc, char* argv[])
+{
+	//bool verbose = false;
+	std::string message_hex, ledger_path_str, exp_hex;
+
+	boost::program_options::options_description options(
+		"Participates in VRF selection of winner for given message\n"
+		"All hex encoded strings must be given without the leading 0x.\n"
+		"Usage: program_name [options], where options are:"
+	);
+	options.add_options()
+		("help", "print this help message and exit")
+		//("verbose", "Print more information during execution")
+		("message", boost::program_options::value<std::string>(&message_hex),
+			"Message (hex) for which to participate in VRF winner selection")
+		/*TODO: ("ledger-path",
+			boost::program_options::value<std::string>(&ledger_path_str),
+			"Ledger data is located in directory arg")*/
+		("key", boost::program_options::value<std::string>(&exp_hex),
+			"Private exponent of the key used for VRF (hex)");
+
+	boost::program_options::variables_map option_variables;
+	boost::program_options::store(
+		boost::program_options::parse_command_line(argc, argv, options),
+		option_variables
+	);
+	boost::program_options::notify(option_variables);
+
+	if (option_variables.count("help") > 0) {
+		std::cout << options << std::endl;
+		return EXIT_SUCCESS;
+	}
+
+	/*if (option_variables.count("verbose") > 0) {
+		verbose = true;
+	}*/
+
+	if (exp_hex.size() != 64) {
+		std::cerr << "Key must be 64 characters but is " << exp_hex.size() << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	/*boost::filesystem::path ledger_path(ledger_path_str);
+
+	if (ledger_path.size() > 0) {
+		if (verbose and not boost::filesystem::portable_directory_name(ledger_path_str)) {
+			std::cout << "WARNING: ledger-path isn't portable." << std::endl;
+		}
+
+		if (not boost::filesystem::exists(ledger_path)) {
+			if (verbose) {
+				std::cout << "Ledger directory doesn't exist, creating..." << std::endl;
+			}
+
+			try {
+				boost::filesystem::create_directories(ledger_path);
+			} catch (const std::exception& e) {
+				std::cerr << "Couldn't create ledger directory '" << ledger_path
+					<< "': " << e.what() << std::endl;
+				return EXIT_FAILURE;
+			}
+		}
+
+		if (not boost::filesystem::is_directory(ledger_path)) {
+			std::cerr << "Ledger path isn't a directory: " << ledger_path << std::endl;
+			return EXIT_FAILURE;
+		}
+	}*/
+
+	// create subdirectory for vrf data
+	/*auto vrf_path = ledger_path;
+	vrf_path /= "vrf";
+	if (not boost::filesystem::exists(vrf_path)) {
+		try {
+			if (verbose) {
+				std::cout << "VRF directory doesn't exist, creating..." << std::endl;
+			}
+			boost::filesystem::create_directory(vrf_path);
+		} catch (const std::exception& e) {
+			std::cerr << "Couldn't create a directory for vrf: " << e.what() << std::endl;
+			return EXIT_FAILURE;
+		}
+	}*/
+
+	const auto privkey_bin = taraxa::get_public_key_hex(exp_hex);
+
+	ecvrf_suite* vrf = ecvrf_p256();
 	if (!vrf) {
 		fprintf(stderr, "failed to create VRF context\n");
 		return EXIT_FAILURE;
@@ -479,37 +606,66 @@ int main(int, char **)
 		return EXIT_FAILURE;
 	}
 
-	if (EC_KEY_generate_key(new_key) != 1) {
+	BIGNUM* privkey = nullptr;;
+	if (BN_hex2bn(&privkey, exp_hex.data()) == 0) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return EXIT_FAILURE;
+	}
+	if (privkey == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return EXIT_FAILURE;
+	}
+	std::cout << std::endl;
+	if (EC_KEY_set_private_key(new_key, privkey) != 1) {
 		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	const auto* const pubkey = EC_KEY_get0_public_key(new_key);
-	const auto* const privkey = EC_KEY_get0_private_key(new_key);
-
-	proof = (uint8_t*) calloc(vrf->proof_size, 1);
-	if (!proof) {
+	BN_CTX* ctx = BN_CTX_new();
+	if (ctx == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	static const uint8_t message[] = "hello world";
+	EC_POINT* pubkey = EC_POINT_new(vrf->group);
+	if (pubkey == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return EXIT_FAILURE;
+	}
 
-	if (!ECVRF_prove(vrf, pubkey, privkey, message, sizeof(message), proof, vrf->proof_size)) {
+	if (EC_POINT_mul(vrf->group, pubkey, privkey, nullptr, nullptr, ctx) != 1) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	if (pubkey == nullptr) {
+		std::cerr << __FILE__ "(" << __LINE__ << ")" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	std::string proof(vrf->proof_size, ' ');
+
+	const std::string
+		message_bin = taraxa::hex2bin(message_hex),
+		// normalize message hex
+		message_hex_out = taraxa::bin2hex(message_bin);
+
+	if (!ECVRF_prove(vrf, pubkey, privkey, (const unsigned char*)message_bin.data(), message_bin.size(), (unsigned char*)proof.data(), proof.size())) {
 		fprintf(stderr, "failed to create VRF proof\n");
 		return EXIT_FAILURE;
 	}
 
-	printf("message = ");
-	hex_dump(message, sizeof(message));
-	printf("proof = ");
-	hex_dump(proof, vrf->proof_size);
+	bool valid = ECVRF_verify(vrf, pubkey, (unsigned char*)message_bin.data(), message_bin.size(), (unsigned char*)proof.data(), proof.size());
+	if (not valid) {
+		std::cout << "Invalid VRF proof" << std::endl;
+		return EXIT_FAILURE;
+	}
 
-	bool valid = ECVRF_verify(vrf, pubkey, message, sizeof(message), proof, vrf->proof_size);
-	printf("valid = %s\n", valid ? "true" : "false");
+	const std::string vrf_hash_hex = taraxa::get_hash_hex<CryptoPP::BLAKE2s>(proof);
+	std::cout << "VRF output for message " << message_hex_out << ": " << vrf_hash_hex << std::endl;
 
 	EC_KEY_free(new_key);
 	ecvfr_free(vrf);
-	free(proof);
 
 	return EXIT_SUCCESS;
 }
