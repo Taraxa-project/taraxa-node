@@ -21,7 +21,8 @@ PROGRAMS = \
     add_vote \
     serialize_payloads \
     replace_transaction \
-    vrf_participate
+    vrf_participate \
+    bls_sign_message
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 
@@ -95,6 +96,12 @@ replace_transaction: replace_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 
 vrf_participate: vrf_participate.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE) $(shell pkg-config --cflags --libs "libcrypto >= 1.1") -Wno-class-memaccess
+
+submodules/bls/lib/libbsl256.a: submodules/bls/include/bls/bls.h
+	$(MAKE) -C submodules/bls
+
+bls_sign_message: bls_sign_message.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto
 
 TESTS =
 CLEAN_TESTS =

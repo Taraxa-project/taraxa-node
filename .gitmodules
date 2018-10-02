@@ -4,3 +4,9 @@
 [submodule "submodules/rapidjson"]
 	path = submodules/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "submodules/bls"]
+	path = submodules/bls
+	url = https://github.com/herumi/bls.git
+[submodule "submodules/mcl"]
+	path = submodules/mcl
+	url = https://github.com/herumi/mcl.git
