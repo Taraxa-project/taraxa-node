@@ -3,7 +3,6 @@ Copyright 2018 Ilja Honkonen
 */
 
 #include "bin2hex2bin.hpp"
-#include "signatures.hpp"
 
 #include <bls/bls.hpp>
 #include <boost/program_options.hpp>
