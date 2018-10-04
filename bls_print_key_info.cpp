@@ -63,8 +63,14 @@ int main(int argc, char* argv[]) {
 	bls::PublicKey public_key;
 	secret_key.getPublicKey(public_key);
 
-	std::cout << "Private key: " << secret_key << std::endl;
-	std::cout << "Public key:  " << public_key << std::endl;
+	std::string secret_key_bin, public_key_bin;
+	secret_key.getStr(secret_key_bin, bls::IoFixedByteSeq);
+	std::reverse(secret_key_bin.begin(), secret_key_bin.end());
+	public_key.getStr(public_key_bin, bls::IoFixedByteSeq);
+	// TODO? std::reverse(public_key_bin.begin(), public_key_bin.end());
+
+	std::cout << "Private key: " << taraxa::bin2hex(secret_key_bin) << std::endl;
+	std::cout << "Public key:  " << taraxa::bin2hex(public_key_bin) << std::endl;
 
 	return EXIT_SUCCESS;
 }

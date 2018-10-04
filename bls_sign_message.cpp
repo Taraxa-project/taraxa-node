@@ -64,7 +64,10 @@ int main(int argc, char* argv[]) {
 	bls::Signature signature;
 	const std::string message_bin = taraxa::hex2bin(message_hex);
 	secret_key.sign(signature, message_bin.data(), message_bin.size());
-	std::cout << signature << std::endl;
+
+	std::string signature_bin;
+	signature.getStr(signature_bin, bls::IoFixedByteSeq);
+	std::cout << taraxa::bin2hex(signature_bin) << std::endl;
 
 	return EXIT_SUCCESS;
 }
