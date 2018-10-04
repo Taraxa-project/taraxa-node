@@ -22,9 +22,11 @@ PROGRAMS = \
     serialize_payloads \
     replace_transaction \
     vrf_participate \
-    bls_sign_message
+    bls_sign_message \
+    bls_print_key_info
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
+BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto
 
 HEADERS = \
     accounts.hpp \
@@ -101,7 +103,10 @@ submodules/bls/lib/libbsl256.a: submodules/bls/include/bls/bls.h
 	$(MAKE) -C submodules/bls
 
 bls_sign_message: bls_sign_message.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
-	$(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto
+	$(BLS_COMPILE)
+
+bls_print_key_info: bls_print_key_info.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+	$(BLS_COMPILE)
 
 TESTS =
 CLEAN_TESTS =
