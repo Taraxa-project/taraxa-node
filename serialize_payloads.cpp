@@ -64,8 +64,10 @@ int main(int argc, char* argv[]) {
 		verbose = true;
 	}
 
-	auto [accounts, transactions, votes]
-		= taraxa::load_ledger_data<CryptoPP::BLAKE2s>(ledger_path_str, verbose);
+	auto temp_ledger_data = taraxa::load_ledger_data<CryptoPP::BLAKE2s>(ledger_path_str, verbose);
+	auto accounts = std::get<0>(temp_ledger_data);
+	auto transactions = std::get<1>(temp_ledger_data);
+	auto votes = std::get<2>(temp_ledger_data);
 	(void)votes; // unused, silence compiler warning
 
 	std::string serialized_payloads;
