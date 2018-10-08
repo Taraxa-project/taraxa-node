@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 	boost::program_options::options_description options(
 		"Prints on each line of standard output one id, "
 		"private and public key for A out of B threshold "
-		"of hex encoded (without leading 0x) private "
-		"key read from standard input.\n"
+		"of private key read from standard input.\n"
+		"Input and output is hex encoded without leading 0x\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
@@ -97,7 +97,11 @@ int main(int argc, char* argv[]) {
 		std::string public_key_bin;
 		public_key.getStr(public_key_bin, bls::IoFixedByteSeq);
 
-		std::cout << ids[i] << " "
+		std::string id_bin;
+		ids[i].getStr(id_bin, bls::IoFixedByteSeq);
+		std::reverse(id_bin.begin(), id_bin.end());
+
+		std::cout << taraxa::bin2hex(id_bin) << " "
 			<< taraxa::bin2hex(secret_key_bin) << " "
 			<< taraxa::bin2hex(public_key_bin) << std::endl;
 	}
