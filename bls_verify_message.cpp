@@ -17,20 +17,22 @@ int main(int argc, char* argv[]) {
 
 	bls::init();
 
-	std::string pubkey_hex, message_hex;
+	std::string pubkey_hex, signature_hex, message_hex;
 
 	boost::program_options::options_description options(
-		"Verify a signature given on standard input (as printed by bls_sign_message).\n"
-		"All hex encoded strings must be given without the leading 0x.\n"
+		"Verify a signature agains public key.\n"
+		"Input and output is hex encoded without leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
 		("help", "Print this help message and exit")
 		("verbose", "Print PASS or FAIL after verification")
 		("pubkey", boost::program_options::value<std::string>(&pubkey_hex),
-			"Public key against which to verify a message (as printed by bls_print_key_info)")
+			"Public key to use for verification")
+		("signature", boost::program_options::value<std::string>(&signature_hex),
+			"Signature to verify")
 		("message", boost::program_options::value<std::string>(&message_hex),
-			"Message to verify (hex)");
+			"Message to verify");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -44,16 +46,29 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 
+	if (pubkey_hex.size() != 4 * bls::local::keySize * sizeof(uint64_t)) {
+		std::cerr << "Public key must be " << 4 * bls::local::keySize * sizeof(uint64_t) << " characters." << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	const std::string pubkey_bin = taraxa::hex2bin(pubkey_hex);
+	if (pubkey_bin.size() != 2 * bls::local::keySize * sizeof(uint64_t)) {
+		std::cerr << "Decoded public key must be " << 2 * bls::local::keySize * sizeof(uint64_t) << " bytes." << std::endl;
+		return EXIT_FAILURE;
+	}
+
 	bls::PublicKey public_key;
 	try {
-		public_key.setStr(taraxa::hex2bin(pubkey_hex), bls::IoFixedByteSeq);
+		public_key.setStr(pubkey_bin, bls::IoFixedByteSeq);
 	} catch (...) {
 		std::cerr << "Couldn't set public key." << std::endl;
 		return EXIT_FAILURE;
 	}
 
-	std::string signature_hex;
-	std::cin >> signature_hex;
+	if (signature_hex.size() == 0) {
+		std::cerr << "Signature cannot be empty." << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	bls::Signature signature;
 	try {
