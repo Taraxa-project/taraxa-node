@@ -19,18 +19,19 @@ int main(int argc, char* argv[]) {
 
 	bls::init();
 
-	std::string exp_hex;
+	std::string exp_hex, message_hex;
 
 	boost::program_options::options_description options(
-		"Signs hex encoded message given on standard input\n"
-		"Prints hex encoded signature to standard output.\n"
-		"All hex encoded strings must be given without the leading 0x.\n"
+		"Signs a message with private key.\n"
+		"Input and output is hex encoded without leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
 		("help", "print this help message and exit")
 		("key", boost::program_options::value<std::string>(&exp_hex),
-			"Private key to sign with (hex)");
+			"Private key to sign with")
+		("message", boost::program_options::value<std::string>(&message_hex),
+			"Message to sign");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -52,14 +53,8 @@ int main(int argc, char* argv[]) {
 	std::string exp_bin = taraxa::hex2bin(exp_hex);
 	std::reverse(exp_bin.begin(), exp_bin.end());
 
-	std::array<uint64_t, bls::local::keySize> exp_temp{};
-	std::memcpy(exp_temp.data(), exp_bin.data(), exp_bin.size());
-
 	bls::SecretKey secret_key;
-	secret_key.set(exp_temp.data());
-
-	std::string message_hex;
-	std::cin >> message_hex;
+	secret_key.setStr(exp_bin, bls::IoFixedByteSeq);
 
 	bls::Signature signature;
 	const std::string message_bin = taraxa::hex2bin(message_hex);
