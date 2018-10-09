@@ -25,7 +25,8 @@ PROGRAMS = \
     bls_sign_message \
     bls_print_key_info \
     bls_verify_message \
-    bls_make_threshold_keys
+    bls_make_threshold_keys \
+    bls_get_threshold_signature
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto
@@ -114,6 +115,9 @@ bls_verify_message: bls_verify_message.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
 	$(BLS_COMPILE)
 
 bls_make_threshold_keys: bls_make_threshold_keys.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+	$(BLS_COMPILE)
+
+bls_get_threshold_signature: bls_get_threshold_signature.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
 	$(BLS_COMPILE)
 
 TESTS =
