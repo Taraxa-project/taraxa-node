@@ -71,11 +71,8 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	std::array<uint64_t, bls::local::keySize> exp_temp;
-	std::memcpy(exp_temp.data(), exp_bin.data(), exp_bin.size());
-
 	bls::SecretKey secret_key;
-	secret_key.set(exp_temp.data());
+	secret_key.setStr(exp_bin, bls::IoFixedByteSeq);
 
 	bls::SecretKeyVec master_secret_key;
 	secret_key.getMasterSecretKey(master_secret_key, A);
