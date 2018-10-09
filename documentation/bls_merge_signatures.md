@@ -9,7 +9,7 @@ $ ../bls_merge_signatures \
 ```
 
 Each partial signature can be created with `../bls_sign_message`
-from public+private keys created with `../bls_print_key_info` or `../bls_make_threshold_keys`.
+from public+private keys created with `../bls_make_threshold_keys`.
 
 Full example:
 
