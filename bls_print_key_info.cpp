@@ -16,13 +16,17 @@ int main(int argc, char* argv[]) {
 
 	bls::init();
 
+	std::string exp_hex;
+
 	boost::program_options::options_description options(
-		"Prints information about hex encoded (without leading 0x) "
-		"private key read from standard input.\nUsage: program_name "
-		"[options], where options are:"
+		"Prints information about given private key.\n"
+		"Input and output is hex encoded without leading 0x.\n"
+		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
-		("help", "print this help message and exit");
+		("help", "print this help message and exit")
+		("key", boost::program_options::value<std::string>(&exp_hex),
+			"Private key to print (hex)");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -35,9 +39,6 @@ int main(int argc, char* argv[]) {
 		std::cout << options << std::endl;
 		return EXIT_SUCCESS;
 	}
-
-	std::string exp_hex;
-	std::cin >> exp_hex;
 
 	if (exp_hex.size() != 2 * bls::local::keySize * sizeof(uint64_t)) {
 		std::cerr << "Private key must be " << 2 * bls::local::keySize * sizeof(uint64_t) << " characters" << std::endl;
@@ -54,22 +55,17 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	std::array<uint64_t, bls::local::keySize> exp_temp;
-	std::memcpy(exp_temp.data(), exp_bin.data(), exp_bin.size());
-
 	bls::SecretKey secret_key;
-	secret_key.set(exp_temp.data());
+	secret_key.setStr(exp_bin, bls::IoFixedByteSeq);
 
 	bls::PublicKey public_key;
 	secret_key.getPublicKey(public_key);
 
-	std::string secret_key_bin, public_key_bin;
-	secret_key.getStr(secret_key_bin, bls::IoFixedByteSeq);
-	std::reverse(secret_key_bin.begin(), secret_key_bin.end());
+	std::string public_key_bin;
 	public_key.getStr(public_key_bin, bls::IoFixedByteSeq);
 	// TODO? std::reverse(public_key_bin.begin(), public_key_bin.end());
 
-	std::cout << "Private key: " << taraxa::bin2hex(secret_key_bin) << std::endl;
+	std::cout << "Private key: " << taraxa::bin2hex(taraxa::hex2bin(exp_hex)) << std::endl;
 	std::cout << "Public key:  " << taraxa::bin2hex(public_key_bin) << std::endl;
 
 	return EXIT_SUCCESS;
