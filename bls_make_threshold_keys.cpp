@@ -16,16 +16,20 @@ int main(int argc, char* argv[]) {
 
 	bls::init();
 
+	std::string exp_hex;
 	size_t A = 2, B = 2;
+
 	boost::program_options::options_description options(
 		"Prints on each line of standard output one id, "
 		"private and public key for A out of B threshold "
-		"of private key read from standard input.\n"
+		"of a private key.\n"
 		"Input and output is hex encoded without leading 0x\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
 		("help", "print this help message and exit")
+		("key", boost::program_options::value<std::string>(&exp_hex),
+			"Private key to split")
 		("A", boost::program_options::value<size_t>(&A),
 			"Minimum number of shares required for valid signature (> 1)")
 		("B", boost::program_options::value<size_t>(&B),
@@ -52,9 +56,6 @@ int main(int argc, char* argv[]) {
 		std::cerr << "Total number of shares must be at least 2." << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	std::string exp_hex;
-	std::cin >> exp_hex;
 
 	if (exp_hex.size() != 2 * bls::local::keySize * sizeof(uint64_t)) {
 		std::cerr << "Private key must be " << 2 * bls::local::keySize * sizeof(uint64_t) << " characters" << std::endl;
