@@ -133,11 +133,12 @@ include \
     tests/get_balance/test1/test_include \
     tests/replace_transaction/test1/test_include \
     tests/replace_transaction/test2/test_include \
-    tests/vote_delegation/test1/test_include
+    tests/vote_delegation/test1/test_include \
+    tests/bls_sign/test1/test_include
 
 t: test
 test: $(TESTS)
 
 c: clean
 clean:
-	rm -rf $(PROGRAMS) $(CLEAN_TESTS)
+	@echo CLEAN && rm -rf $(PROGRAMS) $(CLEAN_TESTS)

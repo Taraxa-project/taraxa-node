@@ -1,0 +1,7 @@
+TESTS += tests/bls_sign/test1/signature1
+
+CLEAN_TESTS += \
+  tests/bls_sign/test1/signature1
+
+tests/bls_sign/test1/signature1: bls_sign_message
+	@echo -n "TEST bls_sign/test1 signature1... " && ./bls_sign_message --key 0000000000000000000000000000000000000000000000000000000000000001 --message deadbeef > $@ && diff -u $@ tests/bls_sign/test1/signature1.ref && echo PASS
