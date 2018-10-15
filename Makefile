@@ -136,7 +136,8 @@ include \
     tests/vote_delegation/test1/test_include \
     tests/bls_sign/test1/test_include \
     tests/bls_verify/test1/test_include \
-    tests/bls_merge/pubkey1/test_include
+    tests/bls_merge/pubkey1/test_include \
+    tests/bls_merge/signature1/test_include
 
 t: test
 test: $(TESTS)

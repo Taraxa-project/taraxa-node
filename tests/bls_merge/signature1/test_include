@@ -1,0 +1,27 @@
+TESTS += tests/bls_merge/signature1/merge2.ok
+
+CLEAN_TESTS += \
+  tests/bls_merge/signature1/merge1 \
+  tests/bls_merge/signature1/merge1.ok \
+  tests/bls_merge/signature1/merge2 \
+  tests/bls_merge/signature1/merge2.ok
+
+# should get same signature as from non-threshold secret key
+tests/bls_merge/signature1/merge1.ok: bls_merge_signatures tests/bls_sign/test1/signature1.ref
+	@echo -n "TEST bls_merge/signature1 merge1... " \
+  && ./bls_merge_signatures --id 0000000000000000000000000000000000000000000000000000000000000001 \
+    --id 0000000000000000000000000000000000000000000000000000000000000002 \
+    --signature AFA94D1F66881F13AE084A1FA10FB7A7B2068B7716FC3A6BCBED033DDA3EC305 \
+    --signature DBFA7D44B225A75DD7B6AA81E149F1F710CB40D051F9A1A44B760E2BD47E9F1A \
+    > tests/bls_merge/signature1/merge1 \
+  && diff -u tests/bls_merge/signature1/merge1 tests/bls_sign/test1/signature1.ref && touch $@ && echo PASS
+
+# should get same merged signature as above
+tests/bls_merge/signature1/merge2.ok: tests/bls_merge/signature1/merge1.ok
+	@echo -n "TEST bls_merge/signature1 merge2... " \
+  && ./bls_merge_signatures --id 0000000000000000000000000000000000000000000000000000000000000002 \
+    --id 0000000000000000000000000000000000000000000000000000000000000001 \
+    --signature 8B0390466828EB996EBE7AD8E9CB1C96866F0D01F4266B7AFDF6833EE15E4A04 \
+    --signature 8840785A2E90D44857D3082140914EC1B3D73161B1A7636FFAE00C3E5B0E1400 \
+    > tests/bls_merge/signature1/merge2 \
+  && diff -u tests/bls_merge/signature1/merge2 tests/bls_sign/test1/signature1.ref && touch $@ && echo PASS
