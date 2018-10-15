@@ -124,6 +124,9 @@ bls_merge_signatures: bls_merge_signatures.cpp  $(HEADERS) $(DEPENDENCIES) Makef
 bls_merge_public_keys: bls_merge_public_keys.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
 	$(BLS_COMPILE)
 
+sodium_generate_private_key_from_seed: sodium_generate_private_key_from_seed.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE) `pkg-config libsodium --cflags --libs` || echo Do you have Algorand version of libsodium installed from https://github.com/algorand/libsodium?
+
 TESTS =
 CLEAN_TESTS =
 include \

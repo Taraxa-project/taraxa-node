@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 	size_t print_first = 0, print_last = 0;
 
 	boost::program_options::options_description options(
-		"Prints deterministic private keys to standard output\n"
+		"Prints deterministic private keys to standard output,\n"
 		"based on given seed, which can be given e.g.\n"
 		"to print_key_info.\n"
 		"All hex encoded strings must be given without the leading 0x.\n"
