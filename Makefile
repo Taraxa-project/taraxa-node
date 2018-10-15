@@ -134,7 +134,8 @@ include \
     tests/replace_transaction/test1/test_include \
     tests/replace_transaction/test2/test_include \
     tests/vote_delegation/test1/test_include \
-    tests/bls_sign/test1/test_include
+    tests/bls_sign/test1/test_include \
+    tests/bls_verify/test1/test_include
 
 t: test
 test: $(TESTS)

@@ -1,0 +1,11 @@
+TESTS += tests/bls_verify/test1/signature2.ok
+
+CLEAN_TESTS += \
+  tests/bls_verify/test1/signature1.ok \
+  tests/bls_verify/test1/signature2.ok
+
+tests/bls_verify/test1/signature1.ok: tests/bls_sign/test1/signature1 bls_verify_signature
+	@echo -n "TEST bls_verify/test1 signature1... " && ./bls_verify_signature --pubkey 28B1CE2DBB7ECCC8BA6B0D29615AC81E33BE4D5909602AC35D2CAC774EB4CC119A0DEEC914A95FFCD4CDBE685608602E7F82DE7651A2E95BA0C4DABB144A200F --message deadbeef --signature `cat $<` && touch $@ && echo PASS
+
+tests/bls_verify/test1/signature2.ok: tests/bls_sign/test1/signature2 tests/bls_verify/test1/signature1.ok
+	@echo -n "TEST bls_verify/test1 signature2... " && ./bls_verify_signature --pubkey 5241EEF218079E39AB6558259B9E575D7FAF7AE66B0482BFEAD6C0C8BF198916D5D32CD007180CB57424A5B470DA6B1B007A8BFC3E909B3C1A4D1995B33AF986 --message feebdaed --signature `cat $<` && touch $@ && echo PASS
