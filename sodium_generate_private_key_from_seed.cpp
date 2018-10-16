@@ -67,7 +67,6 @@ int main(int argc, char* argv[]) {
 		(unsigned char*) secret_key_bin.data(),
 		(unsigned char*) seed_bin.data()
 	);
-	secret_key_bin = secret_key_bin.substr(secret_key_bin.size() / 2);
 
 	std::cout << taraxa::bin2hex(secret_key_bin) << std::endl;
 
