@@ -27,7 +27,11 @@ PROGRAMS = \
     bls_verify_signature \
     bls_make_threshold_keys \
     bls_merge_signatures \
-    bls_merge_public_keys
+    bls_merge_public_keys \
+    sodium_generate_private_key_from_seed \
+    sodium_get_vrf_proof \
+    sodium_get_vrf_output \
+    sodium_verify_vrf_proof
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto
@@ -126,6 +130,15 @@ bls_merge_public_keys: bls_merge_public_keys.cpp  $(HEADERS) $(DEPENDENCIES) Mak
 
 sodium_generate_private_key_from_seed: sodium_generate_private_key_from_seed.cpp $(HEADERS) $(DEPENDENCIES) Makefile
 	$(COMPILE) `pkg-config libsodium --cflags --libs` || echo Do you have Algorand version of libsodium installed from https://github.com/algorand/libsodium?
+
+sodium_get_vrf_proof: sodium_get_vrf_proof.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE) `pkg-config libsodium --cflags --libs`
+
+sodium_get_vrf_output: sodium_get_vrf_output.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE) `pkg-config libsodium --cflags --libs`
+
+sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
 TESTS =
 CLEAN_TESTS =
