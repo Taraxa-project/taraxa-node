@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	try {
-		std::cout << taraxa::sign_message_hex(message_hex, exp_hex);
+		std::cout << taraxa::sign_message_hex(message_hex, exp_hex) << std::endl;
 	} catch (const std::exception& e) {
 		std::cerr << "Couldn't sign message: " << e.what() << std::endl;
 		return EXIT_FAILURE;
