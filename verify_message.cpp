@@ -15,20 +15,22 @@ Copyright 2018 Ilja Honkonen
 
 int main(int argc, char* argv[]) {
 
-	std::string pubkey_hex, message_hex;
+	std::string pubkey_hex, message_hex, signature_hex;
 
 	boost::program_options::options_description options(
-		"Verify a signature given on standard input.\n"
-		"All hex encoded strings must be given without the leading 0x.\n"
+		"Verify signature of message using public key.\n"
+		"Input and output is hex encoded without leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
 		("help", "Print this help message and exit")
 		("verbose", "Print PASS or FAIL after verification")
 		("pubkey", boost::program_options::value<std::string>(&pubkey_hex),
-			"Public key against which to verify a message (hex)")
+			"Public key against which to verify message")
+		("signature", boost::program_options::value<std::string>(&signature_hex),
+			"Signature to verify")
 		("message", boost::program_options::value<std::string>(&message_hex),
-			"Message to verify (hex)");
+			"Message to verify");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -52,9 +54,6 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
-
-	std::string signature_hex;
-	std::cin >> signature_hex;
 	const bool verified = taraxa::verify_signature_hex(signature_hex, message_hex, pubkey_hex);
 
 	if (verified) {
