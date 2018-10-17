@@ -15,18 +15,19 @@ Copyright 2018 Ilja Honkonen
 
 int main(int argc, char* argv[]) {
 
-	std::string exp_hex;
+	std::string exp_hex, message_hex;
 
 	boost::program_options::options_description options(
-		"Signs hex encoded message given on standard input\n"
-		"Prints hex encoded signature to standard output.\n"
-		"All hex encoded strings must be given without the leading 0x.\n"
+		"Prints signature for message created with key.\n"
+		"Input and output is hex encoded without leading 0x.\n"
 		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
 		("help", "print this help message and exit")
 		("key", boost::program_options::value<std::string>(&exp_hex),
-			"Private key to sign with (hex)");
+			"Private key to sign with")
+		("message", boost::program_options::value<std::string>(&message_hex),
+			"Message to sign");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -39,9 +40,6 @@ int main(int argc, char* argv[]) {
 		std::cout << options << std::endl;
 		return EXIT_SUCCESS;
 	}
-
-	std::string message_hex;
-	std::cin >> message_hex;
 
 	try {
 		std::cout << taraxa::sign_message_hex(message_hex, exp_hex);
