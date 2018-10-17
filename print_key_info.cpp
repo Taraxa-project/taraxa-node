@@ -14,13 +14,17 @@ Copyright 2018 Ilja Honkonen
 
 int main(int argc, char* argv[]) {
 
+	std::string key_hex;
+
 	boost::program_options::options_description options(
-		"Prints information about hex encoded (without leading 0x) "
-		"private key read from standard input.\nUsage: program_name "
-		"[options], where options are:"
+		"Prints information about private key.\n"
+		"Input and output is hex encoded without leading 0x\n."
+		"Usage: program_name [options], where options are:"
 	);
 	options.add_options()
-		("help", "print this help message and exit");
+		("help", "print this help message and exit")
+		("key", boost::program_options::value<std::string>(&key_hex),
+			"Public key against which to verify message");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -34,11 +38,8 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 
-	std::string exp_hex;
-	std::cin >> exp_hex;
-
 	try {
-		const auto keys = taraxa::get_public_key_hex(exp_hex);
+		const auto keys = taraxa::get_public_key_hex(key_hex);
 		std::cout << "Private key: " << keys[0] << std::endl;
 		std::cout << "Public key:  " << keys[1] << std::endl;
 	} catch (const std::exception& e) {
