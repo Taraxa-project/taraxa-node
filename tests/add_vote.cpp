@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
 
 	bool verbose = false;
 	std::string ledger_path_str;
+	std::string ledger_message;
 
 	boost::program_options::options_description options(
 		"Reads a vote from standard input and adds it to the ledger.\n"
@@ -43,8 +44,10 @@ int main(int argc, char* argv[]) {
 		("help", "print this help message and exit")
 		("verbose", "Print more information during execution")
 		("ledger-path",
-		 	boost::program_options::value<std::string>(&ledger_path_str),
-			"Ledger data is located in directory arg");
+			boost::program_options::value<std::string>(&ledger_path_str),
+			"Ledger data is located in directory arg")
+		("ledger-message", boost::program_options::value<std::string>(&ledger_message),
+			"messages heard");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -115,7 +118,11 @@ int main(int argc, char* argv[]) {
 	taraxa::Transient_Vote<CryptoPP::BLAKE2s> vote;
 	try {
 		// TODO verify input
-		vote.load(std::cin, verbose);
+		if (boost::filesystem::exists(ledger_message)){
+			vote.load(ledger_message, verbose);
+		} else{
+			vote.load(std::cin, verbose);
+		}
 	} catch (const std::exception& e) {
 		std::cerr << "Couldn't load vote from stdin: " << e.what() << std::endl;
 		return EXIT_FAILURE;

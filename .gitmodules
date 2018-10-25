@@ -7,6 +7,8 @@
 [submodule "submodules/bls"]
 	path = submodules/bls
 	url = https://github.com/herumi/bls.git
+	ignore = dirty
 [submodule "submodules/mcl"]
 	path = submodules/mcl
 	url = https://github.com/herumi/mcl.git
+	ignore = dirty

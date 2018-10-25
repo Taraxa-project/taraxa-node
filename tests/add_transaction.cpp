@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
 
 	bool verbose = false;
 	std::string ledger_path_str;
+	std::string ledger_message;
 
 	boost::program_options::options_description options(
 		"Reads a transaction from standard input and adds it to the ledger.\n"
@@ -45,7 +46,9 @@ int main(int argc, char* argv[]) {
 		("verbose", "Print more information during execution")
 		("ledger-path",
 		 	boost::program_options::value<std::string>(&ledger_path_str),
-			"Ledger data is located in directory arg");
+			"Ledger data is located in directory arg")
+		("ledger-message", boost::program_options::value<std::string>(&ledger_message),
+			"messages heard");
 
 	boost::program_options::variables_map option_variables;
 	boost::program_options::store(
@@ -130,7 +133,11 @@ int main(int argc, char* argv[]) {
 
 	taraxa::Transaction<CryptoPP::BLAKE2s> transaction;
 	try {
-		transaction.load(std::cin, verbose);
+		if (boost::filesystem::exists(ledger_message)){
+			transaction.load(ledger_message, verbose);
+		} else{
+			transaction.load(std::cin, verbose);
+		}
 	} catch (const std::exception& e) {
 		std::cerr << "Couldn't load transaction from stdin: " << e.what() << std::endl;
 		return EXIT_FAILURE;

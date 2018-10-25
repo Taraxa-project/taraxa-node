@@ -8,7 +8,6 @@ Copyright 2018 Ilja Honkonen
 #include "hashes.hpp"
 #include "signatures.hpp"
 
-#include <boost/program_options.hpp>
 #include <cryptopp/blake2.h>
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -17,55 +16,24 @@ Copyright 2018 Ilja Honkonen
 #include <iostream>
 #include <string>
 
-
-int main(int argc, char* argv[]) {
-
-	/*
-	Parse command line options and validate input
-	*/
-
-	std::string exp_hex, receiver_hex, new_balance_str, payload_hex, previous_hex;
-
-	boost::program_options::options_description options(
-		"Creates an outgoing transaction ready to be sent over the network.\n"
-		"All hex encoded strings must be given without the leading 0x.\n"
-		"Usage: program_name [options], where options are:"
-	);
-	options.add_options()
-		("help", "print this help message and exit")
-		("previous", boost::program_options::value<std::string>(&previous_hex),
-			"Hash of previous transaction from the account (hex)")
-		("receiver", boost::program_options::value<std::string>(&receiver_hex),
-			"Receiver of the transaction that must create to corresponding receive (hex)")
-		("payload", boost::program_options::value<std::string>(&payload_hex),
-			"Payload of the transaction (hex)")
-		("new-balance", boost::program_options::value<std::string>(&new_balance_str),
-			"Balance of sending account after the transaction, given as (decimal) number.")
-		("key", boost::program_options::value<std::string>(&exp_hex),
-			"Private exponent of the key used to sign the transaction (hex)");
-
-	boost::program_options::variables_map option_variables;
-	boost::program_options::store(
-		boost::program_options::parse_command_line(argc, argv, options),
-		option_variables
-	);
-	boost::program_options::notify(option_variables);
-
-	if (option_variables.count("help") > 0) {
-		std::cout << options << std::endl;
-		return EXIT_SUCCESS;
-	}
-
+namespace taraxa{
+std::string create_send(
+	const std::string &exp_hex, 
+	const std::string &receiver_hex, 
+	const std::string &new_balance_str, 
+	const std::string &payload_hex, 
+	const std::string &previous_hex
+){
 	if (exp_hex.size() != 64) {
 		std::cerr << "Key must be 64 characters but is " << exp_hex.size() << std::endl;
-		return EXIT_FAILURE;
+		return "";
 	}
 
 	const auto nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
 	if (previous_hex.size() != nr_hash_chars) {
 		std::cerr << "Hash of previous transaction must be " << nr_hash_chars
 			<< " characters but is " << previous_hex.size() << std::endl;
-		return EXIT_FAILURE;
+		return "";
 	}
 
 	const auto pubkey_hex_size = 2 * taraxa::public_key_size(
@@ -74,13 +42,8 @@ int main(int argc, char* argv[]) {
 	if (receiver_hex.size() != pubkey_hex_size) {
 		std::cerr << "Receiver address must be " << pubkey_hex_size
 			<< " characters but is " << receiver_hex.size() << std::endl;
-		return EXIT_FAILURE;
+		return "";
 	}
-
-
-	/*
-	Convert input to binary, sign and hash
-	*/
 
 	const auto keys = taraxa::get_public_key_hex(exp_hex);
 	const auto
@@ -99,12 +62,14 @@ int main(int argc, char* argv[]) {
 
 	const auto
 		signature_payload_bin = previous_bin + new_balance_bin + receiver_bin + payload_bin,
+		//signature is not deterministic
 		signature_bin = taraxa::sign_message_bin(signature_payload_bin, exp_bin),
 		hash_payload_bin = signature_bin + signature_payload_bin,
 		signature_hex = taraxa::bin2hex(signature_bin),
 		// hash added only to make users' life easier
 		hash_hex = taraxa::bin2hex(taraxa::get_hash_bin<CryptoPP::BLAKE2s>(hash_payload_bin));
-
+		std::cout<<"signature_payload_bin "<<taraxa::bin2hex(signature_payload_bin)<<std::endl;
+		std::cout<<"signature_hex "<<signature_hex<<std::endl;
 	/*
 	Convert send to JSON and print to stdout
 	*/
@@ -113,9 +78,7 @@ int main(int argc, char* argv[]) {
 	document.SetObject();
 
 	// output what was signed
-	previous_hex = taraxa::bin2hex(previous_bin);
-	receiver_hex = taraxa::bin2hex(receiver_bin);
-	payload_hex = taraxa::bin2hex(payload_bin);
+	
 	const auto new_balance_hex = taraxa::bin2hex(new_balance_bin);
 
 	auto& allocator = document.GetAllocator();
@@ -130,7 +93,6 @@ int main(int argc, char* argv[]) {
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
 	document.Accept(writer);
-	std::cout << buffer.GetString() << std::endl;
-
-	return EXIT_SUCCESS;
+	return buffer.GetString();
+}
 }

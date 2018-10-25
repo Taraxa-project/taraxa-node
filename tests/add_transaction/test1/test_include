@@ -17,32 +17,32 @@ CLEAN_TESTS += \
 
 tests/add_transaction/test1/accounts/03/6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296: tests/add_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397
 
-tests/add_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397: add_transaction add_transaction tests/add_transaction/test1/01_genesis
-	@echo -n "TEST add_transaction/test1 01_genesis... " && ./add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/01_genesis > /dev/null && echo PASS
+tests/add_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397: $(BUILD)/add_transaction tests/add_transaction/test1/01_genesis
+	@echo -n "TEST add_transaction/test1 01_genesis... " && $(BUILD)/add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/01_genesis > /dev/null && echo PASS
 
 tests/add_transaction/test1/signature_fail1.ok: tests/add_transaction/test1/02_signature_fail tests/add_transaction/test1/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397
-	@echo -n "TEST add_transaction/test1 02_signature_fail... " && ./add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/02_signature_fail 2> /dev/null || touch $@ && echo PASS
+	@echo -n "TEST add_transaction/test1 02_signature_fail... " && $(BUILD)/add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/02_signature_fail 2> /dev/null || touch $@ && echo PASS
 
 tests/add_transaction/test1/signature_fail2.ok: tests/add_transaction/test1/signature_fail1.ok tests/add_transaction/test1/03_signature_fail
-	@echo -n "TEST add_transaction/test1 03_signature_fail... " && ./add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/03_signature_fail 2> /dev/null || touch $@ && echo PASS
+	@echo -n "TEST add_transaction/test1 03_signature_fail... " && $(BUILD)/add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/03_signature_fail 2> /dev/null || touch $@ && echo PASS
 
 tests/add_transaction/test1/signature_fail3.ok: tests/add_transaction/test1/signature_fail2.ok tests/add_transaction/test1/04_signature_fail
-	@echo -n "TEST add_transaction/test1 04_signature_fail... " && ./add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/04_signature_fail 2> /dev/null || touch $@ && echo PASS
+	@echo -n "TEST add_transaction/test1 04_signature_fail... " && $(BUILD)/add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/04_signature_fail 2> /dev/null || touch $@ && echo PASS
 
 tests/add_transaction/test1/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3: tests/add_transaction/test1/signature_fail3.ok tests/add_transaction/test1/05_send1
-	@echo -n "TEST add_transaction/test1 05_send1... " && ./add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/05_send1 > /dev/null && echo PASS
+	@echo -n "TEST add_transaction/test1 05_send1... " && $(BUILD)/add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/05_send1 > /dev/null && echo PASS
 
 tests/add_transaction/test1/transactions/7B/6F/001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0: tests/add_transaction/test1/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3
-	@echo -n "TEST add_transaction/test1 06_receive1... " && ./add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/06_receive1 > /dev/null && echo PASS
+	@echo -n "TEST add_transaction/test1 06_receive1... " && $(BUILD)/add_transaction --ledger-path tests/add_transaction/test1 < tests/add_transaction/test1/06_receive1 > /dev/null && echo PASS
 
-tests/add_transaction/test1/balance_036B.ok: get_balance tests/add_transaction/test1/transactions/7B/6F/001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0
-	@echo -n "TEST add_transaction/test1 get_balance 036B... " && ./get_balance --ledger-path tests/add_transaction/test1 --account 036B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296 > tests/add_transaction/test1/balance_036B && diff -u tests/add_transaction/test1/balance_036B tests/add_transaction/test1/ref_balance_036B && touch $@ && echo PASS
+tests/add_transaction/test1/balance_036B.ok: $(BUILD)/get_balance tests/add_transaction/test1/transactions/7B/6F/001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0
+	@echo -n "TEST add_transaction/test1 get_balance 036B... " && $(BUILD)/get_balance --ledger-path tests/add_transaction/test1 --account 036B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296 > tests/add_transaction/test1/balance_036B && diff -u tests/add_transaction/test1/balance_036B tests/add_transaction/test1/ref_balance_036B && touch $@ && echo PASS
 
 tests/add_transaction/test1/balance_DD75.ok: tests/add_transaction/test1/balance_036B.ok
-	@echo -n "TEST add_transaction/test1 get_balance DD75..." && ./get_balance --ledger-path tests/add_transaction/test1 --transaction DD7508D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397 > tests/add_transaction/test1/balance_DD75 && diff -u tests/add_transaction/test1/balance_DD75 tests/add_transaction/test1/ref_balance_DD75 && touch $@ && echo PASS
+	@echo -n "TEST add_transaction/test1 get_balance DD75..." && $(BUILD)/get_balance --ledger-path tests/add_transaction/test1 --transaction DD7508D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397 > tests/add_transaction/test1/balance_DD75 && diff -u tests/add_transaction/test1/balance_DD75 tests/add_transaction/test1/ref_balance_DD75 && touch $@ && echo PASS
 
 tests/add_transaction/test1/balance_EC62.ok: tests/add_transaction/test1/balance_DD75.ok
-	@echo -n "TEST add_transaction/test1 get_balance EC62... " && ./get_balance --ledger-path tests/add_transaction/test1 --transaction EC62BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3 > tests/add_transaction/test1/balance_EC62 && diff -u tests/add_transaction/test1/balance_EC62 tests/add_transaction/test1/ref_balance_EC62 && touch $@ && echo PASS
+	@echo -n "TEST add_transaction/test1 get_balance EC62... " && $(BUILD)/get_balance --ledger-path tests/add_transaction/test1 --transaction EC62BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3 > tests/add_transaction/test1/balance_EC62 && diff -u tests/add_transaction/test1/balance_EC62 tests/add_transaction/test1/ref_balance_EC62 && touch $@ && echo PASS
 
 tests/add_transaction/test1/balance_7B6F.ok: tests/add_transaction/test1/balance_EC62.ok
-	@echo -n "TEST add_transaction/test1 get_balance 7B6F... " && ./get_balance --ledger-path tests/add_transaction/test1 --transaction 7B6F001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0 > tests/add_transaction/test1/balance_7B6F && diff -u tests/add_transaction/test1/balance_7B6F tests/add_transaction/test1/ref_balance_7B6F && touch $@ && echo PASS
+	@echo -n "TEST add_transaction/test1 get_balance 7B6F... " && $(BUILD)/get_balance --ledger-path tests/add_transaction/test1 --transaction 7B6F001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0 > tests/add_transaction/test1/balance_7B6F && diff -u tests/add_transaction/test1/balance_7B6F tests/add_transaction/test1/ref_balance_7B6F && touch $@ && echo PASS

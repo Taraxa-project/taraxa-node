@@ -1,16 +1,11 @@
 /*
 Copyright 2018 Ilja Honkonen
 */
-
-
 #include "signatures.hpp"
-
 #include <boost/program_options.hpp>
-
 #include <cstdlib>
 #include <iostream>
 #include <string>
-
 
 int main(int argc, char* argv[]) {
 

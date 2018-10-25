@@ -1,41 +1,50 @@
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -DCRYPTOPP_DISABLE_ASM -I submodules -I submodules/rapidjson/include
+CPPFLAGS := -I submodules -I submodules/rapidjson/include -I .
+OS := $(shell uname)
+ifneq ($(OS), Darwin) #Mac
+  CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
+endif
 CXXFLAGS := -std=c++17 -O3 -W -Wall -Wextra -pedantic
 LDFLAGS := -L submodules/cryptopp
 LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
+BUILD := build
 
 
 PROGRAMS = \
-    bin2hex \
-    generate_private_key \
-    generate_private_key_from_seed \
-    print_key_info \
-    sign_message \
-    verify_message \
-    create_send \
-    create_receive \
-    add_transaction \
-    get_balance \
-    create_transient_vote \
-    add_vote \
-    serialize_payloads \
-    replace_transaction \
-    vrf_participate \
-    bls_sign_message \
-    bls_print_key_info \
-    bls_verify_signature \
-    bls_make_threshold_keys \
-    bls_merge_signatures \
-    bls_merge_public_keys \
-    sodium_generate_private_key_from_seed \
-    sodium_get_vrf_proof \
-    sodium_get_vrf_output \
-    sodium_verify_vrf_proof
+    $(BUILD)/bin2hex \
+    $(BUILD)/generate_private_key \
+    $(BUILD)/generate_private_key_from_seed \
+    $(BUILD)/print_key_info \
+    $(BUILD)/sign_message \
+    $(BUILD)/verify_message \
+    $(BUILD)/create_send \
+    $(BUILD)/create_receive \
+    $(BUILD)/add_transaction \
+    $(BUILD)/get_balance \
+    $(BUILD)/create_transient_vote \
+    $(BUILD)/add_vote \
+    $(BUILD)/serialize_payloads \
+    $(BUILD)/replace_transaction \
+    $(BUILD)/vrf_participate \
+    $(BUILD)/bls_sign_message \
+    $(BUILD)/bls_print_key_info \
+    $(BUILD)/bls_verify_signature \
+    $(BUILD)/bls_make_threshold_keys \
+    $(BUILD)/bls_merge_signatures \
+    $(BUILD)/bls_merge_public_keys \
+    $(BUILD)/sodium_generate_private_key_from_seed \
+    $(BUILD)/sodium_get_vrf_proof \
+    $(BUILD)/sodium_get_vrf_output \
+    $(BUILD)/sodium_verify_vrf_proof
 
-COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $< -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
-BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto
+COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
+BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto 
 
+ifeq ($(OS), Darwin) #Mac
+  BLS_COMPILE += -L /usr/local/Cellar/openssl@1.1/1.1.1/lib -I /usr/local/Cellar/openssl@1.1/1.1.1/include
+endif
+ 
 HEADERS = \
     accounts.hpp \
     balances.hpp \
@@ -43,9 +52,12 @@ HEADERS = \
     hashes.hpp \
     ledger_storage.hpp \
     signatures.hpp \
-    transactions.hpp
+    transactions.hpp \
+    create_blocks.hpp \
+    generate_private_key.hpp \
+    generate_private_key_from_seed.hpp
 
-all: $(DEPENDENCIES) $(PROGRAMS)
+all: create_dir $(DEPENDENCIES) $(PROGRAMS)
 
 DEPENDENCIES: \
     submodules/cryptopp/Readme.txt \
@@ -62,82 +74,85 @@ submodules/cryptopp/libcryptopp.a: submodules/cryptopp/Readme.txt
 submodules/rapidjson/readme.md:
 	@echo rapidjson submodule does not seem to exists, did you use --recursive in git clone? && exit 1
 
-bin2hex: bin2hex.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+create_dir: 	
+	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
+
+$(BUILD)/bin2hex: tests/bin2hex.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-generate_private_key: generate_private_key.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/generate_private_key: tests/generate_private_key.cpp generate_private_key.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-generate_private_key_from_seed: generate_private_key_from_seed.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/generate_private_key_from_seed: tests/generate_private_key_from_seed.cpp generate_private_key_from_seed.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-print_key_info: print_key_info.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/print_key_info: tests/print_key_info.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-sign_message: sign_message.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/sign_message: tests/sign_message.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-verify_message: verify_message.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/verify_message: tests/verify_message.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-create_send: create_send.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/create_send: tests/create_send.cpp create_send.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-create_receive: create_receive.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/create_receive: tests/create_receive.cpp create_receive.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-add_transaction: add_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/add_transaction: tests/add_transaction.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-get_balance: get_balance.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/get_balance: get_balance.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-create_transient_vote: create_transient_vote.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/create_transient_vote: tests/create_transient_vote.cpp create_transient_vote.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-add_vote: add_vote.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/add_vote: tests/add_vote.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-serialize_payloads: serialize_payloads.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/serialize_payloads: serialize_payloads.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-replace_transaction: replace_transaction.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/replace_transaction: replace_transaction.cpp $(DEPENDENCIES)
 	$(COMPILE)
 
-vrf_participate: vrf_participate.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/vrf_participate: vrf_participate.cpp $(DEPENDENCIES)
 	$(COMPILE) $(shell pkg-config --cflags --libs "libcrypto >= 1.1") -Wno-class-memaccess
 
-submodules/bls/lib/libbsl256.a: submodules/bls/include/bls/bls.h
+$(BUILD)/submodules/bls/lib/libbsl256.a: submodules/bls/include/bls/bls.h
 	$(MAKE) -C submodules/bls
 
-bls_sign_message: bls_sign_message.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/bls_sign_message: bls_sign_message.cpp $(DEPENDENCIES)
 	$(BLS_COMPILE)
 
-bls_print_key_info: bls_print_key_info.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/bls_print_key_info: bls_print_key_info.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
-bls_verify_signature: bls_verify_signature.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/bls_verify_signature: bls_verify_signature.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
-bls_make_threshold_keys: bls_make_threshold_keys.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/bls_make_threshold_keys: bls_make_threshold_keys.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
-bls_merge_signatures: bls_merge_signatures.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/bls_merge_signatures: bls_merge_signatures.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
-bls_merge_public_keys: bls_merge_public_keys.cpp  $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/bls_merge_public_keys: bls_merge_public_keys.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
-sodium_generate_private_key_from_seed: sodium_generate_private_key_from_seed.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/sodium_generate_private_key_from_seed: sodium_generate_private_key_from_seed.cpp 
 	$(COMPILE) `pkg-config libsodium --cflags --libs` || echo Do you have Algorand version of libsodium installed from https://github.com/algorand/libsodium?
 
-sodium_get_vrf_proof: sodium_get_vrf_proof.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/sodium_get_vrf_proof: sodium_get_vrf_proof.cpp $(DEPENDENCIES)
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-sodium_get_vrf_output: sodium_get_vrf_output.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/sodium_get_vrf_output: sodium_get_vrf_output.cpp $(DEPENDENCIES)
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(HEADERS) $(DEPENDENCIES) Makefile
+$(BUILD)/sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(DEPENDENCIES)
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
 TESTS =
@@ -158,6 +173,9 @@ include \
 t: test
 test: $(TESTS)
 
+ct:
+	rm -rf $(CLEAN_TESTS)
+
 c: clean
 clean:
-	@echo CLEAN && rm -rf $(PROGRAMS) $(CLEAN_TESTS)
+	@echo CLEAN && rm -rf $(BUILD) $(PROGRAMS) $(CLEAN_TESTS)

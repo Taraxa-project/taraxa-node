@@ -1,12 +1,8 @@
 /*
 Copyright 2018 Ilja Honkonen
 */
-
-
 #include "signatures.hpp"
-
 #include <boost/program_options.hpp>
-
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -23,7 +19,7 @@ int main(int argc, char* argv[]) {
 	options.add_options()
 		("help", "print this help message and exit")
 		("input",
-		 	boost::program_options::value<std::string>(&input_bin),
+			boost::program_options::value<std::string>(&input_bin),
 			"Binary string to encode");
 
 	boost::program_options::variables_map option_variables;

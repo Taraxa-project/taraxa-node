@@ -11,27 +11,27 @@ CLEAN_TESTS += \
 
 tests/replace_transaction/test2/accounts/03/6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296: tests/replace_transaction/test2/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397
 
-tests/replace_transaction/test2/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397: tests/replace_transaction/test2/test_include tests/replace_transaction/test2/01_genesis replace_transaction tests/replace_transaction/test2/test_include
-	@echo -n "TEST replace_transaction/test2 01_genesis... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/01_genesis > /dev/null && echo PASS
+tests/replace_transaction/test2/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397: tests/replace_transaction/test2/test_include tests/replace_transaction/test2/01_genesis $(BUILD)/replace_transaction tests/replace_transaction/test2/test_include
+	@echo -n "TEST replace_transaction/test2 01_genesis... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/01_genesis > /dev/null && echo PASS
 
 tests/replace_transaction/test2/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3: tests/replace_transaction/test2/02_send1 tests/replace_transaction/test2/transactions/DD/75/08D82133D00007265D545530FAFCE4DB7891B6364914C96504C9B3BDA397
-	@echo -n "TEST replace_transaction/test2 02_send1... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/02_send1 > /dev/null && echo PASS
+	@echo -n "TEST replace_transaction/test2 02_send1... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/02_send1 > /dev/null && echo PASS
 
 tests/replace_transaction/test2/transactions/7B/6F/001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0: tests/replace_transaction/test2/03_receive1 tests/replace_transaction/test2/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3
-	@echo -n "TEST replace_transaction/test2 03_receive1... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/03_receive1 > /dev/null && echo PASS
+	@echo -n "TEST replace_transaction/test2 03_receive1... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/03_receive1 > /dev/null && echo PASS
 
 tests/replace_transaction/test2/transactions/CA/06/26D7D848FFFF01CDA277312EE42EDE58E73AD881095C5ECE107162DB62C4: tests/replace_transaction/test2/transactions/7B/6F/001249E9705BA789B9D3602A101535B2E5FA10ADBA94B7AEC093A06477D0
-	@echo -n "TEST replace_transaction/test2 04_send2... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/04_send2 > /dev/null && echo PASS
+	@echo -n "TEST replace_transaction/test2 04_send2... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/04_send2 > /dev/null && echo PASS
 
 tests/replace_transaction/test2/transactions/3F/28/E641584B6C53316A3A421AC5CACD819446DD7F2A17978E9A4DF15BEA8F87: tests/replace_transaction/test2/transactions/CA/06/26D7D848FFFF01CDA277312EE42EDE58E73AD881095C5ECE107162DB62C4
-	@echo -n "TEST replace_transaction/test2 05_receive2... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/05_receive2 > /dev/null && echo PASS
+	@echo -n "TEST replace_transaction/test2 05_receive2... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/05_receive2 > /dev/null && echo PASS
 
 
-tests/replace_transaction/test2/votes/A8/5A/71212C1393AE23B662774F8227BB1CAB4F5684C602CBFF24B0755153CED4: tests/replace_transaction/test2/transactions/3F/28/E641584B6C53316A3A421AC5CACD819446DD7F2A17978E9A4DF15BEA8F87 add_vote
-	@echo -n "TEST replace_transaction/test2 06_vote... " && ./add_vote --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/06_vote > /dev/null && echo PASS
+tests/replace_transaction/test2/votes/A8/5A/71212C1393AE23B662774F8227BB1CAB4F5684C602CBFF24B0755153CED4: tests/replace_transaction/test2/transactions/3F/28/E641584B6C53316A3A421AC5CACD819446DD7F2A17978E9A4DF15BEA8F87 $(BUILD)/add_vote
+	@echo -n "TEST replace_transaction/test2 06_vote... " && $(BUILD)/add_vote --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/06_vote > /dev/null && echo PASS
 
 tests/replace_transaction/test2/transactions/E7/14/C510396FFA893A1C0BF6FA0876840CCA63E90BCCB8CB9D16A35866A0C00A: tests/replace_transaction/test2/votes/A8/5A/71212C1393AE23B662774F8227BB1CAB4F5684C602CBFF24B0755153CED4
-	@echo -n "TEST replace_transaction/test2 07_send3... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/07_send3 > /dev/null && echo PASS
+	@echo -n "TEST replace_transaction/test2 07_send3... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/07_send3 > /dev/null && echo PASS
 
 tests/replace_transaction/test2/send1_removed.ok: tests/replace_transaction/test2/transactions/E7/14/C510396FFA893A1C0BF6FA0876840CCA63E90BCCB8CB9D16A35866A0C00A
 	@echo -n "TEST replace_transaction/test2 remove_send1..." && file -E tests/replace_transaction/test2/transactions/EC/62/BB11F98E598C0D1E7F0657C7AF34CA9FD5E71A9ABDB46C7957D1D56D0CC3 > /dev/null && false || echo PASS
@@ -46,4 +46,4 @@ tests/replace_transaction/test2/receive2_removed.ok: tests/replace_transaction/t
 	@echo -n "TEST replace_transaction/test2 remove_receive2..." && file -E tests/replace_transaction/test2/transactions/3F/28/E641584B6C53316A3A421AC5CACD819446DD7F2A17978E9A4DF15BEA8F87 > /dev/null && false || echo PASS
 
 tests/replace_transaction/test2/transactions/19/D6/813F85B2797B72EEC1983ABE087167DD2BE14BCF6B7099A5AC989D60B78A: tests/replace_transaction/test2/receive2_removed.ok
-	@echo -n "TEST replace_transaction/test2 08_receive3... " && ./replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/08_receive3 > /dev/null && echo PASS
+	@echo -n "TEST replace_transaction/test2 08_receive3... " && $(BUILD)/replace_transaction --ledger-path tests/replace_transaction/test2 < tests/replace_transaction/test2/08_receive3 > /dev/null && echo PASS

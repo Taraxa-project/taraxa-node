@@ -8,11 +8,11 @@ CLEAN_TESTS += \
   tests/generate_private_key_from_seed/0_last \
   tests/generate_private_key_from_seed/0_last.ok
 
-tests/generate_private_key_from_seed/0_all.ok: generate_private_key_from_seed tests/generate_private_key_from_seed/test_include
-	@echo -n "TEST generate_private_key_from_seed/0_all... " && ./generate_private_key_from_seed --seed 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 --last 4 > tests/generate_private_key_from_seed/0_all && diff -u tests/generate_private_key_from_seed/0_all tests/generate_private_key_from_seed/ref0_all && touch $@ && echo PASS
+tests/generate_private_key_from_seed/0_all.ok: $(BUILD)/generate_private_key_from_seed tests/generate_private_key_from_seed/test_include
+	@echo -n "TEST generate_private_key_from_seed/0_all... " && $(BUILD)/generate_private_key_from_seed --seed 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 --last 4 > tests/generate_private_key_from_seed/0_all && diff -u tests/generate_private_key_from_seed/0_all tests/generate_private_key_from_seed/ref0_all && touch $@ && echo PASS
 
 tests/generate_private_key_from_seed/0_first.ok: tests/generate_private_key_from_seed/0_all.ok
-	@echo -n "TEST generate_private_key_from_seed/0_first... " && ./generate_private_key_from_seed --seed 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 --first 2 --last 4 > tests/generate_private_key_from_seed/0_first && diff -u tests/generate_private_key_from_seed/0_first tests/generate_private_key_from_seed/ref0_first && touch $@ && echo PASS
+	@echo -n "TEST generate_private_key_from_seed/0_first... " && $(BUILD)/generate_private_key_from_seed --seed 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 --first 2 --last 4 > tests/generate_private_key_from_seed/0_first && diff -u tests/generate_private_key_from_seed/0_first tests/generate_private_key_from_seed/ref0_first && touch $@ && echo PASS
 
 tests/generate_private_key_from_seed/0_last.ok: tests/generate_private_key_from_seed/0_first.ok
-	@echo -n "TEST generate_private_key_from_seed/0_last... " && ./generate_private_key_from_seed --seed 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 --last 2 > tests/generate_private_key_from_seed/0_last && diff -u tests/generate_private_key_from_seed/0_last tests/generate_private_key_from_seed/ref0_last && touch $@ && echo PASS
+	@echo -n "TEST generate_private_key_from_seed/0_last... " && $(BUILD)/generate_private_key_from_seed --seed 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 --last 2 > tests/generate_private_key_from_seed/0_last && diff -u tests/generate_private_key_from_seed/0_last tests/generate_private_key_from_seed/ref0_last && touch $@ && echo PASS
