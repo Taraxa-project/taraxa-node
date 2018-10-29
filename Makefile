@@ -33,6 +33,7 @@ PROGRAMS = \
     $(BUILD)/bls_make_threshold_keys \
     $(BUILD)/bls_merge_signatures \
     $(BUILD)/bls_merge_public_keys \
+    $(BUILD)/bls_merge_secret_keys \
     $(BUILD)/sodium_generate_private_key_from_seed \
     $(BUILD)/sodium_get_vrf_proof \
     $(BUILD)/sodium_get_vrf_output \
@@ -141,6 +142,9 @@ $(BUILD)/bls_merge_signatures: bls_merge_signatures.cpp $(DEPENDENCIES)
 	$(BLS_COMPILE)
 
 $(BUILD)/bls_merge_public_keys: bls_merge_public_keys.cpp $(DEPENDENCIES) 
+	$(BLS_COMPILE)
+
+$(BUILD)/bls_merge_secret_keys: bls_merge_secret_keys.cpp $(DEPENDENCIES)
 	$(BLS_COMPILE)
 
 $(BUILD)/sodium_generate_private_key_from_seed: sodium_generate_private_key_from_seed.cpp 
