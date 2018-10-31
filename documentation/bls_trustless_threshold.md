@@ -66,83 +66,106 @@ export A3P2=2D5377900EE130D9FBFE0CF7864FA83923E2B1B3D8C89066713997E0EA0D1E14582C
 export A3P3=D8557A5DE68D1EF5EF60840F5AB981F9A2F2E005B6CD381964C8AFD31462F6151F3DAD5AEC32AF7C34CD2DA9F2B503D9A93FAB00C1B5A7B6D1F24052DF582F8E
 ```
 
-Accounts 1, 2 and 3 publish above public keys shares to everyone participating in this setup.
-
-Account 1 sends its secret key share 2 (A1S2) to account 2 in secret and its secret key share 3 (A1S3) to account 3 in secret.
-Similarly account 2 sends its secret key share 1 (A2S1) to account 1 in secret and its secret key share 3 (A2S3) to account 3 in secret.
-Finally account 3 sends its secret key share 1 (A3S1) to account 1 in secret and its secret key share 2 (A3S2) to account 2 in secret.
-
-At this point A1S1 is known only by account 1, A2S2 is known only by account 2 and A3S3 is known only by account 3.
-
-Account 1 can aggregate its secret key share 1 with secret key shares 2 and 3 received from accounts 2 and 3, giving account 1's secret share for trustless threshold signature:
+Accounts 1, 2 and 3 publish above public keys shares to everyone participating in this setup so everyone can derive every account's public key for trustless threshold:
 
 ```bash
-./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A1S1 --seckey $A2S1 --seckey $A3S1
-229536BF67315B345E474489F64F3399E3C3ADC24DF349E944B00726B9BD3E9E
+./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1P1 --pubkey $A2P2 --pubkey $A3P3
+27428FB8770B04A3DE614F984C36D15FA1B18279CE81E11F0F558011CADCC023DB747EDC61F480443C5C6E71F02209A534852FA51DBD44CD07471E3BDC1B2C0D
+```
+
+```bash
+./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A3P1 --pubkey $A1P2 --pubkey $A2P3
+D5AC2047E406D1B68FFE12C0F70DE252DC6E3EDE01ED50079CDBFD7010BC2A1AA6009E9FBB32C4711F22B48C06F6EB8AC2CE502243D7F07935AB15B1896A0F9B
+```
+
+```bash
+./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A2P1 --pubkey $A3P2 --pubkey $A1P3
+A5308465D01F6C1487A0FB6BD2B0E85BD6D90E748249253650CA06D62FDFBF1DD3E3858D06782C630EE74A4409040C3C14F3210F3B6AB6870493976E0839850B
+```
+
+Shorthand for public keys of each account for trustless threshold signature:
+
+```bash
+export A1TP=27428FB8770B04A3DE614F984C36D15FA1B18279CE81E11F0F558011CADCC023DB747EDC61F480443C5C6E71F02209A534852FA51DBD44CD07471E3BDC1B2C0D
+export A2TP=D5AC2047E406D1B68FFE12C0F70DE252DC6E3EDE01ED50079CDBFD7010BC2A1AA6009E9FBB32C4711F22B48C06F6EB8AC2CE502243D7F07935AB15B1896A0F9B
+export A3TP=A5308465D01F6C1487A0FB6BD2B0E85BD6D90E748249253650CA06D62FDFBF1DD3E3858D06782C630EE74A4409040C3C14F3210F3B6AB6870493976E0839850B
+```
+
+Each account publishes their public key above from which everyone can derive...
+
+```bash
+./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1TP --pubkey $A2TP --pubkey $A3TP
+CBCBE5EE6B32EE82498FA82B59E86EC993D5B1DD95B0C99DE79A918C52CA0312992281927437265466E89C9D87E498A4168AC147182C90CE296C4A12A5C75121
+```
+
+...final public key for trustless threshold signature:
+
+```bash
+export PUBKEY=CBCBE5EE6B32EE82498FA82B59E86EC993D5B1DD95B0C99DE79A918C52CA0312992281927437265466E89C9D87E498A4168AC147182C90CE296C4A12A5C75121
+```
+
+(FIXME: PUBKEY should be identical when combined from any 2 of 3 public keys)
+
+Account 1 sends its secret key share 2 (A1S2) to account 2 in secret and its secret key share 3 (A1S3) to account 3 in secret.
+Account 2 sends its secret key share 2 (A2S2) to account 1 in secret and its secret key share 1 (A2S1) to account 3 in secret.
+Account 3 sends its secret key share 3 (A3S3) to account 1 in secret and its secret key share 1 (A3S1) to account 2 in secret.
+Accounts 1, 2 and 3 each have their own secret key share from one id and two other secret key shares from two other ids.
+
+At this point A1S1 is known only by account 1, A2S3 is known only by account 2 and A3S2 is known only by account 3.
+
+Account 1 creates it's secret key for trustless threshold signature from shares received from accounts 2 and 3:
+
+```bash
+./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A1S1 --seckey $A2S2 --seckey $A3S3
+174A0FF51DE3EA3EB5DB519A4B015A18092E98972EC8CC1E245A2560ED5D202F
 ```
 
 Accounts 2 and 3 do the same with their shares:
 
 ```bash
-./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A1S2 --seckey $A2S2 --seckey $A3S2
-200708FC8E62B667025A3B93EC9E672BC7E7DB849BE693C1E8600E4D737A7D2F
+./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A3S1 --seckey $A1S2 --seckey $A2S3
+20311C6664C08F6372577C1AE598C3FBA6B23A29950049D366B2B24E1C1AEBE8
 ```
 
 ```bash
-./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A1S3 --seckey $A2S3 --seckey $A3S3
-1D78DB39B5941199A66D329DE2ED9ABDAC0C0946E9D9DD9A8C1015742D37BBC0
+./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A2S1 --seckey $A3S2 --seckey $A1S3
+12CB9CA8FD5B86614C35CD4ACF65E1FC4F5E2D3F3C36EA2FB6F32850F687F409
 ```
 
 Shorthand for threshold secret shares:
 
 ```bash
-export A1TS=229536BF67315B345E474489F64F3399E3C3ADC24DF349E944B00726B9BD3E9E
-export A2TS=200708FC8E62B667025A3B93EC9E672BC7E7DB849BE693C1E8600E4D737A7D2F
-export A3TS=1D78DB39B5941199A66D329DE2ED9ABDAC0C0946E9D9DD9A8C1015742D37BBC0
+export A1TS=174A0FF51DE3EA3EB5DB519A4B015A18092E98972EC8CC1E245A2560ED5D202F
+export A2TS=20311C6664C08F6372577C1AE598C3FBA6B23A29950049D366B2B24E1C1AEBE8
+export A3TS=12CB9CA8FD5B86614C35CD4ACF65E1FC4F5E2D3F3C36EA2FB6F32850F687F409
 ```
 
-Aggregate accounts' 1, 2 and 3 public key shares for trustless threshold signature:
-
-```bash
-./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1P1 --pubkey $A2P1 --pubkey $A3P1
-9FAF1B7161A5C6C2F0083DCB2E350E1D49F33F34678CE66B6A30F21F3FF20E2389720616185F3D2EE2CAAFD7C778755E211EDBABA76B6A4C9D8184DFCC6C428A
-```
-
-```bash
-./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1P2 --pubkey $A2P2 --pubkey $A3P2
-8082B070F99F7218EAC560B9A614B6694D71A5D8F4EC81B0E9A3771478EF771E1C0408034A258A57C9BE966149BA383E2FEF30615A88FE650B98958CD1B72410
-```
-
-```bash
-./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1P3 --pubkey $A2P3 --pubkey $A3P3
-3BFD605FA285007FD216814974AC68A2858D9E8952414BE292D02F6AD3D8C0090FA2E95DFC64DBBD194701697F09A44B722C1234BED2AC1BA96D51747678028B
-```
-
-```bash
-export A1TP=9FAF1B7161A5C6C2F0083DCB2E350E1D49F33F34678CE66B6A30F21F3FF20E2389720616185F3D2EE2CAAFD7C778755E211EDBABA76B6A4C9D8184DFCC6C428A
-export A2TP=8082B070F99F7218EAC560B9A614B6694D71A5D8F4EC81B0E9A3771478EF771E1C0408034A258A57C9BE966149BA383E2FEF30615A88FE650B98958CD1B72410
-export A3TP=3BFD605FA285007FD216814974AC68A2858D9E8952414BE292D02F6AD3D8C0090FA2E95DFC64DBBD194701697F09A44B722C1234BED2AC1BA96D51747678028B
-```
-
-Public key of threshold signature:
-
-```bash
-...
-```
+(Check: combining any 2 of 3 secret keys should give identical secret key)
 
 Accounts 1 and 2 create trustless threshold signature:
 
 ```bash
 ./bls_sign_message --message deadbeef --key $A1TS
-E7F70E06309FB91849976A71F578A3EB0901491237E4975D8D0A8464265D928E
+0E0A549095D3B2395238A622CC82EB6976BD171BC89E071B96DFAF5CBEC85B88
 ```
 
 ```bash
 ./bls_sign_message --message deadbeef --key $A2TS
-D2BEEBB85318182050DEE70831B9A640C5A878A2305A6AE980811A97E82CFF92
+6B6BED8D1F58085252B7A6D775482D770D1871168006752FA2F5E7CD2AF1CF15
 ```
 
-Verification:
+Which can be merged into one:
+
+```bash
+./bls_merge_signatures \
+  --id $ID1 \
+  --id $ID2 \
+  --signature 0E0A549095D3B2395238A622CC82EB6976BD171BC89E071B96DFAF5CBEC85B88 \
+  --signature 6B6BED8D1F58085252B7A6D775482D770D1871168006752FA2F5E7CD2AF1CF15
+1789EC43BECF4DB0A449B0C558F623ABE7952C854AE9FEEFCD891F1BD0B50008
+```
+
+And which everyone else can verify using trustless threshold public key:
 
 ```bash
 ...
