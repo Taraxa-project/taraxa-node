@@ -1,6 +1,6 @@
 Example for creating trustless threshold signature with bls programs based on https://github.com/dashpay/dips/blob/master/dip-0006/bls_m-of-n_threshold_scheme_and_dkg.md
 
-Create 2 out of 3 threshold signature for 3 accounts.
+Create trustless 2 out of 3 threshold signature for 3 accounts.
 
 First each account creates their own 2/3 threshold signature from random secret key:
 
@@ -33,7 +33,7 @@ export ID2=0000000000000000000000000000000000000000000000000000000000000002
 export ID3=0000000000000000000000000000000000000000000000000000000000000003
 ```
 
-Data of account 1:
+Data of account 1 (secret and public keys):
 
 ```bash
 export A1S1=072D33DC96E174CD40EEE68F7CB4E86DD5F8622E66284CB13BD4B504535DF52A
@@ -81,7 +81,7 @@ Account 1 can aggregate its secret key share 1 with secret key shares 2 and 3 re
 229536BF67315B345E474489F64F3399E3C3ADC24DF349E944B00726B9BD3E9E
 ```
 
-Accounts 2 and 3 do the same with their shares of which shares 2 and 3 respectively are known only to accounts 2 and 3:
+Accounts 2 and 3 do the same with their shares:
 
 ```bash
 ./bls_merge_secret_keys --id $ID1 --id $ID2 --id $ID3 --seckey $A1S2 --seckey $A2S2 --seckey $A3S2
@@ -110,11 +110,13 @@ Aggregate accounts' 1, 2 and 3 public key shares for trustless threshold signatu
 
 ```bash
 ./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1P2 --pubkey $A2P2 --pubkey $A3P2
-8082B070F99F7218EAC560B9A614B6694D71A5D8F4EC81B0E9A3771478EF771E1C0408034A258A57C9BE966149BA383E2FEF30615A88FE650B98958CD1B72410```
+8082B070F99F7218EAC560B9A614B6694D71A5D8F4EC81B0E9A3771478EF771E1C0408034A258A57C9BE966149BA383E2FEF30615A88FE650B98958CD1B72410
+```
 
 ```bash
 ./bls_merge_public_keys --id $ID1 --id $ID2 --id $ID3 --pubkey $A1P3 --pubkey $A2P3 --pubkey $A3P3
-3BFD605FA285007FD216814974AC68A2858D9E8952414BE292D02F6AD3D8C0090FA2E95DFC64DBBD194701697F09A44B722C1234BED2AC1BA96D51747678028B```
+3BFD605FA285007FD216814974AC68A2858D9E8952414BE292D02F6AD3D8C0090FA2E95DFC64DBBD194701697F09A44B722C1234BED2AC1BA96D51747678028B
+```
 
 ```bash
 export A1TP=9FAF1B7161A5C6C2F0083DCB2E350E1D49F33F34678CE66B6A30F21F3FF20E2389720616185F3D2EE2CAAFD7C778755E211EDBABA76B6A4C9D8184DFCC6C428A
