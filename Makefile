@@ -37,7 +37,8 @@ PROGRAMS = \
     $(BUILD)/sodium_generate_private_key_from_seed \
     $(BUILD)/sodium_get_vrf_proof \
     $(BUILD)/sodium_get_vrf_output \
-    $(BUILD)/sodium_verify_vrf_proof
+    $(BUILD)/sodium_verify_vrf_proof \
+    $(BUILD)/full_node
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto 
@@ -78,55 +79,55 @@ submodules/rapidjson/readme.md:
 create_dir: 	
 	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
 
-$(BUILD)/bin2hex: tests/bin2hex.cpp $(DEPENDENCIES)
+$(BUILD)/bin2hex: tests/bin2hex.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/generate_private_key: tests/generate_private_key.cpp generate_private_key.cpp $(DEPENDENCIES)
+$(BUILD)/generate_private_key: tests/generate_private_key.cpp generate_private_key.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/generate_private_key_from_seed: tests/generate_private_key_from_seed.cpp generate_private_key_from_seed.cpp $(DEPENDENCIES)
+$(BUILD)/generate_private_key_from_seed: tests/generate_private_key_from_seed.cpp generate_private_key_from_seed.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/print_key_info: tests/print_key_info.cpp $(DEPENDENCIES)
+$(BUILD)/print_key_info: tests/print_key_info.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/sign_message: tests/sign_message.cpp $(DEPENDENCIES)
+$(BUILD)/sign_message: tests/sign_message.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/verify_message: tests/verify_message.cpp $(DEPENDENCIES)
+$(BUILD)/verify_message: tests/verify_message.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/create_send: tests/create_send.cpp create_send.cpp $(DEPENDENCIES)
+$(BUILD)/create_send: tests/create_send.cpp create_send.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/create_receive: tests/create_receive.cpp create_receive.cpp $(DEPENDENCIES)
+$(BUILD)/create_receive: tests/create_receive.cpp create_receive.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/add_transaction: tests/add_transaction.cpp $(DEPENDENCIES)
+$(BUILD)/add_transaction: tests/add_transaction.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/get_balance: get_balance.cpp $(DEPENDENCIES)
+$(BUILD)/get_balance: get_balance.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/create_transient_vote: tests/create_transient_vote.cpp create_transient_vote.cpp $(DEPENDENCIES)
+$(BUILD)/create_transient_vote: tests/create_transient_vote.cpp create_transient_vote.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/add_vote: tests/add_vote.cpp $(DEPENDENCIES)
+$(BUILD)/add_vote: tests/add_vote.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/serialize_payloads: serialize_payloads.cpp $(DEPENDENCIES)
+$(BUILD)/serialize_payloads: serialize_payloads.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/replace_transaction: replace_transaction.cpp $(DEPENDENCIES)
+$(BUILD)/replace_transaction: replace_transaction.cpp $(DEPENDENCIES) 
 	$(COMPILE)
 
-$(BUILD)/vrf_participate: vrf_participate.cpp $(DEPENDENCIES)
+$(BUILD)/vrf_participate: vrf_participate.cpp $(DEPENDENCIES) 
 	$(COMPILE) $(shell pkg-config --cflags --libs "libcrypto >= 1.1") -Wno-class-memaccess
 
 $(BUILD)/submodules/bls/lib/libbsl256.a: submodules/bls/include/bls/bls.h
 	$(MAKE) -C submodules/bls
 
-$(BUILD)/bls_sign_message: bls_sign_message.cpp $(DEPENDENCIES)
+$(BUILD)/bls_sign_message: bls_sign_message.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
 $(BUILD)/bls_print_key_info: bls_print_key_info.cpp $(DEPENDENCIES) 
@@ -141,7 +142,7 @@ $(BUILD)/bls_make_threshold_keys: bls_make_threshold_keys.cpp $(DEPENDENCIES)
 $(BUILD)/bls_merge_signatures: bls_merge_signatures.cpp $(DEPENDENCIES) 
 	$(BLS_COMPILE)
 
-$(BUILD)/bls_merge_public_keys: bls_merge_public_keys.cpp $(DEPENDENCIES) 
+$(BUILD)/bls_merge_public_keys: bls_merge_public_keys.cpp $(DEPENDENCIES)  
 	$(BLS_COMPILE)
 
 $(BUILD)/bls_merge_secret_keys: bls_merge_secret_keys.cpp $(DEPENDENCIES)
@@ -150,14 +151,17 @@ $(BUILD)/bls_merge_secret_keys: bls_merge_secret_keys.cpp $(DEPENDENCIES)
 $(BUILD)/sodium_generate_private_key_from_seed: sodium_generate_private_key_from_seed.cpp 
 	$(COMPILE) `pkg-config libsodium --cflags --libs` || echo Do you have Algorand version of libsodium installed from https://github.com/algorand/libsodium?
 
-$(BUILD)/sodium_get_vrf_proof: sodium_get_vrf_proof.cpp $(DEPENDENCIES)
+$(BUILD)/sodium_get_vrf_proof: sodium_get_vrf_proof.cpp $(DEPENDENCIES) 
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-$(BUILD)/sodium_get_vrf_output: sodium_get_vrf_output.cpp $(DEPENDENCIES)
+$(BUILD)/sodium_get_vrf_output: sodium_get_vrf_output.cpp $(DEPENDENCIES) 
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-$(BUILD)/sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(DEPENDENCIES)
+$(BUILD)/sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(DEPENDENCIES) 
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
+
+$(BUILD)/full_node: wallet.cpp full_node.cpp rocks_db.cpp tcp_client.cpp tcp_server.cpp create_send.cpp $(DEPENDENCIES)
+	$(COMPILE) -lrocksdb -lboost_thread-mt
 
 TESTS =
 CLEAN_TESTS =

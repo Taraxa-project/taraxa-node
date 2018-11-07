@@ -68,8 +68,6 @@ std::string create_send(
 		signature_hex = taraxa::bin2hex(signature_bin),
 		// hash added only to make users' life easier
 		hash_hex = taraxa::bin2hex(taraxa::get_hash_bin<CryptoPP::BLAKE2s>(hash_payload_bin));
-		std::cout<<"signature_payload_bin "<<taraxa::bin2hex(signature_payload_bin)<<std::endl;
-		std::cout<<"signature_hex "<<signature_hex<<std::endl;
 	/*
 	Convert send to JSON and print to stdout
 	*/
