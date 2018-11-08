@@ -1,7 +1,8 @@
 Generate vrf output for several accounts using instructions from `sodium_vrf.md`:
 
 ```bash
-$ ../build/sodium_get_vrf_output --proof $(../build/sodium_get_vrf_proof --message deadbeef --key $(../build/sodium_generate_private_key_from_seed --seed 0000000000000000000000000000000000000000000000000000000000000001)) 240962C5C1ECBB6144C7C29058DFD4E236E5E9904DC9CD4F8F414A342515FE5A9106E43125853434869D7FD78AD6371CBE42A8AAA7B82E40D5563CF6CFC04108
+$ ../build/sodium_get_vrf_output --proof $(../build/sodium_get_vrf_proof --message deadbeef --key $(../build/sodium_generate_private_key_from_seed --seed 0000000000000000000000000000000000000000000000000000000000000001))
+240962C5C1ECBB6144C7C29058DFD4E236E5E9904DC9CD4F8F414A342515FE5A9106E43125853434869D7FD78AD6371CBE42A8AAA7B82E40D5563CF6CFC04108
 ```
 
 ```bash
