@@ -1,4 +1,4 @@
-Generate vrf output for several accounts using instructions from `sodium_vrf.md`:
+Generate vrf output for several accounts using instructions from [sodium_vrf.md](https://github.com/Taraxa-project/taraxa-tools/blob/master/documentation/sodium_vrf.md):
 
 ```bash
 $ ../build/sodium_get_vrf_output --proof $(../build/sodium_get_vrf_proof --message deadbeef --key $(../build/sodium_generate_private_key_from_seed --seed 0000000000000000000000000000000000000000000000000000000000000001))
