@@ -68,13 +68,6 @@ def binary_ba(lines):
 		if not consensus:
 			consensus = True
 		else:
-			# unused as this voting already included in lines
-			'''
-			for substep in range(step + 1, step + 4):
-				...
-			if step == 1:
-				...
-			'''
 			return consensus
 		step += 1
 
@@ -82,10 +75,6 @@ def binary_ba(lines):
 		if not consensus:
 			pass
 		else:
-			'''
-			for substep in range(step + 1, step + 4):
-				...
-			'''
 			return consensus
 		step += 1
 
