@@ -60,7 +60,6 @@ Similar to algorand algorithm 8, returns True if
 network agreed on non-empty block, False otherwise.
 '''
 def binary_ba(lines):
-	print('processing', len(lines), 'lines')
 	step = 0
 	while step <= args.max_steps:
 		step += 1
@@ -96,4 +95,4 @@ def binary_ba(lines):
 			consensus = True
 		step += 1
 
-print('Consensus:', consensus)
+print('Consensus:', binary_ba(lines))
