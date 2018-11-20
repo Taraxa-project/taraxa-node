@@ -81,4 +81,10 @@ def binary_ba(lines):
 
 	# 2nd finishing step
 
-print('Consensus:', binary_ba(lines))
+block_nr = 1
+while len(lines) > 0:
+	block = binary_ba(lines)
+	if block == False:
+		block = 'Empty'
+	print('Block', block_nr, ':', block)
+	block_nr += 1
