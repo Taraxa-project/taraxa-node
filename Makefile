@@ -160,7 +160,7 @@ $(BUILD)/sodium_get_vrf_output: sodium_get_vrf_output.cpp $(DEPENDENCIES)
 $(BUILD)/sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(DEPENDENCIES) 
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-$(BUILD)/full_node: wallet.cpp full_node.cpp rocks_db.cpp tcp_client.cpp tcp_server.cpp create_send.cpp $(DEPENDENCIES)
+$(BUILD)/full_node: create_send.cpp rocks_db.cpp tcp_client.cpp tcp_server.cpp wallet.cpp full_node.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
 TESTS =

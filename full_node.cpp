@@ -25,7 +25,7 @@ void FullNode::createAccount(unsigned idx, unsigned long init_balance){
 	UserAccount account(idx, init_balance);
 	db_accounts_->put(std::to_string(idx), account.getJson());
 	if (verbose_){
-		cout<<"An account is created "<<idx<<endl;
+		cout<<"An account is created, seed= "<<idx<<endl;
 		UserAccount acc(db_accounts_->get(std::to_string(idx)));
 		cout<<acc;
 	}
