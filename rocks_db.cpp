@@ -30,28 +30,3 @@ bool RocksDb::erase(const std::string &key){
 	assert(s.ok());
 	return true;
 }
-
-// int main(){
-// 	RocksDb db("/tmp/myRocksDB");
-// 	db.put("k1", "V1@");
-// 	db.put("k2", "V2@");
-// 	std::string key, value;
-// 	while (true){
-// 		std::cout<<"Enter key and value"<<std::endl;
-// 		std::cin>>key>>value;
-// 		if (key=="exit") break;
-// 		if (value=="exit") {
-// 			std::string ret=db.get(key);
-// 			std::cout<<"Get value = "<<ret<<std::endl;
-// 		} 
-// 		else if (value=="ddd"){
-// 			db.erase(key);
-// 			std::cout<<"Delete key = "<<key<<std::endl;
-// 		}
-// 		else {
-// 			db.put(key, value);
-// 			std::cout<<"Insert ... key= "<<key<<" value= "<<value<<std::endl;
-// 		}
-// 	}
-// 	return 1;
-// }

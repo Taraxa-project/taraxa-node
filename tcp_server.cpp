@@ -10,6 +10,7 @@
 #include <string>
 #include <memory>
 #include <mutex>
+#include <functional>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
@@ -94,10 +95,3 @@ void TcpServer::listen(const string &hostname, unsigned port, bool echo){
 		std::cout<<"i = "<<i++<<std::endl;
 	}
 }
-
-// int main(){
-// 	TcpServer server;
-// 	server.setVerbose(true);
-// 	server.setDb("/tmp/myRocksDB");
-// 	server.listen("192.168.12.204", 3000, true);
-// }

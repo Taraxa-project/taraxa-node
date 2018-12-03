@@ -17,6 +17,10 @@
 #include <memory>
 #include <utility>
 
+// Two DB
+// 1. block db: hash of block -> state block
+// 2. account db: pk -> account state
+
 class RocksDb{
 public:
 

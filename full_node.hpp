@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-11-02 17:44:34
+ * @Last Modified time: 2018-11-28 19:25:48
  */
  
 #ifndef FULL_NODE_HPP
@@ -20,8 +20,8 @@
 #include "tcp_server.hpp"
 #include "tcp_client.hpp"
 
-using namespace std;
-class FullNode{
+namespace taraxa{
+class FullNode : public std::enable_shared_from_this<FullNode> {
 public:
 	FullNode(string server_addr, unsigned short server_port, string db_accounts_path, string db_blocks_path):
 		server_addr_(server_addr),
@@ -37,24 +37,28 @@ public:
 		tcp_server_.setVerbose(verbose);
 		tcp_client_.setVerbose(verbose);
 	}
-	void createAccount(unsigned idx, unsigned long init_balance);
+	// void createAccount(unsigned idx, unsigned long init_balance);
 	void addRemotes(string ip, unsigned port){
 		remotes_.push_back({ip, port});
 	}
 	void listen(){ 
 		boost::thread(boost::bind(&TcpServer::listen, &tcp_server_, server_addr_, server_port_, false /*echo*/));
 	}
-	void sendBlock(unsigned from, unsigned to, unsigned long new_balance);
+	std::shared_ptr<FullNode> getShared() {return shared_from_this();}
+	// void sendBlock(unsigned from, unsigned to, unsigned long new_balance);
+	boost::asio::io_context & getIoContext() {return io_context_;}
 private:
-	string server_addr_ = "192.168.12.204";
+	std::string server_addr_ = "192.168.12.204";
 	unsigned short server_port_ = 3000;
-	string db_accounts_path_ = "tmp/myAccountsDB";
-	string db_blocks_path_ = "tmp/myblocksDB";
+	std::string db_accounts_path_ = "/tmp/myAccountsDB";
+	std::string db_blocks_path_ = "/tmp/myblocksDB";
 	std::shared_ptr<RocksDb> db_accounts_;
 	std::shared_ptr<RocksDb> db_blocks_;
 	TcpServer tcp_server_;
 	TcpClient tcp_client_;
-	vector<pair<string, unsigned>> remotes_; // neighbors for broadcasting
+	std::vector<std::pair<std::string, unsigned>> remotes_; // neighbors for broadcasting
 	bool verbose_=false;
+	boost::asio::io_context io_context_;
 };
+}
 #endif

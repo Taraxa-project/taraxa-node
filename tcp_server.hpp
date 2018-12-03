@@ -44,4 +44,8 @@ private:
 	bool listening_ = false;
 	bool verbose_ = false;
 };
+
+class ServerActionHandler{
+	
+};
 #endif

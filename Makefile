@@ -5,7 +5,7 @@ OS := $(shell uname)
 ifneq ($(OS), Darwin) #Mac
   CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
 endif
-CXXFLAGS := -std=c++17 -O3 -W -Wall -Wextra -pedantic
+CXXFLAGS := -std=c++17 -g -W -Wall -Wextra -pedantic
 LDFLAGS := -L submodules/cryptopp
 LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
 BUILD := build
@@ -38,7 +38,7 @@ PROGRAMS = \
     $(BUILD)/sodium_get_vrf_proof \
     $(BUILD)/sodium_get_vrf_output \
     $(BUILD)/sodium_verify_vrf_proof \
-    $(BUILD)/full_node
+    $(BUILD)/main
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 BLS_COMPILE = $(COMPILE) -DMCLBN_FP_UNIT_SIZE=4 -I submodules/bls/include -I submodules/mcl/include -L submodules/bls/lib -lbls256 -L submodules/mcl/lib -lmcl -lgmp -lcrypto 
@@ -57,7 +57,12 @@ HEADERS = \
     transactions.hpp \
     create_blocks.hpp \
     generate_private_key.hpp \
-    generate_private_key_from_seed.hpp
+    generate_private_key_from_seed.hpp \
+    full_node.hpp \
+    state_block.hpp \
+    user_account.hpp \
+    rpc.hpp \
+    util.hpp
 
 all: create_dir $(DEPENDENCIES) $(PROGRAMS)
 
@@ -160,7 +165,7 @@ $(BUILD)/sodium_get_vrf_output: sodium_get_vrf_output.cpp $(DEPENDENCIES)
 $(BUILD)/sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(DEPENDENCIES) 
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-$(BUILD)/full_node: create_send.cpp rocks_db.cpp tcp_client.cpp tcp_server.cpp wallet.cpp full_node.cpp $(DEPENDENCIES)
+$(BUILD)/main: create_send.cpp rocks_db.cpp tcp_client.cpp tcp_server.cpp state_block.cpp user_account.cpp util.cpp full_node.cpp rpc.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
 TESTS =
