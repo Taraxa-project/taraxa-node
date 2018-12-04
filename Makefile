@@ -62,7 +62,8 @@ HEADERS = \
     state_block.hpp \
     user_account.hpp \
     rpc.hpp \
-    util.hpp
+    util.hpp \
+    wallet.hpp
 
 all: create_dir $(DEPENDENCIES) $(PROGRAMS)
 
@@ -165,7 +166,7 @@ $(BUILD)/sodium_get_vrf_output: sodium_get_vrf_output.cpp $(DEPENDENCIES)
 $(BUILD)/sodium_verify_vrf_proof: sodium_verify_vrf_proof.cpp $(DEPENDENCIES) 
 	$(COMPILE) `pkg-config libsodium --cflags --libs`
 
-$(BUILD)/main: create_send.cpp rocks_db.cpp tcp_client.cpp tcp_server.cpp state_block.cpp user_account.cpp util.cpp full_node.cpp rpc.cpp main.cpp $(DEPENDENCIES)
+$(BUILD)/main: create_send.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp full_node.cpp rpc.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
 TESTS =

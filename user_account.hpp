@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-27 14:53:42 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-11-27 15:35:12
+ * @Last Modified time: 2018-12-04 11:36:49
  */
  
 #ifndef USER_ACCOUNT
@@ -28,11 +28,11 @@ using std::string;
 
 class UserAccount{
 public:
-	UserAccount(string address,	
-				string pk, 
-				string genesis, 
-				uint64_t balance,
-				string frontier, 
+	UserAccount(name_t address,	
+				key_t pk, 
+				blk_hash_t genesis, 
+				bal_t balance,
+				blk_hash_t frontier, 
 				uint64_t height): 
 					address_(address), 
 					pk_(pk),
@@ -40,15 +40,16 @@ public:
 					balance_(balance),
 					frontier_(frontier),
 					height_(height){}
-	UserAccount(const string &json);
-	string getJson();
+		
+	UserAccount(string const& json);
+	string getJsonStr();
 
 private:
-	string address_ = "0";
-	string pk_ = "0";
-	string genesis_ = "0";
-	uint64_t balance_ = 0;
-	string frontier_ = "0";
+	name_t address_ = "0";
+	key_t pk_ = "0";
+	blk_hash_t genesis_ = "0";
+	bal_t balance_ = 0;
+	blk_hash_t frontier_ = "0";
 	uint64_t height_ = 0;
 };
 

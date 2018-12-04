@@ -1,0 +1,4 @@
+{
+	"db_wallet_path": "/tmp/rocksdb/wallet",
+	"wallet_key": "0"
+}

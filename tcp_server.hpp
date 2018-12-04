@@ -29,7 +29,7 @@ public:
 	TcpServer();
 	void listen(const string &hostname, unsigned port, bool echo=false);
 	void setVerbose(bool verbose){verbose_ = verbose;}
-	void setDb(std::string path){ db_ = std::make_shared<RocksDb>(path);}
+	void setDb(std::string path){ db_ = std::make_shared<taraxa::RocksDb>(path);}
 	void close(){ listening_ = false;}
 private:
 	void writeJsonToDb(const std::string &json);
@@ -39,7 +39,7 @@ private:
 	}
 	asio::io_context context_;
 	string hostname;
-	std::shared_ptr<RocksDb> db_ = nullptr;
+	std::shared_ptr<taraxa::RocksDb> db_ = nullptr;
 	std::mutex mu_;
 	bool listening_ = false;
 	bool verbose_ = false;

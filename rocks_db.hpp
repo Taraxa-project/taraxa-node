@@ -17,10 +17,8 @@
 #include <memory>
 #include <utility>
 
-// Two DB
-// 1. block db: hash of block -> state block
-// 2. account db: pk -> account state
 
+namespace taraxa{
 class RocksDb{
 public:
 
@@ -28,8 +26,11 @@ public:
 		opt_.IncreaseParallelism();
 		opt_.OptimizeLevelStyleCompaction();
 		opt_.create_if_missing = true;
-		rocksdb::Status s = rocksdb::DB::Open(opt_, db_path_, &db_);
-		assert(s.ok());
+		rocksdb::Status status = rocksdb::DB::Open(opt_, db_path_, &db_);
+		if (!status.ok()){
+			std::cerr<<"Cannot open data base " << db_path_<< "\n";
+			throw std::invalid_argument("Open DB fail \n");
+		}
 	}
 	~RocksDb(){
 		delete db_;
@@ -43,4 +44,6 @@ private:
 	rocksdb::DB *db_;
 	rocksdb::Options opt_;
 };
+} // namespace taraxa
+
 #endif

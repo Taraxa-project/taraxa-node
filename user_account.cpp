@@ -20,7 +20,7 @@ UserAccount::UserAccount(const string &json){
 	height_ = doc["height"].GetUint64();
 }
 
-std::string UserAccount::getJson(){
+std::string UserAccount::getJsonStr(){
 	rapidjson::Document doc;
 	doc.SetObject();
 
