@@ -51,7 +51,7 @@ void RpcConnection::read(){
 			std::cout<<"POST read ... "<<std::endl;
 			
 			// define response handler
-			auto responseHandler ([this_sp](std::string const & msg){
+			auto replier ([this_sp](std::string const & msg){
 				// prepare response content
 				std::string body = msg;
 				this_sp->write_response(msg);
@@ -63,7 +63,7 @@ void RpcConnection::read(){
 			if (this_sp->request_.method() == boost::beast::http::verb::post){
 				std::shared_ptr<RpcHandler> rpc_handler ( 
 					new RpcHandler(this_sp->rpc_, *this_sp->node_sp_, 
-					*this_sp->wallet_sp_, this_sp->request_.body(), responseHandler));
+					*this_sp->wallet_sp_, this_sp->request_.body(), replier));
 				try{
 					rpc_handler->processRequest();
 				} catch (...){
@@ -75,6 +75,7 @@ void RpcConnection::read(){
 		else{
 			std::cerr<<"Error! RPC conncetion read fail ... "<<ec.message()<<"\n";
 		}
+		(void) byte_transfered;
 	});
 }
 
@@ -143,12 +144,12 @@ void RpcHandler::processRequest(){
 			res = "Unknown action "+ action;
 		}
 		res+="\n";
-		responseHandler_(res);
+		replier_(res);
 	}
 	catch(std::exception const & err){
 		std::cerr<<err.what()<<"\n";
 		rapidjson::Document dummy;
-		responseHandler_(err.what());
+		replier_(err.what());
 	}
 	
 }

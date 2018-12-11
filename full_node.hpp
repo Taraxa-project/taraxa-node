@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 13:54:29
+ * @Last Modified time: 2018-12-10 13:09:18
  */
  
 #ifndef FULL_NODE_HPP
@@ -16,11 +16,13 @@
 #include <boost/asio.hpp>
 #include "rocks_db.hpp"
 #include "util.hpp"
+#include "block_processor.hpp"
 
 namespace taraxa{
 
 using std::string;
 using std::to_string;
+class BlockProcessor;
 
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file):json_file_name(json_file){
@@ -49,7 +51,8 @@ public:
 	FullNode(FullNodeConfig const & conf):
 		conf_(conf),
 		db_accounts_sp_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
-		db_blocks_sp_(std::make_shared<RocksDb>(conf_.db_blocks_path)){
+		db_blocks_sp_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
+		blk_processor_(*this){
 	}
 	void setVerbose(bool verbose){
 		verbose_=verbose;
@@ -71,9 +74,21 @@ public:
 	std::string blockCreate(blk_hash_t const & prev_hash, name_t const & from_address, 
 		name_t const & to_address, uint64_t balance);
 private:
+	// configuration
 	FullNodeConfig conf_;
+
+	//storage 
 	std::shared_ptr<RocksDb> db_accounts_sp_;
 	std::shared_ptr<RocksDb> db_blocks_sp_;
+
+	// network
+
+	// ledger
+
+	// block processor (multi processing)
+	taraxa::BlockProcessor blk_processor_;
+
+
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting
 	bool verbose_=false;
 	boost::asio::io_context io_context_;

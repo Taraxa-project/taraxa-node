@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:37 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 13:56:12
+ * @Last Modified time: 2018-12-10 12:11:31
  */
 
 #ifndef STATE_BLOCK_HPP
@@ -73,6 +73,7 @@ public:
 	nonce_t getWork() {return work_;}
 	sig_t getSignature() {return signature_;}
 	blk_hash_t getMatching() {return matching_;}
+	blk_hash_t getHash() {return "Not implement yet\n";}
 	std::string getJsonStr();
 
 private:

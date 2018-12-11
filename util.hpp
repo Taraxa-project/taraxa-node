@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:26:50 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 11:27:35
+ * @Last Modified time: 2018-12-10 12:33:26
  */
  
  #ifndef UTIL_HPP
@@ -29,5 +29,21 @@ rapidjson::Document strToJson( std::string const & str);
 // load file and convert to json doc
 rapidjson::Document loadJsonFile( std::string const& json_file_name); 
 }  // namespace taraxa
+
+
+
+struct ProcessReturn{
+	 enum class Result {
+		PROGRESS, 
+		BAD_SIG,
+		SEEN, 
+		NEG_SPEND,
+		UNRECEIVABLE, // ?
+		MISS_PREV,
+		MISS_SOURCE
+	 };
+	 taraxa::name_t user_account;
+	 taraxa::bal_t balance;
+};
 
 #endif

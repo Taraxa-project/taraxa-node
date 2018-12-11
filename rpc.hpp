@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-28 16:05:18 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 12:49:48
+ * @Last Modified time: 2018-12-06 15:41:24
  */
  
 #ifndef RPC_HPP
@@ -87,7 +87,7 @@ public:
 	RpcHandler(Rpc & rpc, FullNode &node, Wallet &wallet, std::string const &body , 
 		std::function<void(std::string const & msg)> const &response_handler):
 		rpc_(rpc), node_(node), wallet_(wallet), 
-		body_(body), in_doc_(taraxa::strToJson(body_)), responseHandler_(response_handler){}
+		body_(body), in_doc_(taraxa::strToJson(body_)), replier_(response_handler){}
 	void processRequest();
 private:
 	bool accountCreate();
@@ -96,7 +96,7 @@ private:
 	Wallet & wallet_;
 	std::string body_;
 	rapidjson::Document in_doc_;
-	std::function<void(std::string const & msg)> responseHandler_;
+	std::function<void(std::string const & msg)> replier_; // Capture RpcConnector and reply from there
 };
 
 } // namespace taraxa
