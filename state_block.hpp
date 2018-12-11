@@ -18,7 +18,7 @@
 #include <vector>
 #include "rocks_db.hpp"
 #include "signatures.hpp"
-#include "transactions.hpp"
+//#include "transactions.hpp"
 #include "util.hpp"
 
 namespace taraxa{

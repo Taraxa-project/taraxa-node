@@ -15,6 +15,7 @@
 #include <rapidjson/document.h>
 #include "util.hpp"
 #include "rocks_db.hpp"
+#include "signatures.hpp"
 
 namespace taraxa{
 

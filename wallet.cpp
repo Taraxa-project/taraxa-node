@@ -7,7 +7,7 @@
  */
  
 #include "wallet.hpp"
-#include "transactions.hpp"
+//#include "transactions.hpp"
 
 namespace taraxa{
 
