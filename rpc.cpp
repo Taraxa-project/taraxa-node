@@ -1,10 +1,21 @@
 #include "rpc.hpp"
-#include <rapidjson/document.h>
-
-#include <iostream>
-#include <sstream>
+#include "full_node.hpp"
+#include "wallet.hpp"
 
 namespace taraxa{
+
+RpcConfig::RpcConfig (std::string const &json_file):json_file_name(json_file){
+		rapidjson::Document doc = loadJsonFile(json_file);
+
+		assert(doc.HasMember("port"));
+		assert(doc.HasMember("address"));
+
+		port = doc["port"].GetUint();
+		address = boost::asio::ip::address::from_string(doc["address"].GetString());
+	}
+
+Rpc::Rpc(std::string const & conf_rpc, boost::asio::io_context & io, FullNode & node, Wallet & wallet):
+		conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node), wallet_(wallet){}
 
 void Rpc::start(){
 	boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
@@ -41,6 +52,11 @@ void Rpc::waitForAccept(){
 
 void Rpc::stop(){
 	acceptor_.close();
+}
+
+RpcConnection::RpcConnection(Rpc & rpc, FullNode & node, Wallet & wallet):
+	rpc_(rpc), node_sp_(node.getShared()), wallet_sp_(wallet.getShared()), socket_(rpc.getIoContext()){
+	responded.clear();
 }
 
 void RpcConnection::read(){
@@ -95,14 +111,19 @@ void RpcConnection::write_response(std::string const & msg){
 	}
 }
 
+RpcHandler::RpcHandler(Rpc & rpc, FullNode &node, Wallet &wallet, std::string const &body , 
+	std::function<void(std::string const & msg)> const &response_handler):
+	rpc_(rpc), node_(node), wallet_(wallet), 
+	body_(body), in_doc_(taraxa::strToJson(body_)), replier_(response_handler){}
+
 void RpcHandler::processRequest(){
 	try{
 		
 		if (!in_doc_.HasMember("action")){
 			throw std::runtime_error("Request does not provide action\n");
 		}
-		string action = in_doc_["action"].GetString();
-		string res;
+		std::string action = in_doc_["action"].GetString();
+		std::string res;
 		
 		if (action == "wallet_account_create"){
 			if (!in_doc_.HasMember("sk")){

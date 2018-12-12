@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-10 13:09:18
+ * @Last Modified time: 2018-12-12 13:59:46
  */
  
 #ifndef FULL_NODE_HPP
@@ -14,32 +14,18 @@
 #include <memory>
 #include <vector>
 #include <boost/asio.hpp>
-#include "rocks_db.hpp"
 #include "util.hpp"
+#include "network.hpp"
 #include "block_processor.hpp"
-
 namespace taraxa{
 
-using std::string;
-using std::to_string;
-class BlockProcessor;
+class FullNode;
+class RocksDb;
 
 struct FullNodeConfig {
-	FullNodeConfig (std::string const &json_file):json_file_name(json_file){
-		rapidjson::Document doc = loadJsonFile(json_file);
-		
-		assert(doc.HasMember("port"));
-		assert(doc.HasMember("address"));
-		assert(doc.HasMember("db_accounts_path"));
-		assert(doc.HasMember("db_blocks_path"));
-
-		port = doc["port"].GetUint();
-		address = boost::asio::ip::address::from_string(doc["address"].GetString());
-		db_accounts_path = doc["db_accounts_path"].GetString();
-		db_blocks_path = doc["db_blocks_path"].GetString();
-	}
+	FullNodeConfig (std::string const &json_file);
 	std::string json_file_name;
-	uint16_t port;
+	uint16_t udp_port;
 	boost::asio::ip::address address;
 	std::string db_accounts_path;
 	std::string db_blocks_path;
@@ -48,23 +34,10 @@ struct FullNodeConfig {
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
 public:
-	FullNode(FullNodeConfig const & conf):
-		conf_(conf),
-		db_accounts_sp_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
-		db_blocks_sp_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
-		blk_processor_(*this){
-	}
-	void setVerbose(bool verbose){
-		verbose_=verbose;
-	}
-	// void createAccount(unsigned idx, unsigned long init_balance);
-	void addRemotes(string ip, uint16_t port){
-		remotes_.push_back({ip, port});
-	}
-
-	std::shared_ptr<FullNode> getShared() {return shared_from_this();}
-	// void sendBlock(unsigned from, unsigned to, unsigned long new_balance);
-	boost::asio::io_context & getIoContext() {return io_context_;}
+	FullNode(FullNodeConfig const & conf);
+	void setVerbose(bool verbose);
+	std::shared_ptr<FullNode> getShared(); 
+	boost::asio::io_context & getIoContext(); 
 
 	// Account related
 	std::string accountCreate(name_t const & address);
@@ -78,15 +51,15 @@ private:
 	FullNodeConfig conf_;
 
 	//storage 
-	std::shared_ptr<RocksDb> db_accounts_sp_;
-	std::shared_ptr<RocksDb> db_blocks_sp_;
+	std::shared_ptr<RocksDb> db_accounts_;
+	std::shared_ptr<RocksDb> db_blocks_;
 
 	// network
-
+	Network network_;
 	// ledger
 
 	// block processor (multi processing)
-	taraxa::BlockProcessor blk_processor_;
+	BlockProcessor blk_processor_;
 
 
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting

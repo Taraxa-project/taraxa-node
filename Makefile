@@ -60,7 +60,7 @@ create_dir:
 	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
 
 
-$(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp full_node.cpp main.cpp $(DEPENDENCIES)
+$(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
 

@@ -13,12 +13,6 @@
 #include <string>
 #include <cryptopp/aes.h>
 #include <cryptopp/blake2.h>
-#include <rapidjson/document.h>
-#include <unordered_map>
-#include <vector>
-#include "rocks_db.hpp"
-#include "signatures.hpp"
-//#include "transactions.hpp"
 #include "util.hpp"
 
 namespace taraxa{
@@ -45,13 +39,7 @@ public:
 				nonce_t work, 
 				sig_t signature, 
 				blk_hash_t matching
-				): prev_hash_(prev_hash), 
-					from_address_(from_address), 
-					to_address_(to_address), 
-					balance_(balance), 
-					work_(work),
-					signature_(signature), 
-					matching_(matching){}
+				);
 	StateBlock(const string &json);
 	
 	friend std::ostream & operator<<(std::ostream &str, StateBlock &u){

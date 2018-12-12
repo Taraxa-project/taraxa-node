@@ -22,19 +22,8 @@ namespace taraxa{
 class RocksDb{
 public:
 
-	RocksDb(std::string path):db_path_(path){
-		opt_.IncreaseParallelism();
-		opt_.OptimizeLevelStyleCompaction();
-		opt_.create_if_missing = true;
-		rocksdb::Status status = rocksdb::DB::Open(opt_, db_path_, &db_);
-		if (!status.ok()){
-			std::cerr<<"Cannot open data base " << db_path_<< "\n";
-			throw std::invalid_argument("Open DB fail \n");
-		}
-	}
-	~RocksDb(){
-		delete db_;
-	}
+	RocksDb(std::string path);
+	~RocksDb();
 	bool put(const std::string &key, const std::string &value);
 	std::string get(const std::string &key);
 	bool erase (const std::string &key);

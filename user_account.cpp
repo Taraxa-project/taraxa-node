@@ -1,14 +1,35 @@
+/*
+ * @Copyright: Taraxa.io 
+ * @Author: Chia-Chun Lin 
+ * @Date: 2018-12-12 13:31:22 
+ * @Last Modified by: Chia-Chun Lin 
+ * @Last Modified time: 2018-12-12 13:31:22 
+ */
+ 
+#include "user_account.hpp"
 #include <iostream>
 #include <string>
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
-#include "user_account.hpp"
-#include "util.hpp"
 
 using std::to_string;
 using std::string;
 
 namespace taraxa {
+
+UserAccount::UserAccount(name_t address,	
+	key_t pk, 
+	blk_hash_t genesis, 
+	bal_t balance,
+	blk_hash_t frontier, 
+	uint64_t height): 
+	address_(address), 
+	pk_(pk),
+	genesis_(genesis),
+	balance_(balance),
+	frontier_(frontier),
+	height_(height){}
+
 UserAccount::UserAccount(const string &json){
 	rapidjson::Document doc = taraxa::strToJson(json);
 

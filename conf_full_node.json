@@ -1,5 +1,5 @@
 {
-  "port": 3333,
+  "udp_port": 3333,
   "address": "192.168.12.204",
 	"db_accounts_path": "/tmp/rocksdb/acc",
 	"db_blocks_path": "/tmp/rocksdb/blk"

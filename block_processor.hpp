@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-07 18:04:02 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-10 20:01:52
+ * @Last Modified time: 2018-12-12 13:47:09
  */
 
 #ifndef BLOCK_PROCESSOR_HPP
@@ -12,7 +12,6 @@
 #include <unordered_set>
 #include <mutex>
 #include <queue>
-#include "state_block.hpp"
 #include "util.hpp"
 
 // Process blocks with multithreading
@@ -20,14 +19,14 @@ namespace taraxa{
 
 const unsigned int MAX_STATE_BLOCKS = 16384;
 class FullNode;
-
+class StateBlock;
 // Call procedure
 // processBlocks --> processManyBlocks --> batchVerifyStateBlocks --> processOneBlock
 
 class BlockProcessor{
 public:
 	typedef std::chrono::steady_clock::time_point time_t;
-	BlockProcessor(taraxa::FullNode &node): node_(node){}
+	BlockProcessor(FullNode &node);
 	~BlockProcessor();
 	void add (std::shared_ptr<taraxa::StateBlock> sp, time_t time);
 	bool full ();
@@ -35,7 +34,7 @@ public:
 	void stop();
 	void processBlocks();
 	
-	ProcessReturn processOneBlock (std::shared_ptr<taraxa::StateBlock> blk, 
+	ProcessReturn processOneBlock (std::shared_ptr<StateBlock> blk, 
 		time_t time = std::chrono::steady_clock::now(), bool validated = false);
 	
 private:
@@ -43,7 +42,7 @@ private:
 	void batchVerifyStateBlocks (std::unique_lock<std::mutex> &lock);
 	bool stopped_ = false;
 	bool active_ = false;
-	taraxa::FullNode & node_;
+	FullNode & node_;
 	std::mutex mutex_;
 	std::condition_variable condition_;
 	std::unordered_set<taraxa::blk_hash_t> block_hashes_;

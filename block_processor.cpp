@@ -1,6 +1,9 @@
 #include "block_processor.hpp"
+#include "state_block.hpp"
 
 namespace taraxa{
+BlockProcessor::BlockProcessor(FullNode &node): node_(node){}
+
 BlockProcessor::~BlockProcessor(){
 	stop();
 }

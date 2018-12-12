@@ -3,13 +3,26 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-03 23:37:53 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 12:57:54
+ * @Last Modified time: 2018-12-12 13:37:45
  */
  
 #include "wallet.hpp"
-//#include "transactions.hpp"
+#include "signatures.hpp"
+#include "rocks_db.hpp"
 
 namespace taraxa{
+
+
+WalletConfig::WalletConfig (std::string const & json_file):db_wallet_path (json_file){
+	rapidjson::Document doc = loadJsonFile(json_file);
+	assert(doc.HasMember("db_wallet_path"));
+	assert(doc.HasMember("wallet_key"));
+	db_wallet_path = doc["db_wallet_path"].GetString();
+	wallet_key = doc["wallet_key"].GetString();
+}
+
+WalletUserAccount::WalletUserAccount(std::string const & sk, std::string const & pk, std::string const & address): 
+	sk(sk), pk(pk), address(address){}
 
 WalletUserAccount::WalletUserAccount(std::string const & json){
 	rapidjson::Document doc = taraxa::strToJson(json);
@@ -18,6 +31,10 @@ WalletUserAccount::WalletUserAccount(std::string const & json){
 	pk = doc["pk"].GetString();
 	address =doc["address"].GetString();
 }
+
+Wallet::Wallet(WalletConfig const & conf): 
+		conf_(conf),
+		db_wallet_sp_(std::make_shared<RocksDb> (conf_.db_wallet_path)) {} 
 
 std::string WalletUserAccount::getJsonStr(){
 	rapidjson::Document doc;

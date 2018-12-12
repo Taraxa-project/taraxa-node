@@ -5,17 +5,31 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2018-12-04 12:27:20
  */
- 
-#include <iostream>
-#include <string>
+#include "state_block.hpp"
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
-#include "state_block.hpp"
-#include "util.hpp"
 
 namespace taraxa{
 
 using std::to_string;
+
+
+StateBlock::StateBlock(blk_hash_t prev_hash, 
+	name_t from_address, 
+	name_t to_address,
+	uint64_t balance, 
+	nonce_t work, 
+	sig_t signature, 
+	blk_hash_t matching
+	): 
+	prev_hash_(prev_hash), 
+	from_address_(from_address), 
+	to_address_(to_address), 
+	balance_(balance), 
+	work_(work),
+	signature_(signature), 
+	matching_(matching){}
+
 StateBlock::StateBlock(std::string const &json){
 
 	rapidjson::Document doc = taraxa::strToJson(json);

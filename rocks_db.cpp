@@ -11,6 +11,20 @@
 namespace taraxa{
 using namespace rocksdb;
 
+RocksDb::RocksDb(std::string path):db_path_(path){
+	opt_.IncreaseParallelism();
+	opt_.OptimizeLevelStyleCompaction();
+	opt_.create_if_missing = true;
+	rocksdb::Status status = rocksdb::DB::Open(opt_, db_path_, &db_);
+	if (!status.ok()){
+		std::cerr<<"Cannot open data base " << db_path_<< "\n";
+		throw std::invalid_argument("Open DB fail \n");
+	}
+}
+RocksDb::~RocksDb(){
+	delete db_;
+}
+
 bool RocksDb::put(const std::string &key, const std::string &value){
 	if (!db_) return false;
 	rocksdb::Status s = db_->Put(WriteOptions(), key, value);

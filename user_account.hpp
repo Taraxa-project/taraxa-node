@@ -11,7 +11,7 @@
 
 #include <iostream> 
 #include <string> 
-#include "state_block.hpp"
+#include "util.hpp"
 
 namespace taraxa{
 using std::string;
@@ -33,13 +33,7 @@ public:
 				blk_hash_t genesis, 
 				bal_t balance,
 				blk_hash_t frontier, 
-				uint64_t height): 
-					address_(address), 
-					pk_(pk),
-					genesis_(genesis),
-					balance_(balance),
-					frontier_(frontier),
-					height_(height){}
+				uint64_t height); 
 		
 	UserAccount(string const& json);
 	string getJsonStr();
