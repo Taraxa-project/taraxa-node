@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:26:50 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-11 16:20:20
+ * @Last Modified time: 2018-12-14 15:47:57
  */
  
  #ifndef UTIL_HPP
@@ -17,13 +17,8 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/error/en.h>
+#include "types.hpp"
 namespace taraxa{
-typedef std::string key_t;
-typedef std::string name_t;
-typedef uint64_t	bal_t;
-typedef std::string sig_t;
-typedef std::string blk_hash_t;
-typedef std::string nonce_t;
 
 //newtork related
 typedef boost::asio::ip::udp::endpoint end_point_udp_t;
