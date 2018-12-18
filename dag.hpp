@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-17 15:37:22
+ * @Last Modified time: 2018-12-18 14:18:42
  */
  
 #include <iostream>
@@ -20,8 +20,6 @@
 #include "types.hpp"
 
 namespace taraxa{
-
-
 
 class Dag {
 public:
@@ -49,27 +47,17 @@ public:
 	Dag ();
 	~Dag ();
 	graph_t getGraph();
-	vertex_t getGenesis();
+	vertex_t getGenesis(); // The root node
+	uint64_t getNumVertices() const;  
+	uint64_t getNumEdges() const;  
 	vertex_t addVertex(blk_hash_t v);
 	edge_t   addEdge(vertex_t from, vertex_t to);
 	void dfs() const;
-	void collectLeafVertexes(std::vector<vertex_t> &leaves) const;
+	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 	void collectCriticalPath(std::vector<vertex_t> &leaves) const;
 	void drawGraph(std::string filename) const;
-	
-	class LeafVisitor2: public boost::default_bfs_visitor{
-	public:
-		LeafVisitor2(std::vector<vertex_t> &leaves): leaves(leaves){}
-		template < typename Vertex, typename Graph >
-		void finish_vertex(Vertex u, const Graph & g) {
-			std::cout << "Exit " << u << std::endl; 
-			if (boost::out_degree(u, g)==0){
-				leaves.push_back(u);
-			}
-		}
-		std::vector<vertex_t> &leaves;
-	};
 
+	// for graphviz
 	template <class Property>
   	class label_writer {
   	public:

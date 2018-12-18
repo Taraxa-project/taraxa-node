@@ -3,12 +3,12 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-17 15:39:18
+ * @Last Modified time: 2018-12-18 14:09:17
  */
  
-#include "dag.hpp"
 #include <tuple>
 #include <fstream>
+#include "dag.hpp"
 
 namespace taraxa {
 
@@ -19,7 +19,8 @@ Dag::~Dag(){}
 Dag::graph_t Dag::getGraph() { return graph_;}
 
 Dag::vertex_t Dag::getGenesis() {return genesis_;}
-
+uint64_t Dag::getNumVertices() const {return boost::num_vertices(graph_);}
+uint64_t Dag::getNumEdges() const {return boost::num_edges(graph_);}
 Dag::vertex_t Dag::addVertex(blk_hash_t hash){
 	vertex_t ret=boost::add_vertex(hash, graph_);
 	return ret;
@@ -30,7 +31,7 @@ Dag::edge_t Dag::addEdge(Dag::vertex_t v1, Dag::vertex_t v2){
 	return ret.first;
 }
 
-void Dag::collectLeafVertexes(std::vector<vertex_t> &leaves) const{
+void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const{
 	leaves.clear();
 	vertex_iter_t s, e;
 	// iterator all vertex
@@ -79,31 +80,4 @@ void Dag::drawGraph(std::string filename) const{
 }
 
 
-}
-
-int main(int argc, char *argv[]){
-	
-	taraxa::Dag graph;
-	auto v0= graph.addVertex("10");
-	auto v1= graph.addVertex("1");
-	auto v2= graph.addVertex("2888");
-	auto v3= graph.addVertex("35");
-	auto genesis = graph.getGenesis();
-	graph.addEdge(genesis, v0);
-	graph.addEdge(v0, v1);
-	graph.addEdge(v0, v2);
-	graph.addEdge(v2, v3);
-	std::vector<taraxa::Dag::vertex_t> leaves, critical;
-	graph.collectLeafVertexes(leaves);
-	graph.collectCriticalPath(critical);
-	auto v = boost::get(boost::vertex_name, graph.getGraph());
-
-	
-	for (auto e:leaves)
-		std::cout<<"Leaf "<<e<<" "<<v[e]<<std::endl; 
-	for (auto e:critical)
-		std::cout<<"Critical "<<e<<" "<<v[e]<<std::endl; 
-
-	graph.drawGraph("draw.dot");
-	return 0;
 }
