@@ -9,12 +9,13 @@ CXXFLAGS := -std=c++17 -g -W -Wall -Wextra -pedantic
 LDFLAGS := -L submodules/cryptopp
 LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
 BUILD := build
-
+TEST_BUILD := test_build
 
 PROGRAMS = \
     $(BUILD)/main
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
+TEST_COMPILE = echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $(TEST_BUILD)/run_test $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest
 
 ifeq ($(OS), Darwin) #Mac
   BLS_COMPILE += -L /usr/local/Cellar/openssl@1.1/1.1.1/lib -I /usr/local/Cellar/openssl@1.1/1.1.1/include
@@ -39,6 +40,9 @@ HEADERS = \
     wallet.hpp \
     block_processor.hpp
 
+TESTS = \
+    core_tests/dag_test.cpp
+
 all: create_dir $(DEPENDENCIES) $(PROGRAMS)
 
 DEPENDENCIES: \
@@ -57,16 +61,18 @@ submodules/rapidjson/readme.md:
 	@echo rapidjson submodule does not seem to exists, did you use --recursive in git clone? && exit 1
 
 create_dir: 	
-	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
+	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); then mkdir -p $(TEST_BUILD) fi 
 
 
 $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
+core_tests/dag_test:  
+	g++ -std=c++17 core_tests/dag_test.cpp dag.cpp -lgtest -I.
 
 t: test
-test: $(TESTS)
-
+test: 
+	 
 ct:
 	rm -rf $(CLEAN_TESTS)
 
