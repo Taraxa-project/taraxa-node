@@ -7,7 +7,9 @@ UdpBuffer::UdpBuffer(size_t count, size_t sz):
 	free_qu_(count), 
 	job_qu_(count), 
 	mem_pool_(count*sz), 
-	entries_(count){
+	entries_(count),
+	stopped_(false),
+	verbose_(false){
 	assert (count>0);
 	assert (count>0);
 	auto mems_ (mem_pool_.data());
@@ -19,48 +21,53 @@ UdpBuffer::UdpBuffer(size_t count, size_t sz):
 }
 
 UdpData* UdpBuffer::allocate(){
+	if (verbose_) print("[lock] UdpBuffer allocate ...");
 	std::unique_lock<std::mutex> lock(mutex_);
 
-	while (!stopped_ && free_qu_.empty() && job_qu_.empty()){
-		condition_.wait(lock);
+	while (!stopped_ && free_qu_.empty()){
+		if (verbose_) print("[wait] UdpBuffer allocate ...");
+		condition_free_qu_.wait(lock);
+		if (verbose_) print("[wake up] UdpBuffer allocate ...");
 	}
+
 	UdpData *data = nullptr;
-	if (!free_qu_.empty()){
-		data = free_qu_.front();
-		free_qu_.pop_front();
-	} /*else {
-		buf = job_qu_.front();
-		job_qu_.pop_front();
-	}
-	*/
-	// QQ??
-	// free_qu_ can contains freeptr, means its stopping. 
-	// return 
-	if (data == nullptr){
-		data = job_qu_.front();
-		job_qu_.pop_front();
+	if (!stopped_){
+		if (!free_qu_.empty()){
+			data = free_qu_.front();
+			free_qu_.pop_front();
+		}
 	}
 	return data;
 }
 
 void UdpBuffer::release(UdpData *data){
 	assert(data != nullptr);
+	if (verbose_) print("[lock] UdpBuffer release ...");
 	std::unique_lock<std::mutex> lock(mutex_);
 	free_qu_.push_back(data);
-	condition_.notify_one();
+	condition_free_qu_.notify_one();
+	if (verbose_) print("[notify] UdpBuffer release ...");
+
 }
 
 void UdpBuffer::enqueue(UdpData *data){
 	assert(data!=nullptr);
+	if (verbose_) print("[lock] UdpBuffer enqueue ...");
 	std::unique_lock<std::mutex> lock(mutex_);
 	job_qu_.push_back(data);
-	condition_.notify_one();
+	condition_job_qu_.notify_one();
+	if (verbose_) print("[notify] UdpBuffer enqueue ...");
+
 }
 
 UdpData * UdpBuffer::dequeue(){
+	
+	if (verbose_) print("[lock] UdpBuffer dequeue ...");
 	std::unique_lock<std::mutex> lock(mutex_);
 	while (!stopped_ && job_qu_.empty()){
-		condition_.wait(lock);
+		if (verbose_) print("[wait] UdpBuffer dequeue ...");
+		condition_job_qu_.wait(lock);
+		if (verbose_) print("[wake up] UdpBuffer dequeue ...");
 	}
 	UdpData *data = nullptr;
 	if (!job_qu_.empty()){
@@ -72,7 +79,22 @@ UdpData * UdpBuffer::dequeue(){
 void UdpBuffer::stop(){
 	std::unique_lock<std::mutex> lock(mutex_);
 	stopped_ = true;
-	condition_.notify_all();
+	condition_job_qu_.notify_all();
+	condition_free_qu_.notify_all();
+
+}
+bool UdpBuffer::isStopped() {
+	std::unique_lock<std::mutex> lock(mutex_);
+	return stopped_;
+}
+
+void UdpBuffer::print(std::string const & str){
+	std::unique_lock<std::mutex> lock(mutex_for_print_);
+	std::cout<<str<<std::endl;
+}
+
+void UdpBuffer::setVerbose(bool verbose){
+	verbose_ = verbose;
 }
 
 Network::Network(FullNode &node, uint16_t UDP_PORT): 

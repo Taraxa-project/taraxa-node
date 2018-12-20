@@ -61,8 +61,10 @@ submodules/rapidjson/readme.md:
 	@echo rapidjson submodule does not seem to exists, did you use --recursive in git clone? && exit 1
 
 create_dir: 	
-	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); then mkdir -p $(TEST_BUILD) fi 
+	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
 
+create_test_dir: 
+	@if [ ! -d $(BUILD) ]; then	mkdir -p $(TEST_BUILD); fi 
 
 $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
@@ -70,7 +72,9 @@ $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp
 core_tests/dag_test:  
 	g++ -std=c++17 core_tests/dag_test.cpp dag.cpp -lgtest -I.
 
-t: test
+core_tests/network_test:  
+	g++ -std=c++17 core_tests/network_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp -lgtest -lboost_thread-mt -I. -I submodules/rapidjson/include -lboost_system -lcryptopp -lrocksdb
+
 test: 
 	 
 ct:
@@ -78,4 +82,5 @@ ct:
 
 c: clean
 clean:
-	@echo CLEAN && rm -rf $(BUILD) $(PROGRAMS) $(CLEAN_TESTS)
+	@echo CLEAN && rm -rf $(BUILD) $(PROGRAMS) $(CLEAN_TESTS) $(TEST_BUILD)
+
