@@ -15,17 +15,19 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include "util.hpp"
-#include "network.hpp"
-#include "block_processor.hpp"
+
 namespace taraxa{
 
-class FullNode;
 class RocksDb;
+class Network;
+class BlockProcessor;
 
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file);
 	std::string json_file_name;
 	uint16_t udp_port;
+	uint16_t num_io_threads;
+	uint16_t num_packet_processing_threads;
 	boost::asio::ip::address address;
 	std::string db_accounts_path;
 	std::string db_blocks_path;
@@ -46,6 +48,7 @@ public:
 	// Block related
 	std::string blockCreate(blk_hash_t const & prev_hash, name_t const & from_address, 
 		name_t const & to_address, uint64_t balance);
+	FullNodeConfig const & getConfig() const;
 private:
 	// configuration
 	FullNodeConfig conf_;
@@ -55,11 +58,11 @@ private:
 	std::shared_ptr<RocksDb> db_blocks_;
 
 	// network
-	Network network_;
+	std::shared_ptr<Network> network_;
 	// ledger
 
 	// block processor (multi processing)
-	BlockProcessor blk_processor_;
+	std::shared_ptr<BlockProcessor> blk_processor_;
 
 
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting

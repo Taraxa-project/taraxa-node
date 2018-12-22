@@ -13,8 +13,8 @@ void BlockProcessor::stop(){
 	condition_.notify_all();
 }
 void BlockProcessor::add(std::shared_ptr<StateBlock> sp, time_t time){
-	// TODO: test work
-
+	// TODO: test work validation
+	
 	std::unique_lock<std::mutex> lock(mutex_);
 
 	// QQ: No test for full???

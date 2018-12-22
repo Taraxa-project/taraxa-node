@@ -14,6 +14,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <boost/circular_buffer.hpp>
+#include <boost/thread.hpp>
 #include "util.hpp"
 
 namespace taraxa{
@@ -51,12 +52,12 @@ public:
 	
 	// Return a buffer that has been filled with UDP data
 	// Function will block until a buffer has been added
-	// Return nullptr if the container only if it has stopped and job_qu is empty
+	// Return nullptr only if the container has stopped and job_qu is empty
 	UdpData * dequeue();
 	
 	// Stop container and notify waiting threads
 	// Once the container stopped, cannot allocate,
-	// but can consume job_qu until all jobs are dequeued and relased back to free_qu
+	// but can consume remaining jobs in job_qu until all jobs are dequeued and relased them back to free_qu
 	void stop();
 	bool isStopped();
 	void print(const std::string &str);
@@ -74,14 +75,20 @@ private:
 	bool stopped_;
 	bool verbose_;
 };
+
+// It has two parts
+// 1. Packet receiving, multi-threaded, async io
+// 2. Packet processing, multi-threaded
+
 class Network{
 public:
 	Network (FullNode &node, uint16_t port);
-	void receive ();
-	void processPackets();
+	~Network ();
 	void start();
 	void stop();
-	void receiveAction (UdpData *);
+	void receivePackets ();
+	void processPackets();
+	void parsePacket (UdpData *);
 	void rpcAction(boost::system::error_code const & ec, size_t size);
 	void sendBuffer(uint8_t const * buffer, size_t sz, end_point_udp_t const & ep, std::function<void(boost::system::error_code const &ec, size_t sz)>);
 
@@ -89,15 +96,17 @@ private:
 	static const size_t BUFFER_SIZE = 512; 
 	static const size_t BUFFER_COUNT = 4096;
 	static const uint16_t UDP_PORT = 7777;
+	bool on = true;
 	FullNode & node_;
 	resolver_udp_t resolver_;
 	socket_udp_t socket_;
 	end_point_udp_t ep_ = end_point_udp_t ();
-	std::mutex mutex_;
+	std::mutex socket_mutex_;
 	UdpBuffer udp_buffer_;
-	std::vector<std::thread> processing_threads_;
+	uint16_t num_io_threads_;
+	uint16_t num_packet_processing_threads_;
+	std::vector<boost::thread> packet_processing_threads_;
 	
-	bool on = true;
 
 
 };

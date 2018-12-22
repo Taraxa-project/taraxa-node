@@ -8,6 +8,10 @@
  #ifndef TYPES_HPP
  #define TYPES_HPP
  #include <string> 
+ //newtork related
+typedef boost::asio::ip::udp::endpoint end_point_udp_t;
+typedef boost::asio::ip::udp::socket socket_udp_t;
+typedef boost::asio::ip::udp::resolver resolver_udp_t;
 namespace taraxa{
 typedef std::string key_t;
 typedef std::string name_t;

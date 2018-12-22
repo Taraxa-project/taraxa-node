@@ -101,11 +101,69 @@ Network::Network(FullNode &node, uint16_t UDP_PORT):
 	node_(node),
 	resolver_(node.getIoContext()),
 	socket_(node.getIoContext(), end_point_udp_t (boost::asio::ip::address_v6::any(), UDP_PORT)),
-	udp_buffer_(BUFFER_COUNT, BUFFER_SIZE)
-	{
+	udp_buffer_(BUFFER_COUNT, BUFFER_SIZE),
+	num_io_threads_(node.getConfig().num_io_threads),
+	num_packet_processing_threads_(node.getConfig().num_packet_processing_threads){
+	for (auto i = 0; i < num_packet_processing_threads_; ++i){
+		packet_processing_threads_.push_back(boost::thread([this](){
+			try {
+				processPackets();
+			}
+			catch (...){
+				// Do something ...
+			}
+		}));
+	}
+} 
+Network::~Network(){
+	for ( auto & t: packet_processing_threads_) {
+		t.join();
+	}
+}
+void Network::start(){
+	for (auto i =0; i<num_io_threads_; ++i){
+		receivePackets();
+	}
+}
 
-	} 
+void Network::stop(){
+	on = false;
+	socket_.close();
+	resolver_.cancel();
+	udp_buffer_.stop();
+}
 
+void Network::receivePackets(){
+	std::unique_lock<std::mutex> lock(socket_mutex_);
+	auto data (udp_buffer_.allocate());
+	socket_.async_receive_from(boost::asio::buffer(data->buffer, BUFFER_SIZE), data->ep, 
+		[this, data](boost::system::error_code const & error, size_t sz){
+		if (!error && this->on){
+			data->sz = sz;
+			this->udp_buffer_.enqueue(data);
+			this->receivePackets();
+		} 
+		else {
+			this->udp_buffer_.release(data);
+			if (error){
+				// error control
+			}
+		}
+	});
+}
 
+void Network::processPackets(){
+	while (on){
+		auto data (udp_buffer_.dequeue());
+		if (data == nullptr){ // implies upd buffer stopped and job queue are empty
+			break;
+		}
+		parsePacket(data);
+		udp_buffer_.release(data);
+	}
+}
+void Network::parsePacket(UdpData *data){
+	// parse data
+}
 
 }

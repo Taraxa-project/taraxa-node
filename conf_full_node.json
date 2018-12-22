@@ -2,5 +2,7 @@
   "udp_port": 3333,
   "address": "192.168.12.204",
 	"db_accounts_path": "/tmp/rocksdb/acc",
-	"db_blocks_path": "/tmp/rocksdb/blk"
+	"db_blocks_path": "/tmp/rocksdb/blk",
+	"num_io_threads": "4",
+	"num_packet_processing_threads": "4"
 }

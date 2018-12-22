@@ -14,7 +14,6 @@
 #include "block_processor.hpp"
 #include <boost/asio.hpp>
 
-
 namespace taraxa{
 
 using std::string;
@@ -27,11 +26,15 @@ FullNodeConfig::FullNodeConfig (std::string const &json_file):json_file_name(jso
 	assert(doc.HasMember("address"));
 	assert(doc.HasMember("db_accounts_path"));
 	assert(doc.HasMember("db_blocks_path"));
+	assert(doc.HasMember("io_threads"));
+	assert(doc.HasMember("packet_processing_threads"));
 
 	udp_port = doc["udp_port"].GetUint();
 	address = boost::asio::ip::address::from_string(doc["address"].GetString());
 	db_accounts_path = doc["db_accounts_path"].GetString();
 	db_blocks_path = doc["db_blocks_path"].GetString();
+	num_io_threads = doc["num_io_threads"].GetUint();
+	num_packet_processing_threads = doc["num_packet_processing_threads"].GetUint();
 }
 
 void FullNode::setVerbose(bool verbose){
@@ -42,8 +45,8 @@ FullNode::FullNode(FullNodeConfig const & conf):
 	conf_(conf),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
-	network_(*this, conf.udp_port),
-	blk_processor_(*this){
+	network_(std::make_shared<Network> (*this, conf.udp_port)),
+	blk_processor_(std::make_shared<BlockProcessor>(*this)){
 }
 
 std::shared_ptr<FullNode> FullNode::getShared() {return shared_from_this();}
@@ -74,5 +77,6 @@ std::string FullNode::blockCreate(blk_hash_t const & prev_hash, name_t const & f
 	return jsonStr;
 }
 
+const FullNodeConfig & FullNode::getConfig() const { return conf_;}
 
 } // namespace taraxa

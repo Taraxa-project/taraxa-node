@@ -30,8 +30,6 @@ rapidjson::Document strToJson( std::string const & str);
 rapidjson::Document loadJsonFile( std::string const& json_file_name); 
 }  // namespace taraxa
 
-
-
 struct ProcessReturn{
 	 enum class Result {
 		PROGRESS, 

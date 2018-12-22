@@ -72,8 +72,12 @@ $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp
 core_tests/dag_test:  
 	g++ -std=c++17 core_tests/dag_test.cpp dag.cpp -lgtest -I.
 
+#core_tests/network_test:  
+#	g++ -std=c++17 core_tests/network_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp -lgtest -lboost_thread-mt -I. -I submodules/rapidjson/include -lboost_system -lcryptopp -lrocksdb
+
 core_tests/network_test:  
-	g++ -std=c++17 core_tests/network_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp -lgtest -lboost_thread-mt -I. -I submodules/rapidjson/include -lboost_system -lcryptopp -lrocksdb
+	g++ -std=c++17 core_tests/network_test.cpp network.cpp -lgtest -lboost_thread-mt -I.  -lboost_system 
+
 
 test: 
 	 
