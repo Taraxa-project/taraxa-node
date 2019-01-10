@@ -26,8 +26,8 @@ FullNodeConfig::FullNodeConfig (std::string const &json_file):json_file_name(jso
 	assert(doc.HasMember("address"));
 	assert(doc.HasMember("db_accounts_path"));
 	assert(doc.HasMember("db_blocks_path"));
-	assert(doc.HasMember("io_threads"));
-	assert(doc.HasMember("packet_processing_threads"));
+	assert(doc.HasMember("num_io_threads"));
+	assert(doc.HasMember("num_packet_processing_threads"));
 
 	udp_port = doc["udp_port"].GetUint();
 	address = boost::asio::ip::address::from_string(doc["address"].GetString());
@@ -41,16 +41,17 @@ void FullNode::setVerbose(bool verbose){
 	verbose_=verbose;
 }
 
-FullNode::FullNode(FullNodeConfig const & conf):
+FullNode::FullNode(FullNodeConfig const & conf) try:
 	conf_(conf),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
 	network_(std::make_shared<Network> (*this, conf.udp_port)),
 	blk_processor_(std::make_shared<BlockProcessor>(*this)){
-}
+} catch(std::exception &e){
+	throw e;
+} 
 
 std::shared_ptr<FullNode> FullNode::getShared() {return shared_from_this();}
-// void sendBlock(unsigned from, unsigned to, unsigned long new_balance);
 boost::asio::io_context & FullNode::getIoContext() {return io_context_;}
 
 string FullNode::accountCreate(name_t const & address){

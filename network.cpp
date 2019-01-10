@@ -11,7 +11,6 @@ UdpBuffer::UdpBuffer(size_t count, size_t sz):
 	stopped_(false),
 	verbose_(false){
 	assert (count>0);
-	assert (count>0);
 	auto mems_ (mem_pool_.data());
 	auto entry_data (entries_.data()); 
 	for (size_t i=0; i<count; ++i, ++entry_data){
@@ -97,7 +96,7 @@ void UdpBuffer::setVerbose(bool verbose){
 	verbose_ = verbose;
 }
 
-Network::Network(FullNode &node, uint16_t UDP_PORT): 
+Network::Network(FullNode &node, uint16_t UDP_PORT) try :  
 	node_(node),
 	resolver_(node.getIoContext()),
 	socket_(node.getIoContext(), end_point_udp_t (boost::asio::ip::address_v6::any(), UDP_PORT)),
@@ -111,9 +110,14 @@ Network::Network(FullNode &node, uint16_t UDP_PORT):
 			}
 			catch (...){
 				// Do something ...
+				std::cerr<<"Cannot create process threads ... \n";
 			}
 		}));
 	}
+} 
+catch (std::exception& e ){
+	std::cerr<<"Construct Network Error ... "<<e.what()<<"\n";
+	throw e;
 } 
 Network::~Network(){
 	for ( auto & t: packet_processing_threads_) {

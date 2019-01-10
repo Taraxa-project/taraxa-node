@@ -20,10 +20,7 @@
 #include "types.hpp"
 namespace taraxa{
 
-//newtork related
-typedef boost::asio::ip::udp::endpoint end_point_udp_t;
-typedef boost::asio::ip::udp::socket socket_udp_t;
-typedef boost::asio::ip::udp::resolver resolver_udp_t;
+
 
 rapidjson::Document strToJson( std::string const & str);
 // load file and convert to json doc

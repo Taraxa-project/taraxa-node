@@ -52,6 +52,9 @@ public:
 private:
 	// configuration
 	FullNodeConfig conf_;
+	bool verbose_=false;
+	// io_context must be constructed before Network
+	boost::asio::io_context io_context_;
 
 	//storage 
 	std::shared_ptr<RocksDb> db_accounts_;
@@ -64,10 +67,8 @@ private:
 	// block processor (multi processing)
 	std::shared_ptr<BlockProcessor> blk_processor_;
 
-
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting
-	bool verbose_=false;
-	boost::asio::io_context io_context_;
+	
 };
 
 }
