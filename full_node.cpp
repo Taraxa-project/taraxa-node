@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-12 13:51:02
+ * @Last Modified time: 2019-01-10 11:56:14
  */
 
 #include "full_node.hpp"
@@ -45,7 +45,7 @@ FullNode::FullNode(FullNodeConfig const & conf) try:
 	conf_(conf),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
-	network_(std::make_shared<Network> (*this, conf.udp_port)),
+	network_(std::make_shared<Network>(io_context_, conf.udp_port)),
 	blk_processor_(std::make_shared<BlockProcessor>(*this)){
 } catch(std::exception &e){
 	throw e;

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-11 16:03:02 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-12 14:01:00
+ * @Last Modified time: 2019-01-10 12:18:53
  */
  
 #ifndef NETWORK_HPP
@@ -82,7 +82,8 @@ private:
 
 class Network{
 public:
-	Network (FullNode &node, uint16_t port);
+	//Network (FullNode &node, uint16_t port);
+	Network (boost::asio::io_context & io_context, uint16_t port);
 	~Network ();
 	void start();
 	void stop();
@@ -95,9 +96,8 @@ public:
 private:
 	static const size_t BUFFER_SIZE = 512; 
 	static const size_t BUFFER_COUNT = 4096;
-	static const uint16_t UDP_PORT = 7777;
 	bool on = true;
-	FullNode & node_;
+	boost::asio::io_context & io_context_;
 	resolver_udp_t resolver_;
 	socket_udp_t socket_;
 	end_point_udp_t ep_ = end_point_udp_t ();
@@ -106,9 +106,6 @@ private:
 	uint16_t num_io_threads_;
 	uint16_t num_packet_processing_threads_;
 	std::vector<boost::thread> packet_processing_threads_;
-	
-
-
 };
 
 

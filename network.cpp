@@ -96,13 +96,13 @@ void UdpBuffer::setVerbose(bool verbose){
 	verbose_ = verbose;
 }
 
-Network::Network(FullNode &node, uint16_t UDP_PORT) try :  
-	node_(node),
-	resolver_(node.getIoContext()),
-	socket_(node.getIoContext(), end_point_udp_t (boost::asio::ip::address_v6::any(), UDP_PORT)),
+Network::Network(boost::asio::io_context & io_context , uint16_t port) try :  
+	io_context_(io_context),
+	resolver_(io_context),
+	socket_(io_context, end_point_udp_t (boost::asio::ip::address_v6::any(), port)),
 	udp_buffer_(BUFFER_COUNT, BUFFER_SIZE),
-	num_io_threads_(node.getConfig().num_io_threads),
-	num_packet_processing_threads_(node.getConfig().num_packet_processing_threads){
+	num_io_threads_(2),
+	num_packet_processing_threads_(4){
 	for (auto i = 0; i < num_packet_processing_threads_; ++i){
 		packet_processing_threads_.push_back(boost::thread([this](){
 			try {

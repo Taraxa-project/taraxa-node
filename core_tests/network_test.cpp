@@ -84,7 +84,7 @@ TEST (UdpBuffer, multi_buffers_multithreaded){
 				if (!done){
 					consumed++;
 					// buffer.print("c= "+std::to_string(item->sz));
-					std::cout<<item->sz<<std::endl;
+					//std::cout<<item->sz<<std::endl;
 					buffer.release(item);
 				}
 			}
@@ -121,6 +121,18 @@ TEST (UdpBuffer, multi_buffers_multithreaded){
 	
 	ASSERT_GT (produced, 5999);
 	ASSERT_EQ (consumed, 6000);
+}
+
+TEST(Network, udp_receive){
+	boost::asio::io_context context;
+	std::shared_ptr<Network> nw1 (new taraxa::Network(context, 3333));
+	std::shared_ptr<Network> nw2 (new taraxa::Network(context, 3334));
+
+
+	std::cout<<"Network 1 is set"<<std::endl;
+	std::cout<<"Network 2 is set"<<std::endl;
+	nw1->stop();
+	nw2->stop();
 }
 
 }  // namespace taraxa

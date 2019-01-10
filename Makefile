@@ -76,7 +76,10 @@ core_tests/dag_test:
 #	g++ -std=c++17 core_tests/network_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp -lgtest -lboost_thread-mt -I. -I submodules/rapidjson/include -lboost_system -lcryptopp -lrocksdb
 
 core_tests/network_test:  
-	g++ -std=c++17 core_tests/network_test.cpp network.cpp -lgtest -lboost_thread-mt -I.  -lboost_system 
+	g++ -std=c++17 core_tests/network_test.cpp network.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system 
+
+core_tests/full_node_test:  
+	g++ -std=c++17 core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp block_processor.cpp network.cpp full_node.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
 
 
 test: 
