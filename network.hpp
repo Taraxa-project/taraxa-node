@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-11 16:03:02 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-10 12:18:53
+ * @Last Modified time: 2019-01-11 16:38:23
  */
  
 #ifndef NETWORK_HPP
@@ -19,13 +19,78 @@
 
 namespace taraxa{
 
-class FullNode;
+struct UdpNetworkConfig {
+	UdpNetworkConfig (std::string const &json_file);
+	std::string json_file_name;
+	uint16_t udp_port;
+	uint16_t network_io_threads;
+	uint16_t network_packet_processing_threads;
+};
+
+enum class UdpMessageType: uint8_t{
+	invalid = 0,
+	transactions = 1,
+	block = 2
+};
 
 struct UdpData{
 	uint8_t *buffer;
 	size_t sz;
 	end_point_udp_t ep;
 };
+
+class UdpMessageHeader{
+public:
+	UdpMessageHeader ();
+	void serialize (stream &) const;
+	bool deserialize (stream &);
+	std::string getString() const;
+private:
+	bool valid_ = true;
+	uint8_t version_min_;
+	uint8_t version_using_;
+	uint8_t version_max_;
+	UdpMessageType type_;
+	uint16_t ext_;
+};
+
+
+class UdpMessageParser{
+public:
+	UdpMessageParser(UdpData *data);
+	UdpMessageHeader getHeader();
+private:
+	// MTU - IP header - UDP header
+	static constexpr size_t max_safe_udp_message_size = 508;
+	end_point_udp_t sender_;
+	UdpMessageHeader header_;
+};
+
+class UdpMessageVisitor{
+public:
+	virtual void publish();
+	virtual ~UdpMessageVisitor();
+};
+
+class UdpMessage{
+public:
+	UdpMessage();
+	UdpMessage(UdpMessageHeader const & header);
+	virtual ~UdpMessage() = default;
+	virtual void serialize (stream &strm) const = 0;
+	virtual void visit (UdpMessageVisitor & visitor) const = 0;
+	virtual inline std::shared_ptr<std::vector<uint8_t>> to_bytes() const {
+		std::shared_ptr<std::vector<uint8_t>> bytes (new std::vector<uint8_t>);
+		vectorstream stream (*bytes);
+		serialize(stream);
+		return bytes;
+	}
+	UdpMessageHeader getHeader();
+protected:
+	UdpMessageHeader header_;
+};
+
+
 
 /**
   * A circular buffer for servicing UDP datagrams. 
@@ -82,8 +147,7 @@ private:
 
 class Network{
 public:
-	//Network (FullNode &node, uint16_t port);
-	Network (boost::asio::io_context & io_context, uint16_t port);
+	Network (boost::asio::io_context & io_context, std::string const & conf_file_name);
 	~Network ();
 	void start();
 	void stop();
@@ -92,20 +156,35 @@ public:
 	void parsePacket (UdpData *);
 	void rpcAction(boost::system::error_code const & ec, size_t size);
 	void sendBuffer(uint8_t const * buffer, size_t sz, end_point_udp_t const & ep, std::function<void(boost::system::error_code const &ec, size_t sz)>);
-
+	void sendTest(end_point_udp_t const & ep);
+	UdpNetworkConfig getConfig();
+	// for debugging
+	void setVerbose(bool verbose);
+	void print (std::string const &str);
+	unsigned getReceivedPacket();
+	unsigned getSentPacket();
 private:
 	static const size_t BUFFER_SIZE = 512; 
 	static const size_t BUFFER_COUNT = 4096;
-	bool on = true;
+	UdpNetworkConfig conf_;
+	unsigned udp_port_;
+	bool on_ = true;
+	
 	boost::asio::io_context & io_context_;
 	resolver_udp_t resolver_;
 	socket_udp_t socket_;
 	end_point_udp_t ep_ = end_point_udp_t ();
 	std::mutex socket_mutex_;
+	std::mutex verbose_mutex_;
 	UdpBuffer udp_buffer_;
 	uint16_t num_io_threads_;
 	uint16_t num_packet_processing_threads_;
 	std::vector<boost::thread> packet_processing_threads_;
+
+	// for debugging
+	bool verbose_ = false;
+	unsigned long long num_received_packet_ = 0.0;
+	unsigned long long num_sent_packet_ = 0.0;
 };
 
 

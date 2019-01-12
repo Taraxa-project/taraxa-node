@@ -72,14 +72,12 @@ $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp
 core_tests/dag_test:  
 	g++ -std=c++17 core_tests/dag_test.cpp dag.cpp -lgtest -I.
 
-#core_tests/network_test:  
-#	g++ -std=c++17 core_tests/network_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp -lgtest -lboost_thread-mt -I. -I submodules/rapidjson/include -lboost_system -lcryptopp -lrocksdb
-
-core_tests/network_test:  
-	g++ -std=c++17 core_tests/network_test.cpp network.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system 
+core_tests/network_test: create_test_dir 
+	g++ -std=c++17 -o $(TEST_BUILD)/network_test core_tests/network_test.cpp network.cpp util.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system 
+# make c; make core_tests/network_test; ./test_build/network_test
 
 core_tests/full_node_test:  
-	g++ -std=c++17 core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp block_processor.cpp network.cpp full_node.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
+	g++ -std=c++17 -o core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp block_processor.cpp network.cpp full_node.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
 
 
 test: 

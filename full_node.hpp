@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-12 13:59:46
+ * @Last Modified time: 2019-01-11 16:29:11
  */
  
 #ifndef FULL_NODE_HPP
@@ -25,9 +25,6 @@ class BlockProcessor;
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file);
 	std::string json_file_name;
-	uint16_t udp_port;
-	uint16_t num_io_threads;
-	uint16_t num_packet_processing_threads;
 	boost::asio::ip::address address;
 	std::string db_accounts_path;
 	std::string db_blocks_path;

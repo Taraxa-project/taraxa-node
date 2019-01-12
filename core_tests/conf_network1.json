@@ -1,0 +1,5 @@
+{
+  "udp_port": 3333,
+	"network_io_threads": 2,
+	"network_packet_processing_threads": 4
+}
