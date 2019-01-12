@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-12 13:51:02
+ * @Last Modified time: 2019-01-10 11:56:14
  */
 
 #include "full_node.hpp"
@@ -13,7 +13,6 @@
 #include "network.hpp"
 #include "block_processor.hpp"
 #include <boost/asio.hpp>
-
 
 namespace taraxa{
 
@@ -27,27 +26,32 @@ FullNodeConfig::FullNodeConfig (std::string const &json_file):json_file_name(jso
 	assert(doc.HasMember("address"));
 	assert(doc.HasMember("db_accounts_path"));
 	assert(doc.HasMember("db_blocks_path"));
+	assert(doc.HasMember("num_io_threads"));
+	assert(doc.HasMember("num_packet_processing_threads"));
 
 	udp_port = doc["udp_port"].GetUint();
 	address = boost::asio::ip::address::from_string(doc["address"].GetString());
 	db_accounts_path = doc["db_accounts_path"].GetString();
 	db_blocks_path = doc["db_blocks_path"].GetString();
+	num_io_threads = doc["num_io_threads"].GetUint();
+	num_packet_processing_threads = doc["num_packet_processing_threads"].GetUint();
 }
 
 void FullNode::setVerbose(bool verbose){
 	verbose_=verbose;
 }
 
-FullNode::FullNode(FullNodeConfig const & conf):
+FullNode::FullNode(FullNodeConfig const & conf) try:
 	conf_(conf),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
-	network_(*this, conf.udp_port),
-	blk_processor_(*this){
-}
+	network_(std::make_shared<Network>(io_context_, conf.udp_port)),
+	blk_processor_(std::make_shared<BlockProcessor>(*this)){
+} catch(std::exception &e){
+	throw e;
+} 
 
 std::shared_ptr<FullNode> FullNode::getShared() {return shared_from_this();}
-// void sendBlock(unsigned from, unsigned to, unsigned long new_balance);
 boost::asio::io_context & FullNode::getIoContext() {return io_context_;}
 
 string FullNode::accountCreate(name_t const & address){
@@ -74,5 +78,6 @@ std::string FullNode::blockCreate(blk_hash_t const & prev_hash, name_t const & f
 	return jsonStr;
 }
 
+const FullNodeConfig & FullNode::getConfig() const { return conf_;}
 
 } // namespace taraxa

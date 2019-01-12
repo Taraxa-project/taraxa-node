@@ -47,4 +47,9 @@ rapidjson::Document loadJsonFile(const std::string& json_file_name) {
 	} 
 }
 
+void thisThreadSleepForSeconds(unsigned sec){
+	std::this_thread::sleep_for(std::chrono::seconds(sec));
+}
+
+
 }  // namespace taraxa

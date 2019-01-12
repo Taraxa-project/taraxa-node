@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-12 13:59:46
+ * @Last Modified time: 2019-01-11 16:29:11
  */
  
 #ifndef FULL_NODE_HPP
@@ -15,17 +15,16 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include "util.hpp"
-#include "network.hpp"
-#include "block_processor.hpp"
+
 namespace taraxa{
 
-class FullNode;
 class RocksDb;
+class Network;
+class BlockProcessor;
 
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file);
 	std::string json_file_name;
-	uint16_t udp_port;
 	boost::asio::ip::address address;
 	std::string db_accounts_path;
 	std::string db_blocks_path;
@@ -46,25 +45,27 @@ public:
 	// Block related
 	std::string blockCreate(blk_hash_t const & prev_hash, name_t const & from_address, 
 		name_t const & to_address, uint64_t balance);
+	FullNodeConfig const & getConfig() const;
 private:
 	// configuration
 	FullNodeConfig conf_;
+	bool verbose_=false;
+	// io_context must be constructed before Network
+	boost::asio::io_context io_context_;
 
 	//storage 
 	std::shared_ptr<RocksDb> db_accounts_;
 	std::shared_ptr<RocksDb> db_blocks_;
 
 	// network
-	Network network_;
+	std::shared_ptr<Network> network_;
 	// ledger
 
 	// block processor (multi processing)
-	BlockProcessor blk_processor_;
-
+	std::shared_ptr<BlockProcessor> blk_processor_;
 
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting
-	bool verbose_=false;
-	boost::asio::io_context io_context_;
+	
 };
 
 }

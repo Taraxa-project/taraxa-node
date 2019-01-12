@@ -9,12 +9,13 @@ CXXFLAGS := -std=c++17 -g -W -Wall -Wextra -pedantic
 LDFLAGS := -L submodules/cryptopp
 LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
 BUILD := build
-
+TEST_BUILD := test_build
 
 PROGRAMS = \
     $(BUILD)/main
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
+TEST_COMPILE = echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $(TEST_BUILD)/run_test $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest
 
 ifeq ($(OS), Darwin) #Mac
   BLS_COMPILE += -L /usr/local/Cellar/openssl@1.1/1.1.1/lib -I /usr/local/Cellar/openssl@1.1/1.1.1/include
@@ -39,6 +40,9 @@ HEADERS = \
     wallet.hpp \
     block_processor.hpp
 
+TESTS = \
+    core_tests/dag_test.cpp
+
 all: create_dir $(DEPENDENCIES) $(PROGRAMS)
 
 DEPENDENCIES: \
@@ -59,17 +63,29 @@ submodules/rapidjson/readme.md:
 create_dir: 	
 	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
 
+create_test_dir: 
+	@if [ ! -d $(BUILD) ]; then	mkdir -p $(TEST_BUILD); fi 
 
 $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp  rpc.cpp block_processor.cpp network.cpp full_node.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
+core_tests/dag_test:  
+	g++ -std=c++17 core_tests/dag_test.cpp dag.cpp -lgtest -I.
 
-t: test
-test: $(TESTS)
+core_tests/network_test: create_test_dir 
+	g++ -std=c++17 -o $(TEST_BUILD)/network_test core_tests/network_test.cpp network.cpp util.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system 
+# make c; make core_tests/network_test; ./test_build/network_test
 
+core_tests/full_node_test:  
+	g++ -std=c++17 -o core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp block_processor.cpp network.cpp full_node.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
+
+
+test: 
+	 
 ct:
 	rm -rf $(CLEAN_TESTS)
 
 c: clean
 clean:
-	@echo CLEAN && rm -rf $(BUILD) $(PROGRAMS) $(CLEAN_TESTS)
+	@echo CLEAN && rm -rf $(BUILD) $(PROGRAMS) $(CLEAN_TESTS) $(TEST_BUILD)
+

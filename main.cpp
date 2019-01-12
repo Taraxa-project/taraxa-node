@@ -22,30 +22,19 @@ int main(int argc, char *argv[]){
 	std::string conf_full_node = argv[1];
 	std::string conf_wallet = argv[2];
 	std::string conf_rpc = argv[3];
-	std::shared_ptr<taraxa::FullNode> node (new taraxa::FullNode(conf_full_node));
-	node->setVerbose(true);
-	std::cout<<"Full node is set"<<std::endl;
-	std::string action;
-	std::shared_ptr<taraxa::Wallet> wallet (new taraxa::Wallet(conf_wallet));
-	boost::asio::io_context context;
-	std::shared_ptr<taraxa::Rpc> rpc (new taraxa::Rpc(conf_rpc, context, *node, *wallet));
-	rpc->start();
-
-
-	// unsigned from, to;
-	// while (true){
-	// 	cout<<"Action [c=create account, s=send, e=exit]"<<endl;
-	// 	cin>>action>>from>>to;
-	// 	if (action == "c"){
-	// 		// from: idx, to: init balance
-	// 		fnode.createAccount(from, to);
-	// 	} else if (action == "s"){
-	// 		fnode.sendBlock(from, to, 1);
-	// 	} 
-	// 	else if (action == "e"){
-	// 		break;
-	// 	}	
-	// }
-	context.run();
-	return 1;
+	try{
+		std::shared_ptr<taraxa::FullNode> node (new taraxa::FullNode(conf_full_node));
+		node->setVerbose(true);
+		std::cout<<"Full node is set"<<std::endl;
+		std::string action;
+		std::shared_ptr<taraxa::Wallet> wallet (new taraxa::Wallet(conf_wallet));
+		boost::asio::io_context context;
+		std::shared_ptr<taraxa::Rpc> rpc (new taraxa::Rpc(conf_rpc, context, *node, *wallet));
+		rpc->start();
+		context.run();
+		return 1;
+	}
+	catch(std::exception &e){
+		std::cerr<<e.what();
+	}
 }
