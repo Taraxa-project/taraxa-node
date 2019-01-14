@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 12:27:20
+ * @Last Modified time: 2019-01-14 12:40:52
  */
 #include "state_block.hpp"
 #include <rapidjson/document.h>
@@ -13,49 +13,74 @@ namespace taraxa{
 
 using std::to_string;
 
+blk_hash_t StateBlock::getPivot() {return pivot_;}
+vec_tip_t StateBlock::getTips() {return tips_;}
+vec_trx_t StateBlock::getTrxs() {return trxs_;}
+sig_t StateBlock::getSignature() {return signature_;}
+blk_hash_t StateBlock::getHash() {return hash_;}
 
-StateBlock::StateBlock(blk_hash_t prev_hash, 
-	name_t from_address, 
-	name_t to_address,
-	uint64_t balance, 
-	nonce_t work, 
+StateBlock::StateBlock(blk_hash_t pivot, 
+	vec_tip_t tips, 
+	vec_trx_t trxs,
 	sig_t signature, 
-	blk_hash_t matching
+	blk_hash_t hash
 	): 
-	prev_hash_(prev_hash), 
-	from_address_(from_address), 
-	to_address_(to_address), 
-	balance_(balance), 
-	work_(work),
+	pivot_(pivot), 
+	tips_(tips), 
+	trxs_(trxs), 
 	signature_(signature), 
-	matching_(matching){}
+	hash_(hash){
+
+}
 
 StateBlock::StateBlock(std::string const &json){
 
-	rapidjson::Document doc = taraxa::strToJson(json);
-		
-	prev_hash_= doc["prev_hash"].GetString();
-	from_address_=doc["from_address"].GetString();
-	to_address_=doc["to_address"].GetString();
-	balance_=doc["balance"].GetUint64();
-	work_=doc["work"].GetString();
+	using namespace rapidjson;
+	Document doc = taraxa::strToJson(json);
+	
+	assert(doc["pivot"].IsString());
+	assert(doc["tips"].IsArray());
+	assert(doc["trxs"].IsArray());
+	assert(doc["signature"].IsString());
+	assert(doc["hash"].IsString());
+	
+	pivot_= doc["pivot"].GetString();
+	const Value & tips = doc["tips"];
+	for (SizeType i = 0; i < tips.Size(); ++i){
+		assert(tips[i].IsString());
+		tips_.push_back(tips[i].GetString());
+	}
+	const Value & trxs = doc["trxs"];
+	for (SizeType i = 0; i < trxs.Size(); ++i){
+		assert(trxs[i].IsString());
+		trxs_.push_back(trxs[i].GetString());
+	}
 	signature_=doc["signature"].GetString();
-	matching_=doc["matching"].GetString();
+	hash_=doc["hash"].GetString();
 
 }
 
 std::string StateBlock::getJsonStr(){
-	rapidjson::Document doc;
+	
+	using namespace rapidjson;
+	Document doc;
 	doc.SetObject();
 
+	Value tips(kArrayType);
+	Value trxs(kArrayType);
 	auto& allocator = doc.GetAllocator();
-	doc.AddMember("prev_hash", rapidjson::StringRef(prev_hash_.c_str()), allocator);
-	doc.AddMember("from_address", rapidjson::StringRef(from_address_.c_str()), allocator);
-	doc.AddMember("to_address", rapidjson::StringRef(from_address_.c_str()), allocator);
-	doc.AddMember("balance", rapidjson::Value().SetUint64(balance_), allocator);
-	doc.AddMember("work", rapidjson::StringRef(work_.c_str()), allocator);
-	doc.AddMember("signature", rapidjson::StringRef(signature_.c_str()), allocator);
-	doc.AddMember("matching", rapidjson::StringRef(matching_.c_str()), allocator);
+	for (auto i = 0; i < tips_.size(); ++i){
+		tips.PushBack(StringRef(tips_[i].c_str()),allocator);
+	}
+	for (auto i = 0; i < trxs_.size(); ++i){
+		trxs.PushBack(StringRef(trxs_[i].c_str()),allocator);
+	}	
+
+	doc.AddMember("pivot", StringRef(pivot_.c_str()), allocator);
+	doc.AddMember("tips", tips, allocator);
+	doc.AddMember("trxs", trxs, allocator);	
+	doc.AddMember("signature", StringRef(signature_.c_str()), allocator);
+	doc.AddMember("hash", StringRef(hash_.c_str()), allocator);
 
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -63,4 +88,4 @@ std::string StateBlock::getJsonStr(){
 	return buffer.GetString();
 }
 
-}
+}  //namespace
