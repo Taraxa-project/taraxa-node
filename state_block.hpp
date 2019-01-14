@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:37 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-10 12:11:31
+ * @Last Modified time: 2019-01-14 12:09:38
  */
 
 #ifndef STATE_BLOCK_HPP
@@ -19,62 +19,50 @@ namespace taraxa{
 using std::string;
 
 // Block definition
-/*					Size		Description 
-	prev_hash						hash of previous block
-	from_address					from account address that create the block
-	to_address						to account address  
-	balance							resulting balance
-	work							proof of work
-	signature						signature 
-	matching						receiver address for send block; sender for receive block
-*/
 
 class StateBlock{
 public:
 
-	StateBlock(blk_hash_t prev_hash, 
-				name_t from_address, 
-				name_t to_address,
-				uint64_t balance, 
-				nonce_t work, 
+	StateBlock(blk_hash_t pivot, 
+				vec_tip_t tips, 
+				vec_trx_t trxs,
 				sig_t signature, 
-				blk_hash_t matching
+				blk_hash_t hash
 				);
 	StateBlock(const string &json);
 	
 	friend std::ostream & operator<<(std::ostream &str, StateBlock &u){
-		str<<"	prev_hash	= "<< u.prev_hash_ << std::endl;
-		str<<"	from		= "<< u.from_address_ << std::endl;
-		str<<"	to			= "<< u.to_address_ <<std::endl;
-		str<<"	balance		= "<< u.balance_ << std::endl;
-		str<<"	work		= "<< u.work_<<std::endl;
+		str<<"	pivot		= "<< u.pivot_ << std::endl;
+		str<<"	tips		= ";
+		for (auto const &t: u.tips_)
+			str<< t <<" ";
+		str<<std::endl;
+		str<<"	trxs		= ";
+		for (auto const &t: u.trxs_)
+			str<< t <<" ";
+		str<<std::endl;
 		str<<"	signature	= "<< u.signature_<<std::endl;
-		str<<"	matching	= "<< u.matching_<<std::endl;
+		str<<"	hash		= "<< u.hash_<<std::endl;
 
 		return str;
 	}
 	
-	blk_hash_t getPrevHash() {return prev_hash_;}
-	name_t getFrom() {return from_address_;}
-	name_t getTo() {return to_address_;}
-	bal_t getBalance() {return balance_;}
-	nonce_t getWork() {return work_;}
-	sig_t getSignature() {return signature_;}
-	blk_hash_t getMatching() {return matching_;}
-	blk_hash_t getHash() {return "Not implement yet\n";}
+	blk_hash_t getPivot();
+	vec_tip_t getTips(); 
+	vec_trx_t getTrxs();
+	sig_t getSignature();
+	blk_hash_t getHash();
 	std::string getJsonStr();
 
 private:
 
 	constexpr static unsigned nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
 	
-	blk_hash_t prev_hash_ = "0";
-	name_t from_address_ = "0"; 
-	name_t to_address_ = "0"; 
-	bal_t balance_ = 0;
-	nonce_t work_ = "0";
+	blk_hash_t pivot_ = "0";
+	vec_tip_t tips_ ; 
+	vec_trx_t trxs_ ; // transactions
 	sig_t signature_ = "0";
-	blk_hash_t matching_ = "0";
+	blk_hash_t hash_ = "0";
 };
 
 } // namespace taraxa

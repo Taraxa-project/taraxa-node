@@ -41,7 +41,6 @@ struct ProcessReturn{
 		MISS_SOURCE
 	 };
 	 taraxa::name_t user_account;
-	 taraxa::bal_t balance;
 };
 
 template <typename enumT> 
