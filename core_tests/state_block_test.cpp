@@ -142,10 +142,10 @@ TEST (uint256_hash_t, send_receive_three_cstr){
 	ASSERT_EQ(outgoings, receivings);
 }
 
-TEST (StateBlock, json_format){
+TEST (StateBlock, string_format){
 	using std::string; 
-	const StateBlock blk (
-	("1111111111111111111111111111111111111111111111111111111111111111"),
+	StateBlock blk (
+	string("1111111111111111111111111111111111111111111111111111111111111111"),
 	{
 	("2222222222222222222222222222222222222222222222222222222222222222"),
 	("3333333333333333333333333333333333333333333333333333333333333333"),
@@ -157,28 +157,24 @@ TEST (StateBlock, json_format){
 	("7777777777777777777777777777777777777777777777777777777777777777"),
 	("8888888888888888888888888888888888888888888888888888888888888888"));
 	std::string json = blk.getJsonStr();
-	// std::cout<<json<<std::endl;
-
-	// std::vector<uint8_t> bytes;
-	// // Need to put a scope of vectorstream, other bytes won't get result.
-	// {
-	// 	vectorstream strm1(bytes);
-	// 	blk.serialize(strm1);
-	// }
-	// std::cout<<"Size of stream "<<bytes.size()<<std::endl;
-
-	// for (auto const & b: bytes)
-	// 	std::cout<<std::bitset<8>(b)<<" ";
-	// std::cout<<"\n";
-	// bufferstream strm2 (bytes.data(), bytes.size());
-	// StateBlock blk2;
-	// blk2.deserialize2(strm2);
-	// std::cout<<blk.getJsonStr();
-	// for (auto const & b: bytes)
-	// 	std::cout<<std::bitset<8>(b)<<" ";
-	// std::cout<<"\n";
-	// // std::cout<<blk2.getJsonStr();
-	// // ASSERT_EQ(blk.getJsonStr(), blk2.getJsonStr());
+	std::stringstream ss1, ss2;
+	ss1<<blk;
+	std::vector<uint8_t> bytes;
+	// Need to put a scope of vectorstream, other bytes won't get result.
+	{
+		vectorstream strm1(bytes);
+		blk.serialize(strm1);
+	}
+	// check stream size
+	ASSERT_EQ(bytes.size(), 258);
+	bufferstream strm2 (bytes.data(), bytes.size());
+	StateBlock blk2;
+	blk2.deserialize(strm2);
+	ss2<<blk2;
+	// Compare block content
+	ASSERT_EQ(ss1.str(), ss2.str());
+	// Compare json output
+	ASSERT_EQ(blk.getJsonStr(), blk2.getJsonStr());
 }
 
 }
