@@ -22,13 +22,14 @@ using std::string;
 
 class StateBlock{
 public:
-
+	StateBlock() = default;
 	StateBlock(blk_hash_t pivot, 
 				vec_tip_t tips, 
 				vec_trx_t trxs,
 				sig_t signature, 
 				blk_hash_t hash
 				);
+	StateBlock(stream &strm);
 	StateBlock(const string &json);
 	
 	friend std::ostream & operator<<(std::ostream &str, StateBlock &u){
@@ -54,15 +55,18 @@ public:
 	blk_hash_t getHash();
 	std::string getJsonStr() const;
 
+	bool serialize (stream & strm) const;
+	bool deserialize (stream & strm);
+
 private:
 
 	constexpr static unsigned nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
 	
-	blk_hash_t pivot_ = "0";
-	vec_tip_t tips_ ; 
-	vec_trx_t trxs_ ; // transactions
-	sig_t signature_ = "0";
-	blk_hash_t hash_ = "0";
+	blk_hash_t pivot_;
+	vec_tip_t tips_; 
+	vec_trx_t trxs_; // transactions
+	sig_t signature_;
+	blk_hash_t hash_;
 };
 
 } // namespace taraxa
