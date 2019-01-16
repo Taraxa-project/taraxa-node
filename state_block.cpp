@@ -60,7 +60,7 @@ StateBlock::StateBlock(std::string const &json){
 
 }
 
-std::string StateBlock::getJsonStr(){
+std::string StateBlock::getJsonStr() const{
 	
 	using namespace rapidjson;
 	Document doc;
