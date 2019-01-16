@@ -29,8 +29,8 @@ struct UdpNetworkConfig {
 
 enum class UdpMessageType: uint8_t{
 	invalid = 0,
-	transactions = 1,
-	block = 2
+	block = 1,
+	trans = 2
 };
 
 struct UdpData{

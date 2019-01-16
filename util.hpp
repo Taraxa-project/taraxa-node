@@ -53,18 +53,20 @@ using bufferstream = boost::iostreams::stream_buffer<boost::iostreams::basic_arr
 using vectorstream = boost::iostreams::stream_buffer<boost::iostreams::back_insert_device<std::vector<uint8_t>>>;
 
 // Read a raw byte stream the size of T and fill value
+// return true if success
 template <typename T> 
 bool read (stream & stm, T &value){
-	static_assert (std::is_standard_layout<T>::value, "Cannot stream read non-standard layout types");
+	static_assert (std::is_pod<T>::value, "Cannot stream read non-standard layout types");
 	auto bytes (stm.sgetn(reinterpret_cast<uint8_t *> (&value), sizeof (value)));
-	return bytes != sizeof (value);
+	return bytes == sizeof (value);
 }
 
 template <typename T>
-void write (stream & stm, T const & value){
-	static_assert (std::is_standard_layout<T>::value, "Cannot stream write non-standard layout types");
+bool write (stream & stm, T const & value){
+	static_assert (std::is_pod<T>::value, "Cannot stream write non-standard layout types");
 	auto bytes (stm.sputn(reinterpret_cast<uint8_t const *> (&value), sizeof (value)));
-	assert (bytes = sizeof (value));
+	assert (bytes == sizeof (value));
+	return bytes == sizeof (value);
 }
 
 

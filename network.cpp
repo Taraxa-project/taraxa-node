@@ -42,15 +42,18 @@ bool UdpMessageHeader::deserialize(stream &strm){
 	ok &= read(strm, type_);
 	ok &= read(strm, ext_);
 	valid_ = ok; 
+	assert(ok);
 	return ok;
 }
 
 void UdpMessageHeader::serialize(stream &strm) const {
-	write(strm, version_min_);
-	write(strm, version_using_);
-	write(strm, version_max_);
-	write(strm, type_);
-	write(strm, ext_);
+	bool ok = true; 
+	ok &= write(strm, version_min_);
+	ok &= write(strm, version_using_);
+	ok &= write(strm, version_max_);
+	ok &= write(strm, type_);
+	ok &= write(strm, ext_);
+	assert(ok);
 }
 
 // UdpMessageParser --------------------------------

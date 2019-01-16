@@ -52,7 +52,7 @@ public:
 	vec_trx_t getTrxs();
 	sig_t getSignature();
 	blk_hash_t getHash();
-	std::string getJsonStr();
+	std::string getJsonStr() const;
 
 private:
 
