@@ -21,8 +21,10 @@ UdpNetworkConfig::UdpNetworkConfig (std::string const &json_file):json_file_name
 // MessageHeader ---------------------------------
 
 UdpMessageHeader::UdpMessageHeader(): 
-	version_min_(12), version_using_(13), version_max_(14),type_(UdpMessageType::invalid), ext_(1){
-}
+	version_min_(0), version_using_(1), version_max_(1), type_(UdpMessageType::invalid), ext_(0){}
+
+UdpMessageHeader::UdpMessageHeader(uint8_t min, uint8_t use, uint8_t max, UdpMessageType type, uint16_t ext):
+	version_min_(min), version_using_(use), version_max_(max), type_(type), ext_(ext){} 
 
 std::string UdpMessageHeader::getString() const {
 	std::string s = "Header Version (max, using, min, type, ext) = ("+
@@ -33,6 +35,8 @@ std::string UdpMessageHeader::getString() const {
 		std::to_string(EXIT_FAILURE)+")\n";
 	return s;
 }
+
+UdpMessageType UdpMessageHeader::getMessageType() const { return type_;}
 
 bool UdpMessageHeader::deserialize(stream &strm){
 	bool ok = true;
@@ -64,18 +68,28 @@ UdpMessageParser::UdpMessageParser(UdpData* data){
 	assert(sz <= UdpMessageParser::max_safe_udp_message_size);
 	bufferstream strm (buf, sz);
 	header_.deserialize(strm);
+	if (header_.getMessageType() == UdpMessageType::block){
+		// parse block 
+		//if (verbose_){
+			// std::cout<<"Receive a block message"<<std::endl;
+			// StateBlock blk(strm);
+			// std::cout<<blk<<std::endl;
+			// std::cout<<blk.getJsonStr()<<"\n";
+		//}
+	}
 } 
+
 UdpMessageHeader UdpMessageParser::getHeader() {return header_;}
 
 // UdpMessage --------------------------------------
-UdpMessage::UdpMessage(){}
+UdpMessage::UdpMessage() = default;
 UdpMessage::UdpMessage(UdpMessageHeader const & header): header_(header){}
 UdpMessageHeader UdpMessage::getHeader(){return header_;}
 // Test message ...........
 
 class UdpMessageTest : public UdpMessage{
 public:
-	UdpMessageTest(){}
+	UdpMessageTest() = default;
 	UdpMessageTest(UdpMessageHeader const & header):UdpMessage(header){}
 	void serialize(stream &strm) const override{
 		header_.serialize(strm);
@@ -83,6 +97,19 @@ public:
 	void visit(UdpMessageVisitor &visitor) const override {}
 };
 
+class UdpBlockMessage : public UdpMessage{
+public: 
+	UdpBlockMessage () = default;
+	UdpBlockMessage (StateBlock const & block): UdpMessage(UdpMessageHeader(0,1,1, UdpMessageType::block, 0)), block_(block){}
+	void serialize(stream &strm) const override{
+		header_.serialize(strm);
+		block_.serialize(strm);
+	}
+	void visit(UdpMessageVisitor &visitor) const override {}
+
+private:
+	StateBlock block_;
+};
 // UdpBuffer ------------------------------------
 
 UdpBuffer::UdpBuffer(size_t count, size_t sz):
@@ -302,5 +329,24 @@ void Network::sendTest(end_point_udp_t const &ep){
 	sendBuffer(bytes->data(), bytes->size(), ep, [this, bytes, ep](boost::system::error_code const &ec, size_t sz){
 	});
 }
+
+void Network::sendBlock(end_point_udp_t const &ep, StateBlock const & blk){
+	UdpBlockMessage msg(blk);
+	if (verbose_){
+		print("Sent Block, block hash ===> " + blk.getHash().toString());
+	}
+	auto bytes = msg.to_bytes();
+	sendBuffer(bytes->data(), bytes->size(), ep, [this, bytes, ep](boost::system::error_code const &ec, size_t sz){
+	});
+}
+
+std::vector<std::string> & Network::getReceivedMessages() {
+	return received_messages_;
+}
+
+void Network::addReceivedMessage(std::string const & str){
+	received_messages_.push_back(str);
+}
+
 
 }

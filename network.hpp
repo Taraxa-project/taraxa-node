@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-11 16:03:02 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-11 16:38:23
+ * @Last Modified time: 2019-01-17 12:25:41
  */
  
 #ifndef NETWORK_HPP
@@ -16,6 +16,8 @@
 #include <boost/circular_buffer.hpp>
 #include <boost/thread.hpp>
 #include "util.hpp"
+#include "state_block.hpp"
+#include "visitor.hpp"
 
 namespace taraxa{
 
@@ -42,9 +44,11 @@ struct UdpData{
 class UdpMessageHeader{
 public:
 	UdpMessageHeader ();
+	UdpMessageHeader (uint8_t min, uint8_t use, uint8_t max, UdpMessageType type, uint16_t ext);
 	void serialize (stream &) const;
 	bool deserialize (stream &);
 	std::string getString() const;
+	UdpMessageType getMessageType() const;
 private:
 	bool valid_ = true;
 	uint8_t version_min_;
@@ -54,6 +58,10 @@ private:
 	uint16_t ext_;
 };
 
+/**
+ * Unpack the UDP message, deserialize header, 
+ * based on message type, call different deserializer
+ */
 
 class UdpMessageParser{
 public:
@@ -71,6 +79,11 @@ public:
 	virtual void publish();
 	virtual ~UdpMessageVisitor();
 };
+
+/**
+ * base class of messages, only contains header data
+ * use visitor to deserialize different block type
+ */
 
 class UdpMessage{
 public:
@@ -93,12 +106,12 @@ protected:
 
 
 /**
-  * A circular buffer for servicing UDP datagrams. 
-  * This container follows a producer/consumer model where the operating system is producing data in to buffers which are serviced by internal threads.
-  * If buffers are not serviced fast enough they're internally dropped.
-  * This container has a maximum space to hold N (count) buffers of M (sz) size and will allocate them in round-robin order.
-  * All public methods are thread-safe
-*/
+ * A circular buffer for servicing UDP datagrams. 
+ * This container follows a producer/consumer model where the operating system is producing data in to buffers which are serviced by internal threads.
+ * If buffers are not serviced fast enough they're internally dropped.
+ * This container has a maximum space to hold N (count) buffers of M (sz) size and will allocate them in round-robin order.
+ * All public methods are thread-safe
+ */
 
 class UdpBuffer{
 public: 
@@ -140,10 +153,11 @@ private:
 	bool stopped_;
 	bool verbose_;
 };
-
-// It has two parts
-// 1. Packet receiving, multi-threaded, async io
-// 2. Packet processing, multi-threaded
+/**
+ * It has two parts
+ * 1. Packet receiving, multi-threaded, async io
+ * 2. Packet processing, multi-threaded
+ */
 
 class Network{
 public:
@@ -157,12 +171,15 @@ public:
 	void rpcAction(boost::system::error_code const & ec, size_t size);
 	void sendBuffer(uint8_t const * buffer, size_t sz, end_point_udp_t const & ep, std::function<void(boost::system::error_code const &ec, size_t sz)>);
 	void sendTest(end_point_udp_t const & ep);
+	void sendBlock(end_point_udp_t const & ep, StateBlock const & blk);
 	UdpNetworkConfig getConfig();
 	// for debugging
 	void setVerbose(bool verbose);
 	void print (std::string const &str);
 	unsigned getReceivedPacket();
 	unsigned getSentPacket();
+	std::vector<std::string> & getReceivedMessages() ;
+	void addReceivedMessage(std::string const & str);
 private:
 	static const size_t BUFFER_SIZE = 512; 
 	static const size_t BUFFER_COUNT = 4096;
@@ -185,6 +202,7 @@ private:
 	bool verbose_ = false;
 	unsigned long long num_received_packet_ = 0.0;
 	unsigned long long num_sent_packet_ = 0.0;
+	std::vector<std::string> received_messages_;
 };
 
 

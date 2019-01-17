@@ -16,11 +16,11 @@ namespace taraxa{
 
 using std::to_string;
 
-blk_hash_t StateBlock::getPivot() {return pivot_;}
-vec_tip_t StateBlock::getTips() {return tips_;}
-vec_trx_t StateBlock::getTrxs() {return trxs_;}
-sig_t StateBlock::getSignature() {return signature_;}
-blk_hash_t StateBlock::getHash() {return hash_;}
+blk_hash_t StateBlock::getPivot() const {return pivot_;}
+vec_tip_t StateBlock::getTips() const {return tips_;}
+vec_trx_t StateBlock::getTrxs() const {return trxs_;}
+sig_t StateBlock::getSignature() const {return signature_;}
+blk_hash_t StateBlock::getHash() const {return hash_;}
 
 StateBlock::StateBlock(blk_hash_t pivot, 
 	vec_tip_t tips, 
