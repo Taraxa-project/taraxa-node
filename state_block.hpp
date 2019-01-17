@@ -48,11 +48,11 @@ public:
 		return str;
 	}
 	
-	blk_hash_t getPivot();
-	vec_tip_t getTips(); 
-	vec_trx_t getTrxs();
-	sig_t getSignature();
-	blk_hash_t getHash();
+	blk_hash_t getPivot() const;
+	vec_tip_t getTips() const ; 
+	vec_trx_t getTrxs() const;
+	sig_t getSignature() const;
+	blk_hash_t getHash() const;
 	std::string getJsonStr() const;
 
 	bool serialize (stream & strm) const;

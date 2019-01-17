@@ -124,7 +124,7 @@ TEST (UdpBuffer, multi_buffers_multithreaded){
 	ASSERT_EQ (consumed, 6000);
 }
 
-TEST(Network, udp_packet_transfer){
+TEST(Network, udp_packet_transfer_header){
 
 	boost::asio::io_context context1;
 	boost::asio::io_context context2;
@@ -149,6 +149,58 @@ TEST(Network, udp_packet_transfer){
 
 	for (auto i=0; i<10; ++i){
 		nw2->sendTest(ep);
+	}
+	
+	std::cout<<"Wait 1 second ..."<<std::endl;
+
+	taraxa::thisThreadSleepForSeconds(1);
+
+	work.reset();
+	nw2->stop();
+	nw1->stop();
+	unsigned long long num_sent = nw2->getSentPacket();
+	unsigned long long num_received = nw1->getReceivedPacket();
+	ASSERT_EQ(num_sent, num_received);
+
+}
+
+TEST(Network, udp_packet_transfer_block){
+
+	boost::asio::io_context context1;
+	boost::asio::io_context context2;
+
+	std::shared_ptr<Network> nw1 (new taraxa::Network(context1, "./core_tests/conf_network1.json"));
+	std::shared_ptr<Network> nw2 (new taraxa::Network(context2, "./core_tests/conf_network2.json"));
+	
+	unsigned port1 = nw1->getConfig().udp_port;
+	end_point_udp_t ep(boost::asio::ip::address_v4::loopback(),port1);
+
+	// nw1->setVerbose(true);
+	// nw2->setVerbose(true);
+
+	std::unique_ptr<boost::asio::io_context::work> work (new boost::asio::io_context::work(context1));
+
+	nw1->start();
+	
+	// need to put the io_context to another thread, otherwise, it will block the main thread
+	boost::thread t([&context1](){
+		context1.run();
+	});
+	
+	StateBlock blk (
+	string("1111111111111111111111111111111111111111111111111111111111111111"),
+	{
+	("2222222222222222222222222222222222222222222222222222222222222222"),
+	("3333333333333333333333333333333333333333333333333333333333333333"),
+	("4444444444444444444444444444444444444444444444444444444444444444")}, 
+	{
+	("5555555555555555555555555555555555555555555555555555555555555555"),
+	("6666666666666666666666666666666666666666666666666666666666666666")},
+	("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
+	("8888888888888888888888888888888888888888888888888888888888888888"));
+
+	for (auto i=0; i<1; ++i){
+		nw2->sendBlock(ep, blk);
 	}
 	
 	std::cout<<"Wait 1 second ..."<<std::endl;
