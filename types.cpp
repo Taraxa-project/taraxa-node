@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 12:26:50
+ * @Last Modified time: 2019-01-17 13:54:51
  */
  
 #include "types.hpp"
@@ -120,5 +120,6 @@ template class uint_hash_t<32>;
 template class uint_hash_t<64>;
 template std::ostream & operator<<(std::ostream & strm, uint_hash_t<32> const &num);
 template std::ostream & operator<<(std::ostream & strm, uint_hash_t<64> const &num);
+
 
 } // namespace

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 12:19:05
+ * @Last Modified time: 2019-01-17 13:56:19
  */
 
 #ifndef TYPES_HPP
@@ -31,7 +31,11 @@ using resolver_udp_t = boost::asio::ip::udp::resolver;
 
 template <std::size_t Bytes>
 struct uint_hash_t {
-	static_assert (Bytes != 16 || Bytes != 32 || Bytes != 64, "Bytes must be 16, 32 or 64\n");
+	static_assert ( (Bytes == 16 
+		|| Bytes == 32 
+		|| Bytes == 64), 
+		"Bytes must be 16, 32 or 64\n");
+
 	using Number = typename std::conditional<Bytes == 16, uint128_t, typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type >::type;
 	uint_hash_t () = default;
 	uint_hash_t (Number const & number);
@@ -65,8 +69,6 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 using vec_tip_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
-
-
 
 // std::ostream & operator<<(std::ostream & strm, uint256_hash_t const &num){
 // 	strm << std::hex<<num.toString() <<" ";
