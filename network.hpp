@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-11 16:03:02 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 12:25:41
+ * @Last Modified time: 2019-01-17 15:38:10
  */
  
 #ifndef NETWORK_HPP
@@ -13,13 +13,15 @@
 #include <boost/asio.hpp>
 #include <mutex>
 #include <condition_variable>
-#include <boost/circular_buffer.hpp>
 #include <boost/thread.hpp>
+#include "udp_buffer.hpp"
 #include "util.hpp"
 #include "state_block.hpp"
 #include "visitor.hpp"
 
 namespace taraxa{
+
+struct UdpData; 
 
 struct UdpNetworkConfig {
 	UdpNetworkConfig (std::string const &json_file);
@@ -27,18 +29,14 @@ struct UdpNetworkConfig {
 	uint16_t udp_port;
 	uint16_t network_io_threads;
 	uint16_t network_packet_processing_threads;
+	uint32_t udp_buffer_size;
+	uint32_t udp_buffer_count;
 };
 
 enum class UdpMessageType: uint8_t{
 	invalid = 0,
 	block = 1,
 	trans = 2
-};
-
-struct UdpData{
-	uint8_t *buffer;
-	size_t sz;
-	end_point_udp_t ep;
 };
 
 class UdpMessageHeader{
@@ -63,9 +61,9 @@ private:
  * based on message type, call different deserializer
  */
 
-class UdpMessageParser{
+class UdpParseReceivingMessage{
 public:
-	UdpMessageParser(UdpData *data);
+	UdpParseReceivingMessage(UdpData *data);
 	UdpMessageHeader getHeader();
 private:
 	// MTU - IP header - UDP header
@@ -74,15 +72,9 @@ private:
 	UdpMessageHeader header_;
 };
 
-class UdpMessageVisitor{
-public:
-	virtual void publish();
-	virtual ~UdpMessageVisitor();
-};
-
 /**
  * base class of messages, only contains header data
- * use visitor to deserialize different block type
+ * use serializer in subclass
  */
 
 class UdpMessage{
@@ -91,7 +83,6 @@ public:
 	UdpMessage(UdpMessageHeader const & header);
 	virtual ~UdpMessage() = default;
 	virtual void serialize (stream &strm) const = 0;
-	virtual void visit (UdpMessageVisitor & visitor) const = 0;
 	virtual inline std::shared_ptr<std::vector<uint8_t>> to_bytes() const {
 		std::shared_ptr<std::vector<uint8_t>> bytes (new std::vector<uint8_t>);
 		vectorstream stream (*bytes);
@@ -104,55 +95,6 @@ protected:
 };
 
 
-
-/**
- * A circular buffer for servicing UDP datagrams. 
- * This container follows a producer/consumer model where the operating system is producing data in to buffers which are serviced by internal threads.
- * If buffers are not serviced fast enough they're internally dropped.
- * This container has a maximum space to hold N (count) buffers of M (sz) size and will allocate them in round-robin order.
- * All public methods are thread-safe
- */
-
-class UdpBuffer{
-public: 
-	UdpBuffer(size_t count, size_t sz);
-	
-	// Return a buffer where UDP data can be put
-	// Function will block if there are no free buffers
-	// Return nullptr if the container has stopped
-	UdpData * allocate ();
-	
-	// Return a buffer to the freelist after is has been serviced
-	void release (UdpData *data);
-	
-	// Queue a buffer that has been filled with UDP data and notify servicing threads
-	void enqueue (UdpData * data);
-	
-	// Return a buffer that has been filled with UDP data
-	// Function will block until a buffer has been added
-	// Return nullptr only if the container has stopped and job_qu is empty
-	UdpData * dequeue();
-	
-	// Stop container and notify waiting threads
-	// Once the container stopped, cannot allocate,
-	// but can consume remaining jobs in job_qu until all jobs are dequeued and relased them back to free_qu
-	void stop();
-	bool isStopped();
-	void print(const std::string &str);
-	void setVerbose(bool verbose);
-private:
-	std::mutex mutex_;
-	std::mutex mutex_for_print_;
-	std::condition_variable condition_free_qu_;
-	std::condition_variable condition_job_qu_;
-
-	boost::circular_buffer<UdpData*> free_qu_;
-	boost::circular_buffer<UdpData*> job_qu_;
-	std::vector<uint8_t> mem_pool_;
-	std::vector<UdpData> entries_;
-	bool stopped_;
-	bool verbose_;
-};
 /**
  * It has two parts
  * 1. Packet receiving, multi-threaded, async io
@@ -181,8 +123,7 @@ public:
 	std::vector<std::string> & getReceivedMessages() ;
 	void addReceivedMessage(std::string const & str);
 private:
-	static const size_t BUFFER_SIZE = 512; 
-	static const size_t BUFFER_COUNT = 4096;
+
 	UdpNetworkConfig conf_;
 	unsigned udp_port_;
 	bool on_ = true;
@@ -193,7 +134,7 @@ private:
 	end_point_udp_t ep_ = end_point_udp_t ();
 	std::mutex socket_mutex_;
 	std::mutex verbose_mutex_;
-	UdpBuffer udp_buffer_;
+	std::shared_ptr<UdpBuffer> udp_buffer_;
 	uint16_t num_io_threads_;
 	uint16_t num_packet_processing_threads_;
 	std::vector<boost::thread> packet_processing_threads_;

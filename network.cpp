@@ -1,8 +1,8 @@
 #include "network.hpp"
 #include "full_node.hpp"
+#include "visitor.hpp"
 
 namespace taraxa{
-
 
 // UdpNetworkCongif ------------------------------
 
@@ -12,10 +12,15 @@ UdpNetworkConfig::UdpNetworkConfig (std::string const &json_file):json_file_name
 	assert(doc.HasMember("udp_port"));
 	assert(doc.HasMember("network_io_threads"));
 	assert(doc.HasMember("network_packet_processing_threads"));
+	assert(doc.HasMember("udp_buffer_count"));
+	assert(doc.HasMember("udp_buffer_size"));
 
 	udp_port = doc["udp_port"].GetUint();
 	network_io_threads = doc["network_io_threads"].GetUint();
 	network_packet_processing_threads = doc["network_packet_processing_threads"].GetUint();
+	udp_buffer_count = doc["udp_buffer_count"].GetUint();
+	udp_buffer_size = doc["udp_buffer_size"].GetUint();
+
 }
 
 // MessageHeader ---------------------------------
@@ -60,14 +65,16 @@ void UdpMessageHeader::serialize(stream &strm) const {
 	assert(ok);
 }
 
-// UdpMessageParser --------------------------------
-UdpMessageParser::UdpMessageParser(UdpData* data){
+// UdpParseReceivingMessage --------------------------------
+UdpParseReceivingMessage::UdpParseReceivingMessage(UdpData* data){
 	end_point_udp_t & sender = data->ep;
 	size_t sz = data->sz;
 	uint8_t const *buf = data->buffer;
-	assert(sz <= UdpMessageParser::max_safe_udp_message_size);
+	assert(sz <= UdpParseReceivingMessage::max_safe_udp_message_size);
 	bufferstream strm (buf, sz);
+	// parse header
 	header_.deserialize(strm);
+	// based on message type, call different deserializer
 	if (header_.getMessageType() == UdpMessageType::block){
 		// parse block 
 		//if (verbose_){
@@ -79,13 +86,15 @@ UdpMessageParser::UdpMessageParser(UdpData* data){
 	}
 } 
 
-UdpMessageHeader UdpMessageParser::getHeader() {return header_;}
+UdpMessageHeader UdpParseReceivingMessage::getHeader() {return header_;}
 
 // UdpMessage --------------------------------------
 UdpMessage::UdpMessage() = default;
 UdpMessage::UdpMessage(UdpMessageHeader const & header): header_(header){}
 UdpMessageHeader UdpMessage::getHeader(){return header_;}
-// Test message ...........
+
+
+// Test message ------------------------------------
 
 class UdpMessageTest : public UdpMessage{
 public:
@@ -94,9 +103,9 @@ public:
 	void serialize(stream &strm) const override{
 		header_.serialize(strm);
 	}
-	void visit(UdpMessageVisitor &visitor) const override {}
 };
 
+// Block message -----------------------------------
 class UdpBlockMessage : public UdpMessage{
 public: 
 	UdpBlockMessage () = default;
@@ -105,105 +114,10 @@ public:
 		header_.serialize(strm);
 		block_.serialize(strm);
 	}
-	void visit(UdpMessageVisitor &visitor) const override {}
 
 private:
 	StateBlock block_;
 };
-// UdpBuffer ------------------------------------
-
-UdpBuffer::UdpBuffer(size_t count, size_t sz):
-	free_qu_(count), 
-	job_qu_(count), 
-	mem_pool_(count*sz), 
-	entries_(count),
-	stopped_(false),
-	verbose_(false){
-	assert (count>0);
-	auto mems_ (mem_pool_.data());
-	auto entry_data (entries_.data()); 
-	for (size_t i=0; i<count; ++i, ++entry_data){
-		*entry_data = {mems_ + i*sz, 0, end_point_udp_t ()};
-		free_qu_.push_back(entry_data);
-	}
-}
-
-UdpData* UdpBuffer::allocate(){
-	if (verbose_) print("[lock] UdpBuffer allocate ...");
-	std::unique_lock<std::mutex> lock(mutex_);
-
-	while (!stopped_ && free_qu_.empty()){
-		if (verbose_) print("[wait] UdpBuffer allocate ...");
-		condition_free_qu_.wait(lock);
-		if (verbose_) print("[wake up] UdpBuffer allocate ...");
-	}
-
-	UdpData *data = nullptr;
-	if (!stopped_){
-		if (!free_qu_.empty()){
-			data = free_qu_.front();
-			free_qu_.pop_front();
-		}
-	}
-	return data;
-}
-
-void UdpBuffer::release(UdpData *data){
-	assert(data != nullptr);
-	if (verbose_) print("[lock] UdpBuffer release ...");
-	std::unique_lock<std::mutex> lock(mutex_);
-	free_qu_.push_back(data);
-	condition_free_qu_.notify_one();
-	if (verbose_) print("[notify] UdpBuffer release ...");
-
-}
-
-void UdpBuffer::enqueue(UdpData *data){
-	assert(data!=nullptr);
-	if (verbose_) print("[lock] UdpBuffer enqueue ...");
-	std::unique_lock<std::mutex> lock(mutex_);
-	job_qu_.push_back(data);
-	condition_job_qu_.notify_one();
-	if (verbose_) print("[notify] UdpBuffer enqueue ...");
-
-}
-
-UdpData * UdpBuffer::dequeue(){
-	
-	if (verbose_) print("[lock] UdpBuffer dequeue ...");
-	std::unique_lock<std::mutex> lock(mutex_);
-	while (!stopped_ && job_qu_.empty()){
-		if (verbose_) print("[wait] UdpBuffer dequeue ...");
-		condition_job_qu_.wait(lock);
-		if (verbose_) print("[wake up] UdpBuffer dequeue ...");
-	}
-	UdpData *data = nullptr;
-	if (!job_qu_.empty()){
-		data = job_qu_.front();
-		job_qu_.pop_front();
-	}
-	return data;
-}
-void UdpBuffer::stop(){
-	std::unique_lock<std::mutex> lock(mutex_);
-	stopped_ = true;
-	condition_job_qu_.notify_all();
-	condition_free_qu_.notify_all();
-
-}
-bool UdpBuffer::isStopped() {
-	std::unique_lock<std::mutex> lock(mutex_);
-	return stopped_;
-}
-
-void UdpBuffer::print(std::string const & str){
-	std::unique_lock<std::mutex> lock(mutex_for_print_);
-	std::cout<<str<<std::endl;
-}
-
-void UdpBuffer::setVerbose(bool verbose){
-	verbose_ = verbose;
-}
 
 // Network ----------------------------------------
 
@@ -212,7 +126,7 @@ Network::Network(boost::asio::io_context & io_context , std::string const & conf
 	io_context_(io_context),
 	resolver_(io_context),
 	socket_(io_context, end_point_udp_t (boost::asio::ip::udp::v4(), conf_.udp_port)),
-	udp_buffer_(BUFFER_COUNT, BUFFER_SIZE),
+	udp_buffer_(std::make_shared<UdpBuffer> (conf_.udp_buffer_count, conf_.udp_buffer_size)),
 	num_io_threads_(conf_.network_io_threads),
 	num_packet_processing_threads_(conf_.network_packet_processing_threads){
 
@@ -255,7 +169,7 @@ void Network::stop(){
 	on_ = false;
 	socket_.close();
 	resolver_.cancel();
-	udp_buffer_.stop();
+	udp_buffer_->stop();
 }
 
 void Network::setVerbose(bool verbose) { verbose_=verbose;}
@@ -269,17 +183,17 @@ void Network::print(std::string const & str){
 
 void Network::receivePackets(){
 	std::unique_lock<std::mutex> lock(socket_mutex_);
-	auto data (udp_buffer_.allocate());
-	socket_.async_receive_from(boost::asio::buffer(data->buffer, BUFFER_SIZE), data->ep, 
+	auto data (udp_buffer_->allocate());
+	socket_.async_receive_from(boost::asio::buffer(data->buffer, conf_.udp_buffer_size), data->ep, 
 		[this, data](boost::system::error_code const & error, size_t sz){
 		if (!error && this->on_){
 			data->sz = sz;
-			this->udp_buffer_.enqueue(data);
+			this->udp_buffer_->enqueue(data);
 			num_received_packet_++;
 			this->receivePackets();
 		} 
 		else {
-			this->udp_buffer_.release(data);
+			this->udp_buffer_->release(data);
 			if (error == boost::system::errc::operation_canceled){
 				//ok due to connection cancelled
 				//std::out<<"Operation cancelled ..."<<std::endl;
@@ -294,17 +208,17 @@ void Network::receivePackets(){
 
 void Network::processPackets(){
 	while (on_){
-		auto data (udp_buffer_.dequeue());
+		auto data (udp_buffer_->dequeue());
 		if (data == nullptr){ // implies upd buffer stopped and job queue are empty
 			break;
 		}
 		parsePacket(data);
-		udp_buffer_.release(data);
+		udp_buffer_->release(data);
 	}
 }
 void Network::parsePacket(UdpData *data){
 	// extract data 
-	UdpMessageParser parsed (data);
+	UdpParseReceivingMessage parsed (data);
 	if (verbose_){
 		print("Received -->" + parsed.getHeader().getString());
 	}

@@ -1,5 +1,7 @@
 {
   "udp_port": 3333,
 	"network_io_threads": 2,
-	"network_packet_processing_threads": 4
+	"network_packet_processing_threads": 4,
+	"udp_buffer_size": 512 ,
+	"udp_buffer_count": 4096
 }

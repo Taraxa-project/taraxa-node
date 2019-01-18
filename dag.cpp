@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-18 14:09:17
+ * @Last Modified time: 2019-01-17 16:13:22
  */
  
 #include <tuple>
@@ -13,7 +13,7 @@
 namespace taraxa {
 
 Dag::Dag(){
-	genesis_ = addVertex("0000");
+	genesis_ = addVertex("0000000000000000000000000000000000000000000000000000000000000000");
 }
 Dag::~Dag(){}
 Dag::graph_t Dag::getGraph() { return graph_;}
