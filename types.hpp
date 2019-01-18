@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 13:56:19
+ * @Last Modified time: 2019-01-17 15:49:15
  */
 
 #ifndef TYPES_HPP
@@ -49,7 +49,7 @@ struct uint_hash_t {
 	void clear();
 	void operator= (std::string const &str);
 	bool operator== (uint_hash_t const & other) const;
-
+	bool operator< (uint_hash_t const & other) const;
 	std::string toString() const;
 	// debugging
 	void rawPrint() const;
@@ -69,11 +69,6 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 using vec_tip_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
-
-// std::ostream & operator<<(std::ostream & strm, uint256_hash_t const &num){
-// 	strm << std::hex<<num.toString() <<" ";
-// 	return strm;
-// }
 
 }
 

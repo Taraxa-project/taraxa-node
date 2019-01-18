@@ -4,5 +4,7 @@
 	"db_accounts_path": "/tmp/rocksdb/acc",
 	"db_blocks_path": "/tmp/rocksdb/blk",
 	"num_io_threads": 4,
-	"num_packet_processing_threads": 4
+	"num_packet_processing_threads": 4,
+	"udp_buffer_size": 512 ,
+	"udp_buffer_count": 4096
 }
