@@ -73,22 +73,23 @@ core_tests/dag_test: create_test_dir
 	g++ -std=c++17 -o $(TEST_BUILD)/dag_test core_tests/dag_test.cpp types.cpp dag.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -I. 
 
 core_tests/network_test: create_test_dir 
-	g++ -std=c++17 -o $(TEST_BUILD)/network_test core_tests/network_test.cpp network.cpp udp_buffer.cpp util.cpp state_block.cpp types.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system 
+	g++ -std=c++17 -o $(TEST_BUILD)/network_test core_tests/network_test.cpp rocks_db.cpp network.cpp udp_buffer.cpp util.cpp state_block.cpp full_node.cpp types.cpp visitor.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system -lrocksdb
 # make c; make core_tests/network_test; ./test_build/network_test
 
 core_tests/state_block_test: create_test_dir 
 	g++ -std=c++17 -o $(TEST_BUILD)/state_block_test core_tests/state_block_test.cpp state_block.cpp util.cpp types.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -I.  
 #
 
-core_tests/full_node_test:  
-	g++ -std=c++17 -o core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp user_account.cpp util.cpp block_processor.cpp udp_buffer.cpp network.cpp full_node.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
+core_tests/full_node_test: create_test_dir
+	g++ -std=c++17 -o $(TEST_BUILD)/full_node_test core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
 
-test: core_tests/state_block_test core_tests/network_test core_tests/dag_test
+test: core_tests/full_node_test core_tests/state_block_test core_tests/network_test core_tests/dag_test
 
 run_test: test
 	./$(TEST_BUILD)/dag_test
 	./$(TEST_BUILD)/network_test
 	./$(TEST_BUILD)/state_block_test
+	./$(TEST_BUILD)/full_node_test
 ct:
 	rm -rf $(CLEAN_TESTS)
 

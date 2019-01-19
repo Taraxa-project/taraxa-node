@@ -66,27 +66,31 @@ void UdpMessageHeader::serialize(stream &strm) const {
 }
 
 // UdpParseReceivingMessage --------------------------------
-UdpParseReceivingMessage::UdpParseReceivingMessage(UdpData* data){
+
+UdpParseReceivingMessage::UdpParseReceivingMessage(std::shared_ptr<FullNode> full_node): 
+	verbose_(false), full_node_(full_node){}
+
+void UdpParseReceivingMessage::parse(UdpData *data)
+{
 	end_point_udp_t & sender = data->ep;
 	size_t sz = data->sz;
 	uint8_t const *buf = data->buffer;
 	assert(sz <= UdpParseReceivingMessage::max_safe_udp_message_size);
 	bufferstream strm (buf, sz);
 	// parse header
-	header_.deserialize(strm);
+	UdpMessageHeader header;
+	header.deserialize(strm);
+	if (!full_node_){
+		std::cout<<"Full node not set in message parser ..."<<std::endl;
+		return;
+	}
 	// based on message type, call different deserializer
-	if (header_.getMessageType() == UdpMessageType::block){
+	if (header.getMessageType() == UdpMessageType::block){
 		// parse block 
-		//if (verbose_){
-			// std::cout<<"Receive a block message"<<std::endl;
-			// StateBlock blk(strm);
-			// std::cout<<blk<<std::endl;
-			// std::cout<<blk.getJsonStr()<<"\n";
-		//}
+		BlockVisitor visitor(full_node_);
+		visitor.visit(strm);
 	}
 } 
-
-UdpMessageHeader UdpParseReceivingMessage::getHeader() {return header_;}
 
 // UdpMessage --------------------------------------
 UdpMessage::UdpMessage() = default;
@@ -127,6 +131,8 @@ Network::Network(boost::asio::io_context & io_context , std::string const & conf
 	resolver_(io_context),
 	socket_(io_context, end_point_udp_t (boost::asio::ip::udp::v4(), conf_.udp_port)),
 	udp_buffer_(std::make_shared<UdpBuffer> (conf_.udp_buffer_count, conf_.udp_buffer_size)),
+	full_node_(nullptr),
+	udp_message_parser_(nullptr),
 	num_io_threads_(conf_.network_io_threads),
 	num_packet_processing_threads_(conf_.network_packet_processing_threads){
 
@@ -152,12 +158,15 @@ Network::~Network(){
 		t.join();
 	}
 }
-
+void Network::setFullNodeAndMsgParser(std::shared_ptr<FullNode> full_node){ 
+	full_node_ = full_node;
+	udp_message_parser_ = std::make_shared<UdpParseReceivingMessage>(full_node);
+}
 
 UdpNetworkConfig Network::getConfig() {return conf_;}
 void Network::start(){
 	if (verbose_){
-		std::cout<<"UDP Network start on port "<<udp_port_<<", io threads = "
+		std::cout<<"UDP Network start on port "<<conf_.udp_port<<", io threads = "
 		<<num_io_threads_<<", packet processing threads = "<< num_packet_processing_threads_ <<std::endl;
 	}
 	for (auto i =0; i<num_io_threads_; ++i){
@@ -172,7 +181,9 @@ void Network::stop(){
 	udp_buffer_->stop();
 }
 
-void Network::setVerbose(bool verbose) { verbose_=verbose;}
+void Network::setVerbose(bool verbose) { verbose_ = verbose;}
+void Network::setDebug(bool debug) { debug_ = debug;}
+
 unsigned Network::getReceivedPacket() {return num_received_packet_;}
 unsigned Network::getSentPacket() {return num_sent_packet_;}
 
@@ -189,7 +200,10 @@ void Network::receivePackets(){
 		if (!error && this->on_){
 			data->sz = sz;
 			this->udp_buffer_->enqueue(data);
-			num_received_packet_++;
+			if (debug_){
+				std::unique_lock<std::mutex> lock(debug_mutex_);
+				num_received_packet_++;
+			}
 			this->receivePackets();
 		} 
 		else {
@@ -218,17 +232,23 @@ void Network::processPackets(){
 }
 void Network::parsePacket(UdpData *data){
 	// extract data 
-	UdpParseReceivingMessage parsed (data);
-	if (verbose_){
-		print("Received -->" + parsed.getHeader().getString());
+	if (!full_node_){
+		if (verbose_){
+			std::cout<<"Warning! Fullnode unknown, cannot parse package ...\n";
+		}
+		return;
 	}
+	udp_message_parser_->parse(data);
 }
 
 void Network::sendBuffer(uint8_t const * buffer, size_t sz, end_point_udp_t const & ep, 
 	std::function<void(boost::system::error_code const &ec, size_t sz)> callback){
 	// Q: why share the same socket with receive???
 	std::unique_lock<std::mutex> lock(socket_mutex_);
-	num_sent_packet_++;
+	if (debug_){
+		std::unique_lock<std::mutex> lock(debug_mutex_);
+		num_sent_packet_++;
+	}
 	socket_.async_send_to(boost::asio::buffer(buffer, sz), ep, [this, callback](boost::system::error_code const & ec, size_t sz){
 		callback(ec, sz);
 	});
@@ -253,14 +273,5 @@ void Network::sendBlock(end_point_udp_t const &ep, StateBlock const & blk){
 	sendBuffer(bytes->data(), bytes->size(), ep, [this, bytes, ep](boost::system::error_code const &ec, size_t sz){
 	});
 }
-
-std::vector<std::string> & Network::getReceivedMessages() {
-	return received_messages_;
-}
-
-void Network::addReceivedMessage(std::string const & str){
-	received_messages_.push_back(str);
-}
-
 
 }

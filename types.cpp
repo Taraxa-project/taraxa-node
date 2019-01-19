@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 16:07:14
+ * @Last Modified time: 2019-01-18 17:14:42
  */
  
 #include "types.hpp"
@@ -86,6 +86,11 @@ void uint_hash_t<Bytes>::clear() {
 template <std::size_t Bytes>
 void uint_hash_t<Bytes>::operator=(std::string const & str){
 	decodeHex(str);
+}
+
+template <std::size_t Bytes>
+void uint_hash_t<Bytes>::operator=(const char *str){
+	decodeHex(std::string(str));
 }
 
 template <std::size_t Bytes>

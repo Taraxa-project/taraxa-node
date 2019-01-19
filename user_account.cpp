@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io 
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-12 13:31:22 
- * @Last Modified by: Chia-Chun Lin 
- * @Last Modified time: 2018-12-12 13:31:22 
+ * @Last Modified by: Chia-Chun Lin
+ * @Last Modified time: 2019-01-18 12:22:28
  */
  
 #include "user_account.hpp"
@@ -35,9 +35,9 @@ UserAccount::UserAccount(const string &json){
 
 	address_ = doc["address"].GetString();
 	pk_ = doc["pk"].GetString();
-	genesis_ = doc["genesis"].GetUint64();
+	genesis_ = (doc["genesis"].GetString());
 	balance_ = doc["balance"].GetUint64();
-	frontier_ = doc["frontier"].GetString();
+	frontier_ = (doc["frontier"].GetString());
 	height_ = doc["height"].GetUint64();
 }
 
@@ -48,9 +48,9 @@ std::string UserAccount::getJsonStr(){
 	auto& allocator = doc.GetAllocator();
 	doc.AddMember("address", rapidjson::StringRef(address_.c_str()), allocator);
 	doc.AddMember("pk", rapidjson::StringRef(pk_.c_str()), allocator);
-	doc.AddMember("genesis", rapidjson::StringRef(genesis_.c_str()), allocator);
+	doc.AddMember("genesis", rapidjson::StringRef(genesis_.toString().c_str()), allocator);
 	doc.AddMember("balance", rapidjson::Value().SetUint64(balance_), allocator);
-	doc.AddMember("frontier", rapidjson::StringRef(frontier_.c_str()), allocator);
+	doc.AddMember("frontier", rapidjson::StringRef(frontier_.toString().c_str()), allocator);
 	doc.AddMember("height", rapidjson::Value().SetUint64(height_), allocator);
 
 	rapidjson::StringBuffer buffer;

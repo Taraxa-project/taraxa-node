@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 15:49:15
+ * @Last Modified time: 2019-01-18 12:21:41
  */
 
 #ifndef TYPES_HPP
@@ -48,6 +48,7 @@ struct uint_hash_t {
 
 	void clear();
 	void operator= (std::string const &str);
+	void operator= (const char * str);
 	bool operator== (uint_hash_t const & other) const;
 	bool operator< (uint_hash_t const & other) const;
 	std::string toString() const;
@@ -64,6 +65,7 @@ using uint512_hash_t = uint_hash_t<64>;
 
 using key_t = std::string;
 using name_t = std::string;
+using bal_t = uint64_t;
 using sig_t = uint512_hash_t;
 using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
