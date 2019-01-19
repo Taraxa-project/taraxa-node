@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-14 12:40:52
+ * @Last Modified time: 2019-01-18 16:52:08
  */
 #include "state_block.hpp"
 #include <rapidjson/document.h>
@@ -167,6 +167,10 @@ bool StateBlock::deserialize(stream &strm){
 	ok &= read(strm, hash_);
 	assert(ok);
 	return ok;
+}
+
+bool StateBlock::operator== (StateBlock const & other) const{
+	return this->getJsonStr() == other.getJsonStr();
 }
 
 }  //namespace

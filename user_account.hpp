@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-27 14:53:42 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-04 11:36:49
+ * @Last Modified time: 2019-01-18 12:02:42
  */
  
 #ifndef USER_ACCOUNT
@@ -12,6 +12,7 @@
 #include <iostream> 
 #include <string> 
 #include "util.hpp"
+#include "types.hpp"
 
 namespace taraxa{
 using std::string;
@@ -41,9 +42,9 @@ public:
 private:
 	name_t address_ = "0";
 	key_t pk_ = "0";
-	blk_hash_t genesis_ = "0";
+	blk_hash_t genesis_ = "0000000000000000000000000000000000000000000000000000000000000000";
 	bal_t balance_ = 0;
-	blk_hash_t frontier_ = "0";
+	blk_hash_t frontier_ = "0000000000000000000000000000000000000000000000000000000000000000";
 	uint64_t height_ = 0;
 };
 

@@ -151,7 +151,7 @@ TEST(Network, udp_packet_transfer_header){
 		nw2->sendTest(ep);
 	}
 	
-	std::cout<<"Wait 1 second ..."<<std::endl;
+	std::cout<<"Waiting packages for 1 second ..."<<std::endl;
 
 	taraxa::thisThreadSleepForSeconds(1);
 
@@ -203,7 +203,7 @@ TEST(Network, udp_packet_transfer_block){
 		nw2->sendBlock(ep, blk);
 	}
 	
-	std::cout<<"Wait 1 second ..."<<std::endl;
+	std::cout<<"Waiting packages for 1 second ..."<<std::endl;
 
 	taraxa::thisThreadSleepForSeconds(1);
 

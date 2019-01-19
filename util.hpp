@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:26:50 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 12:20:16
+ * @Last Modified time: 2019-01-18 12:04:06
  */
  
  #ifndef UTIL_HPP
@@ -28,7 +28,6 @@ namespace taraxa{
 rapidjson::Document strToJson( std::string const & str);
 // load file and convert to json doc
 rapidjson::Document loadJsonFile( std::string const& json_file_name); 
-
 
 struct ProcessReturn{
 	 enum class Result {
@@ -68,7 +67,6 @@ bool write (stream & stm, T const & value){
 	assert (bytes == sizeof (value));
 	return bytes == sizeof (value);
 }
-
 
 void thisThreadSleepForSeconds(unsigned sec);
 

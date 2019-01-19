@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-11 16:03:02 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 15:38:10
+ * @Last Modified time: 2019-01-18 17:13:00
  */
  
 #ifndef NETWORK_HPP
@@ -17,11 +17,11 @@
 #include "udp_buffer.hpp"
 #include "util.hpp"
 #include "state_block.hpp"
-#include "visitor.hpp"
 
 namespace taraxa{
 
 struct UdpData; 
+class FullNode;
 
 struct UdpNetworkConfig {
 	UdpNetworkConfig (std::string const &json_file);
@@ -63,13 +63,14 @@ private:
 
 class UdpParseReceivingMessage{
 public:
-	UdpParseReceivingMessage(UdpData *data);
-	UdpMessageHeader getHeader();
+	UdpParseReceivingMessage(std::shared_ptr<FullNode> full_node);
+
+	void parse(UdpData *data);
 private:
 	// MTU - IP header - UDP header
 	static constexpr size_t max_safe_udp_message_size = 508;
-	end_point_udp_t sender_;
-	UdpMessageHeader header_;
+	bool verbose_;
+	std::shared_ptr<FullNode> full_node_;
 };
 
 /**
@@ -115,17 +116,18 @@ public:
 	void sendTest(end_point_udp_t const & ep);
 	void sendBlock(end_point_udp_t const & ep, StateBlock const & blk);
 	UdpNetworkConfig getConfig();
+	// no need to set full node in network testing
+	void setFullNodeAndMsgParser(std::shared_ptr<FullNode> full_node);
+
 	// for debugging
 	void setVerbose(bool verbose);
+	void setDebug(bool debug);
 	void print (std::string const &str);
 	unsigned getReceivedPacket();
 	unsigned getSentPacket();
-	std::vector<std::string> & getReceivedMessages() ;
-	void addReceivedMessage(std::string const & str);
 private:
 
 	UdpNetworkConfig conf_;
-	unsigned udp_port_;
 	bool on_ = true;
 	
 	boost::asio::io_context & io_context_;
@@ -135,15 +137,18 @@ private:
 	std::mutex socket_mutex_;
 	std::mutex verbose_mutex_;
 	std::shared_ptr<UdpBuffer> udp_buffer_;
+	std::shared_ptr<FullNode> full_node_;
+	std::shared_ptr<UdpParseReceivingMessage> udp_message_parser_;
 	uint16_t num_io_threads_;
 	uint16_t num_packet_processing_threads_;
 	std::vector<boost::thread> packet_processing_threads_;
 
 	// for debugging
 	bool verbose_ = false;
-	unsigned long long num_received_packet_ = 0.0;
-	unsigned long long num_sent_packet_ = 0.0;
-	std::vector<std::string> received_messages_;
+	bool debug_ = false;
+	std::mutex debug_mutex_;
+	uint64_t num_received_packet_ = 0;
+	uint64_t num_sent_packet_ = 0;
 };
 
 

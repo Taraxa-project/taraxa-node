@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:37 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-14 12:09:38
+ * @Last Modified time: 2019-01-18 16:52:03
  */
 
 #ifndef STATE_BLOCK_HPP
@@ -47,7 +47,7 @@ public:
 
 		return str;
 	}
-	
+	bool operator== (StateBlock const & other) const;
 	blk_hash_t getPivot() const;
 	vec_tip_t getTips() const ; 
 	vec_trx_t getTrxs() const;

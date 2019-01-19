@@ -1,0 +1,5 @@
+{
+  "address": "192.168.1.8",
+	"db_accounts_path": "/tmp/rocksdb/acc",
+	"db_blocks_path": "/tmp/rocksdb/blk"
+}
