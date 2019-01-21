@@ -19,7 +19,7 @@ RocksDb::RocksDb(std::string path):db_path_(path){
 	opt_.create_if_missing = true;
 	rocksdb::Status status = rocksdb::DB::Open(opt_, db_path_, &db_);
 	if (!status.ok()){
-		std::cerr<<"Cannot open data base " << db_path_<< "\n";
+		std::cout<<status.ToString()<<std::endl;
 		throw std::invalid_argument("Open DB fail \n");
 	}
 }

@@ -15,7 +15,64 @@
 #include "full_node.hpp"
 
 namespace taraxa {
-	TEST(FullNode, send_and_receive_message){
+
+/** 
+ * Need sequential execution
+ * rocksdb cannot be opened by multiple TESTS
+ */
+
+// TEST(FullNode, send_and_receive_one_message){
+
+// 	boost::asio::io_context context1;
+// 	boost::asio::io_context context2;
+
+// 	std::shared_ptr<FullNode> node1 (new taraxa::FullNode(context1, 
+// 		std::string("./core_tests/conf_full_node1.json"), 
+// 		std::string("./core_tests/conf_network1.json"), 
+// 		std::string("./core_tests/conf_rpc1.json")));
+// 	// node1->setVerbose(true);
+// 	node1->setDebug(true);
+// 	node1->start();
+// 	// send package	
+// 	std::shared_ptr<Network> nw2 (new taraxa::Network(context2, "./core_tests/conf_network2.json"));
+
+// 	std::unique_ptr<boost::asio::io_context::work> work (new boost::asio::io_context::work(context1));
+
+// 	boost::thread t([&context1](){
+// 		context1.run();
+// 	});
+
+// 	unsigned port1 = node1->getNetwork()->getConfig().udp_port;
+// 	end_point_udp_t ep(boost::asio::ip::address_v4::loopback(),port1);
+// 	nw2->start();
+
+// 	StateBlock blk0 (
+// 	string("1011111111111111111111111111111111111111111111111111111111111111"),
+// 	{
+// 	("2022222222222222222222222222222222222222222222222222222222222222"),
+// 	("3033333333333333333333333333333333333333333333333333333333333333"),
+// 	("4044444444444444444444444444444444444444444444444444444444444444")}, 
+// 	{
+// 	("5055555555555555555555555555555555555555555555555555555555555555"),
+// 	("6066666666666666666666666666666666666666666666666666666666666666")},
+// 	("70777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
+// 	("8088888888888888888888888888888888888888888888888888888888888888"));
+	
+// 	nw2->sendBlock(ep, blk0);
+	
+// 	std::cout<<"Waiting packages for 1 second ..."<<std::endl;
+// 	taraxa::thisThreadSleepForSeconds(1);
+
+// 	work.reset();
+// 	nw2->stop();
+// 	node1->stop();
+
+// 	ASSERT_EQ(node1->getNumReceivedBlocks(), 1);
+	
+// }
+
+
+TEST(FullNode, send_and_receive_three_messages){
 
 	boost::asio::io_context context1;
 	boost::asio::io_context context2;
@@ -88,12 +145,65 @@ namespace taraxa {
 	taraxa::thisThreadSleepForSeconds(1);
 
 	work.reset();
-
-	ASSERT_EQ(node1->getNumReceivedBlocks(), blks.size());
-	
 	nw2->stop();
 	node1->stop();
+
+	ASSERT_EQ(node1->getNumReceivedBlocks(), blks.size());
 }
+
+// TEST(FullNode, send_and_receive_thousand_messages){
+
+// 	boost::asio::io_context context1;
+// 	boost::asio::io_context context2;
+
+// 	std::shared_ptr<FullNode> node1 (new taraxa::FullNode(context1, 
+// 		std::string("./core_tests/conf_full_node1.json"), 
+// 		std::string("./core_tests/conf_network1.json"), 
+// 		std::string("./core_tests/conf_rpc1.json")));
+// 	// node1->setVerbose(true);
+// 	node1->setDebug(true);
+// 	node1->start();
+// 	// send package	
+// 	std::shared_ptr<Network> nw2 (new taraxa::Network(context2, "./core_tests/conf_network2.json"));
+
+// 	std::unique_ptr<boost::asio::io_context::work> work (new boost::asio::io_context::work(context1));
+
+// 	boost::thread t([&context1](){
+// 		context1.run();
+// 	});
+
+// 	unsigned port1 = node1->getNetwork()->getConfig().udp_port;
+// 	end_point_udp_t ep(boost::asio::ip::address_v4::loopback(),port1);
+// 	nw2->start();
+// 	std::vector<StateBlock> blks;
+
+// 	StateBlock blk0 (
+// 	string("1011111111111111111111111111111111111111111111111111111111111111"),
+// 	{
+// 	("2022222222222222222222222222222222222222222222222222222222222222"),
+// 	("3033333333333333333333333333333333333333333333333333333333333333"),
+// 	("4044444444444444444444444444444444444444444444444444444444444444")}, 
+// 	{
+// 	("5055555555555555555555555555555555555555555555555555555555555555"),
+// 	("6066666666666666666666666666666666666666666666666666666666666666")},
+// 	("70777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
+// 	("8088888888888888888888888888888888888888888888888888888888888888"));
+	
+// 	for (auto i=0; i<8000; ++i){
+// 		nw2->sendBlock(ep, blk0);
+// 	}
+
+// 	std::cout<<"Waiting packages for 1 second ..."<<std::endl;
+// 	taraxa::thisThreadSleepForSeconds(1);
+
+// 	work.reset();
+// 	nw2->stop();
+// 	node1->stop();
+
+// 	ASSERT_EQ(node1->getNumReceivedBlocks(), 8000);
+	
+	
+// }
 
 }  // namespace taraxa
 
