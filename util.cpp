@@ -51,5 +51,12 @@ void thisThreadSleepForSeconds(unsigned sec){
 	std::this_thread::sleep_for(std::chrono::seconds(sec));
 }
 
+void thisThreadSleepForMilliSeconds(unsigned millisec){
+	std::this_thread::sleep_for(std::chrono::milliseconds(millisec));
+}
+
+void thisThreadSleepForMicroSeconds(unsigned microsec){
+	std::this_thread::sleep_for(std::chrono::microseconds(microsec));
+}
 
 }  // namespace taraxa

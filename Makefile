@@ -70,7 +70,7 @@ $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
 core_tests/dag_test: create_test_dir
-	g++ -std=c++17 -o $(TEST_BUILD)/dag_test core_tests/dag_test.cpp types.cpp dag.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -I. 
+	g++ -std=c++17 -o $(TEST_BUILD)/dag_test core_tests/dag_test.cpp types.cpp dag.cpp state_block.cpp util.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -I. 
 
 core_tests/network_test: create_test_dir 
 	g++ -std=c++17 -o $(TEST_BUILD)/network_test core_tests/network_test.cpp rocks_db.cpp network.cpp udp_buffer.cpp util.cpp state_block.cpp full_node.cpp types.cpp visitor.cpp $(CPPFLAGS) -lgtest -lboost_thread-mt -I. -lboost_system -lrocksdb

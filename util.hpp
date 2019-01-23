@@ -69,6 +69,8 @@ bool write (stream & stm, T const & value){
 }
 
 void thisThreadSleepForSeconds(unsigned sec);
+void thisThreadSleepForMilliSeconds(unsigned millisec);
+void thisThreadSleepForMicroSeconds(unsigned microsec);
 
 }  // namespace taraxa
 
