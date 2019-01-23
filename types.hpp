@@ -12,8 +12,13 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/asio.hpp>
 #include <type_traits>
+#include <chrono>
 
 namespace taraxa{
+
+// time related
+using time_point_t = std::chrono::steady_clock::time_point;
+
 using uint128_t = boost::multiprecision::uint128_t;
 using uint256_t = boost::multiprecision::uint256_t;
 using uint512_t = boost::multiprecision::uint512_t;

@@ -223,7 +223,7 @@ void Network::receivePackets(){
 void Network::processPackets(){
 	while (on_){
 		auto data (udp_buffer_->dequeue());
-		if (data == nullptr){ // implies upd buffer stopped and job queue are empty
+		if (data == nullptr){ // implies udp buffer stopped and job queue are empty
 			break;
 		}
 		parsePacket(data);
