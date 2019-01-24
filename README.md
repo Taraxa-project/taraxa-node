@@ -13,6 +13,26 @@ Build cryptopp:
 ```
 cd submodules/cryptopp; make;
 ```
+
+Installing boost, rocksdb, rapidjson using brew:
+```
+brew install boost
+brew install rocksdb
+brew install rapidjson
+```
+
+
+Install gtest:
+```
+git clone https://github.com/google/googletest
+cd googletest
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
+
 Google how to install other libs for your system.
 
 # Run taraxa-node tests:
