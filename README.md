@@ -1,6 +1,6 @@
 # Installation:
 ```
-git clone git@github.com:Taraxa-project/taraxa-node.git --recursive
+git clone https://github.com/Taraxa-project/taraxa-node.git --recursive --recursive
 ```
 
 ## Library dependency:
