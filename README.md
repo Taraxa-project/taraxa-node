@@ -1,15 +1,15 @@
 # Installation:
 git clone git@github.com:Taraxa-project/taraxa-node.git --recursive
+cd submodules/cryptopp; make;
 
 # Library dependency:
+Google how to install the following libs for your system.
 ```
 boost, cryptopp, rocksdb, rapidjson, gtest
 ```
 
-Tests are under core_tests/
-
 # Run taraxa-node tests:
-Run all tests:
+Tests are under core_tests/
 ```
 make run_test
 ```
