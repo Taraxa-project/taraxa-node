@@ -7,39 +7,74 @@
  */
 
 #include "rocks_db.hpp"
+#include <boost/filesystem.hpp>
 
 namespace taraxa{
 using namespace rocksdb;
 
-void RocksDb::setVerbose(bool verbose){ verbose_ = verbose;}
 
-RocksDb::RocksDb(std::string path):db_path_(path){
+RocksDb::RocksDb(std::string path_str):db_path_(path_str){
+	boost::filesystem::path path (db_path_);
+	if (path.size()==0){
+		throw std::invalid_argument("Error, invalid db path: " + db_path_);
+	}
+	if (!boost::filesystem::exists(path)){
+		std::cout<<"Create db directory: "<<path<<std::endl;
+		boost::filesystem::create_directories(path);
+	}
+	if (!boost::filesystem::is_directory(path)){
+		throw std::invalid_argument("Error, db path is not directory: " + db_path_);
+	}
+	rocksdb::Status status;
+
+	// Will remove all old data!
+	status = DestroyDB(db_path_,opt_);
+	if (status.ok()){
+		std::cout<<"Warning! DB is cleared : "<<db_path_<<std::endl;
+	}
+	else {
+		std::cout<<"Cannot clear DB : "<<db_path_<<std::endl;
+		std::cout<<status.ToString()<<std::endl;
+	}
+
 	opt_.IncreaseParallelism();
 	opt_.OptimizeLevelStyleCompaction();
 	opt_.create_if_missing = true;
-	rocksdb::Status status = rocksdb::DB::Open(opt_, db_path_, &db_);
+	status = rocksdb::DB::Open(opt_, db_path_, &db_);
 	if (!status.ok()){
 		std::cout<<status.ToString()<<std::endl;
 		throw std::invalid_argument("Open DB fail \n");
 	}
+	
 }
 RocksDb::~RocksDb(){
 	delete db_;
 }
 
+void RocksDb::setVerbose(bool verbose){ verbose_ = verbose;}
+
+
 bool RocksDb::put(const std::string &key, const std::string &value){
-	if (!db_) return false;
-	if (verbose_ && !get(key).empty()){
-		std::cout<<"Warning! Data exist, do overwirting, key = "<<key<<std::endl;
-	}
-	{	
-		std::unique_lock<std::mutex> lock(mutex_);
-		rocksdb::Status s = db_->Put(WriteOptions(), key, value);
-		if (!s.ok()){
-			std::cout<<s.ToString()<<std::endl;
+	
+	std::unique_lock<std::mutex> lock(mutex_);
+
+	std::string str;
+	rocksdb::Status s = db_->Get(rocksdb::ReadOptions(), db_->DefaultColumnFamily(), key, &str);
+	bool seen = s.ok();
+
+	if (seen){
+		if (verbose_){
+			std::cout<<"Warning! Data exist, do overwirting, key = "<<key<<std::endl;
 		}
-		assert(s.ok());
+		return false;
 	}
+	 
+	s = db_->Put(WriteOptions(), key, value);
+	if (!s.ok()){
+		std::cout<<s.ToString()<<std::endl;
+	}
+	assert(s.ok());
+	
 	return true;
 }
 
@@ -59,6 +94,7 @@ std::string RocksDb::get(const std::string &key){
 }
 
 bool RocksDb::erase(const std::string &key){
+	std::unique_lock<std::mutex> lock(mutex_);
 	rocksdb::Status s = db_->Delete(WriteOptions(), key);
 	assert(s.ok());
 	return true;

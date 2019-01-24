@@ -11,7 +11,7 @@
 #include "state_block.hpp"
 #include "rocks_db.hpp"
 #include "network.hpp"
-
+#include "dag.hpp"
 
 namespace taraxa{
 
@@ -24,16 +24,20 @@ FullNodeConfig::FullNodeConfig (std::string const &json_file):json_file_name(jso
 	assert(doc.HasMember("address"));
 	assert(doc.HasMember("db_accounts_path"));
 	assert(doc.HasMember("db_blocks_path"));
+	assert(doc.HasMember("dag_processing_threads"));
 
 	address = boost::asio::ip::address::from_string(doc["address"].GetString());
 	db_accounts_path = doc["db_accounts_path"].GetString();
 	db_blocks_path = doc["db_blocks_path"].GetString();
-
+	dag_processing_threads = doc["dag_processing_threads"].GetUint();
 }
 
 void FullNode::setVerbose(bool verbose){
 	verbose_=verbose;
 	network_->setVerbose(verbose);
+	dag_mgr_->setVerbose(verbose);
+	db_blocks_->setVerbose(verbose);
+
 }
 
 void FullNode::setDebug(bool debug){
@@ -52,7 +56,8 @@ FullNode::FullNode(boost::asio::io_context & io_context,
 	conf_(conf_full_node),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
-	network_(std::make_shared<Network>(io_context_, conf_network)){
+	network_(std::make_shared<Network>(io_context_, conf_network)),
+	dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)){
 } catch(std::exception &e){
 	std::cerr<<e.what()<<std::endl;
 	throw e;
@@ -75,10 +80,14 @@ void FullNode::storeBlock(StateBlock const & blk){
 	if (verbose_){
 		std::cout<<"Writing to block db ... "<<key<<std::endl;
 	}
-	db_blocks_->put(key, blk.getJsonStr());
+	bool inserted = db_blocks_->put(key, blk.getJsonStr());
 	if (debug_){
 		std::unique_lock<std::mutex> lock(debug_mutex_);
 		received_blocks_++;
+	}
+	// uninserted means already exist, do not call dag 
+	if (inserted){
+		dag_mgr_->addStateBlock(blk, true);
 	}
 }
 
@@ -86,7 +95,19 @@ uint64_t FullNode::getNumReceivedBlocks(){
 	return received_blocks_;
 }
 
-// string FullNode::accountCreate(name_t const & address){
+uint64_t FullNode::getNumVerticesInDag(){
+	return dag_mgr_->getNumVerticesInDag();
+}
+
+uint64_t FullNode::getNumEdgesInDag(){
+	return dag_mgr_->getNumEdgesInDag();
+}
+
+void FullNode::drawGraph(std::string const & dotfile) const{
+	dag_mgr_->drawGraph(dotfile);
+}
+
+// string FullNode::accountCreate(name_t const & addrbless){
 // 	if (!db_accounts_->get(address).empty()) {
 // 		return "Account already exists! \n";
 // 	}

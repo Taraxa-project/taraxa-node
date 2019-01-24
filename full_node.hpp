@@ -23,6 +23,7 @@ namespace taraxa{
 class RocksDb;
 class Network;
 class BlockProcessor;
+class DagManager;
 
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file);
@@ -30,6 +31,7 @@ struct FullNodeConfig {
 	boost::asio::ip::address address;
 	std::string db_accounts_path;
 	std::string db_blocks_path;
+	unsigned dag_processing_threads;
 };
 
 
@@ -63,7 +65,9 @@ public:
 
 	// debugger
 	uint64_t getNumReceivedBlocks();
-
+	uint64_t getNumVerticesInDag();
+	uint64_t getNumEdgesInDag();
+	void drawGraph(std::string const & dotfile) const;
 private:
 	// ** NOTE: io_context must be constructed before Network
 	boost::asio::io_context & io_context_;
@@ -85,6 +89,8 @@ private:
 	std::shared_ptr<Network> network_;
 	// ledger
 
+	// dag
+	std::shared_ptr<DagManager> dag_mgr_;
 	// block processor (multi processing)
 	// std::shared_ptr<BlockProcessor> blk_processor_;
 
