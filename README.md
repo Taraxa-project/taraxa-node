@@ -14,7 +14,7 @@ Build cryptopp:
 cd submodules/cryptopp; make;
 ```
 
-Installing boost, rocksdb, rapidjson using brew:
+*For Mac* Installing boost, rocksdb, rapidjson using brew:
 ```
 brew install boost
 brew install rocksdb
