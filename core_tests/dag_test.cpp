@@ -2,55 +2,88 @@
 #include "dag.hpp"
 #include "types.hpp"
 namespace taraxa{
-TEST(Dag, build_graph){  
+TEST(Dag, build_dag){  
 	taraxa::Dag graph;
 
 	// a genesis vertex
 	EXPECT_EQ(1, graph.getNumVertices()); 
+
+	auto v1="0000000000000000000000000000000000000000000000000000000000000001";
+	auto v2="0000000000000000000000000000000000000000000000000000000000000002";
+	auto v3="0000000000000000000000000000000000000000000000000000000000000003";
 	
-	auto v0= graph.addVertex(("1000000000000000000000000000000000000000000000000000000000000000"));
-	auto v1= graph.addVertex(("1111111111111111111111111111111111111111111111111111111111111111"));
-	auto v2= graph.addVertex(("2222222222222222222222222222222222222222222222222222222222222222"));
-	auto v3= graph.addVertex(("3333333333333333333333333333333333333333333333333333333333333333"));
-	
-	EXPECT_EQ(5, graph.getNumVertices());
-	EXPECT_EQ(true, graph.hasVertex("1000000000000000000000000000000000000000000000000000000000000000"));
-	EXPECT_EQ(false, graph.hasVertex("1200000000000000000000000000000000000000000000000000000000000000"));
-	
-	auto genesis = graph.getGenesis();
-	graph.addEdge(genesis, v0);
-	graph.addEdge(v0, v1);
-	graph.addEdge(v0, v2);
-	graph.addEdge(v2, v3);
-	
+	std::vector<std::string> empty;
+	graph.addVEEs(v1, Dag::GENESIS, empty);
+	EXPECT_EQ(2, graph.getNumVertices());
+	EXPECT_EQ(1, graph.getNumEdges());
+
+	// try insert same vertex, no multiple edges
+	graph.addVEEs(v1, Dag::GENESIS, empty);
+	EXPECT_EQ(2, graph.getNumVertices());
+	EXPECT_EQ(1, graph.getNumEdges());
+
+	graph.addVEEs(v2, Dag::GENESIS, empty);
+	EXPECT_EQ(3, graph.getNumVertices());
+	EXPECT_EQ(2, graph.getNumEdges());
+
+	graph.addVEEs(v3, v1, {v2});
+	EXPECT_EQ(4, graph.getNumVertices());
 	EXPECT_EQ(4, graph.getNumEdges());
+
 }
 
-TEST(Dag, traversal){
+TEST(Dag, dag_traverse){  
 	taraxa::Dag graph;
-	auto v0 = graph.addVertex(("1000000000000000000000000000000000000000000000000000000000000000"));
-	auto v1 = graph.addVertex(("1111111111111111111111111111111111111111111111111111111111111111"));
-	auto v2 = graph.addVertex(("2222222222222222222222222222222222222222222222222222222222222222"));
-	auto v3 = graph.addVertex(("3333333333333333333333333333333333333333333333333333333333333333"));
-	// unconnected vertex
-	auto v4 = graph.addVertex(("9999999999999999999999999999999999999999999999999999999999999999")); 
-	EXPECT_EQ(6, graph.getNumVertices());
-	auto genesis = graph.getGenesis();
-	graph.addEdge(genesis, v0);
-	graph.addEdge(v0, v1);
-	graph.addEdge(v0, v2);
-	graph.addEdge(v2, v3);
-	EXPECT_EQ(4, graph.getNumEdges());
 
-	std::vector<taraxa::Dag::vertex_t> leaves, critical;
-	graph.collectLeafVertices(leaves);
+	// a genesis vertex
+	EXPECT_EQ(1, graph.getNumVertices()); 
+
+	auto v1="0000000000000000000000000000000000000000000000000000000000000001";
+	auto v2="0000000000000000000000000000000000000000000000000000000000000002";
+	auto v3="0000000000000000000000000000000000000000000000000000000000000003";
+	auto v4="0000000000000000000000000000000000000000000000000000000000000004";
+	auto v5="0000000000000000000000000000000000000000000000000000000000000005";
+	auto v6="0000000000000000000000000000000000000000000000000000000000000006";
+	auto v7="0000000000000000000000000000000000000000000000000000000000000007";
+	auto v8="0000000000000000000000000000000000000000000000000000000000000008";
+	auto v9="0000000000000000000000000000000000000000000000000000000000000009";
+
+	std::vector<std::string> empty;
+	std::string no="";
+	// isolate node
+	graph.addVEEs(v1, no, empty);
+	graph.addVEEs(v2, no, empty);
+	EXPECT_EQ(3, graph.getNumVertices());
+	EXPECT_EQ(0, graph.getNumEdges());
+
+	std::vector<std::string> leaves;
+	std::string pivot; 
+	graph.collectTips(leaves);
 	EXPECT_EQ(3, leaves.size());
-	graph.collectCriticalPath(critical);
-	EXPECT_EQ(3, critical.size());
+	
+	graph.addVEEs(v3, Dag::GENESIS, empty);
+	graph.addVEEs(v4, Dag::GENESIS, empty);
+	EXPECT_EQ(5, graph.getNumVertices());
+	EXPECT_EQ(2, graph.getNumEdges());
+
+	graph.addVEEs(v5, v3, empty);
+	graph.addVEEs(v6, v3, empty);
+	graph.addVEEs(v7, v3, empty);
+	EXPECT_EQ(8, graph.getNumVertices());
+	EXPECT_EQ(5, graph.getNumEdges());
+
+	graph.addVEEs(v8, v6, {v5});
+	graph.addVEEs(v9, v6, empty);
+	leaves.clear();
+	graph.collectTips(leaves);
+	EXPECT_EQ(6, leaves.size());
+	graph.collectPivot(pivot);
+	EXPECT_EQ(v8, pivot);
 }
 
 TEST(DagManager, receive_block_in_order){
-	DagManager mgr(1);
+	auto mgr = std::make_shared<DagManager> (1);
+	mgr->start();
 	// mgr.setVerbose(true);
 	StateBlock blk1 (
 	("0000000000000000000000000000000000000000000000000000000000000000"),
@@ -75,25 +108,26 @@ TEST(DagManager, receive_block_in_order){
 	("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
 	("0000000000000000000000000000000000000000000000000000000000000003"));
 
-	mgr.addStateBlock(blk1, true);
-	mgr.addStateBlock(blk2, true);
-	mgr.addStateBlock(blk2, true);
-	EXPECT_EQ(mgr.getNumVerticesInDag(),3);
-	EXPECT_EQ(mgr.getNumEdgesInDag(),2);
+	mgr->addStateBlock(blk1, true);
+	mgr->addStateBlock(blk2, true);
+	mgr->addStateBlock(blk2, true);
+	EXPECT_EQ(mgr->getNumVerticesInDag(),3);
+	EXPECT_EQ(mgr->getNumEdgesInDag(),2);
 
-	mgr.addStateBlock(blk3, true);
-	mgr.addStateBlock(blk3, true);
+	mgr->addStateBlock(blk3, true);
+	mgr->addStateBlock(blk3, true);
 	taraxa::thisThreadSleepForMilliSeconds(500);
-	mgr.stop();
-	EXPECT_EQ(mgr.getNumVerticesInDag(),4);
-	EXPECT_EQ(mgr.getNumEdgesInDag(),5);
-	EXPECT_EQ(mgr.getBufferSize(), 0);
+	mgr->stop();
+	EXPECT_EQ(mgr->getNumVerticesInDag(),4);
+	EXPECT_EQ(mgr->getNumEdgesInDag(),5);
+	EXPECT_EQ(mgr->getBufferSize(), 0);
 
 }
 
-
 TEST(DagManager, receive_block_out_of_order){
-	DagManager mgr(1);
+	auto mgr = std::make_shared<DagManager> (1);
+	mgr->start();
+
 	// mgr.setVerbose(true);
 	StateBlock blk1 (
 	("0000000000000000000000000000000000000000000000000000000000000000"),
@@ -118,20 +152,29 @@ TEST(DagManager, receive_block_out_of_order){
 	("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
 	("0000000000000000000000000000000000000000000000000000000000000003"));
 
-	mgr.addStateBlock(blk3, true);
-	mgr.addStateBlock(blk2, true);
-	mgr.addStateBlock(blk1, true);
-
+	mgr->addStateBlock(blk3, true);
+	mgr->addStateBlock(blk2, true);
+	mgr->addStateBlock(blk1, true);
+	std::string pivot;
+	std::vector<std::string> tips;
+	std::vector<Dag::vertex_t> criticals;
+	mgr->getLatestPivotAndTips(pivot, tips);
+	for (auto const & t: tips){
+		std::cout<<t<<std::endl;
+	}
 	taraxa::thisThreadSleepForMicroSeconds(50000);
-	mgr.stop();
-	EXPECT_EQ(mgr.getNumVerticesInDag(),4);
-	EXPECT_EQ(mgr.getNumEdgesInDag(),5);
-	EXPECT_EQ(mgr.getBufferSize(), 0);
+	mgr->stop();
+	EXPECT_EQ(mgr->getNumVerticesInDag(),4);
+	EXPECT_EQ(mgr->getNumEdgesInDag(),5);
+	EXPECT_EQ(mgr->getBufferSize(), 0);
 
 }
 
 TEST(DagManager, receive_block_out_of_order_multi_thread){
-	DagManager mgr(2);
+	auto mgr = std::make_shared<DagManager> (2);
+
+	mgr->start();
+
 	// mgr.setVerbose(true);
 	StateBlock blk1 (
 	("0000000000000000000000000000000000000000000000000000000000000000"),
@@ -172,18 +215,18 @@ TEST(DagManager, receive_block_out_of_order_multi_thread){
 	("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
 	("0000000000000000000000000000000000000000000000000000000000000005"));
 	
-	mgr.addStateBlock(blk5, true);
-	mgr.addStateBlock(blk4, true);
-	mgr.addStateBlock(blk3, true);
-	mgr.addStateBlock(blk2, true);
-	mgr.addStateBlock(blk1, true);
+	mgr->addStateBlock(blk5, true);
+	mgr->addStateBlock(blk4, true);
+	mgr->addStateBlock(blk3, true);
+	mgr->addStateBlock(blk2, true);
+	mgr->addStateBlock(blk1, true);
 	
 
 	taraxa::thisThreadSleepForMicroSeconds(500);
-	mgr.stop();
-	EXPECT_EQ(mgr.getNumVerticesInDag(),6);
-	EXPECT_EQ(mgr.getNumEdgesInDag(),9);
-	EXPECT_EQ(mgr.getBufferSize(), 0);
+	mgr->stop();
+	EXPECT_EQ(mgr->getNumVerticesInDag(),6);
+	EXPECT_EQ(mgr->getNumEdgesInDag(),9);
+	EXPECT_EQ(mgr->getBufferSize(), 0);
 
 }
 

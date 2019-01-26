@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-18 14:18:42
+ * @Last Modified time: 2019-01-25 16:37:22
  */
  
 #include <iostream>
@@ -23,10 +23,16 @@
 
 #include <condition_variable>
 #include "types.hpp"
+#include "util.hpp"
 #include "state_block.hpp"
 #include <atomic>
+#include <mutex>
 
 namespace taraxa{
+
+/** 
+ * Thread safe. Labelled graph.
+ */
 
 class Dag {
 public:
@@ -37,7 +43,7 @@ public:
 	using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 	
 	// graph def
-	using adj_list_t = boost::adjacency_list<boost::listS, boost::vecS, boost::directedS, 
+	using adj_list_t = boost::adjacency_list<boost::setS, boost::vecS, boost::directedS, 
 		vertex_property_t, edge_property_t>;
 	using graph_t = boost::labeled_graph<adj_list_t, std::string, boost::hash_mapS>;
 	using vertex_t = boost::graph_traits<graph_t>::vertex_descriptor;
@@ -46,7 +52,6 @@ public:
 	using edge_iter_t = boost::graph_traits<graph_t>::edge_iterator;
 	using vertex_adj_iter_t = boost::graph_traits<graph_t>::adjacency_iterator;
 
-
 	// property_map
 	using vertex_name_map_const_t = boost::property_map<graph_t, boost::vertex_name_t>::const_type;
 	using vertex_name_map_t = boost::property_map<graph_t, boost::vertex_name_t>::type;
@@ -54,21 +59,27 @@ public:
 	using edge_index_map_t = boost::property_map<graph_t, boost::edge_index_t>::type;
 	
 	using ulock = std::unique_lock<std::mutex>;  
+	
+	static const std::string GENESIS;
+
 	Dag ();
 	~Dag ();
-	graph_t & getGraph();
-	vertex_t getGenesis(); // The root node
+	void setVerbose(bool verbose);
+	void setDebug(bool debug);
+	static std::string getGenesis();
 	uint64_t getNumVertices() const;  
 	uint64_t getNumEdges() const;  
-	vertex_t addVertex(std::string const & hash);
-	edge_t   addEdge(vertex_t from, vertex_t to);
-	edge_t   addEdge(std::string const & from, std::string const & to);
-	bool hasVertex(std::string const & hash);
-	void dfs() const;
-	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
-	void collectCriticalPath(std::vector<vertex_t> &leaves) const;
+	bool hasVertex(std::string const & v) const;
+	// VEE: new vertex, pivot, tips
+	bool addVEEs(std::string const & vertex, std::string const & edge, 
+		std::vector<std::string> const & edges);
+	void collectTips(std::vector<std::string> & tips) const;
+	void collectPivot(std::string & pivot) const;
+	
 	void drawGraph(std::string filename) const;
-
+	
+	// Create critical section, the function should be used to add StateBlock
+	
 	// for graphviz
 	template <class Property>
   	class label_writer {
@@ -80,40 +91,77 @@ public:
     	}
 	private:
 		Property property;
-  };
+	};
+
 private:
+	// Note: private functions does not lock
+
+	// vertex API
+	vertex_t addVertex(std::string const & v);
+	
+	// edge API
+	edge_t   addEdge(std::string const & v1, std::string const & v2);
+	edge_t   addEdge(vertex_t v1, vertex_t v2);
+
+	// traverser API
+	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
+	void collectCriticalPath(std::vector<vertex_t> &criticals) const;
+
+	bool debug_;
+	bool verbose_;
 	graph_t graph_;
 	vertex_t genesis_; // root node
 	mutable std::mutex mutex_;
+	mutable std::mutex debug_mutex_;
 };
 
 class SbBuffer;
+class TipBlockExplorer;
+/**
+ * Important : The input StateBlocks to DagManger should be de-duplicated!
+ * i.e., no same StateBlocks are put to the Dag.
+ */
 
-class DagManager {
+class DagManager : public std::enable_shared_from_this<DagManager> {
 public:
+	using ulock = std::unique_lock<std::mutex>;  
+
 	DagManager(unsigned num_threads);
 	~DagManager();
+	void start();
+	void stop();
+	std::shared_ptr<DagManager> getShared();
+
 	bool addStateBlock(StateBlock const &blk, bool insert); // insert to buffer if fail
 	void consume(unsigned threadId);
-	uint64_t getNumVerticesInDag();
-	uint64_t getNumEdgesInDag();
+	void getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips);
+	
+	// debug functions
+	uint64_t getNumVerticesInDag() const ;
+	uint64_t getNumEdgesInDag() const ;
 	void setDebug(bool debug);
 	void setVerbose(bool verbose);
-	void stop();
-	size_t getBufferSize();
-	void drawGraph(std::string const & str);
+	size_t getBufferSize() const;
+	void drawGraph(std::string const & str) const;
+	
 private:
+	void addToSbBuffer(StateBlock const & blk);
+	void addToDag(std::string const &hash, 
+		std::string const & pivot, std::vector<std::string> const & tips);
 	unsigned getBlockInsertingIndex(); // add to block to different array
+	void countFreshBlocks();
 	bool debug_;
 	bool verbose_;
 	bool dag_updated_;
 	bool on_;
 	unsigned num_threads_;
-	std::atomic<unsigned> counter_;
+	mutable std::mutex mutex_;
+	std::atomic<unsigned> inserting_index_counter_;
 	std::shared_ptr<Dag> dag_;
+	std::shared_ptr<TipBlockExplorer> tips_explorer_;
 	// SbBuffer 
 	std::shared_ptr<std::vector<SbBuffer>> sb_buffer_array_;
-	std::vector<boost::thread> processing_threads_;
+	std::vector<boost::thread> sb_buffer_processing_threads_;
 };
 
 // Thread safe buffer for StateBlock
@@ -139,8 +187,27 @@ private:
 	buffIter iter_;
 };
 
+/**
+ * Thread-safe . Only one thread can access ready. 
+ * Will block if data is not ready
+ */
 
-
+class TipBlockExplorer{
+public:
+	using ulock = std::unique_lock<std::mutex>;
+	TipBlockExplorer(unsigned rate);
+	~TipBlockExplorer();
+	void blockAdded();	
+	// will block if not ready.
+	void waitForReady();
+private: 
+	bool ready_;
+	bool on_;
+	unsigned rate_limit_;
+    unsigned counter_;
+	std::mutex mutex_;
+	std::condition_variable condition_;
+};
 
 
 }

@@ -29,6 +29,7 @@ public:
 	std::string get(const std::string &key);
 	bool erase (const std::string &key);
 	void setVerbose(bool verbose);
+	
 private:
 	bool verbose_ = false;
 	std::string db_path_;
