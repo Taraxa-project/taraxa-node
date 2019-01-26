@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-17 16:13:22
+ * @Last Modified time: 2019-01-25 16:46:46
  */
  
 #include <tuple>
@@ -14,13 +14,15 @@
 
 namespace taraxa {
 
-Dag::Dag(){
-	genesis_ = addVertex("0000000000000000000000000000000000000000000000000000000000000000");
+std::string const Dag::GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+
+Dag::Dag(): debug_(false), verbose_(false){
+	genesis_ = addVertex(Dag::GENESIS);
 }
 Dag::~Dag(){}
-Dag::graph_t & Dag::getGraph() { return graph_;}
+void Dag::setVerbose(bool verbose){ verbose_ = verbose;}
+void Dag::setDebug(bool debug){ debug_ = debug;}
 
-Dag::vertex_t Dag::getGenesis() {return genesis_;}
 uint64_t Dag::getNumVertices() const {
 	ulock lock(mutex_);
 	return boost::num_vertices(graph_);
@@ -29,42 +31,93 @@ uint64_t Dag::getNumEdges() const {
 	ulock lock(mutex_);
 	return boost::num_edges(graph_);
 }
-Dag::vertex_t Dag::addVertex(std::string const & hash){
+
+bool Dag::hasVertex(std::string const & v) const{
 	ulock lock(mutex_);
+	return graph_.vertex(v) != graph_.null_vertex();
+}
+
+void Dag::collectTips(std::vector<std::string> & tips) const{
+	ulock lock(mutex_);
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	std::vector<vertex_t> leaves;
+	collectLeafVertices(leaves);
+	for (auto const & leaf: leaves){
+		tips.push_back(name_map[leaf]);
+	}
+}
+
+void Dag::collectPivot(std::string & pivot) const{
+	ulock lock(mutex_);
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	std::vector<vertex_t> criticals;
+	collectCriticalPath(criticals);
+	assert(criticals.size());
+	// get the last critical vertex as pivot
+	pivot = name_map[criticals.back()];
+}
+
+bool Dag::addVEEs(std::string const & new_vertex, std::string const & pivot, 
+	std::vector<std::string> const & tips){
+	
+	ulock lock(mutex_);
+	assert(!new_vertex.empty());
+	
+	// add vertex
+	vertex_t ret= add_vertex(new_vertex, graph_);
+	vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
+	name_map[ret]=new_vertex;
+	edge_t edge;
+	bool res;
+
+	// Note: add edges, 
+	// *** important
+	// Add a new block, edges are pointing from pivot to new_veretx
+	if (!pivot.empty()){
+		std::tie(edge, res) = add_edge_by_label(pivot, new_vertex, graph_);
+	}
+	for (auto const & e: tips){
+ 		std::tie(edge, res) = add_edge_by_label(e, new_vertex, graph_);
+		assert(res);
+	}
+	return true;
+}
+
+void Dag::drawGraph(std::string filename) const{
+ 	ulock lock(mutex_);
+	std::ofstream outfile(filename.c_str());
+	auto name_map = boost::get(boost::vertex_name, graph_);
+	boost::write_graphviz(outfile, graph_, make_label_writer(name_map)); 
+	std::cout<<"Dot file "<<filename<< " generated!"<<std::endl;
+	std::cout<<"Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate ps file"<<std::endl;
+}
+
+Dag::vertex_t Dag::addVertex(std::string const & hash){
 	vertex_t ret= add_vertex(hash, graph_);
 	vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
 	name_map[ret]=hash;
 	return ret;
 }
 Dag::edge_t Dag::addEdge(Dag::vertex_t v1, Dag::vertex_t v2){
-	ulock lock(mutex_);
-	auto ret = boost::add_edge(v1, v2, graph_);
+	auto ret = add_edge(v1, v2, graph_);
 	assert(ret.second);
 	return ret.first;
 }
 
-Dag::edge_t Dag::addEdge(std::string const & from, std::string const & to){
+Dag::edge_t Dag::addEdge(std::string const & v1, std::string const & v2){
 	
-	assert(hasVertex(from));
-	assert(hasVertex(to));
-	
-	// lock should be behind assert, o.w. deadlock
-	ulock lock(mutex_);
-
+	assert(graph_.vertex(v1) != graph_.null_vertex());
+	assert(graph_.vertex(v2) != graph_.null_vertex());	
+	// lock should be behind assert
 	edge_t edge;
 	bool res;
- 	std::tie(edge, res) = add_edge_by_label(from, to, graph_);
+ 	std::tie(edge, res) = add_edge_by_label(v1, v2, graph_);
 	assert(res);
 	return edge;
 }
 
-bool Dag::hasVertex(std::string const & hash){
-	ulock lock(mutex_);
-	return graph_.vertex(hash) != graph_.null_vertex();
-}
 
 void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const{
-	ulock lock(mutex_);
 	leaves.clear();
 	vertex_iter_t s, e;
 	// iterator all vertex
@@ -74,10 +127,11 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const{
 			leaves.push_back(*s);
 		}
 	}
-
+	assert(leaves.size());
 }
+
+// Note: Internal function, do not add lock
 void Dag::collectCriticalPath(std::vector<vertex_t> &critical_path) const{
-	ulock lock(mutex_);
 	critical_path.clear();
 	// starting from genesis node
 	vertex_t current = genesis_;
@@ -103,72 +157,89 @@ void Dag::collectCriticalPath(std::vector<vertex_t> &critical_path) const{
 		critical_path.push_back(*critical);
 		current = *critical;
 	}
+	assert(critical_path.size());
 }
 
-void Dag::drawGraph(std::string filename) const{
- 	ulock lock(mutex_);
-	std::ofstream outfile(filename.c_str());
-	auto name_map = boost::get(boost::vertex_name, graph_);
-	boost::write_graphviz(outfile, graph_, make_label_writer(name_map)); 
-	std::cout<<"Dot file "<<filename<< " generated!"<<std::endl;
-	std::cout<<"Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate ps file"<<std::endl;
-}
-
-DagManager::DagManager(unsigned num_threads): 
+DagManager::DagManager(unsigned num_threads) try : 
 	debug_(false),
 	verbose_(false),
 	dag_updated_(false),
 	on_(true),
 	num_threads_(num_threads),
-	counter_(0),
+	inserting_index_counter_(0),
 	dag_(std::make_shared<Dag>()),
-	sb_buffer_array_(std::make_shared<std::vector<SbBuffer>> (num_threads)){
-	for (auto i = 0; i < num_threads; ++i){
-		processing_threads_.push_back(boost::thread([this, i](){
-			consume(i);
-		}));
-	}
+	tips_explorer_(std::make_shared<TipBlockExplorer>(3)),
+	sb_buffer_array_(std::make_shared<std::vector<SbBuffer>> (num_threads)){	
+} catch (std::exception & e){
+	std::cerr<<e.what()<<std::endl;
 }
+
 DagManager::~DagManager(){
-	for (auto & t: processing_threads_){
+	for (auto & t: sb_buffer_processing_threads_){
 		t.join();
 	}
 }
+
+std::shared_ptr<DagManager> DagManager::getShared(){
+	try{
+		return shared_from_this();
+	} catch( std::bad_weak_ptr & e){
+		std::cerr<<"DagManager: "<<e.what()<<std::endl;
+		return nullptr;
+	}
+}
+
 void DagManager::setDebug(bool debug) { debug_ = debug;}
 void DagManager::setVerbose(bool verbose) {verbose_ = verbose;}
-uint64_t DagManager::getNumVerticesInDag() {return dag_->getNumVertices();}
-uint64_t DagManager::getNumEdgesInDag() { return dag_->getNumEdges();}
-size_t DagManager::getBufferSize() {
+uint64_t DagManager::getNumVerticesInDag() const {
+	ulock lock(mutex_);
+	return dag_->getNumVertices();
+}
+uint64_t DagManager::getNumEdgesInDag() const { 
+	ulock lock(mutex_);
+	return dag_->getNumEdges();
+}
+size_t DagManager::getBufferSize() const {
+	ulock lock(mutex_);
 	auto sz=0;
 	for (auto const & arr: (*sb_buffer_array_)){
 		sz += arr.size();
 	}
-		return sz;
+	return sz;
 }
+
 unsigned DagManager::getBlockInsertingIndex(){
-	auto which_buffer = counter_.fetch_add(1);
+	auto which_buffer = inserting_index_counter_.fetch_add(1);
 	assert(which_buffer<num_threads_ && which_buffer >= 0);
 
-	if (counter_>=num_threads_){
-		counter_.store(0);
+	if (inserting_index_counter_>=num_threads_){
+		inserting_index_counter_.store(0);
 	}
 	if (verbose_){
 		std::cout<<"inserting row = "<<which_buffer<<"\n";
 	}
 	return which_buffer;
 }
-void DagManager::drawGraph(std::string const & str){
+
+void DagManager::drawGraph(std::string const & str) const{
+	ulock lock(mutex_);
 	dag_->drawGraph(str);
 }
-
+void DagManager::start() {
+	for (auto i = 0; i < num_threads_; ++i){
+		sb_buffer_processing_threads_.push_back(boost::thread([this, i](){
+			consume(i);
+		}));
+	}
+}
 void DagManager::stop() { 
 	on_ = false;
 	for (auto & arr: (*sb_buffer_array_)){
 		arr.stop();
 	}
-	//sb_buffer_array_->stop();
 }
 bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
+	ulock lock(mutex_);
 	std::string hash = blk.getHash().toString();
 	if (dag_->hasVertex(hash)){
 		if (verbose_){
@@ -183,8 +254,7 @@ bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
 			std::cout<<"Block "<<hash<<" pivot "<<pivot<<" unavailable, insert = "<<insert<<std::endl;
 		}
 		if (insert){
-			unsigned which_buffer = getBlockInsertingIndex();
-			(*sb_buffer_array_)[which_buffer].insert(blk);
+			addToSbBuffer(blk);
 		}
 		return false;
 	}
@@ -197,25 +267,27 @@ bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
 				std::cout<<"Block "<<hash<<" tip "<<tip<<" unavailable, insert = "<<insert<<std::endl;
 			}
 			if (insert){
-				unsigned which_buffer = getBlockInsertingIndex();
-				(*sb_buffer_array_)[which_buffer].insert(blk);
+				addToSbBuffer(blk);
 			}
 			return false;
 		}
 		tips.push_back(tip);
 	} 
 
-	// construct a new node and the edges 
-	dag_->addVertex(hash);
-
-	assert(blk.getTips().size()==tips.size());
-	dag_->addEdge(hash, pivot);
-
-	for (auto const &t: tips){
-		dag_->addEdge(hash, t);
-	}
-	
+	addToDag(hash, pivot, tips);
 	return true;
+}
+
+void DagManager::addToSbBuffer(StateBlock const & blk){
+	unsigned which_buffer = getBlockInsertingIndex();
+	(*sb_buffer_array_)[which_buffer].insert(blk);
+}
+
+void DagManager::addToDag(std::string const & hash, std::string const & pivot, 
+	std::vector<std::string> const & tips){
+	
+	dag_->addVEEs(hash, pivot, tips);
+	tips_explorer_->blockAdded();
 }
 
 void DagManager::consume(unsigned idx){
@@ -230,6 +302,15 @@ void DagManager::consume(unsigned idx){
 		}
 	}
 }
+void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips){
+	// will block if not ready.
+	tips_explorer_->waitForReady();
+	// make sure the state of dag is the same when collection pivot and tips
+	ulock lock(mutex_);
+	dag_->collectPivot(pivot);
+	dag_->collectTips(tips);
+}
+
 
 
 SbBuffer::SbBuffer(): stopped_(false), updated_(false), iter_(blocks_.end()){}
@@ -270,4 +351,35 @@ void SbBuffer::delBuffer(SbBuffer::buffIter iter){
 
 size_t SbBuffer::size() const { return blocks_.size();}
 
+TipBlockExplorer::TipBlockExplorer(unsigned rate): 
+	ready_(false), on_(true), rate_limit_(rate), counter_(0){}
+
+
+// only one DagManager will call the function
+void TipBlockExplorer::blockAdded(){
+	ulock lock(mutex_);
+	counter_++;
+	if (counter_ >= rate_limit_){
+		ready_ = true;
+		counter_ = 0;
+		condition_.notify_one();
+	}
+	else{
+		ready_ = false;
+	}
 }
+
+TipBlockExplorer::~TipBlockExplorer(){
+	on_ = false;
+	condition_.notify_all();
+}
+
+void TipBlockExplorer::waitForReady(){
+	ulock lock(mutex_);
+	while (on_ && !ready_){
+		condition_.wait(lock);
+	}
+	ready_ = false;
+}
+
+} // namespace taraxa

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 17:25:13
+ * @Last Modified time: 2019-01-25 17:13:46
  */
 
 #include <boost/asio.hpp>
@@ -12,8 +12,9 @@
 #include "rocks_db.hpp"
 #include "network.hpp"
 #include "dag.hpp"
+#include "block_proposer.hpp"
 
-namespace taraxa{
+namespace taraxa {
 
 using std::string;
 using std::to_string;
@@ -25,11 +26,14 @@ FullNodeConfig::FullNodeConfig (std::string const &json_file):json_file_name(jso
 	assert(doc.HasMember("db_accounts_path"));
 	assert(doc.HasMember("db_blocks_path"));
 	assert(doc.HasMember("dag_processing_threads"));
+	assert(doc.HasMember("block_proposer_threads"));
 
 	address = boost::asio::ip::address::from_string(doc["address"].GetString());
 	db_accounts_path = doc["db_accounts_path"].GetString();
 	db_blocks_path = doc["db_blocks_path"].GetString();
 	dag_processing_threads = doc["dag_processing_threads"].GetUint();
+	block_proposer_threads = doc["block_proposer_threads"].GetUint();
+
 }
 
 void FullNode::setVerbose(bool verbose){
@@ -57,21 +61,32 @@ FullNode::FullNode(boost::asio::io_context & io_context,
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
 	network_(std::make_shared<Network>(io_context_, conf_network)),
-	dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)){
+	dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
+	blk_proposer_(std::make_shared<BlockProposer>(conf_.block_proposer_threads, dag_mgr_->getShared())){
 } catch(std::exception &e){
 	std::cerr<<e.what()<<std::endl;
 	throw e;
 } 
 
-std::shared_ptr<FullNode> FullNode::getShared() {return shared_from_this();}
+std::shared_ptr<FullNode> FullNode::getShared() {
+	try{
+		return shared_from_this();
+	} catch( std::bad_weak_ptr & e){
+		std::cerr<<"FullNode: "<<e.what()<<std::endl;
+		return nullptr;
+	}
+}
 boost::asio::io_context & FullNode::getIoContext() {return io_context_;}
 
 void FullNode::start(){
 	network_->setFullNodeAndMsgParser(getShared());
 	network_->start();
+	dag_mgr_->start();
+	blk_proposer_->start();
 }
 
 void FullNode::stop(){
+	blk_proposer_->stop();
 	network_->stop();
 }
 
@@ -93,6 +108,10 @@ void FullNode::storeBlock(StateBlock const & blk){
 
 uint64_t FullNode::getNumReceivedBlocks(){
 	return received_blocks_;
+}
+
+uint64_t FullNode::getNumProposedBlocks(){
+	return BlockProposer::getNumProposedBlocks();
 }
 
 uint64_t FullNode::getNumVerticesInDag(){
@@ -133,4 +152,5 @@ void FullNode::drawGraph(std::string const & dotfile) const{
 
 FullNodeConfig const & FullNode::getConfig() const { return conf_;}
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_;}
+
 } // namespace taraxa

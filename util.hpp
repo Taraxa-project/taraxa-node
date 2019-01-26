@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:26:50 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 12:04:06
+ * @Last Modified time: 2019-01-24 12:39:22
  */
  
  #ifndef UTIL_HPP
@@ -13,6 +13,7 @@
 #include <fstream>
 #include <streambuf>
 #include <string>
+#include <unordered_set>
 #include <boost/asio.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -71,6 +72,36 @@ bool write (stream & stm, T const & value){
 void thisThreadSleepForSeconds(unsigned sec);
 void thisThreadSleepForMilliSeconds(unsigned millisec);
 void thisThreadSleepForMicroSeconds(unsigned microsec);
+
+
+
+/**
+ * Observer pattern
+ */
+
+class Observer;
+
+class Subject{
+public:
+	~Subject();
+	void subscribe(std::shared_ptr<Observer> obs);
+	void unsubscribe(std::shared_ptr<Observer> obs);
+	void notify();
+
+protected:
+	std::unordered_set<std::shared_ptr<Observer>> viewers_;
+};
+
+class Observer: std::enable_shared_from_this<Observer>{
+public: 
+	Observer(std::shared_ptr<Subject> sub);  
+	virtual ~Observer();
+	virtual void update() = 0;
+protected:
+	std::shared_ptr<Subject> subject_;
+};
+
+
 
 }  // namespace taraxa
 

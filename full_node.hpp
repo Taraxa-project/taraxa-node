@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 17:05:41
+ * @Last Modified time: 2019-01-25 17:09:35
  */
  
 #ifndef FULL_NODE_HPP
@@ -15,15 +15,14 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include "util.hpp"
-#include "rocks_db.hpp"
-#include "state_block.hpp"
 
 namespace taraxa{
 
 class RocksDb;
 class Network;
-class BlockProcessor;
+class BlockProposer;
 class DagManager;
+class StateBlock;
 
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file);
@@ -32,6 +31,7 @@ struct FullNodeConfig {
 	std::string db_accounts_path;
 	std::string db_blocks_path;
 	unsigned dag_processing_threads;
+	unsigned block_proposer_threads;
 };
 
 
@@ -65,6 +65,7 @@ public:
 
 	// debugger
 	uint64_t getNumReceivedBlocks();
+	uint64_t getNumProposedBlocks();
 	uint64_t getNumVerticesInDag();
 	uint64_t getNumEdgesInDag();
 	void drawGraph(std::string const & dotfile) const;
@@ -91,8 +92,8 @@ private:
 
 	// dag
 	std::shared_ptr<DagManager> dag_mgr_;
-	// block processor (multi processing)
-	// std::shared_ptr<BlockProcessor> blk_processor_;
+	// block proposer (multi processing)
+	std::shared_ptr<BlockProposer> blk_proposer_;
 
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting
 	
