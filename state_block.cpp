@@ -3,11 +3,9 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 16:52:08
+ * @Last Modified time: 2019-01-28 22:29:17
  */
 #include "state_block.hpp"
-#include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
@@ -39,63 +37,19 @@ StateBlock::StateBlock(stream &strm){
 	deserialize(strm);
 }
 StateBlock::StateBlock(std::string const &json){
-
-	using namespace rapidjson;
-	Document doc = taraxa::strToJson(json);
-	
-	assert(doc["pivot"].IsString());
-	assert(doc["tips"].IsArray());
-	assert(doc["trxs"].IsArray());
-	assert(doc["signature"].IsString());
-	assert(doc["hash"].IsString());
-	
-	pivot_= blk_hash_t(doc["pivot"].GetString());
-	const Value & tips = doc["tips"];
-	for (SizeType i = 0; i < tips.Size(); ++i){
-		assert(tips[i].IsString());
-		tips_.push_back(blk_hash_t(tips[i].GetString()));
+	try{
+		boost::property_tree::ptree doc = strToJson(json);
+		pivot_= doc.get<std::string> ("pivot");
+		tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
+		trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
+		signature_ = doc.get<std::string> ("signature");
+		hash_ = doc.get<std::string>("hash");
+	} 
+	catch (std::exception &e) {
+		std::cerr<<e.what()<<std::endl;
 	}
-	const Value & trxs = doc["trxs"];
-	for (SizeType i = 0; i < trxs.Size(); ++i){
-		assert(trxs[i].IsString());
-		trxs_.push_back(trx_hash_t(trxs[i].GetString()));
-	}
-	signature_=sig_t(doc["signature"].GetString());
-	hash_=blk_hash_t(doc["hash"].GetString());
-
 }
 
-// rapidjson implementation, won't work, doesn't know why
-
-// std::string StateBlock::getJsonStr() const{
-	
-// 	using namespace rapidjson;
-// 	Document doc;
-// 	doc.SetObject();
-
-// 	Value tips(kArrayType);
-// 	Value trxs(kArrayType);
-// 	auto& allocator = doc.GetAllocator();
-// 	for (auto i = 0; i < tips_.size(); ++i){
-// 		std::string tmp(tips_[i].toString());
-// 		tips.PushBack(StringRef(tmp.c_str()),allocator);
-// 	}
-// 	for (auto i = 0; i < trxs_.size(); ++i){
-// 		std::string tmp(trxs_[i].toString());
-// 		trxs.PushBack(StringRef(tmp.c_str()),allocator);
-// 	}	
-
-// 	doc.AddMember("pivot", StringRef(pivot_.toString().c_str()), allocator);
-// 	doc.AddMember("tips", tips, allocator);
-// 	doc.AddMember("trxs", trxs, allocator);	
-// 	doc.AddMember("signature", StringRef(signature_.toString().c_str()), allocator);
-// 	doc.AddMember("hash", StringRef(hash_.toString().c_str()), allocator);
-
-// 	rapidjson::StringBuffer buffer;
-// 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-// 	doc.Accept(writer);
-// 	return buffer.GetString();
-// }
 
 std::string StateBlock::getJsonStr() const{
 	using boost::property_tree::ptree;

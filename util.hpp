@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:26:50 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-24 12:39:22
+ * @Last Modified time: 2019-01-29 13:52:18
  */
  
  #ifndef UTIL_HPP
@@ -18,17 +18,14 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
-
-#include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/error/en.h>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "types.hpp"
 namespace taraxa{
 
-rapidjson::Document strToJson( std::string const & str);
+boost::property_tree::ptree strToJson(std::string str);
 // load file and convert to json doc
-rapidjson::Document loadJsonFile( std::string const& json_file_name); 
+boost::property_tree::ptree loadJsonFile(std::string json_file_name); 
 
 struct ProcessReturn{
 	 enum class Result {
@@ -42,6 +39,16 @@ struct ProcessReturn{
 	 };
 	 taraxa::name_t user_account;
 };
+
+template<typename T, typename U>
+std::vector<T> asVector(boost::property_tree::ptree const & pt, boost::property_tree::ptree::key_type const & key){
+	std::vector<T> v;
+	for (auto & item: pt.get_child(key)){
+		v.push_back(T(item.second.get_value<U>()));
+	}
+	return v;
+}
+
 
 template <typename enumT> 
 auto asInteger(enumT const value){

@@ -3,14 +3,12 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-12 13:31:22 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 12:22:28
+ * @Last Modified time: 2019-01-28 22:40:41
  */
  
 #include "user_account.hpp"
 #include <iostream>
 #include <string>
-#include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
 
 using std::to_string;
 using std::string;
@@ -30,33 +28,29 @@ UserAccount::UserAccount(name_t address,
 	frontier_(frontier),
 	height_(height){}
 
-UserAccount::UserAccount(const string &json){
-	rapidjson::Document doc = taraxa::strToJson(json);
-
-	address_ = doc["address"].GetString();
-	pk_ = doc["pk"].GetString();
-	genesis_ = (doc["genesis"].GetString());
-	balance_ = doc["balance"].GetUint64();
-	frontier_ = (doc["frontier"].GetString());
-	height_ = doc["height"].GetUint64();
+UserAccount::UserAccount(string const &json){
+	boost::property_tree::ptree doc = strToJson(json);
+	address_ = doc.get<std::string>("address");
+	pk_ = doc.get<std::string>("pk");
+	genesis_ = doc.get<std::string> ("genesis");
+	balance_ = doc.get<uint64_t> ("balance");
+	frontier_ = doc.get<std::string> ("frontier");
+	height_ = doc.get<uint64_t>("height");
 }
 
 std::string UserAccount::getJsonStr(){
-	rapidjson::Document doc;
-	doc.SetObject();
+	boost::property_tree::ptree doc;
+	
+	doc.put("address", address_);
+	doc.put("pk", pk_);
+	doc.put("genesis", genesis_);
+	doc.put("balance", balance_);
+	doc.put("frontier", frontier_);
+	doc.put("height", height_);
 
-	auto& allocator = doc.GetAllocator();
-	doc.AddMember("address", rapidjson::StringRef(address_.c_str()), allocator);
-	doc.AddMember("pk", rapidjson::StringRef(pk_.c_str()), allocator);
-	doc.AddMember("genesis", rapidjson::StringRef(genesis_.toString().c_str()), allocator);
-	doc.AddMember("balance", rapidjson::Value().SetUint64(balance_), allocator);
-	doc.AddMember("frontier", rapidjson::StringRef(frontier_.toString().c_str()), allocator);
-	doc.AddMember("height", rapidjson::Value().SetUint64(height_), allocator);
-
-	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-	doc.Accept(writer);
-	return buffer.GetString();
+	std::stringstream ostrm;
+	boost::property_tree::write_json(ostrm, doc);
+	return ostrm.str();
 }
 
 } //namespace taraxa

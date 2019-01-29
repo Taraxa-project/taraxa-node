@@ -7,20 +7,17 @@ namespace taraxa{
 // UdpNetworkCongif ------------------------------
 
 UdpNetworkConfig::UdpNetworkConfig (std::string const &json_file):json_file_name(json_file){
-	rapidjson::Document doc = loadJsonFile(json_file);
-	
-	assert(doc.HasMember("udp_port"));
-	assert(doc.HasMember("network_io_threads"));
-	assert(doc.HasMember("network_packet_processing_threads"));
-	assert(doc.HasMember("udp_buffer_count"));
-	assert(doc.HasMember("udp_buffer_size"));
-
-	udp_port = doc["udp_port"].GetUint();
-	network_io_threads = doc["network_io_threads"].GetUint();
-	network_packet_processing_threads = doc["network_packet_processing_threads"].GetUint();
-	udp_buffer_count = doc["udp_buffer_count"].GetUint();
-	udp_buffer_size = doc["udp_buffer_size"].GetUint();
-
+	boost::property_tree::ptree doc = loadJsonFile(json_file);
+	try {
+		udp_port = doc.get<uint16_t>("udp_port");
+		network_io_threads = doc.get<uint16_t>("network_io_threads");
+		network_packet_processing_threads = doc.get<uint16_t>("network_packet_processing_threads");
+		udp_buffer_count = doc.get<uint32_t>("udp_buffer_count");
+		udp_buffer_size = doc.get<uint32_t>("udp_buffer_size");
+	}
+	catch(std::exception &e){
+		std::cerr<<e.what()<<std::endl;
+	}
 }
 
 // MessageHeader ---------------------------------
