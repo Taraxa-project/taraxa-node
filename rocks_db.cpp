@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 11:19:05 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 17:23:59
+ * @Last Modified time: 2019-01-29 13:11:59
  */
 
 #include "rocks_db.hpp"
@@ -64,7 +64,7 @@ bool RocksDb::put(const std::string &key, const std::string &value){
 
 	if (seen){
 		if (verbose_){
-			std::cout<<"Warning! Data exist, do overwirting, key = "<<key<<std::endl;
+			std::cout<<"Warning! Data exist, returnd. Key = "<<key<<std::endl;
 		}
 		return false;
 	}

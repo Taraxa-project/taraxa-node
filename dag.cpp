@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 16:46:46
+ * @Last Modified time: 2019-01-29 13:42:41
  */
  
 #include <tuple>
@@ -75,12 +75,20 @@ bool Dag::addVEEs(std::string const & new_vertex, std::string const & pivot,
 	// Add a new block, edges are pointing from pivot to new_veretx
 	if (!pivot.empty()){
 		std::tie(edge, res) = add_edge_by_label(pivot, new_vertex, graph_);
+		if (!res){
+			std::cout<<"Warning! creating pivot edge "<< pivot << " \n-->\n "
+			<<new_vertex<<" \nunsuccessful!"<<std::endl;
+		}
 	}
+	bool res2;
 	for (auto const & e: tips){
- 		std::tie(edge, res) = add_edge_by_label(e, new_vertex, graph_);
-		assert(res);
+ 		std::tie(edge, res2) = add_edge_by_label(e, new_vertex, graph_);
+		if (!res2){
+			std::cout<<"Warning! creating tip edge \n"<< e << "\n-->\n "
+			<<new_vertex<<" \nunsuccessful!"<<std::endl;
+		}
 	}
-	return true;
+	return res & res2;
 }
 
 void Dag::drawGraph(std::string filename) const{
@@ -89,7 +97,7 @@ void Dag::drawGraph(std::string filename) const{
 	auto name_map = boost::get(boost::vertex_name, graph_);
 	boost::write_graphviz(outfile, graph_, make_label_writer(name_map)); 
 	std::cout<<"Dot file "<<filename<< " generated!"<<std::endl;
-	std::cout<<"Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate ps file"<<std::endl;
+	std::cout<<"Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"<<std::endl;
 }
 
 Dag::vertex_t Dag::addVertex(std::string const & hash){
@@ -290,6 +298,11 @@ void DagManager::addToDag(std::string const & hash, std::string const & pivot,
 	tips_explorer_->blockAdded();
 }
 
+
+/**
+ * TODO: current will do spining access, change it
+ */
+ 
 void DagManager::consume(unsigned idx){
 
 	while(on_){
@@ -310,8 +323,6 @@ void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::str
 	dag_->collectPivot(pivot);
 	dag_->collectTips(tips);
 }
-
-
 
 SbBuffer::SbBuffer(): stopped_(false), updated_(false), iter_(blocks_.end()){}
 

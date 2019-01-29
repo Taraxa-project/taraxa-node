@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 17:13:46
+ * @Last Modified time: 2019-01-28 22:56:32
  */
 
 #include <boost/asio.hpp>
@@ -20,20 +20,18 @@ using std::string;
 using std::to_string;
 
 FullNodeConfig::FullNodeConfig (std::string const &json_file):json_file_name(json_file){
-	rapidjson::Document doc = loadJsonFile(json_file);
 	
-	assert(doc.HasMember("address"));
-	assert(doc.HasMember("db_accounts_path"));
-	assert(doc.HasMember("db_blocks_path"));
-	assert(doc.HasMember("dag_processing_threads"));
-	assert(doc.HasMember("block_proposer_threads"));
-
-	address = boost::asio::ip::address::from_string(doc["address"].GetString());
-	db_accounts_path = doc["db_accounts_path"].GetString();
-	db_blocks_path = doc["db_blocks_path"].GetString();
-	dag_processing_threads = doc["dag_processing_threads"].GetUint();
-	block_proposer_threads = doc["block_proposer_threads"].GetUint();
-
+	try{
+		boost::property_tree::ptree doc = loadJsonFile(json_file);
+		address = boost::asio::ip::address::from_string(doc.get<std::string>("address"));
+		db_accounts_path = doc.get<std::string>("db_accounts_path");
+		db_blocks_path = doc.get<std::string>("db_blocks_path");
+		dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
+		block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
+	}
+	catch(std::exception &e){
+		std::cerr<<e.what()<<std::endl;
+	}
 }
 
 void FullNode::setVerbose(bool verbose){
@@ -51,12 +49,10 @@ void FullNode::setDebug(bool debug){
 
 FullNode::FullNode(boost::asio::io_context & io_context, 
 		std::string const & conf_full_node, 
-		std::string const & conf_network, 
-		std::string const & conf_rpc) try:
+		std::string const & conf_network) try:
 	io_context_(io_context),
 	conf_full_node_(conf_full_node), 
 	conf_network_(conf_network),
-	conf_rpc_(conf_rpc),
 	conf_(conf_full_node),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 

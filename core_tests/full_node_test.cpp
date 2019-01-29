@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-18 12:56:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 17:31:14
+ * @Last Modified time: 2019-01-29 12:42:26
  */
  
 #include <gtest/gtest.h>
@@ -181,15 +181,14 @@ namespace taraxa {
 // }
 
 
-TEST(FullNode, send_and_receive_in_order_single_chain_messages){
+TEST(FullNode, send_and_receive_out_order_messages){
 
 	boost::asio::io_context context1;
 	boost::asio::io_context context2;
 
 	auto node1 (std::make_shared<taraxa::FullNode>(context1, 
 		std::string("./core_tests/conf_full_node1.json"), 
-		std::string("./core_tests/conf_network1.json"), 
-		std::string("./core_tests/conf_rpc1.json")));
+		std::string("./core_tests/conf_network1.json")));
 	
 	// node1->setVerbose(true);
 	node1->setDebug(true);
@@ -245,19 +244,19 @@ TEST(FullNode, send_and_receive_in_order_single_chain_messages){
 	
 	StateBlock blk6 (
 	("0000000000000000000000000000000000000000000000000000000000000005"),
-	{}, 
+	{"0000000000000000000000000000000000000000000000000000000000000004", 
+	 "0000000000000000000000000000000000000000000000000000000000000003"}, 
 	{},
 	("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
 	("0000000000000000000000000000000000000000000000000000000000000006"));
 
-	
-	blks.push_back(blk1);
-	blks.push_back(blk2);
-	blks.push_back(blk3);
-	blks.push_back(blk4);
-	blks.push_back(blk5);
 	blks.push_back(blk6);
-
+	blks.push_back(blk5);
+	blks.push_back(blk4);
+	blks.push_back(blk3);
+	blks.push_back(blk2);
+	blks.push_back(blk1);
+	
 	for (auto i=0; i<blks.size(); ++i){
 		nw2->sendBlock(ep, blks[i]);
 	}
@@ -273,9 +272,9 @@ TEST(FullNode, send_and_receive_in_order_single_chain_messages){
 	node1->stop();
 
 	// node1->drawGraph("dot.txt");
-	// EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-	// EXPECT_EQ(node1->getNumVerticesInDag(), 7);
-	// EXPECT_EQ(node1->getNumEdgesInDag(), 9);
+	EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
+	EXPECT_EQ(node1->getNumVerticesInDag(), 7);
+	EXPECT_EQ(node1->getNumEdgesInDag(), 8);
 	EXPECT_EQ(node1->getNumProposedBlocks(),2);
 }
 

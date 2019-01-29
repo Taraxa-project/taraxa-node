@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 17:09:35
+ * @Last Modified time: 2019-01-28 22:56:59
  */
  
 #ifndef FULL_NODE_HPP
@@ -30,8 +30,8 @@ struct FullNodeConfig {
 	boost::asio::ip::address address;
 	std::string db_accounts_path;
 	std::string db_blocks_path;
-	unsigned dag_processing_threads;
-	unsigned block_proposer_threads;
+	uint16_t dag_processing_threads;
+	uint16_t block_proposer_threads;
 };
 
 
@@ -39,8 +39,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 public:
 	FullNode( boost::asio::io_context & io_context, 
 		std::string const & conf_full_node, 
-		std::string const & conf_network, 
-		std::string const & conf_rpc);
+		std::string const & conf_network);
 	void setVerbose(bool verbose);
 	void setDebug(bool debug);
 	void start();
@@ -75,7 +74,6 @@ private:
 	// configure files
 	std::string conf_full_node_;
 	std::string conf_network_;
-	std::string conf_rpc_;
 	
 	// configuration
 	FullNodeConfig conf_;

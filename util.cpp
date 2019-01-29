@@ -1,27 +1,20 @@
 #include "util.hpp"
+
 namespace taraxa{
-rapidjson::Document strToJson(const std::string &json_str){
 
-	rapidjson::Document doc;
-	doc.Parse(json_str.c_str());
-	if (doc.HasParseError()) {
-		throw std::invalid_argument(
-			__FILE__ "(" + std::to_string(__LINE__) + ") "
-			"Couldn't parse Json data at character position " + std::to_string(doc.GetErrorOffset())
-			+ ": " + rapidjson::GetParseError_En(doc.GetParseError())
-		);	
-	}
-
-	if (!doc.IsObject()) {
-		throw std::invalid_argument(
-			__FILE__ "(" + std::to_string(__LINE__) + ") "
-			"Json data doesn't represent an object ( {...} )"
-		);
+boost::property_tree::ptree strToJson(std::string str){
+	std::stringstream iss(str);
+	boost::property_tree::ptree doc;
+	try{
+		boost::property_tree::read_json(iss, doc);
+	} catch(std::exception & e){
+		std::cerr<<"Property tree read error: "<<e.what()<<std::endl;
 	}
 	return doc;
 }
 
-rapidjson::Document loadJsonFile(const std::string& json_file_name) {
+
+boost::property_tree::ptree loadJsonFile(std::string json_file_name) {
 	try {
 		// read file as string
 		std::ifstream json_file(json_file_name);

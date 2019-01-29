@@ -1,21 +1,35 @@
 #include "rpc.hpp"
+#include "state_block.hpp"
 #include "full_node.hpp"
 #include "wallet.hpp"
+#include "util.hpp"
 
 namespace taraxa{
 
 RpcConfig::RpcConfig (std::string const &json_file):json_file_name(json_file){
-		rapidjson::Document doc = loadJsonFile(json_file);
-
-		assert(doc.HasMember("port"));
-		assert(doc.HasMember("address"));
-
-		port = doc["port"].GetUint();
-		address = boost::asio::ip::address::from_string(doc["address"].GetString());
+	try{
+		boost::property_tree::ptree doc = loadJsonFile(json_file);
+		port = doc.get<uint16_t>("port");
+		address = boost::asio::ip::address::from_string(doc.get<std::string>("address"));
 	}
+	catch (std::exception &e){
+		std::cerr<<e.what()<<std::endl;
+	}
+}
 
-Rpc::Rpc(std::string const & conf_rpc, boost::asio::io_context & io, FullNode & node, Wallet & wallet):
-		conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node), wallet_(wallet){}
+Rpc::Rpc(boost::asio::io_context & io, std::string conf_rpc, std::shared_ptr<FullNode> node):
+		verbose_(false), conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node){}
+
+std::shared_ptr<Rpc> Rpc::getShared(){
+	try {
+		return shared_from_this();
+	}
+	catch (std::bad_weak_ptr &e) {
+		std::cerr<<"Rpc: "<<e.what()<<std::endl;
+		assert(false);
+		return nullptr;
+	}
+}
 
 void Rpc::start(){
 	boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
@@ -29,21 +43,24 @@ void Rpc::start(){
 		throw std::runtime_error(ec.message());
 	}
 	acceptor_.listen();
-	std::cout<<"RPC is listening on port "<< conf_.port<<std::endl;
 
+	if (verbose_){
+		std::cout<<"Rpc is listening on port "<< conf_.port<<std::endl;
+	}
 	waitForAccept();
 }
 
 void Rpc::waitForAccept(){
-	std::shared_ptr<RpcConnection> conn_sp (new RpcConnection (*this, node_, wallet_));
-	std::cout<<"Listening ...."<<std::endl;
-	acceptor_.async_accept(conn_sp->getSocket(), [this, conn_sp](boost::system::error_code const & ec){
+	std::shared_ptr<RpcConnection> connection (std::make_shared<RpcConnection> (getShared(), node_));
+	acceptor_.async_accept(connection->getSocket(), [this, connection](boost::system::error_code const & ec){
 		if (!ec){
-			std::cout<<"A connection is accepted"<<std::endl;
-			conn_sp->read();
+			if (verbose_){
+				std::cout<<"A connection is accepted"<<std::endl;
+			}
+			connection->read();
 		}
 		else {
-			std::cerr<<"Error! RPC async_accept error ... "<<ec.message()<<"\n";
+			std::cerr<<"Error! Rpc async_accept error ... "<<ec.message()<<"\n";
 			throw std::runtime_error(ec.message());
 		}
 		waitForAccept();
@@ -54,13 +71,23 @@ void Rpc::stop(){
 	acceptor_.close();
 }
 
-RpcConnection::RpcConnection(Rpc & rpc, FullNode & node, Wallet & wallet):
-	rpc_(rpc), node_sp_(node.getShared()), wallet_sp_(wallet.getShared()), socket_(rpc.getIoContext()){
-	responded.clear();
+std::shared_ptr<RpcConnection> RpcConnection::getShared(){
+	try {
+		return shared_from_this();
+	} 
+	catch(std::bad_weak_ptr & e){
+		std::cerr<<"RpcConnection: "<<e.what()<<std::endl;
+		return nullptr;
+	}
+}
+
+RpcConnection::RpcConnection(std::shared_ptr<Rpc> rpc, std::shared_ptr<FullNode> node):
+	rpc_(rpc), node_(node), socket_(rpc->getIoContext()){
+	responded_.clear();
 }
 
 void RpcConnection::read(){
-	auto this_sp = (shared_from_this());
+	auto this_sp = getShared();
 	boost::beast::http::async_read(socket_, buffer_, request_, 
 		[this_sp](boost::system::error_code const &ec, size_t byte_transfered){
 		if (!ec){
@@ -78,8 +105,8 @@ void RpcConnection::read(){
 			// pass response handler
 			if (this_sp->request_.method() == boost::beast::http::verb::post){
 				std::shared_ptr<RpcHandler> rpc_handler ( 
-					new RpcHandler(this_sp->rpc_, *this_sp->node_sp_, 
-					*this_sp->wallet_sp_, this_sp->request_.body(), replier));
+					new RpcHandler(this_sp->rpc_, this_sp->node_, 
+					this_sp->request_.body(), replier));
 				try{
 					rpc_handler->processRequest();
 				} catch (...){
@@ -97,7 +124,7 @@ void RpcConnection::read(){
 
 void RpcConnection::write_response(std::string const & msg){
 
-	if (!responded.test_and_set()){
+	if (!responded_.test_and_set()){
 		response_.set("Content-Type", "application/json");
 		response_.set ("Access-Control-Allow-Origin", "*");
 		response_.set ("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type");
@@ -107,61 +134,75 @@ void RpcConnection::write_response(std::string const & msg){
 		response_.prepare_payload ();
 	}
 	else{
+
 		assert(false && "RPC already responded ...\n");
 	}
 }
 
-RpcHandler::RpcHandler(Rpc & rpc, FullNode &node, Wallet &wallet, std::string const &body , 
+RpcHandler::RpcHandler(std::shared_ptr<Rpc> rpc, std::shared_ptr<FullNode> node, 
+	std::string const &body , 
 	std::function<void(std::string const & msg)> const &response_handler):
-	rpc_(rpc), node_(node), wallet_(wallet), 
+	rpc_(rpc), node_(node), 
 	body_(body), in_doc_(taraxa::strToJson(body_)), replier_(response_handler){}
 
+std::shared_ptr<RpcHandler> RpcHandler::getShared(){
+	try {
+		return shared_from_this();
+	} 
+	catch(std::bad_weak_ptr & e){
+		std::cerr<<"RpcHandler: "<<e.what()<<std::endl;
+		return nullptr;
+	}
+}
+
 void RpcHandler::processRequest(){
-	try{
-		
-		if (!in_doc_.HasMember("action")){
-			throw std::runtime_error("Request does not provide action\n");
-		}
-		std::string action = in_doc_["action"].GetString();
+	try{	
+		std::string action = in_doc_.get<std::string>("action"); 
 		std::string res;
 		
-		if (action == "wallet_account_create"){
-			if (!in_doc_.HasMember("sk")){
-				throw std::runtime_error("Wallet request (wallet_account_create) does not provide secret key [sk]\n");
-			}
-			std::string sk = in_doc_["sk"].GetString();
-			res = wallet_.accountCreate(sk);
-		} else if (action == "wallet_account_query"){
-			if (!in_doc_.HasMember("address")){
-				throw std::runtime_error("Wallet query (wallet_account_query) does not provide account address [address]" );
-			}
-			std::string address = in_doc_["address"].GetString();
-			res = wallet_.accountQuery(address);
-		} 
-		else if (action == "user_account_query"){
-			if (!in_doc_.HasMember("address")){
-				throw std::runtime_error("User account query (account_query) does not provide address\n");
-			}
-			std::string address = in_doc_["address"].GetString();
-			res = node_.accountQuery(address);
+		// if (action == "wallet_account_create"){
+		// 	if (!in_doc_.HasMember("sk")){
+		// 		throw std::runtime_error("Wallet request (wallet_account_create) does not provide secret key [sk]\n");
+		// 	}
+		// 	std::string sk = in_doc_["sk"].GetString();
+		// 	res = wallet_.accountCreate(sk);
+		// } else if (action == "wallet_account_query"){
+		// 	if (!in_doc_.HasMember("address")){
+		// 		throw std::runtime_error("Wallet query (wallet_account_query) does not provide account address [address]" );
+		// 	}
+		// 	std::string address = in_doc_["address"].GetString();
+		// 	res = wallet_.accountQuery(address);
+		// } 
+		// else if (action == "user_account_query"){
+		// 	if (!in_doc_.HasMember("address")){
+		// 		throw std::runtime_error("User account query (account_query) does not provide address\n");
+		// 	}
+		// 	std::string address = in_doc_["address"].GetString();
+		// 	res = node_.accountQuery(address);
 			
-		} else if (action == "block_create"){
-			if (!in_doc_.HasMember("prev_hash")){
-				throw std::runtime_error("Request (block_create) does not provide prev_hash\n");
+		// } 
+		if (action == "insert_block"){
+			
+			vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+			sig_t signature = "77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777";
+			blk_hash_t hash = in_doc_.get<std::string>("hash"); 
+			if (tips.size()==0){
+				res = "No tips to insert ...";
 			}
-			if (!in_doc_.HasMember("address")){
-				throw std::runtime_error("Request (block_create) does not provide address\n");
+			else{
+				auto pivot = tips.back();
+				tips.pop_back();
+				StateBlock blk(pivot, tips, {}, signature, hash);
+				res = blk.getJsonStr(); 
+				node_->storeBlock(blk);
 			}
-			if (!in_doc_.HasMember("balance")){
-				throw std::runtime_error("Request (block_create) does not provide resulting balance\n");
-			}
-			blk_hash_t prev_hash = in_doc_["prev_hash"].GetString();
-			name_t from_address = in_doc_["from_address"].GetString();
-			name_t to_address = in_doc_["to_address"].GetString();
-			bal_t balance = in_doc_["balance"].GetUint64();
-
-			res = node_.blockCreate(prev_hash, from_address, to_address, balance);
-		} else {
+		} 
+		else if (action == "draw_graph"){
+			std::string filename = in_doc_.get<std::string>("filename");
+			node_->drawGraph(filename);
+			res = "Dag is drwan as " + filename + " on the server side ...";
+		}
+		else {
 			res = "Unknown action "+ action;
 		}
 		res+="\n";
@@ -169,7 +210,6 @@ void RpcHandler::processRequest(){
 	}
 	catch(std::exception const & err){
 		std::cerr<<err.what()<<"\n";
-		rapidjson::Document dummy;
 		replier_(err.what());
 	}
 	

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-24 16:56:41 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 17:19:31
+ * @Last Modified time: 2019-01-28 23:02:13
  */
  
 #include "block_proposer.hpp"
@@ -19,7 +19,7 @@ uint64_t BlockProposer::getNumProposedBlocks(){
 
 BlockProposer::BlockProposer(unsigned num_threads, 
 	std::shared_ptr<DagManager> dag_mgr):
-	verbose_(true), on_(true), num_threads_(num_threads), dag_mgr_(dag_mgr){}
+	verbose_(false), on_(true), num_threads_(num_threads), dag_mgr_(dag_mgr){}
 
 BlockProposer::~BlockProposer(){
 	for (auto & t: proposer_threads_){

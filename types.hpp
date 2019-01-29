@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 12:21:41
+ * @Last Modified time: 2019-01-28 15:07:13
  */
 
 #ifndef TYPES_HPP
@@ -78,5 +78,6 @@ using vec_tip_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
 
 }
+
 
 #endif

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-03 23:37:53 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2018-12-12 13:37:45
+ * @Last Modified time: 2019-01-28 22:46:25
  */
  
 #include "wallet.hpp"
@@ -14,22 +14,25 @@ namespace taraxa{
 
 
 WalletConfig::WalletConfig (std::string const & json_file):db_wallet_path (json_file){
-	rapidjson::Document doc = loadJsonFile(json_file);
-	assert(doc.HasMember("db_wallet_path"));
-	assert(doc.HasMember("wallet_key"));
-	db_wallet_path = doc["db_wallet_path"].GetString();
-	wallet_key = doc["wallet_key"].GetString();
+	try{
+		boost::property_tree::ptree doc = loadJsonFile(json_file);
+		db_wallet_path = doc.get<std::string>("db_wallet_path");
+		wallet_key = doc.get<std::string>("wallet_key"); 
+	}
+	catch (std::exception & e){
+		std::cerr<<e.what()<<std::endl;
+	}
 }
 
 WalletUserAccount::WalletUserAccount(std::string const & sk, std::string const & pk, std::string const & address): 
 	sk(sk), pk(pk), address(address){}
 
 WalletUserAccount::WalletUserAccount(std::string const & json){
-	rapidjson::Document doc = taraxa::strToJson(json);
+	boost::property_tree::ptree doc = taraxa::strToJson(json);
 	
-	sk = doc["sk"].GetString();
-	pk = doc["pk"].GetString();
-	address =doc["address"].GetString();
+	sk = doc.get<std::string>("sk");
+	pk = doc.get<std::string>("pk");
+	address = doc.get<std::string>("address");
 }
 
 Wallet::Wallet(WalletConfig const & conf): 
@@ -37,17 +40,15 @@ Wallet::Wallet(WalletConfig const & conf):
 		db_wallet_sp_(std::make_shared<RocksDb> (conf_.db_wallet_path)) {} 
 
 std::string WalletUserAccount::getJsonStr(){
-	rapidjson::Document doc;
-	doc.SetObject();
+	boost::property_tree::ptree doc;
+	
+	doc.put("sk", sk);
+	doc.put("pk", pk);
+	doc.put("address", address);
 
-	auto& allocator = doc.GetAllocator();
-	doc.AddMember("sk", rapidjson::StringRef(sk.c_str()), allocator);
-	doc.AddMember("pk", rapidjson::StringRef(pk.c_str()), allocator);
-	doc.AddMember("address", rapidjson::StringRef(address.c_str()), allocator);
-	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-	doc.Accept(writer);
-	return buffer.GetString();
+	std::stringstream ostrm;
+	boost::property_tree::write_json(ostrm, doc);
+	return ostrm.str();
 }
 
 std::string Wallet::accountCreate (key_t sk){

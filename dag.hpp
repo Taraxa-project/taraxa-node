@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 16:37:22
+ * @Last Modified time: 2019-01-29 12:49:24
  */
  
 #include <iostream>
@@ -71,6 +71,7 @@ public:
 	uint64_t getNumEdges() const;  
 	bool hasVertex(std::string const & v) const;
 	// VEE: new vertex, pivot, tips
+	// Note: *** The function does not check vertex existency
 	bool addVEEs(std::string const & vertex, std::string const & edge, 
 		std::vector<std::string> const & edges);
 	void collectTips(std::vector<std::string> & tips) const;

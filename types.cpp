@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 17:14:42
+ * @Last Modified time: 2019-01-29 11:26:54
  */
  
 #include "types.hpp"
@@ -47,7 +47,7 @@ bool uint_hash_t<Bytes>::decodeHex(std::string const & str){
 		}
 	}
 	else {
-		std::cerr<<"Hash type size is "<<bytes.size()*2<<" chars, "
+		std::cerr<<"uint_hash_t type size is "<<bytes.size()*2<<" chars, "
 			<<"but input string has length "<<str.size()<<" "<<str<<std::endl;
 		assert(false);
 		ok = false;
