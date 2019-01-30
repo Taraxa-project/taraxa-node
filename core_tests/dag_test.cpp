@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 13:45:36
+ * @Last Modified time: 2019-01-29 18:51:23
  */
  
 #include <gtest/gtest.h>
@@ -87,6 +87,26 @@ TEST(Dag, dag_traverse){
 	EXPECT_EQ(6, leaves.size());
 	graph.collectPivot(pivot);
 	EXPECT_EQ(v8, pivot);
+
+	time_stamp_t t7 = graph.getVertexTimeStamp(v7);
+	time_stamp_t t7p1 = t7+1;
+
+	std::vector<std::string> children, tips;
+	graph.getChildrenBeforeTimeStamp(v3, t7, children);
+	EXPECT_EQ(children.size(), 2);
+
+	graph.getChildrenBeforeTimeStamp(v6, t7, children);
+	EXPECT_EQ(children.size(), 0);
+
+	graph.getTipsBeforeTimeStamp(v3, t7p1, tips);
+	EXPECT_EQ(tips.size(), 3);
+
+	graph.getTipsBeforeTimeStamp(v3, t7, tips);
+	EXPECT_EQ(tips.size(), 2);
+
+	graph.getTipsBeforeTimeStamp(v4, t7p1, tips);
+	EXPECT_EQ(tips.size(), 1);
+
 }
 
 TEST(DagManager, receive_block_in_order){
