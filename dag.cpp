@@ -3,12 +3,14 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 13:42:41
+ * @Last Modified time: 2019-01-29 18:53:46
  */
  
 #include <tuple>
 #include <fstream>
 #include <vector>
+#include <unordered_set>
+#include <queue>
 
 #include "dag.hpp"
 
@@ -32,12 +34,12 @@ uint64_t Dag::getNumEdges() const {
 	return boost::num_edges(graph_);
 }
 
-bool Dag::hasVertex(std::string const & v) const{
+bool Dag::hasVertex(vertex_hash const & v) const{
 	ulock lock(mutex_);
 	return graph_.vertex(v) != graph_.null_vertex();
 }
 
-void Dag::collectTips(std::vector<std::string> & tips) const{
+void Dag::collectTips(std::vector<vertex_hash> & tips) const{
 	ulock lock(mutex_);
 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
 	std::vector<vertex_t> leaves;
@@ -47,7 +49,7 @@ void Dag::collectTips(std::vector<std::string> & tips) const{
 	}
 }
 
-void Dag::collectPivot(std::string & pivot) const{
+void Dag::collectPivot(vertex_hash & pivot) const{
 	ulock lock(mutex_);
 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
 	std::vector<vertex_t> criticals;
@@ -57,16 +59,20 @@ void Dag::collectPivot(std::string & pivot) const{
 	pivot = name_map[criticals.back()];
 }
 
-bool Dag::addVEEs(std::string const & new_vertex, std::string const & pivot, 
-	std::vector<std::string> const & tips){
+bool Dag::addVEEs(vertex_hash const & new_vertex, vertex_hash const & pivot, 
+	std::vector<vertex_hash> const & tips){
 	
 	ulock lock(mutex_);
 	assert(!new_vertex.empty());
 	
 	// add vertex
+	auto now (std::chrono::system_clock::now());
 	vertex_t ret= add_vertex(new_vertex, graph_);
 	vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
 	name_map[ret]=new_vertex;
+	vertex_time_stamp_map_t stamp_map = boost::get(boost::vertex_index1, graph_);
+	stamp_map[ret] = getTimePoint2Long(now);
+	// std::cout<<"Created vertex "<< new_vertex<< " at "<< getTimePoint2Long(now) <<std::endl;
 	edge_t edge;
 	bool res;
 
@@ -76,7 +82,7 @@ bool Dag::addVEEs(std::string const & new_vertex, std::string const & pivot,
 	if (!pivot.empty()){
 		std::tie(edge, res) = add_edge_by_label(pivot, new_vertex, graph_);
 		if (!res){
-			std::cout<<"Warning! creating pivot edge "<< pivot << " \n-->\n "
+			std::cout<<"Warning! creating pivot edge \n"<< pivot << "\n-->\n"
 			<<new_vertex<<" \nunsuccessful!"<<std::endl;
 		}
 	}
@@ -84,7 +90,7 @@ bool Dag::addVEEs(std::string const & new_vertex, std::string const & pivot,
 	for (auto const & e: tips){
  		std::tie(edge, res2) = add_edge_by_label(e, new_vertex, graph_);
 		if (!res2){
-			std::cout<<"Warning! creating tip edge \n"<< e << "\n-->\n "
+			std::cout<<"Warning! creating tip edge \n"<< e << "\n-->\n"
 			<<new_vertex<<" \nunsuccessful!"<<std::endl;
 		}
 	}
@@ -100,7 +106,7 @@ void Dag::drawGraph(std::string filename) const{
 	std::cout<<"Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"<<std::endl;
 }
 
-Dag::vertex_t Dag::addVertex(std::string const & hash){
+Dag::vertex_t Dag::addVertex(vertex_hash const & hash){
 	vertex_t ret= add_vertex(hash, graph_);
 	vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
 	name_map[ret]=hash;
@@ -112,7 +118,7 @@ Dag::edge_t Dag::addEdge(Dag::vertex_t v1, Dag::vertex_t v2){
 	return ret.first;
 }
 
-Dag::edge_t Dag::addEdge(std::string const & v1, std::string const & v2){
+Dag::edge_t Dag::addEdge(vertex_hash const & v1, vertex_hash const & v2){
 	
 	assert(graph_.vertex(v1) != graph_.null_vertex());
 	assert(graph_.vertex(v2) != graph_.null_vertex());	
@@ -123,7 +129,6 @@ Dag::edge_t Dag::addEdge(std::string const & v1, std::string const & v2){
 	assert(res);
 	return edge;
 }
-
 
 void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const{
 	leaves.clear();
@@ -147,7 +152,7 @@ void Dag::collectCriticalPath(std::vector<vertex_t> &critical_path) const{
 		vertex_adj_iter_t critical;
 		std::tie(critical, std::ignore) = adjacenct_vertices(current, graph_);
 		vertex_adj_iter_t s, e;
-		for (std::tie(s,e) = adjacenct_vertices(current, graph_); s!=e; s++){
+		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e; s++){
 			size_t current_vertex_deg = boost::out_degree(*s, graph_);
 			size_t critical_vertex_deg = boost::out_degree(*critical, graph_);
 			if (current_vertex_deg >critical_vertex_deg){
@@ -167,6 +172,77 @@ void Dag::collectCriticalPath(std::vector<vertex_t> &critical_path) const{
 	}
 	assert(critical_path.size());
 }
+
+void Dag::getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &children) const{
+	ulock lock(mutex_);
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+	}
+	children.clear();
+
+	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	vertex_adj_iter_t s, e;
+	for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e ; s++){
+		if (time_map[*s] < stamp){
+			children.push_back(name_map[*s]);
+		}
+	}
+}
+
+void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & tips) const{
+	ulock lock(mutex_);
+	std::vector<vertex_hash> ret;
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+	}
+	tips.clear();
+	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	vertex_adj_iter_t s, e;
+	std::unordered_set<vertex_t> visited; 
+	std::queue<vertex_t> qu;
+	visited.insert(current);
+	qu.emplace(current);
+	while(!qu.empty()){
+		vertex_t c = qu.front();
+		qu.pop();
+		if (time_map[c]<stamp){
+			ret.push_back(name_map[c]);
+		}
+		unsigned valid_children = 0;
+		for (std::tie(s, e) = adjacenct_vertices(c, graph_); s != e; s++){
+			if (visited.count(*s)){
+				continue;
+			}
+			visited.insert(*s);
+			// old children, still need to explore children
+			if (time_map[*s]<stamp){
+				qu.push(*s);
+				valid_children++;
+			}
+		}
+		// time sense leaf
+		if (valid_children == 0){
+			tips.push_back(name_map[c]);
+		}
+	}
+}
+
+time_stamp_t Dag::getVertexTimeStamp(vertex_hash const & vertex) const{
+	ulock lock(mutex_);
+	std::vector<vertex_hash> ret;
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+		return 0;
+	}
+	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
+	return time_map[current];
+}
+
 
 DagManager::DagManager(unsigned num_threads) try : 
 	debug_(false),
@@ -315,7 +391,7 @@ void DagManager::consume(unsigned idx){
 		}
 	}
 }
-void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips){
+void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips) const{
 	// will block if not ready.
 	tips_explorer_->waitForReady();
 	// make sure the state of dag is the same when collection pivot and tips
@@ -323,6 +399,19 @@ void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::str
 	dag_->collectPivot(pivot);
 	dag_->collectTips(tips);
 }
+
+std::vector<std::string> DagManager::getChildrenBeforeTimeStamp(std::string const & blk, time_stamp_t stamp) const{
+	std::vector<std::string> ret;
+	dag_->getChildrenBeforeTimeStamp(blk, stamp, ret);
+	return ret;
+}
+
+std::vector<std::string> DagManager::getTipsBeforeTimeStamp(std::string const & blk, time_stamp_t stamp) const{
+	std::vector<std::string> ret;
+	dag_->getTipsBeforeTimeStamp(blk, stamp, ret);
+	return ret;
+}
+
 
 SbBuffer::SbBuffer(): stopped_(false), updated_(false), iter_(blocks_.end()){}
 
@@ -336,7 +425,7 @@ bool SbBuffer::isStopped() const {return stopped_;}
 
 void SbBuffer::insert(StateBlock const & blk){
 	ulock lock(mutex_);
-	time_point_t t = std::chrono::steady_clock::now ();
+	time_point_t t = std::chrono::system_clock::now ();
 	blocks_.emplace_front(std::make_pair(blk, t));
 	updated_=true;
 	condition_.notify_one();

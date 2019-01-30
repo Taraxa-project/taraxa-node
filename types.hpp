@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-28 15:07:13
+ * @Last Modified time: 2019-01-29 18:20:12
  */
 
 #ifndef TYPES_HPP
@@ -17,7 +17,8 @@
 namespace taraxa{
 
 // time related
-using time_point_t = std::chrono::steady_clock::time_point;
+using time_point_t = std::chrono::system_clock::time_point;
+using time_stamp_t = unsigned long;
 
 using uint128_t = boost::multiprecision::uint128_t;
 using uint256_t = boost::multiprecision::uint256_t;
@@ -76,6 +77,10 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 using vec_tip_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
+
+
+time_point_t getLong2TimePoint (unsigned long l);
+unsigned long getTimePoint2Long (time_point_t tp);
 
 }
 

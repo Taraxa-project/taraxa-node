@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 12:49:24
+ * @Last Modified time: 2019-01-29 18:53:10
  */
  
 #include <iostream>
@@ -28,6 +28,8 @@
 #include <atomic>
 #include <mutex>
 
+#include <chrono>
+
 namespace taraxa{
 
 /** 
@@ -37,9 +39,9 @@ namespace taraxa{
 class Dag {
 public:
 	// properties
-	// typedef boost::property<boost::vertex_name_t, blk_hash_t, 
-	// 	boost::property<boost::vertex_out_degree_t, uint32_t> > vertex_property_t;
-	using vertex_property_t = boost::property<boost::vertex_name_t, std::string>;
+	using vertex_hash = std::string;
+	using vertex_property_t = boost::property<boost::vertex_name_t, std::string, 
+		boost::property<boost::vertex_index1_t, time_stamp_t>>;
 	using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 	
 	// graph def
@@ -55,6 +57,10 @@ public:
 	// property_map
 	using vertex_name_map_const_t = boost::property_map<graph_t, boost::vertex_name_t>::const_type;
 	using vertex_name_map_t = boost::property_map<graph_t, boost::vertex_name_t>::type;
+
+	using vertex_time_stamp_map_const_t = boost::property_map<graph_t, boost::vertex_index1_t>::const_type;
+	using vertex_time_stamp_map_t = boost::property_map<graph_t, boost::vertex_index1_t>::type;
+
 	using edge_index_map_const_t = boost::property_map<graph_t, boost::edge_index_t>::const_type;
 	using edge_index_map_t = boost::property_map<graph_t, boost::edge_index_t>::type;
 	
@@ -66,19 +72,23 @@ public:
 	~Dag ();
 	void setVerbose(bool verbose);
 	void setDebug(bool debug);
-	static std::string getGenesis();
+	static vertex_hash getGenesis();
 	uint64_t getNumVertices() const;  
 	uint64_t getNumEdges() const;  
-	bool hasVertex(std::string const & v) const;
+	bool hasVertex(vertex_hash const & v) const;
 	// VEE: new vertex, pivot, tips
 	// Note: *** The function does not check vertex existency
-	bool addVEEs(std::string const & vertex, std::string const & edge, 
-		std::vector<std::string> const & edges);
-	void collectTips(std::vector<std::string> & tips) const;
-	void collectPivot(std::string & pivot) const;
+	bool addVEEs(vertex_hash const & new_vertex, vertex_hash const & pivot, 
+		std::vector<vertex_hash> const & tips);
+	void collectTips(std::vector<vertex_hash> & tips) const;
+	void collectPivot(vertex_hash & pivot) const;
 	
-	void drawGraph(std::string filename) const;
+	void drawGraph(vertex_hash filename) const;
 	
+	void getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & children) const;
+	// Computational heavy
+	void getTipsBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
+	time_stamp_t getVertexTimeStamp(vertex_hash const & vertex) const;
 	// Create critical section, the function should be used to add StateBlock
 	
 	// for graphviz
@@ -108,6 +118,7 @@ private:
 	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 	void collectCriticalPath(std::vector<vertex_t> &criticals) const;
 
+
 	bool debug_;
 	bool verbose_;
 	graph_t graph_;
@@ -135,11 +146,15 @@ public:
 
 	bool addStateBlock(StateBlock const &blk, bool insert); // insert to buffer if fail
 	void consume(unsigned threadId);
-	void getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips);
+	void getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips) const;
 	
 	// debug functions
+	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+
 	uint64_t getNumVerticesInDag() const ;
 	uint64_t getNumEdgesInDag() const ;
+
 	void setDebug(bool debug);
 	void setVerbose(bool verbose);
 	size_t getBufferSize() const;

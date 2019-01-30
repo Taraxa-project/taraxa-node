@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 11:26:54
+ * @Last Modified time: 2019-01-29 15:41:17
  */
  
 #include "types.hpp"
@@ -130,6 +130,14 @@ template class uint_hash_t<32>;
 template class uint_hash_t<64>;
 template std::ostream & operator<<(std::ostream & strm, uint_hash_t<32> const &num);
 template std::ostream & operator<<(std::ostream & strm, uint_hash_t<64> const &num);
+
+time_point_t getLong2TimePoint (unsigned long l){
+	std::chrono::duration<unsigned long> dur(l);
+	return std::chrono::time_point<std::chrono::system_clock> (dur);
+}
+unsigned long getTimePoint2Long (time_point_t tp){
+	return tp.time_since_epoch().count();
+}
 
 
 } // namespace
