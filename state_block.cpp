@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-28 22:29:17
+ * @Last Modified time: 2019-01-30 10:48:03
  */
 #include "state_block.hpp"
 #include <boost/property_tree/json_parser.hpp>
@@ -19,18 +19,21 @@ vec_tip_t StateBlock::getTips() const {return tips_;}
 vec_trx_t StateBlock::getTrxs() const {return trxs_;}
 sig_t StateBlock::getSignature() const {return signature_;}
 blk_hash_t StateBlock::getHash() const {return hash_;}
+name_t StateBlock::getPublisher() const {return publisher_;}
 
 StateBlock::StateBlock(blk_hash_t pivot, 
 	vec_tip_t tips, 
 	vec_trx_t trxs,
 	sig_t signature, 
-	blk_hash_t hash
+	blk_hash_t hash,
+	name_t publisher
 	): 
 	pivot_(pivot), 
 	tips_(tips), 
 	trxs_(trxs), 
 	signature_(signature), 
-	hash_(hash){
+	hash_(hash),
+	publisher_(publisher){
 
 }
 StateBlock::StateBlock(stream &strm){
@@ -42,8 +45,9 @@ StateBlock::StateBlock(std::string const &json){
 		pivot_= doc.get<std::string> ("pivot");
 		tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
 		trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-		signature_ = doc.get<std::string> ("signature");
+		signature_ = doc.get<std::string> ("sig");
 		hash_ = doc.get<std::string>("hash");
+		publisher_ = doc.get<std::string>("pub");
 	} 
 	catch (std::exception &e) {
 		std::cerr<<e.what()<<std::endl;
@@ -69,8 +73,10 @@ std::string StateBlock::getJsonStr() const{
 		trxs_array.push_back(std::make_pair("", ptree(t.toString().c_str())));
 	}
 
-	tree.put("signature", signature_.toString());
+	tree.put("sig", signature_.toString());
 	tree.put("hash", hash_.toString());
+	tree.put("pub", publisher_.toString());
+
 	std::stringstream ostrm;
 	boost::property_tree::write_json(ostrm, tree);
 	return ostrm.str();
@@ -91,6 +97,7 @@ bool StateBlock::serialize(stream &strm) const{
 	}
 	ok &= write(strm, signature_);
 	ok &= write(strm, hash_);
+	ok &= write(strm, publisher_);
 	assert(ok);
 	return ok;
 }
@@ -119,6 +126,7 @@ bool StateBlock::deserialize(stream &strm){
 	}
 	ok &= read(strm, signature_);
 	ok &= read(strm, hash_);
+	ok &= read(strm, publisher_);
 	assert(ok);
 	return ok;
 }
