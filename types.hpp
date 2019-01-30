@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 18:20:12
+ * @Last Modified time: 2019-01-30 10:33:42
  */
 
 #ifndef TYPES_HPP
@@ -70,7 +70,7 @@ using uint256_hash_t = uint_hash_t<32>;
 using uint512_hash_t = uint_hash_t<64>;
 
 using key_t = std::string;
-using name_t = std::string;
+using name_t = uint256_hash_t;
 using bal_t = uint64_t;
 using sig_t = uint512_hash_t;
 using blk_hash_t = uint256_hash_t;

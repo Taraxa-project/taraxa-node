@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:37 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 16:52:03
+ * @Last Modified time: 2019-01-30 10:36:37
  */
 
 #ifndef STATE_BLOCK_HPP
@@ -27,7 +27,8 @@ public:
 				vec_tip_t tips, 
 				vec_trx_t trxs,
 				sig_t signature, 
-				blk_hash_t hash
+				blk_hash_t hash,
+				name_t publisher
 				);
 	StateBlock(stream &strm);
 	StateBlock(const string &json);
@@ -44,6 +45,7 @@ public:
 		str<<std::endl;
 		str<<"	signature	= "<< u.signature_<<std::endl;
 		str<<"	hash		= "<< u.hash_<<std::endl;
+		str<<"  publisher   = "<< u.publisher_<<std::endl;
 
 		return str;
 	}
@@ -53,6 +55,7 @@ public:
 	vec_trx_t getTrxs() const;
 	sig_t getSignature() const;
 	blk_hash_t getHash() const;
+	name_t getPublisher() const;
 	std::string getJsonStr() const;
 
 	bool serialize (stream & strm) const;
@@ -67,6 +70,7 @@ private:
 	vec_trx_t trxs_; // transactions
 	sig_t signature_;
 	blk_hash_t hash_;
+	name_t publisher_; //block creater
 };
 
 } // namespace taraxa
