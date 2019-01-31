@@ -87,7 +87,7 @@ main: create_dir
 	g++ -std=c++17 -o $(BUILD)/main rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp rpc.cpp main.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
 
 
-test: core_tests/full_node_test core_tests/state_block_test core_tests/network_test core_tests/dag_test
+test: core_tests/full_node_test core_tests/state_block_test core_tests/network_test core_tests/dag_test main
 
 run_test: test
 	./$(TEST_BUILD)/dag_test

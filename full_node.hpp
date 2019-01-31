@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-28 22:56:59
+ * @Last Modified time: 2019-01-30 23:42:31
  */
  
 #ifndef FULL_NODE_HPP
@@ -53,14 +53,13 @@ public:
 
 	// Store a block in persistent storage and build in dag
 	void storeBlock(StateBlock const &block);
-
-	// Account related
-	// std::string accountCreate(name_t const & address);
-	// std::string accountQuery(name_t const & address);
-
-	// Block related
-	// std::string blockCreate(blk_hash_t const & prev_hash, name_t const & from_address, 
-	// 	name_t const & to_address, uint64_t balance);
+	
+	// Dag query: return childern, siblings, tips before time stamp
+	StateBlock getDagBlock(blk_hash_t const & hash);
+	time_stamp_t getDagBlockTimeStamp (blk_hash_t const & hash);
+	std::vector<std::string> getDagBlockChildren(blk_hash_t const &blk, time_stamp_t stamp);
+	std::vector<std::string> getDagBlockSiblings(blk_hash_t const &blk, time_stamp_t stamp);
+	std::vector<std::string> getDagBlockTips(blk_hash_t const &blk, time_stamp_t stamp);
 
 	// debugger
 	uint64_t getNumReceivedBlocks();

@@ -57,7 +57,7 @@ public:
 	blk_hash_t getHash() const;
 	name_t getPublisher() const;
 	std::string getJsonStr() const;
-
+	bool isValid() const;
 	bool serialize (stream & strm) const;
 	bool deserialize (stream & strm);
 

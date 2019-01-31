@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 18:53:10
+ * @Last Modified time: 2019-01-31 00:00:55
  */
  
 #include <iostream>
@@ -151,7 +151,7 @@ public:
 	// debug functions
 	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
 	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
-
+	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);
 	uint64_t getNumVerticesInDag() const ;
 	uint64_t getNumEdgesInDag() const ;
 

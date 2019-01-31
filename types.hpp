@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-30 10:33:42
+ * @Last Modified time: 2019-01-31 00:08:17
  */
 
 #ifndef TYPES_HPP
@@ -51,7 +51,7 @@ struct uint_hash_t {
 	bool decodeHex(std::string const & str);
 
 	Number number () const;
-
+	bool isZero() const;
 	void clear();
 	void operator= (std::string const &str);
 	void operator= (const char * str);

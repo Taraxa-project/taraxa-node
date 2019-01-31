@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 18:53:46
+ * @Last Modified time: 2019-01-30 23:51:00
  */
  
 #include <tuple>
@@ -412,6 +412,9 @@ std::vector<std::string> DagManager::getTipsBeforeTimeStamp(std::string const & 
 	return ret;
 }
 
+time_stamp_t DagManager::getStateBlockTimeStamp(std::string const & vertex){
+	return dag_->getVertexTimeStamp(vertex);
+}
 
 SbBuffer::SbBuffer(): stopped_(false), updated_(false), iter_(blocks_.end()){}
 

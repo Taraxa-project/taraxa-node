@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-30 10:48:03
+ * @Last Modified time: 2019-01-31 00:08:40
  */
 #include "state_block.hpp"
 #include <boost/property_tree/json_parser.hpp>
@@ -53,7 +53,11 @@ StateBlock::StateBlock(std::string const &json){
 		std::cerr<<e.what()<<std::endl;
 	}
 }
+bool StateBlock::isValid() const {
+	return !(pivot_.isZero() && hash_.isZero() &&
+		signature_.isZero() && publisher_.isZero());
 
+}
 
 std::string StateBlock::getJsonStr() const{
 	using boost::property_tree::ptree;

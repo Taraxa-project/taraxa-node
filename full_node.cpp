@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-28 22:56:32
+ * @Last Modified time: 2019-01-31 00:02:12
  */
 
 #include <boost/asio.hpp>
@@ -102,6 +102,48 @@ void FullNode::storeBlock(StateBlock const & blk){
 	}
 }
 
+StateBlock FullNode::getDagBlock(blk_hash_t const & hash){
+	std::string json = db_blocks_->get(hash.toString());
+	if (json.empty()){
+		return StateBlock();
+	}
+	else{
+		return StateBlock(json);
+	}
+}
+
+time_stamp_t FullNode::getDagBlockTimeStamp (blk_hash_t const & hash){
+	return dag_mgr_->getStateBlockTimeStamp(hash.toString());
+}
+
+
+std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash, time_stamp_t stamp){
+	std::vector<std::string> children = dag_mgr_->getChildrenBeforeTimeStamp(hash.toString(), stamp);
+	return children;
+}
+
+std::vector<std::string> FullNode::getDagBlockTips(blk_hash_t const &hash, time_stamp_t stamp){
+	std::vector<std::string> tips = dag_mgr_->getTipsBeforeTimeStamp(hash.toString(), stamp);
+	return tips;
+}
+
+std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash, time_stamp_t stamp){
+	StateBlock blk = getDagBlock(hash);
+	std::vector<std::string> parents;
+	parents.emplace_back(blk.getPivot().toString());
+	for (auto const & tip: blk.getTips()){
+		parents.emplace_back(tip.toString());
+	}
+		
+	std::vector<std::string> siblings;
+	for (auto const & parent: parents){
+		std::vector<std::string> children;
+		children = dag_mgr_->getChildrenBeforeTimeStamp(parent, stamp);
+		siblings.insert(siblings.end(), children.begin(), children.end());
+	}
+	return siblings;
+}
+
 uint64_t FullNode::getNumReceivedBlocks(){
 	return received_blocks_;
 }
@@ -121,30 +163,6 @@ uint64_t FullNode::getNumEdgesInDag(){
 void FullNode::drawGraph(std::string const & dotfile) const{
 	dag_mgr_->drawGraph(dotfile);
 }
-
-// string FullNode::accountCreate(name_t const & addrbless){
-// 	if (!db_accounts_->get(address).empty()) {
-// 		return "Account already exists! \n";
-// 	}
-// 	UserAccount newAccount(address, "0", "0", 0, "0", 0);
-// 	string jsonStr=newAccount.getJsonStr();
-// 	db_accounts_->put(address, jsonStr);
-// 	return jsonStr;
-
-// }
-// string FullNode::accountQuery(name_t const & address){
-// 	string jsonStr = db_accounts_->get(address);
-// 	if (jsonStr.empty()) {
-// 		jsonStr = "Account does not exists! \n";
-// 	}
-// 	return jsonStr;
-// }
-
-// std::string FullNode::blockCreate(blk_hash_t const & prev_hash, name_t const & from_address, name_t const & to_address, bal_t balance){
-// 	StateBlock newBlock(prev_hash, from_address, to_address, balance, "0", "0", "0");
-// 	string jsonStr = newBlock.getJsonStr();
-// 	return jsonStr;
-// }
 
 FullNodeConfig const & FullNode::getConfig() const { return conf_;}
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_;}

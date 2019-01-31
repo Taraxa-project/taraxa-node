@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 15:41:17
+ * @Last Modified time: 2019-01-31 00:10:03
  */
  
 #include "types.hpp"
@@ -81,6 +81,14 @@ void uint_hash_t<Bytes>::clear() {
 	for (auto i (bytes.begin()), e (bytes.end()); i != e; ++i){
 		*i=static_cast<uint8_t> (0);
 	}
+}
+template <std::size_t Bytes>
+bool uint_hash_t<Bytes>::isZero() const{
+	bool ret = true;
+	for (auto i (bytes.begin()), e (bytes.end()); i != e; ++i){
+		ret &= (static_cast<uint8_t> (*i) == 0);
+	}
+	return ret;
 }
 
 template <std::size_t Bytes>

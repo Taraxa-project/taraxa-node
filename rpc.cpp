@@ -160,43 +160,74 @@ void RpcHandler::processRequest(){
 		std::string action = in_doc_.get<std::string>("action"); 
 		std::string res;
 		
-		// if (action == "wallet_account_create"){
-		// 	if (!in_doc_.HasMember("sk")){
-		// 		throw std::runtime_error("Wallet request (wallet_account_create) does not provide secret key [sk]\n");
-		// 	}
-		// 	std::string sk = in_doc_["sk"].GetString();
-		// 	res = wallet_.accountCreate(sk);
-		// } else if (action == "wallet_account_query"){
-		// 	if (!in_doc_.HasMember("address")){
-		// 		throw std::runtime_error("Wallet query (wallet_account_query) does not provide account address [address]" );
-		// 	}
-		// 	std::string address = in_doc_["address"].GetString();
-		// 	res = wallet_.accountQuery(address);
-		// } 
-		// else if (action == "user_account_query"){
-		// 	if (!in_doc_.HasMember("address")){
-		// 		throw std::runtime_error("User account query (account_query) does not provide address\n");
-		// 	}
-		// 	std::string address = in_doc_["address"].GetString();
-		// 	res = node_.accountQuery(address);
-			
-		// } 
-		if (action == "insert_block"){
-			
-			vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
-			sig_t signature = "77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777";
-			blk_hash_t hash = in_doc_.get<std::string>("hash"); 
-			if (tips.size()==0){
-				res = "No tips to insert ...";
-			}
-			else{
-				auto pivot = tips.back();
-				tips.pop_back();
-				StateBlock blk(pivot, tips, {}, signature, hash);
+		if (action == "insert_dag_block"){
+			try{
+				blk_hash_t pivot = in_doc_.get<std::string>("pivot");
+				vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+				sig_t signature = "77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777";
+				blk_hash_t hash = in_doc_.get<std::string>("hash"); 
+				name_t publisher = in_doc_.get<std::string>("publisher");
+
+				StateBlock blk(pivot, tips, {}, signature, hash, publisher);
 				res = blk.getJsonStr(); 
 				node_->storeBlock(blk);
+			} catch (std::exception &e) {
+				res = e.what();
 			}
 		} 
+		else if (action == "get_dag_block"){
+			try{
+				blk_hash_t hash = in_doc_.get<std::string>("hash");
+				StateBlock blk;
+				blk = node_->getDagBlock(hash);
+				time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
+				res = blk.getJsonStr()+ "\ntime_stamp: "+ std::to_string(stamp);
+			} catch (std::exception &e) {
+				res = e.what();
+			}
+		}
+		else if (action == "get_dag_block_children"){
+			try{
+				blk_hash_t hash = in_doc_.get<std::string>("hash");
+				time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
+
+				std::vector<std::string> children;
+				children = node_->getDagBlockChildren(hash, stamp);
+				for (auto const & child: children){
+					res+=(child+'\n');
+				}
+			} catch (std::exception &e) {
+				res = e.what();
+			}
+		}
+		else if (action == "get_dag_block_siblings"){
+			try{
+				blk_hash_t hash = in_doc_.get<std::string>("hash");
+				time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
+			 
+				std::vector<std::string> siblings;
+				siblings = node_->getDagBlockSiblings(hash, stamp);
+				for (auto const & sibling: siblings){
+					res+=(sibling+'\n');
+				}
+			} catch (std::exception &e) {
+				res = e.what();
+			}
+		}
+		else if (action == "get_dag_block_tips"){
+			try{
+				blk_hash_t hash = in_doc_.get<std::string>("hash");
+				time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
+			 
+				std::vector<std::string> tips;
+				tips = node_->getDagBlockTips(hash, stamp);
+				for (auto const & tip: tips){
+					res+=(tip+'\n');
+				}
+			} catch (std::exception &e) {
+				res = e.what();
+			}
+		}
 		else if (action == "draw_graph"){
 			std::string filename = in_doc_.get<std::string>("filename");
 			node_->drawGraph(filename);
