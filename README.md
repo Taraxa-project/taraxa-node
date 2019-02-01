@@ -40,3 +40,13 @@ Tests are under core_tests/
 ```
 make run_test
 ```
+# Run taraxa full node
+To run full node requires three files for full node, network and rpc configurations (in JSON format). 
+
+```
+make main
+
+./build/main ./core_tests/conf_full_node1.json ./core_tests/conf_network1.json ./core_tests/conf_rpc1.json
+
+```
+Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
