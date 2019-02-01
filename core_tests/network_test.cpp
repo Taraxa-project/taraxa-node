@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:22 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-30 10:51:11
+ * @Last Modified time: 2019-01-31 18:33:56
  */
  
 #include <gtest/gtest.h>
@@ -166,6 +166,7 @@ TEST(Network, udp_packet_transfer_header){
 	work.reset();
 	nw2->stop();
 	nw1->stop();
+	t.join();
 	unsigned long long num_sent = nw2->getSentPacket();
 	unsigned long long num_received = nw1->getReceivedPacket();
 	ASSERT_EQ(num_sent, num_received);
@@ -219,6 +220,7 @@ TEST(Network, udp_packet_transfer_block){
 	work.reset();
 	nw2->stop();
 	nw1->stop();
+	t.join();
 	unsigned long long num_sent = nw2->getSentPacket();
 	unsigned long long num_received = nw1->getReceivedPacket();
 	ASSERT_EQ(num_sent, num_received);

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-30 23:51:00
+ * @Last Modified time: 2019-01-31 22:19:16
  */
  
 #include <tuple>
@@ -193,7 +193,6 @@ void Dag::getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t st
 
 void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & tips) const{
 	ulock lock(mutex_);
-	std::vector<vertex_hash> ret;
 	vertex_t current = graph_.vertex(vertex);
 	if (current == graph_.null_vertex()){
 		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
@@ -209,19 +208,21 @@ void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp,
 	while(!qu.empty()){
 		vertex_t c = qu.front();
 		qu.pop();
-		if (time_map[c]<stamp){
-			ret.push_back(name_map[c]);
-		}
 		unsigned valid_children = 0;
 		for (std::tie(s, e) = adjacenct_vertices(c, graph_); s != e; s++){
+			if (time_map[*s]<stamp){
+				valid_children++;
+			}
+			
 			if (visited.count(*s)){
 				continue;
 			}
+
 			visited.insert(*s);
+
 			// old children, still need to explore children
 			if (time_map[*s]<stamp){
 				qu.push(*s);
-				valid_children++;
 			}
 		}
 		// time sense leaf

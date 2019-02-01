@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-30 10:47:39
+ * @Last Modified time: 2019-01-31 22:55:41
  */
  
 #include <gtest/gtest.h>
@@ -108,6 +108,59 @@ TEST(Dag, dag_traverse){
 	EXPECT_EQ(tips.size(), 1);
 
 }
+
+TEST(Dag, dag_traverse2){  
+	taraxa::Dag graph;
+
+	// a genesis vertex
+	EXPECT_EQ(1, graph.getNumVertices()); 
+
+	auto v1="0000000000000000000000000000000000000000000000000000000000000001";
+	auto v2="0000000000000000000000000000000000000000000000000000000000000002";
+	auto v3="0000000000000000000000000000000000000000000000000000000000000003";
+	auto v4="0000000000000000000000000000000000000000000000000000000000000004";
+	auto v5="0000000000000000000000000000000000000000000000000000000000000005";
+	auto v6="0000000000000000000000000000000000000000000000000000000000000006";
+
+	std::vector<std::string> empty;
+	std::string no="";
+	
+	
+	graph.addVEEs(v1, Dag::GENESIS, empty);
+	graph.addVEEs(v2, v1, empty);
+	graph.addVEEs(v3, v2, empty);
+	graph.addVEEs(v4, v2, empty);
+	graph.addVEEs(v5, v2, empty);
+	graph.addVEEs(v6, v4, {v5});
+
+	EXPECT_EQ(7, graph.getNumVertices());
+	EXPECT_EQ(7, graph.getNumEdges());
+
+	time_stamp_t t5 = graph.getVertexTimeStamp(v5);
+	time_stamp_t t5p1 = t5+1;
+	time_stamp_t t6 = graph.getVertexTimeStamp(v6);
+	time_stamp_t t6p1 = t6+1;
+	std::vector<std::string> children, tips;
+	graph.getChildrenBeforeTimeStamp(v2, t5, children);
+	EXPECT_EQ(children.size(), 2);
+
+	graph.getChildrenBeforeTimeStamp(v2, t5p1, children);
+	EXPECT_EQ(children.size(), 3);
+
+	graph.getTipsBeforeTimeStamp(v4, t6p1, tips);
+	EXPECT_EQ(tips.size(), 1);
+
+	graph.getTipsBeforeTimeStamp(v1, t5, tips);
+	EXPECT_EQ(tips.size(), 2);
+
+	graph.getTipsBeforeTimeStamp(v1, t6p1, tips);
+	EXPECT_EQ(tips.size(), 2);
+
+	graph.getTipsBeforeTimeStamp(v4, t5, tips);
+	EXPECT_EQ(tips.size(), 1);
+
+}
+
 
 TEST(DagManager, receive_block_in_order){
 	auto mgr = std::make_shared<DagManager> (1);

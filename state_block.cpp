@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 00:08:40
+ * @Last Modified time: 2019-01-31 22:42:15
  */
 #include "state_block.hpp"
 #include <boost/property_tree/json_parser.hpp>
@@ -27,7 +27,7 @@ StateBlock::StateBlock(blk_hash_t pivot,
 	sig_t signature, 
 	blk_hash_t hash,
 	name_t publisher
-	): 
+	) try:
 	pivot_(pivot), 
 	tips_(tips), 
 	trxs_(trxs), 
@@ -35,6 +35,8 @@ StateBlock::StateBlock(blk_hash_t pivot,
 	hash_(hash),
 	publisher_(publisher){
 
+} catch (std::exception &e){
+	std::cerr<<e.what()<<std::endl;
 }
 StateBlock::StateBlock(stream &strm){
 	deserialize(strm);
