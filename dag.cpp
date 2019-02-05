@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 22:19:16
+ * @Last Modified time: 2019-02-05 15:05:44
  */
  
 #include <tuple>
@@ -19,7 +19,9 @@ namespace taraxa {
 std::string const Dag::GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
 
 Dag::Dag(): debug_(false), verbose_(false){
-	genesis_ = addVertex(Dag::GENESIS);
+	vertex_hash pivot="";
+	std::vector<vertex_hash> tips;
+	genesis_ = addVEEs(Dag::GENESIS, pivot, tips);
 }
 Dag::~Dag(){}
 void Dag::setVerbose(bool verbose){ verbose_ = verbose;}

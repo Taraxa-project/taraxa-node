@@ -45,8 +45,11 @@ To run full node requires three files for full node, network and rpc configurati
 
 ```
 make main
+```
+use `./build/main --help` to check options.
 
-./build/main ./core_tests/conf_full_node1.json ./core_tests/conf_network1.json ./core_tests/conf_rpc1.json
-
+Run example:
+```
+./build/main --conf_full_node ./core_tests/conf_full_node1.json --conf_network ./core_tests/conf_network1.json --conf_rpc ./core_tests/conf_rpc1.json
 ```
 Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
