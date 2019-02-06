@@ -159,6 +159,11 @@ TEST(Dag, dag_traverse2){
 	graph.getTipsBeforeTimeStamp(v4, t5, tips);
 	EXPECT_EQ(tips.size(), 1);
 
+	time_stamp_t stamp = 100;
+	graph.setVertexTimeStamp(v1, stamp);
+	EXPECT_EQ(graph.getVertexTimeStamp(v1), stamp);
+	
+
 }
 
 

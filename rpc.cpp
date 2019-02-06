@@ -175,6 +175,23 @@ void RpcHandler::processRequest(){
 				res = e.what();
 			}
 		} 
+		if (action == "insert_stamped_dag_block"){
+			try{
+				blk_hash_t pivot = in_doc_.get<std::string>("pivot");
+				vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+				sig_t signature = "77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777";
+				blk_hash_t hash = in_doc_.get<std::string>("hash"); 
+				name_t publisher = in_doc_.get<std::string>("publisher");
+				time_stamp_t stamp= in_doc_.get<time_stamp_t>("stamp");
+				StateBlock blk(pivot, tips, {}, signature, hash, publisher);
+				res = blk.getJsonStr(); 
+				node_->storeBlock(blk);
+				node_->setDagBlockTimeStamp(hash, stamp);
+			} catch (std::exception &e) {
+				res = e.what();
+			}
+		} 
+
 		else if (action == "get_dag_block"){
 			try{
 				blk_hash_t hash = in_doc_.get<std::string>("hash");

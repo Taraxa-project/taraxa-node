@@ -116,6 +116,9 @@ time_stamp_t FullNode::getDagBlockTimeStamp (blk_hash_t const & hash){
 	return dag_mgr_->getStateBlockTimeStamp(hash.toString());
 }
 
+void FullNode::setDagBlockTimeStamp (blk_hash_t const & hash, time_stamp_t stamp){
+	dag_mgr_->setStateBlockTimeStamp(hash.toString(), stamp);
+}
 
 std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash, time_stamp_t stamp){
 	std::vector<std::string> children = dag_mgr_->getChildrenBeforeTimeStamp(hash.toString(), stamp);

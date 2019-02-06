@@ -57,6 +57,7 @@ public:
 	// Dag query: return childern, siblings, tips before time stamp
 	StateBlock getDagBlock(blk_hash_t const & hash);
 	time_stamp_t getDagBlockTimeStamp (blk_hash_t const & hash);
+	void setDagBlockTimeStamp(blk_hash_t const & hash, time_stamp_t stamp);
 	std::vector<std::string> getDagBlockChildren(blk_hash_t const &blk, time_stamp_t stamp);
 	std::vector<std::string> getDagBlockSiblings(blk_hash_t const &blk, time_stamp_t stamp);
 	std::vector<std::string> getDagBlockTips(blk_hash_t const &blk, time_stamp_t stamp);

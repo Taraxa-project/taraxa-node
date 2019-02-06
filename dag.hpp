@@ -89,6 +89,8 @@ public:
 	// Computational heavy
 	void getTipsBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
 	time_stamp_t getVertexTimeStamp(vertex_hash const & vertex) const;
+	void setVertexTimeStamp(vertex_hash const & vertex, time_stamp_t stamp);
+
 	// Create critical section, the function should be used to add StateBlock
 	
 	// for graphviz
@@ -152,6 +154,7 @@ public:
 	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
 	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
 	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);
+	void setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp);
 	uint64_t getNumVerticesInDag() const ;
 	uint64_t getNumEdgesInDag() const ;
 

@@ -236,7 +236,6 @@ void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp,
 
 time_stamp_t Dag::getVertexTimeStamp(vertex_hash const & vertex) const{
 	ulock lock(mutex_);
-	std::vector<vertex_hash> ret;
 	vertex_t current = graph_.vertex(vertex);
 	if (current == graph_.null_vertex()){
 		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
@@ -246,6 +245,17 @@ time_stamp_t Dag::getVertexTimeStamp(vertex_hash const & vertex) const{
 	return time_map[current];
 }
 
+void Dag::setVertexTimeStamp(vertex_hash const & vertex, time_stamp_t stamp){
+	ulock lock(mutex_);
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+		return;
+	}
+	vertex_time_stamp_map_t time_map = boost::get(boost::vertex_index1, graph_);
+	assert(stamp>=0);
+	time_map[current] = stamp;
+}
 
 DagManager::DagManager(unsigned num_threads) try : 
 	debug_(false),
@@ -417,6 +427,10 @@ std::vector<std::string> DagManager::getTipsBeforeTimeStamp(std::string const & 
 
 time_stamp_t DagManager::getStateBlockTimeStamp(std::string const & vertex){
 	return dag_->getVertexTimeStamp(vertex);
+}
+
+void DagManager::setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp){
+	dag_->setVertexTimeStamp(vertex, stamp);
 }
 
 SbBuffer::SbBuffer(): stopped_(false), updated_(false), iter_(blocks_.end()){}
