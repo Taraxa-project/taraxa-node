@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 14:20:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-08 14:07:19
+ * @Last Modified time: 2019-02-11 11:54:07
  */
 
 #include <iostream>
@@ -14,15 +14,16 @@
 namespace taraxa{
 	namespace storage{
 		
-	Item::Item(Addr const &addr, trx_t const &trx, ItemStatus status): 
-		addr_(addr), trx_(trx), status_(status), dirty_(false){}
+	ConflictItem::ConflictItem(Addr const &addr, ConflictStatus status): 
+		addr_(addr), status_(status){}
 
 	template <typename Item>
 	ConcurHash<Item>::ConcurHash(unsigned concur_degree_exp): 
 	verbose_(false),
 	concur_degree_(1<<concur_degree_exp), 
+	init_bucket_size_(concur_degree_*4),
 	total_size_(0),
-	bucket_size_(concur_degree_*4),
+	bucket_size_(init_bucket_size_),
 	buckets_(bucket_size_), 
 	mutexes_(concur_degree_){
 		// not sure if we can have too many mutex
@@ -154,7 +155,27 @@ namespace taraxa{
 	std::size_t ConcurHash<Item>::getConcurrentDegree(){
 		return concur_degree_;
 	}
+
+	template<typename Item>
+	void ConcurHash<Item>::clear(){
+
+		auto old_size = buckets_.size();
+		std::vector<ulock> locks(mutexes_.begin(), mutexes_.end());
+		
+		if (buckets_.size() != old_size){
+			return;
+		}
+		
+		for (auto & bucket: buckets_){
+			bucket.clear();
+		}
+		
+		buckets_.resize(init_bucket_size_);
+		bucket_size_.store(buckets_.size());
+		total_size_.store(0);
+	}
+
 	// create instance
-	template class ConcurHash<Item>;
+	template class ConcurHash<ConflictItem>;
 	}// namespace storage
 }// namespace taraxa
