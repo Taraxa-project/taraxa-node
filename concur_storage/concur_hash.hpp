@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 14:20:33 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 11:25:37
+ * @Last Modified time: 2019-02-11 15:39:27
  */
  
 #ifndef CONCUR_HASH_HPP
@@ -13,12 +13,12 @@
 #include <mutex>
 #include <vector>
 #include <atomic>
-
 #include "util.hpp"
 
 namespace taraxa{
 	namespace storage{
 	// transaction type
+	using addr_t = std::string;
 	using trx_t = std::string;
 
 	enum class ConflictStatus: uint8_t {
@@ -27,33 +27,36 @@ namespace taraxa{
 		write = 2
 	};
 
-	struct Addr{
-		Addr(std::string const& contract, std::string const & storage): 
-			contract(contract), storage(storage){}
-		std::string contract;
-		std::string storage;
-	};
-
-	/** An Item should define
-	 * key, value
-	 * getHash()
-	 * operator ==
-	 */
-
-	class ConflictItem{
+	
+	class ConflictKey{
 	public:
-		ConflictItem (Addr const &addr, ConflictStatus status_);
-		std::size_t getHash() const { return std::hash<std::string> ()(addr_.contract+addr_.storage);}
-		ConflictStatus & getStatus() {return status_;}
-		bool operator<(ConflictItem const & other) const { return getHash() < other.getHash();}
-		bool operator==(ConflictItem const & other) const { return getHash() == other.getHash();}
-		friend std::ostream & operator<<(std::ostream &strm, ConflictItem const & item){
-			strm<<"Addr: "<<item.addr_.contract<<" "<<item.addr_.storage<<" "<<asInteger(item.status_)<<"\n";
+		 
+		ConflictKey (addr_t const & contract, addr_t const & storage): contract_(contract), storage_(storage){}
+		std::size_t getHash() const { return std::hash<std::string> ()(contract_+storage_);}
+		bool operator<(ConflictKey const & other) const { return getHash() < other.getHash();}
+		bool operator==(ConflictKey const & other) const { return getHash() == other.getHash();}
+		friend std::ostream & operator<<(std::ostream &strm, ConflictKey const & key){
+			strm<<"ConflictKey: "<<key.contract_<<" "<<key.storage_<<std::endl; 
 			return strm;
 		}
 	private:
-		Addr addr_; //key
-		ConflictStatus status_; //value
+		 
+		addr_t contract_; 
+		addr_t storage_;
+
+	};
+
+	class ConflictValue{
+	public:
+		ConflictValue(){}
+		ConflictValue (trx_t const & trx, ConflictStatus status): trx_(trx), status_(status){}
+		friend std::ostream & operator<<(std::ostream &strm, ConflictValue const & value){
+			strm<<"ConflictValue: "<< value.trx_<<" "<< asInteger(value.status_)<<std::endl; 
+			return strm;
+		}
+	private:
+		trx_t trx_;
+		ConflictStatus status_;
 	};
 
 	/**
@@ -65,15 +68,30 @@ namespace taraxa{
 	 * Note: the hash content is expected to be modified through insertOrGet
 	 */
 	
-	template <typename Item> 
+	template <typename Key, typename Value> 
 	class ConcurHash{
 	public:
+
+		/** An Item should define
+			 * key, value
+			 * getHash()
+			 * operator ==
+			 */
+
+		struct Item{
+			Item (Key const & key, Value const &value): key(key), value(value){}
+			bool operator<(Item const & other) const { return key.getHash() < other.key.getHash();}
+			bool operator==(Item const & other) const { return key.getHash() == other.key.getHash();}
+			Key key;
+			Value value;
+		};
 		using ulock = std::unique_lock<std::mutex>;
 		using bucket = std::list<Item>;
 		ConcurHash (unsigned concur_degree_exp);
-		bool insert(Item item);
-		bool has(Item item);
-		bool remove(Item item);
+		bool insert(Key key, Value value);
+		bool has(Key key);
+		Value get(Key key);
+		bool remove(Key key);
 		void clear();
 
 		void setVerbose(bool verbose){ verbose_ = verbose;}
@@ -83,8 +101,8 @@ namespace taraxa{
 		uint64_t getItemSize(); 
 	
 	private:
-		unsigned getBucketId(Item item) const;
-		unsigned getLockId(Item item) const;
+		unsigned getBucketId(Key key) const;
+		unsigned getLockId(Key key) const;
 		void resize(); // double buckets_ size
 		bool policy() const; // determines when to do resize
 		bool verbose_;
@@ -96,7 +114,7 @@ namespace taraxa{
 		std::vector<std::mutex> mutexes_; 
 	};
 	
-	using ConflictHash = ConcurHash<ConflictItem>;
+	using ConflictHash = ConcurHash<ConflictKey, ConflictValue>;
 
 	}// namespace storage
 }// namespace taraxa
