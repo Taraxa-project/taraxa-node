@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 15:25:43 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 11:54:21
+ * @Last Modified time: 2019-02-11 15:37:33
  */
 
 #include <vector>
@@ -20,7 +20,8 @@ namespace taraxa {
 			unsigned num_tasks_per_thread = 1234;
 			ConflictHash conflict_hash(concurrent_degree_exp);
 			conflict_hash.setVerbose(true);
-			std::vector<ConflictItem> items;
+			std::vector<ConflictKey> keys;
+			std::vector<ConflictValue> values;
 			//generate fake items address
 			std::string contract, storage, trx;
 			auto init_bucket_size = conflict_hash.getBucketSize();
@@ -28,8 +29,10 @@ namespace taraxa {
 				contract+='a';
 				storage+='b';
 				trx+='c';
-				Addr addr(contract, storage);
-				items.push_back({addr, ConflictStatus::read});
+				ConflictKey key(contract, storage);
+				ConflictValue value(trx, ConflictStatus::read);
+				keys.push_back(key);
+				values.push_back(value);
 			}
 	
 			// write to hash_set
@@ -37,13 +40,29 @@ namespace taraxa {
 				std::vector<boost::thread> threads;
 				for (auto thread_id=0; thread_id<num_threads; ++thread_id){
 					threads.push_back(boost::thread([thread_id, num_threads, 
-					num_tasks_per_thread, &items, &conflict_hash](){
+					num_tasks_per_thread, &keys, &values, &conflict_hash](){
 						for (auto i=0; i<num_tasks_per_thread; ++i){
-							conflict_hash.insert(items[i*num_threads+thread_id]);
+							conflict_hash.insert(keys[i*num_threads+thread_id], values[i*num_threads+thread_id]);
 						}
 					}));
 				}
+												
+				std::vector<boost::thread> othre_threads;
+
+				// other piece of thread trying to insert same stuff
+				for (auto thread_id=0; thread_id<num_threads; ++thread_id){
+					othre_threads.push_back(boost::thread([thread_id, num_threads, 
+					num_tasks_per_thread, &keys, &values, &conflict_hash](){
+						for (auto i=0; i<num_tasks_per_thread; ++i){
+							conflict_hash.insert(keys[i*num_threads+thread_id], values[i*num_threads+thread_id]);
+						}
+					}));
+				}
+
 				for (auto & t: threads){
+					t.join();
+				}
+				for (auto & t: othre_threads){
 					t.join();
 				}
 			}
@@ -52,14 +71,30 @@ namespace taraxa {
 				std::vector<std::thread> threads;
 				for (auto thread_id=0; thread_id<num_threads; ++thread_id){
 					threads.push_back(std::thread([thread_id, num_threads, 
-					num_tasks_per_thread, &items,&conflict_hash]{
+					num_tasks_per_thread, &keys, &conflict_hash]{
 						for (auto i=0; i<num_tasks_per_thread; ++i){
-							bool ret = conflict_hash.has(items[i*num_threads+thread_id]);
+							bool ret = conflict_hash.has(keys[i*num_threads+thread_id]);
 							EXPECT_EQ(ret, true);
 						}
 					}));
 				}
+
+				std::vector<std::thread> other_threads;
+				for (auto thread_id=0; thread_id<num_threads; ++thread_id){
+					other_threads.push_back(std::thread([thread_id, num_threads, 
+					num_tasks_per_thread, &keys, &conflict_hash]{
+						for (auto i=0; i<num_tasks_per_thread; ++i){
+							bool ret = conflict_hash.has(keys[i*num_threads+thread_id]);
+							EXPECT_EQ(ret, true);
+						}
+					}));
+				}
+
 				for (auto & t: threads){
+					t.join();
+				}
+
+				for (auto & t: other_threads){
 					t.join();
 				}
 				EXPECT_EQ(conflict_hash.getItemSize(),num_threads*num_tasks_per_thread);
@@ -73,9 +108,9 @@ namespace taraxa {
 				std::vector<std::thread> threads;
 				for (auto thread_id=0; thread_id<num_threads/2; ++thread_id){
 					threads.push_back(std::thread([thread_id, num_threads, 
-					num_tasks_per_thread, &items,&conflict_hash]{
+					num_tasks_per_thread, &keys, &conflict_hash]{
 						for (auto i=0; i<num_tasks_per_thread; ++i){
-							bool ret = conflict_hash.remove(items[i*num_threads+thread_id]);
+							bool ret = conflict_hash.remove(keys[i*num_threads+thread_id]);
 							EXPECT_EQ(ret, true);
 						}
 					}));
