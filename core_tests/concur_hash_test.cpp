@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 15:25:43 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 16:26:55
+ * @Last Modified time: 2019-02-11 17:28:09
  */
 
 #include <vector>
@@ -37,6 +37,7 @@ namespace taraxa {
 
 		// write to hash_set
 		{
+			// write using insert
 			std::vector<boost::thread> threads;
 			for (auto thread_id=0; thread_id<num_threads; ++thread_id){
 				threads.push_back(boost::thread([thread_id, num_threads, 
@@ -47,14 +48,17 @@ namespace taraxa {
 				}));
 			}
 											
-			std::vector<boost::thread> othre_threads;
+			std::vector<boost::thread> other_threads;
 
 			// other threads trying to insert same stuff
+			// use swapAndInsert this time.
 			for (auto thread_id=0; thread_id<num_threads; ++thread_id){
-				othre_threads.push_back(boost::thread([thread_id, num_threads, 
+				other_threads.push_back(boost::thread([thread_id, num_threads, 
 				num_tasks_per_thread, &keys, &values, &conflict_hash](){
 					for (auto i=0; i<num_tasks_per_thread; ++i){
-						conflict_hash.insert(keys[i*num_threads+thread_id], values[i*num_threads+thread_id]);
+						ConflictValue dummy;
+						bool success;
+						conflict_hash.compareAndSwap(keys[i*num_threads+thread_id], dummy, values[i*num_threads+thread_id]);
 					}
 				}));
 			}
@@ -62,10 +66,12 @@ namespace taraxa {
 			for (auto & t: threads){
 				t.join();
 			}
-			for (auto & t: othre_threads){
+
+			for (auto & t: other_threads){
 				t.join();
 			}
 		}
+
 		// read from hash_set, Status == read
 		{
 			std::vector<std::thread> threads;

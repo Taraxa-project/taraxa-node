@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 14:20:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 16:20:18
+ * @Last Modified time: 2019-02-11 17:26:13
  */
 
 #include <iostream>
@@ -54,19 +54,35 @@ namespace taraxa{
 	template <typename Key, typename Value>
 	bool ConcurHash<Key, Value>::compareAndSwap(Key key, Value expected_value, Value new_value){
 		bool success = false;
-		ulock lock(mutexes_[getLockId(key)]);
-		auto bucket_id = getBucketId(key);
-		auto & bucket = buckets_[bucket_id];
-		Value old_value; 
-		Item item(key, Value());
-		auto it = std::find(bucket.begin(), bucket.end(), item);
-		if (it != bucket.end()){ // item exist
-			old_value = it->value;
-			if (old_value == expected_value){ 
-				it->value = new_value;
+		bool inserted = false;
+		{
+			ulock lock(mutexes_[getLockId(key)]);
+			auto bucket_id = getBucketId(key);
+			auto & bucket = buckets_[bucket_id];
+			Value old_value, dummy;
+			Item item(key, Value());
+			auto it = std::find(bucket.begin(), bucket.end(), item);
+			
+			if (it != bucket.end()){ // item exist
+				old_value = it->value;
+				if (old_value == expected_value){ 
+					it->value = new_value;
+					success = true;
+				}
+			}
+			else if (expected_value == dummy) { // item not exist
+				Item new_item(key, new_value);
+				bucket.emplace_back(new_item);
+				total_size_.fetch_add(1);
+				inserted = true;
 				success = true;
 			}
-		} 
+		}
+
+		if (inserted && policy()){
+			resize();
+		}
+
 		return success;
 	}
 
