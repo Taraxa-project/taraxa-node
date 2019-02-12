@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-08 15:04:16 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-08 17:06:24
+ * @Last Modified time: 2019-02-11 15:57:33
  */
  
 #include "conflict_dector.hpp"
@@ -17,9 +17,5 @@ namespace taraxa{
 
 // 	}
 // }
-
-/**
- *  if 
-
 
 } // namespace taraxa
