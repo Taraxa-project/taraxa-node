@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 15:25:43 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 17:28:09
+ * @Last Modified time: 2019-02-12 14:08:36
  */
 
 #include <vector>
@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>
 #include "concur_hash.hpp"
+#include "conflict_detector.hpp"
 
 namespace taraxa {
 	namespace storage{
@@ -226,9 +227,6 @@ namespace taraxa {
 
 		}
 
-
-
-
 		// remove half of hash_set
 		{
 			std::vector<std::thread> threads;
@@ -258,6 +256,56 @@ namespace taraxa {
 		}
 
 	}
+
+	TEST(Detector, conflict_detector_single_thread){
+		struct transaction{
+			transaction(trx_t trx, addr_t contract, addr_t storage):
+				trx(trx), contract(contract), storage(storage){}
+			trx_t trx;
+			addr_t contract;
+			addr_t storage;
+		};
+		
+		Detector detector(4);
+
+		transaction trans1("trx01", "contract01", "0000");
+		transaction trans2("trx02", "contract01", "0000");
+		transaction trans3("trx03", "contract01", "0000");
+
+		bool success = false;
+		success = detector.load(trans1.contract, trans1.storage, trans1.trx);
+		EXPECT_EQ(success, true); // READ
+		success = detector.load(trans2.contract, trans2.storage, trans2.trx);
+		EXPECT_EQ(success, true); // SHARED
+		success = detector.load(trans2.contract, trans2.storage, trans2.trx);
+		EXPECT_EQ(success, true); // SHARED
+		success = detector.load(trans3.contract, trans3.storage, trans3.trx);
+		EXPECT_EQ(success, true); // SHARED
+		success = detector.store(trans1.contract, trans1.storage, trans1.trx);
+		EXPECT_EQ(success, false); // can not write, reject
+		success = detector.load(trans1.contract, trans1.storage, trans1.trx);
+		EXPECT_EQ(success, true); // SHARED
+		success = detector.load(trans2.contract, trans2.storage, trans2.trx);
+		EXPECT_EQ(success, true); // SHARED
+		success = detector.load(trans3.contract, trans3.storage, trans3.trx);
+		EXPECT_EQ(success, true); // SHARED
+
+		transaction trans4("trx04", "contract02", "0000");
+		transaction trans5("trx05", "contract02", "0000");
+		success = detector.store(trans4.contract, trans4.storage, trans4.trx);
+		EXPECT_EQ(success, true); // WRITE
+		success = detector.store(trans5.contract, trans5.storage, trans5.trx);
+		EXPECT_EQ(success, false); // differnt transaction write to same entry, reject
+		success = detector.store(trans4.contract, trans4.storage, trans4.trx);
+		EXPECT_EQ(success, true); // WRITE
+		success = detector.load(trans4.contract, trans4.storage, trans4.trx);
+		EXPECT_EQ(success, true); // WRITE
+		success = detector.load(trans5.contract, trans5.storage, trans5.trx);
+		EXPECT_EQ(success, false); // data outdated, reject
+		success = detector.load(trans4.contract, trans4.storage, trans4.trx);
+		EXPECT_EQ(success, true); // WRITE
+	}
+
 	} // namespace storage
 }// namespace taraxa
 
