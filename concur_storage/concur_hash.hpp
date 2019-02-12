@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 14:20:33 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 16:22:43
+ * @Last Modified time: 2019-02-11 17:29:29
  */
  
 #ifndef CONCUR_HASH_HPP
@@ -27,7 +27,6 @@ namespace taraxa{
 		write = 2
 	};
 
-	
 	class ConflictKey{
 	public:
 		 
@@ -50,7 +49,7 @@ namespace taraxa{
 
 	class ConflictValue{
 	public:
-		ConflictValue(){}
+		ConflictValue():trx_(std::string()), status_(ConflictStatus::read){}
 		ConflictValue (trx_t const & trx, ConflictStatus status): trx_(trx), status_(status){}
 		trx_t getTrx(){ return trx_;}
 		ConflictStatus getStatus() { return status_;}
@@ -91,11 +90,17 @@ namespace taraxa{
 			Key key;
 			Value value;
 		};
+		
 		using ulock = std::unique_lock<std::mutex>;
 		using bucket = std::list<Item>;
 		ConcurHash (unsigned concur_degree_exp);
+		// return true if key not exist 
 		bool insert(Key key, Value value);
+		// bool return false if not existence
 		std::pair<Value, bool> get(Key key);
+		// return true if:
+		// 1. key exist and swap success
+		// 2. key not exist, expected_value is dummy, then insert 
 		bool compareAndSwap(Key key, Value expected_value, Value new_value);
 		bool remove(Key key);
 		void clear();
