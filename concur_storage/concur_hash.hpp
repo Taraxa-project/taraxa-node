@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 14:20:33 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 15:39:27
+ * @Last Modified time: 2019-02-11 16:22:43
  */
  
 #ifndef CONCUR_HASH_HPP
@@ -33,6 +33,8 @@ namespace taraxa{
 		 
 		ConflictKey (addr_t const & contract, addr_t const & storage): contract_(contract), storage_(storage){}
 		std::size_t getHash() const { return std::hash<std::string> ()(contract_+storage_);}
+		addr_t getContract() const { return contract_;}
+		addr_t getStorage() const { return storage_;}
 		bool operator<(ConflictKey const & other) const { return getHash() < other.getHash();}
 		bool operator==(ConflictKey const & other) const { return getHash() == other.getHash();}
 		friend std::ostream & operator<<(std::ostream &strm, ConflictKey const & key){
@@ -50,6 +52,10 @@ namespace taraxa{
 	public:
 		ConflictValue(){}
 		ConflictValue (trx_t const & trx, ConflictStatus status): trx_(trx), status_(status){}
+		trx_t getTrx(){ return trx_;}
+		ConflictStatus getStatus() { return status_;}
+		bool operator==(ConflictValue const & other) const { return trx_ == other.trx_ && status_ == other.status_;}
+
 		friend std::ostream & operator<<(std::ostream &strm, ConflictValue const & value){
 			strm<<"ConflictValue: "<< value.trx_<<" "<< asInteger(value.status_)<<std::endl; 
 			return strm;
@@ -73,10 +79,10 @@ namespace taraxa{
 	public:
 
 		/** An Item should define
-			 * key, value
-			 * getHash()
-			 * operator ==
-			 */
+		 * key, value
+		 * getHash()
+		 * operator ==
+		 */
 
 		struct Item{
 			Item (Key const & key, Value const &value): key(key), value(value){}
@@ -89,8 +95,8 @@ namespace taraxa{
 		using bucket = std::list<Item>;
 		ConcurHash (unsigned concur_degree_exp);
 		bool insert(Key key, Value value);
-		bool has(Key key);
-		Value get(Key key);
+		std::pair<Value, bool> get(Key key);
+		bool compareAndSwap(Key key, Value expected_value, Value new_value);
 		bool remove(Key key);
 		void clear();
 

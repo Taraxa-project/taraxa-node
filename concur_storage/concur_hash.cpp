@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-07 14:20:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 15:26:58
+ * @Last Modified time: 2019-02-11 16:20:18
  */
 
 #include <iostream>
@@ -52,18 +52,38 @@ namespace taraxa{
 	}
 
 	template <typename Key, typename Value>
-	bool ConcurHash<Key, Value>::has(Key key) {
-		bool ret = false;
+	bool ConcurHash<Key, Value>::compareAndSwap(Key key, Value expected_value, Value new_value){
+		bool success = false;
 		ulock lock(mutexes_[getLockId(key)]);
-		unsigned bucket_id = getBucketId(key);
+		auto bucket_id = getBucketId(key);
 		auto & bucket = buckets_[bucket_id];
-		Value dummy;
-		Item item(key, dummy);
+		Value old_value; 
+		Item item(key, Value());
 		auto it = std::find(bucket.begin(), bucket.end(), item);
 		if (it != bucket.end()){ // item exist
-			ret = true;
+			old_value = it->value;
+			if (old_value == expected_value){ 
+				it->value = new_value;
+				success = true;
+			}
+		} 
+		return success;
+	}
+
+	template <typename Key, typename Value>
+	std::pair<Value, bool> ConcurHash<Key, Value>::get(Key key) {
+		bool success = false;
+		ulock lock(mutexes_[getLockId(key)]);
+		auto bucket_id = getBucketId(key);
+		auto & bucket = buckets_[bucket_id];
+		Value ret;
+		Item item(key, Value());
+		auto it = std::find(bucket.begin(), bucket.end(), item);
+		if (it != bucket.end()){ // item exist
+			success = true;
+			ret = it->value;
 		}
-		return ret;
+		return {ret, success};
 	}
 
 	template <typename Key, typename Value>
