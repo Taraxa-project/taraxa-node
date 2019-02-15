@@ -175,7 +175,7 @@ void RpcHandler::processRequest(){
 				res = e.what();
 			}
 		} 
-		if (action == "insert_stamped_dag_block"){
+		else if (action == "insert_stamped_dag_block"){
 			try{
 				blk_hash_t pivot = in_doc_.get<std::string>("pivot");
 				vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
@@ -187,6 +187,7 @@ void RpcHandler::processRequest(){
 				res = blk.getJsonStr(); 
 				node_->storeBlock(blk);
 				node_->setDagBlockTimeStamp(hash, stamp);
+				res += ("\n Block stamped at: " + std::to_string(stamp));
 			} catch (std::exception &e) {
 				res = e.what();
 			}
