@@ -17,11 +17,18 @@
 #include "udp_buffer.hpp"
 #include "util.hpp"
 #include "state_block.hpp"
+#include "libp2p/Host.h"
 
 namespace taraxa{
 
 struct UdpData; 
 class FullNode;
+
+struct NodeConfig {
+	std::string id;
+	std::string ip;
+	uint16_t port;
+};
 
 struct UdpNetworkConfig {
 	UdpNetworkConfig (std::string const &json_file);
@@ -31,6 +38,9 @@ struct UdpNetworkConfig {
 	uint16_t network_packet_processing_threads;
 	uint32_t udp_buffer_size;
 	uint32_t udp_buffer_count;
+	uint16_t discovery_udp_port;
+	std::string discovery_key;
+	std::vector<NodeConfig> boot_nodes;
 };
 
 enum class UdpMessageType: uint8_t{
@@ -126,6 +136,8 @@ public:
 	unsigned getReceivedPacket();
 	unsigned getSentPacket();
 private:
+
+	std::shared_ptr<dev::p2p::Host> discoveryHost;
 
 	UdpNetworkConfig conf_;
 	bool on_ = true;
