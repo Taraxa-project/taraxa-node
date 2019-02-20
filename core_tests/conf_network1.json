@@ -3,5 +3,11 @@
 	"network_io_threads": 2,
 	"network_packet_processing_threads": 4,
 	"udp_buffer_size": 512 ,
-	"udp_buffer_count": 4096
+	"udp_buffer_count": 4096,
+
+	"discovery_udp_port": 10002,
+	"discovery_key": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+	"boot_nodes": [
+	
+	]
 }

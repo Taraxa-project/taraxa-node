@@ -1,6 +1,9 @@
 #include "network.hpp"
 #include "full_node.hpp"
 #include "visitor.hpp"
+#include "libp2p/Host.h"
+#include <libp2p/Network.h>
+#include <libdevcrypto/Common.h>
 
 namespace taraxa{
 
@@ -14,6 +17,15 @@ UdpNetworkConfig::UdpNetworkConfig (std::string const &json_file):json_file_name
 		network_packet_processing_threads = doc.get<uint16_t>("network_packet_processing_threads");
 		udp_buffer_count = doc.get<uint32_t>("udp_buffer_count");
 		udp_buffer_size = doc.get<uint32_t>("udp_buffer_size");
+		discovery_udp_port = doc.get<uint16_t>("discovery_udp_port");
+		discovery_key = doc.get<std::string>("discovery_key");
+		for (auto& item : doc.get_child("boot_nodes")) {
+			NodeConfig node;
+			node.id = item.second.get<std::string>("id");
+			node.ip = item.second.get<std::string>("ip");
+			node.port = item.second.get<uint16_t>("port");
+			boot_nodes.push_back(node);
+		}
 	}
 	catch(std::exception &e){
 		std::cerr<<e.what()<<std::endl;
@@ -133,6 +145,23 @@ Network::Network(boost::asio::io_context & io_context , std::string const & conf
 	num_io_threads_(conf_.network_io_threads),
 	num_packet_processing_threads_(conf_.network_packet_processing_threads){
 
+	auto key = dev::KeyPair::create();
+	if(conf_.discovery_key.empty()) {
+		printf("New key generated %s\n", toHex(key.secret().ref()).c_str());
+	}
+	else {
+		auto secret = dev::Secret(conf_.discovery_key, dev::Secret::ConstructFromStringType::FromHex);
+		key = dev::KeyPair(secret);
+	}
+	discoveryHost = std::make_shared<dev::p2p::Host>("TaraxaNode", key, dev::p2p::NetworkConfig("127.0.0.1", conf_.discovery_udp_port, false, true));
+	discoveryHost->start();
+	printf("Started Node id: %s\n", discoveryHost->id().hex().c_str());
+
+	for(auto &node : conf_.boot_nodes) {
+		printf("Adding node\n");
+		discoveryHost->addNode(dev::Public(node.id), dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()), node.port, node.port));
+	}
+	
 	for (auto i = 0; i < num_packet_processing_threads_; ++i){
 		packet_processing_threads_.push_back(boost::thread([this](){
 			try {
