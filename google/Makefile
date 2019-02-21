@@ -18,10 +18,11 @@ OBJ := $(patsubst api/%.cc, $(OBJ_DIR)/%.o, $(SRC))
 SUB_SRC := $(wildcard api/experimental/*.cc)
 SUB_OBJ := $(patsubst api/experimental/%.cc, $(OBJ_DIR)/%.o, $(SUB_SRC))
 
+all: create_object_dir $(OBJ) $(SUB_OBJ)
 
-
-
-all: $(OBJ) $(SUB_OBJ)
+create_object_dir: 
+	@echo Making object files ...
+	@if [ ! -d $(OBJ_DIR) ]; then	mkdir -p $(OBJ_DIR); fi 
 
 $(OBJ_DIR)/%.o: api/%.cc
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -33,5 +34,3 @@ c: clean
 clean: 
 	@echo CLEAN && rm -r $(OBJ_DIR)/*
 
-echo: 
-	echo $(OBJ)
