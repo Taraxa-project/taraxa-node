@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 13:12:10
+ * @Last Modified time: 2019-02-21 14:59:43
  */
  
 #include <iostream>
@@ -153,9 +153,14 @@ public:
 	void getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips) const;
 	
 	// debug functions
+	// BeforeTimeStamp does NOT include the time of timestamp 
+	// cannout return self as children
 	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	// can return self as subtree
 	std::vector<std::string> getSubtreeBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	// can return self as tips
 	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	// cannot return self as pivot chain
 	std::vector<std::string> getPivotChainBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
 	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);
 	void setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp);

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 13:16:42
+ * @Last Modified time: 2019-02-21 15:07:25
  */
  
 #include <tuple>
@@ -163,6 +163,7 @@ void Dag::collectCriticalPath(std::vector<vertex_t> &critical_path) const{
 	critical_path.clear();
 	// starting from genesis node
 	vertex_t current = genesis_;
+	critical_path.push_back(current);
 	while (boost::out_degree(current, graph_)){
 		vertex_adj_iter_t critical;
 		std::tie(critical, std::ignore) = adjacenct_vertices(current, graph_);
@@ -210,17 +211,35 @@ void Dag::getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t st
 }
 
 void Dag::getSubtreeBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &subtree) const{
-	// recursive call to get childrens
+	ulock lock(mutex_);
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+		return;
+	}
 	subtree.clear();
-	std::vector<vertex_hash> children;
-	std::deque<vertex_hash> q;
-	q.push_back(vertex);
+	std::deque<vertex_t> q;
+	std::set<vertex_t> visited;
+	visited.insert(current);
+	q.push_back(current);
+	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	vertex_adj_iter_t s, e;
+
 	while (!q.empty()){
-		vertex_hash current = q.front();
+		current = q.front();
 		q.pop_front();
-		getChildrenBeforeTimeStamp(current, stamp, children);
-		subtree.insert(subtree.end(), children.begin(), children.end());
-		q.insert(q.end(), children.begin(), children.end());
+		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e ; s++){
+			if (visited.count(*s)) {
+				continue;
+			}
+			if (time_map[*s] >= stamp){
+				continue;
+			}
+			visited.insert(*s);
+			q.push_back(*s);
+			subtree.push_back(name_map[*s]);
+		}
 	}
 }
 
@@ -242,7 +261,7 @@ void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp,
 	while(!qu.empty()){
 		vertex_t c = qu.front();
 		qu.pop();
-		unsigned valid_children = 0;
+		size_t valid_children = 0;
 		for (std::tie(s, e) = adjacenct_vertices(c, graph_); s != e; s++){
 			if (time_map[*s]<stamp){
 				valid_children++;
@@ -260,7 +279,7 @@ void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp,
 			}
 		}
 		// time sense leaf
-		if (valid_children == 0){
+		if (valid_children == 0 && time_map[c]<stamp){
 			tips.push_back(name_map[c]);
 		}
 	}
@@ -276,6 +295,10 @@ void Dag::getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t 
 	pivot_chain.clear();
 	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	// push root to pivot_chain
+	if (time_map[current]<stamp){
+		pivot_chain.push_back(name_map[current]);
+	}
 	while (boost::out_degree(current, graph_)){
 		// get first neighbor as critical
 		vertex_adj_iter_t critical;
@@ -284,11 +307,11 @@ void Dag::getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t 
 		size_t critical_vertex_deg=0;
 		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e; s++){
 			// if neighbor time stamp old
-			if (time_map[*s]>stamp){
+			if (time_map[*s]>=stamp){
 				continue;
 			}
 			// if critical is invalid, replace it
-			if (time_map[*critical]>stamp){
+			if (time_map[*critical]>=stamp){
 				critical=s;
 				vertex_adj_iter_t ns, ne;
 				for (std::tie(ns, ne) = adjacenct_vertices(*critical, graph_); ns!=ne; ns++){
@@ -300,7 +323,7 @@ void Dag::getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t 
 			size_t neighbor_vertex_deg = 0; 
 			vertex_adj_iter_t ns, ne;
 			for (std::tie(ns, ne) = adjacenct_vertices(*s, graph_); ns!=ne; ns++){
-				if (time_map[*ns]<=stamp) 
+				if (time_map[*ns]<stamp) 
 					neighbor_vertex_deg++;
 			}
 			
@@ -318,7 +341,7 @@ void Dag::getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t 
 				}
 			}
 		}
-		if (time_map[*critical]>stamp){
+		if (time_map[*critical]>=stamp){
 			break;
 		}
 		pivot_chain.push_back(name_map[*critical]);

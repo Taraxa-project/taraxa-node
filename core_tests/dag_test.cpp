@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 13:24:03
+ * @Last Modified time: 2019-02-21 15:10:01
  */
  
 #include <gtest/gtest.h>
@@ -40,7 +40,7 @@ TEST(Dag, build_dag){
 
 }
 
-TEST(Dag, dag_traverse){  
+TEST(Dag, dag_traverse_get_children_tips){  
 	taraxa::Dag graph;
 
 	// a genesis vertex
@@ -90,82 +90,42 @@ TEST(Dag, dag_traverse){
 
 	time_stamp_t t4 = graph.getVertexTimeStamp(v4);
 	time_stamp_t t4p1 = t4+1;
+	time_stamp_t t5 = graph.getVertexTimeStamp(v5);
+	time_stamp_t t5p1 = t5+1;
 	time_stamp_t t6 = graph.getVertexTimeStamp(v6);
 	time_stamp_t t6p1 = t6+1;
 	time_stamp_t t7 = graph.getVertexTimeStamp(v7);
 	time_stamp_t t7p1 = t7+1;
 	time_stamp_t t8 = graph.getVertexTimeStamp(v8);
 	time_stamp_t t8p1 = t8+1;
-
-	std::vector<std::string> children, tips;
-	graph.getChildrenBeforeTimeStamp(v3, t7, children);
-	EXPECT_EQ(children.size(), 2);
-
-	graph.getChildrenBeforeTimeStamp(v6, t7, children);
-	EXPECT_EQ(children.size(), 0);
-
-	graph.getTipsBeforeTimeStamp(v3, t7p1, tips);
-	EXPECT_EQ(tips.size(), 3);
-
-	graph.getTipsBeforeTimeStamp(v3, t7, tips);
-	EXPECT_EQ(tips.size(), 2);
-
-	graph.getTipsBeforeTimeStamp(v4, t7p1, tips);
-	EXPECT_EQ(tips.size(), 1);
-
 	{
-		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t4p1, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 1);
-		EXPECT_EQ(pivot_chain.back(), v3);
-	}
-
-	{
-		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t7p1, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 2);
-		EXPECT_EQ(pivot_chain.back(), v5);
+		std::vector<std::string> children;
+		graph.getChildrenBeforeTimeStamp(v3, t7, children);
+		EXPECT_EQ(children.size(), 2);
 	}
 	{
-		std::vector<std::string> pivot_chain;	
-		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t8p1, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 3);
-		EXPECT_EQ(pivot_chain.back(), v8);
+		std::vector<std::string> children;
+		graph.getChildrenBeforeTimeStamp(v6, t7, children);
+		EXPECT_EQ(children.size(), 0);
 	}
 	{
-		std::vector<std::string> pivot_chain;	
-		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t8p1, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 3);
-		EXPECT_EQ(pivot_chain.back(), v8);
+		std::vector<std::string> tips;
+		graph.getTipsBeforeTimeStamp(v3, t7p1, tips);
+		EXPECT_EQ(tips.size(), 3);
 	}
 	{
-		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(v3, t8p1, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 2);
-		EXPECT_EQ(pivot_chain.back(), v8);
+		std::vector<std::string> tips;
+		graph.getTipsBeforeTimeStamp(v3, t7, tips);
+		EXPECT_EQ(tips.size(), 2);
 	}
 	{
-		std::vector<std::string> subtree;
-		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t8p1, subtree);
-		EXPECT_EQ(subtree.size(), 7);
-		EXPECT_EQ(subtree.back(), v8);
+		std::vector<std::string> tips;
+		graph.getTipsBeforeTimeStamp(v4, t7p1, tips);
+		EXPECT_EQ(tips.size(), 1);
 	}
-	{
-		std::vector<std::string> subtree;
-		graph.getSubtreeBeforeTimeStamp(v3, t7p1, subtree);
-		EXPECT_EQ(subtree.size(), 3);
-		EXPECT_EQ(subtree.back(), v7);
-	}
-	{
-		std::vector<std::string> subtree;
-		graph.getSubtreeBeforeTimeStamp(v3, t6p1, subtree);
-		EXPECT_EQ(subtree.size(), 2);
-		EXPECT_EQ(subtree.back(), v6);
-	}
-
 }
 
-TEST(Dag, dag_traverse2){  
+TEST(Dag, dag_traverse2_get_children_tips){  
 	taraxa::Dag graph;
 
 	// a genesis vertex
@@ -192,6 +152,7 @@ TEST(Dag, dag_traverse2){
 	EXPECT_EQ(7, graph.getNumVertices());
 	EXPECT_EQ(7, graph.getNumEdges());
 
+	time_stamp_t t4 = graph.getVertexTimeStamp(v4);
 	time_stamp_t t5 = graph.getVertexTimeStamp(v5);
 	time_stamp_t t5p1 = t5+1;
 	time_stamp_t t6 = graph.getVertexTimeStamp(v6);
@@ -212,17 +173,95 @@ TEST(Dag, dag_traverse2){
 	graph.getTipsBeforeTimeStamp(v1, t6p1, tips);
 	EXPECT_EQ(tips.size(), 2);
 
+	// if no valid children, return self
 	graph.getTipsBeforeTimeStamp(v4, t5, tips);
 	EXPECT_EQ(tips.size(), 1);
+
+	graph.getTipsBeforeTimeStamp(v4, t4, tips);
+	EXPECT_EQ(tips.size(), 0);
 
 	time_stamp_t stamp = 100;
 	graph.setVertexTimeStamp(v1, stamp);
 	EXPECT_EQ(graph.getVertexTimeStamp(v1), stamp);
 	
-
 }
 
+TEST(Dag, dag_traverse_pivot_chain_and_subtree){  
+	taraxa::Dag graph;
 
+	auto v1="0000000000000000000000000000000000000000000000000000000000000001";
+	auto v2="0000000000000000000000000000000000000000000000000000000000000002";
+	auto v3="0000000000000000000000000000000000000000000000000000000000000003";
+	auto v4="0000000000000000000000000000000000000000000000000000000000000004";
+	auto v5="0000000000000000000000000000000000000000000000000000000000000005";
+	auto v6="0000000000000000000000000000000000000000000000000000000000000006";
+	auto v7="0000000000000000000000000000000000000000000000000000000000000007";
+	auto v8="0000000000000000000000000000000000000000000000000000000000000008";
+	auto v9="0000000000000000000000000000000000000000000000000000000000000009";
+
+	std::vector<std::string> empty;
+	std::string no="";
+	graph.addVEEs(v1, Dag::GENESIS, empty);
+	graph.addVEEs(v2, Dag::GENESIS, empty);
+	graph.addVEEs(v3, v1, empty);
+	graph.addVEEs(v4, v1, {v2});
+	graph.addVEEs(v5, v2, empty);
+	graph.addVEEs(v6, v2, empty);
+	graph.addVEEs(v7, v4, {v5});
+	graph.addVEEs(v8, v4, {v5});
+	graph.addVEEs(v9, v5, {v6});
+
+	time_stamp_t t7 = graph.getVertexTimeStamp(v7);
+	time_stamp_t t7p1 = t7+1;
+	time_stamp_t t8 = graph.getVertexTimeStamp(v8);
+	time_stamp_t t8p1 = t8+1;
+	time_stamp_t t9 = graph.getVertexTimeStamp(v9);
+	time_stamp_t t9p1 = t9+1;
+	
+	// timestamp exclude v9
+	{
+		std::vector<std::string> pivot_chain;
+		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t9, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 4);
+		EXPECT_EQ(pivot_chain.back(), v7);
+		EXPECT_EQ(pivot_chain[2], v4);
+	}
+
+	{
+		std::vector<std::string> pivot_chain;
+		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t9p1, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 4);
+		EXPECT_EQ(pivot_chain.back(), v7);
+		EXPECT_EQ(pivot_chain[2], v5);
+	}
+	
+	// timestamp exclude v8
+	{
+		std::vector<std::string> pivot_chain;
+		graph.getPivotChainBeforeTimeStamp(v2, t8, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 3);
+		EXPECT_EQ(pivot_chain[1], v4);
+		EXPECT_EQ(pivot_chain[2], v7);
+	}
+
+	{
+		std::vector<std::string> pivot_chain;
+		graph.getPivotChainBeforeTimeStamp(v7, t7, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 0);
+	}
+
+	// timestamp exclude v9
+	{
+		std::vector<std::string> subtree;
+		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t9, subtree);
+		EXPECT_EQ(subtree.size(), 8);
+	}
+	{
+		std::vector<std::string> subtree;
+		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t9p1, subtree);
+		EXPECT_EQ(subtree.size(), 9);
+	}
+}
 TEST(DagManager, receive_block_in_order){
 	auto mgr = std::make_shared<DagManager> (1);
 	mgr->start();
