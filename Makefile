@@ -3,52 +3,56 @@ CXX := g++
 CPPFLAGS := -I submodules -I submodules/rapidjson/include -I . -I concur_storage
 OS := $(shell uname)
 ifneq ($(OS), Darwin) #Mac
-  CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
+	CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
 endif
 CXXFLAGS := -std=c++17 -g -W -Wall -Wextra -pedantic
 LDFLAGS := -L submodules/cryptopp
 LIBS := -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp
 BUILD := build
 TEST_BUILD := test_build
+OBJ_DIR := obj
+
+GOOGLE_APIS_OBJ := $(wildcard google/obj/*.o)
+GOOGLE_APIS_FLAG := `pkg-config --cflags protobuf grpc++ --libs protobuf grpc++` -lgrpc++_reflection -ldl -I./grpc
 
 PROGRAMS = \
-    $(BUILD)/main
+		$(BUILD)/main
 
 COMPILE = @echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $@ $(CPPFLAGS) $(LDFLAGS) $(LIBS)
 TEST_COMPILE = echo CXX $@ && $(CXX) $(CXXFLAGS) $? -o $(TEST_BUILD)/run_test $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest
 
 ifeq ($(OS), Darwin) #Mac
-  BLS_COMPILE += -L /usr/local/Cellar/openssl@1.1/1.1.1/lib -I /usr/local/Cellar/openssl@1.1/1.1.1/include
+	BLS_COMPILE += -L /usr/local/Cellar/openssl@1.1/1.1.1/lib -I /usr/local/Cellar/openssl@1.1/1.1.1/include
 endif
  
 HEADERS = \
-    accounts.hpp \
-    balances.hpp \
-    bin2hex2bin.hpp \
-    hashes.hpp \
-    ledger_storage.hpp \
-    signatures.hpp \
-    transactions.hpp \
-    create_blocks.hpp \
-    generate_private_key.hpp \
-    generate_private_key_from_seed.hpp \
-    full_node.hpp \
-    state_block.hpp \
-    user_account.hpp \
-    rpc.hpp \
-    util.hpp \
-    wallet.hpp \
-    block_processor.hpp
+		accounts.hpp \
+		balances.hpp \
+		bin2hex2bin.hpp \
+		hashes.hpp \
+		ledger_storage.hpp \
+		signatures.hpp \
+		transactions.hpp \
+		create_blocks.hpp \
+		generate_private_key.hpp \
+		generate_private_key_from_seed.hpp \
+		full_node.hpp \
+		state_block.hpp \
+		user_account.hpp \
+		rpc.hpp \
+		util.hpp \
+		wallet.hpp \
+		block_processor.hpp
 
 TESTS = \
-    core_tests/dag_test.cpp
+		core_tests/dag_test.cpp
 
 all: create_dir $(DEPENDENCIES) $(PROGRAMS)
 
 DEPENDENCIES: \
-    submodules/cryptopp/Readme.txt \
-    submodules/cryptopp/libcryptopp.a \
-    submodules/rapidjson/readme.md
+		submodules/cryptopp/Readme.txt \
+		submodules/cryptopp/libcryptopp.a \
+		submodules/rapidjson/readme.md
 
 submodules/cryptopp/Readme.txt:
 	@echo cryptopp submodule does not seem to exists, did you use --recursive in git clone? && exit 1
@@ -60,11 +64,11 @@ submodules/cryptopp/libcryptopp.a: submodules/cryptopp/Readme.txt
 submodules/rapidjson/readme.md:
 	@echo rapidjson submodule does not seem to exists, did you use --recursive in git clone? && exit 1
 
-create_dir: 	
+create_build_dir: 	
 	@if [ ! -d $(BUILD) ]; then	mkdir -p $(BUILD); fi 
 
 create_test_dir: 
-	@if [ ! -d $(BUILD) ]; then	mkdir -p $(TEST_BUILD); fi 
+	@if [ ! -d $(TEST_BUILD) ]; then	mkdir -p $(TEST_BUILD); fi 
 
 $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp rpc.cpp block_processor.cpp network.cpp udp_buffer.cpp full_node.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
@@ -86,9 +90,15 @@ core_tests/full_node_test: create_test_dir
 core_tests/concur_hash_test: create_test_dir
 	g++ -std=c++17 -o $(TEST_BUILD)/concur_hash_test core_tests/concur_hash_test.cpp concur_storage/concur_hash.cpp concur_storage/conflict_detector.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 
-main: create_dir
+main: create_build_dir
 	g++ -std=c++17 -o $(BUILD)/main rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp rpc.cpp main.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
 
+protoc: 
+	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto
+	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto 
+
+grpc: create_test_dir protoc
+	g++ -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TEST_BUILD)/grpc_test grpc_server.cpp grpc/proto/ledger.grpc.pb.cc grpc/proto/ledger.pb.cc $(GOOGLE_APIS_OBJ) $(CPPFLAGS) $(LDFLAGS) $(LIBS) 
 
 test: core_tests/full_node_test core_tests/state_block_test core_tests/network_test core_tests/dag_test core_tests/concur_hash_test main
 
@@ -105,5 +115,5 @@ c: clean
 clean:
 	@echo CLEAN && rm -rf $(BUILD) $(PROGRAMS) $(CLEAN_TESTS) $(TEST_BUILD)
 
-.PHONY: run_test
+.PHONY: run_test protoc grpc
 

@@ -1,6 +1,6 @@
 # Installation:
 ```
-git clone https://github.com/Taraxa-project/taraxa-node.git --recursive --recursive
+git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
 ```
 
 ## Library dependency:
@@ -13,14 +13,12 @@ Build cryptopp:
 ```
 cd submodules/cryptopp; make;
 ```
-
 **On a Macintosh** Installing boost, rocksdb, rapidjson using brew:
 ```
 brew install boost
 brew install rocksdb
 brew install rapidjson
 ```
-
 
 Install gtest:
 ```
@@ -34,6 +32,18 @@ make install
 ```
 
 Google how to install other libs for your system.
+
+## Protobuf and gRPC and google_apis
+The project uses gRPC and google API, the C++ library for googleapis is unavailable. 
+Therefore, googleapis header and source files are included in `google` directory.
+To Build googleapis static libs:
+```
+cd google
+make
+```
+If proto file changed, need to rebuid using: 
+
+`make grpc`
 
 # Run taraxa-node tests:
 Tests are under core_tests/
@@ -53,3 +63,4 @@ Run example:
 ./build/main --conf_full_node ./core_tests/conf_full_node1.json --conf_network ./core_tests/conf_network1.json --conf_rpc ./core_tests/conf_rpc1.json
 ```
 Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
+
