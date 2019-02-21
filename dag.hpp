@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-20 22:07:23
+ * @Last Modified time: 2019-02-21 13:12:10
  */
  
 #include <iostream>
@@ -87,6 +87,7 @@ public:
 	
 	void getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & children) const;
 	// Computational heavy
+	void getSubtreeBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & subtree) const;
 	void getTipsBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
 	void getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
 	time_stamp_t getVertexTimeStamp(vertex_hash const & vertex) const;
@@ -153,6 +154,7 @@ public:
 	
 	// debug functions
 	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	std::vector<std::string> getSubtreeBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
 	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
 	std::vector<std::string> getPivotChainBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
 	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);

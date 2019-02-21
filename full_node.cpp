@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-20 22:13:10
+ * @Last Modified time: 2019-02-21 13:18:35
  */
 
 #include <boost/asio.hpp>
@@ -123,6 +123,11 @@ void FullNode::setDagBlockTimeStamp (blk_hash_t const & hash, time_stamp_t stamp
 std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash, time_stamp_t stamp){
 	std::vector<std::string> children = dag_mgr_->getChildrenBeforeTimeStamp(hash.toString(), stamp);
 	return children;
+}
+// Recursive call to children
+std::vector<std::string> FullNode::getDagBlockSubtree(blk_hash_t const &hash, time_stamp_t stamp){
+	std::vector<std::string> subtree = dag_mgr_->getSubtreeBeforeTimeStamp(hash.toString(), stamp);
+	return subtree;
 }
 
 std::vector<std::string> FullNode::getDagBlockTips(blk_hash_t const &hash, time_stamp_t stamp){

@@ -260,6 +260,20 @@ void RpcHandler::processRequest(){
 				res = e.what();
 			}
 		}
+		else if (action == "get_dag_block_subtree"){
+			try{
+				blk_hash_t hash = in_doc_.get<std::string>("hash");
+				time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
+			 
+				std::vector<std::string> subtree;
+				subtree = node_->getDagBlockSubtree(hash, stamp);
+				for (auto const & v: subtree){
+					res+=(v+'\n');
+				}
+			} catch (std::exception &e){
+				res = e.what();
+			}
+		}
 		else if (action == "draw_graph"){
 			std::string filename = in_doc_.get<std::string>("filename");
 			node_->drawGraph(filename);

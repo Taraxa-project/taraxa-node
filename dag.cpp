@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-20 23:09:21
+ * @Last Modified time: 2019-02-21 13:16:42
  */
  
 #include <tuple>
@@ -206,6 +206,21 @@ void Dag::getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t st
 		if (time_map[*s] < stamp){
 			children.push_back(name_map[*s]);
 		}
+	}
+}
+
+void Dag::getSubtreeBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &subtree) const{
+	// recursive call to get childrens
+	subtree.clear();
+	std::vector<vertex_hash> children;
+	std::deque<vertex_hash> q;
+	q.push_back(vertex);
+	while (!q.empty()){
+		vertex_hash current = q.front();
+		q.pop_front();
+		getChildrenBeforeTimeStamp(current, stamp, children);
+		subtree.insert(subtree.end(), children.begin(), children.end());
+		q.insert(q.end(), children.begin(), children.end());
 	}
 }
 
@@ -494,6 +509,12 @@ void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::str
 std::vector<std::string> DagManager::getChildrenBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
 	std::vector<std::string> ret;
 	dag_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
+	return ret;
+}
+
+std::vector<std::string> DagManager::getSubtreeBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
+	std::vector<std::string> ret;
+	dag_->getSubtreeBeforeTimeStamp(vertex, stamp, ret);
 	return ret;
 }
 

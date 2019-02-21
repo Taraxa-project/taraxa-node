@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-20 23:09:40
+ * @Last Modified time: 2019-02-21 13:24:03
  */
  
 #include <gtest/gtest.h>
@@ -88,8 +88,14 @@ TEST(Dag, dag_traverse){
 	graph.collectPivot(pivot);
 	EXPECT_EQ(v8, pivot);
 
+	time_stamp_t t4 = graph.getVertexTimeStamp(v4);
+	time_stamp_t t4p1 = t4+1;
+	time_stamp_t t6 = graph.getVertexTimeStamp(v6);
+	time_stamp_t t6p1 = t6+1;
 	time_stamp_t t7 = graph.getVertexTimeStamp(v7);
 	time_stamp_t t7p1 = t7+1;
+	time_stamp_t t8 = graph.getVertexTimeStamp(v8);
+	time_stamp_t t8p1 = t8+1;
 
 	std::vector<std::string> children, tips;
 	graph.getChildrenBeforeTimeStamp(v3, t7, children);
@@ -107,10 +113,6 @@ TEST(Dag, dag_traverse){
 	graph.getTipsBeforeTimeStamp(v4, t7p1, tips);
 	EXPECT_EQ(tips.size(), 1);
 
-	time_stamp_t t4 = graph.getVertexTimeStamp(v4);
-	time_stamp_t t4p1 = t4+1;
-	time_stamp_t t8 = graph.getVertexTimeStamp(v8);
-	time_stamp_t t8p1 = t8+1;
 	{
 		std::vector<std::string> pivot_chain;
 		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t4p1, pivot_chain);
@@ -141,6 +143,24 @@ TEST(Dag, dag_traverse){
 		graph.getPivotChainBeforeTimeStamp(v3, t8p1, pivot_chain);
 		EXPECT_EQ(pivot_chain.size(), 2);
 		EXPECT_EQ(pivot_chain.back(), v8);
+	}
+	{
+		std::vector<std::string> subtree;
+		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t8p1, subtree);
+		EXPECT_EQ(subtree.size(), 7);
+		EXPECT_EQ(subtree.back(), v8);
+	}
+	{
+		std::vector<std::string> subtree;
+		graph.getSubtreeBeforeTimeStamp(v3, t7p1, subtree);
+		EXPECT_EQ(subtree.size(), 3);
+		EXPECT_EQ(subtree.back(), v7);
+	}
+	{
+		std::vector<std::string> subtree;
+		graph.getSubtreeBeforeTimeStamp(v3, t6p1, subtree);
+		EXPECT_EQ(subtree.size(), 2);
+		EXPECT_EQ(subtree.back(), v6);
 	}
 
 }
