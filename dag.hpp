@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 00:00:55
+ * @Last Modified time: 2019-02-20 22:07:23
  */
  
 #include <iostream>
@@ -82,12 +82,13 @@ public:
 		std::vector<vertex_hash> const & tips);
 	void collectTips(std::vector<vertex_hash> & tips) const;
 	void collectPivot(vertex_hash & pivot) const;
-	
+	void collectPivotChain(std::vector<vertex_hash> & pivots) const;
 	void drawGraph(vertex_hash filename) const;
 	
 	void getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & children) const;
 	// Computational heavy
 	void getTipsBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
+	void getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
 	time_stamp_t getVertexTimeStamp(vertex_hash const & vertex) const;
 	void setVertexTimeStamp(vertex_hash const & vertex, time_stamp_t stamp);
 
@@ -153,6 +154,7 @@ public:
 	// debug functions
 	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
 	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	std::vector<std::string> getPivotChainBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
 	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);
 	void setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp);
 	uint64_t getNumVerticesInDag() const ;

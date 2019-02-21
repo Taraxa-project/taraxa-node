@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 00:02:12
+ * @Last Modified time: 2019-02-20 22:13:10
  */
 
 #include <boost/asio.hpp>
@@ -128,6 +128,11 @@ std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash, t
 std::vector<std::string> FullNode::getDagBlockTips(blk_hash_t const &hash, time_stamp_t stamp){
 	std::vector<std::string> tips = dag_mgr_->getTipsBeforeTimeStamp(hash.toString(), stamp);
 	return tips;
+}
+
+std::vector<std::string> FullNode::getDagBlockPivotChain(blk_hash_t const &hash, time_stamp_t stamp){
+	std::vector<std::string> pivot_chain = dag_mgr_->getPivotChainBeforeTimeStamp(hash.toString(), stamp);
+	return pivot_chain;
 }
 
 std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash, time_stamp_t stamp){

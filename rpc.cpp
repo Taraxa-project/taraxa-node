@@ -246,6 +246,20 @@ void RpcHandler::processRequest(){
 				res = e.what();
 			}
 		}
+		else if (action == "get_dag_block_pivot_chain"){
+			try{
+				blk_hash_t hash = in_doc_.get<std::string>("hash");
+				time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
+			 
+				std::vector<std::string> pivot_chain;
+				pivot_chain = node_->getDagBlockPivotChain(hash, stamp);
+				for (auto const & pivot: pivot_chain){
+					res+=(pivot+'\n');
+				}
+			} catch (std::exception &e){
+				res = e.what();
+			}
+		}
 		else if (action == "draw_graph"){
 			std::string filename = in_doc_.get<std::string>("filename");
 			node_->drawGraph(filename);
