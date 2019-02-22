@@ -11,11 +11,14 @@
 #include <vector>
 #include <atomic>
 #include <iostream>
+#include "libp2p/Host.h"
+#include <libp2p/Network.h>
+#include <libdevcrypto/Common.h>
 #include "network.hpp"
 
 namespace taraxa {
 
-TEST (UdpBuffer, one_buffer){
+/*TEST (UdpBuffer, one_buffer){
 	UdpBuffer buffer (1, 512);
 	auto buf1 (buffer.allocate());
 	ASSERT_NE(nullptr, buf1);
@@ -226,7 +229,26 @@ TEST(Network, udp_packet_transfer_block){
 	ASSERT_EQ(num_sent, num_received);
 
 }
+*/
+TEST(Network, p2p_discovery){
+	auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex);
+	auto key = dev::KeyPair(secret);
+	const int NUMBER_OF_NODES = 10;
+	dev::p2p::Host bootHost("TaraxaNode", key, dev::p2p::NetworkConfig("127.0.0.1", 20001, false, true));
+	bootHost.start();
+	printf("Started Node id: %s\n", bootHost.id().hex().c_str());
 
+	std::vector<std::shared_ptr<dev::p2p::Host> > nodes;
+	for(int i = 0; i < NUMBER_OF_NODES; i++) {
+		nodes.push_back(std::make_shared<dev::p2p::Host>("TaraxaNode", dev::KeyPair::create(), dev::p2p::NetworkConfig("127.0.0.1", 20002 + i, false, true)));
+		nodes[i]->addNode(dev::Public("7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a"), dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001));
+		taraxa::thisThreadSleepForMilliSeconds(100);
+	}
+	taraxa::thisThreadSleepForSeconds(10);
+	for(int i = 0; i < 10; i++) {
+		ASSERT_EQ(NUMBER_OF_NODES, nodes[i]->getNodeCount());
+	}
+}
 }  // namespace taraxa
 
 int main(int argc, char** argv){

@@ -17,7 +17,7 @@
 
 #include "Address.h"
 
-namespace dev
+namespace dev  
 {
 Address const ZeroAddress;
 Address const MaxAddress{"0xffffffffffffffffffffffffffffffffffffffff"};
