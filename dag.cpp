@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 15:07:25
+ * @Last Modified time: 2019-02-22 15:09:40
  */
  
 #include <tuple>
@@ -41,7 +41,7 @@ bool Dag::hasVertex(vertex_hash const & v) const{
 	return graph_.vertex(v) != graph_.null_vertex();
 }
 
-void Dag::collectTips(std::vector<vertex_hash> & tips) const{
+void Dag::collectLeaves(std::vector<vertex_hash> & tips) const{
 	ulock lock(mutex_);
 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
 	std::vector<vertex_t> leaves;
@@ -51,28 +51,28 @@ void Dag::collectTips(std::vector<vertex_hash> & tips) const{
 	}
 }
 
-void Dag::collectPivot(vertex_hash & pivot) const{
-	ulock lock(mutex_);
-	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-	std::vector<vertex_t> criticals;
-	collectCriticalPath(criticals);
-	assert(criticals.size());
-	// get the last critical vertex as pivot
-	pivot = name_map[criticals.back()];
-}
+// void Dag::collectHeavyPathLeaf(vertex_hash & pivot) const{
+// 	ulock lock(mutex_);
+// 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+// 	std::vector<vertex_t> criticals;
+// 	collectHeavyPath(criticals);
+// 	assert(criticals.size());
+// 	// get the last critical vertex as pivot
+// 	pivot = name_map[criticals.back()];
+// }
 
-void Dag::collectPivotChain(std::vector<vertex_hash> & pivots) const{
-	ulock lock(mutex_);
-	pivots.clear();
-	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-	std::vector<vertex_t> criticals;
-	collectCriticalPath(criticals);
-	assert(criticals.size());
-	for (auto const & pivot:criticals){
-	// get the last critical vertex as pivot
-		pivots.push_back(name_map[pivot]);
-	}
-}
+// void Dag::collectHeavyPath(std::vector<vertex_hash> & pivots) const{
+// 	ulock lock(mutex_);
+// 	pivots.clear();
+// 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+// 	std::vector<vertex_t> criticals;
+// 	collectHeavyPath(criticals);
+// 	assert(criticals.size());
+// 	for (auto const & pivot:criticals){
+// 	// get the last critical vertex as pivot
+// 		pivots.push_back(name_map[pivot]);
+// 	}
+// }
 
 bool Dag::addVEEs(vertex_hash const & new_vertex, vertex_hash const & pivot, 
 	std::vector<vertex_hash> const & tips){
@@ -158,38 +158,38 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const{
 	assert(leaves.size());
 }
 
-// Note: Internal function, do not add lock
-void Dag::collectCriticalPath(std::vector<vertex_t> &critical_path) const{
-	critical_path.clear();
-	// starting from genesis node
-	vertex_t current = genesis_;
-	critical_path.push_back(current);
-	while (boost::out_degree(current, graph_)){
-		vertex_adj_iter_t critical;
-		std::tie(critical, std::ignore) = adjacenct_vertices(current, graph_);
-		size_t critical_vertex_deg = boost::out_degree(*critical, graph_);
+// // Note: Internal function, do not add lock
+// void Dag::collectHeavyPath(std::vector<vertex_t> &critical_path) const{
+// 	critical_path.clear();
+// 	// starting from genesis node
+// 	vertex_t current = genesis_;
+// 	critical_path.push_back(current);
+// 	while (boost::out_degree(current, graph_)){
+// 		vertex_adj_iter_t critical;
+// 		std::tie(critical, std::ignore) = adjacenct_vertices(current, graph_);
+// 		size_t critical_vertex_deg = boost::out_degree(*critical, graph_);
 
-		vertex_adj_iter_t s, e;
-		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e; s++){
-			size_t neighbor_vertex_deg = boost::out_degree(*s, graph_);
-			if (neighbor_vertex_deg >critical_vertex_deg){
-				critical = s; 
-				critical_vertex_deg = neighbor_vertex_deg;
-			}
-			// tie breaker, choose the one has smaller hash
-			else if (neighbor_vertex_deg == critical_vertex_deg){
-				// this is a const member function, need const type
-				vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-				if (name_map[*s]<name_map[*critical]){
-					critical = s;
-				}
-			}
-		}
-		critical_path.push_back(*critical);
-		current = *critical;
-	}
-	assert(critical_path.size());
-}
+// 		vertex_adj_iter_t s, e;
+// 		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e; s++){
+// 			size_t neighbor_vertex_deg = boost::out_degree(*s, graph_);
+// 			if (neighbor_vertex_deg >critical_vertex_deg){
+// 				critical = s; 
+// 				critical_vertex_deg = neighbor_vertex_deg;
+// 			}
+// 			// tie breaker, choose the one has smaller hash
+// 			else if (neighbor_vertex_deg == critical_vertex_deg){
+// 				// this is a const member function, need const type
+// 				vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+// 				if (name_map[*s]<name_map[*critical]){
+// 					critical = s;
+// 				}
+// 			}
+// 		}
+// 		critical_path.push_back(*critical);
+// 		current = *critical;
+// 	}
+// 	assert(critical_path.size());
+// }
 
 void Dag::getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &children) const{
 	ulock lock(mutex_);
@@ -243,7 +243,7 @@ void Dag::getSubtreeBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t sta
 	}
 }
 
-void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & tips) const{
+void Dag::getLeavesBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & tips) const{
 	ulock lock(mutex_);
 	vertex_t current = graph_.vertex(vertex);
 	if (current == graph_.null_vertex()){
@@ -285,70 +285,69 @@ void Dag::getTipsBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp,
 	}
 }
 
-void Dag::getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const{
-	ulock lock(mutex_);
-	vertex_t current = graph_.vertex(vertex);
-	if (current == graph_.null_vertex()){
-		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
-		return;
-	}
-	pivot_chain.clear();
-	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
-	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-	// push root to pivot_chain
-	if (time_map[current]<stamp){
-		pivot_chain.push_back(name_map[current]);
-	}
-	while (boost::out_degree(current, graph_)){
-		// get first neighbor as critical
-		vertex_adj_iter_t critical;
-		std::tie(critical, std::ignore) = adjacenct_vertices(current, graph_);
-		vertex_adj_iter_t s, e;
-		size_t critical_vertex_deg=0;
-		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e; s++){
-			// if neighbor time stamp old
-			if (time_map[*s]>=stamp){
-				continue;
-			}
-			// if critical is invalid, replace it
-			if (time_map[*critical]>=stamp){
-				critical=s;
-				vertex_adj_iter_t ns, ne;
-				for (std::tie(ns, ne) = adjacenct_vertices(*critical, graph_); ns!=ne; ns++){
-					if (time_map[*ns]<=stamp) 
-					critical_vertex_deg++;
-				}
-			}
-			// get valid out degree 
-			size_t neighbor_vertex_deg = 0; 
-			vertex_adj_iter_t ns, ne;
-			for (std::tie(ns, ne) = adjacenct_vertices(*s, graph_); ns!=ne; ns++){
-				if (time_map[*ns]<stamp) 
-					neighbor_vertex_deg++;
-			}
+// void Dag::getPivotHeavyPathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const{
+// 	ulock lock(mutex_);
+// 	vertex_t current = graph_.vertex(vertex);
+// 	if (current == graph_.null_vertex()){
+// 		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+// 		return;
+// 	}
+// 	pivot_chain.clear();
+// 	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
+// 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+// 	// push root to pivot_chain
+// 	if (time_map[current]<stamp){
+// 		pivot_chain.push_back(name_map[current]);
+// 	}
+// 	while (boost::out_degree(current, graph_)){
+// 		// get first neighbor as critical
+// 		vertex_adj_iter_t critical;
+// 		std::tie(critical, std::ignore) = adjacenct_vertices(current, graph_);
+// 		vertex_adj_iter_t s, e;
+// 		size_t critical_vertex_deg=0;
+// 		for (std::tie(s, e) = adjacenct_vertices(current, graph_); s!=e; s++){
+// 			// if neighbor time stamp old
+// 			if (time_map[*s]>=stamp){
+// 				continue;
+// 			}
+// 			// if critical is invalid, replace it
+// 			if (time_map[*critical]>=stamp){
+// 				critical=s;
+// 				vertex_adj_iter_t ns, ne;
+// 				for (std::tie(ns, ne) = adjacenct_vertices(*critical, graph_); ns!=ne; ns++){
+// 					if (time_map[*ns]<=stamp) 
+// 					critical_vertex_deg++;
+// 				}
+// 			}
+// 			// get valid out degree 
+// 			size_t neighbor_vertex_deg = 0; 
+// 			vertex_adj_iter_t ns, ne;
+// 			for (std::tie(ns, ne) = adjacenct_vertices(*s, graph_); ns!=ne; ns++){
+// 				if (time_map[*ns]<stamp) 
+// 					neighbor_vertex_deg++;
+// 			}
 			
-			if (neighbor_vertex_deg > critical_vertex_deg){
-				critical = s;
-				critical_vertex_deg = neighbor_vertex_deg;
-			}
-			// tie breaker, choose the one has smaller hash
-			else if (neighbor_vertex_deg == critical_vertex_deg){
-				// this is a const member function, need const type
-				vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-				if (name_map[*s]<name_map[*critical]){
-					critical = s;
-					critical_vertex_deg = neighbor_vertex_deg;
-				}
-			}
-		}
-		if (time_map[*critical]>=stamp){
-			break;
-		}
-		pivot_chain.push_back(name_map[*critical]);
-		current = *critical;
-	}
-}
-
+// 			if (neighbor_vertex_deg > critical_vertex_deg){
+// 				critical = s;
+// 				critical_vertex_deg = neighbor_vertex_deg;
+// 			}
+// 			// tie breaker, choose the one has smaller hash
+// 			else if (neighbor_vertex_deg == critical_vertex_deg){
+// 				// this is a const member function, need const type
+// 				vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+// 				if (name_map[*s]<name_map[*critical]){
+// 					critical = s;
+// 					critical_vertex_deg = neighbor_vertex_deg;
+// 				}
+// 			}
+// 		}
+// 		if (time_map[*critical]>=stamp){
+// 			break;
+// 		}
+// 		pivot_chain.push_back(name_map[*critical]);
+// 		current = *critical;
+// 	}
+// }
 
 time_stamp_t Dag::getVertexTimeStamp(vertex_hash const & vertex) const{
 	ulock lock(mutex_);
@@ -373,6 +372,93 @@ void Dag::setVertexTimeStamp(vertex_hash const & vertex, time_stamp_t stamp){
 	time_map[current] = stamp;
 }
 
+size_t Dag::outDegreeBeforeTimeStamp(vertex_t vertex, time_stamp_t stamp) const{
+
+	size_t deg = 0;
+	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
+	vertex_adj_iter_t s, e;
+	for (std::tie(s, e) = adjacenct_vertices(vertex, graph_); s != e; s++){
+		if (time_map[*s]<stamp){
+			deg++;
+		}
+	}
+	return deg;
+}
+
+// TODO: optimze 
+void PivotTree::getHeavySubtreePath(vertex_hash const & vertex, std::vector<vertex_hash> &pivot_chain) const{
+	ulock lock(mutex_);
+	std::vector<vertex_t> results;
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+		return;
+	}
+	pivot_chain.clear();
+	heavySubtree(current, std::numeric_limits<uint64_t>::max(), results);
+	std::reverse(results.begin(), results.end());
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+
+	for (vertex_t const & r: results){
+		pivot_chain.push_back(name_map[r]);
+	}
+
+}
+
+void PivotTree::getHeavySubtreePathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const{
+	ulock lock(mutex_);
+	std::vector<vertex_t> results;
+	vertex_t current = graph_.vertex(vertex);
+	if (current == graph_.null_vertex()){
+		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
+		return;
+	}
+	pivot_chain.clear();
+	heavySubtree(current, stamp, results);
+	std::reverse(results.begin(), results.end());
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+
+	for (vertex_t const & r: results){
+		pivot_chain.push_back(name_map[r]);
+	}
+
+}
+// TODO:: recursive, change to iterative ..
+size_t PivotTree::heavySubtree(vertex_t const &vertex, time_stamp_t stamp, std::vector<vertex_t> &pivot_chain) const {
+	
+	if (outDegreeBeforeTimeStamp(vertex, stamp) == 0){
+		pivot_chain={vertex};
+		return 1;
+	}
+	vertex_adj_iter_t s, e;
+	size_t total_weight = 0;
+	size_t heavist_weight = 0;
+	size_t heavist_child = vertex;
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+
+	for (std::tie(s, e) = adjacenct_vertices(vertex, graph_); s!=e; s++){
+		std::vector<vertex_t> sub_chain;
+		size_t weight = heavySubtree(*s, stamp, sub_chain);
+		if (weight > heavist_weight){
+			heavist_weight = weight;
+			heavist_child = *s;
+			pivot_chain = sub_chain;
+		}
+		else if (weight == heavist_weight){ // compare hash
+			if (name_map[*s]<name_map[heavist_child]){
+				heavist_weight = weight;
+				heavist_child = *s;
+				pivot_chain = sub_chain;
+			}
+		}
+		total_weight += weight;
+	}
+	total_weight++;
+	pivot_chain.push_back(vertex);
+	return total_weight;
+}
+
+
 DagManager::DagManager(unsigned num_threads) try : 
 	debug_(false),
 	verbose_(false),
@@ -380,7 +466,8 @@ DagManager::DagManager(unsigned num_threads) try :
 	on_(true),
 	num_threads_(num_threads),
 	inserting_index_counter_(0),
-	dag_(std::make_shared<Dag>()),
+	total_dag_(std::make_shared<Dag>()),
+	pivot_tree_(std::make_shared<PivotTree>()),
 	tips_explorer_(std::make_shared<TipBlockExplorer>(3)),
 	sb_buffer_array_(std::make_shared<std::vector<SbBuffer>> (num_threads)){	
 } catch (std::exception & e){
@@ -404,13 +491,15 @@ std::shared_ptr<DagManager> DagManager::getShared(){
 
 void DagManager::setDebug(bool debug) { debug_ = debug;}
 void DagManager::setVerbose(bool verbose) {verbose_ = verbose;}
-uint64_t DagManager::getNumVerticesInDag() const {
+
+std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
 	ulock lock(mutex_);
-	return dag_->getNumVertices();
+	return {total_dag_->getNumVertices(), pivot_tree_->getNumVertices()};
 }
-uint64_t DagManager::getNumEdgesInDag() const { 
+
+std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const { 
 	ulock lock(mutex_);
-	return dag_->getNumEdges();
+	return {total_dag_->getNumEdges(), pivot_tree_->getNumEdges()};
 }
 size_t DagManager::getBufferSize() const {
 	ulock lock(mutex_);
@@ -434,10 +523,16 @@ unsigned DagManager::getBlockInsertingIndex(){
 	return which_buffer;
 }
 
-void DagManager::drawGraph(std::string const & str) const{
+void DagManager::drawTotalGraph(std::string const & str) const{
 	ulock lock(mutex_);
-	dag_->drawGraph(str);
+	total_dag_->drawGraph(str);
 }
+
+void DagManager::drawPivotGraph(std::string const & str) const{
+	ulock lock(mutex_);
+	pivot_tree_->drawGraph(str);
+}
+
 void DagManager::start() {
 	for (auto i = 0; i < num_threads_; ++i){
 		sb_buffer_processing_threads_.push_back(boost::thread([this, i](){
@@ -454,7 +549,7 @@ void DagManager::stop() {
 bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
 	ulock lock(mutex_);
 	std::string hash = blk.getHash().toString();
-	if (dag_->hasVertex(hash)){
+	if (total_dag_->hasVertex(hash)){
 		if (verbose_){
 			std::cout<<"Block is in DAG already! "<<hash<<std::endl;
 		}
@@ -462,7 +557,7 @@ bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
 	}
 
 	std::string pivot = blk.getPivot().toString();
-	if (!dag_->hasVertex(pivot)){
+	if (!total_dag_->hasVertex(pivot)){
 		if (verbose_){
 			std::cout<<"Block "<<hash<<" pivot "<<pivot<<" unavailable, insert = "<<insert<<std::endl;
 		}
@@ -475,7 +570,7 @@ bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
 	std::vector<std::string> tips;
 	for (auto const & t: blk.getTips()){
 		std::string tip = t.toString();
-		if (!dag_->hasVertex(tip)){
+		if (!total_dag_->hasVertex(tip)){
 			if (verbose_){
 				std::cout<<"Block "<<hash<<" tip "<<tip<<" unavailable, insert = "<<insert<<std::endl;
 			}
@@ -499,7 +594,12 @@ void DagManager::addToSbBuffer(StateBlock const & blk){
 void DagManager::addToDag(std::string const & hash, std::string const & pivot, 
 	std::vector<std::string> const & tips){
 	
-	dag_->addVEEs(hash, pivot, tips);
+	total_dag_->addVEEs(hash, pivot, tips);
+	pivot_tree_->addVEEs(hash, pivot, {});
+	// sync pivot tree's time stamp with total_dag_ timestamp
+	auto stamp = total_dag_->getVertexTimeStamp(hash);
+	pivot_tree_->setVertexTimeStamp(hash, stamp);
+	
 	tips_explorer_->blockAdded();
 }
 
@@ -525,40 +625,43 @@ void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::str
 	tips_explorer_->waitForReady();
 	// make sure the state of dag is the same when collection pivot and tips
 	ulock lock(mutex_);
-	dag_->collectPivot(pivot);
-	dag_->collectTips(tips);
+	std::vector<std::string> pivot_chain;
+	pivot_tree_->getHeavySubtreePath(Dag::GENESIS, pivot_chain);
+	pivot = pivot_chain.back();
+	total_dag_->collectLeaves(tips);
 }
 
-std::vector<std::string> DagManager::getChildrenBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
+std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
 	std::vector<std::string> ret;
-	dag_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
+	pivot_tree_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
 	return ret;
 }
 
-std::vector<std::string> DagManager::getSubtreeBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
+std::vector<std::string> DagManager::getPivotSubtreeBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
 	std::vector<std::string> ret;
-	dag_->getSubtreeBeforeTimeStamp(vertex, stamp, ret);
+	pivot_tree_->getSubtreeBeforeTimeStamp(vertex, stamp, ret);
 	return ret;
 }
 
-std::vector<std::string> DagManager::getTipsBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
+std::vector<std::string> DagManager::getTotalLeavesBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const{
 	std::vector<std::string> ret;
-	dag_->getTipsBeforeTimeStamp(vertex, stamp, ret);
+	total_dag_->getLeavesBeforeTimeStamp(vertex, stamp, ret);
 	return ret;
 }
 
 std::vector<std::string> DagManager::getPivotChainBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const {
 	std::vector<std::string> ret;
-	dag_->getPivotChainBeforeTimeStamp(vertex, stamp, ret);
+	pivot_tree_->getHeavySubtreePathBeforeTimeStamp(vertex, stamp, ret);
 	return ret;
 }
 
 time_stamp_t DagManager::getStateBlockTimeStamp(std::string const & vertex){
-	return dag_->getVertexTimeStamp(vertex);
+	return total_dag_->getVertexTimeStamp(vertex);
 }
 
 void DagManager::setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp){
-	dag_->setVertexTimeStamp(vertex, stamp);
+	total_dag_->setVertexTimeStamp(vertex, stamp);
+	pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
 SbBuffer::SbBuffer(): stopped_(false), updated_(false), iter_(blocks_.end()){}

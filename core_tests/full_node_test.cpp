@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-18 12:56:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-30 10:54:10
+ * @Last Modified time: 2019-02-22 15:18:20
  */
  
 #include <gtest/gtest.h>
@@ -279,8 +279,8 @@ TEST(FullNode, send_and_receive_out_order_messages){
 
 	// node1->drawGraph("dot.txt");
 	EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-	EXPECT_EQ(node1->getNumVerticesInDag(), 7);
-	EXPECT_EQ(node1->getNumEdgesInDag(), 8);
+	EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
+	EXPECT_EQ(node1->getNumEdgesInDag().first, 8);
 	EXPECT_EQ(node1->getNumProposedBlocks(),2);
 }
 

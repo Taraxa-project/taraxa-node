@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 12:07:19
+ * @Last Modified time: 2019-02-22 11:58:52
  */
  
 #ifndef FULL_NODE_HPP
@@ -67,8 +67,8 @@ public:
 	// debugger
 	uint64_t getNumReceivedBlocks();
 	uint64_t getNumProposedBlocks();
-	uint64_t getNumVerticesInDag();
-	uint64_t getNumEdgesInDag();
+	std::pair<uint64_t, uint64_t> getNumVerticesInDag();
+	std::pair<uint64_t, uint64_t> getNumEdgesInDag();
 	void drawGraph(std::string const & dotfile) const;
 private:
 	// ** NOTE: io_context must be constructed before Network

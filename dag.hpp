@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 14:59:43
+ * @Last Modified time: 2019-02-22 14:24:17
  */
  
 #include <iostream>
@@ -80,20 +80,19 @@ public:
 	// Note: *** The function does not check vertex existency
 	bool addVEEs(vertex_hash const & new_vertex, vertex_hash const & pivot, 
 		std::vector<vertex_hash> const & tips);
-	void collectTips(std::vector<vertex_hash> & tips) const;
-	void collectPivot(vertex_hash & pivot) const;
-	void collectPivotChain(std::vector<vertex_hash> & pivots) const;
+	
+	// timestamp unrelated
+	void collectLeaves(std::vector<vertex_hash> & tips) const;
 	void drawGraph(vertex_hash filename) const;
 	
+	// Time stamp related
 	void getChildrenBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & children) const;
 	// Computational heavy
 	void getSubtreeBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & subtree) const;
-	void getTipsBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
-	void getPivotChainBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
+	void getLeavesBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
+	// void getPivotHeavyPathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
 	time_stamp_t getVertexTimeStamp(vertex_hash const & vertex) const;
 	void setVertexTimeStamp(vertex_hash const & vertex, time_stamp_t stamp);
-
-	// Create critical section, the function should be used to add StateBlock
 	
 	// for graphviz
 	template <class Property>
@@ -108,7 +107,7 @@ public:
 		Property property;
 	};
 
-private:
+protected:
 	// Note: private functions does not lock
 
 	// vertex API
@@ -120,8 +119,9 @@ private:
 
 	// traverser API
 	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
-	void collectCriticalPath(std::vector<vertex_t> &criticals) const;
 
+	// time sense degree
+	size_t outDegreeBeforeTimeStamp(vertex_t vertex, time_stamp_t stamp) const;
 
 	bool debug_;
 	bool verbose_;
@@ -131,6 +131,19 @@ private:
 	mutable std::mutex debug_mutex_;
 };
 
+// PivotTree is a special Dag, every vertex only has one out-edge
+// Therefore, there is no convergent tree  
+class PivotTree : public Dag{
+public:
+	using vertex_t = Dag::vertex_t;
+	using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
+	using vertex_name_map_const_t = Dag::vertex_name_map_const_t;
+
+	void getHeavySubtreePathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
+	void getHeavySubtreePath(vertex_hash const & vertex, std::vector<vertex_hash> &pivot_chain) const;
+private:
+	size_t heavySubtree(vertex_t const &vertex, time_stamp_t stamp, std::vector<vertex_t> &pivot_chain) const;
+};
 class SbBuffer;
 class TipBlockExplorer;
 /**
@@ -154,24 +167,30 @@ public:
 	
 	// debug functions
 	// BeforeTimeStamp does NOT include the time of timestamp 
-	// cannout return self as children
-	std::vector<std::string> getChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
-	// can return self as subtree
-	std::vector<std::string> getSubtreeBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	
+	// ----- Total graph
 	// can return self as tips
-	std::vector<std::string> getTipsBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
-	// cannot return self as pivot chain
+	std::vector<std::string> getTotalLeavesBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	void drawTotalGraph(std::string const & str) const;
+
+	// ----- Pivot graph
+	std::vector<std::string> getPivotChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	// can return self as subtree
+	std::vector<std::string> getPivotSubtreeBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	// can return self as pivot chain
 	std::vector<std::string> getPivotChainBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
+	void drawPivotGraph(std::string const & str) const;
+
+	// Only Pivot graph
 	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);
 	void setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp);
-	uint64_t getNumVerticesInDag() const ;
-	uint64_t getNumEdgesInDag() const ;
-
+	
+	std::pair<uint64_t, uint64_t> getNumVerticesInDag() const ;
+	std::pair<uint64_t, uint64_t> getNumEdgesInDag() const ;
 	void setDebug(bool debug);
 	void setVerbose(bool verbose);
 	size_t getBufferSize() const;
-	void drawGraph(std::string const & str) const;
-	
+
 private:
 	void addToSbBuffer(StateBlock const & blk);
 	void addToDag(std::string const &hash, 
@@ -185,7 +204,9 @@ private:
 	unsigned num_threads_;
 	mutable std::mutex mutex_;
 	std::atomic<unsigned> inserting_index_counter_;
-	std::shared_ptr<Dag> dag_;
+	std::shared_ptr<PivotTree> pivot_tree_; // only contains pivot edges
+	std::shared_ptr<Dag> total_dag_; // contains both pivot and tips
+
 	std::shared_ptr<TipBlockExplorer> tips_explorer_;
 	// SbBuffer 
 	std::shared_ptr<std::vector<SbBuffer>> sb_buffer_array_;

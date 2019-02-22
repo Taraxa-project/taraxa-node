@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-15 16:32:16 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-20 18:06:58
+ * @Last Modified time: 2019-02-21 16:39:29
  */
  
 #include <grpc/grpc.h>
@@ -46,19 +46,28 @@ class NodeRpcServer final : public LedgerService::Service{
 		info.set_chain_name("ChainInfo: taraxa");
 		response->set_allocated_chain_info(&info);
 	}
-	Status GetBestBlockHash(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetBestBlockHashResponse* response){}
-	Status GetBestBlockHeight(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetBestBlockHeightResponse* response){}
-	Status GetBlockHash(::grpc::ServerContext* context, const ::ledger::GetBlockHashRequest* request, ::ledger::GetBlockHashResponse* response){}
-	Status GetBlockHeader(::grpc::ServerContext* context, const ::ledger::GetBlockHeaderRequest* request, ::ledger::GetBlockHeaderResponse* response){}
-	Status GetBlock(::grpc::ServerContext* context, const ::ledger::GetBlockRequest* request, ::ledger::GetBlockResponse* response){}
-	Status GetBlockInfo(::grpc::ServerContext* context, const ::ledger::GetBlockInfoRequest* request, ::ledger::GetBlockInfoResponse* response){}
+	Status GetBestBlockHash(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetBestBlockHashResponse* response){
+
+	}
+	Status GetBestBlockHeight(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetBestBlockHeightResponse* response){
+
+	}
+	Status GetBlockHash(::grpc::ServerContext* context, const ::ledger::GetBlockHashRequest* request, ::ledger::GetBlockHashResponse* response){
+
+	}
+	Status GetBlockHeader(::grpc::ServerContext* context, const ::ledger::GetBlockHeaderRequest* request, ::ledger::GetBlockHeaderResponse* response){
+
+	}
+	Status GetBlock(::grpc::ServerContext* context, const ::ledger::GetBlockRequest* request, ::ledger::GetBlockResponse* response){
+
+	}
+	Status GetBlockInfo(::grpc::ServerContext* context, const ::ledger::GetBlockInfoRequest* request, ::ledger::GetBlockInfoResponse* response){
+		
+	}
 };
 
-int main(int argc, char *argv[]){
-	return 0;
-}
-void RunServer(const std::string& db_path) {
-  std::string server_address("0.0.0.0:50051");
+void runServer() {
+  std::string server_address("127.0.0.1:10077");
   NodeRpcServer service;
 
   ServerBuilder builder;
@@ -67,4 +76,9 @@ void RunServer(const std::string& db_path) {
   std::unique_ptr<Server> server(builder.BuildAndStart());
   std::cout << "Server listening on " << server_address << std::endl;
   server->Wait();
+}
+
+int main(int argc, char *argv[]){
+	runServer();
+	return 0;
 }

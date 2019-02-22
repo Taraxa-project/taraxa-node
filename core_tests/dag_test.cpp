@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 15:10:01
+ * @Last Modified time: 2019-02-22 15:00:52
  */
  
 #include <gtest/gtest.h>
@@ -66,7 +66,7 @@ TEST(Dag, dag_traverse_get_children_tips){
 
 	std::vector<std::string> leaves;
 	std::string pivot; 
-	graph.collectTips(leaves);
+	graph.collectLeaves(leaves);
 	EXPECT_EQ(3, leaves.size());
 	
 	graph.addVEEs(v3, Dag::GENESIS, empty);
@@ -83,10 +83,8 @@ TEST(Dag, dag_traverse_get_children_tips){
 	graph.addVEEs(v8, v6, {v5});
 	graph.addVEEs(v9, v6, empty);
 	leaves.clear();
-	graph.collectTips(leaves);
+	graph.collectLeaves(leaves);
 	EXPECT_EQ(6, leaves.size());
-	graph.collectPivot(pivot);
-	EXPECT_EQ(v8, pivot);
 
 	time_stamp_t t4 = graph.getVertexTimeStamp(v4);
 	time_stamp_t t4p1 = t4+1;
@@ -110,19 +108,34 @@ TEST(Dag, dag_traverse_get_children_tips){
 	}
 	{
 		std::vector<std::string> tips;
-		graph.getTipsBeforeTimeStamp(v3, t7p1, tips);
+		graph.getLeavesBeforeTimeStamp(v3, t7p1, tips);
 		EXPECT_EQ(tips.size(), 3);
 	}
 	{
 		std::vector<std::string> tips;
-		graph.getTipsBeforeTimeStamp(v3, t7, tips);
+		graph.getLeavesBeforeTimeStamp(v3, t7, tips);
 		EXPECT_EQ(tips.size(), 2);
 	}
 	{
 		std::vector<std::string> tips;
-		graph.getTipsBeforeTimeStamp(v4, t7p1, tips);
+		graph.getLeavesBeforeTimeStamp(v4, t7p1, tips);
 		EXPECT_EQ(tips.size(), 1);
 	}
+
+	{
+		std::vector<std::string> sub_tree;
+		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t8p1, sub_tree);
+		EXPECT_EQ(sub_tree.size(), 6);
+		EXPECT_EQ(sub_tree.back(), v8);
+	}
+	
+	{
+		std::vector<std::string> sub_tree;
+		graph.getSubtreeBeforeTimeStamp(v3, t7, sub_tree);
+		EXPECT_EQ(sub_tree.size(), 2);
+		EXPECT_EQ(sub_tree.back(), v6);
+	}
+
 }
 
 TEST(Dag, dag_traverse2_get_children_tips){  
@@ -164,30 +177,33 @@ TEST(Dag, dag_traverse2_get_children_tips){
 	graph.getChildrenBeforeTimeStamp(v2, t5p1, children);
 	EXPECT_EQ(children.size(), 3);
 
-	graph.getTipsBeforeTimeStamp(v4, t6p1, tips);
+	graph.getLeavesBeforeTimeStamp(v4, t6p1, tips);
 	EXPECT_EQ(tips.size(), 1);
 
-	graph.getTipsBeforeTimeStamp(v1, t5, tips);
+	graph.getLeavesBeforeTimeStamp(v1, t5, tips);
 	EXPECT_EQ(tips.size(), 2);
 
-	graph.getTipsBeforeTimeStamp(v1, t6p1, tips);
+	graph.getLeavesBeforeTimeStamp(v1, t6p1, tips);
 	EXPECT_EQ(tips.size(), 2);
 
 	// if no valid children, return self
-	graph.getTipsBeforeTimeStamp(v4, t5, tips);
+	graph.getLeavesBeforeTimeStamp(v4, t5, tips);
 	EXPECT_EQ(tips.size(), 1);
 
-	graph.getTipsBeforeTimeStamp(v4, t4, tips);
+	graph.getLeavesBeforeTimeStamp(v4, t4, tips);
 	EXPECT_EQ(tips.size(), 0);
 
 	time_stamp_t stamp = 100;
 	graph.setVertexTimeStamp(v1, stamp);
 	EXPECT_EQ(graph.getVertexTimeStamp(v1), stamp);
 	
+	graph.setVertexTimeStamp(Dag::GENESIS, stamp);
+	EXPECT_EQ(graph.getVertexTimeStamp(Dag::GENESIS), stamp);
+	
 }
 
-TEST(Dag, dag_traverse_pivot_chain_and_subtree){  
-	taraxa::Dag graph;
+TEST(PivotTree, dag_traverse_pivot_chain_and_subtree){  
+	taraxa::PivotTree graph;
 
 	auto v1="0000000000000000000000000000000000000000000000000000000000000001";
 	auto v2="0000000000000000000000000000000000000000000000000000000000000002";
@@ -198,68 +214,47 @@ TEST(Dag, dag_traverse_pivot_chain_and_subtree){
 	auto v7="0000000000000000000000000000000000000000000000000000000000000007";
 	auto v8="0000000000000000000000000000000000000000000000000000000000000008";
 	auto v9="0000000000000000000000000000000000000000000000000000000000000009";
-
+	auto v10="000000000000000000000000000000000000000000000000000000000000000A";
+	auto v11="000000000000000000000000000000000000000000000000000000000000000B";
 	std::vector<std::string> empty;
 	std::string no="";
 	graph.addVEEs(v1, Dag::GENESIS, empty);
 	graph.addVEEs(v2, Dag::GENESIS, empty);
-	graph.addVEEs(v3, v1, empty);
-	graph.addVEEs(v4, v1, {v2});
-	graph.addVEEs(v5, v2, empty);
+	graph.addVEEs(v3, Dag::GENESIS, empty);
+	graph.addVEEs(v4, v1, empty);
+	graph.addVEEs(v5, v1, empty);
 	graph.addVEEs(v6, v2, empty);
-	graph.addVEEs(v7, v4, {v5});
-	graph.addVEEs(v8, v4, {v5});
-	graph.addVEEs(v9, v5, {v6});
+	graph.addVEEs(v7, v2, empty);
+	graph.addVEEs(v8, v3, empty);
+	graph.addVEEs(v9, v7, empty);
+	graph.addVEEs(v10, v9, empty);
+	graph.addVEEs(v11, v9, empty);
 
-	time_stamp_t t7 = graph.getVertexTimeStamp(v7);
-	time_stamp_t t7p1 = t7+1;
-	time_stamp_t t8 = graph.getVertexTimeStamp(v8);
-	time_stamp_t t8p1 = t8+1;
 	time_stamp_t t9 = graph.getVertexTimeStamp(v9);
 	time_stamp_t t9p1 = t9+1;
+	time_stamp_t t11 = graph.getVertexTimeStamp(v11);
+	time_stamp_t t11p1 = t11+1;
 	
 	// timestamp exclude v9
 	{
 		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t9, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 4);
-		EXPECT_EQ(pivot_chain.back(), v7);
-		EXPECT_EQ(pivot_chain[2], v4);
+		graph.getHeavySubtreePath(Dag::GENESIS, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 5);
+		EXPECT_EQ(pivot_chain.back(), v10);
 	}
 
 	{
 		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(Dag::GENESIS, t9p1, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 4);
-		EXPECT_EQ(pivot_chain.back(), v7);
-		EXPECT_EQ(pivot_chain[2], v5);
+		graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, t11, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 5);
+		EXPECT_EQ(pivot_chain.back(), v10);
 	}
-	
-	// timestamp exclude v8
+
 	{
 		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(v2, t8, pivot_chain);
+		graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, t9, pivot_chain);
 		EXPECT_EQ(pivot_chain.size(), 3);
-		EXPECT_EQ(pivot_chain[1], v4);
-		EXPECT_EQ(pivot_chain[2], v7);
-	}
-
-	{
-		std::vector<std::string> pivot_chain;
-		graph.getPivotChainBeforeTimeStamp(v7, t7, pivot_chain);
-		EXPECT_EQ(pivot_chain.size(), 0);
-	}
-
-	// timestamp exclude v9
-	{
-		std::vector<std::string> subtree;
-		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t9, subtree);
-		EXPECT_EQ(subtree.size(), 8);
-	}
-	{
-		std::vector<std::string> subtree;
-		graph.getSubtreeBeforeTimeStamp(Dag::GENESIS, t9p1, subtree);
-		EXPECT_EQ(subtree.size(), 9);
+		EXPECT_EQ(pivot_chain.back(), v4);
 	}
 }
 TEST(DagManager, receive_block_in_order){
@@ -295,15 +290,19 @@ TEST(DagManager, receive_block_in_order){
 	mgr->addStateBlock(blk1, true);
 	mgr->addStateBlock(blk2, true);
 	mgr->addStateBlock(blk2, true);
-	EXPECT_EQ(mgr->getNumVerticesInDag(),3);
-	EXPECT_EQ(mgr->getNumEdgesInDag(),2);
+	EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
+	EXPECT_EQ(mgr->getNumEdgesInDag().first , 2);
 
 	mgr->addStateBlock(blk3, true);
 	mgr->addStateBlock(blk3, true);
 	taraxa::thisThreadSleepForMilliSeconds(500);
 	mgr->stop();
-	EXPECT_EQ(mgr->getNumVerticesInDag(),4);
-	EXPECT_EQ(mgr->getNumEdgesInDag(),5);
+	EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
+	// total edges
+	EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
+	// pivot edges
+	EXPECT_EQ(mgr->getNumEdgesInDag().second, 3);
+
 	EXPECT_EQ(mgr->getBufferSize(), 0);
 
 }
@@ -349,8 +348,8 @@ TEST(DagManager, receive_block_out_of_order){
 	
 	taraxa::thisThreadSleepForMicroSeconds(500);
 	mgr->stop();
-	EXPECT_EQ(mgr->getNumVerticesInDag(),4);
-	EXPECT_EQ(mgr->getNumEdgesInDag(),5);
+	EXPECT_EQ(mgr->getNumVerticesInDag().first,4);
+	EXPECT_EQ(mgr->getNumEdgesInDag().first,5);
 	EXPECT_EQ(mgr->getBufferSize(), 0);
 
 }

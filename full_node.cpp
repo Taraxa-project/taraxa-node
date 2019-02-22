@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 13:18:35
+ * @Last Modified time: 2019-02-22 15:15:22
  */
 
 #include <boost/asio.hpp>
@@ -121,17 +121,17 @@ void FullNode::setDagBlockTimeStamp (blk_hash_t const & hash, time_stamp_t stamp
 }
 
 std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash, time_stamp_t stamp){
-	std::vector<std::string> children = dag_mgr_->getChildrenBeforeTimeStamp(hash.toString(), stamp);
+	std::vector<std::string> children = dag_mgr_->getPivotChildrenBeforeTimeStamp(hash.toString(), stamp);
 	return children;
 }
 // Recursive call to children
 std::vector<std::string> FullNode::getDagBlockSubtree(blk_hash_t const &hash, time_stamp_t stamp){
-	std::vector<std::string> subtree = dag_mgr_->getSubtreeBeforeTimeStamp(hash.toString(), stamp);
+	std::vector<std::string> subtree = dag_mgr_->getPivotSubtreeBeforeTimeStamp(hash.toString(), stamp);
 	return subtree;
 }
 
 std::vector<std::string> FullNode::getDagBlockTips(blk_hash_t const &hash, time_stamp_t stamp){
-	std::vector<std::string> tips = dag_mgr_->getTipsBeforeTimeStamp(hash.toString(), stamp);
+	std::vector<std::string> tips = dag_mgr_->getTotalLeavesBeforeTimeStamp(hash.toString(), stamp);
 	return tips;
 }
 
@@ -144,14 +144,15 @@ std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash, t
 	StateBlock blk = getDagBlock(hash);
 	std::vector<std::string> parents;
 	parents.emplace_back(blk.getPivot().toString());
-	for (auto const & tip: blk.getTips()){
-		parents.emplace_back(tip.toString());
-	}
+	// parents does not include tips
+	// for (auto const & tip: blk.getTips()){
+	// 	parents.emplace_back(tip.toString());
+	// }
 		
 	std::vector<std::string> siblings;
 	for (auto const & parent: parents){
 		std::vector<std::string> children;
-		children = dag_mgr_->getChildrenBeforeTimeStamp(parent, stamp);
+		children = dag_mgr_->getPivotChildrenBeforeTimeStamp(parent, stamp);
 		siblings.insert(siblings.end(), children.begin(), children.end());
 	}
 	return siblings;
@@ -165,16 +166,17 @@ uint64_t FullNode::getNumProposedBlocks(){
 	return BlockProposer::getNumProposedBlocks();
 }
 
-uint64_t FullNode::getNumVerticesInDag(){
-	return dag_mgr_->getNumVerticesInDag();
+std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag(){
+	return dag_mgr_->getNumVerticesInDag(); 
 }
 
-uint64_t FullNode::getNumEdgesInDag(){
+std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag(){
 	return dag_mgr_->getNumEdgesInDag();
 }
 
 void FullNode::drawGraph(std::string const & dotfile) const{
-	dag_mgr_->drawGraph(dotfile);
+	dag_mgr_->drawPivotGraph("pivot."+dotfile);
+	dag_mgr_->drawTotalGraph("total."+dotfile);
 }
 
 FullNodeConfig const & FullNode::getConfig() const { return conf_;}
