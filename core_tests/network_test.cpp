@@ -18,7 +18,7 @@
 
 namespace taraxa {
 
-/*TEST (UdpBuffer, one_buffer){
+TEST (UdpBuffer, one_buffer){
 	UdpBuffer buffer (1, 512);
 	auto buf1 (buffer.allocate());
 	ASSERT_NE(nullptr, buf1);
@@ -229,7 +229,7 @@ TEST(Network, udp_packet_transfer_block){
 	ASSERT_EQ(num_sent, num_received);
 
 }
-*/
+
 TEST(Network, p2p_discovery){
 	auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex);
 	auto key = dev::KeyPair(secret);
