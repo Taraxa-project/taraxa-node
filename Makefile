@@ -91,7 +91,7 @@ core_tests/concur_hash_test: create_test_dir
 	g++ -std=c++17 -o $(TEST_BUILD)/concur_hash_test core_tests/concur_hash_test.cpp concur_storage/concur_hash.cpp concur_storage/conflict_detector.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 
 main: create_build_dir
-	g++ -std=c++17 -o $(BUILD)/main rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp rpc.cpp main.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
+	g++ -std=c++17 -o $(BUILD)/main rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp rpc.cpp main.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb -pthread
 
 protoc: 
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto
