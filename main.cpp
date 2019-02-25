@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:03:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-05 15:41:03
+ * @Last Modified time: 2019-02-25 12:03:37
  */
  
 #include <iostream> 
@@ -69,11 +69,9 @@ int main(int argc, char *argv[]){
 		
 		node->setVerbose(verbose);
 		node->start();
-		std::cout<<"Full node is set"<<std::endl;
 		std::string action;		
 		auto rpc (std::make_shared<taraxa::Rpc>(context, conf_rpc, node->getShared()));
 		rpc->start();
-		std::cout<<"Rpc is set"<<std::endl;
 		context.run();
 		
 		return 1;

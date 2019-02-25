@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-22 15:15:22
+ * @Last Modified time: 2019-02-25 11:58:43
  */
 
 #include <boost/asio.hpp>
@@ -59,6 +59,9 @@ FullNode::FullNode(boost::asio::io_context & io_context,
 	network_(std::make_shared<Network>(io_context_, conf_network)),
 	dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
 	blk_proposer_(std::make_shared<BlockProposer>(conf_.block_proposer_threads, dag_mgr_->getShared())){
+
+	std::cout<<"Taraxa node statred at address: "<< conf_.address << " ..."<<std::endl;
+
 } catch(std::exception &e){
 	std::cerr<<e.what()<<std::endl;
 	throw e;

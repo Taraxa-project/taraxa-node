@@ -18,7 +18,9 @@ RpcConfig::RpcConfig (std::string const &json_file):json_file_name(json_file){
 }
 
 Rpc::Rpc(boost::asio::io_context & io, std::string conf_rpc, std::shared_ptr<FullNode> node):
-		verbose_(false), conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node){}
+		verbose_(false), conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node){
+	std::cout<<"Taraxa RPC started at port: "<<conf_.port<<std::endl;
+}
 
 std::shared_ptr<Rpc> Rpc::getShared(){
 	try {
