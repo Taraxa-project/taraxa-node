@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-22 14:24:17
+ * @Last Modified time: 2019-02-25 18:17:19
  */
  
 #include <iostream>
@@ -81,6 +81,8 @@ public:
 	bool addVEEs(vertex_hash const & new_vertex, vertex_hash const & pivot, 
 		std::vector<vertex_hash> const & tips);
 	
+
+
 	// timestamp unrelated
 	void collectLeaves(std::vector<vertex_hash> & tips) const;
 	void drawGraph(vertex_hash filename) const;
@@ -90,7 +92,8 @@ public:
 	// Computational heavy
 	void getSubtreeBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> & subtree) const;
 	void getLeavesBeforeTimeStamp(vertex_hash const & veretx, time_stamp_t stamp, std::vector<vertex_hash> & tips) const;
-	// void getPivotHeavyPathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
+	void getEpochVertices(vertex_hash const & from, vertex_hash const & to, std::vector<vertex_hash> & tips) const;
+	
 	time_stamp_t getVertexTimeStamp(vertex_hash const & vertex) const;
 	void setVertexTimeStamp(vertex_hash const & vertex, time_stamp_t stamp);
 	
@@ -118,8 +121,9 @@ protected:
 	edge_t   addEdge(vertex_t v1, vertex_t v2);
 
 	// traverser API
-	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
+	bool reachable(vertex_t const & from, vertex_t const & to) const;
 
+	void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 	// time sense degree
 	size_t outDegreeBeforeTimeStamp(vertex_t vertex, time_stamp_t stamp) const;
 
@@ -151,6 +155,8 @@ class TipBlockExplorer;
  * i.e., no same StateBlocks are put to the Dag.
  */
 
+// TODO: probably share property map for total_dag_ and pivot_tree_
+
 class DagManager : public std::enable_shared_from_this<DagManager> {
 public:
 	using ulock = std::unique_lock<std::mutex>;  
@@ -170,13 +176,14 @@ public:
 	
 	// ----- Total graph
 	// can return self as tips
-	std::vector<std::string> getTotalLeavesBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	std::vector<std::string> getTotalLeavesBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
+	std::vector<std::string> getTotalEpochsBetweenBlocks(std::string const & from, std::string const & to) const;
 	void drawTotalGraph(std::string const & str) const;
 
 	// ----- Pivot graph
-	std::vector<std::string> getPivotChildrenBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	std::vector<std::string> getPivotChildrenBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
 	// can return self as subtree
-	std::vector<std::string> getPivotSubtreeBeforeTimeStamp(std::string const & veretx, time_stamp_t stamp) const;
+	std::vector<std::string> getPivotSubtreeBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
 	// can return self as pivot chain
 	std::vector<std::string> getPivotChainBeforeTimeStamp(std::string const & vertex, time_stamp_t stamp) const;
 	void drawPivotGraph(std::string const & str) const;

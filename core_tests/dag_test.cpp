@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-22 15:00:52
+ * @Last Modified time: 2019-02-25 19:06:38
  */
  
 #include <gtest/gtest.h>
@@ -201,6 +201,41 @@ TEST(Dag, dag_traverse2_get_children_tips){
 	EXPECT_EQ(graph.getVertexTimeStamp(Dag::GENESIS), stamp);
 	
 }
+
+TEST(Dag, dag_traverse3_get_epochs){ 
+	taraxa::Dag graph;
+	auto vA="0000000000000000000000000000000000000000000000000000000000000001";
+	auto vB="0000000000000000000000000000000000000000000000000000000000000002";
+	auto vC="0000000000000000000000000000000000000000000000000000000000000003";
+	auto vD="0000000000000000000000000000000000000000000000000000000000000004";
+	auto vE="0000000000000000000000000000000000000000000000000000000000000005";
+	auto vF="0000000000000000000000000000000000000000000000000000000000000006";
+	auto vG="0000000000000000000000000000000000000000000000000000000000000007";
+	auto vH="0000000000000000000000000000000000000000000000000000000000000008";
+	auto vI="0000000000000000000000000000000000000000000000000000000000000009";
+	auto vJ="000000000000000000000000000000000000000000000000000000000000000A";
+	auto vK="000000000000000000000000000000000000000000000000000000000000000B";
+	
+	std::vector<std::string> empty;
+	std::string no="";
+	graph.addVEEs(vA, Dag::GENESIS, empty);
+	graph.addVEEs(vB, Dag::GENESIS, empty);
+	graph.addVEEs(vC, vA, {vB});
+	graph.addVEEs(vD, vA, empty);
+	graph.addVEEs(vF, vB, empty);
+	graph.addVEEs(vE, vC, {vD, vF});
+	graph.addVEEs(vG, vA, empty);
+	graph.addVEEs(vJ, vF, empty);
+	graph.addVEEs(vI, vJ, empty);
+	graph.addVEEs(vH, vE, {vG, vI});
+	graph.addVEEs(vK, vI, empty);
+
+	std::vector<std::string> epochs;
+	graph.getEpochVertices(vE, vH, epochs);
+	EXPECT_EQ(epochs.size(), 3);
+	
+} 
+
 
 TEST(PivotTree, dag_traverse_pivot_chain_and_subtree){  
 	taraxa::PivotTree graph;

@@ -276,6 +276,20 @@ void RpcHandler::processRequest(){
 				res = e.what();
 			}
 		}
+		else if (action == "get_dag_block_epochs"){
+			try{
+				blk_hash_t from_hash = in_doc_.get<std::string>("from_hash");
+				blk_hash_t to_hash = in_doc_.get<std::string>("to_hash");
+			 
+				std::vector<std::string> epochs;
+				epochs = node_->getDagBlockEpochs(from_hash, to_hash);
+				for (auto const & v: epochs){
+					res+=(v+'\n');
+				}
+			} catch (std::exception &e){
+				res = e.what();
+			}
+		}
 		else if (action == "draw_graph"){
 			std::string filename = in_doc_.get<std::string>("filename");
 			node_->drawGraph(filename);

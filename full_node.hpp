@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-22 11:58:52
+ * @Last Modified time: 2019-02-25 22:02:10
  */
  
 #ifndef FULL_NODE_HPP
@@ -63,6 +63,7 @@ public:
 	std::vector<std::string> getDagBlockSiblings(blk_hash_t const &blk, time_stamp_t stamp);
 	std::vector<std::string> getDagBlockTips(blk_hash_t const &blk, time_stamp_t stamp);
 	std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk, time_stamp_t stamp);
+	std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from, blk_hash_t const &to);
 
 	// debugger
 	uint64_t getNumReceivedBlocks();

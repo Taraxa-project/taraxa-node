@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 11:58:43
+ * @Last Modified time: 2019-02-25 22:52:52
  */
 
 #include <boost/asio.hpp>
@@ -143,14 +143,15 @@ std::vector<std::string> FullNode::getDagBlockPivotChain(blk_hash_t const &hash,
 	return pivot_chain;
 }
 
+std::vector<std::string> FullNode::getDagBlockEpochs(blk_hash_t const &from, blk_hash_t const &to){
+	std::vector<std::string> epochs = dag_mgr_->getTotalEpochsBetweenBlocks(from.toString(), to.toString());
+	return epochs;
+}
+
 std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash, time_stamp_t stamp){
 	StateBlock blk = getDagBlock(hash);
 	std::vector<std::string> parents;
 	parents.emplace_back(blk.getPivot().toString());
-	// parents does not include tips
-	// for (auto const & tip: blk.getTips()){
-	// 	parents.emplace_back(tip.toString());
-	// }
 		
 	std::vector<std::string> siblings;
 	for (auto const & parent: parents){
