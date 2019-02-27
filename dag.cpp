@@ -370,8 +370,10 @@ size_t PivotTree::heavySubtree(vertex_t const &vertex, time_stamp_t stamp, std::
 	size_t heavist_weight = 0;
 	size_t heavist_child = vertex;
 	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
 
 	for (std::tie(s, e) = adjacenct_vertices(vertex, graph_); s!=e; s++){
+		if (time_map[*s]>=stamp) continue;
 		std::vector<vertex_t> sub_chain;
 		size_t weight = heavySubtree(*s, stamp, sub_chain);
 		if (weight > heavist_weight){

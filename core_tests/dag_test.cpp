@@ -292,6 +292,33 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree){
 		EXPECT_EQ(pivot_chain.back(), v4);
 	}
 }
+
+TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2){
+	taraxa::PivotTree graph;
+
+	auto v1="0000000000000000000000000000000000000000000000000000000000000001";
+	auto v2="0000000000000000000000000000000000000000000000000000000000000002";
+	
+	std::vector<std::string> empty;
+	std::string no="";
+	
+	graph.addVEEs(v1, Dag::GENESIS, empty);
+	graph.addVEEs(v2, Dag::GENESIS, empty);
+	
+	graph.setVertexTimeStamp(v1, 50);
+	graph.setVertexTimeStamp(v2, 25);
+
+	{
+		std::vector<std::string> pivot_chain;
+		graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, 26, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 2);
+		EXPECT_EQ(pivot_chain.back(), v2);
+		graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, 51, pivot_chain);
+		EXPECT_EQ(pivot_chain.size(), 2);
+		EXPECT_EQ(pivot_chain.back(), v1);
+	}
+}
+
 TEST(DagManager, receive_block_in_order){
 	auto mgr = std::make_shared<DagManager> (1);
 	mgr->start();
