@@ -20,6 +20,7 @@ RUN cd /tmp \
     && ./bootstrap.sh --prefix=/usr/local \
     && ./b2 install \
     && ln -s /usr/local/lib/libboost_thread.so /usr/local/lib/libboost_thread-mt.so
+ENV LD_LIBRARY_PATH /usr/local/lib/
 
 RUN git clone https://github.com/google/googletest /tmp/gtest \
   && cd /tmp/gtest && mkdir build && cd build && cmake .. && make && make install
@@ -47,10 +48,13 @@ FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 ENV APP_PATH /opt/taraxa/taraxa-node
+ENV LD_LIBRARY_PATH /usr/local/lib/
 
 RUN mkdir -p ${APP_PATH}/config
 WORKDIR ${APP_PATH}
 COPY --from=builder ${APP_PATH}/build/main .
+COPY --from=builder /usr/local/lib/* /usr/local/lib/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/ 
 COPY ./core_tests/*.json ./config/
 
 

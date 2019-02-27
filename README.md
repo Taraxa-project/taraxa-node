@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Taraxa-project/taraxa-node.svg?branch=master)](https://travis-ci.org/Taraxa-project/taraxa-node)
+
 # Installation:
 ```
 git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
@@ -64,3 +66,73 @@ Run example:
 ```
 Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
 
+## Docker
+
+Docker has to be installed. If it is not, visit this [web](https://docs.docker.com/install/).
+
+### Building Docker Image
+
+```bash
+$ docker build -t taraxa-node .
+```
+
+*The building process takes a lot of time, especially during its first execution.*
+
+### Check Docker images
+
+```bash
+$ docker images
+```
+
+### Running a Docker Container
+
+* Running using the host network mode
+
+```bash
+$ docker run --rm --net=host --name taraxa-node taraxa-node
+```
+
+* Running using the bridge network mode
+
+```bash
+$ docker run --rm -p <host port>:<container port> \
+  --name taraxa-node taraxa-node
+```
+
+* Running with my own config files
+
+```bash
+$ docker run --rm --net=host -v `pwd`/core_tests:/core_tests \
+  --name taraxa-node taraxa-node \
+  --conf_full_node /core_tests/conf_full_node1.json \
+  --conf_network /core_tests/conf_network1.json \
+  --conf_rpc /core_tests/conf_rpc1.json
+```
+
+### Check Running Docker containers
+
+```bash
+$ docker ps
+```
+
+### Check Stopped Docker containers
+
+```bash
+$ docker ps -a
+```
+
+### Stop/Kill Docker Container
+
+```bash 
+$ docker stop taraxa-node
+```
+
+```bash 
+$ docker kill taraxa-node
+```
+
+### Remove Stopped Docker Container
+
+```bash 
+$ docker rm taraxa-node
+```
