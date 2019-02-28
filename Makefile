@@ -1,6 +1,6 @@
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I submodules/rapidjson/include -I . -I concur_storage
+CPPFLAGS := -I submodules -I submodules/rapidjson/include -I . -I concur_storage -I grpc
 OS := $(shell uname)
 ifneq ($(OS), Darwin) #Mac
 	CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
@@ -73,34 +73,42 @@ create_test_dir:
 $(BUILD)/main: rocks_db.cpp state_block.cpp user_account.cpp util.cpp wallet.cpp rpc.cpp block_processor.cpp network.cpp udp_buffer.cpp full_node.cpp main.cpp $(DEPENDENCIES)
 	$(COMPILE) -lrocksdb -lboost_thread-mt
 
-core_tests/dag_test: create_test_dir
+$(TEST_BUILD)/dag_test: create_test_dir
 	g++ -std=c++17 -o $(TEST_BUILD)/dag_test core_tests/dag_test.cpp types.cpp dag.cpp state_block.cpp util.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -I. 
 
-core_tests/network_test: create_test_dir 
+$(TEST_BUILD)/network_test: create_test_dir 
 	g++ -std=c++17 -o $(TEST_BUILD)/network_test core_tests/network_test.cpp rocks_db.cpp network.cpp udp_buffer.cpp util.cpp state_block.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -I. -lboost_system -lrocksdb
 # make c; make core_tests/network_test; ./test_build/network_test
 
-core_tests/state_block_test: create_test_dir 
+$(TEST_BUILD)/state_block_test: create_test_dir 
 	g++ -std=c++17 -o $(TEST_BUILD)/state_block_test core_tests/state_block_test.cpp state_block.cpp util.cpp types.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -I.  
 #
 
-core_tests/full_node_test: create_test_dir
+$(TEST_BUILD)/full_node_test: create_test_dir
 	g++ -std=c++17 -o $(TEST_BUILD)/full_node_test core_tests/full_node_test.cpp rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb
 
-core_tests/concur_hash_test: create_test_dir
+$(TEST_BUILD)/concur_hash_test: create_test_dir
 	g++ -std=c++17 -o $(TEST_BUILD)/concur_hash_test core_tests/concur_hash_test.cpp concur_storage/concur_hash.cpp concur_storage/conflict_detector.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
+
+$(TEST_BUILD)/transaction_test: create_test_dir
+	g++ -std=c++17 -o $(TEST_BUILD)/transaction_test core_tests/transaction_test.cpp transaction.cpp types.cpp util.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
+
 
 main: create_build_dir
 	g++ -std=c++17 -o $(BUILD)/main rocks_db.cpp state_block.cpp util.cpp udp_buffer.cpp network.cpp full_node.cpp types.cpp visitor.cpp dag.cpp block_proposer.cpp rpc.cpp main.cpp $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system -lrocksdb -pthread
 
-protoc: 
+protoc_ledger: 
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto
-	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto 
+	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto
+
+protoc_transaction: 
+	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/transaction.proto
+	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/transaction.proto  
 
 grpc: create_test_dir protoc
 	g++ -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TEST_BUILD)/grpc_test grpc_server.cpp grpc/proto/ledger.grpc.pb.cc grpc/proto/ledger.pb.cc $(GOOGLE_APIS_OBJ) $(CPPFLAGS) $(LDFLAGS) $(LIBS) 
 
-test: core_tests/full_node_test core_tests/state_block_test core_tests/network_test core_tests/dag_test core_tests/concur_hash_test main
+test: $(TEST_BUILD)/full_node_test $(TEST_BUILD)/state_block_test $(TEST_BUILD)/network_test $(TEST_BUILD)/dag_test $(TEST_BUILD)/concur_hash_test main
 
 run_test: test
 	./$(TEST_BUILD)/dag_test
@@ -108,6 +116,7 @@ run_test: test
 	./$(TEST_BUILD)/state_block_test
 	./$(TEST_BUILD)/full_node_test
 	./$(TEST_BUILD)/concur_hash_test
+	./$(TEST_BUILD)/transaction_test
 ct:
 	rm -rf $(CLEAN_TESTS)
 

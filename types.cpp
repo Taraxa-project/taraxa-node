@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 22:54:21
+ * @Last Modified time: 2019-02-27 19:04:40
  */
  
 #include "types.hpp"
@@ -144,6 +144,14 @@ time_point_t getLong2TimePoint (unsigned long l){
 }
 unsigned long getTimePoint2Long (time_point_t tp){
 	return tp.time_since_epoch().count();
+}
+
+
+std::ostream & operator<<(std::ostream & strm, bytes const &bytes){
+	for (auto const & b : bytes){
+		strm<<b<<" ";
+	}
+	return strm;
 }
 
 
