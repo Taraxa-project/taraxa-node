@@ -747,7 +747,7 @@ void Host::run(boost::system::error_code const& _ec)
         return;
 
     auto runcb = [this](boost::system::error_code const& error) { run(error); };
-    m_timer.expires_from_now(boost::posix_time::milliseconds(c_timerInterval));
+    m_timer.expires_from_now(boost::posix_time::milliseconds(100));
     m_timer.async_wait(runcb);
 }
 
