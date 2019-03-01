@@ -4,6 +4,7 @@
 #include "libp2p/Host.h"
 #include <libp2p/Network.h>
 #include <libdevcrypto/Common.h>
+#include "taraxa_capability.h"
 
 namespace taraxa{
 
@@ -154,6 +155,7 @@ Network::Network(boost::asio::io_context & io_context , std::string const & conf
 		key = dev::KeyPair(secret);
 	}
 	discoveryHost = std::make_shared<dev::p2p::Host>("TaraxaNode", key, dev::p2p::NetworkConfig("127.0.0.1", conf_.discovery_udp_port, false, true));
+	discoveryHost->registerCapability(std::make_shared<TaraxaCapability>(*discoveryHost.get()));
 	discoveryHost->start();
 	printf("Started Node id: %s\n", discoveryHost->id().hex().c_str());
 

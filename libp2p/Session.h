@@ -172,7 +172,7 @@ private:
     std::shared_ptr<RLPXSocket> m_socket;		///< Socket of peer's connection.
     Mutex x_framing;						///< Mutex for the write queue.
     std::deque<bytes> m_writeQueue;			///< The write queue.
-    std::vector<byte> m_data;			    ///< Buffer for ingress packet data.
+    std::vector<::byte> m_data;			    ///< Buffer for ingress packet data.
     bytes m_incoming;						///< Read buffer for ingress bytes.
 
     std::shared_ptr<Peer> m_peer;			///< The Peer object.
