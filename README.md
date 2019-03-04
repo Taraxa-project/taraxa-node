@@ -102,7 +102,7 @@ $ docker run --rm -p <host port>:<container port> \
 Example:
 
 ```bash
-$ docker run --rm -p 7777:7777 port> \
+$ docker run --rm -p 7777:7777 \
   --name taraxa-node taraxa-node
 ```
 
