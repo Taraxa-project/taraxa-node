@@ -99,10 +99,27 @@ $ docker run --rm -p <host port>:<container port> \
   --name taraxa-node taraxa-node
 ```
 
+Example:
+
+```bash
+$ docker run --rm -p 7777:7777 port> \
+  --name taraxa-node taraxa-node
+```
+
 * Running with my own config files
 
 ```bash
-$ docker run --rm --net=host -v `pwd`/core_tests:/core_tests \
+$ docker run --rm -p <host port>:<container> -v `pwd`/core_tests:/core_tests \
+  --name taraxa-node taraxa-node \
+  --conf_full_node /core_tests/conf_full_node1.json \
+  --conf_network /core_tests/conf_network1.json \
+  --conf_rpc /core_tests/conf_rpc1.json
+```
+
+Example:
+
+```bash
+$ docker run --rm -p 7777:7777 -v `pwd`/core_tests:/core_tests \
   --name taraxa-node taraxa-node \
   --conf_full_node /core_tests/conf_full_node1.json \
   --conf_network /core_tests/conf_network1.json \
