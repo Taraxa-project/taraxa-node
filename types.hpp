@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-27 19:04:00
+ * @Last Modified time: 2019-02-28 15:22:58
  */
 
 #ifndef TYPES_HPP
@@ -66,7 +66,6 @@ struct uint_hash_t {
 template <std::size_t Byte> 
 std::ostream & operator<<(std::ostream & strm, uint_hash_t<Byte> const &num);
 
-
 using uint256_hash_t = uint_hash_t<32>;
 using uint512_hash_t = uint_hash_t<64>;
 
@@ -83,7 +82,6 @@ using byte = uint8_t;
 using bytes = std::vector<byte>;
 
 std::ostream & operator<<(std::ostream & strm, bytes const &bytes);
-
 
 time_point_t getLong2TimePoint (unsigned long l);
 unsigned long getTimePoint2Long (time_point_t tp);

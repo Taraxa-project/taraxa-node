@@ -47,41 +47,41 @@ struct TableStruct {
 void AddDescriptors();
 }  // namespace protobuf_proto_2ftransaction_2eproto
 namespace taraxa_ledger {
-class SendTransactionResponse;
-class SendTransactionResponseDefaultTypeInternal;
-extern SendTransactionResponseDefaultTypeInternal _SendTransactionResponse_default_instance_;
-class Transaction;
-class TransactionDefaultTypeInternal;
-extern TransactionDefaultTypeInternal _Transaction_default_instance_;
+class GrpcTransaction;
+class GrpcTransactionDefaultTypeInternal;
+extern GrpcTransactionDefaultTypeInternal _GrpcTransaction_default_instance_;
+class SendGrpcTransactionResponse;
+class SendGrpcTransactionResponseDefaultTypeInternal;
+extern SendGrpcTransactionResponseDefaultTypeInternal _SendGrpcTransactionResponse_default_instance_;
 }  // namespace taraxa_ledger
 namespace google {
 namespace protobuf {
-template<> ::taraxa_ledger::SendTransactionResponse* Arena::CreateMaybeMessage<::taraxa_ledger::SendTransactionResponse>(Arena*);
-template<> ::taraxa_ledger::Transaction* Arena::CreateMaybeMessage<::taraxa_ledger::Transaction>(Arena*);
+template<> ::taraxa_ledger::GrpcTransaction* Arena::CreateMaybeMessage<::taraxa_ledger::GrpcTransaction>(Arena*);
+template<> ::taraxa_ledger::SendGrpcTransactionResponse* Arena::CreateMaybeMessage<::taraxa_ledger::SendGrpcTransactionResponse>(Arena*);
 }  // namespace protobuf
 }  // namespace google
 namespace taraxa_ledger {
 
 // ===================================================================
 
-class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:taraxa_ledger.Transaction) */ {
+class GrpcTransaction : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:taraxa_ledger.GrpcTransaction) */ {
  public:
-  Transaction();
-  virtual ~Transaction();
+  GrpcTransaction();
+  virtual ~GrpcTransaction();
 
-  Transaction(const Transaction& from);
+  GrpcTransaction(const GrpcTransaction& from);
 
-  inline Transaction& operator=(const Transaction& from) {
+  inline GrpcTransaction& operator=(const GrpcTransaction& from) {
     CopyFrom(from);
     return *this;
   }
   #if LANG_CXX11
-  Transaction(Transaction&& from) noexcept
-    : Transaction() {
+  GrpcTransaction(GrpcTransaction&& from) noexcept
+    : GrpcTransaction() {
     *this = ::std::move(from);
   }
 
-  inline Transaction& operator=(Transaction&& from) noexcept {
+  inline GrpcTransaction& operator=(GrpcTransaction&& from) noexcept {
     if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
       if (this != &from) InternalSwap(&from);
     } else {
@@ -91,34 +91,34 @@ class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_poi
   }
   #endif
   static const ::google::protobuf::Descriptor* descriptor();
-  static const Transaction& default_instance();
+  static const GrpcTransaction& default_instance();
 
   static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
-  static inline const Transaction* internal_default_instance() {
-    return reinterpret_cast<const Transaction*>(
-               &_Transaction_default_instance_);
+  static inline const GrpcTransaction* internal_default_instance() {
+    return reinterpret_cast<const GrpcTransaction*>(
+               &_GrpcTransaction_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     0;
 
-  void Swap(Transaction* other);
-  friend void swap(Transaction& a, Transaction& b) {
+  void Swap(GrpcTransaction* other);
+  friend void swap(GrpcTransaction& a, GrpcTransaction& b) {
     a.Swap(&b);
   }
 
   // implements Message ----------------------------------------------
 
-  inline Transaction* New() const final {
-    return CreateMaybeMessage<Transaction>(NULL);
+  inline GrpcTransaction* New() const final {
+    return CreateMaybeMessage<GrpcTransaction>(NULL);
   }
 
-  Transaction* New(::google::protobuf::Arena* arena) const final {
-    return CreateMaybeMessage<Transaction>(arena);
+  GrpcTransaction* New(::google::protobuf::Arena* arena) const final {
+    return CreateMaybeMessage<GrpcTransaction>(arena);
   }
   void CopyFrom(const ::google::protobuf::Message& from) final;
   void MergeFrom(const ::google::protobuf::Message& from) final;
-  void CopyFrom(const Transaction& from);
-  void MergeFrom(const Transaction& from);
+  void CopyFrom(const GrpcTransaction& from);
+  void MergeFrom(const GrpcTransaction& from);
   void Clear() final;
   bool IsInitialized() const final;
 
@@ -135,7 +135,7 @@ class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_poi
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(Transaction* other);
+  void InternalSwap(GrpcTransaction* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return NULL;
@@ -150,6 +150,62 @@ class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_poi
   // nested types ----------------------------------------------------
 
   // accessors -------------------------------------------------------
+
+  // string nonce = 2;
+  void clear_nonce();
+  static const int kNonceFieldNumber = 2;
+  const ::std::string& nonce() const;
+  void set_nonce(const ::std::string& value);
+  #if LANG_CXX11
+  void set_nonce(::std::string&& value);
+  #endif
+  void set_nonce(const char* value);
+  void set_nonce(const char* value, size_t size);
+  ::std::string* mutable_nonce();
+  ::std::string* release_nonce();
+  void set_allocated_nonce(::std::string* nonce);
+
+  // string value = 3;
+  void clear_value();
+  static const int kValueFieldNumber = 3;
+  const ::std::string& value() const;
+  void set_value(const ::std::string& value);
+  #if LANG_CXX11
+  void set_value(::std::string&& value);
+  #endif
+  void set_value(const char* value);
+  void set_value(const char* value, size_t size);
+  ::std::string* mutable_value();
+  ::std::string* release_value();
+  void set_allocated_value(::std::string* value);
+
+  // string gas_price = 4;
+  void clear_gas_price();
+  static const int kGasPriceFieldNumber = 4;
+  const ::std::string& gas_price() const;
+  void set_gas_price(const ::std::string& value);
+  #if LANG_CXX11
+  void set_gas_price(::std::string&& value);
+  #endif
+  void set_gas_price(const char* value);
+  void set_gas_price(const char* value, size_t size);
+  ::std::string* mutable_gas_price();
+  ::std::string* release_gas_price();
+  void set_allocated_gas_price(::std::string* gas_price);
+
+  // string gas = 5;
+  void clear_gas();
+  static const int kGasFieldNumber = 5;
+  const ::std::string& gas() const;
+  void set_gas(const ::std::string& value);
+  #if LANG_CXX11
+  void set_gas(::std::string&& value);
+  #endif
+  void set_gas(const char* value);
+  void set_gas(const char* value, size_t size);
+  ::std::string* mutable_gas();
+  ::std::string* release_gas();
+  void set_allocated_gas(::std::string* gas);
 
   // string receiver = 6;
   void clear_receiver();
@@ -193,71 +249,47 @@ class Transaction : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::std::string* release_data();
   void set_allocated_data(::std::string* data);
 
-  // uint64 nounce = 2;
-  void clear_nounce();
-  static const int kNounceFieldNumber = 2;
-  ::google::protobuf::uint64 nounce() const;
-  void set_nounce(::google::protobuf::uint64 value);
-
-  // uint64 value = 3;
-  void clear_value();
-  static const int kValueFieldNumber = 3;
-  ::google::protobuf::uint64 value() const;
-  void set_value(::google::protobuf::uint64 value);
-
-  // uint64 gas_price = 4;
-  void clear_gas_price();
-  static const int kGasPriceFieldNumber = 4;
-  ::google::protobuf::uint64 gas_price() const;
-  void set_gas_price(::google::protobuf::uint64 value);
-
-  // uint64 gas = 5;
-  void clear_gas();
-  static const int kGasFieldNumber = 5;
-  ::google::protobuf::uint64 gas() const;
-  void set_gas(::google::protobuf::uint64 value);
-
   // uint32 type = 1;
   void clear_type();
   static const int kTypeFieldNumber = 1;
   ::google::protobuf::uint32 type() const;
   void set_type(::google::protobuf::uint32 value);
 
-  // @@protoc_insertion_point(class_scope:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(class_scope:taraxa_ledger.GrpcTransaction)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr nonce_;
+  ::google::protobuf::internal::ArenaStringPtr value_;
+  ::google::protobuf::internal::ArenaStringPtr gas_price_;
+  ::google::protobuf::internal::ArenaStringPtr gas_;
   ::google::protobuf::internal::ArenaStringPtr receiver_;
   ::google::protobuf::internal::ArenaStringPtr signature_;
   ::google::protobuf::internal::ArenaStringPtr data_;
-  ::google::protobuf::uint64 nounce_;
-  ::google::protobuf::uint64 value_;
-  ::google::protobuf::uint64 gas_price_;
-  ::google::protobuf::uint64 gas_;
   ::google::protobuf::uint32 type_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_proto_2ftransaction_2eproto::TableStruct;
 };
 // -------------------------------------------------------------------
 
-class SendTransactionResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:taraxa_ledger.SendTransactionResponse) */ {
+class SendGrpcTransactionResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:taraxa_ledger.SendGrpcTransactionResponse) */ {
  public:
-  SendTransactionResponse();
-  virtual ~SendTransactionResponse();
+  SendGrpcTransactionResponse();
+  virtual ~SendGrpcTransactionResponse();
 
-  SendTransactionResponse(const SendTransactionResponse& from);
+  SendGrpcTransactionResponse(const SendGrpcTransactionResponse& from);
 
-  inline SendTransactionResponse& operator=(const SendTransactionResponse& from) {
+  inline SendGrpcTransactionResponse& operator=(const SendGrpcTransactionResponse& from) {
     CopyFrom(from);
     return *this;
   }
   #if LANG_CXX11
-  SendTransactionResponse(SendTransactionResponse&& from) noexcept
-    : SendTransactionResponse() {
+  SendGrpcTransactionResponse(SendGrpcTransactionResponse&& from) noexcept
+    : SendGrpcTransactionResponse() {
     *this = ::std::move(from);
   }
 
-  inline SendTransactionResponse& operator=(SendTransactionResponse&& from) noexcept {
+  inline SendGrpcTransactionResponse& operator=(SendGrpcTransactionResponse&& from) noexcept {
     if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
       if (this != &from) InternalSwap(&from);
     } else {
@@ -267,34 +299,34 @@ class SendTransactionResponse : public ::google::protobuf::Message /* @@protoc_i
   }
   #endif
   static const ::google::protobuf::Descriptor* descriptor();
-  static const SendTransactionResponse& default_instance();
+  static const SendGrpcTransactionResponse& default_instance();
 
   static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
-  static inline const SendTransactionResponse* internal_default_instance() {
-    return reinterpret_cast<const SendTransactionResponse*>(
-               &_SendTransactionResponse_default_instance_);
+  static inline const SendGrpcTransactionResponse* internal_default_instance() {
+    return reinterpret_cast<const SendGrpcTransactionResponse*>(
+               &_SendGrpcTransactionResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     1;
 
-  void Swap(SendTransactionResponse* other);
-  friend void swap(SendTransactionResponse& a, SendTransactionResponse& b) {
+  void Swap(SendGrpcTransactionResponse* other);
+  friend void swap(SendGrpcTransactionResponse& a, SendGrpcTransactionResponse& b) {
     a.Swap(&b);
   }
 
   // implements Message ----------------------------------------------
 
-  inline SendTransactionResponse* New() const final {
-    return CreateMaybeMessage<SendTransactionResponse>(NULL);
+  inline SendGrpcTransactionResponse* New() const final {
+    return CreateMaybeMessage<SendGrpcTransactionResponse>(NULL);
   }
 
-  SendTransactionResponse* New(::google::protobuf::Arena* arena) const final {
-    return CreateMaybeMessage<SendTransactionResponse>(arena);
+  SendGrpcTransactionResponse* New(::google::protobuf::Arena* arena) const final {
+    return CreateMaybeMessage<SendGrpcTransactionResponse>(arena);
   }
   void CopyFrom(const ::google::protobuf::Message& from) final;
   void MergeFrom(const ::google::protobuf::Message& from) final;
-  void CopyFrom(const SendTransactionResponse& from);
-  void MergeFrom(const SendTransactionResponse& from);
+  void CopyFrom(const SendGrpcTransactionResponse& from);
+  void MergeFrom(const SendGrpcTransactionResponse& from);
   void Clear() final;
   bool IsInitialized() const final;
 
@@ -311,7 +343,7 @@ class SendTransactionResponse : public ::google::protobuf::Message /* @@protoc_i
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(SendTransactionResponse* other);
+  void InternalSwap(SendGrpcTransactionResponse* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return NULL;
@@ -333,7 +365,7 @@ class SendTransactionResponse : public ::google::protobuf::Message /* @@protoc_i
   bool success() const;
   void set_success(bool value);
 
-  // @@protoc_insertion_point(class_scope:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(class_scope:taraxa_ledger.SendGrpcTransactionResponse)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
@@ -350,253 +382,409 @@ class SendTransactionResponse : public ::google::protobuf::Message /* @@protoc_i
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
-// Transaction
+// GrpcTransaction
 
 // uint32 type = 1;
-inline void Transaction::clear_type() {
+inline void GrpcTransaction::clear_type() {
   type_ = 0u;
 }
-inline ::google::protobuf::uint32 Transaction::type() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.type)
+inline ::google::protobuf::uint32 GrpcTransaction::type() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.type)
   return type_;
 }
-inline void Transaction::set_type(::google::protobuf::uint32 value) {
+inline void GrpcTransaction::set_type(::google::protobuf::uint32 value) {
   
   type_ = value;
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.type)
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.type)
 }
 
-// uint64 nounce = 2;
-inline void Transaction::clear_nounce() {
-  nounce_ = GOOGLE_ULONGLONG(0);
+// string nonce = 2;
+inline void GrpcTransaction::clear_nonce() {
+  nonce_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::google::protobuf::uint64 Transaction::nounce() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.nounce)
-  return nounce_;
+inline const ::std::string& GrpcTransaction::nonce() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.nonce)
+  return nonce_.GetNoArena();
 }
-inline void Transaction::set_nounce(::google::protobuf::uint64 value) {
+inline void GrpcTransaction::set_nonce(const ::std::string& value) {
   
-  nounce_ = value;
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.nounce)
+  nonce_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.nonce)
+}
+#if LANG_CXX11
+inline void GrpcTransaction::set_nonce(::std::string&& value) {
+  
+  nonce_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.nonce)
+}
+#endif
+inline void GrpcTransaction::set_nonce(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  nonce_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.nonce)
+}
+inline void GrpcTransaction::set_nonce(const char* value, size_t size) {
+  
+  nonce_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.nonce)
+}
+inline ::std::string* GrpcTransaction::mutable_nonce() {
+  
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.nonce)
+  return nonce_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* GrpcTransaction::release_nonce() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.nonce)
+  
+  return nonce_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void GrpcTransaction::set_allocated_nonce(::std::string* nonce) {
+  if (nonce != NULL) {
+    
+  } else {
+    
+  }
+  nonce_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), nonce);
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.nonce)
 }
 
-// uint64 value = 3;
-inline void Transaction::clear_value() {
-  value_ = GOOGLE_ULONGLONG(0);
+// string value = 3;
+inline void GrpcTransaction::clear_value() {
+  value_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::google::protobuf::uint64 Transaction::value() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.value)
-  return value_;
+inline const ::std::string& GrpcTransaction::value() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.value)
+  return value_.GetNoArena();
 }
-inline void Transaction::set_value(::google::protobuf::uint64 value) {
+inline void GrpcTransaction::set_value(const ::std::string& value) {
   
-  value_ = value;
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.value)
+  value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.value)
+}
+#if LANG_CXX11
+inline void GrpcTransaction::set_value(::std::string&& value) {
+  
+  value_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.value)
+}
+#endif
+inline void GrpcTransaction::set_value(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.value)
+}
+inline void GrpcTransaction::set_value(const char* value, size_t size) {
+  
+  value_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.value)
+}
+inline ::std::string* GrpcTransaction::mutable_value() {
+  
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.value)
+  return value_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* GrpcTransaction::release_value() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.value)
+  
+  return value_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void GrpcTransaction::set_allocated_value(::std::string* value) {
+  if (value != NULL) {
+    
+  } else {
+    
+  }
+  value_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.value)
 }
 
-// uint64 gas_price = 4;
-inline void Transaction::clear_gas_price() {
-  gas_price_ = GOOGLE_ULONGLONG(0);
+// string gas_price = 4;
+inline void GrpcTransaction::clear_gas_price() {
+  gas_price_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::google::protobuf::uint64 Transaction::gas_price() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.gas_price)
-  return gas_price_;
+inline const ::std::string& GrpcTransaction::gas_price() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.gas_price)
+  return gas_price_.GetNoArena();
 }
-inline void Transaction::set_gas_price(::google::protobuf::uint64 value) {
+inline void GrpcTransaction::set_gas_price(const ::std::string& value) {
   
-  gas_price_ = value;
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.gas_price)
+  gas_price_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.gas_price)
+}
+#if LANG_CXX11
+inline void GrpcTransaction::set_gas_price(::std::string&& value) {
+  
+  gas_price_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.gas_price)
+}
+#endif
+inline void GrpcTransaction::set_gas_price(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  gas_price_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.gas_price)
+}
+inline void GrpcTransaction::set_gas_price(const char* value, size_t size) {
+  
+  gas_price_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.gas_price)
+}
+inline ::std::string* GrpcTransaction::mutable_gas_price() {
+  
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.gas_price)
+  return gas_price_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* GrpcTransaction::release_gas_price() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.gas_price)
+  
+  return gas_price_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void GrpcTransaction::set_allocated_gas_price(::std::string* gas_price) {
+  if (gas_price != NULL) {
+    
+  } else {
+    
+  }
+  gas_price_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), gas_price);
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.gas_price)
 }
 
-// uint64 gas = 5;
-inline void Transaction::clear_gas() {
-  gas_ = GOOGLE_ULONGLONG(0);
+// string gas = 5;
+inline void GrpcTransaction::clear_gas() {
+  gas_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::google::protobuf::uint64 Transaction::gas() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.gas)
-  return gas_;
+inline const ::std::string& GrpcTransaction::gas() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.gas)
+  return gas_.GetNoArena();
 }
-inline void Transaction::set_gas(::google::protobuf::uint64 value) {
+inline void GrpcTransaction::set_gas(const ::std::string& value) {
   
-  gas_ = value;
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.gas)
+  gas_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.gas)
+}
+#if LANG_CXX11
+inline void GrpcTransaction::set_gas(::std::string&& value) {
+  
+  gas_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.gas)
+}
+#endif
+inline void GrpcTransaction::set_gas(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  gas_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.gas)
+}
+inline void GrpcTransaction::set_gas(const char* value, size_t size) {
+  
+  gas_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.gas)
+}
+inline ::std::string* GrpcTransaction::mutable_gas() {
+  
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.gas)
+  return gas_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* GrpcTransaction::release_gas() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.gas)
+  
+  return gas_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void GrpcTransaction::set_allocated_gas(::std::string* gas) {
+  if (gas != NULL) {
+    
+  } else {
+    
+  }
+  gas_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), gas);
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.gas)
 }
 
 // string receiver = 6;
-inline void Transaction::clear_receiver() {
+inline void GrpcTransaction::clear_receiver() {
   receiver_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline const ::std::string& Transaction::receiver() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.receiver)
+inline const ::std::string& GrpcTransaction::receiver() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.receiver)
   return receiver_.GetNoArena();
 }
-inline void Transaction::set_receiver(const ::std::string& value) {
+inline void GrpcTransaction::set_receiver(const ::std::string& value) {
   
   receiver_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.receiver)
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.receiver)
 }
 #if LANG_CXX11
-inline void Transaction::set_receiver(::std::string&& value) {
+inline void GrpcTransaction::set_receiver(::std::string&& value) {
   
   receiver_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.Transaction.receiver)
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.receiver)
 }
 #endif
-inline void Transaction::set_receiver(const char* value) {
+inline void GrpcTransaction::set_receiver(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   receiver_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:taraxa_ledger.Transaction.receiver)
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.receiver)
 }
-inline void Transaction::set_receiver(const char* value, size_t size) {
+inline void GrpcTransaction::set_receiver(const char* value, size_t size) {
   
   receiver_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.Transaction.receiver)
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.receiver)
 }
-inline ::std::string* Transaction::mutable_receiver() {
+inline ::std::string* GrpcTransaction::mutable_receiver() {
   
-  // @@protoc_insertion_point(field_mutable:taraxa_ledger.Transaction.receiver)
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.receiver)
   return receiver_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::std::string* Transaction::release_receiver() {
-  // @@protoc_insertion_point(field_release:taraxa_ledger.Transaction.receiver)
+inline ::std::string* GrpcTransaction::release_receiver() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.receiver)
   
   return receiver_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline void Transaction::set_allocated_receiver(::std::string* receiver) {
+inline void GrpcTransaction::set_allocated_receiver(::std::string* receiver) {
   if (receiver != NULL) {
     
   } else {
     
   }
   receiver_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), receiver);
-  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.Transaction.receiver)
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.receiver)
 }
 
 // string signature = 7;
-inline void Transaction::clear_signature() {
+inline void GrpcTransaction::clear_signature() {
   signature_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline const ::std::string& Transaction::signature() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.signature)
+inline const ::std::string& GrpcTransaction::signature() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.signature)
   return signature_.GetNoArena();
 }
-inline void Transaction::set_signature(const ::std::string& value) {
+inline void GrpcTransaction::set_signature(const ::std::string& value) {
   
   signature_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.signature)
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.signature)
 }
 #if LANG_CXX11
-inline void Transaction::set_signature(::std::string&& value) {
+inline void GrpcTransaction::set_signature(::std::string&& value) {
   
   signature_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.Transaction.signature)
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.signature)
 }
 #endif
-inline void Transaction::set_signature(const char* value) {
+inline void GrpcTransaction::set_signature(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   signature_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:taraxa_ledger.Transaction.signature)
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.signature)
 }
-inline void Transaction::set_signature(const char* value, size_t size) {
+inline void GrpcTransaction::set_signature(const char* value, size_t size) {
   
   signature_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.Transaction.signature)
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.signature)
 }
-inline ::std::string* Transaction::mutable_signature() {
+inline ::std::string* GrpcTransaction::mutable_signature() {
   
-  // @@protoc_insertion_point(field_mutable:taraxa_ledger.Transaction.signature)
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.signature)
   return signature_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::std::string* Transaction::release_signature() {
-  // @@protoc_insertion_point(field_release:taraxa_ledger.Transaction.signature)
+inline ::std::string* GrpcTransaction::release_signature() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.signature)
   
   return signature_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline void Transaction::set_allocated_signature(::std::string* signature) {
+inline void GrpcTransaction::set_allocated_signature(::std::string* signature) {
   if (signature != NULL) {
     
   } else {
     
   }
   signature_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), signature);
-  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.Transaction.signature)
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.signature)
 }
 
 // bytes data = 8;
-inline void Transaction::clear_data() {
+inline void GrpcTransaction::clear_data() {
   data_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline const ::std::string& Transaction::data() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.Transaction.data)
+inline const ::std::string& GrpcTransaction::data() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.GrpcTransaction.data)
   return data_.GetNoArena();
 }
-inline void Transaction::set_data(const ::std::string& value) {
+inline void GrpcTransaction::set_data(const ::std::string& value) {
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:taraxa_ledger.Transaction.data)
+  // @@protoc_insertion_point(field_set:taraxa_ledger.GrpcTransaction.data)
 }
 #if LANG_CXX11
-inline void Transaction::set_data(::std::string&& value) {
+inline void GrpcTransaction::set_data(::std::string&& value) {
   
   data_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.Transaction.data)
+  // @@protoc_insertion_point(field_set_rvalue:taraxa_ledger.GrpcTransaction.data)
 }
 #endif
-inline void Transaction::set_data(const char* value) {
+inline void GrpcTransaction::set_data(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:taraxa_ledger.Transaction.data)
+  // @@protoc_insertion_point(field_set_char:taraxa_ledger.GrpcTransaction.data)
 }
-inline void Transaction::set_data(const void* value, size_t size) {
+inline void GrpcTransaction::set_data(const void* value, size_t size) {
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.Transaction.data)
+  // @@protoc_insertion_point(field_set_pointer:taraxa_ledger.GrpcTransaction.data)
 }
-inline ::std::string* Transaction::mutable_data() {
+inline ::std::string* GrpcTransaction::mutable_data() {
   
-  // @@protoc_insertion_point(field_mutable:taraxa_ledger.Transaction.data)
+  // @@protoc_insertion_point(field_mutable:taraxa_ledger.GrpcTransaction.data)
   return data_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::std::string* Transaction::release_data() {
-  // @@protoc_insertion_point(field_release:taraxa_ledger.Transaction.data)
+inline ::std::string* GrpcTransaction::release_data() {
+  // @@protoc_insertion_point(field_release:taraxa_ledger.GrpcTransaction.data)
   
   return data_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline void Transaction::set_allocated_data(::std::string* data) {
+inline void GrpcTransaction::set_allocated_data(::std::string* data) {
   if (data != NULL) {
     
   } else {
     
   }
   data_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), data);
-  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.Transaction.data)
+  // @@protoc_insertion_point(field_set_allocated:taraxa_ledger.GrpcTransaction.data)
 }
 
 // -------------------------------------------------------------------
 
-// SendTransactionResponse
+// SendGrpcTransactionResponse
 
 // bool success = 1;
-inline void SendTransactionResponse::clear_success() {
+inline void SendGrpcTransactionResponse::clear_success() {
   success_ = false;
 }
-inline bool SendTransactionResponse::success() const {
-  // @@protoc_insertion_point(field_get:taraxa_ledger.SendTransactionResponse.success)
+inline bool SendGrpcTransactionResponse::success() const {
+  // @@protoc_insertion_point(field_get:taraxa_ledger.SendGrpcTransactionResponse.success)
   return success_;
 }
-inline void SendTransactionResponse::set_success(bool value) {
+inline void SendGrpcTransactionResponse::set_success(bool value) {
   
   success_ = value;
-  // @@protoc_insertion_point(field_set:taraxa_ledger.SendTransactionResponse.success)
+  // @@protoc_insertion_point(field_set:taraxa_ledger.SendGrpcTransactionResponse.success)
 }
 
 #ifdef __GNUC__

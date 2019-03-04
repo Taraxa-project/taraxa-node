@@ -20,82 +20,82 @@
 // @@protoc_insertion_point(includes)
 
 namespace taraxa_ledger {
-class TransactionDefaultTypeInternal {
+class GrpcTransactionDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<Transaction>
+  ::google::protobuf::internal::ExplicitlyConstructed<GrpcTransaction>
       _instance;
-} _Transaction_default_instance_;
-class SendTransactionResponseDefaultTypeInternal {
+} _GrpcTransaction_default_instance_;
+class SendGrpcTransactionResponseDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<SendTransactionResponse>
+  ::google::protobuf::internal::ExplicitlyConstructed<SendGrpcTransactionResponse>
       _instance;
-} _SendTransactionResponse_default_instance_;
+} _SendGrpcTransactionResponse_default_instance_;
 }  // namespace taraxa_ledger
 namespace protobuf_proto_2ftransaction_2eproto {
-static void InitDefaultsTransaction() {
+static void InitDefaultsGrpcTransaction() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::taraxa_ledger::_Transaction_default_instance_;
-    new (ptr) ::taraxa_ledger::Transaction();
+    void* ptr = &::taraxa_ledger::_GrpcTransaction_default_instance_;
+    new (ptr) ::taraxa_ledger::GrpcTransaction();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::taraxa_ledger::Transaction::InitAsDefaultInstance();
+  ::taraxa_ledger::GrpcTransaction::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_Transaction =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsTransaction}, {}};
+::google::protobuf::internal::SCCInfo<0> scc_info_GrpcTransaction =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsGrpcTransaction}, {}};
 
-static void InitDefaultsSendTransactionResponse() {
+static void InitDefaultsSendGrpcTransactionResponse() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::taraxa_ledger::_SendTransactionResponse_default_instance_;
-    new (ptr) ::taraxa_ledger::SendTransactionResponse();
+    void* ptr = &::taraxa_ledger::_SendGrpcTransactionResponse_default_instance_;
+    new (ptr) ::taraxa_ledger::SendGrpcTransactionResponse();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::taraxa_ledger::SendTransactionResponse::InitAsDefaultInstance();
+  ::taraxa_ledger::SendGrpcTransactionResponse::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_SendTransactionResponse =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsSendTransactionResponse}, {}};
+::google::protobuf::internal::SCCInfo<0> scc_info_SendGrpcTransactionResponse =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsSendGrpcTransactionResponse}, {}};
 
 void InitDefaults() {
-  ::google::protobuf::internal::InitSCC(&scc_info_Transaction.base);
-  ::google::protobuf::internal::InitSCC(&scc_info_SendTransactionResponse.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_GrpcTransaction.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_SendGrpcTransactionResponse.base);
 }
 
 ::google::protobuf::Metadata file_level_metadata[2];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, type_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, nounce_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, value_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, gas_price_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, gas_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, receiver_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, signature_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::Transaction, data_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, type_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, nonce_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, value_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, gas_price_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, gas_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, receiver_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, signature_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::GrpcTransaction, data_),
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::SendTransactionResponse, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::SendGrpcTransactionResponse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::SendTransactionResponse, success_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_ledger::SendGrpcTransactionResponse, success_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::taraxa_ledger::Transaction)},
-  { 13, -1, sizeof(::taraxa_ledger::SendTransactionResponse)},
+  { 0, -1, sizeof(::taraxa_ledger::GrpcTransaction)},
+  { 13, -1, sizeof(::taraxa_ledger::SendGrpcTransactionResponse)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::google::protobuf::Message*>(&::taraxa_ledger::_Transaction_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::taraxa_ledger::_SendTransactionResponse_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::taraxa_ledger::_GrpcTransaction_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::taraxa_ledger::_SendGrpcTransactionResponse_default_instance_),
 };
 
 void protobuf_AssignDescriptors() {
@@ -120,20 +120,21 @@ void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\027proto/transaction.proto\022\rtaraxa_ledger"
-      "\032\033google/protobuf/empty.proto\"\215\001\n\013Transa"
-      "ction\022\014\n\004type\030\001 \001(\r\022\016\n\006nounce\030\002 \001(\004\022\r\n\005v"
-      "alue\030\003 \001(\004\022\021\n\tgas_price\030\004 \001(\004\022\013\n\003gas\030\005 \001"
-      "(\004\022\020\n\010receiver\030\006 \001(\t\022\021\n\tsignature\030\007 \001(\t\022"
-      "\014\n\004data\030\010 \001(\014\"*\n\027SendTransactionResponse"
-      "\022\017\n\007success\030\001 \001(\0102\266\001\n\023TaraxaLedgerServic"
-      "e\022W\n\017SendTransaction\022\032.taraxa_ledger.Tra"
-      "nsaction\032&.taraxa_ledger.SendTransaction"
-      "Response\"\000\022F\n\016GetTransaction\022\026.google.pr"
-      "otobuf.Empty\032\032.taraxa_ledger.Transaction"
-      "\"\000b\006proto3"
+      "\032\033google/protobuf/empty.proto\"\220\001\n\017GrpcTr"
+      "ansaction\022\014\n\004type\030\001 \001(\r\022\r\n\005nonce\030\002 \001(\t\022\r"
+      "\n\005value\030\003 \001(\t\022\021\n\tgas_price\030\004 \001(\t\022\013\n\003gas\030"
+      "\005 \001(\t\022\020\n\010receiver\030\006 \001(\t\022\021\n\tsignature\030\007 \001"
+      "(\t\022\014\n\004data\030\010 \001(\014\".\n\033SendGrpcTransactionR"
+      "esponse\022\017\n\007success\030\001 \001(\0102\316\001\n\027TaraxaLedge"
+      "rGrpcService\022c\n\023SendGrpcTransaction\022\036.ta"
+      "raxa_ledger.GrpcTransaction\032*.taraxa_led"
+      "ger.SendGrpcTransactionResponse\"\000\022N\n\022Get"
+      "GrpcTransaction\022\026.google.protobuf.Empty\032"
+      "\036.taraxa_ledger.GrpcTransaction\"\000b\006proto"
+      "3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 450);
+      descriptor, 481);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "proto/transaction.proto", &protobuf_RegisterTypes);
   ::protobuf_google_2fprotobuf_2fempty_2eproto::AddDescriptors();
@@ -154,30 +155,46 @@ namespace taraxa_ledger {
 
 // ===================================================================
 
-void Transaction::InitAsDefaultInstance() {
+void GrpcTransaction::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int Transaction::kTypeFieldNumber;
-const int Transaction::kNounceFieldNumber;
-const int Transaction::kValueFieldNumber;
-const int Transaction::kGasPriceFieldNumber;
-const int Transaction::kGasFieldNumber;
-const int Transaction::kReceiverFieldNumber;
-const int Transaction::kSignatureFieldNumber;
-const int Transaction::kDataFieldNumber;
+const int GrpcTransaction::kTypeFieldNumber;
+const int GrpcTransaction::kNonceFieldNumber;
+const int GrpcTransaction::kValueFieldNumber;
+const int GrpcTransaction::kGasPriceFieldNumber;
+const int GrpcTransaction::kGasFieldNumber;
+const int GrpcTransaction::kReceiverFieldNumber;
+const int GrpcTransaction::kSignatureFieldNumber;
+const int GrpcTransaction::kDataFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-Transaction::Transaction()
+GrpcTransaction::GrpcTransaction()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
   ::google::protobuf::internal::InitSCC(
-      &protobuf_proto_2ftransaction_2eproto::scc_info_Transaction.base);
+      &protobuf_proto_2ftransaction_2eproto::scc_info_GrpcTransaction.base);
   SharedCtor();
-  // @@protoc_insertion_point(constructor:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(constructor:taraxa_ledger.GrpcTransaction)
 }
-Transaction::Transaction(const Transaction& from)
+GrpcTransaction::GrpcTransaction(const GrpcTransaction& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  nonce_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.nonce().size() > 0) {
+    nonce_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.nonce_);
+  }
+  value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.value().size() > 0) {
+    value_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.value_);
+  }
+  gas_price_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.gas_price().size() > 0) {
+    gas_price_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.gas_price_);
+  }
+  gas_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.gas().size() > 0) {
+    gas_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.gas_);
+  }
   receiver_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.receiver().size() > 0) {
     receiver_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.receiver_);
@@ -190,66 +207,72 @@ Transaction::Transaction(const Transaction& from)
   if (from.data().size() > 0) {
     data_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.data_);
   }
-  ::memcpy(&nounce_, &from.nounce_,
-    static_cast<size_t>(reinterpret_cast<char*>(&type_) -
-    reinterpret_cast<char*>(&nounce_)) + sizeof(type_));
-  // @@protoc_insertion_point(copy_constructor:taraxa_ledger.Transaction)
+  type_ = from.type_;
+  // @@protoc_insertion_point(copy_constructor:taraxa_ledger.GrpcTransaction)
 }
 
-void Transaction::SharedCtor() {
+void GrpcTransaction::SharedCtor() {
+  nonce_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gas_price_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gas_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   receiver_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   signature_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   data_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&nounce_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&type_) -
-      reinterpret_cast<char*>(&nounce_)) + sizeof(type_));
+  type_ = 0u;
 }
 
-Transaction::~Transaction() {
-  // @@protoc_insertion_point(destructor:taraxa_ledger.Transaction)
+GrpcTransaction::~GrpcTransaction() {
+  // @@protoc_insertion_point(destructor:taraxa_ledger.GrpcTransaction)
   SharedDtor();
 }
 
-void Transaction::SharedDtor() {
+void GrpcTransaction::SharedDtor() {
+  nonce_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gas_price_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gas_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   receiver_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   signature_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   data_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
-void Transaction::SetCachedSize(int size) const {
+void GrpcTransaction::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* Transaction::descriptor() {
+const ::google::protobuf::Descriptor* GrpcTransaction::descriptor() {
   ::protobuf_proto_2ftransaction_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_proto_2ftransaction_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
-const Transaction& Transaction::default_instance() {
-  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftransaction_2eproto::scc_info_Transaction.base);
+const GrpcTransaction& GrpcTransaction::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftransaction_2eproto::scc_info_GrpcTransaction.base);
   return *internal_default_instance();
 }
 
 
-void Transaction::Clear() {
-// @@protoc_insertion_point(message_clear_start:taraxa_ledger.Transaction)
+void GrpcTransaction::Clear() {
+// @@protoc_insertion_point(message_clear_start:taraxa_ledger.GrpcTransaction)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  nonce_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  value_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gas_price_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gas_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   receiver_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   signature_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   data_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&nounce_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&type_) -
-      reinterpret_cast<char*>(&nounce_)) + sizeof(type_));
+  type_ = 0u;
   _internal_metadata_.Clear();
 }
 
-bool Transaction::MergePartialFromCodedStream(
+bool GrpcTransaction::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(parse_start:taraxa_ledger.GrpcTransaction)
   for (;;) {
     ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -269,56 +292,64 @@ bool Transaction::MergePartialFromCodedStream(
         break;
       }
 
-      // uint64 nounce = 2;
+      // string nonce = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &nounce_)));
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_nonce()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->nonce().data(), static_cast<int>(this->nonce().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "taraxa_ledger.GrpcTransaction.nonce"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // uint64 value = 3;
+      // string value = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &value_)));
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_value()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->value().data(), static_cast<int>(this->value().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "taraxa_ledger.GrpcTransaction.value"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // uint64 gas_price = 4;
+      // string gas_price = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &gas_price_)));
+            static_cast< ::google::protobuf::uint8>(34u /* 34 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_gas_price()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->gas_price().data(), static_cast<int>(this->gas_price().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "taraxa_ledger.GrpcTransaction.gas_price"));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // uint64 gas = 5;
+      // string gas = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(40u /* 40 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &gas_)));
+            static_cast< ::google::protobuf::uint8>(42u /* 42 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_gas()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->gas().data(), static_cast<int>(this->gas().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "taraxa_ledger.GrpcTransaction.gas"));
         } else {
           goto handle_unusual;
         }
@@ -334,7 +365,7 @@ bool Transaction::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
             this->receiver().data(), static_cast<int>(this->receiver().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
-            "taraxa_ledger.Transaction.receiver"));
+            "taraxa_ledger.GrpcTransaction.receiver"));
         } else {
           goto handle_unusual;
         }
@@ -350,7 +381,7 @@ bool Transaction::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
             this->signature().data(), static_cast<int>(this->signature().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
-            "taraxa_ledger.Transaction.signature"));
+            "taraxa_ledger.GrpcTransaction.signature"));
         } else {
           goto handle_unusual;
         }
@@ -381,17 +412,17 @@ bool Transaction::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(parse_success:taraxa_ledger.GrpcTransaction)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(parse_failure:taraxa_ledger.GrpcTransaction)
   return false;
 #undef DO_
 }
 
-void Transaction::SerializeWithCachedSizes(
+void GrpcTransaction::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(serialize_start:taraxa_ledger.GrpcTransaction)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -400,24 +431,44 @@ void Transaction::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->type(), output);
   }
 
-  // uint64 nounce = 2;
-  if (this->nounce() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->nounce(), output);
+  // string nonce = 2;
+  if (this->nonce().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->nonce().data(), static_cast<int>(this->nonce().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.nonce");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->nonce(), output);
   }
 
-  // uint64 value = 3;
-  if (this->value() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->value(), output);
+  // string value = 3;
+  if (this->value().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->value().data(), static_cast<int>(this->value().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.value");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->value(), output);
   }
 
-  // uint64 gas_price = 4;
-  if (this->gas_price() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->gas_price(), output);
+  // string gas_price = 4;
+  if (this->gas_price().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->gas_price().data(), static_cast<int>(this->gas_price().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.gas_price");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      4, this->gas_price(), output);
   }
 
-  // uint64 gas = 5;
-  if (this->gas() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(5, this->gas(), output);
+  // string gas = 5;
+  if (this->gas().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->gas().data(), static_cast<int>(this->gas().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.gas");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      5, this->gas(), output);
   }
 
   // string receiver = 6;
@@ -425,7 +476,7 @@ void Transaction::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
       this->receiver().data(), static_cast<int>(this->receiver().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "taraxa_ledger.Transaction.receiver");
+      "taraxa_ledger.GrpcTransaction.receiver");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       6, this->receiver(), output);
   }
@@ -435,7 +486,7 @@ void Transaction::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
       this->signature().data(), static_cast<int>(this->signature().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "taraxa_ledger.Transaction.signature");
+      "taraxa_ledger.GrpcTransaction.signature");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       7, this->signature(), output);
   }
@@ -450,13 +501,13 @@ void Transaction::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(serialize_end:taraxa_ledger.GrpcTransaction)
 }
 
-::google::protobuf::uint8* Transaction::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* GrpcTransaction::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(serialize_to_array_start:taraxa_ledger.GrpcTransaction)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -465,24 +516,48 @@ void Transaction::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->type(), target);
   }
 
-  // uint64 nounce = 2;
-  if (this->nounce() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->nounce(), target);
+  // string nonce = 2;
+  if (this->nonce().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->nonce().data(), static_cast<int>(this->nonce().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.nonce");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->nonce(), target);
   }
 
-  // uint64 value = 3;
-  if (this->value() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->value(), target);
+  // string value = 3;
+  if (this->value().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->value().data(), static_cast<int>(this->value().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.value");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->value(), target);
   }
 
-  // uint64 gas_price = 4;
-  if (this->gas_price() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->gas_price(), target);
+  // string gas_price = 4;
+  if (this->gas_price().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->gas_price().data(), static_cast<int>(this->gas_price().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.gas_price");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->gas_price(), target);
   }
 
-  // uint64 gas = 5;
-  if (this->gas() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(5, this->gas(), target);
+  // string gas = 5;
+  if (this->gas().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->gas().data(), static_cast<int>(this->gas().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "taraxa_ledger.GrpcTransaction.gas");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        5, this->gas(), target);
   }
 
   // string receiver = 6;
@@ -490,7 +565,7 @@ void Transaction::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
       this->receiver().data(), static_cast<int>(this->receiver().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "taraxa_ledger.Transaction.receiver");
+      "taraxa_ledger.GrpcTransaction.receiver");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         6, this->receiver(), target);
@@ -501,7 +576,7 @@ void Transaction::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
       this->signature().data(), static_cast<int>(this->signature().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "taraxa_ledger.Transaction.signature");
+      "taraxa_ledger.GrpcTransaction.signature");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         7, this->signature(), target);
@@ -518,12 +593,12 @@ void Transaction::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(serialize_to_array_end:taraxa_ledger.GrpcTransaction)
   return target;
 }
 
-size_t Transaction::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:taraxa_ledger.Transaction)
+size_t GrpcTransaction::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:taraxa_ledger.GrpcTransaction)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -531,6 +606,34 @@ size_t Transaction::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
+  // string nonce = 2;
+  if (this->nonce().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->nonce());
+  }
+
+  // string value = 3;
+  if (this->value().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->value());
+  }
+
+  // string gas_price = 4;
+  if (this->gas_price().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->gas_price());
+  }
+
+  // string gas = 5;
+  if (this->gas().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->gas());
+  }
+
   // string receiver = 6;
   if (this->receiver().size() > 0) {
     total_size += 1 +
@@ -552,34 +655,6 @@ size_t Transaction::ByteSizeLong() const {
         this->data());
   }
 
-  // uint64 nounce = 2;
-  if (this->nounce() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->nounce());
-  }
-
-  // uint64 value = 3;
-  if (this->value() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->value());
-  }
-
-  // uint64 gas_price = 4;
-  if (this->gas_price() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->gas_price());
-  }
-
-  // uint64 gas = 5;
-  if (this->gas() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt64Size(
-        this->gas());
-  }
-
   // uint32 type = 1;
   if (this->type() != 0) {
     total_size += 1 +
@@ -592,28 +667,44 @@ size_t Transaction::ByteSizeLong() const {
   return total_size;
 }
 
-void Transaction::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:taraxa_ledger.Transaction)
+void GrpcTransaction::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:taraxa_ledger.GrpcTransaction)
   GOOGLE_DCHECK_NE(&from, this);
-  const Transaction* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const Transaction>(
+  const GrpcTransaction* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const GrpcTransaction>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_ledger.GrpcTransaction)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:taraxa_ledger.Transaction)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:taraxa_ledger.GrpcTransaction)
     MergeFrom(*source);
   }
 }
 
-void Transaction::MergeFrom(const Transaction& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:taraxa_ledger.Transaction)
+void GrpcTransaction::MergeFrom(const GrpcTransaction& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:taraxa_ledger.GrpcTransaction)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (from.nonce().size() > 0) {
+
+    nonce_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.nonce_);
+  }
+  if (from.value().size() > 0) {
+
+    value_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.value_);
+  }
+  if (from.gas_price().size() > 0) {
+
+    gas_price_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.gas_price_);
+  }
+  if (from.gas().size() > 0) {
+
+    gas_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.gas_);
+  }
   if (from.receiver().size() > 0) {
 
     receiver_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.receiver_);
@@ -626,62 +717,54 @@ void Transaction::MergeFrom(const Transaction& from) {
 
     data_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.data_);
   }
-  if (from.nounce() != 0) {
-    set_nounce(from.nounce());
-  }
-  if (from.value() != 0) {
-    set_value(from.value());
-  }
-  if (from.gas_price() != 0) {
-    set_gas_price(from.gas_price());
-  }
-  if (from.gas() != 0) {
-    set_gas(from.gas());
-  }
   if (from.type() != 0) {
     set_type(from.type());
   }
 }
 
-void Transaction::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:taraxa_ledger.Transaction)
+void GrpcTransaction::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:taraxa_ledger.GrpcTransaction)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void Transaction::CopyFrom(const Transaction& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:taraxa_ledger.Transaction)
+void GrpcTransaction::CopyFrom(const GrpcTransaction& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:taraxa_ledger.GrpcTransaction)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool Transaction::IsInitialized() const {
+bool GrpcTransaction::IsInitialized() const {
   return true;
 }
 
-void Transaction::Swap(Transaction* other) {
+void GrpcTransaction::Swap(GrpcTransaction* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void Transaction::InternalSwap(Transaction* other) {
+void GrpcTransaction::InternalSwap(GrpcTransaction* other) {
   using std::swap;
+  nonce_.Swap(&other->nonce_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  value_.Swap(&other->value_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  gas_price_.Swap(&other->gas_price_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  gas_.Swap(&other->gas_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
   receiver_.Swap(&other->receiver_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   signature_.Swap(&other->signature_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   data_.Swap(&other->data_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
-  swap(nounce_, other->nounce_);
-  swap(value_, other->value_);
-  swap(gas_price_, other->gas_price_);
-  swap(gas_, other->gas_);
   swap(type_, other->type_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
-::google::protobuf::Metadata Transaction::GetMetadata() const {
+::google::protobuf::Metadata GrpcTransaction::GetMetadata() const {
   protobuf_proto_2ftransaction_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_proto_2ftransaction_2eproto::file_level_metadata[kIndexInFileMessages];
 }
@@ -689,55 +772,55 @@ void Transaction::InternalSwap(Transaction* other) {
 
 // ===================================================================
 
-void SendTransactionResponse::InitAsDefaultInstance() {
+void SendGrpcTransactionResponse::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int SendTransactionResponse::kSuccessFieldNumber;
+const int SendGrpcTransactionResponse::kSuccessFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
-SendTransactionResponse::SendTransactionResponse()
+SendGrpcTransactionResponse::SendGrpcTransactionResponse()
   : ::google::protobuf::Message(), _internal_metadata_(NULL) {
   ::google::protobuf::internal::InitSCC(
-      &protobuf_proto_2ftransaction_2eproto::scc_info_SendTransactionResponse.base);
+      &protobuf_proto_2ftransaction_2eproto::scc_info_SendGrpcTransactionResponse.base);
   SharedCtor();
-  // @@protoc_insertion_point(constructor:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(constructor:taraxa_ledger.SendGrpcTransactionResponse)
 }
-SendTransactionResponse::SendTransactionResponse(const SendTransactionResponse& from)
+SendGrpcTransactionResponse::SendGrpcTransactionResponse(const SendGrpcTransactionResponse& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   success_ = from.success_;
-  // @@protoc_insertion_point(copy_constructor:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(copy_constructor:taraxa_ledger.SendGrpcTransactionResponse)
 }
 
-void SendTransactionResponse::SharedCtor() {
+void SendGrpcTransactionResponse::SharedCtor() {
   success_ = false;
 }
 
-SendTransactionResponse::~SendTransactionResponse() {
-  // @@protoc_insertion_point(destructor:taraxa_ledger.SendTransactionResponse)
+SendGrpcTransactionResponse::~SendGrpcTransactionResponse() {
+  // @@protoc_insertion_point(destructor:taraxa_ledger.SendGrpcTransactionResponse)
   SharedDtor();
 }
 
-void SendTransactionResponse::SharedDtor() {
+void SendGrpcTransactionResponse::SharedDtor() {
 }
 
-void SendTransactionResponse::SetCachedSize(int size) const {
+void SendGrpcTransactionResponse::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* SendTransactionResponse::descriptor() {
+const ::google::protobuf::Descriptor* SendGrpcTransactionResponse::descriptor() {
   ::protobuf_proto_2ftransaction_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_proto_2ftransaction_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
-const SendTransactionResponse& SendTransactionResponse::default_instance() {
-  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftransaction_2eproto::scc_info_SendTransactionResponse.base);
+const SendGrpcTransactionResponse& SendGrpcTransactionResponse::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftransaction_2eproto::scc_info_SendGrpcTransactionResponse.base);
   return *internal_default_instance();
 }
 
 
-void SendTransactionResponse::Clear() {
-// @@protoc_insertion_point(message_clear_start:taraxa_ledger.SendTransactionResponse)
+void SendGrpcTransactionResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:taraxa_ledger.SendGrpcTransactionResponse)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -746,11 +829,11 @@ void SendTransactionResponse::Clear() {
   _internal_metadata_.Clear();
 }
 
-bool SendTransactionResponse::MergePartialFromCodedStream(
+bool SendGrpcTransactionResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(parse_start:taraxa_ledger.SendGrpcTransactionResponse)
   for (;;) {
     ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -782,17 +865,17 @@ bool SendTransactionResponse::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(parse_success:taraxa_ledger.SendGrpcTransactionResponse)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(parse_failure:taraxa_ledger.SendGrpcTransactionResponse)
   return false;
 #undef DO_
 }
 
-void SendTransactionResponse::SerializeWithCachedSizes(
+void SendGrpcTransactionResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(serialize_start:taraxa_ledger.SendGrpcTransactionResponse)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -805,13 +888,13 @@ void SendTransactionResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(serialize_end:taraxa_ledger.SendGrpcTransactionResponse)
 }
 
-::google::protobuf::uint8* SendTransactionResponse::InternalSerializeWithCachedSizesToArray(
+::google::protobuf::uint8* SendGrpcTransactionResponse::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(serialize_to_array_start:taraxa_ledger.SendGrpcTransactionResponse)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -824,12 +907,12 @@ void SendTransactionResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(serialize_to_array_end:taraxa_ledger.SendGrpcTransactionResponse)
   return target;
 }
 
-size_t SendTransactionResponse::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:taraxa_ledger.SendTransactionResponse)
+size_t SendGrpcTransactionResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:taraxa_ledger.SendGrpcTransactionResponse)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -847,23 +930,23 @@ size_t SendTransactionResponse::ByteSizeLong() const {
   return total_size;
 }
 
-void SendTransactionResponse::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:taraxa_ledger.SendTransactionResponse)
+void SendGrpcTransactionResponse::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:taraxa_ledger.SendGrpcTransactionResponse)
   GOOGLE_DCHECK_NE(&from, this);
-  const SendTransactionResponse* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const SendTransactionResponse>(
+  const SendGrpcTransactionResponse* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const SendGrpcTransactionResponse>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_ledger.SendGrpcTransactionResponse)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:taraxa_ledger.SendTransactionResponse)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:taraxa_ledger.SendGrpcTransactionResponse)
     MergeFrom(*source);
   }
 }
 
-void SendTransactionResponse::MergeFrom(const SendTransactionResponse& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:taraxa_ledger.SendTransactionResponse)
+void SendGrpcTransactionResponse::MergeFrom(const SendGrpcTransactionResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:taraxa_ledger.SendGrpcTransactionResponse)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -874,35 +957,35 @@ void SendTransactionResponse::MergeFrom(const SendTransactionResponse& from) {
   }
 }
 
-void SendTransactionResponse::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:taraxa_ledger.SendTransactionResponse)
+void SendGrpcTransactionResponse::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:taraxa_ledger.SendGrpcTransactionResponse)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void SendTransactionResponse::CopyFrom(const SendTransactionResponse& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:taraxa_ledger.SendTransactionResponse)
+void SendGrpcTransactionResponse::CopyFrom(const SendGrpcTransactionResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:taraxa_ledger.SendGrpcTransactionResponse)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool SendTransactionResponse::IsInitialized() const {
+bool SendGrpcTransactionResponse::IsInitialized() const {
   return true;
 }
 
-void SendTransactionResponse::Swap(SendTransactionResponse* other) {
+void SendGrpcTransactionResponse::Swap(SendGrpcTransactionResponse* other) {
   if (other == this) return;
   InternalSwap(other);
 }
-void SendTransactionResponse::InternalSwap(SendTransactionResponse* other) {
+void SendGrpcTransactionResponse::InternalSwap(SendGrpcTransactionResponse* other) {
   using std::swap;
   swap(success_, other->success_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
-::google::protobuf::Metadata SendTransactionResponse::GetMetadata() const {
+::google::protobuf::Metadata SendGrpcTransactionResponse::GetMetadata() const {
   protobuf_proto_2ftransaction_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_proto_2ftransaction_2eproto::file_level_metadata[kIndexInFileMessages];
 }
@@ -912,11 +995,11 @@ void SendTransactionResponse::InternalSwap(SendTransactionResponse* other) {
 }  // namespace taraxa_ledger
 namespace google {
 namespace protobuf {
-template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_ledger::Transaction* Arena::CreateMaybeMessage< ::taraxa_ledger::Transaction >(Arena* arena) {
-  return Arena::CreateInternal< ::taraxa_ledger::Transaction >(arena);
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_ledger::GrpcTransaction* Arena::CreateMaybeMessage< ::taraxa_ledger::GrpcTransaction >(Arena* arena) {
+  return Arena::CreateInternal< ::taraxa_ledger::GrpcTransaction >(arena);
 }
-template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_ledger::SendTransactionResponse* Arena::CreateMaybeMessage< ::taraxa_ledger::SendTransactionResponse >(Arena* arena) {
-  return Arena::CreateInternal< ::taraxa_ledger::SendTransactionResponse >(arena);
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_ledger::SendGrpcTransactionResponse* Arena::CreateMaybeMessage< ::taraxa_ledger::SendGrpcTransactionResponse >(Arena* arena) {
+  return Arena::CreateInternal< ::taraxa_ledger::SendGrpcTransactionResponse >(arena);
 }
 }  // namespace protobuf
 }  // namespace google

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-27 18:22:05 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-27 18:48:49
+ * @Last Modified time: 2019-02-28 15:18:29
  */
  
 
@@ -13,21 +13,21 @@ package taraxa_ledger;
 
 import "google/protobuf/empty.proto";
 
-message Transaction {
+message GrpcTransaction {
 	uint32 type = 1;
-	uint64 nounce = 2;
-	uint64 value = 3;
-	uint64 gas_price = 4;
-	uint64 gas = 5;
+	string nonce = 2;
+	string value = 3;
+	string gas_price = 4;
+	string gas = 5;
 	string receiver = 6; 
 	string signature = 7;
 	bytes  data = 8;
 }
-message SendTransactionResponse {
+message SendGrpcTransactionResponse {
 	bool success = 1;
 }
 
-service TaraxaLedgerService{
-	rpc SendTransaction(Transaction) returns (SendTransactionResponse) {}
-	rpc GetTransaction(google.protobuf.Empty) returns (Transaction) {}
+service TaraxaLedgerGrpcService{
+	rpc SendGrpcTransaction(GrpcTransaction) returns (SendGrpcTransactionResponse) {}
+	rpc GetGrpcTransaction(google.protobuf.Empty) returns (GrpcTransaction) {}
 }

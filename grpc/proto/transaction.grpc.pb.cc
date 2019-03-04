@@ -18,78 +18,78 @@
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace taraxa_ledger {
 
-static const char* TaraxaLedgerService_method_names[] = {
-  "/taraxa_ledger.TaraxaLedgerService/SendTransaction",
-  "/taraxa_ledger.TaraxaLedgerService/GetTransaction",
+static const char* TaraxaLedgerGrpcService_method_names[] = {
+  "/taraxa_ledger.TaraxaLedgerGrpcService/SendGrpcTransaction",
+  "/taraxa_ledger.TaraxaLedgerGrpcService/GetGrpcTransaction",
 };
 
-std::unique_ptr< TaraxaLedgerService::Stub> TaraxaLedgerService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+std::unique_ptr< TaraxaLedgerGrpcService::Stub> TaraxaLedgerGrpcService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
   (void)options;
-  std::unique_ptr< TaraxaLedgerService::Stub> stub(new TaraxaLedgerService::Stub(channel));
+  std::unique_ptr< TaraxaLedgerGrpcService::Stub> stub(new TaraxaLedgerGrpcService::Stub(channel));
   return stub;
 }
 
-TaraxaLedgerService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
-  : channel_(channel), rpcmethod_SendTransaction_(TaraxaLedgerService_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetTransaction_(TaraxaLedgerService_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+TaraxaLedgerGrpcService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
+  : channel_(channel), rpcmethod_SendGrpcTransaction_(TaraxaLedgerGrpcService_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetGrpcTransaction_(TaraxaLedgerGrpcService_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
-::grpc::Status TaraxaLedgerService::Stub::SendTransaction(::grpc::ClientContext* context, const ::taraxa_ledger::Transaction& request, ::taraxa_ledger::SendTransactionResponse* response) {
-  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_SendTransaction_, context, request, response);
+::grpc::Status TaraxaLedgerGrpcService::Stub::SendGrpcTransaction(::grpc::ClientContext* context, const ::taraxa_ledger::GrpcTransaction& request, ::taraxa_ledger::SendGrpcTransactionResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_SendGrpcTransaction_, context, request, response);
 }
 
-void TaraxaLedgerService::Stub::experimental_async::SendTransaction(::grpc::ClientContext* context, const ::taraxa_ledger::Transaction* request, ::taraxa_ledger::SendTransactionResponse* response, std::function<void(::grpc::Status)> f) {
-  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SendTransaction_, context, request, response, std::move(f));
+void TaraxaLedgerGrpcService::Stub::experimental_async::SendGrpcTransaction(::grpc::ClientContext* context, const ::taraxa_ledger::GrpcTransaction* request, ::taraxa_ledger::SendGrpcTransactionResponse* response, std::function<void(::grpc::Status)> f) {
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_SendGrpcTransaction_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::taraxa_ledger::SendTransactionResponse>* TaraxaLedgerService::Stub::AsyncSendTransactionRaw(::grpc::ClientContext* context, const ::taraxa_ledger::Transaction& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::SendTransactionResponse>::Create(channel_.get(), cq, rpcmethod_SendTransaction_, context, request, true);
+::grpc::ClientAsyncResponseReader< ::taraxa_ledger::SendGrpcTransactionResponse>* TaraxaLedgerGrpcService::Stub::AsyncSendGrpcTransactionRaw(::grpc::ClientContext* context, const ::taraxa_ledger::GrpcTransaction& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::SendGrpcTransactionResponse>::Create(channel_.get(), cq, rpcmethod_SendGrpcTransaction_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::taraxa_ledger::SendTransactionResponse>* TaraxaLedgerService::Stub::PrepareAsyncSendTransactionRaw(::grpc::ClientContext* context, const ::taraxa_ledger::Transaction& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::SendTransactionResponse>::Create(channel_.get(), cq, rpcmethod_SendTransaction_, context, request, false);
+::grpc::ClientAsyncResponseReader< ::taraxa_ledger::SendGrpcTransactionResponse>* TaraxaLedgerGrpcService::Stub::PrepareAsyncSendGrpcTransactionRaw(::grpc::ClientContext* context, const ::taraxa_ledger::GrpcTransaction& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::SendGrpcTransactionResponse>::Create(channel_.get(), cq, rpcmethod_SendGrpcTransaction_, context, request, false);
 }
 
-::grpc::Status TaraxaLedgerService::Stub::GetTransaction(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::taraxa_ledger::Transaction* response) {
-  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_GetTransaction_, context, request, response);
+::grpc::Status TaraxaLedgerGrpcService::Stub::GetGrpcTransaction(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::taraxa_ledger::GrpcTransaction* response) {
+  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_GetGrpcTransaction_, context, request, response);
 }
 
-void TaraxaLedgerService::Stub::experimental_async::GetTransaction(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::taraxa_ledger::Transaction* response, std::function<void(::grpc::Status)> f) {
-  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_GetTransaction_, context, request, response, std::move(f));
+void TaraxaLedgerGrpcService::Stub::experimental_async::GetGrpcTransaction(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::taraxa_ledger::GrpcTransaction* response, std::function<void(::grpc::Status)> f) {
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_GetGrpcTransaction_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncResponseReader< ::taraxa_ledger::Transaction>* TaraxaLedgerService::Stub::AsyncGetTransactionRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::Transaction>::Create(channel_.get(), cq, rpcmethod_GetTransaction_, context, request, true);
+::grpc::ClientAsyncResponseReader< ::taraxa_ledger::GrpcTransaction>* TaraxaLedgerGrpcService::Stub::AsyncGetGrpcTransactionRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::GrpcTransaction>::Create(channel_.get(), cq, rpcmethod_GetGrpcTransaction_, context, request, true);
 }
 
-::grpc::ClientAsyncResponseReader< ::taraxa_ledger::Transaction>* TaraxaLedgerService::Stub::PrepareAsyncGetTransactionRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::Transaction>::Create(channel_.get(), cq, rpcmethod_GetTransaction_, context, request, false);
+::grpc::ClientAsyncResponseReader< ::taraxa_ledger::GrpcTransaction>* TaraxaLedgerGrpcService::Stub::PrepareAsyncGetGrpcTransactionRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::taraxa_ledger::GrpcTransaction>::Create(channel_.get(), cq, rpcmethod_GetGrpcTransaction_, context, request, false);
 }
 
-TaraxaLedgerService::Service::Service() {
+TaraxaLedgerGrpcService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      TaraxaLedgerService_method_names[0],
+      TaraxaLedgerGrpcService_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< TaraxaLedgerService::Service, ::taraxa_ledger::Transaction, ::taraxa_ledger::SendTransactionResponse>(
-          std::mem_fn(&TaraxaLedgerService::Service::SendTransaction), this)));
+      new ::grpc::internal::RpcMethodHandler< TaraxaLedgerGrpcService::Service, ::taraxa_ledger::GrpcTransaction, ::taraxa_ledger::SendGrpcTransactionResponse>(
+          std::mem_fn(&TaraxaLedgerGrpcService::Service::SendGrpcTransaction), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      TaraxaLedgerService_method_names[1],
+      TaraxaLedgerGrpcService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< TaraxaLedgerService::Service, ::google::protobuf::Empty, ::taraxa_ledger::Transaction>(
-          std::mem_fn(&TaraxaLedgerService::Service::GetTransaction), this)));
+      new ::grpc::internal::RpcMethodHandler< TaraxaLedgerGrpcService::Service, ::google::protobuf::Empty, ::taraxa_ledger::GrpcTransaction>(
+          std::mem_fn(&TaraxaLedgerGrpcService::Service::GetGrpcTransaction), this)));
 }
 
-TaraxaLedgerService::Service::~Service() {
+TaraxaLedgerGrpcService::Service::~Service() {
 }
 
-::grpc::Status TaraxaLedgerService::Service::SendTransaction(::grpc::ServerContext* context, const ::taraxa_ledger::Transaction* request, ::taraxa_ledger::SendTransactionResponse* response) {
+::grpc::Status TaraxaLedgerGrpcService::Service::SendGrpcTransaction(::grpc::ServerContext* context, const ::taraxa_ledger::GrpcTransaction* request, ::taraxa_ledger::SendGrpcTransactionResponse* response) {
   (void) context;
   (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status TaraxaLedgerService::Service::GetTransaction(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::taraxa_ledger::Transaction* response) {
+::grpc::Status TaraxaLedgerGrpcService::Service::GetGrpcTransaction(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::taraxa_ledger::GrpcTransaction* response) {
   (void) context;
   (void) request;
   (void) response;
