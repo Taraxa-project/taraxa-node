@@ -22,6 +22,8 @@ GOOGLE_APIS_FLAG := `pkg-config --cflags protobuf grpc++ --libs protobuf grpc++`
 
 .depcheck-impl:
 	@echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES} ))" >.dep.inc; \
+	echo "DEPFILES+=\$$(wildcard \$$(addsuffix .d, \$${P2POBJECTFILES} ))" >>.dep.inc; \
+	echo "DEPFILES+=\$$(wildcard \$$(addsuffix .d, \$${MAINOBJECTFILES} ))" >>.dep.inc; \
 	echo "ifneq (\$${DEPFILES},)" >>.dep.inc; \
 	echo "include \$${DEPFILES}" >>.dep.inc; \
 	echo "endif" >>.dep.inc; \
@@ -40,6 +42,16 @@ OBJECTFILES= \
 	${OBJECTDIR}/dag.o \
 	${OBJECTDIR}/block_proposer.o \
 	${OBJECTDIR}/rpc.o
+
+MAINOBJECTFILES= \
+	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/p2p_test.o \
+	${OBJECTDIR}/dag_test.o \
+	${OBJECTDIR}/network_test.o \
+	${OBJECTDIR}/state_block_test.o \
+	${OBJECTDIR}/full_node_test.o \
+	${OBJECTDIR}/concur_hash_test.o
+
 	
 ${OBJECTDIR}/rocks_db.o: rocks_db.cpp
 	${MKDIR} -p ${OBJECTDIR}
