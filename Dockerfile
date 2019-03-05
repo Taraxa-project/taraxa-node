@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 ENV APP_PATH /opt/taraxa/taraxa-node
 
-RUN apt-get update \
+RUN apt-get update --fix-missing \
     && apt-get install -y \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev git gcc-8 g++-8 clang \
     libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl cmake unzip \
