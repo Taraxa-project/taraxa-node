@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Taraxa-project/taraxa-node.svg?branch=master)](https://travis-ci.org/Taraxa-project/taraxa-node)
+[![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
 
 # Installation:
 ```
