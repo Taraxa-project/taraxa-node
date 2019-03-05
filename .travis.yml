@@ -3,3 +3,6 @@ services:
   - docker
 script: 
   - docker build .
+notifications:
+  slack: phragmites:hOCkD4U6FsVSjf4ABAGnCJ8q
+  
