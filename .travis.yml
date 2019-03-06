@@ -1,8 +1,8 @@
 sudo: required
 services:
   - docker
-script: 
-  - docker build . -t taraxa-node
+script:
+  - docker build -t taraxa-node .
 notifications:
   slack: phragmites:hOCkD4U6FsVSjf4ABAGnCJ8q
   
