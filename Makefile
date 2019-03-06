@@ -8,7 +8,7 @@ endif
 CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF
 CXXFLAGS2 := -c -g -MMD -MP -MF
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs
-LIBS := -lboost_log -lboost_thread -lleveldb -DBOOST_LOG_DYN_LINK -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp -lethash -lff -lprocps -lgtest -lboost_thread-mt -lrocksdb
+LIBS := -lboost_log -lleveldb -DBOOST_LOG_DYN_LINK -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
 BUILDDIR := build
 TESTBUILDDIR := test_build
 OBJECTDIR := obj
@@ -177,11 +177,13 @@ submodules/ethash/build/lib/ethash/libethash.a:
 submodules/libff/build/libff/libff.a:
 	@echo Attempting to compile libff, if it fails try compiling it manually
 	cd submodules/libff; ${MKDIR} -p build
-	cd submodules/libff/build; cmake ..; make
+	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++; make
 
 submodules/secp256k1/.libs/libsecp256k1.a:
 	@echo Attempting to compile libsecp256k1, if it fails try compiling it manually
-	cd submodules/secp256k1; ./autogen.sh; ./configure --disable-shared --disable-tests --disable-coverage --disable-openssl-tests --disable-exhaustive-tests --disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit --with-asm=no --enable-module-ecdh --enable-module-recovery --enable-experimental; make
+	cd submodules/secp256k1; ./autogen.sh
+	cd submodules/secp256k1; ./configure --disable-shared --disable-tests --disable-coverage --disable-openssl-tests --disable-exhaustive-tests --disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit --with-asm=no --enable-module-ecdh --enable-module-recovery --enable-experimental 
+	cd submodules/secp256k1; make
 
 $(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
