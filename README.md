@@ -1,5 +1,5 @@
 # IMPORTANT!!!   *** Developer Notice ***
-Please rebase your `feature` branch *everyday*.
+Please rebase your `feature` branch **_everyday_** and **_before_** create pull request.
 
 (Or at lease before create pull request). 
 
