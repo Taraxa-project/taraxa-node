@@ -1,3 +1,16 @@
+# IMPORTANT!!!   *** Developer Notice ***
+Please rebase your `feature` branch *everyday*.
+
+(Or at lease before create pull request). 
+
+In your `feature` branch, do:
+```
+  git fetch origin
+  git rebase origin/master
+```
+This makes sure your codebase is up-to-date. 
+Please resolve any conflicts you may find.  :)
+
 [![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
 
 # Installation:
