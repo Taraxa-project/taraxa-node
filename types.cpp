@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-15 11:38:38 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-27 19:04:40
+ * @Last Modified time: 2019-03-05 14:00:33
  */
  
 #include "types.hpp"
@@ -154,5 +154,27 @@ std::ostream & operator<<(std::ostream & strm, bytes const &bytes){
 	return strm;
 }
 
+bytes str2bytes(std::string const & str){
+	assert(str.size()%2==0);
+	bytes data;
+	// convert it to byte stream
+	for (auto i = 0; i<str.size(); i+=2){
+		std::string s = str.substr(i,2);
+		auto t = std::stoul(s, nullptr, 16);
+		assert(t<256);
+		data.push_back(static_cast<uint8_t>(t)); 
+	}
+	return data;
+}
+
+std::string bytes2str(bytes const & data){
+	// convert it to str
+	std::stringstream ss;
+	ss<<std::hex<<std::noshowbase<<std::setfill('0');
+	for (auto const & d:data){
+		ss<<std::setfill('0')<<std::setw(2)<<unsigned(d);
+	}
+	return ss.str();
+}
 
 } // namespace

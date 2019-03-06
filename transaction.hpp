@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-27 12:27:18 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-28 20:39:46
+ * @Last Modified time: 2019-03-05 18:17:26
  */
  
 #ifndef TRANSACTION_HPP
@@ -11,82 +11,88 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 #include "types.hpp"
 #include "util.hpp"
-
-#include <grpc/grpc.h>
-#include <grpcpp/server.h>
-#include <grpcpp/server_builder.h>
-#include <grpcpp/server_context.h>
-#include <grpcpp/security/server_credentials.h>
-
-#include "proto/transaction.grpc.pb.h"
-
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::ServerReader;
-using grpc::ServerReaderWriter;
-using grpc::ServerWriter;
-using grpc::Status;
+#include "proto/taraxa_grpc.grpc.pb.h"
 
 namespace taraxa{
 
-using namespace taraxa_ledger;
+using std::string;
 
 class Transaction{
 public:
-	enum class Type{
+	enum class Type: uint8_t{
 		Null,
 		Creation,
 		Call
 	};
-	Transaction():
-		type_(Type::Null), nonce_(1), value_(2), gas_price_(3), gas_(4), receiver_("me"), sig_(6){}
-	Transaction(::taraxa_ledger::GrpcTransaction const & t): nonce_(t.nonce()), value_(t.value()), gas_price_(t.gas_price()),
-		gas_(t.gas()), receiver_(t.receiver()), sig_(t.receiver()){}
+	Transaction() = default;
+	Transaction(::taraxa_grpc::ProtoTransaction const & t): hash_(t.hash()), type_(toEnum<Type>(t.type())), nonce_(t.nonce()), 
+		value_(t.value()), gas_price_(t.gas_price()), gas_(t.gas()), receiver_(t.receiver()), sig_(t.sig()), data_(str2bytes(t.data())){}
+	Transaction(trx_hash_t const & hash, Type type, val_t const & nonce, val_t const & value, val_t const & gas_price, val_t const & gas, 
+		name_t const & receiver, sig_t const & sig, bytes const &data) try:
+		hash_(hash), type_(type), nonce_(nonce), value_(value), gas_price_(gas_price), gas_(gas), receiver_(receiver), sig_(sig), data_(data){
+	} catch (std::exception &e){
+		std::cerr<<e.what()<<std::endl;
+	}
+	
+	Transaction(stream & strm);
+	Transaction(string const & json);
+	trx_hash_t getHash() const {return hash_;}
 	Type getType() const { return type_;}
-	uint256_t getNonce() const { return nonce_;}
-	uint256_t getValue() const { return value_;}
-	uint256_t getGasPrice() const { return gas_price_;}
-	uint256_t getGas() const { return gas_;}
-	std::string getReceiver() const { return receiver_;}
-	uint512_t getSig() const { return sig_;}
-	bytes & getBytes() {return data_;}
+	val_t getNonce() const { return nonce_;}
+	val_t getValue() const { return value_;}
+	val_t getGasPrice() const { return gas_price_;}
+	val_t getGas() const { return gas_;}
+	name_t getReceiver() const { return receiver_;}
+	sig_t getSig() const { return sig_;}
+	bytes getData() const {return data_;}
+
 	friend std::ostream & operator<<(std::ostream &strm, Transaction const &trans){
-		strm<<"[Transaction] "<< asInteger(trans.type_)<<std::endl;
+		strm<<"[Transaction] "<< std::endl;
+		strm<<"  hash: "<< trans.hash_<<std::endl;
+		strm<<"  type: "<< asInteger(trans.type_)<<std::endl;
 		strm<<"  nonce: "<< trans.nonce_<<std::endl;
 		strm<<"  value: "<< trans.value_<<std::endl;
 		strm<<"  gas_price: "<< trans.gas_price_<<std::endl;
 		strm<<"  gas: "<<trans.gas_<<std::endl;
 		strm<<"  sig: "<<trans.sig_<<std::endl;
 		strm<<"  receiver: "<<trans.receiver_<<std::endl;
-		strm<<"  data: "<<trans.data_<<std::endl;
+		strm<<"  data: "<<bytes2str(trans.data_)<<std::endl;
 		return strm;
 	}
+	bool serialize (stream &strm) const;
+	bool deserialize (stream &strm);
+	string getJsonStr() const;
+	bool isValid() const { return !hash_.isZero();}
+	bool operator== (Transaction const & other) const {
+		return this->getJsonStr() == other.getJsonStr();
+	}
 protected:
+	trx_hash_t hash_ = "0000000000000000000000000000000000000000000000000000000000000000";
 	Type type_ = Type::Null;
-	uint256_t nonce_;
-	uint256_t value_;
-	uint256_t gas_price_;
-	uint256_t gas_;
-	std::string    receiver_;
-	uint512_t sig_;
+	val_t nonce_ = "0000000000000000000000000000000000000000000000000000000000000000";
+	val_t value_ = "0000000000000000000000000000000000000000000000000000000000000000";
+	val_t gas_price_ = "0000000000000000000000000000000000000000000000000000000000000000";
+	val_t gas_ = "0000000000000000000000000000000000000000000000000000000000000000";
+	name_t receiver_ = "0000000000000000000000000000000000000000000000000000000000000000";
+	sig_t sig_ = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	bytes data_;
 };
 
-class TransactionService final : public taraxa_ledger::TaraxaLedgerGrpcService::Service{
+class TransactionManager{
 public:
-	TransactionService();
-	::grpc::Status SendGrpcTransaction(::grpc::ServerContext* context, const ::taraxa_ledger::GrpcTransaction* request, ::taraxa_ledger::SendGrpcTransactionResponse* response) override;
-	::grpc::Status GetGrpcTransaction(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::taraxa_ledger::GrpcTransaction* response) override;
-
-
+	void enqueue(Transaction const & trx){ trx_qu_.emplace_back(trx);}
+	Transaction front() {return trx_qu_.front();}
+	void popFront() {trx_qu_.pop_front();}
 private:
-	std::vector<Transaction> transactions_;
-	ServerBuilder builder_;
+	std::deque<Transaction> trx_qu_;
+	std::vector<std::thread> process_threads_;
+	std::mutex mutex_;
 
 };
+
 
 } // namespace taraxa
 

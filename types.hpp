@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-28 15:22:58
+ * @Last Modified time: 2019-03-05 12:55:19
  */
 
 #ifndef TYPES_HPP
@@ -77,7 +77,7 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 using vec_tip_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
-
+using val_t = uint256_hash_t;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 
@@ -85,6 +85,11 @@ std::ostream & operator<<(std::ostream & strm, bytes const &bytes);
 
 time_point_t getLong2TimePoint (unsigned long l);
 unsigned long getTimePoint2Long (time_point_t tp);
+
+bytes str2bytes(std::string const & str);
+std::string bytes2str(bytes const & data);
+
+
 
 }
 

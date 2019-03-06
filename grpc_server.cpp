@@ -3,82 +3,44 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-15 16:32:16 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-21 16:39:29
+ * @Last Modified time: 2019-03-05 18:19:00
  */
+
+#include "grpc_server.hpp"
+
+namespace taraxa{
+
+::grpc::Status GrpcService::SendProtoTransaction(::grpc::ServerContext* context, const ::taraxa_grpc::ProtoTransaction* request, ::taraxa_grpc::SendProtoTransactionResponse* response){
+	Transaction trans(*request);
+	std::string hash = trans.getHash().toString();
+	transactions_[hash] = trans.getJsonStr();
+	response->set_success(1);
+	return ::grpc::Status::OK;
+}
+::grpc::Status GrpcService::GetProtoTransaction(::grpc::ServerContext* context, const ::taraxa_grpc::GetProtoTransactionRequest* request, ::taraxa_grpc::ProtoTransaction* response){
+	auto iter = transactions_.find(request->hash());
+	Transaction trans;
+	if (iter != transactions_.end()){
+		trans= iter->second;
+	}   
+	else {
+		std::cout<<"Transaction not exist ..."<<std::endl;
+	}
+	setProtoTransaction(trans, response);
+	return ::grpc::Status::OK;
+
+}
+void GrpcService::start(){
+	std::string server_address("0.0.0.0:10077");
+  	builder_.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  	builder_.RegisterService(this);
+	server_ = builder_.BuildAndStart();
+  	server_->Wait();
+}
+
+void GrpcService::stop(){
+	server_.reset();
+}
  
-#include <grpc/grpc.h>
-#include <grpcpp/server.h>
-#include <grpcpp/server_builder.h>
-#include <grpcpp/server_context.h>
-#include <grpcpp/security/server_credentials.h>
-#include "./grpc/proto/ledger.grpc.pb.h"
+} // namespace taraxa
 
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::ServerReader;
-using grpc::ServerReaderWriter;
-using grpc::ServerWriter;
-using grpc::Status;
-
-using ledger::LedgerService;
-
-class NodeRpcServer final : public LedgerService::Service{
-
-	Status IsTestnet(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::IsTestnetResponse* response){
-		response->set_is_testnet(true);
-		return Status::OK;
-	}
-	Status GetNetworkName(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetNetworkNameResponse* response){
-		response->set_network_name("taraxa.io");
-	}
-	Status GetVersion(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetVersionResponse* response){
-		response->set_version("0.0.1");
-	}
-	Status GetSubversion(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetSubversionResponse* response){
-		response->set_sub_version(".1");
-	}
-	Status GetCoinName(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetCoinNameResponse* response){
-		response->set_coin_name("taraxa.coin");
-	}
-	Status GetChainInfo(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetChainInfoResponse* response){
-		ledger::ChainInfo info;
-		info.set_chain_name("ChainInfo: taraxa");
-		response->set_allocated_chain_info(&info);
-	}
-	Status GetBestBlockHash(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetBestBlockHashResponse* response){
-
-	}
-	Status GetBestBlockHeight(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::ledger::GetBestBlockHeightResponse* response){
-
-	}
-	Status GetBlockHash(::grpc::ServerContext* context, const ::ledger::GetBlockHashRequest* request, ::ledger::GetBlockHashResponse* response){
-
-	}
-	Status GetBlockHeader(::grpc::ServerContext* context, const ::ledger::GetBlockHeaderRequest* request, ::ledger::GetBlockHeaderResponse* response){
-
-	}
-	Status GetBlock(::grpc::ServerContext* context, const ::ledger::GetBlockRequest* request, ::ledger::GetBlockResponse* response){
-
-	}
-	Status GetBlockInfo(::grpc::ServerContext* context, const ::ledger::GetBlockInfoRequest* request, ::ledger::GetBlockInfoResponse* response){
-		
-	}
-};
-
-void runServer() {
-  std::string server_address("127.0.0.1:10077");
-  NodeRpcServer service;
-
-  ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
-  server->Wait();
-}
-
-int main(int argc, char *argv[]){
-	runServer();
-	return 0;
-}

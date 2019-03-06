@@ -1,38 +1,90 @@
-#include "transaction.hpp"
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <grpcpp/server_builder.h>
 #include <string>
+#include <utility>
+#include "transaction.hpp"
 
 namespace taraxa{
-std::string str(uint256_t num){
-	std::stringstream ss;
-	ss<<num;
-	return ss.str();
-	
-}
-void setGrpcTransaction(::taraxa_ledger::GrpcTransaction* ret, Transaction const & t){
-	ret->set_nonce(str(t.getNonce()));
-	ret->set_value(str(t.getValue()));
-	// ret->set_gas_price(t.getGasPrice());
-	// ret->set_gas(t.getGas());
-	// ret->set_receiver(t.getReceiver());
-	// //ret->set_signature(t.getSig());
-	// ret->set_data(t.set_data());
-}
- 
-using namespace taraxa_ledger;
-TransactionService::TransactionService(){}
-::grpc::Status TransactionService::SendGrpcTransaction(::grpc::ServerContext* context, const ::taraxa_ledger::GrpcTransaction* request, ::taraxa_ledger::SendGrpcTransactionResponse* response){
-	std::cout<<"Server: SendGrpcTransaction request ..."<<std::endl;
-	transactions_.push_back(*request);
-	return Status::OK;
+
+using namespace taraxa_grpc;
+
+
+
+Transaction::Transaction(stream &strm){
+	deserialize(strm);
 }
 
-::grpc::Status TransactionService::GetGrpcTransaction(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::taraxa_ledger::GrpcTransaction* response){
-	if (!transactions_.empty()){
-		std::cout<<"Server: GetGrpcTransaction request ..."<<std::endl;
-		setGrpcTransaction(response, transactions_.back());
+Transaction::Transaction(string const &json){
+	try{
+		boost::property_tree::ptree doc = strToJson(json);
+		hash_ = doc.get<string>("hash");
+		type_ = toEnum<Transaction::Type>(doc.get<uint8_t>("type"));
+		nonce_ = doc.get<string>("nonce");
+		value_ = doc.get<string>("value");
+		gas_price_ = doc.get<string>("gas_price");
+		gas_ = doc.get<string>("gas");
+		sig_ = doc.get<string>("sig");
+		receiver_ = doc.get<string>("receiver");
+		string data = doc.get<string>("data");
+		data_ = str2bytes(data);
+	} catch (std::exception &e){
+		std::cerr<<e.what()<<std::endl;
 	}
-	return Status::OK;
+}
 
+bool Transaction::serialize(stream & strm) const{
+	bool ok = true;
+	ok &= write(strm, hash_);
+	ok &= write(strm, type_);
+	ok &= write(strm, nonce_);
+	ok &= write(strm, value_);
+	ok &= write(strm, gas_price_);
+	ok &= write(strm, gas_);
+	ok &= write(strm, receiver_);
+	ok &= write(strm, sig_);
+	std::size_t byte_size = data_.size();
+	ok &= write(strm, byte_size);
+	for (auto i=0; i<byte_size; ++i){
+		ok &= write(strm, data_[i]);
+	}
+	assert(ok);
+	return ok;
 }
+
+bool Transaction::deserialize(stream &strm){
+	bool ok = true;
+	ok &= read(strm, hash_);
+	ok &= read(strm, type_);
+	ok &= read(strm, nonce_);
+	ok &= read(strm, value_);
+	ok &= read(strm, gas_price_);
+	ok &= read(strm, gas_);
+	ok &= read(strm, receiver_);
+	ok &= read(strm, sig_);
+	std::size_t byte_size;
+	ok &= read(strm, byte_size);
+	data_.resize(byte_size);
+	for (auto i=0; i<byte_size; ++i){
+		ok &= read(strm, data_[i]);
+	}
+	assert(ok);
+	return ok;
 }
+string Transaction::getJsonStr() const {
+
+	boost::property_tree::ptree tree;
+	tree.put("hash", hash_.toString());
+	tree.put("type", asInteger(type_));
+	tree.put("nonce", nonce_.toString());
+	tree.put("value", value_.toString());
+	tree.put("gas_price", gas_price_.toString());
+	tree.put("gas", gas_.toString());
+	tree.put("sig", sig_.toString());
+	tree.put("receiver", receiver_.toString());
+	tree.put("data", bytes2str(data_));
+	std::stringstream ostrm;
+	boost::property_tree::write_json(ostrm, tree);
+	return ostrm.str();
+}
+}// namespace taraxa

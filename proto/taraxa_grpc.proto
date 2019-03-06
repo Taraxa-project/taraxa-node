@@ -1,0 +1,36 @@
+/*
+ * @Copyright: Taraxa.io 
+ * @Author: Chia-Chun Lin 
+ * @Date: 2019-02-27 18:22:05 
+ * @Last Modified by: Chia-Chun Lin
+ * @Last Modified time: 2019-03-05 16:35:48
+ */
+ 
+
+syntax = "proto3";
+
+package taraxa_grpc;
+
+//import "google/protobuf/empty.proto";
+// google.protobuf.Empty
+message ProtoTransaction {
+	string hash = 1;
+	uint32 type = 2;
+	string nonce = 3;
+	string value = 4;
+	string gas_price = 5;
+	string gas = 6;
+	string receiver = 7; 
+	string sig = 8;
+	bytes  data = 9;
+}
+message SendProtoTransactionResponse {
+	bool success = 1;
+}
+message GetProtoTransactionRequest{
+	string hash = 1;
+}
+service TaraxaProtoService{
+	rpc SendProtoTransaction(ProtoTransaction) returns (SendProtoTransactionResponse) {}
+	rpc GetProtoTransaction(GetProtoTransactionRequest) returns (ProtoTransaction) {}
+}

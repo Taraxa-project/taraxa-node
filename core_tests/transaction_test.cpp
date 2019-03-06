@@ -3,40 +3,54 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-27 15:39:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-28 14:19:47
+ * @Last Modified time: 2019-03-05 16:57:09
  */
  
 #include <vector>
 #include <thread>
 #include <gtest/gtest.h>
-
-#include <grpcpp/server.h>
-#include <grpcpp/server_context.h>
-
 #include "transaction.hpp"
+#include "grpc_server.hpp"
 
 namespace taraxa {
-	TEST(transaction, transaction){
-		unsigned trans; 
-		
+TEST(transaction, serialize_deserialize){
+	Transaction trans1(
+		"1000000000000000000000000000000000000000000000000000000000000001", // hash
+		Transaction::Type::Null, // type
+		"2000000000000000000000000000000000000000000000000000000000000002", // nonce
+		"3000000000000000000000000000000000000000000000000000000000000003", // value
+		"4000000000000000000000000000000000000000000000000000000000000004", // gas_price
+		"5000000000000000000000000000000000000000000000000000000000000005", // gas
+		"6000000000000000000000000000000000000000000000000000000000000006", // receiver
+		"77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777", // sig
+		str2bytes("00FEDCBA9876543210000000")
+		);
+	std::stringstream ss1, ss2;
+	ss1<<trans1;
+	std::vector<uint8_t> bytes;
+	{
+		vectorstream strm1(bytes);
+		trans1.serialize(strm1);
 	}
 
-void runServer() {
-  std::string server_address("127.0.0.1:10077");
-  TransactionService service;
+	bufferstream strm2 (bytes.data(), bytes.size());
 
-  ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
-  server->Wait();
+	Transaction trans2(strm2);
+	ss2<<trans2;
+	// Compare transaction content
+	ASSERT_EQ(ss1.str(), ss2.str());
+	// Compare json format
+	ASSERT_EQ(trans1.getJsonStr(), trans2.getJsonStr());
+	// Get data size, check leading and training zeros
+	ASSERT_EQ(trans2.getData().size(),12);
+	// Construct transaction from json
+	Transaction trans3(trans2.getJsonStr());
+	ASSERT_EQ(trans2.getJsonStr(), trans3.getJsonStr());
 }
 
-}
+}// namespace taraxa
 
 int main(int argc, char* argv[]){
-	taraxa::runServer();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

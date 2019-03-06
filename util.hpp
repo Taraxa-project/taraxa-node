@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:26:50 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-29 13:52:18
+ * @Last Modified time: 2019-03-05 12:09:56
  */
  
  #ifndef UTIL_HPP
@@ -51,8 +51,15 @@ std::vector<T> asVector(boost::property_tree::ptree const & pt, boost::property_
 
 
 template <typename enumT> 
-auto asInteger(enumT const value){
+constexpr inline auto asInteger(enumT const value){
 	return static_cast<typename std::underlying_type<enumT>::type> (value);
+}
+
+template< typename E , typename T>
+constexpr inline typename std::enable_if_t< std::is_enum_v<E> && std::is_integral_v<T>, E> 
+toEnum( T value ) noexcept 
+{
+	return static_cast<E>( value );
 }
 
 using stream = std::basic_streambuf<uint8_t>;
