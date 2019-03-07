@@ -30,6 +30,14 @@ brew install boost
 brew install rocksdb
 brew install rapidjson
 brew install leveldb
+brew install gmp
+brew install cmake
+brew install openssl
+brew install leveldb
+brew install boost
+brew install libscrypt
+brew install automake
+brew install libtool
 ```
 
 Libraries cryptopp, libff, ethash and secp256k1 are in the submodules directory. These libraries should be built automatically. In case there is an issue see README files in each submodule on how to build them.
