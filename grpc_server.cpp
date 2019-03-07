@@ -39,6 +39,7 @@ void GrpcService::start(){
 }
 
 void GrpcService::stop(){
+	server_->Shutdown();
 	server_.reset();
 }
  

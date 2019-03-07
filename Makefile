@@ -216,19 +216,14 @@ $(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(OBJECTFILES) $(P2POBJECTFILE
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) 
 
-$(TESTBUILDDIR)/transaction_test: create_test_dir
-	g++ -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/transaction_test core_tests/transaction_test.cpp transaction.cpp types.cpp util.cpp grpc_server.cpp grpc_util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
+$(TESTBUILDDIR)/transaction_test:
+	${MKDIR} -p ${TESTBUILDDIR}	
+	$(CXX) -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/transaction_test core_tests/transaction_test.cpp transaction.cpp types.cpp util.cpp grpc_server.cpp grpc_util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 
-$(TESTBUILDDIR)/grpc_test: create_test_dir protoc_taraxa_grpc
-	g++ -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/grpc_test core_tests/grpc_test.cpp grpc_client.cpp grpc_server.cpp grpc_util.cpp transaction.cpp types.cpp util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
+$(TESTBUILDDIR)/grpc_test: protoc_taraxa_grpc
+	${MKDIR} -p ${TESTBUILDDIR}	
+	$(CXX) -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/grpc_test core_tests/grpc_test.cpp grpc_client.cpp grpc_server.cpp grpc_util.cpp transaction.cpp types.cpp util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 	
-protoc: 
-	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto
-	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/ledger.proto 
-
-main: $(BUILDDIR)/main
-	@echo MAIN
-
 protoc_taraxa_grpc: 
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
@@ -237,7 +232,7 @@ protoc_taraxa_grpc:
 main: $(BUILDDIR)/main
 	@echo MAIN
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/state_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/p2p_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/state_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test
 
 run_test: test
 	./$(TESTBUILDDIR)/dag_test
@@ -246,8 +241,8 @@ run_test: test
 	./$(TESTBUILDDIR)/full_node_test
 	./$(TESTBUILDDIR)/concur_hash_test
 	./$(TESTBUILDDIR)/p2p_test
-	./$(TEST_BUILD)/transaction_test
-#	./$(TEST_BUILD)/grpc_test
+	./$(TESTBUILDDIR)/transaction_test
+	./$(TESTBUILDDIR)/grpc_test
 
 
 ct:
