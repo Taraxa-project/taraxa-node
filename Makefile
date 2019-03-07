@@ -6,9 +6,9 @@ ifneq ($(OS), Darwin) #Mac
 	CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
 endif
 CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF
-CXXFLAGS2 := -c -g -MMD -MP -MF
+CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs
-LIBS := -lboost_log -lleveldb -DBOOST_LOG_DYN_LINK -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
+LIBS := -DBOOST_LOG_DYN_LINK -lboost_log-mt -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
 BUILDDIR := build
 TESTBUILDDIR := test_build
 OBJECTDIR := obj
@@ -177,7 +177,7 @@ submodules/ethash/build/lib/ethash/libethash.a:
 submodules/libff/build/libff/libff.a:
 	@echo Attempting to compile libff, if it fails try compiling it manually
 	cd submodules/libff; ${MKDIR} -p build
-	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++; make
+	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; make
 
 submodules/secp256k1/.libs/libsecp256k1.a:
 	@echo Attempting to compile libsecp256k1, if it fails try compiling it manually
