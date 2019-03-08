@@ -4,12 +4,11 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 ENV APP_PATH /opt/taraxa/taraxa-node
 
-RUN apt-get clean \
-    && apt-get update --fix-missing \
+RUN apt-get update \
     && apt-get install -y \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev git gcc-8 g++-8 clang \
-    libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl cmake unzip \
-    rapidjson-dev python-dev libxml2-dev libxslt-dev
+    libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl cmake unzip git \
+    rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8    
 
@@ -31,14 +30,25 @@ RUN wget https://github.com/facebook/rocksdb/archive/v5.14.3.zip \
     && cd /tmp/rocksdb-5.14.3 \
     && make shared_lib \
     && cp librocksdb.so* /usr/local/lib \
-    && cp -r ./include/* /usr/local/include \
-    && cd - 
+    && cp -r ./include/* /usr/local/include
+
+ENV LEVELDB_VERSION="1.20"
+WORKDIR /tmp
+RUN wget https://github.com/google/leveldb/archive/v${LEVELDB_VERSION}.tar.gz \
+  && tar xvf v${LEVELDB_VERSION}.tar.gz \
+  && rm -f v${LEVELDB_VERSION}.tar.gz
+WORKDIR /tmp/leveldb-${LEVELDB_VERSION}
+
+RUN make
+RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
+RUN scp -r include/leveldb /usr/local/include
+RUN ldconfig
+
 
 RUN mkdir -p ${APP_PATH}
 WORKDIR ${APP_PATH}
-ADD . .
-RUN cd submodules/cryptopp && make && cd -    
-
+ADD . .  
+RUN git submodule update --init --recursive
 RUN make main
 
 FROM ubuntu:18.04
@@ -53,6 +63,7 @@ RUN mkdir -p ${APP_PATH}/config
 WORKDIR ${APP_PATH}
 COPY --from=builder ${APP_PATH}/build/main .
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
+COPY --from=builder /usr/lib/libscrypt.* /usr/lib/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/ 
 COPY ./core_tests/*.json ./default_config/
 
