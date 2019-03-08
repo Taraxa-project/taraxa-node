@@ -44,6 +44,7 @@ RUN scp -r include/leveldb /usr/local/include
 RUN ldconfig
 
 
+
 RUN mkdir -p ${APP_PATH}
 WORKDIR ${APP_PATH}
 ADD . .  
