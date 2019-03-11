@@ -13,6 +13,9 @@
 #include <boost/beast.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
+// TODO: 
+// Need a buffer for rpc requests ...
+
 namespace taraxa{
 
 class FullNode;

@@ -536,8 +536,8 @@ void DagManager::addToDag(std::string const & hash, std::string const & pivot,
 	// sync pivot tree's time stamp with total_dag_ timestamp
 	auto stamp = total_dag_->getVertexTimeStamp(hash);
 	pivot_tree_->setVertexTimeStamp(hash, stamp);
-	
-	tips_explorer_->blockAdded();
+	// TODO: disconnect tip explorer for now. Reconnect later ...
+	//tips_explorer_->blockAdded();
 }
 
 
