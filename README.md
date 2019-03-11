@@ -210,3 +210,4 @@ $ docker pull <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
 ```
 
 > Log into the registry is required.
+
