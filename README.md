@@ -29,12 +29,10 @@ cryptopp, libff, ethash, secp256k1, boost, rocksdb, rapidjson, gtest, leveldb
 brew install boost
 brew install rocksdb
 brew install rapidjson
-brew install leveldb
 brew install gmp
 brew install cmake
 brew install openssl
 brew install leveldb
-brew install boost
 brew install libscrypt
 brew install automake
 brew install libtool
@@ -55,17 +53,20 @@ make install
 
 Google how to install other libs for your system.
 
-## Protobuf and gRPC and google_apis
-The project uses gRPC and google API, the C++ library for googleapis is unavailable. 
+## Protobuf and gRPC and google_apis 
+The project uses gRPC. 
+
+If proto file changed, need to rebuid using: 
+
+`make grpc`
+
+(Not needed, can skip for now) For google API, the C++ library for googleapis is unavailable. 
 Therefore, googleapis header and source files are included in `google` directory.
 To Build googleapis static libs:
 ```
 cd google
 make
 ```
-If proto file changed, need to rebuid using: 
-
-`make grpc`
 
 # Run taraxa-node tests:
 Tests are under core_tests/
