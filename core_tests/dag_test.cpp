@@ -403,10 +403,10 @@ TEST(DagManager, receive_block_out_of_order){
 	mgr->addStateBlock(blk3, true);
 	mgr->addStateBlock(blk2, true);
 	mgr->addStateBlock(blk1, true);
-	std::string pivot;
-	std::vector<std::string> tips;
-	std::vector<Dag::vertex_t> criticals;
-	mgr->getLatestPivotAndTips(pivot, tips);
+	// std::string pivot;
+	// std::vector<std::string> tips;
+	// std::vector<Dag::vertex_t> criticals;
+	// mgr->getLatestPivotAndTips(pivot, tips);
 	
 	taraxa::thisThreadSleepForMicroSeconds(500);
 	mgr->stop();

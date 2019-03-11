@@ -42,7 +42,8 @@ TEST(p2p, p2p_discovery){
         nodes[i]->addNode(dev::Public("7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a"), dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001));
 		taraxa::thisThreadSleepForMilliSeconds(100);
 	}
-	taraxa::thisThreadSleepForSeconds(10);
+    // allow more time for p2p discovery
+	taraxa::thisThreadSleepForSeconds(12);
 	for(int i = 0; i < NUMBER_OF_NODES; i++) {
         printf("%d\n", i);
 		ASSERT_EQ(NUMBER_OF_NODES, nodes[i]->getNodeCount());
