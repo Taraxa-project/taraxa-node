@@ -41,9 +41,7 @@ WORKDIR /tmp/leveldb-${LEVELDB_VERSION}
 RUN make
 RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
 RUN scp -r include/leveldb /usr/local/include
-<<<<<<< HEAD:dockerfiles/base.dockerfile
-RUN ldconfig
-=======
+
 RUN ldconfig
 
 
@@ -72,4 +70,4 @@ COPY ./core_tests/*.json ./default_config/
 
 ENTRYPOINT [ "./main" ]
 CMD ["--conf_full_node", "./default_config/conf_full_node1.json", "--conf_network", "./default_config/conf_network1.json", "--conf_rpc", "./default_config/conf_rpc1.json"]
->>>>>>> Dockerfile for p2p branch:Dockerfile
+
