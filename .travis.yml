@@ -8,9 +8,6 @@ before_script:
 script:
   - docker build -t taraxa-node -f dockerfiles/Dockerfile .
 after_success:
-  - pip install --user awscli
-  - export PATH=$PATH:$HOME/.local/bin
-  - eval $(aws ecr get-login --region us-west-2 --no-include-email)
   - docker tag taraxa-node 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/$TRAVIS_BRANCH:TRAVIS_BUILD_NUMBER
   - docker push 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/$TRAVIS_BRANCH:TRAVIS_BUILD_NUMBER  
 notifications:
