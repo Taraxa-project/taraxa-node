@@ -93,7 +93,7 @@ Docker has to be installed. If it is not, visit this [web](https://docs.docker.c
 ### Building Docker Image
 
 ```bash
-$ docker build -t taraxa-node .
+$ docker build -t taraxa-node -f dockerfiles/Dockerfile .
 ```
 
 *The building process takes a lot of time, especially during its first execution.*
@@ -173,3 +173,32 @@ $ docker kill taraxa-node
 ```bash 
 $ docker rm taraxa-node
 ```
+
+## Base Image for Taraxa Node
+
+### Build Image
+
+```bash
+$ docker build -t taraxa-node-base -f dockerfiles/base.dockerfile .
+```
+
+### Tagging Image
+```bash
+$ docker tag taraxa-node-base <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
+```
+
+### Push Image
+
+```bash
+$ docker push <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
+```
+
+> Log into the registry is required.
+
+### Pull Image
+
+```bash
+$ docker pull <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
+```
+
+> Log into the registry is required.
