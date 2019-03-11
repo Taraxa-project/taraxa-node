@@ -57,6 +57,8 @@ struct uint_hash_t {
 	void operator= (const char * str);
 	bool operator== (uint_hash_t const & other) const;
 	bool operator< (uint_hash_t const & other) const;
+	bool operator> (uint_hash_t const & other) const;
+
 	std::string toString() const;
 	// debugging
 	void rawPrint() const;
@@ -80,6 +82,8 @@ using vec_trx_t = std::vector<trx_hash_t>;
 using val_t = uint256_hash_t;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
+using node_id_t = uint512_hash_t;
+
 
 std::ostream & operator<<(std::ostream & strm, bytes const &bytes);
 

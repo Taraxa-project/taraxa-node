@@ -87,4 +87,26 @@ string Transaction::getJsonStr() const {
 	boost::property_tree::write_json(ostrm, tree);
 	return ostrm.str();
 }
+
+TransactionQueue::TransactionQueue(unsigned current_capacity, unsigned future_capacity): 
+current_capacity_(current_capacity),
+future_capacity_(future_capacity){
+	
+}
+
+void TransactionQueue::verifyTrx(){
+	while (!stopped_){
+		ulock lock(mutex_for_unverified_qu_);
+		while (unverified_qu_.empty() && !stopped_){
+			cond_for_unverified_qu_.wait(lock);
+		}
+		if (stopped_) return;
+	
+		Transaction trx = unverified_qu_.front().trx;
+		unverified_qu_.pop_front();
+
+
+	}	
+}
+
 }// namespace taraxa

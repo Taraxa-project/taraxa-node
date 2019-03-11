@@ -30,7 +30,13 @@ GOOGLE_APIS_FLAG := `pkg-config --cflags protobuf grpc++ --libs protobuf grpc++`
 	echo "include \$${DEPFILES}" >>.dep.inc; \
 	echo "endif" >>.dep.inc; \
 
+main: $(BUILDDIR)/main
+	@echo MAIN
+
+all: $(DEPENDENCIES) main
+
 include p2p.inc
+
 
 OBJECTFILES= \
 	${OBJECTDIR}/rocks_db.o \
@@ -43,7 +49,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/visitor.o \
 	${OBJECTDIR}/dag.o \
 	${OBJECTDIR}/block_proposer.o \
-	${OBJECTDIR}/rpc.o
+	${OBJECTDIR}/rpc.o \
+	${OBJECTDIR}/grpc_client.o \
+	${OBJECTDIR}/grpc_server.o \
+	${OBJECTDIR}/grpc_util.o \
+	${OBJECTDIR}/transaction.o \
+	${OBJECTDIR}/taraxa_grpc.pb.o \
+	${OBJECTDIR}/taraxa_grpc.grpc.pb.o 
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -52,9 +64,20 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/network_test.o \
 	${OBJECTDIR}/state_block_test.o \
 	${OBJECTDIR}/full_node_test.o \
-	${OBJECTDIR}/concur_hash_test.o
+	${OBJECTDIR}/concur_hash_test.o \
+	${OBJECTDIR}/transaction_test.o \
+	${OBJECTDIR}/grpc_test.o
 
-	
+${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_grpc.pb.o grpc/proto/taraxa_grpc.pb.cc $(CPPFLAGS)
+
+${OBJECTDIR}/taraxa_grpc.grpc.pb.o: grpc/proto/taraxa_grpc.grpc.pb.cc
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_grpc.grpc.pb.o grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS)
+
 ${OBJECTDIR}/rocks_db.o: rocks_db.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -109,7 +132,37 @@ ${OBJECTDIR}/rpc.o: rpc.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/rpc.o rpc.cpp $(CPPFLAGS)
-			
+
+${OBJECTDIR}/concur_hash.o: concur_storage/concur_hash.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/concur_hash.o concur_storage/concur_hash.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/conflict_detector.o: concur_storage/conflict_detector.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/conflict_detector.o concur_storage/conflict_detector.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/grpc_client.o: grpc_client.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/grpc_client.o grpc_client.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/grpc_server.o: grpc_server.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/grpc_server.o grpc_server.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/grpc_util.o: grpc_util.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/grpc_util.o grpc_util.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/transaction.o: transaction.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -145,20 +198,16 @@ ${OBJECTDIR}/p2p_test.o: core_tests/p2p_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/p2p_test.o core_tests/p2p_test.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/concur_hash.o: concur_storage/concur_hash.cpp 
+${OBJECTDIR}/transaction_test.o: core_tests/transaction_test.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/concur_hash.o concur_storage/concur_hash.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_test.o core_tests/transaction_test.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/conflict_detector.o: concur_storage/conflict_detector.cpp 
+${OBJECTDIR}/grpc_test.o: core_tests/grpc_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/conflict_detector.o concur_storage/conflict_detector.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/grpc_test.o core_tests/grpc_test.cpp $(CPPFLAGS)
 
-TESTS = \
-    core_tests/dag_test.cpp
-
-all: $(DEPENDENCIES) main
 
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
@@ -189,50 +238,51 @@ submodules/secp256k1/.libs/libsecp256k1.a:
 
 $(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS)
-
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS)
 
 $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) 
 
 $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) 
 	
 $(TESTBUILDDIR)/state_block_test: $(OBJECTDIR)/state_block_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/state_block_test.o -o $(TESTBUILDDIR)/state_block_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/state_block_test.o -o $(TESTBUILDDIR)/state_block_test  $(LDFLAGS) $(LIBS) 
 	
 $(TESTBUILDDIR)/full_node_test: $(OBJECTDIR)/full_node_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) 
 	
 $(TESTBUILDDIR)/concur_hash_test: $(OBJECTDIR)/concur_hash_test.o ${OBJECTDIR}/concur_hash.o ${OBJECTDIR}/conflict_detector.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/concur_hash_test.o ${OBJECTDIR}/concur_hash.o ${OBJECTDIR}/conflict_detector.o -o $(TESTBUILDDIR)/concur_hash_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/concur_hash_test.o ${OBJECTDIR}/concur_hash.o ${OBJECTDIR}/conflict_detector.o -o $(TESTBUILDDIR)/concur_hash_test  $(LDFLAGS) $(LIBS) 
 	
 $(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) 
 
-$(TESTBUILDDIR)/transaction_test:
+$(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/transaction_test core_tests/transaction_test.cpp transaction.cpp types.cpp util.cpp grpc_server.cpp grpc_util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) 
+#	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test core_tests/transaction_test.cpp transaction.cpp types.cpp util.cpp grpc_server.cpp grpc_util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 
-$(TESTBUILDDIR)/grpc_test: protoc_taraxa_grpc
+$(TESTBUILDDIR)/grpc_test: protoc_taraxa_grpc $(OBJECTDIR)/grpc_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/grpc_test core_tests/grpc_test.cpp grpc_client.cpp grpc_server.cpp grpc_util.cpp transaction.cpp types.cpp util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/grpc_test.o -o $(TESTBUILDDIR)/grpc_test  $(LDFLAGS) $(LIBS) 
+
+#	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/grpc_test core_tests/grpc_test.cpp grpc_client.cpp grpc_server.cpp grpc_util.cpp transaction.cpp types.cpp util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 	
 protoc_taraxa_grpc: 
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
 
-main: $(BUILDDIR)/main
-	@echo MAIN
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/state_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test
+
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/state_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test
 
 run_test: test
 	./$(TESTBUILDDIR)/dag_test

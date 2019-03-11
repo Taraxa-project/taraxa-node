@@ -12,6 +12,8 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <condition_variable>
+#include <thread>
 #include "types.hpp"
 #include "util.hpp"
 #include "proto/taraxa_grpc.grpc.pb.h"
@@ -36,7 +38,6 @@ public:
 	} catch (std::exception &e){
 		std::cerr<<e.what()<<std::endl;
 	}
-	
 	Transaction(stream & strm);
 	Transaction(string const & json);
 	trx_hash_t getHash() const {return hash_;}
@@ -81,14 +82,66 @@ protected:
 	bytes data_;
 };
 
+/**
+ * Sort transaction based on gas price
+ * Firstly import unverified transaction to deque
+ * Verifier threads will verify and move the transaction to verified priority queue
+ * thread safe
+ */
+
+class TransactionQueue{
+public: 
+	struct SizeLimit{ 
+		size_t current = 1024; 
+		size_t future = 1024;
+	};
+	TransactionQueue() = default;
+	TransactionQueue(unsigned current_capacity, unsigned future_capacity);
+private:
+	using ulock = std::unique_lock<std::mutex>;
+	struct UnverifiedTrx{
+		UnverifiedTrx(Transaction && trx, node_id_t && node_id): 
+			trx(std::move(trx)),
+			node_id(std::move(node_id)){}
+		UnverifiedTrx(UnverifiedTrx && utrx): trx(utrx.trx), node_id(utrx.node_id){}
+		UnverifiedTrx & operator=(UnverifiedTrx && other){
+			if (&other == this) return *this;
+			trx = std::move(other.trx);
+			node_id = std::move(other.node_id);
+			return *this;
+		} 
+		UnverifiedTrx (UnverifiedTrx const &) = delete;
+		UnverifiedTrx & operator=(UnverifiedTrx const &) = delete;
+		Transaction trx;
+		node_id_t node_id;
+	};
+
+	struct PriorityCompare{
+		bool operator()(Transaction const & trx1, Transaction const & trx2) const{
+			return trx1.getGasPrice() > trx2.getGasPrice();
+		}
+	};
+
+	void verifyTrx();
+	bool stopped_ = false;
+	unsigned current_capacity_ = 1024;
+	unsigned future_capacity_ = 1024;
+
+	std::multiset<Transaction, PriorityCompare> verified_qu_;	
+	std::deque<UnverifiedTrx> unverified_qu_;
+	std::vector<std::thread> verifiers_;
+	std::mutex mutex_for_unverified_qu_;
+	std::condition_variable cond_for_unverified_qu_;
+};
+
+
+
 class TransactionManager{
 public:
-	void enqueue(Transaction const & trx){ trx_qu_.emplace_back(trx);}
-	Transaction front() {return trx_qu_.front();}
-	void popFront() {trx_qu_.pop_front();}
+	 
 private:
-	std::deque<Transaction> trx_qu_;
-	std::vector<std::thread> process_threads_;
+	TransactionQueue trx_qu_;
+	std::vector<std::thread> worker_threads_;
 	std::mutex mutex_;
 
 };

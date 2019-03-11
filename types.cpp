@@ -107,9 +107,13 @@ bool uint_hash_t<Bytes>::operator== (uint_hash_t<Bytes> const & other) const{
 
 template <std::size_t Bytes>
 bool uint_hash_t<Bytes>::operator< (uint_hash_t<Bytes> const & other) const{
-	return bytes < other.bytes;
+	return number() < other.number();
 }
 
+template <std::size_t Bytes>
+bool uint_hash_t<Bytes>::operator> (uint_hash_t<Bytes> const & other) const{
+	return number() > other.number();
+}
 template <std::size_t Bytes>
 std::ostream & operator<<(std::ostream & strm, uint_hash_t<Bytes> const &num){
 	strm << std::hex<<num.toString() <<" ";
