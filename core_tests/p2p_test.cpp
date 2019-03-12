@@ -18,6 +18,7 @@
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Session.h>
+#include <libdevcore/Log.h>
 #include "network.hpp"
 #include "taraxa_capability.h"
 
@@ -45,8 +46,7 @@ TEST(p2p, p2p_discovery){
     // allow more time for p2p discovery
 	taraxa::thisThreadSleepForSeconds(12);
 	for(int i = 0; i < NUMBER_OF_NODES; i++) {
-        printf("%d\n", i);
-		ASSERT_EQ(NUMBER_OF_NODES, nodes[i]->getNodeCount());
+        ASSERT_EQ(NUMBER_OF_NODES, nodes[i]->getNodeCount());
 	}
 }
 
@@ -175,6 +175,9 @@ TEST(p2p, block)
 }  // namespace taraxa
 
 int main(int argc, char** argv){
+    LoggingOptions logOptions;
+    logOptions.verbosity = VerbositySilent;
+    setupLogging(logOptions);
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
