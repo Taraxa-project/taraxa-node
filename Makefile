@@ -208,12 +208,10 @@ ${OBJECTDIR}/grpc_test.o: core_tests/grpc_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/grpc_test.o core_tests/grpc_test.cpp $(CPPFLAGS)
 
-
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
 	submodules/secp256k1/.libs/libsecp256k1.a
-		
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
@@ -267,20 +265,14 @@ $(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(OBJECTFILES) $(P2POBJECTFILE
 $(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) 
-#	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test core_tests/transaction_test.cpp transaction.cpp types.cpp util.cpp grpc_server.cpp grpc_util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 
 $(TESTBUILDDIR)/grpc_test: protoc_taraxa_grpc $(OBJECTDIR)/grpc_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/grpc_test.o -o $(TESTBUILDDIR)/grpc_test  $(LDFLAGS) $(LIBS) 
-
-#	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) -o $(TESTBUILDDIR)/grpc_test core_tests/grpc_test.cpp grpc_client.cpp grpc_server.cpp grpc_util.cpp transaction.cpp types.cpp util.cpp grpc/proto/taraxa_grpc.pb.cc grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS) $(LDFLAGS) $(LIBS) -lgtest -lboost_thread-mt -lboost_system
 	
 protoc_taraxa_grpc: 
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
-
-
-
 
 test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/state_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test
 

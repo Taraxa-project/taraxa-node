@@ -46,6 +46,11 @@ bool uint_hash_t<Bytes>::decodeHex(std::string const & str){
 			ok = false;
 		}
 	}
+	else if (str.size()==0){ 
+		typename uint_hash_t<Bytes>::Number zero(0);
+		*this = zero;
+		ok = true;
+	}
 	else {
 		std::cerr<<"uint_hash_t type size is "<<bytes.size()*2<<" chars, "
 			<<"but input string has length "<<str.size()<<" "<<str<<std::endl;

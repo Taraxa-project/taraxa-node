@@ -43,7 +43,7 @@ struct uint_hash_t {
 		"Bytes must be 16, 32 or 64\n");
 
 	using Number = typename std::conditional<Bytes == 16, uint128_t, typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type >::type;
-	uint_hash_t () = default;
+	uint_hash_t () = default; // Must be a trivial type for std::is_pod_v<>=true
 	uint_hash_t (Number const & number);
 	uint_hash_t (std::string const & str);
 	uint_hash_t (const char * cstr);

@@ -96,15 +96,23 @@ future_capacity_(future_capacity){
 
 void TransactionQueue::verifyTrx(){
 	while (!stopped_){
+		UnverifiedTrx utrx;
 		ulock lock(mutex_for_unverified_qu_);
 		while (unverified_qu_.empty() && !stopped_){
 			cond_for_unverified_qu_.wait(lock);
 		}
 		if (stopped_) return;
 	
-		Transaction trx = unverified_qu_.front().trx;
+		utrx = std::move(unverified_qu_.front());
 		unverified_qu_.pop_front();
 
+		try {
+			Transaction trx = std::move(utrx.trx);
+			node_id_t node_id = std::move(utrx.node_id);
+			// verify and put the transaction to verified queue
+		} catch (...) {
+
+		}
 
 	}	
 }

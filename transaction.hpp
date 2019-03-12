@@ -29,7 +29,16 @@ public:
 		Creation,
 		Call
 	};
-	Transaction() = default;
+	Transaction(): 
+		hash_(""), 
+		type_(Type::Null), 
+		nonce_(""),
+		value_(""),
+		gas_price_(""),
+		gas_(""),
+		receiver_(""),
+		sig_(""){}
+		
 	Transaction(::taraxa_grpc::ProtoTransaction const & t): hash_(t.hash()), type_(toEnum<Type>(t.type())), nonce_(t.nonce()), 
 		value_(t.value()), gas_price_(t.gas_price()), gas_(t.gas()), receiver_(t.receiver()), sig_(t.sig()), data_(str2bytes(t.data())){}
 	Transaction(trx_hash_t const & hash, Type type, val_t const & nonce, val_t const & value, val_t const & gas_price, val_t const & gas, 
@@ -38,6 +47,18 @@ public:
 	} catch (std::exception &e){
 		std::cerr<<e.what()<<std::endl;
 	}
+
+	Transaction(Transaction && other): 
+		hash_(std::move(other.hash_)),
+		type_(other.type_),
+		nonce_(std::move(other.nonce_)),
+		value_(std::move(other.value_)),
+		gas_price_(std::move(other.gas_price_)),
+		gas_(std::move(other.gas_)),
+		receiver_(std::move(other.receiver_)),
+		sig_(std::move(other.sig_)),
+		data_(std::move(other.data_)){}
+
 	Transaction(stream & strm);
 	Transaction(string const & json);
 	trx_hash_t getHash() const {return hash_;}
@@ -70,15 +91,29 @@ public:
 	bool operator== (Transaction const & other) const {
 		return this->getJsonStr() == other.getJsonStr();
 	}
+	Transaction & operator=(Transaction && other){
+		if (this == &other) return *this;
+		hash_ = std::move(other.hash_);
+		type_ = other.type_;
+		nonce_ = std::move(other.nonce_);
+		value_ = std::move(other.value_);
+		gas_price_ = std::move(other.gas_price_);
+		gas_ = std::move(other.gas_);
+		receiver_ = std::move(other.receiver_);
+		sig_ = std::move(other.sig_);
+		data_ = std::move(other.data_);
+		return *this;
+	}
+
 protected:
-	trx_hash_t hash_ = "0000000000000000000000000000000000000000000000000000000000000000";
+	trx_hash_t hash_ = "";
 	Type type_ = Type::Null;
-	val_t nonce_ = "0000000000000000000000000000000000000000000000000000000000000000";
-	val_t value_ = "0000000000000000000000000000000000000000000000000000000000000000";
-	val_t gas_price_ = "0000000000000000000000000000000000000000000000000000000000000000";
-	val_t gas_ = "0000000000000000000000000000000000000000000000000000000000000000";
-	name_t receiver_ = "0000000000000000000000000000000000000000000000000000000000000000";
-	sig_t sig_ = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	val_t nonce_ = "";
+	val_t value_ = "";
+	val_t gas_price_ = "";
+	val_t gas_ = "";
+	name_t receiver_ = "";
+	sig_t sig_ = "";
 	bytes data_;
 };
 
@@ -100,10 +135,13 @@ public:
 private:
 	using ulock = std::unique_lock<std::mutex>;
 	struct UnverifiedTrx{
+		UnverifiedTrx(): trx(), node_id(""){}
 		UnverifiedTrx(Transaction && trx, node_id_t && node_id): 
 			trx(std::move(trx)),
 			node_id(std::move(node_id)){}
-		UnverifiedTrx(UnverifiedTrx && utrx): trx(utrx.trx), node_id(utrx.node_id){}
+		UnverifiedTrx(UnverifiedTrx && utrx): 
+			trx(std::move(utrx.trx)), 
+			node_id(utrx.node_id){}
 		UnverifiedTrx & operator=(UnverifiedTrx && other){
 			if (&other == this) return *this;
 			trx = std::move(other.trx);
