@@ -4,6 +4,7 @@
 #include "libp2p/Host.h"
 #include <libp2p/Network.h>
 #include <libdevcrypto/Common.h>
+#include <libdevcore/Log.h>
 #include "taraxa_capability.h"
 
 namespace taraxa{
@@ -146,6 +147,9 @@ Network::Network(boost::asio::io_context & io_context , std::string const & conf
 	num_io_threads_(conf_.network_io_threads),
 	num_packet_processing_threads_(conf_.network_packet_processing_threads){
 
+	dev::LoggingOptions logOptions;
+    logOptions.verbosity = dev::VerbositySilent;
+    dev::setupLogging(logOptions);
 	auto key = dev::KeyPair::create();
 	if(conf_.discovery_key.empty()) {
 		printf("New key generated %s\n", toHex(key.secret().ref()).c_str());
