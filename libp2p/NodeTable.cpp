@@ -478,6 +478,9 @@ void NodeTable::onPacketReceived(
                 }
 
                 auto const sourceNodeEntry = nodeEntry(sourceId);
+                if(!sourceNodeEntry) {
+                    return;
+                }
                 assert(sourceNodeEntry);
                 sourceNodeEntry->lastPongReceivedTime = RLPXDatagramFace::secondsSinceEpoch();
 
