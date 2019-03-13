@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 22:42:15
+ * @Last Modified time: 2019-03-13 15:15:38
  */
 #include "state_block.hpp"
 #include <boost/property_tree/json_parser.hpp>
@@ -20,7 +20,6 @@ vec_trx_t StateBlock::getTrxs() const {return trxs_;}
 sig_t StateBlock::getSignature() const {return signature_;}
 blk_hash_t StateBlock::getHash() const {return hash_;}
 name_t StateBlock::getPublisher() const {return publisher_;}
-
 StateBlock::StateBlock(blk_hash_t pivot, 
 	vec_tip_t tips, 
 	vec_trx_t trxs,
@@ -38,6 +37,22 @@ StateBlock::StateBlock(blk_hash_t pivot,
 } catch (std::exception &e){
 	std::cerr<<e.what()<<std::endl;
 }
+StateBlock::StateBlock(StateBlock && blk): 
+	pivot_(std::move(blk.pivot_)),
+	tips_(std::move(blk.tips_)),
+	trxs_(std::move(blk.trxs_)),
+	signature_(std::move(blk.signature_)),
+	hash_(std::move(blk.hash_)),
+	publisher_(std::move(blk.publisher_)){}
+
+// StateBlock::StateBlock(StateBlock const & blk): 
+// 	pivot_(blk.pivot_),
+// 	tips_(blk.tips_),
+// 	trxs_(blk.trxs_),
+// 	signature_(blk.signature_),
+// 	hash_(blk.hash_),
+// 	publisher_(blk.publisher_){}
+
 StateBlock::StateBlock(stream &strm){
 	deserialize(strm);
 }
@@ -140,5 +155,46 @@ bool StateBlock::deserialize(stream &strm){
 bool StateBlock::operator== (StateBlock const & other) const{
 	return this->getJsonStr() == other.getJsonStr();
 }
-
+StateBlock & StateBlock::operator=(StateBlock && other){
+	pivot_ = std::move(other.pivot_);
+	tips_ = std::move(other.tips_);
+	trxs_ = std::move(other.trxs_);
+	signature_ = std::move(other.signature_);
+	hash_ = std::move(other.hash_);
+	publisher_ = std::move(other.publisher_);
+	return *this;
+}
+BlockQueue::BlockQueue(size_t capacity, unsigned verify_threads): capacity_(capacity){
+	for (auto i = 0; i< verify_threads; ++i){
+		verifiers_.emplace_back([this, i](){
+			dev::setThreadName("BlockVerifier_"+std::to_string(i));
+			this->verifyBlock();
+		});
+	}
+}
+void BlockQueue::verifyBlock(){
+	while (!stopped_){
+		StateBlock blk;
+		{
+			ulock lock(mutex_for_verifier_);
+			while (unverified_qu_.empty() && !stopped_){
+				cond_for_verifier_.wait(lock);
+			}
+			if (stopped_) return;
+		}
+		blk = unverified_qu_.front();
+		unverified_qu_.pop_front();
+		// TODO: verify block
+		verified_qu_.emplace_back(std::move(verified_qu_.front()));
+	}
+}
+// StateBlock & StateBlock::operator=(StateBlock const & other){
+// 	pivot_ = other.pivot_;
+// 	tips_ = other.tips_;
+// 	trxs_ = other.trxs_;
+// 	signature_ = other.signature_;
+// 	hash_ = other.hash_;
+// 	publisher_ = other.publisher_;
+// 	return *this;
+// }
 }  //namespace
