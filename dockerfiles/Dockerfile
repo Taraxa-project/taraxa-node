@@ -1,15 +1,12 @@
 FROM 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
 
 ENV APP_PATH /opt/taraxa/taraxa-node
-
+ENV LD_LIBRARY_PATH /usr/local/lib/
 WORKDIR ${APP_PATH}
 ADD . .  
-RUN git submodule update --init --recursive
 RUN make main
 
-
-
-FROM ubuntu:18.04
+FROM ubuntu:18.10
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
