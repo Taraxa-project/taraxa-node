@@ -187,7 +187,7 @@ $ docker rm taraxa-node
 ### Build Image
 
 ```bash
-$ docker build -t taraxa-node-base -f dockerfiles/base.dockerfile .
+$ docker build -t taraxa-node-base -f dockerfiles/base.<chosen base image>.dockerfile .
 ```
 
 ### Tagging Image
