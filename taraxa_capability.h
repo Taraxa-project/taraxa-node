@@ -1,3 +1,5 @@
+#ifndef TARAXA_CAPABILITY_HPP
+#define TARAXA_CAPABILITY_HPP
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
@@ -7,6 +9,8 @@
 #include <thread>
 #include <set>
 #include "state_block.hpp"
+#include "full_node.hpp"
+#include "visitor.hpp"
 
 using namespace std;
 using namespace dev;
@@ -75,8 +79,13 @@ public:
 
                 m_peers[_nodeID].markBlockAsKnown(block.getHash());
                 if(m_blocks.find(block.getHash()) == m_blocks.end()) {
-                  onNewBlock(block);
-                  printf("Received NewBlock\n");
+                    onNewBlock(block);
+                    printf("Received NewBlock\n");
+                    if(full_node_) {
+                        BlockVisitor visitor(full_node_);
+                        taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
+                        visitor.visit(strm);
+                    }
                 }
                 break;
             }
@@ -88,8 +97,8 @@ public:
                 }
                 blk_hash_t hash;
                 memcpy(&hash, blockBytes.data(), blockBytes.size());
-                if(m_blocks.find(hash) == m_blocks.end() && blockRequestedSet.count(hash) == 0) {
-                    blockRequestedSet.insert(hash);
+                if(m_blocks.find(hash) == m_blocks.end() && m_blockRequestedSet.count(hash) == 0) {
+                    m_blockRequestedSet.insert(hash);
                     requestBlock(_nodeID, hash);
                 }
 	            break;
@@ -259,13 +268,20 @@ public:
         return m_blocks;
     }
 
+    void setFullNode(std::shared_ptr<FullNode> full_node){ 
+        full_node_ = full_node;
+    }
+
     Host const& m_host;
     std::unordered_map<NodeID, int> m_cntReceivedMessages;
     std::unordered_map<NodeID, int> m_testSums;
     std::map<blk_hash_t, taraxa::StateBlock> m_blocks;
-    std::set<blk_hash_t> blockRequestedSet;
+    std::set<blk_hash_t> m_blockRequestedSet;
+
+    std::shared_ptr<FullNode> full_node_;
 
     std::unordered_map<NodeID, TaraxaPeer> m_peers;
     mutable std::mt19937_64 m_urng;  // Mersenne Twister psuedo-random number generator
 };
 }
+#endif

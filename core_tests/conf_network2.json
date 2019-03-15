@@ -1,13 +1,7 @@
 {
-  "udp_port": 3335,
-	"network_io_threads": 2,
-	"network_packet_processing_threads": 2,
-	"udp_buffer_size": 512 ,
-	"udp_buffer_count": 4096,
-
-	"discovery_udp_port": 10003,
-	"discovery_key": "",
-	"boot_nodes": [
+	"network_listen_port": 10003,
+	"network_node_id": "",
+	"network_boot_nodes": [
 		{
 			"id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",
 			"ip": "127.0.0.1",
