@@ -56,8 +56,8 @@ FullNode::FullNode(boost::asio::io_context & io_context,
 	conf_(conf_full_node),
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
-	network_(std::make_shared<Network>(io_context_, conf_network)),
 	blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/, 2/* verifer thread*/)),
+	network_(std::make_shared<Network>(conf_network)),
 	dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
 	blk_proposer_(std::make_shared<BlockProposer>(conf_.block_proposer_threads, dag_mgr_->getShared())){
 
@@ -79,7 +79,7 @@ std::shared_ptr<FullNode> FullNode::getShared() {
 boost::asio::io_context & FullNode::getIoContext() {return io_context_;}
 
 void FullNode::start(){
-	network_->setFullNodeAndMsgParser(getShared());
+	network_->setFullNode(getShared());
 	network_->start();
 	dag_mgr_->start();
 	blk_qu_->start();

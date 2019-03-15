@@ -195,7 +195,7 @@ TEST(FullNode, send_and_receive_out_order_messages){
 	node1->setDebug(true);
 	node1->start();
 	// send package	
-	auto nw2 (std::make_shared<taraxa::Network>(context2, "./core_tests/conf_network2.json"));
+	auto nw2 (std::make_shared<taraxa::Network>("./core_tests/conf_network2.json"));
 
 	std::unique_ptr<boost::asio::io_context::work> work (new boost::asio::io_context::work(context1));
 
@@ -203,8 +203,6 @@ TEST(FullNode, send_and_receive_out_order_messages){
 		context1.run();
 	});
 
-	unsigned port1 = node1->getNetwork()->getConfig().udp_port;
-	end_point_udp_t ep(boost::asio::ip::address_v4::loopback(),port1);
 	nw2->start();
 	std::vector<StateBlock> blks;
 
@@ -265,17 +263,17 @@ TEST(FullNode, send_and_receive_out_order_messages){
 	blks.push_back(blk1);
 	
 	for (auto i=0; i<blks.size(); ++i){
-		nw2->sendBlock(ep, blks[i]);
+		nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i]);
 	}
 
-	std::cout<<"Waiting packages for 500 milliseconds ..."<<std::endl;
-	taraxa::thisThreadSleepForMilliSeconds(500);
+	std::cout<<"Waiting packages for 5000 milliseconds ..."<<std::endl;
+	taraxa::thisThreadSleepForMilliSeconds(5000);
 
 	work.reset();
 	nw2->stop();
 
-	std::cout<<"Waiting packages for 500 milliseconds ..."<<std::endl;
-	taraxa::thisThreadSleepForMilliSeconds(500);
+	std::cout<<"Waiting packages for 5000 milliseconds ..."<<std::endl;
+	taraxa::thisThreadSleepForMilliSeconds(5000);
 	node1->stop();
 
 	// node1->drawGraph("dot.txt");

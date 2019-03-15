@@ -28,7 +28,7 @@ using namespace dev::p2p;
 
 namespace taraxa {
 
-/*TEST(p2p, p2p_discovery){
+TEST(p2p, p2p_discovery){
 	auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", dev::Secret::ConstructFromStringType::FromHex);
 	auto key = dev::KeyPair(secret);
 	const int NUMBER_OF_NODES = 10;
@@ -54,10 +54,10 @@ TEST(p2p, capability)
 {
     int const step = 10;
     const char* const localhost = "127.0.0.1";
-    NetworkConfig prefs1(localhost, 0, false , true );
-    NetworkConfig prefs2(localhost, 0, false , true );
-    Host host1("Test", prefs1);
-    Host host2("Test", prefs2);
+    dev::p2p::NetworkConfig prefs1(localhost, 0, false , true );
+    dev::p2p::NetworkConfig prefs2(localhost, 0, false , true );
+    dev::p2p::Host host1("Test", prefs1);
+    dev::p2p::Host host2("Test", prefs2);
     auto thc1 = make_shared<TaraxaCapability>(host1);
     host1.registerCapability(thc1);
     auto thc2 = make_shared<TaraxaCapability>(host2);
@@ -111,10 +111,10 @@ TEST(p2p, block)
 {
     int const step = 10;
     const char* const localhost = "127.0.0.1";
-    NetworkConfig prefs1(localhost, 0, false  , true );
-    NetworkConfig prefs2(localhost, 0, false , true );
-    Host host1("Test", prefs1);
-    Host host2("Test", prefs2);
+    dev::p2p::NetworkConfig prefs1(localhost, 0, false  , true );
+    dev::p2p::NetworkConfig prefs2(localhost, 0, false , true );
+    dev::p2p::Host host1("Test", prefs1);
+    dev::p2p::Host host2("Test", prefs2);
     auto thc1 = make_shared<TaraxaCapability>(host1);
     host1.registerCapability(thc1);
     auto thc2 = make_shared<TaraxaCapability>(host2);
@@ -172,20 +172,20 @@ TEST(p2p, block)
     EXPECT_EQ(blocks.size(), 1);
     EXPECT_EQ(blk, blocks.begin()->second);
 }
-*/
+
 TEST(p2p, block_propagate)
 {
     int const step = 10;
-    int const nodeCount = 100;
+    int const nodeCount = 50;
     const char* const localhost = "127.0.0.1";
-    NetworkConfig prefs1(localhost, 0, false , true );
-    std::vector<NetworkConfig> vPrefs;
+    dev::p2p::NetworkConfig prefs1(localhost, 0, false , true );
+    std::vector<dev::p2p::NetworkConfig> vPrefs;
     for(int i = 0; i < nodeCount; i++)
-        vPrefs.push_back(NetworkConfig(localhost, 0, false , true ));
-    Host host1("Test", prefs1);
+        vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 0, false , true ));
+    dev::p2p::Host host1("Test", prefs1);
     std::vector<shared_ptr<Host> > vHosts;
     for(int i = 0; i < nodeCount; i++)
-        vHosts.push_back(make_shared<Host>("Test", vPrefs[i]));
+        vHosts.push_back(make_shared<dev::p2p::Host>("Test", vPrefs[i]));
     auto thc1 = make_shared<TaraxaCapability>(host1);
     host1.registerCapability(thc1);
     std::vector<std::shared_ptr<TaraxaCapability> > vCapabilities;
@@ -259,7 +259,6 @@ TEST(p2p, block_propagate)
         printf("%d peerCount:%lu\n",i, vHosts[i]->peerCount());
 
     EXPECT_GT(host1.peerCount(), 0);
-    EXPECT_TRUE(connected);
 
     StateBlock blk (
 	"1111111111111111111111111111111111111111111111111111111111111111",
