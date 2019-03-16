@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:22 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 18:33:56
+ * @Last Modified time: 2019-03-15 21:20:14
  */
  
 #include <gtest/gtest.h>
@@ -165,19 +165,19 @@ TEST(p2p, block)
 	"8888888888888888888888888888888888888888888888888888888888888888",
 	"000000000000000000000000000000000000000000000000000000000000000F");
 
-    thc2->sendBlock(host1.id(), blk);
+	thc2->sendBlock(host1.id(), blk);
 
-    this_thread::sleep_for(chrono::seconds(1));
-    auto blocks = thc1->getBlocks();
-    EXPECT_EQ(blocks.size(), 1);
-    EXPECT_EQ(blk, blocks[0]);
+	this_thread::sleep_for(chrono::seconds(1));
+	auto blocks = thc1->getBlocks();
+	EXPECT_EQ(blocks.size(), 1);
+	EXPECT_EQ(blk, blocks[0]);
 }
 }  // namespace taraxa
 
 int main(int argc, char** argv){
-    LoggingOptions logOptions;
-    logOptions.verbosity = VerbositySilent;
-    setupLogging(logOptions);
+	LoggingOptions logOptions;
+	logOptions.verbosity = VerbositySilent;
+	setupLogging(logOptions);
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

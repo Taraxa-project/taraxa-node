@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-02 14:19:58 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 22:02:10
+ * @Last Modified time: 2019-03-15 16:25:57
  */
  
 #ifndef FULL_NODE_HPP
@@ -13,8 +13,10 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <thread>
 #include <boost/asio.hpp>
 #include "util.hpp"
+#include "libdevcore/Log.h"
 
 namespace taraxa{
 
@@ -23,6 +25,7 @@ class Network;
 class BlockProposer;
 class DagManager;
 class StateBlock;
+class BlockQueue;
 
 struct FullNodeConfig {
 	FullNodeConfig (std::string const &json_file);
@@ -52,7 +55,7 @@ public:
 	std::shared_ptr<Network> getNetwork() const;
 
 	// Store a block in persistent storage and build in dag
-	void storeBlock(StateBlock const &block);
+	void storeBlock(StateBlock const & blk);
 	
 	// Dag query: return childern, siblings, tips before time stamp
 	StateBlock getDagBlock(blk_hash_t const & hash);
@@ -77,7 +80,8 @@ private:
 	// configure files
 	std::string conf_full_node_;
 	std::string conf_network_;
-	
+	size_t num_block_workers_ = 2;
+	bool stopped_ = false;
 	// configuration
 	FullNodeConfig conf_;
 	bool verbose_=false;
@@ -89,19 +93,21 @@ private:
 
 	// network
 	std::shared_ptr<Network> network_;
-	// ledger
-
 	// dag
 	std::shared_ptr<DagManager> dag_mgr_;
+	// ledger
+	std::shared_ptr<BlockQueue> blk_qu_;
 	// block proposer (multi processing)
 	std::shared_ptr<BlockProposer> blk_proposer_;
 
 	std::vector<std::pair<std::string, uint16_t>> remotes_; // neighbors for broadcasting
 	
+	std::vector<std::thread> block_workers_;
 	// debugger
 	std::mutex debug_mutex_;
 	uint64_t received_blocks_ = 0;
-
+	dev::Logger logger_ { dev::createLogger(dev::Verbosity::VerbosityInfo, "chain")};
+	dev::Logger logger_debug_ { dev::createLogger(dev::Verbosity::VerbosityDebug, "chain")};
 };
 
 }

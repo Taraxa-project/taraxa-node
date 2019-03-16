@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-29 15:03:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 12:03:37
+ * @Last Modified time: 2019-03-15 15:08:32
  */
  
 #include <iostream> 
@@ -13,16 +13,23 @@
 #include "full_node.hpp"
 #include "rpc.hpp"
 #include "wallet.hpp"
+#include "libdevcore/Log.h"
+#include "libdevcore/LoggingProgramOptions.h"
 
 int main(int argc, char *argv[]){
 	
 	bool verbose = false;
 	std::string conf_full_node, conf_network, conf_rpc;
 
-	boost::program_options::options_description options(
-		"Usage: main [options], where options are:"
+	// loggin options
+	dev::LoggingOptions loggingOptions;
+	boost::program_options::options_description loggingProgramOptions(
+		dev::createLoggingProgramOptions(160, loggingOptions));
+	
+	boost::program_options::options_description main_options(
+		"GENERIC OPTIONS:"
 	);
-	options.add_options()
+	main_options.add_options()
 		("help", "Print this help message and exit")
 		("verbose", "Print more info")
 		("conf_full_node",
@@ -35,15 +42,19 @@ int main(int argc, char *argv[]){
 			boost::program_options::value<std::string>(&conf_rpc),
 			"Configure file for rpc [required]");
 
+	boost::program_options::options_description allowed_options("Allowed options");
+	allowed_options.add(main_options).add(loggingProgramOptions);
+
 	boost::program_options::variables_map option_vars;
 	boost::program_options::store(
-		boost::program_options::parse_command_line(argc, argv, options), 
+		boost::program_options::parse_command_line(argc, argv, allowed_options), 
 		option_vars
 	);
 	boost::program_options::notify(option_vars);
-	
+	dev::setupLogging(loggingOptions);
+
 	if (option_vars.count("help")){
-		std::cout << options <<std::endl;
+		std::cout << allowed_options <<std::endl;
 		return 1;
 	}
 	if (option_vars.count("verbose") > 0) {

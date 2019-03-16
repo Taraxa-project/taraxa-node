@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:37 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-13 15:16:09
+ * @Last Modified time: 2019-03-14 17:30:09
  */
 
 #ifndef STATE_BLOCK_HPP
@@ -22,7 +22,7 @@
 
 namespace taraxa{
 using std::string;
-
+class DagManager;
 // Block definition
 
 class StateBlock{
@@ -81,30 +81,45 @@ private:
 	name_t publisher_ = ""; //block creater
 };
 
+/**
+ * Thread safe
+ */
 
 class BlockQueue{
 public: 
 	BlockQueue(size_t capacity, unsigned verify_threads);
 	~BlockQueue();
-	void push_back(StateBlock && block); // add to unverified queue
-	StateBlock front(); // get one verified block
-	void pop_front(); // remove front;
+	void pushUnverifiedBlock(StateBlock const & block); // add to unverified queue
+	StateBlock getVerifiedBlock(); // get one verified block and pop
+	void start();
 	void stop();
 
 private:
-	using ulock = std::unique_lock<std::mutex>;
+	using uLock = std::unique_lock<std::mutex>;
+	using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+	using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
 	void verifyBlock();
-	bool stopped_ = false;
+	bool stopped_ = true;
 	size_t capacity_ = 2048;
-	mutable boost::shared_mutex shared_mutex_;
-	
+	size_t num_verifiers_ = 1;
+	mutable boost::shared_mutex shared_mutex_; // shared mutex to check seen_blocks ...
+	mutable std::mutex mutex_; // mutex
+
+	// seen blks
+	std::unordered_set<blk_hash_t> seen_blocks_;
+
 	std::vector<std::thread> verifiers_;
-	mutable std::mutex mutex_for_verifier_;
-	std::condition_variable cond_for_verifier_;
+	mutable std::mutex mutex_for_unverified_qu_;
+	mutable std::mutex mutex_for_verified_qu_;
+
+	std::condition_variable cond_for_unverified_qu_;
+	std::condition_variable cond_for_verified_qu_;
+
 	std::deque<StateBlock> unverified_qu_;
 	std::deque<StateBlock> verified_qu_;
-	dev::Logger logger_ { dev::createLogger(dev::Verbosity::VerbosityDebug, "bq")};
-	dev::Logger logger_detail_ { dev::createLogger(dev::Verbosity::VerbosityTrace, "bq")};
+	dev::Logger logger_ { dev::createLogger(dev::Verbosity::VerbosityInfo, "bq")};
+	dev::Logger logger_debug_ { dev::createLogger(dev::Verbosity::VerbosityDebug, "bq")};
 };
 
 } // namespace taraxa

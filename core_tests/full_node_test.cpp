@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-18 12:56:45 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-22 15:18:20
+ * @Last Modified time: 2019-03-15 21:23:30
  */
  
 #include <gtest/gtest.h>
@@ -13,6 +13,7 @@
 #include <iostream>
 #include "network.hpp"
 #include "full_node.hpp"
+#include "libdevcore/Log.h"
 
 namespace taraxa {
 
@@ -343,6 +344,9 @@ TEST(FullNode, send_and_receive_out_order_messages){
 }  // namespace taraxa
 
 int main(int argc, char** argv){
+	dev::LoggingOptions logOptions;
+	logOptions.verbosity = dev::VerbositySilent;
+	dev::setupLogging(logOptions);
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

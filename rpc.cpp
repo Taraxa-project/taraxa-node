@@ -172,7 +172,7 @@ void RpcHandler::processRequest(){
 
 				StateBlock blk(pivot, tips, {}, signature, hash, publisher);
 				res = blk.getJsonStr(); 
-				node_->storeBlock(blk);
+				node_->storeBlock(std::move(blk));
 			} catch (std::exception &e) {
 				res = e.what();
 			}
@@ -187,7 +187,7 @@ void RpcHandler::processRequest(){
 				time_stamp_t stamp= in_doc_.get<time_stamp_t>("stamp");
 				StateBlock blk(pivot, tips, {}, signature, hash, publisher);
 				res = blk.getJsonStr(); 
-				node_->storeBlock(blk);
+				node_->storeBlock(std::move(blk));
 				node_->setDagBlockTimeStamp(hash, stamp);
 				res += ("\n Block stamped at: " + std::to_string(stamp));
 			} catch (std::exception &e) {

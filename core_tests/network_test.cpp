@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:22 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-31 18:33:56
+ * @Last Modified time: 2019-03-15 21:24:34
  */
  
 #include <gtest/gtest.h>
@@ -12,6 +12,7 @@
 #include <atomic>
 #include <iostream>
 #include "network.hpp"
+#include "libdevcore/Log.h"
 
 namespace taraxa {
 
@@ -229,6 +230,9 @@ TEST(Network, udp_packet_transfer_block){
 }  // namespace taraxa
 
 int main(int argc, char** argv){
+	dev::LoggingOptions logOptions;
+	logOptions.verbosity = dev::VerbositySilent;
+	dev::setupLogging(logOptions);
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

@@ -3,9 +3,10 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-10-31 16:26:04 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-13 15:15:38
+ * @Last Modified time: 2019-03-14 17:50:19
  */
 #include "state_block.hpp"
+#include "dag.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
@@ -44,14 +45,6 @@ StateBlock::StateBlock(StateBlock && blk):
 	signature_(std::move(blk.signature_)),
 	hash_(std::move(blk.hash_)),
 	publisher_(std::move(blk.publisher_)){}
-
-// StateBlock::StateBlock(StateBlock const & blk): 
-// 	pivot_(blk.pivot_),
-// 	tips_(blk.tips_),
-// 	trxs_(blk.trxs_),
-// 	signature_(blk.signature_),
-// 	hash_(blk.hash_),
-// 	publisher_(blk.publisher_){}
 
 StateBlock::StateBlock(stream &strm){
 	deserialize(strm);
@@ -164,37 +157,84 @@ StateBlock & StateBlock::operator=(StateBlock && other){
 	publisher_ = std::move(other.publisher_);
 	return *this;
 }
-BlockQueue::BlockQueue(size_t capacity, unsigned verify_threads): capacity_(capacity){
-	for (auto i = 0; i< verify_threads; ++i){
+BlockQueue::BlockQueue(size_t capacity, unsigned num_verifiers): capacity_(capacity), num_verifiers_(num_verifiers){}
+BlockQueue::~BlockQueue() {
+	stop();
+}
+void BlockQueue::start(){
+	stopped_ = false;
+	for (auto i = 0; i< num_verifiers_; ++i){
 		verifiers_.emplace_back([this, i](){
-			dev::setThreadName("BlockVerifier_"+std::to_string(i));
 			this->verifyBlock();
 		});
 	}
 }
+void BlockQueue::stop(){
+	{
+		uLock lock(mutex_);
+		stopped_ = true;
+	}
+	cond_for_unverified_qu_.notify_all();
+	cond_for_verified_qu_.notify_all();
+	for (auto & t: verifiers_){
+		t.join();
+	}
+}
+void BlockQueue::pushUnverifiedBlock(StateBlock const & blk){
+	{
+		upgradableLock lock(shared_mutex_);
+		if (seen_blocks_.count(blk.getHash())){
+			LOG(logger_)<< "Seen block: "<<blk.getHash()<<std::endl;
+			return;
+		}
+		
+		LOG(logger_)<<"Insert block: "<<blk.getHash()<<std::endl;
+		upgradeLock locked(lock);
+		seen_blocks_.insert(blk.getHash());
+	}
+	{
+		uLock lock(mutex_for_unverified_qu_);
+		unverified_qu_.emplace_back((blk));
+		cond_for_unverified_qu_.notify_one();
+	}
+}
+
+StateBlock BlockQueue::getVerifiedBlock(){
+	uLock lock(mutex_for_verified_qu_);
+	while (verified_qu_.empty() && !stopped_){
+		cond_for_verified_qu_.wait(lock);
+	}
+	StateBlock blk;
+	if (stopped_) return blk;
+
+	blk = verified_qu_.front();
+
+	verified_qu_.pop_front();
+	return blk;
+}
+
+
 void BlockQueue::verifyBlock(){
 	while (!stopped_){
 		StateBlock blk;
 		{
-			ulock lock(mutex_for_verifier_);
+			uLock lock(mutex_for_unverified_qu_);
 			while (unverified_qu_.empty() && !stopped_){
-				cond_for_verifier_.wait(lock);
+				cond_for_unverified_qu_.wait(lock);
 			}
 			if (stopped_) return;
+			blk = unverified_qu_.front();
+			unverified_qu_.pop_front();
 		}
-		blk = unverified_qu_.front();
-		unverified_qu_.pop_front();
-		// TODO: verify block
-		verified_qu_.emplace_back(std::move(verified_qu_.front()));
+		
+		// TODO: verify block, now just move it to verified_qu_
+		{
+			uLock lock(mutex_for_verified_qu_);
+			verified_qu_.emplace_back(blk);
+			cond_for_verified_qu_.notify_one();
+
+		}
 	}
 }
-// StateBlock & StateBlock::operator=(StateBlock const & other){
-// 	pivot_ = other.pivot_;
-// 	tips_ = other.tips_;
-// 	trxs_ = other.trxs_;
-// 	signature_ = other.signature_;
-// 	hash_ = other.hash_;
-// 	publisher_ = other.publisher_;
-// 	return *this;
-// }
+
 }  //namespace

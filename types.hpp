@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 15:47:31 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-05 12:55:19
+ * @Last Modified time: 2019-03-13 16:04:24
  */
 
 #ifndef TYPES_HPP
@@ -60,6 +60,13 @@ struct uint_hash_t {
 	bool operator> (uint_hash_t const & other) const;
 
 	std::string toString() const;
+
+	struct hash {
+		size_t operator()(uint_hash_t<Bytes> const & value) const {
+			return boost::hash_range(value.bytes.cbegin(), value.bytes.cend());
+		}
+	};
+
 	// debugging
 	void rawPrint() const;
 	std::array<uint8_t, Bytes> bytes;
@@ -94,6 +101,13 @@ bytes str2bytes(std::string const & str);
 std::string bytes2str(bytes const & data);
 
 
+
+}
+
+namespace std{
+	// Forward std::hash<taraxa::uint_hash_t> to taraxa::uint_hash_t::hash
+	template<> struct hash<taraxa::blk_hash_t>: taraxa::blk_hash_t::hash {};
+	template<> struct hash<taraxa::sig_t>: taraxa::sig_t::hash {};
 
 }
 

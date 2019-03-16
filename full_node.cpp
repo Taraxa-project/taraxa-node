@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-11-01 15:43:56 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 22:52:52
+ * @Last Modified time: 2019-03-15 20:01:50
  */
 
 #include <boost/asio.hpp>
@@ -57,6 +57,7 @@ FullNode::FullNode(boost::asio::io_context & io_context,
 	db_accounts_(std::make_shared<RocksDb> (conf_.db_accounts_path)),
 	db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)), 
 	network_(std::make_shared<Network>(io_context_, conf_network)),
+	blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/, 2/* verifer thread*/)),
 	dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
 	blk_proposer_(std::make_shared<BlockProposer>(conf_.block_proposer_threads, dag_mgr_->getShared())){
 
@@ -81,28 +82,35 @@ void FullNode::start(){
 	network_->setFullNodeAndMsgParser(getShared());
 	network_->start();
 	dag_mgr_->start();
+	blk_qu_->start();
 	blk_proposer_->start();
+	for (auto i = 0; i < num_block_workers_; ++i){
+		block_workers_.emplace_back([this](){
+			std::string key;
+			while (!stopped_){
+
+				StateBlock blk = blk_qu_->getVerifiedBlock();
+				key = blk.getHash().toString();
+				LOG(logger_)<<"Writing to block db ... "<<key<<std::endl;
+				if (debug_){
+					std::unique_lock<std::mutex> lock(debug_mutex_);
+					received_blocks_++;
+				}
+				db_blocks_->put(blk.getHash().toString(), blk.getJsonStr());
+				dag_mgr_->addStateBlock(blk, true);
+			}
+		});
+	}
 }
 
 void FullNode::stop(){
+	stopped_ = true;
 	blk_proposer_->stop();
 	network_->stop();
 }
 
 void FullNode::storeBlock(StateBlock const & blk){
-	std::string key(blk.getHash().toString());
-	if (verbose_){
-		std::cout<<"Writing to block db ... "<<key<<std::endl;
-	}
-	bool inserted = db_blocks_->put(key, blk.getJsonStr());
-	if (debug_){
-		std::unique_lock<std::mutex> lock(debug_mutex_);
-		received_blocks_++;
-	}
-	// uninserted means already exist, do not call dag 
-	if (inserted){
-		dag_mgr_->addStateBlock(blk, true);
-	}
+	blk_qu_->pushUnverifiedBlock(std::move(blk));
 }
 
 StateBlock FullNode::getDagBlock(blk_hash_t const & hash){

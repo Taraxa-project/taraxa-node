@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-02-27 12:27:18 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-05 18:17:26
+ * @Last Modified time: 2019-03-13 15:38:16
  */
  
 #ifndef TRANSACTION_HPP
@@ -48,17 +48,17 @@ public:
 		std::cerr<<e.what()<<std::endl;
 	}
 
-	Transaction(Transaction && other): 
-		hash_(std::move(other.hash_)),
-		type_(other.type_),
-		nonce_(std::move(other.nonce_)),
-		value_(std::move(other.value_)),
-		gas_price_(std::move(other.gas_price_)),
-		gas_(std::move(other.gas_)),
-		receiver_(std::move(other.receiver_)),
-		sig_(std::move(other.sig_)),
-		data_(std::move(other.data_)){}
-
+	Transaction(Transaction && trx): 
+		hash_(std::move(trx.hash_)),
+		type_(trx.type_),
+		nonce_(std::move(trx.nonce_)),
+		value_(std::move(trx.value_)),
+		gas_price_(std::move(trx.gas_price_)),
+		gas_(std::move(trx.gas_)),
+		receiver_(std::move(trx.receiver_)),
+		sig_(std::move(trx.sig_)),
+		data_(std::move(trx.data_)){}
+	Transaction(Transaction const & trx) = default;
 	Transaction(stream & strm);
 	Transaction(string const & json);
 	trx_hash_t getHash() const {return hash_;}
@@ -104,6 +104,7 @@ public:
 		data_ = std::move(other.data_);
 		return *this;
 	}
+	Transaction & operator=(Transaction const & other) = default; 
 
 protected:
 	trx_hash_t hash_ = "";

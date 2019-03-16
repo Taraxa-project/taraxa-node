@@ -3,12 +3,14 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 19:06:38
+ * @Last Modified time: 2019-03-15 21:24:14
  */
  
 #include <gtest/gtest.h>
 #include "dag.hpp"
 #include "types.hpp"
+#include "libdevcore/Log.h"
+
 namespace taraxa{
 TEST(Dag, build_dag){  
 	taraxa::Dag graph;
@@ -495,6 +497,9 @@ TEST(DagManager, receive_block_out_of_order_multi_thread){
 }  //namespace taraxa
 
 int main(int argc, char** argv){
+	dev::LoggingOptions logOptions;
+	logOptions.verbosity = dev::VerbositySilent;
+	dev::setupLogging(logOptions);
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
