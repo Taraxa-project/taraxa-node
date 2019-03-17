@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2019-01-28 11:12:11 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-15 21:24:14
+ * @Last Modified time: 2019-03-16 23:33:41
  */
  
 #include <gtest/gtest.h>
@@ -405,10 +405,10 @@ TEST(DagManager, receive_block_out_of_order){
 	mgr->addStateBlock(blk3, true);
 	mgr->addStateBlock(blk2, true);
 	mgr->addStateBlock(blk1, true);
-	// std::string pivot;
-	// std::vector<std::string> tips;
-	// std::vector<Dag::vertex_t> criticals;
-	// mgr->getLatestPivotAndTips(pivot, tips);
+	std::string pivot;
+	std::vector<std::string> tips;
+	std::vector<Dag::vertex_t> criticals;
+	mgr->getLatestPivotAndTips(pivot, tips);
 	
 	taraxa::thisThreadSleepForMicroSeconds(500);
 	mgr->stop();

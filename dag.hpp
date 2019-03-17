@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 13:23:51 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 18:17:19
+ * @Last Modified time: 2019-03-16 23:44:41
  */
  
 #include <iostream>
@@ -144,9 +144,9 @@ public:
 	using vertex_name_map_const_t = Dag::vertex_name_map_const_t;
 
 	void getHeavySubtreePathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const;
+
 	void getHeavySubtreePath(vertex_hash const & vertex, std::vector<vertex_hash> &pivot_chain) const;
-private:
-	size_t heavySubtree(vertex_t const &vertex, time_stamp_t stamp, std::vector<vertex_t> &pivot_chain) const;
+
 };
 class SbBuffer;
 class TipBlockExplorer;

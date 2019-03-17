@@ -3,12 +3,13 @@
  * @Author: Chia-Chun Lin 
  * @Date: 2018-12-14 10:59:17 
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-25 22:56:30
+ * @Last Modified time: 2019-03-16 23:46:47
  */
  
 #include <tuple>
 #include <fstream>
 #include <vector>
+#include <stack>
 #include <unordered_set>
 #include <queue>
 
@@ -320,81 +321,91 @@ bool Dag::reachable(vertex_t const & from, vertex_t const & to) const{
 	return false;
 }
 
-// TODO: optimze 
 void PivotTree::getHeavySubtreePath(vertex_hash const & vertex, std::vector<vertex_hash> &pivot_chain) const{
-	ulock lock(mutex_);
-	std::vector<vertex_t> results;
-	vertex_t current = graph_.vertex(vertex);
-	if (current == graph_.null_vertex()){
-		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
-		return;
-	}
-	pivot_chain.clear();
-	heavySubtree(current, std::numeric_limits<uint64_t>::max(), results);
-	std::reverse(results.begin(), results.end());
-	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-
-	for (vertex_t const & r: results){
-		pivot_chain.push_back(name_map[r]);
-	}
-
+	return getHeavySubtreePathBeforeTimeStamp(vertex,std::numeric_limits<uint64_t>::max(), pivot_chain);
 }
+
+/**
+ * Iterative version
+ * Steps rounds
+ * 1. post order traversal
+ * 2. from leave, count weight and propagate up
+ * 3. collect path
+ */
 
 void PivotTree::getHeavySubtreePathBeforeTimeStamp(vertex_hash const & vertex, time_stamp_t stamp, std::vector<vertex_hash> &pivot_chain) const{
 	ulock lock(mutex_);
-	std::vector<vertex_t> results;
-	vertex_t current = graph_.vertex(vertex);
-	if (current == graph_.null_vertex()){
+	std::vector<vertex_t> post_order;
+	vertex_t root = graph_.vertex(vertex);
+	
+	if (root == graph_.null_vertex()){
 		std::cout<<"Warning! cannot find vertex "<<vertex<<"\n";
 		return;
 	}
 	pivot_chain.clear();
-	heavySubtree(current, stamp, results);
-	std::reverse(results.begin(), results.end());
-	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-
-	for (vertex_t const & r: results){
-		pivot_chain.push_back(name_map[r]);
+	if (outDegreeBeforeTimeStamp(root, stamp) == 0){
+		return;
 	}
-
-}
-// TODO:: recursive, change to iterative ..
-size_t PivotTree::heavySubtree(vertex_t const &vertex, time_stamp_t stamp, std::vector<vertex_t> &pivot_chain) const {
-	
-	if (outDegreeBeforeTimeStamp(vertex, stamp) == 0){
-		pivot_chain={vertex};
-		return 1;
-	}
-	vertex_adj_iter_t s, e;
-	size_t total_weight = 0;
-	size_t heavist_weight = 0;
-	size_t heavist_child = vertex;
-	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
 	vertex_time_stamp_map_const_t time_map = boost::get(boost::vertex_index1, graph_);
-
-	for (std::tie(s, e) = adjacenct_vertices(vertex, graph_); s!=e; s++){
-		if (time_map[*s]>=stamp) continue;
-		std::vector<vertex_t> sub_chain;
-		size_t weight = heavySubtree(*s, stamp, sub_chain);
-		if (weight > heavist_weight){
-			heavist_weight = weight;
-			heavist_child = *s;
-			pivot_chain = sub_chain;
-		}
-		else if (weight == heavist_weight){ // compare hash
-			if (name_map[*s]<name_map[heavist_child]){
-				heavist_weight = weight;
-				heavist_child = *s;
-				pivot_chain = sub_chain;
+ 
+	// post order traversal
+	std::stack<vertex_t> st;
+	st.emplace(root);
+	vertex_t cur;
+	vertex_adj_iter_t s, e;
+	while (!st.empty()){
+		cur = st.top();
+		st.pop();
+		post_order.emplace_back(cur);
+		// visit only smaller time stamp
+		for (std::tie(s, e) = adjacenct_vertices(cur, graph_); s != e; s++){
+			if (time_map[*s]<stamp){
+				st.emplace(*s);
 			}
 		}
-		total_weight += weight;
 	}
-	total_weight++;
-	pivot_chain.push_back(vertex);
-	return total_weight;
-}
+	std::reverse(post_order.begin(), post_order.end());
 
+	// compute weight
+	std::unordered_map<vertex_t, size_t> weight_map;
+	for (auto const & n: post_order){
+		auto total_w = 0;
+		// get childrens
+		for (std::tie(s, e) = adjacenct_vertices(n, graph_); s != e; s++){
+			if (weight_map.count(*s)){ // bigger timestamp
+				total_w += weight_map[*s];
+			}
+		}
+		weight_map[n]= total_w+1;
+	}
+
+	vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+	// collect path
+	while (1){
+		pivot_chain.emplace_back(name_map[root]);
+		size_t heavist = 0;
+		vertex_t next;
+
+		for (std::tie(s, e) = adjacenct_vertices(root, graph_); s != e; s++){
+			if (!weight_map.count(*s)) continue; // bigger timestamp
+			size_t w = weight_map[*s];
+			assert(w>0);
+			if (w > heavist){
+				heavist = w;
+				next = *s;
+			} else if (w == heavist){
+				if (name_map[*s]<name_map[next]){
+					heavist = w;
+					next = *s;
+				}
+			}
+		}
+		if (heavist == 0) break;
+		else root = next;
+	}
+	
+	
+}
 
 DagManager::DagManager(unsigned num_threads) try : 
 	debug_(false),
@@ -536,8 +547,7 @@ void DagManager::addToDag(std::string const & hash, std::string const & pivot,
 	// sync pivot tree's time stamp with total_dag_ timestamp
 	auto stamp = total_dag_->getVertexTimeStamp(hash);
 	pivot_tree_->setVertexTimeStamp(hash, stamp);
-	// TODO: disconnect tip explorer for now. Reconnect later ...
-	//tips_explorer_->blockAdded();
+	tips_explorer_->blockAdded();
 }
 
 
@@ -563,7 +573,7 @@ void DagManager::getLatestPivotAndTips(std::string & pivot, std::vector<std::str
 	// make sure the state of dag is the same when collection pivot and tips
 	ulock lock(mutex_);
 	std::vector<std::string> pivot_chain;
-	pivot_tree_->getHeavySubtreePath(Dag::GENESIS, pivot_chain);
+	pivot_tree_->getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
 	pivot = pivot_chain.back();
 	total_dag_->collectLeaves(tips);
 }
