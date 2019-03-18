@@ -58,6 +58,7 @@ public:
 	void rpcAction(boost::system::error_code const & ec, size_t size);
 	void sendTest(dev::p2p::NodeID const& id);
 	void sendBlock(dev::p2p::NodeID const& id, StateBlock const & blk);
+	void onNewBlock(StateBlock const & blk);
 	NetworkConfig getConfig();
 	// no need to set full node in network testing
 	void setFullNode(std::shared_ptr<FullNode> full_node);
