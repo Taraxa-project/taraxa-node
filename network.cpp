@@ -105,4 +105,11 @@ void Network::sendBlock(NodeID const& id, StateBlock const & blk){
 	}
 }
 
+void Network::onNewBlock(StateBlock const & blk){
+	taraxa_capability_->onNewBlock(blk);
+	if (verbose_){
+		print("On new block");
+	}
+}
+
 }
