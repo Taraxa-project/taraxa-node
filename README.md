@@ -59,7 +59,7 @@ The project uses gRPC.
 
 If proto file changed, need to rebuid using: 
 
-`make grpc`
+`make protoc_taraxa_grpc`
 
 (Not needed, can skip for now) For google API, the C++ library for googleapis is unavailable. 
 Therefore, googleapis header and source files are included in `google` directory.
