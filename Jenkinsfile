@@ -17,8 +17,8 @@ pipeline {
         }
         stage('Push Docker Image') {
             steps {
-                sh 'docker tag taraxa-node 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/${env.BRANCH_NAME}:${env.BUILD_NUMBER}'
-                sh 'docker push 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/${env.BRANCH_NAME}:${env.BUILD_NUMBER}'
+                sh 'docker tag taraxa-node 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/${env.BRANCH_NAME}:${env.BUILD_NUMBER}'
+                sh 'docker push 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/${env.BRANCH_NAME}:${env.BUILD_NUMBER}'
             }                    
         }
     }   
