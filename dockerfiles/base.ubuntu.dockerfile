@@ -1,21 +1,22 @@
-FROM ubuntu:18.04 as builder
+FROM ubuntu:18.10 as builder
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
 RUN apt-get update \
     && apt-get install -y \
-    libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev git gcc-8 g++-8 clang \
-    libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl cmake unzip git \
+    libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
+    libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl cmake unzip pkg-config git \
     rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8    
 
+ENV BOOST_VERSION="1_68_0"
 RUN cd /tmp \
-    && wget https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.bz2 \
-    && tar --bzip2 -xf boost_1_68_0.tar.bz2 \
+    && wget https://dl.bintray.com/boostorg/release/1.68.0/source/boost_${BOOST_VERSION}.tar.bz2 \
+    && tar --bzip2 -xf boost_${BOOST_VERSION}.tar.bz2 \
     && export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python2.7/" \
-    && cd boost_1_68_0 \
+    && cd boost_${BOOST_VERSION} \
     && ./bootstrap.sh --prefix=/usr/local \
     && ./b2 install \
     && ln -s /usr/local/lib/libboost_thread.so /usr/local/lib/libboost_thread-mt.so
@@ -37,8 +38,24 @@ RUN wget https://github.com/google/leveldb/archive/v${LEVELDB_VERSION}.tar.gz \
   && tar xvf v${LEVELDB_VERSION}.tar.gz \
   && rm -f v${LEVELDB_VERSION}.tar.gz
 WORKDIR /tmp/leveldb-${LEVELDB_VERSION}
-
 RUN make
 RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
 RUN scp -r include/leveldb /usr/local/include
 RUN ldconfig
+
+ENV GRPC_VERSION="v1.19.1"
+RUN cd /tmp && git clone --verbose --progress --recursive --depth 1 --jobs 10 --branch ${GRPC_VERSION} https://github.com/grpc/grpc.git
+RUN cd /tmp/grpc/ && git submodule update --init
+RUN cd /tmp/grpc/third_party/protobuf \
+  && ./autogen.sh \
+  && ./configure --prefix=/usr/local \
+  && make -j `nproc` \
+  && make install
+RUN cd /tmp/grpc/third_party/cares/cares && (git checkout cares-1_15_0 || true) && (git pull || true)
+RUN cd /tmp/grpc/third_party/boringssl && git checkout master && (git pull || true)  
+ENV CC=/usr/bin/clang
+ENV CXX=/usr/bin/clang++
+RUN cd /tmp/grpc \
+  && make clean \
+  && make  -j `nproc` PROTOC=/usr/local/bin/protoc \
+  && make prefix=/usr/local install
