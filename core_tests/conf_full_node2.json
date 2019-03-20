@@ -1,5 +1,5 @@
 {
-  "address": "127.0.0.1",
+	"address": "127.0.0.1",
 	"db_accounts_path": "/tmp/rocksdb/acc2",
 	"db_blocks_path": "/tmp/rocksdb/blk2",
 	"dag_processing_threads": 2,

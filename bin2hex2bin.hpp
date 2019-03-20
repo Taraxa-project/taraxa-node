@@ -5,9 +5,7 @@ Copyright 2018 Ilja Honkonen
 #ifndef BIN2HEX2BIN_HPP
 #define BIN2HEX2BIN_HPP
 
-
 #include <cryptopp/hex.h>
-
 
 namespace taraxa {
 
@@ -18,19 +16,20 @@ Doesn't return the leading "0x".
 
 Usually Chars = std::string.
 */
-template<class Chars> Chars bin2hex(const Chars& bin) {
-	CryptoPP::HexEncoder encoder;
+template <class Chars>
+Chars bin2hex(const Chars& bin) {
+  CryptoPP::HexEncoder encoder;
 
-	encoder.Put(reinterpret_cast<const CryptoPP::byte*>(bin.data()), bin.size());
-	encoder.MessageEnd();
+  encoder.Put(reinterpret_cast<const CryptoPP::byte*>(bin.data()), bin.size());
+  encoder.MessageEnd();
 
-	Chars hex;
-	hex.resize(encoder.MaxRetrievable());
-	encoder.Get(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(hex.data())), hex.size());
+  Chars hex;
+  hex.resize(encoder.MaxRetrievable());
+  encoder.Get(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(hex.data())),
+              hex.size());
 
-	return hex;
+  return hex;
 }
-
 
 /*
 Returns binary data transformed from hex representation in @hex.
@@ -41,19 +40,21 @@ Ignores last char if given odd number of chars.
 
 Usually Chars = std::string.
 */
-template<class Chars> Chars hex2bin(const Chars& hex) {
-	CryptoPP::HexDecoder decoder;
+template <class Chars>
+Chars hex2bin(const Chars& hex) {
+  CryptoPP::HexDecoder decoder;
 
-	decoder.Put(reinterpret_cast<const CryptoPP::byte*>(hex.data()), hex.size());
-	decoder.MessageEnd();
+  decoder.Put(reinterpret_cast<const CryptoPP::byte*>(hex.data()), hex.size());
+  decoder.MessageEnd();
 
-	Chars bin;
-	bin.resize(decoder.MaxRetrievable());
-	decoder.Get(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(bin.data())), bin.size());
+  Chars bin;
+  bin.resize(decoder.MaxRetrievable());
+  decoder.Get(reinterpret_cast<CryptoPP::byte*>(const_cast<char*>(bin.data())),
+              bin.size());
 
-	return bin;
+  return bin;
 }
 
-} // namespace taraxa
+}  // namespace taraxa
 
-#endif // ifndef BIN2HEX2BIN_HPP
+#endif  // ifndef BIN2HEX2BIN_HPP
