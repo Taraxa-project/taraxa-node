@@ -31,7 +31,10 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
 
 // Network ----------------------------------------
 
-Network::Network(std::string const &conf_file_name) try : conf_(conf_file_name),
+Network::Network(std::string const &conf_file_name) : Network(conf_file_name, ""){
+}
+
+Network::Network(std::string const &conf_file_name, std::string networkFile) try : conf_(conf_file_name),
 							  full_node_(nullptr) {
     dev::LoggingOptions logOptions;
     logOptions.verbosity = dev::VerbositySilent;
@@ -45,11 +48,20 @@ Network::Network(std::string const &conf_file_name) try : conf_(conf_file_name),
 			dev::Secret::ConstructFromStringType::FromHex);
 	key = dev::KeyPair(secret);
     }
+	if(conf_file_name.empty()) {
     host_ = std::make_shared<dev::p2p::Host>(
-	"TaraxaNode", key,
-	dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
-				true));
-    taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get());
+		"TaraxaNode", key,
+		dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
+					true));
+	}
+	else {
+		auto networkData = contents(networkFile);
+		host_ = std::make_shared<dev::p2p::Host>(
+			"TaraxaNode",
+			dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
+						true), dev::bytesConstRef(&networkData));
+	}
+	taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get());
     host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
     std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -113,6 +125,12 @@ void Network::onNewBlock(StateBlock const &blk) {
     if (verbose_) {
 	print("On new block");
     }
+}
+
+void Network::saveNetwork(std::string fileName){
+	auto netData = host_->saveNetwork();
+	if (!netData.empty())
+        writeFile(fileName, &netData);
 }
 
 } // namespace taraxa

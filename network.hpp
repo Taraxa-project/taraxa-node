@@ -50,6 +50,7 @@ struct NetworkConfig {
 class Network {
   public:
     Network(std::string const &conf_file_name);
+    Network(std::string const &conf_file_name, std::string networkFile);
     ~Network();
     void start();
     void stop();
@@ -60,6 +61,8 @@ class Network {
     NetworkConfig getConfig();
     // no need to set full node in network testing
     void setFullNode(std::shared_ptr<FullNode> full_node);
+	void saveNetwork(std::string fileName);
+	int getPeerCount() { return host_->peerCount();}
 
     // for debugging
     void setVerbose(bool verbose);
