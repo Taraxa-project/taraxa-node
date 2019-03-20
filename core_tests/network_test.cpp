@@ -52,6 +52,50 @@ TEST(Network, transfer_block) {
     unsigned long long num_received = nw1->getReceivedBlocksCount();
     ASSERT_EQ(1, num_received);
 }
+
+TEST(Network, save_network) {
+	{
+		std::shared_ptr<Network> nw1(
+		new taraxa::Network("./core_tests/conf_network1.json"));
+		std::shared_ptr<Network> nw2(
+		new taraxa::Network("./core_tests/conf_network2.json"));
+		std::shared_ptr<Network> nw3(
+		new taraxa::Network("./core_tests/conf_network3.json"));
+
+		nw1->start();
+		nw2->start();
+		nw3->start();
+
+		taraxa::thisThreadSleepForSeconds(20);
+
+		ASSERT_EQ(2, nw1->getPeerCount());
+		ASSERT_EQ(2, nw2->getPeerCount());
+		ASSERT_EQ(2, nw3->getPeerCount());
+
+		
+		nw1->stop();
+		nw2->stop();
+		nw3->stop();
+		taraxa::thisThreadSleepForSeconds(10);
+		nw2->saveNetwork("/tmp/nw2");
+		nw3->saveNetwork("/tmp/nw3");
+
+	}
+
+	std::shared_ptr<Network> nw2(
+		new taraxa::Network("./core_tests/conf_network2.json", "/tmp/nw2"));
+	std::shared_ptr<Network> nw3(
+		new taraxa::Network("./core_tests/conf_network3.json", "/tmp/nw3"));
+	nw2->start();
+	nw3->start();
+
+	taraxa::thisThreadSleepForSeconds(10);
+
+	ASSERT_EQ(1, nw2->getPeerCount());
+	ASSERT_EQ(1, nw3->getPeerCount());
+}
+
+
 } // namespace taraxa
 
 int main(int argc, char **argv) {
