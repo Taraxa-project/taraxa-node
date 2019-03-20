@@ -15,9 +15,12 @@
     along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libdevcore/MemoryDB.h>
-
 #include <gtest/gtest.h>
+#include "dag.hpp"
+#include "types.hpp"
+#include "libdevcore/Log.h"
+
+#include <libdevcore/MemoryDB.h>
 
 using namespace std;
 using namespace dev::db;
@@ -27,6 +30,7 @@ namespace
 array<pair<string, string>, 3> g_testData = {{{"Foo", "Bar"}, {"Baz", "Qux"}, {"Hello", "world"}}};
 }
 
+namespace taraxa{
 TEST(MemoryDB, defaultEmpty)
 {
     unique_ptr<MemoryDB> db(new MemoryDB());
@@ -251,4 +255,14 @@ TEST(MemoryDB, commitMultipleBatches)
         EXPECT_EQ(++insertedCount, db->size());
         EXPECT_EQ(g_testData[i].second, db->lookup(Slice(g_testData[i].first)));
     }
+}
+
+}  //namespace taraxa
+
+int main(int argc, char** argv){
+    dev::LoggingOptions logOptions;
+    logOptions.verbosity = dev::VerbositySilent;
+    dev::setupLogging(logOptions);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

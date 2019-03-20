@@ -211,10 +211,10 @@ ${OBJECTDIR}/grpc_test.o: core_tests/grpc_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/grpc_test.o core_tests/grpc_test.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/memorydb.o: core_tests/memorydb.cpp
+${OBJECTDIR}/memorydb_test.o: core_tests/memorydb.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/memorydb.o core_tests/memorydb.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/memorydb_test.o core_tests/memorydb.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/overlaydb_test.o: core_tests/overlaydb.cpp
 	${MKDIR} -p ${OBJECTDIR}
