@@ -11,6 +11,12 @@ In your `feature` branch, do:
 This makes sure your codebase is up-to-date. 
 Please resolve any conflicts you may find.  :)
 
+Before filing pull request, please do:
+
+`make run_test` 
+
+and make sure all test are passed! :)
+
 [![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
 
 # Installation:
