@@ -262,6 +262,10 @@ TEST(FullNode, send_and_receive_out_order_messages){
 	blks.push_back(blk2);
 	blks.push_back(blk1);
 	
+	
+	std::cout<<"Waiting connection for 5000 milliseconds ..."<<std::endl;
+	taraxa::thisThreadSleepForMilliSeconds(5000);
+
 	for (auto i=0; i<blks.size(); ++i){
 		nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i]);
 	}
