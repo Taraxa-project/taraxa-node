@@ -87,17 +87,29 @@ string Transaction::getJsonStr() const {
 	boost::property_tree::write_json(ostrm, tree);
 	return ostrm.str();
 }
-
-TransactionQueue::TransactionQueue(unsigned current_capacity, unsigned future_capacity): 
-current_capacity_(current_capacity),
-future_capacity_(future_capacity){
-	
+bool TransactionQueue::insert(Transaction trx){
+	trx_hash_t hash = trx.getHash();
+	auto status = trx_status_.get(hash);
+	bool ret; 
+	if (status.second == false){ // never seen before
+		ret = trx_status_.insert(hash, TransactionStatus::seen_in_queue);
+		uLock lock(mutex_for_unverified_qu_);
+		unverified_qu_.emplace_back(trx);
+		LOG(logger_)<<"Trx: "<< hash << "inserted. "<<std::endl;
+	} else if (status.first == TransactionStatus::unseen_but_already_packed_by_others){ // updated by other blocks
+		ret = trx_status_.compareAndSwap(hash, 
+			TransactionStatus::unseen_but_already_packed_by_others, 
+			TransactionStatus::seen_in_queue_but_already_packed_by_others);
+		uLock lock(mutex_for_unverified_qu_);
+		unverified_qu_.emplace_back(trx);
+		LOG(logger_)<<"Trx: "<< hash << "already packed by others, but still enqueue. "<<std::endl;
+	} 
+	return ret;
 }
-
 void TransactionQueue::verifyTrx(){
 	while (!stopped_){
-		UnverifiedTrx utrx;
-		ulock lock(mutex_for_unverified_qu_);
+		Transaction utrx;
+		uLock lock(mutex_for_unverified_qu_);
 		while (unverified_qu_.empty() && !stopped_){
 			cond_for_unverified_qu_.wait(lock);
 		}
@@ -107,14 +119,78 @@ void TransactionQueue::verifyTrx(){
 		unverified_qu_.pop_front();
 
 		try {
-			Transaction trx = std::move(utrx.trx);
-			node_id_t node_id = std::move(utrx.node_id);
+			Transaction trx = std::move(utrx);
 			// verify and put the transaction to verified queue
+			bool valid = true;
+			// mark invalid
+			if (!valid){
+				trx_status_.compareAndSwap(trx.getHash(), TransactionStatus::seen_in_queue, TransactionStatus::seen_but_invalid);
+			} else{
+				// push to verified qu
+				uLock lock(mutex_for_verified_qu_);
+				verified_trxs_[trx.getHash()] = trx;
+			}
 		} catch (...) {
 
 		}
 
 	}	
 }
+
+bool TransactionManager::insertTrx(Transaction trx){
+	trx_qu_.insert(trx);
+	return true;
+}
+bool TransactionManager::setPackedTrxFromBlock(blk_hash_t blk){
+	
+}
+/**
+ * This is for block proposer 
+ * Few steps:
+ * 1. get a snapshot (move) of verified queue (lock)
+ *	  now, verified trxs can include (A) unpacked ,(B) packed by other ,(C) old trx that only seen in db
+ * 2. write A, B to database, of course C will be rejected (already exist in database)
+ * 3. propose transactions for block A
+ * 4. update A, B and C status to seen_in_db 
+ * 
+ */ 
+bool TransactionManager::packTrxs(std::vector<trx_hash_t> & to_be_packed_trx){
+	auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
+	std::vector<trx_hash_t> exist_in_db;
+	std::vector<trx_hash_t> packed_by_others;
+	to_be_packed_trx.clear();
+	uLock lock(mutex_);	
+	for (auto const & i: verified_trx){
+		trx_hash_t const & hash = i.first;
+		Transaction const & trx = i.second;
+		if (!db_trxs_->put(hash.toString(), trx.getJsonStr())){
+			exist_in_db.emplace_back(i.first);
+		}
+		TransactionStatus status; 
+		bool exist; 
+		std::tie(status, exist) = trx_status_.get(hash);
+		assert(exist);
+		if (status == TransactionStatus::seen_in_queue_but_already_packed_by_others){
+			packed_by_others.emplace_back(hash);
+		} else if (status == TransactionStatus::seen_in_queue){
+			to_be_packed_trx.emplace_back(i.first);
+		} else{
+			LOG(logger_)<<"Warning! Trx: "<<hash<<" status "<<asInteger(status)<<std::endl;
+			assert(true);
+		}
+	}
+	// update transaction_status
+	for (auto const & t: exist_in_db){
+		trx_status_.insert(t, TransactionStatus::seen_in_db);
+	}
+	for (auto const & t: packed_by_others){
+		trx_status_.insert(t, TransactionStatus::seen_in_db);
+	}
+	for (auto const & t: to_be_packed_trx){
+		trx_status_.insert(t, TransactionStatus::seen_in_db);
+	}
+	return true;
+}
+
 
 }// namespace taraxa

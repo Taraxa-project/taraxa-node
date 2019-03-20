@@ -8,7 +8,7 @@
  
 #ifndef TRANSACTION_HPP
 #define TRANSACTION_HPP
-
+#include <list>
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -17,11 +17,65 @@
 #include "types.hpp"
 #include "util.hpp"
 #include "proto/taraxa_grpc.grpc.pb.h"
+#include "rocks_db.hpp"
+#include "libdevcore/Log.h"
 
 namespace taraxa{
 
 using std::string;
 
+enum class TransactionStatus{
+	seen_but_invalid, 
+	seen_in_db, // confirmed state, (packed)
+	seen_in_queue, // not packed yet
+	seen_in_queue_but_already_packed_by_others, 
+	unseen, // not possible, won't store unseen state
+	unseen_but_already_packed_by_others // still need to be in queue to write to db, but do not propose
+};
+/**
+ * simple thread_safe hash
+ * keep track of transaction state
+ */
+
+class TransactionStatusTable{
+public:
+	using uLock = std::unique_lock<std::mutex>;
+	std::pair<TransactionStatus, bool> get(trx_hash_t const & hash){ 
+		uLock lock(mutex_);
+		auto iter = status_.find(hash);
+		if (iter != status_.end()){
+			return {iter->second, true};
+		} else {
+			return {TransactionStatus::unseen, false};
+		}
+	}
+	bool insert(trx_hash_t const & hash, TransactionStatus status){
+		uLock lock(mutex_);
+		bool ret = false;
+		if (status_.count(hash)){
+			ret = false;
+		} else {
+			status_[hash]=status;
+			ret = true;
+		}
+		return ret;
+	}
+	bool compareAndSwap(trx_hash_t const & hash, TransactionStatus expected_value, TransactionStatus new_value){
+		uLock lock(mutex_);
+		auto iter = status_.find(hash);
+		bool ret = false;
+		if (iter == status_.end()){ 
+			ret = false;
+		} else if (iter->second == expected_value){
+			iter->second = new_value;
+			ret = true;	
+		}
+		return ret;
+	}
+private:
+	std::mutex mutex_;
+	std::unordered_map<trx_hash_t, TransactionStatus> status_;
+};
 class Transaction{
 public:
 	enum class Type: uint8_t{
@@ -131,58 +185,86 @@ public:
 		size_t current = 1024; 
 		size_t future = 1024;
 	};
-	TransactionQueue() = default;
-	TransactionQueue(unsigned current_capacity, unsigned future_capacity);
-private:
-	using ulock = std::unique_lock<std::mutex>;
-	struct UnverifiedTrx{
-		UnverifiedTrx(): trx(), node_id(""){}
-		UnverifiedTrx(Transaction && trx, node_id_t && node_id): 
-			trx(std::move(trx)),
-			node_id(std::move(node_id)){}
-		UnverifiedTrx(UnverifiedTrx && utrx): 
-			trx(std::move(utrx.trx)), 
-			node_id(utrx.node_id){}
-		UnverifiedTrx & operator=(UnverifiedTrx && other){
-			if (&other == this) return *this;
-			trx = std::move(other.trx);
-			node_id = std::move(other.node_id);
-			return *this;
-		} 
-		UnverifiedTrx (UnverifiedTrx const &) = delete;
-		UnverifiedTrx & operator=(UnverifiedTrx const &) = delete;
-		Transaction trx;
-		node_id_t node_id;
+	enum class QueueStatus{
+		active, 
+		pause,
+		stopped
 	};
+	TransactionQueue(TransactionStatusTable & status): trx_status_(status){}
+	TransactionQueue(TransactionStatusTable & status, unsigned current_capacity, unsigned future_capacity): 
+		trx_status_(status), current_capacity_(current_capacity), future_capacity_(future_capacity){}
+	void start();
 
-	struct PriorityCompare{
-		bool operator()(Transaction const & trx1, Transaction const & trx2) const{
-			return trx1.getGasPrice() > trx2.getGasPrice();
-		}
-	};
+	void stop();
+	bool insert(Transaction trx);
+	Transaction top();
+	void pop();
+	std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot() {
+		uLock lock(mutex_for_verified_qu_);
+		auto verified_trxs = std::move(verified_trxs_);
+		assert(verified_trxs_.empty());
+		//verified_trxs.clear();
+		return std::move(verified_trxs);
+	}
+private:
+	using uLock = std::unique_lock<std::mutex>;
 
 	void verifyTrx();
 	bool stopped_ = false;
+	QueueStatus qu_status_ = QueueStatus::stopped;
+	TransactionStatusTable & trx_status_;
 	unsigned current_capacity_ = 1024;
 	unsigned future_capacity_ = 1024;
-
-	std::multiset<Transaction, PriorityCompare> verified_qu_;	
-	std::deque<UnverifiedTrx> unverified_qu_;
+	std::unordered_map<trx_hash_t, Transaction> verified_trxs_;	
+	std::deque<Transaction> unverified_qu_;
 	std::vector<std::thread> verifiers_;
 	std::mutex mutex_for_unverified_qu_;
+	std::mutex mutex_for_verified_qu_;
+
 	std::condition_variable cond_for_unverified_qu_;
+	dev::Logger logger_ { dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
+	dev::Logger logger_debug_ { dev::createLogger(dev::Verbosity::VerbosityDebug, "trx_qu")};
 };
 
+
+/**
+ * Manage transactions within an epoch
+ * 1. Check existence of transaction (seen in queue? in db?)
+ * 2. Push to transaction queue and verify
+ *
+ */
 
 
 class TransactionManager{
 public:
-	 
+	using uLock = std::unique_lock<std::mutex>;
+	enum class MgrStatus: uint8_t {
+		idle,
+		verifying, 
+		proposing
+	};
+	TransactionManager(std::shared_ptr<RocksDb> db_block):
+		db_blocks_(db_block), 
+		db_trxs_(std::make_shared<RocksDb>("/tmp/rocksdb/trx")), 
+		trx_status_(), 
+		trx_qu_(trx_status_){}
+	bool insertTrx(Transaction trx);
+	bool setPackedTrxFromBlock(blk_hash_t blk);
+	/**
+	 * The following function will require a lock for verified qu
+	 */
+	bool packTrxs(std::vector<trx_hash_t> & to_be_packed_trx); 
+
 private:
+	MgrStatus mgr_status_ = MgrStatus::idle;
+	std::shared_ptr<RocksDb> db_blocks_;
+	std::shared_ptr<RocksDb> db_trxs_;
+	TransactionStatusTable trx_status_;
 	TransactionQueue trx_qu_;
 	std::vector<std::thread> worker_threads_;
 	std::mutex mutex_;
-
+	dev::Logger logger_ { dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
+	dev::Logger logger_debug_ { dev::createLogger(dev::Verbosity::VerbosityDebug, "trx_qu")};
 };
 
 
