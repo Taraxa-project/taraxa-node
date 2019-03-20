@@ -101,11 +101,11 @@ public:
 	template <class Property>
   	class label_writer {
   	public:
-    	label_writer(Property property) : property(property) {}
-    	template <class VertexOrEdge>
-    	void operator()(std::ostream& out, const VertexOrEdge& v) const {
-    		out << "[label=\"" << property[v] << "\"]";
-    	}
+		label_writer(Property property) : property(property) {}
+		template <class VertexOrEdge>
+		void operator()(std::ostream& out, const VertexOrEdge& v) const {
+			out << "[label=\"" << property[v] << "\"]";
+		}
 	private:
 		Property property;
 	};
@@ -260,7 +260,7 @@ private:
 	bool ready_;
 	bool on_;
 	unsigned rate_limit_;
-    unsigned counter_;
+	unsigned counter_;
 	std::mutex mutex_;
 	std::condition_variable condition_;
 };
