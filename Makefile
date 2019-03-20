@@ -55,7 +55,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/grpc_util.o \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
-	${OBJECTDIR}/taraxa_grpc.grpc.pb.o 
+	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
+	${OBJECTDIR}/taraxa_capability.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -162,6 +163,11 @@ ${OBJECTDIR}/transaction.o: transaction.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_capability.o taraxa_capability.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
