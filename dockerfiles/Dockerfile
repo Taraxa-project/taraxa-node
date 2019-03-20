@@ -1,4 +1,4 @@
-FROM 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
+FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
 
 ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib/
@@ -6,7 +6,9 @@ WORKDIR ${APP_PATH}
 ADD . .  
 RUN make main
 
+
 FROM ubuntu:18.10
+
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
