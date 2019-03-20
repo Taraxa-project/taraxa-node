@@ -1,7 +1,7 @@
 #ifndef TARAXA_CAPABILITY_HPP
 #define TARAXA_CAPABILITY_HPP
 #include "full_node.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "visitor.hpp"
 #include <chrono>
 #include <libp2p/Capability.h>
@@ -63,23 +63,23 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 				   RLP const &_r) override;
 	void onDisconnect(NodeID const &_nodeID) override;
 	void sendTestMessage(NodeID const &_id, int _x);
-	void onNewBlock(StateBlock block);
+	void onNewBlock(DagBlock block);
 	vector<NodeID>
 	selectPeers(std::function<bool(TaraxaPeer const &)> const &_predicate);
 	std::pair<std::vector<NodeID>, std::vector<NodeID>>
 	randomPartitionPeers(std::vector<NodeID> const &_peers,
 			 std::size_t _number);
 	std::pair<int, int> retrieveTestData(NodeID const &_id);
-	void sendBlock(NodeID const &_id, taraxa::StateBlock block);
-	void sendBlockHash(NodeID const &_id, taraxa::StateBlock block);
+	void sendBlock(NodeID const &_id, taraxa::DagBlock block);
+	void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
 	void requestBlock(NodeID const &_id, blk_hash_t hash);
-	std::map<blk_hash_t, taraxa::StateBlock> getBlocks();
+	std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
 	void setFullNode(std::shared_ptr<FullNode> full_node);
 
 	Host const &m_host;
 	std::unordered_map<NodeID, int> m_cntReceivedMessages;
 	std::unordered_map<NodeID, int> m_testSums;
-	std::map<blk_hash_t, taraxa::StateBlock> m_blocks;
+	std::map<blk_hash_t, taraxa::DagBlock> m_blocks;
 	std::set<blk_hash_t> m_blockRequestedSet;
 
 	std::shared_ptr<FullNode> full_node_;

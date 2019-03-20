@@ -40,7 +40,7 @@ include p2p.inc
 
 OBJECTFILES= \
 	${OBJECTDIR}/rocks_db.o \
-	${OBJECTDIR}/state_block.o \
+	${OBJECTDIR}/dag_block.o \
 	${OBJECTDIR}/util.o \
 	${OBJECTDIR}/udp_buffer.o \
 	${OBJECTDIR}/network.o \
@@ -63,7 +63,7 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/p2p_test.o \
 	${OBJECTDIR}/dag_test.o \
 	${OBJECTDIR}/network_test.o \
-	${OBJECTDIR}/state_block_test.o \
+	${OBJECTDIR}/dag_block_test.o \
 	${OBJECTDIR}/full_node_test.o \
 	${OBJECTDIR}/concur_hash_test.o \
 	${OBJECTDIR}/transaction_test.o \
@@ -87,10 +87,10 @@ ${OBJECTDIR}/rocks_db.o: rocks_db.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/rocks_db.o rocks_db.cpp $(CPPFLAGS)
 	
-${OBJECTDIR}/state_block.o: state_block.cpp
+${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_block.o state_block.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/dag_block.o dag_block.cpp $(CPPFLAGS)
 	
 ${OBJECTDIR}/util.o: util.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -187,10 +187,10 @@ ${OBJECTDIR}/network_test.o: core_tests/network_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/network_test.o core_tests/network_test.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/state_block_test.o: core_tests/state_block_test.cpp
+${OBJECTDIR}/dag_block_test.o: core_tests/dag_block_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_block_test.o core_tests/state_block_test.cpp $(CPPFLAGS)	
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/dag_block_test.o core_tests/dag_block_test.cpp $(CPPFLAGS)	
 
 ${OBJECTDIR}/full_node_test.o: core_tests/full_node_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -270,9 +270,9 @@ $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(OBJECTFILES) $(P2POB
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) 
 
-$(TESTBUILDDIR)/state_block_test: $(OBJECTDIR)/state_block_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+$(TESTBUILDDIR)/dag_block_test: $(OBJECTDIR)/dag_block_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/state_block_test.o -o $(TESTBUILDDIR)/state_block_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/dag_block_test.o -o $(TESTBUILDDIR)/dag_block_test  $(LDFLAGS) $(LIBS) 
 
 $(TESTBUILDDIR)/full_node_test: $(OBJECTDIR)/full_node_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
@@ -311,20 +311,20 @@ protoc_taraxa_grpc:
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/state_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test
 
 run_test: test
-	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/network_test
-	./$(TESTBUILDDIR)/state_block_test
-	./$(TESTBUILDDIR)/full_node_test
-	./$(TESTBUILDDIR)/concur_hash_test
-	./$(TESTBUILDDIR)/p2p_test
-	./$(TESTBUILDDIR)/transaction_test
-	./$(TESTBUILDDIR)/grpc_test
 	./$(TESTBUILDDIR)/memorydb_test
 	./$(TESTBUILDDIR)/overlaydb_test
 	./$(TESTBUILDDIR)/statecachedb_test
+	./$(TESTBUILDDIR)/transaction_test
+	./$(TESTBUILDDIR)/dag_test
+	./$(TESTBUILDDIR)/concur_hash_test
+	./$(TESTBUILDDIR)/dag_block_test
+	./$(TESTBUILDDIR)/grpc_test
+	./$(TESTBUILDDIR)/full_node_test
+	./$(TESTBUILDDIR)/p2p_test
+	./$(TESTBUILDDIR)/network_test
 
 ct:
 	rm -rf $(TESTBUILDDIR)

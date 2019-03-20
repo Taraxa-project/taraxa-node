@@ -12,7 +12,7 @@
 #include <iostream>
 #include "types.hpp"
 #include "util.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "full_node.hpp"
 
 namespace taraxa{
@@ -31,9 +31,9 @@ public:
 	~BlockVisitor() = default;
 	void visit(stream & strm) override;
 	// debugging
-	StateBlock getBlock();
+	DagBlock getBlock();
 private:
-	StateBlock block_;
+	DagBlock block_;
 };
 
 }

@@ -8,7 +8,7 @@
 
 #include <boost/asio.hpp>
 #include "full_node.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "rocks_db.hpp"
 #include "network.hpp"
 #include "dag.hpp"
@@ -89,7 +89,7 @@ void FullNode::start(){
 			std::string key;
 			while (!stopped_){
 
-				StateBlock blk = blk_qu_->getVerifiedBlock();
+				DagBlock blk = blk_qu_->getVerifiedBlock();
 				key = blk.getHash().toString();
 				LOG(logger_)<<"Writing to block db ... "<<key<<std::endl;
 				if (debug_){
@@ -97,7 +97,7 @@ void FullNode::start(){
 					received_blocks_++;
 				}
 				db_blocks_->put(blk.getHash().toString(), blk.getJsonStr());
-				dag_mgr_->addStateBlock(blk, true);
+				dag_mgr_->addDagBlock(blk, true);
 			}
 		});
 	}
@@ -109,26 +109,26 @@ void FullNode::stop(){
 	network_->stop();
 }
 
-void FullNode::storeBlock(StateBlock const & blk){
+void FullNode::storeBlock(DagBlock const & blk){
 	blk_qu_->pushUnverifiedBlock(std::move(blk));
 }
 
-StateBlock FullNode::getDagBlock(blk_hash_t const & hash){
+DagBlock FullNode::getDagBlock(blk_hash_t const & hash){
 	std::string json = db_blocks_->get(hash.toString());
 	if (json.empty()){
-		return StateBlock();
+		return DagBlock();
 	}
 	else{
-		return StateBlock(json);
+		return DagBlock(json);
 	}
 }
 
 time_stamp_t FullNode::getDagBlockTimeStamp (blk_hash_t const & hash){
-	return dag_mgr_->getStateBlockTimeStamp(hash.toString());
+	return dag_mgr_->getDagBlockTimeStamp(hash.toString());
 }
 
 void FullNode::setDagBlockTimeStamp (blk_hash_t const & hash, time_stamp_t stamp){
-	dag_mgr_->setStateBlockTimeStamp(hash.toString(), stamp);
+	dag_mgr_->setDagBlockTimeStamp(hash.toString(), stamp);
 }
 
 std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash, time_stamp_t stamp){
@@ -157,7 +157,7 @@ std::vector<std::string> FullNode::getDagBlockEpochs(blk_hash_t const &from, blk
 }
 
 std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash, time_stamp_t stamp){
-	StateBlock blk = getDagBlock(hash);
+	DagBlock blk = getDagBlock(hash);
 	std::vector<std::string> parents;
 	parents.emplace_back(blk.getPivot().toString());
 		

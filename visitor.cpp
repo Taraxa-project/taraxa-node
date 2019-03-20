@@ -18,7 +18,7 @@ void BlockVisitor::visit(stream &strm){
 	block_.deserialize(strm);
 	full_node_->storeBlock(block_);
 }
-StateBlock BlockVisitor::getBlock(){
+DagBlock BlockVisitor::getBlock(){
 	return block_;
 }
 }

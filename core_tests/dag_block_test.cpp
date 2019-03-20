@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 #include "types.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "libdevcore/Log.h"
 
 namespace taraxa{
@@ -143,9 +143,9 @@ TEST (uint256_hash_t, send_receive_three_cstr){
 	ASSERT_EQ(outgoings, receivings);
 }
 
-TEST (StateBlock, string_format){
+TEST (DagBlock, string_format){
 	using std::string; 
-	StateBlock blk (
+	DagBlock blk (
 	string("1111111111111111111111111111111111111111111111111111111111111111"),
 	{
 	"2222222222222222222222222222222222222222222222222222222222222222",
@@ -169,7 +169,7 @@ TEST (StateBlock, string_format){
 	// check stream size
 	ASSERT_EQ(bytes.size(), 322);
 	bufferstream strm2 (bytes.data(), bytes.size());
-	StateBlock blk2;
+	DagBlock blk2;
 	blk2.deserialize(strm2);
 	ss2<<blk2;
 	// Compare block content
@@ -180,7 +180,7 @@ TEST (StateBlock, string_format){
 TEST (BlockQueue, push_and_pop){
 	BlockQueue blk_qu(1024, 2);
 	blk_qu.start();
-	StateBlock blk1 (
+	DagBlock blk1 (
 	string("1111111111111111111111111111111111111111111111111111111111111111"),
 	{
 	"2222222222222222222222222222222222222222222222222222222222222222",
@@ -193,7 +193,7 @@ TEST (BlockQueue, push_and_pop){
 	"8888888888888888888888888888888888888888888888888888888888888888",
 	"000000000000000000000000000000000000000000000000000000000000000F");
 	
-	StateBlock blk2 (
+	DagBlock blk2 (
 	string("2222222222222222222222222222222222222222222222222222222222222222"),
 	{
 	"2222222222222222222222222222222222222222222222222222222222222222",
@@ -208,8 +208,8 @@ TEST (BlockQueue, push_and_pop){
 	blk_qu.pushUnverifiedBlock(blk1);
 	blk_qu.pushUnverifiedBlock(blk2);
 
-	StateBlock blk3 = blk_qu.getVerifiedBlock();
-	StateBlock blk4 = blk_qu.getVerifiedBlock();
+	DagBlock blk3 = blk_qu.getVerifiedBlock();
+	DagBlock blk4 = blk_qu.getVerifiedBlock();
 	EXPECT_EQ(blk1, blk3);
 	EXPECT_EQ(blk2, blk4);
 }

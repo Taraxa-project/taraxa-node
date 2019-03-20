@@ -10,7 +10,7 @@
 #define NETWORK_HPP
 #include "full_node.hpp"
 #include "libp2p/Host.h"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "taraxa_capability.h"
 #include "util.hpp"
 #include <boost/thread.hpp>
@@ -56,8 +56,8 @@ public:
 	void stop();
 	void rpcAction(boost::system::error_code const &ec, size_t size);
 	void sendTest(dev::p2p::NodeID const &id);
-	void sendBlock(dev::p2p::NodeID const &id, StateBlock const &blk);
-	void onNewBlock(StateBlock const &blk);
+	void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
+	void onNewBlock(DagBlock const &blk);
 	NetworkConfig getConfig();
 	// no need to set full node in network testing
 	void setFullNode(std::shared_ptr<FullNode> full_node);

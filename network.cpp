@@ -113,14 +113,14 @@ void Network::sendTest(NodeID const &id) {
 	}
 }
 
-void Network::sendBlock(NodeID const &id, StateBlock const &blk) {
+void Network::sendBlock(NodeID const &id, DagBlock const &blk) {
 	taraxa_capability_->sendBlock(id, blk);
 	if (verbose_) {
 		print("Sent Block");
 	}
 }
 
-void Network::onNewBlock(StateBlock const &blk) {
+void Network::onNewBlock(DagBlock const &blk) {
 	taraxa_capability_->onNewBlock(blk);
 	if (verbose_) {
 		print("On new block");

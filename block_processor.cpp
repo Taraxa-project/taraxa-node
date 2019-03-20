@@ -1,5 +1,5 @@
 #include "block_processor.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 
 namespace taraxa{
 BlockProcessor::BlockProcessor(FullNode &node): node_(node){}
@@ -12,14 +12,14 @@ void BlockProcessor::stop(){
 	stopped_=true;
 	condition_.notify_all();
 }
-void BlockProcessor::add(std::shared_ptr<StateBlock> sp, time_t time){
+void BlockProcessor::add(std::shared_ptr<DagBlock> sp, time_t time){
 	// TODO: test work validation
 	
 	std::unique_lock<std::mutex> lock(mutex_);
 
 	// QQ: No test for full???
 	if (block_hashes_.find(sp->getHash()) == block_hashes_.end()){
-		state_blocks_.push_back({sp, time});
+		dag_blocks_.push_back({sp, time});
 		
 		// QQ: Where is block_hashes inserted???
 		block_hashes_.insert(sp->getHash());
@@ -30,7 +30,7 @@ void BlockProcessor::add(std::shared_ptr<StateBlock> sp, time_t time){
 
 bool BlockProcessor::full(){
 	std::unique_lock<std::mutex> lock(mutex_);
-	return state_blocks_.size() > MAX_STATE_BLOCKS;
+	return dag_blocks_.size() > MAX_STATE_BLOCKS;
 }
 
 void BlockProcessor::processBlocks(){
@@ -55,26 +55,26 @@ void BlockProcessor::processBlocks(){
 
 bool BlockProcessor::haveBlocks(){
 	assert(!mutex_.try_lock()); 
-	bool ret = !state_blocks_.empty();
+	bool ret = !dag_blocks_.empty();
 	return ret;
 }
 
-void BlockProcessor::batchVerifyStateBlocks(std::unique_lock<std::mutex> &lock){
+void BlockProcessor::batchVerifyDagBlocks(std::unique_lock<std::mutex> &lock){
 	
 	// TODO:
 	// now assume all block valid
 	lock.lock();
-	for (auto &s:state_blocks_){
+	for (auto &s:dag_blocks_){
 		verified_blocks_.emplace_back(s);
 	} 
-	state_blocks_.clear();
+	dag_blocks_.clear();
 	lock.unlock();
 
 	/*
 	// copy entire deque
 	lock.lock();
-	std::deque<std::pair<std::shared_ptr<taraxa::StateBlocks>, time_t >> tmp;
-	tmp.swap(state_blocks_);
+	std::deque<std::pair<std::shared_ptr<taraxa::DagBlocks>, time_t >> tmp;
+	tmp.swap(dag_blocks_);
 	lock.unlock();
 
 	// batch verify
@@ -102,11 +102,11 @@ void BlockProcessor::batchVerifyStateBlocks(std::unique_lock<std::mutex> &lock){
 
 void BlockProcessor::processManyBlocks(std::unique_lock<std::mutex> &lock){
 	// one of the thread has to do the batch verify stuff
-	batchVerifyStateBlocks(lock);
+	batchVerifyDagBlocks(lock);
 	auto start_time (std::chrono::steady_clock::now());
 	lock.lock();
 	while (!verified_blocks_.empty()){
-		std::pair<std::shared_ptr<taraxa::StateBlock>, time_t> block;
+		std::pair<std::shared_ptr<taraxa::DagBlock>, time_t> block;
 		block = verified_blocks_.front();
 		verified_blocks_.pop_front();
 		auto hash = block.first->getHash();
@@ -119,7 +119,7 @@ void BlockProcessor::processManyBlocks(std::unique_lock<std::mutex> &lock){
 	lock.unlock();
 }
 
-ProcessReturn BlockProcessor::processOneBlock(std::shared_ptr<taraxa::StateBlock> sb, time_t origination, bool validated){
+ProcessReturn BlockProcessor::processOneBlock(std::shared_ptr<taraxa::DagBlock> sb, time_t origination, bool validated){
 	ProcessReturn result;
 	auto hash (sb->getHash());
 	// TODO: ledger process

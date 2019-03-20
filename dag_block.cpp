@@ -5,7 +5,7 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2019-03-14 17:50:19
  */
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "dag.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -15,13 +15,13 @@ namespace taraxa{
 
 using std::to_string;
 
-blk_hash_t StateBlock::getPivot() const {return pivot_;}
-vec_tip_t StateBlock::getTips() const {return tips_;}
-vec_trx_t StateBlock::getTrxs() const {return trxs_;}
-sig_t StateBlock::getSignature() const {return signature_;}
-blk_hash_t StateBlock::getHash() const {return hash_;}
-name_t StateBlock::getPublisher() const {return publisher_;}
-StateBlock::StateBlock(blk_hash_t pivot, 
+blk_hash_t DagBlock::getPivot() const {return pivot_;}
+vec_tip_t DagBlock::getTips() const {return tips_;}
+vec_trx_t DagBlock::getTrxs() const {return trxs_;}
+sig_t DagBlock::getSignature() const {return signature_;}
+blk_hash_t DagBlock::getHash() const {return hash_;}
+name_t DagBlock::getPublisher() const {return publisher_;}
+DagBlock::DagBlock(blk_hash_t pivot, 
 	vec_tip_t tips, 
 	vec_trx_t trxs,
 	sig_t signature, 
@@ -38,7 +38,7 @@ StateBlock::StateBlock(blk_hash_t pivot,
 } catch (std::exception &e){
 	std::cerr<<e.what()<<std::endl;
 }
-StateBlock::StateBlock(StateBlock && blk): 
+DagBlock::DagBlock(DagBlock && blk): 
 	pivot_(std::move(blk.pivot_)),
 	tips_(std::move(blk.tips_)),
 	trxs_(std::move(blk.trxs_)),
@@ -46,10 +46,10 @@ StateBlock::StateBlock(StateBlock && blk):
 	hash_(std::move(blk.hash_)),
 	publisher_(std::move(blk.publisher_)){}
 
-StateBlock::StateBlock(stream &strm){
+DagBlock::DagBlock(stream &strm){
 	deserialize(strm);
 }
-StateBlock::StateBlock(std::string const &json){
+DagBlock::DagBlock(std::string const &json){
 	try{
 		boost::property_tree::ptree doc = strToJson(json);
 		pivot_= doc.get<std::string> ("pivot");
@@ -63,13 +63,13 @@ StateBlock::StateBlock(std::string const &json){
 		std::cerr<<e.what()<<std::endl;
 	}
 }
-bool StateBlock::isValid() const {
+bool DagBlock::isValid() const {
 	return !(pivot_.isZero() && hash_.isZero() &&
 		signature_.isZero() && publisher_.isZero());
 
 }
 
-std::string StateBlock::getJsonStr() const{
+std::string DagBlock::getJsonStr() const{
 	using boost::property_tree::ptree;
 
 	ptree tree;
@@ -96,7 +96,7 @@ std::string StateBlock::getJsonStr() const{
 	return ostrm.str();
 }
 
-bool StateBlock::serialize(stream &strm) const{
+bool DagBlock::serialize(stream &strm) const{
 	bool ok = true;
 	uint8_t num_tips = tips_.size();
 	uint8_t num_trxs = trxs_.size();
@@ -116,7 +116,7 @@ bool StateBlock::serialize(stream &strm) const{
 	return ok;
 }
 
-bool StateBlock::deserialize(stream &strm){
+bool DagBlock::deserialize(stream &strm){
 	uint8_t num_tips, num_trxs;
 	bool ok = true;
 
@@ -145,10 +145,10 @@ bool StateBlock::deserialize(stream &strm){
 	return ok;
 }
 
-bool StateBlock::operator== (StateBlock const & other) const{
+bool DagBlock::operator== (DagBlock const & other) const{
 	return this->getJsonStr() == other.getJsonStr();
 }
-StateBlock & StateBlock::operator=(StateBlock && other){
+DagBlock & DagBlock::operator=(DagBlock && other){
 	pivot_ = std::move(other.pivot_);
 	tips_ = std::move(other.tips_);
 	trxs_ = std::move(other.trxs_);
@@ -180,7 +180,7 @@ void BlockQueue::stop(){
 		t.join();
 	}
 }
-void BlockQueue::pushUnverifiedBlock(StateBlock const & blk){
+void BlockQueue::pushUnverifiedBlock(DagBlock const & blk){
 	{
 		upgradableLock lock(shared_mutex_);
 		if (seen_blocks_.count(blk.getHash())){
@@ -199,12 +199,12 @@ void BlockQueue::pushUnverifiedBlock(StateBlock const & blk){
 	}
 }
 
-StateBlock BlockQueue::getVerifiedBlock(){
+DagBlock BlockQueue::getVerifiedBlock(){
 	uLock lock(mutex_for_verified_qu_);
 	while (verified_qu_.empty() && !stopped_){
 		cond_for_verified_qu_.wait(lock);
 	}
-	StateBlock blk;
+	DagBlock blk;
 	if (stopped_) return blk;
 
 	blk = verified_qu_.front();
@@ -216,7 +216,7 @@ StateBlock BlockQueue::getVerifiedBlock(){
 
 void BlockQueue::verifyBlock(){
 	while (!stopped_){
-		StateBlock blk;
+		DagBlock blk;
 		{
 			uLock lock(mutex_for_unverified_qu_);
 			while (unverified_qu_.empty() && !stopped_){

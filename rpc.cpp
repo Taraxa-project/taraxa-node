@@ -1,5 +1,5 @@
 #include "rpc.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include "full_node.hpp"
 #include "wallet.hpp"
 #include "util.hpp"
@@ -170,7 +170,7 @@ void RpcHandler::processRequest(){
 				blk_hash_t hash = in_doc_.get<std::string>("hash"); 
 				name_t publisher = in_doc_.get<std::string>("publisher");
 
-				StateBlock blk(pivot, tips, {}, signature, hash, publisher);
+				DagBlock blk(pivot, tips, {}, signature, hash, publisher);
 				res = blk.getJsonStr(); 
 				node_->storeBlock(std::move(blk));
 			} catch (std::exception &e) {
@@ -185,7 +185,7 @@ void RpcHandler::processRequest(){
 				blk_hash_t hash = in_doc_.get<std::string>("hash"); 
 				name_t publisher = in_doc_.get<std::string>("publisher");
 				time_stamp_t stamp= in_doc_.get<time_stamp_t>("stamp");
-				StateBlock blk(pivot, tips, {}, signature, hash, publisher);
+				DagBlock blk(pivot, tips, {}, signature, hash, publisher);
 				res = blk.getJsonStr(); 
 				node_->storeBlock(std::move(blk));
 				node_->setDagBlockTimeStamp(hash, stamp);
@@ -198,7 +198,7 @@ void RpcHandler::processRequest(){
 		else if (action == "get_dag_block"){
 			try{
 				blk_hash_t hash = in_doc_.get<std::string>("hash");
-				StateBlock blk;
+				DagBlock blk;
 				blk = node_->getDagBlock(hash);
 				time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
 				res = blk.getJsonStr()+ "\ntime_stamp: "+ std::to_string(stamp);

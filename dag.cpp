@@ -494,7 +494,7 @@ void DagManager::stop() {
 		arr.stop();
 	}
 }
-bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
+bool DagManager::addDagBlock(DagBlock const &blk, bool insert){
 	ulock lock(mutex_);
 	std::string hash = blk.getHash().toString();
 	if (total_dag_->hasVertex(hash)){
@@ -534,7 +534,7 @@ bool DagManager::addStateBlock(StateBlock const &blk, bool insert){
 	return true;
 }
 
-void DagManager::addToSbBuffer(StateBlock const & blk){
+void DagManager::addToSbBuffer(DagBlock const & blk){
 	unsigned which_buffer = getBlockInsertingIndex();
 	(*sb_buffer_array_)[which_buffer].insert(blk);
 }
@@ -561,7 +561,7 @@ void DagManager::consume(unsigned idx){
 		auto iter = (*sb_buffer_array_)[idx].getBuffer();
 		auto & blk = iter->first;
 		if (!on_) break;
-		if (addStateBlock(blk, false)){
+		if (addDagBlock(blk, false)){
 			// std::cout<<"consume success ..."<<blk.getHash().toString()<<std::endl;
 			(*sb_buffer_array_)[idx].delBuffer(iter);
 		}
@@ -608,11 +608,11 @@ std::vector<std::string> DagManager::getPivotChainBeforeTimeStamp(std::string co
 	return ret;
 }
 
-time_stamp_t DagManager::getStateBlockTimeStamp(std::string const & vertex){
+time_stamp_t DagManager::getDagBlockTimeStamp(std::string const & vertex){
 	return total_dag_->getVertexTimeStamp(vertex);
 }
 
-void DagManager::setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp){
+void DagManager::setDagBlockTimeStamp(std::string const & vertex, time_stamp_t stamp){
 	total_dag_->setVertexTimeStamp(vertex, stamp);
 	pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
@@ -627,7 +627,7 @@ void SbBuffer::stop() {
 
 bool SbBuffer::isStopped() const {return stopped_;}
 
-void SbBuffer::insert(StateBlock const & blk){
+void SbBuffer::insert(DagBlock const & blk){
 	ulock lock(mutex_);
 	time_point_t t = std::chrono::system_clock::now ();
 	blocks_.emplace_front(std::make_pair(blk, t));

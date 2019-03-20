@@ -24,7 +24,7 @@ class RocksDb;
 class Network;
 class BlockProposer;
 class DagManager;
-class StateBlock;
+class DagBlock;
 class BlockQueue;
 
 struct FullNodeConfig {
@@ -55,10 +55,10 @@ public:
 	std::shared_ptr<Network> getNetwork() const;
 
 	// Store a block in persistent storage and build in dag
-	void storeBlock(StateBlock const & blk);
+	void storeBlock(DagBlock const & blk);
 	
 	// Dag query: return childern, siblings, tips before time stamp
-	StateBlock getDagBlock(blk_hash_t const & hash);
+	DagBlock getDagBlock(blk_hash_t const & hash);
 	time_stamp_t getDagBlockTimeStamp (blk_hash_t const & hash);
 	void setDagBlockTimeStamp(blk_hash_t const & hash, time_stamp_t stamp);
 	std::vector<std::string> getDagBlockChildren(blk_hash_t const &blk, time_stamp_t stamp);

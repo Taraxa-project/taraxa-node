@@ -24,7 +24,7 @@
 #include <condition_variable>
 #include "types.hpp"
 #include "util.hpp"
-#include "state_block.hpp"
+#include "dag_block.hpp"
 #include <atomic>
 #include <mutex>
 
@@ -151,8 +151,8 @@ public:
 class SbBuffer;
 class TipBlockExplorer;
 /**
- * Important : The input StateBlocks to DagManger should be de-duplicated!
- * i.e., no same StateBlocks are put to the Dag.
+ * Important : The input DagBlocks to DagManger should be de-duplicated!
+ * i.e., no same DagBlocks are put to the Dag.
  */
 
 // TODO: probably share property map for total_dag_ and pivot_tree_
@@ -167,7 +167,7 @@ public:
 	void stop();
 	std::shared_ptr<DagManager> getShared();
 
-	bool addStateBlock(StateBlock const &blk, bool insert); // insert to buffer if fail
+	bool addDagBlock(DagBlock const &blk, bool insert); // insert to buffer if fail
 	void consume(unsigned threadId);
 	void getLatestPivotAndTips(std::string & pivot, std::vector<std::string> & tips) const;
 	
@@ -189,8 +189,8 @@ public:
 	void drawPivotGraph(std::string const & str) const;
 
 	// Only Pivot graph
-	time_stamp_t getStateBlockTimeStamp(std::string const & vertex);
-	void setStateBlockTimeStamp(std::string const & vertex, time_stamp_t stamp);
+	time_stamp_t getDagBlockTimeStamp(std::string const & vertex);
+	void setDagBlockTimeStamp(std::string const & vertex, time_stamp_t stamp);
 	
 	std::pair<uint64_t, uint64_t> getNumVerticesInDag() const ;
 	std::pair<uint64_t, uint64_t> getNumEdgesInDag() const ;
@@ -199,7 +199,7 @@ public:
 	size_t getBufferSize() const;
 
 private:
-	void addToSbBuffer(StateBlock const & blk);
+	void addToSbBuffer(DagBlock const & blk);
 	void addToDag(std::string const &hash, 
 		std::string const & pivot, std::vector<std::string> const & tips);
 	unsigned getBlockInsertingIndex(); // add to block to different array
@@ -220,15 +220,15 @@ private:
 	std::vector<boost::thread> sb_buffer_processing_threads_;
 };
 
-// Thread safe buffer for StateBlock
+// Thread safe buffer for DagBlock
 
 class SbBuffer{ 
 public: 
-	using stampedBlock = std::pair<StateBlock, time_point_t>; 
+	using stampedBlock = std::pair<DagBlock, time_point_t>; 
 	using buffIter = std::list<stampedBlock>::iterator;
 	using ulock = std::unique_lock<std::mutex>;
 	SbBuffer();
-	void insert(StateBlock const &blk);
+	void insert(DagBlock const &blk);
 	buffIter getBuffer();
 	void delBuffer(buffIter);
 	void stop();

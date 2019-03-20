@@ -19,7 +19,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
 		blockBytes.push_back(_r[0][i].toInt());
 	}
 	taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
-	StateBlock block;
+	DagBlock block;
 	block.deserialize(strm);
 
 	m_peers[_nodeID].markBlockAsKnown(block.getHash());
@@ -111,7 +111,7 @@ TaraxaCapability::randomPartitionPeers(std::vector<NodeID> const &_peers,
 	return std::make_pair(move(part1), move(part2));
 }
 
-void TaraxaCapability::onNewBlock(StateBlock block) {
+void TaraxaCapability::onNewBlock(DagBlock block) {
 	const int c_minBlockBroadcastPeers = 1;
 	m_blocks[block.getHash()] = block;
 	auto const peersWithoutBlock = selectPeers([&](TaraxaPeer const &_peer) {
@@ -149,7 +149,7 @@ void TaraxaCapability::onNewBlock(StateBlock block) {
 	printf("Anounced block to %lu peers\n", peersToAnnounce.size());
 }
 
-void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::StateBlock block) {
+void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block) {
 	// printf("sendBlock \n");
 	RLPStream s;
 	std::vector<uint8_t> bytes;
@@ -166,7 +166,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::StateBlock block) {
 }
 
 void TaraxaCapability::sendBlockHash(NodeID const &_id,
-					 taraxa::StateBlock block) {
+					 taraxa::DagBlock block) {
 	// printf("sendBlockHash \n");
 	RLPStream s;
 	std::vector<uint8_t> bytes;
@@ -201,7 +201,7 @@ std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
 	return {cnt, checksum};
 }
 
-std::map<blk_hash_t, taraxa::StateBlock> TaraxaCapability::getBlocks() {
+std::map<blk_hash_t, taraxa::DagBlock> TaraxaCapability::getBlocks() {
 	return m_blocks;
 }
 

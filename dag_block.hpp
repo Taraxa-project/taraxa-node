@@ -6,8 +6,8 @@
  * @Last Modified time: 2019-03-14 17:30:09
  */
 
-#ifndef STATE_BLOCK_HPP
-#define STATE_BLOCK_HPP
+#ifndef BLOCKS_HPP
+#define BLOCKS_HPP
 
 #include <iostream>
 #include <string>
@@ -25,21 +25,21 @@ using std::string;
 class DagManager;
 // Block definition
 
-class StateBlock{
+class DagBlock{
 public:
-	StateBlock() = default;
-	StateBlock(StateBlock && blk);
-	StateBlock(StateBlock const & blk) = default;
-	StateBlock(blk_hash_t pivot, 
+	DagBlock() = default;
+	DagBlock(DagBlock && blk);
+	DagBlock(DagBlock const & blk) = default;
+	DagBlock(blk_hash_t pivot, 
 				vec_tip_t tips, 
 				vec_trx_t trxs,
 				sig_t signature, 
 				blk_hash_t hash,
 				name_t publisher
 				);
-	StateBlock(stream &strm);
-	StateBlock(const string &json);
-	friend std::ostream & operator<<(std::ostream &str, StateBlock &u){
+	DagBlock(stream &strm);
+	DagBlock(const string &json);
+	friend std::ostream & operator<<(std::ostream &str, DagBlock &u){
 		str<<"	pivot		= "<< u.pivot_ << std::endl;
 		str<<"	tips		= ";
 		for (auto const &t: u.tips_)
@@ -55,9 +55,9 @@ public:
 
 		return str;
 	}
-	bool operator== (StateBlock const & other) const;
-	StateBlock & operator=(StateBlock && block);
-	StateBlock & operator=(StateBlock const & block) = default;
+	bool operator== (DagBlock const & other) const;
+	DagBlock & operator=(DagBlock && block);
+	DagBlock & operator=(DagBlock const & block) = default;
 	blk_hash_t getPivot() const;
 	vec_tip_t getTips() const ; 
 	vec_trx_t getTrxs() const;
@@ -89,8 +89,8 @@ class BlockQueue{
 public: 
 	BlockQueue(size_t capacity, unsigned verify_threads);
 	~BlockQueue();
-	void pushUnverifiedBlock(StateBlock const & block); // add to unverified queue
-	StateBlock getVerifiedBlock(); // get one verified block and pop
+	void pushUnverifiedBlock(DagBlock const & block); // add to unverified queue
+	DagBlock getVerifiedBlock(); // get one verified block and pop
 	void start();
 	void stop();
 
@@ -116,8 +116,8 @@ private:
 	std::condition_variable cond_for_unverified_qu_;
 	std::condition_variable cond_for_verified_qu_;
 
-	std::deque<StateBlock> unverified_qu_;
-	std::deque<StateBlock> verified_qu_;
+	std::deque<DagBlock> unverified_qu_;
+	std::deque<DagBlock> verified_qu_;
 	dev::Logger logger_ { dev::createLogger(dev::Verbosity::VerbosityInfo, "bq")};
 	dev::Logger logger_debug_ { dev::createLogger(dev::Verbosity::VerbosityDebug, "bq")};
 };
