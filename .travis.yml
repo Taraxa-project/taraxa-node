@@ -11,7 +11,6 @@ after_success:
   - pip install --user awscli
   - export PATH=$PATH:$HOME/.local/bin
   - docker tag taraxa-node 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/$TRAVIS_BRANCH:TRAVIS_BUILD_NUMBER
-  - docker push 258198740961.dkr.ecr.us-west-2.amazonaws.com/taraxa-node/$TRAVIS_BRANCH:TRAVIS_BUILD_NUMBER  
 notifications:
   slack: phragmites:hOCkD4U6FsVSjf4ABAGnCJ8q
 

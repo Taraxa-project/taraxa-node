@@ -43,19 +43,19 @@ RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
 RUN scp -r include/leveldb /usr/local/include
 RUN ldconfig
 
+ENV CC=gcc
+ENV CXX=g++
 ENV GRPC_VERSION="v1.19.1"
 RUN cd /tmp && git clone --verbose --progress --recursive --depth 1 --jobs 10 --branch ${GRPC_VERSION} https://github.com/grpc/grpc.git
 RUN cd /tmp/grpc/ && git submodule update --init
 RUN cd /tmp/grpc/third_party/protobuf \
   && ./autogen.sh \
-  && ./configure --prefix=/usr/local \
+  && ./configure --prefix=/usr \
   && make -j `nproc` \
   && make install
-RUN cd /tmp/grpc/third_party/cares/cares && (git checkout cares-1_15_0 || true) && (git pull || true)
-RUN cd /tmp/grpc/third_party/boringssl && git checkout master && (git pull || true)  
-ENV CC=/usr/bin/clang
-ENV CXX=/usr/bin/clang++
+RUN cd /tmp/grpc/third_party/cares/cares && (git pull || true)
+RUN cd /tmp/grpc/third_party/boringssl && (git pull || true)  
 RUN cd /tmp/grpc \
   && make clean \
-  && make  -j `nproc` PROTOC=/usr/local/bin/protoc \
-  && make prefix=/usr/local install
+  && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' -j `nproc` \
+  && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install
