@@ -82,10 +82,24 @@ string Transaction::getJsonStr() const {
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
 }
+
+void TransactionQueue::start() {
+  stopped_ = false;
+  verifiers_.emplace_back([this]() { verifyTrx(); });
+}
+
+void TransactionQueue::stop() {
+  stopped_ = true;
+  cond_for_unverified_qu_.notify_all();
+  for (auto &t : verifiers_) {
+    t.join();
+  }
+}
+
 bool TransactionQueue::insert(Transaction trx) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
-  bool ret;
+  bool ret = true;
   if (status.second == false) {  // never seen before
     ret = trx_status_.insert(hash, TransactionStatus::seen_in_queue);
     uLock lock(mutex_for_unverified_qu_);
@@ -103,23 +117,32 @@ bool TransactionQueue::insert(Transaction trx) {
     LOG(logger_) << "Trx: " << hash
                  << "already packed by others, but still enqueue. "
                  << std::endl;
+  } else if (status.first == TransactionStatus::seen_in_queue) {
+    LOG(logger_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
+  } else if (status.first == TransactionStatus::seen_in_db) {
+    LOG(logger_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
+  } else if (status.first == TransactionStatus::seen_but_invalid) {
+    LOG(logger_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
   }
   return ret;
 }
+
 void TransactionQueue::verifyTrx() {
   while (!stopped_) {
     Transaction utrx;
-    uLock lock(mutex_for_unverified_qu_);
-    while (unverified_qu_.empty() && !stopped_) {
-      cond_for_unverified_qu_.wait(lock);
+    {
+      uLock lock(mutex_for_unverified_qu_);
+      while (unverified_qu_.empty() && !stopped_) {
+        cond_for_unverified_qu_.wait(lock);
+      }
+      if (stopped_) return;
+
+      utrx = std::move(unverified_qu_.front());
+      unverified_qu_.pop_front();
     }
-    if (stopped_) return;
-
-    utrx = std::move(unverified_qu_.front());
-    unverified_qu_.pop_front();
-
     try {
       Transaction trx = std::move(utrx);
+      trx_hash_t hash = trx.getHash();
       // verify and put the transaction to verified queue
       bool valid = true;
       // mark invalid
@@ -127,8 +150,12 @@ void TransactionQueue::verifyTrx() {
         trx_status_.compareAndSwap(trx.getHash(),
                                    TransactionStatus::seen_in_queue,
                                    TransactionStatus::seen_but_invalid);
+        LOG(logger_) << "Trx: " << hash << "invalid. " << std::endl;
+
       } else {
         // push to verified qu
+        LOG(logger_) << "Trx: " << hash << "verified. " << std::endl;
+
         uLock lock(mutex_for_verified_qu_);
         verified_trxs_[trx.getHash()] = trx;
       }
@@ -136,12 +163,52 @@ void TransactionQueue::verifyTrx() {
     }
   }
 }
-
+std::unordered_map<trx_hash_t, Transaction>
+TransactionQueue::moveVerifiedTrxSnapShot() {
+  uLock lock(mutex_for_verified_qu_);
+  auto verified_trxs = std::move(verified_trxs_);
+  assert(verified_trxs_.empty());
+  LOG(logger_) << "Move: " << verified_trxs.size() << " verified trx out. "
+               << std::endl;
+  return std::move(verified_trxs);
+}
 bool TransactionManager::insertTrx(Transaction trx) {
   trx_qu_.insert(trx);
   return true;
 }
-bool TransactionManager::setPackedTrxFromBlock(blk_hash_t blk) {}
+bool TransactionManager::setPackedTrxFromBlockHash(blk_hash_t blk) {}
+bool TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
+  vec_trx_t trxs = blk.getTrxs();
+  TransactionStatus status;
+  bool exist;
+  for (auto const &t : trxs) {
+    std::tie(status, exist) = trx_status_.get(t);
+    if (!exist) {
+      trx_status_.insert(
+          t, TransactionStatus::unseen_but_already_packed_by_others);
+      LOG(logger_) << "Blk->Trx : " << t
+                   << " unseen but already packed by others" << std::endl;
+
+    } else if (status == TransactionStatus::seen_in_queue) {
+      trx_status_.compareAndSwap(
+          t, TransactionStatus::seen_in_queue,
+          TransactionStatus::seen_in_queue_but_already_packed_by_others);
+      LOG(logger_) << "Blk->Trx : " << t
+                   << " seen in queue but already packed by others"
+                   << std::endl;
+    } else if (status == TransactionStatus::seen_but_invalid) {
+      LOG(logger_) << "Blk->Trx : " << t << " skip, seen and invalid"
+                   << std::endl;
+    } else if (status ==
+               TransactionStatus::seen_in_queue_but_already_packed_by_others) {
+      LOG(logger_) << "Blk->Trx : " << t << " skip, seen packed by others."
+                   << std::endl;
+    } else if (status == TransactionStatus::seen_in_db) {
+      LOG(logger_) << "Blk->Trx : " << t << " skip, seen in db." << std::endl;
+    }
+  }
+}
+
 /**
  * This is for block proposer
  * Few steps:
@@ -152,9 +219,8 @@ bool TransactionManager::setPackedTrxFromBlock(blk_hash_t blk) {}
  *database)
  * 3. propose transactions for block A
  * 4. update A, B and C status to seen_in_db
- *
  */
-bool TransactionManager::packTrxs(std::vector<trx_hash_t> &to_be_packed_trx) {
+bool TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   std::vector<trx_hash_t> exist_in_db;
   std::vector<trx_hash_t> packed_by_others;
@@ -173,23 +239,35 @@ bool TransactionManager::packTrxs(std::vector<trx_hash_t> &to_be_packed_trx) {
     if (status ==
         TransactionStatus::seen_in_queue_but_already_packed_by_others) {
       packed_by_others.emplace_back(hash);
+      LOG(logger_) << "Trx: " << hash << " already packed by others"
+                   << std::endl;
     } else if (status == TransactionStatus::seen_in_queue) {
       to_be_packed_trx.emplace_back(i.first);
+      LOG(logger_) << "Trx: " << hash << " ready to pack" << std::endl;
     } else {
       LOG(logger_) << "Warning! Trx: " << hash << " status "
                    << asInteger(status) << std::endl;
+      LOG(logger_dbg_) << "Warning! Trx: " << hash << " status "
+                       << asInteger(status) << std::endl;
       assert(true);
     }
   }
   // update transaction_status
+  bool res;
   for (auto const &t : exist_in_db) {
-    trx_status_.insert(t, TransactionStatus::seen_in_db);
+    res = trx_status_.insert(t, TransactionStatus::seen_in_db);
+    assert(res);
   }
   for (auto const &t : packed_by_others) {
-    trx_status_.insert(t, TransactionStatus::seen_in_db);
+    res = trx_status_.compareAndSwap(
+        t, TransactionStatus::seen_in_queue_but_already_packed_by_others,
+        TransactionStatus::seen_in_db);
+    assert(res);
   }
   for (auto const &t : to_be_packed_trx) {
-    trx_status_.insert(t, TransactionStatus::seen_in_db);
+    res = trx_status_.compareAndSwap(t, TransactionStatus::seen_in_queue,
+                                     TransactionStatus::seen_in_db);
+    assert(res);
   }
   return true;
 }

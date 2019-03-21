@@ -3,28 +3,27 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-02-27 15:39:04
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-05 16:57:09
+ * @Last Modified time: 2019-03-20 19:15:44
  */
 
-#include "transaction.hpp"
 #include <gtest/gtest.h>
+#include <memory>
 #include <thread>
 #include <vector>
+#include "create_samples.hpp"
 #include "grpc_server.hpp"
-
 namespace taraxa {
+const unsigned NUM_TRX = 40;
+const unsigned NUM_BLK = 4;
+const unsigned BLK_TRX_LEN = 4;
+const unsigned BLK_TRX_OVERLAP = 1;
+
+auto g_trx_samples = samples::createTrxSamples(0, NUM_TRX);
+auto g_blk_samples =
+    samples::createDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
+
 TEST(transaction, serialize_deserialize) {
-  Transaction trans1(
-      "1000000000000000000000000000000000000000000000000000000000000001",  // hash
-      Transaction::Type::Null,  // type
-      "2000000000000000000000000000000000000000000000000000000000000002",  // nonce
-      "3000000000000000000000000000000000000000000000000000000000000003",  // value
-      "4000000000000000000000000000000000000000000000000000000000000004",  // gas_price
-      "5000000000000000000000000000000000000000000000000000000000000005",  // gas
-      "6000000000000000000000000000000000000000000000000000000000000006",  // receiver
-      "777777777777777777777777777777777777777777777777777777777777777777777777"
-      "77777777777777777777777777777777777777777777777777777777",  // sig
-      str2bytes("00FEDCBA9876543210000000"));
+  Transaction& trans1 = g_trx_samples[0];
   std::stringstream ss1, ss2;
   ss1 << trans1;
   std::vector<uint8_t> bytes;
@@ -48,9 +47,79 @@ TEST(transaction, serialize_deserialize) {
   ASSERT_EQ(trans2.getJsonStr(), trans3.getJsonStr());
 }
 
+TEST(TransactionQueue, verify) {
+  TransactionStatusTable status_table;
+  TransactionQueue trx_qu(status_table, 2 /*num verifiers*/);
+  trx_qu.start();
+
+  // insert trx
+  std::thread t([&trx_qu]() {
+    for (auto const& t : g_trx_samples) {
+      trx_qu.insert(t);
+    }
+  });
+
+  // insert trx again, should not duplicated
+  for (auto const& t : g_trx_samples) {
+    trx_qu.insert(t);
+  }
+  t.join();
+  thisThreadSleepForMilliSeconds(100);
+  auto verified_trxs = trx_qu.moveVerifiedTrxSnapShot();
+  EXPECT_EQ(verified_trxs.size(), g_trx_samples.size());
+}
+
+TEST(TransactionManager, prepare_trx_for_propose) {
+  TransactionStatusTable status_table;
+  auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
+  TransactionManager trx_mgr(db_block);
+  std::thread insertTrx([&trx_mgr]() {
+    for (auto const& t : g_trx_samples) {
+      trx_mgr.insertTrx(t);
+    }
+  });
+  std::thread insertBlk([&trx_mgr]() {
+    for (auto const& b : g_blk_samples) {
+      trx_mgr.setPackedTrxFromBlock(b);
+    }
+  });
+  thisThreadSleepForMicroSeconds(5000);
+  insertTrx.join();
+  insertBlk.join();
+  vec_trx_t to_be_packed_trxs;
+  unsigned packed_trx = 0;
+
+  // trying to insert same trans when proposing
+  std::thread insertTrx2([&trx_mgr]() {
+    for (auto const& t : g_trx_samples) {
+      trx_mgr.insertTrx(t);
+    }
+  });
+
+  do {
+    trx_mgr.packTrxs(to_be_packed_trxs);
+    packed_trx += to_be_packed_trxs.size();
+    thisThreadSleepForMicroSeconds(100);
+  } while (!to_be_packed_trxs.empty());
+
+  // trying to insert same trans when proposing
+  std::thread insertTrx3([&trx_mgr]() {
+    for (auto const& t : g_trx_samples) {
+      trx_mgr.insertTrx(t);
+    }
+  });
+  insertTrx2.join();
+  insertTrx3.join();
+  EXPECT_EQ(packed_trx,
+            NUM_TRX - NUM_BLK * (BLK_TRX_LEN - BLK_TRX_OVERLAP) - 1);
+}
+
 }  // namespace taraxa
 
 int main(int argc, char* argv[]) {
+  dev::LoggingOptions logOptions;
+  logOptions.verbosity = dev::VerbositySilent;
+  dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
