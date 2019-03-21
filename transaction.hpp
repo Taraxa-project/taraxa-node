@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-02-27 12:27:18
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-13 15:38:16
+ * @Last Modified time: 2019-03-20 18:44:37
  */
 
 #ifndef TRANSACTION_HPP
@@ -14,6 +14,7 @@
 #include <queue>
 #include <thread>
 #include <vector>
+#include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
 #include "rocks_db.hpp"
@@ -190,10 +191,10 @@ class Transaction {
 };
 
 /**
+ * Thread safe
  * Sort transaction based on gas price
  * Firstly import unverified transaction to deque
  * Verifier threads will verify and move the transaction to verified priority
- * queue thread safe
  */
 
 class TransactionQueue {
@@ -202,33 +203,28 @@ class TransactionQueue {
     size_t current = 1024;
     size_t future = 1024;
   };
-  enum class QueueStatus { active, pause, stopped };
-  TransactionQueue(TransactionStatusTable &status) : trx_status_(status) {}
-  TransactionQueue(TransactionStatusTable &status, unsigned current_capacity,
-                   unsigned future_capacity)
+  TransactionQueue(TransactionStatusTable &status, size_t num_verifiers)
+      : trx_status_(status), num_verifiers_(num_verifiers) {}
+  TransactionQueue(TransactionStatusTable &status, size_t num_verifiers,
+                   unsigned current_capacity, unsigned future_capacity)
       : trx_status_(status),
+        num_verifiers_(num_verifiers),
         current_capacity_(current_capacity),
         future_capacity_(future_capacity) {}
+  ~TransactionQueue() { stop(); }
   void start();
-
   void stop();
   bool insert(Transaction trx);
   Transaction top();
   void pop();
-  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot() {
-    uLock lock(mutex_for_verified_qu_);
-    auto verified_trxs = std::move(verified_trxs_);
-    assert(verified_trxs_.empty());
-    // verified_trxs.clear();
-    return std::move(verified_trxs);
-  }
+  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
 
  private:
   using uLock = std::unique_lock<std::mutex>;
 
   void verifyTrx();
-  bool stopped_ = false;
-  QueueStatus qu_status_ = QueueStatus::stopped;
+  bool stopped_ = true;
+  size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
   unsigned current_capacity_ = 1024;
   unsigned future_capacity_ = 1024;
@@ -260,13 +256,16 @@ class TransactionManager {
       : db_blocks_(db_block),
         db_trxs_(std::make_shared<RocksDb>("/tmp/rocksdb/trx")),
         trx_status_(),
-        trx_qu_(trx_status_) {}
+        trx_qu_(trx_status_, 1 /*num verifiers*/) {
+          trx_qu_.start();
+        }
   bool insertTrx(Transaction trx);
-  bool setPackedTrxFromBlock(blk_hash_t blk);
+  bool setPackedTrxFromBlock(DagBlock const &dag_block);
+  bool setPackedTrxFromBlockHash(blk_hash_t blk);
   /**
    * The following function will require a lock for verified qu
    */
-  bool packTrxs(std::vector<trx_hash_t> &to_be_packed_trx);
+  bool packTrxs(vec_trx_t &to_be_packed_trx);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
@@ -278,7 +277,7 @@ class TransactionManager {
   std::mutex mutex_;
   dev::Logger logger_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
-  dev::Logger logger_debug_{
+  dev::Logger logger_dbg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "trx_qu")};
 };
 
