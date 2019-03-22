@@ -16,7 +16,7 @@ pipeline {
         }     
         stage('Unit Tests') {
             agent {
-                docekrfile {
+                dockerfile {
                     filename 'dockerfiles/base.ubuntu.dockerfile'
                 }
             }
