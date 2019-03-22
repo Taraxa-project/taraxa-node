@@ -9,9 +9,23 @@ pipeline {
                 sh 'git submodule update --init --recursive'
             }                    
         }
-        stage('Build Docker Image') {
+        stage('Docker Registry Login') {
             steps {
                 sh 'eval $(docker run -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW xueshanf/awscli aws ecr get-login --region us-west-2 --no-include-email)'
+            }                    
+        }     
+        stage('Unit Tests') {
+            agent {
+                docekrfile {
+                    filename 'dockerfiles/base.ubuntu.dockerfile'
+                }
+            }
+            steps {
+                sh 'make runt_test'
+            }                    
+        }            
+        stage('Build Docker Image') {
+            steps {
                 sh 'docker build -t taraxa-node -f dockerfiles/Dockerfile .'
             }                    
         }
