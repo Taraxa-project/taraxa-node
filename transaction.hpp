@@ -119,16 +119,7 @@ class Transaction {
     std::cerr << e.what() << std::endl;
   }
 
-  Transaction(Transaction &&trx)
-      : hash_(std::move(trx.hash_)),
-        type_(trx.type_),
-        nonce_(std::move(trx.nonce_)),
-        value_(std::move(trx.value_)),
-        gas_price_(std::move(trx.gas_price_)),
-        gas_(std::move(trx.gas_)),
-        receiver_(std::move(trx.receiver_)),
-        sig_(std::move(trx.sig_)),
-        data_(std::move(trx.data_)) {}
+  Transaction(Transaction &&trx) = default;
   Transaction(Transaction const &trx) = default;
   Transaction(stream &strm);
   Transaction(string const &json);
@@ -138,6 +129,7 @@ class Transaction {
   val_t getValue() const { return value_; }
   val_t getGasPrice() const { return gas_price_; }
   val_t getGas() const { return gas_; }
+  name_t getSender() const { return receiver_; }
   name_t getReceiver() const { return receiver_; }
   sig_t getSig() const { return sig_; }
   bytes getData() const { return data_; }
@@ -152,6 +144,7 @@ class Transaction {
     strm << "  gas_price: " << trans.gas_price_ << std::endl;
     strm << "  gas: " << trans.gas_ << std::endl;
     strm << "  sig: " << trans.sig_ << std::endl;
+    strm << "  sender: " << trans.sender_ << std::endl;
     strm << "  receiver: " << trans.receiver_ << std::endl;
     strm << "  data: " << bytes2str(trans.data_) << std::endl;
     return strm;
@@ -163,21 +156,11 @@ class Transaction {
   bool operator==(Transaction const &other) const {
     return this->getJsonStr() == other.getJsonStr();
   }
-  Transaction &operator=(Transaction &&other) {
-    if (this == &other) return *this;
-    hash_ = std::move(other.hash_);
-    type_ = other.type_;
-    nonce_ = std::move(other.nonce_);
-    value_ = std::move(other.value_);
-    gas_price_ = std::move(other.gas_price_);
-    gas_ = std::move(other.gas_);
-    receiver_ = std::move(other.receiver_);
-    sig_ = std::move(other.sig_);
-    data_ = std::move(other.data_);
-    return *this;
-  }
+  Transaction &operator=(Transaction &&other) = default;
   Transaction &operator=(Transaction const &other) = default;
-
+  bool operator<(Transaction const & other) const{
+    return hash_<other.hash_;
+  }
  protected:
   trx_hash_t hash_ = "";
   Type type_ = Type::Null;
@@ -185,6 +168,7 @@ class Transaction {
   val_t value_ = "";
   val_t gas_price_ = "";
   val_t gas_ = "";
+  name_t sender_ = "";
   name_t receiver_ = "";
   sig_t sig_ = "";
   bytes data_;
@@ -237,7 +221,7 @@ class TransactionQueue {
   std::condition_variable cond_for_unverified_qu_;
   dev::Logger logger_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
-  dev::Logger logger_debug_{
+  dev::Logger logger_dbg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "trx_qu")};
 };
 
@@ -257,8 +241,8 @@ class TransactionManager {
         db_trxs_(std::make_shared<RocksDb>("/tmp/rocksdb/trx")),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
-          trx_qu_.start();
-        }
+    trx_qu_.start();
+  }
   bool insertTrx(Transaction trx);
   bool setPackedTrxFromBlock(DagBlock const &dag_block);
   bool setPackedTrxFromBlockHash(blk_hash_t blk);

@@ -146,9 +146,11 @@ class Dag {
   mutable std::mutex mutex_;
   mutable std::mutex debug_mutex_;
 };
+/**
+ * PivotTree is a special DAG, every vertex only has one out-edge,
+ * therefore, there is no convergent tree
+ */
 
-// PivotTree is a special Dag, every vertex only has one out-edge
-// Therefore, there is no convergent tree
 class PivotTree : public Dag {
  public:
   using vertex_t = Dag::vertex_t;
@@ -162,7 +164,7 @@ class PivotTree : public Dag {
   void getHeavySubtreePath(vertex_hash const &vertex,
                            std::vector<vertex_hash> &pivot_chain) const;
 };
-class SbBuffer;
+class DagBuffer;
 class TipBlockExplorer;
 /**
  * Important : The input DagBlocks to DagManger should be de-duplicated!
@@ -220,7 +222,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   size_t getBufferSize() const;
 
  private:
-  void addToSbBuffer(DagBlock const &blk);
+  void addToDagBuffer(DagBlock const &blk);
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
@@ -236,19 +238,24 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
 
   std::shared_ptr<TipBlockExplorer> tips_explorer_;
-  // SbBuffer
-  std::shared_ptr<std::vector<SbBuffer>> sb_buffer_array_;
+  // DagBuffer
+  std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
   std::vector<boost::thread> sb_buffer_processing_threads_;
 };
 
-// Thread safe buffer for DagBlock
+/**
+ * Thread safe buffer for DagBlock
+ * This will hold DagBlocks that are not ready to be construced in DAG
+ * i.e., it's pivot and tips are not available
+ * TODO: need to requese missing DagBlock from others
+ */
 
-class SbBuffer {
+class DagBuffer {
  public:
   using stampedBlock = std::pair<DagBlock, time_point_t>;
   using buffIter = std::list<stampedBlock>::iterator;
   using ulock = std::unique_lock<std::mutex>;
-  SbBuffer();
+  DagBuffer();
   void insert(DagBlock const &blk);
   buffIter getBuffer();
   void delBuffer(buffIter);

@@ -54,6 +54,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/grpc_server.o \
 	${OBJECTDIR}/grpc_util.o \
 	${OBJECTDIR}/transaction.o \
+	${OBJECTDIR}/executor.o \
+	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
 	${OBJECTDIR}/taraxa_capability.o
@@ -86,6 +88,16 @@ ${OBJECTDIR}/rocks_db.o: rocks_db.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/rocks_db.o rocks_db.cpp $(CPPFLAGS)
+	
+${OBJECTDIR}/executor.o: executor.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
+	
+${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
 	
 ${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}

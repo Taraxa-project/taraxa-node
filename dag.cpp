@@ -434,7 +434,7 @@ DagManager::DagManager(unsigned num_threads) try
       total_dag_(std::make_shared<Dag>()),
       pivot_tree_(std::make_shared<PivotTree>()),
       tips_explorer_(std::make_shared<TipBlockExplorer>(3)),
-      sb_buffer_array_(std::make_shared<std::vector<SbBuffer>>(num_threads)) {
+      sb_buffer_array_(std::make_shared<std::vector<DagBuffer>>(num_threads)) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -527,7 +527,7 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
                 << " unavailable, insert = " << insert << std::endl;
     }
     if (insert) {
-      addToSbBuffer(blk);
+      addToDagBuffer(blk);
     }
     return false;
   }
@@ -541,7 +541,7 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
                   << " unavailable, insert = " << insert << std::endl;
       }
       if (insert) {
-        addToSbBuffer(blk);
+        addToDagBuffer(blk);
       }
       return false;
     }
@@ -552,7 +552,7 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   return true;
 }
 
-void DagManager::addToSbBuffer(DagBlock const &blk) {
+void DagManager::addToDagBuffer(DagBlock const &blk) {
   unsigned which_buffer = getBlockInsertingIndex();
   (*sb_buffer_array_)[which_buffer].insert(blk);
 }
@@ -640,16 +640,17 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
   pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
-SbBuffer::SbBuffer() : stopped_(false), updated_(false), iter_(blocks_.end()) {}
+DagBuffer::DagBuffer()
+    : stopped_(false), updated_(false), iter_(blocks_.end()) {}
 
-void SbBuffer::stop() {
+void DagBuffer::stop() {
   stopped_ = true;
   condition_.notify_all();
 }
 
-bool SbBuffer::isStopped() const { return stopped_; }
+bool DagBuffer::isStopped() const { return stopped_; }
 
-void SbBuffer::insert(DagBlock const &blk) {
+void DagBuffer::insert(DagBlock const &blk) {
   ulock lock(mutex_);
   time_point_t t = std::chrono::system_clock::now();
   blocks_.emplace_front(std::make_pair(blk, t));
@@ -657,7 +658,7 @@ void SbBuffer::insert(DagBlock const &blk) {
   condition_.notify_one();
 }
 
-SbBuffer::buffIter SbBuffer::getBuffer() {
+DagBuffer::buffIter DagBuffer::getBuffer() {
   ulock lock(mutex_);
   while (!stopped_ &&
          (blocks_.empty() || (iter_ == blocks_.end() && !updated_))) {
@@ -670,12 +671,12 @@ SbBuffer::buffIter SbBuffer::getBuffer() {
   iter_++;
   return cur;
 }
-void SbBuffer::delBuffer(SbBuffer::buffIter iter) {
+void DagBuffer::delBuffer(DagBuffer::buffIter iter) {
   ulock lock(mutex_);
   blocks_.erase(iter);
 }
 
-size_t SbBuffer::size() const { return blocks_.size(); }
+size_t DagBuffer::size() const { return blocks_.size(); }
 
 TipBlockExplorer::TipBlockExplorer(unsigned rate)
     : ready_(false), on_(true), rate_limit_(rate), counter_(0) {}

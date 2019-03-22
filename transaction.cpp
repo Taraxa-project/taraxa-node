@@ -21,6 +21,7 @@ Transaction::Transaction(string const &json) {
     gas_price_ = doc.get<string>("gas_price");
     gas_ = doc.get<string>("gas");
     sig_ = doc.get<string>("sig");
+    sender_ = doc.get<string>("sender");
     receiver_ = doc.get<string>("receiver");
     string data = doc.get<string>("data");
     data_ = str2bytes(data);
@@ -37,6 +38,7 @@ bool Transaction::serialize(stream &strm) const {
   ok &= write(strm, value_);
   ok &= write(strm, gas_price_);
   ok &= write(strm, gas_);
+  ok &= write(strm, sender_);
   ok &= write(strm, receiver_);
   ok &= write(strm, sig_);
   std::size_t byte_size = data_.size();
@@ -56,6 +58,7 @@ bool Transaction::deserialize(stream &strm) {
   ok &= read(strm, value_);
   ok &= read(strm, gas_price_);
   ok &= read(strm, gas_);
+  ok &= read(strm, sender_);
   ok &= read(strm, receiver_);
   ok &= read(strm, sig_);
   std::size_t byte_size;
@@ -76,6 +79,7 @@ string Transaction::getJsonStr() const {
   tree.put("gas_price", gas_price_.toString());
   tree.put("gas", gas_.toString());
   tree.put("sig", sig_.toString());
+  tree.put("sender", receiver_.toString());
   tree.put("receiver", receiver_.toString());
   tree.put("data", bytes2str(data_));
   std::stringstream ostrm;
