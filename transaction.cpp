@@ -89,7 +89,10 @@ string Transaction::getJsonStr() const {
 
 void TransactionQueue::start() {
   stopped_ = false;
-  verifiers_.emplace_back([this]() { verifyTrx(); });
+  for (auto i = 0; i < num_verifiers_; ++i) {
+    LOG(logger_) << "Create Transaction verifier ... " << std::endl;
+    verifiers_.emplace_back([this]() { verifyTrx(); });
+  }
 }
 
 void TransactionQueue::stop() {
@@ -108,6 +111,7 @@ bool TransactionQueue::insert(Transaction trx) {
     ret = trx_status_.insert(hash, TransactionStatus::seen_in_queue);
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(trx);
+    cond_for_unverified_qu_.notify_one();
     LOG(logger_) << "Trx: " << hash << "inserted. " << std::endl;
   } else if (status.first ==
              TransactionStatus::
@@ -118,6 +122,7 @@ bool TransactionQueue::insert(Transaction trx) {
         TransactionStatus::seen_in_queue_but_already_packed_by_others);
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(trx);
+    cond_for_unverified_qu_.notify_one();
     LOG(logger_) << "Trx: " << hash
                  << "already packed by others, but still enqueue. "
                  << std::endl;
@@ -128,6 +133,7 @@ bool TransactionQueue::insert(Transaction trx) {
   } else if (status.first == TransactionStatus::seen_but_invalid) {
     LOG(logger_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
   }
+
   return ret;
 }
 
@@ -139,8 +145,10 @@ void TransactionQueue::verifyTrx() {
       while (unverified_qu_.empty() && !stopped_) {
         cond_for_unverified_qu_.wait(lock);
       }
-      if (stopped_) return;
-
+      if (stopped_) {
+        LOG(logger_) << "Transaction verifier stopped ... " << std::endl;
+        return;
+      }
       utrx = std::move(unverified_qu_.front());
       unverified_qu_.pop_front();
     }

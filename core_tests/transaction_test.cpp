@@ -83,7 +83,9 @@ TEST(TransactionManager, prepare_trx_for_propose) {
       trx_mgr.setPackedTrxFromBlock(b);
     }
   });
-  thisThreadSleepForMicroSeconds(5000);
+  thisThreadSleepForSeconds(1);
+  std::cout << "First batch of insertions ... done." << std::endl;
+
   insertTrx.join();
   insertBlk.join();
   vec_trx_t to_be_packed_trxs;
@@ -95,7 +97,7 @@ TEST(TransactionManager, prepare_trx_for_propose) {
       trx_mgr.insertTrx(t);
     }
   });
-
+  std::cout << "Start block proposing ..." << std::endl;
   do {
     trx_mgr.packTrxs(to_be_packed_trxs);
     packed_trx += to_be_packed_trxs.size();
