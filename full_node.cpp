@@ -154,6 +154,12 @@ std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash,
       dag_mgr_->getPivotChildrenBeforeTimeStamp(hash.toString(), stamp);
   return children;
 }
+
+std::string FullNode::getLatestPivot() {
+	std::string pivot;
+	dag_mgr_->getLatestPivot(pivot);
+	return pivot;
+}
 // Recursive call to children
 std::vector<std::string> FullNode::getDagBlockSubtree(blk_hash_t const &hash,
                                                       time_stamp_t stamp) {

@@ -28,65 +28,64 @@
 
 namespace taraxa {
 
-class FullNode;
-
 struct NodeConfig {
-  std::string id;
-  std::string ip;
-  uint16_t port;
+	std::string id;
+	std::string ip;
+	uint16_t port;
 };
 
 struct NetworkConfig {
-  NetworkConfig(std::string const &json_file);
-  std::string json_file_name;
-  uint16_t network_listen_port;
-  std::string network_node_id;
-  std::vector<NodeConfig> network_boot_nodes;
+	NetworkConfig(std::string const &json_file);
+	std::string json_file_name;
+	uint16_t network_listen_port;
+	std::string network_node_id;
+	std::vector<NodeConfig> network_boot_nodes;
 };
 
 /**
  */
 
 class Network {
- public:
-  Network(std::string const &conf_file_name);
-  Network(std::string const &conf_file_name, std::string networkFile);
-  ~Network();
-  void start();
-  void stop();
-  void rpcAction(boost::system::error_code const &ec, size_t size);
-  void sendTest(dev::p2p::NodeID const &id);
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk);
-  void onNewBlock(DagBlock const &blk);
-  NetworkConfig getConfig();
-  // no need to set full node in network testing
-  void setFullNode(std::shared_ptr<FullNode> full_node);
-  void saveNetwork(std::string fileName);
-  int getPeerCount() { return host_->peerCount(); }
+       public:
+	Network(std::string const &conf_file_name);
+	Network(std::string const &conf_file_name, std::string networkFile);
+	~Network();
+	void start();
+	void stop();
+	void rpcAction(boost::system::error_code const &ec, size_t size);
+	void sendTest(dev::p2p::NodeID const &id);
+	void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
+		       bool newBlock);
+	void onNewBlock(DagBlock const &blk);
+	NetworkConfig getConfig();
+	// no need to set full node in network testing
+	void setFullNode(std::shared_ptr<FullNode> full_node);
+	void saveNetwork(std::string fileName);
+	int getPeerCount() { return host_->peerCount(); }
 
-  // for debugging
-  void setVerbose(bool verbose);
-  void setDebug(bool debug);
-  void print(std::string const &str);
-  dev::p2p::NodeID getNodeId() { return host_->id(); };
-  int getReceivedBlocksCount() {
-    return taraxa_capability_->getBlocks().size();
-  }
+	// for debugging
+	void setVerbose(bool verbose);
+	void setDebug(bool debug);
+	void print(std::string const &str);
+	dev::p2p::NodeID getNodeId() { return host_->id(); };
+	int getReceivedBlocksCount() {
+		return taraxa_capability_->getBlocks().size();
+	}
 
- private:
-  std::shared_ptr<dev::p2p::Host> host_;
-  std::shared_ptr<TaraxaCapability> taraxa_capability_;
+       private:
+	std::shared_ptr<dev::p2p::Host> host_;
+	std::shared_ptr<TaraxaCapability> taraxa_capability_;
 
   NetworkConfig conf_;
   bool stopped_ = true;
 
   std::weak_ptr<FullNode> full_node_;
 
-  // for debugging
-  bool verbose_ = false;
-  bool debug_ = false;
-  std::mutex debug_mutex_;
-  std::mutex verbose_mutex_;
+	// for debugging
+	bool verbose_ = false;
+	bool debug_ = false;
+	std::mutex debug_mutex_;
+	std::mutex verbose_mutex_;
 };
 
 }  // namespace taraxa

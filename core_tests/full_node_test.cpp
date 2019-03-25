@@ -228,7 +228,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   taraxa::thisThreadSleepForMilliSeconds(5000);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i]);
+    nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i], true);
   }
 
   std::cout << "Waiting packages for 5000 milliseconds ..." << std::endl;

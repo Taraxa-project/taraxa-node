@@ -154,7 +154,7 @@ TEST(p2p, block) {
                {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
                name_t(999));
 
-  thc2->sendBlock(host1.id(), blk);
+  thc2->sendBlock(host1.id(), blk, true);
 
   this_thread::sleep_for(chrono::seconds(1));
   auto blocks = thc1->getBlocks();
