@@ -25,10 +25,8 @@ std::vector<Transaction> createTrxSamples(unsigned start, unsigned num) {
     std::string hash = strm.str();
     Transaction trx(hash,                     // hash
                     Transaction::Type::Null,  // type
-                    "2000000000000000000000000000000000000000000000000000000000"
-                    "000002",  // nonce
-                    "3000000000000000000000000000000000000000000000000000000000"
-                    "000003",  // value
+                    2,                        // nonce
+                    3,                        // value
                     "4000000000000000000000000000000000000000000000000000000000"
                     "000004",  // gas_price
                     "5000000000000000000000000000000000000000000000000000000000"

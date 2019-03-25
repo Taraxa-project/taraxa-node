@@ -16,8 +16,8 @@ Transaction::Transaction(string const &json) {
     boost::property_tree::ptree doc = strToJson(json);
     hash_ = doc.get<string>("hash");
     type_ = toEnum<Transaction::Type>(doc.get<uint8_t>("type"));
-    nonce_ = doc.get<string>("nonce");
-    value_ = doc.get<string>("value");
+    nonce_ = doc.get<uint64_t>("nonce");
+    value_ = doc.get<uint64_t>("value");
     gas_price_ = doc.get<string>("gas_price");
     gas_ = doc.get<string>("gas");
     sig_ = doc.get<string>("sig");
@@ -74,8 +74,8 @@ string Transaction::getJsonStr() const {
   boost::property_tree::ptree tree;
   tree.put("hash", hash_.toString());
   tree.put("type", asInteger(type_));
-  tree.put("nonce", nonce_.toString());
-  tree.put("value", value_.toString());
+  tree.put("nonce", nonce_);
+  tree.put("value", value_);
   tree.put("gas_price", gas_price_.toString());
   tree.put("gas", gas_.toString());
   tree.put("sig", sig_.toString());
