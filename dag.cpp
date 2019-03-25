@@ -611,6 +611,16 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   return ret;
 }
 
+void DagManager::getLatestPivot(std::string &pivot) const {
+  // make sure the state of dag is the same when collection pivot and tips
+  ulock lock(mutex_);
+  std::vector<std::string> pivot_chain;
+  pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
+      Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
+  if(pivot_chain.size() > 0)
+  	pivot = pivot_chain.back();
+}
+
 std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(
     std::string const &vertex, time_stamp_t stamp) const {
   std::vector<std::string> ret;

@@ -19,29 +19,36 @@ using namespace dev::p2p;
 namespace taraxa {
 
 enum SubprotocolPacketType : ::byte {
-  NewBlockPacket = 0x0,
-  NewBlockHashPacket,
-  GetBlockPacket,
-  TestPacket,
-  PacketCount
+	NewBlockPacket = 0x0,
+	NewBlockHashPacket,
+	GetNewBlockPacket,
+	GetBlockPacket,
+	BlockPacket,
+	GetBlockChildrenPacket,
+	BlockChildrenPacket,
+	TestPacket,
+	PacketCount
 };
 
 class TaraxaPeer {
- public:
-  TaraxaPeer() {}
-  TaraxaPeer(NodeID id) : m_id(id) {}
+       public:
+	TaraxaPeer() {}
+	TaraxaPeer(NodeID id) : m_id(id) {}
 
-  bool isBlockKnown(blk_hash_t const &_hash) const {
-    return m_knownBlocks.count(_hash);
-  }
-  void markBlockAsKnown(blk_hash_t const &_hash) {
-    m_knownBlocks.insert(_hash);
-  }
-  void clearKnownBlocks() { m_knownBlocks.clear(); }
+	bool isBlockKnown(blk_hash_t const &_hash) const {
+		return m_knownBlocks.count(_hash);
+	}
+	void markBlockAsKnown(blk_hash_t const &_hash) {
+		m_knownBlocks.insert(_hash);
+	}
+	void clearKnownBlocks() { m_knownBlocks.clear(); }
 
- private:
-  std::set<blk_hash_t> m_knownBlocks;
-  NodeID m_id;
+	std::map<blk_hash_t, DagBlock> m_syncBlocks;
+	blk_hash_t m_lastRequest;
+
+       private:
+	std::set<blk_hash_t> m_knownBlocks;
+	NodeID m_id;
 };
 
 class TaraxaCapability : public CapabilityFace, public Worker {
@@ -55,37 +62,43 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
 
-  void onStarting() override {}
-  void onStopping() override {}
+	void onStarting() override {}
+	void onStopping() override {}
 
-  void onConnect(NodeID const &_nodeID, u256 const &) override;
-  bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
-                                 RLP const &_r) override;
-  void onDisconnect(NodeID const &_nodeID) override;
-  void sendTestMessage(NodeID const &_id, int _x);
-  void onNewBlock(DagBlock block);
-  vector<NodeID> selectPeers(
-      std::function<bool(TaraxaPeer const &)> const &_predicate);
-  std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(
-      std::vector<NodeID> const &_peers, std::size_t _number);
-  std::pair<int, int> retrieveTestData(NodeID const &_id);
-  void sendBlock(NodeID const &_id, taraxa::DagBlock block);
-  void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
-  void requestBlock(NodeID const &_id, blk_hash_t hash);
-  std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
-  void setFullNode(std::shared_ptr<FullNode> full_node);
+	void onConnect(NodeID const &_nodeID, u256 const &) override;
+	void syncPeer(NodeID const &_nodeID);
+	void continueSync(NodeID const &_nodeID);
+	bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
+				       RLP const &_r) override;
+	void onDisconnect(NodeID const &_nodeID) override;
+	void sendTestMessage(NodeID const &_id, int _x);
+	void onNewBlock(DagBlock block);
+	vector<NodeID> selectPeers(
+	    std::function<bool(TaraxaPeer const &)> const &_predicate);
+	std::pair<std::vector<NodeID>, std::vector<NodeID>>
+	randomPartitionPeers(std::vector<NodeID> const &_peers,
+			     std::size_t _number);
+	std::pair<int, int> retrieveTestData(NodeID const &_id);
+	void sendBlock(NodeID const &_id, taraxa::DagBlock block,
+		       bool newBlock);
+	void sendChildren(NodeID const &_id, std::vector<std::string> children);
+	void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
+	void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
+	void requestBlockChildren(NodeID const &_id, blk_hash_t hash);
+	std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
+	void setFullNode(std::shared_ptr<FullNode> full_node);
 
-  Host const &m_host;
-  std::unordered_map<NodeID, int> m_cntReceivedMessages;
-  std::unordered_map<NodeID, int> m_testSums;
-  std::map<blk_hash_t, taraxa::DagBlock> m_blocks;
-  std::set<blk_hash_t> m_blockRequestedSet;
+	Host const &m_host;
+	std::unordered_map<NodeID, int> m_cntReceivedMessages;
+	std::unordered_map<NodeID, int> m_testSums;
+	std::map<blk_hash_t, taraxa::DagBlock> m_blocks;
+	std::set<blk_hash_t> m_blockRequestedSet;
 
   std::weak_ptr<FullNode> full_node_;
 
-  std::unordered_map<NodeID, TaraxaPeer> m_peers;
-  mutable std::mt19937_64
-      m_urng;  // Mersenne Twister psuedo-random number generator
+	std::unordered_map<NodeID, TaraxaPeer> m_peers;
+	mutable std::mt19937_64
+	    m_urng;  // Mersenne Twister psuedo-random number generator
 };
 }  // namespace taraxa
 #endif
