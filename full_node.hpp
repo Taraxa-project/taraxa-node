@@ -33,6 +33,7 @@ struct FullNodeConfig {
   boost::asio::ip::address address;
   std::string db_accounts_path;
   std::string db_blocks_path;
+  std::string db_transactions_path;
   uint16_t dag_processing_threads;
   uint16_t block_proposer_threads;
 };
@@ -93,8 +94,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool debug_ = false;
 
   // storage
-  std::shared_ptr<RocksDb> db_accounts_;
-  std::shared_ptr<RocksDb> db_blocks_;
+  std::shared_ptr<RocksDb> db_accs_;
+  std::shared_ptr<RocksDb> db_blks_;
+  std::shared_ptr<RocksDb> db_trxs_;
 
   // network
   std::shared_ptr<Network> network_;

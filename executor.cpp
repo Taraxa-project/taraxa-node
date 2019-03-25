@@ -42,7 +42,7 @@ bool Executor::execute(TrxSchedule const& epoch_trxs) {
   all_trx_enqued_ = true;
   return true;
 }
-bool Executor::executeSingleTrx() {
+void Executor::executeSingleTrx() {
   while (!stopped_) {
     Transaction trx;
     {
@@ -50,7 +50,7 @@ bool Executor::executeSingleTrx() {
       while (trx_qu_.empty() && !stopped_) {
         cond_for_trx_qu_.wait(qu_lock);
       }
-      if (stopped_) return false;
+      if (stopped_) return;
       trx = trx_qu_.front();
       trx_qu_.pop_front();
     }
@@ -65,4 +65,17 @@ bool Executor::executeSingleTrx() {
     }
   }
 }
+
+bool Executor::coinTransfer(Transaction const& trx) {
+  name_t sender = trx.getSender();
+  name_t receiver = trx.getReceiver();
+  bal_t value = trx.getValue();
+  bal_t initial_coin = stoull(db_accs_->get(sender.toString()));
+  if (initial_coin < trx.getValue()) {
+    LOG(logger_) << "Error! Insufficient fund for transfer ..." << std::endl;
+    return false;
+  }
+  return true;
+}
+
 }  // namespace taraxa

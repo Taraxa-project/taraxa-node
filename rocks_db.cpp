@@ -19,7 +19,9 @@ RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
   }
   if (!boost::filesystem::exists(path)) {
     std::cout << "Create db directory: " << path << std::endl;
-    boost::filesystem::create_directories(path);
+    if (!boost::filesystem::create_directories(path)) {
+      throw std::invalid_argument("Error, cannot create db path: " + db_path_);
+    }
   }
   if (!boost::filesystem::is_directory(path)) {
     throw std::invalid_argument("Error, db path is not directory: " + db_path_);
@@ -39,9 +41,14 @@ RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
   opt_.OptimizeLevelStyleCompaction();
   opt_.create_if_missing = true;
   status = rocksdb::DB::Open(opt_, db_path_, &db_);
-  if (!status.ok()) {
-    std::cout << status.ToString() << std::endl;
-    throw std::invalid_argument("Open DB fail \n");
+  if (status.ok()) {
+    std::cout << "Open DB: " << db_path_ << " ok " << std::endl;
+  } else {
+    auto pid = ::getpid();
+    std::string new_db_path = db_path_ + std::to_string(pid);
+    std::cout << "Open DB fail: " << db_path_ << " because "
+              << status.ToString() << std::endl;
+    std::cout << "Warning! Create temp DB: " << new_db_path << std::endl;
   }
 }
 RocksDb::~RocksDb() { delete db_; }

@@ -83,28 +83,19 @@ class TransactionStatusTable {
 class Transaction {
  public:
   enum class Type : uint8_t { Null, Creation, Call };
-  Transaction()
-      : hash_(""),
-        type_(Type::Null),
-        nonce_(""),
-        value_(""),
-        gas_price_(""),
-        gas_(""),
-        receiver_(""),
-        sig_("") {}
-
+  Transaction() = default;
   Transaction(::taraxa_grpc::ProtoTransaction const &t)
       : hash_(t.hash()),
         type_(toEnum<Type>(t.type())),
-        nonce_(t.nonce()),
-        value_(t.value()),
+        nonce_(stoull(t.nonce())),
+        value_(stoull(t.value())),
         gas_price_(t.gas_price()),
         gas_(t.gas()),
         receiver_(t.receiver()),
         sig_(t.sig()),
         data_(str2bytes(t.data())) {}
-  Transaction(trx_hash_t const &hash, Type type, val_t const &nonce,
-              val_t const &value, val_t const &gas_price, val_t const &gas,
+  Transaction(trx_hash_t const &hash, Type type, bal_t const &nonce,
+              bal_t const &value, val_t const &gas_price, val_t const &gas,
               name_t const &receiver, sig_t const &sig, bytes const &data) try
       : hash_(hash),
         type_(type),
@@ -125,8 +116,8 @@ class Transaction {
   Transaction(string const &json);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
-  val_t getNonce() const { return nonce_; }
-  val_t getValue() const { return value_; }
+  bal_t getNonce() const { return nonce_; }
+  bal_t getValue() const { return value_; }
   val_t getGasPrice() const { return gas_price_; }
   val_t getGas() const { return gas_; }
   name_t getSender() const { return receiver_; }
@@ -158,14 +149,13 @@ class Transaction {
   }
   Transaction &operator=(Transaction &&other) = default;
   Transaction &operator=(Transaction const &other) = default;
-  bool operator<(Transaction const & other) const{
-    return hash_<other.hash_;
-  }
+  bool operator<(Transaction const &other) const { return hash_ < other.hash_; }
+
  protected:
   trx_hash_t hash_ = "";
   Type type_ = Type::Null;
-  val_t nonce_ = "";
-  val_t value_ = "";
+  bal_t nonce_ = 0;
+  bal_t value_ = 0;
   val_t gas_price_ = "";
   val_t gas_ = "";
   name_t sender_ = "";

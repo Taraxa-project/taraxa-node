@@ -41,7 +41,8 @@ class Executor {
   void clear();
   bool execute(TrxSchedule const& schedule);
   bool executeBlkTrxs(vec_trx_t const& trxs);
-  bool executeSingleTrx();
+  void executeSingleTrx();
+  bool coinTransfer(Transaction const& trx);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;

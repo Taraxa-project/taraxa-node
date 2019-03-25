@@ -27,6 +27,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         boost::asio::ip::address::from_string(doc.get<std::string>("address"));
     db_accounts_path = doc.get<std::string>("db_accounts_path");
     db_blocks_path = doc.get<std::string>("db_blocks_path");
+    db_transactions_path = doc.get<std::string>("db_transactions_path");
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
     block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
   } catch (std::exception &e) {
@@ -38,7 +39,7 @@ void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
   network_->setVerbose(verbose);
   dag_mgr_->setVerbose(verbose);
-  db_blocks_->setVerbose(verbose);
+  db_blks_->setVerbose(verbose);
 }
 
 void FullNode::setDebug(bool debug) {
@@ -53,8 +54,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       conf_full_node_(conf_full_node),
       conf_network_(conf_network),
       conf_(conf_full_node),
-      db_accounts_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
-      db_blocks_(std::make_shared<RocksDb>(conf_.db_blocks_path)),
+      db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
+      db_blks_(std::make_shared<RocksDb>(conf_.db_blocks_path)),
+      db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       network_(std::make_shared<Network>(conf_network)),
@@ -96,7 +98,7 @@ void FullNode::start() {
           std::unique_lock<std::mutex> lock(debug_mutex_);
           received_blocks_++;
         }
-        db_blocks_->put(blk.getHash().toString(), blk.getJsonStr());
+        db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
         dag_mgr_->addDagBlock(blk, true);
       }
     });
@@ -114,7 +116,7 @@ void FullNode::storeBlock(DagBlock const &blk) {
 }
 
 DagBlock FullNode::getDagBlock(blk_hash_t const &hash) {
-  std::string json = db_blocks_->get(hash.toString());
+  std::string json = db_blks_->get(hash.toString());
   if (json.empty()) {
     return DagBlock();
   } else {
