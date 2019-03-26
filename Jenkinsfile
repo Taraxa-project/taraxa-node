@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Docker Registry Login') {
             steps {
-                sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW xueshanf/awscli aws ecr get-login --region us-west-2 --no-include-email)'
+                sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
             }                    
         }     
         stage('Unit Tests') {
