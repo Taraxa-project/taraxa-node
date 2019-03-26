@@ -172,13 +172,13 @@ void RpcHandler::processRequest() {
 
     if (action == "insert_dag_block") {
       try {
-        blk_hash_t pivot = in_doc_.get<std::string>("pivot");
+        blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
         vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
-        sig_t signature =
+        sig_t signature = sig_t(
             "777777777777777777777777777777777777777777777777777777777777777777"
-            "77777777777777777777777777777777777777777777777777777777777777";
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
-        name_t publisher = in_doc_.get<std::string>("publisher");
+            "777777777777777777777777777777777777777777777777777777777777777");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
+        name_t publisher = name_t(in_doc_.get<std::string>("publisher"));
 
         DagBlock blk(pivot, tips, {}, signature, hash, publisher);
         res = blk.getJsonStr();
@@ -188,13 +188,13 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "insert_stamped_dag_block") {
       try {
-        blk_hash_t pivot = in_doc_.get<std::string>("pivot");
+        blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
         vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
-        sig_t signature =
+        sig_t signature = sig_t(
             "777777777777777777777777777777777777777777777777777777777777777777"
-            "77777777777777777777777777777777777777777777777777777777777777";
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
-        name_t publisher = in_doc_.get<std::string>("publisher");
+            "777777777777777777777777777777777777777777777777777777777777777");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
+        name_t publisher = name_t(in_doc_.get<std::string>("publisher"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
         DagBlock blk(pivot, tips, {}, signature, hash, publisher);
         res = blk.getJsonStr();
@@ -208,7 +208,7 @@ void RpcHandler::processRequest() {
 
     else if (action == "get_dag_block") {
       try {
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         DagBlock blk;
         blk = node_->getDagBlock(hash);
         time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
@@ -218,7 +218,7 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_dag_block_children") {
       try {
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
 
         std::vector<std::string> children;
@@ -231,7 +231,7 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_dag_block_siblings") {
       try {
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
 
         std::vector<std::string> siblings;
@@ -244,7 +244,7 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_dag_block_tips") {
       try {
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
 
         std::vector<std::string> tips;
@@ -257,7 +257,7 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_dag_block_pivot_chain") {
       try {
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
 
         std::vector<std::string> pivot_chain;
@@ -270,7 +270,7 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_dag_block_subtree") {
       try {
-        blk_hash_t hash = in_doc_.get<std::string>("hash");
+        blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
 
         std::vector<std::string> subtree;
@@ -283,8 +283,9 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_dag_block_epochs") {
       try {
-        blk_hash_t from_hash = in_doc_.get<std::string>("from_hash");
-        blk_hash_t to_hash = in_doc_.get<std::string>("to_hash");
+        blk_hash_t from_hash =
+            blk_hash_t(in_doc_.get<std::string>("from_hash"));
+        blk_hash_t to_hash = blk_hash_t(in_doc_.get<std::string>("to_hash"));
 
         std::vector<std::string> epochs;
         epochs = node_->getDagBlockEpochs(from_hash, to_hash);

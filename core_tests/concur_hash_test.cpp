@@ -276,11 +276,11 @@ TEST(ConcurHash, hash_func) {
 
 TEST(Detector, conflict_detector_single_thread) {
   struct transaction {
-    transaction(trx_t trx, addr_t contract, addr_t storage)
+    transaction(trx_t trx, mem_addr_t contract, mem_addr_t storage)
         : trx(trx), contract(contract), storage(storage) {}
     trx_t trx;
-    addr_t contract;
-    addr_t storage;
+    mem_addr_t contract;
+    mem_addr_t storage;
   };
 
   Detector detector(4);
