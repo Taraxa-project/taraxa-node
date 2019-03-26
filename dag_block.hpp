@@ -65,12 +65,12 @@ class DagBlock {
  private:
   constexpr static unsigned nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
 
-  blk_hash_t pivot_ = "";
+  blk_hash_t pivot_;
   vec_tip_t tips_;
   vec_trx_t trxs_;  // transactions
-  sig_t signature_ = "";
-  blk_hash_t hash_ = "";
-  name_t publisher_ = "";  // block creater
+  sig_t signature_;
+  blk_hash_t hash_;
+  name_t publisher_;  // block creater
 };
 
 /**

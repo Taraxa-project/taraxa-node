@@ -19,9 +19,11 @@ class Detector {
  public:
   Detector(unsigned degree_exp);
   // conflict if return false
-  bool load(addr_t const& constract, addr_t const& storage, trx_t const& trx);
+  bool load(mem_addr_t const& constract, mem_addr_t const& storage,
+            trx_t const& trx);
   // conflict if return false
-  bool store(addr_t const& constract, addr_t const& storage, trx_t const& trx);
+  bool store(mem_addr_t const& constract, mem_addr_t const& storage,
+             trx_t const& trx);
 
  private:
   ConflictHash hash_;

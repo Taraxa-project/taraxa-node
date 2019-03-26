@@ -18,20 +18,20 @@
 namespace taraxa {
 namespace storage {
 // transaction type
-using addr_t = std::string;
+using mem_addr_t = std::string;
 using trx_t = std::string;
 
 enum class ConflictStatus : uint8_t { read = 0, shared = 1, write = 2 };
 
 class ConflictKey {
  public:
-  ConflictKey(addr_t const &contract, addr_t const &storage)
+  ConflictKey(mem_addr_t const &contract, mem_addr_t const &storage)
       : contract_(contract), storage_(storage) {}
   std::size_t getHash() const {
     return std::hash<std::string>()(contract_ + storage_);
   }
-  addr_t getContract() const { return contract_; }
-  addr_t getStorage() const { return storage_; }
+  mem_addr_t getContract() const { return contract_; }
+  mem_addr_t getStorage() const { return storage_; }
   bool operator<(ConflictKey const &other) const {
     return getHash() < other.getHash();
   }
@@ -45,8 +45,8 @@ class ConflictKey {
   }
 
  private:
-  addr_t contract_;
-  addr_t storage_;
+  mem_addr_t contract_;
+  mem_addr_t storage_;
 };
 
 class ConflictValue {

@@ -44,12 +44,12 @@ DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(std::string const &json) {
   try {
     boost::property_tree::ptree doc = strToJson(json);
-    pivot_ = doc.get<std::string>("pivot");
+    pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
     tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
     trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-    signature_ = doc.get<std::string>("sig");
-    hash_ = doc.get<std::string>("hash");
-    publisher_ = doc.get<std::string>("pub");
+    signature_ = sig_t(doc.get<std::string>("sig"));
+    hash_ = blk_hash_t(doc.get<std::string>("hash"));
+    publisher_ = blk_hash_t(doc.get<std::string>("pub"));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

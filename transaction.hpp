@@ -152,15 +152,15 @@ class Transaction {
   bool operator<(Transaction const &other) const { return hash_ < other.hash_; }
 
  protected:
-  trx_hash_t hash_ = "";
+  trx_hash_t hash_;
   Type type_ = Type::Null;
   bal_t nonce_ = 0;
   bal_t value_ = 0;
-  val_t gas_price_ = "";
-  val_t gas_ = "";
-  name_t sender_ = "";
-  name_t receiver_ = "";
-  sig_t sig_ = "";
+  val_t gas_price_;
+  val_t gas_;
+  name_t sender_;
+  name_t receiver_;
+  sig_t sig_;
   bytes data_;
 };
 

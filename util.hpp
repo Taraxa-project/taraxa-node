@@ -72,7 +72,7 @@ using vectorstream = boost::iostreams::stream_buffer<
 // return true if success
 template <typename T>
 bool read(stream &stm, T &value) {
-  static_assert(std::is_pod<T>::value,
+  static_assert(std::is_standard_layout<T>::value,
                 "Cannot stream read non-standard layout types");
   auto bytes(stm.sgetn(reinterpret_cast<uint8_t *>(&value), sizeof(value)));
   return bytes == sizeof(value);
@@ -80,7 +80,7 @@ bool read(stream &stm, T &value) {
 
 template <typename T>
 bool write(stream &stm, T const &value) {
-  static_assert(std::is_pod<T>::value,
+  static_assert(std::is_standard_layout<T>::value,
                 "Cannot stream write non-standard layout types");
   auto bytes(
       stm.sputn(reinterpret_cast<uint8_t const *>(&value), sizeof(value)));

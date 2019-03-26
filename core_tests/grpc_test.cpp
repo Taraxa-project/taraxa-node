@@ -10,9 +10,14 @@
 #include <grpc_server.hpp>
 #include <grpc_util.hpp>
 #include <thread>
+#include "create_samples.hpp"
 #include "transaction.hpp"
-
 namespace taraxa {
+
+const unsigned NUM_TRX = 10;
+
+auto g_trx_samples = samples::createTrxSamples(0, NUM_TRX);
+
 TEST(grpc, server_client) {
   GrpcService gservice;
 
@@ -23,38 +28,16 @@ TEST(grpc, server_client) {
 
   taraxa::thisThreadSleepForSeconds(1);
 
-  Transaction trans1(
-      "1000000000000000000000000000000000000000000000000000000000000001",  // hash
-      Transaction::Type::Null,  // type
-      2,                        // nonce
-      3,                        // value
-      "4000000000000000000000000000000000000000000000000000000000000004",  // gas_price
-      "5000000000000000000000000000000000000000000000000000000000000005",  // gas
-      "6000000000000000000000000000000000000000000000000000000000000006",  // receiver
-      "777777777777777777777777777777777777777777777777777777777777777777777777"
-      "77777777777777777777777777777777777777777777777777777777",  // sig
-      str2bytes("00FEDCBA9876543210000000"));
+  Transaction trans1 = g_trx_samples[0];
+  Transaction trans2 = g_trx_samples[1];
 
-  Transaction trans2(
-      "1100000000000000000000000000000000000000000000000000000000000001",  // hash
-      Transaction::Type::Null,  // type
-      22,                       // nonce
-      33,                       // value
-      "4100000000000000000000000000000000000000000000000000000000000004",  // gas_price
-      "5100000000000000000000000000000000000000000000000000000000000005",  // gas
-      "6100000000000000000000000000000000000000000000000000000000000006",  // receiver
-      "777777777777777777777777777777777777777777777777777777777777777777777777"
-      "77777777777777777777777777777777777777777777777777777777",  // sig
-      str2bytes("00001100FEDCBA9876543210000000"));
   GrpcClient client(::grpc::CreateChannel("0.0.0.0:10077",
                                           grpc::InsecureChannelCredentials()));
 
-  client.sendTransaction(trans1);
-  client.sendTransaction(trans2);
-  trx_hash_t hash1(
-      "1000000000000000000000000000000000000000000000000000000000000001");
-  trx_hash_t hash2(
-      "1100000000000000000000000000000000000000000000000000000000000001");
+  client.sendTransaction(g_trx_samples[0]);
+  client.sendTransaction(g_trx_samples[1]);
+  trx_hash_t hash1 = trans1.getHash();
+  trx_hash_t hash2 = trans2.getHash();
   trx_hash_t hash3(
       "2100000000000000000000000000000000000000000000000000000000000001");
   Transaction trans1r = client.getTransaction(hash1);

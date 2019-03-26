@@ -23,18 +23,14 @@ std::vector<Transaction> createTrxSamples(unsigned start, unsigned num) {
     strm << std::setw(64) << std::setfill('0');
     strm << std::to_string(i);
     std::string hash = strm.str();
-    Transaction trx(hash,                     // hash
+    Transaction trx(blk_hash_t(hash),         // hash
                     Transaction::Type::Null,  // type
                     2,                        // nonce
                     3,                        // value
-                    "4000000000000000000000000000000000000000000000000000000000"
-                    "000004",  // gas_price
-                    "5000000000000000000000000000000000000000000000000000000000"
-                    "000005",  // gas
-                    hash,      // receiver
-                    "7777777777777777777777777777777777777777777777777777777777"
-                    "7777777777777777777777777777777777777777777777777777777777"
-                    "777777777777",  // sig
+                    val_t(4),                 // gas_price
+                    val_t(5),                 // gas
+                    blk_hash_t(hash),         // receiver
+                    sig_t(7),                 // sig
                     str2bytes("00FEDCBA9876543210000000"));
     trxs.emplace_back(trx);
   }
@@ -64,29 +60,19 @@ std::vector<DagBlock> createDagBlkSamples(unsigned pivot_start,
         strm << std::setw(64) << std::setfill('0');
         strm << std::to_string(trx);
         std::string trx = strm.str();
-        trxs.emplace_back(trx);
+        trxs.emplace_back(trx_hash_t(trx));
       }
       for (auto i = 0; i < trx_overlap; ++i) {
         trx--;
       }
     }
 
-    DagBlock blk(
-        pivot,  // pivot
-        {"222222222222222222222222222222222222222222222222222222222222"
-         "2222",
-         "333333333333333333333333333333333333333333333333333333333333"
-         "3333",
-         "444444444444444444444444444444444444444444444444444444444444"
-         "4444"},  // tips
-        trxs,      // trxs
-        "7777777777777777777777777777777777777777777777777777777777777"
-        "777777777"
-        "77"
-        "77777777777777777777777777777777777777777777777777777777",  // sig
-        pivot,                                                       // hash
-        "0000000000000000000000000000000000000000000000000000000000000"
-        "00F");  // publisher
+    DagBlock blk(blk_hash_t(pivot),                              // pivot
+                 {blk_hash_t(2), blk_hash_t(3), blk_hash_t(4)},  // tips
+                 trxs,                                           // trxs
+                 sig_t(7777),                                    // sig
+                 blk_hash_t(pivot),                              // hash
+                 name_t(12345));                                 // publisher
 
     blks.emplace_back(blk);
   }

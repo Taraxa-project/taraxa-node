@@ -11,7 +11,7 @@ namespace taraxa {
 
 Detector::Detector(unsigned degree_exp) : hash_(degree_exp) {}
 
-bool Detector::load(addr_t const& contract, addr_t const& storage,
+bool Detector::load(mem_addr_t const& contract, mem_addr_t const& storage,
                     trx_t const& trx) {
   bool ret = false;
   ConflictKey key(contract, storage);
@@ -51,7 +51,7 @@ bool Detector::load(addr_t const& contract, addr_t const& storage,
   return success;
 }
 
-bool Detector::store(addr_t const& contract, addr_t const& storage,
+bool Detector::store(mem_addr_t const& contract, mem_addr_t const& storage,
                      trx_t const& trx) {
   bool ret = false;
   ConflictKey key(contract, storage);

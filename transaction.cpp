@@ -14,15 +14,15 @@ Transaction::Transaction(stream &strm) { deserialize(strm); }
 Transaction::Transaction(string const &json) {
   try {
     boost::property_tree::ptree doc = strToJson(json);
-    hash_ = doc.get<string>("hash");
+    hash_ = trx_hash_t(doc.get<string>("hash"));
     type_ = toEnum<Transaction::Type>(doc.get<uint8_t>("type"));
     nonce_ = doc.get<uint64_t>("nonce");
     value_ = doc.get<uint64_t>("value");
-    gas_price_ = doc.get<string>("gas_price");
-    gas_ = doc.get<string>("gas");
-    sig_ = doc.get<string>("sig");
-    sender_ = doc.get<string>("sender");
-    receiver_ = doc.get<string>("receiver");
+    gas_price_ = val_t(doc.get<string>("gas_price"));
+    gas_ = val_t(doc.get<string>("gas"));
+    sig_ = sig_t(doc.get<string>("sig"));
+    sender_ = name_t(doc.get<string>("sender"));
+    receiver_ = name_t(doc.get<string>("receiver"));
     string data = doc.get<string>("data");
     data_ = str2bytes(data);
   } catch (std::exception &e) {
@@ -268,7 +268,13 @@ bool TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   bool res;
   for (auto const &t : exist_in_db) {
     res = trx_status_.insert(t, TransactionStatus::seen_in_db);
-    assert(res);
+    if (!res) {
+      TransactionStatus status;
+      bool exist;
+      std::tie(status, exist) = trx_status_.get(t);
+      res = (status == TransactionStatus::seen_in_db);
+      assert(res);
+    }
   }
   for (auto const &t : packed_by_others) {
     res = trx_status_.compareAndSwap(
