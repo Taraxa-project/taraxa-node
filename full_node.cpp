@@ -130,13 +130,13 @@ void FullNode::storeBlock(DagBlock const &blk) {
   blk_qu_->pushUnverifiedBlock(std::move(blk));
 }
 
-DagBlock FullNode::getDagBlock(blk_hash_t const &hash) {
-  std::string json = db_blks_->get(hash.toString());
-  if (json.empty()) {
-    return DagBlock();
-  } else {
-    return DagBlock(json);
+std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
+  std::shared_ptr<DagBlock> block;
+  std::string json = db_blocks_->get(hash.toString());
+  if (!json.empty()) {
+    return std::make_shared<DagBlock>(json);
   }
+  return block;
 }
 
 time_stamp_t FullNode::getDagBlockTimeStamp(blk_hash_t const &hash) {
@@ -153,6 +153,12 @@ std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash,
   std::vector<std::string> children =
       dag_mgr_->getPivotChildrenBeforeTimeStamp(hash.toString(), stamp);
   return children;
+}
+
+std::vector<std::string> FullNode::collectLeaves() {
+  std::vector<std::string> leaves;
+  dag_mgr_->collectLeaves(leaves);
+  return leaves;
 }
 
 std::string FullNode::getLatestPivot() {
@@ -191,9 +197,9 @@ std::vector<std::string> FullNode::getDagBlockEpochs(blk_hash_t const &from,
 
 std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash,
                                                        time_stamp_t stamp) {
-  DagBlock blk = getDagBlock(hash);
+  auto blk = getDagBlock(hash);
   std::vector<std::string> parents;
-  parents.emplace_back(blk.getPivot().toString());
+  parents.emplace_back(blk->getPivot().toString());
 
   std::vector<std::string> siblings;
   for (auto const &parent : parents) {

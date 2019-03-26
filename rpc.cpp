@@ -219,7 +219,7 @@ void RpcHandler::processRequest() {
         DagBlock blk;
         blk = node_->getDagBlock(hash);
         time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
-        res = blk.getJsonStr() + "\ntime_stamp: " + std::to_string(stamp);
+        res = blk->getJsonStr() + "\ntime_stamp: " + std::to_string(stamp);
       } catch (std::exception &e) {
         res = e.what();
       }

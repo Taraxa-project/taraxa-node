@@ -62,11 +62,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void storeBlock(DagBlock const &blk);
 
   // Dag query: return childern, siblings, tips before time stamp
-  DagBlock getDagBlock(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
   time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
   void setDagBlockTimeStamp(blk_hash_t const &hash, time_stamp_t stamp);
   std::vector<std::string> getDagBlockChildren(blk_hash_t const &blk,
                                                time_stamp_t stamp);
+  std::vector<std::string> collectLeaves();
   std::string getLatestPivot();
   std::vector<std::string> getDagBlockSubtree(blk_hash_t const &blk,
                                               time_stamp_t stamp);

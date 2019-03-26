@@ -188,6 +188,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void consume(unsigned threadId);
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
+  void collectLeaves(std::vector<std::string> &leaves) const;
 
   void getLatestPivot(std::string &pivot) const;
 

@@ -611,6 +611,10 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   return ret;
 }
 
+void DagManager::collectLeaves(std::vector<std::string> &leaves) const {
+	total_dag_->collectLeaves(leaves);
+}
+
 void DagManager::getLatestPivot(std::string &pivot) const {
   // make sure the state of dag is the same when collection pivot and tips
   ulock lock(mutex_);
