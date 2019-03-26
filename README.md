@@ -1,3 +1,6 @@
+# Current Build Status
+[![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
+
 # IMPORTANT!!!   *** Developer Notice ***
 Please rebase your `feature` branch **_everyday_** and **_before_** create pull request.
 
@@ -18,8 +21,6 @@ Before filing pull request, please do:
 and make sure all test are passed! :)
 
 Please run your code format with `.clang-format` checking. 
-
-[![Build Status](https://api.travis-ci.com/Taraxa-project/taraxa-node.svg?token=uj8tJYwJxx7PyPVNRSWp&branch=master)]([https://travis-ci.org/Taraxa-project/taraxa-node](https://travis-ci.com/Taraxa-project/taraxa-node))
 
 # Installation:
 ```
