@@ -23,14 +23,14 @@ std::vector<Transaction> createTrxSamples(unsigned start, unsigned num) {
     strm << std::setw(64) << std::setfill('0');
     strm << std::to_string(i);
     std::string hash = strm.str();
-    Transaction trx(blk_hash_t(hash),         // hash
+    Transaction trx(trx_hash_t(hash),         // hash
                     Transaction::Type::Null,  // type
                     2,                        // nonce
                     3,                        // value
                     val_t(4),                 // gas_price
                     val_t(5),                 // gas
-                    blk_hash_t(hash),         // receiver
-                    sig_t(7),                 // sig
+                    addr_t(i * 1000),         // receiver
+                    sig_t(),                  // sig
                     str2bytes("00FEDCBA9876543210000000"));
     trxs.emplace_back(trx);
   }

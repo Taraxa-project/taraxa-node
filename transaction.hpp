@@ -8,6 +8,10 @@
 
 #ifndef TRANSACTION_HPP
 #define TRANSACTION_HPP
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+#include <libethcore/Common.h>
 #include <condition_variable>
 #include <iostream>
 #include <list>
@@ -96,7 +100,7 @@ class Transaction {
         data_(str2bytes(t.data())) {}
   Transaction(trx_hash_t const &hash, Type type, bal_t const &nonce,
               bal_t const &value, val_t const &gas_price, val_t const &gas,
-              name_t const &receiver, sig_t const &sig, bytes const &data) try
+              addr_t const &receiver, sig_t const &sig, bytes const &data) try
       : hash_(hash),
         type_(type),
         nonce_(nonce),
@@ -120,8 +124,8 @@ class Transaction {
   bal_t getValue() const { return value_; }
   val_t getGasPrice() const { return gas_price_; }
   val_t getGas() const { return gas_; }
-  name_t getSender() const { return receiver_; }
-  name_t getReceiver() const { return receiver_; }
+  addr_t getSender() const { return sender(); }
+  addr_t getReceiver() const { return receiver_; }
   sig_t getSig() const { return sig_; }
   bytes getData() const { return data_; }
 
@@ -135,7 +139,6 @@ class Transaction {
     strm << "  gas_price: " << trans.gas_price_ << std::endl;
     strm << "  gas: " << trans.gas_ << std::endl;
     strm << "  sig: " << trans.sig_ << std::endl;
-    strm << "  sender: " << trans.sender_ << std::endl;
     strm << "  receiver: " << trans.receiver_ << std::endl;
     strm << "  data: " << bytes2str(trans.data_) << std::endl;
     return strm;
@@ -147,21 +150,34 @@ class Transaction {
   bool operator==(Transaction const &other) const {
     return this->getJsonStr() == other.getJsonStr();
   }
+
   Transaction &operator=(Transaction &&other) = default;
   Transaction &operator=(Transaction const &other) = default;
   bool operator<(Transaction const &other) const { return hash_ < other.hash_; }
+  void sign(secret_t const &sk);
 
  protected:
+  // @returns sender of the transaction from the signature (and hash).
+  addr_t sender() const;
+  // Serialises this transaction to an RLPStream.
+  void streamRLP(dev::RLPStream &s, bool include_sig) const;
+  // @returns the RLP serialisation of this transaction.
+  bytes rlp(bool include_sig) const;
+  // @returns the SHA3 hash of the RLP serialisation of this transaction.
+  blk_hash_t sha3(bool include_sig) const;
   trx_hash_t hash_;
   Type type_ = Type::Null;
   bal_t nonce_ = 0;
   bal_t value_ = 0;
   val_t gas_price_;
   val_t gas_;
-  name_t sender_;
-  name_t receiver_;
+  addr_t receiver_;
   sig_t sig_;
   bytes data_;
+
+  mutable blk_hash_t
+      cached_hash_;  ///< Cached hash of transaction with signature.
+  mutable addr_t cached_sender_;  ///< Cached sender, determined from signature.
 };
 
 /**

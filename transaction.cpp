@@ -8,7 +8,6 @@
 namespace taraxa {
 
 using namespace taraxa_grpc;
-
 Transaction::Transaction(stream &strm) { deserialize(strm); }
 
 Transaction::Transaction(string const &json) {
@@ -21,8 +20,7 @@ Transaction::Transaction(string const &json) {
     gas_price_ = val_t(doc.get<string>("gas_price"));
     gas_ = val_t(doc.get<string>("gas"));
     sig_ = sig_t(doc.get<string>("sig"));
-    sender_ = name_t(doc.get<string>("sender"));
-    receiver_ = name_t(doc.get<string>("receiver"));
+    receiver_ = addr_t(doc.get<string>("receiver"));
     string data = doc.get<string>("data");
     data_ = str2bytes(data);
   } catch (std::exception &e) {
@@ -38,7 +36,6 @@ bool Transaction::serialize(stream &strm) const {
   ok &= write(strm, value_);
   ok &= write(strm, gas_price_);
   ok &= write(strm, gas_);
-  ok &= write(strm, sender_);
   ok &= write(strm, receiver_);
   ok &= write(strm, sig_);
   std::size_t byte_size = data_.size();
@@ -58,7 +55,6 @@ bool Transaction::deserialize(stream &strm) {
   ok &= read(strm, value_);
   ok &= read(strm, gas_price_);
   ok &= read(strm, gas_);
-  ok &= read(strm, sender_);
   ok &= read(strm, receiver_);
   ok &= read(strm, sig_);
   std::size_t byte_size;
@@ -79,12 +75,57 @@ string Transaction::getJsonStr() const {
   tree.put("gas_price", gas_price_.toString());
   tree.put("gas", gas_.toString());
   tree.put("sig", sig_.toString());
-  tree.put("sender", receiver_.toString());
   tree.put("receiver", receiver_.toString());
   tree.put("data", bytes2str(data_));
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
+}
+void Transaction::sign(secret_t const &sk) {
+  sig_ = dev::sign(sk, sha3(false));
+}
+addr_t Transaction::sender() const {
+  if (!cached_sender_) {
+    if (!sig_) {
+      return addr_t{};
+    }
+    auto p = dev::recover(sig_, sha3(false));
+    assert(p);
+    cached_sender_ =
+        dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
+  }
+  return cached_sender_;
+}
+void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
+  if (type_ == Transaction::Type::Null) return;
+  s.appendList(include_sig ? 7 : 6);
+  s << nonce_ << value_ << gas_price_ << gas_;
+  if (type_ == Transaction::Type::Call) {
+    s << receiver_;
+  } else {
+    s << "";
+  }
+  s << data_;
+  if (include_sig) {
+    s << sig_;
+  }
+}
+
+bytes Transaction::rlp(bool include_sig) const {
+  dev::RLPStream s;
+  streamRLP(s, include_sig);
+  return s.out();
+};
+
+blk_hash_t Transaction::sha3(bool include_sig) const {
+  if (include_sig && cached_hash_) {
+    return cached_hash_;
+  }
+  auto ret = dev::sha3(rlp(true));
+  if (include_sig) {
+    cached_hash_ = ret;
+  }
+  return ret;
 }
 
 void TransactionQueue::start() {

@@ -81,7 +81,7 @@ using uint512_hash_t = dev::FixedHash<64>;
 using uint520_hash_t = dev::FixedHash<65>;
 using uint160_hash_t = dev::FixedHash<20>;
 
-using secret_t = uint256_hash_t;
+using secret_t = dev::SecureFixedHash<32>;
 using public_t = uint512_hash_t;
 using addr_t = uint160_hash_t;
 using sig_t = uint520_hash_t;
