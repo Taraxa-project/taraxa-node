@@ -26,13 +26,11 @@ enum SubprotocolPacketType : ::byte {
   BlockPacket,
   GetBlockChildrenPacket,
   BlockChildrenPacket,
-  GetLeavesPacket,
-  LeavesPacket,
   TestPacket,
   PacketCount
 };
 
-enum PeerState { Idle = 0, Syncing, SyncingLeaves };
+enum PeerState { Idle = 0, Syncing };
 
 class TaraxaPeer {
  public:
@@ -85,11 +83,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
   void sendChildren(NodeID const &_id, std::vector<std::string> children);
-  void sendLeaves(NodeID const &_id, std::vector<std::string> leaves);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
-  void requestBlockChildren(NodeID const &_id, blk_hash_t hash);
-  void requestLeaves(NodeID const &_id);
+  void requestBlockChildren(NodeID const &_id, std::vector<std::string> leaves);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   void setFullNode(std::shared_ptr<FullNode> full_node);
