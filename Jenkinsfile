@@ -53,13 +53,6 @@ pipeline {
                 }
             }                   
         }        
-        stage('Push Branch Docker Image') {
-            when { not { branch 'master' }}
-            steps {
-                sh 'docker tag ${IMAGE} ${REGISTRY}/${IMAGE}/${BRANCH_NAME}:${BUILD_NUMBER}'
-                sh 'docker push ${REGISTRY}/${IMAGE}/${BRANCH_NAME}:${BUILD_NUMBER}'
-            }                    
-        }
         stage('Push Docker Image') {
             when {branch 'master'}            
             steps {
@@ -72,7 +65,6 @@ pipeline {
     } 
 post {
     success {
-        
       slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID', 
                 color: '#00FF00', message: "SUCCESSFUL: Job '${JOB_NAME} [${BUILD_NUMBER}]' (${BUILD_URL})")
     }
