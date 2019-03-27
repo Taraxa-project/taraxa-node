@@ -281,7 +281,7 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
   m_host.capabilityHost()->prep(_id, name(), s, BlockChildrenPacket,
                                 children.size());
   for (auto child : children) {
-    auto block = full_node_->getDagBlock(child);
+    auto block = full_node_->getDagBlock(blk_hash_t(child));
     std::vector<uint8_t> bytes;
     // Need to put a scope of vectorstream, other bytes won't get
     // result.

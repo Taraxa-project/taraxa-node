@@ -132,7 +132,7 @@ void FullNode::storeBlock(DagBlock const &blk) {
 
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   std::shared_ptr<DagBlock> block;
-  std::string json = db_blocks_->get(hash.toString());
+  std::string json = db_blks_->get(hash.toString());
   if (!json.empty()) {
     return std::make_shared<DagBlock>(json);
   }
