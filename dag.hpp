@@ -202,6 +202,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::vector<std::string> getTotalEpochsBetweenBlocks(
       std::string const &from, std::string const &to) const;
   void drawTotalGraph(std::string const &str) const;
+  std::vector<std::string> getTotalChildrenBeforeTimeStamp(
+      std::string const &vertex, time_stamp_t stamp) const;
+  
 
   // ----- Pivot graph
   std::vector<std::string> getPivotChildrenBeforeTimeStamp(
@@ -289,6 +292,7 @@ class TipBlockExplorer {
   void start();
   void stop();
   void blockAdded();
+  void stop();
   // will block if not ready.
   bool waitForReady();
 

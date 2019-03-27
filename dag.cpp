@@ -615,20 +615,17 @@ void DagManager::collectLeaves(std::vector<std::string> &leaves) const {
 	total_dag_->collectLeaves(leaves);
 }
 
-void DagManager::getLatestPivot(std::string &pivot) const {
-  // make sure the state of dag is the same when collection pivot and tips
-  ulock lock(mutex_);
-  std::vector<std::string> pivot_chain;
-  pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
-      Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
-  if(pivot_chain.size() > 0)
-  	pivot = pivot_chain.back();
-}
-
 std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(
     std::string const &vertex, time_stamp_t stamp) const {
   std::vector<std::string> ret;
   pivot_tree_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
+  return ret;
+}
+
+std::vector<std::string> DagManager::getTotalChildrenBeforeTimeStamp(
+    std::string const &vertex, time_stamp_t stamp) const {
+  std::vector<std::string> ret;
+  total_dag_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
   return ret;
 }
 

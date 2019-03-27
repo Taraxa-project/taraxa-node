@@ -155,16 +155,22 @@ std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash,
   return children;
 }
 
+std::vector<std::string> FullNode::getTotalDagBlockChildren(blk_hash_t const &hash,
+                                                       time_stamp_t stamp) {
+  std::vector<std::string> children =
+      dag_mgr_->getTotalChildrenBeforeTimeStamp(hash.toString(), stamp);
+  return children;
+}
+
 std::vector<std::string> FullNode::collectLeaves() {
   std::vector<std::string> leaves;
   dag_mgr_->collectLeaves(leaves);
   return leaves;
 }
 
-std::string FullNode::getLatestPivot() {
-	std::string pivot;
-	dag_mgr_->getLatestPivot(pivot);
-	return pivot;
+void FullNode::getLatestPivotAndTips(std::string &pivot,
+                                       std::vector<std::string> &tips) {
+  dag_mgr_->getLatestPivotAndTips(pivot, tips);
 }
 // Recursive call to children
 std::vector<std::string> FullNode::getDagBlockSubtree(blk_hash_t const &hash,

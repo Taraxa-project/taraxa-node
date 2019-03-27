@@ -14,12 +14,12 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
   if (full_node_) {
     printf("Sync Peer\n");
     m_peers[_nodeID].m_state = Syncing;
-    blk_hash_t pivot = full_node_->getLatestPivot();
-    printf("Pivot: %s\n", shortHash(pivot.toString()).c_str());
+    auto leaves = full_node_->collectLeaves();
+    ;
     // if(pivot == blk_hash_t())
     //	pivot == Dag::GENESIS; Not neededs since GENEIS is all
     // 00000
-    requestBlockChildren(_nodeID, pivot);
+    requestBlockChildren(_nodeID, leaves);
   }
 }
 
@@ -39,9 +39,11 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     }
   }
   for (auto block : m_peers[_nodeID].m_syncBlocks) {
-    printf("Storing block %s\n",
-           shortHash(block.second.getHash().toString()).c_str());
-    full_node_->storeBlock(block.second);
+    if (!full_node_->getDagBlock(block.first)) {
+      printf("Storing block %s\n",
+             shortHash(block.second.getHash().toString()).c_str());
+      full_node_->storeBlock(block.second);
+    }
   }
   m_peers[_nodeID].m_syncBlocks.clear();
   if (m_peers[_nodeID].m_state == Syncing) syncPeer(_nodeID);
@@ -53,9 +55,7 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
 
   TaraxaPeer peer(_nodeID);
   m_peers.emplace(_nodeID, peer);
-
-  blk_hash_t pivot = full_node_->getLatestPivot();
-  if (shortHash(pivot.toString()) == "GENESIS") syncPeer(_nodeID);
+  syncPeer(_nodeID);
 }
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                                                  unsigned _id, RLP const &_r) {
@@ -149,23 +149,28 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       break;
     }
     case GetBlockChildrenPacket: {
-      printf("Received GetBlockChildrenPacket\n");
-      std::vector<::byte> blockBytes;
-      for (auto i = 0; i < _r[0].itemCount(); i++) {
-        blockBytes.push_back(_r[0][i].toInt());
+      printf("Received GetBlockChildrenPacket with %lu child blocks\n",
+             _r.itemCount());
+      auto blockCount = _r.itemCount();
+      dev::strings totalChildren;
+      for (auto iBlock = 0; iBlock < blockCount; iBlock++) {
+        std::vector<::byte> blockBytes;
+        for (auto i = 0; i < _r[iBlock].itemCount(); i++) {
+          blockBytes.push_back(_r[iBlock][i].toInt());
+        }
+        blk_hash_t hash;
+        memcpy(&hash, blockBytes.data(), blockBytes.size());
+        if (full_node_) {
+          auto children = full_node_->getTotalDagBlockChildren(hash, ULONG_MAX);
+          printf("Found %lu children\n", children.size());
+          totalChildren += children;
+        }
       }
-      blk_hash_t hash;
-      memcpy(&hash, blockBytes.data(), blockBytes.size());
-      if (full_node_) {
-        auto children = full_node_->getDagBlockChildren(hash, ULONG_MAX);
-        printf("Found %lu children\n", children.size());
-        sendChildren(_nodeID, children);
-      }
+      sendChildren(_nodeID, totalChildren);
       break;
     }
     case BlockChildrenPacket: {
-      printf("Received BlockChildrenPacket with %lu child blocks:",
-             _r.itemCount());
+      std::string receivedBlocks;
       auto blockCount = _r.itemCount();
       for (auto iBlock = 0; iBlock < blockCount; iBlock++) {
         std::vector<::byte> blockBytes;
@@ -175,46 +180,14 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
         DagBlock block;
         block.deserialize(strm);
-        printf("%s ", shortHash(block.getHash().toString()).c_str());
+        receivedBlocks += shortHash(block.getHash().toString()) + " ";
         m_peers[_nodeID].m_syncBlocks[block.getHash()] = block;
       }
       if (blockCount > 0) {
+        printf("Received BlockChildrenPacket with %lu child blocks:%s\n",
+               _r.itemCount(), receivedBlocks.c_str());
         continueSync(_nodeID);
-        printf("\n");
-      } else
-        requestLeaves(_nodeID);
-      break;
-    }
-    case GetLeavesPacket: {
-      printf("Received GetLeavesPacket\n");
-      std::vector<::byte> blockBytes;
-      for (auto i = 0; i < _r[0].itemCount(); i++) {
-        blockBytes.push_back(_r[0][i].toInt());
       }
-      blk_hash_t hash;
-      memcpy(&hash, blockBytes.data(), blockBytes.size());
-      if (full_node_) {
-        auto leaves = full_node_->collectLeaves();
-        printf("Found %lu leaves\n", leaves.size());
-        sendLeaves(_nodeID, leaves);
-      }
-      break;
-    }
-    case LeavesPacket: {
-      printf("Received LeavesPacket %lu %lu\n", _r.size(), _r.itemCount());
-      auto blockCount = _r.itemCount();
-      for (auto iBlock = 0; iBlock < blockCount; iBlock++) {
-        std::vector<::byte> blockBytes;
-        for (auto i = 0; i < _r[iBlock].itemCount(); i++) {
-          blockBytes.push_back(_r[iBlock][i].toInt());
-        }
-        taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
-        DagBlock block;
-        block.deserialize(strm);
-        // printf("empl %s\n", shortHash(block.getHash().toString()).c_str());
-        m_peers[_nodeID].m_syncBlocks[block.getHash()] = block;
-      }
-      if (blockCount > 0) continueSync(_nodeID);
       break;
     }
     case TestPacket:
@@ -322,26 +295,6 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
   m_host.capabilityHost()->sealAndSend(_id, s);
 }
 
-void TaraxaCapability::sendLeaves(NodeID const &_id,
-                                  std::vector<std::string> leaves) {
-  // printf("sendBlock \n");
-  RLPStream s;
-  m_host.capabilityHost()->prep(_id, name(), s, LeavesPacket, leaves.size());
-  for (auto leave : leaves) {
-    auto block = full_node_->getDagBlock(leave);
-    std::vector<uint8_t> bytes;
-    // Need to put a scope of vectorstream, other bytes won't get
-    // result.
-    {
-      vectorstream strm(bytes);
-      block->serialize(strm);
-    }
-    s.appendList(bytes.size());
-    for (auto i = 0; i < bytes.size(); i++) s << bytes[i];
-  }
-  m_host.capabilityHost()->sealAndSend(_id, s);
-}
-
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
                                  bool newBlock) {
   // printf("sendBlock \n");
@@ -388,23 +341,19 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
 }
 
 void TaraxaCapability::requestBlockChildren(NodeID const &_id,
-                                            blk_hash_t hash) {
-  printf("Sending GetBlockChildrenPacket of block %s \n",
-         shortHash(hash.toString()).c_str());
+                                            std::vector<std::string> leaves) {
   RLPStream s;
   std::vector<uint8_t> bytes;
-  m_host.capabilityHost()->prep(_id, name(), s, GetBlockChildrenPacket, 1);
-  s.appendList(sizeof(hash));
-  for (auto i = 0; i < sizeof(hash); i++) s << ((char *)&hash)[i];
-  m_host.capabilityHost()->sealAndSend(_id, s);
-}
-
-void TaraxaCapability::requestLeaves(NodeID const &_id) {
-  // printf("requestLeaves \n");
-  m_peers[_id].m_state = SyncingLeaves;
-  RLPStream s;
-  std::vector<uint8_t> bytes;
-  m_host.capabilityHost()->prep(_id, name(), s, GetLeavesPacket, 0);
+  m_host.capabilityHost()->prep(_id, name(), s, GetBlockChildrenPacket,
+                                leaves.size());
+  std::string blocks;
+  for (auto leaf : leaves) {
+    blocks += shortHash(leaf) + " ";
+    blk_hash_t bHash(leaf);
+    s.appendList(sizeof(bHash));
+    for (auto i = 0; i < sizeof(bHash); i++) s << ((char *)&bHash)[i];
+  }
+  printf("Sending GetBlockChildrenPacket of blocks:%s\n", blocks.c_str());
   m_host.capabilityHost()->sealAndSend(_id, s);
 }
 

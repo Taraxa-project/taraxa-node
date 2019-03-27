@@ -165,9 +165,9 @@ TEST(Network, node_sync) {
     node1->storeBlock(blks[i]);
   }
 
-  auto node2(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node2.json"),
-      std::string("./core_tests/conf_network2.json")));
+  auto node2 = std::make_shared<taraxa::FullNode>(
+      context2, std::string("./core_tests/conf_full_node2.json"),
+      std::string("./core_tests/conf_network2.json"));
 
   node2->setDebug(true);
   node2->start();
@@ -191,6 +191,8 @@ TEST(Network, node_sync) {
 TEST(Network, node_sync2) {
   boost::asio::io_context context1;
   boost::asio::io_context context2;
+
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf_full_node1.json"),
@@ -327,23 +329,8 @@ TEST(Network, node_sync2) {
 
   taraxa::thisThreadSleepForMilliSeconds(5000);
 
-  auto children = node1->getDagBlockChildren(
-      "00000000000000000000000000000000000000000000000000000000000000B3",
-      ULONG_MAX);
-  printf("Found B3 %lu children\n", children.size());
-
-  children = node1->getDagBlockChildren(
-      "00000000000000000000000000000000000000000000000000000000000000B4",
-      ULONG_MAX);
-  printf("Found B4 %lu children\n", children.size());
-
-  children = node1->getDagBlockChildren(
-      "00000000000000000000000000000000000000000000000000000000000000B5",
-      ULONG_MAX);
-  printf("Found B5 %lu children\n", children.size());
-
   auto node2(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node2.json"),
+      context2, std::string("./core_tests/conf_full_node2.json"),
       std::string("./core_tests/conf_network2.json")));
 
   node2->setDebug(true);
@@ -357,12 +344,15 @@ TEST(Network, node_sync2) {
 
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getNumVerticesInDag().first, 12);
-  EXPECT_EQ(node1->getNumEdgesInDag().first, 12);
+  EXPECT_EQ(node1->getNumVerticesInDag().first, 13);
+  EXPECT_EQ(node1->getNumEdgesInDag().first, 13);
 
   EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node2->getNumVerticesInDag().first, 12);
-  EXPECT_EQ(node2->getNumEdgesInDag().first, 12);
+  EXPECT_EQ(node2->getNumVerticesInDag().first, 13);
+  EXPECT_EQ(node2->getNumEdgesInDag().first, 13);
+
+  node1.reset();
+  node2.reset();
 }
 
 }  // namespace taraxa
