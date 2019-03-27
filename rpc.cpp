@@ -216,8 +216,7 @@ void RpcHandler::processRequest() {
     else if (action == "get_dag_block") {
       try {
         blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
-        DagBlock blk;
-        blk = node_->getDagBlock(hash);
+        auto blk = node_->getDagBlock(hash);
         time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
         res = blk->getJsonStr() + "\ntime_stamp: " + std::to_string(stamp);
       } catch (std::exception &e) {

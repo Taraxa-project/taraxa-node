@@ -254,7 +254,7 @@ TEST(p2p, block_propagate) {
 
   thc1->onNewBlock(blk);
 
-  this_thread::sleep_for(chrono::seconds(15));
+  this_thread::sleep_for(chrono::seconds(20));
   auto blocks1 = thc1->getBlocks();
   for (int i = 0; i < nodeCount; i++) {
     EXPECT_EQ(vCapabilities[i]->getBlocks().size(), 1);
