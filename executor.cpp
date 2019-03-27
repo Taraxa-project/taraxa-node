@@ -75,8 +75,8 @@ void Executor::executeSingleTrx() {
 }
 
 bool Executor::coinTransfer(Transaction const& trx) {
-  name_t sender = trx.getSender();
-  name_t receiver = trx.getReceiver();
+  addr_t sender = trx.getSender();
+  addr_t receiver = trx.getReceiver();
   bal_t value = trx.getValue();
   bal_t initial_coin = stoull(db_accs_->get(sender.toString()));
   if (initial_coin < trx.getValue()) {

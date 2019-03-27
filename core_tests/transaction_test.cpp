@@ -21,6 +21,10 @@ const unsigned BLK_TRX_OVERLAP = 1;
 auto g_trx_samples = samples::createTrxSamples(0, NUM_TRX);
 auto g_blk_samples =
     samples::createDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
+auto g_secret = dev::Secret(
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    dev::Secret::ConstructFromStringType::FromHex);
+auto g_key_pair = dev::KeyPair(g_secret);
 
 TEST(transaction, serialize_deserialize) {
   Transaction& trans1 = g_trx_samples[0];
@@ -47,7 +51,24 @@ TEST(transaction, serialize_deserialize) {
   ASSERT_EQ(trans2.getJsonStr(), trans3.getJsonStr());
 }
 
-TEST(TransactionQueue, verify) {
+TEST(Transaction, signer) {
+  Transaction trans1 = g_trx_samples[0];
+  Transaction trans2 = g_trx_samples[1];
+
+  std::cout << "sig: " << trans1.getSig() << std::endl;
+  std::cout << "sender: " << trans1.getSender() << std::endl;
+  trans1.sign(g_secret);
+  trans2.sign(g_secret);
+  std::cout << trans1 << std::endl;
+  std::cout << trans2 << std::endl;
+
+  std::cout << "sig: " << trans1.getSig() << std::endl;
+  std::cout << "sender: " << trans1.getSender() << std::endl;
+  std::cout << "sig: " << trans2.getSig() << std::endl;
+  std::cout << "sender: " << trans2.getSender() << std::endl;
+}
+
+TEST(TransactionQueue, verifiers) {
   TransactionStatusTable status_table;
   TransactionQueue trx_qu(status_table, 2 /*num verifiers*/);
   trx_qu.start();
