@@ -72,7 +72,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/grpc_test.o \
 	${OBJECTDIR}/memorydb_test.o \
 	${OBJECTDIR}/overlaydb_test.o \
-	${OBJECTDIR}/statecachedb_test.o
+	${OBJECTDIR}/statecachedb_test.o \
+	${OBJECTDIR}/trie_test.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -244,6 +245,17 @@ ${OBJECTDIR}/statecachedb_test.o: core_tests/statecachedb_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/statecachedb_test.o core_tests/statecachedb_test.cpp $(CPPFLAGS)
 
+
+${OBJECTDIR}/mem_trie.o: crypto_tests/MemTrie.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/mem_trie.o crypto_tests/MemTrie.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/trie_test.o: crypto_tests/trie_test.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trie_test.o crypto_tests/trie_test.cpp $(CPPFLAGS)
+
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
@@ -318,25 +330,31 @@ $(TESTBUILDDIR)/statecachedb_test: $(OBJECTDIR)/statecachedb_test.o $(OBJECTFILE
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/statecachedb_test.o -o $(TESTBUILDDIR)/statecachedb_test  $(LDFLAGS) $(LIBS)
 
+$(TESTBUILDDIR)/trie_test: $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o  $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o -o $(TESTBUILDDIR)/trie_test  $(LDFLAGS) $(LIBS)
+
+
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test
 
 run_test: test
-	./$(TESTBUILDDIR)/memorydb_test
-	./$(TESTBUILDDIR)/overlaydb_test
-	./$(TESTBUILDDIR)/statecachedb_test
-	./$(TESTBUILDDIR)/transaction_test
-	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/concur_hash_test
-	./$(TESTBUILDDIR)/dag_block_test
-	./$(TESTBUILDDIR)/grpc_test
-	./$(TESTBUILDDIR)/full_node_test
-	./$(TESTBUILDDIR)/p2p_test
-	./$(TESTBUILDDIR)/network_test
+#	./$(TESTBUILDDIR)/memorydb_test
+#	./$(TESTBUILDDIR)/overlaydb_test
+#	./$(TESTBUILDDIR)/statecachedb_test
+#	./$(TESTBUILDDIR)/transaction_test
+#	./$(TESTBUILDDIR)/dag_test
+#	./$(TESTBUILDDIR)/concur_hash_test
+#	./$(TESTBUILDDIR)/dag_block_test
+#	./$(TESTBUILDDIR)/grpc_test
+#	./$(TESTBUILDDIR)/full_node_test
+#	./$(TESTBUILDDIR)/p2p_test
+#	./$(TESTBUILDDIR)/network_test
+	./$(TESTBUILDDIR)/trie_test
 
 ct:
 	rm -rf $(TESTBUILDDIR)
