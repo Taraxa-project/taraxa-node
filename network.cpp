@@ -35,8 +35,7 @@ Network::Network(std::string const &conf_file_name)
     : Network(conf_file_name, "") {}
 
 Network::Network(std::string const &conf_file_name, std::string networkFile) try
-    : conf_(conf_file_name),
-      full_node_(nullptr) {
+    : conf_(conf_file_name) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbositySilent;
   dev::setupLogging(logOptions);
@@ -68,7 +67,11 @@ Network::Network(std::string const &conf_file_name, std::string networkFile) try
   throw e;
 }
 
-Network::~Network() {}
+Network::~Network() {
+  if (!stopped_) {
+    stop();
+  }
+}
 
 void Network::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
@@ -77,6 +80,10 @@ void Network::setFullNode(std::shared_ptr<FullNode> full_node) {
 
 NetworkConfig Network::getConfig() { return conf_; }
 void Network::start() {
+  if (!stopped_) {
+    return;
+  }
+  stopped_ = false;
   if (verbose_) {
     std::cout << "Network started";
   }
@@ -90,12 +97,14 @@ void Network::start() {
         dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
                                  node.port, node.port));
   }
-  on_ = true;
 }
 
 void Network::stop() {
+  if (stopped_) {
+    return;
+  }
+  stopped_ = true;
   host_->stop();
-  on_ = false;
 }
 
 void Network::setVerbose(bool verbose) { verbose_ = verbose; }

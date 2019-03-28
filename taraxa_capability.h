@@ -50,7 +50,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     std::random_device seed;
     m_urng = std::mt19937_64(seed());
   }
-
+  virtual ~TaraxaCapability() = default;
   std::string name() const override { return "taraxa"; }
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
@@ -81,7 +81,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::map<blk_hash_t, taraxa::DagBlock> m_blocks;
   std::set<blk_hash_t> m_blockRequestedSet;
 
-  std::shared_ptr<FullNode> full_node_;
+  std::weak_ptr<FullNode> full_node_;
 
   std::unordered_map<NodeID, TaraxaPeer> m_peers;
   mutable std::mt19937_64

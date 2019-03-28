@@ -31,7 +31,9 @@ class Rpc : public std::enable_shared_from_this<Rpc> {
  public:
   Rpc(boost::asio::io_context &io, std::string conf_rpc,
       std::shared_ptr<FullNode> node);
-  virtual ~Rpc() = default;
+  virtual ~Rpc() {
+    if (!stopped_) stop();
+  }
   void start();
   void waitForAccept();
   void stop();
@@ -41,6 +43,7 @@ class Rpc : public std::enable_shared_from_this<Rpc> {
 
  private:
   bool verbose_;
+  bool stopped_ = true;
   RpcConfig conf_;
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;

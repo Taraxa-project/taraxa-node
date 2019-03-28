@@ -7,14 +7,22 @@
  */
 #include "executor.hpp"
 namespace taraxa {
+Executor::~Executor() {
+  if (!stopped_) {
+    stop();
+  }
+}
 void Executor::start() {
+  if (!stopped_) return;
   bool stopped_ = false;
   for (auto i = 0; i < num_parallel_executor_; ++i) {
     parallel_executors_.emplace_back(
         std::thread([this]() { executeSingleTrx(); }));
   }
 }
-
+void Executor::stop() {
+  if (stopped_) return;
+}
 bool Executor::execute(TrxSchedule const& epoch_trxs) {
   uLock execute_lock(mutex_for_executor_);
   while (status_ != ExecutorStatus::idle && !stopped_) {

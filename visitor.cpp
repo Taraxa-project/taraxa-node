@@ -7,18 +7,19 @@
  */
 
 #include "visitor.hpp"
-#include "full_node.hpp"
 
 namespace taraxa {
-BaseVisitor::BaseVisitor(std::shared_ptr<FullNode> full_node)
+BaseVisitor::BaseVisitor(std::weak_ptr<FullNode> full_node)
     : full_node_(full_node) {}
 
-BlockVisitor::BlockVisitor(std::shared_ptr<FullNode> full_node)
+BlockVisitor::BlockVisitor(std::weak_ptr<FullNode> full_node)
     : BaseVisitor(full_node) {}
 
 void BlockVisitor::visit(stream &strm) {
   block_.deserialize(strm);
-  full_node_->storeBlock(block_);
+  if (auto fn = full_node_.lock()){
+    fn->storeBlock(block_);
+  }
 }
 DagBlock BlockVisitor::getBlock() { return block_; }
 }  // namespace taraxa

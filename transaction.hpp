@@ -185,7 +185,11 @@ class TransactionQueue {
         num_verifiers_(num_verifiers),
         current_capacity_(current_capacity),
         future_capacity_(future_capacity) {}
-  ~TransactionQueue() { stop(); }
+  ~TransactionQueue() {
+    if (!stopped_) {
+      stop();
+    }
+  }
   void start();
   void stop();
   bool insert(Transaction trx);

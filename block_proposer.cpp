@@ -19,15 +19,10 @@ uint64_t BlockProposer::getNumProposedBlocks() {
 
 BlockProposer::BlockProposer(unsigned num_threads,
                              std::shared_ptr<DagManager> dag_mgr)
-    : verbose_(false),
-      on_(true),
-      num_threads_(num_threads),
-      dag_mgr_(dag_mgr) {}
+    : num_threads_(num_threads), dag_mgr_(dag_mgr) {}
 
 BlockProposer::~BlockProposer() {
-  for (auto& t : proposer_threads_) {
-    t.join();
-  }
+  if (!stopped_) stop();
 }
 
 void BlockProposer::setVerbose(bool verbose) { verbose_ = verbose; }
@@ -36,18 +31,25 @@ void BlockProposer::start() {
   if (verbose_) {
     std::cout << "BlockProposer threads = " << num_threads_ << std::endl;
   }
+  if (!stopped_) return;
+  stopped_ = false;
   for (auto i = 0; i < num_threads_; ++i) {
     proposer_threads_.push_back(boost::thread([this]() { proposeBlock(); }));
   }
 }
 
-void BlockProposer::stop() { on_ = false; }
+void BlockProposer::stop() {
+  stopped_ = true;
+  for (auto& t : proposer_threads_) {
+    t.join();
+  }
+}
 void BlockProposer::proposeBlock() {
-  while (on_) {
+  while (!stopped_) {
     std::string pivot;
     std::vector<std::string> tips;
-    dag_mgr_->getLatestPivotAndTips(pivot, tips);
-    if (verbose_) {
+    bool ok = dag_mgr_->getLatestPivotAndTips(pivot, tips);
+    if (verbose_ && ok) {
       std::cout << "BlockProposer: \nPivot: " << pivot << std::endl;
       std::cout << "Tips: " << std::endl;
       for (auto const& s : tips) {
@@ -55,7 +57,9 @@ void BlockProposer::proposeBlock() {
       }
       std::cout << std::endl;
     }
-    BlockProposer::num_proposed_blocks.fetch_add(1);
+    if (ok) {
+      BlockProposer::num_proposed_blocks.fetch_add(1);
+    }
   }
 }
 

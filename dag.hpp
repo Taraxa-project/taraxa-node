@@ -178,7 +178,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using ulock = std::unique_lock<std::mutex>;
 
   DagManager(unsigned num_threads);
-  ~DagManager();
+  virtual ~DagManager();
   void start();
   void stop();
   std::shared_ptr<DagManager> getShared();
@@ -186,7 +186,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool addDagBlock(DagBlock const &blk,
                    bool insert);  // insert to buffer if fail
   void consume(unsigned threadId);
-  void getLatestPivotAndTips(std::string &pivot,
+  bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
 
   // debug functions
@@ -230,7 +230,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool debug_;
   bool verbose_;
   bool dag_updated_;
-  bool on_;
+  bool stopped_ = true;
   unsigned num_threads_;
   mutable std::mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
@@ -259,6 +259,7 @@ class DagBuffer {
   void insert(DagBlock const &blk);
   buffIter getBuffer();
   void delBuffer(buffIter);
+  void start();
   void stop();
   bool isStopped() const;
   size_t size() const;
@@ -282,13 +283,15 @@ class TipBlockExplorer {
   using ulock = std::unique_lock<std::mutex>;
   TipBlockExplorer(unsigned rate);
   ~TipBlockExplorer();
+  void start();
+  void stop();
   void blockAdded();
   // will block if not ready.
-  void waitForReady();
+  bool waitForReady();
 
  private:
-  bool ready_;
-  bool on_;
+  bool ready_ = false;
+  bool stopped_ = true;
   unsigned rate_limit_;
   unsigned counter_;
   std::mutex mutex_;

@@ -148,14 +148,20 @@ DagBlock &DagBlock::operator=(DagBlock &&other) {
 }
 BlockQueue::BlockQueue(size_t capacity, unsigned num_verifiers)
     : capacity_(capacity), num_verifiers_(num_verifiers) {}
-BlockQueue::~BlockQueue() { stop(); }
+BlockQueue::~BlockQueue() {
+  if (!stopped_) {
+    stop();
+  }
+}
 void BlockQueue::start() {
+  if (!stopped_) return;
   stopped_ = false;
   for (auto i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
   }
 }
 void BlockQueue::stop() {
+  if (stopped_) return;
   {
     uLock lock(mutex_);
     stopped_ = true;

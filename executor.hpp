@@ -36,6 +36,7 @@ class Executor {
         db_blks_(db_blks),
         db_trxs_(db_trxs),
         db_accs_(db_accs) {}
+  ~Executor();
   void start();
   void stop();
   void clear();

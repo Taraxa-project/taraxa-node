@@ -26,7 +26,8 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       if (m_blocks.find(block.getHash()) == m_blocks.end()) {
         onNewBlock(block);
         printf("Received NewBlock\n");
-        if (full_node_) {
+
+        if (full_node_.lock()) {
           BlockVisitor visitor(full_node_);
           taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
           visitor.visit(strm);
