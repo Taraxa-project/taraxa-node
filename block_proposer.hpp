@@ -29,8 +29,8 @@ class BlockProposer {
 
  private:
   static std::atomic<uint64_t> num_proposed_blocks;
-  bool verbose_;
-  bool on_;
+  bool verbose_ = false;
+  bool stopped_ = true;
   unsigned num_threads_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::vector<boost::thread> proposer_threads_;

@@ -42,6 +42,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   FullNode(boost::asio::io_context &io_context,
            std::string const &conf_full_node, std::string const &conf_network);
+  virtual ~FullNode() {
+    if (!stopped_) {
+      stop();
+    }
+  }
   void setVerbose(bool verbose);
   void setDebug(bool debug);
   void start();
@@ -87,7 +92,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::string conf_full_node_;
   std::string conf_network_;
   size_t num_block_workers_ = 2;
-  bool stopped_ = false;
+  bool stopped_ = true;
   // configuration
   FullNodeConfig conf_;
   bool verbose_ = false;

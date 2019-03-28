@@ -428,7 +428,6 @@ DagManager::DagManager(unsigned num_threads) try
     : debug_(false),
       verbose_(false),
       dag_updated_(false),
-      on_(true),
       num_threads_(num_threads),
       inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>()),
@@ -440,8 +439,8 @@ DagManager::DagManager(unsigned num_threads) try
 }
 
 DagManager::~DagManager() {
-  for (auto &t : sb_buffer_processing_threads_) {
-    t.join();
+  if (!stopped_) {
+    stop();
   }
 }
 
@@ -499,15 +498,23 @@ void DagManager::drawPivotGraph(std::string const &str) const {
 }
 
 void DagManager::start() {
+  if (!stopped_) return;
+  stopped_ = false;
   for (auto i = 0; i < num_threads_; ++i) {
     sb_buffer_processing_threads_.push_back(
         boost::thread([this, i]() { consume(i); }));
   }
 }
 void DagManager::stop() {
-  on_ = false;
+  if (stopped_) return;
+  stopped_ = true;
+  tips_explorer_->stop();
   for (auto &arr : (*sb_buffer_array_)) {
     arr.stop();
+  }
+
+  for (auto &t : sb_buffer_processing_threads_) {
+    t.join();
   }
 }
 bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
@@ -572,27 +579,36 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
  */
 
 void DagManager::consume(unsigned idx) {
-  while (on_) {
+  while (!stopped_) {
     auto iter = (*sb_buffer_array_)[idx].getBuffer();
     auto &blk = iter->first;
-    if (!on_) break;
+    if (stopped_) break;
     if (addDagBlock(blk, false)) {
-      // std::cout<<"consume success ..."<<blk.getHash().toString()<<std::endl;
+      // std::cout << "consume success ..." << blk.getHash().toString()
+      //           << std::endl;
       (*sb_buffer_array_)[idx].delBuffer(iter);
     }
   }
 }
-void DagManager::getLatestPivotAndTips(std::string &pivot,
+bool DagManager::getLatestPivotAndTips(std::string &pivot,
                                        std::vector<std::string> &tips) const {
   // will block if not ready.
-  tips_explorer_->waitForReady();
+  bool ready = tips_explorer_->waitForReady();
+  bool ret = false;
   // make sure the state of dag is the same when collection pivot and tips
   ulock lock(mutex_);
   std::vector<std::string> pivot_chain;
-  pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
-      Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
-  pivot = pivot_chain.back();
-  total_dag_->collectLeaves(tips);
+  if (ready) {
+    pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
+        Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
+    pivot = pivot_chain.back();
+    total_dag_->collectLeaves(tips);
+    ret = true;
+  } else {
+    pivot.clear();
+    tips.clear();
+  }
+  return ret;
 }
 
 std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(
@@ -640,10 +656,17 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
   pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
-DagBuffer::DagBuffer()
-    : stopped_(false), updated_(false), iter_(blocks_.end()) {}
+DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
+  if (stopped_) {
+    start();
+  }
+}
 
+void DagBuffer::start() { stopped_ = false; }
 void DagBuffer::stop() {
+  if (stopped_) {
+    return;
+  }
   stopped_ = true;
   condition_.notify_all();
 }
@@ -679,8 +702,11 @@ void DagBuffer::delBuffer(DagBuffer::buffIter iter) {
 size_t DagBuffer::size() const { return blocks_.size(); }
 
 TipBlockExplorer::TipBlockExplorer(unsigned rate)
-    : ready_(false), on_(true), rate_limit_(rate), counter_(0) {}
+    : rate_limit_(rate), counter_(0) {
+  start();
+}
 
+void TipBlockExplorer::start() { stopped_ = false; }
 // only one DagManager will call the function
 void TipBlockExplorer::blockAdded() {
   ulock lock(mutex_);
@@ -695,16 +721,26 @@ void TipBlockExplorer::blockAdded() {
 }
 
 TipBlockExplorer::~TipBlockExplorer() {
-  on_ = false;
+  if (!stopped_) {
+    stop();
+  }
+}
+void TipBlockExplorer::stop() {
+  if (stopped_) return;
+  stopped_ = true;
   condition_.notify_all();
 }
-
-void TipBlockExplorer::waitForReady() {
+bool TipBlockExplorer::waitForReady() {
   ulock lock(mutex_);
-  while (on_ && !ready_) {
+  while (!stopped_ && !ready_) {
     condition_.wait(lock);
   }
+  bool ret = true;
+  if (stopped_) {
+    ret = false;
+  }
   ready_ = false;
+  return ret;
 }
 
 }  // namespace taraxa

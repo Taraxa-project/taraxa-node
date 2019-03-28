@@ -2,7 +2,7 @@
 #include "dag_block.hpp"
 
 namespace taraxa {
-BlockProcessor::BlockProcessor(FullNode &node) : node_(node) {}
+BlockProcessor::BlockProcessor(std::weak_ptr<FullNode> node) : node_(node) {}
 
 BlockProcessor::~BlockProcessor() { stop(); }
 void BlockProcessor::stop() {

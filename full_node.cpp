@@ -82,6 +82,10 @@ std::shared_ptr<FullNode> FullNode::getShared() {
 boost::asio::io_context &FullNode::getIoContext() { return io_context_; }
 
 void FullNode::start() {
+  if (!stopped_) {
+    return;
+  }
+  stopped_ = false;
   network_->setFullNode(getShared());
   network_->start();
   dag_mgr_->start();
@@ -96,7 +100,9 @@ void FullNode::start() {
         LOG(logger_) << "Writing to block db ... " << key << std::endl;
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
-          received_blocks_++;
+          if (!stopped_) {
+            received_blocks_++;
+          }
         }
         db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
         dag_mgr_->addDagBlock(blk, true);
@@ -106,9 +112,18 @@ void FullNode::start() {
 }
 
 void FullNode::stop() {
+  if (stopped_) {
+    return;
+  }
   stopped_ = true;
+  dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
+  blk_qu_->stop();
   network_->stop();
+
+  for (auto i = 0; i < num_block_workers_; ++i) {
+    block_workers_[i].join();
+  }
 }
 
 void FullNode::storeBlock(DagBlock const &blk) {

@@ -38,6 +38,10 @@ std::shared_ptr<Rpc> Rpc::getShared() {
 }
 
 void Rpc::start() {
+  if (!stopped_) {
+    return;
+  }
+  stopped_ = false;
   boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
   acceptor_.open(ep.protocol());
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -76,7 +80,10 @@ void Rpc::waitForAccept() {
       });
 }
 
-void Rpc::stop() { acceptor_.close(); }
+void Rpc::stop() {
+  if (stopped_) return;
+  acceptor_.close();
+}
 
 std::shared_ptr<RpcConnection> RpcConnection::getShared() {
   try {

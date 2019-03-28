@@ -78,9 +78,9 @@ class Network {
   std::shared_ptr<TaraxaCapability> taraxa_capability_;
 
   NetworkConfig conf_;
-  bool on_ = true;
+  bool stopped_ = true;
 
-  std::shared_ptr<FullNode> full_node_;
+  std::weak_ptr<FullNode> full_node_;
 
   // for debugging
   bool verbose_ = false;

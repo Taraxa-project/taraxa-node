@@ -8,8 +8,8 @@
 
 #ifndef VISITOR_HPP
 #define VISITOR_HPP
-
 #include <iostream>
+#include <memory>
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "types.hpp"
@@ -19,15 +19,15 @@ namespace taraxa {
 
 class BaseVisitor {
  public:
-  BaseVisitor(std::shared_ptr<FullNode> full_node);
+  BaseVisitor(std::weak_ptr<FullNode> full_node);
   virtual void visit(stream& strm) = 0;
   virtual ~BaseVisitor() = default;
-  std::shared_ptr<FullNode> full_node_;
+  std::weak_ptr<FullNode> full_node_;
 };
 
 class BlockVisitor : public BaseVisitor {
  public:
-  BlockVisitor(std::shared_ptr<FullNode> full_node);
+  BlockVisitor(std::weak_ptr<FullNode> full_node);
   ~BlockVisitor() = default;
   void visit(stream& strm) override;
   // debugging

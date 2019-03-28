@@ -27,7 +27,7 @@ class DagBlock;
 class BlockProcessor {
  public:
   typedef std::chrono::steady_clock::time_point time_t;
-  BlockProcessor(FullNode &node);
+  BlockProcessor(std::weak_ptr<FullNode> node);
   ~BlockProcessor();
   void add(std::shared_ptr<taraxa::DagBlock> sp, time_t time);
   bool full();
@@ -42,9 +42,9 @@ class BlockProcessor {
  private:
   void processManyBlocks(std::unique_lock<std::mutex> &lock);
   void batchVerifyDagBlocks(std::unique_lock<std::mutex> &lock);
-  bool stopped_ = false;
+  bool stopped_ = true;
   bool active_ = false;
-  FullNode &node_;
+  std::weak_ptr<FullNode> node_;
   std::mutex mutex_;
   std::condition_variable condition_;
   std::unordered_set<taraxa::blk_hash_t> block_hashes_;

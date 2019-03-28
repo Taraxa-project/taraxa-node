@@ -88,6 +88,7 @@ string Transaction::getJsonStr() const {
 }
 
 void TransactionQueue::start() {
+  if (!stopped_) return;
   stopped_ = false;
   for (auto i = 0; i < num_verifiers_; ++i) {
     LOG(logger_) << "Create Transaction verifier ... " << std::endl;
@@ -96,6 +97,7 @@ void TransactionQueue::start() {
 }
 
 void TransactionQueue::stop() {
+  if (stopped_) return;
   stopped_ = true;
   cond_for_unverified_qu_.notify_all();
   for (auto &t : verifiers_) {
