@@ -14,11 +14,8 @@
 #include "MemTrie.h"
 #include <boost/filesystem/path.hpp>
 
-#include <libdevcore/MemoryDB.h>
-
 using namespace std;
 using namespace dev;
-using namespace dev::db;
 
 namespace fs = boost::filesystem;
 namespace js = json_spirit;
@@ -31,12 +28,6 @@ static unsigned fac(unsigned _i)
 using dev::operator <<;
 
 namespace taraxa {
-    TEST(MemoryDB, defaultEmpty) {
-        unique_ptr<MemoryDB> db(new MemoryDB());
-        ASSERT_TRUE(db);
-        EXPECT_TRUE(!db->size());
-    }
-
     // disable until we want to use fat_trie
     TEST(Trie, DISABLED_fat_trie)
     {
@@ -553,7 +544,7 @@ namespace taraxa {
         EXPECT_EQ(itHashToKey, hashToKey.end());
     }
     
-    TEST(Trie, trieStess)
+    TEST(Trie, trieStress)
     {
         cnote << "Stress-testing Trie...";
         {
