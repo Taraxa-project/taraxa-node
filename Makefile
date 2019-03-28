@@ -245,7 +245,7 @@ ${OBJECTDIR}/statecachedb_test.o: core_tests/statecachedb_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/statecachedb_test.o core_tests/statecachedb_test.cpp $(CPPFLAGS)
 
-
+# required for trie_test
 ${OBJECTDIR}/mem_trie.o: crypto_tests/MemTrie.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -343,17 +343,17 @@ protoc_taraxa_grpc:
 test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test
 
 run_test: test
-#	./$(TESTBUILDDIR)/memorydb_test
-#	./$(TESTBUILDDIR)/overlaydb_test
-#	./$(TESTBUILDDIR)/statecachedb_test
-#	./$(TESTBUILDDIR)/transaction_test
-#	./$(TESTBUILDDIR)/dag_test
-#	./$(TESTBUILDDIR)/concur_hash_test
-#	./$(TESTBUILDDIR)/dag_block_test
-#	./$(TESTBUILDDIR)/grpc_test
-#	./$(TESTBUILDDIR)/full_node_test
-#	./$(TESTBUILDDIR)/p2p_test
-#	./$(TESTBUILDDIR)/network_test
+	./$(TESTBUILDDIR)/memorydb_test
+	./$(TESTBUILDDIR)/overlaydb_test
+	./$(TESTBUILDDIR)/statecachedb_test
+	./$(TESTBUILDDIR)/transaction_test
+	./$(TESTBUILDDIR)/dag_test
+	./$(TESTBUILDDIR)/concur_hash_test
+	./$(TESTBUILDDIR)/dag_block_test
+	./$(TESTBUILDDIR)/grpc_test
+	./$(TESTBUILDDIR)/full_node_test
+	./$(TESTBUILDDIR)/p2p_test
+	./$(TESTBUILDDIR)/network_test
 	./$(TESTBUILDDIR)/trie_test
 
 ct:
