@@ -104,8 +104,7 @@ TEST(TransactionManager, prepare_trx_for_propose) {
 
   insertTrx.join();
   insertBlk.join();
-  vec_trx_t to_be_packed_trxs;
-  unsigned packed_trx = 0;
+  vec_trx_t total_packed_trxs, packed_trxs;
 
   // trying to insert same trans when proposing
   std::thread insertTrx2([&trx_mgr]() {
@@ -115,10 +114,11 @@ TEST(TransactionManager, prepare_trx_for_propose) {
   });
   std::cout << "Start block proposing ..." << std::endl;
   do {
-    trx_mgr.packTrxs(to_be_packed_trxs);
-    packed_trx += to_be_packed_trxs.size();
+    trx_mgr.packTrxs(packed_trxs);
+    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
+                             packed_trxs.end());
     thisThreadSleepForMicroSeconds(100);
-  } while (!to_be_packed_trxs.empty());
+  } while (!packed_trxs.empty());
 
   // trying to insert same trans when proposing
   std::thread insertTrx3([&trx_mgr]() {
@@ -128,8 +128,9 @@ TEST(TransactionManager, prepare_trx_for_propose) {
   });
   insertTrx2.join();
   insertTrx3.join();
-  EXPECT_EQ(packed_trx,
-            NUM_TRX - NUM_BLK * (BLK_TRX_LEN - BLK_TRX_OVERLAP) - 1);
+  EXPECT_EQ(total_packed_trxs.size(),
+            NUM_TRX - NUM_BLK * (BLK_TRX_LEN - BLK_TRX_OVERLAP) - 1)
+      << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
 }
 
 }  // namespace taraxa
