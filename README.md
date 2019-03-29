@@ -46,6 +46,7 @@ brew install libscrypt
 brew install automake
 brew install libtool
 brew install grpc
+brew install pkg-config
 ```
 
 Libraries cryptopp, libff, ethash and secp256k1 are in the submodules directory. These libraries should be built automatically. In case there is an issue see README files in each submodule on how to build them.
