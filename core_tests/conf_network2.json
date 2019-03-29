@@ -7,5 +7,7 @@
 			"ip": "127.0.0.1",
 			"port" : 10002
 		}
-	]
+	],
+	"log_verbosity": "info",
+	"log_channels": "network"
 }
