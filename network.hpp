@@ -20,15 +20,6 @@
 #include <iostream>
 #include <mutex>
 #include <string>
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/utility/setup/console.hpp>
-#include <boost/log/utility/setup/file.hpp>
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "libp2p/Host.h"
@@ -36,19 +27,6 @@
 #include "util.hpp"
 
 namespace taraxa {
-
-#define NETWORK_GLOBAL_LOGGER(NAME, SEVERITY)                      \
-    BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS(g_##NAME##Logger, \
-        boost::log::sources::severity_channel_logger_mt<>,     \
-        (boost::log::keywords::severity = SEVERITY)(boost::log::keywords::channel = "network"))
-
-NETWORK_GLOBAL_LOGGER(networknote, VerbosityInfo)
-#define cnetworknote LOG(taraxa::g_networknoteLogger::get())
-NETWORK_GLOBAL_LOGGER(networklog, VerbosityDebug)
-#define cnetworklog LOG(taraxa::g_networklogLogger::get())
-NETWORK_GLOBAL_LOGGER(networkdetails, VerbosityTrace)
-#define cnetworkdetails LOG(taraxa::g_networkdetailsLogger::get())
-
 
 struct NodeConfig {
   std::string id;
@@ -62,8 +40,6 @@ struct NetworkConfig {
   uint16_t network_listen_port;
   std::string network_node_id;
   std::vector<NodeConfig> network_boot_nodes;
-  std::string log_verbosity;
-  std::string log_channels;
 };
 
 /**
@@ -100,6 +76,10 @@ class Network {
   bool stopped_ = true;
 
   std::weak_ptr<FullNode> full_node_;
+  dev::Logger logger_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
+  dev::Logger logger_debug_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
 };
 
 }  // namespace taraxa

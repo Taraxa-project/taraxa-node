@@ -18,8 +18,6 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
   try {
     network_listen_port = doc.get<uint16_t>("network_listen_port");
     network_node_id = doc.get<std::string>("network_node_id");
-    log_verbosity = doc.get<std::string>("log_verbosity");
-    log_channels = doc.get<std::string>("log_channels");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -39,30 +37,9 @@ Network::Network(std::string const &conf_file_name)
 
 Network::Network(std::string const &conf_file_name, std::string networkFile) try
     : conf_(conf_file_name) {
-  dev::LoggingOptions logOptions;
-  if (conf_.log_verbosity == "info")
-    logOptions.verbosity = dev::VerbosityInfo;
-  else if (conf_.log_verbosity == "debug")
-    logOptions.verbosity = dev::VerbosityDebug;
-  else if (conf_.log_verbosity == "trace")
-    logOptions.verbosity = dev::VerbosityTrace;
-  else if (conf_.log_verbosity == "info")
-    logOptions.verbosity = dev::VerbosityError;
-  else if (conf_.log_verbosity == "info")
-    logOptions.verbosity = dev::VerbosityWarning;
-  else if (conf_.log_verbosity == "info")
-    logOptions.verbosity = dev::VerbositySilent;
-
-  boost::char_separator<char> sep(", ");
-  boost::tokenizer<boost::char_separator<char>> tokens(conf_.log_channels, sep);
-  for (const auto &t : tokens) {
-    logOptions.includeChannels.push_back(t);
-  }
-  dev::setupLogging(logOptions);
-
   auto key = dev::KeyPair::create();
   if (conf_.network_node_id.empty()) {
-    cnetworkdetails << "New key generated " << toHex(key.secret().ref());
+    LOG(logger_debug_) << "New key generated " << toHex(key.secret().ref());
   } else {
     auto secret = dev::Secret(conf_.network_node_id,
                               dev::Secret::ConstructFromStringType::FromHex);
@@ -106,10 +83,10 @@ void Network::start() {
   }
   stopped_ = false;
   host_->start();
-  cnetworknote << "Started Node id: " << host_->id().hex();
+  LOG(logger_) << "Started Node id: " << host_->id().hex();
 
   for (auto &node : conf_.network_boot_nodes) {
-    cnetworklog << "Adding boot node:" << node.ip << ":" << node.port;
+    LOG(logger_debug_) << "Adding boot node:" << node.ip << ":" << node.port;
     host_->addNode(
         dev::Public(node.id),
         dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
@@ -127,21 +104,21 @@ void Network::stop() {
 
 void Network::sendTest(NodeID const &id) {
   taraxa_capability_->sendTestMessage(id, 1);
-  cnetworkdetails << "Sent test";
+  LOG(logger_debug_) << "Sent test";
 }
 
 void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
   taraxa_capability_->sendBlock(id, blk, newBlock);
-  cnetworkdetails << "Sent Block:" << blk.getHash().toString();
+  LOG(logger_debug_) << "Sent Block:" << blk.getHash().toString();
 }
 
 void Network::onNewBlock(DagBlock const &blk) {
   taraxa_capability_->onNewBlock(blk);
-  cnetworkdetails << "On new block:" << blk.getHash().toString();
+  LOG(logger_debug_) << "On new block:" << blk.getHash().toString();
 }
 
 void Network::saveNetwork(std::string fileName) {
-  cnetworkdetails << "Network saved to: " << fileName;
+  LOG(logger_debug_) << "Network saved to: " << fileName;
   auto netData = host_->saveNetwork();
   if (!netData.empty()) writeFile(fileName, &netData);
 }
