@@ -24,7 +24,7 @@ std::vector<Transaction> createTrxSamples(unsigned start, unsigned num) {
     strm << std::to_string(i);
     std::string hash = strm.str();
     Transaction trx(trx_hash_t(hash),         // hash
-                    Transaction::Type::Null,  // type
+                    Transaction::Type::Call,  // type
                     2,                        // nonce
                     3,                        // value
                     val_t(4),                 // gas_price

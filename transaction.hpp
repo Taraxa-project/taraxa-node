@@ -155,10 +155,11 @@ class Transaction {
   Transaction &operator=(Transaction const &other) = default;
   bool operator<(Transaction const &other) const { return hash_ < other.hash_; }
   void sign(secret_t const &sk);
-
- protected:
   // @returns sender of the transaction from the signature (and hash).
   addr_t sender() const;
+  bool verify(public_t const &pk, sig_t const &sig);
+
+ protected:
   // Serialises this transaction to an RLPStream.
   void streamRLP(dev::RLPStream &s, bool include_sig) const;
   // @returns the RLP serialisation of this transaction.
