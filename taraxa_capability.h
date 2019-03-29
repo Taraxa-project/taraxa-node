@@ -101,6 +101,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::unordered_map<NodeID, TaraxaPeer> m_peers;
   mutable std::mt19937_64
       m_urng;  // Mersenne Twister psuedo-random number generator
+  dev::Logger logger_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
+  dev::Logger logger_debug_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
 };
 }  // namespace taraxa
 #endif
