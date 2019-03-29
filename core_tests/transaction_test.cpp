@@ -51,21 +51,16 @@ TEST(transaction, serialize_deserialize) {
   ASSERT_EQ(trans2.getJsonStr(), trans3.getJsonStr());
 }
 
-TEST(Transaction, signer) {
+TEST(Transaction, signer_signature_verify) {
   Transaction trans1 = g_trx_samples[0];
   Transaction trans2 = g_trx_samples[1];
-
-  std::cout << "sig: " << trans1.getSig() << std::endl;
-  std::cout << "sender: " << trans1.getSender() << std::endl;
+  auto pk = dev::toPublic(g_secret);
   trans1.sign(g_secret);
   trans2.sign(g_secret);
-  std::cout << trans1 << std::endl;
-  std::cout << trans2 << std::endl;
-
-  std::cout << "sig: " << trans1.getSig() << std::endl;
-  std::cout << "sender: " << trans1.getSender() << std::endl;
-  std::cout << "sig: " << trans2.getSig() << std::endl;
-  std::cout << "sender: " << trans2.getSender() << std::endl;
+  EXPECT_NE(trans1.getSig(), trans2.getSig());
+  EXPECT_EQ(trans1.sender(), trans2.sender());
+  EXPECT_TRUE(trans1.verify(pk, trans1.getSig()));
+  EXPECT_TRUE(trans2.verify(pk, trans2.getSig()));
 }
 
 TEST(TransactionQueue, verifiers) {

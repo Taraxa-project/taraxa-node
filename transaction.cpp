@@ -84,6 +84,9 @@ string Transaction::getJsonStr() const {
 void Transaction::sign(secret_t const &sk) {
   sig_ = dev::sign(sk, sha3(false));
 }
+bool Transaction::verify(public_t const &pk, sig_t const &sig) {
+  return dev::verify(pk, sig, sha3(false));
+}
 addr_t Transaction::sender() const {
   if (!cached_sender_) {
     if (!sig_) {
@@ -121,7 +124,7 @@ blk_hash_t Transaction::sha3(bool include_sig) const {
   if (include_sig && cached_hash_) {
     return cached_hash_;
   }
-  auto ret = dev::sha3(rlp(true));
+  auto ret = dev::sha3(rlp(false));
   if (include_sig) {
     cached_hash_ = ret;
   }
