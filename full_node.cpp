@@ -37,14 +37,12 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
 
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
-  network_->setVerbose(verbose);
   dag_mgr_->setVerbose(verbose);
   db_blks_->setVerbose(verbose);
 }
 
 void FullNode::setDebug(bool debug) {
   debug_ = debug;
-  network_->setDebug(debug);
 }
 
 FullNode::FullNode(boost::asio::io_context &io_context,

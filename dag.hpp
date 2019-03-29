@@ -290,7 +290,6 @@ class TipBlockExplorer {
   TipBlockExplorer(unsigned rate);
   ~TipBlockExplorer();
   void start();
-  void stop();
   void blockAdded();
   void stop();
   // will block if not ready.

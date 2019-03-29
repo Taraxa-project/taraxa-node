@@ -2,6 +2,7 @@
 #include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
 #include <libp2p/Network.h>
+#include <boost/tokenizer.hpp>
 #include "full_node.hpp"
 #include "libp2p/Host.h"
 #include "taraxa_capability.h"
@@ -17,6 +18,8 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
   try {
     network_listen_port = doc.get<uint16_t>("network_listen_port");
     network_node_id = doc.get<std::string>("network_node_id");
+    log_verbosity = doc.get<std::string>("log_verbosity");
+    log_channels = doc.get<std::string>("log_channels");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -35,18 +38,31 @@ Network::Network(std::string const &conf_file_name)
     : Network(conf_file_name, "") {}
 
 Network::Network(std::string const &conf_file_name, std::string networkFile) try
-<<<<<<< HEAD
     : conf_(conf_file_name) {
-=======
-    : conf_(conf_file_name),
-      full_node_(nullptr) {
->>>>>>> Fix for stopping threads and node sync
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  if (conf_.log_verbosity == "info")
+    logOptions.verbosity = dev::VerbosityInfo;
+  else if (conf_.log_verbosity == "debug")
+    logOptions.verbosity = dev::VerbosityDebug;
+  else if (conf_.log_verbosity == "trace")
+    logOptions.verbosity = dev::VerbosityTrace;
+  else if (conf_.log_verbosity == "info")
+    logOptions.verbosity = dev::VerbosityError;
+  else if (conf_.log_verbosity == "info")
+    logOptions.verbosity = dev::VerbosityWarning;
+  else if (conf_.log_verbosity == "info")
+    logOptions.verbosity = dev::VerbositySilent;
+
+  boost::char_separator<char> sep(", ");
+  boost::tokenizer<boost::char_separator<char>> tokens(conf_.log_channels, sep);
+  for (const auto &t : tokens) {
+    logOptions.includeChannels.push_back(t);
+  }
   dev::setupLogging(logOptions);
+
   auto key = dev::KeyPair::create();
   if (conf_.network_node_id.empty()) {
-    printf("New key generated %s\n", toHex(key.secret().ref()).c_str());
+    cnetworkdetails << "New key generated " << toHex(key.secret().ref());
   } else {
     auto secret = dev::Secret(conf_.network_node_id,
                               dev::Secret::ConstructFromStringType::FromHex);
@@ -89,14 +105,11 @@ void Network::start() {
     return;
   }
   stopped_ = false;
-  if (verbose_) {
-    std::cout << "Network started";
-  }
   host_->start();
-  printf("Started Node id: %s\n", host_->id().hex().c_str());
+  cnetworknote << "Started Node id: " << host_->id().hex();
 
   for (auto &node : conf_.network_boot_nodes) {
-    printf("Adding node\n");
+    cnetworklog << "Adding boot node:" << node.ip << ":" << node.port;
     host_->addNode(
         dev::Public(node.id),
         dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
@@ -112,36 +125,23 @@ void Network::stop() {
   host_->stop();
 }
 
-void Network::setVerbose(bool verbose) { verbose_ = verbose; }
-void Network::setDebug(bool debug) { debug_ = debug; }
-
-void Network::print(std::string const &str) {
-  std::unique_lock<std::mutex> lock(verbose_mutex_);
-  std::cout << str;
-}
-
 void Network::sendTest(NodeID const &id) {
   taraxa_capability_->sendTestMessage(id, 1);
-  if (verbose_) {
-    print("Sent ===> ");
-  }
+  cnetworkdetails << "Sent test";
 }
 
 void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
   taraxa_capability_->sendBlock(id, blk, newBlock);
-  if (verbose_) {
-    print("Sent Block");
-  }
+  cnetworkdetails << "Sent Block:" << blk.getHash().toString();
 }
 
 void Network::onNewBlock(DagBlock const &blk) {
   taraxa_capability_->onNewBlock(blk);
-  if (verbose_) {
-    print("On new block");
-  }
+  cnetworkdetails << "On new block:" << blk.getHash().toString();
 }
 
 void Network::saveNetwork(std::string fileName) {
+  cnetworkdetails << "Network saved to: " << fileName;
   auto netData = host_->saveNetwork();
   if (!netData.empty()) writeFile(fileName, &netData);
 }
