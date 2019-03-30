@@ -91,7 +91,7 @@ class Dag {
                std::vector<vertex_hash> const &tips);
 
   // timestamp unrelated
-  void collectLeaves(std::vector<vertex_hash> &tips) const;
+  void collectTotalLeaves(std::vector<vertex_hash> &tips) const;
   void drawGraph(vertex_hash filename) const;
 
   // Time stamp related
@@ -188,7 +188,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void consume(unsigned threadId);
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
-  void collectLeaves(std::vector<std::string> &leaves) const;
+  void collectTotalLeaves(std::vector<std::string> &leaves) const;
 
   void getLatestPivot(std::string &pivot) const;
 
@@ -204,7 +204,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void drawTotalGraph(std::string const &str) const;
   std::vector<std::string> getTotalChildrenBeforeTimeStamp(
       std::string const &vertex, time_stamp_t stamp) const;
-  
 
   // ----- Pivot graph
   std::vector<std::string> getPivotChildrenBeforeTimeStamp(

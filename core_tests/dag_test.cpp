@@ -67,7 +67,7 @@ TEST(Dag, dag_traverse_get_children_tips) {
 
   std::vector<std::string> leaves;
   std::string pivot;
-  graph.collectLeaves(leaves);
+  graph.collectTotalLeaves(leaves);
   EXPECT_EQ(3, leaves.size());
 
   graph.addVEEs(v3, Dag::GENESIS, empty);
@@ -84,7 +84,7 @@ TEST(Dag, dag_traverse_get_children_tips) {
   graph.addVEEs(v8, v6, {v5});
   graph.addVEEs(v9, v6, empty);
   leaves.clear();
-  graph.collectLeaves(leaves);
+  graph.collectTotalLeaves(leaves);
   EXPECT_EQ(6, leaves.size());
 
   time_stamp_t t4 = graph.getVertexTimeStamp(v4);

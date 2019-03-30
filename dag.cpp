@@ -43,7 +43,7 @@ bool Dag::hasVertex(vertex_hash const &v) const {
   return graph_.vertex(v) != graph_.null_vertex();
 }
 
-void Dag::collectLeaves(std::vector<vertex_hash> &tips) const {
+void Dag::collectTotalLeaves(std::vector<vertex_hash> &tips) const {
   ulock lock(mutex_);
   vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
   std::vector<vertex_t> leaves;
@@ -602,7 +602,7 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
     pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
         Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
     pivot = pivot_chain.back();
-    total_dag_->collectLeaves(tips);
+    total_dag_->collectTotalLeaves(tips);
     ret = true;
   } else {
     pivot.clear();
@@ -611,8 +611,8 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   return ret;
 }
 
-void DagManager::collectLeaves(std::vector<std::string> &leaves) const {
-	total_dag_->collectLeaves(leaves);
+void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
+  total_dag_->collectTotalLeaves(leaves);
 }
 
 std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(

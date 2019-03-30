@@ -41,9 +41,7 @@ void FullNode::setVerbose(bool verbose) {
   db_blks_->setVerbose(verbose);
 }
 
-void FullNode::setDebug(bool debug) {
-  debug_ = debug;
-}
+void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(boost::asio::io_context &io_context,
                    std::string const &conf_full_node,
@@ -153,21 +151,21 @@ std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash,
   return children;
 }
 
-std::vector<std::string> FullNode::getTotalDagBlockChildren(blk_hash_t const &hash,
-                                                       time_stamp_t stamp) {
+std::vector<std::string> FullNode::getTotalDagBlockChildren(
+    blk_hash_t const &hash, time_stamp_t stamp) {
   std::vector<std::string> children =
       dag_mgr_->getTotalChildrenBeforeTimeStamp(hash.toString(), stamp);
   return children;
 }
 
-std::vector<std::string> FullNode::collectLeaves() {
+std::vector<std::string> FullNode::collectTotalLeaves() {
   std::vector<std::string> leaves;
-  dag_mgr_->collectLeaves(leaves);
+  dag_mgr_->collectTotalLeaves(leaves);
   return leaves;
 }
 
 void FullNode::getLatestPivotAndTips(std::string &pivot,
-                                       std::vector<std::string> &tips) {
+                                     std::vector<std::string> &tips) {
   dag_mgr_->getLatestPivotAndTips(pivot, tips);
 }
 // Recursive call to children
