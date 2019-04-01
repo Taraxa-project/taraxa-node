@@ -172,6 +172,20 @@ void BlockQueue::stop() {
     t.join();
   }
 }
+
+bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
+  upgradableLock lock(shared_mutex_);
+  return seen_blocks_.count(hash);
+}
+
+std::shared_ptr<DagBlock> BlockQueue::getBlock(blk_hash_t const &hash) {
+  upgradableLock lock(shared_mutex_);
+  auto fBlk = seen_blocks_.find(hash);
+  if(fBlk != seen_blocks_.end())
+    return std::make_shared<DagBlock>(fBlk->second);  
+  return std::shared_ptr<DagBlock>();
+}
+
 void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
   {
     upgradableLock lock(shared_mutex_);
@@ -182,7 +196,7 @@ void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
 
     LOG(logger_) << "Insert block: " << blk.getHash() << std::endl;
     upgradeLock locked(lock);
-    seen_blocks_.insert(blk.getHash());
+    seen_blocks_[blk.getHash()] = blk;
   }
   {
     uLock lock(mutex_for_unverified_qu_);

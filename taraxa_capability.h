@@ -10,6 +10,7 @@
 #include <thread>
 #include "dag_block.hpp"
 #include "full_node.hpp"
+#include "transaction.hpp"
 #include "visitor.hpp"
 
 using namespace std;
@@ -26,6 +27,7 @@ enum SubprotocolPacketType : ::byte {
   BlockPacket,
   GetBlockChildrenPacket,
   BlockChildrenPacket,
+  TransactionPacket,
   TestPacket,
   PacketCount
 };
@@ -76,6 +78,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void onNewBlock(DagBlock block);
+  void onNewTransaction(Transaction const &transaction);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(
@@ -93,7 +96,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   Host const &m_host;
   std::unordered_map<NodeID, int> m_cntReceivedMessages;
   std::unordered_map<NodeID, int> m_testSums;
-  std::map<blk_hash_t, taraxa::DagBlock> m_blocks;
+
+  // Only used for testing without the full node set
+  std::map<blk_hash_t, taraxa::DagBlock> m_TestBlocks;
+
   std::set<blk_hash_t> m_blockRequestedSet;
 
   std::weak_ptr<FullNode> full_node_;
