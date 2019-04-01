@@ -13,6 +13,7 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "rocks_db.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 
@@ -138,6 +139,10 @@ std::shared_ptr<DagBlock> FullNode::getBlock(blk_hash_t const &hash) {
   if(!blk)
     return getDagBlock(hash);
   return blk;
+  
+void FullNode::storeTransaction(Transaction const &trx){
+  trx_mgr_->insertTrx(trx);
+
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {

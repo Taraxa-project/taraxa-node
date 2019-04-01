@@ -26,6 +26,8 @@ class BlockProposer;
 class DagManager;
 class DagBlock;
 class BlockQueue;
+class Transaction;
+class TransactionManager;
 
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
@@ -60,6 +62,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // Store a block in persistent storage and build in dag
   void storeBlock(DagBlock const &blk);
+
+  // Store transaction
+  void storeTransaction(Transaction const &trx);
 
   // Dag query: return childern, siblings, tips before time stamp
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
@@ -116,6 +121,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DagManager> dag_mgr_;
   // ledger
   std::shared_ptr<BlockQueue> blk_qu_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
 
@@ -126,6 +132,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
+  uint64_t received_trxs_ = 0;
   dev::Logger logger_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "chain")};
   dev::Logger logger_debug_{
