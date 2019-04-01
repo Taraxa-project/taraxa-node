@@ -301,7 +301,20 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
-    } else if (action == "draw_graph") {
+    } else if (action == "send_transaction") {
+      try {
+        bal_t nonce = in_doc_.get<uint64_t>("nonce");
+        bal_t value = in_doc_.get<uint64_t>("value");
+        val_t gas_price = val_t(in_doc_.get<std::string>("gas_price"));
+        val_t gas = val_t(in_doc_.get<std::string>("gas"));
+        addr_t receiver = addr_t(in_doc_.get<std::string>("receiver"));
+        bytes data = str2bytes(in_doc_.get<std::string>("data"));
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    }
+
+    else if (action == "draw_graph") {
       std::string filename = in_doc_.get<std::string>("filename");
       node_->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";
