@@ -85,6 +85,8 @@ class BlockQueue {
   DagBlock getVerifiedBlock();  // get one verified block and pop
   void start();
   void stop();
+  bool isBlockKnown(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getBlock(blk_hash_t const &hash);
 
  private:
   using uLock = std::unique_lock<std::mutex>;
@@ -100,7 +102,7 @@ class BlockQueue {
   mutable std::mutex mutex_;  // mutex
 
   // seen blks
-  std::unordered_set<blk_hash_t> seen_blocks_;
+  std::map<blk_hash_t, DagBlock> seen_blocks_;
 
   std::vector<std::thread> verifiers_;
   mutable std::mutex mutex_for_unverified_qu_;

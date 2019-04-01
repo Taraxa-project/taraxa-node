@@ -25,6 +25,7 @@
 #include "libp2p/Host.h"
 #include "taraxa_capability.h"
 #include "util.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 
@@ -57,6 +58,7 @@ class Network {
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
                  bool newBlock);
   void onNewBlock(DagBlock const &blk);
+  void onNewTransaction(Transaction const &transaction);
   NetworkConfig getConfig();
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);

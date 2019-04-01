@@ -117,6 +117,11 @@ void Network::onNewBlock(DagBlock const &blk) {
   LOG(logger_debug_) << "On new block:" << blk.getHash().toString();
 }
 
+void Network::onNewTransaction(Transaction const &transaction) {
+  taraxa_capability_->onNewTransaction(transaction);
+  LOG(logger_debug_) << "On new transaction:" << transaction.getHash().toString();
+}
+
 void Network::saveNetwork(std::string fileName) {
   LOG(logger_debug_) << "Network saved to: " << fileName;
   auto netData = host_->saveNetwork();

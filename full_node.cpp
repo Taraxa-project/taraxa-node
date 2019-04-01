@@ -126,6 +126,19 @@ void FullNode::storeBlock(DagBlock const &blk) {
   blk_qu_->pushUnverifiedBlock(std::move(blk));
 }
 
+bool FullNode::isBlockKnown(blk_hash_t const &hash) {
+  auto known = blk_qu_->isBlockKnown(hash);
+  if(!known)
+    return getDagBlock(hash) != nullptr;
+}
+
+std::shared_ptr<DagBlock> FullNode::getBlock(blk_hash_t const &hash) {
+  auto blk = blk_qu_->getBlock(hash);
+  if(!blk)
+    return getDagBlock(hash);
+  return blk;
+}
+
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   std::shared_ptr<DagBlock> block;
   std::string json = db_blks_->get(hash.toString());

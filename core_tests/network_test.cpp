@@ -322,7 +322,8 @@ TEST(Network, node_sync2) {
 
 int main(int argc, char **argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityTrace;
+  logOptions.includeChannels.push_back("network");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

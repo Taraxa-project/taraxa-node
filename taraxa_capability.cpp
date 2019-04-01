@@ -28,8 +28,8 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     for (auto block : m_peers[_nodeID].m_syncBlocks) {
       for (auto tip : block.second.getTips()) {
-        auto tipBlock = full_node->getDagBlock(tip);
-        if (!tipBlock && m_peers[_nodeID].m_syncBlocks.find(tip) ==
+        auto tipKnown = full_node->isBlockKnown(tip);
+        if (!tipKnown && m_peers[_nodeID].m_syncBlocks.find(tip) ==
                              m_peers[_nodeID].m_syncBlocks.end()) {
           m_peers[_nodeID].m_lastRequest = tip;
           LOG(logger_) << "Block " << block.second.getHash().toString()
@@ -40,12 +40,16 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
       }
     }
     for (auto block : m_peers[_nodeID].m_syncBlocks) {
-      if (!full_node->getDagBlock(block.first)) {
+      if (!full_node->isBlockKnown(block.first)) {
         LOG(logger_) << "Storing block " << block.second.getHash().toString();
         full_node->storeBlock(block.second);
       }
     }
     m_peers[_nodeID].m_syncBlocks.clear();
+    // After storing blocks, we need to give some time for the blocks to be
+    // processed before continuing sync
+    // Better solution needed later
+    thisThreadSleepForMilliSeconds(1);
     if (m_peers[_nodeID].m_state == Syncing) syncPeer(_nodeID);
   }
 }
@@ -72,16 +76,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       block.deserialize(strm);
 
       m_peers[_nodeID].markBlockAsKnown(block.getHash());
-      if (m_blocks.find(block.getHash()) == m_blocks.end()) {
-        onNewBlock(block);
-        LOG(logger_debug_) << "Received NewBlock "
-                           << block.getHash().toString();
-        if (full_node_.lock()) {
-          BlockVisitor visitor(full_node_);
-          taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
-          visitor.visit(strm);
-        }
-      }
+      onNewBlock(block);
       break;
     }
     case BlockPacket: {
@@ -96,18 +91,15 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       LOG(logger_debug_) << "Received BlockPacket "
                          << block.getHash().toString();
       m_peers[_nodeID].markBlockAsKnown(block.getHash());
-      if (m_blocks.find(block.getHash()) == m_blocks.end()) {
-        if (m_peers[_nodeID].m_lastRequest == block.getHash()) {
-          m_peers[_nodeID].m_syncBlocks[block.getHash()] = block;
-          continueSync(_nodeID);
-        } else if (full_node_.lock()) {
-          BlockVisitor visitor(full_node_);
-          taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
-          visitor.visit(strm);
-        }
+      if (m_peers[_nodeID].m_lastRequest == block.getHash()) {
+        m_peers[_nodeID].m_syncBlocks[block.getHash()] = block;
+        continueSync(_nodeID);
+      } else if (auto full_node = full_node_.lock()) {
+        full_node->storeBlock(block);
+      } else {
+        m_TestBlocks[block.getHash()] = block;
       }
-      break;
-    }
+    } break;
     case NewBlockHashPacket: {
       std::vector<::byte> blockBytes;
       for (auto i = 0; i < _r[0].itemCount(); i++) {
@@ -116,8 +108,14 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       blk_hash_t hash;
       LOG(logger_debug_) << "Received NewBlockHashPacket" << hash.toString();
       memcpy(&hash, blockBytes.data(), blockBytes.size());
-      if (m_blocks.find(hash) == m_blocks.end() &&
-          m_blockRequestedSet.count(hash) == 0) {
+      if (auto full_node = full_node_.lock()) {
+        if (!full_node->isBlockKnown(hash) &&
+            m_blockRequestedSet.count(hash) == 0) {
+          m_blockRequestedSet.insert(hash);
+          requestBlock(_nodeID, hash, true);
+        }
+      } else if (m_TestBlocks.find(hash) == m_TestBlocks.end() &&
+                 m_blockRequestedSet.count(hash) == 0) {
         m_blockRequestedSet.insert(hash);
         requestBlock(_nodeID, hash, true);
       }
@@ -132,7 +130,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       LOG(logger_debug_) << "Received GetBlockPacket" << hash.toString();
       memcpy(&hash, blockBytes.data(), blockBytes.size());
       if (auto full_node = full_node_.lock()) {
-        auto block = full_node->getDagBlock(hash);
+        auto block = full_node->getBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, false);
         }
@@ -147,8 +145,14 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       blk_hash_t hash;
       memcpy(&hash, blockBytes.data(), blockBytes.size());
       LOG(logger_debug_) << "Received GetNewBlockPacket" << hash.toString();
-      if (m_blocks.find(hash) != m_blocks.end()) {
-        sendBlock(_nodeID, m_blocks[hash], true);
+
+      if (auto full_node = full_node_.lock()) {
+        auto block = full_node->getBlock(hash);
+        if (block) {
+          sendBlock(_nodeID, *block, false);
+        }
+      } else if (m_TestBlocks.find(hash) != m_TestBlocks.end()) {
+        sendBlock(_nodeID, m_TestBlocks[hash], true);
       }
       break;
     }
@@ -241,9 +245,27 @@ TaraxaCapability::randomPartitionPeers(std::vector<NodeID> const &_peers,
   return std::make_pair(move(part1), move(part2));
 }
 
+void TaraxaCapability::onNewTransaction(Transaction const &transaction) {}
+
 void TaraxaCapability::onNewBlock(DagBlock block) {
+  if (auto full_node = full_node_.lock()) {
+    if (full_node->isBlockKnown(block.getHash())) {
+      LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
+                         << "that is already known";
+      return;
+    } else {
+      full_node->storeBlock(block);
+    }
+  } else if (m_TestBlocks.find(block.getHash()) == m_TestBlocks.end()) {
+    m_TestBlocks[block.getHash()] = block;
+  } else {
+    LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
+                       << "that is already known";
+    return;
+  }
+  LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString();
+
   const int c_minBlockBroadcastPeers = 1;
-  m_blocks[block.getHash()] = block;
   auto const peersWithoutBlock = selectPeers([&](TaraxaPeer const &_peer) {
     return !_peer.isBlockKnown(block.getHash());
   });
@@ -378,7 +400,7 @@ std::pair<int, int> TaraxaCapability::retrieveTestData(NodeID const &_id) {
 }
 
 std::map<blk_hash_t, taraxa::DagBlock> TaraxaCapability::getBlocks() {
-  return m_blocks;
+  return m_TestBlocks;
 }
 
 void TaraxaCapability::setFullNode(std::shared_ptr<FullNode> full_node) {
