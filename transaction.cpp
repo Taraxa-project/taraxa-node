@@ -121,14 +121,7 @@ bytes Transaction::rlp(bool include_sig) const {
 };
 
 blk_hash_t Transaction::sha3(bool include_sig) const {
-  if (include_sig && cached_hash_) {
-    return cached_hash_;
-  }
-  auto ret = dev::sha3(rlp(false));
-  if (include_sig) {
-    cached_hash_ = ret;
-  }
-  return ret;
+  return dev::sha3(rlp(include_sig));
 }
 
 void TransactionQueue::start() {
@@ -234,8 +227,8 @@ bool TransactionManager::insertTrx(Transaction trx) {
   trx_qu_.insert(trx);
   return true;
 }
-bool TransactionManager::setPackedTrxFromBlockHash(blk_hash_t blk) {}
-bool TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
+void TransactionManager::setPackedTrxFromBlockHash(blk_hash_t blk) {}
+void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
   vec_trx_t trxs = blk.getTrxs();
   TransactionStatus status;
   bool exist;
@@ -278,7 +271,7 @@ bool TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
  * 3. propose transactions for block A
  * 4. update A, B and C status to seen_in_db
  */
-bool TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
+void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   std::vector<trx_hash_t> exist_in_db;
   std::vector<trx_hash_t> packed_by_others;
@@ -333,7 +326,6 @@ bool TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
                                      TransactionStatus::seen_in_db);
     assert(res);
   }
-  return true;
 }
 
 }  // namespace taraxa

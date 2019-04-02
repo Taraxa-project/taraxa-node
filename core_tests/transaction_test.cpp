@@ -12,6 +12,7 @@
 #include <vector>
 #include "create_samples.hpp"
 #include "grpc_server.hpp"
+
 namespace taraxa {
 const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;

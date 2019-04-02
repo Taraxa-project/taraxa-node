@@ -259,7 +259,8 @@ ${OBJECTDIR}/trie_test.o: crypto_tests/trie_test.cpp
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
-	submodules/secp256k1/.libs/libsecp256k1.a
+	submodules/secp256k1/.libs/libsecp256k1.a \
+	core_tests/create_samples.hpp
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually

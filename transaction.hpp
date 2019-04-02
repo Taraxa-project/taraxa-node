@@ -86,7 +86,7 @@ class TransactionStatusTable {
 };
 class Transaction {
  public:
-  enum class Type : uint8_t { Null, Creation, Call };
+  enum class Type : uint8_t { Null, Create, Call };
   Transaction() = default;
   Transaction(::taraxa_grpc::ProtoTransaction const &t)
       : hash_(t.hash()),
@@ -98,6 +98,7 @@ class Transaction {
         receiver_(t.receiver()),
         sig_(t.sig()),
         data_(str2bytes(t.data())) {}
+  // default constructor
   Transaction(trx_hash_t const &hash, Type type, bal_t const &nonce,
               bal_t const &value, val_t const &gas_price, val_t const &gas,
               addr_t const &receiver, sig_t const &sig, bytes const &data) try
@@ -114,6 +115,36 @@ class Transaction {
     std::cerr << e.what() << std::endl;
   }
 
+  // sign message call
+  Transaction(bal_t const &nonce, bal_t const &value, val_t const &gas_price,
+              val_t const &gas, addr_t const &receiver, bytes const &data,
+              secret_t const &sk) try : type_(Transaction::Type::Call),
+                                        nonce_(nonce),
+                                        value_(value),
+                                        gas_price_(gas_price),
+                                        gas_(gas),
+                                        receiver_(receiver),
+                                        data_(data) {
+    sign(sk);
+    updateHash();
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  // sign contract create
+  Transaction(bal_t const &nonce, bal_t const &value, val_t const &gas_price,
+              val_t const &gas, bytes const &data, secret_t const &sk) try
+      : type_(Transaction::Type::Create),
+        nonce_(nonce),
+        value_(value),
+        gas_price_(gas_price),
+        gas_(gas),
+        data_(data) {
+    sign(sk);
+    updateHash();
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
   Transaction(Transaction &&trx) = default;
   Transaction(Transaction const &trx) = default;
   Transaction(stream &strm);
@@ -146,7 +177,6 @@ class Transaction {
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
   string getJsonStr() const;
-  bool isValid() const { return !hash_.isZero(); }
   bool operator==(Transaction const &other) const {
     return this->getJsonStr() == other.getJsonStr();
   }
@@ -157,6 +187,11 @@ class Transaction {
   void sign(secret_t const &sk);
   // @returns sender of the transaction from the signature (and hash).
   addr_t sender() const;
+  void updateHash() {
+    if (!hash_) {
+      hash_ = dev::sha3(rlp(true));
+    }
+  }
   bool verify(public_t const &pk, sig_t const &sig);
 
  protected:
@@ -176,8 +211,6 @@ class Transaction {
   sig_t sig_;
   bytes data_;
 
-  mutable blk_hash_t
-      cached_hash_;  ///< Cached hash of transaction with signature.
   mutable addr_t cached_sender_;  ///< Cached sender, determined from signature.
 };
 
@@ -255,12 +288,12 @@ class TransactionManager {
     trx_qu_.start();
   }
   bool insertTrx(Transaction trx);
-  bool setPackedTrxFromBlock(DagBlock const &dag_block);
-  bool setPackedTrxFromBlockHash(blk_hash_t blk);
+  void setPackedTrxFromBlock(DagBlock const &dag_block);
+  void setPackedTrxFromBlockHash(blk_hash_t blk);
   /**
    * The following function will require a lock for verified qu
    */
-  bool packTrxs(vec_trx_t &to_be_packed_trx);
+  void packTrxs(vec_trx_t &to_be_packed_trx);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;

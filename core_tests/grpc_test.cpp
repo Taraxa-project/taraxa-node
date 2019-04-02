@@ -45,7 +45,7 @@ TEST(grpc, server_client) {
   EXPECT_EQ(trans1, trans1r);
   EXPECT_EQ(trans2, trans2r);
   Transaction trans3r = client.getTransaction(hash3);
-  EXPECT_EQ(trans3r.isValid(), false);
+  EXPECT_EQ((bool)trans3r.getHash(), false);
   taraxa::thisThreadSleepForSeconds(1);
   gservice.stop();
   t.join();
