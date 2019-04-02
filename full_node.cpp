@@ -56,6 +56,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
+      trx_mgr_(std::make_shared<TransactionManager>(db_blks_)),
       network_(std::make_shared<Network>(conf_network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(
@@ -129,20 +130,18 @@ void FullNode::storeBlock(DagBlock const &blk) {
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   auto known = blk_qu_->isBlockKnown(hash);
-  if(!known)
-    return getDagBlock(hash) != nullptr;
+  if (!known) return getDagBlock(hash) != nullptr;
   return true;
 }
 
 std::shared_ptr<DagBlock> FullNode::getBlock(blk_hash_t const &hash) {
   auto blk = blk_qu_->getBlock(hash);
-  if(!blk)
-    return getDagBlock(hash);
+  if (!blk) return getDagBlock(hash);
   return blk;
-  
-void FullNode::storeTransaction(Transaction const &trx){
-  trx_mgr_->insertTrx(trx);
+}
 
+void FullNode::storeTransaction(Transaction const &trx) {
+  trx_mgr_->insertTrx(trx);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {

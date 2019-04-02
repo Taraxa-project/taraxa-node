@@ -313,6 +313,7 @@ void RpcHandler::processRequest() {
         bytes data;
         Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
         node_->storeTransaction(trx);
+        res = trx.getJsonStr();
       } catch (std::exception &e) {
         res = e.what();
       }
