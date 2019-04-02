@@ -1,6 +1,7 @@
 #include "rpc.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
+#include "transaction.hpp"
 #include "util.hpp"
 #include "wallet.hpp"
 
@@ -301,17 +302,21 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
-    } else if (action == "send_transaction") {
+    } else if (action == "send_coin_transaction") {
       try {
+        secret_t sk = secret_t(in_doc_.get<std::string>("secret"));
         bal_t nonce = in_doc_.get<uint64_t>("nonce");
         bal_t value = in_doc_.get<uint64_t>("value");
         val_t gas_price = val_t(in_doc_.get<std::string>("gas_price"));
         val_t gas = val_t(in_doc_.get<std::string>("gas"));
         addr_t receiver = addr_t(in_doc_.get<std::string>("receiver"));
-        bytes data = str2bytes(in_doc_.get<std::string>("data"));
+        bytes data;
+        Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
+        node_->storeTransaction(trx);
       } catch (std::exception &e) {
         res = e.what();
       }
+
     }
 
     else if (action == "draw_graph") {

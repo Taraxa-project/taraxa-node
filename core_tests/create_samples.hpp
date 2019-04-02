@@ -15,7 +15,7 @@
 namespace taraxa {
 namespace samples {
 
-std::vector<Transaction> createTrxSamples(unsigned start, unsigned num) {
+std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned num) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
@@ -37,10 +37,32 @@ std::vector<Transaction> createTrxSamples(unsigned start, unsigned num) {
   return trxs;
 }
 
-std::vector<DagBlock> createDagBlkSamples(unsigned pivot_start,
-                                          unsigned blk_num, unsigned trx_start,
-                                          unsigned trx_len,
-                                          unsigned trx_overlap) {
+std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num,
+                                                secret_t const &sk) {
+  assert(start + num < std::numeric_limits<unsigned>::max());
+  std::vector<Transaction> trxs;
+  for (auto i = start; i < num; ++i) {
+    std::stringstream strm;
+    strm << std::setw(64) << std::setfill('0');
+    strm << std::to_string(i);
+    std::string hash = strm.str();
+    Transaction trx(i,                                      // nonce
+                    i * 5,                                  // value
+                    val_t(4),                               // gas_price
+                    val_t(5),                               // gas
+                    addr_t(i * 1000),                       // receiver
+                    str2bytes("00FEDCBA9876543210000000"),  // data
+                    sk);                                    // secret
+    trxs.emplace_back(trx);
+  }
+  return trxs;
+}
+
+std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
+                                              unsigned blk_num,
+                                              unsigned trx_start,
+                                              unsigned trx_len,
+                                              unsigned trx_overlap) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<DagBlock> blks;
   unsigned trx = trx_start;

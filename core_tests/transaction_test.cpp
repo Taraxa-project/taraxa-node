@@ -18,14 +18,16 @@ const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
-
-auto g_trx_samples = samples::createTrxSamples(0, NUM_TRX);
-auto g_blk_samples =
-    samples::createDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
 auto g_key_pair = dev::KeyPair(g_secret);
+auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
+auto g_signed_trx_samples =
+    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+
+auto g_blk_samples = samples::createMockDagBlkSamples(
+    0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
 TEST(transaction, serialize_deserialize) {
   Transaction& trans1 = g_trx_samples[0];
@@ -60,13 +62,14 @@ TEST(Transaction, signer_signature_verify) {
   trans2.sign(g_secret);
   EXPECT_NE(trans1.getSig(), trans2.getSig());
   EXPECT_EQ(trans1.sender(), trans2.sender());
-  EXPECT_TRUE(trans1.verify(pk, trans1.getSig()));
-  EXPECT_TRUE(trans2.verify(pk, trans2.getSig()));
+  EXPECT_TRUE(trans1.verifySig());
+  EXPECT_TRUE(trans2.verifySig());
 }
 
 TEST(TransactionQueue, verifiers) {
   TransactionStatusTable status_table;
   TransactionQueue trx_qu(status_table, 2 /*num verifiers*/);
+  trx_qu.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
   trx_qu.start();
 
   // insert trx
@@ -86,10 +89,11 @@ TEST(TransactionQueue, verifiers) {
   EXPECT_EQ(verified_trxs.size(), g_trx_samples.size());
 }
 
-TEST(TransactionManager, prepare_trx_for_propose) {
+TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   TransactionStatusTable status_table;
   auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
   TransactionManager trx_mgr(db_block);
+  trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
       trx_mgr.insertTrx(t);
@@ -101,7 +105,6 @@ TEST(TransactionManager, prepare_trx_for_propose) {
     }
   });
   thisThreadSleepForSeconds(1);
-  std::cout << "First batch of insertions ... done." << std::endl;
 
   insertTrx.join();
   insertBlk.join();
@@ -129,8 +132,36 @@ TEST(TransactionManager, prepare_trx_for_propose) {
   });
   insertTrx2.join();
   insertTrx3.join();
-  EXPECT_EQ(total_packed_trxs.size(),
+  EXPECT_LT(total_packed_trxs.size(), NUM_TRX);
+  EXPECT_GE(total_packed_trxs.size(),
             NUM_TRX - NUM_BLK * (BLK_TRX_LEN - BLK_TRX_OVERLAP) - 1)
+      << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
+}
+
+TEST(TransactionManager, prepare_signed_trx_for_propose) {
+  TransactionStatusTable status_table;
+  auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
+  TransactionManager trx_mgr(db_block);
+  std::thread insertTrx([&trx_mgr]() {
+    for (auto const& t : g_signed_trx_samples) {
+      trx_mgr.insertTrx(t);
+    }
+  });
+
+  thisThreadSleepForMilliSeconds(500);
+
+  insertTrx.join();
+  vec_trx_t total_packed_trxs, packed_trxs;
+  std::cout << "Start block proposing ..." << std::endl;
+
+  do {
+    trx_mgr.packTrxs(packed_trxs);
+    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
+                             packed_trxs.end());
+    thisThreadSleepForMicroSeconds(100);
+  } while (!packed_trxs.empty());
+
+  EXPECT_EQ(total_packed_trxs.size(), NUM_TRX)
       << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
 }
 

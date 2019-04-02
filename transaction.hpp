@@ -192,7 +192,7 @@ class Transaction {
       hash_ = dev::sha3(rlp(true));
     }
   }
-  bool verify(public_t const &pk, sig_t const &sig);
+  bool verifySig();
 
  protected:
   // Serialises this transaction to an RLPStream.
@@ -227,6 +227,7 @@ class TransactionQueue {
     size_t current = 1024;
     size_t future = 1024;
   };
+  enum class VerifyMode : uint8_t { normal, skip_verify_sig };
   TransactionQueue(TransactionStatusTable &status, size_t num_verifiers)
       : trx_status_(status), num_verifiers_(num_verifiers) {}
   TransactionQueue(TransactionStatusTable &status, size_t num_verifiers,
@@ -246,12 +247,14 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
+  void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
  private:
   using uLock = std::unique_lock<std::mutex>;
 
   void verifyTrx();
   bool stopped_ = true;
+  VerifyMode mode_ = VerifyMode::normal;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
   unsigned current_capacity_ = 1024;
@@ -280,6 +283,8 @@ class TransactionManager {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
+  enum class VerifyMode : uint8_t { normal, skip_verify_sig };
+
   TransactionManager(std::shared_ptr<RocksDb> db_block)
       : db_blocks_(db_block),
         db_trxs_(std::make_shared<RocksDb>("/tmp/rocksdb/trx")),
@@ -294,9 +299,15 @@ class TransactionManager {
    * The following function will require a lock for verified qu
    */
   void packTrxs(vec_trx_t &to_be_packed_trx);
+  void setVerifyMode(VerifyMode mode) {
+    mode_ = mode;
+    trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
+  }
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
+  VerifyMode mode_ = VerifyMode::normal;
+
   std::shared_ptr<RocksDb> db_blocks_;
   std::shared_ptr<RocksDb> db_trxs_;
   TransactionStatusTable trx_status_;
