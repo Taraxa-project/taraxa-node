@@ -84,8 +84,12 @@ string Transaction::getJsonStr() const {
 void Transaction::sign(secret_t const &sk) {
   sig_ = dev::sign(sk, sha3(false));
 }
-bool Transaction::verify(public_t const &pk, sig_t const &sig) {
-  return dev::verify(pk, sig, sha3(false));
+
+bool Transaction::verifySig() {
+  if (!sig_) return false;
+  auto msg = sha3(false);
+  auto pk = dev::recover(sig_, msg);
+  return dev::verify(pk, sig_, msg);
 }
 addr_t Transaction::sender() const {
   if (!cached_sender_) {
@@ -195,7 +199,12 @@ void TransactionQueue::verifyTrx() {
       Transaction trx = std::move(utrx);
       trx_hash_t hash = trx.getHash();
       // verify and put the transaction to verified queue
-      bool valid = true;
+      bool valid = false;
+      if (mode_ == VerifyMode::skip_verify_sig) {
+        valid = true;
+      } else {
+        valid = trx.verifySig();
+      }
       // mark invalid
       if (!valid) {
         trx_status_.compareAndSwap(trx.getHash(),
@@ -205,7 +214,7 @@ void TransactionQueue::verifyTrx() {
 
       } else {
         // push to verified qu
-        LOG(logger_) << "Trx: " << hash << "verified. " << std::endl;
+        LOG(logger_) << "Trx: " << hash << "verified OK. " << std::endl;
 
         uLock lock(mutex_for_verified_qu_);
         verified_trxs_[trx.getHash()] = trx;

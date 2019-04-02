@@ -16,7 +16,7 @@ namespace taraxa {
 
 const unsigned NUM_TRX = 10;
 
-auto g_trx_samples = samples::createTrxSamples(0, NUM_TRX);
+auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 
 TEST(grpc, server_client) {
   GrpcService gservice;
