@@ -57,8 +57,9 @@ class Network {
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
                  bool newBlock);
+  void sendTransactions(NodeID const &_id, std::vector<Transaction> transactions);
   void onNewBlock(DagBlock const &blk);
-  void onNewTransaction(Transaction const &transaction);
+  void onNewTransactions(std::vector<Transaction> const &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);
@@ -68,6 +69,9 @@ class Network {
   dev::p2p::NodeID getNodeId() { return host_->id(); };
   int getReceivedBlocksCount() {
     return taraxa_capability_->getBlocks().size();
+  }
+  int getReceivedTransactionsCount() {
+    return taraxa_capability_->getTransactions().size();
   }
 
  private:
