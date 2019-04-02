@@ -112,14 +112,20 @@ void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
   LOG(logger_debug_) << "Sent Block:" << blk.getHash().toString();
 }
 
+void Network::sendTransactions(NodeID const &id, std::vector<Transaction> transactions){
+  taraxa_capability_->sendTransactions(id, transactions);
+  LOG(logger_debug_) << "Sent transactions:" << transactions.size();
+}
+
+
 void Network::onNewBlock(DagBlock const &blk) {
   taraxa_capability_->onNewBlock(blk);
   LOG(logger_debug_) << "On new block:" << blk.getHash().toString();
 }
 
-void Network::onNewTransaction(Transaction const &transaction) {
-  taraxa_capability_->onNewTransaction(transaction);
-  LOG(logger_debug_) << "On new transaction:" << transaction.getHash().toString();
+void Network::onNewTransactions(std::vector<Transaction> const &transactions) {
+  taraxa_capability_->onNewTransactions(transactions);
+  LOG(logger_debug_) << "On new transactions" << transactions.size();
 }
 
 void Network::saveNetwork(std::string fileName) {

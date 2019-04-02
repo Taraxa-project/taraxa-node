@@ -47,12 +47,21 @@ class TaraxaPeer {
   }
   void clearKnownBlocks() { m_knownBlocks.clear(); }
 
+  bool isTransactionKnown(trx_hash_t const &_hash) const {
+    return m_knownTransactions.count(_hash);
+  }
+  void markTransactionAsKnown(trx_hash_t const &_hash) {
+    m_knownTransactions.insert(_hash);
+  }
+  void clearKnownTransactions() { m_knownTransactions.clear(); }
+
   std::map<blk_hash_t, DagBlock> m_syncBlocks;
   blk_hash_t m_lastRequest;
   PeerState m_state;
 
  private:
   std::set<blk_hash_t> m_knownBlocks;
+  std::set<trx_hash_t> m_knownTransactions;
   NodeID m_id;
 };
 
@@ -78,7 +87,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void onNewBlock(DagBlock block);
-  void onNewTransaction(Transaction const &transaction);
+  void onNewTransactions(std::vector<Transaction> const &transactions);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(
@@ -89,8 +98,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
   void requestBlockChildren(NodeID const &_id, std::vector<std::string> leaves);
+  void sendTransactions(NodeID const &_id, std::vector<Transaction> transactions);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
+  std::map<trx_hash_t, taraxa::Transaction> getTransactions();
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   Host const &m_host;
@@ -99,6 +110,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   // Only used for testing without the full node set
   std::map<blk_hash_t, taraxa::DagBlock> m_TestBlocks;
+  std::map<trx_hash_t, Transaction> m_TestTransactions;
 
   std::set<blk_hash_t> m_blockRequestedSet;
 
