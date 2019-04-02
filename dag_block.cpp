@@ -174,12 +174,12 @@ void BlockQueue::stop() {
 }
 
 bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
-  upgradableLock lock(shared_mutex_);
+  boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
   return seen_blocks_.count(hash);
 }
 
 std::shared_ptr<DagBlock> BlockQueue::getBlock(blk_hash_t const &hash) {
-  upgradableLock lock(shared_mutex_);
+  boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
   auto fBlk = seen_blocks_.find(hash);
   if(fBlk != seen_blocks_.end())
     return std::make_shared<DagBlock>(fBlk->second);  

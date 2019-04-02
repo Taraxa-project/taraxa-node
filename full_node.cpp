@@ -130,6 +130,7 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   auto known = blk_qu_->isBlockKnown(hash);
   if(!known)
     return getDagBlock(hash) != nullptr;
+  return true;
 }
 
 std::shared_ptr<DagBlock> FullNode::getBlock(blk_hash_t const &hash) {
