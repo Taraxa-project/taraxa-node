@@ -132,7 +132,7 @@ void TransactionQueue::start() {
   if (!stopped_) return;
   stopped_ = false;
   for (auto i = 0; i < num_verifiers_; ++i) {
-    LOG(logger_) << "Create Transaction verifier ... " << std::endl;
+    LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
     verifiers_.emplace_back([this]() { verifyTrx(); });
   }
 }
@@ -155,7 +155,7 @@ bool TransactionQueue::insert(Transaction trx) {
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(trx);
     cond_for_unverified_qu_.notify_one();
-    LOG(logger_) << "Trx: " << hash << "inserted. " << std::endl;
+    LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
     ret = true;
   } else if (status.first ==
              TransactionStatus::
@@ -167,15 +167,15 @@ bool TransactionQueue::insert(Transaction trx) {
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(trx);
     cond_for_unverified_qu_.notify_one();
-    LOG(logger_) << "Trx: " << hash
+    LOG(log_nf_) << "Trx: " << hash
                  << "already packed by others, but still enqueue. "
                  << std::endl;
   } else if (status.first == TransactionStatus::seen_in_queue) {
-    LOG(logger_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
+    LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
   } else if (status.first == TransactionStatus::seen_in_db) {
-    LOG(logger_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
+    LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
   } else if (status.first == TransactionStatus::seen_but_invalid) {
-    LOG(logger_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
+    LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
   }
 
   return ret;
@@ -190,7 +190,7 @@ void TransactionQueue::verifyTrx() {
         cond_for_unverified_qu_.wait(lock);
       }
       if (stopped_) {
-        LOG(logger_) << "Transaction verifier stopped ... " << std::endl;
+        LOG(log_nf_) << "Transaction verifier stopped ... " << std::endl;
         return;
       }
       utrx = std::move(unverified_qu_.front());
@@ -211,11 +211,11 @@ void TransactionQueue::verifyTrx() {
         trx_status_.compareAndSwap(trx.getHash(),
                                    TransactionStatus::seen_in_queue,
                                    TransactionStatus::seen_but_invalid);
-        LOG(logger_) << "Trx: " << hash << "invalid. " << std::endl;
+        LOG(log_wr_) << "Trx: " << hash << "invalid. " << std::endl;
 
       } else {
         // push to verified qu
-        LOG(logger_) << "Trx: " << hash << "verified OK. " << std::endl;
+        LOG(log_nf_) << "Trx: " << hash << "verified OK. " << std::endl;
 
         uLock lock(mutex_for_verified_qu_);
         verified_trxs_[trx.getHash()] = trx;
@@ -229,7 +229,7 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   uLock lock(mutex_for_verified_qu_);
   auto verified_trxs = std::move(verified_trxs_);
   assert(verified_trxs_.empty());
-  LOG(logger_) << "Move: " << verified_trxs.size() << " verified trx out. "
+  LOG(log_nf_) << "Move: " << verified_trxs.size() << " verified trx out. "
                << std::endl;
   return std::move(verified_trxs);
 }
@@ -252,25 +252,25 @@ void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
     if (!exist) {
       trx_status_.insert(
           t, TransactionStatus::unseen_but_already_packed_by_others);
-      LOG(logger_) << "Blk->Trx : " << t
+      LOG(log_nf_) << "Blk->Trx : " << t
                    << " unseen but already packed by others" << std::endl;
 
     } else if (status == TransactionStatus::seen_in_queue) {
       trx_status_.compareAndSwap(
           t, TransactionStatus::seen_in_queue,
           TransactionStatus::seen_in_queue_but_already_packed_by_others);
-      LOG(logger_) << "Blk->Trx : " << t
+      LOG(log_nf_) << "Blk->Trx : " << t
                    << " seen in queue but already packed by others"
                    << std::endl;
     } else if (status == TransactionStatus::seen_but_invalid) {
-      LOG(logger_) << "Blk->Trx : " << t << " skip, seen and invalid"
+      LOG(log_nf_) << "Blk->Trx : " << t << " skip, seen and invalid"
                    << std::endl;
     } else if (status ==
                TransactionStatus::seen_in_queue_but_already_packed_by_others) {
-      LOG(logger_) << "Blk->Trx : " << t << " skip, seen packed by others."
+      LOG(log_nf_) << "Blk->Trx : " << t << " skip, seen packed by others."
                    << std::endl;
     } else if (status == TransactionStatus::seen_in_db) {
-      LOG(logger_) << "Blk->Trx : " << t << " skip, seen in db." << std::endl;
+      LOG(log_nf_) << "Blk->Trx : " << t << " skip, seen in db." << std::endl;
     }
   }
 }
@@ -287,6 +287,7 @@ void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
  * 4. update A, B and C status to seen_in_db
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
+  to_be_packed_trx.clear();
   uLock pack_lock(mutex_for_pack_trx_);
   while (!stopped_ && trx_counter_ < rate_limiter_) {
     cond_for_pack_trx_.wait(pack_lock);
@@ -297,7 +298,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   std::vector<trx_hash_t> exist_in_db;
   std::vector<trx_hash_t> packed_by_others;
-  to_be_packed_trx.clear();
   uLock lock(mutex_);
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
@@ -312,16 +312,16 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     if (status ==
         TransactionStatus::seen_in_queue_but_already_packed_by_others) {
       packed_by_others.emplace_back(hash);
-      LOG(logger_) << "Trx: " << hash << " already packed by others"
+      LOG(log_nf_) << "Trx: " << hash << " already packed by others"
                    << std::endl;
     } else if (status == TransactionStatus::seen_in_queue) {
       to_be_packed_trx.emplace_back(i.first);
-      LOG(logger_) << "Trx: " << hash << " ready to pack" << std::endl;
+      LOG(log_nf_) << "Trx: " << hash << " ready to pack" << std::endl;
     } else {
-      LOG(logger_) << "Warning! Trx: " << hash << " status "
-                   << asInteger(status) << std::endl;
-      LOG(logger_dbg_) << "Warning! Trx: " << hash << " status "
-                       << asInteger(status) << std::endl;
+      LOG(log_wr_) << "Trx: " << hash << " status " << asInteger(status)
+                   << std::endl;
+      LOG(log_wr_) << "Trx: " << hash << " status " << asInteger(status)
+                   << std::endl;
       assert(true);
     }
   }

@@ -266,10 +266,12 @@ class TransactionQueue {
   std::mutex mutex_for_verified_qu_;
 
   std::condition_variable cond_for_unverified_qu_;
-  dev::Logger logger_{
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "trx_qu")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "trx_qu")};
+  dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
-  dev::Logger logger_dbg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "trx_qu")};
 };
 
 /**
@@ -286,10 +288,11 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(std::shared_ptr<RocksDb> db_block, unsigned rate)
+  TransactionManager(std::shared_ptr<RocksDb> db_blk,
+                     std::shared_ptr<RocksDb> db_trx, unsigned rate)
       : rate_limiter_(rate),
-        db_blocks_(db_block),
-        db_trxs_(std::make_shared<RocksDb>("/tmp/rocksdb/trx")),
+        db_blks_(db_blk),
+        db_trxs_(db_trx),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
     trx_qu_.start();
@@ -298,7 +301,7 @@ class TransactionManager
     try {
       return shared_from_this();
     } catch (std::bad_weak_ptr &e) {
-      LOG(logger_) << "TransactionManager: " << e.what() << std::endl;
+      LOG(log_er_) << e.what() << std::endl;
       return nullptr;
     }
   }
@@ -332,7 +335,7 @@ class TransactionManager
   bool stopped_ = true;
   unsigned rate_limiter_ =
       10;  // propose new block when reciving the number of blocks
-  std::shared_ptr<RocksDb> db_blocks_;
+  std::shared_ptr<RocksDb> db_blks_;
   std::shared_ptr<RocksDb> db_trxs_;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
@@ -342,11 +345,12 @@ class TransactionManager
   std::mutex mutex_for_pack_trx_;
   std::condition_variable cond_for_pack_trx_;
   std::atomic<unsigned> trx_counter_ = 0;
-
-  dev::Logger logger_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
-  dev::Logger logger_dbg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "trx_qu")};
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "trx_mgr")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "trx_mgr")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_mgr")};
 };
 
 }  // namespace taraxa

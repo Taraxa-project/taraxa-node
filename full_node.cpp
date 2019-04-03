@@ -57,7 +57,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(
-          db_blks_, 10 /*block proposer rate*/)),
+          db_blks_, db_trxs_, 10 /*block proposer rate*/)),
       network_(std::make_shared<Network>(conf_network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(
@@ -91,6 +91,7 @@ void FullNode::start() {
   dag_mgr_->start();
   blk_qu_->start();
   blk_proposer_->start();
+  trx_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       std::string key;
@@ -120,6 +121,7 @@ void FullNode::stop() {
   blk_proposer_->stop();
   blk_qu_->stop();
   network_->stop();
+  trx_mgr_->stop();
 
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();

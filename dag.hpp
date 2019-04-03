@@ -6,6 +6,7 @@
  * @Last Modified time: 2019-03-16 23:44:41
  */
 
+#include <atomic>
 #include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
@@ -16,15 +17,14 @@
 #include <boost/graph/properties.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/thread.hpp>
+#include <condition_variable>
 #include <iostream>
 #include <iterator>
 #include <list>
-#include <string>
-
-#include <atomic>
-#include <condition_variable>
 #include <mutex>
+#include <string>
 #include "dag_block.hpp"
+#include "libdevcore/Log.h"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -91,7 +91,7 @@ class Dag {
                std::vector<vertex_hash> const &tips);
 
   // timestamp unrelated
-  void collectTotalLeaves(std::vector<vertex_hash> &tips) const;
+  void getLeaves(std::vector<vertex_hash> &tips) const;
   void drawGraph(vertex_hash filename) const;
 
   // Time stamp related
@@ -145,6 +145,12 @@ class Dag {
   vertex_t genesis_;  // root node
   mutable std::mutex mutex_;
   mutable std::mutex debug_mutex_;
+
+ private:
+  mutable dev::Logger logger_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "dag")};
+  mutable dev::Logger logger_dbg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "dag")};
 };
 /**
  * PivotTree is a special DAG, every vertex only has one out-edge,
@@ -157,12 +163,18 @@ class PivotTree : public Dag {
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_name_map_const_t = Dag::vertex_name_map_const_t;
 
-  void getHeavySubtreePathBeforeTimeStamp(
-      vertex_hash const &vertex, time_stamp_t stamp,
-      std::vector<vertex_hash> &pivot_chain) const;
+  void getGhostPathBeforeTimeStamp(vertex_hash const &vertex,
+                                   time_stamp_t stamp,
+                                   std::vector<vertex_hash> &pivot_chain) const;
 
-  void getHeavySubtreePath(vertex_hash const &vertex,
-                           std::vector<vertex_hash> &pivot_chain) const;
+  void getGhostPath(vertex_hash const &vertex,
+                    std::vector<vertex_hash> &pivot_chain) const;
+
+ private:
+  mutable dev::Logger logger_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "pivot_tree")};
+  mutable dev::Logger logger_dbg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "pivot_tree")};
 };
 class DagBuffer;
 class TipBlockExplorer;
@@ -246,6 +258,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // DagBuffer
   std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
   std::vector<boost::thread> sb_buffer_processing_threads_;
+  dev::Logger logger_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "dag_mgr")};
+  dev::Logger logger_dbg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "dag_mgr")};
 };
 
 /**

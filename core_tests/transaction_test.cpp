@@ -91,9 +91,11 @@ TEST(TransactionQueue, verifiers) {
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  TransactionManager trx_mgr(db_block, 10 /*rate limiter*/);
+  auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
+  auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
+  TransactionManager trx_mgr(db_blks, db_trxs, 5 /*rate limiter*/);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
+  trx_mgr.start();
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
       trx_mgr.insertTrx(t);
@@ -117,10 +119,15 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
     }
   });
   std::cout << "Start block proposing ..." << std::endl;
+  std::thread wakeup([&trx_mgr]() {
+    thisThreadSleepForSeconds(2);
+    trx_mgr.stop();
+  });
   do {
     trx_mgr.packTrxs(packed_trxs);
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
                              packed_trxs.end());
+    std::cout << "packed size " << packed_trxs.size() << std::endl;
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
 
@@ -130,6 +137,8 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
       trx_mgr.insertTrx(t);
     }
   });
+
+  wakeup.join();
   insertTrx2.join();
   insertTrx3.join();
   EXPECT_LT(total_packed_trxs.size(), NUM_TRX);
@@ -140,8 +149,12 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  TransactionManager trx_mgr(db_block, 10 /*rate limiter*/);
+  auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
+  auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
+
+  TransactionManager trx_mgr(db_blks, db_trxs, 3 /*rate limiter*/);
+  trx_mgr.start();
+
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_signed_trx_samples) {
       trx_mgr.insertTrx(t);
@@ -153,14 +166,17 @@ TEST(TransactionManager, prepare_signed_trx_for_propose) {
   insertTrx.join();
   vec_trx_t total_packed_trxs, packed_trxs;
   std::cout << "Start block proposing ..." << std::endl;
-
+  std::thread wakeup([&trx_mgr]() {
+    thisThreadSleepForSeconds(2);
+    trx_mgr.stop();
+  });
   do {
     trx_mgr.packTrxs(packed_trxs);
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
                              packed_trxs.end());
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
-
+  wakeup.join();
   EXPECT_EQ(total_packed_trxs.size(), NUM_TRX)
       << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
 }

@@ -15,8 +15,13 @@ std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
 void BlockProposer::start() {
   if (!stopped_) return;
-  LOG(logger_) << "BlockProposer threads = " << num_threads_ << std::endl;
+  LOG(log_nf_) << "BlockProposer threads = " << num_threads_ << std::endl;
   stopped_ = false;
+  if (trx_mgr_.lock()) {
+    trx_mgr_.lock()->start();
+  } else {
+    LOG(log_er_) << "Cannot start TransactionManager ..." << std::endl;
+  }
   for (auto i = 0; i < num_threads_; ++i) {
     proposer_threads_.push_back(boost::thread([this]() { proposeBlock(); }));
   }
@@ -24,6 +29,9 @@ void BlockProposer::start() {
 
 void BlockProposer::stop() {
   stopped_ = true;
+  if (trx_mgr_.lock()) {
+    trx_mgr_.lock()->stop();
+  }
   for (auto& t : proposer_threads_) {
     t.join();
   }
@@ -34,32 +42,34 @@ void BlockProposer::proposeBlock() {
     std::vector<std::string> tips;
     vec_trx_t to_be_packed_trx;
     if (!trx_mgr_.lock()) {
-      LOG(logger_) << "TransactionManager expired ..." << std::endl;
+      LOG(log_wr_) << "TransactionManager expired ..." << std::endl;
       break;
     }
     // prepare unpacked transaction
     // the call will block until ready
     trx_mgr_.lock()->packTrxs(to_be_packed_trx);
     if (to_be_packed_trx.empty()) {
-      LOG(logger_) << "Skip block proposer, zero unpacked transactions ..."
+      LOG(log_wr_) << "Skip block proposer, zero unpacked transactions ..."
                    << std::endl;
       continue;
     }
     if (!dag_mgr_.lock()) {
-      LOG(logger_) << "DagManager expired ..." << std::endl;
+      LOG(log_wr_) << "DagManager expired ..." << std::endl;
       break;
     }
     bool ok = dag_mgr_.lock()->getLatestPivotAndTips(pivot, tips);
     if (ok) {
-      LOG(logger_) << "BlockProposer: \nPivot: " << pivot << std::endl;
-      LOG(logger_) << "Tips: " << std::endl;
+      LOG(log_nf_) << "BlockProposer: pivot: " << pivot
+                   << ", tip size = " << tips.size() << std::endl;
+      LOG(log_nf_) << "Tips: " << std::endl;
       for (auto const& s : tips) {
-        LOG(logger_) << s << std::endl;
+        LOG(log_nf_) << s << std::endl;
       }
-      LOG(logger_) << std::endl;
-    }
-    if (ok) {
+      LOG(log_nf_) << std::endl;
       BlockProposer::num_proposed_blocks.fetch_add(1);
+    } else {
+      LOG(log_wr_) << "BlockProposer: pivot and tips unavailable ..."
+                   << std::endl;
     }
   }
 }

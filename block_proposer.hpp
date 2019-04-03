@@ -49,10 +49,12 @@ class BlockProposer {
   std::weak_ptr<TransactionManager> trx_mgr_;
   std::vector<boost::thread> proposer_threads_;
 
-  dev::Logger logger_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "blk_prop")};
-  dev::Logger logger_debug_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "blk_prop")};
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "blk_pp")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "blk_pp")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "blk_pp")};
 };
 
 }  // namespace taraxa
