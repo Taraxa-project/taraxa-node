@@ -67,7 +67,7 @@ TEST(Dag, dag_traverse_get_children_tips) {
 
   std::vector<std::string> leaves;
   std::string pivot;
-  graph.collectTotalLeaves(leaves);
+  graph.getLeaves(leaves);
   EXPECT_EQ(3, leaves.size());
 
   graph.addVEEs(v3, Dag::GENESIS, empty);
@@ -84,7 +84,7 @@ TEST(Dag, dag_traverse_get_children_tips) {
   graph.addVEEs(v8, v6, {v5});
   graph.addVEEs(v9, v6, empty);
   leaves.clear();
-  graph.collectTotalLeaves(leaves);
+  graph.getLeaves(leaves);
   EXPECT_EQ(6, leaves.size());
 
   time_stamp_t t4 = graph.getVertexTimeStamp(v4);
@@ -232,6 +232,15 @@ TEST(Dag, dag_traverse3_get_epochs) {
   graph.getEpochVertices(vE, vH, epochs);
   EXPECT_EQ(epochs.size(), 3);
 }
+TEST(PivotTree, genesis_get_pivot) {
+  taraxa::PivotTree graph;
+
+  std::vector<std::string> pivot_chain, leaves;
+  graph.getGhostPath(Dag::GENESIS, pivot_chain);
+  EXPECT_EQ(pivot_chain.size(), 1);
+  graph.getLeaves(leaves);
+  EXPECT_EQ(leaves.size(), 1);
+}
 
 TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
   taraxa::PivotTree graph;
@@ -269,21 +278,21 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
   // timestamp exclude v9
   {
     std::vector<std::string> pivot_chain;
-    graph.getHeavySubtreePath(Dag::GENESIS, pivot_chain);
+    graph.getGhostPath(Dag::GENESIS, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 5);
     EXPECT_EQ(pivot_chain.back(), v10);
   }
 
   {
     std::vector<std::string> pivot_chain;
-    graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, t11, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, t11, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 5);
     EXPECT_EQ(pivot_chain.back(), v10);
   }
 
   {
     std::vector<std::string> pivot_chain;
-    graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, t9, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, t9, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 3);
     EXPECT_EQ(pivot_chain.back(), v4);
   }
@@ -300,16 +309,16 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
 
   graph.addVEEs(v1, Dag::GENESIS, empty);
   graph.addVEEs(v2, Dag::GENESIS, empty);
-
+  graph.setVertexTimeStamp(Dag::GENESIS, 1);
   graph.setVertexTimeStamp(v1, 50);
   graph.setVertexTimeStamp(v2, 25);
 
   {
     std::vector<std::string> pivot_chain;
-    graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, 26, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, 26, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 2);
     EXPECT_EQ(pivot_chain.back(), v2);
-    graph.getHeavySubtreePathBeforeTimeStamp(Dag::GENESIS, 51, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, 51, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 2);
     EXPECT_EQ(pivot_chain.back(), v1);
   }
