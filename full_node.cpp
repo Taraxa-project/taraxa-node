@@ -56,11 +56,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>(db_blks_)),
+      trx_mgr_(std::make_shared<TransactionManager>(
+          db_blks_, 10 /*block proposer rate*/)),
       network_(std::make_shared<Network>(conf_network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(
-          conf_.block_proposer_threads, dag_mgr_->getShared())) {
+          conf_.block_proposer_threads, dag_mgr_->getShared(),
+          trx_mgr_->getShared())) {
   std::cout << "Taraxa node statred at address: " << conf_.address << " ..."
             << std::endl;
 

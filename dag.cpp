@@ -432,7 +432,6 @@ DagManager::DagManager(unsigned num_threads) try
       inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>()),
       pivot_tree_(std::make_shared<PivotTree>()),
-      tips_explorer_(std::make_shared<TipBlockExplorer>(3)),
       sb_buffer_array_(std::make_shared<std::vector<DagBuffer>>(num_threads)) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
@@ -508,7 +507,6 @@ void DagManager::start() {
 void DagManager::stop() {
   if (stopped_) return;
   stopped_ = true;
-  tips_explorer_->stop();
   for (auto &arr : (*sb_buffer_array_)) {
     arr.stop();
   }
@@ -571,7 +569,6 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
   // sync pivot tree's time stamp with total_dag_ timestamp
   auto stamp = total_dag_->getVertexTimeStamp(hash);
   pivot_tree_->setVertexTimeStamp(hash, stamp);
-  tips_explorer_->blockAdded();
 }
 
 /**
@@ -592,21 +589,18 @@ void DagManager::consume(unsigned idx) {
 }
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
                                        std::vector<std::string> &tips) const {
-  // will block if not ready.
-  bool ready = tips_explorer_->waitForReady();
   bool ret = false;
   // make sure the state of dag is the same when collection pivot and tips
   ulock lock(mutex_);
   std::vector<std::string> pivot_chain;
-  if (ready) {
-    pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
-        Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
+  pivot.clear();
+  tips.clear();
+  pivot_tree_->getHeavySubtreePathBeforeTimeStamp(
+      Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
+  if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->collectTotalLeaves(tips);
     ret = true;
-  } else {
-    pivot.clear();
-    tips.clear();
   }
   return ret;
 }
