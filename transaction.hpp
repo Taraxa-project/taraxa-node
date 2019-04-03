@@ -279,18 +279,40 @@ class TransactionQueue {
  *
  */
 
-class TransactionManager {
+class TransactionManager
+    : public std::enable_shared_from_this<TransactionManager> {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(std::shared_ptr<RocksDb> db_block)
-      : db_blocks_(db_block),
+  TransactionManager(std::shared_ptr<RocksDb> db_block, unsigned rate)
+      : rate_limiter_(rate),
+        db_blocks_(db_block),
         db_trxs_(std::make_shared<RocksDb>("/tmp/rocksdb/trx")),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
     trx_qu_.start();
+  }
+  std::shared_ptr<TransactionManager> getShared() {
+    try {
+      return shared_from_this();
+    } catch (std::bad_weak_ptr &e) {
+      LOG(logger_) << "TransactionManager: " << e.what() << std::endl;
+      return nullptr;
+    }
+  }
+  virtual ~TransactionManager() {
+    if (!stopped_) stop();
+  }
+  void start() {
+    if (!stopped_) return;
+    stopped_ = false;
+  }
+  void stop() {
+    if (stopped_) return;
+    stopped_ = true;
+    cond_for_pack_trx_.notify_all();
   }
   bool insertTrx(Transaction trx);
   void setPackedTrxFromBlock(DagBlock const &dag_block);
@@ -307,13 +329,20 @@ class TransactionManager {
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
-
+  bool stopped_ = true;
+  unsigned rate_limiter_ =
+      10;  // propose new block when reciving the number of blocks
   std::shared_ptr<RocksDb> db_blocks_;
   std::shared_ptr<RocksDb> db_trxs_;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;
   std::mutex mutex_;
+
+  std::mutex mutex_for_pack_trx_;
+  std::condition_variable cond_for_pack_trx_;
+  std::atomic<unsigned> trx_counter_ = 0;
+
   dev::Logger logger_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
   dev::Logger logger_dbg_{

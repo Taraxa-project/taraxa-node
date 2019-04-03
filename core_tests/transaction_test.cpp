@@ -92,7 +92,7 @@ TEST(TransactionQueue, verifiers) {
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   TransactionStatusTable status_table;
   auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  TransactionManager trx_mgr(db_block);
+  TransactionManager trx_mgr(db_block, 10 /*rate limiter*/);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
@@ -141,7 +141,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
   auto db_block = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  TransactionManager trx_mgr(db_block);
+  TransactionManager trx_mgr(db_block, 10 /*rate limiter*/);
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_signed_trx_samples) {
       trx_mgr.insertTrx(t);

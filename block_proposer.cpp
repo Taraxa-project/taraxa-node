@@ -5,33 +5,17 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2019-01-28 23:02:13
  */
-
 #include "block_proposer.hpp"
 #include "dag.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
-uint64_t BlockProposer::getNumProposedBlocks() {
-  return BlockProposer::num_proposed_blocks;
-}
-
-BlockProposer::BlockProposer(unsigned num_threads,
-                             std::shared_ptr<DagManager> dag_mgr)
-    : num_threads_(num_threads), dag_mgr_(dag_mgr) {}
-
-BlockProposer::~BlockProposer() {
-  if (!stopped_) stop();
-}
-
-void BlockProposer::setVerbose(bool verbose) { verbose_ = verbose; }
-
 void BlockProposer::start() {
-  if (verbose_) {
-    std::cout << "BlockProposer threads = " << num_threads_ << std::endl;
-  }
   if (!stopped_) return;
+  LOG(logger_) << "BlockProposer threads = " << num_threads_ << std::endl;
   stopped_ = false;
   for (auto i = 0; i < num_threads_; ++i) {
     proposer_threads_.push_back(boost::thread([this]() { proposeBlock(); }));
@@ -48,14 +32,31 @@ void BlockProposer::proposeBlock() {
   while (!stopped_) {
     std::string pivot;
     std::vector<std::string> tips;
-    bool ok = dag_mgr_->getLatestPivotAndTips(pivot, tips);
-    if (verbose_ && ok) {
-      std::cout << "BlockProposer: \nPivot: " << pivot << std::endl;
-      std::cout << "Tips: " << std::endl;
+    vec_trx_t to_be_packed_trx;
+    if (!trx_mgr_.lock()) {
+      LOG(logger_) << "TransactionManager expired ..." << std::endl;
+      break;
+    }
+    // prepare unpacked transaction
+    // the call will block until ready
+    trx_mgr_.lock()->packTrxs(to_be_packed_trx);
+    if (to_be_packed_trx.empty()) {
+      LOG(logger_) << "Skip block proposer, zero unpacked transactions ..."
+                   << std::endl;
+      continue;
+    }
+    if (!dag_mgr_.lock()) {
+      LOG(logger_) << "DagManager expired ..." << std::endl;
+      break;
+    }
+    bool ok = dag_mgr_.lock()->getLatestPivotAndTips(pivot, tips);
+    if (ok) {
+      LOG(logger_) << "BlockProposer: \nPivot: " << pivot << std::endl;
+      LOG(logger_) << "Tips: " << std::endl;
       for (auto const& s : tips) {
-        std::cout << s << std::endl;
+        LOG(logger_) << s << std::endl;
       }
-      std::cout << std::endl;
+      LOG(logger_) << std::endl;
     }
     if (ok) {
       BlockProposer::num_proposed_blocks.fetch_add(1);

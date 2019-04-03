@@ -149,13 +149,14 @@ void TransactionQueue::stop() {
 bool TransactionQueue::insert(Transaction trx) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
-  bool ret = true;
+  bool ret = false;
   if (status.second == false) {  // never seen before
     ret = trx_status_.insert(hash, TransactionStatus::seen_in_queue);
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(trx);
     cond_for_unverified_qu_.notify_one();
     LOG(logger_) << "Trx: " << hash << "inserted. " << std::endl;
+    ret = true;
   } else if (status.first ==
              TransactionStatus::
                  unseen_but_already_packed_by_others) {  // updated by other
@@ -233,8 +234,13 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   return std::move(verified_trxs);
 }
 bool TransactionManager::insertTrx(Transaction trx) {
-  trx_qu_.insert(trx);
-  return true;
+  bool ret = false;
+  if (trx_qu_.insert(trx)) {
+    trx_counter_.fetch_add(1);
+    cond_for_pack_trx_.notify_one();
+    ret = true;
+  }
+  return ret;
 }
 void TransactionManager::setPackedTrxFromBlockHash(blk_hash_t blk) {}
 void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
@@ -281,6 +287,13 @@ void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
  * 4. update A, B and C status to seen_in_db
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
+  uLock pack_lock(mutex_for_pack_trx_);
+  while (!stopped_ && trx_counter_ < rate_limiter_) {
+    cond_for_pack_trx_.wait(pack_lock);
+  }
+  if (stopped_) return;
+  // reset counter
+  trx_counter_.store(0);
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   std::vector<trx_hash_t> exist_in_db;
   std::vector<trx_hash_t> packed_by_others;
