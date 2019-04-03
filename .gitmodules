@@ -21,3 +21,6 @@
 [submodule "submodules/libff"]
 	path = submodules/libff
 	url = https://github.com/scipr-lab/libff
+[submodule "submodules/libsodium"]
+	path = submodules/libsodium
+	url = https://github.com/algorand/libsodium.git
