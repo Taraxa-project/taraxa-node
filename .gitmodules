@@ -24,3 +24,4 @@
 [submodule "submodules/libsodium"]
 	path = submodules/libsodium
 	url = https://github.com/algorand/libsodium.git
+	ignore = dirty
