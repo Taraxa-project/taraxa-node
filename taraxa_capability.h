@@ -144,7 +144,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   dev::Logger logger_debug_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
 
-  
+  void doBackgroundWork();
+  void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
 };
 }  // namespace taraxa
 #endif
