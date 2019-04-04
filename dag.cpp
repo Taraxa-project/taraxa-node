@@ -76,18 +76,18 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   if (!pivot.empty()) {
     std::tie(edge, res) = add_edge_by_label(pivot, new_vertex, graph_);
     if (!res) {
-      std::cout << "Warning! creating pivot edge \n"
-                << pivot << "\n-->\n"
-                << new_vertex << " \nunsuccessful!" << std::endl;
+      LOG(log_wr_) << "Warning! creating pivot edge \n"
+                   << pivot << "\n-->\n"
+                   << new_vertex << " \nunsuccessful!" << std::endl;
     }
   }
   bool res2;
   for (auto const &e : tips) {
     std::tie(edge, res2) = add_edge_by_label(e, new_vertex, graph_);
     if (!res2) {
-      std::cout << "Warning! creating tip edge \n"
-                << e << "\n-->\n"
-                << new_vertex << " \nunsuccessful!" << std::endl;
+      LOG(log_wr_) << "Warning! creating tip edge \n"
+                   << e << "\n-->\n"
+                   << new_vertex << " \nunsuccessful!" << std::endl;
     }
   }
   return res & res2;
@@ -145,7 +145,7 @@ void Dag::getChildrenBeforeTimeStamp(vertex_hash const &vertex,
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
     return;
   }
   children.clear();
@@ -167,7 +167,7 @@ void Dag::getSubtreeBeforeTimeStamp(vertex_hash const &vertex,
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
     return;
   }
   subtree.clear();
@@ -203,7 +203,7 @@ void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
     return;
   }
   tips.clear();
@@ -250,11 +250,11 @@ void Dag::getEpochVertices(vertex_hash const &from, vertex_hash const &to,
   vertex_t target = graph_.vertex(to);
 
   if (source == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex (from)" << from << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
     return;
   }
   if (target == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex (to) " << to << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
     return;
   }
   epochs.clear();
@@ -275,7 +275,7 @@ time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
     return 0;
   }
   vertex_time_stamp_map_const_t time_map =
@@ -287,7 +287,7 @@ void Dag::setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp) {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    std::cout << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
     return;
   }
   vertex_time_stamp_map_t time_map = boost::get(boost::vertex_index1, graph_);
@@ -355,7 +355,7 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   vertex_t root = graph_.vertex(vertex);
 
   if (root == graph_.null_vertex()) {
-    LOG(logger_) << "Warning! cannot find vertex " << vertex << std::endl;
+    LOG(log_nf_) << "Warning! cannot find vertex " << vertex << std::endl;
     return;
   }
   pivot_chain.clear();
@@ -481,7 +481,7 @@ unsigned DagManager::getBlockInsertingIndex() {
     inserting_index_counter_.store(0);
   }
   if (verbose_) {
-    std::cout << "inserting row = " << which_buffer << "\n";
+    LOG(log_nf_) << "inserting row = " << which_buffer << "\n";
   }
   return which_buffer;
 }
@@ -519,18 +519,14 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   ulock lock(mutex_);
   std::string hash = blk.getHash().toString();
   if (total_dag_->hasVertex(hash)) {
-    if (verbose_) {
-      std::cout << "Block is in DAG already! " << hash << std::endl;
-    }
+    LOG(log_nf_) << "Block is in DAG already! " << hash << std::endl;
     return false;
   }
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
-    if (verbose_) {
-      std::cout << "Block " << hash << " pivot " << pivot
-                << " unavailable, insert = " << insert << std::endl;
-    }
+    LOG(log_nf_) << "Block " << hash << " pivot " << pivot
+                 << " unavailable, insert = " << insert << std::endl;
     if (insert) {
       addToDagBuffer(blk);
     }
@@ -541,10 +537,9 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
-      if (verbose_) {
-        std::cout << "Block " << hash << " tip " << tip
-                  << " unavailable, insert = " << insert << std::endl;
-      }
+      LOG(log_nf_) << "Block " << hash << " tip " << tip
+                   << " unavailable, insert = " << insert << std::endl;
+
       if (insert) {
         addToDagBuffer(blk);
       }

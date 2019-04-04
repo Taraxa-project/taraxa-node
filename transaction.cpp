@@ -215,7 +215,7 @@ void TransactionQueue::verifyTrx() {
 
       } else {
         // push to verified qu
-        LOG(log_nf_) << "Trx: " << hash << "verified OK. " << std::endl;
+        LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
 
         uLock lock(mutex_for_verified_qu_);
         verified_trxs_[trx.getHash()] = trx;

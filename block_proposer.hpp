@@ -16,7 +16,7 @@ namespace taraxa {
 
 class DagManager;
 class TransactionManager;
-
+class FullNode;
 /**
  * Block proproser request for unpacked transaction,
  * will block if block transaction is not ready.
@@ -31,6 +31,7 @@ class BlockProposer {
   ~BlockProposer() {
     if (!stopped_) stop();
   }
+  void setFullNode(std::shared_ptr<FullNode> full_node){full_node_=full_node;}
   void proposeBlock();
   void start();
   void stop();
@@ -47,6 +48,7 @@ class BlockProposer {
   unsigned num_threads_;
   std::weak_ptr<DagManager> dag_mgr_;
   std::weak_ptr<TransactionManager> trx_mgr_;
+  std::weak_ptr<FullNode> full_node_;
   std::vector<boost::thread> proposer_threads_;
 
   dev::Logger log_er_{

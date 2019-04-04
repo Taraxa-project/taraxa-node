@@ -7,14 +7,19 @@
  */
 #include "block_proposer.hpp"
 #include "dag.hpp"
+#include "full_node.hpp"
 #include "transaction.hpp"
-
+#include "types.hpp"
 namespace taraxa {
 
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
 void BlockProposer::start() {
   if (!stopped_) return;
+  // if (!full_node_.lock()) {
+  //   LOG(log_er_) << "FullNode is not set ..." << std::endl;
+  //   return;
+  // }
   LOG(log_nf_) << "BlockProposer threads = " << num_threads_ << std::endl;
   stopped_ = false;
   if (trx_mgr_.lock()) {
@@ -68,9 +73,23 @@ void BlockProposer::proposeBlock() {
       LOG(log_nf_) << std::endl;
       BlockProposer::num_proposed_blocks.fetch_add(1);
     } else {
-      LOG(log_wr_) << "BlockProposer: pivot and tips unavailable ..."
-                   << std::endl;
+      LOG(log_wr_) << "Pivot and tips unavailable ..." << std::endl;
     }
+    // auto next = std::stoull(pivot) + 1;
+    // vec_tip_t tmp;
+    // for (auto const& t : tips) {
+    //   tmp.push_back(blk_hash_t(t));
+    // }
+    // DagBlock blk(blk_hash_t(pivot), tmp, to_be_packed_trx, sig_t(),
+    //              blk_hash_t(next), name_t());
+
+    // if (full_node_.lock()) {
+    //   full_node_.lock()->storeBlock(blk);
+    //   LOG(log_nf_) << "Propose block: " << blk << std::endl;
+    // } else {
+    //   LOG(log_er_) << "FullNode unavailable ..." << std::endl;
+    //   return;
+    // }
   }
 }
 

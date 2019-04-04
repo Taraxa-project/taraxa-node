@@ -10,6 +10,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
 #include "dag.hpp"
+#include "libdevcore/Log.h"
 
 namespace taraxa {
 
@@ -155,6 +156,7 @@ BlockQueue::~BlockQueue() {
 }
 void BlockQueue::start() {
   if (!stopped_) return;
+  LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
   stopped_ = false;
   for (auto i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
@@ -171,6 +173,7 @@ void BlockQueue::stop() {
   for (auto &t : verifiers_) {
     t.join();
   }
+  // LOG(log_nf_) << "Join verifier threads = " << num_verifiers_ << std::endl;
 }
 
 bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
@@ -181,8 +184,8 @@ bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
 std::shared_ptr<DagBlock> BlockQueue::getBlock(blk_hash_t const &hash) {
   boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
   auto fBlk = seen_blocks_.find(hash);
-  if(fBlk != seen_blocks_.end())
-    return std::make_shared<DagBlock>(fBlk->second);  
+  if (fBlk != seen_blocks_.end())
+    return std::make_shared<DagBlock>(fBlk->second);
   return std::shared_ptr<DagBlock>();
 }
 
@@ -190,11 +193,11 @@ void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
   {
     upgradableLock lock(shared_mutex_);
     if (seen_blocks_.count(blk.getHash())) {
-      LOG(logger_) << "Seen block: " << blk.getHash() << std::endl;
+      LOG(log_nf_) << "Seen block: " << blk.getHash() << std::endl;
       return;
     }
 
-    LOG(logger_) << "Insert block: " << blk.getHash() << std::endl;
+    LOG(log_nf_) << "Insert unverified block: " << blk.getHash() << std::endl;
     upgradeLock locked(lock);
     seen_blocks_[blk.getHash()] = blk;
   }
@@ -231,6 +234,7 @@ void BlockQueue::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
+    LOG(log_nf_) << "Verified block: " << blk.getHash() << std::endl;
 
     // TODO: verify block, now just move it to verified_qu_
     {
