@@ -65,7 +65,7 @@ pipeline {
     } 
 post {
     always {
-        sh 'docker rmi $(docker images -q) || true'
+        sh 'docker rmi $(docker images -f "dangling=true" -q) || true'
     }
     success {
       slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID', 
