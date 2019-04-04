@@ -18,17 +18,17 @@
 #pragma once
 
 #include "Account.h"
-#include "GasPricer.h"
+//#include "GasPricer.h"
 #include "SecureTrieDB.h"
-#include "Transaction.h"
+#include "transaction.hpp"
 #include "TransactionReceipt.h"
 #include <libdevcore/Common.h>
 #include <libdevcore/OverlayDB.h>
 #include <libdevcore/RLP.h>
-#include <libethcore/BlockHeader.h>
-#include <libethcore/Exceptions.h>
-#include <libethereum/CodeSizeCache.h>
-#include <libevm/ExtVMFace.h>
+//#include <libethcore/BlockHeader.h>
+//#include <libethcore/Exceptions.h>
+//#include <libethereum/CodeSizeCache.h>
+//#include <libevm/ExtVMFace.h>
 #include <array>
 #include <unordered_map>
 
@@ -78,9 +78,6 @@ enum class Permanence
 
 DEV_SIMPLE_EXCEPTION(InvalidAccountStartNonceInState);
 DEV_SIMPLE_EXCEPTION(IncorrectAccountStartNonceInState);
-
-class SealEngineFace;
-class Executive;
 
 /// An atomic state changelog entry.
 struct Change

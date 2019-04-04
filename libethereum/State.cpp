@@ -21,14 +21,10 @@
 
 #include "State.h"
 
-#include "Block.h"
-#include "BlockChain.h"
-#include "ExtVM.h"
 #include "TransactionQueue.h"
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/TrieHash.h>
-#include <libevm/VMFactory.h>
 #include <boost/filesystem.hpp>
 #include <boost/timer.hpp>
 
