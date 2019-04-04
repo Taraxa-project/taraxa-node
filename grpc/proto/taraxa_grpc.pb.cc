@@ -6,31 +6,38 @@
 #include <algorithm>
 
 #include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/port.h>
 #include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/extension_set.h>
 #include <google/protobuf/wire_format_lite_inl.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/generated_message_reflection.h>
 #include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/wire_format.h>
+// This is a temporary google only hack
+#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
+#include "third_party/protobuf/version.h"
+#endif
 // @@protoc_insertion_point(includes)
-#include <google/protobuf/port_def.inc>
 
 namespace taraxa_grpc {
 class ProtoTransactionDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<ProtoTransaction> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<ProtoTransaction>
+      _instance;
 } _ProtoTransaction_default_instance_;
 class SendProtoTransactionResponseDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<SendProtoTransactionResponse> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<SendProtoTransactionResponse>
+      _instance;
 } _SendProtoTransactionResponse_default_instance_;
 class GetProtoTransactionRequestDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<GetProtoTransactionRequest> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<GetProtoTransactionRequest>
+      _instance;
 } _GetProtoTransactionRequest_default_instance_;
 }  // namespace taraxa_grpc
-static void InitDefaultsProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto() {
+namespace protobuf_proto_2ftaraxa_5fgrpc_2eproto {
+static void InitDefaultsProtoTransaction() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
@@ -41,10 +48,10 @@ static void InitDefaultsProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto() {
   ::taraxa_grpc::ProtoTransaction::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_ProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto}, {}};
+::google::protobuf::internal::SCCInfo<0> scc_info_ProtoTransaction =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsProtoTransaction}, {}};
 
-static void InitDefaultsSendProtoTransactionResponse_proto_2ftaraxa_5fgrpc_2eproto() {
+static void InitDefaultsSendProtoTransactionResponse() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
@@ -55,10 +62,10 @@ static void InitDefaultsSendProtoTransactionResponse_proto_2ftaraxa_5fgrpc_2epro
   ::taraxa_grpc::SendProtoTransactionResponse::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_SendProtoTransactionResponse_proto_2ftaraxa_5fgrpc_2eproto =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsSendProtoTransactionResponse_proto_2ftaraxa_5fgrpc_2eproto}, {}};
+::google::protobuf::internal::SCCInfo<0> scc_info_SendProtoTransactionResponse =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsSendProtoTransactionResponse}, {}};
 
-static void InitDefaultsGetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto() {
+static void InitDefaultsGetProtoTransactionRequest() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
@@ -69,48 +76,46 @@ static void InitDefaultsGetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto
   ::taraxa_grpc::GetProtoTransactionRequest::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_GetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsGetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto}, {}};
+::google::protobuf::internal::SCCInfo<0> scc_info_GetProtoTransactionRequest =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsGetProtoTransactionRequest}, {}};
 
-void InitDefaults_proto_2ftaraxa_5fgrpc_2eproto() {
-  ::google::protobuf::internal::InitSCC(&scc_info_ProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto.base);
-  ::google::protobuf::internal::InitSCC(&scc_info_SendProtoTransactionResponse_proto_2ftaraxa_5fgrpc_2eproto.base);
-  ::google::protobuf::internal::InitSCC(&scc_info_GetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto.base);
+void InitDefaults() {
+  ::google::protobuf::internal::InitSCC(&scc_info_ProtoTransaction.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_SendProtoTransactionResponse.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_GetProtoTransactionRequest.base);
 }
 
-::google::protobuf::Metadata file_level_metadata_proto_2ftaraxa_5fgrpc_2eproto[3];
-constexpr ::google::protobuf::EnumDescriptor const** file_level_enum_descriptors_proto_2ftaraxa_5fgrpc_2eproto = nullptr;
-constexpr ::google::protobuf::ServiceDescriptor const** file_level_service_descriptors_proto_2ftaraxa_5fgrpc_2eproto = nullptr;
+::google::protobuf::Metadata file_level_metadata[3];
 
-const ::google::protobuf::uint32 TableStruct_proto_2ftaraxa_5fgrpc_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, hash_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, type_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, nonce_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, value_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, gas_price_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, gas_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, receiver_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, sig_),
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, data_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, hash_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, type_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, nonce_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, value_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, gas_price_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, gas_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, receiver_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, sig_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::ProtoTransaction, data_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::SendProtoTransactionResponse, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::SendProtoTransactionResponse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::SendProtoTransactionResponse, success_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::SendProtoTransactionResponse, success_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::GetProtoTransactionRequest, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::GetProtoTransactionRequest, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::taraxa_grpc::GetProtoTransactionRequest, hash_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::taraxa_grpc::GetProtoTransactionRequest, hash_),
 };
-static const ::google::protobuf::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::taraxa_grpc::ProtoTransaction)},
   { 14, -1, sizeof(::taraxa_grpc::SendProtoTransactionResponse)},
   { 20, -1, sizeof(::taraxa_grpc::GetProtoTransactionRequest)},
@@ -122,52 +127,64 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&::taraxa_grpc::_GetProtoTransactionRequest_default_instance_),
 };
 
-::google::protobuf::internal::AssignDescriptorsTable assign_descriptors_table_proto_2ftaraxa_5fgrpc_2eproto = {
-  {}, AddDescriptors_proto_2ftaraxa_5fgrpc_2eproto, "proto/taraxa_grpc.proto", schemas,
-  file_default_instances, TableStruct_proto_2ftaraxa_5fgrpc_2eproto::offsets,
-  file_level_metadata_proto_2ftaraxa_5fgrpc_2eproto, 3, file_level_enum_descriptors_proto_2ftaraxa_5fgrpc_2eproto, file_level_service_descriptors_proto_2ftaraxa_5fgrpc_2eproto,
-};
-
-const char descriptor_table_protodef_proto_2ftaraxa_5fgrpc_2eproto[] =
-  "\n\027proto/taraxa_grpc.proto\022\013taraxa_grpc\"\231"
-  "\001\n\020ProtoTransaction\022\014\n\004hash\030\001 \001(\t\022\014\n\004typ"
-  "e\030\002 \001(\r\022\r\n\005nonce\030\003 \001(\t\022\r\n\005value\030\004 \001(\t\022\021\n"
-  "\tgas_price\030\005 \001(\t\022\013\n\003gas\030\006 \001(\t\022\020\n\010receive"
-  "r\030\007 \001(\t\022\013\n\003sig\030\010 \001(\t\022\014\n\004data\030\t \001(\014\"/\n\034Se"
-  "ndProtoTransactionResponse\022\017\n\007success\030\001 "
-  "\001(\010\"*\n\032GetProtoTransactionRequest\022\014\n\004has"
-  "h\030\001 \001(\t2\331\001\n\022TaraxaProtoService\022b\n\024SendPr"
-  "otoTransaction\022\035.taraxa_grpc.ProtoTransa"
-  "ction\032).taraxa_grpc.SendProtoTransaction"
-  "Response\"\000\022_\n\023GetProtoTransaction\022\'.tara"
-  "xa_grpc.GetProtoTransactionRequest\032\035.tar"
-  "axa_grpc.ProtoTransaction\"\000b\006proto3"
-  ;
-::google::protobuf::internal::DescriptorTable descriptor_table_proto_2ftaraxa_5fgrpc_2eproto = {
-  false, InitDefaults_proto_2ftaraxa_5fgrpc_2eproto, 
-  descriptor_table_protodef_proto_2ftaraxa_5fgrpc_2eproto,
-  "proto/taraxa_grpc.proto", &assign_descriptors_table_proto_2ftaraxa_5fgrpc_2eproto, 515,
-};
-
-void AddDescriptors_proto_2ftaraxa_5fgrpc_2eproto() {
-  static constexpr ::google::protobuf::internal::InitFunc deps[1] =
-  {
-  };
- ::google::protobuf::internal::AddDescriptors(&descriptor_table_proto_2ftaraxa_5fgrpc_2eproto, deps, 0);
+void protobuf_AssignDescriptors() {
+  AddDescriptors();
+  AssignDescriptors(
+      "proto/taraxa_grpc.proto", schemas, file_default_instances, TableStruct::offsets,
+      file_level_metadata, NULL, NULL);
 }
 
-// Force running AddDescriptors() at dynamic initialization time.
-static bool dynamic_init_dummy_proto_2ftaraxa_5fgrpc_2eproto = []() { AddDescriptors_proto_2ftaraxa_5fgrpc_2eproto(); return true; }();
+void protobuf_AssignDescriptorsOnce() {
+  static ::google::protobuf::internal::once_flag once;
+  ::google::protobuf::internal::call_once(once, protobuf_AssignDescriptors);
+}
+
+void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
+void protobuf_RegisterTypes(const ::std::string&) {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 3);
+}
+
+void AddDescriptorsImpl() {
+  InitDefaults();
+  static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+      "\n\027proto/taraxa_grpc.proto\022\013taraxa_grpc\"\231"
+      "\001\n\020ProtoTransaction\022\014\n\004hash\030\001 \001(\t\022\014\n\004typ"
+      "e\030\002 \001(\r\022\r\n\005nonce\030\003 \001(\t\022\r\n\005value\030\004 \001(\t\022\021\n"
+      "\tgas_price\030\005 \001(\t\022\013\n\003gas\030\006 \001(\t\022\020\n\010receive"
+      "r\030\007 \001(\t\022\013\n\003sig\030\010 \001(\t\022\014\n\004data\030\t \001(\014\"/\n\034Se"
+      "ndProtoTransactionResponse\022\017\n\007success\030\001 "
+      "\001(\010\"*\n\032GetProtoTransactionRequest\022\014\n\004has"
+      "h\030\001 \001(\t2\331\001\n\022TaraxaProtoService\022b\n\024SendPr"
+      "otoTransaction\022\035.taraxa_grpc.ProtoTransa"
+      "ction\032).taraxa_grpc.SendProtoTransaction"
+      "Response\"\000\022_\n\023GetProtoTransaction\022\'.tara"
+      "xa_grpc.GetProtoTransactionRequest\032\035.tar"
+      "axa_grpc.ProtoTransaction\"\000b\006proto3"
+  };
+  ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
+      descriptor, 515);
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
+    "proto/taraxa_grpc.proto", &protobuf_RegisterTypes);
+}
+
+void AddDescriptors() {
+  static ::google::protobuf::internal::once_flag once;
+  ::google::protobuf::internal::call_once(once, AddDescriptorsImpl);
+}
+// Force AddDescriptors() to be called at dynamic initialization time.
+struct StaticDescriptorInitializer {
+  StaticDescriptorInitializer() {
+    AddDescriptors();
+  }
+} static_descriptor_initializer;
+}  // namespace protobuf_proto_2ftaraxa_5fgrpc_2eproto
 namespace taraxa_grpc {
 
 // ===================================================================
 
 void ProtoTransaction::InitAsDefaultInstance() {
 }
-class ProtoTransaction::HasBitSetters {
- public:
-};
-
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int ProtoTransaction::kHashFieldNumber;
 const int ProtoTransaction::kTypeFieldNumber;
@@ -181,13 +198,15 @@ const int ProtoTransaction::kDataFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 ProtoTransaction::ProtoTransaction()
-  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_proto_2ftaraxa_5fgrpc_2eproto::scc_info_ProtoTransaction.base);
   SharedCtor();
   // @@protoc_insertion_point(constructor:taraxa_grpc.ProtoTransaction)
 }
 ProtoTransaction::ProtoTransaction(const ProtoTransaction& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(nullptr) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   hash_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.hash().size() > 0) {
@@ -226,8 +245,6 @@ ProtoTransaction::ProtoTransaction(const ProtoTransaction& from)
 }
 
 void ProtoTransaction::SharedCtor() {
-  ::google::protobuf::internal::InitSCC(
-      &scc_info_ProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto.base);
   hash_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   nonce_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   value_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -258,8 +275,13 @@ void ProtoTransaction::SharedDtor() {
 void ProtoTransaction::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
+const ::google::protobuf::Descriptor* ProtoTransaction::descriptor() {
+  ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
 const ProtoTransaction& ProtoTransaction::default_instance() {
-  ::google::protobuf::internal::InitSCC(&::scc_info_ProtoTransaction_proto_2ftaraxa_5fgrpc_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftaraxa_5fgrpc_2eproto::scc_info_ProtoTransaction.base);
   return *internal_default_instance();
 }
 
@@ -282,180 +304,9 @@ void ProtoTransaction::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-const char* ProtoTransaction::_InternalParse(const char* begin, const char* end, void* object,
-                  ::google::protobuf::internal::ParseContext* ctx) {
-  auto msg = static_cast<ProtoTransaction*>(object);
-  ::google::protobuf::int32 size; (void)size;
-  int depth; (void)depth;
-  ::google::protobuf::uint32 tag;
-  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
-  auto ptr = begin;
-  while (ptr < end) {
-    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
-    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-    switch (tag >> 3) {
-      // string hash = 1;
-      case 1: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.hash");
-        object = msg->mutable_hash();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // uint32 type = 2;
-      case 2: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 16) goto handle_unusual;
-        msg->set_type(::google::protobuf::internal::ReadVarint(&ptr));
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        break;
-      }
-      // string nonce = 3;
-      case 3: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 26) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.nonce");
-        object = msg->mutable_nonce();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // string value = 4;
-      case 4: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 34) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.value");
-        object = msg->mutable_value();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // string gas_price = 5;
-      case 5: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 42) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.gas_price");
-        object = msg->mutable_gas_price();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // string gas = 6;
-      case 6: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 50) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.gas");
-        object = msg->mutable_gas();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // string receiver = 7;
-      case 7: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 58) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.receiver");
-        object = msg->mutable_receiver();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // string sig = 8;
-      case 8: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 66) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.ProtoTransaction.sig");
-        object = msg->mutable_sig();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      // bytes data = 9;
-      case 9: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 74) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        object = msg->mutable_data();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParser;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheck(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      default: {
-      handle_unusual:
-        if ((tag & 7) == 4 || tag == 0) {
-          ctx->EndGroup(tag);
-          return ptr;
-        }
-        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
-          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
-        ptr = res.first;
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
-        if (res.second) return ptr;
-      }
-    }  // switch
-  }  // while
-  return ptr;
-string_till_end:
-  static_cast<::std::string*>(object)->clear();
-  static_cast<::std::string*>(object)->reserve(size);
-  goto len_delim_till_end;
-len_delim_till_end:
-  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
-                               {parser_till_end, object}, size);
-}
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 bool ProtoTransaction::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:taraxa_grpc.ProtoTransaction)
   for (;;) {
@@ -465,7 +316,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // string hash = 1;
       case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_hash()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -480,7 +332,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // uint32 type = 2;
       case 2: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (16 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
@@ -493,7 +346,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // string nonce = 3;
       case 3: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (26 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_nonce()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -508,7 +362,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // string value = 4;
       case 4: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (34 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(34u /* 34 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_value()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -523,7 +378,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // string gas_price = 5;
       case 5: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (42 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(42u /* 42 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_gas_price()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -538,7 +394,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // string gas = 6;
       case 6: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (50 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(50u /* 50 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_gas()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -553,7 +410,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // string receiver = 7;
       case 7: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (58 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(58u /* 58 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_receiver()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -568,7 +426,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // string sig = 8;
       case 8: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (66 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(66u /* 66 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_sig()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -583,7 +442,8 @@ bool ProtoTransaction::MergePartialFromCodedStream(
 
       // bytes data = 9;
       case 9: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (74 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(74u /* 74 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_data()));
         } else {
@@ -611,7 +471,6 @@ failure:
   return false;
 #undef DO_
 }
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 
 void ProtoTransaction::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
@@ -700,15 +559,16 @@ void ProtoTransaction::SerializeWithCachedSizes(
       9, this->data(), output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
   // @@protoc_insertion_point(serialize_end:taraxa_grpc.ProtoTransaction)
 }
 
 ::google::protobuf::uint8* ProtoTransaction::InternalSerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:taraxa_grpc.ProtoTransaction)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -802,9 +662,9 @@ void ProtoTransaction::SerializeWithCachedSizes(
         9, this->data(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:taraxa_grpc.ProtoTransaction)
   return target;
@@ -814,15 +674,11 @@ size_t ProtoTransaction::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:taraxa_grpc.ProtoTransaction)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
   // string hash = 1;
   if (this->hash().size() > 0) {
     total_size += 1 +
@@ -895,9 +751,9 @@ void ProtoTransaction::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:taraxa_grpc.ProtoTransaction)
   GOOGLE_DCHECK_NE(&from, this);
   const ProtoTransaction* source =
-      ::google::protobuf::DynamicCastToGenerated<ProtoTransaction>(
+      ::google::protobuf::internal::DynamicCastToGenerated<const ProtoTransaction>(
           &from);
-  if (source == nullptr) {
+  if (source == NULL) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_grpc.ProtoTransaction)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -974,7 +830,6 @@ void ProtoTransaction::Swap(ProtoTransaction* other) {
 }
 void ProtoTransaction::InternalSwap(ProtoTransaction* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
   hash_.Swap(&other->hash_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   nonce_.Swap(&other->nonce_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
@@ -992,11 +847,12 @@ void ProtoTransaction::InternalSwap(ProtoTransaction* other) {
   data_.Swap(&other->data_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(type_, other->type_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
 ::google::protobuf::Metadata ProtoTransaction::GetMetadata() const {
-  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_proto_2ftaraxa_5fgrpc_2eproto);
-  return ::file_level_metadata_proto_2ftaraxa_5fgrpc_2eproto[kIndexInFileMessages];
+  protobuf_proto_2ftaraxa_5fgrpc_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 
@@ -1004,22 +860,20 @@ void ProtoTransaction::InternalSwap(ProtoTransaction* other) {
 
 void SendProtoTransactionResponse::InitAsDefaultInstance() {
 }
-class SendProtoTransactionResponse::HasBitSetters {
- public:
-};
-
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int SendProtoTransactionResponse::kSuccessFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 SendProtoTransactionResponse::SendProtoTransactionResponse()
-  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_proto_2ftaraxa_5fgrpc_2eproto::scc_info_SendProtoTransactionResponse.base);
   SharedCtor();
   // @@protoc_insertion_point(constructor:taraxa_grpc.SendProtoTransactionResponse)
 }
 SendProtoTransactionResponse::SendProtoTransactionResponse(const SendProtoTransactionResponse& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(nullptr) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   success_ = from.success_;
   // @@protoc_insertion_point(copy_constructor:taraxa_grpc.SendProtoTransactionResponse)
@@ -1040,8 +894,13 @@ void SendProtoTransactionResponse::SharedDtor() {
 void SendProtoTransactionResponse::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
+const ::google::protobuf::Descriptor* SendProtoTransactionResponse::descriptor() {
+  ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
 const SendProtoTransactionResponse& SendProtoTransactionResponse::default_instance() {
-  ::google::protobuf::internal::InitSCC(&::scc_info_SendProtoTransactionResponse_proto_2ftaraxa_5fgrpc_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftaraxa_5fgrpc_2eproto::scc_info_SendProtoTransactionResponse.base);
   return *internal_default_instance();
 }
 
@@ -1056,46 +915,9 @@ void SendProtoTransactionResponse::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-const char* SendProtoTransactionResponse::_InternalParse(const char* begin, const char* end, void* object,
-                  ::google::protobuf::internal::ParseContext* ctx) {
-  auto msg = static_cast<SendProtoTransactionResponse*>(object);
-  ::google::protobuf::int32 size; (void)size;
-  int depth; (void)depth;
-  ::google::protobuf::uint32 tag;
-  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
-  auto ptr = begin;
-  while (ptr < end) {
-    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
-    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-    switch (tag >> 3) {
-      // bool success = 1;
-      case 1: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 8) goto handle_unusual;
-        msg->set_success(::google::protobuf::internal::ReadVarint(&ptr));
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        break;
-      }
-      default: {
-      handle_unusual:
-        if ((tag & 7) == 4 || tag == 0) {
-          ctx->EndGroup(tag);
-          return ptr;
-        }
-        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
-          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
-        ptr = res.first;
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
-        if (res.second) return ptr;
-      }
-    }  // switch
-  }  // while
-  return ptr;
-}
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 bool SendProtoTransactionResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:taraxa_grpc.SendProtoTransactionResponse)
   for (;;) {
@@ -1105,7 +927,8 @@ bool SendProtoTransactionResponse::MergePartialFromCodedStream(
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // bool success = 1;
       case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (8 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
@@ -1135,7 +958,6 @@ failure:
   return false;
 #undef DO_
 }
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 
 void SendProtoTransactionResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
@@ -1148,15 +970,16 @@ void SendProtoTransactionResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(1, this->success(), output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
   // @@protoc_insertion_point(serialize_end:taraxa_grpc.SendProtoTransactionResponse)
 }
 
 ::google::protobuf::uint8* SendProtoTransactionResponse::InternalSerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:taraxa_grpc.SendProtoTransactionResponse)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -1166,9 +989,9 @@ void SendProtoTransactionResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(1, this->success(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:taraxa_grpc.SendProtoTransactionResponse)
   return target;
@@ -1178,15 +1001,11 @@ size_t SendProtoTransactionResponse::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:taraxa_grpc.SendProtoTransactionResponse)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
   // bool success = 1;
   if (this->success() != 0) {
     total_size += 1 + 1;
@@ -1201,9 +1020,9 @@ void SendProtoTransactionResponse::MergeFrom(const ::google::protobuf::Message& 
 // @@protoc_insertion_point(generalized_merge_from_start:taraxa_grpc.SendProtoTransactionResponse)
   GOOGLE_DCHECK_NE(&from, this);
   const SendProtoTransactionResponse* source =
-      ::google::protobuf::DynamicCastToGenerated<SendProtoTransactionResponse>(
+      ::google::protobuf::internal::DynamicCastToGenerated<const SendProtoTransactionResponse>(
           &from);
-  if (source == nullptr) {
+  if (source == NULL) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_grpc.SendProtoTransactionResponse)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -1248,13 +1067,13 @@ void SendProtoTransactionResponse::Swap(SendProtoTransactionResponse* other) {
 }
 void SendProtoTransactionResponse::InternalSwap(SendProtoTransactionResponse* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(success_, other->success_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
 ::google::protobuf::Metadata SendProtoTransactionResponse::GetMetadata() const {
-  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_proto_2ftaraxa_5fgrpc_2eproto);
-  return ::file_level_metadata_proto_2ftaraxa_5fgrpc_2eproto[kIndexInFileMessages];
+  protobuf_proto_2ftaraxa_5fgrpc_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 
@@ -1262,22 +1081,20 @@ void SendProtoTransactionResponse::InternalSwap(SendProtoTransactionResponse* ot
 
 void GetProtoTransactionRequest::InitAsDefaultInstance() {
 }
-class GetProtoTransactionRequest::HasBitSetters {
- public:
-};
-
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int GetProtoTransactionRequest::kHashFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 GetProtoTransactionRequest::GetProtoTransactionRequest()
-  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_proto_2ftaraxa_5fgrpc_2eproto::scc_info_GetProtoTransactionRequest.base);
   SharedCtor();
   // @@protoc_insertion_point(constructor:taraxa_grpc.GetProtoTransactionRequest)
 }
 GetProtoTransactionRequest::GetProtoTransactionRequest(const GetProtoTransactionRequest& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(nullptr) {
+      _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   hash_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.hash().size() > 0) {
@@ -1287,8 +1104,6 @@ GetProtoTransactionRequest::GetProtoTransactionRequest(const GetProtoTransaction
 }
 
 void GetProtoTransactionRequest::SharedCtor() {
-  ::google::protobuf::internal::InitSCC(
-      &scc_info_GetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto.base);
   hash_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
@@ -1304,8 +1119,13 @@ void GetProtoTransactionRequest::SharedDtor() {
 void GetProtoTransactionRequest::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
+const ::google::protobuf::Descriptor* GetProtoTransactionRequest::descriptor() {
+  ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
 const GetProtoTransactionRequest& GetProtoTransactionRequest::default_instance() {
-  ::google::protobuf::internal::InitSCC(&::scc_info_GetProtoTransactionRequest_proto_2ftaraxa_5fgrpc_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&protobuf_proto_2ftaraxa_5fgrpc_2eproto::scc_info_GetProtoTransactionRequest.base);
   return *internal_default_instance();
 }
 
@@ -1320,62 +1140,9 @@ void GetProtoTransactionRequest::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-const char* GetProtoTransactionRequest::_InternalParse(const char* begin, const char* end, void* object,
-                  ::google::protobuf::internal::ParseContext* ctx) {
-  auto msg = static_cast<GetProtoTransactionRequest*>(object);
-  ::google::protobuf::int32 size; (void)size;
-  int depth; (void)depth;
-  ::google::protobuf::uint32 tag;
-  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
-  auto ptr = begin;
-  while (ptr < end) {
-    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
-    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-    switch (tag >> 3) {
-      // string hash = 1;
-      case 1: {
-        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
-        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ctx->extra_parse_data().SetFieldName("taraxa_grpc.GetProtoTransactionRequest.hash");
-        object = msg->mutable_hash();
-        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
-          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
-          goto string_till_end;
-        }
-        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
-        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
-        ptr += size;
-        break;
-      }
-      default: {
-      handle_unusual:
-        if ((tag & 7) == 4 || tag == 0) {
-          ctx->EndGroup(tag);
-          return ptr;
-        }
-        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
-          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
-        ptr = res.first;
-        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
-        if (res.second) return ptr;
-      }
-    }  // switch
-  }  // while
-  return ptr;
-string_till_end:
-  static_cast<::std::string*>(object)->clear();
-  static_cast<::std::string*>(object)->reserve(size);
-  goto len_delim_till_end;
-len_delim_till_end:
-  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
-                               {parser_till_end, object}, size);
-}
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 bool GetProtoTransactionRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:taraxa_grpc.GetProtoTransactionRequest)
   for (;;) {
@@ -1385,7 +1152,8 @@ bool GetProtoTransactionRequest::MergePartialFromCodedStream(
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // string hash = 1;
       case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_hash()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -1417,7 +1185,6 @@ failure:
   return false;
 #undef DO_
 }
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 
 void GetProtoTransactionRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
@@ -1435,15 +1202,16 @@ void GetProtoTransactionRequest::SerializeWithCachedSizes(
       1, this->hash(), output);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
   // @@protoc_insertion_point(serialize_end:taraxa_grpc.GetProtoTransactionRequest)
 }
 
 ::google::protobuf::uint8* GetProtoTransactionRequest::InternalSerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:taraxa_grpc.GetProtoTransactionRequest)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -1459,9 +1227,9 @@ void GetProtoTransactionRequest::SerializeWithCachedSizes(
         1, this->hash(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:taraxa_grpc.GetProtoTransactionRequest)
   return target;
@@ -1471,15 +1239,11 @@ size_t GetProtoTransactionRequest::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:taraxa_grpc.GetProtoTransactionRequest)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
   // string hash = 1;
   if (this->hash().size() > 0) {
     total_size += 1 +
@@ -1496,9 +1260,9 @@ void GetProtoTransactionRequest::MergeFrom(const ::google::protobuf::Message& fr
 // @@protoc_insertion_point(generalized_merge_from_start:taraxa_grpc.GetProtoTransactionRequest)
   GOOGLE_DCHECK_NE(&from, this);
   const GetProtoTransactionRequest* source =
-      ::google::protobuf::DynamicCastToGenerated<GetProtoTransactionRequest>(
+      ::google::protobuf::internal::DynamicCastToGenerated<const GetProtoTransactionRequest>(
           &from);
-  if (source == nullptr) {
+  if (source == NULL) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:taraxa_grpc.GetProtoTransactionRequest)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -1544,14 +1308,14 @@ void GetProtoTransactionRequest::Swap(GetProtoTransactionRequest* other) {
 }
 void GetProtoTransactionRequest::InternalSwap(GetProtoTransactionRequest* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
   hash_.Swap(&other->hash_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
+  _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
 ::google::protobuf::Metadata GetProtoTransactionRequest::GetMetadata() const {
-  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_proto_2ftaraxa_5fgrpc_2eproto);
-  return ::file_level_metadata_proto_2ftaraxa_5fgrpc_2eproto[kIndexInFileMessages];
+  protobuf_proto_2ftaraxa_5fgrpc_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_proto_2ftaraxa_5fgrpc_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 
@@ -1559,17 +1323,16 @@ void GetProtoTransactionRequest::InternalSwap(GetProtoTransactionRequest* other)
 }  // namespace taraxa_grpc
 namespace google {
 namespace protobuf {
-template<> PROTOBUF_NOINLINE ::taraxa_grpc::ProtoTransaction* Arena::CreateMaybeMessage< ::taraxa_grpc::ProtoTransaction >(Arena* arena) {
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_grpc::ProtoTransaction* Arena::CreateMaybeMessage< ::taraxa_grpc::ProtoTransaction >(Arena* arena) {
   return Arena::CreateInternal< ::taraxa_grpc::ProtoTransaction >(arena);
 }
-template<> PROTOBUF_NOINLINE ::taraxa_grpc::SendProtoTransactionResponse* Arena::CreateMaybeMessage< ::taraxa_grpc::SendProtoTransactionResponse >(Arena* arena) {
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_grpc::SendProtoTransactionResponse* Arena::CreateMaybeMessage< ::taraxa_grpc::SendProtoTransactionResponse >(Arena* arena) {
   return Arena::CreateInternal< ::taraxa_grpc::SendProtoTransactionResponse >(arena);
 }
-template<> PROTOBUF_NOINLINE ::taraxa_grpc::GetProtoTransactionRequest* Arena::CreateMaybeMessage< ::taraxa_grpc::GetProtoTransactionRequest >(Arena* arena) {
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::taraxa_grpc::GetProtoTransactionRequest* Arena::CreateMaybeMessage< ::taraxa_grpc::GetProtoTransactionRequest >(Arena* arena) {
   return Arena::CreateInternal< ::taraxa_grpc::GetProtoTransactionRequest >(arena);
 }
 }  // namespace protobuf
 }  // namespace google
 
 // @@protoc_insertion_point(global_scope)
-#include <google/protobuf/port_undef.inc>
