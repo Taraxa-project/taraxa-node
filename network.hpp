@@ -60,7 +60,7 @@ class Network {
   void sendTransactions(NodeID const &_id,
                         std::vector<Transaction> transactions);
   void onNewBlock(DagBlock const &blk);
-  void onNewTransactions(std::vector<Transaction> const &transactions);
+  void onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);

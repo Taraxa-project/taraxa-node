@@ -99,6 +99,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;
 
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
+  void insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
+
  private:
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;

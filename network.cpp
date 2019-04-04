@@ -122,8 +122,8 @@ void Network::onNewBlock(DagBlock const &blk) {
   LOG(logger_debug_) << "On new block:" << blk.getHash().toString();
 }
 
-void Network::onNewTransactions(std::vector<Transaction> const &transactions) {
-  taraxa_capability_->onNewTransactions(transactions);
+void Network::onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+  taraxa_capability_->onNewTransactions(transactions, false);
   LOG(logger_debug_) << "On new transactions" << transactions.size();
 }
 

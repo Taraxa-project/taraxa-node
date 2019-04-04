@@ -247,6 +247,7 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
  private:
@@ -255,6 +256,7 @@ class TransactionQueue {
   void verifyTrx();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
+  bool new_verified_transactions = true;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
   unsigned current_capacity_ = 1024;
@@ -327,7 +329,11 @@ class TransactionManager
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
+
+
   }
+
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
