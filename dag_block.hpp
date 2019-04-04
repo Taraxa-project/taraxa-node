@@ -113,9 +113,12 @@ class BlockQueue {
 
   std::deque<DagBlock> unverified_qu_;
   std::deque<DagBlock> verified_qu_;
-  dev::Logger logger_{dev::createLogger(dev::Verbosity::VerbosityInfo, "bq")};
-  dev::Logger logger_debug_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "bq")};
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "blk_qu")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "blk_qu")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "blk_qu")};
 };
 
 }  // namespace taraxa

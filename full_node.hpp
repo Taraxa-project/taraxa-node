@@ -133,10 +133,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
   uint64_t received_trxs_ = 0;
-  dev::Logger logger_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "chain")};
-  dev::Logger logger_debug_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "chain")};
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "fullnd")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "fullnd")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "fullnd")};
 };
 
 }  // namespace taraxa
