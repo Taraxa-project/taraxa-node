@@ -90,7 +90,7 @@ void FullNode::start() {
   network_->start();
   dag_mgr_->start();
   blk_qu_->start();
-  // blk_proposer_->setFullNode(getShared());
+  blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   trx_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
@@ -99,7 +99,7 @@ void FullNode::start() {
       while (!stopped_) {
         DagBlock blk = blk_qu_->getVerifiedBlock();
         key = blk.getHash().toString();
-        // LOG(log_nf_) << "Write block to db ... " << key << std::endl;
+        LOG(log_nf_) << "Write block to db ... " << key << std::endl;
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
           if (!stopped_) {
