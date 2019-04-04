@@ -340,6 +340,8 @@ class TransactionManager
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
+
+
   }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
