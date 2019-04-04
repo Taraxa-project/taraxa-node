@@ -219,11 +219,27 @@ void TransactionQueue::verifyTrx() {
 
         uLock lock(mutex_for_verified_qu_);
         verified_trxs_[trx.getHash()] = trx;
+        new_verified_transactions = true;
       }
     } catch (...) {
     }
   }
 }
+
+std::unordered_map<trx_hash_t, Transaction>
+TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
+  std::unordered_map<trx_hash_t, Transaction> verified_trxs;
+  if(new_verified_transactions || !onlyNew) {
+    if(onlyNew)
+      new_verified_transactions = false;
+    uLock lock(mutex_for_verified_qu_);
+    verified_trxs = verified_trxs_;
+    LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
+                << std::endl;
+  }
+  return verified_trxs;
+}
+
 std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::moveVerifiedTrxSnapShot() {
   uLock lock(mutex_for_verified_qu_);
@@ -233,6 +249,12 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
                << std::endl;
   return std::move(verified_trxs);
 }
+
+std::unordered_map<trx_hash_t, Transaction>
+TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
+  return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
+}
+
 bool TransactionManager::insertTrx(Transaction trx) {
   bool ret = false;
   if (trx_qu_.insert(trx)) {

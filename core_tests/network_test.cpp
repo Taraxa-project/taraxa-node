@@ -12,9 +12,18 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+#include "create_samples.hpp"
 #include "libdevcore/Log.h"
 
 namespace taraxa {
+
+const unsigned NUM_TRX = 9;
+auto g_secret = dev::Secret(
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    dev::Secret::ConstructFromStringType::FromHex);
+auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
+auto g_signed_trx_samples =
+    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
 TEST(Network, transfer_block) {
   std::shared_ptr<Network> nw1(
@@ -298,9 +307,45 @@ TEST(Network, node_sync2) {
   node2.reset();
 }
 
+TEST(Network, node_transaction_sync) {
+  boost::asio::io_context context1;
+  boost::asio::io_context context2;
+
+  auto node1(std::make_shared<taraxa::FullNode>(
+      context1, std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+
+  node1->setDebug(true);
+  node1->start();
+
+  std::unordered_map<trx_hash_t, Transaction> transactions;
+  for (auto const& t : g_signed_trx_samples) {
+    transactions[t.getHash()] = t;
+  }
+
+  node1->insertNewTransactions(transactions);
+
+  auto node2 = std::make_shared<taraxa::FullNode>(
+      context2, std::string("./core_tests/conf_full_node2.json"),
+      std::string("./core_tests/conf_network2.json"));
+
+  node2->setDebug(true);
+  node2->start();
+
+  std::cout << "Waiting Sync for 5000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(5000);
+
+  node1->stop();
+  node2->stop();
+
+  // node1->drawGraph("dot.txt");
+  EXPECT_EQ(node1->getNewVerifiedTrxSnapShot(false).size(), g_signed_trx_samples.size());
+  EXPECT_EQ(node2->getNewVerifiedTrxSnapShot(false).size(), g_signed_trx_samples.size());
+}
+
 }  // namespace taraxa
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityTrace;
   logOptions.includeChannels.push_back("network");
