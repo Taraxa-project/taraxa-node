@@ -1,6 +1,6 @@
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/secp256k1/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -DBOOST_LOG_DYN_LINK 
+CPPFLAGS := -I submodules -I submodules/libsodium -I submodules/rapidjson/include -I submodules/secp256k1/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -DBOOST_LOG_DYN_LINK
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -10,7 +10,7 @@ endif
 CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF
 CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
+LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lsodium -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
 BUILDDIR := build
 TESTBUILDDIR := test_build
 OBJECTDIR := obj
@@ -58,7 +58,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
-	${OBJECTDIR}/taraxa_capability.o
+	${OBJECTDIR}/taraxa_capability.o \
+	${OBJECTDIR}/taraxa_sodium.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -73,7 +74,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/memorydb_test.o \
 	${OBJECTDIR}/overlaydb_test.o \
 	${OBJECTDIR}/statecachedb_test.o \
-	${OBJECTDIR}/trie_test.o
+	${OBJECTDIR}/trie_test.o \
+	${OBJECTDIR}/sodium_test.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -185,6 +187,11 @@ ${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_capability.o taraxa_capability.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/taraxa_sodium.o: taraxa_sodium.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_sodium.o taraxa_sodium.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -244,6 +251,11 @@ ${OBJECTDIR}/statecachedb_test.o: core_tests/statecachedb_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/statecachedb_test.o core_tests/statecachedb_test.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/sodium_test.o: core_tests/sodium_test.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/sodium_test.o core_tests/sodium_test.cpp $(CPPFLAGS)
 
 # required for trie_test
 ${OBJECTDIR}/mem_trie.o: crypto_tests/MemTrie.cpp
@@ -335,15 +347,20 @@ $(TESTBUILDDIR)/trie_test: $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o  $(O
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o -o $(TESTBUILDDIR)/trie_test  $(LDFLAGS) $(LIBS)
 
+$(TESTBUILDDIR)/sodium_test: $(OBJECTDIR)/sodium_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/sodium_test.o -o $(TESTBUILDDIR)/sodium_test  $(LDFLAGS) $(LIBS)
+
 
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/sodium_test
 
 run_test: test
+	./$(TESTBUILDDIR)/sodium_test
 	./$(TESTBUILDDIR)/memorydb_test
 	./$(TESTBUILDDIR)/overlaydb_test
 	./$(TESTBUILDDIR)/statecachedb_test
@@ -356,6 +373,7 @@ run_test: test
 	./$(TESTBUILDDIR)/p2p_test
 	./$(TESTBUILDDIR)/network_test
 	./$(TESTBUILDDIR)/trie_test
+
 
 ct:
 	rm -rf $(TESTBUILDDIR)
