@@ -21,14 +21,15 @@ vec_tip_t DagBlock::getTips() const { return tips_; }
 vec_trx_t DagBlock::getTrxs() const { return trxs_; }
 sig_t DagBlock::getSignature() const { return sig_; }
 blk_hash_t DagBlock::getHash() const { return hash_; }
-addr_t DagBlock::getSender() const { return sender_; }
+addr_t DagBlock::getSender() const { return cached_sender_; }
 DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
-                   blk_hash_t hash, addr_t sender) try : pivot_(pivot),
-                                                         tips_(tips),
-                                                         trxs_(trxs),
-                                                         sig_(sig),
-                                                         hash_(hash),
-                                                         sender_(sender) {
+                   blk_hash_t hash, addr_t sender) try
+    : pivot_(pivot),
+      tips_(tips),
+      trxs_(trxs),
+      sig_(sig),
+      hash_(hash),
+      cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -38,7 +39,7 @@ DagBlock::DagBlock(DagBlock &&blk)
       trxs_(std::move(blk.trxs_)),
       sig_(std::move(blk.sig_)),
       hash_(std::move(blk.hash_)),
-      sender_(std::move(blk.sender_)) {}
+      cached_sender_(std::move(blk.cached_sender_)) {}
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(std::string const &json) {
@@ -49,14 +50,14 @@ DagBlock::DagBlock(std::string const &json) {
     trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
     sig_ = sig_t(doc.get<std::string>("sig"));
     hash_ = blk_hash_t(doc.get<std::string>("hash"));
-    sender_ = addr_t(doc.get<std::string>("sender"));
+    cached_sender_ = addr_t(doc.get<std::string>("sender"));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
 bool DagBlock::isValid() const {
   return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() &&
-           sender_.isZero());
+           cached_sender_.isZero());
 }
 
 std::string DagBlock::getJsonStr() const {
@@ -79,7 +80,7 @@ std::string DagBlock::getJsonStr() const {
 
   tree.put("sig", sig_.toString());
   tree.put("hash", hash_.toString());
-  tree.put("pub", sender_.toString());
+  tree.put("sender", cached_sender_.toString());
 
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
@@ -101,7 +102,7 @@ bool DagBlock::serialize(stream &strm) const {
   }
   ok &= write(strm, sig_);
   ok &= write(strm, hash_);
-  ok &= write(strm, sender_);
+  ok &= write(strm, cached_sender_);
   assert(ok);
   return ok;
 }
@@ -129,7 +130,7 @@ bool DagBlock::deserialize(stream &strm) {
   }
   ok &= read(strm, sig_);
   ok &= read(strm, hash_);
-  ok &= read(strm, sender_);
+  ok &= read(strm, cached_sender_);
   assert(ok);
   return ok;
 }
@@ -143,9 +144,57 @@ DagBlock &DagBlock::operator=(DagBlock &&other) {
   trxs_ = std::move(other.trxs_);
   sig_ = std::move(other.sig_);
   hash_ = std::move(other.hash_);
-  sender_ = std::move(other.sender_);
+  cached_sender_ = std::move(other.cached_sender_);
   return *this;
 }
+
+void DagBlock::sign(secret_t const &sk) {
+  sig_ = dev::sign(sk, sha3(false));
+}
+
+bool DagBlock::verifySig() const {
+  if (!sig_) return false;
+  auto msg = sha3(false);
+  auto pk = dev::recover(sig_, msg);
+  return dev::verify(pk, sig_, msg);
+}
+
+addr_t DagBlock::sender() const {
+  if (!cached_sender_) {
+    if (!sig_) {
+      return addr_t{};
+    }
+    auto p = dev::recover(sig_, sha3(false));
+    assert(p);
+    cached_sender_ =
+        dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
+  }
+  return cached_sender_;
+}
+
+void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
+  auto num_tips = tips_.size();
+  auto num_trxs = trxs_.size();
+  auto total = 1 + num_tips + num_trxs;
+  s.appendList(include_sig ? total + 1 : total);
+  s << pivot_;
+  for (auto i = 0; i < num_tips; ++i) s << tips_[i];
+  for (auto i = 0; i < num_trxs; ++i) s << trxs_[i];
+  if (include_sig) {
+    s << sig_;
+  }
+}
+
+bytes DagBlock::rlp(bool include_sig) const {
+  dev::RLPStream s;
+  streamRLP(s, include_sig);
+  return s.out();
+}
+
+blk_hash_t DagBlock::sha3(bool include_sig) const {
+  return dev::sha3(rlp(include_sig));
+}
+
 BlockQueue::BlockQueue(size_t capacity, unsigned num_verifiers)
     : capacity_(capacity), num_verifiers_(num_verifiers) {}
 BlockQueue::~BlockQueue() {

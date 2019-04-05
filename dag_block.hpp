@@ -47,7 +47,7 @@ class DagBlock {
     str << std::endl;
     str << "	signature	= " << u.sig_ << std::endl;
     str << "	hash		= " << u.hash_ << std::endl;
-    str << "  sender   = " << u.sender_ << std::endl;
+    str << "  sender   = " << u.cached_sender_ << std::endl;
 
     return str;
   }
@@ -82,7 +82,7 @@ class DagBlock {
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
   blk_hash_t hash_;
-  addr_t sender_;  // block creater
+  mutable addr_t cached_sender_;  // block creater
 };
 
 /**
