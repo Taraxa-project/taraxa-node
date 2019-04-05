@@ -17,7 +17,6 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
   boost::property_tree::ptree doc = loadJsonFile(json_file);
   try {
     network_listen_port = doc.get<uint16_t>("network_listen_port");
-    network_node_id = doc.get<std::string>("network_node_id");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -33,25 +32,25 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
 // Network ----------------------------------------
 
 Network::Network(std::string const &conf_file_name)
-    : Network(conf_file_name, "") {}
-
-Network::Network(std::string const &conf_file_name, std::string networkFile) try
-    : conf_(conf_file_name) {
+    : Network(conf_file_name, "", secret_t()) {}
+Network::Network(std::string const &conf_file_name, std::string network_file)
+    : Network(conf_file_name, network_file, secret_t()) {}
+Network::Network(std::string const &conf_file_name, std::string network_file,
+                 secret_t const &sk) try : conf_(conf_file_name) {
   auto key = dev::KeyPair::create();
-  if (conf_.network_node_id.empty()) {
+  if (!sk) {
     LOG(logger_debug_) << "New key generated " << toHex(key.secret().ref());
   } else {
-    auto secret = dev::Secret(conf_.network_node_id,
-                              dev::Secret::ConstructFromStringType::FromHex);
-    key = dev::KeyPair(secret);
+    key = dev::KeyPair(sk);
   }
+
   if (conf_file_name.empty()) {
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode", key,
         dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
                                 true));
   } else {
-    auto networkData = contents(networkFile);
+    auto networkData = contents(network_file);
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode",
         dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
@@ -112,11 +111,11 @@ void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
   LOG(logger_debug_) << "Sent Block:" << blk.getHash().toString();
 }
 
-void Network::sendTransactions(NodeID const &id, std::vector<Transaction> transactions){
+void Network::sendTransactions(NodeID const &id,
+                               std::vector<Transaction> transactions) {
   taraxa_capability_->sendTransactions(id, transactions);
   LOG(logger_debug_) << "Sent transactions:" << transactions.size();
 }
-
 
 void Network::onNewBlock(DagBlock const &blk) {
   taraxa_capability_->onNewBlock(blk);
