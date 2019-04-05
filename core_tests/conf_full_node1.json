@@ -1,5 +1,6 @@
 {
 	"address": "0.0.0.0",
+	"node_secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
 	"db_accounts_path": "/tmp/rocksdb/acc",
 	"db_blocks_path": "/tmp/rocksdb/blk",
 	"db_transactions_path": "/tmp/rocksdb/trx",

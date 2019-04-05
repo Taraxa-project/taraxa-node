@@ -1,7 +1,4 @@
 {
 	"network_listen_port": 10002,
-	"network_node_id": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-	"network_boot_nodes": [
-	
-	]
+	"network_boot_nodes": []
 }

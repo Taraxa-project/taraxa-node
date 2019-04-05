@@ -24,8 +24,8 @@
 #include "full_node.hpp"
 #include "libp2p/Host.h"
 #include "taraxa_capability.h"
-#include "util.hpp"
 #include "transaction.hpp"
+#include "util.hpp"
 
 namespace taraxa {
 
@@ -39,7 +39,6 @@ struct NetworkConfig {
   NetworkConfig(std::string const &json_file);
   std::string json_file_name;
   uint16_t network_listen_port;
-  std::string network_node_id;
   std::vector<NodeConfig> network_boot_nodes;
 };
 
@@ -50,6 +49,7 @@ class Network {
  public:
   Network(std::string const &conf_file_name);
   Network(std::string const &conf_file_name, std::string networkFile);
+  Network(std::string const &conf_file_name, std::string networkFile, secret_t const &sk);
   ~Network();
   void start();
   void stop();
@@ -57,7 +57,8 @@ class Network {
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
                  bool newBlock);
-  void sendTransactions(NodeID const &_id, std::vector<Transaction> transactions);
+  void sendTransactions(NodeID const &_id,
+                        std::vector<Transaction> transactions);
   void onNewBlock(DagBlock const &blk);
   void onNewTransactions(std::vector<Transaction> const &transactions);
   NetworkConfig getConfig();

@@ -26,6 +26,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     boost::property_tree::ptree doc = loadJsonFile(json_file);
     address =
         boost::asio::ip::address::from_string(doc.get<std::string>("address"));
+    node_secret = doc.get<std::string>("node_secret");
     db_accounts_path = doc.get<std::string>("db_accounts_path");
     db_blocks_path = doc.get<std::string>("db_blocks_path");
     db_transactions_path = doc.get<std::string>("db_transactions_path");
@@ -63,8 +64,21 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.block_proposer_threads, dag_mgr_->getShared(),
           trx_mgr_->getShared())) {
-  std::cout << "Taraxa node statred at address: " << conf_.address << " ..."
-            << std::endl;
+  LOG(log_si_) << "Taraxa node statred at address: " << conf_.address << " ..."
+               << std::endl;
+  auto key = dev::KeyPair::create();
+  if (conf_.node_secret.empty()) {
+    LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
+  } else {
+    auto secret = dev::Secret(conf_.node_secret,
+                              dev::Secret::ConstructFromStringType::FromHex);
+    key = dev::KeyPair(secret);
+  }
+  node_sk_ = key.secret();
+  node_pk_ = key.pub();
+  node_addr_ = key.address();
+  LOG(log_si_) << "Node public key: " << node_pk_ << std::endl;
+  LOG(log_si_) << "Node address: " << node_addr_ << std::endl;
 
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;

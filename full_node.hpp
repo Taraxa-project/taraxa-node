@@ -16,6 +16,7 @@
 #include <thread>
 #include <vector>
 #include "libdevcore/Log.h"
+#include "types.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -32,6 +33,7 @@ class TransactionManager;
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
+  std::string node_secret;
   boost::asio::ip::address address;
   std::string db_accounts_path;
   std::string db_blocks_path;
@@ -110,6 +112,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool verbose_ = false;
   bool debug_ = false;
 
+  // node secrets
+  secret_t node_sk_;
+  public_t node_pk_;
+  addr_t node_addr_;
+
   // storage
   std::shared_ptr<RocksDb> db_accs_;
   std::shared_ptr<RocksDb> db_blks_;
@@ -133,6 +140,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
   uint64_t received_trxs_ = 0;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "fullnd")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "fullnd")};
   dev::Logger log_wr_{
