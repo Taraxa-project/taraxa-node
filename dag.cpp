@@ -6,6 +6,7 @@
  * @Last Modified time: 2019-03-16 23:46:47
  */
 
+#include <algorithm>
 #include <fstream>
 #include <queue>
 #include <stack>
@@ -595,6 +596,11 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->getLeaves(tips);
+    // remove pivot from tips
+    auto end =
+        std::remove_if(tips.begin(), tips.end(),
+                       [pivot](std::string const &s) { return s == pivot; });
+    tips.erase(end, tips.end());
     ret = true;
   }
   return ret;

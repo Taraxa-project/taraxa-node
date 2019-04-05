@@ -195,8 +195,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   // node1->setVerbose(true);
   node1->setDebug(true);
   node1->start();
-  std::cout << "Node1, after start(), shared count: " << node1.use_count()
-            << std::endl;
+
   // send package
   auto nw2(
       std::make_shared<taraxa::Network>("./core_tests/conf_network2.json"));
@@ -240,8 +239,6 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   std::cout << "Waiting packages for 5000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(5000);
   node1->stop();
-  std::cout << "Node1, after stop(), shared count: " << node1.use_count()
-            << std::endl;
   t.join();
 
   // node1->drawGraph("dot.txt");

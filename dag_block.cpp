@@ -16,12 +16,6 @@ namespace taraxa {
 
 using std::to_string;
 
-blk_hash_t DagBlock::getPivot() const { return pivot_; }
-vec_tip_t DagBlock::getTips() const { return tips_; }
-vec_trx_t DagBlock::getTrxs() const { return trxs_; }
-sig_t DagBlock::getSignature() const { return sig_; }
-blk_hash_t DagBlock::getHash() const { return hash_; }
-addr_t DagBlock::getSender() const { return cached_sender_; }
 DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
                    blk_hash_t hash, addr_t sender) try
     : pivot_(pivot),
@@ -33,13 +27,13 @@ DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
-DagBlock::DagBlock(DagBlock &&blk)
-    : pivot_(std::move(blk.pivot_)),
-      tips_(std::move(blk.tips_)),
-      trxs_(std::move(blk.trxs_)),
-      sig_(std::move(blk.sig_)),
-      hash_(std::move(blk.hash_)),
-      cached_sender_(std::move(blk.cached_sender_)) {}
+DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs) try
+    : pivot_(pivot),
+      tips_(tips),
+      trxs_(trxs){
+} catch (std::exception &e) {
+  std::cerr << e.what() << std::endl;
+}
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(std::string const &json) {
@@ -135,22 +129,7 @@ bool DagBlock::deserialize(stream &strm) {
   return ok;
 }
 
-bool DagBlock::operator==(DagBlock const &other) const {
-  return this->getJsonStr() == other.getJsonStr();
-}
-DagBlock &DagBlock::operator=(DagBlock &&other) {
-  pivot_ = std::move(other.pivot_);
-  tips_ = std::move(other.tips_);
-  trxs_ = std::move(other.trxs_);
-  sig_ = std::move(other.sig_);
-  hash_ = std::move(other.hash_);
-  cached_sender_ = std::move(other.cached_sender_);
-  return *this;
-}
-
-void DagBlock::sign(secret_t const &sk) {
-  sig_ = dev::sign(sk, sha3(false));
-}
+void DagBlock::sign(secret_t const &sk) { sig_ = dev::sign(sk, sha3(false)); }
 
 bool DagBlock::verifySig() const {
   if (!sig_) return false;
