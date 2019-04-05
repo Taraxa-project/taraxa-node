@@ -58,7 +58,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
-	${OBJECTDIR}/taraxa_capability.o
+	${OBJECTDIR}/taraxa_capability.o \
+	${OBJECTDIR}/account.o \
+	${OBJECTDIR}/log_entry.o \
+	${OBJECTDIR}/transaction_receipt.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -179,6 +182,22 @@ ${OBJECTDIR}/transaction.o: transaction.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/account.o: libethereum/Account.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account.o libethereum/Account.cpp $(CPPFLAGS)
+
+# required for TransactionReceipt
+${OBJECTDIR}/log_entry.o: libethcore/LogEntry.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/log_entry.o libethcore/LogEntry.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/transaction_receipt.o: libethereum/TransactionReceipt.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_receipt.o libethereum/TransactionReceipt.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
 	${MKDIR} -p ${OBJECTDIR}
