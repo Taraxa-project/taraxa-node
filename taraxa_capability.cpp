@@ -272,22 +272,23 @@ TaraxaCapability::randomPartitionPeers(std::vector<NodeID> const &_peers,
   return std::make_pair(move(part1), move(part2));
 }
 
-void TaraxaCapability::onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions, bool fromNetwork) {
-  if(fromNetwork) {
+void TaraxaCapability::onNewTransactions(
+    std::unordered_map<trx_hash_t, Transaction> const &transactions,
+    bool fromNetwork) {
+  if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
       full_node->insertNewTransactions(transactions);
-    }
-    else {
-      for (auto transaction : transactions) {
+    } else {
+      for (auto const &transaction : transactions) {
         if (m_TestTransactions.find(transaction.first) ==
             m_TestTransactions.end()) {
           m_TestTransactions[transaction.first] = transaction.second;
-          LOG(logger_debug_) << "Received New Transaction "
-                            << transaction.first.toString();
+          LOG(logger_debug_)
+              << "Received New Transaction " << transaction.first.toString();
         } else {
-          LOG(logger_debug_) << "Received New Transaction"
-                            << transaction.first.toString()
-                            << "that is already known";
+          LOG(logger_debug_)
+              << "Received New Transaction" << transaction.first.toString()
+              << "that is already known";
         }
       }
     }
@@ -295,7 +296,7 @@ void TaraxaCapability::onNewTransactions(std::unordered_map<trx_hash_t, Transact
 
   for (auto &peer : m_peers) {
     std::vector<Transaction> transactionsToSend;
-    for (auto transaction : transactions) {
+    for (auto const &transaction : transactions) {
       if (!peer.second.isTransactionKnown(transaction.first)) {
         peer.second.markTransactionAsKnown(transaction.first);
         transactionsToSend.push_back(transaction.second);
@@ -491,10 +492,14 @@ void TaraxaCapability::setFullNode(std::shared_ptr<FullNode> full_node) {
 }
 
 void TaraxaCapability::doBackgroundWork() {
-  const int c_backroundWorkPeriodMs = 1000;
   if (auto full_node = full_node_.lock()) {
-    onNewTransactions(full_node->getNewVerifiedTrxSnapShot(), false);
+    onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
   }
   m_host.scheduleExecution(c_backroundWorkPeriodMs,
                            [this]() { doBackgroundWork(); });
+}
+
+void TaraxaCapability::onStarting() {
+  m_host.scheduleExecution(c_backroundWorkPeriodMs,
+                            [this]() { doBackgroundWork(); });
 }

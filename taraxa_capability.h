@@ -76,7 +76,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   unsigned version() const override { return 1; }
   unsigned messageCount() const override { return PacketCount; }
 
-  void onStarting() override {}
+  void onStarting() override;
   void onStopping() override {}
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
@@ -104,6 +104,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
+  void doBackgroundWork();
+  void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
+  
+  private:
+  const int c_backroundWorkPeriodMs = 1000;
   Host &m_host;
   std::unordered_map<NodeID, int> m_cntReceivedMessages;
   std::unordered_map<NodeID, int> m_testSums;
@@ -124,8 +129,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   dev::Logger logger_debug_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
 
-  void doBackgroundWork();
-  void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
+  
 };
 }  // namespace taraxa
 #endif

@@ -247,7 +247,7 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
  private:
@@ -333,7 +333,7 @@ class TransactionManager
 
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;

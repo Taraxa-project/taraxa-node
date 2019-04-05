@@ -268,12 +268,12 @@ void FullNode::drawGraph(std::string const &dotfile) const {
   dag_mgr_->drawTotalGraph("total." + dotfile);
 }
 
-std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot() {
-  return trx_mgr_->getNewVerifiedTrxSnapShot();
+std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(bool onlyNew) {
+  return trx_mgr_->getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-void FullNode::insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> transactions){
-  for(auto trx : transactions)
+void FullNode::insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions){
+  for(auto const &trx : transactions)
     trx_mgr_->insertTrx(trx.second);
 }
 

@@ -227,10 +227,11 @@ void TransactionQueue::verifyTrx() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::getNewVerifiedTrxSnapShot() {
+TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
-  if(new_verified_transactions) {
-    new_verified_transactions = false;
+  if(new_verified_transactions || !onlyNew) {
+    if(onlyNew)
+      new_verified_transactions = false;
     uLock lock(mutex_for_verified_qu_);
     verified_trxs = verified_trxs_;
     LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
@@ -250,8 +251,8 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionManager::getNewVerifiedTrxSnapShot() {
-  return trx_qu_.getNewVerifiedTrxSnapShot();
+TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
+  return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
 bool TransactionManager::insertTrx(Transaction trx) {
