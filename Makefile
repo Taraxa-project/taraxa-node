@@ -61,7 +61,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/taraxa_capability.o \
 	${OBJECTDIR}/account.o \
 	${OBJECTDIR}/log_entry.o \
-	${OBJECTDIR}/transaction_receipt.o
+	${OBJECTDIR}/transaction_receipt.o \
+	${OBJECTDIR}/state.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -76,7 +77,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/memorydb_test.o \
 	${OBJECTDIR}/overlaydb_test.o \
 	${OBJECTDIR}/statecachedb_test.o \
-	${OBJECTDIR}/trie_test.o
+	${OBJECTDIR}/trie_test.o \
+	${OBJECTDIR}/state_test.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -183,6 +185,12 @@ ${OBJECTDIR}/transaction.o: transaction.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
 
+# required for Account
+${OBJECTDIR}/address.o: libdevcore/Address.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/address.o libdevcore/Address.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/account.o: libethereum/Account.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -198,6 +206,16 @@ ${OBJECTDIR}/transaction_receipt.o: libethereum/TransactionReceipt.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_receipt.o libethereum/TransactionReceipt.cpp $(CPPFLAGS)
+
+#${OBJECTDIR}/common.o: libethcore/Common.cpp
+	#${MKDIR} -p ${OBJECTDIR}
+	#${RM} "$@.d"
+	#${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/common.o libethcore/Common.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/state.o: libethereum/State.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state.o libethereum/State.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
 	${MKDIR} -p ${OBJECTDIR}

@@ -26,8 +26,8 @@
 #include <libdevcore/OverlayDB.h>
 #include <libdevcore/RLP.h>
 //#include <libethcore/BlockHeader.h>
-//#include <libethcore/Exceptions.h>
-//#include <libethereum/CodeSizeCache.h>
+#include <libethcore/Exceptions.h>
+#include <libethereum/CodeSizeCache.h>
 //#include <libevm/ExtVMFace.h>
 #include <array>
 #include <unordered_map>
@@ -57,11 +57,6 @@ using errinfo_phase = boost::error_info<struct tag_phase, unsigned>;
 using errinfo_required_LogBloom = boost::error_info<struct tag_required_LogBloom, LogBloom>;
 using errinfo_got_LogBloom = boost::error_info<struct tag_get_LogBloom, LogBloom>;
 using LogBloomRequirementError = boost::tuple<errinfo_required_LogBloom, errinfo_got_LogBloom>;
-
-class BlockChain;
-class State;
-class TransactionQueue;
-struct VerifiedBlockRef;
 
 enum class BaseState
 {
@@ -155,11 +150,6 @@ using ChangeLog = std::vector<Change>;
  */
 class State
 {
-    friend class ExtVM;
-    friend class dev::test::ImportTest;
-    friend class dev::test::StateLoader;
-    friend class BlockChain;
-
 public:
     enum class CommitBehaviour
     {
@@ -203,14 +193,6 @@ public:
     /// @returns the map with maximum _maxResults elements containing hash->addresses and the next
     /// address hash. This method faster then addresses() const;
     std::pair<AddressMap, h256> addresses(h256 const& _begin, size_t _maxResults) const;
-
-    /// Execute a given transaction.
-    /// This will change the state accordingly.
-    std::pair<ExecutionResult, TransactionReceipt> execute(EnvInfo const& _envInfo, SealEngineFace const& _sealEngine, Transaction const& _t, Permanence _p = Permanence::Committed, OnOpFunc const& _onOp = OnOpFunc());
-
-    /// Execute @a _txCount transactions of a given block.
-    /// This will change the state accordingly.
-    void executeBlockTransactions(Block const& _block, unsigned _txCount, LastBlockHashesFace const& _lastHashes, SealEngineFace const& _sealEngine);
 
     /// Check if the address is in use.
     bool addressInUse(Address const& _address) const;
@@ -344,10 +326,6 @@ private:
 
     void createAccount(Address const& _address, Account const&& _account);
 
-    /// @returns true when normally halted; false when exceptionally halted; throws when internal VM
-    /// exception occurred.
-    bool executeTransaction(Executive& _e, Transaction const& _t, OnOpFunc const& _onOp);
-
     /// Our overlay for the state tree.
     OverlayDB m_db;
     /// Our state tree, as an OverlayDB DB.
@@ -369,8 +347,6 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& _out, State const& _s);
-
-State& createIntermediateState(State& o_s, Block const& _block, unsigned _txIndex, BlockChain const& _bc);
 
 template <class DB>
 AddressHash commit(AccountMap const& _cache, SecureTrieDB<Address, DB>& _state);

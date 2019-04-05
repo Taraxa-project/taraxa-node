@@ -21,7 +21,7 @@
 
 #include "State.h"
 
-#include "TransactionQueue.h"
+//#include "TransactionQueue.h"
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/TrieHash.h>
@@ -63,7 +63,8 @@ OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash, Wit
         fs::remove_all(path / fs::path("state"));
     }
 
-    path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / fs::path(toString(c_databaseVersion));
+    path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / //fs::path(toString(c_databaseVersion));
+        fs::path(toString(9 + (23 << 9))); // copied from Common.c
     if (db::isDiskDatabase())
     {
         fs::create_directories(path);
@@ -592,76 +593,6 @@ void State::rollback(size_t _savepoint)
     }
 }
 
-std::pair<ExecutionResult, TransactionReceipt> State::execute(EnvInfo const& _envInfo, SealEngineFace const& _sealEngine, Transaction const& _t, Permanence _p, OnOpFunc const& _onOp)
-{
-    // Create and initialize the executive. This will throw fairly cheaply and quickly if the
-    // transaction is bad in any way.
-    Executive e(*this, _envInfo, _sealEngine);
-    ExecutionResult res;
-    e.setResultRecipient(res);
-
-    auto onOp = _onOp;
-#if ETH_VMTRACE
-    if (!onOp)
-        onOp = e.simpleTrace();
-#endif
-    u256 const startGasUsed = _envInfo.gasUsed();
-    bool const statusCode = executeTransaction(e, _t, onOp);
-
-    bool removeEmptyAccounts = false;
-    switch (_p)
-    {
-        case Permanence::Reverted:
-            m_cache.clear();
-            break;
-        case Permanence::Committed:
-            removeEmptyAccounts = _envInfo.number() >= _sealEngine.chainParams().EIP158ForkBlock;
-            commit(removeEmptyAccounts ? State::CommitBehaviour::RemoveEmptyAccounts : State::CommitBehaviour::KeepEmptyAccounts);
-            break;
-        case Permanence::Uncommitted:
-            break;
-    }
-
-    TransactionReceipt const receipt = _envInfo.number() >= _sealEngine.chainParams().byzantiumForkBlock ?
-        TransactionReceipt(statusCode, startGasUsed + e.gasUsed(), e.logs()) :
-        TransactionReceipt(rootHash(), startGasUsed + e.gasUsed(), e.logs());
-    return make_pair(res, receipt);
-}
-
-void State::executeBlockTransactions(Block const& _block, unsigned _txCount, LastBlockHashesFace const& _lastHashes, SealEngineFace const& _sealEngine)
-{
-    u256 gasUsed = 0;
-    for (unsigned i = 0; i < _txCount; ++i)
-    {
-        EnvInfo envInfo(_block.info(), _lastHashes, gasUsed);
-
-        Executive e(*this, envInfo, _sealEngine);
-        executeTransaction(e, _block.pending()[i], OnOpFunc());
-
-        gasUsed += e.gasUsed();
-    }
-}
-
-/// @returns true when normally halted; false when exceptionally halted; throws when internal VM
-/// exception occurred.
-bool State::executeTransaction(Executive& _e, Transaction const& _t, OnOpFunc const& _onOp)
-{
-    size_t const savept = savepoint();
-    try
-    {
-        _e.initialize(_t);
-
-        if (!_e.execute())
-            _e.go(_onOp);
-        return _e.finalize();
-    }
-    catch (Exception const&)
-    {
-        rollback(savept);
-        throw;
-    }
-}
-
 std::ostream& dev::eth::operator<<(std::ostream& _out, State const& _s)
 {
     _out << "--- " << _s.rootHash() << std::endl;
@@ -736,20 +667,6 @@ std::ostream& dev::eth::operator<<(std::ostream& _out, State const& _s)
         }
     }
     return _out;
-}
-
-State& dev::eth::createIntermediateState(State& o_s, Block const& _block, unsigned _txIndex, BlockChain const& _bc)
-{
-    o_s = _block.state();
-    u256 const rootHash = _block.stateRootBeforeTx(_txIndex);
-    if (rootHash)
-        o_s.setRoot(rootHash);
-    else
-    {
-        o_s.setRoot(_block.stateRootBeforeTx(0));
-        o_s.executeBlockTransactions(_block, _txIndex, _bc.lastBlockHashes(), *_bc.sealEngine());
-    }
-    return o_s;
 }
 
 template <class DB>
