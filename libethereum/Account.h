@@ -1,24 +1,6 @@
 /*
-    This file is part of cpp-ethereum.
-
-    cpp-ethereum is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    cpp-ethereum is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** @file Account.h
- * @author Gav Wood <i@gavwood.com>
- * @date 2014
+        This file is a modified version of cpp-ethereum Account.
  */
-
 #pragma once
 
 #include <libdevcore/Common.h>
@@ -34,7 +16,6 @@ class OverlayDB;
 
 namespace eth
 {
-
 /**
  * Models the state of a single Ethereum account.
  * Used to cache a portion of the full Ethereum state. State keeps a mapping of Address's to Accounts.
@@ -225,54 +206,9 @@ private:
     static const h256 c_contractConceptionCodeHash;
 };
 
-class AccountMask
-{
-public:
-    AccountMask(bool _all = false):
-        m_hasBalance(_all),
-        m_hasNonce(_all),
-        m_hasCode(_all),
-        m_hasStorage(_all)
-    {}
-
-    AccountMask(
-        bool _hasBalance,
-        bool _hasNonce,
-        bool _hasCode,
-        bool _hasStorage,
-        bool _shouldNotExist = false
-    ):
-        m_hasBalance(_hasBalance),
-        m_hasNonce(_hasNonce),
-        m_hasCode(_hasCode),
-        m_hasStorage(_hasStorage),
-        m_shouldNotExist(_shouldNotExist)
-    {}
-
-    bool allSet() const { return m_hasBalance && m_hasNonce && m_hasCode && m_hasStorage; }
-    bool hasBalance() const { return m_hasBalance; }
-    bool hasNonce() const { return m_hasNonce; }
-    bool hasCode() const { return m_hasCode; }
-    bool hasStorage() const { return m_hasStorage; }
-    bool shouldExist() const { return !m_shouldNotExist; }
-
-private:
-    bool m_hasBalance;
-    bool m_hasNonce;
-    bool m_hasCode;
-    bool m_hasStorage;
-    bool m_shouldNotExist = false;
-};
-
 using AccountMap = std::unordered_map<Address, Account>;
-using AccountMaskMap = std::unordered_map<Address, AccountMask>;
 
 class PrecompiledContract;
 using PrecompiledContractMap = std::unordered_map<Address, PrecompiledContract>;
-
-    //JC: BOOST
-    AccountMap jsonToAccountMap(std::string const& _json, u256 const& _defaultNonce = 0,
-	AccountMaskMap* o_mask = nullptr, PrecompiledContractMap* o_precompiled = nullptr,
-	const boost::filesystem::path& _configPath = {});
-}
-}
+} // dev
+} // eth
