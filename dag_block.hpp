@@ -31,10 +31,9 @@ class DagManager;
 class DagBlock {
  public:
   DagBlock() = default;
-  DagBlock(DagBlock &&blk);
-  DagBlock(DagBlock const &blk) = default;
   DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t signature,
            blk_hash_t hash, addr_t sender);
+  DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
   DagBlock(const string &json);
   friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
@@ -51,15 +50,16 @@ class DagBlock {
 
     return str;
   }
-  bool operator==(DagBlock const &other) const;
-  DagBlock &operator=(DagBlock &&block);
-  DagBlock &operator=(DagBlock const &block) = default;
-  blk_hash_t getPivot() const;
-  vec_tip_t getTips() const;
-  vec_trx_t getTrxs() const;
-  sig_t getSignature() const;
-  blk_hash_t getHash() const;
-  addr_t getSender() const;
+  bool operator==(DagBlock const &other) const {
+    return this->sha3(true) == other.sha3(true);
+  }
+ 
+  blk_hash_t getPivot() const { return pivot_; }
+  vec_tip_t getTips() const { return tips_; }
+  vec_trx_t getTrxs() const { return trxs_; }
+  sig_t getSig() const { return sig_; }
+  blk_hash_t getHash() const { return hash_; }
+  addr_t getSender() const { return cached_sender_; }
   std::string getJsonStr() const;
   bool isValid() const;
   bool serialize(stream &strm) const;

@@ -178,7 +178,7 @@ class Transaction {
   bool deserialize(stream &strm);
   string getJsonStr() const;
   bool operator==(Transaction const &other) const {
-    return this->getJsonStr() == other.getJsonStr();
+    return this->sha3(true) == other.sha3(true);
   }
 
   Transaction &operator=(Transaction &&other) = default;
@@ -247,7 +247,8 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
+      bool onlyNew);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
  private:
@@ -329,11 +330,10 @@ class TransactionManager
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
-
-
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
+      bool onlyNew);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;

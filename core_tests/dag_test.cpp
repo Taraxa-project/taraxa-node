@@ -342,6 +342,15 @@ TEST(DagManager, receive_block_in_order) {
   mgr->addDagBlock(blk3, true);
   mgr->addDagBlock(blk3, true);
   taraxa::thisThreadSleepForMilliSeconds(500);
+
+  std::string pivot;
+  std::vector<std::string> tips;
+  std::vector<Dag::vertex_t> criticals;
+  mgr->getLatestPivotAndTips(pivot, tips);
+
+  EXPECT_EQ(pivot,
+            "0000000000000000000000000000000000000000000000000000000000000002");
+  EXPECT_EQ(tips.size(), 1);
   mgr->stop();
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   // total edges
@@ -365,18 +374,54 @@ TEST(DagManager, receive_block_out_of_order) {
   mgr->addDagBlock(blk3, true);
   mgr->addDagBlock(blk2, true);
   mgr->addDagBlock(blk1, true);
+  taraxa::thisThreadSleepForMicroSeconds(500);
+
   std::string pivot;
   std::vector<std::string> tips;
   std::vector<Dag::vertex_t> criticals;
   mgr->getLatestPivotAndTips(pivot, tips);
 
-  taraxa::thisThreadSleepForMicroSeconds(500);
+  EXPECT_EQ(pivot,
+            "0000000000000000000000000000000000000000000000000000000000000002");
+  EXPECT_EQ(tips.size(), 1);
   mgr->stop();
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
   EXPECT_EQ(mgr->getBufferSize(), 0);
 }
 
+TEST(DagManager, get_latest_pivot_tips) {
+  auto mgr = std::make_shared<DagManager>(1);
+  mgr->start();
+
+  // mgr.setVerbose(true);
+  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
+  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
+  DagBlock blk3(blk_hash_t(2), {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
+  DagBlock blk4(blk_hash_t(1), {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
+  DagBlock blk5(blk_hash_t(4), {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
+  DagBlock blk6(blk_hash_t(2), {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
+                addr_t(15));
+  mgr->addDagBlock(blk3, true);
+  mgr->addDagBlock(blk6, true);
+  mgr->addDagBlock(blk4, true);
+  mgr->addDagBlock(blk5, true);
+  mgr->addDagBlock(blk2, true);
+  mgr->addDagBlock(blk1, true);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+
+  std::string pivot;
+  std::vector<std::string> tips;
+  std::vector<Dag::vertex_t> criticals;
+  mgr->getLatestPivotAndTips(pivot, tips);
+
+  EXPECT_EQ(pivot,
+            "0000000000000000000000000000000000000000000000000000000000000003");
+  EXPECT_EQ(tips.size(), 1);
+  EXPECT_EQ(tips[0],
+            "0000000000000000000000000000000000000000000000000000000000000006");
+  mgr->stop();
+}
 /**
  * Note: TODO, Disable for now
  * The first thread has more change to win the Dag lock,

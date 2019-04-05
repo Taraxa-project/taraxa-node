@@ -127,7 +127,6 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
     trx_mgr.packTrxs(packed_trxs);
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
                              packed_trxs.end());
-    std::cout << "packed size " << packed_trxs.size() << std::endl;
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
 

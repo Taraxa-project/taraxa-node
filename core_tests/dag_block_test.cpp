@@ -156,6 +156,32 @@ TEST(DagBlock, string_format) {
   ASSERT_EQ(blk.getJsonStr(), blk2.getJsonStr());
 }
 
+TEST(DagBlock, sign_verify) {
+  DagBlock blk1(blk_hash_t(111),   // pivot
+                {blk_hash_t(222),  // tips
+                 blk_hash_t(333), blk_hash_t(444)},
+                {trx_hash_t(555),  // trxs
+                 trx_hash_t(666)});
+  DagBlock blk1c(blk_hash_t(111),   // pivot
+                 {blk_hash_t(222),  // tips
+                  blk_hash_t(333), blk_hash_t(444)},
+                 {trx_hash_t(555),  // trxs
+                  trx_hash_t(666)});
+  blk1.sign(g_secret);
+  blk1c.sign(g_secret);
+  EXPECT_EQ(blk1.getSig(), blk1c.getSig());
+  EXPECT_EQ(blk1.sender(), blk1.sender());
+  EXPECT_TRUE(blk1.verifySig());
+
+  DagBlock blk2(blk_hash_t(9999),  // pivot
+                {},                // tips,
+                {});               // trxs
+  blk2.sign(g_secret);
+  EXPECT_NE(blk1.getSig(), blk2.getSig());
+  EXPECT_EQ(blk2.sender(), blk1.sender());
+  EXPECT_TRUE(blk2.verifySig());
+}
+
 TEST(BlockQueue, push_and_pop) {
   BlockQueue blk_qu(1024, 2);
   blk_qu.start();
