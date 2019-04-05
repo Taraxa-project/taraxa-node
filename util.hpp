@@ -37,7 +37,7 @@ struct ProcessReturn {
     MISS_PREV,
     MISS_SOURCE
   };
-  taraxa::name_t user_account;
+  taraxa::addr_t user_account;
 };
 
 template <typename T, typename U>

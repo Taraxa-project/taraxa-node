@@ -32,14 +32,14 @@ using std::string;
 
 class UserAccount {
  public:
-  UserAccount(name_t address, key_t pk, blk_hash_t genesis, bal_t balance,
+  UserAccount(addr_t address, key_t pk, blk_hash_t genesis, bal_t balance,
               blk_hash_t frontier, uint64_t height);
 
   UserAccount(string const& json);
   string getJsonStr();
 
  private:
-  name_t address_ = "0";
+  addr_t address_ = "0";
   key_t pk_ = "0";
   blk_hash_t genesis_ =
       "0000000000000000000000000000000000000000000000000000000000000000";

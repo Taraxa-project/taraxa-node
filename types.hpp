@@ -89,7 +89,6 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 
 using key_t = std::string;
-using name_t = uint256_hash_t;
 using bal_t = uint64_t;
 using val_t = uint256_hash_t;
 

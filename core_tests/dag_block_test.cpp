@@ -10,10 +10,23 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <vector>
+#include "create_samples.hpp"
 #include "libdevcore/Log.h"
 #include "types.hpp"
 
 namespace taraxa {
+const unsigned NUM_TRX = 40;
+const unsigned NUM_BLK = 4;
+const unsigned BLK_TRX_LEN = 4;
+const unsigned BLK_TRX_OVERLAP = 1;
+
+auto g_blk_samples = samples::createMockDagBlkSamples(
+    0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
+
+auto g_secret = dev::Secret(
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    dev::Secret::ConstructFromStringType::FromHex);
+auto g_key_pair = dev::KeyPair(g_secret);
 
 TEST(uint256_hash_t, clear) {
   std::string str(
@@ -121,8 +134,7 @@ TEST(DagBlock, string_format) {
             "777777777777777777777777777777777777777777777777777777777"),
       blk_hash_t(
           "8888888888888888888888888888888888888888888888888888888888888888"),
-      name_t(
-          "000000000000000000000000000000000000000000000000000000000000000F"));
+      addr_t("0000000000000000000000000000000000055555"));
   std::string json = blk.getJsonStr();
   std::stringstream ss1, ss2;
   ss1 << blk;
@@ -133,7 +145,7 @@ TEST(DagBlock, string_format) {
     blk.serialize(strm1);
   }
   // check stream size
-  ASSERT_EQ(bytes.size(), 323);
+  ASSERT_EQ(bytes.size(), 311);
   bufferstream strm2(bytes.data(), bytes.size());
   DagBlock blk2;
   blk2.deserialize(strm2);
@@ -150,12 +162,12 @@ TEST(BlockQueue, push_and_pop) {
   DagBlock blk1(blk_hash_t(1111),
                 {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777),
-                blk_hash_t(888), name_t(999));
+                blk_hash_t(888), addr_t(999));
 
   DagBlock blk2(blk_hash_t(21111),
                 {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)},
                 {trx_hash_t(2555), trx_hash_t(2666)}, sig_t(27777),
-                blk_hash_t(2888), name_t(2999));
+                blk_hash_t(2888), addr_t(2999));
 
   blk_qu.pushUnverifiedBlock(blk1);
   blk_qu.pushUnverifiedBlock(blk2);

@@ -19,17 +19,16 @@ using std::to_string;
 blk_hash_t DagBlock::getPivot() const { return pivot_; }
 vec_tip_t DagBlock::getTips() const { return tips_; }
 vec_trx_t DagBlock::getTrxs() const { return trxs_; }
-sig_t DagBlock::getSignature() const { return signature_; }
+sig_t DagBlock::getSignature() const { return sig_; }
 blk_hash_t DagBlock::getHash() const { return hash_; }
-name_t DagBlock::getPublisher() const { return publisher_; }
-DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs,
-                   sig_t signature, blk_hash_t hash, name_t publisher) try
-    : pivot_(pivot),
-      tips_(tips),
-      trxs_(trxs),
-      signature_(signature),
-      hash_(hash),
-      publisher_(publisher) {
+addr_t DagBlock::getSender() const { return sender_; }
+DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
+                   blk_hash_t hash, addr_t sender) try : pivot_(pivot),
+                                                         tips_(tips),
+                                                         trxs_(trxs),
+                                                         sig_(sig),
+                                                         hash_(hash),
+                                                         sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -37,9 +36,9 @@ DagBlock::DagBlock(DagBlock &&blk)
     : pivot_(std::move(blk.pivot_)),
       tips_(std::move(blk.tips_)),
       trxs_(std::move(blk.trxs_)),
-      signature_(std::move(blk.signature_)),
+      sig_(std::move(blk.sig_)),
       hash_(std::move(blk.hash_)),
-      publisher_(std::move(blk.publisher_)) {}
+      sender_(std::move(blk.sender_)) {}
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(std::string const &json) {
@@ -48,16 +47,16 @@ DagBlock::DagBlock(std::string const &json) {
     pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
     tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
     trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-    signature_ = sig_t(doc.get<std::string>("sig"));
+    sig_ = sig_t(doc.get<std::string>("sig"));
     hash_ = blk_hash_t(doc.get<std::string>("hash"));
-    publisher_ = blk_hash_t(doc.get<std::string>("pub"));
+    sender_ = addr_t(doc.get<std::string>("sender"));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
 bool DagBlock::isValid() const {
-  return !(pivot_.isZero() && hash_.isZero() && signature_.isZero() &&
-           publisher_.isZero());
+  return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() &&
+           sender_.isZero());
 }
 
 std::string DagBlock::getJsonStr() const {
@@ -78,9 +77,9 @@ std::string DagBlock::getJsonStr() const {
     trxs_array.push_back(std::make_pair("", ptree(t.toString().c_str())));
   }
 
-  tree.put("sig", signature_.toString());
+  tree.put("sig", sig_.toString());
   tree.put("hash", hash_.toString());
-  tree.put("pub", publisher_.toString());
+  tree.put("pub", sender_.toString());
 
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
@@ -100,9 +99,9 @@ bool DagBlock::serialize(stream &strm) const {
   for (auto i = 0; i < num_trxs; ++i) {
     ok &= write(strm, trxs_[i]);
   }
-  ok &= write(strm, signature_);
+  ok &= write(strm, sig_);
   ok &= write(strm, hash_);
-  ok &= write(strm, publisher_);
+  ok &= write(strm, sender_);
   assert(ok);
   return ok;
 }
@@ -128,9 +127,9 @@ bool DagBlock::deserialize(stream &strm) {
       trxs_.push_back(t);
     }
   }
-  ok &= read(strm, signature_);
+  ok &= read(strm, sig_);
   ok &= read(strm, hash_);
-  ok &= read(strm, publisher_);
+  ok &= read(strm, sender_);
   assert(ok);
   return ok;
 }
@@ -142,9 +141,9 @@ DagBlock &DagBlock::operator=(DagBlock &&other) {
   pivot_ = std::move(other.pivot_);
   tips_ = std::move(other.tips_);
   trxs_ = std::move(other.trxs_);
-  signature_ = std::move(other.signature_);
+  sig_ = std::move(other.sig_);
   hash_ = std::move(other.hash_);
-  publisher_ = std::move(other.publisher_);
+  sender_ = std::move(other.sender_);
   return *this;
 }
 BlockQueue::BlockQueue(size_t capacity, unsigned num_verifiers)

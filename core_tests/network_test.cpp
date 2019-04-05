@@ -27,7 +27,7 @@ TEST(Network, transfer_block) {
   DagBlock blk(blk_hash_t(1111),
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
                {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
-               name_t(999));
+               addr_t(999));
 
   taraxa::thisThreadSleepForSeconds(10);
 
@@ -152,22 +152,22 @@ TEST(Network, node_sync) {
   node1->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), name_t(999));
+  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(999));
 
   DagBlock blk2(blk_hash_t(01), {}, {}, sig_t(777), blk_hash_t(02),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk3(blk_hash_t(02), {}, {}, sig_t(777), blk_hash_t(03),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk4(blk_hash_t(03), {}, {}, sig_t(777), blk_hash_t(04),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk5(blk_hash_t(04), {}, {}, sig_t(777), blk_hash_t(05),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk6(blk_hash_t(05), {blk_hash_t(04), blk_hash_t(3)}, {}, sig_t(777),
-                blk_hash_t(06), name_t(999));
+                blk_hash_t(06), addr_t(999));
 
   blks.push_back(blk6);
   blks.push_back(blk5);
@@ -218,40 +218,40 @@ TEST(Network, node_sync2) {
   std::vector<DagBlock> blks;
 
   DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(0xB1),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk2(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(0xB2),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk3(blk_hash_t(0xB1), {}, {}, sig_t(777), blk_hash_t(0xB6),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk4(blk_hash_t(0xB6), {}, {}, sig_t(777), blk_hash_t(0xB10),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk5(blk_hash_t(0xB2), {}, {}, sig_t(777), blk_hash_t(0xB8),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk6(blk_hash_t(0xB1), {}, {}, sig_t(777), blk_hash_t(0xB3),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk7(blk_hash_t(0xB3), {}, {}, sig_t(777), blk_hash_t(0xB4),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk8(blk_hash_t(0xB1), {blk_hash_t(0xB4)}, {}, sig_t(777),
-                blk_hash_t(0xB5), name_t(999));
+                blk_hash_t(0xB5), addr_t(999));
 
   DagBlock blk9(blk_hash_t(0xB1), {}, {}, sig_t(777), blk_hash_t(0xB7),
-                name_t(999));
+                addr_t(999));
 
   DagBlock blk10(blk_hash_t(0xB5), {}, {}, sig_t(777), blk_hash_t(0xB9),
-                 name_t(999));
+                 addr_t(999));
 
   DagBlock blk11(blk_hash_t(0xB6), {}, {}, sig_t(777), blk_hash_t(0xB11),
-                 name_t(999));
+                 addr_t(999));
 
   DagBlock blk12(blk_hash_t(0xB8), {}, {}, sig_t(777), blk_hash_t(0xB12),
-                 name_t(999));
+                 addr_t(999));
 
   blks.push_back(blk1);
   blks.push_back(blk2);

@@ -29,7 +29,7 @@ class PivotBlock {
   blk_hash_t prev_pivot_blk_;
   uint64_t epoch_;
   uint64_t timestamp_;
-  name_t beneficiary_;
+  addr_t beneficiary_;
   sig_t sig_;
 };
 

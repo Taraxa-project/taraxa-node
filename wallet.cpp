@@ -69,7 +69,7 @@ std::string Wallet::accountCreate(key_t sk) {
   return json;
 }
 
-std::string Wallet::accountQuery(name_t address) {
+std::string Wallet::accountQuery(addr_t address) {
   std::string acc = db_wallet_sp_->get(address);
   if (!acc.empty()) {
     acc = "Account does not exist!\n";

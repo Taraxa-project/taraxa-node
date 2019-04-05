@@ -328,10 +328,10 @@ TEST(DagManager, receive_block_in_order) {
   auto mgr = std::make_shared<DagManager>(1);
   mgr->start();
   // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), name_t(15));
-  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(777), blk_hash_t(2), name_t(15));
+  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
+  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(0), {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777),
-                blk_hash_t(3), name_t(15));
+                blk_hash_t(3), addr_t(15));
 
   mgr->addDagBlock(blk1, true);
   mgr->addDagBlock(blk2, true);
@@ -357,10 +357,10 @@ TEST(DagManager, receive_block_out_of_order) {
   mgr->start();
 
   // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), name_t(15));
-  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(777), blk_hash_t(2), name_t(15));
+  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
+  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(0), {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777),
-                blk_hash_t(3), name_t(15));
+                blk_hash_t(3), addr_t(15));
 
   mgr->addDagBlock(blk3, true);
   mgr->addDagBlock(blk2, true);

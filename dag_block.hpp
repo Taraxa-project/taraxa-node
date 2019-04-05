@@ -9,8 +9,10 @@
 #ifndef DAG_BLOCKS_HPP
 #define DAG_BLOCKS_HPP
 
-#include <cryptopp/aes.h>
-#include <cryptopp/blake2.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+#include <libethcore/Common.h>
 #include <boost/thread.hpp>
 #include <condition_variable>
 #include <deque>
@@ -18,6 +20,7 @@
 #include <string>
 #include <thread>
 #include "libdevcore/Log.h"
+#include "types.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -31,7 +34,7 @@ class DagBlock {
   DagBlock(DagBlock &&blk);
   DagBlock(DagBlock const &blk) = default;
   DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t signature,
-           blk_hash_t hash, name_t publisher);
+           blk_hash_t hash, addr_t sender);
   DagBlock(stream &strm);
   DagBlock(const string &json);
   friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
@@ -42,9 +45,9 @@ class DagBlock {
     str << "	trxs		= ";
     for (auto const &t : u.trxs_) str << t << " ";
     str << std::endl;
-    str << "	signature	= " << u.signature_ << std::endl;
+    str << "	signature	= " << u.sig_ << std::endl;
     str << "	hash		= " << u.hash_ << std::endl;
-    str << "  publisher   = " << u.publisher_ << std::endl;
+    str << "  sender   = " << u.sender_ << std::endl;
 
     return str;
   }
@@ -56,21 +59,30 @@ class DagBlock {
   vec_trx_t getTrxs() const;
   sig_t getSignature() const;
   blk_hash_t getHash() const;
-  name_t getPublisher() const;
+  addr_t getSender() const;
   std::string getJsonStr() const;
   bool isValid() const;
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
+  addr_t sender() const;
+  void sign(secret_t const &sk);
+  void updateHash() {
+    if (!hash_) {
+      hash_ = dev::sha3(rlp(true));
+    }
+  }
+  bool verifySig() const;
 
  private:
-  constexpr static unsigned nr_hash_chars = 2 * CryptoPP::BLAKE2s::DIGESTSIZE;
-
+  void streamRLP(dev::RLPStream &s, bool include_sig) const;
+  bytes rlp(bool include_sig) const;
+  blk_hash_t sha3(bool include_sig) const;
   blk_hash_t pivot_;
   vec_tip_t tips_;
   vec_trx_t trxs_;  // transactions
-  sig_t signature_;
+  sig_t sig_;
   blk_hash_t hash_;
-  name_t publisher_;  // block creater
+  addr_t sender_;  // block creater
 };
 
 /**
