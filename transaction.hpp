@@ -344,8 +344,7 @@ class TransactionManager
 
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
-      bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;

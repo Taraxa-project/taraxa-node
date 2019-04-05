@@ -114,10 +114,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
-      bool onlyNew);
-  void insertNewTransactions(
-      std::unordered_map<trx_hash_t, Transaction> const &transactions);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
+  void insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions);
 
   // PBFT
   dev::Signature signMessage(std::string message);
