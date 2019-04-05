@@ -81,7 +81,7 @@ void BlockProposer::proposeBlock() {
       tmp.push_back(blk_hash_t(t));
     }
     DagBlock blk(blk_hash_t(pivot), tmp, to_be_packed_trx, sig_t(),
-                 blk_hash_t(next), name_t());
+                 blk_hash_t(next), addr_t());
 
     if (full_node_.lock()) {
       full_node_.lock()->storeBlock(blk);

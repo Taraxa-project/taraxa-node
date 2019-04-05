@@ -192,7 +192,7 @@ class Transaction {
       hash_ = dev::sha3(rlp(true));
     }
   }
-  bool verifySig();
+  bool verifySig() const;
 
  protected:
   // Serialises this transaction to an RLPStream.

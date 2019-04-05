@@ -152,7 +152,7 @@ TEST(p2p, block) {
   DagBlock blk(blk_hash_t(1111),
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
                {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
-               name_t(999));
+               addr_t(999));
 
   thc2->sendBlock(host1.id(), blk, true);
 
@@ -250,7 +250,7 @@ TEST(p2p, block_propagate) {
   DagBlock blk(blk_hash_t(1111),
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
                {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
-               name_t(999));
+               addr_t(999));
 
   thc1->onNewBlock(blk);
 

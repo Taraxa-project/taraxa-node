@@ -31,7 +31,7 @@ struct WalletUserAccount {
   WalletUserAccount(std::string const &json);
   key_t sk;
   key_t pk;
-  name_t address;
+  addr_t address;
   std::string getJsonStr();
 };
 
@@ -39,7 +39,7 @@ class Wallet : public std::enable_shared_from_this<Wallet> {
  public:
   Wallet(WalletConfig const &conf);
   std::string accountCreate(key_t sk);
-  std::string accountQuery(name_t address);
+  std::string accountQuery(addr_t address);
   std::shared_ptr<Wallet> getShared() { return shared_from_this(); }
 
  private:

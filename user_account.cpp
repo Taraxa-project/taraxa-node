@@ -15,7 +15,7 @@ using std::to_string;
 
 namespace taraxa {
 
-UserAccount::UserAccount(name_t address, key_t pk, blk_hash_t genesis,
+UserAccount::UserAccount(addr_t address, key_t pk, blk_hash_t genesis,
                          bal_t balance, blk_hash_t frontier, uint64_t height)
     : address_(address),
       pk_(pk),

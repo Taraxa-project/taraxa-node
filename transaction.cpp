@@ -85,7 +85,7 @@ void Transaction::sign(secret_t const &sk) {
   sig_ = dev::sign(sk, sha3(false));
 }
 
-bool Transaction::verifySig() {
+bool Transaction::verifySig() const {
   if (!sig_) return false;
   auto msg = sha3(false);
   auto pk = dev::recover(sig_, msg);

@@ -94,7 +94,7 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
                  trxs,                                           // trxs
                  sig_t(7777),                                    // sig
                  blk_hash_t(pivot),                              // hash
-                 name_t(12345));                                 // publisher
+                 addr_t(12345));                                 // sender
 
     blks.emplace_back(blk);
   }

@@ -186,9 +186,9 @@ void RpcHandler::processRequest() {
             "777777777777777777777777777777777777777777777777777777777777777777"
             "777777777777777777777777777777777777777777777777777777777777777");
         blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
-        name_t publisher = name_t(in_doc_.get<std::string>("publisher"));
+        addr_t sender = addr_t(in_doc_.get<std::string>("sender"));
 
-        DagBlock blk(pivot, tips, {}, signature, hash, publisher);
+        DagBlock blk(pivot, tips, {}, signature, hash, sender);
         res = blk.getJsonStr();
         node_->storeBlock(std::move(blk));
       } catch (std::exception &e) {
@@ -202,9 +202,9 @@ void RpcHandler::processRequest() {
             "777777777777777777777777777777777777777777777777777777777777777777"
             "777777777777777777777777777777777777777777777777777777777777777");
         blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
-        name_t publisher = name_t(in_doc_.get<std::string>("publisher"));
+        addr_t sender = addr_t(in_doc_.get<std::string>("sender"));
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
-        DagBlock blk(pivot, tips, {}, signature, hash, publisher);
+        DagBlock blk(pivot, tips, {}, signature, hash, sender);
         res = blk.getJsonStr();
         node_->storeBlock(std::move(blk));
         node_->setDagBlockTimeStamp(hash, stamp);
