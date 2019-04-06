@@ -12,6 +12,7 @@
 #include <boost/beast.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <string>
+#include "libdevcore/Log.h"
 
 // TODO:
 // Need a buffer for rpc requests ...
@@ -19,6 +20,7 @@
 namespace taraxa {
 
 class FullNode;
+class RpcConnection;
 
 struct RpcConfig {
   RpcConfig(std::string const &json_file);
@@ -38,16 +40,21 @@ class Rpc : public std::enable_shared_from_this<Rpc> {
   void waitForAccept();
   void stop();
   boost::asio::io_context &getIoContext() { return io_context_; }
-  void setVerbose(bool verbose) { verbose_ = verbose; }
   std::shared_ptr<Rpc> getShared();
+  friend RpcConnection;
 
  private:
-  bool verbose_;
   bool stopped_ = true;
   RpcConfig conf_;
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
   std::shared_ptr<FullNode> node_;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
+  dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "RPC")};
+  dev::Logger log_nf_{dev::createLogger(dev::Verbosity::VerbosityInfo, "RPC")};
 };
 // QQ:
 // Why RpcConnection and Rpc use different io_context?

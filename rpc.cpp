@@ -20,11 +20,7 @@ RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
 
 Rpc::Rpc(boost::asio::io_context &io, std::string conf_rpc,
          std::shared_ptr<FullNode> node)
-    : verbose_(false),
-      conf_(RpcConfig(conf_rpc)),
-      io_context_(io),
-      acceptor_(io),
-      node_(node) {
+    : conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node) {
   std::cout << "Taraxa RPC started at port: " << conf_.port << std::endl;
 }
 
@@ -50,14 +46,12 @@ void Rpc::start() {
   boost::system::error_code ec;
   acceptor_.bind(ep, ec);
   if (ec) {
-    std::cerr << "Error! RPC cannot bind ... " << ec.message() << "\n";
+    LOG(log_er_) << "RPC cannot bind ... " << ec.message() << "\n";
     throw std::runtime_error(ec.message());
   }
   acceptor_.listen();
 
-  if (verbose_) {
-    std::cout << "Rpc is listening on port " << conf_.port << std::endl;
-  }
+  LOG(log_si_) << "Rpc is listening on port " << conf_.port << std::endl;
   waitForAccept();
 }
 
@@ -68,21 +62,23 @@ void Rpc::waitForAccept() {
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
         if (!ec) {
-          if (verbose_) {
-            std::cout << "A connection is accepted" << std::endl;
-          }
+          LOG(log_nf_) << "A connection is accepted" << std::endl;
           connection->read();
         } else {
+          if (stopped_) return;
+
           std::cerr << "Error! Rpc async_accept error ... " << ec.message()
                     << "\n";
           throw std::runtime_error(ec.message());
         }
+        if (stopped_) return;
         waitForAccept();
       });
 }
 
 void Rpc::stop() {
   if (stopped_) return;
+  stopped_ = true;
   acceptor_.close();
 }
 
@@ -107,7 +103,7 @@ void RpcConnection::read() {
       socket_, buffer_, request_,
       [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
         if (!ec) {
-          std::cout << "POST read ... " << std::endl;
+          LOG(this_sp->rpc_->log_nf_) << "Read ... " << std::endl;
 
           // define response handler
           auto replier([this_sp](std::string const &msg) {
