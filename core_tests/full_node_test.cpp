@@ -14,6 +14,7 @@
 #include <vector>
 #include "libdevcore/Log.h"
 #include "network.hpp"
+#include "rpc.hpp"
 
 namespace taraxa {
 
@@ -56,21 +57,21 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   blks.emplace_back(blk2);
   blks.emplace_back(blk1);
 
-  std::cout << "Waiting connection for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  std::cout << "Waiting connection for 1000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   for (auto i = 0; i < blks.size(); ++i) {
     nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i], true);
   }
 
-  std::cout << "Waiting packages for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  std::cout << "Waiting packages for 1000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   work.reset();
   nw2->stop();
 
-  std::cout << "Waiting packages for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  std::cout << "Waiting packages for 1000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(1000);
   node1->stop();
   t.join();
 
@@ -81,12 +82,67 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   EXPECT_EQ(node1->getNumProposedBlocks(), 0);
 }
 
+TEST(FullNode, receive_send_transaction) {
+  boost::asio::io_context context1;
+
+  auto node1(std::make_shared<taraxa::FullNode>(
+      context1, std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+  auto rpc(std::make_shared<taraxa::Rpc>(
+      context1, "./core_tests/conf_rpc1.json", node1->getShared()));
+  rpc->start();
+  node1->setDebug(true);
+  node1->start();
+
+  std::unique_ptr<boost::asio::io_context::work> work(
+      new boost::asio::io_context::work(context1));
+
+  boost::thread t([&context1]() { context1.run(); });
+
+  try {
+    system("./core_tests/curl1000_send_trx.sh");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+  std::cout << "1000 transaction are sent through RPC ..." << std::endl;
+
+  taraxa::thisThreadSleepForMilliSeconds(500);
+
+  work.reset();
+  node1->stop();
+  rpc->stop();
+  t.join();
+  EXPECT_EQ(node1->getNumProposedBlocks(), 100);
+}
+
+// TEST() {
+//   boost::asio::io_context context;
+
+//   try {
+//     auto node(std::make_shared<taraxa::FullNode>(context, conf_full_node,
+//                                                  conf_network));
+
+//     node->start();
+//     std::string action;
+//     auto rpc(
+//         std::make_shared<taraxa::Rpc>(context, conf_rpc, node->getShared()));
+//     rpc->start();
+//     context.run();
+
+//     return 1;
+//   } catch (std::exception& e) {
+//     std::cerr << e.what();
+//   }
+// }
+
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("FULL_ND");
+  logOptions.includeChannels.push_back("RPC");
+
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
