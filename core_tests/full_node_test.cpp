@@ -115,26 +115,6 @@ TEST(FullNode, receive_send_transaction) {
   EXPECT_EQ(node1->getNumProposedBlocks(), 100);
 }
 
-// TEST() {
-//   boost::asio::io_context context;
-
-//   try {
-//     auto node(std::make_shared<taraxa::FullNode>(context, conf_full_node,
-//                                                  conf_network));
-
-//     node->start();
-//     std::string action;
-//     auto rpc(
-//         std::make_shared<taraxa::Rpc>(context, conf_rpc, node->getShared()));
-//     rpc->start();
-//     context.run();
-
-//     return 1;
-//   } catch (std::exception& e) {
-//     std::cerr << e.what();
-//   }
-// }
-
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
