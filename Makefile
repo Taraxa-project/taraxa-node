@@ -184,12 +184,6 @@ ${OBJECTDIR}/transaction.o: transaction.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
 
-# required for Account
-#${OBJECTDIR}/address.o: libdevcore/Address.cpp
-#	${MKDIR} -p ${OBJECTDIR}
-#	${RM} "$@.d"
-#	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/address.o libdevcore/Address.cpp $(CPPFLAGS)
-
 ${OBJECTDIR}/libethereum/account.o: libethereum/Account.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libethereum
@@ -208,13 +202,6 @@ ${OBJECTDIR}/libethereum/transaction_receipt.o: libethereum/TransactionReceipt.c
 	${MKDIR} -p ${OBJECTDIR}/libethereum
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethereum/transaction_receipt.o libethereum/TransactionReceipt.cpp $(CPPFLAGS)
-
-# required for State
-#${OBJECTDIR}/libethcore/common.o: libethcore/Common.cpp
-#	${MKDIR} -p ${OBJECTDIR}
-#	${MKDIR} -p ${OBJECTDIR}/libethcore
-#	${RM} "$@.d"
-#	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethcore/common.o libethcore/Common.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libethereum/state.o: libethereum/State.cpp
 	${MKDIR} -p ${OBJECTDIR}

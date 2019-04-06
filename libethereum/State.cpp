@@ -1,27 +1,11 @@
 /*
-    This file is part of cpp-ethereum.
-
-    cpp-ethereum is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    cpp-ethereum is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
+   This file is a refactored part of cpp-ethereum State.
+   State provides API to read and write the structure under State i.e. Account and Storage
+   State does *NOT* execute any logic from state to state.
 */
-/** @file State.cpp
- * @author Gav Wood <i@gavwood.com>
- * @date 2014
- */
 
 #include "State.h"
 
-//#include "TransactionQueue.h"
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/TrieHash.h>
@@ -64,7 +48,7 @@ OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash, Wit
     }
 
     path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / //fs::path(toString(c_databaseVersion));
-        fs::path(toString(9 + (23 << 9))); // copied from Common.c
+        fs::path(toString(9 + (23 << 9))); // copied from libethcore/Common.c
     if (db::isDiskDatabase())
     {
         fs::create_directories(path);

@@ -1,34 +1,20 @@
 /*
-    This file is part of cpp-ethereum.
-
-    cpp-ethereum is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    cpp-ethereum is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
+    This file is a refactored part of cpp-ethereum State.
+    State provides API to read and write the structure under State i.e. Account and Storage
+    State does *NOT* execute any logic from state to state.
 */
 
 #pragma once
 
 #include "Account.h"
-//#include "GasPricer.h"
 #include "SecureTrieDB.h"
 #include "transaction.hpp"
 #include "TransactionReceipt.h"
 #include <libdevcore/Common.h>
 #include <libdevcore/OverlayDB.h>
 #include <libdevcore/RLP.h>
-//#include <libethcore/BlockHeader.h>
 #include <libethcore/Exceptions.h>
 #include <libethereum/CodeSizeCache.h>
-//#include <libevm/ExtVMFace.h>
 #include <array>
 #include <unordered_map>
 
@@ -39,24 +25,6 @@ namespace test { class ImportTest; class StateLoader; }
 
 namespace eth
 {
-
-// Import-specific errinfos
-using errinfo_uncleIndex = boost::error_info<struct tag_uncleIndex, unsigned>;
-using errinfo_currentNumber = boost::error_info<struct tag_currentNumber, u256>;
-using errinfo_uncleNumber = boost::error_info<struct tag_uncleNumber, u256>;
-using errinfo_unclesExcluded = boost::error_info<struct tag_unclesExcluded, h256Hash>;
-using errinfo_block = boost::error_info<struct tag_block, bytes>;
-using errinfo_now = boost::error_info<struct tag_now, unsigned>;
-
-using errinfo_transactionIndex = boost::error_info<struct tag_transactionIndex, unsigned>;
-
-using errinfo_vmtrace = boost::error_info<struct tag_vmtrace, std::string>;
-using errinfo_receipts = boost::error_info<struct tag_receipts, std::vector<bytes>>;
-using errinfo_transaction = boost::error_info<struct tag_transaction, bytes>;
-using errinfo_phase = boost::error_info<struct tag_phase, unsigned>;
-using errinfo_required_LogBloom = boost::error_info<struct tag_required_LogBloom, LogBloom>;
-using errinfo_got_LogBloom = boost::error_info<struct tag_get_LogBloom, LogBloom>;
-using LogBloomRequirementError = boost::tuple<errinfo_required_LogBloom, errinfo_got_LogBloom>;
 
 enum class BaseState
 {
