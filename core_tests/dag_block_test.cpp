@@ -171,14 +171,19 @@ TEST(DagBlock, sign_verify) {
   blk1c.sign(g_secret);
   EXPECT_EQ(blk1.getSig(), blk1c.getSig());
   EXPECT_EQ(blk1.sender(), blk1.sender());
+  EXPECT_EQ(blk1.getHash(), blk1.getHash());
+
   EXPECT_TRUE(blk1.verifySig());
 
   DagBlock blk2(blk_hash_t(9999),  // pivot
                 {},                // tips,
                 {});               // trxs
   blk2.sign(g_secret);
+
   EXPECT_NE(blk1.getSig(), blk2.getSig());
+  EXPECT_NE(blk1.getHash(), blk2.getHash());
   EXPECT_EQ(blk2.sender(), blk1.sender());
+
   EXPECT_TRUE(blk2.verifySig());
 }
 

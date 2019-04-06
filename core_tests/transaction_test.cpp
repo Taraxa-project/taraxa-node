@@ -61,6 +61,7 @@ TEST(Transaction, signer_signature_verify) {
   trans1.sign(g_secret);
   trans2.sign(g_secret);
   EXPECT_NE(trans1.getSig(), trans2.getSig());
+  EXPECT_NE(trans1.getHash(), trans2.getHash());
   EXPECT_EQ(trans1.sender(), trans2.sender());
   EXPECT_TRUE(trans1.verifySig());
   EXPECT_TRUE(trans2.verifySig());

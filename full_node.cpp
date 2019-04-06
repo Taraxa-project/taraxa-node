@@ -147,6 +147,13 @@ void FullNode::storeBlock(DagBlock const &blk) {
   blk_qu_->pushUnverifiedBlock(std::move(blk));
 }
 
+void FullNode::storeBlockAndSign(DagBlock const &blk) {
+  DagBlock sign_block(blk);
+  sign_block.sign(node_sk_);
+  LOG(log_nf_) << "Signed block: " << sign_block << std::endl;
+  storeBlock(sign_block);
+}
+
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   auto known = blk_qu_->isBlockKnown(hash);
   if (!known) return getDagBlock(hash) != nullptr;
@@ -268,13 +275,14 @@ void FullNode::drawGraph(std::string const &dotfile) const {
   dag_mgr_->drawTotalGraph("total." + dotfile);
 }
 
-std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(bool onlyNew) {
+std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
+    bool onlyNew) {
   return trx_mgr_->getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-void FullNode::insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions){
-  for(auto const &trx : transactions)
-    trx_mgr_->insertTrx(trx.second);
+void FullNode::insertNewTransactions(
+    std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+  for (auto const &trx : transactions) trx_mgr_->insertTrx(trx.second);
 }
 
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }

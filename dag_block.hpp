@@ -28,6 +28,11 @@ using std::string;
 class DagManager;
 // Block definition
 
+/**
+ * Note:
+ * Need to sign first then sender() and hash() is available
+ */
+
 class DagBlock {
  public:
   DagBlock() = default;
@@ -53,13 +58,13 @@ class DagBlock {
   bool operator==(DagBlock const &other) const {
     return this->sha3(true) == other.sha3(true);
   }
- 
+
   blk_hash_t getPivot() const { return pivot_; }
   vec_tip_t getTips() const { return tips_; }
   vec_trx_t getTrxs() const { return trxs_; }
   sig_t getSig() const { return sig_; }
   blk_hash_t getHash() const { return hash_; }
-  addr_t getSender() const { return cached_sender_; }
+  addr_t getSender() const { return sender(); }
   std::string getJsonStr() const;
   bool isValid() const;
   bool serialize(stream &strm) const;
