@@ -84,6 +84,12 @@ class TransactionStatusTable {
   std::mutex mutex_;
   std::unordered_map<trx_hash_t, TransactionStatus> status_;
 };
+
+/**
+ * Note:
+ * Need to sign first then sender() and hash() is available
+ */
+
 class Transaction {
  public:
   enum class Type : uint8_t { Null, Create, Call };

@@ -82,7 +82,11 @@ string Transaction::getJsonStr() const {
   return ostrm.str();
 }
 void Transaction::sign(secret_t const &sk) {
-  sig_ = dev::sign(sk, sha3(false));
+  if (!sig_) {
+    sig_ = dev::sign(sk, sha3(false));
+  }
+  sender();
+  updateHash();
 }
 
 bool Transaction::verifySig() const {
@@ -229,13 +233,12 @@ void TransactionQueue::verifyTrx() {
 std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
-  if(new_verified_transactions || !onlyNew) {
-    if(onlyNew)
-      new_verified_transactions = false;
+  if (new_verified_transactions || !onlyNew) {
+    if (onlyNew) new_verified_transactions = false;
     uLock lock(mutex_for_verified_qu_);
     verified_trxs = verified_trxs_;
     LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
-                << std::endl;
+                 << std::endl;
   }
   return verified_trxs;
 }

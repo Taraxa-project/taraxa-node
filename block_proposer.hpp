@@ -31,13 +31,14 @@ class BlockProposer {
   ~BlockProposer() {
     if (!stopped_) stop();
   }
-  void setFullNode(std::shared_ptr<FullNode> full_node){full_node_=full_node;}
+  void setFullNode(std::shared_ptr<FullNode> full_node) {
+    full_node_ = full_node;
+  }
   void proposeBlock();
   void start();
   void stop();
 
   // debug
-  void setVerbose(bool verbose);
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;
   }

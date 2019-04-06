@@ -30,7 +30,7 @@ DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
 DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs) try
     : pivot_(pivot),
       tips_(tips),
-      trxs_(trxs){
+      trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -129,7 +129,13 @@ bool DagBlock::deserialize(stream &strm) {
   return ok;
 }
 
-void DagBlock::sign(secret_t const &sk) { sig_ = dev::sign(sk, sha3(false)); }
+void DagBlock::sign(secret_t const &sk) {
+  if (!sig_) {
+    sig_ = dev::sign(sk, sha3(false));
+  }
+  sender();
+  updateHash();
+}
 
 bool DagBlock::verifySig() const {
   if (!sig_) return false;

@@ -75,17 +75,16 @@ void BlockProposer::proposeBlock() {
     } else {
       LOG(log_wr_) << "Pivot and tips unavailable ..." << std::endl;
     }
-    auto next = std::stoull(pivot) + 1;
     vec_tip_t tmp;
     for (auto const& t : tips) {
-      tmp.push_back(blk_hash_t(t));
+      tmp.emplace_back(blk_hash_t(t));
     }
-    DagBlock blk(blk_hash_t(pivot), tmp, to_be_packed_trx, sig_t(),
-                 blk_hash_t(next), addr_t());
+    DagBlock blk(blk_hash_t(pivot), tmp, to_be_packed_trx);
 
     if (full_node_.lock()) {
-      full_node_.lock()->storeBlock(blk);
-      LOG(log_nf_) << "Propose block: " << blk << std::endl;
+      LOG(log_nf_) << "Propose block" << std::endl;
+
+      full_node_.lock()->storeBlockAndSign(blk);
     } else {
       LOG(log_er_) << "FullNode unavailable ..." << std::endl;
       return;
