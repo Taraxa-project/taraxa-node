@@ -6,7 +6,6 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcore/TrieCommon.h>
-//#include <libethcore/Common.h>
 #include <libdevcore/Address.h>
 #include <boost/filesystem/path.hpp>
 
