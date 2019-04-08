@@ -48,7 +48,10 @@ ENV CXX=g++
 ENV GRPC_VERSION="v1.19.1"
 RUN cd /tmp && git clone --verbose --progress --recursive --depth 1 --jobs 10 --branch ${GRPC_VERSION} https://github.com/grpc/grpc.git
 RUN cd /tmp/grpc/ && git submodule update --init
+ENV PROTOBUF_VERSION="v3.7.1" 
 RUN cd /tmp/grpc/third_party/protobuf \
+  && git checkout tags/${PROTOBUF_VERSION} \ 
+  && (git pull || true) \
   && ./autogen.sh \
   && ./configure --prefix=/usr \
   && make -j `nproc` \
