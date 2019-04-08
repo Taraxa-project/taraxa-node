@@ -37,7 +37,7 @@ class Vote;
 class VoteQueue;
 
 struct FullNodeConfig {
-  FullNodeConfig(std::string const &json_file);
+  FullNodeConfig(std::string const &json_file, int test = 0);
   std::string json_file_name;
   std::string node_secret;
   boost::asio::ip::address address;
@@ -51,7 +51,7 @@ struct FullNodeConfig {
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   FullNode(boost::asio::io_context &io_context,
-           std::string const &conf_full_node, std::string const &conf_network);
+           std::string const &conf_full_node, std::string const &conf_network, int test = 0);
   virtual ~FullNode() {
     if (!stopped_) {
       stop();

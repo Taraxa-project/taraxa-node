@@ -20,6 +20,11 @@ using namespace dev::p2p;
 
 namespace taraxa {
 
+/*
+Test creates one boot node and 10 nodes that uses that boot node
+to find each other. Test confirm that after a delay each node had found 
+all other nodes.
+*/
 TEST(p2p, p2p_discovery) {
   auto secret = dev::Secret(
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
@@ -54,7 +59,12 @@ TEST(p2p, p2p_discovery) {
   }
 }
 
-TEST(p2p, capability) {
+/*
+Test creates two host/network/capability and verifies that host connect
+to each other and that a test packet message can be sent from one host
+to the other using TaraxaCapability
+*/
+TEST(p2p, capability_send_test) {
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
@@ -107,7 +117,12 @@ TEST(p2p, capability) {
   EXPECT_EQ(checksum, testData.second);
 }
 
-TEST(p2p, block) {
+/*
+Test creates two host/network/capability and verifies that host connect
+to each other and that a block packet message can be sent from one host
+to the other using TaraxaCapability
+*/
+TEST(p2p, capability_send_block) {
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
@@ -162,6 +177,12 @@ TEST(p2p, block) {
   EXPECT_EQ(blk, blocks.begin()->second);
 }
 
+/*
+Test creates 50 host/network/capability which connect to each other 
+using node discovery. Block is created on one host and automatically
+propagated to all other hosts. Test verifies that each node has received
+the block
+*/
 TEST(p2p, block_propagate) {
   int const step = 10;
   int const nodeCount = 50;
