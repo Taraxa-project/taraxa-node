@@ -22,7 +22,7 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 
-FullNodeConfig::FullNodeConfig(std::string const &json_file)
+FullNodeConfig::FullNodeConfig(std::string const &json_file, int test)
     : json_file_name(json_file) {
   try {
     boost::property_tree::ptree doc = loadJsonFile(json_file);
@@ -32,6 +32,11 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     db_accounts_path = doc.get<std::string>("db_accounts_path");
     db_blocks_path = doc.get<std::string>("db_blocks_path");
     db_transactions_path = doc.get<std::string>("db_transactions_path");
+    if(test > 0) {
+      db_accounts_path += std::to_string(test);
+      db_blocks_path += std::to_string(test);
+      db_transactions_path += std::to_string(test);
+    } 
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
     block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
   } catch (std::exception &e) {
@@ -49,11 +54,11 @@ void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(boost::asio::io_context &io_context,
                    std::string const &conf_full_node,
-                   std::string const &conf_network) try
+                   std::string const &conf_network, int test) try
     : io_context_(io_context),
       conf_full_node_(conf_full_node),
       conf_network_(conf_network),
-      conf_(conf_full_node),
+      conf_(conf_full_node, test),
       db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
       db_blks_(std::make_shared<RocksDb>(conf_.db_blocks_path)),
       db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
