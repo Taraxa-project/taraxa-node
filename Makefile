@@ -62,7 +62,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/libethereum/account.o \
 	${OBJECTDIR}/libethcore/log_entry.o \
 	${OBJECTDIR}/libethereum/transaction_receipt.o \
-	${OBJECTDIR}/libethereum/state.o
+	${OBJECTDIR}/libethereum/state.o \
+	${OBJECTDIR}/sortition.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -77,7 +78,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/memorydb_test.o \
 	${OBJECTDIR}/overlaydb_test.o \
 	${OBJECTDIR}/statecachedb_test.o \
-	${OBJECTDIR}/trie_test.o
+	${OBJECTDIR}/trie_test.o \
+	${OBJECTDIR}/crypto_test.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -214,6 +216,11 @@ ${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_capability.o taraxa_capability.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/sortition.o: sortition.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/sortition.o sortition.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -284,6 +291,11 @@ ${OBJECTDIR}/trie_test.o: crypto_tests/trie_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trie_test.o crypto_tests/trie_test.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/crypto_test.o: core_tests/crypto_test.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/crypto_test.o core_tests/crypto_test.cpp $(CPPFLAGS)
 
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
@@ -364,15 +376,19 @@ $(TESTBUILDDIR)/trie_test: $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o  $(O
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o -o $(TESTBUILDDIR)/trie_test  $(LDFLAGS) $(LIBS)
 
+$(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS)
 
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test
 
 run_test: test
+	./$(TESTBUILDDIR)/crypto_test
 	./$(TESTBUILDDIR)/memorydb_test
 	./$(TESTBUILDDIR)/overlaydb_test
 	./$(TESTBUILDDIR)/statecachedb_test
