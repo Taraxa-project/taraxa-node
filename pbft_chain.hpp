@@ -29,19 +29,23 @@ struct TrxSchedule {
   enum class TrxStatus : uint8_t { invalid, sequential, parallel };
   // TrxSchedule()=default;
 
-  explicit TrxSchedule(vec_blk_t const & blks, std::vector<std::vector<uint>> const & modes): blk_order(blks), vec_trx_modes(modes){
-  }
+  explicit TrxSchedule(vec_blk_t const& blks,
+                       std::vector<std::vector<uint>> const& modes)
+      : blk_order(blks), vec_trx_modes(modes) {}
   // Construct from RLP
-  explicit TrxSchedule(bytes const & rlpData);
+  explicit TrxSchedule(bytes const& rlpData);
   bytes rlp() const;
   // order of blocks (in hash)
   vec_blk_t blk_order;
   // It is multiple array of transactions
+  // TODO: optimize trx_mode type
   std::vector<std::vector<uint>> vec_trx_modes;
-  bool operator==(TrxSchedule const & other) const {return rlp() == other.rlp();}
+  std::string getJsonStr() const;
+  bool operator==(TrxSchedule const& other) const {
+    return rlp() == other.rlp();
+  }
 };
-std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche); 
-
+std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche);
 
 class PivotBlock {
  public:
@@ -56,12 +60,22 @@ class PivotBlock {
 
 class ScheduleBlock {
  public:
+  ScheduleBlock(blk_hash_t const& prev_pivot, uint64_t const& timestamp,
+                sig_t const& sig, TrxSchedule const& sche)
+      : prev_pivot_(prev_pivot),
+        timestamp_(timestamp),
+        sig_(sig),
+        schedule_(sche) {}
+  std::string getJsonStr() const;
+  friend std::ostream;
+
  private:
-  uint64_t prev_pivot_blk_;
+  blk_hash_t prev_pivot_;
   uint64_t timestamp_;
   sig_t sig_;
   TrxSchedule schedule_;
 };
+std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
 
 class ResultBlock {
  public:

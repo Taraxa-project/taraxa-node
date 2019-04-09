@@ -16,6 +16,7 @@
 #include <thread>
 #include <vector>
 #include "libdevcore/Log.h"
+#include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -92,7 +93,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                                  time_stamp_t stamp);
   std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from,
                                              blk_hash_t const &to);
-
+  // pbft stuff
+  bool executeScheduleBlock(ScheduleBlock const & sche_blk);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
