@@ -21,7 +21,6 @@ namespace taraxa {
 using std::string;
 using uint256_t = boost::multiprecision::uint256_t;
 using uint512_t = boost::multiprecision::uint512_t;
-using uint1024_t = boost::multiprecision::uint1024_t;
 
 string hashSignature(dev::Signature signature) {
   return dev::sha3(signature).hex();
@@ -104,51 +103,12 @@ string bigNumberMultiplication(string num1, string num2) {
     }
   }
 
-  std::deque<int> sum(num1.length() + num2.length() - 1, 0);
-
-  for (int i = 0; i < num1.length(); ++i) {
-    for (int j = 0; j < num2.length(); ++j) {
-      sum[i + j] += (num1[i] - '0') * (num2[j] - '0');
-    }
-  }
-
-  int carry = 0;
-  // carry in reverse order
-  for (int i = sum.size() - 1; i >= 0; --i) {
-    int tmp = sum[i] + carry;
-    sum[i] = tmp % 10;
-    carry = tmp / 10;
-  }
-  // add carry in the head of sum if has carry
-  while (carry != 0) {
-    int tmp = carry % 10;
-    sum.push_front(tmp);
-    carry /= 10;
-  }
-
-  for (int n: sum) {
-    result << n;
-  }
-  return result.str();
-
-/*
-  // boost doesn't work, looks like get overflow for largest number(64 f * 64 f), need debug later
-  uint256_t n1;
-  uint256_t n2;
-  std::stringstream ss;
-  ss << std::dec << num1;
-  ss >> n1;
-  std::cout << n1 << std::endl;
-  ss.clear();
-  ss << std::dec << num2;
-  ss >> n2;
-  std::cout << n2 << std::endl;
-  uint1024_t product;
-  product = n1 * n2;
-  std::cout << product << std::endl;
+  uint512_t n1(num1);
+  uint512_t n2(num2);
+  uint512_t product = n1 * n2;
   result << std::dec << product;
+
   return result.str();
-*/
 }
 
 } // namespace taraxa
