@@ -21,7 +21,7 @@ namespace taraxa {
 using std::string;
 using uint128_t = boost::multiprecision::uint128_t;
 
-string hash_signature(dev::Signature signature) {
+string hashSignature(dev::Signature signature) {
   return dev::sha3(signature).hex();
 }
 
@@ -37,7 +37,7 @@ bool sortition(string signature_hash, uint64_t account_balance) {
               << " given" << std::endl;
     return false;
   }
-  string signature_hash_decimal = taraxa::hex_to_decimal(signature_hash);
+  string signature_hash_decimal = taraxa::hexToDecimal(signature_hash);
   if (signature_hash_decimal.empty()) {
     return false;
   }
@@ -45,9 +45,9 @@ bool sortition(string signature_hash, uint64_t account_balance) {
   string sum_left;
   string sum_right;
 
-  sum_left = taraxa::big_number_multiplication(signature_hash_decimal, TARAXA_COINS);
+  sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal, TARAXA_COINS);
   uint64_t sum = account_balance * THRESHOLD;
-  sum_right = taraxa::big_number_multiplication(SIGNATURE_HASH_MAX, std::to_string(sum));
+  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, std::to_string(sum));
 
   if (sum_left.length() < sum_right.length()) {
     return true;
@@ -58,7 +58,7 @@ bool sortition(string signature_hash, uint64_t account_balance) {
   }
 }
 
-string hex_to_decimal(string hex) {
+string hexToDecimal(string hex) {
   for (int i = 0; i < hex.length(); i++) {
     if (!std::isxdigit(hex[i])) {
       std::cerr << "invalid hex character: " << hex[i] << std::endl;
@@ -75,7 +75,7 @@ string hex_to_decimal(string hex) {
   return decimal.str();
 }
 
-string big_number_multiplication(string num1, string num2) {
+string bigNumberMultiplication(string num1, string num2) {
   std::stringstream result;
   std::deque<int> sum(num1.length() + num2.length() - 1, 0);
 

@@ -26,13 +26,13 @@
 namespace taraxa {
 using std::string;
 
-string hash_signature(dev::Signature signature);
+string hashSignature(dev::Signature signature);
 
 bool sortition(string signature, uint64_t account_balance);
 
-string hex_to_decimal(string hex);
+string hexToDecimal(string hex);
 
-string big_number_multiplication(string num1, string num2);
+string bigNumberMultiplication(string num1, string num2);
 
 } // namespace taraxa
 

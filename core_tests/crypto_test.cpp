@@ -34,7 +34,7 @@ TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
   bool verify = dev::verify(key_pair.pub(), signature, dev::sha3(message));
   EXPECT_EQ(verify, true);
 
-  string sign_hash = taraxa::hash_signature(signature);
+  string sign_hash = taraxa::hashSignature(signature);
   std::cout << "sign hash: " << sign_hash << std::endl;
   EXPECT_EQ(sign_hash.length(), 64);
 }
@@ -42,7 +42,7 @@ TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
 TEST(EthereumCrypto, hex_to_decimal_test) {
   string hex = "ffffffffffffffffffffffffffffffff";
   string hex_decimal = "340282366920938463463374607431768211455";
-  string decimal = taraxa::hex_to_decimal(hex);
+  string decimal = taraxa::hexToDecimal(hex);
   EXPECT_EQ(decimal, hex_decimal);
 }
 
@@ -50,7 +50,7 @@ TEST(EthereumCrypto, big_number_multiplication_test) {
   string num1 = "12345";
   string num2 = "67890";
   string output = "838102050";
-  string sum = taraxa::big_number_multiplication(num1, num2);
+  string sum = taraxa::bigNumberMultiplication(num1, num2);
   EXPECT_EQ(sum, output);
 }
 
