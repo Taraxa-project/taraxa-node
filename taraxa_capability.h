@@ -98,7 +98,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                                  RLP const &_r) override;
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
-  void onNewBlock(DagBlock block);
+  void onNewBlock(DagBlock block, bool created = false);
   void onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions, bool fromNetwork);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);

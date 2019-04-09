@@ -25,7 +25,7 @@ auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
-const unsigned NUM_TRX2 = 50;
+const unsigned NUM_TRX2 = 200;
 auto g_secret2 = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
@@ -127,8 +127,8 @@ TEST(Network, transfer_transaction) {
 
 /*
 Test verifies saving network to a file and restoring it rom a file
-is successfull. Once restored from the file it is able to reestablish connections
-even with boot nodes down
+is successfull. Once restored from the file it is able to reestablish
+connections even with boot nodes down
 */
 TEST(Network, save_network) {
   {
@@ -374,20 +374,21 @@ TEST(Network, node_transaction_sync) {
   node2->stop();
 
   // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNewVerifiedTrxSnapShot(false).size(), g_signed_trx_samples.size());
-  EXPECT_EQ(node2->getNewVerifiedTrxSnapShot(false).size(), g_signed_trx_samples.size());
+  EXPECT_EQ(node1->getNewVerifiedTrxSnapShot(false).size(),
+            g_signed_trx_samples.size());
+  EXPECT_EQ(node2->getNewVerifiedTrxSnapShot(false).size(),
+            g_signed_trx_samples.size());
 }
-
 
 /*
 Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
 TEST(Network, node_full_sync) {
-  const int numberOfNodes = 1;
+  const int numberOfNodes = 5;
   boost::asio::io_context context1;
   std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
-  
+
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf_full_node1.json"),
       std::string("./core_tests/conf_network1.json")));
@@ -396,36 +397,49 @@ TEST(Network, node_full_sync) {
   node1->start();
 
   std::vector<std::shared_ptr<FullNode> > nodes;
-  for(int i = 0; i < numberOfNodes; i++) {
+  for (int i = 0; i < numberOfNodes; i++) {
     contexts.push_back(std::make_shared<boost::asio::io_context>());
     nodes.push_back(std::make_shared<taraxa::FullNode>(
-      *contexts[i], std::string("./core_tests/conf_full_node2.json"),
-      std::string("./core_tests/conf_network0.json"), i + 1));
+        *contexts[i], std::string("./core_tests/conf_full_node2.json"),
+        std::string("./core_tests/conf_network0.json"), i + 1));
     nodes[i]->start();
   }
+  taraxa::thisThreadSleepForMilliSeconds(10000);
 
-  std::unordered_map<trx_hash_t, Transaction> transactions;
+  std::random_device dev;
+  std::mt19937 rng(dev());
+  std::uniform_int_distribution<std::mt19937::result_type> dist2000(
+      1, 2000);  // distribution in range [1, 2000]
+  std::uniform_int_distribution<std::mt19937::result_type> distNodes(
+      0, numberOfNodes - 1);  // distribution in range [1, 2000]
+
   for (auto const& t : g_signed_trx_samples2) {
+    std::unordered_map<trx_hash_t, Transaction> transactions;
     transactions[t.getHash()] = t;
+    nodes[distNodes(rng)]->insertNewTransactions(transactions);
+    thisThreadSleepForMicroSeconds(dist2000(rng));
   }
-
-  node1->insertNewTransactions(transactions);
 
   std::cout << "Waiting Sync for 30000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(30000);
 
   node1->stop();
-  for(int i = 0; i < numberOfNodes; i++)
-    nodes[i]->stop();
+  for (int i = 0; i < numberOfNodes; i++) nodes[i]->stop();
 
   node1->drawGraph("node1.txt");
-  for(int i = 0; i < numberOfNodes; i++)
-    node1->drawGraph("node2.txt");
-  
-  // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNewVerifiedTrxSnapShot(false).size(), g_signed_trx_samples.size());
-  for(int i = 0; i < numberOfNodes; i++)
-    EXPECT_EQ(nodes[i]->getNewVerifiedTrxSnapShot(false).size(), g_signed_trx_samples.size());
+  for (int i = 0; i < numberOfNodes; i++) nodes[i]->drawGraph(std::string("node") + std::to_string(i + 2) + ".txt");
+
+  EXPECT_GT(node1->getNumVerticesInDag().first, 0);
+  EXPECT_GT(10, node1->getNewVerifiedTrxSnapShot(false).size());
+  for (int i = 0; i < numberOfNodes; i++) {
+    EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
+    EXPECT_EQ(nodes[i]->getNewVerifiedTrxSnapShot(false).size(),
+              node1->getNewVerifiedTrxSnapShot(false).size());
+    EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
+              node1->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
+              node1->getNumEdgesInDag().first);
+  }
 }
 
 }  // namespace taraxa

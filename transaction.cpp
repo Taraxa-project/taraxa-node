@@ -233,14 +233,9 @@ void TransactionQueue::verifyTrx() {
 std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
-<<<<<<< HEAD
-  if (new_verified_transactions || !onlyNew) {
-    if (onlyNew) new_verified_transactions = false;
-=======
   if(new_verified_transactions || !onlyNew) {
     if(onlyNew)
       new_verified_transactions = false;
->>>>>>> Transaction sync
     uLock lock(mutex_for_verified_qu_);
     verified_trxs = verified_trxs_;
     LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
@@ -257,6 +252,11 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   LOG(log_nf_) << "Move: " << verified_trxs.size() << " verified trx out. "
                << std::endl;
   return std::move(verified_trxs);
+}
+
+unsigned long TransactionQueue::getVerifiedTrxCount() {
+  uLock lock(mutex_for_verified_qu_);
+  return verified_trxs_.size();
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -320,7 +320,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
   uLock pack_lock(mutex_for_pack_trx_);
   while (!stopped_ && trx_qu_.getVerifiedTrxCount() < rate_limiter_) {
-    cond_for_pack_trx_.wait_for(pack_lock, std::chrono::microseconds(50));
+    cond_for_pack_trx_.wait_for(pack_lock, std::chrono::milliseconds(1000));
   }
   if (stopped_) return;
   // reset counter

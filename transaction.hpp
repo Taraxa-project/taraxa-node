@@ -253,12 +253,8 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
-      bool onlyNew);
-  size_t getVerifiedTrxCount() {
-    uLock lock(mutex_for_verified_qu_);
-    return verified_trxs_.size();
-  }
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
+  unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
  private:
