@@ -40,17 +40,17 @@ TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
 }
 
 TEST(EthereumCrypto, hex_to_decimal_test) {
-  string hex = "ffffffffffffffffffffffffffffffff";
-  string hex_decimal = "340282366920938463463374607431768211455";
+  string hex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+  string hex_decimal = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
   string decimal = taraxa::hexToDecimal(hex);
   EXPECT_EQ(decimal, hex_decimal);
 }
 
 TEST(EthereumCrypto, big_number_multiplication_test) {
-  string num1 = "12345";
-  string num2 = "67890";
-  string output = "838102050";
-  string sum = taraxa::bigNumberMultiplication(num1, num2);
+  // input num is the decimal of the max hash number 64 F
+  string num = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+  string output = "13407807929942597099574024998205846127479365820592393377723561443721764030073315392623399665776056285720014482370779510884422601683867654778417822746804225";
+  string sum = taraxa::bigNumberMultiplication(num, num);
   EXPECT_EQ(sum, output);
 }
 

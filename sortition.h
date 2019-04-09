@@ -13,10 +13,10 @@
 
 #include <string>
 
-// max signature hash 32 hex "ffffffffffffffffffffffffffffffff"
-// change to decimal should be "340282366920938463463374607431768211455"
-#define SIGNATURE_HASH_MAX  "340282366920938463463374607431768211455"
-#define SIGNATURE_HASH_SIZE_MAX 39
+// max signature hash 64 hex "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+// change to decimal should be "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+#define SIGNATURE_HASH_MAX  "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+#define SIGNATURE_HASH_SIZE_MAX 78
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS "9007199254740991"
