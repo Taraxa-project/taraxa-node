@@ -17,6 +17,7 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include "libdevcore/Log.h"
 
 namespace taraxa {
 class RocksDb {
@@ -24,6 +25,7 @@ class RocksDb {
   RocksDb(std::string path);
   ~RocksDb();
   bool put(const std::string &key, const std::string &value);
+  bool update(const std::string &key, const std::string &value);
   std::string get(const std::string &key);
   bool erase(const std::string &key);
   void setVerbose(bool verbose);
@@ -34,6 +36,14 @@ class RocksDb {
   rocksdb::DB *db_;
   rocksdb::Options opt_;
   std::mutex mutex_;
+  mutable dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "ROCKDB")};
+  mutable dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "ROCKDB")};
+  mutable dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "ROCKDB")};
+  mutable dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "ROCKDB")};
 };
 }  // namespace taraxa
 

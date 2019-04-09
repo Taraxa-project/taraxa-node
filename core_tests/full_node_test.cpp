@@ -18,6 +18,28 @@
 
 namespace taraxa {
 
+TEST(FullNode, account_bal) {
+  boost::asio::io_context context;
+
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+  addr_t addr1(100);
+  bal_t bal1(1000);
+  node->setBalance(addr1, bal1);
+  auto res = node->getBalance(addr1);
+  EXPECT_TRUE(res.second);
+  EXPECT_EQ(res.first, bal1);
+  addr_t addr2(200);
+  res = node->getBalance(addr2);
+  EXPECT_FALSE(res.second);
+  bal_t bal2(2000);
+  node->setBalance(addr1, bal2);
+  res = node->getBalance(addr1);
+  EXPECT_TRUE(res.second);
+  EXPECT_EQ(res.first, bal2);
+}
+
 TEST(FullNode, send_and_receive_out_order_messages) {
   boost::asio::io_context context1;
   boost::asio::io_context context2;

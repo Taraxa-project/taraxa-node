@@ -288,4 +288,26 @@ void FullNode::insertNewTransactions(
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
+std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
+  std::string bal = db_accs_->get(acc.toString());
+  bool ret = false;
+  if (bal.empty()) {
+    LOG(log_wr_) << "Account " << acc << " not exist ..." << std::endl;
+    bal = "0";
+  } else {
+    LOG(log_nf_) << "Account " << acc << "balance: " << bal << std::endl;
+    ret = true;
+  }
+  return {std::stoull(bal), ret};
+}
+
+bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
+  bool ret = true;
+  if (!db_accs_->update(acc.toString(), std::to_string(new_bal))) {
+    LOG(log_wr_) << "Account " << acc.toString() << " update fail ..."
+                 << std::endl;
+  }
+  return ret;
+}
+
 }  // namespace taraxa
