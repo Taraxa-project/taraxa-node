@@ -19,7 +19,9 @@
 
 namespace taraxa {
 using std::string;
-using uint128_t = boost::multiprecision::uint128_t;
+using uint256_t = boost::multiprecision::uint256_t;
+using uint512_t = boost::multiprecision::uint512_t;
+using uint1024_t = boost::multiprecision::uint1024_t;
 
 string hashSignature(dev::Signature signature) {
   return dev::sha3(signature).hex();
@@ -46,8 +48,14 @@ bool sortition(string signature_hash, uint64_t account_balance) {
   string sum_right;
 
   sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal, TARAXA_COINS);
+  if (sum_left.empty()) {
+    return false;
+  }
   uint64_t sum = account_balance * THRESHOLD;
   sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, std::to_string(sum));
+  if (sum_right.empty()) {
+    return false;
+  }
 
   if (sum_left.length() < sum_right.length()) {
     return true;
@@ -66,7 +74,7 @@ string hexToDecimal(string hex) {
     }
   }
 
-  uint128_t n;
+  uint256_t n;
   std::stringstream ss;
   ss << std::hex << hex;
   ss >> n;
@@ -77,6 +85,25 @@ string hexToDecimal(string hex) {
 
 string bigNumberMultiplication(string num1, string num2) {
   std::stringstream result;
+  if (num1.length() > SIGNATURE_HASH_SIZE_MAX || num2.length() > SIGNATURE_HASH_SIZE_MAX) {
+    std::cerr << "The length of the input decimal strings cannot larger than 78, "
+              << "the length of num1: " << num1.length()
+              << ", and the length of num2: " << num2.length() << std::endl;
+    return result.str();
+  }
+  for (char n: num1) {
+    if (!isdigit(n)) {
+      std::cerr << "invalid decimal digit: " << n << std::endl;
+      return result.str();
+    }
+  }
+  for (char n: num2) {
+    if (!isdigit(n)) {
+      std::cerr << "invalid decimal digit: " << n << std::endl;
+      return result.str();
+    }
+  }
+
   std::deque<int> sum(num1.length() + num2.length() - 1, 0);
 
   for (int i = 0; i < num1.length(); ++i) {
@@ -103,6 +130,24 @@ string bigNumberMultiplication(string num1, string num2) {
     result << n;
   }
   return result.str();
+
+/*
+  uint256_t n1;
+  uint256_t n2;
+  std::stringstream ss;
+  ss << std::dec << num1;
+  ss >> n1;
+  std::cout << n1 << std::endl;
+  ss.clear();
+  ss << std::dec << num2;
+  ss >> n2;
+  std::cout << n2 << std::endl;
+  uint1024_t product;
+  product = n1 * n2;
+  std::cout << product << std::endl;
+  result << std::dec << product;
+  return result.str();
+*/
 }
 
 } // namespace taraxa
