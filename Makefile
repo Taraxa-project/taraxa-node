@@ -1,6 +1,6 @@
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/secp256k1/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -DBOOST_LOG_DYN_LINK 
+CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/secp256k1/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -79,7 +79,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/overlaydb_test.o \
 	${OBJECTDIR}/statecachedb_test.o \
 	${OBJECTDIR}/trie_test.o \
-	${OBJECTDIR}/crypto_test.o
+	${OBJECTDIR}/crypto_test.o \
+	${OBJECTDIR}/state_unit_tests.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -297,6 +298,11 @@ ${OBJECTDIR}/crypto_test.o: core_tests/crypto_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/crypto_test.o core_tests/crypto_test.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/state_unit_tests.o: core_tests/state_unit_tests.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_unit_tests.o core_tests/state_unit_tests.cpp $(CPPFLAGS)
+
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
@@ -380,12 +386,17 @@ $(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(OBJECTFILES) $(P2POBJE
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS)
 
+$(TESTBUILDDIR)/state_unit_tests: $(OBJECTDIR)/state_unit_tests.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/state_unit_tests.o -o $(TESTBUILDDIR)/state_unit_tests  $(LDFLAGS) $(LIBS)
+
+
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/state_unit_tests
 
 run_test: test
 	./$(TESTBUILDDIR)/crypto_test
@@ -401,6 +412,7 @@ run_test: test
 	./$(TESTBUILDDIR)/p2p_test
 	./$(TESTBUILDDIR)/network_test
 	./$(TESTBUILDDIR)/trie_test
+	./$(TESTBUILDDIR)/state_unit_tests
 
 ct:
 	rm -rf $(TESTBUILDDIR)
