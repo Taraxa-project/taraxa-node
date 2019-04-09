@@ -36,9 +36,9 @@ class DagManager;
 class DagBlock {
  public:
   DagBlock() = default;
-  DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t signature,
+  DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs, sig_t signature,
            blk_hash_t hash, addr_t sender);
-  DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs);
+  DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
   DagBlock(const string &json);
   friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
@@ -60,7 +60,7 @@ class DagBlock {
   }
 
   blk_hash_t getPivot() const { return pivot_; }
-  vec_tip_t getTips() const { return tips_; }
+  vec_blk_t getTips() const { return tips_; }
   vec_trx_t getTrxs() const { return trxs_; }
   sig_t getSig() const { return sig_; }
   blk_hash_t getHash() const { return hash_; }
@@ -83,7 +83,7 @@ class DagBlock {
   bytes rlp(bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
   blk_hash_t pivot_;
-  vec_tip_t tips_;
+  vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
   blk_hash_t hash_;

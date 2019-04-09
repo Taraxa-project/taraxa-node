@@ -75,7 +75,7 @@ void BlockProposer::proposeBlock() {
     } else {
       LOG(log_wr_) << "Pivot and tips unavailable ..." << std::endl;
     }
-    vec_tip_t tmp;
+    vec_blk_t tmp;
     for (auto const& t : tips) {
       tmp.emplace_back(blk_hash_t(t));
     }

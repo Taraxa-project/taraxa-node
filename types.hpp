@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-12-14 15:47:31
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-13 16:04:24
+ * @Last Modified time: 2019-04-08 17:06:06
  */
 
 #ifndef TYPES_HPP
@@ -92,7 +92,7 @@ using key_t = std::string;
 using bal_t = uint64_t;
 using val_t = uint256_hash_t;
 
-using vec_tip_t = std::vector<blk_hash_t>;
+using vec_blk_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
