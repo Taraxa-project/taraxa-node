@@ -132,6 +132,7 @@ string bigNumberMultiplication(string num1, string num2) {
   return result.str();
 
 /*
+  // boost doesn't work, looks like get overflow for largest number(64 f * 64 f), need debug later
   uint256_t n1;
   uint256_t n2;
   std::stringstream ss;
