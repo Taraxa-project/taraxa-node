@@ -177,7 +177,7 @@ void RpcHandler::processRequest() {
     if (action == "insert_dag_block") {
       try {
         blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
-        vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+        vec_blk_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
         sig_t signature = sig_t(
             "777777777777777777777777777777777777777777777777777777777777777777"
             "777777777777777777777777777777777777777777777777777777777777777");
@@ -193,7 +193,7 @@ void RpcHandler::processRequest() {
     } else if (action == "insert_stamped_dag_block") {
       try {
         blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
-        vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+        vec_blk_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
         sig_t signature = sig_t(
             "777777777777777777777777777777777777777777777777777777777777777777"
             "777777777777777777777777777777777777777777777777777777777777777");
