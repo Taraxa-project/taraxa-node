@@ -328,21 +328,23 @@ void TaraxaCapability::onNewTransactions(
   }
 }
 
-void TaraxaCapability::onNewBlock(DagBlock block) {
-  if (auto full_node = full_node_.lock()) {
-    if (full_node->isBlockKnown(block.getHash())) {
-      LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                         << "that is already known";
-      return;
+void TaraxaCapability::onNewBlock(DagBlock block, bool created) {
+  if(!created) {
+    if (auto full_node = full_node_.lock()) {
+      if (full_node->isBlockKnown(block.getHash())) {
+        LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
+                          << "that is already known";
+        return;
+      } else {
+        full_node->storeBlock(block);
+      }
+    } else if (m_TestBlocks.find(block.getHash()) == m_TestBlocks.end()) {
+      m_TestBlocks[block.getHash()] = block;
     } else {
-      full_node->storeBlock(block);
+      LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
+                        << "that is already known";
+      return;
     }
-  } else if (m_TestBlocks.find(block.getHash()) == m_TestBlocks.end()) {
-    m_TestBlocks[block.getHash()] = block;
-  } else {
-    LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                       << "that is already known";
-    return;
   }
   LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString();
 

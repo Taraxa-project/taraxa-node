@@ -117,8 +117,8 @@ void Network::sendTransactions(NodeID const &id,
   LOG(logger_debug_) << "Sent transactions:" << transactions.size();
 }
 
-void Network::onNewBlock(DagBlock const &blk) {
-  taraxa_capability_->onNewBlock(blk);
+void Network::onNewBlock(DagBlock const &blk, bool created) {
+  taraxa_capability_->onNewBlock(blk, created);
   LOG(logger_debug_) << "On new block:" << blk.getHash().toString();
 }
 

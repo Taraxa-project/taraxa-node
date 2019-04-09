@@ -163,6 +163,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   sign_block.sign(node_sk_);
   LOG(log_nf_) << "Signed block: " << sign_block << std::endl;
   storeBlock(sign_block);
+  network_->onNewBlock(sign_block, true);
 }
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
