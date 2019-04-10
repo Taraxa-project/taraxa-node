@@ -13,7 +13,7 @@ class FullNode;
 
 class PbftManager {
  public:
-  PbftManager(std::shared_ptr<FullNode> node);
+  PbftManager(std::weak_ptr<FullNode> node);
   bool shouldSpeak(blk_hash_t blockhash, char type, int period, int step);
 
  private:

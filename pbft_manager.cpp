@@ -11,7 +11,7 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager(std::shared_ptr<FullNode> node) : node_(node) {}
+PbftManager::PbftManager(std::weak_ptr<FullNode> node) : node_(node) {}
 
 bool PbftManager::shouldSpeak(blk_hash_t blockhash,
                               char type,
