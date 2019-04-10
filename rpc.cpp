@@ -363,7 +363,6 @@ void RpcHandler::processRequest() {
         } else {
           res = "False";
         }
-        std::cout << "sortition: " << res << std::endl;
       } catch (std::exception &e) {
         res = e.what();
       }
