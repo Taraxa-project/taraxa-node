@@ -41,7 +41,7 @@ class Executor {
   void stop();
   void clear();
   bool execute(TrxSchedule const& schedule);
-  bool executeBlkTrxs(vec_trx_t const& trxs);
+  bool executeBlkTrxs(blk_hash_t const& blk);
   void executeSingleTrx();
   bool coinTransfer(Transaction const& trx);
 
@@ -66,8 +66,11 @@ class Executor {
 
   std::atomic<unsigned> num_parallel_executed_trx = 0;
   std::atomic<unsigned> num_conflicted_trx = 0;
-  dev::Logger logger_{dev::createLogger(dev::Verbosity::VerbosityInfo, "exe")};
-  dev::Logger logger_dbg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "exe")};
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "EXETOR")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
 };
 }  // namespace taraxa
