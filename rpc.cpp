@@ -2,10 +2,10 @@
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "pbft_chain.hpp"
+#include "pbft_manager.h"
 #include "transaction.hpp"
 #include "util.hpp"
 #include "wallet.hpp"
-#include "sortition.h"
 
 namespace taraxa {
 
@@ -349,20 +349,13 @@ void RpcHandler::processRequest() {
     // PBFT
     else if (action == "should_speak") {
       try {
-        std::string blockhash = in_doc_.get<std::string>("blockhash");
-        std::string type = in_doc_.get<std::string>("type");
+        blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
+        char type = in_doc_.get<char>("type");
         int period = in_doc_.get<int>("period");
         int step = in_doc_.get<int>("step");
 
-        std::string message = blockhash + type + std::to_string(period) + std::to_string(step);
-        dev::Signature signature = node_->signMessage(message);
-        string signature_hash = taraxa::hashSignature(signature);
-        int account_balance = 1000;
-        if (taraxa::sortition(signature_hash, account_balance)) {
-          res = "True";
-        } else {
-          res = "False";
-        }
+        PbftManager pbft_manager(node_);
+        pbft_manager.shouldSpeak(blockhash, type, period, step);
       } catch (std::exception &e) {
         res = e.what();
       }
