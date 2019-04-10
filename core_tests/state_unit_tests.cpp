@@ -82,7 +82,7 @@ namespace taraxa {
         std::map<h256, Address> hashToAddress;
     };
 
-    
+/*
 #if ETH_FATDB // address is only iterable when ETH_FATDB is enabled
     TEST_F(StateTest, addressesReturnsAllAddresses)
     {
@@ -154,7 +154,7 @@ namespace taraxa {
             EXPECT_TRUE(addresses.find(hashAndAddr.first) != addresses.end());
     }
 #endif
-
+*/
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
