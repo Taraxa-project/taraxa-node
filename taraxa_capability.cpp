@@ -107,8 +107,9 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         blockBytes.push_back(_r[0][i].toInt());
       }
       blk_hash_t hash;
-      LOG(logger_debug_) << "Received NewBlockHashPacket" << hash.toString();
       memcpy(&hash, blockBytes.data(), blockBytes.size());
+      LOG(logger_debug_) << "Received NewBlockHashPacket" << hash.toString();
+      m_peers[_nodeID].markBlockAsKnown(hash);
       if (auto full_node = full_node_.lock()) {
         if (!full_node->isBlockKnown(hash) &&
             m_blockRequestedSet.count(hash) == 0) {
@@ -130,11 +131,14 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       blk_hash_t hash;
       LOG(logger_debug_) << "Received GetBlockPacket" << hash.toString();
       memcpy(&hash, blockBytes.data(), blockBytes.size());
+      m_peers[_nodeID].markBlockAsKnown(hash);
       if (auto full_node = full_node_.lock()) {
         auto block = full_node->getBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, false);
         }
+        else
+          LOG(logger_) << "NO PACKET: " << hash.toString();
       }
       break;
     }
@@ -145,6 +149,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       }
       blk_hash_t hash;
       memcpy(&hash, blockBytes.data(), blockBytes.size());
+      m_peers[_nodeID].markBlockAsKnown(hash);
       LOG(logger_debug_) << "Received GetNewBlockPacket" << hash.toString();
 
       if (auto full_node = full_node_.lock()) {
@@ -152,6 +157,8 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         if (block) {
           sendBlock(_nodeID, *block, false);
         }
+        else
+          LOG(logger_) << "NO NEW PACKET: " << hash.toString();
       } else if (m_TestBlocks.find(hash) != m_TestBlocks.end()) {
         sendBlock(_nodeID, m_TestBlocks[hash], true);
       }
@@ -314,17 +321,18 @@ void TaraxaCapability::onNewTransactions(
       }
     }
   }
-
-  for (auto &peer : m_peers) {
-    std::vector<Transaction> transactionsToSend;
-    for (auto const &transaction : transactions) {
-      if (!peer.second.isTransactionKnown(transaction.first)) {
-        peer.second.markTransactionAsKnown(transaction.first);
-        transactionsToSend.push_back(transaction.second);
+  else {
+    for (auto &peer : m_peers) {
+      std::vector<Transaction> transactionsToSend;
+      for (auto const &transaction : transactions) {
+        if (!peer.second.isTransactionKnown(transaction.first)) {
+          peer.second.markTransactionAsKnown(transaction.first);
+          transactionsToSend.push_back(transaction.second);
+        }
       }
+      if (transactionsToSend.size() > 0)
+        sendTransactions(peer.first, transactionsToSend);
     }
-    if (transactionsToSend.size() > 0)
-      sendTransactions(peer.first, transactionsToSend);
   }
 }
 
@@ -430,7 +438,7 @@ void TaraxaCapability::sendTransactions(NodeID const &_id,
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
                                  bool newBlock) {
-  LOG(logger_debug_) << "sendBlock" << block.getHash().toString();
+  LOG(logger_debug_) << "sendBlock " << block.getHash().toString();
   RLPStream s;
   std::vector<uint8_t> bytes;
   // Need to put a scope of vectorstream, other bytes won't get result.

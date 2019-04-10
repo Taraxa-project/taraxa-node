@@ -264,6 +264,12 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
+void TransactionManager::checkTransactionsinQueue() {
+  auto transactions = trx_qu_.moveVerifiedTrxSnapShot();
+  for(auto trx : transactions)
+    trx_qu_.insert(trx.second);
+}
+
 bool TransactionManager::insertTrx(Transaction trx) {
   bool ret = false;
   if (trx_qu_.insert(trx)) {
