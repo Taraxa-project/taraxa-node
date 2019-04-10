@@ -355,7 +355,11 @@ void RpcHandler::processRequest() {
         int step = in_doc_.get<int>("step");
 
         PbftManager pbft_manager(node_);
-        pbft_manager.shouldSpeak(blockhash, type, period, step);
+        if (pbft_manager.shouldSpeak(blockhash, type, period, step)) {
+          res = "True";
+        } else {
+          res = "False";
+        }
       } catch (std::exception &e) {
         res = e.what();
       }
