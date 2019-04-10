@@ -23,8 +23,12 @@ bool PbftManager::shouldSpeak(blk_hash_t blockhash,
                         std::to_string(step);
   dev::Signature signature = node_->signMessage(message);
   string signature_hash = taraxa::hashSignature(signature);
-  int account_balance = 1000;
-  if (taraxa::sortition(signature_hash, account_balance)) {
+  std::pair<bal_t, bool> account_balance =
+      node_->getBalance(node_->getAddress());
+  if (!account_balance.second) {
+    return false;
+  }
+  if (taraxa::sortition(signature_hash, account_balance.first)) {
     return true;
   } else {
     return false;
