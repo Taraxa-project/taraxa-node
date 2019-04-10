@@ -16,13 +16,13 @@ std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
 void BlockProposer::start() {
   if (!stopped_) return;
-  if (!full_node_.lock()) {
+  if (full_node_.expired()) {
     LOG(log_er_) << "FullNode is not set ..." << std::endl;
     return;
   }
   LOG(log_nf_) << "BlockProposer threads = " << num_threads_ << std::endl;
   stopped_ = false;
-  if (trx_mgr_.lock()) {
+  if (!trx_mgr_.expired()) {
     trx_mgr_.lock()->start();
   } else {
     LOG(log_er_) << "Cannot start TransactionManager ..." << std::endl;
@@ -34,7 +34,7 @@ void BlockProposer::start() {
 
 void BlockProposer::stop() {
   stopped_ = true;
-  if (trx_mgr_.lock()) {
+  if (!trx_mgr_.expired()) {
     trx_mgr_.lock()->stop();
   }
   for (auto& t : proposer_threads_) {
@@ -46,7 +46,7 @@ void BlockProposer::proposeBlock() {
     std::string pivot;
     std::vector<std::string> tips;
     vec_trx_t to_be_packed_trx;
-    if (!trx_mgr_.lock()) {
+    if (trx_mgr_.expired()) {
       LOG(log_wr_) << "TransactionManager expired ..." << std::endl;
       break;
     }
@@ -58,7 +58,7 @@ void BlockProposer::proposeBlock() {
                    << std::endl;
       continue;
     }
-    if (!dag_mgr_.lock()) {
+    if (dag_mgr_.expired()) {
       LOG(log_wr_) << "DagManager expired ..." << std::endl;
       break;
     }
@@ -81,7 +81,7 @@ void BlockProposer::proposeBlock() {
     }
     DagBlock blk(blk_hash_t(pivot), tmp, to_be_packed_trx);
 
-    if (full_node_.lock()) {
+    if (!full_node_.expired()) {
       LOG(log_nf_) << "Propose block" << std::endl;
 
       full_node_.lock()->storeBlockAndSign(blk);
