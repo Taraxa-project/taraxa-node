@@ -18,5 +18,5 @@ template <class KeyType, class DB>
 using SecureTrieDB = SpecificTrieDB<HashedGenericTrieDB<DB>, KeyType>;
 #endif
 
-}  // namespace eth
+}  // namespace eth 
 }  // namespace dev

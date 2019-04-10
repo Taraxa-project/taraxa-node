@@ -5,7 +5,6 @@
 */
 
 #include "State.h"
-
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/TrieHash.h>
