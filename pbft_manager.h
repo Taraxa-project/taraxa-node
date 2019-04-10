@@ -17,7 +17,7 @@ class PbftManager {
   bool shouldSpeak(blk_hash_t blockhash, char type, int period, int step);
 
  private:
-  std::shared_ptr<FullNode> node_;
+  std::weak_ptr<FullNode> node_;
 };
 
 } // namespace taraxa
