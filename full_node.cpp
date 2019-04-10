@@ -123,6 +123,8 @@ void FullNode::start() {
       std::string key;
       while (!stopped_) {
         DagBlock blk = blk_qu_->getVerifiedBlock();
+        trx_mgr_->setPackedTrxFromBlock(blk);
+        trx_mgr_->checkTransactionsinQueue();
         key = blk.getHash().toString();
         LOG(log_nf_) << "Write block to db ... " << key << std::endl;
         if (debug_) {

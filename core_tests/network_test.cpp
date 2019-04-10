@@ -385,7 +385,7 @@ Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
 TEST(Network, node_full_sync) {
-  const int numberOfNodes = 5;
+  const int numberOfNodes = 10;
   boost::asio::io_context context1;
   std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
 
@@ -403,13 +403,14 @@ TEST(Network, node_full_sync) {
         *contexts[i], std::string("./core_tests/conf_full_node2.json"),
         std::string("./core_tests/conf_network0.json"), i + 1));
     nodes[i]->start();
+    taraxa::thisThreadSleepForMilliSeconds(50);
   }
   taraxa::thisThreadSleepForMilliSeconds(10000);
 
   std::random_device dev;
   std::mt19937 rng(dev());
-  std::uniform_int_distribution<std::mt19937::result_type> dist2000(
-      1, 2000);  // distribution in range [1, 2000]
+  std::uniform_int_distribution<std::mt19937::result_type> distTransactions(
+      1, 200000);
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(
       0, numberOfNodes - 1);  // distribution in range [1, 2000]
 
@@ -417,11 +418,11 @@ TEST(Network, node_full_sync) {
     std::unordered_map<trx_hash_t, Transaction> transactions;
     transactions[t.getHash()] = t;
     nodes[distNodes(rng)]->insertNewTransactions(transactions);
-    thisThreadSleepForMicroSeconds(dist2000(rng));
+    thisThreadSleepForMicroSeconds(distTransactions(rng));
   }
 
-  std::cout << "Waiting Sync for 30000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(30000);
+  std::cout << "Waiting Sync for 100000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(100000);
 
   node1->stop();
   for (int i = 0; i < numberOfNodes; i++) nodes[i]->stop();
