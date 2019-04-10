@@ -17,6 +17,8 @@
 #include <vector>
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
+#include "libdevcore/SHA3.h"
+#include "libdevcrypto/Common.h"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -111,6 +113,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       bool onlyNew);
   void insertNewTransactions(
       std::unordered_map<trx_hash_t, Transaction> const &transactions);
+
+  // PBFT
+  dev::Signature signMessage(std::string message);
+  bool verifySignature(dev::Signature signature, std::string message);
 
  private:
   // ** NOTE: io_context must be constructed before Network
