@@ -64,19 +64,32 @@ bool RocksDb::put(const std::string &key, const std::string &value) {
   bool seen = s.ok();
 
   if (seen) {
-    if (verbose_) {
-      std::cout << "Warning! Data exist, returnd. Key = " << key << std::endl;
-    }
+    LOG(log_wr_) << "Warning! Data exist, returnd. Key = " << key << std::endl;
     return false;
   }
 
   s = db_->Put(WriteOptions(), key, value);
   if (!s.ok()) {
-    std::cout << s.ToString() << std::endl;
+    LOG(log_er_) << s.ToString() << std::endl;
   }
   assert(s.ok());
 
   return true;
+}
+
+bool RocksDb::update(const std::string &key, const std::string &value) {
+  std::unique_lock<std::mutex> lock(mutex_);
+
+  std::string str;
+  bool ret = false;
+  rocksdb::Status s = db_->Put(WriteOptions(), key, value);
+  if (!s.ok()) {
+    LOG(log_er_) << s.ToString() << std::endl;
+  }
+  assert(s.ok());
+  ret = true;
+
+  return ret;
 }
 
 std::string RocksDb::get(const std::string &key) {
@@ -87,7 +100,7 @@ std::string RocksDb::get(const std::string &key) {
   bool ok = s.ok() || s.IsNotFound();
 
   if (!ok) {
-    std::cout << s.ToString() << std::endl;
+    LOG(log_er_) << s.ToString() << std::endl;
   }
   assert(ok);
   std::string ret = pinnable_val.ToString();

@@ -16,6 +16,7 @@
 #include <thread>
 #include <vector>
 #include "libdevcore/Log.h"
+#include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -93,6 +94,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from,
                                              blk_hash_t const &to);
 
+  // account stuff
+  std::pair<bal_t,bool> getBalance(addr_t const &acc) const;
+  bool setBalance(addr_t const &acc, bal_t const &new_bal);
+
+  // pbft stuff
+  bool executeScheduleBlock(ScheduleBlock const &sche_blk);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
@@ -146,13 +153,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
   uint64_t received_trxs_ = 0;
-  dev::Logger log_si_{
+  mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "FULLND")};
-  dev::Logger log_er_{
+  mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "FULLND")};
-  dev::Logger log_wr_{
+  mutable dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "FULLND")};
-  dev::Logger log_nf_{
+  mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "FULLND")};
 };
 

@@ -1,6 +1,7 @@
 #include "rpc.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
+#include "pbft_chain.hpp"
 #include "transaction.hpp"
 #include "util.hpp"
 #include "wallet.hpp"
@@ -177,7 +178,7 @@ void RpcHandler::processRequest() {
     if (action == "insert_dag_block") {
       try {
         blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
-        vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+        vec_blk_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
         sig_t signature = sig_t(
             "777777777777777777777777777777777777777777777777777777777777777777"
             "777777777777777777777777777777777777777777777777777777777777777");
@@ -193,7 +194,7 @@ void RpcHandler::processRequest() {
     } else if (action == "insert_stamped_dag_block") {
       try {
         blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
-        vec_tip_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
+        vec_blk_t tips = asVector<blk_hash_t, std::string>(in_doc_, "tips");
         sig_t signature = sig_t(
             "777777777777777777777777777777777777777777777777777777777777777777"
             "777777777777777777777777777777777777777777777777777777777777777");
@@ -314,6 +315,35 @@ void RpcHandler::processRequest() {
         res = e.what();
       }
 
+    } else if (action == "send_pbft_schedule_block") {
+      try {
+        blk_hash_t prev_blk =
+            blk_hash_t(in_doc_.get<std::string>("prev_pivot"));
+        uint64_t timestamp = in_doc_.get<uint64_t>("timestamp");
+        sig_t sig = sig_t(in_doc_.get<std::string>("sig"));
+        vec_blk_t blk_order =
+            asVector<blk_hash_t, std::string>(in_doc_, "blk_order");
+
+        std::vector<size_t> trx_sizes =
+            asVector<size_t, size_t>(in_doc_, "trx_sizes");
+        assert(blk_order.size() == trx_sizes.size());
+        std::vector<size_t> trx_modes =
+            asVector<size_t, size_t>(in_doc_, "trx_modes");
+
+        std::vector<std::vector<uint>> vec_trx_modes(trx_sizes.size());
+        size_t count = 0;
+        for (auto i = 0; i < trx_sizes.size(); ++i) {
+          for (auto j = 0; j < trx_sizes[i]; ++j) {
+            vec_trx_modes[i].emplace_back(trx_modes[count++]);
+          }
+        }
+
+        TrxSchedule sche(blk_order, vec_trx_modes);
+        ScheduleBlock sche_blk(prev_blk, timestamp, sig, sche);
+        res = sche_blk.getJsonStr();
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     }
 
     else if (action == "draw_graph") {

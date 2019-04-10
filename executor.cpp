@@ -34,20 +34,21 @@ bool Executor::execute(TrxSchedule const& epoch_trxs) {
   status_ = ExecutorStatus::run_parallel;
   // now idle, can put to queue
   // read all trx and put to queue
-  std::vector<vec_trx_t> const& schedule = epoch_trxs.schedules;
-  for (auto const& blk_trx : schedule) {
-    for (auto const& trx : blk_trx) {
-      std::string trx_json = db_trxs_->get(trx.toString());
-      assert(!trx_json.empty());
-      Transaction t(trx_json);
-      {
-        uLock qu_lock(mutex_for_trx_qu_);
-        trx_qu_.emplace_back(t);
-      }
-    }
-    cond_for_trx_qu_.notify_all();
-  }
-  all_trx_enqued_ = true;
+  // TODO .....!
+  // std::vector<vec_trx_t> const& schedule = epoch_trxs.vec_trx_modes;
+  // for (auto const& blk_trx : schedule) {
+  //   for (auto const& trx : blk_trx) {
+  //     std::string trx_json = db_trxs_->get(trx.toString());
+  //     assert(!trx_json.empty());
+  //     Transaction t(trx_json);
+  //     {
+  //       uLock qu_lock(mutex_for_trx_qu_);
+  //       trx_qu_.emplace_back(t);
+  //     }
+  //   }
+  //   cond_for_trx_qu_.notify_all();
+  // }
+  // all_trx_enqued_ = true;
   return true;
 }
 void Executor::executeSingleTrx() {

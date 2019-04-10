@@ -72,6 +72,7 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/network_test.o \
 	${OBJECTDIR}/dag_block_test.o \
 	${OBJECTDIR}/full_node_test.o \
+	${OBJECTDIR}/pbft_chain_test.o \
 	${OBJECTDIR}/concur_hash_test.o \
 	${OBJECTDIR}/transaction_test.o \
 	${OBJECTDIR}/grpc_test.o \
@@ -96,16 +97,16 @@ ${OBJECTDIR}/rocks_db.o: rocks_db.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/rocks_db.o rocks_db.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
 	
 ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
 	
 ${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -262,6 +263,11 @@ ${OBJECTDIR}/transaction_test.o: core_tests/transaction_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_test.o core_tests/transaction_test.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/pbft_chain_test.o: core_tests/pbft_chain_test.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain_test.o core_tests/pbft_chain_test.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/grpc_test.o: core_tests/grpc_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -390,13 +396,16 @@ $(TESTBUILDDIR)/state_unit_tests: $(OBJECTDIR)/state_unit_tests.o $(OBJECTFILES)
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/state_unit_tests.o -o $(TESTBUILDDIR)/state_unit_tests  $(LDFLAGS) $(LIBS)
 
+$(TESTBUILDDIR)/pbft_chain_test: $(OBJECTDIR)/pbft_chain_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS)
 
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
 	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/state_unit_tests
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/state_unit_tests
 
 run_test: test
 	./$(TESTBUILDDIR)/crypto_test
@@ -413,6 +422,7 @@ run_test: test
 	./$(TESTBUILDDIR)/network_test
 	./$(TESTBUILDDIR)/trie_test
 	./$(TESTBUILDDIR)/state_unit_tests
+	./$(TESTBUILDDIR)/pbft_chain_test
 
 ct:
 	rm -rf $(TESTBUILDDIR)

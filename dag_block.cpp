@@ -16,7 +16,7 @@ namespace taraxa {
 
 using std::to_string;
 
-DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
+DagBlock::DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs, sig_t sig,
                    blk_hash_t hash, addr_t sender) try
     : pivot_(pivot),
       tips_(tips),
@@ -27,7 +27,7 @@ DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs, sig_t sig,
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
-DagBlock::DagBlock(blk_hash_t pivot, vec_tip_t tips, vec_trx_t trxs) try
+DagBlock::DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs) try
     : pivot_(pivot),
       tips_(tips),
       trxs_(trxs) {

@@ -13,6 +13,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <string>
 #include "libdevcore/Log.h"
+#include "rpc.hpp"
 
 // TODO:
 // Need a buffer for rpc requests ...
