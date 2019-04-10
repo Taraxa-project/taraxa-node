@@ -5,6 +5,7 @@
 #include "transaction.hpp"
 #include "util.hpp"
 #include "wallet.hpp"
+#include "sortition.h"
 
 namespace taraxa {
 
@@ -345,7 +346,28 @@ void RpcHandler::processRequest() {
         res = e.what();
       }
     }
+    // PBFT
+    else if (action == "should_speak") {
+      try {
+        std::string blockhash = in_doc_.get<std::string>("blockhash");
+        std::string type = in_doc_.get<std::string>("type");
+        int period = in_doc_.get<int>("period");
+        int step = in_doc_.get<int>("step");
 
+        std::string message = blockhash + type + std::to_string(period) + std::to_string(step);
+        dev::Signature signature = node_->signMessage(message);
+        string signature_hash = taraxa::hashSignature(signature);
+        int account_balance = 1000;
+        if (taraxa::sortition(signature_hash, account_balance)) {
+          res = "True";
+        } else {
+          res = "False";
+        }
+        std::cout << "sortition: " << res << std::endl;
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    }
     else if (action == "draw_graph") {
       std::string filename = in_doc_.get<std::string>("filename");
       node_->drawGraph(filename);

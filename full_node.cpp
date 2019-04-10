@@ -310,4 +310,12 @@ bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
   return ret;
 }
 
+dev::Signature FullNode::signMessage(std::string message) {
+  return dev::sign(node_sk_, dev::sha3(message));
+}
+
+bool FullNode::verifySignature(dev::Signature signature, std::string message) {
+  return dev::verify(node_pk_, signature, dev::sha3(message));
+}
+
 }  // namespace taraxa
