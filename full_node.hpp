@@ -99,6 +99,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // account stuff
   std::pair<bal_t,bool> getBalance(addr_t const &acc) const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
+  addr_t getAddress();
 
   // pbft stuff
   bool executeScheduleBlock(ScheduleBlock const &sche_blk);

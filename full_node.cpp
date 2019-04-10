@@ -310,6 +310,10 @@ bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
   return ret;
 }
 
+addr_t FullNode::getAddress() {
+  return node_addr_;
+}
+
 dev::Signature FullNode::signMessage(std::string message) {
   return dev::sign(node_sk_, dev::sha3(message));
 }
