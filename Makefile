@@ -63,7 +63,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/libethcore/log_entry.o \
 	${OBJECTDIR}/libethereum/transaction_receipt.o \
 	${OBJECTDIR}/libethereum/state.o \
-	${OBJECTDIR}/sortition.o
+	${OBJECTDIR}/sortition.o \
+	${OBJECTDIR}/pbft_manager.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -224,6 +225,11 @@ ${OBJECTDIR}/sortition.o: sortition.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/sortition.o sortition.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/pbft_manager.o: pbft_manager.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_manager.o pbft_manager.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -309,11 +315,6 @@ ${OBJECTDIR}/state_unit_tests.o: core_tests/state_unit_tests.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_unit_tests.o core_tests/state_unit_tests.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/pbft_rpc_test.o: core_tests/pbft_rpc_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_rpc_test.o core_tests/pbft_rpc_test.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/pbft_rpc_test.o: core_tests/pbft_rpc_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
