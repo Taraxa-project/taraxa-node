@@ -16,9 +16,9 @@
 #include <thread>
 #include <vector>
 #include "libdevcore/Log.h"
-#include "pbft_chain.hpp"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
+#include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -32,6 +32,7 @@ class DagBlock;
 class BlockQueue;
 class Transaction;
 class TransactionManager;
+class Executor;
 
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
@@ -97,7 +98,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                              blk_hash_t const &to);
 
   // account stuff
-  std::pair<bal_t,bool> getBalance(addr_t const &acc) const;
+  std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
   addr_t getAddress();
 
@@ -151,10 +152,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionManager> trx_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-
-  std::vector<std::pair<std::string, uint16_t>>
-      remotes_;  // neighbors for broadcasting
-
+  // neighbors for broadcasting
+  std::vector<std::pair<std::string, uint16_t>> remotes_;
+  // transaction executor
+  std::shared_ptr<Executor> executor_;
+  // 
   std::vector<std::thread> block_workers_;
   // debugger
   std::mutex debug_mutex_;
