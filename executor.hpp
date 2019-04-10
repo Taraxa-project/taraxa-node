@@ -30,42 +30,25 @@ class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
-  Executor(size_t num_parallel_executor, std::shared_ptr<RocksDb> db_blks,
-           std::shared_ptr<RocksDb> db_trxs, std::shared_ptr<RocksDb> db_accs)
-      : num_parallel_executor_(num_parallel_executor),
-        db_blks_(db_blks),
-        db_trxs_(db_trxs),
-        db_accs_(db_accs) {}
+  Executor(std::shared_ptr<RocksDb> db_blks, std::shared_ptr<RocksDb> db_trxs,
+           std::shared_ptr<RocksDb> db_accs)
+      : db_blks_(db_blks), db_trxs_(db_trxs), db_accs_(db_accs) {}
   ~Executor();
   void start();
   void stop();
   void clear();
   bool execute(TrxSchedule const& schedule);
   bool executeBlkTrxs(blk_hash_t const& blk);
-  void executeSingleTrx();
   bool coinTransfer(Transaction const& trx);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;
   bool stopped_ = true;
-  bool all_trx_enqued_ = false;
-  size_t num_parallel_executor_;
-  std::vector<std::thread> parallel_executors_;
-
-  std::mutex mutex_for_executor_;
-  std::condition_variable cond_for_executor_;
-
-  std::deque<Transaction> trx_qu_;
-  std::mutex mutex_for_trx_qu_;
-  std::condition_variable cond_for_trx_qu_;
 
   std::shared_ptr<RocksDb> db_blks_;
   std::shared_ptr<RocksDb> db_trxs_;
   std::shared_ptr<RocksDb> db_accs_;
-  std::set<Transaction> conflicted_trx_;
 
-  std::atomic<unsigned> num_parallel_executed_trx = 0;
-  std::atomic<unsigned> num_conflicted_trx = 0;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{

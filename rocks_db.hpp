@@ -20,7 +20,7 @@
 #include "libdevcore/Log.h"
 
 namespace taraxa {
-class RocksDb {
+class RocksDb : public std::enable_shared_from_this<RocksDb> {
  public:
   RocksDb(std::string path);
   ~RocksDb();
@@ -29,7 +29,14 @@ class RocksDb {
   std::string get(const std::string &key);
   bool erase(const std::string &key);
   void setVerbose(bool verbose);
-
+  std::shared_ptr<RocksDb> getShared() {
+    try {
+      return shared_from_this();
+    } catch (std::bad_weak_ptr &e){
+      std::cerr<<"RocksDb: "<<e.what()<<std::endl;
+      return nullptr;
+    }
+  }
  private:
   bool verbose_ = false;
   std::string db_path_;

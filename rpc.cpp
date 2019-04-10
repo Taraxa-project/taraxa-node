@@ -345,6 +345,30 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
+    } else if (action == "set_account_balance") {
+      try {
+        addr_t addr = in_doc_.get<addr_t>("address");
+        bal_t bal = in_doc_.get<bal_t>("balance");
+        node_->setBalance(addr, bal);
+        res = "Set " + addr.toString() +
+              " balance: " + boost::lexical_cast<std::string>(bal) + "\n";
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    } else if (action == "get_account_balance") {
+      try {
+        addr_t addr = in_doc_.get<addr_t>("address");
+        auto bal = node_->getBalance(addr);
+        if (!bal.second) {
+          res = "Account " + addr.toString() + " is not available\n";
+        } else {
+          res = "Get " + addr.toString() +
+                " balance: " + boost::lexical_cast<std::string>(bal.first) +
+                "\n";
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     }
     // PBFT
     else if (action == "should_speak") {
@@ -363,8 +387,7 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
-    }
-    else if (action == "draw_graph") {
+    } else if (action == "draw_graph") {
       std::string filename = in_doc_.get<std::string>("filename");
       node_->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";

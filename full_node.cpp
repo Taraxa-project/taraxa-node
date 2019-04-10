@@ -11,6 +11,7 @@
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
+#include "executor.hpp"
 #include "network.hpp"
 #include "rocks_db.hpp"
 #include "transaction.hpp"
@@ -63,7 +64,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.block_proposer_threads, dag_mgr_->getShared(),
-          trx_mgr_->getShared())) {
+          trx_mgr_->getShared())),
+      executor_(std::make_shared<Executor>(db_blks_->getShared(), db_trxs_->getShared(),
+                db_accs_->getShared())) {
   LOG(log_si_) << "Taraxa node statred at address: " << conf_.address << " ..."
                << std::endl;
   auto key = dev::KeyPair::create();
@@ -310,9 +313,7 @@ bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
   return ret;
 }
 
-addr_t FullNode::getAddress() {
-  return node_addr_;
-}
+addr_t FullNode::getAddress() { return node_addr_; }
 
 dev::Signature FullNode::signMessage(std::string message) {
   return dev::sign(node_sk_, dev::sha3(message));
