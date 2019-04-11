@@ -1,6 +1,10 @@
-//
-// Created by Qi Gao on 2019-04-10.
-//
+/*
+ * @Copyright: Taraxa.io
+ * @Author: Qi Gao
+ * @Date: 2019-04-11
+ * @Last Modified by:
+ * @Last Modified time:
+ */
 
 #include "vote.h"
 
