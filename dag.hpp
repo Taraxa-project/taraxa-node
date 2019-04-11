@@ -206,7 +206,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                              std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;
 
-  void getLatestPivot(std::string &pivot) const;
+  void getGhostPath(std::string const & source, std::vector<std::string> &ghost) const;
 
   // debug functions
   // BeforeTimeStamp does NOT include the time of timestamp
