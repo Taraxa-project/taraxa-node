@@ -255,6 +255,10 @@ class TransactionQueue {
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
+  size_t getVerifiedTrxCount() {
+    uLock lock(mutex_for_verified_qu_);
+    return verified_trxs_.size();
+  }
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
  private:
@@ -356,7 +360,6 @@ class TransactionManager
 
   std::mutex mutex_for_pack_trx_;
   std::condition_variable cond_for_pack_trx_;
-  std::atomic<unsigned> trx_counter_ = 0;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "trx_mgr")};
   dev::Logger log_wr_{
