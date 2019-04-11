@@ -16,23 +16,23 @@
 namespace taraxa {
 
 TEST(PbftRpc, pbft_should_speak_test) {
-  boost::asio::io_context context1;
+  boost::asio::io_context context;
 
-  auto node1(std::make_shared<taraxa::FullNode>(
-      context1,
+  auto node(std::make_shared<taraxa::FullNode>(
+      context,
       std::string("./core_tests/conf_full_node1.json"),
       std::string("./core_tests/conf_network1.json")));
   auto rpc(std::make_shared<taraxa::Rpc>(
-      context1, "./core_tests/conf_rpc1.json", node1->getShared()));
+      context, "./core_tests/conf_rpc1.json", node->getShared()));
   rpc->start();
-  node1->setDebug(true);
-  node1->start();
+  node->setDebug(true);
+  node->start();
 
   std::unique_ptr<boost::asio::io_context::work> work(
-      new boost::asio::io_context::work(context1));
+      new boost::asio::io_context::work(context));
 
-  boost::thread t([&context1]() {
-    context1.run();
+  boost::thread t([&context]() {
+    context.run();
   });
 
   try {
@@ -44,7 +44,47 @@ TEST(PbftRpc, pbft_should_speak_test) {
   taraxa::thisThreadSleepForMilliSeconds(500);
 
   work.reset();
-  node1->stop();
+  node->stop();
+  rpc->stop();
+  t.join();
+}
+
+TEST(PbftRpc, pbft_place_and_get_vote_test) {
+  boost::asio::io_context context;
+
+  auto node(std::make_shared<taraxa::FullNode>(
+      context,
+      std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+  auto rpc(std::make_shared<taraxa::Rpc>(
+      context, "./core_tests/conf_rpc1.json", node->getShared()));
+  rpc->start();
+  node->setDebug(true);
+  node->start();
+
+  std::unique_ptr<boost::asio::io_context::work> work(
+      new boost::asio::io_context::work(context));
+
+  boost::thread t([&context]() {
+    context.run();
+  });
+
+  try {
+    system("./core_tests/curl_pbft_place_vote.sh");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  taraxa::thisThreadSleepForMilliSeconds(500);
+
+  try {
+    system("./core_tests/curl_pbft_get_votes.sh");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  work.reset();
+  node->stop();
   rpc->stop();
   t.join();
 }
