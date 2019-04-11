@@ -4,7 +4,7 @@ pipeline {
         AWS = credentials('AWS')
         REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
         IMAGE = 'taraxa-node'
-        AUX_IMAGE = '${IMAGE}-${BRANCH_NAME}-${BUILD_URL}'
+        AUX_IMAGE = '${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER}'
         BASE_IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'testnet'
         SLACK_TEAM_DOMAIN = 'phragmites'
@@ -68,6 +68,7 @@ post {
     always {
         sh 'docker rmi $(docker images -f "dangling=true" -q) || true'
         sh 'docker rmi ${AUX_IMAGE} || true'
+        cleanWs()
     }
     success {
       slackSend (channel: "${SLACK_CHANNEL}", teamDomain: "${SLACK_TEAM_DOMAIN}", tokenCredentialId: 'SLACK_TOKEN_ID', 
