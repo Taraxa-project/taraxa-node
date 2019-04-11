@@ -29,6 +29,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'git submodule update --init --recursive'
+                echo '${AUX_IMAGE}'
                 sh 'docker build -t ${AUX_IMAGE} -f dockerfiles/Dockerfile .'
             }                    
         }
