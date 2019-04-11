@@ -47,8 +47,10 @@ bool Executor::coinTransfer(Transaction const& trx) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   bal_t value = trx.getValue();
-  bal_t sender_initial_coin = stoull(db_accs_->get(sender.toString()));
-  bal_t receiver_initial_coin = stoull(db_accs_->get(receiver.toString()));
+  auto sender_bal = db_accs_->get(sender.toString());
+  auto receiver_bal = db_accs_->get(receiver.toString());
+  bal_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
+  bal_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
 
   if (sender_initial_coin < trx.getValue()) {
     LOG(log_er_) << "Error! Insufficient fund for transfer ..." << std::endl;
@@ -63,6 +65,9 @@ bool Executor::coinTransfer(Transaction const& trx) {
   bal_t new_receiver_bal = receiver_initial_coin + value;
   db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
   db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
+  LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
+  LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
+
   return true;
 }
 

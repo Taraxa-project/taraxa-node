@@ -86,6 +86,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
+  void getGhostPath(std::string const & source, std::vector<std::string> &ghost);
   std::vector<std::string> getDagBlockSubtree(blk_hash_t const &blk,
                                               time_stamp_t stamp);
   std::vector<std::string> getDagBlockSiblings(blk_hash_t const &blk,
@@ -96,7 +97,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                                  time_stamp_t stamp);
   std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from,
                                              blk_hash_t const &to);
-
+  
   // account stuff
   std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
