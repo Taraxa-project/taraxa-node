@@ -4,7 +4,6 @@ pipeline {
         AWS = credentials('AWS')
         REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
         IMAGE = 'taraxa-node'
-        AUX_IMAGE = '${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER}'
         BASE_IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'testnet'
         SLACK_TEAM_DOMAIN = 'phragmites'
@@ -29,8 +28,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'git submodule update --init --recursive'
-                sh 'echo ${AUX_IMAGE}'
-                sh 'docker build -t ${AUX_IMAGE} -f dockerfiles/Dockerfile .'
+                sh 'docker build -t ${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER} -f dockerfiles/Dockerfile .'
             }                    
         }
         stage('Smoke Test') {
@@ -38,7 +36,7 @@ pipeline {
                 sh 'docker network create --driver=bridge \
                     --subnet=172.100.1.0/24 --gateway=172.100.1.1 \
                     --ip-range=172.100.1.2/25 smoke-test-net'
-                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net ${AUX_IMAGE}'
+                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net ${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER}'
                 sh ''' docker run --rm --net smoke-test-net byrnedo/alpine-curl -d \"{ 
                         \"action\": \"insert_stamped_dag_block\", 
                         \"pivot\": \"0000000000000000000000000000000000000000000000000000000000000000\", 
@@ -58,8 +56,8 @@ pipeline {
         stage('Push Docker Image') {
             when {branch 'master'}            
             steps {
-                sh 'docker tag ${AUX_IMAGE} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${AUX_IMAGE} ${REGISTRY}/${IMAGE}'
+                sh 'docker tag ${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
+                sh 'docker tag ${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}'
                 sh 'docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
                 sh 'docker push ${REGISTRY}/${IMAGE}'
             }                    
@@ -68,7 +66,7 @@ pipeline {
 post {
     always {
         sh 'docker rmi $(docker images -f "dangling=true" -q) || true'
-        sh 'docker rmi ${AUX_IMAGE} || true'
+        sh 'docker rmi ${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER} || true'
         cleanWs()
     }
     success {
