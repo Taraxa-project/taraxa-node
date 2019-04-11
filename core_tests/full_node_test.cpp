@@ -12,11 +12,21 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+#include "create_samples.hpp"
 #include "libdevcore/Log.h"
 #include "network.hpp"
 #include "rpc.hpp"
 
 namespace taraxa {
+
+const unsigned NUM_TRX = 50;
+
+auto g_secret = dev::Secret(
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    dev::Secret::ConstructFromStringType::FromHex);
+auto g_key_pair = dev::KeyPair(g_secret);
+auto g_trx_signed_samples =
+    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
 TEST(FullNode, account_bal) {
   boost::asio::io_context context;
@@ -38,6 +48,30 @@ TEST(FullNode, account_bal) {
   res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal2);
+}
+
+TEST(FullNode, execute_pbft_transactions) {
+  boost::asio::io_context context;
+
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+  node->start();
+  addr_t acc1 = node->getAddress();
+  bal_t bal1(10000000);
+  node->setBalance(acc1, bal1);
+  auto res = node->getBalance(acc1);
+  EXPECT_TRUE(res.second);
+  EXPECT_EQ(res.first, bal1);
+  for (auto const& t : g_trx_signed_samples) {
+    node->storeTransaction(t);
+  }
+
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  EXPECT_EQ(node->getNumProposedBlocks(), NUM_TRX / 10);
+
+  node->stop();
 }
 
 TEST(FullNode, send_and_receive_out_order_messages) {
@@ -143,6 +177,10 @@ int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("FULL_ND");
+  // logOptions.includeChannels.push_back("blk_pp");
+  // logOptions.includeChannels.push_back("trx_qu");
+  // logOptions.includeChannels.push_back("trx_mgr");
+
   logOptions.includeChannels.push_back("RPC");
 
   dev::setupLogging(logOptions);

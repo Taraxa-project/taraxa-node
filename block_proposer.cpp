@@ -22,6 +22,8 @@ void BlockProposer::start() {
   }
   LOG(log_nf_) << "BlockProposer threads = " << num_threads_ << std::endl;
   stopped_ = false;
+  // reset number of proposed blocks
+  BlockProposer::num_proposed_blocks = 0;
   if (!trx_mgr_.expired()) {
     trx_mgr_.lock()->start();
   } else {

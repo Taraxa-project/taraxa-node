@@ -261,7 +261,6 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
 bool TransactionManager::insertTrx(Transaction trx) {
   bool ret = false;
   if (trx_qu_.insert(trx)) {
-    trx_counter_.fetch_add(1);
     cond_for_pack_trx_.notify_one();
     ret = true;
   }
@@ -314,12 +313,11 @@ void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
   uLock pack_lock(mutex_for_pack_trx_);
-  while (!stopped_ && trx_counter_ < rate_limiter_) {
-    cond_for_pack_trx_.wait(pack_lock);
+  while (!stopped_ && trx_qu_.getVerifiedTrxCount() < rate_limiter_) {
+    cond_for_pack_trx_.wait_for(pack_lock, std::chrono::microseconds(50));
   }
   if (stopped_) return;
   // reset counter
-  trx_counter_.store(0);
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   std::vector<trx_hash_t> exist_in_db;
   std::vector<trx_hash_t> packed_by_others;
