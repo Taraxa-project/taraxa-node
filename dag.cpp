@@ -610,6 +610,11 @@ void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
   total_dag_->getLeaves(leaves);
 }
 
+void DagManager::getGhostPath(std::string const &source,
+                              std::vector<std::string> &ghost) const {
+  pivot_tree_->getGhostPath(source, ghost);
+}
+
 std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(
     std::string const &vertex, time_stamp_t stamp) const {
   std::vector<std::string> ret;
