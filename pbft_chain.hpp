@@ -67,6 +67,7 @@ class ScheduleBlock {
         sig_(sig),
         schedule_(sche) {}
   std::string getJsonStr() const;
+  TrxSchedule getSchedule() const {return schedule_;}
   friend std::ostream;
 
  private:

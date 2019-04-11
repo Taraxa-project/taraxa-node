@@ -13,8 +13,10 @@
 #include <iostream>
 #include <vector>
 #include "create_samples.hpp"
+#include "dag.hpp"
 #include "libdevcore/Log.h"
 #include "network.hpp"
+#include "pbft_chain.hpp"
 #include "rpc.hpp"
 
 namespace taraxa {
@@ -69,8 +71,23 @@ TEST(FullNode, execute_pbft_transactions) {
 
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  EXPECT_EQ(node->getNumProposedBlocks(), NUM_TRX / 10);
+  EXPECT_GT(node->getNumProposedBlocks(), NUM_TRX / 10 - 2);
 
+  std::vector<std::string> ghost;
+  node->getGhostPath(Dag::GENESIS, ghost);
+  vec_blk_t blks;
+  std::vector<std::vector<uint>> modes;
+  for (auto const& g : ghost) {
+    if (g == Dag::GENESIS) continue;
+    auto dagblk = node->getDagBlock(blk_hash_t(g));
+    std::vector<uint> mode(dagblk->getTrxs().size(), 1);
+    blks.push_back(dagblk->getHash());
+    modes.push_back(mode);
+  }
+  TrxSchedule sche(blks, modes);
+  ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), sche);
+  std::cout << sche << std::endl;
+  node->executeScheduleBlock(sche_blk);
   node->stop();
 }
 
@@ -177,7 +194,7 @@ int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("FULL_ND");
-  // logOptions.includeChannels.push_back("blk_pp");
+  // logOptions.includeChannels.push_back("EXETOR");
   // logOptions.includeChannels.push_back("trx_qu");
   // logOptions.includeChannels.push_back("trx_mgr");
 

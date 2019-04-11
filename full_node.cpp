@@ -65,8 +65,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.block_proposer_threads, dag_mgr_->getShared(),
           trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>(db_blks_->getShared(), db_trxs_->getShared(),
-                db_accs_->getShared())) {
+      executor_(std::make_shared<Executor>(db_blks_->getShared(),
+                                           db_trxs_->getShared(),
+                                           db_accs_->getShared())) {
   LOG(log_si_) << "Taraxa node statred at address: " << conf_.address << " ..."
                << std::endl;
   auto key = dev::KeyPair::create();
@@ -215,6 +216,12 @@ void FullNode::getLatestPivotAndTips(std::string &pivot,
                                      std::vector<std::string> &tips) {
   dag_mgr_->getLatestPivotAndTips(pivot, tips);
 }
+
+void FullNode::getGhostPath(std::string const &source,
+                            std::vector<std::string> &ghost) {
+  dag_mgr_->getGhostPath(source, ghost);
+}
+
 // Recursive call to children
 std::vector<std::string> FullNode::getDagBlockSubtree(blk_hash_t const &hash,
                                                       time_stamp_t stamp) {
@@ -321,6 +328,10 @@ dev::Signature FullNode::signMessage(std::string message) {
 
 bool FullNode::verifySignature(dev::Signature signature, std::string message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
+}
+bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
+  executor_->execute(sche_blk.getSchedule());
+  return true;
 }
 
 }  // namespace taraxa
