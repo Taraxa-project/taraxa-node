@@ -5,6 +5,7 @@
 #include "pbft_manager.h"
 #include "transaction.hpp"
 #include "util.hpp"
+#include "vote.h"
 #include "wallet.hpp"
 
 namespace taraxa {
@@ -387,7 +388,30 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
-    } else if (action == "draw_graph") {
+    } else if (action == "place_vote") {
+      try {
+        blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
+        char type = in_doc_.get<char>("type");
+        int period = in_doc_.get<int>("period");
+        int step = in_doc_.get<int>("step");
+
+        node_->placeVote(blockhash, type, period, step);
+        res = "Place vote successfully";
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    } else if (action == "get_votes") {
+      try {
+        int period = in_doc_.get<int>("period");
+
+        std::vector<Vote> votes = node_->getVotes(period);
+        VoteQueue vote_queue;
+        res = vote_queue.getJsonStr(votes);
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    }
+    else if (action == "draw_graph") {
       std::string filename = in_doc_.get<std::string>("filename");
       node_->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";

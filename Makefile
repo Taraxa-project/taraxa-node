@@ -64,7 +64,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/libethereum/transaction_receipt.o \
 	${OBJECTDIR}/libethereum/state.o \
 	${OBJECTDIR}/sortition.o \
-	${OBJECTDIR}/pbft_manager.o
+	${OBJECTDIR}/pbft_manager.o \
+	${OBJECTDIR}/vote.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -229,6 +230,11 @@ ${OBJECTDIR}/pbft_manager.o: pbft_manager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_manager.o pbft_manager.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/vote.o: vote.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}

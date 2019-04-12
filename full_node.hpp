@@ -33,6 +33,8 @@ class BlockQueue;
 class Transaction;
 class TransactionManager;
 class Executor;
+class Vote;
+class VoteQueue;
 
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
@@ -120,6 +122,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature signature, std::string message);
+  void placeVote(blk_hash_t blockhash, char type, int period, int step);
+  std::vector<Vote> getVotes(int period);
 
  private:
   // ** NOTE: io_context must be constructed before Network
@@ -171,6 +175,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "FULLND")};
   mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "FULLND")};
+
+  // PBFT
+  std::shared_ptr<VoteQueue> vote_queue_;
 };
 
 }  // namespace taraxa

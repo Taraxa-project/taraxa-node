@@ -15,6 +15,7 @@
 #include "network.hpp"
 #include "rocks_db.hpp"
 #include "transaction.hpp"
+#include "vote.h"
 
 namespace taraxa {
 
@@ -67,7 +68,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
           trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>(db_blks_->getShared(),
                                            db_trxs_->getShared(),
-                                           db_accs_->getShared())) {
+                                           db_accs_->getShared())),
+      vote_queue_(std::make_shared<VoteQueue>()) {
   LOG(log_si_) << "Taraxa node statred at address: " << conf_.address << " ..."
                << std::endl;
   auto key = dev::KeyPair::create();
@@ -332,6 +334,17 @@ bool FullNode::verifySignature(dev::Signature signature, std::string message) {
 bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
   executor_->execute(sche_blk.getSchedule());
   return true;
+}
+
+void FullNode::placeVote(taraxa::blk_hash_t blockhash,
+                         char type,
+                         int period,
+                         int step) {
+  vote_queue_->placeVote(blockhash, type, period, step, node_pk_);
+}
+
+std::vector<Vote> FullNode::getVotes(int period) {
+  return vote_queue_->getVotes(period);
 }
 
 }  // namespace taraxa

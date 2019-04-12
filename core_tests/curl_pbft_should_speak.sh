@@ -10,4 +10,3 @@ cmd="{ \"action\": \"should_speak\",
     }"
 
 curl -d "$cmd" 0.0.0.0:7777 &>/dev/null
-
