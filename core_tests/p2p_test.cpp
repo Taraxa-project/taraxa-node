@@ -13,6 +13,7 @@
 #include "libp2p/Host.h"
 #include "network.hpp"
 #include "taraxa_capability.h"
+#include "create_samples.hpp"
 
 using namespace std;
 using namespace dev;
@@ -20,9 +21,17 @@ using namespace dev::p2p;
 
 namespace taraxa {
 
+const unsigned NUM_TRX = 9;
+auto g_secret = dev::Secret(
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    dev::Secret::ConstructFromStringType::FromHex);
+auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
+auto g_signed_trx_samples =
+    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+
 /*
 Test creates one boot node and 10 nodes that uses that boot node
-to find each other. Test confirm that after a delay each node had found 
+to find each other. Test confirm that after a delay each node had found
 all other nodes.
 */
 TEST(p2p, p2p_discovery) {
@@ -166,19 +175,27 @@ TEST(p2p, capability_send_block) {
 
   DagBlock blk(blk_hash_t(1111),
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
+               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
+  std::unordered_map<trx_hash_t, Transaction> transactions;
+  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
+  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  thc2->onNewTransactions(transactions, true);
   thc2->sendBlock(host1.id(), blk, true);
 
   this_thread::sleep_for(chrono::seconds(1));
   auto blocks = thc1->getBlocks();
+  auto rtransactions = thc1->getTransactions();
   EXPECT_EQ(blocks.size(), 1);
   EXPECT_EQ(blk, blocks.begin()->second);
+  EXPECT_EQ(rtransactions.size(), 2);
+  EXPECT_EQ(transactions[g_trx_samples[0].getHash()], rtransactions[g_trx_samples[0].getHash()]);
+  EXPECT_EQ(transactions[g_trx_samples[1].getHash()], rtransactions[g_trx_samples[1].getHash()]);
 }
 
 /*
-Test creates 50 host/network/capability which connect to each other 
+Test creates 50 host/network/capability which connect to each other
 using node discovery. Block is created on one host and automatically
 propagated to all other hosts. Test verifies that each node has received
 the block
@@ -270,10 +287,14 @@ TEST(p2p, block_propagate) {
 
   DagBlock blk(blk_hash_t(1111),
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
+               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  thc1->onNewBlock(blk);
+  std::unordered_map<trx_hash_t, Transaction> transactions;
+  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
+  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  thc1->onNewTransactions(transactions, true);
+  thc1->onNewBlock(blk, transactions);
 
   this_thread::sleep_for(chrono::seconds(20));
   auto blocks1 = thc1->getBlocks();
@@ -282,6 +303,10 @@ TEST(p2p, block_propagate) {
     EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second, blk);
     EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second.getHash(),
               blk.getHash());
+    auto rtransactions = vCapabilities[i]->getTransactions();
+    EXPECT_EQ(rtransactions.size(), 2);
+    EXPECT_EQ(transactions[g_trx_samples[0].getHash()], rtransactions[g_trx_samples[0].getHash()]);
+    EXPECT_EQ(transactions[g_trx_samples[1].getHash()], rtransactions[g_trx_samples[1].getHash()]);
   }
   EXPECT_EQ(blocks1.size(), 1);
   EXPECT_EQ(blk, blocks1.begin()->second);

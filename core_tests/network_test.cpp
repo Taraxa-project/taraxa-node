@@ -47,9 +47,14 @@ TEST(Network, transfer_block) {
   nw2->start();
   DagBlock blk(blk_hash_t(1111),
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777), blk_hash_t(888),
+               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
+  std::unordered_map<trx_hash_t, Transaction> transactions;
+  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
+  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  nw2->onNewTransactions(transactions);
+  
   taraxa::thisThreadSleepForSeconds(10);
 
   for (auto i = 0; i < 1; ++i) {
@@ -199,6 +204,74 @@ TEST(Network, node_sync) {
                 addr_t(999));
 
   DagBlock blk5(blk_hash_t(04), {}, {}, sig_t(777), blk_hash_t(05),
+                addr_t(999));
+
+  DagBlock blk6(blk_hash_t(05), {blk_hash_t(04), blk_hash_t(3)}, {}, sig_t(777),
+                blk_hash_t(06), addr_t(999));
+
+  blks.push_back(blk6);
+  blks.push_back(blk5);
+  blks.push_back(blk4);
+  blks.push_back(blk3);
+  blks.push_back(blk2);
+  blks.push_back(blk1);
+
+  for (auto i = 0; i < blks.size(); ++i) {
+    node1->storeBlock(blks[i]);
+  }
+
+  auto node2 = std::make_shared<taraxa::FullNode>(
+      context2, std::string("./core_tests/conf_full_node2.json"),
+      std::string("./core_tests/conf_network2.json"));
+
+  node2->setDebug(true);
+  node2->start();
+
+  std::cout << "Waiting Sync for 5000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(5000);
+
+  node1->stop();
+  node2->stop();
+
+  // node1->drawGraph("dot.txt");
+  EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
+  EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node1->getNumEdgesInDag().first, 8);
+
+  EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
+  EXPECT_EQ(node2->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node2->getNumEdgesInDag().first, 8);
+}
+
+/*
+Test creates a DAG on one node and verifies
+that the second node syncs with it and that the resulting
+DAG on the other end is the same
+*/
+TEST(Network, node_sync_with_transactions) {
+  boost::asio::io_context context1;
+  boost::asio::io_context context2;
+
+  auto node1(std::make_shared<taraxa::FullNode>(
+      context1, std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+
+  node1->setDebug(true);
+  node1->start();
+  std::vector<DagBlock> blks;
+
+  DagBlock blk1(blk_hash_t(0), {}, {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()}, sig_t(777), blk_hash_t(1), addr_t(999));
+
+  DagBlock blk2(blk_hash_t(01), {}, {g_trx_samples[2].getHash()}, sig_t(777), blk_hash_t(02),
+                addr_t(999));
+
+  DagBlock blk3(blk_hash_t(02), {}, {}, sig_t(777), blk_hash_t(03),
+                addr_t(999));
+
+  DagBlock blk4(blk_hash_t(03), {}, {g_trx_samples[3].getHash(), g_trx_samples[4].getHash()}, sig_t(777), blk_hash_t(04),
+                addr_t(999));
+
+  DagBlock blk5(blk_hash_t(04), {}, {g_trx_samples[5].getHash(), g_trx_samples[6].getHash(), g_trx_samples[7].getHash(), g_trx_samples[8].getHash()}, sig_t(777), blk_hash_t(05),
                 addr_t(999));
 
   DagBlock blk6(blk_hash_t(05), {blk_hash_t(04), blk_hash_t(3)}, {}, sig_t(777),

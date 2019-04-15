@@ -116,6 +116,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
   void insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
   dev::Signature signMessage(std::string message);

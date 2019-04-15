@@ -254,8 +254,10 @@ class TransactionQueue {
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
+  void removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
   using uLock = std::unique_lock<std::mutex>;
@@ -336,12 +338,11 @@ class TransactionManager
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
-
-
   }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  void checkTransactionsinQueue();
+  void removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;

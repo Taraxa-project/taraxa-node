@@ -76,8 +76,24 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       DagBlock block;
       block.deserialize(strm);
 
+      auto transactionsCount = _r.itemCount() - 1;
+      std::unordered_map<trx_hash_t, Transaction> newTransactions;
+      for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
+           iTransaction++) {
+        std::vector<::byte> transactionBytes;
+        for (auto i = 0; i < _r[iTransaction].itemCount(); i++) {
+          transactionBytes.push_back(_r[iTransaction][i].toInt());
+        }
+        taraxa::bufferstream strm(transactionBytes.data(),
+                                  transactionBytes.size());
+        Transaction transaction;
+        transaction.deserialize(strm);
+        newTransactions[transaction.getHash()] = transaction;
+        m_peers[_nodeID].markTransactionAsKnown(transaction.getHash());
+      }
+
       m_peers[_nodeID].markBlockAsKnown(block.getHash());
-      onNewBlock(block);
+      onNewBlock(block, newTransactions);
       break;
     }
     case BlockPacket: {
@@ -89,6 +105,38 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       DagBlock block;
       block.deserialize(strm);
 
+      auto transactionsCount = _r.itemCount() - 1;
+      std::unordered_map<trx_hash_t, Transaction> newTransactions;
+      for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
+           iTransaction++) {
+        std::vector<::byte> transactionBytes;
+        for (auto i = 0; i < _r[iTransaction].itemCount(); i++) {
+          transactionBytes.push_back(_r[iTransaction][i].toInt());
+        }
+        taraxa::bufferstream strm(transactionBytes.data(),
+                                  transactionBytes.size());
+        Transaction transaction;
+        transaction.deserialize(strm);
+        newTransactions[transaction.getHash()] = transaction;
+        m_peers[_nodeID].markTransactionAsKnown(transaction.getHash());
+      }
+
+      if (auto full_node = full_node_.lock()) {
+        full_node->insertNewTransactions(newTransactions);
+      } else {
+        for (auto const &transaction : newTransactions) {
+          if (m_TestTransactions.find(transaction.first) ==
+              m_TestTransactions.end()) {
+            m_TestTransactions[transaction.first] = transaction.second;
+            LOG(logger_debug_)
+                << "Received New Transaction " << transaction.first.toString();
+          } else {
+            LOG(logger_debug_)
+                << "Received New Transaction" << transaction.first.toString()
+                << "that is already known";
+          }
+        }
+      }
       LOG(logger_debug_) << "Received BlockPacket "
                          << block.getHash().toString();
       m_peers[_nodeID].markBlockAsKnown(block.getHash());
@@ -136,8 +184,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         auto block = full_node->getBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, false);
-        }
-        else
+        } else
           LOG(logger_) << "NO PACKET: " << hash.toString();
       }
       break;
@@ -156,8 +203,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         auto block = full_node->getBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, false);
-        }
-        else
+        } else
           LOG(logger_) << "NO NEW PACKET: " << hash.toString();
       } else if (m_TestBlocks.find(hash) != m_TestBlocks.end()) {
         sendBlock(_nodeID, m_TestBlocks[hash], true);
@@ -188,14 +234,35 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
     case BlockChildrenPacket: {
       std::string receivedBlocks;
       auto blockCount = _r.itemCount();
+      int transactionCount = 0;
       for (auto iBlock = 0; iBlock < blockCount; iBlock++) {
         std::vector<::byte> blockBytes;
-        for (auto i = 0; i < _r[iBlock].itemCount(); i++) {
-          blockBytes.push_back(_r[iBlock][i].toInt());
+        for (auto i = 0; i < _r[iBlock + transactionCount].itemCount(); i++) {
+          blockBytes.push_back(_r[iBlock + transactionCount][i].toInt());
         }
         taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
         DagBlock block;
         block.deserialize(strm);
+
+        std::unordered_map<trx_hash_t, Transaction> newTransactions;
+        for (int i = 0; i < block.getTrxs().size(); i++) {
+          std::vector<::byte> transactionBytes;
+          transactionCount++;
+          for (auto i = 0; i < _r[iBlock + transactionCount].itemCount(); i++) {
+            transactionBytes.push_back(
+                _r[iBlock + transactionCount][i].toInt());
+          }
+          taraxa::bufferstream strm(transactionBytes.data(),
+                                    transactionBytes.size());
+          Transaction transaction;
+          transaction.deserialize(strm);
+          newTransactions[transaction.getHash()] = transaction;
+          m_peers[_nodeID].markTransactionAsKnown(transaction.getHash());
+          if (auto full_node = full_node_.lock()) {
+            full_node->insertNewTransactions(newTransactions);
+          }
+        }
+
         receivedBlocks += shortHash(block.getHash().toString()) + " ";
         m_peers[_nodeID].m_syncBlocks[block.getHash()] = block;
       }
@@ -320,8 +387,7 @@ void TaraxaCapability::onNewTransactions(
         }
       }
     }
-  }
-  else {
+  } else {
     for (auto &peer : m_peers) {
       std::vector<Transaction> transactionsToSend;
       for (auto const &transaction : transactions) {
@@ -336,21 +402,27 @@ void TaraxaCapability::onNewTransactions(
   }
 }
 
-void TaraxaCapability::onNewBlock(DagBlock block, bool created) {
-  if(!created) {
+void TaraxaCapability::onNewBlock(
+    DagBlock block, std::unordered_map<trx_hash_t, Transaction> transactions,
+    bool created) {
+  if (!created) {
     if (auto full_node = full_node_.lock()) {
       if (full_node->isBlockKnown(block.getHash())) {
         LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                          << "that is already known";
+                           << "that is already known";
         return;
       } else {
+        full_node->insertNewTransactions(transactions);
         full_node->storeBlock(block);
       }
     } else if (m_TestBlocks.find(block.getHash()) == m_TestBlocks.end()) {
       m_TestBlocks[block.getHash()] = block;
+      for (auto tr : transactions) {
+        m_TestTransactions[tr.first] = tr.second;
+      }
     } else {
       LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                        << "that is already known";
+                         << "that is already known";
       return;
     }
   }
@@ -397,23 +469,43 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
                                     std::vector<std::string> children) {
   LOG(logger_debug_) << "sendChildren " << children.size();
   RLPStream s;
-  m_host.capabilityHost()->prep(_id, name(), s, BlockChildrenPacket,
-                                children.size());
+  std::vector<DagBlock> blocksToSend;
+  std::vector<std::vector<Transaction>> blockTransactions;
+  int totalTransactionsCount = 0;
   if (auto full_node = full_node_.lock()) {
     for (auto child : children) {
       auto block = full_node->getDagBlock(blk_hash_t(child));
+      std::vector<Transaction> transactions;
+      for (auto trx : block->getTrxs()) {
+        transactions.push_back(*full_node->getTransaction(trx));
+        totalTransactionsCount++;
+      }
+      blocksToSend.push_back(*block);
+      blockTransactions.push_back(transactions);
+    }
+  }
+  m_host.capabilityHost()->prep(_id, name(), s, BlockChildrenPacket,
+                                children.size() + totalTransactionsCount);
+
+  for (int i = 0; i < blocksToSend.size(); i++) {
+    std::vector<uint8_t> bytes;
+    {
+      vectorstream strm(bytes);
+      blocksToSend[i].serialize(strm);
+    }
+    s.appendList(bytes.size());
+    for (auto i = 0; i < bytes.size(); i++) s << bytes[i];
+    for (auto trx : blockTransactions[i]) {
       std::vector<uint8_t> bytes;
-      // Need to put a scope of vectorstream, other bytes won't get
-      // result.
       {
         vectorstream strm(bytes);
-        block->serialize(strm);
+        trx.serialize(strm);
       }
       s.appendList(bytes.size());
       for (auto i = 0; i < bytes.size(); i++) s << bytes[i];
     }
-    m_host.capabilityHost()->sealAndSend(_id, s);
   }
+  m_host.capabilityHost()->sealAndSend(_id, s);
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id,
@@ -446,12 +538,40 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
     vectorstream strm(bytes);
     block.serialize(strm);
   }
-  if (newBlock)
-    m_host.capabilityHost()->prep(_id, name(), s, NewBlockPacket, 1);
-  else
-    m_host.capabilityHost()->prep(_id, name(), s, BlockPacket, 1);
+  vec_trx_t transactionsToSend;
+  if (newBlock) {
+    for (auto trx : block.getTrxs()) {
+      if (!m_peers[_id].isTransactionKnown(trx))
+        transactionsToSend.push_back(trx);
+    }
+    m_host.capabilityHost()->prep(_id, name(), s, NewBlockPacket,
+                                  1 + transactionsToSend.size());
+  } else {
+    m_host.capabilityHost()->prep(_id, name(), s, BlockPacket,
+                                  1 + block.getTrxs().size());
+    transactionsToSend = block.getTrxs();
+  }
   s.appendList(bytes.size());
   for (auto i = 0; i < bytes.size(); i++) s << bytes[i];
+  for (auto trx : transactionsToSend) {
+    std::shared_ptr<Transaction> transaction;
+    if (auto full_node = full_node_.lock()) {
+      transaction = full_node->getTransaction(trx);
+    } else {
+      assert(m_TestTransactions.find(trx) != m_TestTransactions.end());
+      transaction = std::make_shared<Transaction>(m_TestTransactions[trx]);
+    }
+    assert(transaction != nullptr);  // We should never try to send a block for
+                                     // which  we do not have all transactions
+    std::vector<uint8_t> bytes;
+    // Need to put a scope of vectorstream, other bytes won't get result.
+    {
+      vectorstream strm(bytes);
+      transaction->serialize(strm);
+    }
+    s.appendList(bytes.size());
+    for (auto i = 0; i < bytes.size(); i++) s << bytes[i];
+  }
   m_host.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -532,7 +652,7 @@ void TaraxaCapability::doBackgroundWork() {
 
 void TaraxaCapability::onStarting() {
   m_host.scheduleExecution(c_backroundWorkPeriodMs,
-                            [this]() { doBackgroundWork(); });
+                           [this]() { doBackgroundWork(); });
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
