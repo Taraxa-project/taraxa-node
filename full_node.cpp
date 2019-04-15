@@ -124,7 +124,7 @@ void FullNode::start() {
       while (!stopped_) {
         DagBlock blk = blk_qu_->getVerifiedBlock();
         trx_mgr_->setPackedTrxFromBlock(blk);
-        trx_mgr_->checkTransactionsinQueue();
+        trx_mgr_->removeSeenFromVerifiedTrxSnapShot(blk.getTrxs());
         key = blk.getHash().toString();
         LOG(log_nf_) << "Write block to db ... " << key << std::endl;
         if (debug_) {
@@ -165,7 +165,8 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   sign_block.sign(node_sk_);
   LOG(log_nf_) << "Signed block: " << sign_block << std::endl;
   storeBlock(sign_block);
-  network_->onNewBlock(sign_block, true);
+  std::unordered_map<trx_hash_t, Transaction> transactions;
+  network_->onNewBlock(sign_block, transactions, true);
 }
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
@@ -191,6 +192,15 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
     return std::make_shared<DagBlock>(json);
   }
   return block;
+}
+
+std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
+  std::string json = db_trxs_->get(hash.toString());
+  if (!json.empty()) {
+    return std::make_shared<Transaction>(json);
+  }
+  //Check the queue as well
+  return trx_mgr_->getTransaction(hash);
 }
 
 time_stamp_t FullNode::getDagBlockTimeStamp(blk_hash_t const &hash) {

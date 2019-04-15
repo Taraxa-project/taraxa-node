@@ -230,6 +230,24 @@ void TransactionQueue::verifyTrx() {
   }
 }
 
+void TransactionQueue::removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs) {
+  uLock lock(mutex_for_unverified_qu_);
+  uLock lock2(mutex_for_verified_qu_);
+  std::deque<Transaction> new_unverified_queue;
+  for(auto uTrx : unverified_qu_) {
+    bool found = false;
+    for(auto trx : trxs) {
+      if(trx == uTrx.getHash())
+        found = true;
+    }
+    if(!found)
+      new_unverified_queue.push_back(uTrx);
+  }
+  unverified_qu_ = new_unverified_queue;
+  for(auto trx : trxs)
+    verified_trxs_.erase(trx);
+}
+
 std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
@@ -242,6 +260,22 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
                  << std::endl;
   }
   return verified_trxs;
+}
+
+std::shared_ptr<Transaction> TransactionQueue::getTransaction(trx_hash_t const &hash) {
+  {
+    uLock lock(mutex_for_unverified_qu_);
+    for(auto trx : unverified_qu_)
+      if(trx.getHash() == hash)
+        return std::make_shared<Transaction>(trx);
+  }
+  {
+    uLock lock(mutex_for_verified_qu_);
+    for(auto trx : verified_trxs_)
+      if(trx.first == hash)
+        return std::make_shared<Transaction>(trx.second);
+  }
+  return nullptr;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -264,10 +298,12 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-void TransactionManager::checkTransactionsinQueue() {
-  auto transactions = trx_qu_.moveVerifiedTrxSnapShot();
-  for(auto trx : transactions)
-    trx_qu_.insert(trx.second);
+std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const &hash) {
+  return trx_qu_.getTransaction(hash);
+}
+
+void TransactionManager::removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs) {
+  trx_qu_.removeSeenFromVerifiedTrxSnapShot(trxs);
 }
 
 bool TransactionManager::insertTrx(Transaction trx) {
@@ -284,6 +320,10 @@ void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
   TransactionStatus status;
   bool exist;
   for (auto const &t : trxs) {
+    auto transaction = getTransaction(t);
+    assert(transaction);
+    db_trxs_->put(t.toString(), transaction->getJsonStr());
+
     std::tie(status, exist) = trx_status_.get(t);
     if (!exist) {
       trx_status_.insert(

@@ -117,13 +117,13 @@ void Network::sendTransactions(NodeID const &id,
   LOG(logger_debug_) << "Sent transactions:" << transactions.size();
 }
 
-void Network::onNewBlock(DagBlock const &blk, bool created) {
-  taraxa_capability_->onNewBlock(blk, created);
+void Network::onNewBlock(DagBlock const &blk, std::unordered_map<trx_hash_t, Transaction> transactions, bool created) {
+  taraxa_capability_->onNewBlock(blk, transactions, created);
   LOG(logger_debug_) << "On new block:" << blk.getHash().toString();
 }
 
 void Network::onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions) {
-  taraxa_capability_->onNewTransactions(transactions, false);
+  taraxa_capability_->onNewTransactions(transactions, true);
   LOG(logger_debug_) << "On new transactions" << transactions.size();
 }
 
