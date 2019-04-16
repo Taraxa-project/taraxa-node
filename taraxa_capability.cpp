@@ -1,5 +1,6 @@
 #include "taraxa_capability.h"
 #include "network.hpp"
+#include "vote.h"
 
 using namespace taraxa;
 
@@ -224,6 +225,26 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                            << " transactions:" << receivedTransactions.c_str();
         onNewTransactions(transactions, true);
       }
+      break;
+    }
+    case PbftVote: {
+      LOG(logger_debug_) << "Received PBFT vote";
+
+      std::vector<::byte> pbftVoteBytes;
+
+      for (auto i = 0; i < _r[0].itemCount(); i++) {
+        pbftVoteBytes.push_back(_r[0][i].toInt());
+      }
+      taraxa::bufferstream strm(pbftVoteBytes.data(), pbftVoteBytes.size());
+      Vote vote;
+      vote.deserialize(strm);
+      if (!m_peers[_nodeID].isVoteKnown(vote.getHash())) {
+        m_peers[_nodeID].markVoteAsKnown(vote.getHash());
+
+        auto full_node = full_node_.lock();
+        full_node->placeVote(vote);
+      }
+      onNewPbftVote(vote);
       break;
     }
     case TestPacket:
@@ -502,4 +523,31 @@ void TaraxaCapability::doBackgroundWork() {
 void TaraxaCapability::onStarting() {
   m_host.scheduleExecution(c_backroundWorkPeriodMs,
                             [this]() { doBackgroundWork(); });
+}
+
+void TaraxaCapability::onNewPbftVote(taraxa::Vote vote) {
+  for (auto &peer : m_peers) {
+    if (!peer.second.isVoteKnown(vote.getHash())) {
+      sendPbftVote(peer.first, vote);
+    }
+  }
+}
+
+void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote vote) {
+  LOG(logger_debug_) << "sendPbftVote " << vote.blockhash_ << " to " << _id;
+
+  RLPStream s;
+  std::vector<uint8_t> bytes;
+
+  // Need to put a scope of vectorstream, other bytes won't get result.
+  {
+    vectorstream strm(bytes);
+    vote.serialize(strm);
+  }
+  m_host.capabilityHost()->prep(_id, name(), s, PbftVote, 1);
+  s.appendList(bytes.size());
+  for (auto i = 0; i < bytes.size(); i++) {
+    s << bytes[i];
+  }
+  m_host.capabilityHost()->sealAndSend(_id, s);
 }

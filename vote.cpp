@@ -8,25 +8,69 @@
 
 #include "vote.h"
 
+#include "libdevcore/SHA3.h"
+
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 namespace taraxa {
 
-Vote::Vote(blk_hash_t blockhash, char type, int period, int step, public_t node_pk)
-  : blockhash_(blockhash),
-    type_(type),
-    period_(period),
-    step_(step),
-    node_pk_(node_pk) {
+Vote::Vote(public_t node_pk,
+           dev::Signature signature,
+           blk_hash_t blockhash,
+           char type,
+           int period,
+           int step) : node_pk_(node_pk),
+                       signature_(signature),
+                       blockhash_(blockhash),
+                       type_(type),
+                       period_(period),
+                       step_(step) {
 }
 
-void VoteQueue::placeVote(blk_hash_t blockhash,
+Vote::Vote(taraxa::stream &strm) {
+  deserialize(strm);
+}
+
+bool Vote::serialize(stream &strm) const {
+  bool ok = true;
+
+  ok &= write(strm, node_pk_);
+  ok &= write(strm, signature_);
+  ok &= write(strm, blockhash_);
+  ok &= write(strm, type_);
+  ok &= write(strm, period_);
+  ok &= write(strm, step_);
+  assert(ok);
+
+  return ok;
+}
+
+bool Vote::deserialize(stream &strm) {
+  bool ok = true;
+
+  ok &= read(strm, node_pk_);
+  ok &= read(strm, signature_);
+  ok &= read(strm, blockhash_);
+  ok &= read(strm, type_);
+  ok &= read(strm, period_);
+  ok &= read(strm, step_);
+  assert(ok);
+
+  return ok;
+}
+
+sig_hash_t Vote::getHash() {
+  return dev::sha3(signature_);
+}
+
+void VoteQueue::placeVote(public_t node_pk,
+                          dev::Signature signature,
+                          blk_hash_t blockhash,
                           char type,
                           int period,
-                          int step,
-                          public_t node_pk) {
-  Vote vote(blockhash, type, period, step, node_pk);
+                          int step) {
+  Vote vote(node_pk, signature, blockhash, type, period, step);
   placeVote(vote);
 }
 

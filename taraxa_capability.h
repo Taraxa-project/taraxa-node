@@ -29,7 +29,8 @@ enum SubprotocolPacketType : ::byte {
   BlockChildrenPacket,
   TransactionPacket,
   TestPacket,
-  PacketCount
+  PacketCount,
+  PbftVote
 };
 
 enum PeerState { Idle = 0, Syncing };
@@ -55,6 +56,16 @@ class TaraxaPeer {
   }
   void clearKnownTransactions() { m_knownTransactions.clear(); }
 
+  bool isVoteKnown(sig_hash_t const &_hash) const {
+    return m_knownVotes.count(_hash);
+  }
+  void markVoteAsKnown(sig_hash_t const &_hash) {
+    m_knownVotes.insert(_hash);
+  }
+  void clearKnownVotes() {
+    m_knownVotes.clear();
+  }
+
   std::map<blk_hash_t, DagBlock> m_syncBlocks;
   blk_hash_t m_lastRequest;
   PeerState m_state;
@@ -62,6 +73,7 @@ class TaraxaPeer {
  private:
   std::set<blk_hash_t> m_knownBlocks;
   std::set<trx_hash_t> m_knownTransactions;
+  std::set<sig_hash_t> m_knownVotes;
   NodeID m_id;
 };
 
@@ -106,7 +118,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void doBackgroundWork();
   void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
-  
+
+  void onNewPbftVote(taraxa::Vote vote);
+  void sendPbftVote(NodeID const &_id, taraxa::Vote vote);
+
   private:
   const int c_backroundWorkPeriodMs = 1000;
   Host &m_host;
