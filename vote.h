@@ -9,6 +9,7 @@
 #ifndef VOTE_H
 #define VOTE_H
 
+#include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"
 #include "types.hpp"
 #include "util.hpp"
@@ -31,15 +32,32 @@ class Vote {
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
+  bool validateVote(std::pair<bal_t, bool> vote_account_balance);
 
   sig_hash_t getHash();
+  public_t getPublicKey();
+  dev::Signature getSingature();
+  blk_hash_t getBlockHash();
+  char getType();
+  int getPeriod();
+  int getStep();
 
+ private:
   public_t node_pk_;
   dev::Signature signature_;
   blk_hash_t blockhash_;
   char type_;
   int period_;
   int step_;
+
+  mutable dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE")};
+  mutable dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "VOTE")};
+  mutable dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTE")};
+  mutable dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE")};
 };
 
 class VoteQueue {
@@ -52,7 +70,7 @@ class VoteQueue {
   void placeVote(Vote vote);
 
   void placeVote(public_t node_pk,
-                 dev::Signature signature,
+                 secret_t node_sk,
                  blk_hash_t blockhash,
                  char type,
                  int period,
