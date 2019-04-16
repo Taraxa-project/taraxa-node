@@ -203,10 +203,10 @@ TEST(BlockQueue, push_and_pop) {
   blk_qu.pushUnverifiedBlock(blk1);
   blk_qu.pushUnverifiedBlock(blk2);
 
-  DagBlock blk3 = blk_qu.getVerifiedBlock();
-  DagBlock blk4 = blk_qu.getVerifiedBlock();
-  EXPECT_EQ(blk1, blk3);
-  EXPECT_EQ(blk2, blk4);
+  auto blk3 = blk_qu.getVerifiedBlock();
+  auto blk4 = blk_qu.getVerifiedBlock();
+  EXPECT_EQ(blk1, blk3.first);
+  EXPECT_EQ(blk2, blk4.first);
 }
 }  // namespace taraxa
 int main(int argc, char** argv) {

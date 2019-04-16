@@ -28,15 +28,13 @@
 namespace taraxa {
 
 using std::string;
+class DagBlock;
 
 enum class TransactionStatus {
-  seen_but_invalid,
-  seen_in_db,     // confirmed state, (packed)
-  seen_in_queue,  // not packed yet
-  seen_in_queue_but_already_packed_by_others,
-  unseen,                              // not possible, won't store unseen state
-  unseen_but_already_packed_by_others  // still need to be in queue to write to
-                                       // db, but do not propose
+  invalid,
+  in_block,     // confirmed state, inside of block created by us or someone else
+  in_queue,  // not packed yet
+  unseen
 };
 /**
  * simple thread_safe hash
@@ -65,6 +63,10 @@ class TransactionStatusTable {
       ret = true;
     }
     return ret;
+  }
+  void update(trx_hash_t const &hash, TransactionStatus status) {
+    uLock lock(mutex_);
+    status_[hash] = status;
   }
   bool compareAndSwap(trx_hash_t const &hash, TransactionStatus expected_value,
                       TransactionStatus new_value) {
@@ -254,7 +256,7 @@ class TransactionQueue {
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  void removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs);
+  std::unordered_map<trx_hash_t, Transaction> moveBlockTransactions(vec_trx_t allBlockTransactions);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
@@ -341,7 +343,7 @@ class TransactionManager
   }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  void removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs);
+  bool saveBlockTransactions(vec_trx_t allBlockTransactions, std::vector<Transaction> transactions);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
