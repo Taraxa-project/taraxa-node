@@ -71,6 +71,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // Store a block in persistent storage and build in dag
   void storeBlock(DagBlock const &blk);
   void storeBlockAndSign(DagBlock const &blk);
+  
+  //Only used in initial syncs when blocks are received with full list of transactions
+  void storeBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> &transactions);
 
   // Store transaction
   void storeTransaction(Transaction const &trx);

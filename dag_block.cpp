@@ -222,7 +222,7 @@ std::shared_ptr<DagBlock> BlockQueue::getBlock(blk_hash_t const &hash) {
   return std::shared_ptr<DagBlock>();
 }
 
-void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
+void BlockQueue::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions) {
   {
     upgradableLock lock(shared_mutex_);
     if (seen_blocks_.count(blk.getHash())) {
@@ -236,17 +236,21 @@ void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
   }
   {
     uLock lock(mutex_for_unverified_qu_);
-    unverified_qu_.emplace_back((blk));
+    unverified_qu_.emplace_back(std::make_pair(blk, transactions));
     cond_for_unverified_qu_.notify_one();
   }
 }
 
-DagBlock BlockQueue::getVerifiedBlock() {
+void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
+  pushUnverifiedBlock(blk, std::vector<Transaction>());
+}
+
+std::pair<DagBlock, std::vector<Transaction> > BlockQueue::getVerifiedBlock() {
   uLock lock(mutex_for_verified_qu_);
   while (verified_qu_.empty() && !stopped_) {
     cond_for_verified_qu_.wait(lock);
   }
-  DagBlock blk;
+  std::pair<DagBlock, std::vector<Transaction> > blk;
   if (stopped_) return blk;
 
   blk = verified_qu_.front();
@@ -257,7 +261,7 @@ DagBlock BlockQueue::getVerifiedBlock() {
 
 void BlockQueue::verifyBlock() {
   while (!stopped_) {
-    DagBlock blk;
+    std::pair<DagBlock, std::vector<Transaction> > blk;
     {
       uLock lock(mutex_for_unverified_qu_);
       while (unverified_qu_.empty() && !stopped_) {
@@ -267,7 +271,7 @@ void BlockQueue::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
-    LOG(log_nf_) << "Verified block: " << blk.getHash() << std::endl;
+    LOG(log_nf_) << "Verified block: " << blk.first.getHash() << std::endl;
 
     // TODO: verify block, now just move it to verified_qu_
     {

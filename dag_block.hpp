@@ -22,10 +22,12 @@
 #include "libdevcore/Log.h"
 #include "types.hpp"
 #include "util.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 using std::string;
 class DagManager;
+class Transaction;
 // Block definition
 
 /**
@@ -99,7 +101,8 @@ class BlockQueue {
   BlockQueue(size_t capacity, unsigned verify_threads);
   ~BlockQueue();
   void pushUnverifiedBlock(DagBlock const &block);  // add to unverified queue
-  DagBlock getVerifiedBlock();  // get one verified block and pop
+  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions);  // add to unverified queue
+  std::pair<DagBlock, std::vector<Transaction> > getVerifiedBlock();  // get one verified block and pop
   void start();
   void stop();
   bool isBlockKnown(blk_hash_t const &hash);
@@ -128,8 +131,8 @@ class BlockQueue {
   std::condition_variable cond_for_unverified_qu_;
   std::condition_variable cond_for_verified_qu_;
 
-  std::deque<DagBlock> unverified_qu_;
-  std::deque<DagBlock> verified_qu_;
+  std::deque<std::pair<DagBlock, std::vector<Transaction> > > unverified_qu_;
+  std::deque<std::pair<DagBlock, std::vector<Transaction> > > verified_qu_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "blk_qu")};
   dev::Logger log_wr_{

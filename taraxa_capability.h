@@ -66,7 +66,7 @@ class TaraxaPeer {
     m_knownVotes.clear();
   }
 
-  std::map<blk_hash_t, DagBlock> m_syncBlocks;
+  std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction> > > m_syncBlocks;
   blk_hash_t m_lastRequest;
   PeerState m_state;
 
@@ -98,7 +98,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                                  RLP const &_r) override;
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
-  void onNewBlock(DagBlock block, std::unordered_map<trx_hash_t, Transaction> transactions, bool created = false);
+  void onNewBlockReceived(DagBlock block, std::unordered_map<trx_hash_t, Transaction> transactions);
+  void onNewBlockVerified(DagBlock block);
   void onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions, bool fromNetwork);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);

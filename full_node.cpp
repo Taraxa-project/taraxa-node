@@ -122,10 +122,24 @@ void FullNode::start() {
     block_workers_.emplace_back([this]() {
       std::string key;
       while (!stopped_) {
-        DagBlock blk = blk_qu_->getVerifiedBlock();
-        trx_mgr_->setPackedTrxFromBlock(blk);
-        trx_mgr_->removeSeenFromVerifiedTrxSnapShot(blk.getTrxs());
-        key = blk.getHash().toString();
+        auto blk = blk_qu_->getVerifiedBlock();
+        //Any transactions that are passed with the block were not verified in transactions queue so they need to be verified here
+        bool invalidTransaction = false;
+        for(auto const &trx : blk.second) {
+          auto valid = trx.verifySig();//Probably move this check somewhere in transaction classes later
+          if(!valid) {
+            invalidTransaction = true;
+            LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
+          }
+        }
+        //Skip block if invalid transaction
+        if(invalidTransaction)
+          continue;
+
+        //Save the transaction that came with the block together with the transactions that are in the queue
+        trx_mgr_->saveBlockTransactions(blk.first.getTrxs(), blk.second);
+
+        key = blk.first.getHash().toString();
         LOG(log_nf_) << "Write block to db ... " << key << std::endl;
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
@@ -133,8 +147,9 @@ void FullNode::start() {
             received_blocks_++;
           }
         }
-        db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
-        dag_mgr_->addDagBlock(blk, true);
+        db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
+        dag_mgr_->addDagBlock(blk.first, true);
+        network_->onNewBlockVerified(blk.first);
       }
     });
   }
@@ -156,6 +171,10 @@ void FullNode::stop() {
   }
 }
 
+void FullNode::storeBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> &transactions) {
+  blk_qu_->pushUnverifiedBlock(std::move(blk), transactions);
+}
+
 void FullNode::storeBlock(DagBlock const &blk) {
   blk_qu_->pushUnverifiedBlock(std::move(blk));
 }
@@ -166,7 +185,6 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   LOG(log_nf_) << "Signed block: " << sign_block << std::endl;
   storeBlock(sign_block);
   std::unordered_map<trx_hash_t, Transaction> transactions;
-  network_->onNewBlock(sign_block, transactions, true);
 }
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {

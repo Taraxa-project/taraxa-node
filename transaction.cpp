@@ -155,30 +155,17 @@ bool TransactionQueue::insert(Transaction trx) {
   auto status = trx_status_.get(hash);
   bool ret = false;
   if (status.second == false) {  // never seen before
-    ret = trx_status_.insert(hash, TransactionStatus::seen_in_queue);
+    ret = trx_status_.insert(hash, TransactionStatus::in_queue);
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(trx);
     cond_for_unverified_qu_.notify_one();
     LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
     ret = true;
-  } else if (status.first ==
-             TransactionStatus::
-                 unseen_but_already_packed_by_others) {  // updated by other
-                                                         // blocks
-    ret = trx_status_.compareAndSwap(
-        hash, TransactionStatus::unseen_but_already_packed_by_others,
-        TransactionStatus::seen_in_queue_but_already_packed_by_others);
-    uLock lock(mutex_for_unverified_qu_);
-    unverified_qu_.emplace_back(trx);
-    cond_for_unverified_qu_.notify_one();
-    LOG(log_nf_) << "Trx: " << hash
-                 << "already packed by others, but still enqueue. "
-                 << std::endl;
-  } else if (status.first == TransactionStatus::seen_in_queue) {
+  } else if (status.first == TransactionStatus::in_queue) {
     LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
-  } else if (status.first == TransactionStatus::seen_in_db) {
+  } else if (status.first == TransactionStatus::in_block) {
     LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
-  } else if (status.first == TransactionStatus::seen_but_invalid) {
+  } else if (status.first == TransactionStatus::invalid) {
     LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
   }
 
@@ -212,9 +199,8 @@ void TransactionQueue::verifyTrx() {
       }
       // mark invalid
       if (!valid) {
-        trx_status_.compareAndSwap(trx.getHash(),
-                                   TransactionStatus::seen_in_queue,
-                                   TransactionStatus::seen_but_invalid);
+        trx_status_.compareAndSwap(trx.getHash(), TransactionStatus::in_queue,
+                                   TransactionStatus::invalid);
         LOG(log_wr_) << "Trx: " << hash << "invalid. " << std::endl;
 
       } else {
@@ -230,30 +216,39 @@ void TransactionQueue::verifyTrx() {
   }
 }
 
-void TransactionQueue::removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs) {
-  uLock lock(mutex_for_unverified_qu_);
-  uLock lock2(mutex_for_verified_qu_);
-  std::deque<Transaction> new_unverified_queue;
-  for(auto uTrx : unverified_qu_) {
-    bool found = false;
-    for(auto trx : trxs) {
-      if(trx == uTrx.getHash())
-        found = true;
+std::unordered_map<trx_hash_t, Transaction>
+TransactionQueue::moveBlockTransactions(vec_trx_t allBlockTransactions) {
+  std::unordered_map<trx_hash_t, Transaction> result;
+  while (true) {
+    {
+      uLock lock(mutex_for_verified_qu_);
+      for (auto trx : allBlockTransactions) {
+        auto fTrx = verified_trxs_.find(trx);
+        if (fTrx != verified_trxs_.end()) {
+          result[fTrx->first] = fTrx->second;
+          verified_trxs_.erase(trx);
+        }
+      }
     }
-    if(!found)
-      new_unverified_queue.push_back(uTrx);
+    {
+      uLock lock(mutex_for_unverified_qu_);
+      bool found = false;
+      for (auto uTrx : unverified_qu_) {
+        for (auto trx : allBlockTransactions) {
+          if (trx == uTrx.getHash()) found = true;
+        }
+      }
+      if (!found) return result;
+    }
+    thisThreadSleepForMilliSeconds(10);
   }
-  unverified_qu_ = new_unverified_queue;
-  for(auto trx : trxs)
-    verified_trxs_.erase(trx);
 }
 
 std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
-  if(new_verified_transactions || !onlyNew) {
-    if(onlyNew)
-      new_verified_transactions = false;
+  if (new_verified_transactions || !onlyNew) {
+    if (onlyNew) new_verified_transactions = false;
     uLock lock(mutex_for_verified_qu_);
     verified_trxs = verified_trxs_;
     LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
@@ -262,18 +257,17 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return verified_trxs;
 }
 
-std::shared_ptr<Transaction> TransactionQueue::getTransaction(trx_hash_t const &hash) {
+std::shared_ptr<Transaction> TransactionQueue::getTransaction(
+    trx_hash_t const &hash) {
   {
     uLock lock(mutex_for_unverified_qu_);
-    for(auto trx : unverified_qu_)
-      if(trx.getHash() == hash)
-        return std::make_shared<Transaction>(trx);
+    for (auto trx : unverified_qu_)
+      if (trx.getHash() == hash) return std::make_shared<Transaction>(trx);
   }
   {
     uLock lock(mutex_for_verified_qu_);
-    for(auto trx : verified_trxs_)
-      if(trx.first == hash)
-        return std::make_shared<Transaction>(trx.second);
+    for (auto trx : verified_trxs_)
+      if (trx.first == hash) return std::make_shared<Transaction>(trx.second);
   }
   return nullptr;
 }
@@ -298,12 +292,22 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const &hash) {
+std::shared_ptr<Transaction> TransactionManager::getTransaction(
+    trx_hash_t const &hash) {
   return trx_qu_.getTransaction(hash);
 }
 
-void TransactionManager::removeSeenFromVerifiedTrxSnapShot(vec_trx_t trxs) {
-  trx_qu_.removeSeenFromVerifiedTrxSnapShot(trxs);
+bool TransactionManager::saveBlockTransactions(
+    vec_trx_t allBlockTransactions, std::vector<Transaction> transactions) {
+  for (auto const &trx : transactions) {
+    db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
+    trx_status_.update(trx.getHash(), TransactionStatus::in_block);
+  }
+
+  for (auto const &trx : trx_qu_.moveBlockTransactions(allBlockTransactions)) {
+    db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
+    trx_status_.update(trx.first, TransactionStatus::in_block);
+  }
 }
 
 bool TransactionManager::insertTrx(Transaction trx) {
@@ -313,42 +317,6 @@ bool TransactionManager::insertTrx(Transaction trx) {
     ret = true;
   }
   return ret;
-}
-void TransactionManager::setPackedTrxFromBlockHash(blk_hash_t blk) {}
-void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
-  vec_trx_t trxs = blk.getTrxs();
-  TransactionStatus status;
-  bool exist;
-  for (auto const &t : trxs) {
-    auto transaction = getTransaction(t);
-    assert(transaction);
-    db_trxs_->put(t.toString(), transaction->getJsonStr());
-
-    std::tie(status, exist) = trx_status_.get(t);
-    if (!exist) {
-      trx_status_.insert(
-          t, TransactionStatus::unseen_but_already_packed_by_others);
-      LOG(log_nf_) << "Blk->Trx : " << t
-                   << " unseen but already packed by others" << std::endl;
-
-    } else if (status == TransactionStatus::seen_in_queue) {
-      trx_status_.compareAndSwap(
-          t, TransactionStatus::seen_in_queue,
-          TransactionStatus::seen_in_queue_but_already_packed_by_others);
-      LOG(log_nf_) << "Blk->Trx : " << t
-                   << " seen in queue but already packed by others"
-                   << std::endl;
-    } else if (status == TransactionStatus::seen_but_invalid) {
-      LOG(log_nf_) << "Blk->Trx : " << t << " skip, seen and invalid"
-                   << std::endl;
-    } else if (status ==
-               TransactionStatus::seen_in_queue_but_already_packed_by_others) {
-      LOG(log_nf_) << "Blk->Trx : " << t << " skip, seen packed by others."
-                   << std::endl;
-    } else if (status == TransactionStatus::seen_in_db) {
-      LOG(log_nf_) << "Blk->Trx : " << t << " skip, seen in db." << std::endl;
-    }
-  }
 }
 
 /**
@@ -364,63 +332,39 @@ void TransactionManager::setPackedTrxFromBlock(DagBlock const &blk) {
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
+  static std::uniform_int_distribution<> d(1, 20000);
+  static std::mt19937 gen;
   uLock pack_lock(mutex_for_pack_trx_);
   while (!stopped_ && trx_qu_.getVerifiedTrxCount() < rate_limiter_) {
     cond_for_pack_trx_.wait_for(pack_lock, std::chrono::milliseconds(1000));
+    // Rate limiter will make all nodes create parallel blocks at exactly same
+    // time, add some random delay to avoid that
+    thisThreadSleepForMilliSeconds(d(gen)); 
+    printf("Trx count: %d\n", trx_qu_.getVerifiedTrxCount());
   }
+  
   if (stopped_) return;
   // reset counter
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
-  std::vector<trx_hash_t> exist_in_db;
-  std::vector<trx_hash_t> packed_by_others;
   uLock lock(mutex_);
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
+    // Skip if transaction is already in existing block
     if (!db_trxs_->put(hash.toString(), trx.getJsonStr())) {
-      exist_in_db.emplace_back(i.first);
+      trx_status_.insert(hash, TransactionStatus::in_block);
+      continue;
     }
     TransactionStatus status;
     bool exist;
     std::tie(status, exist) = trx_status_.get(hash);
     assert(exist);
-    if (status ==
-        TransactionStatus::seen_in_queue_but_already_packed_by_others) {
-      packed_by_others.emplace_back(hash);
-      LOG(log_nf_) << "Trx: " << hash << " already packed by others"
-                   << std::endl;
-    } else if (status == TransactionStatus::seen_in_queue) {
-      to_be_packed_trx.emplace_back(i.first);
-      LOG(log_nf_) << "Trx: " << hash << " ready to pack" << std::endl;
-    } else {
-      LOG(log_wr_) << "Trx: " << hash << " status " << asInteger(status)
-                   << std::endl;
-      LOG(log_wr_) << "Trx: " << hash << " status " << asInteger(status)
-                   << std::endl;
-      assert(true);
-    }
-  }
-  // update transaction_status
-  bool res;
-  for (auto const &t : exist_in_db) {
-    res = trx_status_.insert(t, TransactionStatus::seen_in_db);
-    if (!res) {
-      TransactionStatus status;
-      bool exist;
-      std::tie(status, exist) = trx_status_.get(t);
-      res = (status == TransactionStatus::seen_in_db);
-      assert(res);
-    }
-  }
-  for (auto const &t : packed_by_others) {
-    res = trx_status_.compareAndSwap(
-        t, TransactionStatus::seen_in_queue_but_already_packed_by_others,
-        TransactionStatus::seen_in_db);
-    assert(res);
-  }
-  for (auto const &t : to_be_packed_trx) {
-    res = trx_status_.compareAndSwap(t, TransactionStatus::seen_in_queue,
-                                     TransactionStatus::seen_in_db);
+    LOG(log_nf_) << "Trx: " << hash << " ready to pack" << std::endl;
+    // update transaction_status
+    bool res;
+    res = trx_status_.compareAndSwap(hash, TransactionStatus::in_queue,
+                                     TransactionStatus::in_block);
+    to_be_packed_trx.emplace_back(i.first);
     assert(res);
   }
 }
