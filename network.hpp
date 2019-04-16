@@ -26,6 +26,7 @@
 #include "taraxa_capability.h"
 #include "transaction.hpp"
 #include "util.hpp"
+#include "vote.h"
 
 namespace taraxa {
 
@@ -74,6 +75,9 @@ class Network {
   int getReceivedTransactionsCount() {
     return taraxa_capability_->getTransactions().size();
   }
+
+  // PBFT
+  void noNewPbftVote(Vote vote);
 
  private:
   std::shared_ptr<dev::p2p::Host> host_;

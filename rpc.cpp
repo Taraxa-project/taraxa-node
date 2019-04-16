@@ -395,7 +395,11 @@ void RpcHandler::processRequest() {
         int period = in_doc_.get<int>("period");
         int step = in_doc_.get<int>("step");
 
+        // put vote into vote queue
         node_->placeVote(blockhash, type, period, step);
+        // broadcast vote
+        node_->broadcastVote(blockhash, type, period, step);
+
         res = "Place vote successfully";
       } catch (std::exception &e) {
         res = e.what();
