@@ -18,6 +18,7 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "rpc.hpp"
+#include "string"
 
 namespace taraxa {
 
@@ -52,7 +53,7 @@ TEST(FullNode, account_bal) {
   EXPECT_EQ(res.first, bal2);
 }
 
-TEST(FullNode, execute_pbft_transactions) {
+TEST(FullNode, execute_chain_pbft_transactions) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
@@ -86,9 +87,14 @@ TEST(FullNode, execute_pbft_transactions) {
   }
   TrxSchedule sche(blks, modes);
   ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), sche);
-  std::cout << sche << std::endl;
   node->executeScheduleBlock(sche_blk);
   node->stop();
+
+  for (auto const& t : g_trx_signed_samples) {
+    auto res = node->getBalance(t.getReceiver());
+    EXPECT_TRUE(res.second);
+    EXPECT_EQ(res.first, t.getValue());
+  }
 }
 
 TEST(FullNode, send_and_receive_out_order_messages) {
