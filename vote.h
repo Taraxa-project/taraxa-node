@@ -9,7 +9,9 @@
 #ifndef VOTE_H
 #define VOTE_H
 
+#include "libdevcrypto/Common.h"
 #include "types.hpp"
+#include "util.hpp"
 
 #include <deque>
 
@@ -17,18 +19,27 @@ namespace taraxa {
 
 class Vote {
  public:
-  Vote(blk_hash_t blockhash,
+  Vote() = default;
+  Vote(public_t node_pk,
+       dev::Signature signature,
+       blk_hash_t blockhash,
        char type,
        int period,
-       int step,
-       public_t node_pk);
+       int step);
+  Vote(stream &strm);
   ~Vote() {}
 
+  bool serialize(stream &strm) const;
+  bool deserialize(stream &strm);
+
+  sig_hash_t getHash();
+
+  public_t node_pk_;
+  dev::Signature signature_;
   blk_hash_t blockhash_;
   char type_;
   int period_;
   int step_;
-  public_t node_pk_;
 };
 
 class VoteQueue {
@@ -40,11 +51,12 @@ class VoteQueue {
 
   void placeVote(Vote vote);
 
-  void placeVote(blk_hash_t blockhash,
+  void placeVote(public_t node_pk,
+                 dev::Signature signature,
+                 blk_hash_t blockhash,
                  char type,
                  int period,
-                 int step,
-                 public_t node_pk);
+                 int step);
 
   std::string getJsonStr(std::vector<Vote> votes);
 

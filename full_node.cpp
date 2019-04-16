@@ -14,6 +14,7 @@
 #include "executor.hpp"
 #include "network.hpp"
 #include "rocks_db.hpp"
+#include "sortition.h"
 #include "transaction.hpp"
 #include "vote.h"
 
@@ -340,11 +341,47 @@ void FullNode::placeVote(taraxa::blk_hash_t blockhash,
                          char type,
                          int period,
                          int step) {
-  vote_queue_->placeVote(blockhash, type, period, step, node_pk_);
+  std::string message = blockhash.toString() +
+                        std::to_string(type) +
+                        std::to_string(period) +
+                        std::to_string(step);
+  dev::Signature signature = signMessage(message);
+  vote_queue_->placeVote(node_pk_, signature, blockhash, type, period, step);
 }
 
 std::vector<Vote> FullNode::getVotes(int period) {
   return vote_queue_->getVotes(period);
+}
+
+void FullNode::placeVote(taraxa::Vote vote) {
+  if (validateVote(vote)) {
+    vote_queue_->placeVote(vote);
+  }
+}
+
+bool FullNode::validateVote(taraxa::Vote vote) {
+  // verify signature
+  std::string vote_message = vote.blockhash_.toString() +
+                             std::to_string(vote.type_) +
+                             std::to_string(vote.period_) +
+                             std::to_string(vote.step_);
+  if (!dev::verify(vote.node_pk_, vote.signature_, dev::sha3(vote_message))) {
+    LOG(log_er_) << "Invalid vote signature: " << vote.signature_ << std::endl;
+    return false;
+  }
+  // verify sortition
+  string vote_signature_hash = taraxa::hashSignature(vote.signature_);
+  addr_t vote_address = dev::toAddress(vote.node_pk_);
+  std::pair<bal_t, bool> vote_account_balance = getBalance(vote_address);
+  if (!vote_account_balance.second) {
+    LOG(log_er_) << "Cannot find the vote account balance: "
+                 << vote.signature_ << std::endl;
+    return false;
+  }
+  if (taraxa::sortition(vote_signature_hash, vote_account_balance.first)) {
+    return true;
+  }
+  return false;
 }
 
 }  // namespace taraxa
