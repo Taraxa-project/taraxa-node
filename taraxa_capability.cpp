@@ -534,7 +534,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote vote) {
 }
 
 void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote vote) {
-  LOG(logger_debug_) << "sendPbftVote " << vote.blockhash_ << " to " << _id;
+  LOG(logger_debug_) << "sendPbftVote " << vote.getHash() << " to " << _id;
 
   RLPStream s;
   std::vector<uint8_t> bytes;

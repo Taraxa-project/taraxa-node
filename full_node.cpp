@@ -384,4 +384,17 @@ bool FullNode::validateVote(taraxa::Vote vote) {
   return false;
 }
 
+void FullNode::broadcastVote(taraxa::blk_hash_t blockhash,
+                             char type,
+                             int period,
+                             int step) {
+  std::string message = blockhash.toString() +
+                        std::to_string(type) +
+                        std::to_string(period) +
+                        std::to_string(step);
+  dev::Signature signature = signMessage(message);
+  Vote vote(node_pk_, signature, blockhash, type, period, step);
+  network_->noNewPbftVote(vote);
+}
+
 }  // namespace taraxa
