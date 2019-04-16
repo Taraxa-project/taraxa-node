@@ -138,10 +138,10 @@ std::vector<Vote> VoteQueue::getVotes(int period) {
 
   while (it != vote_queue.end()) {
     if (it->getPeriod() < period) {
-      vote_queue.erase(it);
-      continue;
+      vote_queue.erase(it++);
+    } else {
+      votes.push_back(*it++);
     }
-    votes.push_back(*it++);
   }
 
   return votes;
