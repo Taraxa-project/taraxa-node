@@ -328,7 +328,8 @@ dev::Signature FullNode::signMessage(std::string message) {
   return dev::sign(node_sk_, dev::sha3(message));
 }
 
-bool FullNode::verifySignature(dev::Signature signature, std::string message) {
+bool FullNode::verifySignature(dev::Signature const &signature,
+                               std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
 bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
@@ -336,7 +337,7 @@ bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
   return true;
 }
 
-void FullNode::placeVote(taraxa::blk_hash_t blockhash,
+void FullNode::placeVote(taraxa::blk_hash_t const &blockhash,
                          char type,
                          int period,
                          int step) {
@@ -360,7 +361,7 @@ void FullNode::placeVote(taraxa::Vote &vote) {
   }
 }
 
-void FullNode::broadcastVote(taraxa::blk_hash_t blockhash,
+void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash,
                              char type,
                              int period,
                              int step) {
