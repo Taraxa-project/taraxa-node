@@ -59,12 +59,8 @@ class TaraxaPeer {
   bool isVoteKnown(sig_hash_t const &_hash) const {
     return m_knownVotes.count(_hash);
   }
-  void markVoteAsKnown(sig_hash_t const &_hash) {
-    m_knownVotes.insert(_hash);
-  }
-  void clearKnownVotes() {
-    m_knownVotes.clear();
-  }
+  void markVoteAsKnown(sig_hash_t const &_hash) { m_knownVotes.insert(_hash); }
+  void clearKnownVotes() { m_knownVotes.clear(); }
 
   std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
       m_syncBlocks;
@@ -123,19 +119,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
-<<<<<<< HEAD
-  void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
-
+  
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
 
-  private:
-=======
-  void maintainTransactions(
-      std::unordered_map<trx_hash_t, Transaction> transactions);
-
  private:
->>>>>>> Code cleanup
   const int c_backroundWorkPeriodMs = 1000;
   Host &m_host;
   std::unordered_map<NodeID, int> m_cntReceivedMessages;
