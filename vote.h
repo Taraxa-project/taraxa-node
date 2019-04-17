@@ -32,7 +32,7 @@ class Vote {
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
-  bool validateVote(std::pair<bal_t, bool> vote_account_balance);
+  bool validateVote(std::pair<bal_t, bool> &vote_account_balance);
 
   sig_hash_t getHash();
   public_t getPublicKey();
@@ -67,7 +67,7 @@ class VoteQueue {
 
   std::vector<Vote> getVotes(int period);
 
-  void placeVote(Vote vote);
+  void placeVote(Vote &vote);
 
   void placeVote(public_t node_pk,
                  secret_t node_sk,
@@ -76,7 +76,7 @@ class VoteQueue {
                  int period,
                  int step);
 
-  std::string getJsonStr(std::vector<Vote> votes);
+  std::string getJsonStr(std::vector<Vote> &votes);
 
  private:
   std::deque<Vote> vote_queue;

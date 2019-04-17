@@ -347,7 +347,7 @@ std::vector<Vote> FullNode::getVotes(int period) {
   return vote_queue_->getVotes(period);
 }
 
-void FullNode::placeVote(taraxa::Vote vote) {
+void FullNode::placeVote(taraxa::Vote &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<bal_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {

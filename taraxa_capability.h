@@ -119,8 +119,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void doBackgroundWork();
   void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
 
-  void onNewPbftVote(taraxa::Vote vote);
-  void sendPbftVote(NodeID const &_id, taraxa::Vote vote);
+  void onNewPbftVote(taraxa::Vote &vote);
+  void sendPbftVote(NodeID const &_id, taraxa::Vote &vote);
 
   private:
   const int c_backroundWorkPeriodMs = 1000;
