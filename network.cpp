@@ -133,8 +133,9 @@ void Network::saveNetwork(std::string fileName) {
   if (!netData.empty()) writeFile(fileName, &netData);
 }
 
-void Network::noNewPbftVote(Vote &vote) {
-  LOG(logger_debug_) << "Network broadcast PBFT vote: " << vote.getHash();
+void Network::noNewPbftVote(Vote const &vote) {
+  LOG(logger_debug_) << "Network broadcast PBFT vote: "
+                     << vote.getHash().toString();
   taraxa_capability_->onNewPbftVote(vote);
 }
 

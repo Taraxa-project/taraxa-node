@@ -34,13 +34,13 @@ class Vote {
   bool deserialize(stream &strm);
   bool validateVote(std::pair<bal_t, bool> &vote_account_balance);
 
-  sig_hash_t getHash();
-  public_t getPublicKey();
-  dev::Signature getSingature();
-  blk_hash_t getBlockHash();
-  char getType();
-  int getPeriod();
-  int getStep();
+  sig_hash_t getHash() const;
+  public_t getPublicKey() const;
+  dev::Signature getSingature() const;
+  blk_hash_t getBlockHash() const;
+  char getType() const;
+  int getPeriod() const;
+  int getStep() const;
 
  private:
   public_t node_pk_;
@@ -67,11 +67,11 @@ class VoteQueue {
 
   std::vector<Vote> getVotes(int period);
 
-  void placeVote(Vote &vote);
+  void placeVote(Vote const &vote);
 
-  void placeVote(public_t node_pk,
-                 secret_t node_sk,
-                 blk_hash_t blockhash,
+  void placeVote(public_t const &node_pk,
+                 secret_t const &node_sk,
+                 blk_hash_t const &blockhash,
                  char type,
                  int period,
                  int step);

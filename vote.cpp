@@ -61,31 +61,31 @@ bool Vote::deserialize(stream &strm) {
   return ok;
 }
 
-sig_hash_t Vote::getHash() {
+sig_hash_t Vote::getHash() const {
   return dev::sha3(signature_);
 }
 
-public_t Vote::getPublicKey() {
+public_t Vote::getPublicKey() const {
   return node_pk_;
 }
 
-dev::Signature Vote::getSingature() {
+dev::Signature Vote::getSingature() const {
   return signature_;
 }
 
-blk_hash_t Vote::getBlockHash() {
+blk_hash_t Vote::getBlockHash() const {
   return blockhash_;
 }
 
-char Vote::getType() {
+char Vote::getType() const {
   return type_;
 }
 
-int Vote::getPeriod() {
+int Vote::getPeriod() const {
   return period_;
 }
 
-int Vote::getStep() {
+int Vote::getStep() const {
   return step_;
 }
 
@@ -111,9 +111,9 @@ bool Vote::validateVote(std::pair<bal_t, bool> &vote_account_balance) {
   return false;
 }
 
-void VoteQueue::placeVote(public_t node_pk,
-                          secret_t node_sk,
-                          blk_hash_t blockhash,
+void VoteQueue::placeVote(public_t const &node_pk,
+                          secret_t const &node_sk,
+                          blk_hash_t const &blockhash,
                           char type,
                           int period,
                           int step) {
@@ -128,7 +128,7 @@ void VoteQueue::placeVote(public_t node_pk,
   placeVote(vote);
 }
 
-void VoteQueue::placeVote(taraxa::Vote &vote) {
+void VoteQueue::placeVote(taraxa::Vote const &vote) {
   vote_queue.push_back(vote);
 }
 
