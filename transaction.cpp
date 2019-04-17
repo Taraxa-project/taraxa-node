@@ -298,18 +298,19 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
     trx_hash_t const &hash) {
   return trx_qu_.getTransaction(hash);
 }
-
+// Received block means some trx might be packed by others
 bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
-    vec_trx_t const &allBlockTransactions, std::vector<Transaction> const &transactions) {
+    vec_trx_t const &all_block_trx_hashes, std::vector<Transaction> const &some_trxs) {
   //First step: Save and update status for transactions that were sent together with the block
-  for (auto const &trx : transactions) {
+  //some_trxs might not full trxs in the block (for syncing purpose) 
+  for (auto const &trx : some_trxs) {
     db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
     trx_status_.update(trx.getHash(), TransactionStatus::in_block);
   }
 
-  //Second step: Retrieve transactions which are in the queue and update the status
+  //Second step: Retrieve trxs which are in the queue but already packed by others and update the status
   for (auto const &trx :
-       trx_qu_.removeBlockTransactionsFromQueue(allBlockTransactions)) {
+       trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
     db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
     trx_status_.update(trx.first, TransactionStatus::in_block);
   }
@@ -345,7 +346,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     // Rate limiter will make all nodes create parallel blocks at exactly same
     // time, add some random delay to avoid that
     thisThreadSleepForMilliSeconds(d(gen));
-    printf("Trx count: %d\n", trx_qu_.getVerifiedTrxCount());
+    // printf("Trx count: %d\n", trx_qu_.getVerifiedTrxCount());
   }
 
   if (stopped_) return;

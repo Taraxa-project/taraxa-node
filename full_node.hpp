@@ -37,7 +37,7 @@ class Vote;
 class VoteQueue;
 
 struct FullNodeConfig {
-  FullNodeConfig(std::string const &json_file, int test = 0);
+  FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
   boost::asio::ip::address address;
@@ -51,8 +51,7 @@ struct FullNodeConfig {
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   FullNode(boost::asio::io_context &io_context,
-           std::string const &conf_full_node, std::string const &conf_network,
-           int test = 0);
+           std::string const &conf_full_node, std::string const &conf_network);
   virtual ~FullNode() {
     if (!stopped_) {
       stop();
@@ -94,7 +93,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
-  void getGhostPath(std::string const & source, std::vector<std::string> &ghost);
+  void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
   std::vector<std::string> getDagBlockSubtree(blk_hash_t const &blk,
                                               time_stamp_t stamp);
   std::vector<std::string> getDagBlockSiblings(blk_hash_t const &blk,
@@ -105,7 +104,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                                  time_stamp_t stamp);
   std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from,
                                              blk_hash_t const &to);
-  
+
   // account stuff
   std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
@@ -128,14 +127,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // PBFT
   dev::Signature signMessage(std::string message);
-  bool verifySignature(dev::Signature const &signature,
-                       std::string &message);
+  bool verifySignature(dev::Signature const &signature, std::string &message);
   void placeVote(blk_hash_t const &blockhash, char type, int period, int step);
   std::vector<Vote> getVotes(int period);
   void placeVote(Vote &vote);
-  void broadcastVote(taraxa::blk_hash_t const &blockhash,
-                     char type,
-                     int period,
+  void broadcastVote(taraxa::blk_hash_t const &blockhash, char type, int period,
                      int step);
 
  private:
@@ -174,7 +170,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::pair<std::string, uint16_t>> remotes_;
   // transaction executor
   std::shared_ptr<Executor> executor_;
-  // 
+  //
   std::vector<std::thread> block_workers_;
   // debugger
   std::mutex debug_mutex_;
