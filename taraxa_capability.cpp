@@ -525,7 +525,7 @@ void TaraxaCapability::onStarting() {
                             [this]() { doBackgroundWork(); });
 }
 
-void TaraxaCapability::onNewPbftVote(taraxa::Vote vote) {
+void TaraxaCapability::onNewPbftVote(taraxa::Vote &vote) {
   for (auto &peer : m_peers) {
     if (!peer.second.isVoteKnown(vote.getHash())) {
       sendPbftVote(peer.first, vote);
@@ -533,7 +533,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote vote) {
   }
 }
 
-void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote vote) {
+void TaraxaCapability::sendPbftVote(NodeID const &_id, taraxa::Vote &vote) {
   LOG(logger_debug_) << "sendPbftVote " << vote.getHash() << " to " << _id;
 
   RLPStream s;

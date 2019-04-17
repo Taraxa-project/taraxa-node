@@ -77,7 +77,7 @@ class Network {
   }
 
   // PBFT
-  void noNewPbftVote(Vote vote);
+  void noNewPbftVote(Vote &vote);
 
  private:
   std::shared_ptr<dev::p2p::Host> host_;

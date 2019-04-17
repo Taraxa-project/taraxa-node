@@ -89,7 +89,7 @@ int Vote::getStep() {
   return step_;
 }
 
-bool Vote::validateVote(std::pair<bal_t, bool> vote_account_balance) {
+bool Vote::validateVote(std::pair<bal_t, bool> &vote_account_balance) {
   if (!vote_account_balance.second) {
     LOG(log_er_) << "Invalid vote account balance" << std::endl;
     return false;
@@ -128,7 +128,7 @@ void VoteQueue::placeVote(public_t node_pk,
   placeVote(vote);
 }
 
-void VoteQueue::placeVote(taraxa::Vote vote) {
+void VoteQueue::placeVote(taraxa::Vote &vote) {
   vote_queue.push_back(vote);
 }
 
@@ -138,7 +138,7 @@ std::vector<Vote> VoteQueue::getVotes(int period) {
 
   while (it != vote_queue.end()) {
     if (it->getPeriod() < period) {
-      vote_queue.erase(it++);
+      it = vote_queue.erase(it);
     } else {
       votes.push_back(*it++);
     }
@@ -147,7 +147,7 @@ std::vector<Vote> VoteQueue::getVotes(int period) {
   return votes;
 }
 
-std::string VoteQueue::getJsonStr(std::vector<Vote> votes) {
+std::string VoteQueue::getJsonStr(std::vector<Vote> &votes) {
   using boost::property_tree::ptree;
   ptree ptroot;
   ptree ptvotes;

@@ -124,7 +124,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool verifySignature(dev::Signature signature, std::string message);
   void placeVote(blk_hash_t blockhash, char type, int period, int step);
   std::vector<Vote> getVotes(int period);
-  void placeVote(Vote vote);
+  void placeVote(Vote &vote);
   void broadcastVote(taraxa::blk_hash_t blockhash,
                      char type,
                      int period,
