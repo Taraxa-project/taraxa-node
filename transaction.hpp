@@ -330,7 +330,8 @@ class TransactionManager
   }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  bool saveBlockTransactionsAndUpdateTransactionStatus(vec_trx_t const &allBlockTransactions, std::vector<Transaction> const &transactions);
+  // Received block means some trx might be packed by others
+  bool saveBlockTransactionsAndUpdateTransactionStatus(vec_trx_t const &all_block_trx_hashes, std::vector<Transaction> const &some_trxs);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
