@@ -66,7 +66,8 @@ class TaraxaPeer {
     m_knownVotes.clear();
   }
 
-  std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction> > > m_syncBlocks;
+  std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
+      m_syncBlocks;
   blk_hash_t m_lastRequest;
   PeerState m_state;
 
@@ -98,9 +99,12 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                                  RLP const &_r) override;
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
-  void onNewBlockReceived(DagBlock block, std::unordered_map<trx_hash_t, Transaction> transactions);
+  void onNewBlockReceived(DagBlock block,
+                          std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock block);
-  void onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions, bool fromNetwork);
+  void onNewTransactions(
+      std::unordered_map<trx_hash_t, Transaction> const &transactions,
+      bool fromNetwork);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(
@@ -111,24 +115,32 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
   void requestBlockChildren(NodeID const &_id, std::vector<std::string> leaves);
-  void sendTransactions(NodeID const &_id, std::vector<Transaction> transactions);
+  void sendTransactions(NodeID const &_id,
+                        std::vector<Transaction> const &transactions);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
+<<<<<<< HEAD
   void maintainTransactions(std::unordered_map<trx_hash_t, Transaction> transactions);
 
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
 
   private:
+=======
+  void maintainTransactions(
+      std::unordered_map<trx_hash_t, Transaction> transactions);
+
+ private:
+>>>>>>> Code cleanup
   const int c_backroundWorkPeriodMs = 1000;
   Host &m_host;
   std::unordered_map<NodeID, int> m_cntReceivedMessages;
   std::unordered_map<NodeID, int> m_testSums;
-  
+
   // Only used for testing without the full node set
   std::map<blk_hash_t, taraxa::DagBlock> m_TestBlocks;
   std::map<trx_hash_t, Transaction> m_TestTransactions;
@@ -144,8 +156,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
   dev::Logger logger_debug_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
-
-  
 };
 }  // namespace taraxa
 #endif

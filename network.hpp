@@ -50,7 +50,8 @@ class Network {
  public:
   Network(std::string const &conf_file_name);
   Network(std::string const &conf_file_name, std::string networkFile);
-  Network(std::string const &conf_file_name, std::string networkFile, secret_t const &sk);
+  Network(std::string const &conf_file_name, std::string networkFile,
+          secret_t const &sk);
   ~Network();
   void start();
   void stop();
@@ -59,9 +60,10 @@ class Network {
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
                  bool newBlock);
   void sendTransactions(NodeID const &_id,
-                        std::vector<Transaction> transactions);
+                        std::vector<Transaction> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);
-  void onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions);
+  void onNewTransactions(
+      std::unordered_map<trx_hash_t, Transaction> const &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);

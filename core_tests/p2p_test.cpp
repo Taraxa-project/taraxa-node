@@ -294,7 +294,7 @@ TEST(p2p, block_propagate) {
   transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
   transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
   thc1->onNewTransactions(transactions, true);
-  std::unordered_map<trx_hash_t, Transaction> transactions2;
+  std::vector<Transaction> transactions2;
   thc1->onNewBlockReceived(blk, transactions2);
 
   this_thread::sleep_for(chrono::seconds(20));

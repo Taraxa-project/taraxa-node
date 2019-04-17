@@ -32,11 +32,11 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file, int test)
     db_accounts_path = doc.get<std::string>("db_accounts_path");
     db_blocks_path = doc.get<std::string>("db_blocks_path");
     db_transactions_path = doc.get<std::string>("db_transactions_path");
-    if(test > 0) {
+    if (test > 0) {
       db_accounts_path += std::to_string(test);
       db_blocks_path += std::to_string(test);
       db_transactions_path += std::to_string(test);
-    } 
+    }
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
     block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
   } catch (std::exception &e) {
@@ -123,21 +123,24 @@ void FullNode::start() {
       std::string key;
       while (!stopped_) {
         auto blk = blk_qu_->getVerifiedBlock();
-        //Any transactions that are passed with the block were not verified in transactions queue so they need to be verified here
+        // Any transactions that are passed with the block were not verified in
+        // transactions queue so they need to be verified here
         bool invalidTransaction = false;
-        for(auto const &trx : blk.second) {
-          auto valid = trx.verifySig();//Probably move this check somewhere in transaction classes later
-          if(!valid) {
+        for (auto const &trx : blk.second) {
+          auto valid = trx.verifySig();  // Probably move this check somewhere
+                                         // in transaction classes later
+          if (!valid) {
             invalidTransaction = true;
             LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
           }
         }
-        //Skip block if invalid transaction
-        if(invalidTransaction)
-          continue;
+        // Skip block if invalid transaction
+        if (invalidTransaction) continue;
 
-        //Save the transaction that came with the block together with the transactions that are in the queue
-        trx_mgr_->saveBlockTransactions(blk.first.getTrxs(), blk.second);
+        // Save the transaction that came with the block together with the
+        // transactions that are in the queue This will update the transaction
+        // status as well and remove the transactions from the queue
+        trx_mgr_->saveBlockTransactionsAndUpdateTransactionStatus(blk.first.getTrxs(), blk.second);
 
         key = blk.first.getHash().toString();
         LOG(log_nf_) << "Write block to db ... " << key << std::endl;
@@ -171,8 +174,9 @@ void FullNode::stop() {
   }
 }
 
-void FullNode::storeBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> &transactions) {
-  blk_qu_->pushUnverifiedBlock(std::move(blk), transactions);
+void FullNode::storeBlockWithTransactions(
+    DagBlock const &blk, std::vector<Transaction> const &transactions) {
+  blk_qu_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
 }
 
 void FullNode::storeBlock(DagBlock const &blk) {
@@ -184,7 +188,6 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   sign_block.sign(node_sk_);
   LOG(log_nf_) << "Signed block: " << sign_block << std::endl;
   storeBlock(sign_block);
-  std::unordered_map<trx_hash_t, Transaction> transactions;
 }
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
@@ -217,7 +220,7 @@ std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
   if (!json.empty()) {
     return std::make_shared<Transaction>(json);
   }
-  //Check the queue as well
+  // Check the queue as well
   return trx_mgr_->getTransaction(hash);
 }
 
@@ -323,13 +326,14 @@ void FullNode::drawGraph(std::string const &dotfile) const {
   dag_mgr_->drawTotalGraph("total." + dotfile);
 }
 
-std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(bool onlyNew) {
+std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
+    bool onlyNew) {
   return trx_mgr_->getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-void FullNode::insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions){
-  for(auto const &trx : transactions)
-    trx_mgr_->insertTrx(trx.second);
+void FullNode::insertNewTransactions(
+    std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+  for (auto const &trx : transactions) trx_mgr_->insertTrx(trx.second);
 }
 
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }

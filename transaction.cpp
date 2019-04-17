@@ -199,8 +199,7 @@ void TransactionQueue::verifyTrx() {
       }
       // mark invalid
       if (!valid) {
-        trx_status_.compareAndSwap(trx.getHash(), TransactionStatus::in_queue,
-                                   TransactionStatus::invalid);
+        trx_status_.update(trx.getHash(), TransactionStatus::invalid);
         LOG(log_wr_) << "Trx: " << hash << "invalid. " << std::endl;
 
       } else {
@@ -217,12 +216,13 @@ void TransactionQueue::verifyTrx() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::moveBlockTransactions(vec_trx_t allBlockTransactions) {
+TransactionQueue::removeBlockTransactionsFromQueue(
+    vec_trx_t const &allBlockTransactions) {
   std::unordered_map<trx_hash_t, Transaction> result;
   while (true) {
     {
       uLock lock(mutex_for_verified_qu_);
-      for (auto trx : allBlockTransactions) {
+      for (auto const &trx : allBlockTransactions) {
         auto fTrx = verified_trxs_.find(trx);
         if (fTrx != verified_trxs_.end()) {
           result[fTrx->first] = fTrx->second;
@@ -231,10 +231,12 @@ TransactionQueue::moveBlockTransactions(vec_trx_t allBlockTransactions) {
       }
     }
     {
+      // Check that some of the block transaction is not in the unverified
+      // queue, if so wait for it to enter verified queue
       uLock lock(mutex_for_unverified_qu_);
       bool found = false;
-      for (auto uTrx : unverified_qu_) {
-        for (auto trx : allBlockTransactions) {
+      for (auto const &uTrx : unverified_qu_) {
+        for (auto const &trx : allBlockTransactions) {
           if (trx == uTrx.getHash()) found = true;
         }
       }
@@ -297,14 +299,17 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
   return trx_qu_.getTransaction(hash);
 }
 
-bool TransactionManager::saveBlockTransactions(
-    vec_trx_t allBlockTransactions, std::vector<Transaction> transactions) {
+bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
+    vec_trx_t const &allBlockTransactions, std::vector<Transaction> const &transactions) {
+  //First step: Save and update status for transactions that were sent together with the block
   for (auto const &trx : transactions) {
     db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
     trx_status_.update(trx.getHash(), TransactionStatus::in_block);
   }
 
-  for (auto const &trx : trx_qu_.moveBlockTransactions(allBlockTransactions)) {
+  //Second step: Retrieve transactions which are in the queue and update the status
+  for (auto const &trx :
+       trx_qu_.removeBlockTransactionsFromQueue(allBlockTransactions)) {
     db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
     trx_status_.update(trx.first, TransactionStatus::in_block);
   }
@@ -332,17 +337,17 @@ bool TransactionManager::insertTrx(Transaction trx) {
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
-  static std::uniform_int_distribution<> d(1, 20000);
+  static std::uniform_int_distribution<> d(1, 30000);
   static std::mt19937 gen;
   uLock pack_lock(mutex_for_pack_trx_);
   while (!stopped_ && trx_qu_.getVerifiedTrxCount() < rate_limiter_) {
     cond_for_pack_trx_.wait_for(pack_lock, std::chrono::milliseconds(1000));
     // Rate limiter will make all nodes create parallel blocks at exactly same
     // time, add some random delay to avoid that
-    thisThreadSleepForMilliSeconds(d(gen)); 
+    thisThreadSleepForMilliSeconds(d(gen));
     printf("Trx count: %d\n", trx_qu_.getVerifiedTrxCount());
   }
-  
+
   if (stopped_) return;
   // reset counter
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
@@ -361,11 +366,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     assert(exist);
     LOG(log_nf_) << "Trx: " << hash << " ready to pack" << std::endl;
     // update transaction_status
-    bool res;
-    res = trx_status_.compareAndSwap(hash, TransactionStatus::in_queue,
-                                     TransactionStatus::in_block);
+    trx_status_.update(hash, TransactionStatus::in_block);
     to_be_packed_trx.emplace_back(i.first);
-    assert(res);
   }
 }
 

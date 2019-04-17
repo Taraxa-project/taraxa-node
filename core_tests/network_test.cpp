@@ -25,7 +25,7 @@ auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
-const unsigned NUM_TRX2 = 50;
+const unsigned NUM_TRX2 = 200;
 auto g_secret2 = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
@@ -504,7 +504,7 @@ Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
 TEST(Network, node_full_sync) {
-  const int numberOfNodes = 10;
+  const int numberOfNodes = 5;
   boost::asio::io_context context1;
   std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
 
@@ -529,7 +529,7 @@ TEST(Network, node_full_sync) {
   std::random_device dev;
   std::mt19937 rng(dev());
   std::uniform_int_distribution<std::mt19937::result_type> distTransactions(
-      1, 3000);
+      1, 4000);
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(
       0, numberOfNodes - 1);  // distribution in range [1, 2000]
 
@@ -544,8 +544,8 @@ TEST(Network, node_full_sync) {
   }
 
   std::cout << "Waiting Sync for 10000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(10000);
-  printf("Created transaction %d, vertices %lu\n", counter, node1->getNumVerticesInDag().first);
+  taraxa::thisThreadSleepForMilliSeconds(100000);
+  printf("End result: Vertices %lu Edges: %lu \n", node1->getNumVerticesInDag().first, node1->getNumEdgesInDag().first);
 
   node1->stop();
   for (int i = 0; i < numberOfNodes; i++) nodes[i]->stop();
@@ -558,8 +558,6 @@ TEST(Network, node_full_sync) {
   EXPECT_GT(10, node1->getNewVerifiedTrxSnapShot(false).size());
   for (int i = 0; i < numberOfNodes; i++) {
     EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
-    EXPECT_EQ(nodes[i]->getNewVerifiedTrxSnapShot(false).size(),
-              node1->getNewVerifiedTrxSnapShot(false).size());
     EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
               node1->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
