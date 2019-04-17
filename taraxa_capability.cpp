@@ -4,23 +4,11 @@
 
 using namespace taraxa;
 
-string shortHash(const string &str) {
-  size_t first = str.find_first_not_of('0');
-  if (string::npos == first) {
-    return "GENESIS";
-  }
-  return str.substr(first);
-}
-
 void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     LOG(logger_) << "Sync Peer:" << _nodeID.toString();
     m_peers[_nodeID].m_state = Syncing;
     auto leaves = full_node->collectTotalLeaves();
-    ;
-    // if(pivot == blk_hash_t())
-    //	pivot == Dag::GENESIS; Not neededs since GENEIS is all
-    // 00000
     requestBlockChildren(_nodeID, leaves);
   }
 }
@@ -79,7 +67,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       block.deserialize(strm);
 
       auto transactionsCount = _r.itemCount() - 1;
-      std::unordered_map<trx_hash_t, Transaction> newTransactions;
+      std::vector<Transaction> newTransactions;
       for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
            iTransaction++) {
         std::vector<::byte> transactionBytes;
@@ -90,7 +78,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                                   transactionBytes.size());
         Transaction transaction;
         transaction.deserialize(strm);
-        newTransactions[transaction.getHash()] = transaction;
+        newTransactions.push_back(transaction);
         m_peers[_nodeID].markTransactionAsKnown(transaction.getHash());
       }
 
@@ -261,11 +249,10 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
           m_peers[_nodeID].markTransactionAsKnown(transaction.getHash());
         }
 
-        receivedBlocks += shortHash(block.getHash().toString()) + " ";
+        receivedBlocks += block.getHash().toString() + " ";
         m_peers[_nodeID].m_syncBlocks[block.getHash()] = {block,
                                                           newTransactions};
-        if(iBlock + transactionCount + 1 >= itemCount)
-          break;
+        if (iBlock + transactionCount + 1 >= itemCount) break;
       }
       if (itemCount > 0) {
         LOG(logger_debug_) << "Received BlockChildrenPacket with "
@@ -289,8 +276,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                                   transactionBytes.size());
         Transaction transaction;
         transaction.deserialize(strm);
-        receivedTransactions +=
-            shortHash(transaction.getHash().toString()) + " ";
+        receivedTransactions += transaction.getHash().toString() + " ";
         m_peers[_nodeID].markTransactionAsKnown(transaction.getHash());
         transactions[transaction.getHash()] = transaction;
       }
@@ -404,35 +390,32 @@ void TaraxaCapability::onNewTransactions(
 }
 
 void TaraxaCapability::onNewBlockReceived(
-    DagBlock block, std::unordered_map<trx_hash_t, Transaction> transactions) {
+    DagBlock block, std::vector<Transaction> transactions) {
   if (auto full_node = full_node_.lock()) {
     if (full_node->isBlockKnown(block.getHash())) {
       LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                          << "that is already known";
+                         << "that is already known";
       return;
     } else {
-      std::vector<Transaction> vTransactions;
-      for (const auto &t : transactions) vTransactions.push_back(t.second);
-      full_node->storeBlockWithTransactions(block, vTransactions);
+      full_node->storeBlockWithTransactions(block, transactions);
     }
   } else if (m_TestBlocks.find(block.getHash()) == m_TestBlocks.end()) {
     m_TestBlocks[block.getHash()] = block;
     for (auto tr : transactions) {
-      m_TestTransactions[tr.first] = tr.second;
+      m_TestTransactions[tr.getHash()] = tr;
     }
     onNewBlockVerified(block);
-    
+
   } else {
     LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                        << "that is already known";
+                       << "that is already known";
     return;
   }
 }
 
-void TaraxaCapability::onNewBlockVerified(
-    DagBlock block) {
+void TaraxaCapability::onNewBlockVerified(DagBlock block) {
   LOG(logger_debug_) << "Verified NewBlock " << block.getHash().toString();
-  const int c_minBlockBroadcastPeers = 1;
+  const int c_minBlockBroadcastPeers = 10;
   auto const peersWithoutBlock = selectPeers([&](TaraxaPeer const &_peer) {
     return !_peer.isBlockKnown(block.getHash());
   });
@@ -512,7 +495,7 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
 }
 
 void TaraxaCapability::sendTransactions(NodeID const &_id,
-                                        std::vector<Transaction> transactions) {
+                                        std::vector<Transaction> const &transactions) {
   LOG(logger_debug_) << "sendTransactions" << transactions.size() << " to "
                      << _id;
   RLPStream s;
@@ -612,7 +595,7 @@ void TaraxaCapability::requestBlockChildren(NodeID const &_id,
                                 leaves.size());
   std::string blocks;
   for (auto leaf : leaves) {
-    blocks += shortHash(leaf) + " ";
+    blocks += leaf + " ";
     blk_hash_t bHash(leaf);
     s.appendList(sizeof(bHash));
     for (auto i = 0; i < sizeof(bHash); i++) s << ((char *)&bHash)[i];

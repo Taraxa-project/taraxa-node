@@ -51,7 +51,8 @@ struct FullNodeConfig {
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   FullNode(boost::asio::io_context &io_context,
-           std::string const &conf_full_node, std::string const &conf_network, int test = 0);
+           std::string const &conf_full_node, std::string const &conf_network,
+           int test = 0);
   virtual ~FullNode() {
     if (!stopped_) {
       stop();
@@ -71,9 +72,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // Store a block in persistent storage and build in dag
   void storeBlock(DagBlock const &blk);
   void storeBlockAndSign(DagBlock const &blk);
-  
-  //Only used in initial syncs when blocks are received with full list of transactions
-  void storeBlockWithTransactions(DagBlock const &blk, std::vector<Transaction> &transactions);
+
+  // Only used in initial syncs when blocks are received with full list of
+  // transactions
+  void storeBlockWithTransactions(DagBlock const &blk,
+                                  std::vector<Transaction> const &transactions);
 
   // Store transaction
   void storeTransaction(Transaction const &trx);
@@ -117,8 +120,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  void insertNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
+      bool onlyNew);
+  void insertNewTransactions(
+      std::unordered_map<trx_hash_t, Transaction> const &transactions);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT

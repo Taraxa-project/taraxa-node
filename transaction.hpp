@@ -68,19 +68,6 @@ class TransactionStatusTable {
     uLock lock(mutex_);
     status_[hash] = status;
   }
-  bool compareAndSwap(trx_hash_t const &hash, TransactionStatus expected_value,
-                      TransactionStatus new_value) {
-    uLock lock(mutex_);
-    auto iter = status_.find(hash);
-    bool ret = false;
-    if (iter == status_.end()) {
-      ret = false;
-    } else if (iter->second == expected_value) {
-      iter->second = new_value;
-      ret = true;
-    }
-    return ret;
-  }
 
  private:
   std::mutex mutex_;
@@ -256,7 +243,7 @@ class TransactionQueue {
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  std::unordered_map<trx_hash_t, Transaction> moveBlockTransactions(vec_trx_t allBlockTransactions);
+  std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(vec_trx_t const &allBlockTransactions);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
@@ -343,7 +330,7 @@ class TransactionManager
   }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  bool saveBlockTransactions(vec_trx_t allBlockTransactions, std::vector<Transaction> transactions);
+  bool saveBlockTransactionsAndUpdateTransactionStatus(vec_trx_t const &allBlockTransactions, std::vector<Transaction> const &transactions);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:

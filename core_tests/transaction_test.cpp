@@ -103,8 +103,9 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
     }
   });
   std::thread insertBlk([&trx_mgr]() {
+    std::vector<Transaction> transactions;
     for (auto const& b : g_blk_samples) {
-      //trx_mgr.setPackedTrxFromBlock(b);
+      trx_mgr.saveBlockTransactionsAndUpdateTransactionStatus(b.getTrxs(), transactions);
     }
   });
   thisThreadSleepForSeconds(1);

@@ -112,7 +112,7 @@ void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
 }
 
 void Network::sendTransactions(NodeID const &id,
-                               std::vector<Transaction> transactions) {
+                               std::vector<Transaction> const &transactions) {
   taraxa_capability_->sendTransactions(id, transactions);
   LOG(logger_debug_) << "Sent transactions:" << transactions.size();
 }
