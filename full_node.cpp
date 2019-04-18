@@ -13,6 +13,7 @@
 #include "dag_block.hpp"
 #include "executor.hpp"
 #include "network.hpp"
+#include "pbft_manager.hpp"
 #include "rocks_db.hpp"
 #include "transaction.hpp"
 #include "vote.h"
@@ -69,6 +70,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       executor_(std::make_shared<Executor>(db_blks_->getShared(),
                                            db_trxs_->getShared(),
                                            db_accs_->getShared())),
+      pbft_mgr_(std::make_shared<PbftManager>()),
       vote_queue_(std::make_shared<VoteQueue>()) {
   LOG(log_si_) << "Taraxa node statred at address: " << conf_.address << " ..."
                << std::endl;
@@ -113,6 +115,8 @@ void FullNode::start() {
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   trx_mgr_->start();
+  pbft_mgr_->setFullNode(getShared());
+  pbft_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       std::string key;
@@ -164,7 +168,7 @@ void FullNode::stop() {
   blk_qu_->stop();
   network_->stop();
   trx_mgr_->stop();
-
+  pbft_mgr_->stop();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
   }
@@ -381,7 +385,7 @@ std::vector<Vote> FullNode::getVotes(int period) {
   return vote_queue_->getVotes(period);
 }
 
-void FullNode::placeVote(taraxa::Vote &vote) {
+void FullNode::placeVote(taraxa::Vote const &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<bal_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
@@ -402,5 +406,8 @@ void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash, char type,
   Vote vote(node_pk_, signature, blockhash, type, period, step);
   network_->noNewPbftVote(vote);
 }
-
+bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type, int period,
+                           int step) {
+  return pbft_mgr_->shouldSpeak(blockhash, type, period, step);
+}
 }  // namespace taraxa

@@ -35,6 +35,7 @@ class TransactionManager;
 class Executor;
 class Vote;
 class VoteQueue;
+class PbftManager;
 
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
@@ -126,11 +127,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
+  bool shouldSpeak(blk_hash_t const &blockhash, char type, int period,
+                   int step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   void placeVote(blk_hash_t const &blockhash, char type, int period, int step);
   std::vector<Vote> getVotes(int period);
-  void placeVote(Vote &vote);
+  void placeVote(Vote const &vote);
   void broadcastVote(taraxa::blk_hash_t const &blockhash, char type, int period,
                      int step);
 
@@ -172,6 +175,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Executor> executor_;
   //
   std::vector<std::thread> block_workers_;
+
+  // PBFT
+  std::shared_ptr<VoteQueue> vote_queue_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
+
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
@@ -184,9 +192,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "FULLND")};
   mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "FULLND")};
-
-  // PBFT
-  std::shared_ptr<VoteQueue> vote_queue_;
 };
 
 }  // namespace taraxa
