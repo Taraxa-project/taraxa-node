@@ -188,12 +188,14 @@ TEST(p2p, capability_send_block) {
   auto blocks = thc1->getBlocks();
   auto rtransactions = thc1->getTransactions();
   EXPECT_EQ(blocks.size(), 1);
-  EXPECT_EQ(blk, blocks.begin()->second);
+  if (blocks.size()) EXPECT_EQ(blk, blocks.begin()->second);
   EXPECT_EQ(rtransactions.size(), 2);
-  EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
-            rtransactions[g_trx_samples[0].getHash()]);
-  EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
-            rtransactions[g_trx_samples[1].getHash()]);
+  if (rtransactions.size() == 2) {
+    EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
+              rtransactions[g_trx_samples[0].getHash()]);
+    EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
+              rtransactions[g_trx_samples[1].getHash()]);
+  }
 }
 
 /*
@@ -202,7 +204,7 @@ using node discovery. Block is created on one host and automatically
 propagated to all other hosts. Test verifies that each node has received
 the block
 */
-TEST(p2p, DISABLED_block_propagate) {
+TEST(p2p, block_propagate) {
   int const step = 10;
   int const nodeCount = 50;
   const char *const localhost = "127.0.0.1";
@@ -303,18 +305,22 @@ TEST(p2p, DISABLED_block_propagate) {
   auto blocks1 = thc1->getBlocks();
   for (int i = 0; i < nodeCount; i++) {
     EXPECT_EQ(vCapabilities[i]->getBlocks().size(), 1);
-    EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second, blk);
-    EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second.getHash(),
-              blk.getHash());
+    if (vCapabilities[i]->getBlocks().size() == 1) {
+      EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second, blk);
+      EXPECT_EQ(vCapabilities[i]->getBlocks().begin()->second.getHash(),
+                blk.getHash());
+    }
     auto rtransactions = vCapabilities[i]->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
-    EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
-              rtransactions[g_trx_samples[0].getHash()]);
-    EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
-              rtransactions[g_trx_samples[1].getHash()]);
+    if (rtransactions.size() == 2) {
+      EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
+                rtransactions[g_trx_samples[0].getHash()]);
+      EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
+                rtransactions[g_trx_samples[1].getHash()]);
+    }
   }
   EXPECT_EQ(blocks1.size(), 1);
-  EXPECT_EQ(blk, blocks1.begin()->second);
+  if (blocks1.size()) EXPECT_EQ(blk, blocks1.begin()->second);
 }
 }  // namespace taraxa
 

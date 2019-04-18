@@ -533,7 +533,7 @@ TEST(Network, node_transaction_sync) {
 Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
-TEST(Network, DISABLED_node_full_sync) {
+TEST(Network, node_full_sync) {
   const int numberOfNodes = 5;
   boost::asio::io_context context1;
   std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
@@ -546,22 +546,20 @@ TEST(Network, DISABLED_node_full_sync) {
   node1->start();
 
   std::vector<std::shared_ptr<FullNode> > nodes;
-  // for (int i = 0; i < numberOfNodes; i++) {
-  //   contexts.push_back(std::make_shared<boost::asio::io_context>());
-  //   nodes.push_back(std::make_shared<taraxa::FullNode>(
-  //       *contexts[i], std::string("./core_tests/conf_full_node2.json"),
-  //       std::string("./core_tests/conf_network0.json"), i + 1));
-  //   nodes[i]->start();
-  //   taraxa::thisThreadSleepForMilliSeconds(50);
-  // }
   for (int i = 0; i < numberOfNodes; i++) {
     contexts.push_back(std::make_shared<boost::asio::io_context>());
-    nodes.push_back(std::make_shared<taraxa::FullNode>(
-        *contexts[i], std::string("./core_tests/conf_full_node2.json"),
-        std::string("./core_tests/conf_network0.json")));
+    FullNodeConfig config(std::string("./core_tests/conf_full_node2.json"));
+    NetworkConfig networkConfig("./core_tests/conf_network2.json");
+    config.db_accounts_path += std::to_string(i + 1);
+    config.db_blocks_path += std::to_string(i + 1);
+    config.db_transactions_path += std::to_string(i + 1);
+    networkConfig.network_listen_port += i + 1;
+    nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i], config,
+                                                       networkConfig));
     nodes[i]->start();
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
+
   taraxa::thisThreadSleepForMilliSeconds(10000);
 
   std::random_device dev;

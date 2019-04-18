@@ -52,6 +52,10 @@ class Network {
   Network(std::string const &conf_file_name, std::string networkFile);
   Network(std::string const &conf_file_name, std::string networkFile,
           secret_t const &sk);
+  Network(NetworkConfig const &config);
+  Network(NetworkConfig const &config, std::string networkFile);
+  Network(NetworkConfig const &config, std::string networkFile,
+          secret_t const &sk);
   ~Network();
   void start();
   void stop();

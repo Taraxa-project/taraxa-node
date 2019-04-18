@@ -36,6 +36,7 @@ class Executor;
 class Vote;
 class VoteQueue;
 class PbftManager;
+class NetworkConfig;
 
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
@@ -53,6 +54,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   FullNode(boost::asio::io_context &io_context,
            std::string const &conf_full_node, std::string const &conf_network);
+  FullNode(boost::asio::io_context &io_context,
+           FullNodeConfig conf_full_node,
+           NetworkConfig conf_network);
   virtual ~FullNode() {
     if (!stopped_) {
       stop();
@@ -143,9 +147,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
  private:
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;
-  // configure files
-  std::string conf_full_node_;
-  std::string conf_network_;
   size_t num_block_workers_ = 2;
   bool stopped_ = true;
   // configuration
