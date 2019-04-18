@@ -204,7 +204,7 @@ using node discovery. Block is created on one host and automatically
 propagated to all other hosts. Test verifies that each node has received
 the block
 */
-TEST(p2p, block_propagate) {
+TEST(p2p, DISABLED_block_propagate) {
   int const step = 10;
   int const nodeCount = 50;
   const char *const localhost = "127.0.0.1";
