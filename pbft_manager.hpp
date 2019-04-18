@@ -23,6 +23,7 @@ class PbftManager {
   void start();
   void stop();
   void run();
+  bool isActive() { return executor_ != nullptr; }
 
  private:
   bool stopped_ = true;

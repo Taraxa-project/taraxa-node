@@ -30,15 +30,17 @@ TEST(TrxSchedule, serialize_deserialize) {
 TEST(PbftManager, create_pbft_manager) {
   PbftManager pbft_mgr;
   pbft_mgr.start();
-  thisThreadSleepForSeconds(2);
+  thisThreadSleepForSeconds(1);
+  EXPECT_TRUE(pbft_mgr.isActive());
   pbft_mgr.stop();
+  EXPECT_FALSE(pbft_mgr.isActive());
 }
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  // logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("PBFT_MGR");
+  logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("PBFT_MGR");
 
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
