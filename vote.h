@@ -21,18 +21,14 @@ namespace taraxa {
 class Vote {
  public:
   Vote() = default;
-  Vote(public_t node_pk,
-       dev::Signature signature,
-       blk_hash_t blockhash,
-       char type,
-       int period,
-       int step);
+  Vote(public_t node_pk, dev::Signature signature, blk_hash_t blockhash,
+       char type, int period, int step);
   Vote(stream &strm);
   ~Vote() {}
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
-  bool validateVote(std::pair<bal_t, bool> &vote_account_balance);
+  bool validateVote(std::pair<bal_t, bool> &vote_account_balance) const;
 
   sig_hash_t getHash() const;
   public_t getPublicKey() const;
@@ -69,12 +65,8 @@ class VoteQueue {
 
   void placeVote(Vote const &vote);
 
-  void placeVote(public_t const &node_pk,
-                 secret_t const &node_sk,
-                 blk_hash_t const &blockhash,
-                 char type,
-                 int period,
-                 int step);
+  void placeVote(public_t const &node_pk, secret_t const &node_sk,
+                 blk_hash_t const &blockhash, char type, int period, int step);
 
   std::string getJsonStr(std::vector<Vote> &votes);
 
@@ -82,6 +74,6 @@ class VoteQueue {
   std::deque<Vote> vote_queue;
 };
 
-} // namespace taraxa
+}  // namespace taraxa
 
 #endif  // VOTE_H

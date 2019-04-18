@@ -2,7 +2,7 @@
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "pbft_chain.hpp"
-#include "pbft_manager.h"
+#include "pbft_manager.hpp"
 #include "transaction.hpp"
 #include "util.hpp"
 #include "vote.h"
@@ -378,9 +378,7 @@ void RpcHandler::processRequest() {
         char type = in_doc_.get<char>("type");
         int period = in_doc_.get<int>("period");
         int step = in_doc_.get<int>("step");
-
-        PbftManager pbft_manager(node_);
-        if (pbft_manager.shouldSpeak(blockhash, type, period, step)) {
+        if (node_->shouldSpeak(blockhash, type, period, step)) {
           res = "True";
         } else {
           res = "False";
@@ -414,8 +412,7 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
-    }
-    else if (action == "draw_graph") {
+    } else if (action == "draw_graph") {
       std::string filename = in_doc_.get<std::string>("filename");
       node_->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";

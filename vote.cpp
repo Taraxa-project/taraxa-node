@@ -89,7 +89,7 @@ int Vote::getStep() const {
   return step_;
 }
 
-bool Vote::validateVote(std::pair<bal_t, bool> &vote_account_balance) {
+bool Vote::validateVote(std::pair<bal_t, bool> &vote_account_balance) const{
   if (!vote_account_balance.second) {
     LOG(log_er_) << "Invalid vote account balance" << std::endl;
     return false;
