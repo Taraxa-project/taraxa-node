@@ -85,8 +85,10 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
-  LOG(log_si_) << "Node public key: " << node_pk_ << std::endl;
-  LOG(log_si_) << "Node address: " << node_addr_ << std::endl;
+  LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
+               << std::endl;
+  LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
+               << std::endl;
 
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;

@@ -26,7 +26,7 @@ po::options_description createLoggingProgramOptions(unsigned _lineLength, Loggin
     po::options_description optionsDescr("LOGGING OPTIONS", _lineLength);
     auto addLoggingOption = optionsDescr.add_options();
     addLoggingOption("log-verbosity,v", po::value<int>(&_options.verbosity)->value_name("<0 - 4>"),
-        "Set the log verbosity from 0 to 4 (default: 2).");
+        "Set the log verbosity from 0 to 4 (default: 1).");
     addLoggingOption("log-channels",
         po::value<std::vector<std::string>>(&_options.includeChannels)
             ->value_name("<channel_list>")
