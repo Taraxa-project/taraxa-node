@@ -157,7 +157,8 @@ bool TransactionQueue::insert(Transaction trx) {
   if (status.second == false) {  // never seen before
     ret = trx_status_.insert(hash, TransactionStatus::in_queue);
     uLock lock(mutex_for_unverified_qu_);
-    unverified_qu_.emplace_back(trx);
+    auto iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+    unverified_hash_qu_.emplace(std::make_pair(hash, iter));
     cond_for_unverified_qu_.notify_one();
     LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
     ret = true;
@@ -174,22 +175,24 @@ bool TransactionQueue::insert(Transaction trx) {
 
 void TransactionQueue::verifyTrx() {
   while (!stopped_) {
-    Transaction utrx;
+    // Transaction utrx;
+    std::pair<trx_hash_t, listIter> item;
     {
       uLock lock(mutex_for_unverified_qu_);
-      while (unverified_qu_.empty() && !stopped_) {
+      while (unverified_hash_qu_.empty() && !stopped_) {
         cond_for_unverified_qu_.wait(lock);
       }
       if (stopped_) {
         LOG(log_nf_) << "Transaction verifier stopped ... " << std::endl;
         return;
       }
-      utrx = std::move(unverified_qu_.front());
-      unverified_qu_.pop_front();
+      //  utrx = std::move(unverified_qu_.front());
+      item = unverified_hash_qu_.front();
+      unverified_hash_qu_.pop();
     }
     try {
-      Transaction trx = std::move(utrx);
-      trx_hash_t hash = trx.getHash();
+      trx_hash_t hash = item.first;
+      Transaction &trx = *(item.second);
       // verify and put the transaction to verified queue
       bool valid = false;
       if (mode_ == VerifyMode::skip_verify_sig) {
@@ -207,7 +210,7 @@ void TransactionQueue::verifyTrx() {
         LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
 
         uLock lock(mutex_for_verified_qu_);
-        verified_trxs_[trx.getHash()] = trx;
+        verified_trxs_[hash] = item.second;
         new_verified_transactions = true;
       }
     } catch (...) {
@@ -223,9 +226,10 @@ TransactionQueue::removeBlockTransactionsFromQueue(
     {
       uLock lock(mutex_for_verified_qu_);
       for (auto const &trx : allBlockTransactions) {
-        auto fTrx = verified_trxs_.find(trx);
-        if (fTrx != verified_trxs_.end()) {
-          result[fTrx->first] = fTrx->second;
+        auto vrf_trx = verified_trxs_.find(trx);
+        if (vrf_trx != verified_trxs_.end()) {
+          result[vrf_trx->first] = *(vrf_trx->second);
+          trx_buffer_.erase(vrf_trx->second);
           verified_trxs_.erase(trx);
         }
       }
@@ -235,9 +239,10 @@ TransactionQueue::removeBlockTransactionsFromQueue(
       // queue, if so wait for it to enter verified queue
       uLock lock(mutex_for_unverified_qu_);
       bool found = false;
-      for (auto const &uTrx : unverified_qu_) {
-        for (auto const &trx : allBlockTransactions) {
-          if (trx == uTrx.getHash()) found = true;
+      for (auto const &trx : allBlockTransactions) {
+        auto uvrf_trx = unverified_trxs_.find(trx);
+        if (uvrf_trx != unverified_trxs_.end()) {
+          found = true;
         }
       }
       if (!found) return result;
@@ -252,7 +257,9 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
   if (new_verified_transactions || !onlyNew) {
     if (onlyNew) new_verified_transactions = false;
     uLock lock(mutex_for_verified_qu_);
-    verified_trxs = verified_trxs_;
+    for (auto const &trx : verified_trxs_) {
+      verified_trxs[trx.first] = *(trx.second);
+    }
     LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
   }
@@ -263,25 +270,30 @@ std::shared_ptr<Transaction> TransactionQueue::getTransaction(
     trx_hash_t const &hash) {
   {
     uLock lock(mutex_for_unverified_qu_);
-    for (auto trx : unverified_qu_)
-      if (trx.getHash() == hash) return std::make_shared<Transaction>(trx);
+    auto it = unverified_trxs_.find(hash);
+    if (it != unverified_trxs_.end())
+      return std::make_shared<Transaction>(*(it->second));
   }
   {
     uLock lock(mutex_for_verified_qu_);
-    for (auto trx : verified_trxs_)
-      if (trx.first == hash) return std::make_shared<Transaction>(trx.second);
+    auto it = verified_trxs_.find(hash);
+    if (it != verified_trxs_.end())
+      return std::make_shared<Transaction>(*(it->second));
   }
   return nullptr;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::moveVerifiedTrxSnapShot() {
+  std::unordered_map<trx_hash_t, Transaction> res;
   uLock lock(mutex_for_verified_qu_);
-  auto verified_trxs = std::move(verified_trxs_);
+  for (auto const &trx : verified_trxs_) {
+    res[trx.first] = *(trx.second);
+  }
+  verified_trxs_.clear();
   assert(verified_trxs_.empty());
-  LOG(log_nf_) << "Move: " << verified_trxs.size() << " verified trx out. "
-               << std::endl;
-  return std::move(verified_trxs);
+  LOG(log_nf_) << "Copy" << res.size() << " verified trx. " << std::endl;
+  return std::move(res);
 }
 
 unsigned long TransactionQueue::getVerifiedTrxCount() {
@@ -300,20 +312,24 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
 }
 // Received block means some trx might be packed by others
 bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
-    vec_trx_t const &all_block_trx_hashes, std::vector<Transaction> const &some_trxs) {
-  //First step: Save and update status for transactions that were sent together with the block
-  //some_trxs might not full trxs in the block (for syncing purpose) 
+    vec_trx_t const &all_block_trx_hashes,
+    std::vector<Transaction> const &some_trxs) {
+  // First step: Save and update status for transactions that were sent together
+  // with the block some_trxs might not full trxs in the block (for syncing
+  // purpose)
   for (auto const &trx : some_trxs) {
     db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
     trx_status_.update(trx.getHash(), TransactionStatus::in_block);
   }
 
-  //Second step: Retrieve trxs which are in the queue but already packed by others and update the status
+  // Second step: Retrieve trxs which are in the queue but already packed by
+  // others and update the status
   for (auto const &trx :
        trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
     db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
     trx_status_.update(trx.first, TransactionStatus::in_block);
   }
+  return true;
 }
 
 bool TransactionManager::insertTrx(Transaction trx) {
