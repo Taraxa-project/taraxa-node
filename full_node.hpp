@@ -136,6 +136,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void placeVote(Vote const &vote);
   void broadcastVote(taraxa::blk_hash_t const &blockhash, char type, int period,
                      int step);
+  void clearVoteQueue();
+  size_t getVoteQueueSize();
+
 
  private:
   // ** NOTE: io_context must be constructed before Network

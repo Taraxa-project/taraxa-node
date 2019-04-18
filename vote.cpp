@@ -111,34 +111,21 @@ bool Vote::validateVote(std::pair<bal_t, bool> &vote_account_balance) const{
   return false;
 }
 
-void VoteQueue::placeVote(public_t const &node_pk,
-                          secret_t const &node_sk,
-                          blk_hash_t const &blockhash,
-                          char type,
-                          int period,
-                          int step) {
-  std::string message = blockhash.toString() +
-                        std::to_string(type) +
-                        std::to_string(period) +
-                        std::to_string(step);
-  // sign message
-  dev::Signature signature = dev::sign(node_sk, dev::sha3(message));
-
-  Vote vote(node_pk, signature, blockhash, type, period, step);
-  placeVote(vote);
+void VoteQueue::clearQueue() {
+  vote_queue_.clear();
 }
 
-void VoteQueue::placeVote(taraxa::Vote const &vote) {
-  vote_queue.push_back(vote);
+size_t VoteQueue::getSize() {
+  return vote_queue_.size();
 }
 
 std::vector<Vote> VoteQueue::getVotes(int period) {
   std::vector<Vote> votes;
-  std::deque<Vote>::iterator it = vote_queue.begin();
+  std::deque<Vote>::iterator it = vote_queue_.begin();
 
-  while (it != vote_queue.end()) {
+  while (it != vote_queue_.end()) {
     if (it->getPeriod() < period) {
-      it = vote_queue.erase(it);
+      it = vote_queue_.erase(it);
     } else {
       votes.push_back(*it++);
     }
@@ -167,6 +154,27 @@ std::string VoteQueue::getJsonStr(std::vector<Vote> &votes) {
   boost::property_tree::write_json(output, ptroot);
 
   return output.str();
+}
+
+void VoteQueue::placeVote(taraxa::Vote const &vote) {
+  vote_queue_.push_back(vote);
+}
+
+void VoteQueue::placeVote(public_t const &node_pk,
+                          secret_t const &node_sk,
+                          blk_hash_t const &blockhash,
+                          char type,
+                          int period,
+                          int step) {
+  std::string message = blockhash.toString() +
+                        std::to_string(type) +
+                        std::to_string(period) +
+                        std::to_string(step);
+  // sign message
+  dev::Signature signature = dev::sign(node_sk, dev::sha3(message));
+
+  Vote vote(node_pk, signature, blockhash, type, period, step);
+  placeVote(vote);
 }
 
 } // namespace taraxa

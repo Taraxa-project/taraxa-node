@@ -80,6 +80,7 @@ class Network {
 
   // PBFT
   void noNewPbftVote(Vote const &vote);
+  void sendPbftVote(NodeID const &id, Vote const &vote);
 
  private:
   std::shared_ptr<dev::p2p::Host> host_;
