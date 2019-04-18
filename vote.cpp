@@ -141,8 +141,9 @@ std::string VoteQueue::getJsonStr(std::vector<Vote> &votes) {
 
   for (Vote v : votes) {
     ptree ptvote;
-    ptvote.put("blockhash", v.getBlockHash());
     ptvote.put("accounthash", v.getPublicKey());
+    ptvote.put("signature", v.getSingature());
+    ptvote.put("blockhash", v.getBlockHash());
     ptvote.put("type", v.getType());
     ptvote.put("period", v.getPeriod());
     ptvote.put("step", v.getStep());
