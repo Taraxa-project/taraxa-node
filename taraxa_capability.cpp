@@ -288,7 +288,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       }
       break;
     }
-    case PbftVote: {
+    case PbftVotePacket: {
       LOG(logger_debug_) << "Received PBFT vote";
 
       std::vector<::byte> pbftVoteBytes;
@@ -299,10 +299,15 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       taraxa::bufferstream strm(pbftVoteBytes.data(), pbftVoteBytes.size());
       Vote vote;
       vote.deserialize(strm);
+
       if (!m_peers[_nodeID].isVoteKnown(vote.getHash())) {
         m_peers[_nodeID].markVoteAsKnown(vote.getHash());
 
         auto full_node = full_node_.lock();
+        if (!full_node) {
+          LOG(logger_err_) << "PbftVote full node weak pointer empty";
+          return false;
+        }
         full_node->placeVote(vote);
       }
       onNewPbftVote(vote);
@@ -661,7 +666,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
     vectorstream strm(bytes);
     vote.serialize(strm);
   }
-  m_host.capabilityHost()->prep(_id, name(), s, PbftVote, 1);
+  m_host.capabilityHost()->prep(_id, name(), s, PbftVotePacket, 1);
   s.appendList(bytes.size());
   for (auto i = 0; i < bytes.size(); i++) {
     s << bytes[i];

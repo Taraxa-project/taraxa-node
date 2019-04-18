@@ -29,8 +29,8 @@ enum SubprotocolPacketType : ::byte {
   BlockChildrenPacket,
   TransactionPacket,
   TestPacket,
-  PacketCount,
-  PbftVote
+  PbftVotePacket,
+  PacketCount
 };
 
 enum PeerState { Idle = 0, Syncing };
@@ -144,6 +144,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
   dev::Logger logger_debug_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
+  dev::Logger logger_err_ {
+    dev::createLogger(dev::Verbosity::VerbosityError, "network")
+  };
+
 };
 }  // namespace taraxa
 #endif
