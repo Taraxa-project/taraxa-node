@@ -50,12 +50,13 @@ void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(boost::asio::io_context &io_context,
                    std::string const &conf_full_node,
-                   std::string const &conf_network) : FullNode(io_context, conf_full_node, NetworkConfig(conf_network)) {
-                   }
+                   std::string const &conf_network)
+    : FullNode(io_context, FullNodeConfig(conf_full_node),
+               NetworkConfig(conf_network)) {}
 
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig conf_full_node,
-                   NetworkConfig conf_network) try
+                   FullNodeConfig const & conf_full_node,
+                   NetworkConfig const & conf_network) try
     : io_context_(io_context),
       conf_(conf_full_node),
       db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
@@ -127,7 +128,7 @@ void FullNode::start() {
       std::string key;
       while (!stopped_) {
         auto blk = blk_qu_->getVerifiedBlock();
-        if(stopped_) break;
+        if (stopped_) break;
         // Any transactions that are passed with the block were not verified in
         // transactions queue so they need to be verified here
         bool invalidTransaction = false;
