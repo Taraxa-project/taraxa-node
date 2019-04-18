@@ -32,11 +32,18 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
 // Network ----------------------------------------
 
 Network::Network(std::string const &conf_file_name)
-    : Network(conf_file_name, "", secret_t()) {}
+    : Network(NetworkConfig(conf_file_name), "", secret_t()) {}
 Network::Network(std::string const &conf_file_name, std::string network_file)
-    : Network(conf_file_name, network_file, secret_t()) {}
+    : Network(NetworkConfig(conf_file_name), network_file, secret_t()) {}
 Network::Network(std::string const &conf_file_name, std::string network_file,
-                 secret_t const &sk) try : conf_(conf_file_name) {
+                 secret_t const &sk)
+    : Network(NetworkConfig(conf_file_name), network_file, sk) {}
+Network::Network(NetworkConfig const &config)
+    : Network(config, "", secret_t()) {}
+Network::Network(NetworkConfig const &config, std::string network_file)
+    : Network(config, network_file, secret_t()) {}
+Network::Network(NetworkConfig const &config, std::string network_file,
+                 secret_t const &sk) try : conf_(config) {
   auto key = dev::KeyPair::create();
   if (!sk) {
     LOG(logger_debug_) << "New key generated " << toHex(key.secret().ref());
@@ -44,19 +51,12 @@ Network::Network(std::string const &conf_file_name, std::string network_file,
     key = dev::KeyPair(sk);
   }
 
-  if (conf_file_name.empty()) {
-    host_ = std::make_shared<dev::p2p::Host>(
-        "TaraxaNode", key,
-        dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
-                                true));
-  } else {
-    auto networkData = contents(network_file);
-    host_ = std::make_shared<dev::p2p::Host>(
-        "TaraxaNode",
-        dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
-                                true),
-        dev::bytesConstRef(&networkData));
-  }
+  auto networkData = contents(network_file);
+  host_ = std::make_shared<dev::p2p::Host>(
+      "TaraxaNode",
+      dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
+                              true),
+      dev::bytesConstRef(&networkData));
   taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get());
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
@@ -122,7 +122,8 @@ void Network::onNewBlockVerified(DagBlock const &blk) {
   LOG(logger_debug_) << "On new block verified:" << blk.getHash().toString();
 }
 
-void Network::onNewTransactions(std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+void Network::onNewTransactions(
+    std::unordered_map<trx_hash_t, Transaction> const &transactions) {
   taraxa_capability_->onNewTransactions(transactions, true);
   LOG(logger_debug_) << "On new transactions" << transactions.size();
 }
