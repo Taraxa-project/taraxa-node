@@ -13,14 +13,14 @@ void PbftManager::start() {
   if (!stopped_) return;
   stopped_ = false;
   executor_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_si_) << "A PBFT executor initiated ..." << std::endl;
+  LOG(log_nf_) << "A PBFT executor initiated ..." << std::endl;
 }
 void PbftManager::stop() {
   if (stopped_) return;
   stopped_ = true;
   executor_->join();
   executor_.reset();
-  LOG(log_si_) << "A PBFT executor terminated ..." << std::endl;
+  LOG(log_nf_) << "A PBFT executor terminated ..." << std::endl;
   assert(executor_ == nullptr);
 }
 

@@ -18,7 +18,7 @@ RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
     throw std::invalid_argument("Error, invalid db path: " + db_path_);
   }
   if (!boost::filesystem::exists(path)) {
-    std::cout << "Create db directory: " << path << std::endl;
+    LOG(log_nf_) << "Create db directory: " << path << std::endl;
     if (!boost::filesystem::create_directories(path)) {
       throw std::invalid_argument("Error, cannot create db path: " + db_path_);
     }
@@ -31,10 +31,10 @@ RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
   // Will remove all old data!
   status = DestroyDB(db_path_, opt_);
   if (status.ok()) {
-    std::cout << "Warning! DB is cleared : " << db_path_ << std::endl;
+    LOG(log_wr_) << "Warning! DB is cleared : " << db_path_ << std::endl;
   } else {
-    std::cout << "Cannot clear DB : " << db_path_ << std::endl;
-    std::cout << status.ToString() << std::endl;
+    LOG(log_er_) << "Cannot clear DB : " << db_path_ << std::endl
+                 << status.ToString() << std::endl;
   }
 
   opt_.IncreaseParallelism();
@@ -42,13 +42,13 @@ RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
   opt_.create_if_missing = true;
   status = rocksdb::DB::Open(opt_, db_path_, &db_);
   if (status.ok()) {
-    std::cout << "Open DB: " << db_path_ << " ok " << std::endl;
+    LOG(log_nf_) << "Open DB: " << db_path_ << " ok " << std::endl;
   } else {
     auto pid = ::getpid();
     std::string new_db_path = db_path_ + std::to_string(pid);
-    std::cout << "Open DB fail: " << db_path_ << " because "
-              << status.ToString() << std::endl;
-    std::cout << "Warning! Create temp DB: " << new_db_path << std::endl;
+    LOG(log_er_) << "Open DB fail: " << db_path_ << " because "
+                 << status.ToString() << std::endl;
+    LOG(log_wr_) << "Warning! Create temp DB: " << new_db_path << std::endl;
   }
 }
 RocksDb::~RocksDb() { delete db_; }
