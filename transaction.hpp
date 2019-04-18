@@ -32,7 +32,7 @@ class DagBlock;
 
 enum class TransactionStatus {
   invalid,
-  in_block,     // confirmed state, inside of block created by us or someone else
+  in_block,  // confirmed state, inside of block created by us or someone else
   in_queue,  // not packed yet
   unseen
 };
@@ -242,15 +242,17 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
-  std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(vec_trx_t const &allBlockTransactions);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
+      bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
+      vec_trx_t const &allBlockTransactions);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
   using uLock = std::unique_lock<std::mutex>;
-
+  using listIter = std::list<Transaction>::iterator;
   void verifyTrx();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
@@ -259,8 +261,11 @@ class TransactionQueue {
   TransactionStatusTable &trx_status_;
   unsigned current_capacity_ = 1024;
   unsigned future_capacity_ = 1024;
-  std::unordered_map<trx_hash_t, Transaction> verified_trxs_;
-  std::deque<Transaction> unverified_qu_;
+
+  std::list<Transaction> trx_buffer_;
+  std::unordered_map<trx_hash_t, listIter> verified_trxs_;
+  std::unordered_map<trx_hash_t, listIter> unverified_trxs_;
+  std::queue<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
   std::vector<std::thread> verifiers_;
   std::mutex mutex_for_unverified_qu_;
   std::mutex mutex_for_verified_qu_;
@@ -329,9 +334,12 @@ class TransactionManager
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
+      bool onlyNew);
   // Received block means some trx might be packed by others
-  bool saveBlockTransactionsAndUpdateTransactionStatus(vec_trx_t const &all_block_trx_hashes, std::vector<Transaction> const &some_trxs);
+  bool saveBlockTransactionsAndUpdateTransactionStatus(
+      vec_trx_t const &all_block_trx_hashes,
+      std::vector<Transaction> const &some_trxs);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
