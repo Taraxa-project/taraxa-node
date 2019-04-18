@@ -24,7 +24,7 @@ RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
 Rpc::Rpc(boost::asio::io_context &io, std::string conf_rpc,
          std::shared_ptr<FullNode> node)
     : conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node) {
-  std::cout << "Taraxa RPC started at port: " << conf_.port << std::endl;
+  LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port << std::endl;
 }
 
 std::shared_ptr<Rpc> Rpc::getShared() {
@@ -54,7 +54,7 @@ void Rpc::start() {
   }
   acceptor_.listen();
 
-  LOG(log_si_) << "Rpc is listening on port " << conf_.port << std::endl;
+  LOG(log_nf_) << "Rpc is listening on port " << conf_.port << std::endl;
   waitForAccept();
 }
 
@@ -131,8 +131,8 @@ void RpcConnection::read() {
             }
           }
         } else {
-          std::cerr << "Error! RPC conncetion read fail ... " << ec.message()
-                    << "\n";
+          LOG(this_sp->rpc_->log_er_)
+              << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
         }
         (void)byte_transfered;
       });
@@ -422,7 +422,6 @@ void RpcHandler::processRequest() {
     res += "\n";
     replier_(res);
   } catch (std::exception const &err) {
-    std::cerr << err.what() << "\n";
     replier_(err.what());
   }
 }
