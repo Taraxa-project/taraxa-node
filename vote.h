@@ -61,17 +61,19 @@ class VoteQueue {
   VoteQueue() = default;
   ~VoteQueue() {}
 
+  void clearQueue();
+
+  size_t getSize();
   std::vector<Vote> getVotes(int period);
+  std::string getJsonStr(std::vector<Vote> &votes);
 
   void placeVote(Vote const &vote);
 
   void placeVote(public_t const &node_pk, secret_t const &node_sk,
                  blk_hash_t const &blockhash, char type, int period, int step);
 
-  std::string getJsonStr(std::vector<Vote> &votes);
-
  private:
-  std::deque<Vote> vote_queue;
+  std::deque<Vote> vote_queue_;
 };
 
 }  // namespace taraxa

@@ -408,8 +408,18 @@ void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash, char type,
   Vote vote(node_pk_, signature, blockhash, type, period, step);
   network_->noNewPbftVote(vote);
 }
+
 bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type, int period,
                            int step) {
   return pbft_mgr_->shouldSpeak(blockhash, type, period, step);
 }
+
+void FullNode::clearVoteQueue() {
+  vote_queue_->clearQueue();
+}
+
+size_t FullNode::getVoteQueueSize() {
+  return vote_queue_->getSize();
+}
+
 }  // namespace taraxa

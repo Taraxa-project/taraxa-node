@@ -139,4 +139,11 @@ void Network::noNewPbftVote(Vote const &vote) {
   taraxa_capability_->onNewPbftVote(vote);
 }
 
+void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
+  LOG(logger_debug_) << "Network sent PBFT vote: "
+                     << vote.getHash().toString()
+                     << " to: " << id;
+  taraxa_capability_->sendPbftVote(id, vote);
+}
+
 }  // namespace taraxa
