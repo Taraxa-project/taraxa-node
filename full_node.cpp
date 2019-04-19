@@ -427,4 +427,12 @@ size_t FullNode::getVoteQueueSize() {
   return vote_queue_->getSize();
 }
 
+bool FullNode::isKnownVote(taraxa::Vote const &vote) const {
+  return known_votes_.count(vote.getHash());
+}
+
+void FullNode::setVoteKnown(taraxa::Vote const &vote) {
+  known_votes_.insert(vote.getHash());
+}
+
 }  // namespace taraxa
