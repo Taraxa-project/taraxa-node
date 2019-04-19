@@ -300,15 +300,16 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       Vote vote;
       vote.deserialize(strm);
 
-      if (!m_peers[_nodeID].isVoteKnown(vote.getHash())) {
-        m_peers[_nodeID].markVoteAsKnown(vote.getHash());
+      m_peers[_nodeID].markVoteAsKnown(vote.getHash());
 
+      if (!isKnownVote_.count(vote.getHash())) {
         auto full_node = full_node_.lock();
         if (!full_node) {
           LOG(logger_err_) << "PbftVote full node weak pointer empty";
           return false;
         }
         full_node->placeVote(vote);
+        isKnownVote_.insert(vote.getHash());
       }
       onNewPbftVote(vote);
       break;

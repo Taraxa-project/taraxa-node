@@ -13,9 +13,10 @@
 
 #include <boost/thread.hpp>
 #include <gtest/gtest.h>
+#include <vector>
 
 namespace taraxa {
-
+#if 0
 TEST(PbftVote, pbft_should_speak_test) {
   boost::asio::io_context context;
 
@@ -165,12 +166,152 @@ TEST(PbftVote, transfer_vote) {
   size_t vote_queue_size = node1->getVoteQueueSize();
   EXPECT_EQ(vote_queue_size, 1);
 }
+#endif
+TEST(PbftVote, vote_broadcast) {
+  /*
+  boost::asio::io_context context1;
+  auto node1(std::make_shared<taraxa::FullNode>(
+      context1,
+      std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+  boost::asio::io_context context2;
+  auto node2(std::make_shared<taraxa::FullNode>(
+      context2,
+      std::string("./core_tests/conf_full_node2.json"),
+      std::string("./core_tests/conf_network2.json")));
+  boost::asio::io_context context3;
+  auto node3(std::make_shared<taraxa::FullNode>(
+      context3,
+      std::string("./core_tests/conf_full_node3.json"),
+      std::string("./core_tests/conf_network3.json")));
+  node1->setDebug(true);
+  node2->setDebug(true);
+  node3->setDebug(true);
+  node1->start();
+  node2->start();
+  node3->start();
+
+  std::unique_ptr<boost::asio::io_context::work> work1(
+      new boost::asio::io_context::work(context1));
+  std::unique_ptr<boost::asio::io_context::work> work2(
+      new boost::asio::io_context::work(context2));
+  std::unique_ptr<boost::asio::io_context::work> work3(
+      new boost::asio::io_context::work(context3));
+
+  boost::thread t1([&context1]() {
+    context1.run();
+  });
+  boost::thread t2([&context2]() {
+    context2.run();
+  });
+  boost::thread t3([&context3]() {
+    context3.run();
+  });
+
+  std::shared_ptr<Network> nw1 = node1->getNetwork();
+  std::shared_ptr<Network> nw2 = node2->getNetwork();
+  std::shared_ptr<Network> nw3 = node3->getNetwork();
+
+  taraxa::thisThreadSleepForSeconds(20);
+
+  ASSERT_EQ(2, nw1->getPeerCount());
+  ASSERT_EQ(2, nw2->getPeerCount());
+  ASSERT_EQ(2, nw3->getPeerCount());
+*/
+
+  boost::asio::io_context context1;
+  auto node1(std::make_shared<taraxa::FullNode>(
+      context1,
+      std::string("./core_tests/conf_full_node1.json"),
+      std::string("./core_tests/conf_network1.json")));
+
+  const int total_nodes = 10;
+  std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
+  std::vector<std::shared_ptr<FullNode> > nodes;
+
+  for (int i = 0; i < total_nodes; i++) {
+    contexts.push_back(std::make_shared<boost::asio::io_context>());
+    FullNodeConfig config(std::string("./core_tests/conf_full_node2.json"));
+    NetworkConfig networkConfig("./core_tests/conf_network2.json");
+    config.db_accounts_path += std::to_string(i + 1);
+    config.db_blocks_path += std::to_string(i + 1);
+    config.db_transactions_path += std::to_string(i + 1);
+    networkConfig.network_listen_port += i + 1;
+    auto node(std::make_shared<taraxa::FullNode>(
+        *contexts[i], config.to_string(), networkConfig));
+    //nodes.push_back()
+    //nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i],
+    //                                                   config,
+    //                                                   networkConfig));
+//    nodes[i]->start();
+    taraxa::thisThreadSleepForMilliSeconds(50);
+  }
+/*
+  std::vector<std::shared_ptr<Network>> networks;
+  for (int i = 0; i < total_nodes; i++) {
+    networks[i] = nodes[i]->getNetwork();
+  }
+
+  for (int i = 0; i < total_nodes; i++) {
+    ASSERT_EQ(9, networks[i]->getPeerCount());
+  }
+*/
+/*
+  // generate vote
+  blk_hash_t blockhash(1);
+  char type = '1';
+  int period = 1;
+  int step = 1;
+  std::string message = blockhash.toString() +
+                        std::to_string(type) +
+                        std::to_string(period) +
+                        std::to_string(step);
+  dev::KeyPair key_pair = dev::KeyPair::create();
+  dev::Signature signature = dev::sign(key_pair.secret(), dev::sha3(message));
+  Vote vote(key_pair.pub(), signature, blockhash, type, period, step);
+
+  addr_t account_address = dev::toAddress(key_pair.pub());
+  bal_t new_balance = 9007199254740991; // Max Taraxa coins 2^53 - 1
+  node1->setBalance(account_address, new_balance);
+  node2->setBalance(account_address, new_balance);
+  node3->setBalance(account_address, new_balance);
+
+  node1->clearVoteQueue();
+  node2->clearVoteQueue();
+  node3->clearVoteQueue();
+
+  taraxa::thisThreadSleepForSeconds(10);
+  nw1->noNewPbftVote(vote);
+  std::cout << "Waiting packages for 10 seconds ..." << std::endl;
+  taraxa::thisThreadSleepForSeconds(10);
+
+  work1.reset();
+  work2.reset();
+  work3.reset();
+  node1->stop();
+  node2->stop();
+  node3->stop();
+  t1.join();
+  t2.join();
+  t3.join();
+
+  size_t vote_queue_size1 = node1->getVoteQueueSize();
+  size_t vote_queue_size2 = node2->getVoteQueueSize();
+  size_t vote_queue_size3 = node3->getVoteQueueSize();
+  //EXPECT_EQ(vote_queue_size1, 1);
+  //EXPECT_EQ(vote_queue_size2, 1);
+  std::cout << "node1: " << vote_queue_size1 << std::endl;
+  std::cout << "node2: " << vote_queue_size2 << std::endl;
+  std::cout << "node3: " << vote_queue_size3 << std::endl;
+  */
+}
 
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
+  logOptions.verbosity = dev::VerbosityDebug;
+  logOptions.includeChannels.push_back("network");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
