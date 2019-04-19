@@ -214,15 +214,18 @@ bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
   return seen_blocks_.count(hash);
 }
 
-std::shared_ptr<DagBlock> BlockQueue::getBlock(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> BlockQueue::getDagBlock(blk_hash_t const &hash) {
   boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
-  auto fBlk = seen_blocks_.find(hash);
-  if (fBlk != seen_blocks_.end())
-    return std::make_shared<DagBlock>(fBlk->second);
-  return std::shared_ptr<DagBlock>();
+  std::shared_ptr<DagBlock> ret;
+  auto blk = seen_blocks_.find(hash);
+  if (blk != seen_blocks_.end()) {
+    ret = std::make_shared<DagBlock>(blk->second);
+  }
+  return ret;
 }
 
-void BlockQueue::pushUnverifiedBlock(DagBlock const &blk, std::vector<Transaction> const &transactions) {
+void BlockQueue::pushUnverifiedBlock(
+    DagBlock const &blk, std::vector<Transaction> const &transactions) {
   {
     upgradableLock lock(shared_mutex_);
     if (seen_blocks_.count(blk.getHash())) {

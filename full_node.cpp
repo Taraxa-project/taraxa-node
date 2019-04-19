@@ -55,8 +55,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                NetworkConfig(conf_network)) {}
 
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig const & conf_full_node,
-                   NetworkConfig const & conf_network) try
+                   FullNodeConfig const &conf_full_node,
+                   NetworkConfig const &conf_network) try
     : io_context_(io_context),
       conf_(conf_full_node),
       db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
@@ -181,6 +181,8 @@ void FullNode::stop() {
   }
 }
 
+size_t FullNode::getPeerCount() { return network_->getPeerCount(); }
+
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
   blk_qu_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
@@ -203,23 +205,23 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
-std::shared_ptr<DagBlock> FullNode::getBlock(blk_hash_t const &hash) {
-  auto blk = blk_qu_->getBlock(hash);
-  if (!blk) return getDagBlock(hash);
-  return blk;
-}
-
 void FullNode::storeTransaction(Transaction const &trx) {
   trx_mgr_->insertTrx(trx);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
-  std::shared_ptr<DagBlock> block;
-  std::string json = db_blks_->get(hash.toString());
-  if (!json.empty()) {
-    return std::make_shared<DagBlock>(json);
+  std::shared_ptr<DagBlock> blk;
+  // find if in block queue
+  blk = blk_qu_->getDagBlock(hash);
+  // not in queue, search db
+  if (!blk) {
+    std::string json = db_blks_->get(hash.toString());
+    if (!json.empty()) {
+      blk = std::make_shared<DagBlock>(json);
+    }
   }
-  return block;
+
+  return blk;
 }
 
 std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
@@ -419,13 +421,9 @@ bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type, int period,
   return pbft_mgr_->shouldSpeak(blockhash, type, period, step);
 }
 
-void FullNode::clearVoteQueue() {
-  vote_queue_->clearQueue();
-}
+void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
 
-size_t FullNode::getVoteQueueSize() {
-  return vote_queue_->getSize();
-}
+size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
 
 bool FullNode::isKnownVote(taraxa::Vote const &vote) const {
   return known_votes_.count(vote.getHash());

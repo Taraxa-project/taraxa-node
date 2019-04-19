@@ -17,9 +17,9 @@ BlockVisitor::BlockVisitor(std::weak_ptr<FullNode> full_node)
 
 void BlockVisitor::visit(stream &strm) {
   block_.deserialize(strm);
-  if (auto fn = full_node_.lock()){
+  if (auto fn = full_node_.lock()) {
     fn->storeBlock(block_);
   }
 }
-DagBlock BlockVisitor::getBlock() { return block_; }
+DagBlock BlockVisitor::getDagBlock() { return block_; }
 }  // namespace taraxa
