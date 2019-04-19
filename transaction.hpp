@@ -274,11 +274,11 @@ class TransactionQueue {
 
   std::condition_variable cond_for_unverified_qu_;
   dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "trx_qu")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "TRXQU")};
   dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "trx_qu")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXQU")};
   dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_qu")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXQU")};
 };
 
 /**
@@ -360,11 +360,11 @@ class TransactionManager
   std::mutex mutex_for_pack_trx_;
   std::condition_variable cond_for_pack_trx_;
   dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "trx_mgr")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
   dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "trx_mgr")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXMGR")};
   dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "trx_mgr")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXMGR")};
 };
 
 }  // namespace taraxa

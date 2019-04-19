@@ -38,6 +38,8 @@ class PbftManager {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFT_MGR")};
   mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_MGR")};
+  mutable dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_MGR")};
 };
 
 }  // namespace taraxa

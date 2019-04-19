@@ -159,7 +159,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       break;
     }
     case GetBlockChildrenPacket: {
-      LOG(logger_debug_) << "Received GetBlockChildrenPacket with"
+      LOG(logger_debug_) << "Received GetBlockChildrenPacket with "
                          << _r.itemCount() << " child blocks";
       auto blockCount = _r.itemCount();
       dev::strings totalChildren;
@@ -167,7 +167,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
         blk_hash_t hash(_r[iBlock]);
         if (auto full_node = full_node_.lock()) {
           auto children = full_node->getTotalDagBlockChildren(hash, ULONG_MAX);
-          LOG(logger_debug_) << "Found " << children.size() << "children";
+          LOG(logger_debug_) << "Found " << children.size() << " children";
           totalChildren += children;
         }
       }

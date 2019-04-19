@@ -141,11 +141,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   mutable std::mt19937_64
       m_urng;  // Mersenne Twister psuedo-random number generator
   dev::Logger logger_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
   dev::Logger logger_debug_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "TARCAP")};
   dev::Logger logger_err_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "network")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
 };
 }  // namespace taraxa
 #endif

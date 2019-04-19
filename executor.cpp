@@ -35,6 +35,7 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
     }
     coinTransfer(trx);
   }
+  return true;
 }
 bool Executor::execute(TrxSchedule const& sche) {
   for (auto const& blk : sche.blk_order) {

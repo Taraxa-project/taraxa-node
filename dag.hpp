@@ -147,12 +147,12 @@ class Dag {
   mutable std::mutex debug_mutex_;
 
  private:
-    mutable dev::Logger log_er_{
-        dev::createLogger(dev::Verbosity::VerbosityError, "dag")};
-    mutable dev::Logger log_wr_{
-        dev::createLogger(dev::Verbosity::VerbosityWarning, "dag")};
-    mutable dev::Logger log_nf_{
-        dev::createLogger(dev::Verbosity::VerbosityInfo, "dag")};
+  mutable dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAG")};
+  mutable dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAG")};
+  mutable dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAG")};
 };
 /**
  * PivotTree is a special DAG, every vertex only has one out-edge,
@@ -173,12 +173,12 @@ class PivotTree : public Dag {
                     std::vector<vertex_hash> &pivot_chain) const;
 
  private:
-    mutable dev::Logger log_er_{
-        dev::createLogger(dev::Verbosity::VerbosityError, "pvt_tr")};
-    mutable dev::Logger log_wr_{
-        dev::createLogger(dev::Verbosity::VerbosityWarning, "pvt_tr")};
-    mutable dev::Logger log_nf_{
-        dev::createLogger(dev::Verbosity::VerbosityInfo, "pvt_tr")};
+  mutable dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "pvt_tr")};
+  mutable dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "pvt_tr")};
+  mutable dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "pvt_tr")};
 };
 class DagBuffer;
 class TipBlockExplorer;
@@ -206,7 +206,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                              std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;
 
-  void getGhostPath(std::string const & source, std::vector<std::string> &ghost) const;
+  void getGhostPath(std::string const &source,
+                    std::vector<std::string> &ghost) const;
 
   // debug functions
   // BeforeTimeStamp does NOT include the time of timestamp
@@ -264,10 +265,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::vector<boost::thread> sb_buffer_processing_threads_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "dag_mgr")};
-    dev::Logger log_wr_{
-        dev::createLogger(dev::Verbosity::VerbosityWarning, "dag_mgr")};
-    dev::Logger log_nf_{
-        dev::createLogger(dev::Verbosity::VerbosityInfo, "dag_mgr")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "dag_mgr")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "dag_mgr")};
 };
 
 /**
@@ -298,12 +299,6 @@ class DagBuffer {
   std::condition_variable condition_;
   std::mutex mutex_;
   buffIter iter_;
-  //   mutable dev::Logger log_er_{
-  //       dev::createLogger(dev::Verbosity::VerbosityError, "dag_buf")};
-  //   mutable dev::Logger log_wr_{
-  //       dev::createLogger(dev::Verbosity::VerbosityWarning, "dag_buf")};
-  //   mutable dev::Logger log_nf_{
-  //       dev::createLogger(dev::Verbosity::VerbosityInfo, "dag_buf")};
 };
 
 /**

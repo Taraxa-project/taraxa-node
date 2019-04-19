@@ -125,7 +125,6 @@ void FullNode::start() {
   pbft_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
-      std::string key;
       while (!stopped_) {
         auto blk = blk_qu_->getVerifiedBlock();
         if (stopped_) break;
@@ -149,8 +148,8 @@ void FullNode::start() {
         trx_mgr_->saveBlockTransactionsAndUpdateTransactionStatus(
             blk.first.getTrxs(), blk.second);
 
-        key = blk.first.getHash().toString();
-        LOG(log_nf_) << "Write block to db ... " << key << std::endl;
+        LOG(log_nf_) << "Write block to db ... " << blk.first.getHash()
+                     << std::endl;
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
           if (!stopped_) {
