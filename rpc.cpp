@@ -65,13 +65,12 @@ void Rpc::waitForAccept() {
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
         if (!ec) {
-          LOG(log_nf_) << "A connection is accepted" << std::endl;
           connection->read();
         } else {
           if (stopped_) return;
 
-          std::cerr << "Error! Rpc async_accept error ... " << ec.message()
-                    << "\n";
+          LOG(log_er_) << "Error! Rpc async_accept error ... " << ec.message()
+                       << "\n";
           throw std::runtime_error(ec.message());
         }
         if (stopped_) return;

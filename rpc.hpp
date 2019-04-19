@@ -56,6 +56,7 @@ class Rpc : public std::enable_shared_from_this<Rpc> {
   dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "RPC")};
   dev::Logger log_nf_{dev::createLogger(dev::Verbosity::VerbosityInfo, "RPC")};
+  dev::Logger log_tr_{dev::createLogger(dev::Verbosity::VerbosityTrace, "RPC")};
 };
 // QQ:
 // Why RpcConnection and Rpc use different io_context?

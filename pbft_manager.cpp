@@ -29,7 +29,7 @@ void PbftManager::run() {
   while (!stopped_) {
     // Do Pbft stuff here
     thisThreadSleepForMilliSeconds(500);
-    LOG(log_nf_) << "Try to do some pbft stuff ..." << counter++ << std::endl;
+    LOG(log_tr_) << "Try to do some pbft stuff ..." << counter++ << std::endl;
   }
 }
 bool PbftManager::shouldSpeak(blk_hash_t const& blockhash, char type,
