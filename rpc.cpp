@@ -217,8 +217,12 @@ void RpcHandler::processRequest() {
       try {
         blk_hash_t hash = blk_hash_t(in_doc_.get<std::string>("hash"));
         auto blk = node_->getDagBlock(hash);
-        time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
-        res = blk->getJsonStr() + "\ntime_stamp: " + std::to_string(stamp);
+        if (!blk) {
+          res = "Block not available \n";
+        } else {
+          time_stamp_t stamp = node_->getDagBlockTimeStamp(hash);
+          res = blk->getJsonStr() + "\ntime_stamp: " + std::to_string(stamp);
+        }
       } catch (std::exception &e) {
         res = e.what();
       }

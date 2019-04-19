@@ -20,9 +20,9 @@
 #include <string>
 #include <thread>
 #include "libdevcore/Log.h"
+#include "transaction.hpp"
 #include "types.hpp"
 #include "util.hpp"
-#include "transaction.hpp"
 
 namespace taraxa {
 using std::string;
@@ -101,12 +101,15 @@ class BlockQueue {
   BlockQueue(size_t capacity, unsigned verify_threads);
   ~BlockQueue();
   void pushUnverifiedBlock(DagBlock const &block);  // add to unverified queue
-  void pushUnverifiedBlock(DagBlock const &block, std::vector<Transaction> const &transactions);  // add to unverified queue
-  std::pair<DagBlock, std::vector<Transaction> > getVerifiedBlock();  // get one verified block and pop
+  void pushUnverifiedBlock(
+      DagBlock const &block,
+      std::vector<Transaction> const &transactions);  // add to unverified queue
+  std::pair<DagBlock, std::vector<Transaction> >
+  getVerifiedBlock();  // get one verified block and pop
   void start();
   void stop();
   bool isBlockKnown(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getBlock(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
 
  private:
   using uLock = std::unique_lock<std::mutex>;

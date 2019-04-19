@@ -31,7 +31,7 @@ class BlockVisitor : public BaseVisitor {
   ~BlockVisitor() = default;
   void visit(stream& strm) override;
   // debugging
-  DagBlock getBlock();
+  DagBlock getDagBlock();
 
  private:
   DagBlock block_;

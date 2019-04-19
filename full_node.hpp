@@ -73,6 +73,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
 
+  // network stuff
+  size_t getPeerCount();
+
   // Store a block in persistent storage and build in dag
   void storeBlock(DagBlock const &blk);
   void storeBlockAndSign(DagBlock const &blk);
@@ -87,8 +90,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // Dag query: return childern, siblings, tips before time stamp
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
+
   bool isBlockKnown(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getBlock(blk_hash_t const &hash);
   time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
   void setDagBlockTimeStamp(blk_hash_t const &hash, time_stamp_t stamp);
   std::vector<std::string> getDagBlockChildren(blk_hash_t const &blk,
@@ -144,7 +147,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   size_t getVoteQueueSize();
   bool isKnownVote(taraxa::Vote const &vote) const;
   void setVoteKnown(taraxa::Vote const &vote);
-
 
  private:
   // ** NOTE: io_context must be constructed before Network

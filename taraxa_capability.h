@@ -119,7 +119,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
-  
+
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
 
@@ -144,10 +144,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
   dev::Logger logger_debug_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
-  dev::Logger logger_err_ {
-    dev::createLogger(dev::Verbosity::VerbosityError, "network")
-  };
-
+  dev::Logger logger_err_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "network")};
 };
 }  // namespace taraxa
 #endif

@@ -170,7 +170,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       memcpy(&hash, blockBytes.data(), blockBytes.size());
       m_peers[_nodeID].markBlockAsKnown(hash);
       if (auto full_node = full_node_.lock()) {
-        auto block = full_node->getBlock(hash);
+        auto block = full_node->getDagBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, false);
         } else
@@ -189,7 +189,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
       LOG(logger_debug_) << "Received GetNewBlockPacket" << hash.toString();
 
       if (auto full_node = full_node_.lock()) {
-        auto block = full_node->getBlock(hash);
+        auto block = full_node->getDagBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, true);
         } else
@@ -502,8 +502,8 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
   m_host.capabilityHost()->sealAndSend(_id, s);
 }
 
-void TaraxaCapability::sendTransactions(NodeID const &_id,
-                                        std::vector<Transaction> const &transactions) {
+void TaraxaCapability::sendTransactions(
+    NodeID const &_id, std::vector<Transaction> const &transactions) {
   LOG(logger_debug_) << "sendTransactions" << transactions.size() << " to "
                      << _id;
   RLPStream s;
