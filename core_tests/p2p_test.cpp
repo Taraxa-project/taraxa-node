@@ -204,7 +204,7 @@ using node discovery. Block is created on one host and automatically
 propagated to all other hosts. Test verifies that each node has received
 the block
 */
-TEST(p2p, DISABLED_block_propagate) {
+TEST(p2p, block_propagate) {
   int const step = 10;
   int const nodeCount = 50;
   const char *const localhost = "127.0.0.1";
@@ -305,8 +305,7 @@ TEST(p2p, DISABLED_block_propagate) {
       if (vCapabilities[j]->getBlocks().size() == 0) {
         synced = false;
       }
-    if(synced)
-      break;
+    if (synced) break;
   }
   auto blocks1 = thc1->getBlocks();
   for (int i = 0; i < nodeCount; i++) {
