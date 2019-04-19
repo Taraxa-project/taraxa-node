@@ -148,9 +148,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     dev::createLogger(dev::Verbosity::VerbosityError, "network")
   };
 
-  // PBFT
-  std::unordered_set<sig_hash_t> isKnownVote_;
-
 };
 }  // namespace taraxa
 #endif

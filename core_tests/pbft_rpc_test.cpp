@@ -13,7 +13,6 @@
 
 #include <boost/thread.hpp>
 #include <gtest/gtest.h>
-#include <vector>
 
 namespace taraxa {
 

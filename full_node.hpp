@@ -142,6 +142,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                      int step);
   void clearVoteQueue();
   size_t getVoteQueueSize();
+  bool isKnownVote(taraxa::Vote const &vote) const;
+  void setVoteKnown(taraxa::Vote const &vote);
 
 
  private:
@@ -183,6 +185,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
+  std::unordered_set<sig_hash_t> known_votes_;
 
   // debugger
   std::mutex debug_mutex_;
