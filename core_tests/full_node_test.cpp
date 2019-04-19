@@ -3,9 +3,8 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-18 12:56:45
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-08 15:59:24
+ * @Last Modified time: 2019-04-19 14:55:11
  */
-
 #include "full_node.hpp"
 #include <gtest/gtest.h>
 #include <atomic>
@@ -19,6 +18,7 @@
 #include "pbft_chain.hpp"
 #include "rpc.hpp"
 #include "string"
+#include "top.hpp"
 
 namespace taraxa {
 
@@ -30,7 +30,22 @@ auto g_secret = dev::Secret(
 auto g_key_pair = dev::KeyPair(g_secret);
 auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
-
+TEST(Top, create_top) {
+  char* inputs[] = {"./build/main",
+                    "--conf_full_node",
+                    "./core_tests/conf_full_node1.json",
+                    "--conf_network",
+                    "./core_tests/conf_network1.json",
+                    "--conf_rpc",
+                    "./core_tests/conf_rpc1.json",
+                    "-v",
+                    "2"};
+  Top top(9, inputs);
+  taraxa::thisThreadSleepForSeconds(2);
+  EXPECT_TRUE(top.isActive());
+  top.stop();
+  EXPECT_FALSE(top.isActive());
+}
 TEST(FullNode, account_bal) {
   boost::asio::io_context context;
 
@@ -72,7 +87,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   taraxa::thisThreadSleepForMilliSeconds(30000);
 
-  EXPECT_GT(node->getNumProposedBlocks(), /*NUM_TRX / 10 - 2*/0);
+  EXPECT_GT(node->getNumProposedBlocks(), /*NUM_TRX / 10 - 2*/ 0);
 
   std::vector<std::string> ghost;
   node->getGhostPath(Dag::GENESIS, ghost);

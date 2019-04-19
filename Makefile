@@ -65,7 +65,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/libethereum/state.o \
 	${OBJECTDIR}/sortition.o \
 	${OBJECTDIR}/pbft_manager.o \
-	${OBJECTDIR}/vote.o
+	${OBJECTDIR}/vote.o \
+	${OBJECTDIR}/top.o
+
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -95,6 +97,11 @@ ${OBJECTDIR}/taraxa_grpc.grpc.pb.o: grpc/proto/taraxa_grpc.grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_grpc.grpc.pb.o grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS)
+
+${OBJECTDIR}/top.o: top.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/top.o top.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/rocks_db.o: rocks_db.cpp
 	${MKDIR} -p ${OBJECTDIR}
