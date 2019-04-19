@@ -206,7 +206,7 @@ the block
 */
 TEST(p2p, DISABLED_block_propagate) {
   int const step = 10;
-  int const nodeCount = 30;
+  int const nodeCount = 50;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
@@ -267,15 +267,15 @@ TEST(p2p, DISABLED_block_propagate) {
   EXPECT_TRUE(started);
   printf("Started %d hosts\n", nodeCount);
 
-  // Wait for up to 12 seconds, to give the hosts time to connect to each
+  // Wait for to give the hosts time to connect to each
   // other.
-  bool connected = true;
-  for (unsigned i = 0; i < 30000; i += step) {
+  bool connected = false;
+  for (unsigned i = 0; i < 50000; i += step) {
     this_thread::sleep_for(chrono::milliseconds(step));
     connected = true;
     int counterConnected = 0;
     for (int j = 0; j < nodeCount; j++)
-      if (vHosts[j]->peerCount() < 2)
+      if (vHosts[j]->peerCount() < 1)
         connected = false;
       else
         counterConnected++;
@@ -283,10 +283,7 @@ TEST(p2p, DISABLED_block_propagate) {
 
     if ((host1.peerCount() > 0) && connected) break;
   }
-
-  // for (int i = 0; i < nodeCount; i++)
-  //   printf("%d peerCount:%lu\n", i, vHosts[i]->peerCount());
-
+  EXPECT_TRUE(connected);
   EXPECT_GT(host1.peerCount(), 0);
 
   DagBlock blk(blk_hash_t(1111),
@@ -301,7 +298,16 @@ TEST(p2p, DISABLED_block_propagate) {
   std::vector<Transaction> transactions2;
   thc1->onNewBlockReceived(blk, transactions2);
 
-  this_thread::sleep_for(chrono::seconds(20));
+  for (int i = 0; i < 10; i++) {
+    this_thread::sleep_for(chrono::seconds(5));
+    bool synced = true;
+    for (int j = 0; j < nodeCount; j++)
+      if (vCapabilities[j]->getBlocks().size() == 0) {
+        synced = false;
+      }
+    if(synced)
+      break;
+  }
   auto blocks1 = thc1->getBlocks();
   for (int i = 0; i < nodeCount; i++) {
     EXPECT_EQ(vCapabilities[i]->getBlocks().size(), 1);
