@@ -21,21 +21,17 @@ using std::string;
 
 TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
   dev::KeyPair key_pair = dev::KeyPair::create();
-  std::cout << "public key: " << key_pair.pub().hex() << std::endl;
-  std::cout << "secret key: " << key_pair.secret() << std::endl;
   EXPECT_EQ(key_pair.pub().size, 64);
   EXPECT_EQ(key_pair.secret().size, 32);
 
   string message = "0123456789abcdef";
   dev::Signature signature = dev::sign(key_pair.secret(), dev::sha3(message));
-  std::cout << "signature: " << signature.hex() << std::endl;
   EXPECT_EQ(signature.size, 65);
 
   bool verify = dev::verify(key_pair.pub(), signature, dev::sha3(message));
   EXPECT_EQ(verify, true);
 
   string sign_hash = taraxa::hashSignature(signature);
-  std::cout << "sign hash: " << sign_hash << std::endl;
   EXPECT_EQ(sign_hash.length(), 64);
 }
 

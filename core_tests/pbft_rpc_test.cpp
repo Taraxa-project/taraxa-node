@@ -16,7 +16,7 @@
 #include <vector>
 
 namespace taraxa {
-#if 0
+
 TEST(PbftVote, pbft_should_speak_test) {
   boost::asio::io_context context;
 
@@ -166,9 +166,8 @@ TEST(PbftVote, transfer_vote) {
   size_t vote_queue_size = node1->getVoteQueueSize();
   EXPECT_EQ(vote_queue_size, 1);
 }
-#endif
+
 TEST(PbftVote, vote_broadcast) {
-  /*
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
       context1,
@@ -217,46 +216,7 @@ TEST(PbftVote, vote_broadcast) {
   ASSERT_EQ(2, nw1->getPeerCount());
   ASSERT_EQ(2, nw2->getPeerCount());
   ASSERT_EQ(2, nw3->getPeerCount());
-*/
 
-  boost::asio::io_context context1;
-  auto node1(std::make_shared<taraxa::FullNode>(
-      context1,
-      std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
-
-  const int total_nodes = 10;
-  std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
-  std::vector<std::shared_ptr<FullNode> > nodes;
-
-  for (int i = 0; i < total_nodes; i++) {
-    contexts.push_back(std::make_shared<boost::asio::io_context>());
-    FullNodeConfig config(std::string("./core_tests/conf_full_node2.json"));
-    NetworkConfig networkConfig("./core_tests/conf_network2.json");
-    config.db_accounts_path += std::to_string(i + 1);
-    config.db_blocks_path += std::to_string(i + 1);
-    config.db_transactions_path += std::to_string(i + 1);
-    networkConfig.network_listen_port += i + 1;
-    auto node(std::make_shared<taraxa::FullNode>(
-        *contexts[i], config.to_string(), networkConfig));
-    //nodes.push_back()
-    //nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i],
-    //                                                   config,
-    //                                                   networkConfig));
-//    nodes[i]->start();
-    taraxa::thisThreadSleepForMilliSeconds(50);
-  }
-/*
-  std::vector<std::shared_ptr<Network>> networks;
-  for (int i = 0; i < total_nodes; i++) {
-    networks[i] = nodes[i]->getNetwork();
-  }
-
-  for (int i = 0; i < total_nodes; i++) {
-    ASSERT_EQ(9, networks[i]->getPeerCount());
-  }
-*/
-/*
   // generate vote
   blk_hash_t blockhash(1);
   char type = '1';
@@ -298,12 +258,9 @@ TEST(PbftVote, vote_broadcast) {
   size_t vote_queue_size1 = node1->getVoteQueueSize();
   size_t vote_queue_size2 = node2->getVoteQueueSize();
   size_t vote_queue_size3 = node3->getVoteQueueSize();
-  //EXPECT_EQ(vote_queue_size1, 1);
-  //EXPECT_EQ(vote_queue_size2, 1);
-  std::cout << "node1: " << vote_queue_size1 << std::endl;
-  std::cout << "node2: " << vote_queue_size2 << std::endl;
-  std::cout << "node3: " << vote_queue_size3 << std::endl;
-  */
+  EXPECT_EQ(vote_queue_size1, 0);
+  EXPECT_EQ(vote_queue_size2, 1);
+  EXPECT_EQ(vote_queue_size3, 1);
 }
 
 }  // namespace taraxa

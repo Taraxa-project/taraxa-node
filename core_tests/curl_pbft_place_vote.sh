@@ -11,6 +11,6 @@ for i in  {1..3}; do
          \"step\": $i
        }"
 
-  curl -d "$cmd" 0.0.0.0:7777
+  curl -d "$cmd" 0.0.0.0:7777 &>/dev/null
 
 done
