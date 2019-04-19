@@ -206,7 +206,7 @@ the block
 */
 TEST(p2p, block_propagate) {
   int const step = 10;
-  int const nodeCount = 50;
+  int const nodeCount = 30;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
