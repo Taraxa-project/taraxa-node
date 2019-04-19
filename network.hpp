@@ -68,7 +68,7 @@ class Network {
   }
 
   // PBFT
-  void noNewPbftVote(Vote const &vote);
+  void onNewPbftVote(Vote const &vote);
   void sendPbftVote(NodeID const &id, Vote const &vote);
 
  private:

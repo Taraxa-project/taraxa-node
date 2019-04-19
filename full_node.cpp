@@ -391,7 +391,7 @@ void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash, char type,
                         std::to_string(period) + std::to_string(step);
   dev::Signature signature = signMessage(message);
   Vote vote(node_pk_, signature, blockhash, type, period, step);
-  network_->noNewPbftVote(vote);
+  network_->onNewPbftVote(vote);
 }
 
 bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type, int period,

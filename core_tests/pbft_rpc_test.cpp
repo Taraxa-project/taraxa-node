@@ -206,7 +206,7 @@ TEST(PbftVote, vote_broadcast) {
   node3->clearVoteQueue();
 
   taraxa::thisThreadSleepForSeconds(10);
-  nw1->noNewPbftVote(vote);
+  nw1->onNewPbftVote(vote);
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
   taraxa::thisThreadSleepForSeconds(10);
 
