@@ -15,14 +15,15 @@
 #include <thread>
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "rocks_db.hpp"
 #include "transaction.hpp"
+#include "libdevcore/OverlayDB.h"
+#include "libethereum/State.h"
 
 namespace taraxa {
 /**
  * Executor will execute transactions in parallel inside a block,
  * Blocks are sequentially executed.
- * Cannot call execute() until all trans in thie epoch are processed. This will
+ * Cannot call execute() until all trans in this epoch are processed. This will
  * be a blocking call.
  */
 
@@ -30,9 +31,8 @@ class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
-  Executor(std::shared_ptr<RocksDb> db_blks, std::shared_ptr<RocksDb> db_trxs,
-           std::shared_ptr<RocksDb> db_accs)
-      : db_blks_(db_blks), db_trxs_(db_trxs), db_accs_(db_accs) {}
+    Executor(dev::eth::State const & state)
+      : state_(state) {}
   ~Executor();
   void start();
   void stop();
@@ -45,9 +45,7 @@ class Executor {
   ExecutorStatus status_ = ExecutorStatus::idle;
   bool stopped_ = true;
 
-  std::shared_ptr<RocksDb> db_blks_;
-  std::shared_ptr<RocksDb> db_trxs_;
-  std::shared_ptr<RocksDb> db_accs_;
+  dev::eth::State state_;
 
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};

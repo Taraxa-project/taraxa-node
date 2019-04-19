@@ -388,10 +388,11 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
-    // Skip if transaction is already in existing block
-    if (!db_trxs_->put(hash.toString(), trx.getJsonStr())) {
-      trx_status_.insert(hash, TransactionStatus::in_block);
-      continue;
+    if (db.exists(hash)) {
+        trx_status_.insert(hash, TransactionStatus::in_block);
+        continue;
+    } else {
+        db.insert(hash, trx.getJsonStr());
     }
     TransactionStatus status;
     bool exist;

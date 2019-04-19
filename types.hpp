@@ -90,7 +90,8 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 
 using key_t = std::string;
-using bal_t = uint64_t;
+//using bal_t = uint64_t;
+using bal_t = dev::u256; // to match Balance
 using val_t = uint256_hash_t;
 
 using vec_blk_t = std::vector<blk_hash_t>;

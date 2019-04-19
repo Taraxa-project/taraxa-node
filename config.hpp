@@ -46,9 +46,7 @@ struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
-  std::string db_accounts_path;
-  std::string db_blocks_path;
-  std::string db_transactions_path;
+  boost::filesystem::path db_path;
   uint16_t dag_processing_threads;
   ProposerConfig proposer;
   NetworkConfig network;

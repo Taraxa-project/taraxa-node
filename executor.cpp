@@ -14,21 +14,29 @@ Executor::~Executor() {
 }
 void Executor::start() {
   if (!stopped_) return;
-  bool stopped_ = false;
+  stopped_ = false;
 }
 void Executor::stop() {
   if (stopped_) return;
 }
+    
 bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
-  DagBlock dag_block(db_blks_->get(blk.toString()));
-  if (!dag_block.isValid()) {
+    const& dev::
+    db = state_.db();
+    string block_string = db.lookup(blk);
+    bool empty = block_string.empty();
+    DagBlock dag_block;
+    if(!empty) {
+        dag_block = DagBlock(block_string);
+    }
+  if (empty || !dag_block.isValid()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
   auto trxs_hash = dag_block.getTrxs();
   // sequential execute transaction
   for (auto const& trx_hash : trxs_hash) {
-    Transaction trx(db_trxs_->get(trx_hash.toString()));
+    Transaction trx(db.lookup(trx_hash));
     if (!trx.getHash()) {
       LOG(log_er_) << "Transaction is invalid" << std::endl;
       continue;
@@ -37,6 +45,7 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
   }
   return true;
 }
+    
 bool Executor::execute(TrxSchedule const& sche) {
   for (auto const& blk : sche.blk_order) {
     executeBlkTrxs(blk);
@@ -48,8 +57,10 @@ bool Executor::coinTransfer(Transaction const& trx) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   bal_t value = trx.getValue();
-  auto sender_bal = db_accs_->get(sender.toString());
-  auto receiver_bal = db_accs_->get(receiver.toString());
+  //auto sender_bal = db_accs_->get(sender.toString());
+  //auto receiver_bal = db_accs_->get(receiver.toString());
+  auto sender_bal = state.balance(sender.toString());
+  auto receiver_bal = state.balance(receiver.toString());
   bal_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
   bal_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
 
@@ -64,8 +75,10 @@ bool Executor::coinTransfer(Transaction const& trx) {
   }
   bal_t new_sender_bal = sender_initial_coin - value;
   bal_t new_receiver_bal = receiver_initial_coin + value;
-  db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
-  db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
+  //db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
+  //db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
+  state.setBalance(sender.toString(), new_sender_bal);
+  state.setBalance(receiver.toString(), new_receiver_bal);
   LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
   LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
 

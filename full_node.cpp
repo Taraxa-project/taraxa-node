@@ -14,7 +14,6 @@
 #include "executor.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
-#include "rocks_db.hpp"
 #include "transaction.hpp"
 #include "vote.h"
 
@@ -23,10 +22,26 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 
+FullNodeConfig::FullNodeConfig(std::string const &json_file)
+    : json_file_name(json_file) {
+  try {
+    boost::property_tree::ptree doc = loadJsonFile(json_file);
+    address =
+        boost::asio::ip::address::from_string(doc.get<std::string>("address"));
+    node_secret = doc.get<std::string>("node_secret");
+    db_path = doc.get<boost::filesystem::path>("db_path");
+    dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
+    block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+}
+
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
   dag_mgr_->setVerbose(verbose);
-  db_blks_->setVerbose(verbose);
+  //TODO: log in DB
+  //db_blks_->setVerbose(verbose);
 }
 
 void FullNode::setDebug(bool debug) { debug_ = debug; }
@@ -38,20 +53,17 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
       conf_(conf_full_node),
-      db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
-      db_blks_(std::make_shared<RocksDb>(conf_.db_blocks_path)),
-      db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
+      db(OverlayDB()),
+    state(0, db, dev::eth::BaseState::Empty),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),
+      trx_mgr_(std::make_shared<TransactionManager>(db)),
       network_(std::make_shared<Network>(conf_full_node.network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>(db_blks_->getShared(),
-                                           db_trxs_->getShared(),
-                                           db_accs_->getShared())),
+      executor_(std::make_shared<Executor>(state)),
       pbft_mgr_(std::make_shared<PbftManager>()),
       vote_queue_(std::make_shared<VoteQueue>()) {
   auto key = dev::KeyPair::create();
@@ -133,7 +145,7 @@ void FullNode::start() {
             received_blocks_++;
           }
         }
-        db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
+        db.insert(blk.first.getHash(), blk.first.getJsonStr());
         dag_mgr_->addDagBlock(blk.first, true);
         network_->onNewBlockVerified(blk.first);
       }
@@ -196,7 +208,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   blk = blk_qu_->getDagBlock(hash);
   // not in queue, search db
   if (!blk) {
-    std::string json = db_blks_->get(hash.toString());
+    std::string json = db.lookup(hash);
     if (!json.empty()) {
       blk = std::make_shared<DagBlock>(json);
     }
@@ -206,7 +218,8 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
 }
 
 std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
-  std::string json = db_trxs_->get(hash.toString());
+  std::shared_ptr<DagBlock> block;
+  std::string json = db.lookup(hash);
   if (!json.empty()) {
     return std::make_shared<Transaction>(json);
   }
@@ -330,25 +343,20 @@ FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
 std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  std::string bal = db_accs_->get(acc.toString());
+  bal_t bal = state.balance(acc);
   bool ret = false;
-  if (bal.empty()) {
+  if (bal == 0) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
-    bal = "0";
   } else {
     LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
     ret = true;
   }
-  return {std::stoull(bal), ret};
+  return {bal, ret};
 }
 
 bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
-  bool ret = true;
-  if (!db_accs_->update(acc.toString(), std::to_string(new_bal))) {
-    LOG(log_wr_) << "Account " << acc.toString() << " update fail ..."
-                 << std::endl;
-  }
-  return ret;
+    state.setBalance(acc, new_bal);
+  return true;
 }
 
 addr_t FullNode::getAddress() { return node_addr_; }

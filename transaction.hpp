@@ -21,9 +21,9 @@
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
-#include "rocks_db.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include "libdevcore/OverlayDB.h"
 
 namespace taraxa {
 
@@ -297,10 +297,8 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(std::shared_ptr<RocksDb> db_blk,
-                     std::shared_ptr<RocksDb> db_trx)
-      : db_blks_(db_blk),
-        db_trxs_(db_trx),
+  TransactionManager(dev::OverlayDB const& db, unsigned rate)
+      : db(db),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
     trx_qu_.start();
@@ -349,9 +347,7 @@ class TransactionManager
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
-
-  std::shared_ptr<RocksDb> db_blks_;
-  std::shared_ptr<RocksDb> db_trxs_;
+  dev::OverlayDB db;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;

@@ -22,10 +22,13 @@
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include "libdevcore/OverlayDB.h"
+#include "libethereum/State.h"
 
+//using namespace dev::OverlayDB;
+//using namespace dev::eth::State;
 namespace taraxa {
 
-class RocksDb;
 class Network;
 class BlockProposer;
 class DagManager;
@@ -153,10 +156,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   public_t node_pk_;
   addr_t node_addr_;
 
-  // storage
-  std::shared_ptr<RocksDb> db_accs_;
-  std::shared_ptr<RocksDb> db_blks_;
-  std::shared_ptr<RocksDb> db_trxs_;
+  // storage for EVM state related
+    dev::eth::State state;
+    // storage for schedule trx; TODO: merge it into State class
+    dev::OverlayDB db;
 
   // network
   std::shared_ptr<Network> network_;
