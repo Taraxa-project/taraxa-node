@@ -49,6 +49,20 @@ DagBlock::DagBlock(std::string const &json) {
     std::cerr << e.what() << std::endl;
   }
 }
+DagBlock::DagBlock(dev::RLP const &_r) {
+  std::vector<::byte> blockBytes;
+  blockBytes = _r.toBytes();
+  taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
+  deserialize(strm);
+}
+void DagBlock::serializeRLP(dev::RLPStream &s) {
+  std::vector<uint8_t> bytes;
+  {
+    vectorstream strm(bytes);
+    serialize(strm);
+  }
+  s.append(bytes);
+}
 bool DagBlock::isValid() const {
   return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() &&
            cached_sender_.isZero());
@@ -83,8 +97,8 @@ std::string DagBlock::getJsonStr() const {
 
 bool DagBlock::serialize(stream &strm) const {
   bool ok = true;
-  uint8_t num_tips = tips_.size();
-  uint8_t num_trxs = trxs_.size();
+  uint32_t num_tips = tips_.size();
+  uint32_t num_trxs = trxs_.size();
   ok &= write(strm, num_tips);
   ok &= write(strm, num_trxs);
   ok &= write(strm, pivot_);
@@ -102,7 +116,7 @@ bool DagBlock::serialize(stream &strm) const {
 }
 
 bool DagBlock::deserialize(stream &strm) {
-  uint8_t num_tips, num_trxs;
+  uint32_t num_tips, num_trxs;
   bool ok = true;
 
   ok &= read(strm, num_tips);
@@ -122,6 +136,7 @@ bool DagBlock::deserialize(stream &strm) {
       trxs_.push_back(t);
     }
   }
+  
   ok &= read(strm, sig_);
   ok &= read(strm, hash_);
   ok &= read(strm, cached_sender_);

@@ -28,6 +28,22 @@ Transaction::Transaction(string const &json) {
   }
 }
 
+Transaction::Transaction(dev::RLP const &_r) {
+  std::vector<::byte> blockBytes;
+  blockBytes = _r.toBytes();
+  taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
+  deserialize(strm);
+}
+
+void Transaction::serializeRLP(dev::RLPStream &s) {
+  std::vector<uint8_t> bytes;
+  {
+    vectorstream strm(bytes);
+    serialize(strm);
+  }
+  s.append(bytes);
+}
+
 bool Transaction::serialize(stream &strm) const {
   bool ok = true;
   ok &= write(strm, hash_);

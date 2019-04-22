@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
       boost::program_options::parse_command_line(argc, argv, allowed_options),
       option_vars);
   boost::program_options::notify(option_vars);
+
   dev::setupLogging(loggingOptions);
 
   if (option_vars.count("help")) {

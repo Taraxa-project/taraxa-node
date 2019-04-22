@@ -16,7 +16,8 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
     : json_file_name(json_file) {
   boost::property_tree::ptree doc = loadJsonFile(json_file);
   try {
-    network_listen_port = doc.get<uint16_t>("network_listen_port");
+    network_address = doc.get<uint16_t>("network_address");
+    network_listen_port = doc.get<std::string>("network_listen_port");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -54,7 +55,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
   auto networkData = contents(network_file);
   host_ = std::make_shared<dev::p2p::Host>(
       "TaraxaNode",
-      dev::p2p::NetworkConfig("127.0.0.1", conf_.network_listen_port, false,
+      dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port, false,
                               true),
       dev::bytesConstRef(&networkData));
   taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get());

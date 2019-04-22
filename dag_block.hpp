@@ -43,6 +43,7 @@ class DagBlock {
   DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
   DagBlock(const string &json);
+  DagBlock(dev::RLP const &_r);
   friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
     str << "	pivot		= " << u.pivot_ << std::endl;
     str << "	tips		= ";
@@ -61,6 +62,7 @@ class DagBlock {
     return this->sha3(true) == other.sha3(true);
   }
 
+  void serializeRLP(dev::RLPStream &s);
   blk_hash_t getPivot() const { return pivot_; }
   vec_blk_t getTips() const { return tips_; }
   vec_trx_t getTrxs() const { return trxs_; }
