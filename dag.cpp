@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-12-14 10:59:17
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-16 23:46:47
+ * @Last Modified time: 2019-04-22 13:37:22
  */
 
 #include <algorithm>
@@ -526,7 +526,7 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_nf_) << "Block " << hash << " pivot " << pivot
+    LOG(log_tr_) << "Block " << hash << " pivot " << pivot
                  << " unavailable, insert = " << insert << std::endl;
     if (insert) {
       addToDagBuffer(blk);

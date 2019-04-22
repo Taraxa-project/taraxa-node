@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-04-19 12:56:28
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-19 18:33:34
+ * @Last Modified time: 2019-04-22 13:32:54
  */
 
 #include "top.hpp"
@@ -92,7 +92,6 @@ void Top::start(int argc, const char* argv[]) {
       std::cerr << e.what();
     }
   });
-  std::cout << "TOP CTOR done" << std::endl;
 }
 void Top::run() {
   std::unique_lock<std::mutex> lock(mu_);
@@ -106,11 +105,9 @@ void Top::stop() {
   cond_.notify_all();
   node_->stop();
   rpc_->stop();
-  std::cout << "Top::stop() called!" << std::endl;
 }
 
 Top::~Top() {
-  // stop();
+  stop();
   th_->join();
-  std::cout << "Top::~Top() called!" << std::endl;
 }
