@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-18 12:56:45
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-22 12:45:00
+ * @Last Modified time: 2019-04-22 14:54:56
  */
 #include "full_node.hpp"
 #include <gtest/gtest.h>
@@ -30,8 +30,28 @@ auto g_secret = dev::Secret(
 auto g_key_pair = dev::KeyPair(g_secret);
 auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+
 TEST(Top, create_top) {
-  const char* inputs[] = {"./build/main",
+  {
+    const char* inputs[] = {"./build/main",
+                            "--conf_full_node",
+                            "./core_tests/conf_full_node1.json",
+                            "--conf_network",
+                            "./core_tests/conf_network1.json",
+                            "--conf_rpc",
+                            "./core_tests/conf_rpc1.json",
+                            "-v",
+                            "0"};
+    Top top(9, inputs);
+    taraxa::thisThreadSleepForSeconds(1);
+    EXPECT_TRUE(top.isActive());
+    top.stop();
+    EXPECT_FALSE(top.isActive());
+  }
+}
+
+TEST(Top, sync_two_nodes) {
+  const char* input1[] = {"./build/main",
                           "--conf_full_node",
                           "./core_tests/conf_full_node1.json",
                           "--conf_network",
@@ -39,13 +59,60 @@ TEST(Top, create_top) {
                           "--conf_rpc",
                           "./core_tests/conf_rpc1.json",
                           "-v",
-                          "2"};
-  Top top(9, inputs);
-  taraxa::thisThreadSleepForSeconds(3);
-  EXPECT_TRUE(top.isActive());
-  top.stop();
-  EXPECT_FALSE(top.isActive());
+                          "0"};
+
+  Top top1(9, input1);
+  EXPECT_TRUE(top1.isActive());
+  taraxa::thisThreadSleepForMilliSeconds(500);
+
+  // send 1000 trxs
+  try {
+    std::cout << "Sending 1000 trxs ..." << std::endl;
+    system("./core_tests/curl_send_1000_trx.sh");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  // copy main2
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  const char* input2[] = {"./build/main2",
+                          "--conf_full_node",
+                          "./core_tests/conf_full_node2.json",
+                          "--conf_network",
+                          "./core_tests/conf_network2.json",
+                          "--conf_rpc",
+                          "./core_tests/conf_rpc2.json",
+                          "-v",
+                          "0"};
+  Top top2(9, input2);
+  EXPECT_TRUE(top2.isActive());
+  std::cout << "Top2 created ..." << std::endl;
+  // wait for top2 initialize
+  taraxa::thisThreadSleepForMilliSeconds(500);
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  auto vertices1 = node1->getNumVerticesInDag();
+  auto vertices2 = node2->getNumVerticesInDag();
+  EXPECT_EQ(vertices1, vertices2);
+  top2.stop();
+  top1.stop();
+  // delete main2
+  try {
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
+
 TEST(FullNode, account_bal) {
   boost::asio::io_context context;
 
@@ -212,16 +279,6 @@ TEST(FullNode, receive_send_transaction) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  logOptions.includeChannels.push_back("FULL_ND");
-  // logOptions.includeChannels.push_back("EXETOR");
-  // logOptions.includeChannels.push_back("trx_qu");
-  // logOptions.includeChannels.push_back("trx_mgr");
-
-  logOptions.includeChannels.push_back("RPC");
-
-  dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

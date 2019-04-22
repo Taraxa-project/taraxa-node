@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-04-19 12:56:25
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-19 18:12:29
+ * @Last Modified time: 2019-04-22 14:54:34
  */
 
 #include "full_node.hpp"
@@ -22,6 +22,8 @@ class Top {
   void run();
   void stop();
   bool isActive() { return !stopped_; }
+  std::shared_ptr<taraxa::FullNode>& getNode() { return node_; }
+  std::shared_ptr<taraxa::Rpc>& getRpc() { return rpc_; }
 
  private:
   bool stopped_ = true;
