@@ -1,4 +1,5 @@
 {
+	"network_address": "127.0.0.1",
 	"network_listen_port": 10002,
 	"network_boot_nodes": []
 }

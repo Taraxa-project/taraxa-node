@@ -144,6 +144,8 @@ class Transaction {
   Transaction(Transaction const &trx) = default;
   Transaction(stream &strm);
   Transaction(string const &json);
+  Transaction(dev::RLP const &_r);
+  void serializeRLP(dev::RLPStream &s);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
   bal_t getNonce() const { return nonce_; }
