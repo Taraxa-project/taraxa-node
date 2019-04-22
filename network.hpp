@@ -40,7 +40,7 @@ struct NetworkConfig {
   NetworkConfig(std::string const &json_file);
   std::string json_file_name;
   std::string network_address;
-  std::string network_listen_port;
+  uint16_t  network_listen_port;
   std::vector<NodeConfig> network_boot_nodes;
 };
 
