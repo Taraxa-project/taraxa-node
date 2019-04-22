@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-18 12:56:45
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-19 18:33:43
+ * @Last Modified time: 2019-04-22 12:45:00
  */
 #include "full_node.hpp"
 #include <gtest/gtest.h>
@@ -194,7 +194,7 @@ TEST(FullNode, receive_send_transaction) {
   boost::thread t([&context1]() { context1.run(); });
 
   try {
-    system("./core_tests/curl1000_send_trx.sh");
+    system("./core_tests/curl_send_1000_trx.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
