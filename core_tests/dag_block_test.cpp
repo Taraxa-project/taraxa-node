@@ -145,7 +145,7 @@ TEST(DagBlock, string_format) {
     blk.serialize(strm1);
   }
   // check stream size
-  ASSERT_EQ(bytes.size(), 311);
+  ASSERT_EQ(bytes.size(), 317);
   bufferstream strm2(bytes.data(), bytes.size());
   DagBlock blk2;
   blk2.deserialize(strm2);
