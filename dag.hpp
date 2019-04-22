@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-12-14 13:23:51
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-16 23:44:41
+ * @Last Modified time: 2019-04-22 13:39:27
  */
 
 #include <atomic>
@@ -153,6 +153,8 @@ class Dag {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "DAG")};
   mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "DAG")};
+  mutable dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAG")};
 };
 /**
  * PivotTree is a special DAG, every vertex only has one out-edge,
@@ -174,11 +176,13 @@ class PivotTree : public Dag {
 
  private:
   mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "pvt_tr")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "PVT_TR")};
   mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "pvt_tr")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "PVT_TR")};
   mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "pvt_tr")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PVT_TR")};
+  mutable dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PVT_TR")};
 };
 class DagBuffer;
 class TipBlockExplorer;
@@ -264,11 +268,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
   std::vector<boost::thread> sb_buffer_processing_threads_;
   dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "dag_mgr")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "dag_mgr")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
   dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "dag_mgr")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
+  dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
 
 /**
