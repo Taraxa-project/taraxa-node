@@ -16,8 +16,8 @@ NetworkConfig::NetworkConfig(std::string const &json_file)
     : json_file_name(json_file) {
   boost::property_tree::ptree doc = loadJsonFile(json_file);
   try {
-    network_address = doc.get<uint16_t>("network_address");
-    network_listen_port = doc.get<std::string>("network_listen_port");
+    network_address = doc.get<std::string>("network_address");
+    network_listen_port = doc.get<uint16_t>("network_listen_port");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
