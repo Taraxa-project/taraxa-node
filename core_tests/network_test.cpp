@@ -136,7 +136,7 @@ TEST(Network, transfer_transaction) {
 }
 
 /*
-Test verifies saving network to a file and restoring it rom a file
+Test verifies saving network to a file and restoring it from a file
 is successfull. Once restored from the file it is able to reestablish
 connections even with boot nodes down
 */
@@ -244,7 +244,7 @@ TEST(Network, node_sync) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
   node1->stop();
   node2->stop();
-  
+
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
@@ -259,6 +259,8 @@ TEST(Network, node_sync) {
 Test creates a DAG on one node and verifies
 that the second node syncs with it and that the resulting
 DAG on the other end is the same
+Unlike the previous tests, this DAG contains blocks with transactions
+and verifies that the sync containing transactions is successful
 */
 TEST(Network, node_sync_with_transactions) {
   boost::asio::io_context context1;
@@ -542,8 +544,10 @@ TEST(Network, node_transaction_sync) {
 }
 
 /*
-Test creates new transactions on one node and verifies
-that the second node receives the transactions
+Test creates multiple nodes and creates new transactions in random time
+intervals on randomly selected nodes It verifies that the blocks created from
+these transactions which get created on random nodes are synced and the
+resulting DAG is the same on all nodes
 */
 TEST(Network, node_full_sync) {
   const int numberOfNodes = 5;
