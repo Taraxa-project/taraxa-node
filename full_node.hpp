@@ -75,8 +75,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Network> getNetwork() const;
 
   // network stuff
-  size_t getPeerCount();
-
+  size_t getPeerCount() const;
+  std::vector<public_t> getAllPeers() const;
   // Store a block in persistent storage and build in dag
   void storeBlock(DagBlock const &blk);
   void storeBlockAndSign(DagBlock const &blk);
@@ -178,8 +178,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionManager> trx_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-  // neighbors for broadcasting
-  std::vector<std::pair<std::string, uint16_t>> remotes_;
+
   // transaction executor
   std::shared_ptr<Executor> executor_;
   //
