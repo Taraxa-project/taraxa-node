@@ -40,7 +40,7 @@ struct NetworkConfig {
   NetworkConfig(std::string const &json_file);
   std::string json_file_name;
   std::string network_address;
-  uint16_t  network_listen_port;
+  uint16_t network_listen_port;
   std::vector<NodeConfig> network_boot_nodes;
 };
 
@@ -74,7 +74,9 @@ class Network {
   void setFullNode(std::shared_ptr<FullNode> full_node);
   void saveNetwork(std::string fileName);
   int getPeerCount() { return host_->peerCount(); }
-  std::vector<NodeID> getAllPeers() const { return taraxa_capability_->getAllPeers();}
+  std::vector<NodeID> getAllPeers() const {
+    return taraxa_capability_->getAllPeers();
+  }
   dev::p2p::NodeID getNodeId() { return host_->id(); };
   int getReceivedBlocksCount() {
     return taraxa_capability_->getBlocks().size();
@@ -95,10 +97,16 @@ class Network {
   bool stopped_ = true;
 
   std::weak_ptr<FullNode> full_node_;
-  dev::Logger logger_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "network")};
-  dev::Logger logger_debug_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "network")};
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "NETWOK")};
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "NETWOK")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "NETWOK")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "NETWOK")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "NETWOK")};
 };
 
 }  // namespace taraxa
