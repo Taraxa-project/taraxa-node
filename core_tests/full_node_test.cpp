@@ -101,6 +101,14 @@ TEST(Top, sync_two_nodes) {
   EXPECT_NE(node2, nullptr);
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
+  // add more delay if sync is not done
+  for (auto i = 0; i < 10; i++) {
+    if (vertices1 == vertices2) break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+    vertices1 = node1->getNumVerticesInDag();
+    vertices2 = node2->getNumVerticesInDag();
+  }
+
   EXPECT_EQ(vertices1, vertices2);
   top2.stop();
   top1.stop();
