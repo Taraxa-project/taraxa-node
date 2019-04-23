@@ -536,11 +536,12 @@ TEST(Network, node_transaction_sync) {
   node1->stop();
   node2->stop();
 
-  // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNewVerifiedTrxSnapShot(false).size(),
-            g_signed_trx_samples.size());
-  EXPECT_EQ(node2->getNewVerifiedTrxSnapShot(false).size(),
-            g_signed_trx_samples.size());
+  for (auto const& t : g_signed_trx_samples) {
+    EXPECT_TRUE(node2->getTransaction(t.getHash()) != nullptr);
+    if (node2->getTransaction(t.getHash()) != nullptr) {
+      EXPECT_EQ(t, *node2->getTransaction(t.getHash()));
+    }
+  }
 }
 
 /*
