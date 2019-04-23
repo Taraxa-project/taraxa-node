@@ -193,9 +193,9 @@ TEST(PbftVote, vote_broadcast) {
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  ASSERT_EQ(2, nw1->getPeerCount());
-  ASSERT_EQ(2, nw2->getPeerCount());
-  ASSERT_EQ(2, nw3->getPeerCount());
+  ASSERT_EQ(node_peers, nw1->getPeerCount());
+  ASSERT_EQ(node_peers, nw2->getPeerCount());
+  ASSERT_EQ(node_peers, nw3->getPeerCount());
 
   // generate vote
   blk_hash_t blockhash(1);
