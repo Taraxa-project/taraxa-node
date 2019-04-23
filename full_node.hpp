@@ -25,8 +25,6 @@
 #include "libdevcore/OverlayDB.h"
 #include "libethereum/State.h"
 
-//using namespace dev::OverlayDB;
-//using namespace dev::eth::State;
 namespace taraxa {
 
 class Network;
@@ -156,10 +154,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   public_t node_pk_;
   addr_t node_addr_;
 
+  // storage for schedule trx; TODO: merge it into State class
+  dev::OverlayDB db;
   // storage for EVM state related
-    dev::eth::State state;
-    // storage for schedule trx; TODO: merge it into State class
-    dev::OverlayDB db;
+  dev::eth::State state;
 
   // network
   std::shared_ptr<Network> network_;

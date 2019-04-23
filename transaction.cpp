@@ -336,7 +336,7 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   // with the block some_trxs might not full trxs in the block (for syncing
   // purpose)
   for (auto const &trx : some_trxs) {
-    db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
+    db_.insert(trx.getHash(), trx.getJsonStr());
     trx_status_.update(trx.getHash(), TransactionStatus::in_block);
   }
 
@@ -345,7 +345,7 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   while (true) {
     for (auto const &trx :
          trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
-      db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
+      db_.insert(trx.first, trx.second.getJsonStr());
       trx_status_.update(trx.first, TransactionStatus::in_block);
     }
     bool allTransactionsSaved = true;
@@ -388,11 +388,11 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
-    if (db.exists(hash)) {
+    if (db_.exists(hash)) {
         trx_status_.insert(hash, TransactionStatus::in_block);
         continue;
     } else {
-        db.insert(hash, trx.getJsonStr());
+        db_.insert(hash, trx.getJsonStr());
     }
     TransactionStatus status;
     bool exist;

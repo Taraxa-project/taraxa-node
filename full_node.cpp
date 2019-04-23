@@ -46,6 +46,7 @@ void FullNode::setVerbose(bool verbose) {
 
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
+const h256 TEMP_GENESIS_HASH = h256{}; /* genesisHash, put h256{} for now */
 FullNode::FullNode(boost::asio::io_context &io_context,
                    std::string const &conf_full_node_file)
     : FullNode(io_context, FullNodeConfig(conf_full_node_file)) {}
@@ -53,8 +54,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
       conf_(conf_full_node),
-      db(OverlayDB()),
-    state(0, db, dev::eth::BaseState::Empty),
+      db(dev::eth::State::openDB(conf_.db_path, TEMP_GENESIS_HASH, WithExisting::Kill)),
+      state(0, db, dev::eth::BaseState::Empty),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db)),
@@ -344,14 +345,15 @@ std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
 std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
   bal_t bal = state.balance(acc);
-  bool ret = false;
-  if (bal == 0) {
+  bool exist = state.addressInUse(acc);
+  if (!exist) {
+      cout << "not exist" << endl;
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
   } else {
+      cout << "balance " << bal << endl;
     LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
-    ret = true;
   }
-  return {bal, ret};
+  return {bal, exist};
 }
 
 bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {

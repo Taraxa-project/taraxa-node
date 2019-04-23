@@ -297,8 +297,8 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(dev::OverlayDB const& db, unsigned rate)
-      : db(db),
+  TransactionManager(const dev::OverlayDB& odb, unsigned rate)
+      : db_(odb),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
     trx_qu_.start();
@@ -347,7 +347,7 @@ class TransactionManager
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
-  dev::OverlayDB db;
+  dev::OverlayDB db_;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;

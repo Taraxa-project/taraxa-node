@@ -12,6 +12,8 @@
 #include <vector>
 #include "create_samples.hpp"
 #include "grpc_server.hpp"
+#include <libdevcore/DBFactory.h>
+#include "libdevcore/OverlayDB.h"
 
 namespace taraxa {
 const unsigned NUM_TRX = 40;
@@ -91,10 +93,15 @@ TEST(TransactionQueue, verifiers) {
 }
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
-  TransactionStatusTable status_table;
-  auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
-  TransactionManager trx_mgr(db_blks, db_trxs);
+
+
+        std::unique_ptr<dev::db::DatabaseFace> db =
+                dev::db::DBFactory::create(dev::db::DatabaseKind::MemoryDB);
+        ASSERT_TRUE(db);
+
+        dev::OverlayDB odb(std::move(db));
+
+  TransactionManager trx_mgr(odb);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
   std::thread insertTrx([&trx_mgr]() {
@@ -142,6 +149,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   });
 
   wakeup.join();
+
   insertTrx2.join();
   insertTrx3.join();
   EXPECT_LT(total_packed_trxs.size(), NUM_TRX);
@@ -151,11 +159,14 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 }
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
-  TransactionStatusTable status_table;
-  auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
 
-  TransactionManager trx_mgr(db_blks, db_trxs);
+        std::unique_ptr<dev::db::DatabaseFace> db =
+                dev::db::DBFactory::create(dev::db::DatabaseKind::MemoryDB);
+        ASSERT_TRUE(db);
+
+        dev::OverlayDB odb(std::move(db));
+
+  TransactionManager trx_mgr(odb);
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

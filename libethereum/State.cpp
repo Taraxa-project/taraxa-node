@@ -14,6 +14,7 @@
 using namespace std;
 using namespace dev;
 using namespace dev::eth;
+using namespace taraxa;
 namespace fs = boost::filesystem;
 
 State::State(u256 const& _accountStartNonce, OverlayDB const& _db, BaseState _bs):
@@ -21,9 +22,10 @@ State::State(u256 const& _accountStartNonce, OverlayDB const& _db, BaseState _bs
     m_state(&m_db),
     m_accountStartNonce(_accountStartNonce)
 {
-    if (_bs != BaseState::PreExisting)
+    if (_bs != BaseState::PreExisting) {
         // Initialise to the state entailed by the genesis block; this guarantees the trie is built correctly.
         m_state.init();
+    }
 }
 
 State::State(State const& _s):
@@ -38,8 +40,10 @@ State::State(State const& _s):
 
 OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash, WithExisting _we)
 {
+    cout << "openDB entrance" << endl;
     fs::path path = _basePath.empty() ? db::databasePath() : _basePath;
 
+    cout << "path combined" << endl;
     if (db::isDiskDatabase() && _we == WithExisting::Kill)
     {
         clog(VerbosityDebug, "statedb") << "Killing state database (WithExisting::Kill).";
@@ -289,7 +293,7 @@ bool State::addressHasCode(Address const& _id) const
         return false;
 }
 
-u256 State::balance(Address const& _id) const
+bal_t State::balance(Address const &_id) const
 {
     if (auto a = account(_id))
         return a->balance();
@@ -323,7 +327,7 @@ void State::setNonce(Address const& _addr, u256 const& _newNonce)
         createAccount(_addr, Account(_newNonce, 0));
 }
 
-void State::addBalance(Address const& _id, u256 const& _amount)
+void State::addBalance(Address const& _id, bal_t const& _amount)
 {
     if (Account* a = account(_id))
     {
@@ -348,7 +352,7 @@ void State::addBalance(Address const& _id, u256 const& _amount)
         m_changeLog.emplace_back(Change::Balance, _id, _amount);
 }
 
-void State::subBalance(Address const& _addr, u256 const& _value)
+void State::subBalance(Address const& _addr, bal_t const& _value)
 {
     if (_value == 0)
         return;
@@ -362,10 +366,10 @@ void State::subBalance(Address const& _addr, u256 const& _value)
     addBalance(_addr, 0 - _value);
 }
 
-void State::setBalance(Address const& _addr, u256 const& _value)
+void State::setBalance(Address const& _addr, bal_t const& _value)
 {
     Account* a = account(_addr);
-    u256 original = a ? a->balance() : 0;
+    bal_t original = a ? a->balance() : 0;
 
     // Fall back to addBalance().
     addBalance(_addr, _value - original);
@@ -556,7 +560,7 @@ void State::rollback(size_t _savepoint)
             account.setStorageRoot(change.value);
             break;
         case Change::Balance:
-            account.addBalance(0 - change.value);
+            account.addBalance(0 - (taraxa::bal_t)change.value);
             break;
         case Change::Nonce:
             account.setNonce(change.value);

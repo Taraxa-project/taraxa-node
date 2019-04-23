@@ -46,6 +46,7 @@ class Executor {
   bool stopped_ = true;
 
   dev::eth::State state_;
+  dev::OverlayDB db;
 
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};

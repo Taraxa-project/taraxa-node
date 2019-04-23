@@ -21,8 +21,7 @@ void Executor::stop() {
 }
     
 bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
-    const& dev::
-    db = state_.db();
+    auto db = state_.db();
     string block_string = db.lookup(blk);
     bool empty = block_string.empty();
     DagBlock dag_block;
@@ -59,10 +58,10 @@ bool Executor::coinTransfer(Transaction const& trx) {
   bal_t value = trx.getValue();
   //auto sender_bal = db_accs_->get(sender.toString());
   //auto receiver_bal = db_accs_->get(receiver.toString());
-  auto sender_bal = state.balance(sender.toString());
-  auto receiver_bal = state.balance(receiver.toString());
-  bal_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
-  bal_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
+  auto sender_bal = state_.balance(sender);
+  auto receiver_bal = state_.balance(receiver);
+  bal_t sender_initial_coin = sender_bal;
+  bal_t receiver_initial_coin = receiver_bal;
 
   if (sender_initial_coin < trx.getValue()) {
     LOG(log_er_) << "Error! Insufficient fund for transfer ..." << std::endl;
@@ -77,8 +76,8 @@ bool Executor::coinTransfer(Transaction const& trx) {
   bal_t new_receiver_bal = receiver_initial_coin + value;
   //db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
   //db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
-  state.setBalance(sender.toString(), new_sender_bal);
-  state.setBalance(receiver.toString(), new_receiver_bal);
+  state_.setBalance(sender, new_sender_bal);
+  state_.setBalance(receiver, new_receiver_bal);
   LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
   LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
 

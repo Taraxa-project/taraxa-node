@@ -8,6 +8,7 @@
 #include <libdevcore/TrieCommon.h>
 #include <libdevcore/Address.h>
 #include <boost/filesystem/path.hpp>
+#include <types.hpp>
 
 namespace dev
 {
@@ -86,10 +87,10 @@ public:
     bool isEmpty() const { return nonce() == 0 && balance() == 0 && codeHash() == EmptySHA3; }
 
     /// @returns the balance of this account.
-    u256 const& balance() const { return m_balance; }
+    const taraxa::bal_t & balance() const { return m_balance; }
 
     /// Increments the balance of this account by the given amount.
-    void addBalance(u256 _value) { m_balance += _value; changed(); }
+    void addBalance(taraxa::bal_t _value) { m_balance += _value; changed(); }
 
     /// @returns the nonce of the account.
     u256 nonce() const { return m_nonce; }
@@ -177,7 +178,7 @@ private:
     u256 m_nonce;
 
     /// Account's balance.
-    u256 m_balance = 0;
+    taraxa::bal_t m_balance = 0;
 
     /// The base storage root. Used with the state DB to give a base to the storage. m_storageOverlay is
     /// overlaid on this and takes precedence for all values set.

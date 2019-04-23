@@ -118,6 +118,8 @@ using ChangeLog = std::vector<Change>;
  */
 class State
 {
+    friend class Executor;
+
 public:
     enum class CommitBehaviour
     {
@@ -174,20 +176,20 @@ public:
 
     /// Get an account's balance.
     /// @returns 0 if the address has never been used.
-    u256 balance(Address const& _id) const;
+    taraxa::bal_t balance(Address const &_id) const;
 
     /// Add some amount to balance.
     /// Will initialise the address if it has never been used.
-    void addBalance(Address const& _id, u256 const& _amount);
+    void addBalance(Address const& _id, taraxa::bal_t const& _amount);
 
     /// Subtract the @p _value amount from the balance of @p _addr account.
     /// @throws NotEnoughCash if the balance of the account is less than the
     /// amount to be subtrackted (also in case the account does not exist).
-    void subBalance(Address const& _addr, u256 const& _value);
+    void subBalance(Address const& _addr, taraxa::bal_t const& _value);
 
     /// Set the balance of @p _addr to @p _value.
     /// Will instantiate the address if it has never been used.
-    void setBalance(Address const& _addr, u256 const& _value);
+    void setBalance(Address const& _addr, taraxa::bal_t const& _value);
 
     /**
      * @brief Transfers "the balance @a _value between two accounts.
@@ -195,7 +197,7 @@ public:
      * @param _to Account to which @a _value will be added.
      * @param _value Amount to be transferred.
      */
-    void transferBalance(Address const& _from, Address const& _to, u256 const& _value) { subBalance(_from, _value); addBalance(_to, _value); }
+    void transferBalance(Address const& _from, Address const& _to, taraxa::bal_t const& _value) { subBalance(_from, _value); addBalance(_to, _value); }
 
     /// Get the root of the storage of an account.
     h256 storageRoot(Address const& _contract) const;
