@@ -18,7 +18,7 @@ const unsigned NUM_TRX = 10;
 
 auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 
-TEST(grpc, server_client) {
+TEST(grpc, DISABLED_server_client) {
   GrpcService gservice;
 
   std::thread t([&gservice]() {
