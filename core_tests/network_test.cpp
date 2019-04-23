@@ -55,7 +55,7 @@ TEST(Network, transfer_block) {
   transactions[g_signed_trx_samples[1].getHash()] = g_signed_trx_samples[1];
   nw2->onNewTransactions(transactions);
 
-  taraxa::thisThreadSleepForSeconds(10);
+  taraxa::thisThreadSleepForSeconds(1);
 
   for (auto i = 0; i < 1; ++i) {
     nw2->sendBlock(nw1->getNodeId(), blk, true);
@@ -63,8 +63,10 @@ TEST(Network, transfer_block) {
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
-  taraxa::thisThreadSleepForSeconds(10);
-
+  for (int i = 0; i < 10; i++) {
+    if (nw1->getReceivedBlocksCount()) break;
+    taraxa::thisThreadSleepForSeconds(1);
+  }
   nw2->stop();
   nw1->stop();
   unsigned long long num_received = nw1->getReceivedBlocksCount();
@@ -116,13 +118,16 @@ TEST(Network, transfer_transaction) {
   transactions.push_back(trx2);
   transactions.push_back(trx3);
 
-  taraxa::thisThreadSleepForSeconds(10);
+  taraxa::thisThreadSleepForSeconds(1);
 
   nw2->sendTransactions(nw1->getNodeId(), transactions);
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
-  taraxa::thisThreadSleepForSeconds(10);
+  for (int i = 0; i < 10; i++) {
+    if (nw1->getReceivedTransactionsCount()) break;
+    taraxa::thisThreadSleepForSeconds(1);
+  }
 
   nw2->stop();
   nw1->stop();
@@ -148,7 +153,12 @@ TEST(Network, save_network) {
     nw2->start();
     nw3->start();
 
-    taraxa::thisThreadSleepForSeconds(20);
+    for (int i = 0; i < 20; i++) {
+      taraxa::thisThreadSleepForSeconds(1);
+      if (2 == nw1->getPeerCount() && 2 == nw2->getPeerCount() &&
+          2 == nw3->getPeerCount())
+        break;
+    }
 
     ASSERT_EQ(2, nw1->getPeerCount());
     ASSERT_EQ(2, nw2->getPeerCount());
@@ -157,7 +167,7 @@ TEST(Network, save_network) {
     nw1->stop();
     nw2->stop();
     nw3->stop();
-    taraxa::thisThreadSleepForSeconds(10);
+    taraxa::thisThreadSleepForSeconds(1);
     nw2->saveNetwork("/tmp/nw2");
     nw3->saveNetwork("/tmp/nw3");
   }
@@ -169,7 +179,10 @@ TEST(Network, save_network) {
   nw2->start();
   nw3->start();
 
-  taraxa::thisThreadSleepForSeconds(10);
+  for (int i = 0; i < 20; i++) {
+    taraxa::thisThreadSleepForSeconds(1);
+    if (1 == nw2->getPeerCount() && 1 == nw3->getPeerCount()) break;
+  }
 
   ASSERT_EQ(1, nw2->getPeerCount());
   ASSERT_EQ(1, nw3->getPeerCount());
@@ -227,12 +240,11 @@ TEST(Network, node_sync) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
-
+  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(2000);
   node1->stop();
   node2->stop();
-
+  
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
@@ -309,8 +321,8 @@ TEST(Network, node_sync_with_transactions) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   node1->stop();
   node2->stop();
@@ -459,7 +471,7 @@ TEST(Network, node_sync2) {
     node1->storeBlockWithTransactions(blks[i], trxs[i]);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node2(std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf_full_node2.json"),
@@ -468,8 +480,8 @@ TEST(Network, node_sync2) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   node1->stop();
   node2->stop();
@@ -516,8 +528,8 @@ TEST(Network, node_transaction_sync) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 5000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(5000);
+  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   node1->stop();
   node2->stop();
@@ -565,7 +577,7 @@ TEST(Network, node_full_sync) {
   std::random_device dev;
   std::mt19937 rng(dev());
   std::uniform_int_distribution<std::mt19937::result_type> distTransactions(
-      1, 4000);
+      1, 200);
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(
       0, numberOfNodes - 1);  // distribution in range [1, 2000]
 
@@ -581,7 +593,7 @@ TEST(Network, node_full_sync) {
   }
 
   std::cout << "Waiting Sync for 10000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(100000);
+  taraxa::thisThreadSleepForMilliSeconds(10000);
   // printf("End result: Vertices %lu Edges: %lu \n",
   // node1->getNumVerticesInDag().first, node1->getNumEdgesInDag().first);
 

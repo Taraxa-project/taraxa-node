@@ -370,14 +370,15 @@ bool TransactionManager::insertTrx(Transaction trx) {
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
-  static std::uniform_int_distribution<> d(1, 30000);
+  static std::uniform_int_distribution<> d(1, 4000);
   static std::mt19937 gen;
   uLock pack_lock(mutex_for_pack_trx_);
   while (!stopped_ && trx_qu_.getVerifiedTrxCount() < rate_limiter_) {
     cond_for_pack_trx_.wait_for(pack_lock, std::chrono::milliseconds(1000));
     // Rate limiter will make all nodes create parallel blocks at exactly same
     // time, add some random delay to avoid that
-    thisThreadSleepForMilliSeconds(d(gen));
+    if(trx_qu_.getVerifiedTrxCount() >= rate_limiter_)
+      thisThreadSleepForMilliSeconds(d(gen));
     // printf("Trx count: %d\n", trx_qu_.getVerifiedTrxCount());
   }
 

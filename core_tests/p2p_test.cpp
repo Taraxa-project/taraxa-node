@@ -62,7 +62,11 @@ TEST(p2p, p2p_discovery) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   // allow more time for p2p discovery
-  taraxa::thisThreadSleepForSeconds(12);
+  for(int i = 0; i < 20; i++) {
+    if(NUMBER_OF_NODES == nodes[i]->getNodeCount())
+    break;
+    taraxa::thisThreadSleepForSeconds(1);
+  }
   for (int i = 0; i < NUMBER_OF_NODES; i++) {
     ASSERT_EQ(NUMBER_OF_NODES, nodes[i]->getNodeCount());
   }
@@ -298,8 +302,8 @@ TEST(p2p, block_propagate) {
   std::vector<Transaction> transactions2;
   thc1->onNewBlockReceived(blk, transactions2);
 
-  for (int i = 0; i < 10; i++) {
-    this_thread::sleep_for(chrono::seconds(5));
+  for (int i = 0; i < 50; i++) {
+    this_thread::sleep_for(chrono::seconds(1));
     bool synced = true;
     for (int j = 0; j < nodeCount; j++)
       if (vCapabilities[j]->getBlocks().size() == 0) {
