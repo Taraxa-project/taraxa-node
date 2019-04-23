@@ -296,9 +296,8 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager(std::shared_ptr<RocksDb> db_blk,
-                     std::shared_ptr<RocksDb> db_trx, unsigned rate)
-      : rate_limiter_(rate),
-        db_blks_(db_blk),
+                     std::shared_ptr<RocksDb> db_trx)
+      : db_blks_(db_blk),
         db_trxs_(db_trx),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
@@ -348,8 +347,7 @@ class TransactionManager
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
-  unsigned rate_limiter_ =
-      10;  // propose new block when reciving the number of blocks
+
   std::shared_ptr<RocksDb> db_blks_;
   std::shared_ptr<RocksDb> db_trxs_;
   TransactionStatusTable trx_status_;

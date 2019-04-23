@@ -34,7 +34,11 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     db_blocks_path = doc.get<std::string>("db_blocks_path");
     db_transactions_path = doc.get<std::string>("db_transactions_path");
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
-    block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
+
+    proposer.mode = doc.get<uint>("block_proposer.mode");
+    proposer.param1 = doc.get<uint>("block_proposer.param1");
+    proposer.param2 = doc.get<uint>("block_proposer.param2");
+
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -64,13 +68,12 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>(
-          db_blks_, db_trxs_, 10 /*block proposer rate*/)),
+      trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),
       network_(std::make_shared<Network>(conf_network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
-      blk_proposer_(std::make_shared<BlockProposer>(
-          conf_.block_proposer_threads, dag_mgr_->getShared(),
-          trx_mgr_->getShared())),
+      blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
+                                                    dag_mgr_->getShared(),
+                                                    trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>(db_blks_->getShared(),
                                            db_trxs_->getShared(),
                                            db_accs_->getShared())),
