@@ -74,7 +74,7 @@ class Network {
   void setFullNode(std::shared_ptr<FullNode> full_node);
   void saveNetwork(std::string fileName);
   int getPeerCount() { return host_->peerCount(); }
-
+  std::vector<NodeID> getAllPeers() const { return taraxa_capability_->getAllPeers();}
   dev::p2p::NodeID getNodeId() { return host_->id(); };
   int getReceivedBlocksCount() {
     return taraxa_capability_->getBlocks().size();

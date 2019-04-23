@@ -380,6 +380,15 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
+    } else if (action == "get_all_peers") {
+      try {
+        auto peers = node_->getAllPeers();
+        for (auto const &peer : peers) {
+          res += peer.toString() + "\n";
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     }
     // PBFT
     else if (action == "should_speak") {
@@ -434,5 +443,5 @@ void RpcHandler::processRequest() {
   } catch (std::exception const &err) {
     replier_(err.what());
   }
-}
+}  // namespace taraxa
 }  // namespace taraxa

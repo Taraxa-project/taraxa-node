@@ -183,7 +183,8 @@ void FullNode::stop() {
   }
 }
 
-size_t FullNode::getPeerCount() { return network_->getPeerCount(); }
+size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }
+std::vector<public_t> FullNode::getAllPeers() const { return network_->getAllPeers(); }
 
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {

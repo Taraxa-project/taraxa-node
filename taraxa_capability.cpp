@@ -59,7 +59,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
     case NewBlockPacket: {
       LOG(logger_debug_) << "Received NewBlockPacket";
       DagBlock block(_r[0]);
-      
+
       auto transactionsCount = _r.itemCount() - 1;
       std::vector<Transaction> newTransactions;
       for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
@@ -75,7 +75,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
     }
     case BlockPacket: {
       DagBlock block(_r[0]);
-      
+
       auto transactionsCount = _r.itemCount() - 1;
       std::unordered_map<trx_hash_t, Transaction> newTransactions;
       for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
@@ -177,7 +177,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
     case BlockChildrenPacket: {
       std::string receivedBlocks;
       auto itemCount = _r.itemCount();
-        
+
       int transactionCount = 0;
       for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
         DagBlock block(_r[iBlock + transactionCount]);
@@ -278,6 +278,14 @@ vector<NodeID> TaraxaCapability::selectPeers(
     if (_predicate(peer.second)) allowed.push_back(peer.first);
   }
   return allowed;
+}
+
+vector<NodeID> TaraxaCapability::getAllPeers() const {
+  vector<NodeID> peers;
+  for (auto const &peer : m_peers) {
+    peers.push_back(peer.first);
+  }
+  return peers;
 }
 
 std::pair<std::vector<NodeID>, std::vector<NodeID>>
