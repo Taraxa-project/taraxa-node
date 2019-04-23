@@ -373,6 +373,13 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
+    } else if (action == "get_peer_count") {
+      try {
+        auto peer = node_->getPeerCount();
+        res = std::to_string(peer);
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     }
     // PBFT
     else if (action == "should_speak") {
