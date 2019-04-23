@@ -47,7 +47,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
                  secret_t const &sk) try : conf_(config) {
   auto key = dev::KeyPair::create();
   if (!sk) {
-    LOG(logger_debug_) << "New key generated " << toHex(key.secret().ref());
+    LOG(log_dg_) << "New key generated " << toHex(key.secret().ref());
   } else {
     key = dev::KeyPair(sk);
   }
@@ -55,8 +55,8 @@ Network::Network(NetworkConfig const &config, std::string network_file,
   auto networkData = contents(network_file);
   host_ = std::make_shared<dev::p2p::Host>(
       "TaraxaNode",
-      dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port, false,
-                              true),
+      dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
+                              false, true),
       dev::bytesConstRef(&networkData));
   taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get());
   host_->registerCapability(taraxa_capability_);
@@ -83,10 +83,12 @@ void Network::start() {
   }
   stopped_ = false;
   host_->start();
-  LOG(logger_) << "Started Node id: " << host_->id().hex();
+  LOG(log_si_) << "Started Network address: " << conf_.network_address
+               << std::endl;
+  LOG(log_si_) << "Started Node id: " << host_->id();
 
   for (auto &node : conf_.network_boot_nodes) {
-    LOG(logger_debug_) << "Adding boot node:" << node.ip << ":" << node.port;
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;
     host_->addNode(
         dev::Public(node.id),
         dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
@@ -104,47 +106,45 @@ void Network::stop() {
 
 void Network::sendTest(NodeID const &id) {
   taraxa_capability_->sendTestMessage(id, 1);
-  LOG(logger_debug_) << "Sent test";
+  LOG(log_dg_) << "Sent test";
 }
 
 void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
   taraxa_capability_->sendBlock(id, blk, newBlock);
-  LOG(logger_debug_) << "Sent Block:" << blk.getHash().toString();
+  LOG(log_dg_) << "Sent Block:" << blk.getHash().toString();
 }
 
 void Network::sendTransactions(NodeID const &id,
                                std::vector<Transaction> const &transactions) {
   taraxa_capability_->sendTransactions(id, transactions);
-  LOG(logger_debug_) << "Sent transactions:" << transactions.size();
+  LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
 
 void Network::onNewBlockVerified(DagBlock const &blk) {
   taraxa_capability_->onNewBlockVerified(blk);
-  LOG(logger_debug_) << "On new block verified:" << blk.getHash().toString();
+  LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
 }
 
 void Network::onNewTransactions(
     std::unordered_map<trx_hash_t, Transaction> const &transactions) {
   taraxa_capability_->onNewTransactions(transactions, true);
-  LOG(logger_debug_) << "On new transactions" << transactions.size();
+  LOG(log_dg_) << "On new transactions" << transactions.size();
 }
 
 void Network::saveNetwork(std::string fileName) {
-  LOG(logger_debug_) << "Network saved to: " << fileName;
+  LOG(log_dg_) << "Network saved to: " << fileName;
   auto netData = host_->saveNetwork();
   if (!netData.empty()) writeFile(fileName, &netData);
 }
 
 void Network::noNewPbftVote(Vote const &vote) {
-  LOG(logger_debug_) << "Network broadcast PBFT vote: "
-                     << vote.getHash().toString();
+  LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash().toString();
   taraxa_capability_->onNewPbftVote(vote);
 }
 
 void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
-  LOG(logger_debug_) << "Network sent PBFT vote: "
-                     << vote.getHash().toString()
-                     << " to: " << id;
+  LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash().toString()
+               << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
 
