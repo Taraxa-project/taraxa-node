@@ -65,8 +65,6 @@ pipeline {
     } 
 post {
     always {
-        sh 'docker rmi $(docker images -f "dangling=true" -q) || true'
-        sh 'docker rmi ${IMAGE}-${BRANCH_NAME}-${BUILD_NUMBER} || true'
         cleanWs()
     }
     success {
