@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io
  * @Author: Qi Gao
  * @Date: 2019-04-11
- * @Last Modified by:
- * @Last Modified time:
+ * @Last Modified by: Qi Gao
+ * @Last Modified time: 2019-04-23
  */
 
 #ifndef VOTE_H
@@ -35,16 +35,16 @@ class Vote {
   dev::Signature getSingature() const;
   blk_hash_t getBlockHash() const;
   char getType() const;
-  int getPeriod() const;
-  int getStep() const;
+  size_t getPeriod() const;
+  size_t getStep() const;
 
  private:
   public_t node_pk_;
   dev::Signature signature_;
   blk_hash_t blockhash_;
   char type_;
-  int period_;
-  int step_;
+  size_t period_;
+  size_t step_;
 
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE")};
