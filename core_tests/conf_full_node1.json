@@ -5,5 +5,9 @@
 	"db_blocks_path": "/tmp/rocksdb/blk",
 	"db_transactions_path": "/tmp/rocksdb/trx",
 	"dag_processing_threads": 2,
-	"block_proposer_threads": 1
+	"block_proposer": {
+		"mode": 0,
+		"param1": 100,
+		"param2": 1000
+	}
 }

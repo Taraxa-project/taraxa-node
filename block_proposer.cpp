@@ -14,33 +14,45 @@ namespace taraxa {
 
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
+bool RandomPropose::propose() {
+  auto delay = distribution_(gen_);
+  thisThreadSleepForMilliSeconds(delay);
+  LOG(log_nf_) << "Add proposer delay " << delay << std::endl;
+
+  return true;
+}
+
+std::shared_ptr<BlockProposer> BlockProposer::getShared() {
+  try {
+    return shared_from_this();
+  } catch (std::bad_weak_ptr& e) {
+    std::cerr << "FullNode: " << e.what() << std::endl;
+    return nullptr;
+  }
+}
+
 void BlockProposer::start() {
   if (!stopped_) return;
   if (full_node_.expired()) {
     LOG(log_er_) << "FullNode is not set ..." << std::endl;
     return;
   }
-  LOG(log_nf_) << "BlockProposer threads = " << num_threads_ << std::endl;
-  stopped_ = false;
-  // reset number of proposed blocks
-  BlockProposer::num_proposed_blocks = 0;
+
   if (!trx_mgr_.expired()) {
     trx_mgr_.lock()->start();
   } else {
     LOG(log_er_) << "Cannot start TransactionManager ..." << std::endl;
   }
-  for (auto i = 0; i < num_threads_; ++i) {
-    proposer_threads_.push_back(boost::thread([this]() { proposeBlock(); }));
-  }
+  stopped_ = false;
+  // reset number of proposed blocks
+  BlockProposer::num_proposed_blocks = 0;
+  propose_model_->setProposer(getShared());
 }
 
 void BlockProposer::stop() {
   stopped_ = true;
   if (!trx_mgr_.expired()) {
     trx_mgr_.lock()->stop();
-  }
-  for (auto& t : proposer_threads_) {
-    t.join();
   }
 }
 void BlockProposer::proposeBlock() {
@@ -52,8 +64,7 @@ void BlockProposer::proposeBlock() {
       LOG(log_wr_) << "TransactionManager expired ..." << std::endl;
       break;
     }
-    // prepare unpacked transaction
-    // the call will block until ready
+
     trx_mgr_.lock()->packTrxs(to_be_packed_trx);
     if (to_be_packed_trx.empty()) {
       LOG(log_wr_) << "Skip block proposer, zero unpacked transactions ..."

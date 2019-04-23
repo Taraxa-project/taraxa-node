@@ -94,7 +94,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   TransactionStatusTable status_table;
   auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
   auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
-  TransactionManager trx_mgr(db_blks, db_trxs, 5 /*rate limiter*/);
+  TransactionManager trx_mgr(db_blks, db_trxs);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
   std::thread insertTrx([&trx_mgr]() {
@@ -106,7 +106,8 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
     std::vector<Transaction> transactions;
     transactions.push_back(g_trx_samples[0]);
     for (auto const& b : g_blk_samples) {
-      trx_mgr.saveBlockTransactionsAndUpdateTransactionStatus(b.getTrxs(), transactions);
+      trx_mgr.saveBlockTransactionsAndUpdateTransactionStatus(b.getTrxs(),
+                                                              transactions);
     }
   });
   thisThreadSleepForSeconds(1);
@@ -154,7 +155,7 @@ TEST(TransactionManager, prepare_signed_trx_for_propose) {
   auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
   auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
 
-  TransactionManager trx_mgr(db_blks, db_trxs, 3 /*rate limiter*/);
+  TransactionManager trx_mgr(db_blks, db_trxs);
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

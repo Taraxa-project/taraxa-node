@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "block_proposer.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
@@ -47,7 +48,7 @@ struct FullNodeConfig {
   std::string db_blocks_path;
   std::string db_transactions_path;
   uint16_t dag_processing_threads;
-  uint16_t block_proposer_threads;
+  ProposerConfig proposer;
 };
 
 class FullNode : public std::enable_shared_from_this<FullNode> {

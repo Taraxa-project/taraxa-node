@@ -9,6 +9,8 @@
 #ifndef BLOCK_PROPOSER_HPP
 #define BLOCK_PROPOSER_HPP
 #include <libdevcore/Log.h>
+#include <random>
+#include <thread>
 #include <vector>
 #include "boost/thread.hpp"
 
@@ -17,17 +19,57 @@ namespace taraxa {
 class DagManager;
 class TransactionManager;
 class FullNode;
+class BlockProposer;
+
+struct ProposerConfig {
+  uint mode;
+  uint param1;
+  uint param2;
+};
+
+class ProposeModelFace {
+ public:
+  virtual ~ProposeModelFace() {}
+  virtual bool propose() = 0;
+  void setProposer(std::shared_ptr<BlockProposer> proposer) {
+    proposer_ = proposer;
+  }
+ protected:
+  std::weak_ptr<BlockProposer> proposer_;
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
+};
+
+class RandomPropose : public ProposeModelFace {
+ public:
+  RandomPropose(uint min, uint max) : distribution_(min, max) {}
+  ~RandomPropose(){};
+  bool propose() override;
+
+ private:
+  std::uniform_int_distribution<> distribution_;
+  std::mt19937 gen_;
+};
+
 /**
- * Block proproser request for unpacked transaction,
- * will block if block transaction is not ready.
- * Once ready, get unpacked transaction, then query pivot and tips and propose
+ * Single thread
+ * Block proproser request for unpacked transaction
  */
 
-class BlockProposer {
+class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  BlockProposer(unsigned num_threads, std::shared_ptr<DagManager> dag_mgr,
+  BlockProposer(ProposerConfig& conf, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr)
-      : num_threads_(num_threads), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {}
+      : conf_(conf), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
+    if (conf_.mode == 0) {
+      propose_model_ =
+          std::make_unique<RandomPropose>(conf_.param1, conf_.param2);
+    }
+  }
   ~BlockProposer() {
     if (!stopped_) stop();
   }
@@ -37,27 +79,29 @@ class BlockProposer {
   void proposeBlock();
   void start();
   void stop();
+  std::shared_ptr<BlockProposer> getShared();
 
   // debug
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;
   }
+  friend ProposeModelFace;
 
  private:
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;
-  unsigned num_threads_;
+  ProposerConfig conf_;
   std::weak_ptr<DagManager> dag_mgr_;
   std::weak_ptr<TransactionManager> trx_mgr_;
   std::weak_ptr<FullNode> full_node_;
-  std::vector<boost::thread> proposer_threads_;
-
+  std::shared_ptr<std::thread> proposer_;
+  std::shared_ptr<ProposeModelFace> propose_model_;
   dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "blk_pp")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "BLK_PP")};
   dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "blk_pp")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "BLK_PP")};
   dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "blk_pp")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "BLK_PP")};
 };
 
 }  // namespace taraxa
