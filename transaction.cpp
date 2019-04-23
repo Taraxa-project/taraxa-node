@@ -308,7 +308,9 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   }
   verified_trxs_.clear();
   assert(verified_trxs_.empty());
-  LOG(log_nf_) << "Copy" << res.size() << " verified trx. " << std::endl;
+  if (res.size() > 0) {
+    LOG(log_nf_) << "Copy " << res.size() << " verified trx. " << std::endl;
+  }
   return std::move(res);
 }
 

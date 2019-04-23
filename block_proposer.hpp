@@ -34,25 +34,28 @@ class ProposeModelFace {
   void setProposer(std::shared_ptr<BlockProposer> proposer) {
     proposer_ = proposer;
   }
+
  protected:
   std::weak_ptr<BlockProposer> proposer_;
+};
+
+class RandomPropose : public ProposeModelFace {
+ public:
+  RandomPropose(int min, int max) : distribution_(min, max) {}
+  ~RandomPropose(){};
+  bool propose() override;
+
+ private:
+  std::uniform_int_distribution<std::mt19937::result_type> distribution_;
+  static std::mt19937 generator;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
   dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
-};
-
-class RandomPropose : public ProposeModelFace {
- public:
-  RandomPropose(uint min, uint max) : distribution_(min, max) {}
-  ~RandomPropose(){};
-  bool propose() override;
-
- private:
-  std::uniform_int_distribution<> distribution_;
-  std::mt19937 gen_;
+  dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PR_MDL")};
 };
 
 /**
@@ -94,14 +97,16 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::weak_ptr<DagManager> dag_mgr_;
   std::weak_ptr<TransactionManager> trx_mgr_;
   std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<std::thread> proposer_;
-  std::shared_ptr<ProposeModelFace> propose_model_;
+  std::shared_ptr<std::thread> proposer_worker_;
+  std::unique_ptr<ProposeModelFace> propose_model_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "BLK_PP")};
   dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "BLK_PP")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "BLK_PP")};
+  dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "BLK_PP")};
 };
 
 }  // namespace taraxa
