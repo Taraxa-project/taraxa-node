@@ -135,7 +135,6 @@ void PbftManager::run() {
       // The Certifying Step
       if (elapsed_time_in_round_ms > 2 * LAMBDA_ms) {
         LOG(log_inf_) << "PBFT Reached step 3 too quickly?";
-        assert(false);
       }
 
       bool should_go_to_step_four = false;
