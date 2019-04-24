@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-01 15:43:56
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 16:52:06
+ * @Last Modified time: 2019-04-23 17:48:48
  */
 
 #include "full_node.hpp"
@@ -32,16 +32,10 @@ void FullNode::setVerbose(bool verbose) {
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   std::string const &conf_full_node,
-                   std::string const &conf_network)
-    : FullNode(io_context, FullNodeConfig(conf_full_node),
-               NetworkConfig(conf_network)) {}
+                   std::string const &conf_full_node_file)
+    : FullNode(io_context, FullNodeConfig(conf_full_node_file)) {}
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig const &conf_full_node)
-    : FullNode(io_context, conf_full_node, conf_full_node.network) {}
-FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig const &conf_full_node,
-                   NetworkConfig const &conf_network) try
+                   FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
       conf_(conf_full_node),
       db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
@@ -50,7 +44,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),
-      network_(std::make_shared<Network>(conf_network)),
+      network_(std::make_shared<Network>(conf_full_node.network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),

@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-02 14:19:58
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 16:52:25
+ * @Last Modified time: 2019-04-23 17:48:07
  */
 
 #ifndef FULL_NODE_HPP
@@ -41,13 +41,11 @@ class NetworkConfig;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
-  FullNode(boost::asio::io_context &io_context,
-           std::string const &conf_full_node, std::string const &conf_network);
-  FullNode(boost::asio::io_context &io_context,
-           FullNodeConfig const &conf_full_node);
-  FullNode(boost::asio::io_context &io_context,
-           FullNodeConfig const &conf_full_node,
-           NetworkConfig const &conf_network);
+  explicit FullNode(boost::asio::io_context &io_context,
+                    std::string const &conf_full_node_file);
+  explicit FullNode(boost::asio::io_context &io_context,
+                    FullNodeConfig const &conf_full_node);
+
   virtual ~FullNode() {
     if (!stopped_) {
       stop();
