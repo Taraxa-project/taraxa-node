@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-02 14:19:58
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-15 16:25:57
+ * @Last Modified time: 2019-04-23 16:52:25
  */
 
 #ifndef FULL_NODE_HPP
@@ -15,7 +15,7 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "block_proposer.hpp"
+#include "config.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
@@ -39,22 +39,12 @@ class VoteQueue;
 class PbftManager;
 class NetworkConfig;
 
-struct FullNodeConfig {
-  FullNodeConfig(std::string const &json_file);
-  std::string json_file_name;
-  std::string node_secret;
-  boost::asio::ip::address address;
-  std::string db_accounts_path;
-  std::string db_blocks_path;
-  std::string db_transactions_path;
-  uint16_t dag_processing_threads;
-  ProposerConfig proposer;
-};
-
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   FullNode(boost::asio::io_context &io_context,
            std::string const &conf_full_node, std::string const &conf_network);
+  FullNode(boost::asio::io_context &io_context,
+           FullNodeConfig const &conf_full_node);
   FullNode(boost::asio::io_context &io_context,
            FullNodeConfig const &conf_full_node,
            NetworkConfig const &conf_network);

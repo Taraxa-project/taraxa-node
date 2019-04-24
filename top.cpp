@@ -3,13 +3,14 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-04-19 12:56:28
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-22 13:32:54
+ * @Last Modified time: 2019-04-23 17:05:26
  */
 
 #include "top.hpp"
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
+#include "config.hpp"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
@@ -18,7 +19,7 @@ void Top::start(int argc, const char* argv[]) {
   stopped_ = false;
   th_ = std::make_shared<std::thread>([this, argc, argv]() {
     bool verbose = false;
-    std::string conf_full_node, conf_network, conf_rpc;
+    std::string conf_taraxa;
     // loggin options
     dev::LoggingOptions loggingOptions;
     boost::program_options::options_description loggingProgramOptions(
@@ -28,14 +29,8 @@ void Top::start(int argc, const char* argv[]) {
         "GENERIC OPTIONS:");
     main_options.add_options()("help", "Print this help message and exit")(
         "verbose", "Print more info")(
-        "conf_full_node",
-        boost::program_options::value<std::string>(&conf_full_node),
-        "Configure file for full node [required]")(
-        "conf_network",
-        boost::program_options::value<std::string>(&conf_network),
-        "Configure file for network [required]")(
-        "conf_rpc", boost::program_options::value<std::string>(&conf_rpc),
-        "Configure file for rpc [required]");
+        "conf_taraxa", boost::program_options::value<std::string>(&conf_taraxa),
+        "Configure file for taraxa node [required]");
 
     boost::program_options::options_description allowed_options(
         "Allowed options");
@@ -55,32 +50,21 @@ void Top::start(int argc, const char* argv[]) {
     if (option_vars.count("verbose") > 0) {
       stopped_ = true;
     }
-    if (!option_vars.count("conf_network")) {
+    if (!option_vars.count("conf_taraxa")) {
       std::cout << "Please specify full node configuration file "
-                   "[--conf_full_node]..."
-                << std::endl;
-      stopped_ = true;
-    }
-    if (!option_vars.count("conf_network")) {
-      std::cout
-          << "Please specify network configuration file ... [--conf_network]"
-          << std::endl;
-      stopped_ = true;
-    }
-    if (!option_vars.count("conf_rpc")) {
-      std::cout << "Please specify rpc configuration file ... [--conf_rpc]"
+                   "[--conf_taraxa]..."
                 << std::endl;
       stopped_ = true;
     }
     if (stopped_) return;
     stopped_ = false;
     try {
-      node_ = std::make_shared<taraxa::FullNode>(context_, conf_full_node,
-                                                 conf_network);
+      taraxa::FullNodeConfig conf(conf_taraxa);
+      node_ = std::make_shared<taraxa::FullNode>(context_, conf);
       node_->setVerbose(verbose);
       node_->start();
       rpc_ =
-          std::make_shared<taraxa::Rpc>(context_, conf_rpc, node_->getShared());
+          std::make_shared<taraxa::Rpc>(context_, conf.rpc, node_->getShared());
       rpc_->start();
       context_.run();
     } catch (std::exception& e) {

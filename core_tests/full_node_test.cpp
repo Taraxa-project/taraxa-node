@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-18 12:56:45
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-22 14:54:56
+ * @Last Modified time: 2019-04-23 17:16:04
  */
 #include "full_node.hpp"
 #include <gtest/gtest.h>
@@ -33,16 +33,9 @@ auto g_trx_signed_samples =
 
 TEST(Top, create_top) {
   {
-    const char* inputs[] = {"./build/main",
-                            "--conf_full_node",
-                            "./core_tests/conf_full_node1.json",
-                            "--conf_network",
-                            "./core_tests/conf_network1.json",
-                            "--conf_rpc",
-                            "./core_tests/conf_rpc1.json",
-                            "-v",
-                            "0"};
-    Top top(9, inputs);
+    const char* inputs[] = {"./build/main", "--conf_taraxa",
+                            "./core_tests/conf_taraxa1.json", "-v", "0"};
+    Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
     top.stop();
@@ -51,17 +44,10 @@ TEST(Top, create_top) {
 }
 
 TEST(Top, sync_two_nodes) {
-  const char* input1[] = {"./build/main",
-                          "--conf_full_node",
-                          "./core_tests/conf_full_node1.json",
-                          "--conf_network",
-                          "./core_tests/conf_network1.json",
-                          "--conf_rpc",
-                          "./core_tests/conf_rpc1.json",
-                          "-v",
-                          "0"};
+  const char* input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf_taraxa1.json", "-v", "0"};
 
-  Top top1(9, input1);
+  Top top1(5, input1);
   EXPECT_TRUE(top1.isActive());
   taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -81,16 +67,9 @@ TEST(Top, sync_two_nodes) {
     std::cerr << e.what() << std::endl;
   }
 
-  const char* input2[] = {"./build/main2",
-                          "--conf_full_node",
-                          "./core_tests/conf_full_node2.json",
-                          "--conf_network",
-                          "./core_tests/conf_network2.json",
-                          "--conf_rpc",
-                          "./core_tests/conf_rpc2.json",
-                          "-v",
-                          "0"};
-  Top top2(9, input2);
+  const char* input2[] = {"./build/main2", "--conf_taraxa",
+                          "./core_tests/conf_taraxa2.json", "-v", "0"};
+  Top top2(5, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
   // wait for top2 initialize

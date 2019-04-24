@@ -10,28 +10,6 @@
 
 namespace taraxa {
 
-// NetworkCongif ------------------------------
-
-NetworkConfig::NetworkConfig(std::string const &json_file)
-    : json_file_name(json_file) {
-  boost::property_tree::ptree doc = loadJsonFile(json_file);
-  try {
-    network_address = doc.get<std::string>("network_address");
-    network_listen_port = doc.get<uint16_t>("network_listen_port");
-    for (auto &item : doc.get_child("network_boot_nodes")) {
-      NodeConfig node;
-      node.id = item.second.get<std::string>("id");
-      node.ip = item.second.get<std::string>("ip");
-      node.port = item.second.get<uint16_t>("port");
-      network_boot_nodes.push_back(node);
-    }
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
-// Network ----------------------------------------
-
 Network::Network(std::string const &conf_file_name)
     : Network(NetworkConfig(conf_file_name), "", secret_t()) {}
 Network::Network(std::string const &conf_file_name, std::string network_file)

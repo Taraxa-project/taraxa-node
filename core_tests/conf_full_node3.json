@@ -1,5 +1,4 @@
 {
-	"address": "127.0.0.3",
 	"node_secret": "",
 	"db_accounts_path": "/tmp/rocksdb/acc3",
 	"db_blocks_path": "/tmp/rocksdb/blk3",
