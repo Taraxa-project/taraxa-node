@@ -29,7 +29,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
       dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
                               false, true),
       dev::bytesConstRef(&networkData));
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get());
+  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_.network_simulated_delay);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
