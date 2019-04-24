@@ -342,10 +342,20 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
 
   // Second step: Retrieve trxs which are in the queue but already packed by
   // others and update the status
-  for (auto const &trx :
-       trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
-    db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
-    trx_status_.update(trx.first, TransactionStatus::in_block);
+  while(true) {
+    for (auto const &trx :
+        trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
+      db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
+      trx_status_.update(trx.first, TransactionStatus::in_block);
+    }
+    bool allTransactionsSaved = true;
+    for (auto const &trx : all_block_trx_hashes) {
+      auto res = trx_status_.get(trx);
+      if(res.second == false || res.first != TransactionStatus::in_block)
+        allTransactionsSaved = false;
+    }
+    if(allTransactionsSaved) return true;
+    thisThreadSleepForMilliSeconds(10);
   }
   return true;
 }
