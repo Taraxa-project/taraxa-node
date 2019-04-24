@@ -558,6 +558,7 @@ TEST(Network, node_full_sync) {
     config.db_blocks_path += std::to_string(i + 1);
     config.db_transactions_path += std::to_string(i + 1);
     config.network.network_listen_port += i + 1;
+    config.node_secret = "";
     nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i], config));
     nodes[i]->start();
     taraxa::thisThreadSleepForMilliSeconds(50);
@@ -612,7 +613,8 @@ TEST(Network, node_full_sync) {
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityInfo;
-  logOptions.includeChannels.push_back("NETWOK");
+  logOptions.includeChannels.push_back("NETWORK");
+  logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -80,15 +80,15 @@ class Network {
 
   std::weak_ptr<FullNode> full_node_;
   dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "NETWOK")};
+      dev::createLogger(dev::Verbosity::VerbositySilent, "NETWORK")};
   dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "NETWOK")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "NETWORK")};
   dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "NETWOK")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "NETWORK")};
   dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "NETWOK")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "NETWORK")};
   dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "NETWOK")};
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "NETWORK")};
 };
 
 }  // namespace taraxa

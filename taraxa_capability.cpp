@@ -53,8 +53,25 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
   m_peers.emplace(_nodeID, peer);
   syncPeer(_nodeID);
 }
+
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                                                  unsigned _id, RLP const &_r) {
+  if (m_network_simulated_delay == 0) {
+    return interpretCapabilityPacketImpl(_nodeID, _id, _r);
+  }
+  delay_threads.push_back(std::thread([this, _nodeID, _id, _r]() {
+    int dist = NodeTable::distance(this->m_host.id(), _nodeID);
+    int delay = dist % m_network_simulated_delay;
+    thisThreadSleepForMilliSeconds(delay);
+    LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds" << dist << " " << m_network_simulated_delay;
+    interpretCapabilityPacketImpl(_nodeID, _id, _r.);
+  }));
+  return true;
+}
+
+bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
+                                                     unsigned _id,
+                                                     RLP const &_r) {
   switch (_id) {
     case NewBlockPacket: {
       LOG(logger_debug_) << "Received NewBlockPacket";

@@ -35,11 +35,11 @@ struct ProposerConfig {
 
 struct NetworkConfig {
   NetworkConfig() = default;
-  NetworkConfig(std::string const &json_file);
   std::string json_file_name;
   std::string network_address;
   uint16_t network_listen_port;
   std::vector<NodeConfig> network_boot_nodes;
+  uint16_t network_simulated_delay;
 };
 
 struct FullNodeConfig {
