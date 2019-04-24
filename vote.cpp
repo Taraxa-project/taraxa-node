@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io
  * @Author: Qi Gao
  * @Date: 2019-04-11
- * @Last Modified by:
- * @Last Modified time:
+ * @Last Modified by: Qi Gao
+ * @Last Modified time: 2019-04-23
  */
 
 #include "vote.h"
@@ -81,11 +81,11 @@ char Vote::getType() const {
   return type_;
 }
 
-int Vote::getPeriod() const {
+size_t Vote::getPeriod() const {
   return period_;
 }
 
-int Vote::getStep() const {
+size_t Vote::getStep() const {
   return step_;
 }
 

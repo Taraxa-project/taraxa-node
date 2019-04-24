@@ -36,8 +36,6 @@ TEST(PbftVote, pbft_should_speak_test) {
     std::cerr << e.what() << std::endl;
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(500);
-
   work.reset();
   node->stop();
   rpc->stop();
@@ -70,8 +68,6 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  taraxa::thisThreadSleepForMilliSeconds(500);
 
   try {
     system("./core_tests/curl_pbft_get_votes.sh");
@@ -113,6 +109,18 @@ TEST(PbftVote, transfer_vote) {
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
 
+  int node_peers = 1;
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (nw1->getPeerCount() == node_peers &&
+        nw2->getPeerCount() == node_peers) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  ASSERT_EQ(node_peers, nw1->getPeerCount());
+  ASSERT_EQ(node_peers, nw2->getPeerCount());
+
   // generate vote
   blk_hash_t blockhash(1);
   char type = '1';
@@ -130,10 +138,7 @@ TEST(PbftVote, transfer_vote) {
 
   node1->clearVoteQueue();
 
-  taraxa::thisThreadSleepForSeconds(10);
   nw2->sendPbftVote(nw1->getNodeId(), vote);
-  std::cout << "Waiting packages for 10 seconds ..." << std::endl;
-  taraxa::thisThreadSleepForSeconds(10);
 
   work1.reset();
   work2.reset();
@@ -178,11 +183,19 @@ TEST(PbftVote, vote_broadcast) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   std::shared_ptr<Network> nw3 = node3->getNetwork();
 
-  taraxa::thisThreadSleepForSeconds(20);
-
-  ASSERT_EQ(2, nw1->getPeerCount());
-  ASSERT_EQ(2, nw2->getPeerCount());
-  ASSERT_EQ(2, nw3->getPeerCount());
+  int node_peers = 2;
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (nw1->getPeerCount() == node_peers &&
+        nw2->getPeerCount() == node_peers &&
+        nw3->getPeerCount() == node_peers) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  ASSERT_EQ(node_peers, nw1->getPeerCount());
+  ASSERT_EQ(node_peers, nw2->getPeerCount());
+  ASSERT_EQ(node_peers, nw3->getPeerCount());
 
   // generate vote
   blk_hash_t blockhash(1);
@@ -205,10 +218,7 @@ TEST(PbftVote, vote_broadcast) {
   node2->clearVoteQueue();
   node3->clearVoteQueue();
 
-  taraxa::thisThreadSleepForSeconds(10);
-  nw1->noNewPbftVote(vote);
-  std::cout << "Waiting packages for 10 seconds ..." << std::endl;
-  taraxa::thisThreadSleepForSeconds(10);
+  nw1->onNewPbftVote(vote);
 
   work1.reset();
   work2.reset();
