@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-28 11:12:22
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-15 21:24:34
+ * @Last Modified time: 2019-04-23 18:01:34
  */
 
 #include "network.hpp"
@@ -198,8 +198,7 @@ TEST(Network, node_sync) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start();
@@ -234,8 +233,7 @@ TEST(Network, node_sync) {
   }
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_full_node2.json"),
-      std::string("./core_tests/conf_network2.json"));
+      context2, std::string("./core_tests/conf_taraxa2.json"));
 
   node2->setDebug(true);
   node2->start();
@@ -267,8 +265,7 @@ TEST(Network, node_sync_with_transactions) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start();
@@ -317,8 +314,7 @@ TEST(Network, node_sync_with_transactions) {
   node1->storeBlockWithTransactions(blk1, tr1);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_full_node2.json"),
-      std::string("./core_tests/conf_network2.json"));
+      context2, std::string("./core_tests/conf_taraxa2.json"));
 
   node2->setDebug(true);
   node2->start();
@@ -351,8 +347,7 @@ TEST(Network, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start();
@@ -476,8 +471,7 @@ TEST(Network, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_full_node2.json"),
-      std::string("./core_tests/conf_network2.json")));
+      context2, std::string("./core_tests/conf_taraxa2.json")));
 
   node2->setDebug(true);
   node2->start();
@@ -510,8 +504,7 @@ TEST(Network, node_transaction_sync) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start();
@@ -524,8 +517,7 @@ TEST(Network, node_transaction_sync) {
   node1->insertNewTransactions(transactions);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_full_node2.json"),
-      std::string("./core_tests/conf_network2.json"));
+      context2, std::string("./core_tests/conf_taraxa2.json"));
 
   node2->setDebug(true);
   node2->start();
@@ -556,8 +548,7 @@ TEST(Network, node_full_sync) {
   std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start();
@@ -565,14 +556,12 @@ TEST(Network, node_full_sync) {
   std::vector<std::shared_ptr<FullNode> > nodes;
   for (int i = 0; i < numberOfNodes; i++) {
     contexts.push_back(std::make_shared<boost::asio::io_context>());
-    FullNodeConfig config(std::string("./core_tests/conf_full_node2.json"));
-    NetworkConfig networkConfig("./core_tests/conf_network2.json");
+    FullNodeConfig config(std::string("./core_tests/conf_taraxa2.json"));
     config.db_accounts_path += std::to_string(i + 1);
     config.db_blocks_path += std::to_string(i + 1);
     config.db_transactions_path += std::to_string(i + 1);
-    networkConfig.network_listen_port += i + 1;
-    nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i], config,
-                                                       networkConfig));
+    config.network.network_listen_port += i + 1;
+    nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i], config));
     nodes[i]->start();
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
@@ -626,7 +615,7 @@ TEST(Network, node_full_sync) {
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityInfo;
-  logOptions.includeChannels.push_back("network");
+  logOptions.includeChannels.push_back("NETWOK");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

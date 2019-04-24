@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-18 12:56:45
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:16:04
+ * @Last Modified time: 2019-04-23 17:50:58
  */
 #include "full_node.hpp"
 #include <gtest/gtest.h>
@@ -104,8 +104,7 @@ TEST(FullNode, account_bal) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context, std::string("./core_tests/conf_taraxa1.json")));
   addr_t addr1(100);
   bal_t bal1(1000);
   node->setBalance(addr1, bal1);
@@ -126,8 +125,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context, std::string("./core_tests/conf_taraxa1.json")));
   node->start();
   addr_t acc1 = node->getAddress();
   bal_t bal1(10000000);
@@ -171,8 +169,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
 
   // node1->setVerbose(true);
   node1->setDebug(true);
@@ -234,8 +231,7 @@ TEST(FullNode, receive_send_transaction) {
   boost::asio::io_context context1;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_full_node1.json"),
-      std::string("./core_tests/conf_network1.json")));
+      context1, std::string("./core_tests/conf_taraxa1.json")));
   auto rpc(std::make_shared<taraxa::Rpc>(
       context1, "./core_tests/conf_rpc1.json", node1->getShared()));
   rpc->start();
