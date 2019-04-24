@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-28 16:05:18
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:06:40
+ * @Last Modified time: 2019-04-23 18:22:52
  */
 
 #ifndef RPC_HPP
@@ -12,9 +12,9 @@
 #include <boost/beast.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <string>
+#include "config.hpp"
 #include "libdevcore/Log.h"
 #include "rpc.hpp"
-#include "config.hpp"
 
 // TODO:
 // Need a buffer for rpc requests ...
@@ -24,13 +24,9 @@ namespace taraxa {
 class FullNode;
 class RpcConnection;
 
-
-
 class Rpc : public std::enable_shared_from_this<Rpc> {
  public:
-  Rpc(boost::asio::io_context &io, std::string conf_rpc,
-      std::shared_ptr<FullNode> node);
-  Rpc(boost::asio::io_context &io, RpcConfig const & conf_rpc,
+  Rpc(boost::asio::io_context &io, RpcConfig const &conf_rpc,
       std::shared_ptr<FullNode> node);
   virtual ~Rpc() {
     if (!stopped_) stop();

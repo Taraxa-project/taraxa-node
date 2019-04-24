@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-12-11 16:03:02
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 15:45:11
+ * @Last Modified time: 2019-04-23 18:31:50
  */
 
 #ifndef NETWORK_HPP
@@ -35,10 +35,6 @@ namespace taraxa {
 
 class Network {
  public:
-  Network(std::string const &conf_file_name);
-  Network(std::string const &conf_file_name, std::string networkFile);
-  Network(std::string const &conf_file_name, std::string networkFile,
-          secret_t const &sk);
   Network(NetworkConfig const &config);
   Network(NetworkConfig const &config, std::string networkFile);
   Network(NetworkConfig const &config, std::string networkFile,

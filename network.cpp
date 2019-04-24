@@ -10,13 +10,6 @@
 
 namespace taraxa {
 
-Network::Network(std::string const &conf_file_name)
-    : Network(NetworkConfig(conf_file_name), "", secret_t()) {}
-Network::Network(std::string const &conf_file_name, std::string network_file)
-    : Network(NetworkConfig(conf_file_name), network_file, secret_t()) {}
-Network::Network(std::string const &conf_file_name, std::string network_file,
-                 secret_t const &sk)
-    : Network(NetworkConfig(conf_file_name), network_file, sk) {}
 Network::Network(NetworkConfig const &config)
     : Network(config, "", secret_t()) {}
 Network::Network(NetworkConfig const &config, std::string network_file)

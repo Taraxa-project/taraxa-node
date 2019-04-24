@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-28 11:12:22
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:01:34
+ * @Last Modified time: 2019-04-23 18:31:04
  */
 
 #include "network.hpp"
@@ -33,15 +33,17 @@ auto g_trx_samples2 = samples::createMockTrxSamples(0, NUM_TRX2);
 auto g_signed_trx_samples2 =
     samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
 
+FullNodeConfig g_conf1("./core_tests/conf_taraxa1.json");
+FullNodeConfig g_conf2("./core_tests/conf_taraxa2.json");
+FullNodeConfig g_conf3("./core_tests/conf_taraxa3.json");
+
 /*
 Test creates two Network setup and verifies sending block
 between is successfull
 */
 TEST(Network, transfer_block) {
-  std::shared_ptr<Network> nw1(
-      new taraxa::Network("./core_tests/conf_network1.json"));
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network("./core_tests/conf_network2.json"));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
 
   nw1->start();
   nw2->start();
@@ -78,10 +80,8 @@ Test creates two Network setup and verifies sending transaction
 between is successfull
 */
 TEST(Network, transfer_transaction) {
-  std::shared_ptr<Network> nw1(
-      new taraxa::Network("./core_tests/conf_network1.json"));
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network("./core_tests/conf_network2.json"));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
 
   nw1->start();
   nw2->start();
@@ -142,12 +142,9 @@ connections even with boot nodes down
 */
 TEST(Network, save_network) {
   {
-    std::shared_ptr<Network> nw1(
-        new taraxa::Network("./core_tests/conf_network1.json"));
-    std::shared_ptr<Network> nw2(
-        new taraxa::Network("./core_tests/conf_network2.json"));
-    std::shared_ptr<Network> nw3(
-        new taraxa::Network("./core_tests/conf_network3.json"));
+    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
+    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
+    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3.network));
 
     nw1->start();
     nw2->start();
@@ -173,9 +170,9 @@ TEST(Network, save_network) {
   }
 
   std::shared_ptr<Network> nw2(
-      new taraxa::Network("./core_tests/conf_network2.json", "/tmp/nw2"));
+      new taraxa::Network(g_conf2.network, "/tmp/nw2"));
   std::shared_ptr<Network> nw3(
-      new taraxa::Network("./core_tests/conf_network3.json", "/tmp/nw3"));
+      new taraxa::Network(g_conf3.network, "/tmp/nw3"));
   nw2->start();
   nw3->start();
 
