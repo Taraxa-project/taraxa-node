@@ -66,7 +66,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/sortition.o \
 	${OBJECTDIR}/pbft_manager.o \
 	${OBJECTDIR}/vote.o \
-	${OBJECTDIR}/top.o
+	${OBJECTDIR}/top.o \
+	${OBJECTDIR}/config.o
 
 
 MAINOBJECTFILES= \
@@ -97,6 +98,11 @@ ${OBJECTDIR}/taraxa_grpc.grpc.pb.o: grpc/proto/taraxa_grpc.grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_grpc.grpc.pb.o grpc/proto/taraxa_grpc.grpc.pb.cc $(CPPFLAGS)
+
+${OBJECTDIR}/config.o: config.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/config.o config.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/top.o: top.cpp
 	${MKDIR} -p ${OBJECTDIR}

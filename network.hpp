@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-12-11 16:03:02
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-18 17:13:00
+ * @Last Modified time: 2019-04-23 15:45:11
  */
 
 #ifndef NETWORK_HPP
@@ -20,6 +20,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include "config.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "libp2p/Host.h"
@@ -27,22 +28,7 @@
 #include "transaction.hpp"
 #include "util.hpp"
 #include "vote.h"
-
 namespace taraxa {
-
-struct NodeConfig {
-  std::string id;
-  std::string ip;
-  uint16_t port;
-};
-
-struct NetworkConfig {
-  NetworkConfig(std::string const &json_file);
-  std::string json_file_name;
-  std::string network_address;
-  uint16_t network_listen_port;
-  std::vector<NodeConfig> network_boot_nodes;
-};
 
 /**
  */

@@ -10,23 +10,15 @@
 
 namespace taraxa {
 
-RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
-  try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    port = doc.get<uint16_t>("port");
-    address =
-        boost::asio::ip::address::from_string(doc.get<std::string>("address"));
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
 Rpc::Rpc(boost::asio::io_context &io, std::string conf_rpc,
          std::shared_ptr<FullNode> node)
-    : conf_(RpcConfig(conf_rpc)), io_context_(io), acceptor_(io), node_(node) {
+    : Rpc(io, RpcConfig(conf_rpc), node) {}
+
+Rpc::Rpc(boost::asio::io_context &io, RpcConfig const &conf_rpc,
+         std::shared_ptr<FullNode> node)
+    : conf_(conf_rpc), io_context_(io), acceptor_(io), node_(node) {
   LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port << std::endl;
 }
-
 std::shared_ptr<Rpc> Rpc::getShared() {
   try {
     return shared_from_this();

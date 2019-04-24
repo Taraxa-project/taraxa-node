@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-01 15:43:56
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-15 20:01:50
+ * @Last Modified time: 2019-04-23 16:52:06
  */
 
 #include "full_node.hpp"
@@ -23,27 +23,6 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 
-FullNodeConfig::FullNodeConfig(std::string const &json_file)
-    : json_file_name(json_file) {
-  try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    address =
-        boost::asio::ip::address::from_string(doc.get<std::string>("address"));
-    node_secret = doc.get<std::string>("node_secret");
-    db_accounts_path = doc.get<std::string>("db_accounts_path");
-    db_blocks_path = doc.get<std::string>("db_blocks_path");
-    db_transactions_path = doc.get<std::string>("db_transactions_path");
-    dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
-
-    proposer.mode = doc.get<uint>("block_proposer.mode");
-    proposer.param1 = doc.get<uint>("block_proposer.param1");
-    proposer.param2 = doc.get<uint>("block_proposer.param2");
-
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
   dag_mgr_->setVerbose(verbose);
@@ -57,7 +36,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                    std::string const &conf_network)
     : FullNode(io_context, FullNodeConfig(conf_full_node),
                NetworkConfig(conf_network)) {}
-
+FullNode::FullNode(boost::asio::io_context &io_context,
+                   FullNodeConfig const &conf_full_node)
+    : FullNode(io_context, conf_full_node, conf_full_node.network) {}
 FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node,
                    NetworkConfig const &conf_network) try
@@ -79,8 +60,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                            db_accs_->getShared())),
       pbft_mgr_(std::make_shared<PbftManager>()),
       vote_queue_(std::make_shared<VoteQueue>()) {
-  LOG(log_si_) << "Taraxa node statred at address: " << conf_.address << " ..."
-               << std::endl;
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -184,7 +163,9 @@ void FullNode::stop() {
 }
 
 size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }
-std::vector<public_t> FullNode::getAllPeers() const { return network_->getAllPeers(); }
+std::vector<public_t> FullNode::getAllPeers() const {
+  return network_->getAllPeers();
+}
 
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {

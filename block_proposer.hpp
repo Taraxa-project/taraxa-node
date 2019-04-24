@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-24 11:30:32
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-25 17:15:20
+ * @Last Modified time: 2019-04-23 15:47:40
  */
 
 #ifndef BLOCK_PROPOSER_HPP
@@ -13,6 +13,7 @@
 #include <thread>
 #include <vector>
 #include "boost/thread.hpp"
+#include "config.hpp"
 
 namespace taraxa {
 
@@ -20,12 +21,6 @@ class DagManager;
 class TransactionManager;
 class FullNode;
 class BlockProposer;
-
-struct ProposerConfig {
-  uint mode;
-  uint param1;
-  uint param2;
-};
 
 class ProposeModelFace {
  public:
