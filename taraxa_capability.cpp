@@ -64,7 +64,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
     int delay = dist % m_network_simulated_delay;
     thisThreadSleepForMilliSeconds(delay);
     LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds" << dist << " " << m_network_simulated_delay;
-    interpretCapabilityPacketImpl(_nodeID, _id, _r.);
+    interpretCapabilityPacketImpl(_nodeID, _id, _r);
   }));
   return true;
 }
