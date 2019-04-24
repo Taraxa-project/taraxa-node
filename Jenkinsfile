@@ -5,7 +5,7 @@ pipeline {
         REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
         IMAGE = 'taraxa-node'
         BASE_IMAGE = 'taraxa-node-base'
-        SLACK_CHANNEL = 'testnet'
+        SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
     }
     stages {
