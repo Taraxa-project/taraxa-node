@@ -18,11 +18,9 @@ namespace taraxa {
 
 TEST(PbftVote, pbft_should_speak_test) {
   boost::asio::io_context context;
-
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
-  auto rpc(std::make_shared<taraxa::Rpc>(context, "./core_tests/conf_rpc1.json",
-                                         node->getShared()));
+  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  auto node(std::make_shared<taraxa::FullNode>(context, conf));
+  auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
   node->start();
@@ -53,10 +51,9 @@ TEST(PbftVote, pbft_should_speak_test) {
 TEST(PbftVote, pbft_place_and_get_vote_test) {
   boost::asio::io_context context;
 
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
-  auto rpc(std::make_shared<taraxa::Rpc>(context, "./core_tests/conf_rpc1.json",
-                                         node->getShared()));
+  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  auto node(std::make_shared<taraxa::FullNode>(context, conf));
+  auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
   node->start();

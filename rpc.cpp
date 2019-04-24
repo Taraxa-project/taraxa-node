@@ -10,10 +10,6 @@
 
 namespace taraxa {
 
-Rpc::Rpc(boost::asio::io_context &io, std::string conf_rpc,
-         std::shared_ptr<FullNode> node)
-    : Rpc(io, RpcConfig(conf_rpc), node) {}
-
 Rpc::Rpc(boost::asio::io_context &io, RpcConfig const &conf_rpc,
          std::shared_ptr<FullNode> node)
     : conf_(conf_rpc), io_context_(io), acceptor_(io), node_(node) {

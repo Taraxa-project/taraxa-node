@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-18 12:56:45
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:50:58
+ * @Last Modified time: 2019-04-23 18:24:45
  */
 #include "full_node.hpp"
 #include <gtest/gtest.h>
@@ -176,8 +176,8 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   node1->start();
 
   // send package
-  auto nw2(
-      std::make_shared<taraxa::Network>("./core_tests/conf_network2.json"));
+  FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+  auto nw2(std::make_shared<taraxa::Network>(conf2.network));
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -229,11 +229,10 @@ TEST(FullNode, send_and_receive_out_order_messages) {
 
 TEST(FullNode, receive_send_transaction) {
   boost::asio::io_context context1;
-
-  auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
-  auto rpc(std::make_shared<taraxa::Rpc>(
-      context1, "./core_tests/conf_rpc1.json", node1->getShared()));
+  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
+  auto rpc(
+      std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
   rpc->start();
   node1->setDebug(true);
   node1->start();
