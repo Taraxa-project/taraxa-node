@@ -85,7 +85,7 @@ Tests are under core_tests/
 make run_test
 ```
 # Run taraxa full node
-To run full node requires three files for full node, network and rpc configurations (in JSON format). 
+To run full node requires one configuration file (in JSON format). 
 
 ```
 make main
@@ -94,9 +94,13 @@ use `./build/main --help` to check options.
 
 Run example:
 ```
-./build/main --conf_full_node ./core_tests/conf_full_node1.json --conf_network ./core_tests/conf_network1.json --conf_rpc ./core_tests/conf_rpc1.json
+./build/main --conf_taraxa ./core_tests/conf_taraxa1.json -v 1
 ```
 Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
+
+Verbosity setting (-v):
+
+0: Error, 1: Warning (default), 2: Info, 3: Debug, 4: Trace 
 
 ## Docker
 
