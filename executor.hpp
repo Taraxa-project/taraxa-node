@@ -31,10 +31,7 @@ class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
-  /*
-    Executor(dev::OverlayDB odb, dev::eth::State& state)
-      : db_(odb), state_(state) {}
-      */
+  Executor(){}
   ~Executor();
   void start();
   void stop();
@@ -46,9 +43,6 @@ class Executor {
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;
   bool stopped_ = true;
-
-  //dev::eth::State& state_;
-  //dev::OverlayDB& db_;
 
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};

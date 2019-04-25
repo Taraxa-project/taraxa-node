@@ -565,6 +565,7 @@ TEST(Network, node_full_sync) {
     contexts.push_back(std::make_shared<boost::asio::io_context>());
     FullNodeConfig config(std::string("./core_tests/conf_taraxa2.json"));
     config.node_db_path += std::to_string(i + 1);
+    config.node_state_path += std::to_string(i + 1);
     config.network.network_listen_port += i + 1;
     config.node_secret = "";
     nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i], config));

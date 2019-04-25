@@ -93,14 +93,9 @@ TEST(TransactionQueue, verifiers) {
 }
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
-
-
-        std::unique_ptr<dev::db::DatabaseFace> db =
-                dev::db::DBFactory::create(dev::db::DatabaseKind::MemoryDB);
-        ASSERT_TRUE(db);
-
-        dev::OverlayDB odb(std::move(db));
-
+  std::unique_ptr<dev::db::DatabaseFace> db = dev::db::DBFactory::create(dev::db::DatabaseKind::MemoryDB);
+  ASSERT_TRUE(db);
+  dev::OverlayDB odb(std::move(db));
   TransactionManager trx_mgr(odb);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
@@ -160,12 +155,10 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
 
-        std::unique_ptr<dev::db::DatabaseFace> db =
+  std::unique_ptr<dev::db::DatabaseFace> db =
                 dev::db::DBFactory::create(dev::db::DatabaseKind::MemoryDB);
-        ASSERT_TRUE(db);
-
-        dev::OverlayDB odb(std::move(db));
-
+  ASSERT_TRUE(db);
+  dev::OverlayDB odb(std::move(db));
   TransactionManager trx_mgr(odb);
   trx_mgr.start();
 

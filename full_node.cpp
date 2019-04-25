@@ -40,8 +40,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       conf_(conf_full_node),
       db(dev::eth::State::openDB(conf_.node_db_path, TEMP_GENESIS_HASH, WithExisting::Kill)),
-      //state(0, dev::eth::State::openDB(conf_.node_state_path, TEMP_GENESIS_HASH, WithExisting::Kill), dev::eth::BaseState::Empty),
-      state(0, OverlayDB(), dev::eth::BaseState::Empty),
+      state(0, dev::eth::State::openDB(conf_.node_state_path, TEMP_GENESIS_HASH, WithExisting::Kill), dev::eth::BaseState::Empty),
+      //state(0, OverlayDB(), dev::eth::BaseState::Empty),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db)),
@@ -205,7 +205,6 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
 }
 
 std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
-  std::shared_ptr<DagBlock> block;
   std::string json = db.lookup(hash);
   if (!json.empty()) {
     return std::make_shared<Transaction>(json);

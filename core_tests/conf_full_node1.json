@@ -1,7 +1,0 @@
-{
-	"address": "0.0.0.0",
-	"node_secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-	"db_path": "/tmp/db",
-	"dag_processing_threads": 2,
-	"block_proposer_threads": 1
-}

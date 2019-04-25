@@ -288,7 +288,7 @@ private:
     Account const* account(Address const& _addr) const;
 
     /// @returns the account at the given address or a null pointer if it does not exist.
-    /// The pexistsointer is valid until the next access to the state or account.
+    /// The pointer is valid until the next access to the state or account.
     Account* account(Address const& _addr);
 
     /// Purges non-modified entries in m_cache if it grows too large.

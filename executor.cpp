@@ -56,8 +56,6 @@ bool Executor::coinTransfer(dev::eth::State& state, Transaction const& trx) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   bal_t value = trx.getValue();
-  //auto sender_bal = db_accs_->get(sender.toString());
-  //auto receiver_bal = db_accs_->get(receiver.toString());
   auto sender_bal = state.balance(sender);
   auto receiver_bal = state.balance(receiver);
   bal_t sender_initial_coin = sender_bal;
@@ -74,8 +72,6 @@ bool Executor::coinTransfer(dev::eth::State& state, Transaction const& trx) {
   }
   bal_t new_sender_bal = sender_initial_coin - value;
   bal_t new_receiver_bal = receiver_initial_coin + value;
-  //db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
-  //db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
   state.setBalance(sender, new_sender_bal);
   state.setBalance(receiver, new_receiver_bal);
   LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;

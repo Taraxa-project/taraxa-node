@@ -10,7 +10,6 @@
 #define GRPC_UTIL_HPP
 #include "proto/taraxa_grpc.grpc.pb.h"
 #include "transaction.hpp"
-#include "libethcore/Common.h"
 namespace taraxa {
 
 void setProtoTransaction(Transaction const& t,
