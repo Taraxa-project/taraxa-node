@@ -45,16 +45,16 @@ class DagBlock {
   DagBlock(const string &json);
   DagBlock(dev::RLP const &_r);
   friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
-    str << "	pivot		= " << u.pivot_ << std::endl;
-    str << "	tips		= ";
-    for (auto const &t : u.tips_) str << t << " ";
+    str << "	pivot		= " << u.pivot_.abridged() << std::endl;
+    str << "	tips ( " << u.tips_.size() << " )	= ";
+    for (auto const &t : u.tips_) str << t.abridged() << " ";
     str << std::endl;
-    str << "	trxs		= ";
-    for (auto const &t : u.trxs_) str << t << " ";
+    str << "	trxs ( " << u.trxs_.size() << " )	= ";
+    for (auto const &t : u.trxs_) str << t.abridged() << " ";
     str << std::endl;
-    str << "	signature	= " << u.sig_ << std::endl;
-    str << "	hash		= " << u.hash_ << std::endl;
-    str << "  sender   = " << u.cached_sender_ << std::endl;
+    str << "	signature	= " << u.sig_.abridged() << std::endl;
+    str << "	hash		= " << u.hash_.abridged() << std::endl;
+    str << "	sender		= " << u.cached_sender_.abridged() << std::endl;
 
     return str;
   }

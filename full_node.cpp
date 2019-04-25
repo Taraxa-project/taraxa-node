@@ -69,6 +69,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
                << std::endl;
+  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
@@ -173,7 +174,9 @@ void FullNode::storeBlock(DagBlock const &blk) {
 void FullNode::storeBlockAndSign(DagBlock const &blk) {
   DagBlock sign_block(blk);
   sign_block.sign(node_sk_);
-  LOG(log_nf_) << "Signed block: " << sign_block << std::endl;
+  auto now(std::chrono::system_clock::now());
+  LOG(log_time_) << "Signed block at :" << getTimePoint2Long(now) << std::endl
+                 << sign_block << std::endl;
   storeBlock(sign_block);
 }
 
