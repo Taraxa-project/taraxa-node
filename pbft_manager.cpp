@@ -48,7 +48,6 @@ void PbftManager::stop() {
  * users from which have received valid period p credentials
  */
 void PbftManager::run() {
-  uint64_t counter = 0;
   auto period_clock_initial_datetime = std::chrono::system_clock::now();
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_period;
 
