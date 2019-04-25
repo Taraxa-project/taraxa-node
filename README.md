@@ -94,8 +94,10 @@ use `./build/main --help` to check options.
 
 Run example:
 ```
-./build/main --conf_taraxa ./core_tests/conf_taraxa1.json -v 1
+./build/main --conf_taraxa ./core_tests/conf_taraxa1.json -v 1 --log-filename mylog --log-channels FULLND
 ```
+The example run taraxa node with _conf_taraxa1.json_ setting. Reports error and warning message (verbosity 1) in log channel _FULLND_. It also pipe message to _mylog_ file.
+
 Please change ip address, binding port, number of threads, etc, in the configuration files accordingly.
 
 Verbosity setting (-v):
