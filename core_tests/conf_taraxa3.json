@@ -1,8 +1,7 @@
 {
   "node_secret": "",
-  "db_accounts_path": "/tmp/rocksdb/acc3",
-  "db_blocks_path": "/tmp/rocksdb/blk3",
-  "db_transactions_path": "/tmp/rocksdb/trx3",
+  "node_db_path": "/tmp/node_db/db3",
+  "node_state_path": "/tmp/node_db/state3",
   "dag_processing_threads": 1,
   "block_proposer": {
     "mode": 0,

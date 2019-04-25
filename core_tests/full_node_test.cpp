@@ -84,6 +84,7 @@ TEST(Top, sync_two_nodes) {
   for (auto i = 0; i < 10; i++) {
     if (vertices1 == vertices2) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
+    //taraxa::thisThreadSleepForMilliSeconds(1500);
     vertices1 = node1->getNumVerticesInDag();
     vertices2 = node2->getNumVerticesInDag();
   }

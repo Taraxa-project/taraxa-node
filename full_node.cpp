@@ -333,10 +333,8 @@ std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
   bal_t bal = state.balance(acc);
   bool exist = state.addressInUse(acc);
   if (!exist) {
-      cout << "not exist" << endl;
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
   } else {
-      cout << "balance " << bal << endl;
     LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
   }
   return {bal, exist};
