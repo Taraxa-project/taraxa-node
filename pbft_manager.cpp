@@ -468,9 +468,10 @@ void PbftManager::placeVoteIfCanSpeak_(taraxa::blk_hash_t blockhash,
 }
 
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForPeriod_(
-    std::vector<taraxa::Vote> votes, size_t period) {
+    std::vector<taraxa::Vote> &votes, size_t period) {
   std::vector<Vote> soft_votes_for_period = getVotesOfTypeFromVotesForPeriod_(
       soft_vote_type, votes, period, std::make_pair(blk_hash_t(0), false));
+
   return blockWithEnoughVotes_(soft_votes_for_period);
 }
 
