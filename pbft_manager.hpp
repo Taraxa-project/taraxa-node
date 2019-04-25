@@ -96,7 +96,7 @@ class PbftManager {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_MGR")};
   mutable dev::Logger log_deb_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFT_MGR")};
-  mutable dev::Logger log_tr_{
+  mutable dev::Logger log_tra_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_MGR")};
 };
 
