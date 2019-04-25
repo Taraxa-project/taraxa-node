@@ -276,7 +276,7 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
     for (auto const &trx : verified_trxs_) {
       verified_trxs[trx.first] = *(trx.second);
     }
-    LOG(log_nf_) << "Get: " << verified_trxs.size() << " verified trx out. "
+    LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
   }
   return verified_trxs;
@@ -309,7 +309,7 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   verified_trxs_.clear();
   assert(verified_trxs_.empty());
   if (res.size() > 0) {
-    LOG(log_nf_) << "Copy " << res.size() << " verified trx. " << std::endl;
+    LOG(log_dg_) << "Copy " << res.size() << " verified trx. " << std::endl;
   }
   return std::move(res);
 }
@@ -342,19 +342,19 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
 
   // Second step: Retrieve trxs which are in the queue but already packed by
   // others and update the status
-  while(true) {
+  while (true) {
     for (auto const &trx :
-        trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
+         trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
       db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
       trx_status_.update(trx.first, TransactionStatus::in_block);
     }
     bool allTransactionsSaved = true;
     for (auto const &trx : all_block_trx_hashes) {
       auto res = trx_status_.get(trx);
-      if(res.second == false || res.first != TransactionStatus::in_block)
+      if (res.second == false || res.first != TransactionStatus::in_block)
         allTransactionsSaved = false;
     }
-    if(allTransactionsSaved) return true;
+    if (allTransactionsSaved) return true;
     thisThreadSleepForMilliSeconds(10);
   }
   return true;
@@ -397,7 +397,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     bool exist;
     std::tie(status, exist) = trx_status_.get(hash);
     assert(exist);
-    LOG(log_nf_) << "Trx: " << hash << " ready to pack" << std::endl;
+    LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
     // update transaction_status
     trx_status_.update(hash, TransactionStatus::in_block);
     to_be_packed_trx.emplace_back(i.first);

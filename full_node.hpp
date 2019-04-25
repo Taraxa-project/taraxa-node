@@ -136,7 +136,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   size_t getVoteQueueSize();
   bool isKnownVote(taraxa::Vote const &vote) const;
   void setVoteKnown(taraxa::Vote const &vote);
-  dev::Logger & getTimeLogger() {return log_time_;}
+  dev::Logger &getTimeLogger() { return log_time_; }
+
  private:
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;
@@ -189,7 +190,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "FULLND")};
   mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "FULLND")};
-  mutable dev::Logger log_time_{ 
+  mutable dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "FULLND")};
+  mutable dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "FULLND")};
+  mutable dev::Logger log_time_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TIME")};
 };
 

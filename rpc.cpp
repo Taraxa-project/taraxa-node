@@ -93,7 +93,7 @@ void RpcConnection::read() {
       socket_, buffer_, request_,
       [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
         if (!ec) {
-          LOG(this_sp->rpc_->log_nf_) << "Read ... " << std::endl;
+          LOG(this_sp->rpc_->log_tr_) << "Read ... " << std::endl;
 
           // define response handler
           auto replier([this_sp](std::string const &msg) {

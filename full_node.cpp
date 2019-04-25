@@ -333,10 +333,10 @@ std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
   std::string bal = db_accs_->get(acc.toString());
   bool ret = false;
   if (bal.empty()) {
-    LOG(log_wr_) << "Account " << acc << " not exist ..." << std::endl;
+    LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
     bal = "0";
   } else {
-    LOG(log_nf_) << "Account " << acc << "balance: " << bal << std::endl;
+    LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
     ret = true;
   }
   return {std::stoull(bal), ret};
