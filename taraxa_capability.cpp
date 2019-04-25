@@ -31,7 +31,7 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     for (auto block : m_peers[_nodeID].m_syncBlocks) {
       if (!full_node->isBlockKnown(block.first)) {
         LOG(logger_) << "Storing block "
-                     << block.second.first.getHash().toString();
+                     << block.second.first.getHash().toString() << " with " << block.second.second.size() << " transactions";
         full_node->storeBlockWithTransactions(block.second.first,
                                               block.second.second);
       }
@@ -46,6 +46,7 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
 }
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
+  LOG(logger_) << "Node " << _nodeID << " connected";
   m_cntReceivedMessages[_nodeID] = 0;
   m_testSums[_nodeID] = 0;
 
@@ -116,7 +117,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         m_peers[_nodeID].m_syncBlocks[block.getHash()] = {block, vTransactions};
         continueSync(_nodeID);
       } else if (auto full_node = full_node_.lock()) {
+        LOG(logger_) << "Storing " << newTransactions.size() << " transactions";
         full_node->insertNewTransactions(newTransactions);
+        LOG(logger_) << "Storing block "
+                     << block.getHash().toString();
         full_node->storeBlock(block);
       } else {
         for (const auto &transaction : newTransactions) {
@@ -283,6 +287,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
   return true;
 }
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
+  LOG(logger_) << "Node " << _nodeID << " disconnected";
   m_cntReceivedMessages.erase(_nodeID);
   m_testSums.erase(_nodeID);
 }
@@ -332,7 +337,8 @@ void TaraxaCapability::onNewTransactions(
     bool fromNetwork) {
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
-      full_node->insertNewTransactions(transactions);
+      LOG(logger_) << "Storing " << transactions.size() << " transactions";
+        full_node->insertNewTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
         if (m_TestTransactions.find(transaction.first) ==
@@ -370,6 +376,8 @@ void TaraxaCapability::onNewBlockReceived(
                          << "that is already known";
       return;
     } else {
+      LOG(logger_) << "Storing block "
+                     << block.getHash().toString() << " with " << transactions.size() << " transactions";
       full_node->storeBlockWithTransactions(block, transactions);
     }
   } else if (m_TestBlocks.find(block.getHash()) == m_TestBlocks.end()) {

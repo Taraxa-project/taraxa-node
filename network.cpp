@@ -23,12 +23,20 @@ Network::Network(NetworkConfig const &config, std::string network_file,
     key = dev::KeyPair(sk);
   }
 
-  auto networkData = contents(network_file);
-  host_ = std::make_shared<dev::p2p::Host>(
-      "TaraxaNode",
-      dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
-                              false, true),
-      dev::bytesConstRef(&networkData));
+  if(network_file != "") {
+    auto networkData = contents(network_file);
+    host_ = std::make_shared<dev::p2p::Host>(
+        "TaraxaNode",
+        dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
+                                false, true),
+        dev::bytesConstRef(&networkData));
+  }
+  else {
+    host_ = std::make_shared<dev::p2p::Host>(
+        "TaraxaNode", key,
+        dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
+                                false, true));
+  }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_.network_simulated_delay);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
@@ -54,7 +62,7 @@ void Network::start() {
   }
   stopped_ = false;
   host_->start();
-  LOG(log_si_) << "Started Network address: " << conf_.network_address
+  LOG(log_si_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_listen_port
                << std::endl;
   LOG(log_si_) << "Started Node id: " << host_->id();
 
