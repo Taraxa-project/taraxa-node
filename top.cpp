@@ -86,8 +86,8 @@ void Top::stop() {
   if (stopped_) return;
   stopped_ = true;
   cond_.notify_all();
-  node_->stop();
   rpc_->stop();
+  node_->stop();
 }
 
 Top::~Top() {

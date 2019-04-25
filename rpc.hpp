@@ -23,6 +23,7 @@ namespace taraxa {
 
 class FullNode;
 class RpcConnection;
+class RpcHandler;
 
 class Rpc : public std::enable_shared_from_this<Rpc> {
  public:
@@ -37,6 +38,7 @@ class Rpc : public std::enable_shared_from_this<Rpc> {
   boost::asio::io_context &getIoContext() { return io_context_; }
   std::shared_ptr<Rpc> getShared();
   friend RpcConnection;
+  friend RpcHandler;
 
  private:
   bool stopped_ = true;

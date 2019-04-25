@@ -163,7 +163,15 @@ void RpcHandler::processRequest() {
   try {
     std::string action = in_doc_.get<std::string>("action");
     std::string res;
-
+    if (!rpc_) {
+      std::cerr << "Error! RPC unavailable in RpcHandler \n" << std::endl;
+      return;
+    }
+    if (!node_) {
+      LOG(rpc_->log_er_) << "Node unavailable \n" << std::endl;
+      return;
+    }
+    auto &log_time = node_->getTimeLogger();
     if (action == "insert_dag_block") {
       try {
         blk_hash_t pivot = blk_hash_t(in_doc_.get<std::string>("pivot"));
@@ -301,7 +309,12 @@ void RpcHandler::processRequest() {
         val_t gas = val_t(in_doc_.get<std::string>("gas"));
         addr_t receiver = addr_t(in_doc_.get<std::string>("receiver"));
         bytes data;
+        // get trx receiving time stamp
+        auto now(std::chrono::system_clock::now());
         Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
+        LOG(log_time) << "Transaction " << trx.getHash()
+                      << " received at: " << getTimePoint2Long(now)
+                      << std::endl;
         node_->storeTransaction(trx);
         res = trx.getJsonStr();
       } catch (std::exception &e) {

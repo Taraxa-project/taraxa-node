@@ -279,6 +279,8 @@ class TransactionQueue {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXQU")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXQU")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXQU")};
 };
 
 /**
@@ -363,6 +365,8 @@ class TransactionManager
       dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXMGR")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXMGR")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXMGR")};
 };
 
 }  // namespace taraxa
