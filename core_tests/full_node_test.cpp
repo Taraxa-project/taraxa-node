@@ -157,13 +157,10 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   node->executeScheduleBlock(sche_blk);
   node->stop();
 
-  int i = 0;
   for (auto const& t : g_trx_signed_samples) {
     auto res = node->getBalance(t.getReceiver());
-    cout << "test " << i++ << endl;
     EXPECT_TRUE(res.second);
     EXPECT_EQ(res.first, t.getValue());
-    break;
   }
 }
 

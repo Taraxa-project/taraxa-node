@@ -149,6 +149,7 @@ std::unique_ptr<DatabaseFace> DBFactory::create(DatabaseKind _kind)
 
 std::unique_ptr<DatabaseFace> DBFactory::create(DatabaseKind _kind, fs::path const& _path)
 {
+    std::cout << (int)_kind << " path = " << _path.string()  << std::endl;
     switch (_kind)
     {
     case DatabaseKind::LevelDB:

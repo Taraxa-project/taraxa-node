@@ -13,9 +13,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
   try {
     boost::property_tree::ptree doc = loadJsonFile(json_file);
     node_secret = doc.get<std::string>("node_secret");
-    db_accounts_path = doc.get<std::string>("db_accounts_path");
-    db_blocks_path = doc.get<std::string>("db_blocks_path");
-    db_transactions_path = doc.get<std::string>("db_transactions_path");
+    node_db_path = doc.get<std::string>("node_db_path");
+    node_state_path = doc.get<std::string>("node_state_path");
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
 
     proposer.mode = doc.get<uint>("block_proposer.mode");

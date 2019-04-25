@@ -1,8 +1,7 @@
 {
   "node_secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-  "db_accounts_path": "/tmp/rocksdb/acc",
-  "db_blocks_path": "/tmp/rocksdb/blk",
-  "db_transactions_path": "/tmp/rocksdb/trx",
+  "node_db_path": "/tmp/node_db/db",
+  "node_state_path": "/tmp/node_db/state",
   "dag_processing_threads": 2,
   "block_proposer": {
     "mode": 0,

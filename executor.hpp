@@ -31,22 +31,24 @@ class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
-    Executor(dev::eth::State const & state)
-      : state_(state) {}
+  /*
+    Executor(dev::OverlayDB odb, dev::eth::State& state)
+      : db_(odb), state_(state) {}
+      */
   ~Executor();
   void start();
   void stop();
   void clear();
-  bool execute(TrxSchedule const& schedule);
-  bool executeBlkTrxs(blk_hash_t const& blk);
-  bool coinTransfer(Transaction const& trx);
+  bool execute(dev::eth::State&, const dev::OverlayDB&, TrxSchedule const&);
+  bool executeBlkTrxs(dev::eth::State&, const dev::OverlayDB&, blk_hash_t const&);
+  bool coinTransfer(dev::eth::State&, Transaction const&);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;
   bool stopped_ = true;
 
-  dev::eth::State state_;
-  dev::OverlayDB db;
+  //dev::eth::State& state_;
+  //dev::OverlayDB& db_;
 
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};

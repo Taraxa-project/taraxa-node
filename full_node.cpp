@@ -22,21 +22,6 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 
-FullNodeConfig::FullNodeConfig(std::string const &json_file)
-    : json_file_name(json_file) {
-  try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    address =
-        boost::asio::ip::address::from_string(doc.get<std::string>("address"));
-    node_secret = doc.get<std::string>("node_secret");
-    db_path = doc.get<boost::filesystem::path>("db_path");
-    dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
-    block_proposer_threads = doc.get<uint16_t>("block_proposer_threads");
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-}
-
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
   dag_mgr_->setVerbose(verbose);
@@ -54,8 +39,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
       conf_(conf_full_node),
-      db(dev::eth::State::openDB(conf_.db_path, TEMP_GENESIS_HASH, WithExisting::Kill)),
-      state(0, db, dev::eth::BaseState::Empty),
+      db(dev::eth::State::openDB(conf_.node_db_path, TEMP_GENESIS_HASH, WithExisting::Kill)),
+      //state(0, dev::eth::State::openDB(conf_.node_state_path, TEMP_GENESIS_HASH, WithExisting::Kill), dev::eth::BaseState::Empty),
+      state(0, OverlayDB(), dev::eth::BaseState::Empty),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db)),
@@ -64,7 +50,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>(state)),
+      executor_(std::make_shared<Executor>()),
       pbft_mgr_(std::make_shared<PbftManager>()),
       vote_queue_(std::make_shared<VoteQueue>()) {
   auto key = dev::KeyPair::create();
@@ -372,7 +358,7 @@ bool FullNode::verifySignature(dev::Signature const &signature,
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
 bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
-  executor_->execute(sche_blk.getSchedule());
+  executor_->execute(state, db, sche_blk.getSchedule());
   return true;
 }
 

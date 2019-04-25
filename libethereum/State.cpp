@@ -22,10 +22,9 @@ State::State(u256 const& _accountStartNonce, OverlayDB const& _db, BaseState _bs
     m_state(&m_db),
     m_accountStartNonce(_accountStartNonce)
 {
-    if (_bs != BaseState::PreExisting) {
+    if (_bs != BaseState::PreExisting)
         // Initialise to the state entailed by the genesis block; this guarantees the trie is built correctly.
         m_state.init();
-    }
 }
 
 State::State(State const& _s):
@@ -40,10 +39,8 @@ State::State(State const& _s):
 
 OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash, WithExisting _we)
 {
-    cout << "openDB entrance" << endl;
     fs::path path = _basePath.empty() ? db::databasePath() : _basePath;
 
-    cout << "path combined" << endl;
     if (db::isDiskDatabase() && _we == WithExisting::Kill)
     {
         clog(VerbosityDebug, "statedb") << "Killing state database (WithExisting::Kill).";

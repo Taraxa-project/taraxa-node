@@ -11,6 +11,7 @@
 #include <string>
 #include "types.hpp"
 #include "util.hpp"
+#include <boost/filesystem.hpp>
 
 namespace taraxa {
 struct RpcConfig {
@@ -46,7 +47,8 @@ struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
-  boost::filesystem::path db_path;
+  boost::filesystem::path node_db_path;
+  boost::filesystem::path node_state_path;
   uint16_t dag_processing_threads;
   ProposerConfig proposer;
   NetworkConfig network;
