@@ -74,7 +74,7 @@ class PbftManager {
                            size_t period,
                            size_t step,
                            bool override_sortition_check);
-  std::pair<blk_hash_t, bool> softVotedBlockForPeriod_(std::vector<Vote> votes,
+  std::pair<blk_hash_t, bool> softVotedBlockForPeriod_(std::vector<Vote> &votes,
                                                        size_t period);
 
   bool stopped_ = true;
@@ -94,6 +94,8 @@ class PbftManager {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFT_MGR")};
   mutable dev::Logger log_inf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_MGR")};
+  mutable dev::Logger log_deb_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFT_MGR")};
   mutable dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_MGR")};
 };
