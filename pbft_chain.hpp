@@ -52,6 +52,7 @@ class PivotBlock {
  private:
   blk_hash_t prev_res_blk_;
   blk_hash_t prev_pivot_blk_;
+  blk_hash_t dag_blk_;
   uint64_t epoch_;
   uint64_t timestamp_;
   addr_t beneficiary_;
