@@ -117,6 +117,7 @@ struct LoggingOptions {
   int verbosity = VerbosityWarning;
   strings includeChannels;
   strings excludeChannels;
+  std::string logfilename;
 };
 
 // Should be called in every executable

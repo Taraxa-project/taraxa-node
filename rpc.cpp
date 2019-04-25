@@ -321,6 +321,15 @@ void RpcHandler::processRequest() {
         res = e.what();
       }
 
+    } else if (action == "get_num_proposed_blocks") {
+      try {
+        auto num_prop_block = node_->getNumProposedBlocks();
+        res = std::to_string(num_prop_block);
+        LOG(log_time) << "Number of proposed block " << num_prop_block
+                      << std::endl;
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     } else if (action == "send_pbft_schedule_block") {
       try {
         blk_hash_t prev_blk =

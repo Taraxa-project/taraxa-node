@@ -18,9 +18,9 @@ for i in  {1..1001}; do
 				 \"receiver\": \"$rec\", 
 				 \"secret\": \"$sk\"
 	       }"
-  curl -d "$cmd" 0.0.0.0:7777 &>/dev/null
+  curl -d "$cmd" 0.0.0.0:7778 &>/dev/null
 
 done
-curl -d '{"action": "get_num_proposed_blocks" }' 0.0.0.0:7777 &>/dev/null
+curl -d '{"action": "get_num_proposed_blocks" }' 0.0.0.0:7778 &>/dev/null
 
 
