@@ -235,8 +235,11 @@ TEST(Network, node_sync) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
+  for(int i = 0; i < 20; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+    if(node2->getNumVerticesInDag().first == 7 && node2->getNumEdgesInDag().first == 8) break;
+  }
   node1->stop();
   node2->stop();
 
@@ -316,8 +319,12 @@ TEST(Network, node_sync_with_transactions) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
+  for(int i = 0; i < 20; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+    if(node2->getNumVerticesInDag().first == 7 && node2->getNumEdgesInDag().first == 8) break;
+  }
+  
 
   node1->stop();
   node2->stop();
@@ -473,9 +480,12 @@ TEST(Network, node_sync2) {
   node2->setDebug(true);
   node2->start();
 
-  std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(2000);
-
+  std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
+  for(int i = 0; i < 20; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+    if(node2->getNumVerticesInDag().first == 13 && node2->getNumEdgesInDag().first == 13) break;
+  }
+  
   node1->stop();
   node2->stop();
 
@@ -584,8 +594,18 @@ TEST(Network, node_full_sync) {
     // node1->getNumVerticesInDag().first);
   }
 
-  std::cout << "Waiting Sync for 10000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(10000);
+  std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
+  for(int i = 0; i < 24; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(5000);
+    bool finished = true;
+    for(int j = 0; j < numberOfNodes; j++) {
+      if(nodes[j]->getNumVerticesInDag().first != node1->getNumVerticesInDag().first) { 
+        finished = false;
+        break;
+      }
+    }
+    if(finished) break;
+  }
   // printf("End result: Vertices %lu Edges: %lu \n",
   // node1->getNumVerticesInDag().first, node1->getNumEdgesInDag().first);
 

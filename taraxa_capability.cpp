@@ -59,12 +59,17 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   if (m_network_simulated_delay == 0) {
     return interpretCapabilityPacketImpl(_nodeID, _id, _r);
   }
-  delay_threads.push_back(std::thread([this, _nodeID, _id, _r]() {
-    int dist = NodeTable::distance(this->m_host.id(), _nodeID);
-    int delay = dist % m_network_simulated_delay;
-    thisThreadSleepForMilliSeconds(delay);
-    LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds" << dist << " " << m_network_simulated_delay;
-    interpretCapabilityPacketImpl(_nodeID, _id, _r);
+  // RLP contains memory it does not own so deep copy of bytes is needed
+  dev::bytes rBytes = _r.data().toBytes();
+  unsigned int dist = *((int *)this->m_host.id().data()) ^ *((int *)_nodeID.data());
+  unsigned int delay = dist % m_network_simulated_delay;
+  LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds"
+                       << dist << " " << m_network_simulated_delay;
+  auto timer = std::make_shared<boost::asio::deadline_timer>(m_IoService);
+  timer->expires_from_now(boost::posix_time::milliseconds(delay));
+  timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code& ec) {
+    RLP _rCopy(rBytes);
+    interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
   }));
   return true;
 }
@@ -569,6 +574,14 @@ void TaraxaCapability::doBackgroundWork() {
 }
 
 void TaraxaCapability::onStarting() {
+  if (m_network_simulated_delay > 0) {
+      const int number_of_delayed_threads = 5;
+      m_IoWork = std::make_shared<boost::asio::io_service::work>(m_IoService);
+      for (int i = 0; i < number_of_delayed_threads; ++i)
+        m_delayThreads.create_thread([&]() {
+          m_IoService.run();
+        });
+    }
   m_host.scheduleExecution(c_backroundWorkPeriodMs,
                            [this]() { doBackgroundWork(); });
 }

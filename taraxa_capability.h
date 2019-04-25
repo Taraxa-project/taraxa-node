@@ -76,7 +76,10 @@ class TaraxaPeer {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, uint16_t network_simulated_delay = 0) : Worker("taraxa"), m_host(_host), m_network_simulated_delay(network_simulated_delay) {
+  TaraxaCapability(Host &_host, uint16_t network_simulated_delay = 0)
+      : Worker("taraxa"),
+        m_host(_host),
+        m_network_simulated_delay(network_simulated_delay) {
     std::random_device seed;
     m_urng = std::mt19937_64(seed());
   }
@@ -86,7 +89,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   unsigned messageCount() const override { return PacketCount; }
 
   void onStarting() override;
-  void onStopping() override { for(auto &t : delay_threads) t.join();}
+  void onStopping() override {
+    if (m_network_simulated_delay > 0) m_IoService.stop();
+  }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeer(NodeID const &_nodeID);
@@ -94,7 +99,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
                                  RLP const &_r) override;
   bool interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id,
-                                 RLP const &_r);
+                                     RLP const &_r);
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
   void onNewBlockReceived(DagBlock block,
@@ -142,7 +147,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::unordered_map<NodeID, TaraxaPeer> m_peers;
   uint16_t m_network_simulated_delay;
-  std::vector<std::thread> delay_threads;
+  boost::thread_group m_delayThreads;
+  boost::asio::io_service m_IoService;
+  std::shared_ptr<boost::asio::io_service::work> m_IoWork;
   mutable std::mt19937_64
       m_urng;  // Mersenne Twister psuedo-random number generator
   dev::Logger logger_{
