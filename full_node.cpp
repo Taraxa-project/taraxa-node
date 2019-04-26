@@ -11,10 +11,8 @@
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
-#include "executor.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
-#include "rocks_db.hpp"
 #include "transaction.hpp"
 #include "vote.h"
 
@@ -38,7 +36,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
       conf_(conf_full_node),
-      db_accs_(std::make_shared<RocksDb>(conf_.db_accounts_path)),
+      db_accs_(SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, conf_.db_accounts_path)),
       db_blks_(std::make_shared<RocksDb>(conf_.db_blocks_path)),
       db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
@@ -51,7 +49,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                                     trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>(db_blks_->getShared(),
                                            db_trxs_->getShared(),
-                                           db_accs_->getShared())),
+                                           db_accs_)),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()) {
   auto key = dev::KeyPair::create();

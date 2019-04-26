@@ -67,8 +67,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/pbft_manager.o \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
-	${OBJECTDIR}/config.o
-
+	${OBJECTDIR}/config.o \
+	${OBJECTDIR}/SimpleDBFace.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -248,6 +248,11 @@ ${OBJECTDIR}/vote.o: vote.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/SimpleDBFace.o: SimpleDBFace.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleDBFace.o SimpleDBFace.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}

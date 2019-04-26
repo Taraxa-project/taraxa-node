@@ -15,8 +15,9 @@
 #include <thread>
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "rocks_db.hpp"
+//#include "rocks_db.hpp"
 #include "transaction.hpp"
+#include "SimpleDBFace.h"
 
 namespace taraxa {
 /**
@@ -31,7 +32,7 @@ class Executor {
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
   Executor(std::shared_ptr<RocksDb> db_blks, std::shared_ptr<RocksDb> db_trxs,
-           std::shared_ptr<RocksDb> db_accs)
+           std::shared_ptr<SimpleDBFace> db_accs)
       : db_blks_(db_blks), db_trxs_(db_trxs), db_accs_(db_accs) {}
   ~Executor();
   void start();
@@ -47,7 +48,8 @@ class Executor {
 
   std::shared_ptr<RocksDb> db_blks_;
   std::shared_ptr<RocksDb> db_trxs_;
-  std::shared_ptr<RocksDb> db_accs_;
+  //std::shared_ptr<RocksDb> db_accs_;
+  std::shared_ptr<SimpleDBFace> db_accs_;
 
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
