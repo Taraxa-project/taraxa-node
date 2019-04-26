@@ -14,7 +14,7 @@ Executor::~Executor() {
 }
 void Executor::start() {
   if (!stopped_) return;
-  bool stopped_ = false;
+  stopped_ = false;
 }
 void Executor::stop() {
   if (stopped_) return;
