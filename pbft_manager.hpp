@@ -12,6 +12,7 @@
 #include <string>
 #include <thread>
 
+#include "config.hpp"
 #include "libdevcore/Log.h"
 #include "types.hpp"
 #include "vote.h"
@@ -22,6 +23,8 @@
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...
 #define MAX_STEPS 19
+// undef for test
+#undef LAMBDA_ms
 
 namespace taraxa {
 class FullNode;
@@ -43,6 +46,7 @@ enum PbftVoteTypes {
 class PbftManager {
  public:
   PbftManager();
+  PbftManager(PbftManagerConfig const &config);
   ~PbftManager() { stop(); }
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool shouldSpeak(blk_hash_t const &blockhash, char type, int period,
@@ -51,6 +55,8 @@ class PbftManager {
   void stop();
   void run();
   bool isActive() { return executor_ != nullptr; }
+  // only for test
+  u_long getLambdaMs() { return LAMBDA_ms; }
 
  private:
   size_t periodDeterminedFromVotes_(std::vector<Vote> &votes,
@@ -84,7 +90,8 @@ class PbftManager {
 
   size_t pbft_period_ = 1;
   size_t pbft_step_ = 1;
-
+  // Only for test
+  u_long LAMBDA_ms;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

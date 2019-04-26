@@ -52,7 +52,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       executor_(std::make_shared<Executor>(db_blks_->getShared(),
                                            db_trxs_->getShared(),
                                            db_accs_->getShared())),
-      pbft_mgr_(std::make_shared<PbftManager>()),
+      pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()) {
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {

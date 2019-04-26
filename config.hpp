@@ -42,6 +42,10 @@ struct NetworkConfig {
   uint16_t network_simulated_delay;
 };
 
+struct PbftManagerConfig {
+  u_long lambda_ms;
+};
+
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
@@ -53,6 +57,7 @@ struct FullNodeConfig {
   ProposerConfig proposer;
   NetworkConfig network;
   RpcConfig rpc;
+  PbftManagerConfig pbft_manager;
 };
 }  // namespace taraxa
 #endif

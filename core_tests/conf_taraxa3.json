@@ -19,5 +19,8 @@
       "port": 10002
     }
   ],
-  "rpc_port": 7779
+  "rpc_port": 7779,
+  "pbft_manager": {
+    "lambda_ms": 100000000000
+  }
 }

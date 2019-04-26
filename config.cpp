@@ -34,6 +34,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.address =
         boost::asio::ip::address::from_string(network.network_address);
     rpc.port = doc.get<uint16_t>("rpc_port");
+    pbft_manager.lambda_ms = doc.get<u_long>("pbft_manager.lambda_ms");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

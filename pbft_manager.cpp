@@ -19,6 +19,8 @@
 namespace taraxa {
 
 PbftManager::PbftManager() : vote_queue_(std::make_shared<VoteQueue>()) {}
+PbftManager::PbftManager(const PbftManagerConfig &config)
+  : LAMBDA_ms(config.lambda_ms), vote_queue_(std::make_shared<VoteQueue>()) {}
 
 void PbftManager::start() {
   if (!stopped_) {
@@ -303,7 +305,7 @@ bool PbftManager::shouldSpeak(blk_hash_t const &blockhash, char type,
   std::pair<bal_t, bool> account_balance =
       full_node->getBalance(full_node->getAddress());
   if (!account_balance.second) {
-    LOG(log_war_) << "Full node account unavailable" << std::endl;
+    LOG(log_tra_) << "Full node account unavailable" << std::endl;
     return false;
   }
   if (taraxa::sortition(signature_hash, account_balance.first)) {
