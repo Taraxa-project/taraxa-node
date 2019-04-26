@@ -22,6 +22,7 @@
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include "executor.hpp"
 
 namespace taraxa {
 
@@ -155,7 +156,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t node_addr_;
 
   // storage
-  std::shared_ptr<RocksDb> db_accs_;
+  //std::shared_ptr<RocksDb> db_accs_;
+  std::shared_ptr<SimpleDBFace> db_accs_;
   std::shared_ptr<RocksDb> db_blks_;
   std::shared_ptr<RocksDb> db_trxs_;
 
