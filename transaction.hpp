@@ -21,9 +21,8 @@
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
-#include "rocks_db.hpp"
-#include "types.hpp"
 #include "util.hpp"
+#include "SimpleDBFace.h"
 
 namespace taraxa {
 
@@ -297,8 +296,8 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(std::shared_ptr<RocksDb> db_blk,
-                     std::shared_ptr<RocksDb> db_trx)
+  TransactionManager(std::shared_ptr<SimpleDBFace> db_blk,
+                     std::shared_ptr<SimpleDBFace> db_trx)
       : db_blks_(db_blk),
         db_trxs_(db_trx),
         trx_status_(),
@@ -350,8 +349,8 @@ class TransactionManager
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
 
-  std::shared_ptr<RocksDb> db_blks_;
-  std::shared_ptr<RocksDb> db_trxs_;
+  std::shared_ptr<SimpleDBFace> db_blks_;
+  std::shared_ptr<SimpleDBFace> db_trxs_;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;

@@ -92,8 +92,8 @@ TEST(TransactionQueue, verifiers) {
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
+  auto db_blks = SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/blk");
+  auto db_trxs = SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx");
   TransactionManager trx_mgr(db_blks, db_trxs);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
@@ -152,8 +152,8 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_blks = std::make_shared<RocksDb>("/tmp/rocksdb/blk");
-  auto db_trxs = std::make_shared<RocksDb>("/tmp/rocksdb/trx");
+  auto db_blks = SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/blk");
+  auto db_trxs = SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx");
 
   TransactionManager trx_mgr(db_blks, db_trxs);
   trx_mgr.start();

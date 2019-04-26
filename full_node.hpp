@@ -20,7 +20,6 @@
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
-#include "types.hpp"
 #include "util.hpp"
 #include "executor.hpp"
 
@@ -156,10 +155,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t node_addr_;
 
   // storage
-  //std::shared_ptr<RocksDb> db_accs_;
   std::shared_ptr<SimpleDBFace> db_accs_;
-  std::shared_ptr<RocksDb> db_blks_;
-  std::shared_ptr<RocksDb> db_trxs_;
+  std::shared_ptr<SimpleDBFace> db_blks_;
+  std::shared_ptr<SimpleDBFace> db_trxs_;
 
   // network
   std::shared_ptr<Network> network_;

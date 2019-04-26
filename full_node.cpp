@@ -13,7 +13,6 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
-#include "transaction.hpp"
 #include "vote.h"
 
 namespace taraxa {
@@ -24,7 +23,8 @@ using std::to_string;
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
   dag_mgr_->setVerbose(verbose);
-  db_blks_->setVerbose(verbose);
+  // TODO: setup logs for DB
+  //db_blks_->setVerbose(verbose);
 }
 
 void FullNode::setDebug(bool debug) { debug_ = debug; }
@@ -37,8 +37,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       conf_(conf_full_node),
       db_accs_(SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, conf_.db_accounts_path)),
-      db_blks_(std::make_shared<RocksDb>(conf_.db_blocks_path)),
-      db_trxs_(std::make_shared<RocksDb>(conf_.db_transactions_path)),
+      db_blks_(SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, conf_.db_blocks_path)),
+      db_trxs_(SimpleDBFace::createShared(SimpleDBFace::SimpleDBType::TaraxaRocksDBKind, conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),
@@ -47,8 +47,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>(db_blks_->getShared(),
-                                           db_trxs_->getShared(),
+      executor_(std::make_shared<Executor>(db_blks_,
+                                           db_trxs_,
                                            db_accs_)),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()) {

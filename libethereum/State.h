@@ -8,7 +8,6 @@
 
 #include "Account.h"
 #include "SecureTrieDB.h"
-#include "transaction.hpp"
 #include "TransactionReceipt.h"
 #include <libdevcore/Common.h>
 #include <libdevcore/OverlayDB.h>
