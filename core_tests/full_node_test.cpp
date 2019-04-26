@@ -155,6 +155,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   TrxSchedule sche(blks, modes);
   ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), sche);
   node->executeScheduleBlock(sche_blk);
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
   node->stop();
 
   for (auto const& t : g_trx_signed_samples) {
@@ -209,22 +211,27 @@ TEST(FullNode, send_and_receive_out_order_messages) {
     nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i], true);
   }
 
-  std::cout << "Waiting packages for 1000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   work.reset();
   nw2->stop();
 
-  std::cout << "Waiting packages for 1000 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(1000);
-  node1->stop();
-  t.join();
+  auto num_received_blks = node1->getNumReceivedBlocks();
+  auto num_vertices_in_dag = node1->getNumVerticesInDag().first;
+  for (auto i = 0; i < 10; ++i) {
+    if (num_received_blks == blks.size() && num_vertices_in_dag == 7) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
 
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node1->getNumEdgesInDag().first, 8);
-  EXPECT_EQ(node1->getNumProposedBlocks(), 0);
+
+  node1->stop();
+  t.join();
 }
 
 TEST(FullNode, receive_send_transaction) {
@@ -249,7 +256,13 @@ TEST(FullNode, receive_send_transaction) {
   }
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
 
-  taraxa::thisThreadSleepForMilliSeconds(30000);
+  auto num_proposed_blk = node1->getNumProposedBlocks();
+  for (auto i = 0; i < 10; i++) {
+    if (num_proposed_blk > 0) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
 
   work.reset();
   node1->stop();
