@@ -137,6 +137,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownVote(taraxa::Vote const &vote) const;
   void setVoteKnown(taraxa::Vote const &vote);
   dev::Logger &getTimeLogger() { return log_time_; }
+  std::shared_ptr<PbftManager> getPbftManager() { return pbft_mgr_; }
 
  private:
   // ** NOTE: io_context must be constructed before Network

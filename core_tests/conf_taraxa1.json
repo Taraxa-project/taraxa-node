@@ -13,5 +13,8 @@
   "network_listen_port": 10002,
   "network_simulated_delay": 0,
   "network_boot_nodes": [],
-  "rpc_port": 7777
+  "rpc_port": 7777,
+  "pbft_manager": {
+    "lambda_ms": 100000000000
+  }
 }

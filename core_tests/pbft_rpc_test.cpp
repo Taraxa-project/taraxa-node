@@ -5,6 +5,8 @@
  * @Last Modified by:
  * @Last Modified time:
  */
+#include "pbft_manager.hpp"
+
 #include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
@@ -15,6 +17,23 @@
 #include <boost/thread.hpp>
 
 namespace taraxa {
+
+TEST(PbftManager, pbft_manager_lambda_input_test) {
+  PbftManagerConfig pbft_config;
+  pbft_config.lambda_ms = 100000000000;
+  PbftManager pbft_manager(pbft_config);
+  u_long lambda = pbft_manager.getLambdaMs();
+  EXPECT_EQ(lambda, pbft_config.lambda_ms);
+}
+
+TEST(PbftManager, full_node_lambda_input_test) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_taraxa1.json")));
+  auto pbft_mgr = node->getPbftManager();
+  u_long lambda = pbft_mgr->getLambdaMs();
+  EXPECT_EQ(lambda, 100000000000);
+}
 
 TEST(PbftVote, pbft_should_speak_test) {
   boost::asio::io_context context;
