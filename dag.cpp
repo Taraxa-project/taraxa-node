@@ -66,6 +66,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   name_map[ret] = new_vertex;
   vertex_time_stamp_map_t stamp_map = boost::get(boost::vertex_index1, graph_);
   stamp_map[ret] = getTimePoint2Long(now);
+  vertex_epoch_map_t epc_map = boost::get(boost::vertex_index2, graph_);
+  epc_map[ret] = 0;  // means not finalized
   // std::cout<<"Created vertex "<< new_vertex<< " at "<< getTimePoint2Long(now)
   // <<std::endl;
   edge_t edge;
@@ -243,6 +245,8 @@ void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
   }
 }
 
+// TODO: slow, need optimization ...
+// only iterate only through non finalized blocks
 void Dag::getEpochVertices(vertex_hash const &from, vertex_hash const &to,
                            std::vector<vertex_hash> &epochs) const {
   ulock lock(mutex_);
@@ -262,10 +266,16 @@ void Dag::getEpochVertices(vertex_hash const &from, vertex_hash const &to,
 
   vertex_iter_t s, e;
   vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+  vertex_epoch_map_const_t ep_map = boost::get(boost::vertex_index2, graph_);
 
   // iterator all vertex
   for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
-    if (*s == source || *s == target) continue;
+    if (ep_map[*s] > 0) {
+      continue;
+    }
+    if (*s == source || *s == target) {
+      continue;
+    }
     if (!reachable(*s, source) && reachable(*s, target)) {
       epochs.push_back(name_map[*s]);
     }
@@ -288,12 +298,24 @@ void Dag::setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp) {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex
+                 << " to set timestamp\n";
     return;
   }
   vertex_time_stamp_map_t time_map = boost::get(boost::vertex_index1, graph_);
   assert(stamp >= 0);
   time_map[current] = stamp;
+}
+void Dag::setVertexEpoch(vertex_hash const &vertex, uint64_t epoch) {
+  ulock lock(mutex_);
+  vertex_t current = graph_.vertex(vertex);
+  if (current == graph_.null_vertex()) {
+    LOG(log_wr_) << "Warning! cannot find vertex " << vertex
+                 << " to set epoch\n";
+    return;
+  }
+  vertex_epoch_map_t ep = boost::get(boost::vertex_index2, graph_);
+  ep[current] = epoch;
 }
 
 size_t Dag::outDegreeBeforeTimeStamp(vertex_t vertex,
@@ -667,6 +689,11 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
   pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
+void DagManager::setDagBlockEpoch(std::string const &vertex, uint64_t epoch) {
+  total_dag_->setVertexEpoch(vertex, epoch);
+  pivot_tree_->setVertexEpoch(vertex, epoch);
+}
+
 DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
   if (stopped_) {
     start();
@@ -711,47 +738,5 @@ void DagBuffer::delBuffer(DagBuffer::buffIter iter) {
 }
 
 size_t DagBuffer::size() const { return blocks_.size(); }
-
-TipBlockExplorer::TipBlockExplorer(unsigned rate)
-    : rate_limit_(rate), counter_(0) {
-  start();
-}
-
-void TipBlockExplorer::start() { stopped_ = false; }
-// only one DagManager will call the function
-void TipBlockExplorer::blockAdded() {
-  ulock lock(mutex_);
-  counter_++;
-  if (counter_ >= rate_limit_) {
-    ready_ = true;
-    counter_ = 0;
-    condition_.notify_one();
-  } else {
-    ready_ = false;
-  }
-}
-
-TipBlockExplorer::~TipBlockExplorer() {
-  if (!stopped_) {
-    stop();
-  }
-}
-void TipBlockExplorer::stop() {
-  if (stopped_) return;
-  stopped_ = true;
-  condition_.notify_all();
-}
-bool TipBlockExplorer::waitForReady() {
-  ulock lock(mutex_);
-  while (!stopped_ && !ready_) {
-    condition_.wait(lock);
-  }
-  bool ret = true;
-  if (stopped_) {
-    ret = false;
-  }
-  ready_ = false;
-  return ret;
-}
 
 }  // namespace taraxa
