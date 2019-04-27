@@ -7,6 +7,7 @@
  */
 
 #include <atomic>
+#include <bitset>
 #include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
@@ -40,9 +41,10 @@ class Dag {
  public:
   // properties
   using vertex_hash = std::string;
-  using vertex_property_t =
-      boost::property<boost::vertex_name_t, std::string,
-                      boost::property<boost::vertex_index1_t, time_stamp_t>>;
+  using vertex_property_t = boost::property<
+      boost::vertex_name_t, std::string,
+      boost::property<boost::vertex_index1_t, time_stamp_t,
+                      boost::property<boost::vertex_index2_t, uint64_t>>>;
   using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 
   // graph def
@@ -67,6 +69,11 @@ class Dag {
       boost::property_map<graph_t, boost::vertex_index1_t>::const_type;
   using vertex_time_stamp_map_t =
       boost::property_map<graph_t, boost::vertex_index1_t>::type;
+
+  using vertex_epoch_map_const_t =
+      boost::property_map<graph_t, boost::vertex_index2_t>::const_type;
+  using vertex_epoch_map_t =
+      boost::property_map<graph_t, boost::vertex_index2_t>::type;
 
   using edge_index_map_const_t =
       boost::property_map<graph_t, boost::edge_index_t>::const_type;
@@ -107,7 +114,7 @@ class Dag {
 
   time_stamp_t getVertexTimeStamp(vertex_hash const &vertex) const;
   void setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp);
-
+  void setVertexEpoch(vertex_hash const &vertex, uint64_t epoch);
   // for graphviz
   template <class Property>
   class label_writer {
@@ -185,7 +192,6 @@ class PivotTree : public Dag {
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PVT_TR")};
 };
 class DagBuffer;
-class TipBlockExplorer;
 /**
  * Important : The input DagBlocks to DagManger should be de-duplicated!
  * i.e., no same DagBlocks are put to the Dag.
@@ -196,6 +202,11 @@ class TipBlockExplorer;
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using ulock = std::unique_lock<std::mutex>;
+  struct epochBoundary {
+    uint64_t epoch;  // ith epoch
+    blk_hash_t pivot;
+    vec_blk_t tips;
+  };
 
   DagManager(unsigned num_threads);
   virtual ~DagManager();
@@ -206,6 +217,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool addDagBlock(DagBlock const &blk,
                    bool insert);  // insert to buffer if fail
   void consume(unsigned threadId);
+  // update epoch
+  // use a pivot dag block to create epoch and it will update epoch boundary
+  bool createEpoch(blk_hash_t const &pivot);
+
+  //
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;
@@ -240,6 +256,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // Only Pivot graph
   time_stamp_t getDagBlockTimeStamp(std::string const &vertex);
   void setDagBlockTimeStamp(std::string const &vertex, time_stamp_t stamp);
+  void setDagBlockEpoch(std::string const &vertex, uint64_t epoch);
 
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
@@ -262,8 +279,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
-
-  std::shared_ptr<TipBlockExplorer> tips_explorer_;
+  std::vector<epochBoundary> epoch_boundary_;
   // DagBuffer
   std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
   std::vector<boost::thread> sb_buffer_processing_threads_;
@@ -305,31 +321,6 @@ class DagBuffer {
   std::condition_variable condition_;
   std::mutex mutex_;
   buffIter iter_;
-};
-
-/**
- * Thread-safe . Only one thread can access ready.
- * Will block if data is not ready
- */
-
-class TipBlockExplorer {
- public:
-  using ulock = std::unique_lock<std::mutex>;
-  TipBlockExplorer(unsigned rate);
-  ~TipBlockExplorer();
-  void start();
-  void blockAdded();
-  void stop();
-  // will block if not ready.
-  bool waitForReady();
-
- private:
-  bool ready_ = false;
-  bool stopped_ = true;
-  unsigned rate_limit_;
-  unsigned counter_;
-  std::mutex mutex_;
-  std::condition_variable condition_;
 };
 
 }  // namespace taraxa

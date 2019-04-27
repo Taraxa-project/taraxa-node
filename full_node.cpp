@@ -106,6 +106,7 @@ void FullNode::start() {
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
+        // will block if no verified block available
         auto blk = blk_qu_->getVerifiedBlock();
         if (stopped_) break;
         // Any transactions that are passed with the block were not verified in
