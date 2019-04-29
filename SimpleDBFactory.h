@@ -4,10 +4,9 @@
 #ifndef TARAXA_NODE_SIMPLEDBFACTORY_H
 #define TARAXA_NODE_SIMPLEDBFACTORY_H
 
-//#include "SimpleDBFace.h"
-//#include "SimpleOverlayDBDelegate.cpp"
+#include "SimpleOverlayDBDelegate.h"
 #include "SimpleTaraxaRocksDBDelegate.h"
-//#include "SimpleStateDBDelegate.cpp"
+#include "SimpleStateDBDelegate.h"
 
 class SimpleDBFace;
 
@@ -23,13 +22,10 @@ public:
       switch(type) {
         case TaraxaRocksDBKind:
           return std::make_shared<SimpleTaraxaRocksDBDelegate>(path);
-          //return SimpleTaraxaRocksDBDelegate::makeShared(path);
         case StateDBKind:
-          //return std::make_shared<SimpleStateDBDelegate>(path);
-          //return SimpleStateDBDelegate::makeShared(path);
+          return std::make_shared<SimpleStateDBDelegate>(path);
         case OverlayDBKind:
-          //return std::make_shared<SimpleOverlayDBDelegate>(path);
-          //return SimpleOverlayDBDelegate::makeShared(path);
+          return std::make_shared<SimpleOverlayDBDelegate>(path);
         default:
           assert(false);
       }

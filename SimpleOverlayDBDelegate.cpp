@@ -1,31 +1,23 @@
 //
 // Created by JC on 2019-04-26.
 //
-/*
-#include "SimpleDBFace.h"
+#include "SimpleOverlayDBDelegate.h"
 
-using OverlayDB = dev::OverlayDB;
-class SimpleOverlayDBDelegate : public SimpleDBFace {
-public:
-    bool put override (const std::string &key, const std::string &value) {
-      return true;
-    }
-    bool update override (const std::string &key, const std::string &value) {
-      // TODO:
-      return true;
-    }
-    std::string get override (const std::string &key) {
-      // TODO:
-      return "";
-    }
-    void commit() override {
-      // TODO:
-    }
-    static std::shared_ptr<SimpleDBFace> makeShared(const std::string& path) {
-      return std::make_shared<SimpleOverlayDBDelegate>(path);
-    }
-    SimpleOverlayDBDelegate(const std::string& path):odb(std::make_shared<OverlayDB>(OverlayDB(
-            dev::eth::State::openDB(path, TEMP_GENESIS_HASH,dev::WithExisting::Kill)))){}
-    std::shared_ptr<OverlayDB> odb;
-};
- */
+bool SimpleOverlayDBDelegate::put (const std::string &key, const std::string &value) {
+  //TODO: fix
+  return true;
+}
+bool SimpleOverlayDBDelegate::update (const std::string &key, const std::string &value) {
+  //TODO: fix
+  return true;
+}
+std::string SimpleOverlayDBDelegate::get (const std::string &key) {
+  //TODO: fix
+  return "";
+}
+void SimpleOverlayDBDelegate::commit() {
+  //TODO: fix
+}
+
+SimpleOverlayDBDelegate::SimpleOverlayDBDelegate(const std::string& path):odb(std::make_shared<dev::OverlayDB>(
+        dev::OverlayDB(dev::eth::State::openDB(path, TEMP_GENESIS_HASH,dev::WithExisting::Kill)))){}
