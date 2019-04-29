@@ -27,7 +27,7 @@ TEST(TrxSchedule, serialize_deserialize) {
   EXPECT_EQ(sche1, sche2);
 }
 
-TEST(PbftManager, create_pbft_manager) {
+TEST(PbftManager, DISABLED_create_pbft_manager) {
   PbftManager pbft_mgr;
   pbft_mgr.start();
   thisThreadSleepForSeconds(1);
