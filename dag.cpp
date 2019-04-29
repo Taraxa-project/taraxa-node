@@ -247,8 +247,10 @@ void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
 
 // TODO: slow, need optimization ...
 // only iterate only through non finalized blocks
-void Dag::getEpochVertices(vertex_hash const &from, vertex_hash const &to,
-                           std::vector<vertex_hash> &epochs) const {
+void Dag::getAndUpdateEpochVertices(
+    vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
+    std::unordered_set<vertex_hash> &recent_added_blks,
+    std::vector<vertex_hash> &epochs) {
   ulock lock(mutex_);
 
   vertex_t source = graph_.vertex(from);
@@ -265,19 +267,45 @@ void Dag::getEpochVertices(vertex_hash const &from, vertex_hash const &to,
   epochs.clear();
 
   vertex_iter_t s, e;
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-  vertex_epoch_map_const_t ep_map = boost::get(boost::vertex_index2, graph_);
+  vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
+  vertex_epoch_map_t ep_map = boost::get(boost::vertex_index2, graph_);
 
   // iterator all vertex
-  for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
-    if (ep_map[*s] > 0) {
-      continue;
+  if (recent_added_blks.empty()) {
+    for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
+      if (ep_map[*s] > 0) {
+        continue;
+      }
+      if (*s == source || *s == target) {
+        continue;
+      }
+      if (!reachable(*s, source) && reachable(*s, target)) {
+        if (ith_epoch > 0) {
+          ep_map[*s] = ith_epoch;
+        }
+        epochs.emplace_back(name_map[*s]);
+      }
     }
-    if (*s == source || *s == target) {
-      continue;
-    }
-    if (!reachable(*s, source) && reachable(*s, target)) {
-      epochs.push_back(name_map[*s]);
+  } else {
+    auto iter = recent_added_blks.begin();
+    while (iter != recent_added_blks.end()) {
+      auto v = graph_.vertex(from);
+      if (ep_map[v] > 0) {
+        iter++;
+        assert(0);
+        continue;
+      }
+      if (v == source || v == target) {
+        iter++;
+        continue;
+      }
+      if (!reachable(v, source) && reachable(v, target)) {
+        if (ith_epoch > 0) {
+          ep_map[v] = ith_epoch;
+        }
+        iter = recent_added_blks.erase(iter);
+        epochs.emplace_back(name_map[v]);
+      }
     }
   }
 }
@@ -572,6 +600,7 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   }
 
   addToDag(hash, pivot, tips);
+  recent_added_blks_.insert(hash);
   return true;
 }
 
@@ -668,7 +697,8 @@ std::vector<std::string> DagManager::getTotalLeavesBeforeTimeStamp(
 std::vector<std::string> DagManager::getTotalEpochsBetweenBlocks(
     std::string const &from, std::string const &to) const {
   std::vector<std::string> ret;
-  total_dag_->getEpochVertices(from, to, ret);
+  std::unordered_set<std::string> dummy;
+  total_dag_->getAndUpdateEpochVertices(from, to, 0, dummy, ret);
   return ret;
 }
 
@@ -693,6 +723,8 @@ void DagManager::setDagBlockEpoch(std::string const &vertex, uint64_t epoch) {
   total_dag_->setVertexEpoch(vertex, epoch);
   pivot_tree_->setVertexEpoch(vertex, epoch);
 }
+
+void DagManager::createEpoch(blk_hash_t const &pivot) {}
 
 DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
   if (stopped_) {

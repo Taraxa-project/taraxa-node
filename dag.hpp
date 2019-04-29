@@ -109,8 +109,12 @@ class Dag {
                                  std::vector<vertex_hash> &subtree) const;
   void getLeavesBeforeTimeStamp(vertex_hash const &veretx, time_stamp_t stamp,
                                 std::vector<vertex_hash> &tips) const;
-  void getEpochVertices(vertex_hash const &from, vertex_hash const &to,
-                        std::vector<vertex_hash> &tips) const;
+
+  // Note, the function will delete recent_added_blks when marking ith_number
+  void getAndUpdateEpochVertices(
+      vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
+      std::unordered_set<vertex_hash> &recent_added_blks,
+      std::vector<vertex_hash> &epoch_vertices);
 
   time_stamp_t getVertexTimeStamp(vertex_hash const &vertex) const;
   void setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp);
@@ -219,7 +223,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void consume(unsigned threadId);
   // update epoch
   // use a pivot dag block to create epoch and it will update epoch boundary
-  bool createEpoch(blk_hash_t const &pivot);
+  void createEpoch(blk_hash_t const &pivot);
 
   //
   bool getLatestPivotAndTips(std::string &pivot,
@@ -273,6 +277,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool debug_;
   bool verbose_;
   bool dag_updated_;
+  uint64_t latest_epoch_ = 0;
   bool stopped_ = true;
   unsigned num_threads_;
   mutable std::mutex mutex_;
@@ -280,6 +285,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::vector<epochBoundary> epoch_boundary_;
+  std::unordered_set<std::string> recent_added_blks_;
   // DagBuffer
   std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
   std::vector<boost::thread> sb_buffer_processing_threads_;
