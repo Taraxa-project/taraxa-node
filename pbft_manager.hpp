@@ -33,14 +33,14 @@ class VoteQueue;
 enum PbftBlockTypes {
   pivot_block_type = 0,
   schedule_block_type,
-  result_block
+  result_block_type
 };
 
 enum PbftVoteTypes {
   propose_vote_type = 0,
-  next_vote_type,
   soft_vote_type,
-  cert_vote_type
+  cert_vote_type,
+  next_vote_type
 };
 
 class PbftManager {
