@@ -63,9 +63,9 @@ void Network::start() {
   }
   stopped_ = false;
   host_->start();
-  LOG(log_si_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_listen_port
+  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_listen_port
                << std::endl;
-  LOG(log_si_) << "Started Node id: " << host_->id();
+  LOG(log_nf_) << "Started Node id: " << host_->id();
 
   for (auto &node : conf_.network_boot_nodes) {
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;

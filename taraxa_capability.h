@@ -78,10 +78,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, uint16_t network_simulated_delay = 0)
       : Worker("taraxa"),
-        m_host(_host),
-        m_network_simulated_delay(network_simulated_delay) {
+        host_(_host),
+        network_simulated_delay_(network_simulated_delay) {
     std::random_device seed;
-    m_urng = std::mt19937_64(seed());
+    urng_ = std::mt19937_64(seed());
   }
   virtual ~TaraxaCapability() = default;
   std::string name() const override { return "taraxa"; }
@@ -90,7 +90,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void onStarting() override;
   void onStopping() override {
-    if (m_network_simulated_delay > 0) m_IoService.stop();
+    if (network_simulated_delay_ > 0) io_service_.stop();
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
@@ -132,26 +132,26 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
 
  private:
-  const int c_backroundWorkPeriodMs = 1000;
-  Host &m_host;
-  std::unordered_map<NodeID, int> m_cntReceivedMessages;
-  std::unordered_map<NodeID, int> m_testSums;
+  const int c_backround_work_period_ms_ = 1000;
+  Host &host_;
+  std::unordered_map<NodeID, int> cnt_received_messages_;
+  std::unordered_map<NodeID, int> test_sums_;
 
   // Only used for testing without the full node set
-  std::map<blk_hash_t, taraxa::DagBlock> m_TestBlocks;
-  std::map<trx_hash_t, Transaction> m_TestTransactions;
+  std::map<blk_hash_t, taraxa::DagBlock> test_blocks_;
+  std::map<trx_hash_t, Transaction> test_transactions_;
 
-  std::set<blk_hash_t> m_blockRequestedSet;
+  std::set<blk_hash_t> block_requestes_set_;
 
   std::weak_ptr<FullNode> full_node_;
 
-  std::unordered_map<NodeID, TaraxaPeer> m_peers;
-  uint16_t m_network_simulated_delay;
-  boost::thread_group m_delayThreads;
-  boost::asio::io_service m_IoService;
-  std::shared_ptr<boost::asio::io_service::work> m_IoWork;
+  std::unordered_map<NodeID, TaraxaPeer> peers_;
+  uint16_t network_simulated_delay_;
+  boost::thread_group delay_threads_;
+  boost::asio::io_service io_service_;
+  std::shared_ptr<boost::asio::io_service::work> io_work_;
   mutable std::mt19937_64
-      m_urng;  // Mersenne Twister psuedo-random number generator
+      urng_;  // Mersenne Twister psuedo-random number generator
   dev::Logger logger_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
   dev::Logger logger_debug_{
