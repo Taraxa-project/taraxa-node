@@ -8,13 +8,13 @@
 
 #include "full_node.hpp"
 #include <boost/asio.hpp>
+#include "SimpleDBFactory.h"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "vote.h"
-#include "SimpleDBFactory.h"
 
 namespace taraxa {
 
@@ -25,7 +25,7 @@ void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
   dag_mgr_->setVerbose(verbose);
   // TODO: setup logs for DB
-  //db_blks_->setVerbose(verbose);
+  // db_blks_->setVerbose(verbose);
 }
 
 void FullNode::setDebug(bool debug) { debug_ = debug; }
@@ -37,9 +37,15 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
       conf_(conf_full_node),
-      db_accs_(SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, conf_.db_accounts_path)),
-      db_blks_(SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, conf_.db_blocks_path)),
-      db_trxs_(SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, conf_.db_transactions_path)),
+      db_accs_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          conf_.db_accounts_path)),
+      db_blks_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          conf_.db_blocks_path)),
+      db_trxs_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),
@@ -48,9 +54,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>(db_blks_,
-                                           db_trxs_,
-                                           db_accs_)),
+      executor_(std::make_shared<Executor>(db_blks_, db_trxs_, db_accs_)),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()) {
   auto key = dev::KeyPair::create();
@@ -98,7 +102,7 @@ void FullNode::start() {
   blk_proposer_->start();
   trx_mgr_->start();
   pbft_mgr_->setFullNode(getShared());
-  pbft_mgr_->start();
+  // pbft_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
@@ -150,7 +154,7 @@ void FullNode::stop() {
   blk_qu_->stop();
   network_->stop();
   trx_mgr_->stop();
-  pbft_mgr_->stop();
+  // pbft_mgr_->stop();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
   }
