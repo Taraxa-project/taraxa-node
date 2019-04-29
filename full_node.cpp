@@ -125,8 +125,12 @@ void FullNode::start() {
         // Save the transaction that came with the block together with the
         // transactions that are in the queue This will update the transaction
         // status as well and remove the transactions from the queue
-        trx_mgr_->saveBlockTransactionsAndUpdateTransactionStatus(
-            blk.first.getTrxs(), blk.second);
+        bool transactionsSave =
+            trx_mgr_->saveBlockTransactionsAndUpdateTransactionStatus(
+                blk.first.getTrxs(), blk.second);
+
+        // Skip block if we are missing transactions
+        if (!transactionsSave) continue;
 
         LOG(log_nf_) << "Write block to db ... " << blk.first.getHash()
                      << std::endl;

@@ -340,25 +340,31 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
     trx_status_.update(trx.getHash(), TransactionStatus::in_block);
   }
 
-  // Second step: Retrieve trxs which are in the queue but already packed by
-  // others and update the status
-  while (true) {
+  // Second step: Remove from the queue any transaction that is part of the block
+  // Verify that all transactions are saved in the database
+  // If all transactions are not available within 2 seconds fail the block verification
+  bool allTransactionsSaved = true;
+  unsigned int delay = 0;
+  while (delay < 2000) {
     for (auto const &trx :
          trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
       db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
       trx_status_.update(trx.first, TransactionStatus::in_block);
     }
-    bool allTransactionsSaved = true;
+    allTransactionsSaved = true;
     for (auto const &trx : all_block_trx_hashes) {
       auto res = trx_status_.get(trx);
       if (res.second == false || res.first != TransactionStatus::in_block)
         allTransactionsSaved = false;
     }
-    if (allTransactionsSaved) return true;
+    //Only if all transactions are saved in the db can we verify a new block
+    if (allTransactionsSaved) break;
+    //Getting here should be a very rare case where in a racing condition block was processed before the transactions
     thisThreadSleepForMilliSeconds(10);
+    delay += 10;
   }
   db_trxs_->commit();
-  return true;
+  return allTransactionsSaved;
 }
 
 bool TransactionManager::insertTrx(Transaction trx) {
