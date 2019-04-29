@@ -68,7 +68,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/SimpleDBFace.o
+	${OBJECTDIR}/SimpleDBFace.o \
+	${OBJECTDIR}/SimpleStateDBDelegate.o \
+	${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o \
+	${OBJECTDIR}/SimpleOverlayDBDelegate.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -253,6 +256,21 @@ ${OBJECTDIR}/SimpleDBFace.o: SimpleDBFace.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleDBFace.o SimpleDBFace.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/SimpleOverlayDBDelegate.o: SimpleOverlayDBDelegate.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleOverlayDBDelegate.o SimpleOverlayDBDelegate.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o: SimpleTaraxaRocksDBDelegate.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o SimpleTaraxaRocksDBDelegate.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/SimpleStateDBDelegate.o: SimpleStateDBDelegate.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleStateDBDelegate.o SimpleStateDBDelegate.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
