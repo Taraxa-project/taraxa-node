@@ -229,7 +229,8 @@ TEST(Dag, dag_traverse3_get_epochs) {
   graph.addVEEs(vK, vI, empty);
 
   std::vector<std::string> epochs;
-  graph.getEpochVertices(vE, vH, epochs);
+  std::unordered_set<std::string> recent_added_blks;
+  graph.getAndUpdateEpochVertices(vE, vH, 0, recent_added_blks, epochs);
   EXPECT_EQ(epochs.size(), 3);
 }
 TEST(PivotTree, genesis_get_pivot) {
