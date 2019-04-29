@@ -40,11 +40,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       db_accs_(SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, conf_.db_accounts_path)),
       db_blks_(SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, conf_.db_blocks_path)),
       db_trxs_(SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, conf_.db_transactions_path)),
-
-      //db_accs_(SimpleTaraxaRocksDBDelegate(conf_.db_accounts_path)),
-      //db_blks_(SimpleTaraxaRocksDBDelegate(conf_.db_blocks_path)),
-      //db_trxs_(SimpleTaraxaRocksDBDelegate(conf_.db_transactions_path)),
-
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),

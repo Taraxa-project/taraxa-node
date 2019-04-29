@@ -68,7 +68,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/SimpleDBFace.o \
 	${OBJECTDIR}/SimpleStateDBDelegate.o \
 	${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o \
 	${OBJECTDIR}/SimpleOverlayDBDelegate.o
@@ -251,11 +250,6 @@ ${OBJECTDIR}/vote.o: vote.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/SimpleDBFace.o: SimpleDBFace.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleDBFace.o SimpleDBFace.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/SimpleOverlayDBDelegate.o: SimpleOverlayDBDelegate.cpp
 	${MKDIR} -p ${OBJECTDIR}
