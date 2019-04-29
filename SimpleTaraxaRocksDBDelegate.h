@@ -4,7 +4,7 @@
 
 #ifndef TARAXA_NODE_SIMPLETARAXAROCKSDBDELEGATE_H
 #define TARAXA_NODE_SIMPLETARAXAROCKSDBDELEGATE_H
-
+#include "rocks_db.hpp"
 #include "SimpleDBFace.h"
 
 class SimpleTaraxaRocksDBDelegate : public SimpleDBFace {
@@ -16,11 +16,6 @@ public:
     SimpleTaraxaRocksDBDelegate(const std::string& path);
 private:
     std::shared_ptr<taraxa::RocksDb> taraxa_rocks_db = nullptr;
-
-    //static shared_ptr<SimpleDBFace> makeShared(const std::string& path) {
-      //return make_shared<SimpleTaraxaRocksDBDelegate>(path);
-    //}
-    //SimpleTaraxaRocksDBDelegate(const std::string& path):taraxa_rocks_db(std::make_shared<taraxa::RocksDb>(path)){}
 };
 
 
