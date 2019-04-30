@@ -14,6 +14,7 @@
 #include <vector>
 #include "create_samples.hpp"
 #include "libdevcore/Log.h"
+#include "libdevcore/DBFactory.h"
 
 namespace taraxa {
 
@@ -636,6 +637,8 @@ int main(int argc, char** argv) {
   logOptions.includeChannels.push_back("NETWORK");
   logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
+  // use the in-memory db so test will not affect other each other through persistent storage
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

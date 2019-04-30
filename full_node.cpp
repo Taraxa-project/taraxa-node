@@ -38,17 +38,17 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       conf_(conf_full_node),
       db_accs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          SimpleDBFactory::SimpleDBType::StateDBKind,
           conf_.db_accounts_path)),
       db_blks_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          SimpleDBFactory::SimpleDBType::OverlayDBKind,
           conf_.db_blocks_path)),
       db_trxs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          SimpleDBFactory::SimpleDBType::OverlayDBKind,
           conf_.db_transactions_path)),
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>(db_blks_, db_trxs_)),
+      trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
       network_(std::make_shared<Network>(conf_full_node.network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
@@ -139,6 +139,7 @@ void FullNode::start() {
         db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
         dag_mgr_->addDagBlock(blk.first, true);
         network_->onNewBlockVerified(blk.first);
+        db_blks_->commit();
       }
     });
   }

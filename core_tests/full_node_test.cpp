@@ -19,6 +19,7 @@
 #include "rpc.hpp"
 #include "string"
 #include "top.hpp"
+#include "libdevcore/DBFactory.h"
 
 namespace taraxa {
 
@@ -274,6 +275,8 @@ TEST(FullNode, receive_send_transaction) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  // use the in-memory db so test will not affect other each other through persistent storage
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

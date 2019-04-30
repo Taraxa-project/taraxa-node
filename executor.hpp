@@ -21,7 +21,7 @@ namespace taraxa {
 /**
  * Executor will execute transactions in parallel inside a block,
  * Blocks are sequentially executed.
- * Cannot call execute() until all trans in thie epoch are processed. This will
+ * Cannot call execute() until all trans in this epoch are processed. This will
  * be a blocking call.
  */
 

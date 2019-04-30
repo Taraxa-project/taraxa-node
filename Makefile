@@ -460,18 +460,18 @@ protoc_taraxa_grpc:
 test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/state_unit_tests $(TESTBUILDDIR)/pbft_rpc_test
 
 run_test: test main
-	./$(TESTBUILDDIR)/crypto_test
-	./$(TESTBUILDDIR)/pbft_rpc_test
-	./$(TESTBUILDDIR)/memorydb_test
-	./$(TESTBUILDDIR)/overlaydb_test
-	./$(TESTBUILDDIR)/statecachedb_test
-	./$(TESTBUILDDIR)/transaction_test
-	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/concur_hash_test
-	./$(TESTBUILDDIR)/dag_block_test
-	./$(TESTBUILDDIR)/grpc_test
+	#./$(TESTBUILDDIR)/crypto_test
+	#./$(TESTBUILDDIR)/pbft_rpc_test
+	#./$(TESTBUILDDIR)/memorydb_test
+	#./$(TESTBUILDDIR)/overlaydb_test
+	#./$(TESTBUILDDIR)/statecachedb_test
+	#./$(TESTBUILDDIR)/transaction_test
+	#./$(TESTBUILDDIR)/dag_test
+	#./$(TESTBUILDDIR)/concur_hash_test
+	#./$(TESTBUILDDIR)/dag_block_test
+	#./$(TESTBUILDDIR)/grpc_test
 	./$(TESTBUILDDIR)/full_node_test
-	./$(TESTBUILDDIR)/p2p_test
+	#./$(TESTBUILDDIR)/p2p_test
 	./$(TESTBUILDDIR)/network_test
 	./$(TESTBUILDDIR)/trie_test
 	./$(TESTBUILDDIR)/pbft_chain_test

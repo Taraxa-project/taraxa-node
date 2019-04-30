@@ -296,10 +296,8 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(std::shared_ptr<SimpleDBFace> db_blk,
-                     std::shared_ptr<SimpleDBFace> db_trx)
-      : db_blks_(db_blk),
-        db_trxs_(db_trx),
+  TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
+      : db_trxs_(db_trx),
         trx_status_(),
         trx_qu_(trx_status_, 1 /*num verifiers*/) {
     trx_qu_.start();
@@ -349,7 +347,6 @@ class TransactionManager
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
 
-  std::shared_ptr<SimpleDBFace> db_blks_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;

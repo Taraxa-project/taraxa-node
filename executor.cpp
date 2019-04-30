@@ -35,6 +35,7 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
     }
     coinTransfer(trx);
   }
+  db_trxs_->commit();
   return true;
 }
 bool Executor::execute(TrxSchedule const& sche) {
@@ -72,4 +73,4 @@ bool Executor::coinTransfer(Transaction const& trx) {
   return true;
 }
 
-}  // namespace taraxa
+} // namespace taraxa
