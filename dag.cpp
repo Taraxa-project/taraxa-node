@@ -6,15 +6,15 @@
  * @Last Modified time: 2019-04-22 13:37:22
  */
 
+#include "dag.hpp"
 #include <algorithm>
 #include <fstream>
 #include <queue>
 #include <stack>
 #include <tuple>
 #include <unordered_set>
+#include <utility>
 #include <vector>
-
-#include "dag.hpp"
 
 namespace taraxa {
 
@@ -245,12 +245,11 @@ void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
   }
 }
 
-// TODO: slow, need optimization ...
 // only iterate only through non finalized blocks
-void Dag::getAndUpdateEpochVertices(
+void Dag::updateEpochVertices(
     vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
     std::unordered_set<vertex_hash> &recent_added_blks,
-    std::vector<vertex_hash> &epochs) {
+    std::vector<vertex_hash> &ordered_epoch_vertices) {
   ulock lock(mutex_);
 
   vertex_t source = graph_.vertex(from);
@@ -264,13 +263,17 @@ void Dag::getAndUpdateEpochVertices(
     LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
     return;
   }
-  epochs.clear();
-
+  ordered_epoch_vertices.clear();
+  std::unordered_set<vertex_t> epochs;  // this is unordered epoch
+  epochs.insert(target);
   vertex_iter_t s, e;
   vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
   vertex_epoch_map_t ep_map = boost::get(boost::vertex_index2, graph_);
 
-  // iterator all vertex
+  // Step 1: collect all epoch blks between from and to blks
+  // Erase from recent_added_blks after mark epoch number
+
+  // iterator all vertex if no recent block info provided
   if (recent_added_blks.empty()) {
     for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
       if (ep_map[*s] > 0) {
@@ -283,7 +286,7 @@ void Dag::getAndUpdateEpochVertices(
         if (ith_epoch > 0) {
           ep_map[*s] = ith_epoch;
         }
-        epochs.emplace_back(name_map[*s]);
+        epochs.insert(*s);
       }
     }
   } else {
@@ -304,10 +307,90 @@ void Dag::getAndUpdateEpochVertices(
           ep_map[v] = ith_epoch;
         }
         iter = recent_added_blks.erase(iter);
-        epochs.emplace_back(name_map[v]);
+        epochs.insert(v);
       }
     }
   }
+  // // Step 2: collect topological order source
+  // // from previous boundary, find boundaries that has edges to current epoch
+  // std::vector<vertex_t> new_sources;
+  // vertex_adj_iter_t adj_s, adj_e;
+
+  // for (auto const & b: boundaries){
+  //   vertex_t v = graph_.vertex(b);
+  //   for (std::tie(adj_s, adj_e) = adjacenct_vertices(v, graph_); s != e; s++)
+  //   {
+  //     if (epochs.count(*adj_s)){ // this are topo sources for current epoch
+  //       new_sources.emplace_back(*adj_s);
+  //       break;
+  //     }
+  //   }
+  // }
+  // // TODO: boundary could become large if many orphan dagblocks (no one refer
+  // to it...)
+  // // Step 3: update boundary
+  // // new boundary = old boundary + new epoch - new internal vertices
+
+  // // append epochs to boundaries
+  // boundaries.insert(boundaries.end(), epochs.begin(), epochs.end());
+  // boundaries.insert(target);
+
+  // std::vector<vertex_t> new_sources;
+  // auto iter = boundaries.begin();
+  // while (iter!=boundaries.end()){
+  //   if (out_degree(*iter, graph_) == 0) { // must be boundary
+  //     iter++;
+  //     continue;
+  //   }
+  //   bool internal = true;
+  //   for (std::tie(adj_s, adj_e) = adjacenct_vertices(*iter, graph_); s != e;
+  //   s++) {
+  //     if (epochs.count(*adj_s) == 0){ // boundary vertex
+  //       internal = false;
+  //       break;
+  //     }
+  //   }
+  //   if (internal){
+  //     iter=boundaries.erase(iter);
+  //   } else {
+  //     iter++;
+  //   }
+  // }
+
+  // Step2: compute topological order of epochs
+  std::unordered_set<vertex_t> visited;
+  std::stack<std::pair<bool, vertex_t>> dfs;
+  vertex_adj_iter_t adj_s, adj_e;
+
+  for (auto const &v : epochs) {
+    if (visited.count(v)) {
+      continue;
+    }
+    dfs.push({false, v});
+    visited.insert(v);
+    while (!dfs.empty()) {
+      auto cur = dfs.top();
+      dfs.pop();
+      if (cur.first) {
+        ordered_epoch_vertices.emplace_back(name_map[cur.second]);
+        continue;
+      }
+      dfs.push({true, cur.second});
+      // iterate through neighbots
+      for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.second, graph_);
+           adj_s != adj_e; adj_s++) {
+        if (!epochs.count(*adj_s)) {  // not in this epoch
+          continue;
+        }
+        if (visited.count(*adj_s)) {
+          continue;
+        }
+        dfs.push({false, *adj_s});
+        visited.insert(*adj_s);
+      }
+    }
+  }
+  std::reverse(ordered_epoch_vertices.begin(), ordered_epoch_vertices.end());
 }
 
 time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
@@ -321,6 +404,51 @@ time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
       boost::get(boost::vertex_index1, graph_);
   return time_map[current];
 }
+
+// void Dag::getEpochVertices(
+//     vertex_hash const &from,
+//     std::vector<vertex_hash> &ordered_epoch_vertices) const {
+//   ulock lock(mutex_);
+
+//   vertex_t source = graph_.vertex(from);
+//   vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+//   vertex_epoch_map_const_t ep_map = boost::get(boost::vertex_index2, graph_);
+
+//   if (source == graph_.null_vertex()) {
+//     LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
+//     return;
+//   }
+//   ordered_epoch_vertices.clear();
+//   auto cur_epoch = ep_map[source];
+//   std::unordered_set<vertex_t> visited;
+//   std::stack<std::pair<bool, vertex_t>> dfs;
+//   vertex_adj_iter_t adj_s, adj_e;
+
+//   // topological sort from the vertex
+//   dfs.push({false, source});
+//   visited.insert(source);
+//   while (!dfs.empty()) {
+//     auto cur = dfs.top();
+//     dfs.pop();
+//     if (cur.first) {
+//       ordered_epoch_vertices.emplace_back(name_map[cur.second]);
+//       continue;
+//     }
+//     dfs.push({true, cur.second});
+//     // iterate through neighbots
+//     for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.second, graph_);
+//          adj_s != adj_e; adj_s++) {
+//       if (ep_map[*adj_s] != cur_epoch) {  // not in this epoch
+//         continue;
+//       }
+//       if (visited.count(*adj_s)) {
+//         continue;
+//       }
+//       dfs.push({false, *adj_s});
+//       visited.insert(*adj_s);
+//     }
+//   }
+// }
 
 void Dag::setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp) {
   ulock lock(mutex_);
@@ -416,7 +544,7 @@ void PivotTree::getGhostPathBeforeTimeStamp(
     return;
   }
 
-  // post order traversal
+  // first step: post order traversal
   std::stack<vertex_t> st;
   st.emplace(root);
   vertex_t cur;
@@ -434,7 +562,7 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   }
   std::reverse(post_order.begin(), post_order.end());
 
-  // compute weight
+  // second step: compute weight based on step one
   std::unordered_map<vertex_t, size_t> weight_map;
   for (auto const &n : post_order) {
     auto total_w = 0;
@@ -448,7 +576,8 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   }
 
   vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-  // collect path
+
+  // third step: collect path
   while (1) {
     pivot_chain.emplace_back(name_map[root]);
     size_t heavist = 0;
@@ -694,12 +823,13 @@ std::vector<std::string> DagManager::getTotalLeavesBeforeTimeStamp(
   return ret;
 }
 
-std::vector<std::string> DagManager::getTotalEpochsBetweenBlocks(
-    std::string const &from, std::string const &to) const {
-  std::vector<std::string> ret;
+std::vector<std::string> DagManager::updateTotalOrderedEpochsBetweenBlocks(
+    std::string const &from, std::string const &to) {
+  std::vector<std::string> ordered_epoch_vertices;
   std::unordered_set<std::string> dummy;
-  total_dag_->getAndUpdateEpochVertices(from, to, 0, dummy, ret);
-  return ret;
+
+  total_dag_->updateEpochVertices(from, to, 0, dummy, ordered_epoch_vertices);
+  return ordered_epoch_vertices;
 }
 
 std::vector<std::string> DagManager::getPivotChainBeforeTimeStamp(

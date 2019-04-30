@@ -200,6 +200,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
   EXPECT_EQ(graph.getVertexTimeStamp(Dag::GENESIS), stamp);
 }
 
+// Use the example on Conflux paper
 TEST(Dag, dag_traverse3_get_epochs) {
   taraxa::Dag graph;
   auto vA = "0000000000000000000000000000000000000000000000000000000000000001";
@@ -230,8 +231,24 @@ TEST(Dag, dag_traverse3_get_epochs) {
 
   std::vector<std::string> epochs;
   std::unordered_set<std::string> recent_added_blks;
-  graph.getAndUpdateEpochVertices(vE, vH, 0, recent_added_blks, epochs);
-  EXPECT_EQ(epochs.size(), 3);
+  // read only
+  graph.updateEpochVertices(vE, vH, 0, recent_added_blks, epochs);
+  EXPECT_EQ(epochs.size(), 4);
+
+  graph.updateEpochVertices(Dag::GENESIS, vA, 1, recent_added_blks, epochs);
+  EXPECT_EQ(epochs.size(), 1);  // vA
+  graph.updateEpochVertices(vA, vC, 2, recent_added_blks, epochs);
+  EXPECT_EQ(epochs.size(), 2);  // vB, vC
+  graph.updateEpochVertices(vC, vE, 3, recent_added_blks, epochs);
+  EXPECT_EQ(epochs.size(), 3);  // vD, vF, vE
+  graph.updateEpochVertices(vE, vH, 4, recent_added_blks, epochs);
+  EXPECT_EQ(epochs.size(), 4);  // vG, vJ, vI, vH
+  if (epochs.size() == 4) {
+    EXPECT_EQ(epochs[0], vG);
+    EXPECT_EQ(epochs[1], vJ);
+    EXPECT_EQ(epochs[2], vI);
+    EXPECT_EQ(epochs[3], vH);
+  }
 }
 TEST(PivotTree, genesis_get_pivot) {
   taraxa::PivotTree graph;

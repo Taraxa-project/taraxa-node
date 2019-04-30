@@ -110,12 +110,15 @@ class Dag {
   void getLeavesBeforeTimeStamp(vertex_hash const &veretx, time_stamp_t stamp,
                                 std::vector<vertex_hash> &tips) const;
 
+  // pass ith_epoch 0 for read only
   // Note, the function will delete recent_added_blks when marking ith_number
-  void getAndUpdateEpochVertices(
+  void updateEpochVertices(
       vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
       std::unordered_set<vertex_hash> &recent_added_blks,
-      std::vector<vertex_hash> &epoch_vertices);
-
+      std::vector<vertex_hash>
+          &ordered_epoch_vertices);  // needed to compute next order
+  void getEpochVertices(vertex_hash const &from,
+                        std::vector<vertex_hash> &ordered_epoch_vertices) const;
   time_stamp_t getVertexTimeStamp(vertex_hash const &vertex) const;
   void setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp);
   void setVertexEpoch(vertex_hash const &vertex, uint64_t epoch);
@@ -240,8 +243,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // can return self as tips
   std::vector<std::string> getTotalLeavesBeforeTimeStamp(
       std::string const &vertex, time_stamp_t stamp) const;
-  std::vector<std::string> getTotalEpochsBetweenBlocks(
-      std::string const &from, std::string const &to) const;
+  std::vector<std::string> updateTotalOrderedEpochsBetweenBlocks(
+      std::string const &from, std::string const &to);
   void drawTotalGraph(std::string const &str) const;
   std::vector<std::string> getTotalChildrenBeforeTimeStamp(
       std::string const &vertex, time_stamp_t stamp) const;
