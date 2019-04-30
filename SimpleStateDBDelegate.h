@@ -14,6 +14,13 @@ public:
     void commit  () override;
     SimpleStateDBDelegate(const std::string& path);
 private:
+    static dev::Address stringToAddress (const std::string& s) {
+      return dev::Address(s);
+    }
+    static taraxa::bal_t stringToBalance(const std::string &s) {
+      return (taraxa::bal_t)std::stoull(s);
+    }
+
     std::shared_ptr<dev::eth::State> state = nullptr;
 };
 #endif //TARAXA_NODE_SIMPLESTATEDBDELEGATE_H

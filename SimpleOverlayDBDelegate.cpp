@@ -4,19 +4,26 @@
 #include "SimpleOverlayDBDelegate.h"
 
 bool SimpleOverlayDBDelegate::put (const std::string &key, const std::string &value) {
-  //TODO: fix
+  const h256 hashKey = stringToHashKey(key);
+  if(odb->exists(hashKey)) {
+    return false;
+  }
+  odb->insert(hashKey, value);
   return true;
 }
 bool SimpleOverlayDBDelegate::update (const std::string &key, const std::string &value) {
-  //TODO: fix
+  odb->insert(stringToHashKey(key), value);
   return true;
 }
 std::string SimpleOverlayDBDelegate::get (const std::string &key) {
-  //TODO: fix
-  return "";
+  const h256 hashKey = stringToHashKey(key);
+  if(!odb->exists(hashKey)) {
+    return "";
+  }
+  return odb->lookup(hashKey);
 }
 void SimpleOverlayDBDelegate::commit() {
-  //TODO: fix
+  odb->commit();
 }
 
 SimpleOverlayDBDelegate::SimpleOverlayDBDelegate(const std::string& path):odb(std::make_shared<dev::OverlayDB>(

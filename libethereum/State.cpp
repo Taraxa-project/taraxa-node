@@ -289,7 +289,7 @@ bool State::addressHasCode(Address const& _id) const
         return false;
 }
 
-u256 State::balance(Address const& _id) const
+taraxa::bal_t State::balance(Address const &_id) const
 {
     if (auto a = account(_id))
         return a->balance();
@@ -323,7 +323,7 @@ void State::setNonce(Address const& _addr, u256 const& _newNonce)
         createAccount(_addr, Account(_newNonce, 0));
 }
 
-void State::addBalance(Address const& _id, u256 const& _amount)
+void State::addBalance(Address const& _id, taraxa::bal_t const& _amount)
 {
     if (Account* a = account(_id))
     {
@@ -348,7 +348,7 @@ void State::addBalance(Address const& _id, u256 const& _amount)
         m_changeLog.emplace_back(Change::Balance, _id, _amount);
 }
 
-void State::subBalance(Address const& _addr, u256 const& _value)
+void State::subBalance(Address const& _addr, taraxa::bal_t const& _value)
 {
     if (_value == 0)
         return;
@@ -362,10 +362,10 @@ void State::subBalance(Address const& _addr, u256 const& _value)
     addBalance(_addr, 0 - _value);
 }
 
-void State::setBalance(Address const& _addr, u256 const& _value)
+void State::setBalance(Address const& _addr, taraxa::bal_t const& _value)
 {
     Account* a = account(_addr);
-    u256 original = a ? a->balance() : 0;
+    taraxa::bal_t original = a ? a->balance() : 0;
 
     // Fall back to addBalance().
     addBalance(_addr, _value - original);
@@ -556,7 +556,7 @@ void State::rollback(size_t _savepoint)
             account.setStorageRoot(change.value);
             break;
         case Change::Balance:
-            account.addBalance(0 - change.value);
+            account.addBalance(0 - (taraxa::bal_t)change.value);
             break;
         case Change::Nonce:
             account.setNonce(change.value);

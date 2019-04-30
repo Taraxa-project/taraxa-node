@@ -13,37 +13,6 @@ using namespace dev::eth;
 using namespace db;
 
 namespace taraxa {
-    TEST(OverlayDB, basicUsage) {
-        std::unique_ptr<db::DatabaseFace> db =
-        DBFactory::create(DatabaseKind::MemoryDB);
-        ASSERT_TRUE(db);
-        
-        OverlayDB odb(std::move(db));
-        EXPECT_TRUE(!odb.get().size());
-        
-        // commit nothing
-        odb.commit();
-        
-        string const value = "\x43";
-        EXPECT_TRUE(!odb.get().size());
-        
-        odb.insert(h256(42), &value);
-        EXPECT_TRUE(odb.get().size());
-        EXPECT_TRUE(odb.exists(h256(42)));
-        EXPECT_EQ(odb.lookup(h256(42)), value);
-        
-        odb.commit();
-        EXPECT_TRUE(!odb.get().size());
-        EXPECT_TRUE(odb.exists(h256(42)));
-        EXPECT_EQ(odb.lookup(h256(42)), value);
-        
-        odb.insert(h256(41), &value);
-        odb.commit();
-        EXPECT_TRUE(!odb.get().size());
-        EXPECT_TRUE(odb.exists(h256(41)));
-        EXPECT_EQ(odb.lookup(h256(41)), value);
-    }
-    
     TEST(State, LoadAccountCode)
     {
         Address addr{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};

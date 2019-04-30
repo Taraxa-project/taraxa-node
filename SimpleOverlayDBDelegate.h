@@ -16,6 +16,10 @@ public:
     void commit  () override;
     SimpleOverlayDBDelegate(const std::string& path);
 private:
+    static h256 stringToHashKey (const std::string& s) {
+      return h256(s);
+    }
+
     std::shared_ptr<dev::OverlayDB> odb = nullptr;
 };
 #endif //TARAXA_NODE_SIMPLEOVERLAYDBDELEGATE_H

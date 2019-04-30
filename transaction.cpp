@@ -357,6 +357,7 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
     if (allTransactionsSaved) return true;
     thisThreadSleepForMilliSeconds(10);
   }
+  db_trxs_->commit();
   return true;
 }
 
@@ -385,6 +386,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
 
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   uLock lock(mutex_);
+  bool changed = false;
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
@@ -393,6 +395,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
       trx_status_.insert(hash, TransactionStatus::in_block);
       continue;
     }
+    changed = true;
     TransactionStatus status;
     bool exist;
     std::tie(status, exist) = trx_status_.get(hash);
@@ -401,6 +404,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     // update transaction_status
     trx_status_.update(hash, TransactionStatus::in_block);
     to_be_packed_trx.emplace_back(i.first);
+  }
+  if(changed) {
+    db_trxs_->commit();
   }
 }
 

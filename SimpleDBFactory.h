@@ -12,6 +12,8 @@ class SimpleDBFace;
 
 class SimpleDBFactory {
 public:
+    SimpleDBFactory() = delete;
+    ~SimpleDBFactory() = delete;
     enum SimpleDBType {
         TaraxaRocksDBKind,
         OverlayDBKind,
