@@ -200,6 +200,10 @@ TEST(Network, node_sync) {
 
   node1->setDebug(true);
   node1->start();
+
+  //Allow node to start up
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
   std::vector<DagBlock> blks;
 
   DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(999));
@@ -229,6 +233,8 @@ TEST(Network, node_sync) {
   for (auto i = 0; i < blks.size(); ++i) {
     node1->storeBlock(blks[i]);
   }
+
+  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf_taraxa2.json"));
