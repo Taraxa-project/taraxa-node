@@ -49,7 +49,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
-      network_(std::make_shared<Network>(conf_full_node.network)),
       dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
@@ -65,6 +64,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                               dev::Secret::ConstructFromStringType::FromHex);
     key = dev::KeyPair(secret);
   }
+  network_ = std::make_shared<Network>(conf_full_node.network, "", key.secret());
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
