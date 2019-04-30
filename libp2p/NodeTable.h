@@ -195,7 +195,7 @@ protected:
 
     /// Chosen constants
 
-    static constexpr unsigned s_bucketSize = 16;			///< Denoted by k in [Kademlia]. Number of nodes stored in each bucket.
+    static constexpr unsigned s_bucketSize = 256;			///< Denoted by k in [Kademlia]. Number of nodes stored in each bucket.
     static constexpr unsigned s_alpha = 3;				///< Denoted by \alpha in [Kademlia]. Number of concurrent FindNode requests.
 
     /// Intervals
