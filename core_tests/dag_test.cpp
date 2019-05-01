@@ -342,6 +342,55 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
   }
 }
 
+// Use the example on Conflux paper
+TEST(DagManager, compute_epoch) {
+  auto mgr = std::make_shared<DagManager>(1);
+  mgr->start();
+  DagBlock blkA(blk_hash_t(0), {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
+                addr_t(1));
+  DagBlock blkB(blk_hash_t(0), {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
+                blk_hash_t(2), addr_t(1));
+  DagBlock blkC(blk_hash_t(1), {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3),
+                addr_t(1));
+  DagBlock blkD(blk_hash_t(1), {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
+  DagBlock blkE(blk_hash_t(3), {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1),
+                blk_hash_t(5), addr_t(1));
+  DagBlock blkF(blk_hash_t(2), {}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
+  DagBlock blkG(blk_hash_t(1), {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7),
+                addr_t(1));
+  DagBlock blkH(blk_hash_t(5), {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1),
+                blk_hash_t(8), addr_t(1));
+  DagBlock blkI(blk_hash_t(10), {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
+                addr_t(1));
+  DagBlock blkJ(blk_hash_t(6), {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
+  DagBlock blkK(blk_hash_t(9), {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  mgr->addDagBlock(blkA, true);
+  mgr->addDagBlock(blkB, true);
+  mgr->addDagBlock(blkC, true);
+  mgr->addDagBlock(blkD, true);
+  mgr->addDagBlock(blkE, true);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+  mgr->addDagBlock(blkF, true);
+  mgr->addDagBlock(blkG, true);
+  mgr->addDagBlock(blkH, true);
+  mgr->addDagBlock(blkI, true);
+  mgr->addDagBlock(blkJ, true);
+  mgr->addDagBlock(blkK, true);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+
+  vec_blk_t orders;
+  mgr->createEpochAndComputeBlockOrder(blkA.getHash(), orders);
+  EXPECT_EQ(orders.size(), 1);
+  mgr->createEpochAndComputeBlockOrder(blkC.getHash(), orders);
+  EXPECT_EQ(orders.size(), 2);
+  mgr->createEpochAndComputeBlockOrder(blkE.getHash(), orders);
+  EXPECT_EQ(orders.size(), 3);
+  mgr->createEpochAndComputeBlockOrder(blkH.getHash(), orders);
+  EXPECT_EQ(orders.size(), 4);
+  mgr->createEpochAndComputeBlockOrder(blkK.getHash(), orders);
+  EXPECT_EQ(orders.size(), 1);
+}
+
 TEST(DagManager, receive_block_in_order) {
   auto mgr = std::make_shared<DagManager>(1);
   mgr->start();

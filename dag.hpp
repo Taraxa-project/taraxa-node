@@ -114,11 +114,10 @@ class Dag {
   // Note, the function will delete recent_added_blks when marking ith_number
   void updateEpochVertices(
       vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
-      std::unordered_set<vertex_hash> &recent_added_blks,
-      std::vector<vertex_hash>
-          &ordered_epoch_vertices);  // needed to compute next order
-  void getEpochVertices(vertex_hash const &from,
-                        std::vector<vertex_hash> &ordered_epoch_vertices) const;
+      std::unordered_set<vertex_hash>
+          &recent_added_blks,  // iterater only from new blocks
+      std::vector<vertex_hash> &ordered_epoch_vertices);
+
   time_stamp_t getVertexTimeStamp(vertex_hash const &vertex) const;
   void setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp);
   void setVertexEpoch(vertex_hash const &vertex, uint64_t epoch);
@@ -126,14 +125,14 @@ class Dag {
   template <class Property>
   class label_writer {
    public:
-    label_writer(Property property) : property(property) {}
+    label_writer(Property property1) : property1(property1) {}
     template <class VertexOrEdge>
     void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << property[v] << "\"]";
+      out << "[label=\"" << property1[v].substr(0, 6) << "\"]";
     }
 
    private:
-    Property property;
+    Property property1;
   };
 
  protected:
@@ -209,11 +208,6 @@ class DagBuffer;
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using ulock = std::unique_lock<std::mutex>;
-  struct epochBoundary {
-    uint64_t epoch;  // ith epoch
-    blk_hash_t pivot;
-    vec_blk_t tips;
-  };
 
   DagManager(unsigned num_threads);
   virtual ~DagManager();
@@ -225,8 +219,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                    bool insert);  // insert to buffer if fail
   void consume(unsigned threadId);
   // update epoch
-  // use a pivot dag block to create epoch and it will update epoch boundary
-  void createEpoch(blk_hash_t const &pivot);
+  // use a pivot dag block to create epoch
+  void createEpochAndComputeBlockOrder(blk_hash_t const &anchor,
+                                       vec_blk_t &orders);
 
   //
   bool getLatestPivotAndTips(std::string &pivot,
@@ -243,7 +238,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // can return self as tips
   std::vector<std::string> getTotalLeavesBeforeTimeStamp(
       std::string const &vertex, time_stamp_t stamp) const;
-  std::vector<std::string> updateTotalOrderedEpochsBetweenBlocks(
+  std::vector<std::string> getTotalOrderedEpochsBetweenBlocks(
       std::string const &from, std::string const &to);
   void drawTotalGraph(std::string const &str) const;
   std::vector<std::string> getTotalChildrenBeforeTimeStamp(
@@ -260,10 +255,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
       std::string const &vertex, time_stamp_t stamp) const;
   void drawPivotGraph(std::string const &str) const;
 
-  // Only Pivot graph
   time_stamp_t getDagBlockTimeStamp(std::string const &vertex);
   void setDagBlockTimeStamp(std::string const &vertex, time_stamp_t stamp);
-  void setDagBlockEpoch(std::string const &vertex, uint64_t epoch);
 
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
@@ -287,8 +280,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
-  std::vector<epochBoundary> epoch_boundary_;
   std::unordered_set<std::string> recent_added_blks_;
+  std::vector<std::string> anchors_ = {
+      Dag::GENESIS};  // pivots that define periods
   // DagBuffer
   std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
   std::vector<boost::thread> sb_buffer_processing_threads_;
@@ -298,6 +292,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "DAGMGR")};
   dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };

@@ -38,11 +38,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       conf_(conf_full_node),
       db_accs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::StateDBKind,
-          conf_.db_accounts_path)),
+          SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_accounts_path)),
       db_blks_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_blocks_path)),
+          SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_blocks_path)),
       db_trxs_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
           conf_.db_transactions_path)),
@@ -64,7 +62,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                               dev::Secret::ConstructFromStringType::FromHex);
     key = dev::KeyPair(secret);
   }
-  network_ = std::make_shared<Network>(conf_full_node.network, "", key.secret());
+  network_ =
+      std::make_shared<Network>(conf_full_node.network, "", key.secret());
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
@@ -283,7 +282,8 @@ std::vector<std::string> FullNode::getDagBlockPivotChain(blk_hash_t const &hash,
 std::vector<std::string> FullNode::getDagBlockEpochs(blk_hash_t const &from,
                                                      blk_hash_t const &to) {
   std::vector<std::string> epochs =
-      dag_mgr_->updateTotalOrderedEpochsBetweenBlocks(from.toString(), to.toString());
+      dag_mgr_->getTotalOrderedEpochsBetweenBlocks(from.toString(),
+                                                   to.toString());
   return epochs;
 }
 
