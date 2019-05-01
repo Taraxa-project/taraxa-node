@@ -283,11 +283,11 @@ std::vector<std::string> FullNode::getDagBlockPivotChain(blk_hash_t const &hash,
   return pivot_chain;
 }
 
-std::vector<std::string> FullNode::getDagBlockEpochs(blk_hash_t const &from,
-                                                     blk_hash_t const &to) {
-  std::vector<std::string> epochs =
-      dag_mgr_->getEpochsBetweenPivots(from.toString(), to.toString());
-  return epochs;
+std::vector<std::string> FullNode::getDagBlockEpFriend(blk_hash_t const &from,
+                                                       blk_hash_t const &to) {
+  std::vector<std::string> epfriend =
+      dag_mgr_->getEpFriendBetweenPivots(from.toString(), to.toString());
+  return epfriend;
 }
 
 std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash,

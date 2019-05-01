@@ -286,15 +286,15 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
-    } else if (action == "get_dag_block_epochs") {
+    } else if (action == "get_dag_block_epfriend") {
       try {
         blk_hash_t from_hash =
             blk_hash_t(in_doc_.get<std::string>("from_hash"));
         blk_hash_t to_hash = blk_hash_t(in_doc_.get<std::string>("to_hash"));
 
-        std::vector<std::string> epochs;
-        epochs = node_->getDagBlockEpochs(from_hash, to_hash);
-        for (auto const &v : epochs) {
+        std::vector<std::string> epfriend;
+        epfriend = node_->getDagBlockEpFriend(from_hash, to_hash);
+        for (auto const &v : epfriend) {
           res += (v + '\n');
         }
       } catch (std::exception &e) {

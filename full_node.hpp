@@ -100,11 +100,17 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk,
                                                  time_stamp_t stamp);
   // Note: returned block hashes does not have order
-  std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from,
-                                             blk_hash_t const &to);
+  // Epoch friends : dag blocks in the same epoch/period
+  std::vector<std::string> getDagBlockEpFriend(blk_hash_t const &from,
+                                               blk_hash_t const &to);
 
-  std::shared_ptr<vec_blk_t> updateAnchorAndComputeBlkOrder(
-      blk_hash_t const &anchor);
+  // return {period, block order}, for pbft-pivot-blk proposing
+  std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
+  updateAnchorAndComputeBlkOrder(blk_hash_t const &anchor);
+  // receive pbft-povit-blk, update periods
+  void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period,
+                           std::shared_ptr<vec_blk_t> blks);
+
   std::shared_ptr<ScheduleBlock> createScheduleBlk(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff

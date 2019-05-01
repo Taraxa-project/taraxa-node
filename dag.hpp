@@ -70,9 +70,9 @@ class Dag {
   using vertex_time_stamp_map_t =
       boost::property_map<graph_t, boost::vertex_index1_t>::type;
 
-  using vertex_epoch_map_const_t =
+  using vertex_period_map_const_t =
       boost::property_map<graph_t, boost::vertex_index2_t>::const_type;
-  using vertex_epoch_map_t =
+  using vertex_period_map_t =
       boost::property_map<graph_t, boost::vertex_index2_t>::type;
 
   using edge_index_map_const_t =
@@ -111,18 +111,18 @@ class Dag {
                                 std::vector<vertex_hash> &tips) const;
 
   // Note, the function will delete recent_added_blks when marking ith_number
-  void updateEpochVerticesAndComputeOrder(
-      vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
+  void updatePeriodVerticesAndComputeOrder(
+      vertex_hash const &from, vertex_hash const &to, uint64_t ith_peroid,
       std::unordered_set<vertex_hash>
           &recent_added_blks,  // iterater only from new blocks
-      std::vector<vertex_hash> &ordered_epoch_vertices);
+      std::vector<vertex_hash> &ordered_period_vertices);
   // warning! slow, iterate through all vertices ...
-  void getEpochVertices(vertex_hash const &from, vertex_hash const &to,
-                        std::vector<vertex_hash> &epochs) const;
+  void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
+                           std::vector<vertex_hash> &epfriend) const;
 
   time_stamp_t getVertexTimeStamp(vertex_hash const &vertex) const;
   void setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp);
-  void setVertexEpoch(vertex_hash const &vertex, uint64_t epoch);
+  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
   // for graphviz
   template <class Property>
   class label_writer {
@@ -220,10 +220,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool addDagBlock(DagBlock const &blk,
                    bool insert);  // insert to buffer if fail
   void consume(unsigned threadId);
-  // update epoch
-  // use a pivot dag block to create epoch
-  void createEpochAndComputeBlockOrder(blk_hash_t const &anchor,
-                                       vec_blk_t &orders);
+
+  // use a anchor to create period
+  void createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
+                                        vec_blk_t &orders);
 
   //
   bool getLatestPivotAndTips(std::string &pivot,
@@ -240,8 +240,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // can return self as tips
   std::vector<std::string> getTotalLeavesBeforeTimeStamp(
       std::string const &vertex, time_stamp_t stamp) const;
-  std::vector<std::string> getEpochsBetweenPivots(std::string const &from,
-                                                  std::string const &to);
+  std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
+                                                    std::string const &to);
   void drawTotalGraph(std::string const &str) const;
   std::vector<std::string> getTotalChildrenBeforeTimeStamp(
       std::string const &vertex, time_stamp_t stamp) const;
