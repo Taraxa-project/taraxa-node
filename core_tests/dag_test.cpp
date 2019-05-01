@@ -201,7 +201,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
 }
 
 // Use the example on Conflux paper
-TEST(Dag, dag_traverse3_get_epochs) {
+TEST(Dag, dag_traverse3_get_epfriend) {
   taraxa::Dag graph;
   auto vA = "0000000000000000000000000000000000000000000000000000000000000001";
   auto vB = "0000000000000000000000000000000000000000000000000000000000000002";
@@ -229,22 +229,18 @@ TEST(Dag, dag_traverse3_get_epochs) {
   graph.addVEEs(vH, vE, {vG, vI});
   graph.addVEEs(vK, vI, empty);
 
-  std::vector<std::string> epochs;
+  std::vector<std::string> epfriend;
   std::unordered_set<std::string> recent_added_blks;
   // read only
-  graph.getEpochVertices(vE, vH, epochs);
-  EXPECT_EQ(epochs.size(), 4);
-  // std::cout << "epochs: " << std::endl;
-  // for (auto const& e : epochs) {
-  //   std::cout << e << std::endl;
-  // }
+  graph.getEpFriendVertices(vE, vH, epfriend);
+  EXPECT_EQ(epfriend.size(), 4);
 
   // ------------------ epoch A ------------------
   recent_added_blks.insert(vA);
-  graph.updateEpochVerticesAndComputeOrder(Dag::GENESIS, vA, 1,
-                                           recent_added_blks, epochs);
+  graph.updatePeriodVerticesAndComputeOrder(Dag::GENESIS, vA, 1,
+                                            recent_added_blks, epfriend);
 
-  EXPECT_EQ(epochs.size(), 1);  // vA
+  EXPECT_EQ(epfriend.size(), 1);  // vA
   EXPECT_EQ(recent_added_blks.size(), 0);
 
   // ------------------ epoch C ------------------
@@ -252,9 +248,9 @@ TEST(Dag, dag_traverse3_get_epochs) {
   recent_added_blks.insert(vB);
   recent_added_blks.insert(vC);
 
-  graph.updateEpochVerticesAndComputeOrder(vA, vC, 2, recent_added_blks,
-                                           epochs);
-  EXPECT_EQ(epochs.size(), 2);  // vB, vC
+  graph.updatePeriodVerticesAndComputeOrder(vA, vC, 2, recent_added_blks,
+                                            epfriend);
+  EXPECT_EQ(epfriend.size(), 2);  // vB, vC
   EXPECT_EQ(recent_added_blks.size(), 0);
 
   // ------------------ epoch E ------------------
@@ -262,9 +258,9 @@ TEST(Dag, dag_traverse3_get_epochs) {
   recent_added_blks.insert(vD);
   recent_added_blks.insert(vE);
   recent_added_blks.insert(vF);
-  graph.updateEpochVerticesAndComputeOrder(vC, vE, 3, recent_added_blks,
-                                           epochs);
-  EXPECT_EQ(epochs.size(), 3);  // vD, vF, vE
+  graph.updatePeriodVerticesAndComputeOrder(vC, vE, 3, recent_added_blks,
+                                            epfriend);
+  EXPECT_EQ(epfriend.size(), 3);  // vD, vF, vE
   EXPECT_EQ(recent_added_blks.size(), 0);
 
   // ------------------ epoch H ------------------
@@ -272,16 +268,16 @@ TEST(Dag, dag_traverse3_get_epochs) {
   recent_added_blks.insert(vH);
   recent_added_blks.insert(vI);
   recent_added_blks.insert(vJ);
-  graph.updateEpochVerticesAndComputeOrder(vE, vH, 4, recent_added_blks,
-                                           epochs);
-  EXPECT_EQ(epochs.size(), 4);  // vG, vJ, vI, vH
+  graph.updatePeriodVerticesAndComputeOrder(vE, vH, 4, recent_added_blks,
+                                            epfriend);
+  EXPECT_EQ(epfriend.size(), 4);  // vG, vJ, vI, vH
   EXPECT_EQ(recent_added_blks.size(), 0);
 
-  if (epochs.size() == 4) {
-    EXPECT_EQ(epochs[0], vJ);
-    EXPECT_EQ(epochs[1], vI);
-    EXPECT_EQ(epochs[2], vG);
-    EXPECT_EQ(epochs[3], vH);
+  if (epfriend.size() == 4) {
+    EXPECT_EQ(epfriend[0], vJ);
+    EXPECT_EQ(epfriend[1], vI);
+    EXPECT_EQ(epfriend[2], vG);
+    EXPECT_EQ(epfriend[3], vH);
   }
 }
 TEST(PivotTree, genesis_get_pivot) {
@@ -413,13 +409,13 @@ TEST(DagManager, compute_epoch) {
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
-  mgr->createEpochAndComputeBlockOrder(blkA.getHash(), orders);
+  mgr->createPeriodAndComputeBlockOrder(blkA.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
-  mgr->createEpochAndComputeBlockOrder(blkC.getHash(), orders);
+  mgr->createPeriodAndComputeBlockOrder(blkC.getHash(), orders);
   EXPECT_EQ(orders.size(), 2);
-  mgr->createEpochAndComputeBlockOrder(blkE.getHash(), orders);
+  mgr->createPeriodAndComputeBlockOrder(blkE.getHash(), orders);
   EXPECT_EQ(orders.size(), 3);
-  mgr->createEpochAndComputeBlockOrder(blkH.getHash(), orders);
+  mgr->createPeriodAndComputeBlockOrder(blkH.getHash(), orders);
   EXPECT_EQ(orders.size(), 4);
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(10));
@@ -427,7 +423,7 @@ TEST(DagManager, compute_epoch) {
     EXPECT_EQ(orders[2], blk_hash_t(7));
     EXPECT_EQ(orders[3], blk_hash_t(8));
   }
-  mgr->createEpochAndComputeBlockOrder(blkK.getHash(), orders);
+  mgr->createPeriodAndComputeBlockOrder(blkK.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
 }
 
