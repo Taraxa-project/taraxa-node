@@ -127,7 +127,7 @@ void setThreadName(std::string const& _n) {
 #endif
 }
 
-void setupLogging(LoggingOptions const& _options) {
+boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>> setupLoggingSink(LoggingOptions const& _options) {
   auto sink =
       boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>();
 
@@ -171,6 +171,11 @@ void setupLogging(LoggingOptions const& _options) {
             std::cerr << "Exception from the logging library: " << _ex.what()
                       << '\n';
           }));
+  return sink;
+}
+
+void setupLogging(LoggingOptions const& _options) {
+  static boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>> sink = setupLoggingSink(_options);
 }
 
 }  // namespace dev
