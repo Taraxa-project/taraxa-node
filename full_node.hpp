@@ -16,12 +16,12 @@
 #include <thread>
 #include <vector>
 #include "config.hpp"
+#include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
 #include "util.hpp"
-#include "executor.hpp"
 
 namespace taraxa {
 
@@ -77,7 +77,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // Store transaction
   void storeTransaction(Transaction const &trx);
 
-  // Dag query: return childern, siblings, tips before time stamp
+  // Dag related: return childern, siblings, tips before time stamp
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
 
   bool isBlockKnown(blk_hash_t const &hash);
@@ -99,9 +99,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                            time_stamp_t stamp);
   std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk,
                                                  time_stamp_t stamp);
+  // Note: returned block hashes does not have order
   std::vector<std::string> getDagBlockEpochs(blk_hash_t const &from,
                                              blk_hash_t const &to);
 
+  std::shared_ptr<vec_blk_t> updateAnchorAndComputeBlkOrder(
+      blk_hash_t const &anchor);
+  std::shared_ptr<ScheduleBlock> createScheduleBlk(
+      std::shared_ptr<vec_blk_t> blk_order);
   // account stuff
   std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);

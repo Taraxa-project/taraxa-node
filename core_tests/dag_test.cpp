@@ -232,21 +232,55 @@ TEST(Dag, dag_traverse3_get_epochs) {
   std::vector<std::string> epochs;
   std::unordered_set<std::string> recent_added_blks;
   // read only
-  graph.updateEpochVertices(vE, vH, 0, recent_added_blks, epochs);
+  graph.getEpochVertices(vE, vH, epochs);
   EXPECT_EQ(epochs.size(), 4);
+  // std::cout << "epochs: " << std::endl;
+  // for (auto const& e : epochs) {
+  //   std::cout << e << std::endl;
+  // }
 
-  graph.updateEpochVertices(Dag::GENESIS, vA, 1, recent_added_blks, epochs);
+  // ------------------ epoch A ------------------
+  recent_added_blks.insert(vA);
+  graph.updateEpochVerticesAndComputeOrder(Dag::GENESIS, vA, 1,
+                                           recent_added_blks, epochs);
+
   EXPECT_EQ(epochs.size(), 1);  // vA
-  graph.updateEpochVertices(vA, vC, 2, recent_added_blks, epochs);
+  EXPECT_EQ(recent_added_blks.size(), 0);
+
+  // ------------------ epoch C ------------------
+
+  recent_added_blks.insert(vB);
+  recent_added_blks.insert(vC);
+
+  graph.updateEpochVerticesAndComputeOrder(vA, vC, 2, recent_added_blks,
+                                           epochs);
   EXPECT_EQ(epochs.size(), 2);  // vB, vC
-  graph.updateEpochVertices(vC, vE, 3, recent_added_blks, epochs);
+  EXPECT_EQ(recent_added_blks.size(), 0);
+
+  // ------------------ epoch E ------------------
+
+  recent_added_blks.insert(vD);
+  recent_added_blks.insert(vE);
+  recent_added_blks.insert(vF);
+  graph.updateEpochVerticesAndComputeOrder(vC, vE, 3, recent_added_blks,
+                                           epochs);
   EXPECT_EQ(epochs.size(), 3);  // vD, vF, vE
-  graph.updateEpochVertices(vE, vH, 4, recent_added_blks, epochs);
+  EXPECT_EQ(recent_added_blks.size(), 0);
+
+  // ------------------ epoch H ------------------
+  recent_added_blks.insert(vG);
+  recent_added_blks.insert(vH);
+  recent_added_blks.insert(vI);
+  recent_added_blks.insert(vJ);
+  graph.updateEpochVerticesAndComputeOrder(vE, vH, 4, recent_added_blks,
+                                           epochs);
   EXPECT_EQ(epochs.size(), 4);  // vG, vJ, vI, vH
+  EXPECT_EQ(recent_added_blks.size(), 0);
+
   if (epochs.size() == 4) {
-    EXPECT_EQ(epochs[0], vG);
-    EXPECT_EQ(epochs[1], vJ);
-    EXPECT_EQ(epochs[2], vI);
+    EXPECT_EQ(epochs[0], vJ);
+    EXPECT_EQ(epochs[1], vI);
+    EXPECT_EQ(epochs[2], vG);
     EXPECT_EQ(epochs[3], vH);
   }
 }
@@ -387,6 +421,12 @@ TEST(DagManager, compute_epoch) {
   EXPECT_EQ(orders.size(), 3);
   mgr->createEpochAndComputeBlockOrder(blkH.getHash(), orders);
   EXPECT_EQ(orders.size(), 4);
+  if (orders.size() == 4) {
+    EXPECT_EQ(orders[0], blk_hash_t(10));
+    EXPECT_EQ(orders[1], blk_hash_t(9));
+    EXPECT_EQ(orders[2], blk_hash_t(7));
+    EXPECT_EQ(orders[3], blk_hash_t(8));
+  }
   mgr->createEpochAndComputeBlockOrder(blkK.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
 }
