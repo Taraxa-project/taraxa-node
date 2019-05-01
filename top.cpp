@@ -41,8 +41,6 @@ void Top::start(int argc, const char* argv[]) {
         boost::program_options::parse_command_line(argc, argv, allowed_options),
         option_vars);
     boost::program_options::notify(option_vars);
-    // so we will have only one sink at a time
-    boost::log::core::get()->remove_all_sinks();
     dev::setupLogging(loggingOptions);
 
     if (option_vars.count("help")) {
