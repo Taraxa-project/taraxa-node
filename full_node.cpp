@@ -286,8 +286,7 @@ std::vector<std::string> FullNode::getDagBlockPivotChain(blk_hash_t const &hash,
 std::vector<std::string> FullNode::getDagBlockEpochs(blk_hash_t const &from,
                                                      blk_hash_t const &to) {
   std::vector<std::string> epochs =
-      dag_mgr_->getTotalOrderedEpochsBetweenBlocks(from.toString(),
-                                                   to.toString());
+      dag_mgr_->getEpochsBetweenPivots(from.toString(), to.toString());
   return epochs;
 }
 

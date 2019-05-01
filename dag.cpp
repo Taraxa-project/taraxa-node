@@ -247,8 +247,37 @@ void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
   }
 }
 
+void Dag::getEpochVertices(vertex_hash const &from, vertex_hash const &to,
+                           std::vector<vertex_hash> &epochs) const {
+  ulock lock(mutex_);
+
+  vertex_t source = graph_.vertex(from);
+  vertex_t target = graph_.vertex(to);
+
+  if (source == graph_.null_vertex()) {
+    LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
+    return;
+  }
+  if (target == graph_.null_vertex()) {
+    LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
+    return;
+  }
+  epochs.clear();
+  vertex_iter_t s, e;
+  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+
+  // iterator all vertex
+  for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
+    if (*s == source) {
+      continue;
+    }
+    if (!reachable(*s, source) && reachable(*s, target)) {
+      epochs.emplace_back(name_map[*s]);
+    }
+  }
+}
 // only iterate only through non finalized blocks
-void Dag::updateEpochVertices(
+void Dag::updateEpochVerticesAndComputeOrder(
     vertex_hash const &from, vertex_hash const &to, uint64_t ith_epoch,
     std::unordered_set<vertex_hash> &recent_added_blks,
     std::vector<vertex_hash> &ordered_epoch_vertices) {
@@ -266,7 +295,7 @@ void Dag::updateEpochVertices(
     return;
   }
   ordered_epoch_vertices.clear();
-  std::unordered_set<vertex_t> epochs;  // this is unordered epoch
+  std::set<vertex_t> epochs;  // this is unordered epoch
   epochs.insert(target);
   vertex_iter_t s, e;
   vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
@@ -275,40 +304,20 @@ void Dag::updateEpochVertices(
   // Step 1: collect all epoch blks between from and to blks
   // Erase from recent_added_blks after mark epoch number
 
-  // iterator all vertex if no recent block info provided
-  if (recent_added_blks.empty()) {
-    for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
-      if (ep_map[*s] > 0) {
-        continue;
-      }
-      if (*s == source || *s == target) {
-        continue;
-      }
-      if (!reachable(*s, source) && reachable(*s, target)) {
-        if (ith_epoch > 0) {
-          ep_map[*s] = ith_epoch;
-        }
-        epochs.insert(*s);
-      }
+  auto iter = recent_added_blks.begin();
+  while (iter != recent_added_blks.end()) {
+    auto v = graph_.vertex(*iter);
+    if (ep_map[v] > 0) {
+      iter++;
+      assert(0);
+      continue;
     }
-  } else {
-    auto iter = recent_added_blks.begin();
-    while (iter != recent_added_blks.end()) {
-      auto v = graph_.vertex(*iter);
-      if (ep_map[v] > 0) {
-        iter++;
-        assert(0);
-        continue;
-      }
-      if (!reachable(v, source) && reachable(v, target)) {
-        if (ith_epoch > 0) {
-          ep_map[v] = ith_epoch;
-        }
-        iter = recent_added_blks.erase(iter);
-        epochs.insert(v);
-      } else {
-        iter++;
-      }
+    if (!reachable(v, source) && reachable(v, target)) {
+      ep_map[v] = ith_epoch;
+      iter = recent_added_blks.erase(iter);
+      epochs.insert(v);
+    } else {
+      iter++;
     }
   }
 
@@ -733,13 +742,12 @@ std::vector<std::string> DagManager::getTotalLeavesBeforeTimeStamp(
   return ret;
 }
 
-std::vector<std::string> DagManager::getTotalOrderedEpochsBetweenBlocks(
+std::vector<std::string> DagManager::getEpochsBetweenPivots(
     std::string const &from, std::string const &to) {
-  std::vector<std::string> ordered_epoch_vertices;
-  std::unordered_set<std::string> dummy;
+  std::vector<std::string> epochs;
 
-  total_dag_->updateEpochVertices(from, to, 0, dummy, ordered_epoch_vertices);
-  return ordered_epoch_vertices;
+  total_dag_->getEpochVertices(from, to, epochs);
+  return epochs;
 }
 
 std::vector<std::string> DagManager::getPivotChainBeforeTimeStamp(
@@ -766,14 +774,15 @@ void DagManager::createEpochAndComputeBlockOrder(blk_hash_t const &anchor,
   anchors_.emplace_back(anchor.toString());
   auto cur_epoch = anchors_.size();
 
-  total_dag_->updateEpochVertices(prev, anchor.toString(), cur_epoch,
-                                  recent_added_blks_, blk_orders);
+  total_dag_->updateEpochVerticesAndComputeOrder(
+      prev, anchor.toString(), cur_epoch, recent_added_blks_, blk_orders);
   orders.clear();
   for (auto const &i : blk_orders) {
     orders.emplace_back(blk_hash_t(i));
   }
-  LOG(log_dg_) << "Create epoch "<< cur_epoch <<" from " << prev << " to " << anchor << " with "
-               << blk_orders.size() << " blks" << std::endl;
+  LOG(log_dg_) << "Create epoch " << cur_epoch << " from " << prev << " to "
+               << anchor << " with " << blk_orders.size() << " blks"
+               << std::endl;
 }
 
 DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
