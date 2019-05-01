@@ -100,6 +100,8 @@ void Dag::drawGraph(std::string filename) const {
   ulock lock(mutex_);
   std::ofstream outfile(filename.c_str());
   auto name_map = boost::get(boost::vertex_name, graph_);
+  auto ep_map = boost::get(boost::vertex_index2, graph_);
+
   boost::write_graphviz(outfile, graph_, make_label_writer(name_map));
   std::cout << "Dot file " << filename << " generated!" << std::endl;
   std::cout << "Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"
@@ -292,14 +294,10 @@ void Dag::updateEpochVertices(
   } else {
     auto iter = recent_added_blks.begin();
     while (iter != recent_added_blks.end()) {
-      auto v = graph_.vertex(from);
+      auto v = graph_.vertex(*iter);
       if (ep_map[v] > 0) {
         iter++;
         assert(0);
-        continue;
-      }
-      if (v == source || v == target) {
-        iter++;
         continue;
       }
       if (!reachable(v, source) && reachable(v, target)) {
@@ -308,54 +306,11 @@ void Dag::updateEpochVertices(
         }
         iter = recent_added_blks.erase(iter);
         epochs.insert(v);
+      } else {
+        iter++;
       }
     }
   }
-  // // Step 2: collect topological order source
-  // // from previous boundary, find boundaries that has edges to current epoch
-  // std::vector<vertex_t> new_sources;
-  // vertex_adj_iter_t adj_s, adj_e;
-
-  // for (auto const & b: boundaries){
-  //   vertex_t v = graph_.vertex(b);
-  //   for (std::tie(adj_s, adj_e) = adjacenct_vertices(v, graph_); s != e; s++)
-  //   {
-  //     if (epochs.count(*adj_s)){ // this are topo sources for current epoch
-  //       new_sources.emplace_back(*adj_s);
-  //       break;
-  //     }
-  //   }
-  // }
-  // // TODO: boundary could become large if many orphan dagblocks (no one refer
-  // to it...)
-  // // Step 3: update boundary
-  // // new boundary = old boundary + new epoch - new internal vertices
-
-  // // append epochs to boundaries
-  // boundaries.insert(boundaries.end(), epochs.begin(), epochs.end());
-  // boundaries.insert(target);
-
-  // std::vector<vertex_t> new_sources;
-  // auto iter = boundaries.begin();
-  // while (iter!=boundaries.end()){
-  //   if (out_degree(*iter, graph_) == 0) { // must be boundary
-  //     iter++;
-  //     continue;
-  //   }
-  //   bool internal = true;
-  //   for (std::tie(adj_s, adj_e) = adjacenct_vertices(*iter, graph_); s != e;
-  //   s++) {
-  //     if (epochs.count(*adj_s) == 0){ // boundary vertex
-  //       internal = false;
-  //       break;
-  //     }
-  //   }
-  //   if (internal){
-  //     iter=boundaries.erase(iter);
-  //   } else {
-  //     iter++;
-  //   }
-  // }
 
   // Step2: compute topological order of epochs
   std::unordered_set<vertex_t> visited;
@@ -404,51 +359,6 @@ time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
       boost::get(boost::vertex_index1, graph_);
   return time_map[current];
 }
-
-// void Dag::getEpochVertices(
-//     vertex_hash const &from,
-//     std::vector<vertex_hash> &ordered_epoch_vertices) const {
-//   ulock lock(mutex_);
-
-//   vertex_t source = graph_.vertex(from);
-//   vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-//   vertex_epoch_map_const_t ep_map = boost::get(boost::vertex_index2, graph_);
-
-//   if (source == graph_.null_vertex()) {
-//     LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
-//     return;
-//   }
-//   ordered_epoch_vertices.clear();
-//   auto cur_epoch = ep_map[source];
-//   std::unordered_set<vertex_t> visited;
-//   std::stack<std::pair<bool, vertex_t>> dfs;
-//   vertex_adj_iter_t adj_s, adj_e;
-
-//   // topological sort from the vertex
-//   dfs.push({false, source});
-//   visited.insert(source);
-//   while (!dfs.empty()) {
-//     auto cur = dfs.top();
-//     dfs.pop();
-//     if (cur.first) {
-//       ordered_epoch_vertices.emplace_back(name_map[cur.second]);
-//       continue;
-//     }
-//     dfs.push({true, cur.second});
-//     // iterate through neighbots
-//     for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.second, graph_);
-//          adj_s != adj_e; adj_s++) {
-//       if (ep_map[*adj_s] != cur_epoch) {  // not in this epoch
-//         continue;
-//       }
-//       if (visited.count(*adj_s)) {
-//         continue;
-//       }
-//       dfs.push({false, *adj_s});
-//       visited.insert(*adj_s);
-//     }
-//   }
-// }
 
 void Dag::setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp) {
   ulock lock(mutex_);
@@ -823,7 +733,7 @@ std::vector<std::string> DagManager::getTotalLeavesBeforeTimeStamp(
   return ret;
 }
 
-std::vector<std::string> DagManager::updateTotalOrderedEpochsBetweenBlocks(
+std::vector<std::string> DagManager::getTotalOrderedEpochsBetweenBlocks(
     std::string const &from, std::string const &to) {
   std::vector<std::string> ordered_epoch_vertices;
   std::unordered_set<std::string> dummy;
@@ -849,12 +759,22 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
   pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
-void DagManager::setDagBlockEpoch(std::string const &vertex, uint64_t epoch) {
-  total_dag_->setVertexEpoch(vertex, epoch);
-  pivot_tree_->setVertexEpoch(vertex, epoch);
-}
+void DagManager::createEpochAndComputeBlockOrder(blk_hash_t const &anchor,
+                                                 vec_blk_t &orders) {
+  std::vector<std::string> blk_orders;
+  auto prev = anchors_.back();
+  anchors_.emplace_back(anchor.toString());
+  auto cur_epoch = anchors_.size();
 
-void DagManager::createEpoch(blk_hash_t const &pivot) {}
+  total_dag_->updateEpochVertices(prev, anchor.toString(), cur_epoch,
+                                  recent_added_blks_, blk_orders);
+  orders.clear();
+  for (auto const &i : blk_orders) {
+    orders.emplace_back(blk_hash_t(i));
+  }
+  LOG(log_dg_) << "Create epoch "<< cur_epoch <<" from " << prev << " to " << anchor << " with "
+               << blk_orders.size() << " blks" << std::endl;
+}
 
 DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
   if (stopped_) {
