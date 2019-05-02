@@ -305,6 +305,35 @@ std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash,
   return siblings;
 }
 
+// return {period, block order}, for pbft-pivot-blk proposing
+std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
+FullNode::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor) {
+  vec_blk_t orders;
+  auto period = dag_mgr_->createPeriodAndComputeBlockOrder(anchor, orders);
+  return {period, std::make_shared<vec_blk_t>(orders)};
+}
+// receive pbft-povit-blk, update periods
+void FullNode::updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period,
+                                   std::shared_ptr<vec_blk_t> blks) {
+  dag_mgr_->setDagBlockPeriods(anchor, period, blks);
+}
+
+std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
+    std::shared_ptr<vec_blk_t> blk_order) {
+  std::vector<std::vector<uint>> modes;
+  for (auto const &b : *blk_order) {
+    auto blk = getDagBlock(b);
+    if (!blk) {
+      LOG(log_er_) << "Cannot create schedule blk, blk missing ... " << b
+                   << std::endl;
+      return nullptr;
+    }
+    auto num_trx = blk->getTrxs().size();
+    modes.emplace_back(std::vector<uint>(num_trx, 1));
+  }
+  return std::make_shared<TrxSchedule>(*blk_order, modes);
+}
+
 uint64_t FullNode::getNumReceivedBlocks() { return received_blocks_; }
 
 uint64_t FullNode::getNumProposedBlocks() {
