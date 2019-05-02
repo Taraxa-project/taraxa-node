@@ -320,6 +320,9 @@ TEST(Network, node_sync_with_transactions) {
   node1->storeBlockWithTransactions(blk2, tr2);
   node1->storeBlockWithTransactions(blk1, tr1);
 
+  //To make sure blocks are stored before starting node 2
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf_taraxa2.json"));
 
@@ -529,6 +532,8 @@ TEST(Network, node_transaction_sync) {
   }
 
   node1->insertNewTransactions(transactions);
+
+  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf_taraxa2.json"));
