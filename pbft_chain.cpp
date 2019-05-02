@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:32
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-08 18:56:46
+ * @Last Modified by: Qi Gao
+ * @Last Modified time: 2019-05-01
  */
 
 #include "pbft_chain.hpp"
@@ -85,6 +85,51 @@ bytes TrxSchedule::rlp() const {
   return s.out();
 }
 
+PivotBlock::PivotBlock(taraxa::stream &strm) {
+  deserialize(strm);
+}
+
+blk_hash_t PivotBlock::getHash() const {
+  return pivot_blk_;
+}
+
+bool PivotBlock::serialize(stream &strm) const {
+  bool ok = true;
+
+  ok &= write(strm, pivot_blk_);
+  ok &= write(strm, prev_pivot_blk_);
+  ok &= write(strm, prev_res_blk_);
+  ok &= write(strm, dag_blk_);
+  ok &= write(strm, epoch_);
+  ok &= write(strm, timestamp_);
+  ok &= write(strm, beneficiary_);
+  ok &= write(strm, sig_);
+  assert(ok);
+
+  return ok;
+}
+
+bool PivotBlock::deserialize(stream &strm) {
+  bool ok = true;
+
+  ok &= read(strm, pivot_blk_);
+  ok &= read(strm, prev_pivot_blk_);
+  ok &= read(strm, prev_res_blk_);
+  ok &= read(strm, dag_blk_);
+  ok &= read(strm, epoch_);
+  ok &= read(strm, timestamp_);
+  ok &= read(strm, beneficiary_);
+  ok &= read(strm, sig_);
+  assert(ok);
+
+  return ok;
+}
+/*
+TODO:: need fix later
+ScheduleBlock::ScheduleBlock(dev::RLP const &rlp) {
+  deserialize(strm);
+}
+*/
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock] " << std::endl;
@@ -100,4 +145,127 @@ std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
   strm << sche_blk.getJsonStr();
   return strm;
 }
+
+blk_hash_t ScheduleBlock::getHash() const {
+  return schedule_blk_;
+}
+
+bool ScheduleBlock::serialize(taraxa::stream& strm) const {
+  bool ok = true;
+
+  ok &= write(strm, schedule_blk_);
+  ok &= write(strm, prev_pivot_);
+  ok &= write(strm, timestamp_);
+  ok &= write(strm, sig_);
+  ok &= write(strm, schedule_);
+  assert(ok);
+
+  return ok;
+}
+
+bool ScheduleBlock::deserialize(taraxa::stream& strm) {
+  bool ok = true;
+
+  ok &= read(strm, schedule_blk_);
+  ok &= read(strm, prev_pivot_);
+  ok &= read(strm, timestamp_);
+  ok &= read(strm, sig_);
+  ok &= read(strm, schedule_);
+  assert(ok);
+
+  return ok;
+}
+
+PbftBlock::PbftBlock(dev::RLP const& _r) {
+  std::vector<::byte> blockBytes;
+  blockBytes = _r.toBytes();
+  taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
+  deserialize(strm);
+}
+
+blk_hash_t PbftBlock::getHash() const {
+  if (block_type_ == pivot_block_type) {
+    return pivot_block_.getHash();
+  } else {
+    // TODO: change later, need add others pbft block type
+    return pivot_block_.getHash();
+  }
+}
+
+void PbftBlock::serializeRLP(dev::RLPStream& s) const {
+  std::vector<uint8_t> bytes;
+  {
+    vectorstream strm(bytes);
+    serialize(strm);
+  }
+  s.append(bytes);
+}
+
+bool PbftBlock::serialize(stream &strm) const {
+  bool ok = true;
+  ok &= write(strm, block_type_);
+  if (block_type_ == pivot_block_type) {
+    pivot_block_.serialize(strm);
+  }
+  // TODO: serialize other pbft blocks
+  assert(ok);
+  return ok;
+}
+
+bool PbftBlock::deserialize(taraxa::stream& strm) {
+  bool ok = true;
+  ok &= read(strm, block_type_);
+  if (block_type_ == pivot_block_type) {
+    pivot_block_.deserialize(strm);
+  }
+  // TODO: serialize other pbft blocks
+  assert(ok);
+  return ok;
+}
+
+blk_hash_t PbftChain::getLastPbftBlock() const {
+  return last_pbft_blk_;
+}
+
+bool PbftChain::isPbftGenesis() const {
+  return is_pbft_genesis_;
+}
+
+void PbftChain::setNotPbftGenesis() {
+  is_pbft_genesis_ = false;
+}
+
+void PbftChain::setLastPbftBlock(blk_hash_t &new_pbft_block) {
+  last_pbft_blk_ = new_pbft_block;
+}
+
+void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
+  next_pbft_block_type_ = next_block_type;
+}
+
+bool PbftChain::findPbftBlock(const taraxa::blk_hash_t &pbft_block_hash) {
+  if (pbft_blocks_map_.find(pbft_block_hash) != pbft_blocks_map_.end()) {
+    return true;
+  }
+  return false;
+}
+
+PbftBlock PbftChain::getPbftBlock(taraxa::blk_hash_t &pbft_block_hash) {
+  return pbft_blocks_map_[pbft_block_hash];
+}
+
+void PbftChain::insertPbftBlock(taraxa::blk_hash_t &pbft_block_hash,
+                                taraxa::PbftBlock &pbft_block) {
+  pbft_blocks_map_[pbft_block_hash] = pbft_block;
+}
+
+void PbftChain::pushPbftBlock(taraxa::PbftBlock &pbft_block) {
+  blk_hash_t pbft_block_hash = pbft_block.getHash();
+  insertPbftBlock(pbft_block_hash, pbft_block);
+  setLastPbftBlock(pbft_block_hash);
+  int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 3;
+  setNextPbftBlockType(static_cast<PbftBlockTypes>(next_pbft_block_type));
+  count++;
+}
+
 }  // namespace taraxa

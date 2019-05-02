@@ -30,6 +30,9 @@ enum SubprotocolPacketType : ::byte {
   TransactionPacket,
   TestPacket,
   PbftVotePacket,
+  PbftBlockPacket,
+  PbftPivotBlockPacket, // TODO: may not need
+  PbftScheduleBlockPacket, // TODO: may not need
   PacketCount
 };
 
@@ -56,11 +59,20 @@ class TaraxaPeer {
   }
   void clearKnownTransactions() { m_knownTransactions.clear(); }
 
+  // PBFT
   bool isVoteKnown(sig_hash_t const &_hash) const {
     return m_knownVotes.count(_hash);
   }
   void markVoteAsKnown(sig_hash_t const &_hash) { m_knownVotes.insert(_hash); }
   void clearKnownVotes() { m_knownVotes.clear(); }
+
+  bool isPbftBlockKnown(blk_hash_t const &_hash) const {
+  	return m_knownPbftBlocks.count(_hash);
+  }
+  void markPbftBlockAsKnown(blk_hash_t const &_hash) {
+  	m_knownPbftBlocks.insert(_hash);
+  }
+  void cleanKnownPbftBlocks() { m_knownPbftBlocks.clear(); }
 
   std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
       m_syncBlocks;
@@ -70,7 +82,10 @@ class TaraxaPeer {
  private:
   std::set<blk_hash_t> m_knownBlocks;
   std::set<trx_hash_t> m_knownTransactions;
+  // PBFT
   std::set<sig_hash_t> m_knownVotes;
+  std::set<blk_hash_t> m_knownPbftBlocks;
+
   NodeID m_id;
 };
 
@@ -128,8 +143,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void doBackgroundWork();
 
+  // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
+  void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
+  void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block);
 
  private:
   const int c_backround_work_period_ms_ = 1000;
