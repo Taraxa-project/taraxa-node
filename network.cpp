@@ -129,4 +129,17 @@ void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
   taraxa_capability_->sendPbftVote(id, vote);
 }
 
+void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
+  LOG(log_dg_) << "Network broadcast PBFT block: "
+               << pbft_block.getHash().toString();
+  taraxa_capability_->onNewPbftBlock(pbft_block);
+}
+
+void Network::sendPbftBlock(const NodeID &id,
+                            const taraxa::PbftBlock &pbft_block) {
+  LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getHash().toString()
+               << " to: " << id;
+  taraxa_capability_->sendPbftBlock(id, pbft_block);
+}
+
 }  // namespace taraxa

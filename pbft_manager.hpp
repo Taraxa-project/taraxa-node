@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-05-01
  */
 
 #ifndef PBFT_MANAGER_HPP
@@ -31,6 +31,7 @@ class FullNode;
 class VoteQueue;
 
 enum PbftBlockTypes {
+  pbft_block_none_type = -1,
   pivot_block_type = 0,
   schedule_block_type,
   result_block_type

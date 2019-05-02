@@ -1,5 +1,6 @@
 #include "taraxa_capability.h"
 #include "network.hpp"
+#include "pbft_chain.hpp"
 #include "vote.h"
 
 using namespace taraxa;
@@ -252,12 +253,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     case PbftVotePacket: {
       LOG(logger_debug_) << "Received PBFT vote";
 
-      std::vector<::byte> pbftVoteBytes;
+      std::vector<::byte> pbft_vote_bytes;
 
       for (auto i = 0; i < _r[0].itemCount(); i++) {
-        pbftVoteBytes.push_back(_r[0][i].toInt());
+        pbft_vote_bytes.push_back(_r[0][i].toInt());
       }
-      taraxa::bufferstream strm(pbftVoteBytes.data(), pbftVoteBytes.size());
+      taraxa::bufferstream strm(pbft_vote_bytes.data(), pbft_vote_bytes.size());
       Vote vote;
       vote.deserialize(strm);
 
@@ -275,6 +276,24 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
 
       onNewPbftVote(vote);
+      break;
+    }
+    case PbftBlockPacket: {
+      LOG(logger_debug_) << "Received PBFT Block";
+
+      PbftBlock pbft_block(_r[0]);
+      peers_[_nodeID].markPbftBlockAsKnown(pbft_block.getHash());
+
+      auto full_node = full_node_.lock();
+      if (!full_node) {
+        LOG(logger_err_) << "PbftBlock full node weak pointer empty";
+        return false;
+      }
+      if (!full_node->isKnownPbftBlock(pbft_block.getHash())) {
+        full_node->setPbftBlock(pbft_block);
+      }
+
+      onNewPbftBlock(pbft_block);
       break;
     }
     case TestPacket:
@@ -619,5 +638,24 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
   for (auto i = 0; i < bytes.size(); i++) {
     s << bytes[i];
   }
+  host_.capabilityHost()->sealAndSend(_id, s);
+}
+
+void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
+  for (auto &peer: peers_) {
+    if (!peer.second.isPbftBlockKnown(pbft_block.getHash())) {
+      sendPbftBlock(peer.first, pbft_block);
+    }
+  }
+}
+
+void TaraxaCapability::sendPbftBlock(NodeID const &_id,
+                                     taraxa::PbftBlock const &pbft_block) {
+  LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getHash()
+                     << " to " << _id;
+
+  RLPStream s;
+  host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, 1);
+  pbft_block.serializeRLP(s);
   host_.capabilityHost()->sealAndSend(_id, s);
 }

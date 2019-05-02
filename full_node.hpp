@@ -149,6 +149,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setVoteKnown(taraxa::Vote const &vote);
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() { return pbft_mgr_; }
+  bool isKnownPbftBlock(blk_hash_t const &pbft_block_hash) const;
+  void setPbftBlock(PbftBlock &pivot_block);
+  size_t getPbftChainSize() const;
 
  private:
   // ** NOTE: io_context must be constructed before Network
@@ -188,6 +191,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
+  std::shared_ptr<PbftChain> pbft_chain_;
   std::unordered_set<sig_hash_t> known_votes_;
 
   // debugger

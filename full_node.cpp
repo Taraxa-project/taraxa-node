@@ -53,7 +53,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                                     trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>(db_blks_, db_trxs_, db_accs_)),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
-      vote_queue_(std::make_shared<VoteQueue>()) {
+      vote_queue_(std::make_shared<VoteQueue>()),
+      pbft_chain_(std::make_shared<PbftChain>()) {
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -449,6 +450,24 @@ bool FullNode::isKnownVote(taraxa::Vote const &vote) const {
 
 void FullNode::setVoteKnown(taraxa::Vote const &vote) {
   known_votes_.insert(vote.getHash());
+}
+
+bool FullNode::isKnownPbftBlock(
+    const taraxa::blk_hash_t &pbft_block_hash) const {
+  return pbft_chain_->findPbftBlock(pbft_block_hash);
+}
+
+void FullNode::setPbftBlock(taraxa::PbftBlock &pbft_block) {
+  if (pbft_chain_->isPbftGenesis()) {
+    // set first pbft pivot block, TODO: need check block type here
+    pbft_chain_->pushPbftBlock(pbft_block);
+    pbft_chain_->setNotPbftGenesis();
+  }
+  // TODO: set non-first block in pbft chain
+}
+
+size_t FullNode::getPbftChainSize() const {
+  return pbft_chain_->getSize();
 }
 
 }  // namespace taraxa
