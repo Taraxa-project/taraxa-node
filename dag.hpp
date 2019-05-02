@@ -221,11 +221,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                    bool insert);  // insert to buffer if fail
   void consume(unsigned threadId);
 
-  // use a anchor to create period
-  void createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
+  // use a anchor to create period, return ith_period
+  uint64_t createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
                                         vec_blk_t &orders);
+  void setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period,
+                          std::shared_ptr<vec_blk_t> blks);
 
-  //
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;
@@ -275,7 +276,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool debug_;
   bool verbose_;
   bool dag_updated_;
-  uint64_t latest_epoch_ = 0;
   bool stopped_ = true;
   unsigned num_threads_;
   mutable std::mutex mutex_;

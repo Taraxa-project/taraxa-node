@@ -106,12 +106,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // return {period, block order}, for pbft-pivot-blk proposing
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
-  updateAnchorAndComputeBlkOrder(blk_hash_t const &anchor);
+  createPeriodAndComputeBlockOrder(blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods
   void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period,
                            std::shared_ptr<vec_blk_t> blks);
-
-  std::shared_ptr<ScheduleBlock> createScheduleBlk(
+  // fake trx schedule 
+  std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff
   std::pair<bal_t, bool> getBalance(addr_t const &acc) const;

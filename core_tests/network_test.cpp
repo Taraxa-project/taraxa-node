@@ -13,8 +13,8 @@
 #include <iostream>
 #include <vector>
 #include "create_samples.hpp"
-#include "libdevcore/Log.h"
 #include "libdevcore/DBFactory.h"
+#include "libdevcore/Log.h"
 
 namespace taraxa {
 
@@ -201,7 +201,7 @@ TEST(Network, node_sync) {
   node1->setDebug(true);
   node1->start();
 
-  //Allow node to start up
+  // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   std::vector<DagBlock> blks;
@@ -243,9 +243,11 @@ TEST(Network, node_sync) {
   node2->start();
 
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
-  for(int i = 0; i < 20; i++) {
+  for (int i = 0; i < 20; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if(node2->getNumVerticesInDag().first == 7 && node2->getNumEdgesInDag().first == 8) break;
+    if (node2->getNumVerticesInDag().first == 7 &&
+        node2->getNumEdgesInDag().first == 8)
+      break;
   }
   node1->stop();
   node2->stop();
@@ -327,11 +329,12 @@ TEST(Network, node_sync_with_transactions) {
   node2->start();
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
-  for(int i = 0; i < 20; i++) {
+  for (int i = 0; i < 20; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if(node2->getNumVerticesInDag().first == 7 && node2->getNumEdgesInDag().first == 8) break;
+    if (node2->getNumVerticesInDag().first == 7 &&
+        node2->getNumEdgesInDag().first == 8)
+      break;
   }
-  
 
   node1->stop();
   node2->stop();
@@ -488,11 +491,13 @@ TEST(Network, node_sync2) {
   node2->start();
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
-  for(int i = 0; i < 20; i++) {
+  for (int i = 0; i < 20; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if(node2->getNumVerticesInDag().first == 13 && node2->getNumEdgesInDag().first == 13) break;
+    if (node2->getNumVerticesInDag().first == 13 &&
+        node2->getNumEdgesInDag().first == 13)
+      break;
   }
-  
+
   node1->stop();
   node2->stop();
 
@@ -602,16 +607,17 @@ TEST(Network, node_full_sync) {
   }
 
   std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
-  for(int i = 0; i < 24; i++) {
+  for (int i = 0; i < 24; i++) {
     taraxa::thisThreadSleepForMilliSeconds(5000);
     bool finished = true;
-    for(int j = 0; j < numberOfNodes; j++) {
-      if(nodes[j]->getNumVerticesInDag().first != node1->getNumVerticesInDag().first) { 
+    for (int j = 0; j < numberOfNodes; j++) {
+      if (nodes[j]->getNumVerticesInDag().first !=
+          node1->getNumVerticesInDag().first) {
         finished = false;
         break;
       }
     }
-    if(finished) break;
+    if (finished) break;
   }
   // printf("End result: Vertices %lu Edges: %lu \n",
   // node1->getNumVerticesInDag().first, node1->getNumEdgesInDag().first);
@@ -639,11 +645,12 @@ TEST(Network, node_full_sync) {
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityInfo;
+  logOptions.verbosity = dev::VerbosityWarning;
   logOptions.includeChannels.push_back("NETWORK");
   logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
-  // use the in-memory db so test will not affect other each other through persistent storage
+  // use the in-memory db so test will not affect other each other through
+  // persistent storage
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

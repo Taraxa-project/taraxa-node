@@ -409,22 +409,28 @@ TEST(DagManager, compute_epoch) {
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
-  mgr->createPeriodAndComputeBlockOrder(blkA.getHash(), orders);
+  uint64_t period;
+  period = mgr->createPeriodAndComputeBlockOrder(blkA.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
-  mgr->createPeriodAndComputeBlockOrder(blkC.getHash(), orders);
+  EXPECT_EQ(period, 1);
+  period = mgr->createPeriodAndComputeBlockOrder(blkC.getHash(), orders);
   EXPECT_EQ(orders.size(), 2);
-  mgr->createPeriodAndComputeBlockOrder(blkE.getHash(), orders);
+  EXPECT_EQ(period, 2);
+  period = mgr->createPeriodAndComputeBlockOrder(blkE.getHash(), orders);
   EXPECT_EQ(orders.size(), 3);
-  mgr->createPeriodAndComputeBlockOrder(blkH.getHash(), orders);
+  EXPECT_EQ(period, 3);
+  period = mgr->createPeriodAndComputeBlockOrder(blkH.getHash(), orders);
   EXPECT_EQ(orders.size(), 4);
+  EXPECT_EQ(period, 4);
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(10));
     EXPECT_EQ(orders[1], blk_hash_t(9));
     EXPECT_EQ(orders[2], blk_hash_t(7));
     EXPECT_EQ(orders[3], blk_hash_t(8));
   }
-  mgr->createPeriodAndComputeBlockOrder(blkK.getHash(), orders);
+  period = mgr->createPeriodAndComputeBlockOrder(blkK.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
+  EXPECT_EQ(period, 5);
 }
 
 TEST(DagManager, receive_block_in_order) {

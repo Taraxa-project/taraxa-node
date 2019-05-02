@@ -767,7 +767,7 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
   pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
-void DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
+uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
                                                   vec_blk_t &orders) {
   std::vector<std::string> blk_orders;
   auto prev = anchors_.back();
@@ -783,8 +783,30 @@ void DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
   LOG(log_dg_) << "Create epoch " << cur_epoch << " from " << prev << " to "
                << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
+  return anchors_.size() - 1;
 }
-
+void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period,
+                                    std::shared_ptr<vec_blk_t> blks) {
+  if (period != anchors_.size()) {
+    LOG(log_er_) << "Inserting period does not match ..." << std::endl;
+    return;
+  }
+  anchors_.emplace_back(anchor.toString());
+  LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor
+               << std::endl;
+  if (!blks) {
+    LOG(log_er_) << "Cannot set block period, pointer is null " << period
+                 << std::endl;
+    return;
+  }
+  if (!blks->empty()) {
+    LOG(log_wr_) << "No Dag blocks available in period " << period << std::endl;
+    return;
+  }
+  for (auto const &b : *blks) {
+    total_dag_->setVertexPeriod(b.toString(), period);
+  }
+}
 DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
   if (stopped_) {
     start();
