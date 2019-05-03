@@ -55,14 +55,14 @@ class PivotBlock {
  public:
   PivotBlock() = default;
   PivotBlock(taraxa::stream &strm);
-  PivotBlock(blk_hash_t const& pivot_blk,
+  PivotBlock(blk_hash_t const& block_hash,
              blk_hash_t const& prev_pivot_blk,
              blk_hash_t const& prev_res_blk,
              blk_hash_t const& dag_blk,
              uint64_t epoch,
              uint64_t timestamp,
              addr_t const& beneficiary,
-             sig_t const& sig) : pivot_blk_(pivot_blk),
+             sig_t const& sig) : block_hash_(block_hash),
                                  prev_pivot_blk_(prev_pivot_blk),
                                  prev_res_blk_(prev_res_blk),
                                  dag_blk_(dag_blk),
@@ -79,7 +79,7 @@ class PivotBlock {
   friend std::ostream &operator<<(std::ostream &strm,
                                   PivotBlock const& pivot_block) {
     strm << "[Pivot Block] " << std::endl;
-    strm << "  pivot hash: " << pivot_block.pivot_blk_.hex() << std::endl;
+    strm << "  pivot hash: " << pivot_block.block_hash_.hex() << std::endl;
     strm << "  previous pivot hash: "
          << pivot_block.prev_pivot_blk_.hex() << std::endl;
     strm << "  previous result hash: "
@@ -93,7 +93,7 @@ class PivotBlock {
   }
 
  private:
-  blk_hash_t pivot_blk_;
+  blk_hash_t block_hash_;
   blk_hash_t prev_pivot_blk_;
   blk_hash_t prev_res_blk_;
   blk_hash_t dag_blk_;
@@ -153,7 +153,9 @@ class PbftBlock {
 
   PivotBlock getPivotBlock() const { return pivot_block_; }
   blk_hash_t getHash() const;
-  void setPivotBlock(PivotBlock &pivot_block) { pivot_block_ = pivot_block; }
+  void setPivotBlock(PivotBlock const& pivot_block) {
+    pivot_block_ = pivot_block;
+  }
 
   void serializeRLP(dev::RLPStream &s) const;
   bool serialize(stream &strm) const;
@@ -168,7 +170,7 @@ class PbftBlock {
 class PbftChain {
  public:
   PbftChain() = default;
-  PbftChain(blk_hash_t first_pivot_blk)
+  PbftChain(blk_hash_t const& first_pivot_blk)
     : count(2),
       is_pbft_genesis_(false),
       next_pbft_block_type_(schedule_block_type),
@@ -179,16 +181,17 @@ class PbftChain {
   blk_hash_t getLastPbftBlock() const;
   bool isPbftGenesis() const;
   void setNotPbftGenesis();
-  void setLastPbftBlock(blk_hash_t &new_pbft_block);
+  void setLastPbftBlock(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);
 
   bool findPbftBlock(blk_hash_t const& pbft_block_hash);
-  PbftBlock getPbftBlock(blk_hash_t &pbft_block_hash);
-  void insertPbftBlock(blk_hash_t &pbft_block_hash, PbftBlock &pbft_block);
-  void pushPbftBlock(taraxa::PbftBlock &pbft_block);
+  std::pair<PbftBlock, bool> getPbftBlock(blk_hash_t const& pbft_block_hash);
+  void insertPbftBlock(blk_hash_t const& pbft_block_hash,
+                       PbftBlock const& pbft_block);
+  void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
 
  private:
-  size_t count = 1;
+  uint64_t count = 1;
   bool is_pbft_genesis_ = true;
   PbftBlockTypes next_pbft_block_type_ = pivot_block_type;
   blk_hash_t last_pbft_blk_;

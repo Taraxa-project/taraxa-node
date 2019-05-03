@@ -90,13 +90,13 @@ PivotBlock::PivotBlock(taraxa::stream &strm) {
 }
 
 blk_hash_t PivotBlock::getHash() const {
-  return pivot_blk_;
+  return block_hash_;
 }
 
 bool PivotBlock::serialize(stream &strm) const {
   bool ok = true;
 
-  ok &= write(strm, pivot_blk_);
+  ok &= write(strm, block_hash_);
   ok &= write(strm, prev_pivot_blk_);
   ok &= write(strm, prev_res_blk_);
   ok &= write(strm, dag_blk_);
@@ -112,7 +112,7 @@ bool PivotBlock::serialize(stream &strm) const {
 bool PivotBlock::deserialize(stream &strm) {
   bool ok = true;
 
-  ok &= read(strm, pivot_blk_);
+  ok &= read(strm, block_hash_);
   ok &= read(strm, prev_pivot_blk_);
   ok &= read(strm, prev_res_blk_);
   ok &= read(strm, dag_blk_);
@@ -235,7 +235,7 @@ void PbftChain::setNotPbftGenesis() {
   is_pbft_genesis_ = false;
 }
 
-void PbftChain::setLastPbftBlock(blk_hash_t &new_pbft_block) {
+void PbftChain::setLastPbftBlock(const blk_hash_t &new_pbft_block) {
   last_pbft_blk_ = new_pbft_block;
 }
 
@@ -244,22 +244,23 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 }
 
 bool PbftChain::findPbftBlock(const taraxa::blk_hash_t &pbft_block_hash) {
-  if (pbft_blocks_map_.find(pbft_block_hash) != pbft_blocks_map_.end()) {
-    return true;
+  return pbft_blocks_map_.find(pbft_block_hash) != pbft_blocks_map_.end();
+}
+
+std::pair<PbftBlock, bool> PbftChain::getPbftBlock(
+    const taraxa::blk_hash_t &pbft_block_hash) {
+  if (findPbftBlock(pbft_block_hash)) {
+    return std::make_pair(pbft_blocks_map_[pbft_block_hash], true);
   }
-  return false;
+  return std::make_pair(PbftBlock(), false);
 }
 
-PbftBlock PbftChain::getPbftBlock(taraxa::blk_hash_t &pbft_block_hash) {
-  return pbft_blocks_map_[pbft_block_hash];
-}
-
-void PbftChain::insertPbftBlock(taraxa::blk_hash_t &pbft_block_hash,
-                                taraxa::PbftBlock &pbft_block) {
+void PbftChain::insertPbftBlock(const taraxa::blk_hash_t &pbft_block_hash,
+                                const taraxa::PbftBlock &pbft_block) {
   pbft_blocks_map_[pbft_block_hash] = pbft_block;
 }
 
-void PbftChain::pushPbftBlock(taraxa::PbftBlock &pbft_block) {
+void PbftChain::pushPbftBlock(const taraxa::PbftBlock &pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getHash();
   insertPbftBlock(pbft_block_hash, pbft_block);
   setLastPbftBlock(pbft_block_hash);
