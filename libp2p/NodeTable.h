@@ -121,7 +121,7 @@ public:
 
     /// Constructor requiring host for I/O, credentials, and IP Address and port to listen on.
     NodeTable(ba::io_service& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint,
-        bool _enabled = true, bool _allowLocalDiscovery = false);
+        bool _enabled = true, bool _allowLocalDiscovery = false, bool bootNode = false);
     ~NodeTable() { stop(); }
 
     /// Returns distance based on xor metric two node ids. Used by NodeEntry and NodeTable.
@@ -173,6 +173,7 @@ public:
     /// Returns the Node to the corresponding node id or the empty Node if that id is not found.
     Node node(NodeID const& _id);
 
+    void invalidateNode(NodeID const& _id);
 // protected only for derived classes in tests
 protected:
     /**
@@ -194,9 +195,11 @@ protected:
     static constexpr unsigned s_maxSteps = boost::static_log2<s_bits>::value;	///< Max iterations of discovery. (discover)
 
     /// Chosen constants
-
-    static constexpr unsigned s_bucketSize = 256;			///< Denoted by k in [Kademlia]. Number of nodes stored in each bucket.
     static constexpr unsigned s_alpha = 3;				///< Denoted by \alpha in [Kademlia]. Number of concurrent FindNode requests.
+
+    //Bucket size will be increased for boot nodes
+    unsigned m_bucketSize = 16;			///< Denoted by k in [Kademlia]. Number of nodes stored in each bucket.
+    bool m_bootNode = false;
 
     /// Intervals
 

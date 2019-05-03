@@ -40,7 +40,7 @@ class Network {
   Network(NetworkConfig const &config, std::string networkFile,
           secret_t const &sk);
   ~Network();
-  void start();
+  void start(bool boot_node = false);
   void stop();
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);

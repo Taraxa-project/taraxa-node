@@ -107,13 +107,20 @@ Host::~Host()
     terminate();
 }
 
-void Host::start()
+void Host::start(bool bootNode)
 {
+    m_BootNode = bootNode;
+    //Boot node may get bombarded with other nodes, prevent it from making too many TCP connection
+    //Boot node main purpose is Node discovery over UDP
+    if(bootNode)
+        setPeerStretch(1);
     DEV_TIMED_FUNCTION_ABOVE(500);
     if (m_nodeTable)
         BOOST_THROW_EXCEPTION(NetworkRestartNotSupported());
 
     startWorking();
+    for(auto const &node : m_bootNodes)
+        addNode(node.first, node.second);
     while (isWorking() && !haveNetwork())
         this_thread::sleep_for(chrono::milliseconds(10));
     
@@ -368,7 +375,22 @@ void Host::onNodeTableEvent(NodeID const& _n, NodeTableEventType const& _e)
         RecursiveGuard l(x_sessions);
         if (m_peers.count(_n) && m_peers[_n]->peerType == PeerType::Optional)
             m_peers.erase(_n);
+            //If node count drops to zero add boot nodes again and retry
+            if(getNodeCount() == 0) {
+                for(auto const &node : m_bootNodes)
+                    addNode(node.first, node.second);
+        }
     }
+}
+
+void Host::checkNodes() {
+    if(peerCount() == 0) {
+        for(auto const &node : m_bootNodes) {
+            m_nodeTable->invalidateNode(node.first);
+        }
+    }
+    scheduleExecution(30000,
+                        [this]() { checkNodes(); });
 }
 
 void Host::determinePublic()
@@ -758,6 +780,10 @@ void Host::startedWorking()
     // start capability threads (ready for incoming connections)
     for (auto const& h: m_capabilities)
         h.second->onStarting();
+
+    //Every 30 seconds check if connected to another node and refresh boot nodes
+    scheduleExecution(30000,
+                           [this]() { checkNodes(); });
     
     if (haveCapabilities())
     {
@@ -780,7 +806,8 @@ void Host::startedWorking()
         m_alias,
         NodeIPEndpoint(bi::address::from_string(listenAddress()), listenPort(), listenPort()),
         m_netConfig.discovery,
-        m_netConfig.allowLocalDiscovery
+        m_netConfig.allowLocalDiscovery,
+        m_BootNode
     );
     nodeTable->setEventHandler(new HostNodeTableHandler(*this));
     DEV_GUARDED(x_nodeTable)

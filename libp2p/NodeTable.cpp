@@ -45,7 +45,7 @@ inline bool operator==(
 }
 
 NodeTable::NodeTable(ba::io_service& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint,
-    bool _enabled, bool _allowLocalDiscovery)
+    bool _enabled, bool _allowLocalDiscovery, bool bootNode)
   : m_hostNodeID(_alias.pub()),
     m_hostNodeEndpoint(_endpoint),
     m_secret(_alias.secret()),
@@ -53,8 +53,12 @@ NodeTable::NodeTable(ba::io_service& _io, KeyPair const& _alias, NodeIPEndpoint 
         _io, static_cast<UDPSocketEvents&>(*this), (bi::udp::endpoint)m_hostNodeEndpoint)),
     m_requestTimeToLive(DiscoveryDatagram::c_timeToLive),
     m_allowLocalDiscovery(_allowLocalDiscovery),
-    m_timers(_io)
+    m_timers(_io),
+    m_bootNode(bootNode)
 {
+    if(bootNode) {
+        m_bucketSize = 256;
+    }
     for (unsigned i = 0; i < s_bins; i++)
         m_buckets[i].distance = i;
 
@@ -313,7 +317,7 @@ vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID _target)
     vector<shared_ptr<NodeEntry>> ret;
     for (auto& nodes : found)
         for (auto const& n : nodes.second)
-            if (ret.size() < s_bucketSize && !!n->endpoint &&
+            if (ret.size() < m_bucketSize && !!n->endpoint &&
                 isAllowedEndpoint(n->endpoint))
                 ret.push_back(n);
     return ret;
@@ -344,8 +348,16 @@ void NodeTable::evict(NodeEntry const& _leastSeen, NodeEntry const& _new)
 {
     if (!m_socket->isOpen())
         return;
-
-    ping(_leastSeen, _new.id);
+    //If this is a boot node we should drop the leastSeen
+    //Boot node should share the discovery data with new nodes
+    if(m_bootNode) {
+        if (auto lNode = nodeEntry(_leastSeen.id))
+            dropNode(move(lNode));
+        ping(_new);
+    }
+    else {
+        ping(_leastSeen, _new.id);
+    }
 }
 
 void NodeTable::noteActiveNode(Public const& _pubk, bi::udp::endpoint const& _endpoint)
@@ -386,7 +398,7 @@ void NodeTable::noteActiveNode(Public const& _pubk, bi::udp::endpoint const& _en
             }
             else
             {
-                if (nodes.size() < s_bucketSize)
+                if (nodes.size() < m_bucketSize)
                 {
                     // if it was not there, just add it as a most recently seen node
                     // (i.e. to the end of the list)
@@ -415,6 +427,15 @@ void NodeTable::noteActiveNode(Public const& _pubk, bi::udp::endpoint const& _en
             evict(*nodeToEvict, *newNode);
     }
 }
+void NodeTable::invalidateNode(NodeID const& _id)
+{
+    auto sourceNodeEntry = nodeEntry(_id);
+    if(!sourceNodeEntry) {
+        return;
+    }
+    //This will cause the node to be pinged again to update status on the other node
+    sourceNodeEntry->lastPongReceivedTime = RLPXDatagramFace::secondsSinceEpoch() - NodeTable::c_bondingTimeSeconds;
+}
 
 void NodeTable::dropNode(shared_ptr<NodeEntry> _n)
 {
@@ -430,7 +451,7 @@ void NodeTable::dropNode(shared_ptr<NodeEntry> _n)
 
     // notify host
     LOG(m_logger) << "p2p.nodes.drop " << _n->id;
-    if (m_nodeEventHandler)
+    if (m_nodeEventHandler) 
         m_nodeEventHandler->appendEvent(_n->id, NodeEntryDropped);
 }
 
