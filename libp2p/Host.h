@@ -155,6 +155,14 @@ public:
     /// Add node as a peer candidate. Node is added if discovery ping is successful and table has capacity.
     void addNode(NodeID const& _node, NodeIPEndpoint const& _endpoint);
     
+    /// Add boot node
+    void addBootNode(NodeID const& _node, NodeIPEndpoint const& _endpoint){
+        m_bootNodes.push_back(std::make_pair(_node, _endpoint));
+    }
+
+    //Refresh boot nodes if no other nodes found
+    void checkNodes();
+    
     /// Create Peer and attempt keeping peer connected.
     void requirePeer(NodeID const& _node, NodeIPEndpoint const& _endpoint);
 
@@ -194,7 +202,7 @@ public:
     NetworkConfig const& networkConfig() const { return m_netConfig; }
 
     /// Start network. @threadsafe
-    void start();
+    void start(bool bootNode = false);
 
     /// Stop network. @threadsafe
     /// Resets acceptor, socket, and IO service. Called by deallocator.
@@ -353,12 +361,15 @@ private:
 
     std::chrono::steady_clock::time_point m_lastPing;						///< Time we sent the last ping to all peers.
     bool m_accepting = false;
+    bool m_BootNode = false;
 
     ReputationManager m_repMan;
 
     std::shared_ptr<CapabilityHostFace> m_capabilityHost;
 
     Logger m_logger{createLogger(VerbosityDebug, "net")};
+
+    std::vector<std::pair<NodeID, NodeIPEndpoint> > m_bootNodes;
 };
 
 }

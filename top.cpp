@@ -20,6 +20,7 @@ void Top::start(int argc, const char* argv[]) {
   th_ = std::make_shared<std::thread>([this, argc, argv]() {
     bool verbose = false;
     std::string conf_taraxa;
+    bool boot_node = false;
     // loggin options
     dev::LoggingOptions loggingOptions;
     boost::program_options::options_description loggingProgramOptions(
@@ -30,6 +31,8 @@ void Top::start(int argc, const char* argv[]) {
     main_options.add_options()("help", "Print this help message and exit")(
         "verbose", "Print more info")(
         "conf_taraxa", boost::program_options::value<std::string>(&conf_taraxa),
+        "Configure file for taraxa node [required]")(
+        "boot_node", boost::program_options::bool_switch(&boot_node),
         "Configure file for taraxa node [required]");
 
     boost::program_options::options_description allowed_options(
@@ -62,7 +65,7 @@ void Top::start(int argc, const char* argv[]) {
       taraxa::FullNodeConfig conf(conf_taraxa);
       node_ = std::make_shared<taraxa::FullNode>(context_, conf);
       node_->setVerbose(verbose);
-      node_->start();
+      node_->start(boot_node);
       rpc_ =
           std::make_shared<taraxa::Rpc>(context_, conf.rpc, node_->getShared());
       rpc_->start();

@@ -53,7 +53,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   void setVerbose(bool verbose);
   void setDebug(bool debug);
-  void start();
+  void start(bool boot_node = false);
   void stop();
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();

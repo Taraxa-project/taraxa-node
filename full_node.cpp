@@ -89,13 +89,13 @@ std::shared_ptr<FullNode> FullNode::getShared() {
 }
 boost::asio::io_context &FullNode::getIoContext() { return io_context_; }
 
-void FullNode::start() {
+void FullNode::start(bool boot_node) {
   if (!stopped_) {
     return;
   }
   stopped_ = false;
   network_->setFullNode(getShared());
-  network_->start();
+  network_->start(boot_node);
   dag_mgr_->start();
   blk_qu_->start();
   blk_proposer_->setFullNode(getShared());
