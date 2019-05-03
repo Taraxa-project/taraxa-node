@@ -13,13 +13,13 @@
 #include <vector>
 #include "create_samples.hpp"
 #include "dag.hpp"
+#include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "rpc.hpp"
 #include "string"
 #include "top.hpp"
-#include "libdevcore/DBFactory.h"
 
 namespace taraxa {
 
@@ -31,6 +31,80 @@ auto g_secret = dev::Secret(
 auto g_key_pair = dev::KeyPair(g_secret);
 auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+auto g_mock_dag0 = samples::createMockDag0();
+
+TEST(FullNode, insert_anchor_and_compute_order) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_taraxa1.json")));
+  node->start();
+
+  auto num_blks = g_mock_dag0.size();
+  for (int i = 1; i <= 9; i++) {
+    node->storeBlock(g_mock_dag0[i]);
+  }
+  taraxa::thisThreadSleepForMilliSeconds(200);
+  std::string pivot;
+  std::vector<std::string> tips;
+
+  // -------- first period ----------
+
+  node->getLatestPivotAndTips(pivot, tips);
+  uint64_t period;
+  std::shared_ptr<vec_blk_t> order;
+  std::tie(period, order) =
+      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  EXPECT_EQ(period, 1);
+  EXPECT_EQ(order->size(), 6);
+  if (order->size() == 6) {
+    (*order)[0] = blk_hash_t(2);
+    (*order)[1] = blk_hash_t(3);
+    (*order)[2] = blk_hash_t(6);
+    (*order)[3] = blk_hash_t(1);
+    (*order)[4] = blk_hash_t(5);
+    (*order)[5] = blk_hash_t(7);
+  }
+
+  // -------- second period ----------
+
+  for (int i = 10; i <= 16; i++) {
+    node->storeBlock(g_mock_dag0[i]);
+  }
+  taraxa::thisThreadSleepForMilliSeconds(200);
+
+  node->getLatestPivotAndTips(pivot, tips);
+  std::tie(period, order) =
+      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  EXPECT_EQ(period, 2);
+  if (order->size() == 7) {
+    (*order)[0] = blk_hash_t(10);
+    (*order)[1] = blk_hash_t(13);
+    (*order)[2] = blk_hash_t(11);
+    (*order)[3] = blk_hash_t(9);
+    (*order)[4] = blk_hash_t(12);
+    (*order)[5] = blk_hash_t(14);
+    (*order)[5] = blk_hash_t(15);
+  }
+
+  // -------- third period ----------
+
+  for (int i = 17; i < g_mock_dag0.size(); i++) {
+    node->storeBlock(g_mock_dag0[i]);
+  }
+  taraxa::thisThreadSleepForMilliSeconds(200);
+
+  node->getLatestPivotAndTips(pivot, tips);
+  std::tie(period, order) =
+      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  EXPECT_EQ(period, 3);
+  if (order->size() == 5) {
+    (*order)[0] = blk_hash_t(17);
+    (*order)[1] = blk_hash_t(16);
+    (*order)[2] = blk_hash_t(8);
+    (*order)[3] = blk_hash_t(18);
+    (*order)[4] = blk_hash_t(19);
+  }
+}
 
 TEST(Top, create_top) {
   {
@@ -140,8 +214,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   taraxa::thisThreadSleepForMilliSeconds(30000);
 
-  EXPECT_GT(node->getNumProposedBlocks(), /*NUM_TRX / 10 - 2*/ 0);
-
+  EXPECT_GT(node->getNumProposedBlocks(), 0);
+  // The test will form a single chain
   std::vector<std::string> ghost;
   node->getGhostPath(Dag::GENESIS, ghost);
   vec_blk_t blks;
@@ -275,7 +349,11 @@ TEST(FullNode, receive_send_transaction) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  // use the in-memory db so test will not affect other each other through persistent storage
+  dev::LoggingOptions logOptions;
+  logOptions.verbosity = dev::VerbosityWarning;
+  dev::setupLogging(logOptions);
+  // use the in-memory db so test will not affect other each other through
+  // persistent storage
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
