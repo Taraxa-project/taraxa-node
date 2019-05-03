@@ -614,7 +614,7 @@ void TaraxaCapability::onStarting() {
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
-  for (auto &peer : peers_) {
+  for (auto const& peer : peers_) {
     if (!peer.second.isVoteKnown(vote.getHash())) {
       sendPbftVote(peer.first, vote);
     }
@@ -642,7 +642,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
-  for (auto &peer: peers_) {
+  for (auto const& peer: peers_) {
     if (!peer.second.isPbftBlockKnown(pbft_block.getHash())) {
       sendPbftBlock(peer.first, pbft_block);
     }

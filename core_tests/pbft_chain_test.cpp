@@ -91,7 +91,7 @@ TEST(PivotBlock, pivot_block_broadcast) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   std::shared_ptr<Network> nw3 = node3->getNetwork();
 
-  int node_peers = 2;
+  const int node_peers = 2;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (nw1->getPeerCount() == node_peers &&
@@ -155,7 +155,7 @@ TEST(PbftManager, DISABLED_create_pbft_manager) {
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityDebug;
+  logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_MGR");
   logOptions.includeChannels.push_back("NETWORK");
   logOptions.includeChannels.push_back("TARCAP");

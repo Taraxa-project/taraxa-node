@@ -31,8 +31,6 @@ enum SubprotocolPacketType : ::byte {
   TestPacket,
   PbftVotePacket,
   PbftBlockPacket,
-  PbftPivotBlockPacket, // TODO: may not need
-  PbftScheduleBlockPacket, // TODO: may not need
   PacketCount
 };
 
