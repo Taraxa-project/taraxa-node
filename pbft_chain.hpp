@@ -169,7 +169,9 @@ class PbftBlock {
 
 class PbftChain {
  public:
-  PbftChain() = default;
+  PbftChain() : last_pbft_blk_(genesis_hash_) {
+    pbft_blocks_map_[genesis_hash_];
+  }
   PbftChain(blk_hash_t const& first_pivot_blk)
     : count(2),
       is_pbft_genesis_(false),
@@ -191,6 +193,7 @@ class PbftChain {
   void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
 
  private:
+  blk_hash_t genesis_hash_ = blk_hash_t(0);
   uint64_t count = 1;
   bool is_pbft_genesis_ = true;
   PbftBlockTypes next_pbft_block_type_ = pivot_block_type;
