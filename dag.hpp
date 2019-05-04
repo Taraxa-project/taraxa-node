@@ -111,7 +111,7 @@ class Dag {
                                 std::vector<vertex_hash> &tips) const;
 
   // Note, the function will delete recent_added_blks when marking ith_number
-  void updatePeriodVerticesAndComputeOrder(
+  bool updatePeriodVerticesAndComputeOrder(
       vertex_hash const &from, vertex_hash const &to, uint64_t ith_peroid,
       std::unordered_set<vertex_hash>
           &recent_added_blks,  // iterater only from new blocks
@@ -223,7 +223,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // use a anchor to create period, return ith_period
   uint64_t createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
-                                        vec_blk_t &orders);
+                                            vec_blk_t &orders);
   void setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period,
                           std::shared_ptr<vec_blk_t> blks);
 
