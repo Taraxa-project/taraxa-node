@@ -23,7 +23,7 @@
 
 namespace taraxa {
 
-const unsigned NUM_TRX = 50;
+const unsigned NUM_TRX = 200;
 
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
@@ -210,27 +210,42 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   EXPECT_EQ(res.first, bal1);
   for (auto const& t : g_trx_signed_samples) {
     node->storeTransaction(t);
+    taraxa::thisThreadSleepForMilliSeconds(50);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(30000);
+  taraxa::thisThreadSleepForMilliSeconds(3000);
 
   EXPECT_GT(node->getNumProposedBlocks(), 0);
+
   // The test will form a single chain
   std::vector<std::string> ghost;
   node->getGhostPath(Dag::GENESIS, ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
-  for (auto const& g : ghost) {
-    if (g == Dag::GENESIS) continue;
-    auto dagblk = node->getDagBlock(blk_hash_t(g));
-    std::vector<uint> mode(dagblk->getTrxs().size(), 1);
-    blks.push_back(dagblk->getHash());
-    modes.push_back(mode);
+
+  uint64_t period = 0, cur_period;
+  std::shared_ptr<vec_blk_t> order;
+  // create a period for every 2 pivots
+  for (int i = 1; i < ghost.size(); i += 2) {
+    std::tie(cur_period, order) =
+        node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost[i]));
+    EXPECT_EQ(cur_period, ++period);
+    auto sche = node->createMockTrxSchedule(order);
+    if (!sche) continue;
+    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), *sche);
+    node->executeScheduleBlock(sche_blk);
+    taraxa::thisThreadSleepForMilliSeconds(200);
   }
-  TrxSchedule sche(blks, modes);
-  ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), sche);
-  node->executeScheduleBlock(sche_blk);
-  taraxa::thisThreadSleepForMilliSeconds(1000);
+  // pickup the last period when dag (chain) size is odd number
+  if (ghost.size() % 2) {
+    std::tie(cur_period, order) =
+        node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost.back()));
+    EXPECT_EQ(cur_period, ++period);
+    auto sche = node->createMockTrxSchedule(order);
+    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), *sche);
+    node->executeScheduleBlock(sche_blk);
+    taraxa::thisThreadSleepForMilliSeconds(200);
+  }
 
   node->stop();
 

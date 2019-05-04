@@ -277,7 +277,7 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   }
 }
 // only iterate only through non finalized blocks
-void Dag::updatePeriodVerticesAndComputeOrder(
+bool Dag::updatePeriodVerticesAndComputeOrder(
     vertex_hash const &from, vertex_hash const &to, uint64_t ith_peroid,
     std::unordered_set<vertex_hash> &recent_added_blks,
     std::vector<vertex_hash> &ordered_period_vertices) {
@@ -288,11 +288,11 @@ void Dag::updatePeriodVerticesAndComputeOrder(
 
   if (source == graph_.null_vertex()) {
     LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
-    return;
+    return false;
   }
   if (target == graph_.null_vertex()) {
     LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
-    return;
+    return false;
   }
   ordered_period_vertices.clear();
   std::set<vertex_t> epfriend;  // this is unordered epoch
@@ -309,8 +309,11 @@ void Dag::updatePeriodVerticesAndComputeOrder(
     auto v = graph_.vertex(*iter);
     if (ep_map[v] > 0) {
       iter++;
+      LOG(log_er_) << "The vertex " << name_map[v]
+                   << " has been included in other period " << ep_map[v]
+                   << std::endl;
       assert(0);
-      continue;
+      return false;
     }
     if (!reachable(v, source) && reachable(v, target)) {
       ep_map[v] = ith_peroid;
@@ -355,6 +358,7 @@ void Dag::updatePeriodVerticesAndComputeOrder(
     }
   }
   std::reverse(ordered_period_vertices.begin(), ordered_period_vertices.end());
+  return true;
 }
 
 time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
@@ -768,15 +772,24 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
 }
 
 uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
-                                                  vec_blk_t &orders) {
+                                                      vec_blk_t &orders) {
+  // TODO: need to check if the anchor already processed
+  // if the period already processed
+  orders.clear();
+
   std::vector<std::string> blk_orders;
   auto prev = anchors_.back();
-  anchors_.emplace_back(anchor.toString());
-  auto cur_epoch = anchors_.size();
+  auto cur_epoch = anchors_.size() - 1;
 
-  total_dag_->updatePeriodVerticesAndComputeOrder(
+  auto ok = total_dag_->updatePeriodVerticesAndComputeOrder(
       prev, anchor.toString(), cur_epoch, recent_added_blks_, blk_orders);
-  orders.clear();
+  if (!ok) {
+    LOG(log_dg_) << "Create epoch " << cur_epoch << " from " << prev << " to "
+                 << anchor << " failed " << std::endl;
+    return cur_epoch;
+  }
+  anchors_.emplace_back(anchor.toString());
+
   for (auto const &i : blk_orders) {
     orders.emplace_back(blk_hash_t(i));
   }
