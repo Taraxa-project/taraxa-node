@@ -124,15 +124,15 @@ bool PivotBlock::deserialize(stream &strm) {
 
   return ok;
 }
-/*
-TODO:: need fix later
-ScheduleBlock::ScheduleBlock(dev::RLP const &rlp) {
+
+ScheduleBlock::ScheduleBlock(taraxa::stream &strm) {
   deserialize(strm);
 }
-*/
+
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock] " << std::endl;
+  strm << "block hash: " << block_hash_ << std::endl;
   strm << "prev_pivot: " << prev_pivot_ << std::endl;
   strm << "time_stamp: " << timestamp_ << std::endl;
   strm << "sig: " << sig_ << std::endl;
@@ -147,13 +147,13 @@ std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
 }
 
 blk_hash_t ScheduleBlock::getHash() const {
-  return schedule_blk_;
+  return block_hash_;
 }
 
 bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
 
-  ok &= write(strm, schedule_blk_);
+  ok &= write(strm, block_hash_);
   ok &= write(strm, prev_pivot_);
   ok &= write(strm, timestamp_);
   ok &= write(strm, sig_);
@@ -166,7 +166,7 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
 bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   bool ok = true;
 
-  ok &= read(strm, schedule_blk_);
+  ok &= read(strm, block_hash_);
   ok &= read(strm, prev_pivot_);
   ok &= read(strm, timestamp_);
   ok &= read(strm, sig_);
@@ -186,10 +186,11 @@ PbftBlock::PbftBlock(dev::RLP const& _r) {
 blk_hash_t PbftBlock::getHash() const {
   if (block_type_ == pivot_block_type) {
     return pivot_block_.getHash();
-  } else {
-    // TODO: change later, need add others pbft block type
-    return pivot_block_.getHash();
+  } else if (block_type_ == schedule_block_type) {
+    return schedule_block_.getHash();
   }
+  // TODO: change later, need add others pbft block type
+  return blk_hash_t(0);
 }
 
 void PbftBlock::serializeRLP(dev::RLPStream& s) const {
@@ -206,6 +207,8 @@ bool PbftBlock::serialize(stream &strm) const {
   ok &= write(strm, block_type_);
   if (block_type_ == pivot_block_type) {
     pivot_block_.serialize(strm);
+  } else if (block_type_ == schedule_block_type) {
+    schedule_block_.serialize(strm);
   }
   // TODO: serialize other pbft blocks
   assert(ok);
@@ -217,6 +220,8 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   ok &= read(strm, block_type_);
   if (block_type_ == pivot_block_type) {
     pivot_block_.deserialize(strm);
+  } else if (block_type_ == schedule_block_type) {
+    schedule_block_.deserialize(strm);
   }
   // TODO: serialize other pbft blocks
   assert(ok);
@@ -264,7 +269,9 @@ void PbftChain::pushPbftBlock(const taraxa::PbftBlock &pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getHash();
   insertPbftBlock(pbft_block_hash, pbft_block);
   setLastPbftBlock(pbft_block_hash);
-  int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 3;
+  // TODO: only support pbft pivot and schedule block type so far
+  // may need add pbft result block type later
+  int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 2;
   setNextPbftBlockType(static_cast<PbftBlockTypes>(next_pbft_block_type));
   count++;
 }

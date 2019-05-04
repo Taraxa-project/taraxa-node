@@ -28,16 +28,42 @@
  * 3. ResultBlock: computing results
  */
 namespace taraxa {
-
+/*
 struct TrxSchedule {
   enum class TrxStatus : uint8_t { invalid, sequential, parallel };
   // TrxSchedule()=default;
 
+  explicit TrxSchedule() = default;
   explicit TrxSchedule(vec_blk_t const& blks,
                        std::vector<std::vector<uint>> const& modes)
       : blk_order(blks), vec_trx_modes(modes) {}
   // Construct from RLP
   explicit TrxSchedule(bytes const& rlpData);
+  bytes rlp() const;
+  // order of blocks (in hash)
+  vec_blk_t blk_order;
+  // It is multiple array of transactions
+  // TODO: optimize trx_mode type
+  std::vector<std::vector<uint>> vec_trx_modes;
+  std::string getJsonStr() const;
+  bool operator==(TrxSchedule const& other) const {
+    return rlp() == other.rlp();
+  }
+};
+*/
+class TrxSchedule {
+ public:
+  enum class TrxStatus : uint8_t { invalid, sequential, parallel };
+  // TrxSchedule()=default;
+
+  TrxSchedule() = default;
+  TrxSchedule(vec_blk_t const& blks,
+              std::vector<std::vector<uint>> const& modes)
+      : blk_order(blks), vec_trx_modes(modes) {}
+  // Construct from RLP
+  TrxSchedule(bytes const& rlpData);
+  ~TrxSchedule() {}
+
   bytes rlp() const;
   // order of blocks (in hash)
   vec_blk_t blk_order;
@@ -105,13 +131,22 @@ class PivotBlock {
 
 class ScheduleBlock {
  public:
+  ScheduleBlock() = default;
+  ScheduleBlock(blk_hash_t const& block_hash, blk_hash_t const& prev_pivot,
+                uint64_t const& timestamp, sig_t const& sig,
+                TrxSchedule const& sche)
+      : block_hash_(block_hash),
+        prev_pivot_(prev_pivot),
+        timestamp_(timestamp),
+        sig_(sig),
+        schedule_(sche) {}
   ScheduleBlock(blk_hash_t const& prev_pivot, uint64_t const& timestamp,
                 sig_t const& sig, TrxSchedule const& sche)
       : prev_pivot_(prev_pivot),
         timestamp_(timestamp),
         sig_(sig),
         schedule_(sche) {}
-  ScheduleBlock(dev::RLP const &rlp);
+  ScheduleBlock(taraxa::stream &strm);
   ~ScheduleBlock() {}
 
   std::string getJsonStr() const;
@@ -124,7 +159,7 @@ class ScheduleBlock {
   friend std::ostream;
 
  private:
-  blk_hash_t schedule_blk_;
+  blk_hash_t block_hash_;
   blk_hash_t prev_pivot_;
   uint64_t timestamp_;
   sig_t sig_;
@@ -164,6 +199,7 @@ class PbftBlock {
  private:
   PbftBlockTypes block_type_ = pbft_block_none_type;
   PivotBlock pivot_block_;
+  ScheduleBlock schedule_block_;
   // TODO: need more pbft block type
 };
 

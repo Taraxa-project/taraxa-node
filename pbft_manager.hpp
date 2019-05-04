@@ -17,8 +17,7 @@
 #include "types.hpp"
 #include "vote.h"
 
-#define NULL_BLOCK "0"
-#define NULL_BLOCK_HASH dev::sha3(NULL_BLOCK)
+#define NULL_BLOCK_HASH blk_hash_t(0)
 #define TWO_T_PLUS_ONE 3  // this is the 2t+1 value..
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...

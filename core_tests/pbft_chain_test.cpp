@@ -19,7 +19,7 @@
 #include "util.hpp"
 
 namespace taraxa {
-
+/*
 TEST(TrxSchedule, serialize_deserialize) {
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(32443)};
   std::vector<std::vector<uint>> modes{
@@ -29,6 +29,7 @@ TEST(TrxSchedule, serialize_deserialize) {
   TrxSchedule sche2(rlp);
   EXPECT_EQ(sche1, sche2);
 }
+ */
 
 TEST(PivotBlock, serialize_deserialize) {
   blk_hash_t prev_blk(12);
@@ -59,6 +60,7 @@ TEST(PivotBlock, serialize_deserialize) {
   EXPECT_EQ(ss1.str(), ss2.str());
 }
 
+/*
 TEST(PivotBlock, pivot_block_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
@@ -140,6 +142,35 @@ TEST(PivotBlock, pivot_block_broadcast) {
   size_t node3_pbft_chain_size = node3->getPbftChainSize();
   EXPECT_EQ(node2_pbft_chain_size, 2);
   EXPECT_EQ(node3_pbft_chain_size, 2);
+}
+*/
+
+TEST(ScheduleBlock, serialize_deserialize) {
+  blk_hash_t block_hash(11);
+  blk_hash_t prev_pivot(22);
+  uint64_t timestamp = 333333;
+  sig_t sig(444444);
+  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
+  std::vector<std::vector<uint>> modes{
+      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
+  TrxSchedule schedule(blks, modes);
+  ScheduleBlock schedule_blk1(block_hash, prev_pivot, timestamp, sig, schedule);
+
+  std::stringstream ss1, ss2;
+  ss1 << schedule_blk1;
+
+  std::vector<uint8_t> bytes;
+  {
+    vectorstream strm1(bytes);
+    schedule_blk1.serialize(strm1);
+  }
+
+  bufferstream strm2(bytes.data(), bytes.size());
+  ScheduleBlock schedule_blk2(strm2);
+  ss2 << schedule_blk2;
+
+  // Compare PivotBlock content
+  EXPECT_EQ(ss1.str(), ss2.str());
 }
 
 TEST(PbftManager, DISABLED_create_pbft_manager) {
