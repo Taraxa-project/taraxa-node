@@ -203,6 +203,7 @@ class PbftChain {
   size_t getSize() const { return count; }
   blk_hash_t getLastPbftBlock() const;
   PbftBlockTypes getNextPbftBlockType() const;
+
   void setLastPbftBlock(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);
 
