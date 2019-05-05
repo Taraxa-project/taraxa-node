@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:32
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-01
+ * @Last Modified time: 2019-05-05
  */
 
 #include "pbft_chain.hpp"
@@ -93,6 +93,14 @@ blk_hash_t PivotBlock::getHash() const {
   return block_hash_;
 }
 
+blk_hash_t PivotBlock::getPrevPivotBlockHash() const {
+  return prev_pivot_blk_;
+}
+
+blk_hash_t PivotBlock::getPrevBlockHash() const {
+  return prev_res_blk_;
+}
+
 bool PivotBlock::serialize(stream &strm) const {
   bool ok = true;
 
@@ -157,7 +165,25 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   ok &= write(strm, prev_pivot_);
   ok &= write(strm, timestamp_);
   ok &= write(strm, sig_);
-  ok &= write(strm, schedule_);
+  uint32_t block_size = schedule_.blk_order.size();
+  uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
+  if (block_size != trx_vectors_size) {
+    std::cerr << "Number of Blocks should be equal to the size of transaction vectors"
+              << std::endl;
+    return false;
+  }
+  ok &= write(strm, block_size);
+  ok &= write(strm, trx_vectors_size);
+  for (int i = 0; i < block_size; i++) {
+    ok &= write(strm, schedule_.blk_order[i]);
+  }
+  for (int i = 0; i < trx_vectors_size; i++) {
+    uint32_t each_block_trx_size = schedule_.vec_trx_modes[i].size();
+    ok &= write(strm, each_block_trx_size);
+    for (int j = 0; j < each_block_trx_size; j++) {
+      ok &= write(strm, schedule_.vec_trx_modes[i][j]);
+    }
+  }
   assert(ok);
 
   return ok;
@@ -170,7 +196,35 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   ok &= read(strm, prev_pivot_);
   ok &= read(strm, timestamp_);
   ok &= read(strm, sig_);
-  ok &= read(strm, schedule_);
+  uint32_t block_size;
+  uint32_t trx_vectors_size;
+  ok &= read(strm, block_size);
+  ok &= read(strm, trx_vectors_size);
+  if (block_size != trx_vectors_size) {
+    std::cerr << "Number of Blocks should be equal to the size of transaction vectors"
+              << std::endl;
+    return false;
+  }
+  for (int i = 0; i < block_size; i++) {
+    blk_hash_t block_hash;
+    ok &= read(strm, block_hash);
+    if (ok) {
+      schedule_.blk_order.push_back(block_hash);
+    }
+  }
+  for (int i = 0; i < trx_vectors_size; i++) {
+    uint32_t each_block_trx_size;
+    ok &= read(strm, each_block_trx_size);
+    std::vector<uint> each_block_trxs;
+    for (int j = 0; j < each_block_trx_size; j++) {
+      uint trx_mode;
+      ok &= read(strm, trx_mode);
+      if (ok) {
+        each_block_trxs.push_back(trx_mode);
+      }
+    }
+    schedule_.vec_trx_modes.push_back(each_block_trxs);
+  }
   assert(ok);
 
   return ok;
@@ -232,6 +286,10 @@ blk_hash_t PbftChain::getLastPbftBlock() const {
   return last_pbft_blk_;
 }
 
+PbftBlockTypes PbftChain::getNextPbftBlockType() const {
+  return next_pbft_block_type_;
+}
+
 bool PbftChain::isPbftGenesis() const {
   return is_pbft_genesis_;
 }
@@ -274,6 +332,44 @@ void PbftChain::pushPbftBlock(const taraxa::PbftBlock &pbft_block) {
   int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 2;
   setNextPbftBlockType(static_cast<PbftBlockTypes>(next_pbft_block_type));
   count++;
+}
+
+bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
+  if (pbft_block.getBlockType() != pivot_block_type) {
+    return false;
+  }
+  if (next_pbft_block_type_ != pivot_block_type) {
+    return false;
+  }
+  std::pair<PbftBlock, bool> pbft_chain_last_blk = getPbftBlock(last_pbft_blk_);
+  if (!pbft_chain_last_blk.second) {
+    std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
+  }
+  if (pbft_block.getPivotBlock().getPrevBlockHash() !=
+      pbft_chain_last_blk.first.getHash()) {
+    return false;
+  }
+  pushPbftBlock(pbft_block);
+  return true;
+}
+
+bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
+  if (pbft_block.getBlockType() != schedule_block_type) {
+    return false;
+  }
+  if (next_pbft_block_type_ != schedule_block_type) {
+    return false;
+  }
+  std::pair<PbftBlock, bool> pbft_chain_last_blk = getPbftBlock(last_pbft_blk_);
+  if (!pbft_chain_last_blk.second) {
+    std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
+  }
+  if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
+      pbft_chain_last_blk.first.getHash()) {
+    return false;
+  }
+  pushPbftBlock(pbft_block);
+  return true;
 }
 
 }  // namespace taraxa
