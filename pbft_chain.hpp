@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:06
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-01
+ * @Last Modified time: 2019-05-05
  */
 #ifndef PBFT_CHAIN_HPP
 #define PBFT_CHAIN_HPP
@@ -28,33 +28,10 @@
  * 3. ResultBlock: computing results
  */
 namespace taraxa {
-/*
-struct TrxSchedule {
-  enum class TrxStatus : uint8_t { invalid, sequential, parallel };
-  // TrxSchedule()=default;
 
-  explicit TrxSchedule() = default;
-  explicit TrxSchedule(vec_blk_t const& blks,
-                       std::vector<std::vector<uint>> const& modes)
-      : blk_order(blks), vec_trx_modes(modes) {}
-  // Construct from RLP
-  explicit TrxSchedule(bytes const& rlpData);
-  bytes rlp() const;
-  // order of blocks (in hash)
-  vec_blk_t blk_order;
-  // It is multiple array of transactions
-  // TODO: optimize trx_mode type
-  std::vector<std::vector<uint>> vec_trx_modes;
-  std::string getJsonStr() const;
-  bool operator==(TrxSchedule const& other) const {
-    return rlp() == other.rlp();
-  }
-};
-*/
 class TrxSchedule {
  public:
   enum class TrxStatus : uint8_t { invalid, sequential, parallel };
-  // TrxSchedule()=default;
 
   TrxSchedule() = default;
   TrxSchedule(vec_blk_t const& blks,
@@ -98,7 +75,11 @@ class PivotBlock {
                                  sig_(sig) {}
   ~PivotBlock() {}
 
+  blk_hash_t blockHash() const;
   blk_hash_t getHash() const;
+  blk_hash_t getPrevPivotBlockHash() const;
+  blk_hash_t getPrevBlockHash() const;
+
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
 
@@ -150,8 +131,9 @@ class ScheduleBlock {
   ~ScheduleBlock() {}
 
   std::string getJsonStr() const;
-  TrxSchedule getSchedule() const {return schedule_;}
+  TrxSchedule getSchedule() const { return schedule_; }
   blk_hash_t getHash() const;
+  blk_hash_t getPrevBlockHash() const { return prev_pivot_; }
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
@@ -183,13 +165,17 @@ class PbftBlock {
   PbftBlock(dev::RLP const &_r);
   ~PbftBlock() {}
 
+  blk_hash_t getHash() const;
   PbftBlockTypes getBlockType() const { return block_type_; }
   void setBlockType(PbftBlockTypes block_type) { block_type_ = block_type; }
 
   PivotBlock getPivotBlock() const { return pivot_block_; }
-  blk_hash_t getHash() const;
   void setPivotBlock(PivotBlock const& pivot_block) {
     pivot_block_ = pivot_block;
+  }
+  ScheduleBlock getScheduleBlock() const { return schedule_block_; }
+  void setScheduleBlock(ScheduleBlock const& schedule_block) {
+    schedule_block_ = schedule_block;
   }
 
   void serializeRLP(dev::RLPStream &s) const;
@@ -217,6 +203,7 @@ class PbftChain {
 
   size_t getSize() const { return count; }
   blk_hash_t getLastPbftBlock() const;
+  PbftBlockTypes getNextPbftBlockType() const;
   bool isPbftGenesis() const;
   void setNotPbftGenesis();
   void setLastPbftBlock(blk_hash_t const& new_pbft_block);
@@ -227,6 +214,8 @@ class PbftChain {
   void insertPbftBlock(blk_hash_t const& pbft_block_hash,
                        PbftBlock const& pbft_block);
   void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
+  bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
+  bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
 
  private:
   blk_hash_t genesis_hash_ = blk_hash_t(0);
