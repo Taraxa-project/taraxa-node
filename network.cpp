@@ -141,13 +141,13 @@ void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
 
 void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
   LOG(log_dg_) << "Network broadcast PBFT block: "
-               << pbft_block.getHash().toString();
+               << pbft_block.getBlockHash().toString();
   taraxa_capability_->onNewPbftBlock(pbft_block);
 }
 
 void Network::sendPbftBlock(const NodeID &id,
                             const taraxa::PbftBlock &pbft_block) {
-  LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getHash().toString()
+  LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash().toString()
                << " to: " << id;
   taraxa_capability_->sendPbftBlock(id, pbft_block);
 }

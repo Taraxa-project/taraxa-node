@@ -237,14 +237,16 @@ PbftBlock::PbftBlock(dev::RLP const& _r) {
   deserialize(strm);
 }
 
-blk_hash_t PbftBlock::getHash() const {
-  if (block_type_ == pivot_block_type) {
-    return pivot_block_.getHash();
-  } else if (block_type_ == schedule_block_type) {
-    return schedule_block_.getHash();
-  }
-  // TODO: change later, need add others pbft block type
-  return blk_hash_t(0);
+blk_hash_t PbftBlock::getBlockHash() const {
+  return block_hash_;
+}
+
+blk_hash_t PbftBlock::getPivotBlockHash() const {
+  return pivot_block_.getHash();
+}
+
+blk_hash_t PbftBlock::getScheduleBlockHash() const {
+  return schedule_block_.getHash();
 }
 
 void PbftBlock::serializeRLP(dev::RLPStream& s) const {
@@ -258,6 +260,7 @@ void PbftBlock::serializeRLP(dev::RLPStream& s) const {
 
 bool PbftBlock::serialize(stream &strm) const {
   bool ok = true;
+  ok &= write(strm, block_hash_);
   ok &= write(strm, block_type_);
   if (block_type_ == pivot_block_type) {
     pivot_block_.serialize(strm);
@@ -271,6 +274,7 @@ bool PbftBlock::serialize(stream &strm) const {
 
 bool PbftBlock::deserialize(taraxa::stream& strm) {
   bool ok = true;
+  ok &= read(strm, block_hash_);
   ok &= read(strm, block_type_);
   if (block_type_ == pivot_block_type) {
     pivot_block_.deserialize(strm);
@@ -288,14 +292,6 @@ blk_hash_t PbftChain::getLastPbftBlock() const {
 
 PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
-}
-
-bool PbftChain::isPbftGenesis() const {
-  return is_pbft_genesis_;
-}
-
-void PbftChain::setNotPbftGenesis() {
-  is_pbft_genesis_ = false;
 }
 
 void PbftChain::setLastPbftBlock(const blk_hash_t &new_pbft_block) {
@@ -324,7 +320,7 @@ void PbftChain::insertPbftBlock(const taraxa::blk_hash_t &pbft_block_hash,
 }
 
 void PbftChain::pushPbftBlock(const taraxa::PbftBlock &pbft_block) {
-  blk_hash_t pbft_block_hash = pbft_block.getHash();
+  blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   insertPbftBlock(pbft_block_hash, pbft_block);
   setLastPbftBlock(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
@@ -344,9 +340,10 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   std::pair<PbftBlock, bool> pbft_chain_last_blk = getPbftBlock(last_pbft_blk_);
   if (!pbft_chain_last_blk.second) {
     std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
+    return false;
   }
   if (pbft_block.getPivotBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.first.getHash()) {
+      pbft_chain_last_blk.first.getBlockHash()) {
     return false;
   }
   pushPbftBlock(pbft_block);
@@ -363,9 +360,10 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   std::pair<PbftBlock, bool> pbft_chain_last_blk = getPbftBlock(last_pbft_blk_);
   if (!pbft_chain_last_blk.second) {
     std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
+    return false;
   }
   if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.first.getHash()) {
+      pbft_chain_last_blk.first.getBlockHash()) {
     return false;
   }
   pushPbftBlock(pbft_block);

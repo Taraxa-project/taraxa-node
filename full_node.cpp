@@ -460,12 +460,7 @@ bool FullNode::isKnownPbftBlock(
 }
 
 void FullNode::setPbftBlock(taraxa::PbftBlock &pbft_block) {
-  if (pbft_chain_->isPbftGenesis() &&
-      pbft_block.getBlockType() == pivot_block_type) {
-    // set first pbft pivot block
-    pbft_chain_->pushPbftBlock(pbft_block);
-    pbft_chain_->setNotPbftGenesis();
-  } else if (pbft_block.getBlockType() == pivot_block_type) {
+  if (pbft_block.getBlockType() == pivot_block_type) {
     pbft_chain_->pushPbftPivotBlock(pbft_block);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     pbft_chain_->pushPbftScheduleBlock(pbft_block);
