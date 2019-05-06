@@ -162,10 +162,13 @@ class ResultBlock {
 class PbftBlock {
  public:
   PbftBlock() = default;
+  PbftBlock(blk_hash_t block_hash) : block_hash_(block_hash) {}
   PbftBlock(dev::RLP const &_r);
   ~PbftBlock() {}
 
-  blk_hash_t getHash() const;
+  blk_hash_t getBlockHash() const;
+  blk_hash_t getPivotBlockHash() const;
+  blk_hash_t getScheduleBlockHash() const;
   PbftBlockTypes getBlockType() const { return block_type_; }
   void setBlockType(PbftBlockTypes block_type) { block_type_ = block_type; }
 
@@ -183,6 +186,7 @@ class PbftBlock {
   bool deserialize(stream &strm);
 
  private:
+  blk_hash_t block_hash_;
   PbftBlockTypes block_type_ = pbft_block_none_type;
   PivotBlock pivot_block_;
   ScheduleBlock schedule_block_;
@@ -192,20 +196,13 @@ class PbftBlock {
 class PbftChain {
  public:
   PbftChain() : last_pbft_blk_(genesis_hash_) {
-    pbft_blocks_map_[genesis_hash_];
+    pbft_blocks_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
   }
-  PbftChain(blk_hash_t const& first_pivot_blk)
-    : count(2),
-      is_pbft_genesis_(false),
-      next_pbft_block_type_(schedule_block_type),
-      last_pbft_blk_(first_pivot_blk) {}
   ~PbftChain() {}
 
   size_t getSize() const { return count; }
   blk_hash_t getLastPbftBlock() const;
   PbftBlockTypes getNextPbftBlockType() const;
-  bool isPbftGenesis() const;
-  void setNotPbftGenesis();
   void setLastPbftBlock(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);
 
@@ -220,9 +217,8 @@ class PbftChain {
  private:
   blk_hash_t genesis_hash_ = blk_hash_t(0);
   uint64_t count = 1;
-  bool is_pbft_genesis_ = true;
   PbftBlockTypes next_pbft_block_type_ = pivot_block_type;
-  blk_hash_t last_pbft_blk_;
+  blk_hash_t last_pbft_blk_ = genesis_hash_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_blocks_map_;
 };
 

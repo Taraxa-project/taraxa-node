@@ -273,27 +273,27 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       if (!full_node->isKnownVote(vote)) {
         full_node->placeVote(vote);
         full_node->setVoteKnown(vote);
+        onNewPbftVote(vote);
       }
 
-      onNewPbftVote(vote);
       break;
     }
     case PbftBlockPacket: {
       LOG(logger_debug_) << "Received PBFT Block";
 
       PbftBlock pbft_block(_r[0]);
-      peers_[_nodeID].markPbftBlockAsKnown(pbft_block.getHash());
+      peers_[_nodeID].markPbftBlockAsKnown(pbft_block.getBlockHash());
 
       auto full_node = full_node_.lock();
       if (!full_node) {
         LOG(logger_err_) << "PbftBlock full node weak pointer empty";
         return false;
       }
-      if (!full_node->isKnownPbftBlock(pbft_block.getHash())) {
+      if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
         full_node->setPbftBlock(pbft_block);
+        onNewPbftBlock(pbft_block);
       }
 
-      onNewPbftBlock(pbft_block);
       break;
     }
     case TestPacket:
@@ -643,7 +643,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
   for (auto const& peer: peers_) {
-    if (!peer.second.isPbftBlockKnown(pbft_block.getHash())) {
+    if (!peer.second.isPbftBlockKnown(pbft_block.getBlockHash())) {
       sendPbftBlock(peer.first, pbft_block);
     }
   }
@@ -651,7 +651,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id,
                                      taraxa::PbftBlock const &pbft_block) {
-  LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getHash()
+  LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getBlockHash()
                      << " to " << _id;
 
   RLPStream s;
