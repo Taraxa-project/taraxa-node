@@ -65,10 +65,10 @@ class TaraxaPeer {
   void clearKnownVotes() { m_knownVotes.clear(); }
 
   bool isPbftBlockKnown(blk_hash_t const &_hash) const {
-  	return m_knownPbftBlocks.count(_hash);
+    return m_knownPbftBlocks.count(_hash);
   }
   void markPbftBlockAsKnown(blk_hash_t const &_hash) {
-  	m_knownPbftBlocks.insert(_hash);
+    m_knownPbftBlocks.insert(_hash);
   }
   void cleanKnownPbftBlocks() { m_knownPbftBlocks.clear(); }
 
@@ -95,6 +95,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         network_simulated_delay_(network_simulated_delay) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
+    delay_rng_ = std::mt19937(seed());
+    random_dist_ =
+        std::uniform_int_distribution<std::mt19937::result_type>(90, 110);
   }
   virtual ~TaraxaCapability() = default;
   std::string name() const override { return "taraxa"; }
@@ -168,6 +171,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::shared_ptr<boost::asio::io_service::work> io_work_;
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
+  std::mt19937 delay_rng_;
+  std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
   dev::Logger logger_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
   dev::Logger logger_debug_{

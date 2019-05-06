@@ -63,12 +63,19 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   }
   // RLP contains memory it does not own so deep copy of bytes is needed
   dev::bytes rBytes = _r.data().toBytes();
+  int messageSize = rBytes.size() * 8;
   unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
   unsigned int delay = dist % network_simulated_delay_;
-  LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds"
-                       << dist << " " << network_simulated_delay_;
+  //Use next 16 bits for bandwidth value
+  dist = dist >> 16;
+  //Bandwidth is for now hard coded in random range between 1Mb/s and 1000Mb/s
+  unsigned int bandwidth_delay = dist % 1000 + 1;
+  //Random component up to +-10% 
+  int random_component = random_dist_(delay_rng_);
+  unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
+  LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds";
   auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
-  timer->expires_from_now(boost::posix_time::milliseconds(delay));
+  timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
   timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code& ec) {
     RLP _rCopy(rBytes);
     interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
