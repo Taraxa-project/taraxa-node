@@ -69,7 +69,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   //Use next 16 bits for bandwidth value
   dist = dist >> 16;
   //Bandwidth is for now hard coded in random range between 1Mb/s and 1000Mb/s
-  unsigned int bandwidth_delay = dist % 1000 + 1;
+  unsigned int bandwidth_delay = messageSize / (dist % 1000 + 1) / 1000;
   //Random component up to +-10% 
   int random_component = random_dist_(delay_rng_);
   unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
