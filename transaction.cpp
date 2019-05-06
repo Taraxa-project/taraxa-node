@@ -326,7 +326,26 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(
     trx_hash_t const &hash) {
-  return trx_qu_.getTransaction(hash);
+  // Check the status
+  std::shared_ptr<Transaction> tr;
+  //Loop needed because moving transactions from queue to database is not secure
+  //Probably a better fix is to have transactions saved to the database first and only then removed from the queue
+  while(tr == nullptr) {
+    auto status = trx_status_.get(hash);
+    if (status.second) {
+      if (status.first == TransactionStatus::in_queue) {
+        tr = trx_qu_.getTransaction(hash);
+      } else if (status.first == TransactionStatus::in_block) {
+        std::string json = db_trxs_->get(hash.toString());
+        if (!json.empty()) {
+          tr = std::make_shared<Transaction>(json);
+        }
+      }
+      else break;
+    }
+    else break;
+  }
+  return tr;
 }
 // Received block means some trx might be packed by others
 bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
@@ -340,9 +359,9 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
     trx_status_.update(trx.getHash(), TransactionStatus::in_block);
   }
 
-  // Second step: Remove from the queue any transaction that is part of the block
-  // Verify that all transactions are saved in the database
-  // If all transactions are not available within 2 seconds fail the block verification
+  // Second step: Remove from the queue any transaction that is part of the
+  // block Verify that all transactions are saved in the database If all
+  // transactions are not available within 2 seconds fail the block verification
   bool allTransactionsSaved = true;
   unsigned int delay = 0;
   while (delay < 2000) {
@@ -357,9 +376,10 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
       if (res.second == false || res.first != TransactionStatus::in_block)
         allTransactionsSaved = false;
     }
-    //Only if all transactions are saved in the db can we verify a new block
+    // Only if all transactions are saved in the db can we verify a new block
     if (allTransactionsSaved) break;
-    //Getting here should be a very rare case where in a racing condition block was processed before the transactions
+    // Getting here should be a very rare case where in a racing condition block
+    // was processed before the transactions
     thisThreadSleepForMilliSeconds(10);
     delay += 10;
   }
@@ -411,7 +431,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     trx_status_.update(hash, TransactionStatus::in_block);
     to_be_packed_trx.emplace_back(i.first);
   }
-  if(changed) {
+  if (changed) {
     db_trxs_->commit();
   }
 }
