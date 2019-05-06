@@ -84,7 +84,7 @@ TEST(Network, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
   std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
 
-  nw1->start();
+  nw1->start(true);
   nw2->start();
   Transaction trx1(trx_hash_t(1),            // hash
                    Transaction::Type::Call,  // type
@@ -147,7 +147,7 @@ TEST(Network, save_network) {
     std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
     std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3.network));
 
-    nw1->start();
+    nw1->start(true);
     nw2->start();
     nw3->start();
 
@@ -199,7 +199,7 @@ TEST(Network, node_sync) {
       context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start();
+  node1->start(true);
 
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -277,7 +277,7 @@ TEST(Network, node_sync_with_transactions) {
       context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start();
+  node1->start(true);
   std::vector<DagBlock> blks;
 
   DagBlock blk1(
@@ -367,7 +367,7 @@ TEST(Network, node_sync2) {
       context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start();
+  node1->start(true);
   std::vector<DagBlock> blks;
 
   DagBlock blk1(
@@ -529,7 +529,7 @@ TEST(Network, node_transaction_sync) {
       context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start();
+  node1->start(true);
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
   for (auto const& t : g_signed_trx_samples) {

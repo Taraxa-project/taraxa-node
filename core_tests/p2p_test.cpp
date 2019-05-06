@@ -43,7 +43,7 @@ TEST(p2p, p2p_discovery) {
   dev::p2p::Host bootHost(
       "TaraxaNode", key,
       dev::p2p::NetworkConfig("127.0.0.1", 20001, false, true));
-  bootHost.start();
+  bootHost.start(true);
   printf("Started Node id: %s\n", bootHost.id().hex().c_str());
 
   std::vector<std::shared_ptr<dev::p2p::Host>> nodes;
@@ -229,7 +229,7 @@ TEST(p2p, block_propagate) {
     vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i]));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
-  host1.start();
+  host1.start(true);
   for (int i = 0; i < nodeCount; i++) {
     vHosts[i]->start();
     this_thread::sleep_for(chrono::milliseconds(10));
