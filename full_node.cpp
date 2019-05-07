@@ -55,6 +55,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()),
       pbft_chain_(std::make_shared<PbftChain>()) {
+    LOG(log_nf_) << "Read FullNode Config: "<<std::endl << conf_ << std::endl;
+
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -466,8 +468,6 @@ void FullNode::setPbftBlock(taraxa::PbftBlock &pbft_block) {
   // TODO: set non-first block in pbft chain
 }
 
-size_t FullNode::getPbftChainSize() const {
-  return pbft_chain_->getSize();
-}
+size_t FullNode::getPbftChainSize() const { return pbft_chain_->getSize(); }
 
 }  // namespace taraxa

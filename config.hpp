@@ -14,7 +14,7 @@
 
 namespace taraxa {
 struct RpcConfig {
-  RpcConfig()=default;
+  RpcConfig() = default;
   RpcConfig(std::string const &json_file);
   std::string json_file_name;
   uint16_t port;
@@ -59,5 +59,13 @@ struct FullNodeConfig {
   RpcConfig rpc;
   PbftManagerConfig pbft_manager;
 };
+std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
+std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf);
+std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf);
+std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
+std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
+std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
+
+
 }  // namespace taraxa
 #endif

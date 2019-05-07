@@ -16,6 +16,7 @@ Network::Network(NetworkConfig const &config, std::string network_file)
     : Network(config, network_file, secret_t()) {}
 Network::Network(NetworkConfig const &config, std::string network_file,
                  secret_t const &sk) try : conf_(config) {
+  LOG(log_nf_) << "Read Network Config: "<<std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {
     LOG(log_dg_) << "New key generated " << toHex(key.secret().ref());
@@ -23,21 +24,21 @@ Network::Network(NetworkConfig const &config, std::string network_file,
     key = dev::KeyPair(sk);
   }
 
-  if(network_file != "") {
+  if (network_file != "") {
     auto networkData = contents(network_file);
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode",
-        dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
-                                false, true),
+        dev::p2p::NetworkConfig(conf_.network_address,
+                                conf_.network_listen_port, false, true),
         dev::bytesConstRef(&networkData));
-  }
-  else {
+  } else {
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode", key,
-        dev::p2p::NetworkConfig(conf_.network_address, conf_.network_listen_port,
-                                false, true));
+        dev::p2p::NetworkConfig(conf_.network_address,
+                                conf_.network_listen_port, false, true));
   }
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_.network_simulated_delay);
+  taraxa_capability_ = std::make_shared<TaraxaCapability>(
+      *host_.get(), conf_.network_simulated_delay);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -62,17 +63,28 @@ void Network::start(bool boot_node) {
   }
   stopped_ = false;
   host_->start(boot_node);
-  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":" << conf_.network_listen_port
-               << std::endl;
+  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":"
+               << conf_.network_listen_port << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
-
+  size_t boot_node_added = 0;
   for (auto &node : conf_.network_boot_nodes) {
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;
+    if (node.ip.empty()) {
+      LOG(log_wr_) << "Boot node ip is empty:" << node.ip << ":" << node.port;
+      continue;
+    }
+    if (node.port <= 0 || node.port > 65535) {
+      LOG(log_wr_) << "Boot node port invalid: " << node.port;
+      continue;
+    }
     host_->addNode(
         dev::Public(node.id),
         dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
                                  node.port, node.port));
+    boot_node_added++;
   }
+  LOG(log_nf_) << " Number of boot node added: " << boot_node_added
+               << std::endl;
 }
 
 void Network::stop() {
@@ -117,8 +129,7 @@ void Network::saveNetwork(std::string fileName) {
 }
 
 void Network::onNewPbftVote(Vote const &vote) {
-  LOG(log_dg_) << "Network broadcast PBFT vote: "
-                     << vote.getHash().toString();
+  LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash().toString();
   taraxa_capability_->onNewPbftVote(vote);
 }
 

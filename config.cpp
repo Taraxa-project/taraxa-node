@@ -23,7 +23,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     proposer.param2 = doc.get<uint>("block_proposer.param2");
     network.network_address = doc.get<std::string>("network_address");
     network.network_listen_port = doc.get<uint16_t>("network_listen_port");
-    network.network_simulated_delay = doc.get<uint16_t>("network_simulated_delay");
+    network.network_simulated_delay =
+        doc.get<uint16_t>("network_simulated_delay");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -49,5 +50,60 @@ RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+}
+std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf) {
+  strm << "[Rpc Config] " << std::endl;
+  strm << "   json_file_name: " << conf.json_file_name << std::endl;
+  strm << "   port: " << conf.json_file_name << std::endl;
+  strm << "   address: " << conf.address << std::endl;
+  return strm;
+}
+
+std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf) {
+  strm << "[PbftManager Config] " << std::endl;
+  strm << "   lambda: " << conf.lambda_ms << std::endl;
+  return strm;
+}
+
+std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf) {
+  strm << "[Proposer Config] " << std::endl;
+  strm << "   mode: " << conf.mode << std::endl;
+  strm << "   param1: " << conf.param1 << std::endl;
+  strm << "   param2: " << conf.param2 << std::endl;
+  return strm;
+}
+
+std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
+  strm << "  [Node Config] " << std::endl;
+  strm << "    node_id: " << conf.id << std::endl;
+  strm << "    node_ip: " << conf.ip << std::endl;
+  strm << "    node_port: " << conf.port << std::endl;
+  return strm;
+}
+std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
+  strm << "[Network Config] " << std::endl;
+  strm << "  json_file_name: " << conf.json_file_name << std::endl;
+  strm << "  network_address: " << conf.network_address << std::endl;
+  strm << "  network_listen_port: " << conf.network_listen_port << std::endl;
+  strm << "  --> boot nodes  ... " << std::endl;
+  for (auto const &c : conf.network_boot_nodes) {
+    strm << c << std::endl;
+  }
+  return strm;
+}
+std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
+  strm << "[FullNode Config] " << std::endl;
+  strm << "  json_file_name: " << conf.json_file_name << std::endl;
+  strm << "  node_secret: " << conf.node_secret << std::endl;
+  strm << "  db_accoutns_path: " << conf.db_accounts_path << std::endl;
+  strm << "  db_blocks_path: " << conf.db_blocks_path << std::endl;
+  strm << "  db_transactions_path: " << conf.db_transactions_path << std::endl;
+  strm << "  dag_processing_thread: " << conf.dag_processing_threads
+       << std::endl;
+  strm << conf.proposer;
+  strm << conf.network;
+  strm << conf.rpc;
+  strm << conf.pbft_manager;
+  return strm;
 }
 }  // namespace taraxa
