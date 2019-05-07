@@ -150,7 +150,8 @@ void Dag::getChildrenBeforeTimeStamp(vertex_hash const &vertex,
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (getChildrenBeforeTimeStamp) "
+                 << vertex << "\n";
     return;
   }
   children.clear();
@@ -172,7 +173,8 @@ void Dag::getSubtreeBeforeTimeStamp(vertex_hash const &vertex,
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (getSubtreeBeforeTimeStamp) "
+                 << vertex << "\n";
     return;
   }
   subtree.clear();
@@ -208,7 +210,8 @@ void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (getLeavesBeforeTimeStamp) "
+                 << vertex << "\n";
     return;
   }
   tips.clear();
@@ -255,7 +258,8 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   vertex_t target = graph_.vertex(to);
 
   if (source == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (from) (getEpFriendVertices) "
+                 << from << "\n";
     return;
   }
   if (target == graph_.null_vertex()) {
@@ -287,7 +291,9 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
   vertex_t target = graph_.vertex(to);
 
   if (source == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (from)" << from << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (from) "
+                    "(updatePeriodVerticesAndComputeOrder) "
+                 << from << "\n";
     return false;
   }
   if (target == graph_.null_vertex()) {
@@ -365,7 +371,8 @@ time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex << "\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (getVertexTimeStamp) "
+                 << vertex << "\n";
     return 0;
   }
   vertex_time_stamp_map_const_t time_map =
@@ -377,8 +384,8 @@ void Dag::setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp) {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex
-                 << " to set timestamp\n";
+    LOG(log_wr_) << "Warning! cannot find vertex (setVertexTimeStamp) "
+                 << vertex << " to set timestamp\n";
     return;
   }
   vertex_time_stamp_map_t time_map = boost::get(boost::vertex_index1, graph_);
@@ -389,7 +396,7 @@ void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex " << vertex
+    LOG(log_wr_) << "Warning! cannot find vertex (setVertexPeriod) " << vertex
                  << " to set epoch\n";
     return;
   }
@@ -457,7 +464,8 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   vertex_t root = graph_.vertex(vertex);
 
   if (root == graph_.null_vertex()) {
-    LOG(log_nf_) << "Warning! cannot find vertex " << vertex << std::endl;
+    LOG(log_nf_) << "Warning! cannot find vertex (getGhostPathBeforeTimeStamp) "
+                 << vertex << std::endl;
     return;
   }
   pivot_chain.clear();
