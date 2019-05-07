@@ -148,7 +148,7 @@ TEST(Top, sync_two_nodes) {
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
   // wait for top2 initialize
-  taraxa::thisThreadSleepForMilliSeconds(500);
+  taraxa::thisThreadSleepForMilliSeconds(1000);
   auto node1 = top1.getNode();
   auto node2 = top2.getNode();
   EXPECT_NE(node1, nullptr);
@@ -161,6 +161,8 @@ TEST(Top, sync_two_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
     vertices2 = node2->getNumVerticesInDag();
+    std::cout << "vertices1 = " << vertices1.first
+              << " , vertices2 = " << vertices2.first << std::endl;
   }
 
   EXPECT_EQ(vertices1, vertices2);
