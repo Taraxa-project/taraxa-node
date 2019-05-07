@@ -159,7 +159,6 @@ class Dag {
   graph_t graph_;
   vertex_t genesis_;  // root node
   mutable std::mutex mutex_;
-  mutable std::mutex debug_mutex_;
 
  private:
   mutable dev::Logger log_er_{

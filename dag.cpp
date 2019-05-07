@@ -71,7 +71,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   // std::cout<<"Created vertex "<< new_vertex<< " at "<< getTimePoint2Long(now)
   // <<std::endl;
   edge_t edge;
-  bool res;
+  bool res = true;
 
   // Note: add edges,
   // *** important
@@ -84,7 +84,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                    << new_vertex << " \nunsuccessful!" << std::endl;
     }
   }
-  bool res2;
+  bool res2 = true;
   for (auto const &e : tips) {
     std::tie(edge, res2) = add_edge_by_label(e, new_vertex, graph_);
     if (!res2) {
@@ -93,7 +93,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                    << new_vertex << " \nunsuccessful!" << std::endl;
     }
   }
-  return res & res2;
+  res &= res2;
+  return res;
 }
 
 void Dag::drawGraph(std::string filename) const {

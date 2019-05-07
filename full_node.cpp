@@ -55,7 +55,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()),
       pbft_chain_(std::make_shared<PbftChain>()) {
-    LOG(log_nf_) << "Read FullNode Config: "<<std::endl << conf_ << std::endl;
+  LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
@@ -105,6 +105,9 @@ void FullNode::start(bool boot_node) {
   trx_mgr_->start();
   pbft_mgr_->setFullNode(getShared());
   // pbft_mgr_->start();
+  if (boot_node) {
+    LOG(log_nf_) << "Starting a boot node ..." << std::endl;
+  }
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {

@@ -53,7 +53,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   void setVerbose(bool verbose);
   void setDebug(bool debug);
-  void start(bool boot_node = false);
+  void start(bool boot_node);
   void stop();
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
@@ -110,7 +110,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // receive pbft-povit-blk, update periods
   void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period,
                            std::shared_ptr<vec_blk_t> blks);
-  // fake trx schedule 
+  // fake trx schedule
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff

@@ -100,9 +100,9 @@ TEST(PbftChain, block_broadcast) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start();
-  node2->start();
-  node3->start();
+  node1->start(true /*boot_node*/);
+  node2->start(false /*boot_node*/);
+  node3->start(false /*boot_node*/);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));
