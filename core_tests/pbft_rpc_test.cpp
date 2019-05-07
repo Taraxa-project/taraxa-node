@@ -42,7 +42,7 @@ TEST(PbftVote, pbft_should_speak_test) {
   auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
-  node->start();
+  node->start(true /*boot_node*/);
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context));
@@ -73,7 +73,7 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
   auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
-  node->start();
+  node->start(true /*boot_node*/);
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context));
@@ -114,8 +114,8 @@ TEST(PbftVote, transfer_vote) {
 
   node1->setDebug(true);
   node2->setDebug(true);
-  node1->start();
-  node2->start();
+  node1->start(true /*boot_node*/);
+  node2->start(false /*boot_node*/);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));
@@ -183,9 +183,9 @@ TEST(PbftVote, vote_broadcast) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start();
-  node2->start();
-  node3->start();
+  node1->start(true /*boot_node*/);
+  node2->start(false /*boot_node*/);
+  node3->start(false /*boot_node*/);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));

@@ -240,7 +240,7 @@ TEST(Network, node_sync) {
       context2, std::string("./core_tests/conf_taraxa2.json"));
 
   node2->setDebug(true);
-  node2->start();
+  node2->start(false /*boot_node*/);
 
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 20; i++) {
@@ -322,14 +322,14 @@ TEST(Network, node_sync_with_transactions) {
   node1->storeBlockWithTransactions(blk2, tr2);
   node1->storeBlockWithTransactions(blk1, tr1);
 
-  //To make sure blocks are stored before starting node 2
+  // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf_taraxa2.json"));
 
   node2->setDebug(true);
-  node2->start();
+  node2->start(false /*boot_node*/);
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 20; i++) {
@@ -491,7 +491,7 @@ TEST(Network, node_sync2) {
       context2, std::string("./core_tests/conf_taraxa2.json")));
 
   node2->setDebug(true);
-  node2->start();
+  node2->start(false /*boot_node*/);
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 20; i++) {
@@ -501,9 +501,6 @@ TEST(Network, node_sync2) {
       break;
   }
 
-  node1->stop();
-  node2->stop();
-
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node1->getNumVerticesInDag().first, 13);
@@ -512,6 +509,9 @@ TEST(Network, node_sync2) {
   EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node2->getNumVerticesInDag().first, 13);
   EXPECT_EQ(node2->getNumEdgesInDag().first, 13);
+
+  node1->stop();
+  node2->stop();
 
   node1.reset();
   node2.reset();
@@ -544,7 +544,7 @@ TEST(Network, node_transaction_sync) {
       context2, std::string("./core_tests/conf_taraxa2.json"));
 
   node2->setDebug(true);
-  node2->start();
+  node2->start(false /*boot_node*/);
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -575,7 +575,7 @@ TEST(Network, node_full_sync) {
       context1, std::string("./core_tests/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start();
+  node1->start(true /*boot_node*/);
 
   std::vector<std::shared_ptr<FullNode> > nodes;
   for (int i = 0; i < numberOfNodes; i++) {
@@ -587,7 +587,7 @@ TEST(Network, node_full_sync) {
     config.network.network_listen_port += i + 1;
     config.node_secret = "";
     nodes.push_back(std::make_shared<taraxa::FullNode>(*contexts[i], config));
-    nodes[i]->start();
+    nodes[i]->start(false /*boot_node*/);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
 

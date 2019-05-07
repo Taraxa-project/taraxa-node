@@ -86,6 +86,10 @@ TEST(Dag, dag_traverse_get_children_tips) {
   leaves.clear();
   graph.getLeaves(leaves);
   EXPECT_EQ(6, leaves.size());
+  EXPECT_EQ(10, graph.getNumVertices());
+  EXPECT_EQ(8, graph.getNumEdges());
+
+#ifdef TARAXA_DEBUG
 
   time_stamp_t t4 = graph.getVertexTimeStamp(v4);
   time_stamp_t t4p1 = t4 + 1;
@@ -97,6 +101,10 @@ TEST(Dag, dag_traverse_get_children_tips) {
   time_stamp_t t7p1 = t7 + 1;
   time_stamp_t t8 = graph.getVertexTimeStamp(v8);
   time_stamp_t t8p1 = t8 + 1;
+  EXPECT_NE(t4, t5);
+  EXPECT_NE(t5, t6);
+  EXPECT_NE(t6, t7);
+  EXPECT_NE(t7, t8);
   {
     std::vector<std::string> children;
     graph.getChildrenBeforeTimeStamp(v3, t7, children);
@@ -136,6 +144,7 @@ TEST(Dag, dag_traverse_get_children_tips) {
     EXPECT_EQ(sub_tree.size(), 2);
     EXPECT_EQ(sub_tree.back(), v6);
   }
+#endif
 }
 
 TEST(Dag, dag_traverse2_get_children_tips) {
@@ -164,6 +173,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
   EXPECT_EQ(7, graph.getNumVertices());
   EXPECT_EQ(7, graph.getNumEdges());
 
+#ifdef TARAXA_DEBUG
   time_stamp_t t4 = graph.getVertexTimeStamp(v4);
   time_stamp_t t5 = graph.getVertexTimeStamp(v5);
   time_stamp_t t5p1 = t5 + 1;
@@ -198,6 +208,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
 
   graph.setVertexTimeStamp(Dag::GENESIS, stamp);
   EXPECT_EQ(graph.getVertexTimeStamp(Dag::GENESIS), stamp);
+#endif
 }
 
 // Use the example on Conflux paper
@@ -318,10 +329,19 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
   graph.addVEEs(v10, v9, empty);
   graph.addVEEs(v11, v9, empty);
 
+  EXPECT_EQ(12, graph.getNumVertices());
+  EXPECT_EQ(11, graph.getNumEdges());
+
+#ifdef TARAXA_DEBUG
+
   time_stamp_t t9 = graph.getVertexTimeStamp(v9);
   time_stamp_t t9p1 = t9 + 1;
+  time_stamp_t t10 = graph.getVertexTimeStamp(v10);
+
   time_stamp_t t11 = graph.getVertexTimeStamp(v11);
   time_stamp_t t11p1 = t11 + 1;
+  EXPECT_NE(t9, t10);
+  EXPECT_NE(t10, t11);
 
   // timestamp exclude v9
   {
@@ -333,7 +353,7 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
 
   {
     std::vector<std::string> pivot_chain;
-    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, t11, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, t11p1, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 5);
     EXPECT_EQ(pivot_chain.back(), v10);
   }
@@ -344,6 +364,7 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
     EXPECT_EQ(pivot_chain.size(), 3);
     EXPECT_EQ(pivot_chain.back(), v4);
   }
+#endif
 }
 
 TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
@@ -611,7 +632,7 @@ TEST(DagManager, receive_block_out_of_order_multi_thread){
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityWarning;
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -37,7 +37,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf_taraxa1.json")));
-  node->start();
+  node->start(true /*boot_node*/);
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
@@ -203,7 +203,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf_taraxa1.json")));
-  node->start();
+  node->start(true /*boot_node*/);
   addr_t acc1 = node->getAddress();
   bal_t bal1(10000000);
   node->setBalance(acc1, bal1);
@@ -267,7 +267,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
 
   // node1->setVerbose(true);
   node1->setDebug(true);
-  node1->start();
+  node1->start(true /*boot_node*/);
 
   // send package
   FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
@@ -334,7 +334,7 @@ TEST(FullNode, receive_send_transaction) {
       std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
   rpc->start();
   node1->setDebug(true);
-  node1->start();
+  node1->start(true /*boot_node*/);
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
