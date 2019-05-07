@@ -7,8 +7,8 @@ ifneq ($(OS), Darwin) #Mac
 	CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
 	LOG_LIB = -lboost_log
 endif
-CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF
-CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
+CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF
+CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs
 LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
 BUILDDIR := build
