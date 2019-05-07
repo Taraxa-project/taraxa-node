@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:06
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-06
+ * @Last Modified time: 2019-05-07
  */
 #ifndef PBFT_CHAIN_HPP
 #define PBFT_CHAIN_HPP
@@ -200,32 +200,35 @@ class PbftChain {
   }
   ~PbftChain() {}
 
-  size_t getSize() const { return count; }
+  size_t getSize() const { return count_; }
   blk_hash_t getLastPbftBlock() const;
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftQueueSize() const;
+  std::pair<PbftBlock, bool> getPbftBlock(blk_hash_t const& pbft_block_hash);
 
   void setLastPbftBlock(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);
 
-  bool findPbftBlock(blk_hash_t const& pbft_block_hash);
-  bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash);
-  std::pair<PbftBlock, bool> getPbftBlock(blk_hash_t const& pbft_block_hash);
-  void insertPbftBlock(blk_hash_t const& pbft_block_hash,
-                       PbftBlock const& pbft_block);
+  bool findPbftBlock(blk_hash_t const& pbft_block_hash) const ;
+  bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
+
   void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
 
  private:
+  void insertPbftBlock_(blk_hash_t const& pbft_block_hash,
+	                     PbftBlock const& pbft_block);
+
   blk_hash_t genesis_hash_ = blk_hash_t(0);
-  uint64_t count = 1;
+  uint64_t count_ = 1;
   PbftBlockTypes next_pbft_block_type_ = pivot_block_type;
   blk_hash_t last_pbft_blk_ = genesis_hash_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_blocks_map_;
-  std::deque<PbftBlock> pbft_queue_;
+  std::deque<blk_hash_t> pbft_queue_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
+
 };
 
 }  // namespace taraxa

@@ -152,8 +152,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownPbftBlock(blk_hash_t const &pbft_block_hash) const;
   size_t getPbftChainSize() const;
   size_t getPbftQueueSize() const;
-  void pushPbftBlockIntoQueue(PbftBlock &pbft_block);
-  void setPbftBlock(PbftBlock &pbft_block); // Test purpose
+  void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
+  void setPbftBlock(PbftBlock const &pbft_block); // Test purpose
 
  private:
   // ** NOTE: io_context must be constructed before Network

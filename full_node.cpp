@@ -455,11 +455,11 @@ void FullNode::setVoteKnown(taraxa::Vote const &vote) {
 }
 
 bool FullNode::isKnownPbftBlock(
-    const taraxa::blk_hash_t &pbft_block_hash) const {
+    taraxa::blk_hash_t const &pbft_block_hash) const {
   return pbft_chain_->findPbftBlockInQueue(pbft_block_hash);
 }
 
-void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock &pbft_block) {
+void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
 }
 
@@ -471,7 +471,7 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
-void FullNode::setPbftBlock(taraxa::PbftBlock &pbft_block) {
+void FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     pbft_chain_->pushPbftPivotBlock(pbft_block);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
