@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:32
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-05
+ * @Last Modified time: 2019-05-06
  */
 
 #include "pbft_chain.hpp"
@@ -294,6 +294,10 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
+size_t PbftChain::getPbftQueueSize() const {
+  return pbft_queue_.size();
+}
+
 void PbftChain::setLastPbftBlock(const blk_hash_t &new_pbft_block) {
   last_pbft_blk_ = new_pbft_block;
 }
@@ -304,6 +308,11 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlock(const taraxa::blk_hash_t &pbft_block_hash) {
   return pbft_blocks_map_.find(pbft_block_hash) != pbft_blocks_map_.end();
+}
+
+bool PbftChain::findPbftBlockInQueue(
+    const taraxa::blk_hash_t& pbft_block_hash) {
+  return pbft_queue_map_.find(pbft_block_hash) != pbft_queue_map_.end();
 }
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlock(
@@ -368,6 +377,11 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   }
   pushPbftBlock(pbft_block);
   return true;
+}
+
+void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
+  pbft_queue_.emplace_back(pbft_block);
+  pbft_queue_map_[pbft_block.getBlockHash()] = pbft_block;
 }
 
 }  // namespace taraxa

@@ -150,8 +150,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() { return pbft_mgr_; }
   bool isKnownPbftBlock(blk_hash_t const &pbft_block_hash) const;
-  void setPbftBlock(PbftBlock &pivot_block);
   size_t getPbftChainSize() const;
+  size_t getPbftQueueSize() const;
+  void pushPbftBlockIntoQueue(PbftBlock &pbft_block);
+  void setPbftBlock(PbftBlock &pbft_block); // Test purpose
 
  private:
   // ** NOTE: io_context must be constructed before Network
