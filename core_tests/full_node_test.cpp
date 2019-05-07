@@ -156,7 +156,7 @@ TEST(Top, sync_two_nodes) {
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
   // add more delay if sync is not done
-  for (auto i = 0; i < 10; i++) {
+  for (auto i = 0; i < 20; i++) {
     if (vertices1 == vertices2) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
