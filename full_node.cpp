@@ -456,7 +456,19 @@ void FullNode::setVoteKnown(taraxa::Vote const &vote) {
 
 bool FullNode::isKnownPbftBlock(
     const taraxa::blk_hash_t &pbft_block_hash) const {
-  return pbft_chain_->findPbftBlock(pbft_block_hash);
+  return pbft_chain_->findPbftBlockInQueue(pbft_block_hash);
+}
+
+void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock &pbft_block) {
+  pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
+}
+
+size_t FullNode::getPbftChainSize() const {
+  return pbft_chain_->getSize();
+}
+
+size_t FullNode::getPbftQueueSize() const {
+  return pbft_chain_->getPbftQueueSize();
 }
 
 void FullNode::setPbftBlock(taraxa::PbftBlock &pbft_block) {
@@ -467,7 +479,5 @@ void FullNode::setPbftBlock(taraxa::PbftBlock &pbft_block) {
   }
   // TODO: push other type pbft block into pbft chain
 }
-
-size_t FullNode::getPbftChainSize() const { return pbft_chain_->getSize(); }
 
 }  // namespace taraxa

@@ -297,7 +297,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         return false;
       }
       if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
-        full_node->setPbftBlock(pbft_block);
+        full_node->pushPbftBlockIntoQueue(pbft_block);
         onNewPbftBlock(pbft_block);
       }
 
