@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:32
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-06
+ * @Last Modified time: 2019-05-07
  */
 
 #include "pbft_chain.hpp"
@@ -298,7 +298,7 @@ size_t PbftChain::getPbftQueueSize() const {
   return pbft_queue_.size();
 }
 
-void PbftChain::setLastPbftBlock(const blk_hash_t &new_pbft_block) {
+void PbftChain::setLastPbftBlock(blk_hash_t const &new_pbft_block) {
   last_pbft_blk_ = new_pbft_block;
 }
 
@@ -306,12 +306,12 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
   next_pbft_block_type_ = next_block_type;
 }
 
-bool PbftChain::findPbftBlock(const taraxa::blk_hash_t &pbft_block_hash) {
+bool PbftChain::findPbftBlock(taraxa::blk_hash_t const &pbft_block_hash) const {
   return pbft_blocks_map_.find(pbft_block_hash) != pbft_blocks_map_.end();
 }
 
 bool PbftChain::findPbftBlockInQueue(
-    const taraxa::blk_hash_t& pbft_block_hash) {
+    const taraxa::blk_hash_t& pbft_block_hash) const {
   return pbft_queue_map_.find(pbft_block_hash) != pbft_queue_map_.end();
 }
 
@@ -323,23 +323,23 @@ std::pair<PbftBlock, bool> PbftChain::getPbftBlock(
   return std::make_pair(PbftBlock(), false);
 }
 
-void PbftChain::insertPbftBlock(const taraxa::blk_hash_t &pbft_block_hash,
-                                const taraxa::PbftBlock &pbft_block) {
+void PbftChain::insertPbftBlock_(taraxa::blk_hash_t const &pbft_block_hash,
+                                taraxa::PbftBlock const &pbft_block) {
   pbft_blocks_map_[pbft_block_hash] = pbft_block;
 }
 
-void PbftChain::pushPbftBlock(const taraxa::PbftBlock &pbft_block) {
+void PbftChain::pushPbftBlock(taraxa::PbftBlock const &pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  insertPbftBlock(pbft_block_hash, pbft_block);
+  insertPbftBlock_(pbft_block_hash, pbft_block);
   setLastPbftBlock(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later
   int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 2;
   setNextPbftBlockType(static_cast<PbftBlockTypes>(next_pbft_block_type));
-  count++;
+  count_++;
 }
 
-bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
+bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() != pivot_block_type) {
     return false;
   }
@@ -380,7 +380,7 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
-  pbft_queue_.emplace_back(pbft_block);
+  pbft_queue_.emplace_back(pbft_block.getBlockHash());
   pbft_queue_map_[pbft_block.getBlockHash()] = pbft_block;
 }
 
