@@ -81,6 +81,8 @@ class PivotBlock {
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
+  void streamRLP(dev::RLPStream &strm) const;
+
 
   friend std::ostream &operator<<(std::ostream &strm,
                                   PivotBlock const& pivot_block) {
@@ -108,26 +110,18 @@ class PivotBlock {
 class ScheduleBlock {
  public:
   ScheduleBlock() = default;
-  ScheduleBlock(blk_hash_t const& block_hash, blk_hash_t const& prev_pivot_hash,
-                uint64_t const& timestamp, sig_t const& signature,
+  ScheduleBlock(blk_hash_t const& prev_block_hash,
+                uint64_t const& timestamp,
                 TrxSchedule const& schedule)
-      : block_hash_(block_hash),
-        prev_pivot_hash_(prev_pivot_hash),
+      : prev_block_hash_(prev_block_hash),
         timestamp_(timestamp),
-        signature_(signature),
-        schedule_(schedule) {}
-  ScheduleBlock(blk_hash_t const& prev_pivot_hash, uint64_t const& timestamp,
-                sig_t const& signature, TrxSchedule const& schedule)
-      : prev_pivot_hash_(prev_pivot_hash),
-        timestamp_(timestamp),
-        signature_(signature),
         schedule_(schedule) {}
   ScheduleBlock(taraxa::stream &strm);
   ~ScheduleBlock() {}
+  void streamRLP(dev::RLPStream &strm) const;
 
   std::string getJsonStr() const;
   TrxSchedule getSchedule() const;
-  blk_hash_t getHash() const;
   blk_hash_t getPrevBlockHash() const;
 
   bool serialize(stream &strm) const;
@@ -136,10 +130,8 @@ class ScheduleBlock {
   friend std::ostream;
 
  private:
-  blk_hash_t block_hash_;
-  blk_hash_t prev_pivot_hash_;
+  blk_hash_t prev_block_hash_;
   uint64_t timestamp_;
-  sig_t signature_;
   TrxSchedule schedule_;
 };
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
@@ -158,15 +150,15 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const &block_hash) : block_hash_(block_hash) {}
-  PbftBlock(PivotBlock const &pivot_block) : pivot_block_(pivot_block) {}
+  PbftBlock(PivotBlock const &pivot_block) : pivot_block_(pivot_block),
+                                             block_type_(pivot_block_type) {}
   PbftBlock(ScheduleBlock const &schedule_block)
-    : schedule_block_(schedule_block) {}
+    : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
   PbftBlock(dev::RLP const &_r);
   ~PbftBlock() {}
 
 
   blk_hash_t getBlockHash() const;
-  blk_hash_t getScheduleBlockHash() const;
   PbftBlockTypes getBlockType() const;
   PivotBlock getPivotBlock() const;
   ScheduleBlock getScheduleBlock() const;
@@ -181,8 +173,6 @@ class PbftBlock {
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
   void streamRLP(dev::RLPStream &strm) const;
-  void pivotStreamRLP(dev::RLPStream &strm) const;
-  void scheduleStreamRLP(dev::RLPStream &strm) const;
 
  private:
   blk_hash_t block_hash_;

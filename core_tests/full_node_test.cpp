@@ -234,7 +234,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     if (!sche) continue;
-    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), *sche);
+    ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
     node->executeScheduleBlock(sche_blk);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
@@ -244,7 +244,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
         node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
-    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sig_t(200), *sche);
+    ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
     node->executeScheduleBlock(sche_blk);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
