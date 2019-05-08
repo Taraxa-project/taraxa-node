@@ -141,6 +141,15 @@ bool PivotBlock::deserialize(stream &strm) {
   return ok;
 }
 
+void PivotBlock::streamRLP(dev::RLPStream& strm) const {
+  strm << prev_pivot_hash_;
+  strm << prev_block_hash_;
+  strm << dag_block_hash_;
+  strm << epoch_;
+  strm << timestamp_;
+  strm << beneficiary_;
+}
+
 ScheduleBlock::ScheduleBlock(taraxa::stream &strm) {
   deserialize(strm);
 }
@@ -148,10 +157,8 @@ ScheduleBlock::ScheduleBlock(taraxa::stream &strm) {
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock] " << std::endl;
-  strm << "block hash: " << block_hash_ << std::endl;
-  strm << "prev_pivot: " << prev_pivot_hash_ << std::endl;
+  strm << "prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
   strm << "time_stamp: " << timestamp_ << std::endl;
-  strm << "sig: " << signature_ << std::endl;
   strm << "  --> Schedule ..." << std::endl;
   strm << schedule_;
   return strm.str();
@@ -166,21 +173,15 @@ TrxSchedule ScheduleBlock::getSchedule() const {
   return schedule_;
 }
 
-blk_hash_t ScheduleBlock::getHash() const {
-  return block_hash_;
-}
-
 blk_hash_t ScheduleBlock::getPrevBlockHash() const {
-  return prev_pivot_hash_;
+  return prev_block_hash_;
 }
 
 bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
 
-  ok &= write(strm, block_hash_);
-  ok &= write(strm, prev_pivot_hash_);
+  ok &= write(strm, prev_block_hash_);
   ok &= write(strm, timestamp_);
-  ok &= write(strm, signature_);
   uint32_t block_size = schedule_.blk_order.size();
   uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
   if (block_size != trx_vectors_size) {
@@ -208,10 +209,8 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
 bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   bool ok = true;
 
-  ok &= read(strm, block_hash_);
-  ok &= read(strm, prev_pivot_hash_);
+  ok &= read(strm, prev_block_hash_);
   ok &= read(strm, timestamp_);
-  ok &= read(strm, signature_);
   uint32_t block_size;
   uint32_t trx_vectors_size;
   ok &= read(strm, block_size);
@@ -246,6 +245,23 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   return ok;
 }
 
+blk_hash_t prev_block_hash_;
+uint64_t timestamp_;
+TrxSchedule schedule_;
+
+void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
+  strm << prev_block_hash_;
+  strm << timestamp_;
+  for (int i = 0; i < schedule_.blk_order.size(); i++) {
+    strm << schedule_.blk_order[i];
+  }
+  for (int i = 0; i < schedule_.vec_trx_modes.size(); i++) {
+    for (int j = 0; i < schedule_.vec_trx_modes[i].size(); j++) {
+      strm << schedule_.vec_trx_modes[i][j];
+    }
+  }
+}
+
 PbftBlock::PbftBlock(dev::RLP const& _r) {
   std::vector<::byte> blockBytes;
   blockBytes = _r.toBytes();
@@ -262,27 +278,14 @@ void PbftBlock::setBlockHash() {
 void PbftBlock::streamRLP(dev::RLPStream& strm) const {
   strm << block_type_;
   if (block_type_ == pivot_block_type) {
-    pivotStreamRLP(strm);
+    pivot_block_.streamRLP(strm);
   } else if (block_type_ == schedule_block_type) {
-
+    schedule_block_.streamRLP(strm);
   } // TODO: more block types
-}
-
-void PbftBlock::pivotStreamRLP(dev::RLPStream& strm) const {
-  strm << pivot_block_.getPrevPivotBlockHash();
-  strm << pivot_block_.getPrevBlockHash();
-  strm << pivot_block_.getDagBlockHash();
-  strm << pivot_block_.getEpoch();
-  strm << pivot_block_.getTimestamp();
-  strm << pivot_block_.getBeneficiary();
 }
 
 blk_hash_t PbftBlock::getBlockHash() const {
   return block_hash_;
-}
-
-blk_hash_t PbftBlock::getScheduleBlockHash() const {
-  return schedule_block_.getHash();
 }
 
 PbftBlockTypes PbftBlock::getBlockType() const {
@@ -299,6 +302,7 @@ PivotBlock PbftBlock::getPivotBlock() const {
 
 void PbftBlock::setPivotBlock(taraxa::PivotBlock const& pivot_block) {
   pivot_block_ = pivot_block;
+  block_type_ = pivot_block_type;
 }
 
 ScheduleBlock PbftBlock::getScheduleBlock() const {
@@ -307,6 +311,7 @@ ScheduleBlock PbftBlock::getScheduleBlock() const {
 
 void PbftBlock::setScheduleBlock(taraxa::ScheduleBlock const& schedule_block) {
   schedule_block_ = schedule_block;
+  block_type_ = schedule_block_type;
 }
 
 void PbftBlock::setSignature(taraxa::sig_t const& signature) {

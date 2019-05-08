@@ -354,7 +354,7 @@ void RpcHandler::processRequest() {
         }
 
         TrxSchedule sche(blk_order, vec_trx_modes);
-        ScheduleBlock sche_blk(prev_blk, timestamp, sig, sche);
+        ScheduleBlock sche_blk(prev_blk, timestamp, sche);
         res = sche_blk.getJsonStr();
       } catch (std::exception &e) {
         res = e.what();

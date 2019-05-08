@@ -31,16 +31,14 @@ TEST(TrxSchedule, serialize_deserialize) {
 }
 
 TEST(PivotBlock, serialize_deserialize) {
-  blk_hash_t block_hash(12);
   blk_hash_t prev_pivot_blk(34);
   blk_hash_t prev_res_blk(56);
   blk_hash_t dag_blk(78);
   uint64_t epoch = 1;
   uint64_t timestamp = 123456;
   addr_t beneficiary(10);
-  sig_t sig(1212121212);
-  PivotBlock pivot_block1(block_hash, prev_pivot_blk, prev_res_blk, dag_blk,
-      epoch, timestamp, beneficiary, sig);
+  PivotBlock pivot_block1(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+      timestamp, beneficiary);
 
   std::stringstream ss1, ss2;
   ss1 << pivot_block1;
@@ -60,15 +58,13 @@ TEST(PivotBlock, serialize_deserialize) {
 }
 
 TEST(ScheduleBlock, serialize_deserialize) {
-  blk_hash_t block_hash(11);
   blk_hash_t prev_pivot(22);
   uint64_t timestamp = 333333;
-  sig_t sig(444444);
   vec_blk_t blks { blk_hash_t(123), blk_hash_t(456), blk_hash_t(789) };
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
   TrxSchedule schedule(blks, modes);
-  ScheduleBlock schedule_blk1(block_hash, prev_pivot, timestamp, sig, schedule);
+  ScheduleBlock schedule_blk1(prev_pivot, timestamp, schedule);
 
   std::stringstream ss1, ss2;
   ss1 << schedule_blk1;
@@ -134,19 +130,16 @@ TEST(PbftChain, block_broadcast) {
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
   // generate pbft pivot block sample
-  blk_hash_t pivot_hash(1);
   blk_hash_t prev_pivot_blk(0);
   blk_hash_t prev_res_blk(0);
   blk_hash_t dag_blk(78);
   uint64_t epoch = 1;
   uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
-  sig_t sig1(1212121212);
-  PivotBlock pivot_block(pivot_hash, prev_pivot_blk, prev_res_blk, dag_blk,
-      epoch, timestamp1, beneficiary, sig1);
-  PbftBlock pbft_block1(pivot_hash);
+  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+      timestamp1, beneficiary);
+  PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
-  pbft_block1.setBlockType(pivot_block_type);
 
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftQueueSize(), 1);
@@ -172,20 +165,16 @@ TEST(PbftChain, block_broadcast) {
   EXPECT_EQ(node3->getPbftChainSize(), 2);
 
   // generate pbft schedule block sample
-  blk_hash_t schedule_hash(2);
   blk_hash_t prev_pivot(1);
   uint64_t timestamp2 = 333333;
-  sig_t sig2(444444);
   vec_blk_t blks { blk_hash_t(123), blk_hash_t(456), blk_hash_t(789) };
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
   TrxSchedule schedule(blks, modes);
-  ScheduleBlock schedule_blk(schedule_hash, prev_pivot, timestamp2, sig2,
-      schedule);
+  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
 
-  PbftBlock pbft_block2(schedule_hash);
+  PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
-  pbft_block2.setBlockType(schedule_block_type);
 
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftQueueSize(), 2);

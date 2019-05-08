@@ -481,16 +481,16 @@ std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForPeriod_(
 }
 
 void PbftManager::proposePbftBlock_() {
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
+  PbftBlock pbft_block;
   PbftBlockTypes current_block_type = pbft_chain_->getNextPbftBlockType();
   if (current_block_type == pivot_block_type) {
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
-
-    auto full_node = node_.lock();
-    if (!full_node) {
-      LOG(log_err_) << "Full node unavailable" << std::endl;
-      return;
-    }
     // define pivot block in DAG
     std::vector<std::string> ghost;
     full_node->getGhostPath(Dag::GENESIS, ghost);
@@ -502,24 +502,48 @@ void PbftManager::proposePbftBlock_() {
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
         epoch, timestamp, beneficiary);
-    // generate pbft block
-    PbftBlock pbft_block(pivot_block);
+    // set pbft block as pivot
+    pbft_block.setPivotBlock(pivot_block);
     pbft_block.setBlockHash();
-    // sign the pbft block
-    blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-    std::string message = pbft_block_hash.toString() +
-                          std::to_string(propose_vote_type) +
-                          std::to_string(pbft_period_) +
-                          std::to_string(pbft_step_);
-    sig_t signature = full_node->signMessage(message);
-    pbft_block.setSignature(signature);
-    // broadcast pbft block
-    std::shared_ptr<Network> network = full_node->getNetwork();
-    network->onNewPbftBlock(pbft_block);
   } else if (current_block_type == schedule_block_type) {
+    blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
+    uint64_t timestamp = std::time(nullptr);
+    // get dag block hash from the last pbft block(pivot) in pbft chain
+    blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
+    std::pair<PbftBlock, bool> last_pbft_block =
+        pbft_chain_->getPbftBlock(last_block_hash);
+    if (!last_pbft_block.second) {
+      LOG(log_err_) << "Cannot find last pbft block with block hash: "
+                    << last_block_hash;
+    }
+    blk_hash_t dag_block_hash =
+        last_pbft_block.first.getPivotBlock().getDagBlockHash();
+    // get dag blocks order
+    uint64_t epoch;
+    std::shared_ptr<vec_blk_t> dag_blocks_order;
+    std::tie(epoch, dag_blocks_order) =
+        full_node->createPeriodAndComputeBlockOrder(dag_block_hash);
+    // generate fake transaction schedule
+    std::shared_ptr<TrxSchedule> schedule =
+        full_node->createMockTrxSchedule(dag_blocks_order);
+    // generate pbft schedule block
+    ScheduleBlock schedule_block(prev_block_hash, timestamp, *schedule);
+    // set pbft block as schedule
+    pbft_block.setScheduleBlock(schedule_block);
+    pbft_block.setBlockHash();
+  } // TODO: More pbft block types
 
-  }
-
+  // sign the pbft block
+  blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
+  std::string message = pbft_block_hash.toString() +
+                        std::to_string(propose_vote_type) +
+                        std::to_string(pbft_period_) +
+                        std::to_string(pbft_step_);
+  sig_t signature = full_node->signMessage(message);
+  pbft_block.setSignature(signature);
+  // broadcast pbft block
+  std::shared_ptr<Network> network = full_node->getNetwork();
+  network->onNewPbftBlock(pbft_block);
 }
 
 }  // namespace taraxa
