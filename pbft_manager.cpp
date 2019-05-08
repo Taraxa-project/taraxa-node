@@ -11,6 +11,7 @@
 #include "dag.hpp"
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
+#include "network.hpp"
 #include "sortition.h"
 #include "util.hpp"
 
@@ -92,7 +93,7 @@ void PbftManager::run() {
            nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
         // Propose value...
         LOG(log_tra_) << "Propose my value...";
-        proposePbftBlock_();
+        //proposePbftBlock_(); TODO
       } else if (pbft_period_ >= 2) {
         std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
             nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
@@ -490,6 +491,7 @@ void PbftManager::proposePbftBlock_() {
       LOG(log_err_) << "Full node unavailable" << std::endl;
       return;
     }
+    // define pivot block in DAG
     std::vector<std::string> ghost;
     full_node->getGhostPath(Dag::GENESIS, ghost);
     blk_hash_t dag_block_hash(ghost.back());
@@ -497,19 +499,26 @@ void PbftManager::proposePbftBlock_() {
     uint64_t epoch = full_node->getEpoch();
     uint64_t timestamp = std::time(nullptr);
     addr_t beneficiary = full_node->getAddress();
-
+    // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
         epoch, timestamp, beneficiary);
-
-
-
-    //sig_t signature =
-
-
+    // generate pbft block
+    PbftBlock pbft_block(pivot_block);
+    pbft_block.setBlockHash();
+    // sign the pbft block
+    blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
+    std::string message = pbft_block_hash.toString() +
+                          std::to_string(propose_vote_type) +
+                          std::to_string(pbft_period_) +
+                          std::to_string(pbft_step_);
+    sig_t signature = full_node->signMessage(message);
+    pbft_block.setSignature(signature);
+    // broadcast pbft block
+    std::shared_ptr<Network> network = full_node->getNetwork();
+    network->onNewPbftBlock(pbft_block);
   } else if (current_block_type == schedule_block_type) {
 
   }
-  blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
 
 }
 

@@ -89,10 +89,6 @@ PivotBlock::PivotBlock(taraxa::stream &strm) {
   deserialize(strm);
 }
 
-blk_hash_t PivotBlock::getHash() const {
-  return block_hash_;
-}
-
 blk_hash_t PivotBlock::getPrevPivotBlockHash() const {
   return prev_pivot_hash_;
 }
@@ -101,17 +97,31 @@ blk_hash_t PivotBlock::getPrevBlockHash() const {
   return prev_block_hash_;
 }
 
+blk_hash_t PivotBlock::getDagBlockHash() const {
+  return dag_block_hash_;
+}
+
+uint64_t PivotBlock::getEpoch() const {
+  return epoch_;
+}
+
+uint64_t PivotBlock::getTimestamp() const {
+  return timestamp_;
+}
+
+addr_t PivotBlock::getBeneficiary() const {
+  return beneficiary_;
+}
+
 bool PivotBlock::serialize(stream &strm) const {
   bool ok = true;
 
-  ok &= write(strm, block_hash_);
   ok &= write(strm, prev_pivot_hash_);
   ok &= write(strm, prev_block_hash_);
   ok &= write(strm, dag_block_hash_);
   ok &= write(strm, epoch_);
   ok &= write(strm, timestamp_);
   ok &= write(strm, beneficiary_);
-  ok &= write(strm, signature_);
   assert(ok);
 
   return ok;
@@ -120,14 +130,12 @@ bool PivotBlock::serialize(stream &strm) const {
 bool PivotBlock::deserialize(stream &strm) {
   bool ok = true;
 
-  ok &= read(strm, block_hash_);
   ok &= read(strm, prev_pivot_hash_);
   ok &= read(strm, prev_block_hash_);
   ok &= read(strm, dag_block_hash_);
   ok &= read(strm, epoch_);
   ok &= read(strm, timestamp_);
   ok &= read(strm, beneficiary_);
-  ok &= read(strm, signature_);
   assert(ok);
 
   return ok;
@@ -245,12 +253,32 @@ PbftBlock::PbftBlock(dev::RLP const& _r) {
   deserialize(strm);
 }
 
-blk_hash_t PbftBlock::getBlockHash() const {
-  return block_hash_;
+void PbftBlock::setBlockHash() {
+  dev::RLPStream s;
+  streamRLP(s);
+  block_hash_ = dev::sha3(s.out());
 }
 
-blk_hash_t PbftBlock::getPivotBlockHash() const {
-  return pivot_block_.getHash();
+void PbftBlock::streamRLP(dev::RLPStream& strm) const {
+  strm << block_type_;
+  if (block_type_ == pivot_block_type) {
+    pivotStreamRLP(strm);
+  } else if (block_type_ == schedule_block_type) {
+
+  } // TODO: more block types
+}
+
+void PbftBlock::pivotStreamRLP(dev::RLPStream& strm) const {
+  strm << pivot_block_.getPrevPivotBlockHash();
+  strm << pivot_block_.getPrevBlockHash();
+  strm << pivot_block_.getDagBlockHash();
+  strm << pivot_block_.getEpoch();
+  strm << pivot_block_.getTimestamp();
+  strm << pivot_block_.getBeneficiary();
+}
+
+blk_hash_t PbftBlock::getBlockHash() const {
+  return block_hash_;
 }
 
 blk_hash_t PbftBlock::getScheduleBlockHash() const {
@@ -269,7 +297,7 @@ PivotBlock PbftBlock::getPivotBlock() const {
   return pivot_block_;
 }
 
-void PbftBlock::setPivotBlock(const taraxa::PivotBlock& pivot_block) {
+void PbftBlock::setPivotBlock(taraxa::PivotBlock const& pivot_block) {
   pivot_block_ = pivot_block;
 }
 
@@ -277,8 +305,12 @@ ScheduleBlock PbftBlock::getScheduleBlock() const {
   return schedule_block_;
 }
 
-void PbftBlock::setScheduleBlock(const taraxa::ScheduleBlock& schedule_block) {
+void PbftBlock::setScheduleBlock(taraxa::ScheduleBlock const& schedule_block) {
   schedule_block_ = schedule_block;
+}
+
+void PbftBlock::setSignature(taraxa::sig_t const& signature) {
+  signature_ = signature;
 }
 
 void PbftBlock::serializeRLP(dev::RLPStream& s) const {

@@ -58,21 +58,6 @@ class PivotBlock {
  public:
   PivotBlock() = default;
   PivotBlock(taraxa::stream &strm);
-  PivotBlock(blk_hash_t const& block_hash,
-             blk_hash_t const& prev_pivot_hash,
-             blk_hash_t const& prev_block_hash,
-             blk_hash_t const& dag_block_hash,
-             uint64_t epoch,
-             uint64_t timestamp,
-             addr_t const& beneficiary,
-             sig_t const& signature) : block_hash_(block_hash),
-                                 prev_pivot_hash_(prev_pivot_hash),
-                                 prev_block_hash_(prev_block_hash),
-                                 dag_block_hash_(dag_block_hash),
-                                 epoch_(epoch),
-                                 timestamp_(timestamp),
-                                 beneficiary_(beneficiary),
-                                 signature_(signature) {}
 
   PivotBlock(blk_hash_t const& prev_pivot_hash,
              blk_hash_t const& prev_block_hash,
@@ -87,9 +72,12 @@ class PivotBlock {
                                    beneficiary_(beneficiary) {}
   ~PivotBlock() {}
 
-  blk_hash_t getHash() const;
   blk_hash_t getPrevPivotBlockHash() const;
   blk_hash_t getPrevBlockHash() const;
+  blk_hash_t getDagBlockHash() const;
+  uint64_t getEpoch() const;
+  uint64_t getTimestamp() const;
+  addr_t getBeneficiary() const;
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
@@ -97,7 +85,6 @@ class PivotBlock {
   friend std::ostream &operator<<(std::ostream &strm,
                                   PivotBlock const& pivot_block) {
     strm << "[Pivot Block] " << std::endl;
-    strm << "  pivot hash: " << pivot_block.block_hash_.hex() << std::endl;
     strm << "  previous pivot hash: "
          << pivot_block.prev_pivot_hash_.hex() << std::endl;
     strm << "  previous result hash: "
@@ -106,19 +93,16 @@ class PivotBlock {
     strm << "  epoch: " << pivot_block.epoch_ << std::endl;
     strm << "  timestamp: " << pivot_block.timestamp_ << std::endl;
     strm << "  beneficiary: " << pivot_block.beneficiary_.hex() << std::endl;
-    strm << "  signature: " << pivot_block.signature_.hex() << std::endl;
     return strm;
   }
 
  private:
-  blk_hash_t block_hash_;
   blk_hash_t prev_pivot_hash_;
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_;
   uint64_t epoch_;
   uint64_t timestamp_;
   addr_t beneficiary_;
-  sig_t signature_;
 };
 
 class ScheduleBlock {
@@ -173,25 +157,32 @@ class ResultBlock {
 class PbftBlock {
  public:
   PbftBlock() = default;
-  PbftBlock(blk_hash_t block_hash) : block_hash_(block_hash) {}
+  PbftBlock(blk_hash_t const &block_hash) : block_hash_(block_hash) {}
+  PbftBlock(PivotBlock const &pivot_block) : pivot_block_(pivot_block) {}
+  PbftBlock(ScheduleBlock const &schedule_block)
+    : schedule_block_(schedule_block) {}
   PbftBlock(dev::RLP const &_r);
   ~PbftBlock() {}
 
+
   blk_hash_t getBlockHash() const;
-  blk_hash_t getPivotBlockHash() const;
   blk_hash_t getScheduleBlockHash() const;
   PbftBlockTypes getBlockType() const;
-  void setBlockType(PbftBlockTypes block_type);
-
   PivotBlock getPivotBlock() const;
-  void setPivotBlock(PivotBlock const& pivot_block);
-
   ScheduleBlock getScheduleBlock() const;
+
+  void setBlockHash();
+  void setBlockType(PbftBlockTypes block_type);
+  void setPivotBlock(PivotBlock const& pivot_block);
   void setScheduleBlock(ScheduleBlock const& schedule_block);
+  void setSignature(sig_t const& signature);
 
   void serializeRLP(dev::RLPStream &s) const;
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
+  void streamRLP(dev::RLPStream &strm) const;
+  void pivotStreamRLP(dev::RLPStream &strm) const;
+  void scheduleStreamRLP(dev::RLPStream &strm) const;
 
  private:
   blk_hash_t block_hash_;
