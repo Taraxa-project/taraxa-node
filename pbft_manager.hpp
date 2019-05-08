@@ -28,6 +28,7 @@
 namespace taraxa {
 class FullNode;
 class VoteQueue;
+class PbftChain;
 
 enum PbftBlockTypes {
   pbft_block_none_type = -1,
@@ -82,11 +83,13 @@ class PbftManager {
                            bool override_sortition_check);
   std::pair<blk_hash_t, bool> softVotedBlockForPeriod_(std::vector<Vote> &votes,
                                                        size_t period);
+  void proposePbftBlock_();
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<std::thread> executor_;
   std::shared_ptr<VoteQueue> vote_queue_;
+  std::shared_ptr<PbftChain> pbft_chain_;
 
   size_t pbft_period_ = 1;
   size_t pbft_step_ = 1;

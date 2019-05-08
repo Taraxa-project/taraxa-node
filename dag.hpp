@@ -265,6 +265,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setDebug(bool debug);
   void setVerbose(bool verbose);
   size_t getBufferSize() const;
+  size_t getEpoch() const { return anchors_.size() - 1; }
 
  private:
   void addToDagBuffer(DagBlock const &blk);

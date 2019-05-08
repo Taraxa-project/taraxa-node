@@ -8,6 +8,7 @@
 
 #include "pbft_manager.hpp"
 
+#include "dag.hpp"
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "sortition.h"
@@ -18,7 +19,8 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager() : vote_queue_(std::make_shared<VoteQueue>()) {}
+PbftManager::PbftManager() : vote_queue_(std::make_shared<VoteQueue>()),
+                             pbft_chain_(std::make_shared<PbftChain>()) {}
 PbftManager::PbftManager(const PbftManagerConfig &config)
   : LAMBDA_ms(config.lambda_ms), vote_queue_(std::make_shared<VoteQueue>()) {}
 
@@ -90,6 +92,7 @@ void PbftManager::run() {
            nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
         // Propose value...
         LOG(log_tra_) << "Propose my value...";
+        proposePbftBlock_();
       } else if (pbft_period_ >= 2) {
         std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
             nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
@@ -474,6 +477,40 @@ std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForPeriod_(
       soft_vote_type, votes, period, std::make_pair(blk_hash_t(0), false));
 
   return blockWithEnoughVotes_(soft_votes_for_period);
+}
+
+void PbftManager::proposePbftBlock_() {
+  PbftBlockTypes current_block_type = pbft_chain_->getNextPbftBlockType();
+  if (current_block_type == pivot_block_type) {
+    blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
+    blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
+
+    auto full_node = node_.lock();
+    if (!full_node) {
+      LOG(log_err_) << "Full node unavailable" << std::endl;
+      return;
+    }
+    std::vector<std::string> ghost;
+    full_node->getGhostPath(Dag::GENESIS, ghost);
+    blk_hash_t dag_block_hash(ghost.back());
+
+    uint64_t epoch = full_node->getEpoch();
+    uint64_t timestamp = std::time(nullptr);
+    addr_t beneficiary = full_node->getAddress();
+
+    PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
+        epoch, timestamp, beneficiary);
+
+
+
+    //sig_t signature =
+
+
+  } else if (current_block_type == schedule_block_type) {
+
+  }
+  blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
+
 }
 
 }  // namespace taraxa

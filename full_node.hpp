@@ -153,6 +153,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   size_t getPbftChainSize() const;
   size_t getPbftQueueSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
+  size_t getEpoch() const;
   void setPbftBlock(PbftBlock const &pbft_block); // Test purpose
 
  private:
