@@ -189,8 +189,13 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   DagBlock sign_block(blk);
   sign_block.sign(node_sk_);
   auto now(std::chrono::system_clock::now());
-  LOG(log_time_) << "Signed block at :" << getTimePoint2Long(now) << std::endl
+  LOG(log_time_) << "Propose and sign block " << sign_block.getHash()
+                 << " at :" << getTimePoint2Long(now) << std::endl
                  << sign_block << std::endl;
+  for (auto const &t : sign_block.getTrxs()) {
+    LOG(log_time_) << "Transaction " << t
+                   << " packed at : " << getTimePoint2Long(now) << std::endl;
+  }
   storeBlock(sign_block);
 }
 
@@ -466,9 +471,7 @@ void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
 }
 
-size_t FullNode::getPbftChainSize() const {
-  return pbft_chain_->getSize();
-}
+size_t FullNode::getPbftChainSize() const { return pbft_chain_->getSize(); }
 
 size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();

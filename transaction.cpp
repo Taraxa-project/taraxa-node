@@ -328,9 +328,10 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
     trx_hash_t const &hash) {
   // Check the status
   std::shared_ptr<Transaction> tr;
-  //Loop needed because moving transactions from queue to database is not secure
-  //Probably a better fix is to have transactions saved to the database first and only then removed from the queue
-  while(tr == nullptr) {
+  // Loop needed because moving transactions from queue to database is not
+  // secure Probably a better fix is to have transactions saved to the database
+  // first and only then removed from the queue
+  while (tr == nullptr) {
     auto status = trx_status_.get(hash);
     if (status.second) {
       if (status.first == TransactionStatus::in_queue) {
@@ -340,10 +341,10 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
         if (!json.empty()) {
           tr = std::make_shared<Transaction>(json);
         }
-      }
-      else break;
-    }
-    else break;
+      } else
+        break;
+    } else
+      break;
   }
   return tr;
 }
@@ -414,6 +415,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   uLock lock(mutex_);
   bool changed = false;
+  LOG(log_wr_) << "verified_trx size: " << verified_trx.size() << std::endl;
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
