@@ -18,11 +18,11 @@
 #include <queue>
 #include <thread>
 #include <vector>
+#include "SimpleDBFace.h"
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
 #include "util.hpp"
-#include "SimpleDBFace.h"
 
 namespace taraxa {
 
@@ -250,10 +250,13 @@ class TransactionQueue {
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
+  void dumpTrxToDb();
 
  private:
   using uLock = std::unique_lock<std::mutex>;
   using listIter = std::list<Transaction>::iterator;
+  using mapIter = std::unordered_map<trx_hash_t, Transaction>::iterator;
+
   void verifyTrx();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
@@ -263,10 +266,10 @@ class TransactionQueue {
   unsigned current_capacity_ = 1024;
   unsigned future_capacity_ = 1024;
 
-  std::list<Transaction> trx_buffer_;
-  std::unordered_map<trx_hash_t, listIter> verified_trxs_;
-  std::unordered_map<trx_hash_t, listIter> unverified_trxs_;
-  std::queue<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
+  std::unordered_map<trx_hash_t, Transaction> trx_buffer_;
+  std::unordered_set<trx_hash_t> verified_trxs_;
+  std::unordered_set<trx_hash_t> unverified_trxs_;
+  std::queue<trx_hash_t> unverified_hash_qu_;
   std::vector<std::thread> verifiers_;
   std::mutex mutex_for_unverified_qu_;
   std::mutex mutex_for_verified_qu_;
@@ -348,6 +351,7 @@ class TransactionManager
   bool stopped_ = true;
 
   std::shared_ptr<SimpleDBFace> db_trxs_;
+
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;

@@ -173,8 +173,8 @@ bool TransactionQueue::insert(Transaction trx) {
   if (status.second == false) {  // never seen before
     ret = trx_status_.insert(hash, TransactionStatus::in_queue);
     uLock lock(mutex_for_unverified_qu_);
-    auto iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-    unverified_hash_qu_.emplace(std::make_pair(hash, iter));
+    auto iter = trx_buffer_.insert({trx.getHash(), trx}).first;
+    unverified_hash_qu_.emplace(hash);
     cond_for_unverified_qu_.notify_one();
     LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
     ret = true;
@@ -192,7 +192,7 @@ bool TransactionQueue::insert(Transaction trx) {
 void TransactionQueue::verifyTrx() {
   while (!stopped_) {
     // Transaction utrx;
-    std::pair<trx_hash_t, listIter> item;
+    trx_hash_t item;
     {
       uLock lock(mutex_for_unverified_qu_);
       while (unverified_hash_qu_.empty() && !stopped_) {
@@ -202,13 +202,12 @@ void TransactionQueue::verifyTrx() {
         LOG(log_nf_) << "Transaction verifier stopped ... " << std::endl;
         return;
       }
-      //  utrx = std::move(unverified_qu_.front());
       item = unverified_hash_qu_.front();
       unverified_hash_qu_.pop();
     }
     try {
-      trx_hash_t hash = item.first;
-      Transaction &trx = *(item.second);
+      trx_hash_t hash = item;
+      Transaction &trx = trx_buffer_[item];
       // verify and put the transaction to verified queue
       bool valid = false;
       if (mode_ == VerifyMode::skip_verify_sig) {
@@ -226,7 +225,7 @@ void TransactionQueue::verifyTrx() {
         LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
 
         uLock lock(mutex_for_verified_qu_);
-        verified_trxs_[hash] = item.second;
+        verified_trxs_.insert(hash);
         new_verified_transactions = true;
       }
     } catch (...) {
@@ -238,33 +237,34 @@ std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::removeBlockTransactionsFromQueue(
     vec_trx_t const &allBlockTransactions) {
   std::unordered_map<trx_hash_t, Transaction> result;
-  while (true) {
-    {
-      uLock lock(mutex_for_verified_qu_);
-      for (auto const &trx : allBlockTransactions) {
-        auto vrf_trx = verified_trxs_.find(trx);
-        if (vrf_trx != verified_trxs_.end()) {
-          result[vrf_trx->first] = *(vrf_trx->second);
-          trx_buffer_.erase(vrf_trx->second);
-          verified_trxs_.erase(trx);
-        }
+  //  while (true) {
+  {
+    uLock lock(mutex_for_verified_qu_);
+    for (auto const &trx : allBlockTransactions) {
+      auto vrf_trx = verified_trxs_.find(trx);
+      if (vrf_trx != verified_trxs_.end()) {
+        result[trx] = trx_buffer_[trx];
+        verified_trxs_.erase(trx);
       }
     }
-    {
-      // Check that some of the block transaction is not in the unverified
-      // queue, if so wait for it to enter verified queue
-      uLock lock(mutex_for_unverified_qu_);
-      bool found = false;
-      for (auto const &trx : allBlockTransactions) {
-        auto uvrf_trx = unverified_trxs_.find(trx);
-        if (uvrf_trx != unverified_trxs_.end()) {
-          found = true;
-        }
-      }
-      if (!found) return result;
-    }
-    thisThreadSleepForMilliSeconds(10);
   }
+  {
+    // Check that some of the block transaction is not in the unverified
+    // queue, if so wait for it to enter verified queue
+    uLock lock(mutex_for_unverified_qu_);
+    bool found = false;
+    for (auto const &trx : allBlockTransactions) {
+      auto uvrf_trx = unverified_trxs_.find(trx);
+      if (uvrf_trx != unverified_trxs_.end()) {
+        result[trx] = trx_buffer_[trx];
+        unverified_trxs_.erase(trx);
+      }
+    }
+    if (!found) return result;
+  }
+  thisThreadSleepForMilliSeconds(10);
+  //  }
+  return result;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -274,7 +274,7 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
     if (onlyNew) new_verified_transactions = false;
     uLock lock(mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
-      verified_trxs[trx.first] = *(trx.second);
+      verified_trxs[trx] = trx_buffer_[trx];
     }
     LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
@@ -284,17 +284,9 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
 
 std::shared_ptr<Transaction> TransactionQueue::getTransaction(
     trx_hash_t const &hash) {
-  {
-    uLock lock(mutex_for_unverified_qu_);
-    auto it = unverified_trxs_.find(hash);
-    if (it != unverified_trxs_.end())
-      return std::make_shared<Transaction>(*(it->second));
-  }
-  {
-    uLock lock(mutex_for_verified_qu_);
-    auto it = verified_trxs_.find(hash);
-    if (it != verified_trxs_.end())
-      return std::make_shared<Transaction>(*(it->second));
+  auto iter = trx_buffer_.find(hash);
+  if (iter != trx_buffer_.end()) {
+    return std::make_shared<Transaction>(iter->second);
   }
   return nullptr;
 }
@@ -304,10 +296,9 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   std::unordered_map<trx_hash_t, Transaction> res;
   uLock lock(mutex_for_verified_qu_);
   for (auto const &trx : verified_trxs_) {
-    res[trx.first] = *(trx.second);
+    res[trx] = trx_buffer_[trx];
   }
   verified_trxs_.clear();
-  assert(verified_trxs_.empty());
   if (res.size() > 0) {
     LOG(log_dg_) << "Copy " << res.size() << " verified trx. " << std::endl;
   }
@@ -328,9 +319,10 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
     trx_hash_t const &hash) {
   // Check the status
   std::shared_ptr<Transaction> tr;
-  //Loop needed because moving transactions from queue to database is not secure
-  //Probably a better fix is to have transactions saved to the database first and only then removed from the queue
-  while(tr == nullptr) {
+  // Loop needed because moving transactions from queue to database is not
+  // secure Probably a better fix is to have transactions saved to the database
+  // first and only then removed from the queue
+  while (tr == nullptr) {
     auto status = trx_status_.get(hash);
     if (status.second) {
       if (status.first == TransactionStatus::in_queue) {
@@ -340,10 +332,10 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
         if (!json.empty()) {
           tr = std::make_shared<Transaction>(json);
         }
-      }
-      else break;
-    }
-    else break;
+      } else
+        break;
+    } else
+      break;
   }
   return tr;
 }

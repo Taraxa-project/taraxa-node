@@ -367,7 +367,7 @@ TEST(FullNode, receive_send_transaction) {
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityInfo;
+  logOptions.verbosity = dev::VerbosityWarning;
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage
