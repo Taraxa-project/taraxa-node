@@ -220,12 +220,16 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
 }
 
 std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
+  // Check cache first
+  auto trx = trx_mgr_->getTransaction(hash);
+  if (trx) return trx;
+
+  // Check db
   std::string json = db_trxs_->get(hash.toString());
   if (!json.empty()) {
     return std::make_shared<Transaction>(json);
   }
-  // Check the queue as well
-  return trx_mgr_->getTransaction(hash);
+  return nullptr;
 }
 
 time_stamp_t FullNode::getDagBlockTimeStamp(blk_hash_t const &hash) {
@@ -466,9 +470,7 @@ void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
 }
 
-size_t FullNode::getPbftChainSize() const {
-  return pbft_chain_->getSize();
-}
+size_t FullNode::getPbftChainSize() const { return pbft_chain_->getSize(); }
 
 size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();

@@ -317,27 +317,7 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(
     trx_hash_t const &hash) {
-  // Check the status
-  std::shared_ptr<Transaction> tr;
-  // Loop needed because moving transactions from queue to database is not
-  // secure Probably a better fix is to have transactions saved to the database
-  // first and only then removed from the queue
-  while (tr == nullptr) {
-    auto status = trx_status_.get(hash);
-    if (status.second) {
-      if (status.first == TransactionStatus::in_queue) {
-        tr = trx_qu_.getTransaction(hash);
-      } else if (status.first == TransactionStatus::in_block) {
-        std::string json = db_trxs_->get(hash.toString());
-        if (!json.empty()) {
-          tr = std::make_shared<Transaction>(json);
-        }
-      } else
-        break;
-    } else
-      break;
-  }
-  return tr;
+  return trx_qu_.getTransaction(hash);
 }
 // Received block means some trx might be packed by others
 bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
