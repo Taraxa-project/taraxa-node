@@ -194,7 +194,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
                  << sign_block << std::endl;
   for (auto const &t : sign_block.getTrxs()) {
     LOG(log_time_) << "Transaction " << t
-                   << " packed at : " << getTimePoint2Long(now) << std::endl;
+                   << " packed at : " << getTimePoint2Long(now);
   }
   storeBlock(sign_block);
 }

@@ -313,8 +313,7 @@ void RpcHandler::processRequest() {
         auto now(std::chrono::system_clock::now());
         Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
         LOG(log_time) << "Transaction " << trx.getHash()
-                      << " received at: " << getTimePoint2Long(now)
-                      << std::endl;
+                      << " received at: " << getTimePoint2Long(now);
         node_->storeTransaction(trx);
         res = trx.getJsonStr();
       } catch (std::exception &e) {
