@@ -474,6 +474,10 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
+size_t FullNode::getEpoch() const {
+  return dag_mgr_->getEpoch();
+}
+
 void FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     pbft_chain_->pushPbftPivotBlock(pbft_block);

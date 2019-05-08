@@ -94,24 +94,24 @@ blk_hash_t PivotBlock::getHash() const {
 }
 
 blk_hash_t PivotBlock::getPrevPivotBlockHash() const {
-  return prev_pivot_blk_;
+  return prev_pivot_hash_;
 }
 
 blk_hash_t PivotBlock::getPrevBlockHash() const {
-  return prev_res_blk_;
+  return prev_block_hash_;
 }
 
 bool PivotBlock::serialize(stream &strm) const {
   bool ok = true;
 
   ok &= write(strm, block_hash_);
-  ok &= write(strm, prev_pivot_blk_);
-  ok &= write(strm, prev_res_blk_);
-  ok &= write(strm, dag_blk_);
+  ok &= write(strm, prev_pivot_hash_);
+  ok &= write(strm, prev_block_hash_);
+  ok &= write(strm, dag_block_hash_);
   ok &= write(strm, epoch_);
   ok &= write(strm, timestamp_);
   ok &= write(strm, beneficiary_);
-  ok &= write(strm, sig_);
+  ok &= write(strm, signature_);
   assert(ok);
 
   return ok;
@@ -121,13 +121,13 @@ bool PivotBlock::deserialize(stream &strm) {
   bool ok = true;
 
   ok &= read(strm, block_hash_);
-  ok &= read(strm, prev_pivot_blk_);
-  ok &= read(strm, prev_res_blk_);
-  ok &= read(strm, dag_blk_);
+  ok &= read(strm, prev_pivot_hash_);
+  ok &= read(strm, prev_block_hash_);
+  ok &= read(strm, dag_block_hash_);
   ok &= read(strm, epoch_);
   ok &= read(strm, timestamp_);
   ok &= read(strm, beneficiary_);
-  ok &= read(strm, sig_);
+  ok &= read(strm, signature_);
   assert(ok);
 
   return ok;
@@ -141,9 +141,9 @@ std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock] " << std::endl;
   strm << "block hash: " << block_hash_ << std::endl;
-  strm << "prev_pivot: " << prev_pivot_ << std::endl;
+  strm << "prev_pivot: " << prev_pivot_hash_ << std::endl;
   strm << "time_stamp: " << timestamp_ << std::endl;
-  strm << "sig: " << sig_ << std::endl;
+  strm << "sig: " << signature_ << std::endl;
   strm << "  --> Schedule ..." << std::endl;
   strm << schedule_;
   return strm.str();
@@ -154,17 +154,25 @@ std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
   return strm;
 }
 
+TrxSchedule ScheduleBlock::getSchedule() const {
+  return schedule_;
+}
+
 blk_hash_t ScheduleBlock::getHash() const {
   return block_hash_;
+}
+
+blk_hash_t ScheduleBlock::getPrevBlockHash() const {
+  return prev_pivot_hash_;
 }
 
 bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
 
   ok &= write(strm, block_hash_);
-  ok &= write(strm, prev_pivot_);
+  ok &= write(strm, prev_pivot_hash_);
   ok &= write(strm, timestamp_);
-  ok &= write(strm, sig_);
+  ok &= write(strm, signature_);
   uint32_t block_size = schedule_.blk_order.size();
   uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
   if (block_size != trx_vectors_size) {
@@ -193,9 +201,9 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   bool ok = true;
 
   ok &= read(strm, block_hash_);
-  ok &= read(strm, prev_pivot_);
+  ok &= read(strm, prev_pivot_hash_);
   ok &= read(strm, timestamp_);
-  ok &= read(strm, sig_);
+  ok &= read(strm, signature_);
   uint32_t block_size;
   uint32_t trx_vectors_size;
   ok &= read(strm, block_size);
@@ -249,6 +257,30 @@ blk_hash_t PbftBlock::getScheduleBlockHash() const {
   return schedule_block_.getHash();
 }
 
+PbftBlockTypes PbftBlock::getBlockType() const {
+  return block_type_;
+}
+
+void PbftBlock::setBlockType(taraxa::PbftBlockTypes block_type) {
+  block_type_ = block_type;
+}
+
+PivotBlock PbftBlock::getPivotBlock() const {
+  return pivot_block_;
+}
+
+void PbftBlock::setPivotBlock(const taraxa::PivotBlock& pivot_block) {
+  pivot_block_ = pivot_block;
+}
+
+ScheduleBlock PbftBlock::getScheduleBlock() const {
+  return schedule_block_;
+}
+
+void PbftBlock::setScheduleBlock(const taraxa::ScheduleBlock& schedule_block) {
+  schedule_block_ = schedule_block;
+}
+
 void PbftBlock::serializeRLP(dev::RLPStream& s) const {
   std::vector<uint8_t> bytes;
   {
@@ -286,8 +318,16 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   return ok;
 }
 
-blk_hash_t PbftChain::getLastPbftBlock() const {
-  return last_pbft_blk_;
+size_t PbftChain::getSize() const {
+  return count_;
+}
+
+blk_hash_t PbftChain::getLastPbftBlockHash() const {
+  return last_pbft_block_hash_;
+}
+
+blk_hash_t PbftChain::getLastPbftPivotHash() const {
+  return last_pbft_pivot_hash_;
 }
 
 PbftBlockTypes PbftChain::getNextPbftBlockType() const {
@@ -298,8 +338,8 @@ size_t PbftChain::getPbftQueueSize() const {
   return pbft_queue_.size();
 }
 
-void PbftChain::setLastPbftBlock(blk_hash_t const &new_pbft_block) {
-  last_pbft_blk_ = new_pbft_block;
+void PbftChain::setLastPbftBlockHash(blk_hash_t const &new_pbft_block_hash) {
+  last_pbft_block_hash_ = new_pbft_block_hash;
 }
 
 void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
@@ -331,7 +371,7 @@ void PbftChain::insertPbftBlock_(taraxa::blk_hash_t const &pbft_block_hash,
 void PbftChain::pushPbftBlock(taraxa::PbftBlock const &pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   insertPbftBlock_(pbft_block_hash, pbft_block);
-  setLastPbftBlock(pbft_block_hash);
+  setLastPbftBlockHash(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later
   int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 2;
@@ -346,7 +386,8 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const &pbft_block) {
   if (next_pbft_block_type_ != pivot_block_type) {
     return false;
   }
-  std::pair<PbftBlock, bool> pbft_chain_last_blk = getPbftBlock(last_pbft_blk_);
+  std::pair<PbftBlock, bool> pbft_chain_last_blk =
+      getPbftBlock(last_pbft_block_hash_);
   if (!pbft_chain_last_blk.second) {
     std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
     return false;
@@ -356,6 +397,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const &pbft_block) {
     return false;
   }
   pushPbftBlock(pbft_block);
+  last_pbft_pivot_hash_ = pbft_block.getBlockHash();
   return true;
 }
 
@@ -366,7 +408,8 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   if (next_pbft_block_type_ != schedule_block_type) {
     return false;
   }
-  std::pair<PbftBlock, bool> pbft_chain_last_blk = getPbftBlock(last_pbft_blk_);
+  std::pair<PbftBlock, bool> pbft_chain_last_blk =
+      getPbftBlock(last_pbft_block_hash_);
   if (!pbft_chain_last_blk.second) {
     std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
     return false;

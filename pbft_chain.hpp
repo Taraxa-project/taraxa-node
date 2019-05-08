@@ -59,23 +59,34 @@ class PivotBlock {
   PivotBlock() = default;
   PivotBlock(taraxa::stream &strm);
   PivotBlock(blk_hash_t const& block_hash,
-             blk_hash_t const& prev_pivot_blk,
-             blk_hash_t const& prev_res_blk,
-             blk_hash_t const& dag_blk,
+             blk_hash_t const& prev_pivot_hash,
+             blk_hash_t const& prev_block_hash,
+             blk_hash_t const& dag_block_hash,
              uint64_t epoch,
              uint64_t timestamp,
              addr_t const& beneficiary,
-             sig_t const& sig) : block_hash_(block_hash),
-                                 prev_pivot_blk_(prev_pivot_blk),
-                                 prev_res_blk_(prev_res_blk),
-                                 dag_blk_(dag_blk),
+             sig_t const& signature) : block_hash_(block_hash),
+                                 prev_pivot_hash_(prev_pivot_hash),
+                                 prev_block_hash_(prev_block_hash),
+                                 dag_block_hash_(dag_block_hash),
                                  epoch_(epoch),
                                  timestamp_(timestamp),
                                  beneficiary_(beneficiary),
-                                 sig_(sig) {}
+                                 signature_(signature) {}
+
+  PivotBlock(blk_hash_t const& prev_pivot_hash,
+             blk_hash_t const& prev_block_hash,
+             blk_hash_t const& dag_block_hash,
+             uint64_t epoch,
+             uint64_t timestamp,
+             addr_t beneficiary) : prev_pivot_hash_(prev_pivot_hash),
+                                   prev_block_hash_(prev_block_hash),
+                                   dag_block_hash_(dag_block_hash),
+                                   epoch_(epoch),
+                                   timestamp_(timestamp),
+                                   beneficiary_(beneficiary) {}
   ~PivotBlock() {}
 
-  blk_hash_t blockHash() const;
   blk_hash_t getHash() const;
   blk_hash_t getPrevPivotBlockHash() const;
   blk_hash_t getPrevBlockHash() const;
@@ -88,52 +99,52 @@ class PivotBlock {
     strm << "[Pivot Block] " << std::endl;
     strm << "  pivot hash: " << pivot_block.block_hash_.hex() << std::endl;
     strm << "  previous pivot hash: "
-         << pivot_block.prev_pivot_blk_.hex() << std::endl;
+         << pivot_block.prev_pivot_hash_.hex() << std::endl;
     strm << "  previous result hash: "
-         << pivot_block.prev_res_blk_.hex() << std::endl;
-    strm << "  dag hash: " << pivot_block.dag_blk_.hex() << std::endl;
+         << pivot_block.prev_block_hash_.hex() << std::endl;
+    strm << "  dag hash: " << pivot_block.dag_block_hash_.hex() << std::endl;
     strm << "  epoch: " << pivot_block.epoch_ << std::endl;
     strm << "  timestamp: " << pivot_block.timestamp_ << std::endl;
     strm << "  beneficiary: " << pivot_block.beneficiary_.hex() << std::endl;
-    strm << "  signature: " << pivot_block.sig_.hex() << std::endl;
+    strm << "  signature: " << pivot_block.signature_.hex() << std::endl;
     return strm;
   }
 
  private:
   blk_hash_t block_hash_;
-  blk_hash_t prev_pivot_blk_;
-  blk_hash_t prev_res_blk_;
-  blk_hash_t dag_blk_;
+  blk_hash_t prev_pivot_hash_;
+  blk_hash_t prev_block_hash_;
+  blk_hash_t dag_block_hash_;
   uint64_t epoch_;
   uint64_t timestamp_;
   addr_t beneficiary_;
-  sig_t sig_;
+  sig_t signature_;
 };
 
 class ScheduleBlock {
  public:
   ScheduleBlock() = default;
-  ScheduleBlock(blk_hash_t const& block_hash, blk_hash_t const& prev_pivot,
-                uint64_t const& timestamp, sig_t const& sig,
-                TrxSchedule const& sche)
+  ScheduleBlock(blk_hash_t const& block_hash, blk_hash_t const& prev_pivot_hash,
+                uint64_t const& timestamp, sig_t const& signature,
+                TrxSchedule const& schedule)
       : block_hash_(block_hash),
-        prev_pivot_(prev_pivot),
+        prev_pivot_hash_(prev_pivot_hash),
         timestamp_(timestamp),
-        sig_(sig),
-        schedule_(sche) {}
-  ScheduleBlock(blk_hash_t const& prev_pivot, uint64_t const& timestamp,
-                sig_t const& sig, TrxSchedule const& sche)
-      : prev_pivot_(prev_pivot),
+        signature_(signature),
+        schedule_(schedule) {}
+  ScheduleBlock(blk_hash_t const& prev_pivot_hash, uint64_t const& timestamp,
+                sig_t const& signature, TrxSchedule const& schedule)
+      : prev_pivot_hash_(prev_pivot_hash),
         timestamp_(timestamp),
-        sig_(sig),
-        schedule_(sche) {}
+        signature_(signature),
+        schedule_(schedule) {}
   ScheduleBlock(taraxa::stream &strm);
   ~ScheduleBlock() {}
 
   std::string getJsonStr() const;
-  TrxSchedule getSchedule() const { return schedule_; }
+  TrxSchedule getSchedule() const;
   blk_hash_t getHash() const;
-  blk_hash_t getPrevBlockHash() const { return prev_pivot_; }
+  blk_hash_t getPrevBlockHash() const;
 
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
@@ -142,9 +153,9 @@ class ScheduleBlock {
 
  private:
   blk_hash_t block_hash_;
-  blk_hash_t prev_pivot_;
+  blk_hash_t prev_pivot_hash_;
   uint64_t timestamp_;
-  sig_t sig_;
+  sig_t signature_;
   TrxSchedule schedule_;
 };
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
@@ -169,17 +180,14 @@ class PbftBlock {
   blk_hash_t getBlockHash() const;
   blk_hash_t getPivotBlockHash() const;
   blk_hash_t getScheduleBlockHash() const;
-  PbftBlockTypes getBlockType() const { return block_type_; }
-  void setBlockType(PbftBlockTypes block_type) { block_type_ = block_type; }
+  PbftBlockTypes getBlockType() const;
+  void setBlockType(PbftBlockTypes block_type);
 
-  PivotBlock getPivotBlock() const { return pivot_block_; }
-  void setPivotBlock(PivotBlock const& pivot_block) {
-    pivot_block_ = pivot_block;
-  }
-  ScheduleBlock getScheduleBlock() const { return schedule_block_; }
-  void setScheduleBlock(ScheduleBlock const& schedule_block) {
-    schedule_block_ = schedule_block;
-  }
+  PivotBlock getPivotBlock() const;
+  void setPivotBlock(PivotBlock const& pivot_block);
+
+  ScheduleBlock getScheduleBlock() const;
+  void setScheduleBlock(ScheduleBlock const& schedule_block);
 
   void serializeRLP(dev::RLPStream &s) const;
   bool serialize(stream &strm) const;
@@ -190,23 +198,25 @@ class PbftBlock {
   PbftBlockTypes block_type_ = pbft_block_none_type;
   PivotBlock pivot_block_;
   ScheduleBlock schedule_block_;
+  sig_t signature_;
   // TODO: need more pbft block type
 };
 
 class PbftChain {
  public:
-  PbftChain() : last_pbft_blk_(genesis_hash_) {
+  PbftChain() {
     pbft_blocks_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
   }
   ~PbftChain() {}
 
-  size_t getSize() const { return count_; }
-  blk_hash_t getLastPbftBlock() const;
+  size_t getSize() const;
+  blk_hash_t getLastPbftBlockHash() const;
+  blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftQueueSize() const;
   std::pair<PbftBlock, bool> getPbftBlock(blk_hash_t const& pbft_block_hash);
 
-  void setLastPbftBlock(blk_hash_t const& new_pbft_block);
+  void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);
 
   bool findPbftBlock(blk_hash_t const& pbft_block_hash) const ;
@@ -224,7 +234,8 @@ class PbftChain {
   blk_hash_t genesis_hash_ = blk_hash_t(0);
   uint64_t count_ = 1;
   PbftBlockTypes next_pbft_block_type_ = pivot_block_type;
-  blk_hash_t last_pbft_blk_ = genesis_hash_;
+  blk_hash_t last_pbft_block_hash_ = genesis_hash_;
+  blk_hash_t last_pbft_pivot_hash_ = genesis_hash_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_blocks_map_;
   std::deque<blk_hash_t> pbft_queue_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
