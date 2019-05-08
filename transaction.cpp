@@ -351,6 +351,7 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
 bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
     vec_trx_t const &all_block_trx_hashes,
     std::vector<Transaction> const &some_trxs) {
+  uLock lock(mutex_);
   // First step: Save and update status for transactions that were sent together
   // with the block some_trxs might not full trxs in the block (for syncing
   // purpose)
