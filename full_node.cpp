@@ -146,8 +146,8 @@ void FullNode::start(bool boot_node) {
             received_blocks_++;
           }
         }
-        db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
         dag_mgr_->addDagBlock(blk.first, true);
+        db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
         network_->onNewBlockVerified(blk.first);
         db_blks_->commit();
       }
