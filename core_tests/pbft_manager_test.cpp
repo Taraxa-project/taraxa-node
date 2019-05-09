@@ -15,7 +15,7 @@
 
 namespace taraxa {
 
-TEST(PbftManager, propose_pbft_anchor_block) {
+TEST(PbftManager, step1_propose_pbft_anchor_block) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
   		context1, std::string("./core_tests/conf_taraxa1.json")));
@@ -60,6 +60,10 @@ TEST(PbftManager, propose_pbft_anchor_block) {
   ASSERT_EQ(node_peers, nw1->getPeerCount());
   ASSERT_EQ(node_peers, nw2->getPeerCount());
   ASSERT_EQ(node_peers, nw3->getPeerCount());
+
+  addr_t account_address = node1->getAddress();
+  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  node1->setBalance(account_address, new_balance);
 
   std::shared_ptr<PbftManager> pbft_mgr = node1->getPbftManager();
   pbft_mgr->setPbftStep(1);

@@ -22,7 +22,7 @@ namespace taraxa {
 
 PbftManager::PbftManager() {}
 PbftManager::PbftManager(const PbftManagerConfig &config)
-  : LAMBDA_ms(config.lambda_ms), vote_queue_(std::make_shared<VoteQueue>()) {}
+  : LAMBDA_ms(config.lambda_ms) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
@@ -578,8 +578,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     pbft_block.setBlockHash();
   } // TODO: More pbft block types
 
-  // sign the pbft block
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
+  // sortition
+  if (!shouldSpeak(pbft_block_hash, propose_vote_type, pbft_period_,
+                  pbft_step_)) {
+    return std::make_pair(blk_hash_t(0), false);
+  }
+  // sign the pbft block
   std::string message = pbft_block_hash.toString() +
                         std::to_string(propose_vote_type) +
                         std::to_string(pbft_period_) +
@@ -599,7 +604,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   std::vector<Vote> votes = vote_queue_->getVotes(pbft_period_);
   PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
   std::vector<blk_hash_t> leader_candidates;
-  for (auto &v: votes) {
+  for (auto const &v: votes) {
     if (v.getType() == next_pbft_block_type && v.getPeriod() == pbft_period_) {
       leader_candidates.emplace_back(v.getBlockHash());
     }
@@ -609,7 +614,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
     return std::make_pair(blk_hash_t(0), false);
   }
   blk_hash_t leader_block = leader_candidates[0];
-  for (auto &block_hash: leader_candidates) {
+  for (auto const &block_hash: leader_candidates) {
     if (block_hash < leader_block) {
       leader_block = block_hash;
     }
