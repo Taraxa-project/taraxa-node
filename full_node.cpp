@@ -194,7 +194,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
                  << sign_block << std::endl;
   for (auto const &t : sign_block.getTrxs()) {
     LOG(log_time_) << "Transaction " << t
-                   << " packed at : " << getTimePoint2Long(now);
+                   << " packed at: " << getTimePoint2Long(now);
   }
   storeBlock(sign_block);
 }
@@ -477,9 +477,7 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
-size_t FullNode::getEpoch() const {
-  return dag_mgr_->getEpoch();
-}
+size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
 
 void FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
