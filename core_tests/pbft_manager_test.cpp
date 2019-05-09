@@ -9,16 +9,9 @@
 #include "pbft_manager.hpp"
 
 #include <gtest/gtest.h>
-//#include <atomic>
-//#include <boost/thread.hpp>
-//#include <iostream>
-//#include <vector>
 
 #include "full_node.hpp"
-//#include "libdevcore/Log.h"
 #include "network.hpp"
-//#include "pbft_chain.hpp"
-//#include "util.hpp"
 
 namespace taraxa {
 
@@ -71,6 +64,7 @@ TEST(PbftManager, propose_pbft_anchor_block) {
   std::shared_ptr<PbftManager> pbft_mgr = node1->getPbftManager();
   pbft_mgr->setPbftStep(1);
   pbft_mgr->setPbftPeriod(1);
+
   pbft_mgr->start();
 
   int current_pbft_queue_size = 1;
@@ -86,6 +80,7 @@ TEST(PbftManager, propose_pbft_anchor_block) {
   EXPECT_EQ(node2->getPbftQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getPbftQueueSize(), current_pbft_queue_size);
 
+  pbft_mgr->stop();
   work1.reset();
   work2.reset();
   work3.reset();

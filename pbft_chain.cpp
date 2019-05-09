@@ -464,4 +464,23 @@ void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
   pbft_queue_map_[pbft_block.getBlockHash()] = pbft_block;
 }
 
+std::string PbftChain::getGenesisStr() const {
+  std::stringstream strm;
+  strm << "[PbftChain]" << std::endl;
+  strm << "genesis hash: " << genesis_hash_.toString() << std::endl;
+  strm << "count: " << count_ << std::endl;
+  strm << "next pbft block type: " << next_pbft_block_type_ << std::endl;
+  strm << "last pbft block hash: "
+       << last_pbft_pivot_hash_.toString() << std::endl;
+  strm << "last pbft pivot hash: "
+       << last_pbft_pivot_hash_.toString() << std::endl;
+  // TODO: need add more info
+  return strm.str();
+}
+
+std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
+  strm << pbft_chain.getGenesisStr();
+  return strm;
+}
+
 }  // namespace taraxa

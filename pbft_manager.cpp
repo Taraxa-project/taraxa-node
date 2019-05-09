@@ -20,10 +20,20 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager() : vote_queue_(std::make_shared<VoteQueue>()),
-                             pbft_chain_(std::make_shared<PbftChain>()) {}
+PbftManager::PbftManager() {}
 PbftManager::PbftManager(const PbftManagerConfig &config)
   : LAMBDA_ms(config.lambda_ms), vote_queue_(std::make_shared<VoteQueue>()) {}
+
+void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
+  node_ = node;
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
+  vote_queue_ = full_node->getVoteQueue();
+  pbft_chain_ = full_node->getPbftChain();
+}
 
 void PbftManager::start() {
   if (!stopped_) {
@@ -63,8 +73,8 @@ void PbftManager::run() {
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto next_step_time_ms = 0;
 
-    LOG(log_tra_) << "PBFT period is " << pbft_period_;
-    LOG(log_tra_) << "PBFT step is " << pbft_step_;
+    LOG(log_inf_) << "PBFT period is " << pbft_period_;
+    LOG(log_inf_) << "PBFT step is " << pbft_step_;
 
     // Get votes
     std::vector<Vote> votes = vote_queue_->getVotes(pbft_period_ - 1);
@@ -76,10 +86,10 @@ void PbftManager::run() {
         periodDeterminedFromVotes_(votes, pbft_period_);
 
     if (consensus_pbfy_period != pbft_period_) {
-      LOG(log_tra_) << "Period determined from votes: " << consensus_pbfy_period;
+      LOG(log_inf_) << "Period determined from votes: " << consensus_pbfy_period;
       pbft_period_ = consensus_pbfy_period;
-      LOG(log_tra_) << "Advancing clock to pbft period " << pbft_period_
-                   << ", step 1, and resetting clock.";
+      LOG(log_inf_) << "Advancing clock to pbft period " << pbft_period_
+                     << ", step 1, and resetting clock.";
       // NOTE: This also sets pbft_step back to 1
       pbft_step_ = 1;
       period_clock_initial_datetime = std::chrono::system_clock::now();
@@ -92,7 +102,7 @@ void PbftManager::run() {
           (pbft_period_ >= 2 &&
            nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
         // Propose value...
-        LOG(log_tra_) << "Propose my value...";
+        LOG(log_inf_) << "Propose my value...";
         std::pair<blk_hash_t, bool> proposed_block_hash = proposeMyPbftBlock_();
         if (proposed_block_hash.second) {
           placeVoteIfCanSpeak_(proposed_block_hash.first, propose_vote_type,
@@ -102,7 +112,7 @@ void PbftManager::run() {
         std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
             nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
         if (next_voted_block_from_previous_period.second) {
-          LOG(log_tra_) << "Proposing next voted block "
+          LOG(log_inf_) << "Proposing next voted block "
                         << next_voted_block_from_previous_period.first
                         << " from previous period.";
           placeVoteIfCanSpeak_(next_voted_block_from_previous_period.first,

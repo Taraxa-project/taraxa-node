@@ -14,6 +14,7 @@
 
 #include "config.hpp"
 #include "libdevcore/Log.h"
+#include "pbft_chain.hpp"
 #include "types.hpp"
 #include "vote.h"
 
@@ -28,28 +29,13 @@
 namespace taraxa {
 class FullNode;
 class VoteQueue;
-class PbftChain;
-
-enum PbftBlockTypes {
-  pbft_block_none_type = -1,
-  pivot_block_type = 0,
-  schedule_block_type,
-  result_block_type
-};
-
-enum PbftVoteTypes {
-  propose_vote_type = 0,
-  soft_vote_type,
-  cert_vote_type,
-  next_vote_type
-};
 
 class PbftManager {
  public:
   PbftManager();
   PbftManager(PbftManagerConfig const &config);
   ~PbftManager() { stop(); }
-  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
+  void setFullNode(std::shared_ptr<FullNode> node);
   bool shouldSpeak(blk_hash_t const &blockhash, char type,
                    uint64_t period, size_t step);
   void start();
