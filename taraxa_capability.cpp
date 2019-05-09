@@ -37,7 +37,6 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
                                               block.second.second);
       }
     }
-    peers_[_nodeID].m_syncBlocks.clear();
     // After storing blocks, we need to give some time for the blocks to be
     // processed before continuing sync
     // Better solution needed later
