@@ -209,6 +209,14 @@ void FullNode::storeTransaction(Transaction const &trx) {
   trx_mgr_->insertTrx(trx);
 }
 
+std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
+  std::string json = db_blks_->get(hash.toString());
+  if (!json.empty()) {
+    return std::make_shared<DagBlock>(json);
+  }
+  return nullptr;
+}
+
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   std::shared_ptr<DagBlock> blk;
   // find if in block queue

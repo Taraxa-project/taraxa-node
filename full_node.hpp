@@ -79,6 +79,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // Dag related: return childern, siblings, tips before time stamp
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash);
+
 
   bool isBlockKnown(blk_hash_t const &hash);
   time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
