@@ -17,7 +17,6 @@
 #include <string>
 #include <vector>
 
-#include "pbft_manager.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -28,6 +27,20 @@
  * 3. ResultBlock: computing results
  */
 namespace taraxa {
+
+enum PbftBlockTypes {
+  pbft_block_none_type = -1,
+  pivot_block_type = 0,
+  schedule_block_type,
+  result_block_type
+};
+
+enum PbftVoteTypes {
+  propose_vote_type = 0,
+  soft_vote_type,
+  cert_vote_type,
+  next_vote_type
+};
 
 class TrxSchedule {
  public:
@@ -185,7 +198,11 @@ class PbftBlock {
 
 class PbftChain {
  public:
-  PbftChain() {
+  PbftChain() : genesis_hash_(blk_hash_t(0)),
+                count_(1),
+                next_pbft_block_type_(pivot_block_type) {
+    last_pbft_block_hash_ = genesis_hash_;
+    last_pbft_pivot_hash_ = genesis_hash_;
     pbft_blocks_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
   }
   ~PbftChain() {}
@@ -196,6 +213,7 @@ class PbftChain {
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftQueueSize() const;
   std::pair<PbftBlock, bool> getPbftBlock(blk_hash_t const& pbft_block_hash);
+  std::string getGenesisStr() const;
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);
@@ -212,16 +230,17 @@ class PbftChain {
   void insertPbftBlock_(blk_hash_t const& pbft_block_hash,
 	                     PbftBlock const& pbft_block);
 
-  blk_hash_t genesis_hash_ = blk_hash_t(0);
-  uint64_t count_ = 1;
-  PbftBlockTypes next_pbft_block_type_ = pivot_block_type;
-  blk_hash_t last_pbft_block_hash_ = genesis_hash_;
-  blk_hash_t last_pbft_pivot_hash_ = genesis_hash_;
+  blk_hash_t genesis_hash_;
+  uint64_t count_;
+  PbftBlockTypes next_pbft_block_type_;
+  blk_hash_t last_pbft_block_hash_;
+  blk_hash_t last_pbft_pivot_hash_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_blocks_map_;
   std::deque<blk_hash_t> pbft_queue_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
 
 };
+std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 
 }  // namespace taraxa
 #endif
