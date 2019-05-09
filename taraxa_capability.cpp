@@ -41,7 +41,21 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     // After storing blocks, we need to give some time for the blocks to be
     // processed before continuing sync
     // Better solution needed later
-    thisThreadSleepForMilliSeconds(1);
+    bool blockInvalid = false;
+    for (auto block : peers_[_nodeID].m_syncBlocks) {
+      for (int i = 0; i < 100; i++) {
+        if (full_node->getDagBlockFromDb(block.first) != nullptr) break;
+        if(i == 9) {
+          blockInvalid = true;
+          break;
+        }
+        thisThreadSleepForMilliSeconds(100);
+      }
+    }
+    peers_[_nodeID].m_syncBlocks.clear();
+    if(blockInvalid) return;//This would probably mean that the peer is corrupted as well
+    
+
     if (peers_[_nodeID].m_state == Syncing) syncPeer(_nodeID);
   }
 }
