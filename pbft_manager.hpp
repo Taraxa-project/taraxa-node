@@ -50,40 +50,46 @@ class PbftManager {
   PbftManager(PbftManagerConfig const &config);
   ~PbftManager() { stop(); }
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
-  bool shouldSpeak(blk_hash_t const &blockhash, char type, int period,
-                   int step);
+  bool shouldSpeak(blk_hash_t const &blockhash, char type,
+                   uint64_t period, size_t step);
   void start();
   void stop();
   void run();
   bool isActive() { return executor_ != nullptr; }
+
   // only for test
-  u_long getLambdaMs() { return LAMBDA_ms; }
+  u_long getLambdaMs() const { return LAMBDA_ms; }
+  void setPbftPeriod(uint64_t const pbft_period) { pbft_period_ = pbft_period; }
+  void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
 
  private:
   size_t periodDeterminedFromVotes_(std::vector<Vote> &votes,
-                                    size_t local_period);
+                                    uint64_t local_period);
   std::vector<Vote> getVotesOfTypeFromPeriod_(
-      int vote_type,
+      PbftVoteTypes vote_type,
       std::vector<Vote> &votes,
-      size_t period,
+      uint64_t period,
       std::pair<blk_hash_t, bool> blockhash);
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
-  bool nullBlockNextVotedForPeriod_(std::vector<Vote> &votes, size_t period);
+  bool nullBlockNextVotedForPeriod_(std::vector<Vote> &votes, uint64_t period);
   std::vector<Vote> getVotesOfTypeFromVotesForPeriod_(
-      int vote_type,
+      PbftVoteTypes vote_type,
       std::vector<Vote> &votes,
-      size_t period,
+      uint64_t period,
       std::pair<blk_hash_t, bool> blockhash);
   std::pair<blk_hash_t, bool> nextVotedBlockForPeriod_(
-      std::vector<Vote> &votes, size_t period);
+      std::vector<Vote> &votes, uint64_t period);
   void placeVoteIfCanSpeak_(blk_hash_t blockhash,
-                           int vote_type,
-                           size_t period,
-                           size_t step,
-                           bool override_sortition_check);
+                            PbftVoteTypes vote_type,
+                            uint64_t period,
+                            size_t step,
+                            bool override_sortition_check);
+  void broadcastPbftVote_(blk_hash_t &blockhash, PbftVoteTypes vote_type,
+      uint64_t period, size_t step);
   std::pair<blk_hash_t, bool> softVotedBlockForPeriod_(std::vector<Vote> &votes,
-                                                       size_t period);
-  void proposePbftBlock_();
+                                                       uint64_t period);
+  std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
@@ -91,7 +97,7 @@ class PbftManager {
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftChain> pbft_chain_;
 
-  size_t pbft_period_ = 1;
+  uint64_t pbft_period_ = 1;
   size_t pbft_step_ = 1;
   // Only for test
   u_long LAMBDA_ms;

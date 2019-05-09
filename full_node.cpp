@@ -399,7 +399,7 @@ bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
   return ret;
 }
 
-addr_t FullNode::getAddress() { return node_addr_; }
+addr_t FullNode::getAddress() const { return node_addr_; }
 
 dev::Signature FullNode::signMessage(std::string message) {
   return dev::sign(node_sk_, dev::sha3(message));
@@ -445,8 +445,8 @@ void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash, char type,
   network_->onNewPbftVote(vote);
 }
 
-bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type, int period,
-                           int step) {
+bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type,
+                           uint64_t period, size_t step) {
   return pbft_mgr_->shouldSpeak(blockhash, type, period, step);
 }
 

@@ -412,15 +412,6 @@ TEST(PbftChain, simulate_pbft_execute_round) {
 }
 */
 
-TEST(PbftManager, DISABLED_create_pbft_manager) {
-  PbftManager pbft_mgr;
-  pbft_mgr.start();
-  thisThreadSleepForSeconds(1);
-  EXPECT_TRUE(pbft_mgr.isActive());
-  pbft_mgr.stop();
-  EXPECT_FALSE(pbft_mgr.isActive());
-}
-
 }  // namespace taraxa
 
 int main(int argc, char** argv) {

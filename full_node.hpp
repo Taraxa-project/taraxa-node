@@ -116,7 +116,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // account stuff
   std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
-  addr_t getAddress();
+  addr_t getAddress() const;
+  public_t getPublicKey() const { return node_pk_; }
 
   // pbft stuff
   bool executeScheduleBlock(ScheduleBlock const &sche_blk);
@@ -134,8 +135,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
-  bool shouldSpeak(blk_hash_t const &blockhash, char type, int period,
-                   int step);
+  bool shouldSpeak(blk_hash_t const &blockhash, char type,
+                   uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   void placeVote(blk_hash_t const &blockhash, char type, int period, int step);

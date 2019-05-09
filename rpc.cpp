@@ -404,8 +404,8 @@ void RpcHandler::processRequest() {
       try {
         blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
         char type = in_doc_.get<char>("type");
-        int period = in_doc_.get<int>("period");
-        int step = in_doc_.get<int>("step");
+        uint64_t period = in_doc_.get<uint64_t>("period");
+        size_t step = in_doc_.get<size_t>("step");
         if (node_->shouldSpeak(blockhash, type, period, step)) {
           res = "True";
         } else {
@@ -418,8 +418,8 @@ void RpcHandler::processRequest() {
       try {
         blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
         char type = in_doc_.get<char>("type");
-        int period = in_doc_.get<int>("period");
-        int step = in_doc_.get<int>("step");
+        uint64_t period = in_doc_.get<uint64_t>("period");
+        size_t step = in_doc_.get<size_t>("step");
 
         // put vote into vote queue
         node_->placeVote(blockhash, type, period, step);
@@ -432,7 +432,7 @@ void RpcHandler::processRequest() {
       }
     } else if (action == "get_votes") {
       try {
-        int period = in_doc_.get<int>("period");
+        uint64_t period = in_doc_.get<uint64_t>("period");
 
         std::vector<Vote> votes = node_->getVotes(period);
         VoteQueue vote_queue;

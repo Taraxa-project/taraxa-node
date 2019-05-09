@@ -93,7 +93,11 @@ void PbftManager::run() {
            nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
         // Propose value...
         LOG(log_tra_) << "Propose my value...";
-        //proposePbftBlock_(); TODO
+        std::pair<blk_hash_t, bool> proposed_block_hash = proposeMyPbftBlock_();
+        if (proposed_block_hash.second) {
+          placeVoteIfCanSpeak_(proposed_block_hash.first, propose_vote_type,
+              pbft_period_, pbft_step_, false);
+        }
       } else if (pbft_period_ >= 2) {
         std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
             nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
@@ -101,6 +105,8 @@ void PbftManager::run() {
           LOG(log_tra_) << "Proposing next voted block "
                         << next_voted_block_from_previous_period.first
                         << " from previous period.";
+          placeVoteIfCanSpeak_(next_voted_block_from_previous_period.first,
+              propose_vote_type, pbft_period_, pbft_step_, false);
         }
       }
       next_step_time_ms = 2 * LAMBDA_ms;
@@ -114,6 +120,11 @@ void PbftManager::run() {
         // Identity leader
         LOG(log_tra_) << "Identify leader l_i_p for period p and soft vote the"
                         " value that they proposed...";
+        std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
+        if (leader_block.second) {
+          placeVoteIfCanSpeak_(leader_block.first, soft_vote_type, pbft_period_,
+                               pbft_step_, false);
+        }
       } else if (pbft_period_ >= 2) {
         std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
             nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
@@ -296,7 +307,7 @@ void PbftManager::run() {
 }
 
 bool PbftManager::shouldSpeak(blk_hash_t const &blockhash, char type,
-                              int period, int step) {
+                              uint64_t period, size_t step) {
   std::string message = blockhash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);
   auto full_node = node_.lock();
@@ -324,7 +335,7 @@ bool PbftManager::shouldSpeak(blk_hash_t const &blockhash, char type,
  * and set determine that period p should be the current period...
  */
 size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
-                                               size_t local_period) {
+                                               uint64_t local_period) {
   // tally next votes by period
   // store in reverse order
   std::map<size_t, size_t, std::greater<size_t> > next_votes_tally_by_period;
@@ -360,7 +371,7 @@ size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
 }
 
 std::vector<Vote> PbftManager::getVotesOfTypeFromPeriod_(
-    int vote_type, std::vector<Vote> &votes, size_t period,
+    PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t period,
     std::pair<blk_hash_t, bool> blockhash) {
   // We should read through the votes ...
   std::vector<Vote> votes_of_requested_type;
@@ -379,15 +390,15 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromPeriod_(
 std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
     std::vector<Vote> &votes) {
   bool is_first_block = true;
-  size_t vote_type;
-  size_t vote_period;
+  PbftVoteTypes vote_type;
+  uint64_t vote_period;
   blk_hash_t blockhash;
   // store in reverse order
   std::map<blk_hash_t, size_t, std::greater<blk_hash_t> > tally_by_blockhash;
 
   for (Vote &v : votes) {
     if (is_first_block) {
-      vote_type = v.getType();
+      vote_type = static_cast<PbftVoteTypes>(v.getType()); //TODO: need change vote type to PbftVoteTypes
       vote_period = v.getPeriod();
       is_first_block = false;
     } else {
@@ -418,7 +429,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
 }
 
 bool PbftManager::nullBlockNextVotedForPeriod_(std::vector<Vote> &votes,
-                                               size_t period) {
+                                               uint64_t period) {
   blk_hash_t blockhash = NULL_BLOCK_HASH;
   std::pair<blk_hash_t, bool> blockhash_pair = std::make_pair(blockhash, true);
   std::vector<Vote> votes_for_null_block_in_period =
@@ -431,7 +442,7 @@ bool PbftManager::nullBlockNextVotedForPeriod_(std::vector<Vote> &votes,
 }
 
 std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForPeriod_(
-    int vote_type, std::vector<Vote> &votes, size_t period,
+    PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t period,
     std::pair<blk_hash_t, bool> blockhash) {
   std::vector<Vote> votes_of_requested_type;
 
@@ -446,7 +457,7 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForPeriod_(
 }
 
 std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForPeriod_(
-    std::vector<Vote> &votes, size_t period) {
+    std::vector<Vote> &votes, uint64_t period) {
   std::vector<Vote> next_votes_for_period = getVotesOfTypeFromVotesForPeriod_(
       next_vote_type, votes, period, std::make_pair(blk_hash_t(0), false));
 
@@ -454,7 +465,7 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForPeriod_(
 }
 
 void PbftManager::placeVoteIfCanSpeak_(taraxa::blk_hash_t blockhash,
-                                       int vote_type, size_t period,
+                                       PbftVoteTypes vote_type, uint64_t period,
                                        size_t step,
                                        bool override_sortition_check) {
   bool should_i_speak_response = true;
@@ -469,22 +480,45 @@ void PbftManager::placeVoteIfCanSpeak_(taraxa::blk_hash_t blockhash,
       return;
     }
     full_node->placeVote(blockhash, vote_type, period, step);
+    // pbft vote broadcast
+    broadcastPbftVote_(blockhash, vote_type, period, step);
   }
 }
 
+void PbftManager::broadcastPbftVote_(taraxa::blk_hash_t &blockhash,
+                                    taraxa::PbftVoteTypes vote_type,
+                                    uint64_t period, size_t step) {
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
+
+  std::string message = blockhash.toString() +
+                        std::to_string(vote_type) +
+                        std::to_string(period) +
+                        std::to_string(step);
+  sig_t signature = full_node->signMessage(message);
+  public_t public_key = full_node->getPublicKey();
+  Vote vote(public_key, signature, blockhash, vote_type, period, step);
+
+  std::shared_ptr<Network> network = full_node->getNetwork();
+  network->onNewPbftVote(vote);
+}
+
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForPeriod_(
-    std::vector<taraxa::Vote> &votes, size_t period) {
+    std::vector<taraxa::Vote> &votes, uint64_t period) {
   std::vector<Vote> soft_votes_for_period = getVotesOfTypeFromVotesForPeriod_(
       soft_vote_type, votes, period, std::make_pair(blk_hash_t(0), false));
 
   return blockWithEnoughVotes_(soft_votes_for_period);
 }
 
-void PbftManager::proposePbftBlock_() {
+std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
+    return std::make_pair(blk_hash_t(0), false);
   }
   PbftBlock pbft_block;
   PbftBlockTypes current_block_type = pbft_chain_->getNextPbftBlockType();
@@ -515,6 +549,7 @@ void PbftManager::proposePbftBlock_() {
     if (!last_pbft_block.second) {
       LOG(log_err_) << "Cannot find last pbft block with block hash: "
                     << last_block_hash;
+      return std::make_pair(blk_hash_t(0), false);
     }
     blk_hash_t dag_block_hash =
         last_pbft_block.first.getPivotBlock().getDagBlockHash();
@@ -541,9 +576,36 @@ void PbftManager::proposePbftBlock_() {
                         std::to_string(pbft_step_);
   sig_t signature = full_node->signMessage(message);
   pbft_block.setSignature(signature);
+  // push pbft block into pbft queue
+  pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
   // broadcast pbft block
   std::shared_ptr<Network> network = full_node->getNetwork();
   network->onNewPbftBlock(pbft_block);
+
+  return std::make_pair(pbft_block_hash, true);
+}
+
+std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
+  std::vector<Vote> votes = vote_queue_->getVotes(pbft_period_);
+  PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+  std::vector<blk_hash_t> leader_candidates;
+  for (auto &v: votes) {
+    if (v.getType() == next_pbft_block_type && v.getPeriod() == pbft_period_) {
+      leader_candidates.emplace_back(v.getBlockHash());
+    }
+  }
+  if (leader_candidates.empty()) {
+    // no eligible leader
+    return std::make_pair(blk_hash_t(0), false);
+  }
+  blk_hash_t leader_block = leader_candidates[0];
+  for (auto &block_hash: leader_candidates) {
+    if (block_hash < leader_block) {
+      leader_block = block_hash;
+    }
+  }
+
+  return std::make_pair(leader_block, true);
 }
 
 }  // namespace taraxa
