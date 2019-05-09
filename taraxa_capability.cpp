@@ -44,7 +44,8 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     for (auto block : peers_[_nodeID].m_syncBlocks) {
       for (int i = 0; i < 100; i++) {
         if (full_node->getDagBlockFromDb(block.first) != nullptr) break;
-        if(i == 9) {
+        //If within 10 seconds block is not in db assume block is not good/add block status?
+        if(i == 99) {
           blockInvalid = true;
           break;
         }
