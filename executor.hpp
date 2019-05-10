@@ -24,7 +24,7 @@ namespace taraxa {
  * Cannot call execute() until all trans in this period are processed. This will
  * be a blocking call.
  */
-
+class FullNode;
 class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
@@ -35,6 +35,7 @@ class Executor {
       : db_blks_(db_blks), db_trxs_(db_trxs), db_accs_(db_accs) {}
   ~Executor();
   void start();
+  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();
   void clear();
   bool execute(TrxSchedule const& schedule);
@@ -44,11 +45,10 @@ class Executor {
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;
   bool stopped_ = true;
-
+  std::weak_ptr<FullNode> node_;
   std::shared_ptr<SimpleDBFace> db_blks_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
   std::shared_ptr<SimpleDBFace> db_accs_;
-
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{

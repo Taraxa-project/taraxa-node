@@ -5,9 +5,9 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2019-04-23 17:48:48
  */
-
 #include "full_node.hpp"
 #include <boost/asio.hpp>
+#include <chrono>
 #include "SimpleDBFactory.h"
 #include "block_proposer.hpp"
 #include "dag.hpp"
@@ -104,6 +104,8 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->start();
   trx_mgr_->start();
   pbft_mgr_->setFullNode(getShared());
+  executor_->setFullNode(getShared());
+  executor_->start();
   // pbft_mgr_->start();
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
@@ -188,13 +190,17 @@ void FullNode::storeBlock(DagBlock const &blk) {
 void FullNode::storeBlockAndSign(DagBlock const &blk) {
   DagBlock sign_block(blk);
   sign_block.sign(node_sk_);
-  auto now(std::chrono::system_clock::now());
+
+  auto now = getCurrentTimeMilliSeconds();
+  thisThreadSleepForSeconds(1);
+  auto now2 = getCurrentTimeMilliSeconds();
+
   LOG(log_time_) << "Propose and sign block " << sign_block.getHash()
-                 << " at :" << getTimePoint2Long(now) << std::endl
+                 << " at:" << now << std::endl
                  << sign_block << std::endl;
+
   for (auto const &t : sign_block.getTrxs()) {
-    LOG(log_time_) << "Transaction " << t
-                   << " packed at: " << getTimePoint2Long(now);
+    LOG(log_time_) << "Transaction " << t << " packed at: " << now;
   }
   storeBlock(sign_block);
 }

@@ -6,6 +6,9 @@
  * @Last Modified time: 2019-03-20 22:11:46
  */
 #include "executor.hpp"
+#include "full_node.hpp"
+#include "util.hpp"
+
 namespace taraxa {
 Executor::~Executor() {
   if (!stopped_) {
@@ -21,6 +24,7 @@ void Executor::stop() {
 }
 bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
   DagBlock dag_block(db_blks_->get(blk.toString()));
+
   if (!dag_block.isValid()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
@@ -34,6 +38,11 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
       continue;
     }
     coinTransfer(trx);
+    if (node_.lock()) {
+      auto& log_time = node_.lock()->getTimeLogger();
+      LOG(log_time) << "Transaction " << trxs_hash
+                    << " executed at: " << getCurrentTimeMilliSeconds();
+    }
   }
   db_trxs_->commit();
   return true;
@@ -73,4 +82,4 @@ bool Executor::coinTransfer(Transaction const& trx) {
   return true;
 }
 
-} // namespace taraxa
+}  // namespace taraxa

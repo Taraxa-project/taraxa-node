@@ -310,10 +310,10 @@ void RpcHandler::processRequest() {
         addr_t receiver = addr_t(in_doc_.get<std::string>("receiver"));
         bytes data;
         // get trx receiving time stamp
-        auto now(std::chrono::system_clock::now());
+        auto now = getCurrentTimeMilliSeconds();
         Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
         LOG(log_time) << "Transaction " << trx.getHash()
-                      << " received at: " << getTimePoint2Long(now);
+                      << " received at: " << now;
         node_->storeTransaction(trx);
         res = trx.getJsonStr();
       } catch (std::exception &e) {

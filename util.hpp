@@ -92,6 +92,8 @@ void thisThreadSleepForSeconds(unsigned sec);
 void thisThreadSleepForMilliSeconds(unsigned millisec);
 void thisThreadSleepForMicroSeconds(unsigned microsec);
 
+unsigned long getCurrentTimeMilliSeconds();
+
 /**
  * Observer pattern
  */

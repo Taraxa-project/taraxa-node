@@ -50,6 +50,12 @@ void thisThreadSleepForMicroSeconds(unsigned microsec) {
   std::this_thread::sleep_for(std::chrono::microseconds(microsec));
 }
 
+unsigned long getCurrentTimeMilliSeconds() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
+}
+
 void Subject::subscribe(std::shared_ptr<Observer> obs) { viewers_.insert(obs); }
 
 void Subject::unsubscribe(std::shared_ptr<Observer> obs) {
