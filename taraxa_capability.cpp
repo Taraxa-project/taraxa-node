@@ -38,24 +38,25 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
                                               block.second.second);
       }
     }
-    // After storing blocks, we need to give some time for the blocks to be
-    // processed before continuing sync
-    // Better solution needed later
-    bool blockInvalid = false;
-    for (auto block : peers_[_nodeID].m_syncBlocks) {
-      for (int i = 0; i < 100; i++) {
-        if (full_node->getDagBlockFromDb(block.first) != nullptr) break;
-        // If within 10 seconds block is not in db assume block is not good/add
-        // block status?
-        if (i == 99) {
-          blockInvalid = true;
+    auto start = std::chrono::steady_clock::now();
+    bool blocksAddedToDag = false;
+    // Wait up to 20 seconds for blocks to be verified
+    while (!blocksAddedToDag && std::chrono::duration_cast<std::chrono::seconds>(
+               std::chrono::steady_clock::now() - start)
+               .count() < 20) {
+      std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
+      condition_for_verified_blocks_.wait_for(lck,
+                                              std::chrono::milliseconds(1000));
+      blocksAddedToDag = true;
+      for (auto block : peers_[_nodeID].m_syncBlocks) {
+        if (verified_blocks_.count(block.first) == 0) {
+          blocksAddedToDag = false;
           break;
         }
-        thisThreadSleepForMilliSeconds(100);
       }
     }
     peers_[_nodeID].m_syncBlocks.clear();
-    if (blockInvalid)
+    if (!blocksAddedToDag)
       return;  // This would probably mean that the peer is corrupted as well
 
     if (peers_[_nodeID].m_state == Syncing) syncPeer(_nodeID);
@@ -442,6 +443,11 @@ void TaraxaCapability::onNewBlockReceived(
 
 void TaraxaCapability::onNewBlockVerified(DagBlock block) {
   LOG(logger_debug_) << "Verified NewBlock " << block.getHash().toString();
+  verified_blocks_.insert(block.getHash());
+  {
+    std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
+    condition_for_verified_blocks_.notify_all();
+  }
   const int c_minBlockBroadcastPeers = 10;
   auto const peersWithoutBlock = selectPeers([&](TaraxaPeer const &_peer) {
     return !_peer.isBlockKnown(block.getHash());
