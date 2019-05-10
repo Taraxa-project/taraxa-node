@@ -40,6 +40,7 @@ struct NetworkConfig {
   uint16_t network_listen_port;
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay;
+  uint16_t network_bandwidth;
 };
 
 struct PbftManagerConfig {
@@ -65,7 +66,6 @@ std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
-
 
 }  // namespace taraxa
 #endif

@@ -25,6 +25,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     network.network_listen_port = doc.get<uint16_t>("network_listen_port");
     network.network_simulated_delay =
         doc.get<uint16_t>("network_simulated_delay");
+    network.network_bandwidth = doc.get<uint16_t>("network_bandwidth");
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -85,6 +86,10 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
   strm << "  network_address: " << conf.network_address << std::endl;
   strm << "  network_listen_port: " << conf.network_listen_port << std::endl;
+  strm << "  network_simulated_delay: " << conf.network_simulated_delay
+       << std::endl;
+  strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;
+
   strm << "  --> boot nodes  ... " << std::endl;
   for (auto const &c : conf.network_boot_nodes) {
     strm << c << std::endl;

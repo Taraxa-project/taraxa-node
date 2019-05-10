@@ -16,7 +16,7 @@ Network::Network(NetworkConfig const &config, std::string network_file)
     : Network(config, network_file, secret_t()) {}
 Network::Network(NetworkConfig const &config, std::string network_file,
                  secret_t const &sk) try : conf_(config) {
-  LOG(log_nf_) << "Read Network Config: "<<std::endl << conf_ << std::endl;
+  LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {
     LOG(log_dg_) << "New key generated " << toHex(key.secret().ref());
@@ -38,7 +38,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
                                 conf_.network_listen_port, false, true));
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
-      *host_.get(), conf_.network_simulated_delay);
+      *host_.get(), conf_.network_simulated_delay, conf_.network_bandwidth);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -147,8 +147,8 @@ void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
 
 void Network::sendPbftBlock(const NodeID &id,
                             const taraxa::PbftBlock &pbft_block) {
-  LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash().toString()
-               << " to: " << id;
+  LOG(log_dg_) << "Network send PBFT block: "
+               << pbft_block.getBlockHash().toString() << " to: " << id;
   taraxa_capability_->sendPbftBlock(id, pbft_block);
 }
 

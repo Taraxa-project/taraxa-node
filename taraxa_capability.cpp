@@ -32,7 +32,8 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     for (auto block : peers_[_nodeID].m_syncBlocks) {
       if (!full_node->isBlockKnown(block.first)) {
         LOG(logger_) << "Storing block "
-                     << block.second.first.getHash().toString() << " with " << block.second.second.size() << " transactions";
+                     << block.second.first.getHash().toString() << " with "
+                     << block.second.second.size() << " transactions";
         full_node->storeBlockWithTransactions(block.second.first,
                                               block.second.second);
       }
@@ -44,8 +45,9 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     for (auto block : peers_[_nodeID].m_syncBlocks) {
       for (int i = 0; i < 100; i++) {
         if (full_node->getDagBlockFromDb(block.first) != nullptr) break;
-        //If within 10 seconds block is not in db assume block is not good/add block status?
-        if(i == 99) {
+        // If within 10 seconds block is not in db assume block is not good/add
+        // block status?
+        if (i == 99) {
           blockInvalid = true;
           break;
         }
@@ -53,8 +55,8 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
       }
     }
     peers_[_nodeID].m_syncBlocks.clear();
-    if(blockInvalid) return;//This would probably mean that the peer is corrupted as well
-    
+    if (blockInvalid)
+      return;  // This would probably mean that the peer is corrupted as well
 
     if (peers_[_nodeID].m_state == Syncing) syncPeer(_nodeID);
   }
@@ -78,22 +80,27 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   // RLP contains memory it does not own so deep copy of bytes is needed
   dev::bytes rBytes = _r.data().toBytes();
   int messageSize = rBytes.size() * 8;
-  unsigned int dist = *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
+  unsigned int dist =
+      *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
   unsigned int delay = dist % network_simulated_delay_;
-  //Use next 16 bits for bandwidth value
-  dist = dist >> 16;
-  //Bandwidth is for now hard coded in random range between 1Mb/s and 1000Mb/s
-  unsigned int bandwidth_delay = messageSize / (dist % 1000 + 1) / 1000;
-  //Random component up to +-10% 
+
+  auto bandwidth = network_bandwidth_ ? network_bandwidth_ : 40;
+  unsigned int bandwidth_delay = messageSize / (bandwidth * 1000);  // in ms
+
+  // Random component up to +-10%
   int random_component = random_dist_(delay_rng_);
+
   unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
-  LOG(logger_debug_) << "Delaying packet by: " << delay << " milliseconds";
+  LOG(logger_debug_) << "Delaying packet by: (" << delay << " , "
+                     << bandwidth_delay << " ), actual delay =" << total_delay
+                     << " milliseconds";
   auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
   timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
-  timer->async_wait(([this, _nodeID, _id, rBytes, timer](const boost::system::error_code& ec) {
-    RLP _rCopy(rBytes);
-    interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
-  }));
+  timer->async_wait((
+      [this, _nodeID, _id, rBytes, timer](const boost::system::error_code &ec) {
+        RLP _rCopy(rBytes);
+        interpretCapabilityPacketImpl(_nodeID, _id, _rCopy);
+      }));
   return true;
 }
 
@@ -141,8 +148,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       } else if (auto full_node = full_node_.lock()) {
         LOG(logger_) << "Storing " << newTransactions.size() << " transactions";
         full_node->insertNewTransactions(newTransactions);
-        LOG(logger_) << "Storing block "
-                     << block.getHash().toString();
+        LOG(logger_) << "Storing block " << block.getHash().toString();
         full_node->storeBlock(block);
       } else {
         for (const auto &transaction : newTransactions) {
@@ -241,7 +247,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
         receivedBlocks += block.getHash().toString() + " ";
         peers_[_nodeID].m_syncBlocks[block.getHash()] = {block,
-                                                          newTransactions};
+                                                         newTransactions};
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
       if (itemCount > 0) {
@@ -378,7 +384,7 @@ void TaraxaCapability::onNewTransactions(
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
       LOG(logger_) << "Storing " << transactions.size() << " transactions";
-        full_node->insertNewTransactions(transactions);
+      full_node->insertNewTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
         if (test_transactions_.find(transaction.first) ==
@@ -416,8 +422,8 @@ void TaraxaCapability::onNewBlockReceived(
                          << "that is already known";
       return;
     } else {
-      LOG(logger_) << "Storing block "
-                     << block.getHash().toString() << " with " << transactions.size() << " transactions";
+      LOG(logger_) << "Storing block " << block.getHash().toString() << " with "
+                   << transactions.size() << " transactions";
       full_node->storeBlockWithTransactions(block, transactions);
     }
   } else if (test_blocks_.find(block.getHash()) == test_blocks_.end()) {
@@ -441,8 +447,8 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
     return !_peer.isBlockKnown(block.getHash());
   });
 
-  auto const peersToSendNumber = std::max<std::size_t>(
-      c_minBlockBroadcastPeers, std::sqrt(peers_.size()));
+  auto const peersToSendNumber =
+      std::max<std::size_t>(c_minBlockBroadcastPeers, std::sqrt(peers_.size()));
 
   std::vector<NodeID> peersToSend;
   std::vector<NodeID> peersToAnnounce;
@@ -493,7 +499,7 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
     }
   }
   host_.capabilityHost()->prep(_id, name(), s, BlockChildrenPacket,
-                                children.size() + totalTransactionsCount);
+                               children.size() + totalTransactionsCount);
   for (int iBlock = 0; iBlock < blocksToSend.size(); iBlock++) {
     blocksToSend[iBlock].serializeRLP(s);
     for (auto &trx : blockTransactions[iBlock]) {
@@ -509,7 +515,7 @@ void TaraxaCapability::sendTransactions(
                      << _id;
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, TransactionPacket,
-                                transactions.size());
+                               transactions.size());
   for (auto transaction : transactions) {
     transaction.serializeRLP(s);
   }
@@ -527,10 +533,10 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
         transactionsToSend.push_back(trx);
     }
     host_.capabilityHost()->prep(_id, name(), s, NewBlockPacket,
-                                  1 + transactionsToSend.size());
+                                 1 + transactionsToSend.size());
   } else {
     host_.capabilityHost()->prep(_id, name(), s, BlockPacket,
-                                  1 + block.getTrxs().size());
+                                 1 + block.getTrxs().size());
     transactionsToSend = block.getTrxs();
   }
   block.serializeRLP(s);
@@ -578,7 +584,7 @@ void TaraxaCapability::requestBlockChildren(NodeID const &_id,
   RLPStream s;
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetBlockChildrenPacket,
-                                leaves.size());
+                               leaves.size());
   std::string blocks;
   for (auto leaf : leaves) {
     blocks += leaf + " ";
@@ -618,24 +624,22 @@ void TaraxaCapability::doBackgroundWork() {
     onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
   }
   host_.scheduleExecution(c_backround_work_period_ms_,
-                           [this]() { doBackgroundWork(); });
+                          [this]() { doBackgroundWork(); });
 }
 
 void TaraxaCapability::onStarting() {
   if (network_simulated_delay_ > 0) {
-      const int number_of_delayed_threads = 5;
-      io_work_ = std::make_shared<boost::asio::io_service::work>(io_service_);
-      for (int i = 0; i < number_of_delayed_threads; ++i)
-        delay_threads_.create_thread([&]() {
-          io_service_.run();
-        });
-    }
+    const int number_of_delayed_threads = 5;
+    io_work_ = std::make_shared<boost::asio::io_service::work>(io_service_);
+    for (int i = 0; i < number_of_delayed_threads; ++i)
+      delay_threads_.create_thread([&]() { io_service_.run(); });
+  }
   host_.scheduleExecution(c_backround_work_period_ms_,
-                           [this]() { doBackgroundWork(); });
+                          [this]() { doBackgroundWork(); });
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
-  for (auto const& peer : peers_) {
+  for (auto const &peer : peers_) {
     if (!peer.second.isVoteKnown(vote.getHash())) {
       sendPbftVote(peer.first, vote);
     }
@@ -663,7 +667,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
-  for (auto const& peer: peers_) {
+  for (auto const &peer : peers_) {
     if (!peer.second.isPbftBlockKnown(pbft_block.getBlockHash())) {
       sendPbftBlock(peer.first, pbft_block);
     }
@@ -672,8 +676,8 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id,
                                      taraxa::PbftBlock const &pbft_block) {
-  LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getBlockHash()
-                     << " to " << _id;
+  LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to "
+                     << _id;
 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, 1);

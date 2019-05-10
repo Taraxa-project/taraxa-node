@@ -86,9 +86,11 @@ TEST(p2p, capability_send_test) {
   dev::p2p::NetworkConfig prefs2(localhost, 0, false, true);
   dev::p2p::Host host1("Test", prefs1);
   dev::p2p::Host host2("Test", prefs2);
-  auto thc1 = make_shared<TaraxaCapability>(host1);
+  auto thc1 =
+      make_shared<TaraxaCapability>(host1, 0 /*simulated_delay*/, 40 /*BW*/);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2);
+  auto thc2 =
+      make_shared<TaraxaCapability>(host2, 0 /*simulated_delay*/, 40 /*BW*/);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -144,9 +146,11 @@ TEST(p2p, capability_send_block) {
   dev::p2p::NetworkConfig prefs2(localhost, 0, false, true);
   dev::p2p::Host host1("Test", prefs1);
   dev::p2p::Host host2("Test", prefs2);
-  auto thc1 = make_shared<TaraxaCapability>(host1);
+  auto thc1 =
+      make_shared<TaraxaCapability>(host1, 0 /*simulated_delay*/, 40 /*BW*/);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2);
+  auto thc2 =
+      make_shared<TaraxaCapability>(host2, 0 /*simulated_delay*/, 40 /*BW*/);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -222,11 +226,13 @@ TEST(p2p, block_propagate) {
   std::vector<shared_ptr<Host>> vHosts;
   for (int i = 0; i < nodeCount; i++)
     vHosts.push_back(make_shared<dev::p2p::Host>("Test", vPrefs[i]));
-  auto thc1 = make_shared<TaraxaCapability>(host1);
+  auto thc1 =
+      make_shared<TaraxaCapability>(host1, 0 /*simulated_delay*/, 40 /*BW*/);
   host1.registerCapability(thc1);
   std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
-    vCapabilities.push_back(make_shared<TaraxaCapability>(*vHosts[i]));
+    vCapabilities.push_back(make_shared<TaraxaCapability>(
+        *vHosts[i], 0 /*simulated_delay*/, 40 /*BW*/));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
   host1.start(true);

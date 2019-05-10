@@ -89,10 +89,12 @@ class TaraxaPeer {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, uint16_t network_simulated_delay = 0)
+  TaraxaCapability(Host &_host, uint16_t network_simulated_delay,
+                   uint16_t network_bandwidth)
       : Worker("taraxa"),
         host_(_host),
-        network_simulated_delay_(network_simulated_delay) {
+        network_simulated_delay_(network_simulated_delay),
+        network_bandwidth_(network_bandwidth) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -166,6 +168,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::unordered_map<NodeID, TaraxaPeer> peers_;
   uint16_t network_simulated_delay_;
+  uint16_t network_bandwidth_;  // Mbps
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
