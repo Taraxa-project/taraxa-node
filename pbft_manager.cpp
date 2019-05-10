@@ -22,7 +22,7 @@ namespace taraxa {
 
 PbftManager::PbftManager() {}
 PbftManager::PbftManager(const PbftManagerConfig &config)
-  : LAMBDA_ms(config.lambda_ms) {}
+  : LAMBDA_ms(1000) {} //LAMBDA_ms(config.lambda_ms) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
@@ -73,8 +73,8 @@ void PbftManager::run() {
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto next_step_time_ms = 0;
 
-    LOG(log_inf_) << "PBFT period is " << pbft_period_;
-    LOG(log_inf_) << "PBFT step is " << pbft_step_;
+    LOG(log_deb_) << "PBFT period is " << pbft_period_;
+    LOG(log_deb_) << "PBFT step is " << pbft_step_;
 
     // Get votes
     std::vector<Vote> votes = vote_queue_->getVotes(pbft_period_ - 1);
@@ -82,14 +82,15 @@ void PbftManager::run() {
     blk_hash_t nodes_own_starting_value_for_period = NULL_BLOCK_HASH;
 
     // Check if we are synced to the right step ...
-    size_t consensus_pbfy_period =
+    size_t consensus_pbft_period =
         periodDeterminedFromVotes_(votes, pbft_period_);
 
-    if (consensus_pbfy_period != pbft_period_) {
-      LOG(log_inf_) << "Period determined from votes: " << consensus_pbfy_period;
-      pbft_period_ = consensus_pbfy_period;
-      LOG(log_inf_) << "Advancing clock to pbft period " << pbft_period_
-                     << ", step 1, and resetting clock.";
+    if (consensus_pbft_period != pbft_period_) {
+      LOG(log_deb_) << "Period determined from votes: "
+                    << consensus_pbft_period;
+      pbft_period_ = consensus_pbft_period;
+      LOG(log_deb_) << "Advancing clock to pbft period " << pbft_period_
+                    << ", step 1, and resetting clock.";
       // NOTE: This also sets pbft_step back to 1
       pbft_step_ = 1;
       period_clock_initial_datetime = std::chrono::system_clock::now();
@@ -102,7 +103,7 @@ void PbftManager::run() {
           (pbft_period_ >= 2 &&
            nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
         // Propose value...
-        LOG(log_inf_) << "Propose my value...";
+        LOG(log_deb_) << "Propose my value...";
         std::pair<blk_hash_t, bool> proposed_block_hash = proposeMyPbftBlock_();
         if (proposed_block_hash.second) {
           placeVoteIfCanSpeak_(proposed_block_hash.first, propose_vote_type,
@@ -112,7 +113,7 @@ void PbftManager::run() {
         std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
             nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
         if (next_voted_block_from_previous_period.second) {
-          LOG(log_inf_) << "Proposing next voted block "
+          LOG(log_deb_) << "Proposing next voted block "
                         << next_voted_block_from_previous_period.first
                         << " from previous period.";
           placeVoteIfCanSpeak_(next_voted_block_from_previous_period.first,
@@ -120,6 +121,7 @@ void PbftManager::run() {
         }
       }
       next_step_time_ms = 2 * LAMBDA_ms;
+      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
       pbft_step_ += 1;
 
     } else if (pbft_step_ == 2) {
@@ -148,26 +150,28 @@ void PbftManager::run() {
       }
 
       next_step_time_ms = 2 * LAMBDA_ms;
+      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
       pbft_step_ = pbft_step_ + 1;
 
     } else if (pbft_step_ == 3) {
       // The Certifying Step
       if (elapsed_time_in_round_ms > 2 * LAMBDA_ms) {
-        LOG(log_tra_) << "PBFT Reached step 3 too quickly?";
+        LOG(log_deb_) << "PBFT Reached step 3 too quickly?";
       }
 
       bool should_go_to_step_four = false;
 
       if (elapsed_time_in_round_ms > 4 * LAMBDA_ms - POLLING_INTERVAL_ms) {
+        LOG(log_deb_) << "will go to step 4";
         should_go_to_step_four = true;
       } else {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
             softVotedBlockForPeriod_(votes, pbft_period_);
         if (soft_voted_block_for_this_period.second) {
           should_go_to_step_four = true;
-          LOG(log_tra_) << "Cert voting "
-                       << soft_voted_block_for_this_period.first
-                       << " for this period";
+          LOG(log_deb_) << "Cert voting "
+                        << soft_voted_block_for_this_period.first
+                        << " for this period";
           cert_voted_values_for_period[pbft_period_] =
               soft_voted_block_for_this_period.first;
           placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
@@ -176,27 +180,29 @@ void PbftManager::run() {
       }
 
       if (should_go_to_step_four) {
+        LOG(log_deb_) << "will go to step 4";
         next_step_time_ms = 4 * LAMBDA_ms;
         pbft_step_ += 1;
       } else {
         next_step_time_ms = next_step_time_ms + POLLING_INTERVAL_ms;
       }
+      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 4) {
       if (cert_voted_values_for_period.find(pbft_period_) !=
           cert_voted_values_for_period.end()) {
-        LOG(log_tra_) << "Next voting value "
+        LOG(log_deb_) << "Next voting value "
                       << cert_voted_values_for_period[pbft_period_]
                       << " for period " << pbft_period_;
         placeVoteIfCanSpeak_(cert_voted_values_for_period[pbft_period_],
                              next_vote_type, pbft_period_, pbft_step_, false);
       } else if (pbft_period_ >= 2 &&
                  nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1)) {
-        LOG(log_tra_) << "Next voting NULL BLOCK for period " << pbft_period_;
+        LOG(log_deb_) << "Next voting NULL BLOCK for period " << pbft_period_;
         placeVoteIfCanSpeak_(NULL_BLOCK_HASH, next_vote_type, pbft_period_,
                              pbft_step_, false);
       } else {
-        LOG(log_tra_) << "Next voting nodes own starting value for period "
+        LOG(log_deb_) << "Next voting nodes own starting value for period "
                       << pbft_period_;
         placeVoteIfCanSpeak_(nodes_own_starting_value_for_period,
                              next_vote_type, pbft_period_, pbft_step_, false);
@@ -204,6 +210,7 @@ void PbftManager::run() {
 
       pbft_step_ += 1;
       next_step_time_ms = 4 * LAMBDA_ms;
+      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 5) {
       std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
@@ -242,6 +249,7 @@ void PbftManager::run() {
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
+      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ % 2 == 0) {
       // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
@@ -273,8 +281,9 @@ void PbftManager::run() {
       bool have_next_voted = false;
 
       if (soft_voted_block_for_this_period.second) {
-        LOG(log_tra_) << "Next voting " << soft_voted_block_for_this_period.first
-                     << " for this period";
+        LOG(log_tra_) << "Next voting "
+                      << soft_voted_block_for_this_period.first
+                      << " for this period";
         have_next_voted = true;
         placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
                              next_vote_type, pbft_period_, pbft_step_, false);
@@ -303,6 +312,7 @@ void PbftManager::run() {
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
+      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
     }
 
     now = std::chrono::system_clock::now();
@@ -310,6 +320,7 @@ void PbftManager::run() {
     elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto time_to_sleep_for_ms = next_step_time_ms - elapsed_time_in_round_ms;
+    LOG(log_deb_) << "Time to sleep(ms): " << time_to_sleep_for_ms;
     if (time_to_sleep_for_ms > 0) {
       thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
     }
@@ -475,7 +486,8 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForPeriod_(
 }
 
 void PbftManager::placeVoteIfCanSpeak_(taraxa::blk_hash_t blockhash,
-                                       PbftVoteTypes vote_type, uint64_t period,
+                                       PbftVoteTypes vote_type,
+                                       uint64_t period,
                                        size_t step,
                                        bool override_sortition_check) {
   bool should_i_speak_response = true;
@@ -581,7 +593,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   // sortition
   if (!shouldSpeak(pbft_block_hash, propose_vote_type, pbft_period_,
-                  pbft_step_)) {
+                   pbft_step_)) {
     return std::make_pair(blk_hash_t(0), false);
   }
   // sign the pbft block

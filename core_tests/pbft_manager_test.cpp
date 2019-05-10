@@ -15,7 +15,7 @@
 
 namespace taraxa {
 
-TEST(PbftManager, step1_propose_pbft_anchor_block) {
+TEST(PbftManager, pbft_manager_workflow) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
   		context1, std::string("./core_tests/conf_taraxa1.json")));
@@ -61,30 +61,214 @@ TEST(PbftManager, step1_propose_pbft_anchor_block) {
   ASSERT_EQ(node_peers, nw2->getPeerCount());
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
-  addr_t account_address = node1->getAddress();
   bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  node1->setBalance(account_address, new_balance);
+  addr_t account_address1 = node1->getAddress();
+  node1->setBalance(account_address1, new_balance);
+  node2->setBalance(account_address1, new_balance);
+  node3->setBalance(account_address1, new_balance);
+  addr_t account_address2 = node2->getAddress();
+  node1->setBalance(account_address2, new_balance);
+  node2->setBalance(account_address2, new_balance);
+  node3->setBalance(account_address2, new_balance);
+  addr_t account_address3 = node3->getAddress();
+  node1->setBalance(account_address3, new_balance);
+  node2->setBalance(account_address3, new_balance);
+  node3->setBalance(account_address3, new_balance);
 
-  std::shared_ptr<PbftManager> pbft_mgr = node1->getPbftManager();
-  pbft_mgr->setPbftStep(1);
-  pbft_mgr->setPbftPeriod(1);
+  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
+  // period 1, step 1
+  // node1 propose pbft anchor block, 1 propose vote
+  pbft_mgr1->setPbftStep(1);
+  pbft_mgr1->setPbftPeriod(1);
+  pbft_mgr1->start();
 
-  pbft_mgr->start();
-
-  int current_pbft_queue_size = 1;
-  for (int i = 0; i < 300; i++) {
-  	// test timeout is 30 seconds
-  	if (node2->getPbftQueueSize() == current_pbft_queue_size &&
-  	    node3->getPbftQueueSize() == current_pbft_queue_size) {
-  		break;
-  	}
-  	taraxa::thisThreadSleepForMilliSeconds(100);
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node1->getPbftQueueSize() == 1 && node1->getVoteQueueSize() == 1) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
   }
-  EXPECT_EQ(node1->getPbftQueueSize(), current_pbft_queue_size);
-  EXPECT_EQ(node2->getPbftQueueSize(), current_pbft_queue_size);
-  EXPECT_EQ(node3->getPbftQueueSize(), current_pbft_queue_size);
+  pbft_mgr1->stop();
+  EXPECT_EQ(node1->getPbftQueueSize(), 1);
+  EXPECT_EQ(node1->getVoteQueueSize(), 1);
 
-  pbft_mgr->stop();
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node2->getPbftQueueSize() == 1 && node3->getPbftQueueSize() == 1) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node2->getPbftQueueSize(), 1);
+  EXPECT_EQ(node3->getPbftQueueSize(), 1);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node2->getVoteQueueSize() == 1 && node3->getVoteQueueSize() == 1) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node2->getVoteQueueSize(), 1);
+  EXPECT_EQ(node3->getVoteQueueSize(), 1);
+
+  // period 1, step 2
+  // node1 soft vote the pbft anchor block, 1 propose vote 1 soft vote
+  pbft_mgr1->setPbftStep(2);
+  pbft_mgr1->setPbftPeriod(1);
+  pbft_mgr1->start();
+
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node1->getVoteQueueSize() == 2) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
+  }
+  pbft_mgr1->stop();
+  EXPECT_EQ(node1->getVoteQueueSize(), 2);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node2->getVoteQueueSize() == 2 && node3->getVoteQueueSize() == 2) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node2->getVoteQueueSize(), 2);
+  EXPECT_EQ(node3->getVoteQueueSize(), 2);
+  // node2 soft vote the pbft anchor block, 1 propose vote 2 soft votes
+  pbft_mgr2->setPbftStep(2);
+  pbft_mgr2->setPbftPeriod(1);
+  pbft_mgr2->start();
+
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node2->getVoteQueueSize() == 3) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
+  }
+  pbft_mgr2->stop();
+  EXPECT_EQ(node2->getVoteQueueSize(), 3);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node1->getVoteQueueSize() == 3 && node3->getVoteQueueSize() == 3) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node1->getVoteQueueSize(), 3);
+  EXPECT_EQ(node3->getVoteQueueSize(), 3);
+  // node3 soft vote the pbft anchor block, 1 propose vote 3 soft votes
+  pbft_mgr3->setPbftStep(2);
+  pbft_mgr3->setPbftPeriod(1);
+  pbft_mgr3->start();
+
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node3->getVoteQueueSize() == 4) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
+  }
+  pbft_mgr3->stop();
+  EXPECT_EQ(node3->getVoteQueueSize(), 4);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node1->getVoteQueueSize() == 4 && node2->getVoteQueueSize() == 4) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node1->getVoteQueueSize(), 4);
+  EXPECT_EQ(node2->getVoteQueueSize(), 4);
+
+  // period 1, step 3
+  // node1 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 1 cert vote
+  pbft_mgr1->setPbftStep(3);
+  pbft_mgr1->setPbftPeriod(1);
+  pbft_mgr1->start();
+
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node1->getVoteQueueSize() == 5) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
+  }
+  pbft_mgr1->stop();
+  EXPECT_EQ(node1->getVoteQueueSize(), 5);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node2->getVoteQueueSize() == 5 && node3->getVoteQueueSize() == 5) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node2->getVoteQueueSize(), 5);
+  EXPECT_EQ(node3->getVoteQueueSize(), 5);
+  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 2 cert votes
+  pbft_mgr2->setPbftStep(3);
+  pbft_mgr2->setPbftPeriod(1);
+  pbft_mgr2->start();
+
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node2->getVoteQueueSize() == 6) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
+  }
+  pbft_mgr2->stop();
+  EXPECT_EQ(node2->getVoteQueueSize(), 6);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node1->getVoteQueueSize() == 6 && node3->getVoteQueueSize() == 6) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node1->getVoteQueueSize(), 6);
+  EXPECT_EQ(node3->getVoteQueueSize(), 6);
+  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes
+  pbft_mgr3->setPbftStep(3);
+  pbft_mgr3->setPbftPeriod(1);
+  pbft_mgr3->start();
+
+  for (int i = 0; i < 3000; i++) {
+    // test timeout is 3 seconds
+    if (node3->getVoteQueueSize() == 7) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1);
+  }
+  pbft_mgr3->stop();
+  EXPECT_EQ(node3->getVoteQueueSize(), 7);
+
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (node1->getVoteQueueSize() == 7 && node2->getVoteQueueSize() == 7) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node1->getVoteQueueSize(), 7);
+  EXPECT_EQ(node2->getVoteQueueSize(), 7);
+
+  // period 1, step 4
+  pbft_mgr1->setPbftStep(4);
+  pbft_mgr1->setPbftPeriod(1);
+  pbft_mgr1->start();
+  // TODO
+
   work1.reset();
   work2.reset();
   work3.reset();
@@ -109,8 +293,9 @@ TEST(PbftManager, DISABLED_create_pbft_manager) {
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
+  logOptions.verbosity = dev::VerbosityDebug;
   logOptions.includeChannels.push_back("PBFT_MGR");
+//  logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
