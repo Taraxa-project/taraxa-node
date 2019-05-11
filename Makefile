@@ -282,6 +282,11 @@ ${OBJECTDIR}/network_test.o: core_tests/network_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/network_test.o core_tests/network_test.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/long_network_test.o: core_tests/long_network_test.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/long_network_test.o core_tests/long_network_test.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/dag_block_test.o: core_tests/dag_block_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -401,6 +406,10 @@ $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILE
 $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) 
+
+$(TESTBUILDDIR)/long_network_test: $(OBJECTDIR)/long_network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}	
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/long_network_test.o -o $(TESTBUILDDIR)/long_network_test  $(LDFLAGS) $(LIBS) 
 
 $(TESTBUILDDIR)/dag_block_test: $(OBJECTDIR)/dag_block_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
