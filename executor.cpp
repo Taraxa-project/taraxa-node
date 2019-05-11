@@ -23,12 +23,13 @@ void Executor::stop() {
   if (stopped_) return;
 }
 bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
-  DagBlock dag_block(db_blks_->get(blk.toString()));
-
-  if (!dag_block.isValid()) {
+  std::string blk_json = db_blks_->get(blk.toString());
+  if (blk_json.empty()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
+  DagBlock dag_block(blk_json);
+
   auto trxs_hash = dag_block.getTrxs();
   // sequential execute transaction
   for (auto const& trx_hash : trxs_hash) {
@@ -49,7 +50,9 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
 }
 bool Executor::execute(TrxSchedule const& sche) {
   for (auto const& blk : sche.blk_order) {
-    executeBlkTrxs(blk);
+    if (!executeBlkTrxs(blk)) {
+      return false;
+    }
   }
   return true;
 }

@@ -70,6 +70,10 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
+  DagBlock genesis;
+  // store genesis blk to db
+  db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
+  db_blks_->commit();
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
@@ -110,6 +114,7 @@ void FullNode::start(bool boot_node) {
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
+
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
