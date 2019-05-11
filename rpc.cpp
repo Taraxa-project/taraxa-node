@@ -320,6 +320,36 @@ void RpcHandler::processRequest() {
         res = e.what();
       }
 
+    } else if (action == "create_test_coin_transactions") {
+      try {
+        secret_t sk = secret_t(in_doc_.get<std::string>("secret"));
+        uint delay = in_doc_.get<uint>("delay");
+        uint number = in_doc_.get<uint>("number");
+        uint seed = in_doc_.get<uint>("seed");
+        bal_t nonce = bal_t(0);
+        bal_t value = bal_t(0);
+        val_t gas_price = val_t(0);
+        val_t gas = val_t(0);
+        addr_t receiver = addr_t(0);
+        bytes data;
+        // get trx receiving time stamp
+        uint rnd = 1234567891;
+        for (auto i = 0; i < number; ++i) {
+          uint t = seed + i + 31432;
+          rnd = t ^ (rnd <<= 2);
+          auto now = getCurrentTimeMilliSeconds();
+          Transaction trx(bal_t(rnd), bal_t(rnd), val_t(i + seed),
+                          val_t(i + seed), addr_t(i * seed), data, sk);
+          LOG(log_time) << "Transaction " << trx.getHash()
+                        << " received at: " << now;
+          node_->storeTransaction(trx);
+          thisThreadSleepForMicroSeconds(delay);
+        }
+        res = "Number of " + std::to_string(number) + " created";
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+
     } else if (action == "get_num_proposed_blocks") {
       try {
         auto num_prop_block = node_->getNumProposedBlocks();

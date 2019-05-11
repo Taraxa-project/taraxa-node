@@ -31,6 +31,7 @@ struct ProposerConfig {
   uint mode;
   uint param1;
   uint param2;
+  // uint num_shards;
 };
 
 struct NetworkConfig {

@@ -62,7 +62,10 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(ProposerConfig& conf, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr)
-      : conf_(conf), dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
+      : conf_(conf),
+        // num_shards_(std::max(conf.num_shards, 1u)),
+        dag_mgr_(dag_mgr),
+        trx_mgr_(trx_mgr) {
     if (conf_.mode == 0) {
       propose_model_ =
           std::make_unique<RandomPropose>(conf_.param1, conf_.param2);
@@ -71,9 +74,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   ~BlockProposer() {
     if (!stopped_) stop();
   }
-  void setFullNode(std::shared_ptr<FullNode> full_node) {
-    full_node_ = full_node;
-  }
+  void setFullNode(std::shared_ptr<FullNode> full_node);
   void proposeBlock();
   void start();
   void stop();
@@ -89,6 +90,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;
   ProposerConfig conf_;
+  uint num_shards_;
+  uint ith_shard_;
   std::weak_ptr<DagManager> dag_mgr_;
   std::weak_ptr<TransactionManager> trx_mgr_;
   std::weak_ptr<FullNode> full_node_;
