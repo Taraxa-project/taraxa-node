@@ -67,13 +67,20 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
   std::vector<DagBlock> blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
-    std::string pivot;
+    std::string pivot, hash;
+
     vec_trx_t trxs;
     {
       std::stringstream strm;
       strm << std::setw(64) << std::setfill('0');
       strm << std::to_string(i);
       pivot = strm.str();
+    }
+    {
+      std::stringstream strm;
+      strm << std::setw(64) << std::setfill('0');
+      strm << std::to_string(i + 1);
+      hash = strm.str();
     }
     // create overlapped trxs
     {
@@ -93,10 +100,49 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
                  {blk_hash_t(2), blk_hash_t(3), blk_hash_t(4)},  // tips
                  trxs,                                           // trxs
                  sig_t(7777),                                    // sig
-                 blk_hash_t(pivot),                              // hash
+                 blk_hash_t(hash),                              // hash
                  addr_t(12345));                                 // sender
 
     blks.emplace_back(blk);
+  }
+  return blks;
+}
+
+std::vector<std::pair<DagBlock, std::vector<Transaction> > > createMockDagBlkSamplesWithSignedTransactions(unsigned pivot_start,
+                                              unsigned blk_num,
+                                              unsigned trx_start,
+                                              unsigned trx_len,
+                                              unsigned trx_overlap,
+                                                secret_t const &sk) {
+  assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
+  std::vector<std::pair<DagBlock, std::vector<Transaction> > > blks;
+  unsigned trx = trx_start;
+  for (auto i = pivot_start; i < blk_num; ++i) {
+    std::string pivot, hash;
+    auto full_trx = createSignedTrxSamples(trx_start + i*trx_len, trx_len, sk);
+    vec_trx_t trxs;
+    for(auto t : full_trx) trxs.push_back(t.getHash());
+    {
+      std::stringstream strm;
+      strm << std::setw(64) << std::setfill('0');
+      strm << std::to_string(i);
+      pivot = strm.str();
+    }
+    {
+      std::stringstream strm;
+      strm << std::setw(64) << std::setfill('0');
+      strm << std::to_string(i + 1);
+      hash = strm.str();
+    }
+
+    DagBlock blk(blk_hash_t(pivot),                              // pivot
+                 {},  // tips
+                 trxs,                                           // trxs
+                 sig_t(7777),                                    // sig
+                 blk_hash_t(hash),                              // hash
+                 addr_t(12345));                                 // sender
+
+    blks.emplace_back(std::make_pair(blk, full_trx));
   }
   return blks;
 }
