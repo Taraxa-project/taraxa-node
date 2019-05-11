@@ -81,7 +81,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash);
 
-
   bool isBlockKnown(blk_hash_t const &hash);
   time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
   void setDagBlockTimeStamp(blk_hash_t const &hash, time_stamp_t stamp);
@@ -110,8 +109,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
   createPeriodAndComputeBlockOrder(blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods
-  void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period,
-                           std::shared_ptr<vec_blk_t> blks);
+  void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period);
   // fake trx schedule
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
@@ -137,8 +135,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
-  bool shouldSpeak(blk_hash_t const &blockhash, char type,
-                   uint64_t period, size_t step);
+  bool shouldSpeak(blk_hash_t const &blockhash, char type, uint64_t period,
+                   size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   void placeVote(blk_hash_t const &blockhash, char type, int period, int step);
@@ -157,7 +155,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   size_t getPbftQueueSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
-  void setPbftBlock(PbftBlock const &pbft_block); // Test purpose
+  void setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<VoteQueue> getVoteQueue() const { return vote_queue_; }
 
