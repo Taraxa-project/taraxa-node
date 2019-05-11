@@ -197,8 +197,6 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   sign_block.sign(node_sk_);
 
   auto now = getCurrentTimeMilliSeconds();
-  thisThreadSleepForSeconds(1);
-  auto now2 = getCurrentTimeMilliSeconds();
 
   LOG(log_time_) << "Propose and sign block " << sign_block.getHash()
                  << " at:" << now << std::endl

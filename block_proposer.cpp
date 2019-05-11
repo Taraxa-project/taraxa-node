@@ -81,6 +81,7 @@ void BlockProposer::proposeBlock() {
     LOG(log_wr_) << "TransactionManager expired ..." << std::endl;
     return;
   }
+  auto& log_time = full_node_.lock()->getTimeLogger();
 
   trx_mgr_.lock()->packTrxs(to_be_packed_trx);
   if (to_be_packed_trx.empty()) {
@@ -88,6 +89,7 @@ void BlockProposer::proposeBlock() {
                  << std::endl;
     return;
   }
+
   vec_trx_t sharded_trxs;
   for (auto const& t : to_be_packed_trx) {
     auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
@@ -117,12 +119,14 @@ void BlockProposer::proposeBlock() {
   } else {
     LOG(log_wr_) << "Pivot and tips unavailable ..." << std::endl;
   }
+  LOG(log_time) << "Pivot and Tips retrieved at: "
+                << getCurrentTimeMilliSeconds();
+
   vec_blk_t tmp;
   for (auto const& t : tips) {
     tmp.emplace_back(blk_hash_t(t));
   }
   DagBlock blk(blk_hash_t(pivot), tmp, sharded_trxs);
-
   if (!full_node_.expired()) {
     LOG(log_nf_) << "Propose block" << std::endl;
 

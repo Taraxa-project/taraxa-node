@@ -136,7 +136,7 @@ bool DagBlock::deserialize(stream &strm) {
       trxs_.push_back(t);
     }
   }
-  
+
   ok &= read(strm, sig_);
   ok &= read(strm, hash_);
   ok &= read(strm, cached_sender_);
@@ -263,12 +263,12 @@ void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
   pushUnverifiedBlock(blk, std::vector<Transaction>());
 }
 
-std::pair<DagBlock, std::vector<Transaction> > BlockQueue::getVerifiedBlock() {
+std::pair<DagBlock, std::vector<Transaction>> BlockQueue::getVerifiedBlock() {
   uLock lock(mutex_for_verified_qu_);
   while (verified_qu_.empty() && !stopped_) {
     cond_for_verified_qu_.wait(lock);
   }
-  std::pair<DagBlock, std::vector<Transaction> > blk;
+  std::pair<DagBlock, std::vector<Transaction>> blk;
   if (stopped_) return blk;
 
   blk = verified_qu_.front();
@@ -279,7 +279,7 @@ std::pair<DagBlock, std::vector<Transaction> > BlockQueue::getVerifiedBlock() {
 
 void BlockQueue::verifyBlock() {
   while (!stopped_) {
-    std::pair<DagBlock, std::vector<Transaction> > blk;
+    std::pair<DagBlock, std::vector<Transaction>> blk;
     {
       uLock lock(mutex_for_unverified_qu_);
       while (unverified_qu_.empty() && !stopped_) {
