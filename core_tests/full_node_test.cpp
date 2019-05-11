@@ -228,14 +228,15 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   uint64_t period = 0, cur_period;
   std::shared_ptr<vec_blk_t> order;
   // create a period for every 2 pivots
-  for (int i = 1; i < ghost.size(); i += 2) {
+  for (int i = 0; i < ghost.size(); i += 2) {
     std::tie(cur_period, order) =
         node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost[i]));
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     if (!sche) continue;
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    node->executeScheduleBlock(sche_blk);
+    bool ret = node->executeScheduleBlock(sche_blk);
+    EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
   // pickup the last period when dag (chain) size is odd number
@@ -245,7 +246,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    node->executeScheduleBlock(sche_blk);
+    bool ret = node->executeScheduleBlock(sche_blk);
+    EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
 
