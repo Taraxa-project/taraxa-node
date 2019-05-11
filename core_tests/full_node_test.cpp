@@ -240,7 +240,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
   // pickup the last period when dag (chain) size is odd number
-  if (ghost.size() % 2) {
+  if (ghost.size() % 2 == 0) {
     std::tie(cur_period, order) =
         node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
