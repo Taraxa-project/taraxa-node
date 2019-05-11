@@ -7,7 +7,8 @@
   "block_proposer": {
     "mode": 0,
     "param1": 100,
-    "param2": 1000
+    "param2": 1000,
+    "shards": 1
   },
   "network_address": "0.0.0.0",
   "network_listen_port": 10002,

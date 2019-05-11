@@ -63,7 +63,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   BlockProposer(ProposerConfig& conf, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr)
       : conf_(conf),
-        // num_shards_(std::max(conf.num_shards, 1u)),
+        num_shards_(std::max(conf.shards, 1u)),
         dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr) {
     if (conf_.mode == 0) {

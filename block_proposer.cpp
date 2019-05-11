@@ -68,11 +68,10 @@ void BlockProposer::stop() {
 
 void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
-  // auto addr = std::stoull(
-  //     full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);
-  // std::cout << "addr= " << addr << std::endl;
-  // ith_shard_ = addr % conf_.num_shards;
-  // LOG(log_nf_) << "Block proposer in " << ith_shard_ << " shard ...";
+  auto addr = std::stoull(
+      full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);
+  ith_shard_ = addr % conf_.shards;
+  LOG(log_nf_) << "Block proposer in " << ith_shard_ << " shard ...";
 }
 void BlockProposer::proposeBlock() {
   std::string pivot;
@@ -89,18 +88,18 @@ void BlockProposer::proposeBlock() {
                  << std::endl;
     return;
   }
-  // vec_trx_t sharded_trxs;
-  // for (auto const& t : to_be_packed_trx) {
-  //   auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
-  //   if (shard % num_shards_ == ith_shard_) {
-  //     sharded_trxs.emplace_back(t);
-  //   }
-  // }
-  // if (sharded_trxs.empty()) {
-  //   LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..."
-  //                << std::endl;
-  //   return;
-  // }
+  vec_trx_t sharded_trxs;
+  for (auto const& t : to_be_packed_trx) {
+    auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
+    if (shard % num_shards_ == ith_shard_) {
+      sharded_trxs.emplace_back(t);
+    }
+  }
+  if (sharded_trxs.empty()) {
+    LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..."
+                 << std::endl;
+    return;
+  }
   if (dag_mgr_.expired()) {
     LOG(log_wr_) << "DagManager expired ..." << std::endl;
     return;
@@ -122,7 +121,7 @@ void BlockProposer::proposeBlock() {
   for (auto const& t : tips) {
     tmp.emplace_back(blk_hash_t(t));
   }
-  DagBlock blk(blk_hash_t(pivot), tmp, to_be_packed_trx);
+  DagBlock blk(blk_hash_t(pivot), tmp, sharded_trxs);
 
   if (!full_node_.expired()) {
     LOG(log_nf_) << "Propose block" << std::endl;

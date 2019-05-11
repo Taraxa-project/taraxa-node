@@ -21,7 +21,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     proposer.mode = doc.get<uint>("block_proposer.mode");
     proposer.param1 = doc.get<uint>("block_proposer.param1");
     proposer.param2 = doc.get<uint>("block_proposer.param2");
-    // proposer.num_shards = doc.get<uint>("block_proposer.num_shards");
+    proposer.shards = doc.get<uint>("block_proposer.shards");
 
     network.network_address = doc.get<std::string>("network_address");
     network.network_listen_port = doc.get<uint16_t>("network_listen_port");
@@ -73,7 +73,7 @@ std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf) {
   strm << "  mode: " << conf.mode << std::endl;
   strm << "  param1: " << conf.param1 << std::endl;
   strm << "  param2: " << conf.param2 << std::endl;
-  // strm << "  num_shards: " << conf.num_shards << std::endl;
+  strm << "  shards: " << conf.shards << std::endl;
   return strm;
 }
 
