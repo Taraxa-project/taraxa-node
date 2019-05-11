@@ -338,13 +338,20 @@ FullNode::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor) {
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
 // receive pbft-povit-blk, update periods
-void FullNode::updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period,
-                                   std::shared_ptr<vec_blk_t> blks) {
-  dag_mgr_->setDagBlockPeriods(anchor, period, blks);
+void FullNode::updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period) {
+  dag_mgr_->setDagBlockPeriods(anchor, period);
 }
 
 std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
     std::shared_ptr<vec_blk_t> blk_order) {
+  if (!blk_order) {
+    LOG(log_er_) << "Blk order NULL, cannot create mock trx schedule ...";
+    return nullptr;
+  }
+  if (blk_order->empty()) {
+    LOG(log_wr_)
+        << "Blk order is empty ..., create empty mock trx schedule ...";
+  }
   std::vector<std::vector<uint>> modes;
   for (auto const &b : *blk_order) {
     auto blk = getDagBlock(b);

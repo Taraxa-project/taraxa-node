@@ -788,46 +788,45 @@ uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
 
   std::vector<std::string> blk_orders;
   auto prev = anchors_.back();
-  auto cur_epoch = anchors_.size() - 1;
+  auto new_period = anchors_.size();
 
   auto ok = total_dag_->updatePeriodVerticesAndComputeOrder(
-      prev, anchor.toString(), cur_epoch, recent_added_blks_, blk_orders);
+      prev, anchor.toString(), new_period, recent_added_blks_, blk_orders);
   if (!ok) {
-    LOG(log_dg_) << "Create epoch " << cur_epoch << " from " << prev << " to "
+    LOG(log_er_) << "Create epoch " << new_period << " from " << prev << " to "
                  << anchor << " failed " << std::endl;
-    return cur_epoch;
+    return new_period;
   }
   anchors_.emplace_back(anchor.toString());
 
   for (auto const &i : blk_orders) {
     orders.emplace_back(blk_hash_t(i));
   }
-  LOG(log_dg_) << "Create epoch " << cur_epoch << " from " << prev << " to "
+  LOG(log_dg_) << "Create epoch " << new_period << " from " << prev << " to "
                << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
-  return anchors_.size() - 1;
+  return new_period;
 }
-void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period,
-                                    std::shared_ptr<vec_blk_t> blks) {
+void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
-    LOG(log_er_) << "Inserting period does not match ..." << std::endl;
+    LOG(log_er_) << "Inserting period " << period
+                 << " does not match ..., previous internal period "
+                 << anchors_.size() - 1;
     return;
   }
+  auto prev = anchors_.back();
+  std::vector<std::string> blk_orders;
+
+  auto ok = total_dag_->updatePeriodVerticesAndComputeOrder(
+      prev, anchor.toString(), period, recent_added_blks_, blk_orders);
   anchors_.emplace_back(anchor.toString());
-  LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor
-               << std::endl;
-  if (!blks) {
-    LOG(log_er_) << "Cannot set block period, pointer is null " << period
-                 << std::endl;
+
+  if (!ok) {
+    LOG(log_er_) << "Create epoch " << period << " from " << prev << " to "
+                 << anchor << " failed ";
     return;
   }
-  if (!blks->empty()) {
-    LOG(log_wr_) << "No Dag blocks available in period " << period << std::endl;
-    return;
-  }
-  for (auto const &b : *blks) {
-    total_dag_->setVertexPeriod(b.toString(), period);
-  }
+  LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
 }
 DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
   if (stopped_) {
