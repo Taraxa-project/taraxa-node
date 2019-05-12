@@ -203,22 +203,25 @@ class PbftChain {
                 next_pbft_block_type_(pivot_block_type) {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
-    pbft_blocks_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
+    pbft_chain_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
   }
   ~PbftChain() {}
 
-  size_t getSize() const;
+  size_t getPbftChainSize() const;
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftQueueSize() const;
-  std::pair<PbftBlock, bool> getPbftBlock(blk_hash_t const& pbft_block_hash);
+  std::pair<PbftBlock, bool> getPbftBlockInChain(
+      blk_hash_t const& pbft_block_hash);
+  std::pair<PbftBlock, bool> getPbftBlockInQueue(
+      blk_hash_t const& pbft_block_hash);
   std::string getGenesisStr() const;
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
-  void setNextPbftBlockType(PbftBlockTypes next_block_type);
+  void setNextPbftBlockType(PbftBlockTypes next_block_type); // Test only
 
-  bool findPbftBlock(blk_hash_t const& pbft_block_hash) const ;
+  bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
 
   void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
@@ -226,16 +229,20 @@ class PbftChain {
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
 
+  // only for test
+  void cleanPbftQueue() { pbft_queue_.clear(); }
+  void cleanPbftChain() { PbftChain(); }
+
  private:
-  void insertPbftBlock_(blk_hash_t const& pbft_block_hash,
-	                     PbftBlock const& pbft_block);
+  void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
+                               PbftBlock const& pbft_block);
 
   blk_hash_t genesis_hash_;
   uint64_t count_;
   PbftBlockTypes next_pbft_block_type_;
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_blocks_map_;
+  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::deque<blk_hash_t> pbft_queue_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
 

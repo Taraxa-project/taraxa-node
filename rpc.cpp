@@ -428,7 +428,8 @@ void RpcHandler::processRequest() {
     else if (action == "should_speak") {
       try {
         blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
-        char type = in_doc_.get<char>("type");
+        PbftVoteTypes type =
+            static_cast<PbftVoteTypes>(in_doc_.get<int>("type"));
         uint64_t period = in_doc_.get<uint64_t>("period");
         size_t step = in_doc_.get<size_t>("step");
         if (node_->shouldSpeak(blockhash, type, period, step)) {
@@ -442,7 +443,8 @@ void RpcHandler::processRequest() {
     } else if (action == "place_vote") {
       try {
         blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
-        char type = in_doc_.get<char>("type");
+        PbftVoteTypes type =
+            static_cast<PbftVoteTypes>(in_doc_.get<int>("type"));
         uint64_t period = in_doc_.get<uint64_t>("period");
         size_t step = in_doc_.get<size_t>("step");
 

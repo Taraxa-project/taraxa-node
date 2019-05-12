@@ -135,15 +135,21 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
+<<<<<<< HEAD
   bool shouldSpeak(blk_hash_t const &blockhash, char type, uint64_t period,
                    size_t step);
+=======
+  bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
+      uint64_t period, size_t step);
+>>>>>>> 1. Implment pushPbftBlockInfoChain_ in pbft manager
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
-  void placeVote(blk_hash_t const &blockhash, char type, int period, int step);
-  std::vector<Vote> getVotes(int period);
+  void placeVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+      uint64_t period, size_t step);
+  std::vector<Vote> getVotes(uint64_t period);
   void placeVote(Vote const &vote);
-  void broadcastVote(taraxa::blk_hash_t const &blockhash, char type, int period,
-                     int step);
+  void broadcastVote(taraxa::blk_hash_t const &blockhash, PbftVoteTypes type,
+      uint64_t period, size_t step);
   void clearVoteQueue();
   size_t getVoteQueueSize();
   bool isKnownVote(taraxa::Vote const &vote) const;

@@ -256,7 +256,7 @@ void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
     strm << schedule_.blk_order[i];
   }
   for (int i = 0; i < schedule_.vec_trx_modes.size(); i++) {
-    for (int j = 0; i < schedule_.vec_trx_modes[i].size(); j++) {
+    for (int j = 0; j < schedule_.vec_trx_modes[i].size(); j++) {
       strm << schedule_.vec_trx_modes[i][j];
     }
   }
@@ -355,7 +355,7 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   return ok;
 }
 
-size_t PbftChain::getSize() const {
+size_t PbftChain::getPbftChainSize() const {
   return count_;
 }
 
@@ -383,8 +383,8 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
   next_pbft_block_type_ = next_block_type;
 }
 
-bool PbftChain::findPbftBlock(taraxa::blk_hash_t const &pbft_block_hash) const {
-  return pbft_blocks_map_.find(pbft_block_hash) != pbft_blocks_map_.end();
+bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const &pbft_block_hash) const {
+  return pbft_chain_map_.find(pbft_block_hash) != pbft_chain_map_.end();
 }
 
 bool PbftChain::findPbftBlockInQueue(
@@ -392,22 +392,30 @@ bool PbftChain::findPbftBlockInQueue(
   return pbft_queue_map_.find(pbft_block_hash) != pbft_queue_map_.end();
 }
 
-std::pair<PbftBlock, bool> PbftChain::getPbftBlock(
+std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t &pbft_block_hash) {
-  if (findPbftBlock(pbft_block_hash)) {
-    return std::make_pair(pbft_blocks_map_[pbft_block_hash], true);
+  if (findPbftBlockInChain(pbft_block_hash)) {
+    return std::make_pair(pbft_chain_map_[pbft_block_hash], true);
   }
   return std::make_pair(PbftBlock(), false);
 }
 
-void PbftChain::insertPbftBlock_(taraxa::blk_hash_t const &pbft_block_hash,
+std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
+    const taraxa::blk_hash_t& pbft_block_hash) {
+  if (findPbftBlockInQueue(pbft_block_hash)) {
+    return std::make_pair(pbft_queue_map_[pbft_block_hash], true);
+  }
+  return std::make_pair(PbftBlock(), false);
+}
+
+void PbftChain::insertPbftBlockInChain_(taraxa::blk_hash_t const &pbft_block_hash,
                                 taraxa::PbftBlock const &pbft_block) {
-  pbft_blocks_map_[pbft_block_hash] = pbft_block;
+  pbft_chain_map_[pbft_block_hash] = pbft_block;
 }
 
 void PbftChain::pushPbftBlock(taraxa::PbftBlock const &pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  insertPbftBlock_(pbft_block_hash, pbft_block);
+  insertPbftBlockInChain_(pbft_block_hash, pbft_block);
   setLastPbftBlockHash(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later
@@ -424,7 +432,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const &pbft_block) {
     return false;
   }
   std::pair<PbftBlock, bool> pbft_chain_last_blk =
-      getPbftBlock(last_pbft_block_hash_);
+      getPbftBlockInChain(last_pbft_block_hash_);
   if (!pbft_chain_last_blk.second) {
     std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
     return false;
@@ -446,7 +454,7 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
     return false;
   }
   std::pair<PbftBlock, bool> pbft_chain_last_blk =
-      getPbftBlock(last_pbft_block_hash_);
+      getPbftBlockInChain(last_pbft_block_hash_);
   if (!pbft_chain_last_blk.second) {
     std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
     return false;
