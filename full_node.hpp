@@ -135,13 +135,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
-<<<<<<< HEAD
-  bool shouldSpeak(blk_hash_t const &blockhash, char type, uint64_t period,
-                   size_t step);
-=======
   bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
       uint64_t period, size_t step);
->>>>>>> 1. Implment pushPbftBlockInfoChain_ in pbft manager
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   void placeVote(blk_hash_t const &blockhash, PbftVoteTypes type,
