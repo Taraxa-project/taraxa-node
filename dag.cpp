@@ -601,8 +601,11 @@ void DagManager::stop() {
   sb_buffer_processing_thread_->join();
 }
 void DagManager::addDagBlock(DagBlock const &blk) {
-  if(!addDagBlockInternal(blk)) {
+  if (!addDagBlockInternal(blk)) {
     addToDagBuffer(blk);
+  } else {
+    ulock lock(sb_bufer_mutex_);
+    sb_buffer_condition.notify_one();
   }
 }
 
@@ -616,8 +619,8 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_tr_) << "Block " << hash << " pivot " << pivot
-                 << " unavailable" << std::endl;
+    LOG(log_tr_) << "Block " << hash << " pivot " << pivot << " unavailable"
+                 << std::endl;
     return false;
   }
 
@@ -625,8 +628,8 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
-      LOG(log_nf_) << "Block " << hash << " tip " << tip
-                   << " unavailable" << std::endl;
+      LOG(log_nf_) << "Block " << hash << " tip " << tip << " unavailable"
+                   << std::endl;
       return false;
     }
     tips.push_back(tip);
@@ -667,7 +670,7 @@ void DagManager::consume() {
         ++iter;
       }
     }
-    if(!blockAdded) {
+    if (!blockAdded) {
       sb_buffer_condition.wait(lock);
     }
   }
