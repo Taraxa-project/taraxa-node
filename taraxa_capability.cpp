@@ -41,12 +41,11 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     auto start = std::chrono::steady_clock::now();
     bool blocksAddedToDag = false;
     // Wait up to 20 seconds for blocks to be verified
-    while (!blocksAddedToDag && std::chrono::duration_cast<std::chrono::seconds>(
+    std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
+    while (!blocksAddedToDag &&
+           std::chrono::duration_cast<std::chrono::seconds>(
                std::chrono::steady_clock::now() - start)
-               .count() < 20) {
-      std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
-      condition_for_verified_blocks_.wait_for(lck,
-                                              std::chrono::milliseconds(1000));
+                   .count() < 20) {
       blocksAddedToDag = true;
       for (auto block : peers_[_nodeID].m_syncBlocks) {
         if (verified_blocks_.count(block.first) == 0) {
@@ -54,6 +53,9 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
           break;
         }
       }
+      if (blocksAddedToDag) break;
+      condition_for_verified_blocks_.wait_for(lck,
+                                              std::chrono::milliseconds(1000));
     }
     peers_[_nodeID].m_syncBlocks.clear();
     if (!blocksAddedToDag)

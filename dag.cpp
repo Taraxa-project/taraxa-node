@@ -536,15 +536,12 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   }
 }
 
-DagManager::DagManager(unsigned num_threads) try
-    : debug_(false),
-      verbose_(false),
-      dag_updated_(false),
-      num_threads_(num_threads),
-      inserting_index_counter_(0),
-      total_dag_(std::make_shared<Dag>()),
-      pivot_tree_(std::make_shared<PivotTree>()),
-      sb_buffer_array_(std::make_shared<std::vector<DagBuffer>>(num_threads)) {
+DagManager::DagManager() try : debug_(false),
+                               verbose_(false),
+                               dag_updated_(false),
+                               inserting_index_counter_(0),
+                               total_dag_(std::make_shared<Dag>()),
+                               pivot_tree_(std::make_shared<PivotTree>()) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -578,24 +575,7 @@ std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
 }
 size_t DagManager::getBufferSize() const {
   ulock lock(mutex_);
-  auto sz = 0;
-  for (auto const &arr : (*sb_buffer_array_)) {
-    sz += arr.size();
-  }
-  return sz;
-}
-
-unsigned DagManager::getBlockInsertingIndex() {
-  auto which_buffer = inserting_index_counter_.fetch_add(1);
-  assert(which_buffer < num_threads_ && which_buffer >= 0);
-
-  if (inserting_index_counter_ >= num_threads_) {
-    inserting_index_counter_.store(0);
-  }
-  if (verbose_) {
-    LOG(log_nf_) << "inserting row = " << which_buffer << "\n";
-  }
-  return which_buffer;
+  return sb_buffer_.size();
 }
 
 void DagManager::drawTotalGraph(std::string const &str) const {
@@ -611,37 +591,33 @@ void DagManager::drawPivotGraph(std::string const &str) const {
 void DagManager::start() {
   if (!stopped_) return;
   stopped_ = false;
-  for (auto i = 0; i < num_threads_; ++i) {
-    sb_buffer_processing_threads_.push_back(
-        boost::thread([this, i]() { consume(i); }));
-  }
+  sb_buffer_processing_thread_ =
+      std::make_shared<boost::thread>(boost::thread([this]() { consume(); }));
 }
 void DagManager::stop() {
   if (stopped_) return;
   stopped_ = true;
-  for (auto &arr : (*sb_buffer_array_)) {
-    arr.stop();
-  }
-
-  for (auto &t : sb_buffer_processing_threads_) {
-    t.join();
+  sb_buffer_condition.notify_all();
+  sb_buffer_processing_thread_->join();
+}
+void DagManager::addDagBlock(DagBlock const &blk) {
+  if(!addDagBlockInternal(blk)) {
+    addToDagBuffer(blk);
   }
 }
-bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
+
+bool DagManager::addDagBlockInternal(DagBlock const &blk) {
   ulock lock(mutex_);
   std::string hash = blk.getHash().toString();
   if (total_dag_->hasVertex(hash)) {
-    LOG(log_tr_) << "Block is in DAG already! " << hash << std::endl;
-    return false;
+    LOG(log_nf_) << "Block is in DAG already! " << hash << std::endl;
+    return true;
   }
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_dg_) << "Block " << hash << " pivot " << pivot
-                 << " unavailable, insert = " << insert << std::endl;
-    if (insert) {
-      addToDagBuffer(blk);
-    }
+    LOG(log_tr_) << "Block " << hash << " pivot " << pivot
+                 << " unavailable" << std::endl;
     return false;
   }
 
@@ -649,25 +625,23 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
-      LOG(log_dg_) << "Block " << hash << " tip " << tip
-                   << " unavailable, insert = " << insert << std::endl;
-
-      if (insert) {
-        addToDagBuffer(blk);
-      }
+      LOG(log_nf_) << "Block " << hash << " tip " << tip
+                   << " unavailable" << std::endl;
       return false;
     }
     tips.push_back(tip);
   }
 
   addToDag(hash, pivot, tips);
+  LOG(log_nf_) << "Block " << hash << " added to DAG";
   recent_added_blks_.insert(hash);
   return true;
 }
 
 void DagManager::addToDagBuffer(DagBlock const &blk) {
-  unsigned which_buffer = getBlockInsertingIndex();
-  (*sb_buffer_array_)[which_buffer].insert(blk);
+  ulock lock(sb_bufer_mutex_);
+  sb_buffer_.push_back(std::make_shared<DagBlock>(blk));
+  sb_buffer_condition.notify_one();
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
@@ -679,19 +653,22 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
   pivot_tree_->setVertexTimeStamp(hash, stamp);
 }
 
-/**
- * TODO: current will do spining access, change it
- */
-
-void DagManager::consume(unsigned idx) {
+void DagManager::consume() {
+  ulock lock(sb_bufer_mutex_);
   while (!stopped_) {
-    auto iter = (*sb_buffer_array_)[idx].getBuffer();
-    auto &blk = iter->first;
-    if (stopped_) break;
-    if (addDagBlock(blk, false)) {
-      // std::cout << "consume success ..." << blk.getHash().toString()
-      //           << std::endl;
-      (*sb_buffer_array_)[idx].delBuffer(iter);
+    bool blockAdded = false;
+    auto iter = sb_buffer_.begin();
+    while (iter != sb_buffer_.end()) {
+      if (stopped_) break;
+      if (addDagBlockInternal(**iter)) {
+        blockAdded = true;
+        iter = sb_buffer_.erase(iter++);
+      } else {
+        ++iter;
+      }
+    }
+    if(!blockAdded) {
+      sb_buffer_condition.wait(lock);
     }
   }
 }
@@ -828,49 +805,4 @@ void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period) {
   }
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
 }
-DagBuffer::DagBuffer() : stopped_(true), updated_(false), iter_(blocks_.end()) {
-  if (stopped_) {
-    start();
-  }
-}
-
-void DagBuffer::start() { stopped_ = false; }
-void DagBuffer::stop() {
-  if (stopped_) {
-    return;
-  }
-  stopped_ = true;
-  condition_.notify_all();
-}
-
-bool DagBuffer::isStopped() const { return stopped_; }
-
-void DagBuffer::insert(DagBlock const &blk) {
-  ulock lock(mutex_);
-  time_point_t t = std::chrono::system_clock::now();
-  blocks_.emplace_front(std::make_pair(blk, t));
-  updated_ = true;
-  condition_.notify_one();
-}
-
-DagBuffer::buffIter DagBuffer::getBuffer() {
-  ulock lock(mutex_);
-  while (!stopped_ &&
-         (blocks_.empty() || (iter_ == blocks_.end() && !updated_))) {
-    condition_.wait(lock);
-  }
-  if (iter_ == blocks_.end()) {
-    iter_ = blocks_.begin();
-  }
-  auto cur = iter_;
-  iter_++;
-  return cur;
-}
-void DagBuffer::delBuffer(DagBuffer::buffIter iter) {
-  ulock lock(mutex_);
-  blocks_.erase(iter);
-}
-
-size_t DagBuffer::size() const { return blocks_.size(); }
-
 }  // namespace taraxa
