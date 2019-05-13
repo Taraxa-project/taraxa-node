@@ -14,6 +14,14 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
   }
 }
 
+void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
+  if (auto full_node = full_node_.lock()) {
+    LOG(logger_) << "Sync Peer Pbft:" << _nodeID.toString();
+    auto pbftChainSize = full_node->getPbftChainSize();
+    requestPbftBlocks(_nodeID, pbftChainSize);
+  }
+}
+
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     for (auto block : peers_[_nodeID]->m_syncBlocks) {
@@ -41,11 +49,13 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     auto start = std::chrono::steady_clock::now();
     bool blocksAddedToDag = false;
     // Wait up to 20 seconds for blocks to be verified
-    std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
     while (!blocksAddedToDag &&
            std::chrono::duration_cast<std::chrono::seconds>(
                std::chrono::steady_clock::now() - start)
                    .count() < 20) {
+      std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
+      condition_for_verified_blocks_.wait_for(lck,
+                                              std::chrono::milliseconds(1000));
       blocksAddedToDag = true;
       for (auto block : peers_[_nodeID]->m_syncBlocks) {
         if (verified_blocks_.count(block.first) == 0) {
@@ -72,6 +82,7 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
 
   peers_.emplace(std::make_pair(_nodeID, std::make_shared<TaraxaPeer>(_nodeID)));
   syncPeer(_nodeID);
+  syncPeerPbft(_nodeID);
 }
 
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
@@ -307,7 +318,22 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
       break;
     }
-    case PbftBlockPacket: {
+    case GetPbftBlockPacket: {
+      LOG(logger_debug_) << "Received GetPbftBlockPacket Block";
+      const unsigned long maxBlocksInPacket = 2;
+      auto full_node = full_node_.lock();
+      if (full_node) {
+        size_t chainSize = _r[0].toInt();
+        size_t myChainSize = full_node->getPbftChainSize();
+        if (myChainSize > chainSize) {
+          int blocksToTransfer =
+              max(maxBlocksInPacket, myChainSize - chainSize);
+          sendPbftBlocks(_nodeID, chainSize, blocksToTransfer);
+        }
+      }
+      break;
+    }
+    case NewPbftBlockPacket: {
       LOG(logger_debug_) << "Received PBFT Block";
 
       PbftBlock pbft_block(_r[0]);
@@ -323,6 +349,26 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         onNewPbftBlock(pbft_block);
       }
 
+      break;
+    }
+    case PbftBlockPacket: {
+      LOG(logger_debug_) << "Received PBFT Blocks";
+
+      auto blockCount = _r.itemCount();
+      for (auto iblock = 0; iblock < blockCount; iblock++) {
+        PbftBlock pbft_block(_r[iblock]);
+        peers_[_nodeID].markPbftBlockAsKnown(pbft_block.getBlockHash());
+
+        auto full_node = full_node_.lock();
+        if (!full_node) {
+          LOG(logger_err_) << "PbftBlock full node weak pointer empty";
+          return false;
+        }
+        if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
+          full_node->setPbftBlock(pbft_block);
+        }
+      }
+      if (blockCount > 0) syncPeerPbft(_nodeID);
       break;
     }
     case TestPacket:
@@ -586,6 +632,17 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
+void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
+                                         size_t pbftChainSize) {
+  RLPStream s;
+  std::vector<uint8_t> bytes;
+  host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
+  s << pbftChainSize;
+  LOG(logger_debug_) << "Sending GetPbftBlockPacket with size:"
+                     << pbftChainSize;
+  host_.capabilityHost()->sealAndSend(_id, s);
+}
+
 void TaraxaCapability::requestBlockChildren(NodeID const &_id,
                                             std::vector<std::string> leaves) {
   RLPStream s;
@@ -681,13 +738,28 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
   }
 }
 
+void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t chainSize,
+                                      size_t blocksToTransfer) {
+  LOG(logger_debug_) << "sendPbftBlocks " << chainSize << " "
+                     << blocksToTransfer << " to " << _id;
+  if (auto full_node = full_node_.lock()) {
+    auto blocks =
+        full_node->getPbftChain()->getPbftBlocks(chainSize, blocksToTransfer);
+    RLPStream s;
+    host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
+                                 blocks.size());
+    for (auto &block : blocks) block->serializeRLP(s);
+    host_.capabilityHost()->sealAndSend(_id, s);
+  }
+}
+
 void TaraxaCapability::sendPbftBlock(NodeID const &_id,
                                      taraxa::PbftBlock const &pbft_block) {
   LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to "
                      << _id;
 
   RLPStream s;
-  host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket, 1);
+  host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 1);
   pbft_block.serializeRLP(s);
   host_.capabilityHost()->sealAndSend(_id, s);
 }

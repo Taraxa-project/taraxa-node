@@ -70,19 +70,18 @@ std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche);
 class PivotBlock {
  public:
   PivotBlock() = default;
-  PivotBlock(taraxa::stream &strm);
+  PivotBlock(taraxa::stream& strm);
 
   PivotBlock(blk_hash_t const& prev_pivot_hash,
              blk_hash_t const& prev_block_hash,
-             blk_hash_t const& dag_block_hash,
-             uint64_t epoch,
-             uint64_t timestamp,
-             addr_t beneficiary) : prev_pivot_hash_(prev_pivot_hash),
-                                   prev_block_hash_(prev_block_hash),
-                                   dag_block_hash_(dag_block_hash),
-                                   epoch_(epoch),
-                                   timestamp_(timestamp),
-                                   beneficiary_(beneficiary) {}
+             blk_hash_t const& dag_block_hash, uint64_t epoch,
+             uint64_t timestamp, addr_t beneficiary)
+      : prev_pivot_hash_(prev_pivot_hash),
+        prev_block_hash_(prev_block_hash),
+        dag_block_hash_(dag_block_hash),
+        epoch_(epoch),
+        timestamp_(timestamp),
+        beneficiary_(beneficiary) {}
   ~PivotBlock() {}
 
   blk_hash_t getPrevPivotBlockHash() const;
@@ -92,18 +91,17 @@ class PivotBlock {
   uint64_t getTimestamp() const;
   addr_t getBeneficiary() const;
 
-  bool serialize(stream &strm) const;
-  bool deserialize(stream &strm);
-  void streamRLP(dev::RLPStream &strm) const;
+  bool serialize(stream& strm) const;
+  bool deserialize(stream& strm);
+  void streamRLP(dev::RLPStream& strm) const;
 
-
-  friend std::ostream &operator<<(std::ostream &strm,
+  friend std::ostream& operator<<(std::ostream& strm,
                                   PivotBlock const& pivot_block) {
     strm << "[Pivot Block] " << std::endl;
-    strm << "  previous pivot hash: "
-         << pivot_block.prev_pivot_hash_.hex() << std::endl;
-    strm << "  previous result hash: "
-         << pivot_block.prev_block_hash_.hex() << std::endl;
+    strm << "  previous pivot hash: " << pivot_block.prev_pivot_hash_.hex()
+         << std::endl;
+    strm << "  previous result hash: " << pivot_block.prev_block_hash_.hex()
+         << std::endl;
     strm << "  dag hash: " << pivot_block.dag_block_hash_.hex() << std::endl;
     strm << "  epoch: " << pivot_block.epoch_ << std::endl;
     strm << "  timestamp: " << pivot_block.timestamp_ << std::endl;
@@ -123,22 +121,21 @@ class PivotBlock {
 class ScheduleBlock {
  public:
   ScheduleBlock() = default;
-  ScheduleBlock(blk_hash_t const& prev_block_hash,
-                uint64_t const& timestamp,
+  ScheduleBlock(blk_hash_t const& prev_block_hash, uint64_t const& timestamp,
                 TrxSchedule const& schedule)
       : prev_block_hash_(prev_block_hash),
         timestamp_(timestamp),
         schedule_(schedule) {}
-  ScheduleBlock(taraxa::stream &strm);
+  ScheduleBlock(taraxa::stream& strm);
   ~ScheduleBlock() {}
-  void streamRLP(dev::RLPStream &strm) const;
+  void streamRLP(dev::RLPStream& strm) const;
 
   std::string getJsonStr() const;
   TrxSchedule getSchedule() const;
   blk_hash_t getPrevBlockHash() const;
 
-  bool serialize(stream &strm) const;
-  bool deserialize(stream &strm);
+  bool serialize(stream& strm) const;
+  bool deserialize(stream& strm);
 
   friend std::ostream;
 
@@ -162,14 +159,13 @@ class ResultBlock {
 class PbftBlock {
  public:
   PbftBlock() = default;
-  PbftBlock(blk_hash_t const &block_hash) : block_hash_(block_hash) {}
-  PbftBlock(PivotBlock const &pivot_block) : pivot_block_(pivot_block),
-                                             block_type_(pivot_block_type) {}
-  PbftBlock(ScheduleBlock const &schedule_block)
-    : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
-  PbftBlock(dev::RLP const &_r);
+  PbftBlock(blk_hash_t const& block_hash) : block_hash_(block_hash) {}
+  PbftBlock(PivotBlock const& pivot_block)
+      : pivot_block_(pivot_block), block_type_(pivot_block_type) {}
+  PbftBlock(ScheduleBlock const& schedule_block)
+      : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
+  PbftBlock(dev::RLP const& _r);
   ~PbftBlock() {}
-
 
   blk_hash_t getBlockHash() const;
   PbftBlockTypes getBlockType() const;
@@ -182,10 +178,10 @@ class PbftBlock {
   void setScheduleBlock(ScheduleBlock const& schedule_block);
   void setSignature(sig_t const& signature);
 
-  void serializeRLP(dev::RLPStream &s) const;
-  bool serialize(stream &strm) const;
-  bool deserialize(stream &strm);
-  void streamRLP(dev::RLPStream &strm) const;
+  void serializeRLP(dev::RLPStream& s) const;
+  bool serialize(stream& strm) const;
+  bool deserialize(stream& strm);
+  void streamRLP(dev::RLPStream& strm) const;
 
  private:
   blk_hash_t block_hash_;
@@ -198,9 +194,10 @@ class PbftBlock {
 
 class PbftChain {
  public:
-  PbftChain() : genesis_hash_(blk_hash_t(0)),
-                count_(1),
-                next_pbft_block_type_(pivot_block_type) {
+  PbftChain()
+      : genesis_hash_(blk_hash_t(0)),
+        count_(1),
+        next_pbft_block_type_(pivot_block_type) {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
     pbft_chain_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
@@ -216,10 +213,12 @@ class PbftChain {
       blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
       blk_hash_t const& pbft_block_hash);
+  std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
+                                                        size_t count);
   std::string getGenesisStr() const;
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
-  void setNextPbftBlockType(PbftBlockTypes next_block_type); // Test only
+  void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
@@ -243,9 +242,9 @@ class PbftChain {
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
+  std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_queue_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
-
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 

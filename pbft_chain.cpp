@@ -85,35 +85,23 @@ bytes TrxSchedule::rlp() const {
   return s.out();
 }
 
-PivotBlock::PivotBlock(taraxa::stream &strm) {
-  deserialize(strm);
-}
+PivotBlock::PivotBlock(taraxa::stream& strm) { deserialize(strm); }
 
 blk_hash_t PivotBlock::getPrevPivotBlockHash() const {
   return prev_pivot_hash_;
 }
 
-blk_hash_t PivotBlock::getPrevBlockHash() const {
-  return prev_block_hash_;
-}
+blk_hash_t PivotBlock::getPrevBlockHash() const { return prev_block_hash_; }
 
-blk_hash_t PivotBlock::getDagBlockHash() const {
-  return dag_block_hash_;
-}
+blk_hash_t PivotBlock::getDagBlockHash() const { return dag_block_hash_; }
 
-uint64_t PivotBlock::getEpoch() const {
-  return epoch_;
-}
+uint64_t PivotBlock::getEpoch() const { return epoch_; }
 
-uint64_t PivotBlock::getTimestamp() const {
-  return timestamp_;
-}
+uint64_t PivotBlock::getTimestamp() const { return timestamp_; }
 
-addr_t PivotBlock::getBeneficiary() const {
-  return beneficiary_;
-}
+addr_t PivotBlock::getBeneficiary() const { return beneficiary_; }
 
-bool PivotBlock::serialize(stream &strm) const {
+bool PivotBlock::serialize(stream& strm) const {
   bool ok = true;
 
   ok &= write(strm, prev_pivot_hash_);
@@ -127,7 +115,7 @@ bool PivotBlock::serialize(stream &strm) const {
   return ok;
 }
 
-bool PivotBlock::deserialize(stream &strm) {
+bool PivotBlock::deserialize(stream& strm) {
   bool ok = true;
 
   ok &= read(strm, prev_pivot_hash_);
@@ -150,9 +138,7 @@ void PivotBlock::streamRLP(dev::RLPStream& strm) const {
   strm << beneficiary_;
 }
 
-ScheduleBlock::ScheduleBlock(taraxa::stream &strm) {
-  deserialize(strm);
-}
+ScheduleBlock::ScheduleBlock(taraxa::stream& strm) { deserialize(strm); }
 
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
@@ -169,13 +155,9 @@ std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
   return strm;
 }
 
-TrxSchedule ScheduleBlock::getSchedule() const {
-  return schedule_;
-}
+TrxSchedule ScheduleBlock::getSchedule() const { return schedule_; }
 
-blk_hash_t ScheduleBlock::getPrevBlockHash() const {
-  return prev_block_hash_;
-}
+blk_hash_t ScheduleBlock::getPrevBlockHash() const { return prev_block_hash_; }
 
 bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
@@ -185,8 +167,9 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   uint32_t block_size = schedule_.blk_order.size();
   uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
   if (block_size != trx_vectors_size) {
-    std::cerr << "Number of Blocks should be equal to the size of transaction vectors"
-              << std::endl;
+    std::cerr
+        << "Number of Blocks should be equal to the size of transaction vectors"
+        << std::endl;
     return false;
   }
   ok &= write(strm, block_size);
@@ -216,8 +199,9 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   ok &= read(strm, block_size);
   ok &= read(strm, trx_vectors_size);
   if (block_size != trx_vectors_size) {
-    std::cerr << "Number of Blocks should be equal to the size of transaction vectors"
-              << std::endl;
+    std::cerr
+        << "Number of Blocks should be equal to the size of transaction vectors"
+        << std::endl;
     return false;
   }
   for (int i = 0; i < block_size; i++) {
@@ -281,33 +265,25 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
     pivot_block_.streamRLP(strm);
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.streamRLP(strm);
-  } // TODO: more block types
+  }  // TODO: more block types
 }
 
-blk_hash_t PbftBlock::getBlockHash() const {
-  return block_hash_;
-}
+blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
 
-PbftBlockTypes PbftBlock::getBlockType() const {
-  return block_type_;
-}
+PbftBlockTypes PbftBlock::getBlockType() const { return block_type_; }
 
 void PbftBlock::setBlockType(taraxa::PbftBlockTypes block_type) {
   block_type_ = block_type;
 }
 
-PivotBlock PbftBlock::getPivotBlock() const {
-  return pivot_block_;
-}
+PivotBlock PbftBlock::getPivotBlock() const { return pivot_block_; }
 
 void PbftBlock::setPivotBlock(taraxa::PivotBlock const& pivot_block) {
   pivot_block_ = pivot_block;
   block_type_ = pivot_block_type;
 }
 
-ScheduleBlock PbftBlock::getScheduleBlock() const {
-  return schedule_block_;
-}
+ScheduleBlock PbftBlock::getScheduleBlock() const { return schedule_block_; }
 
 void PbftBlock::setScheduleBlock(taraxa::ScheduleBlock const& schedule_block) {
   schedule_block_ = schedule_block;
@@ -327,7 +303,7 @@ void PbftBlock::serializeRLP(dev::RLPStream& s) const {
   s.append(bytes);
 }
 
-bool PbftBlock::serialize(stream &strm) const {
+bool PbftBlock::serialize(stream& strm) const {
   bool ok = true;
   ok &= write(strm, block_hash_);
   ok &= write(strm, block_type_);
@@ -355,9 +331,7 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   return ok;
 }
 
-size_t PbftChain::getPbftChainSize() const {
-  return count_;
-}
+size_t PbftChain::getPbftChainSize() const { return count_; }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
   return last_pbft_block_hash_;
@@ -371,11 +345,9 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
-size_t PbftChain::getPbftQueueSize() const {
-  return pbft_queue_.size();
-}
+size_t PbftChain::getPbftQueueSize() const { return pbft_queue_.size(); }
 
-void PbftChain::setLastPbftBlockHash(blk_hash_t const &new_pbft_block_hash) {
+void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
   last_pbft_block_hash_ = new_pbft_block_hash;
 }
 
@@ -383,7 +355,8 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
   next_pbft_block_type_ = next_block_type;
 }
 
-bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const &pbft_block_hash) const {
+bool PbftChain::findPbftBlockInChain(
+    taraxa::blk_hash_t const& pbft_block_hash) const {
   return pbft_chain_map_.find(pbft_block_hash) != pbft_chain_map_.end();
 }
 
@@ -393,7 +366,7 @@ bool PbftChain::findPbftBlockInQueue(
 }
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
-    const taraxa::blk_hash_t &pbft_block_hash) {
+    const taraxa::blk_hash_t& pbft_block_hash) {
   if (findPbftBlockInChain(pbft_block_hash)) {
     return std::make_pair(pbft_chain_map_[pbft_block_hash], true);
   }
@@ -408,12 +381,24 @@ std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
   return std::make_pair(PbftBlock(), false);
 }
 
-void PbftChain::insertPbftBlockInChain_(taraxa::blk_hash_t const &pbft_block_hash,
-                                taraxa::PbftBlock const &pbft_block) {
+void PbftChain::insertPbftBlockInChain_(
+    taraxa::blk_hash_t const& pbft_block_hash,
+    taraxa::PbftBlock const& pbft_block) {
   pbft_chain_map_[pbft_block_hash] = pbft_block;
+  pbft_blocks_index_.push_back(pbft_block_hash);
 }
 
-void PbftChain::pushPbftBlock(taraxa::PbftBlock const &pbft_block) {
+std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(size_t height,
+                                                                 size_t count) {
+  std::vector<std::shared_ptr<PbftBlock>> result;
+  for (auto i = height; i < height + count; i++) {
+    result.push_back(std::make_shared<PbftBlock>(
+        pbft_blocks_map_[pbft_blocks_index_[i - 1]]));
+  }
+  return result;
+}
+
+void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   insertPbftBlockInChain_(pbft_block_hash, pbft_block);
   setLastPbftBlockHash(pbft_block_hash);
@@ -424,7 +409,7 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const &pbft_block) {
   count_++;
 }
 
-bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const &pbft_block) {
+bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   if (pbft_block.getBlockType() != pivot_block_type) {
     return false;
   }
@@ -478,10 +463,10 @@ std::string PbftChain::getGenesisStr() const {
   strm << "genesis hash: " << genesis_hash_.toString() << std::endl;
   strm << "count: " << count_ << std::endl;
   strm << "next pbft block type: " << next_pbft_block_type_ << std::endl;
-  strm << "last pbft block hash: "
-       << last_pbft_pivot_hash_.toString() << std::endl;
-  strm << "last pbft pivot hash: "
-       << last_pbft_pivot_hash_.toString() << std::endl;
+  strm << "last pbft block hash: " << last_pbft_pivot_hash_.toString()
+       << std::endl;
+  strm << "last pbft pivot hash: " << last_pbft_pivot_hash_.toString()
+       << std::endl;
   // TODO: need add more info
   return strm.str();
 }
