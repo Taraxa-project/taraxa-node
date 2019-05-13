@@ -19,11 +19,11 @@
 #include "vote.h"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define TWO_T_PLUS_ONE 3  // this is the 2t+1 value..
+#define TWO_T_PLUS_ONE 3  // this is the 2t+1 value.. // TODO: need to change the value
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...
 #define MAX_STEPS 19
-// undef for test
+// undef for test TODO: need remove later
 #undef LAMBDA_ms
 
 namespace taraxa {
@@ -36,7 +36,7 @@ class PbftManager {
   PbftManager(PbftManagerConfig const &config);
   ~PbftManager() { stop(); }
   void setFullNode(std::shared_ptr<FullNode> node);
-  bool shouldSpeak(blk_hash_t const &blockhash, char type,
+  bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
                    uint64_t period, size_t step);
   void start();
   void stop();
@@ -47,6 +47,8 @@ class PbftManager {
   u_long getLambdaMs() const { return LAMBDA_ms; }
   void setPbftPeriod(uint64_t const pbft_period) { pbft_period_ = pbft_period; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
+  uint64_t getPbftPeriod() const { return pbft_period_; }
+  size_t getPbftStep() const { return pbft_step_; }
 
  private:
   size_t periodDeterminedFromVotes_(std::vector<Vote> &votes,
@@ -76,6 +78,8 @@ class PbftManager {
                                                        uint64_t period);
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+  bool pushPbftBlockIntoChain_(uint64_t period,
+                               blk_hash_t const& cert_vote_block_hash);
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
@@ -85,7 +89,7 @@ class PbftManager {
 
   uint64_t pbft_period_ = 1;
   size_t pbft_step_ = 1;
-  // Only for test
+  // Only for test TODO: need remove later
   u_long LAMBDA_ms;
 
   mutable dev::Logger log_sil_{

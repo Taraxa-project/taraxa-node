@@ -108,9 +108,9 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->start();
   trx_mgr_->start();
   pbft_mgr_->setFullNode(getShared());
+  pbft_mgr_->start();
   executor_->setFullNode(getShared());
   executor_->start();
-  // pbft_mgr_->start();
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
@@ -175,7 +175,7 @@ void FullNode::stop() {
   blk_qu_->stop();
   network_->stop();
   trx_mgr_->stop();
-  // pbft_mgr_->stop();
+  pbft_mgr_->stop();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
   }
@@ -358,6 +358,7 @@ std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
     LOG(log_wr_)
         << "Blk order is empty ..., create empty mock trx schedule ...";
   }
+
   std::vector<std::vector<uint>> modes;
   for (auto const &b : *blk_order) {
     auto blk = getDagBlock(b);
@@ -441,12 +442,12 @@ bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
   return true;
 }
 
-void FullNode::placeVote(taraxa::blk_hash_t const &blockhash, char type,
-                         int period, int step) {
+void FullNode::placeVote(taraxa::blk_hash_t const &blockhash,
+    PbftVoteTypes type, uint64_t period, size_t step) {
   vote_queue_->placeVote(node_pk_, node_sk_, blockhash, type, period, step);
 }
 
-std::vector<Vote> FullNode::getVotes(int period) {
+std::vector<Vote> FullNode::getVotes(uint64_t period) {
   return vote_queue_->getVotes(period);
 }
 
@@ -463,8 +464,8 @@ void FullNode::placeVote(taraxa::Vote const &vote) {
   }
 }
 
-void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash, char type,
-                             int period, int step) {
+void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash,
+    PbftVoteTypes type, uint64_t period, size_t step) {
   std::string message = blockhash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);
   dev::Signature signature = signMessage(message);
@@ -472,7 +473,7 @@ void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash, char type,
   network_->onNewPbftVote(vote);
 }
 
-bool FullNode::shouldSpeak(blk_hash_t const &blockhash, char type,
+bool FullNode::shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
                            uint64_t period, size_t step) {
   return pbft_mgr_->shouldSpeak(blockhash, type, period, step);
 }
@@ -498,7 +499,9 @@ void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
 }
 
-size_t FullNode::getPbftChainSize() const { return pbft_chain_->getSize(); }
+size_t FullNode::getPbftChainSize() const {
+  return pbft_chain_->getPbftChainSize();
+}
 
 size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();

@@ -11,6 +11,7 @@
 
 #include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"
+#include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -22,7 +23,7 @@ class Vote {
  public:
   Vote() = default;
   Vote(public_t node_pk, dev::Signature signature, blk_hash_t blockhash,
-       char type, int period, int step);
+       PbftVoteTypes type, uint64_t period, size_t step);
   Vote(stream &strm);
   ~Vote() {}
 
@@ -34,16 +35,16 @@ class Vote {
   public_t getPublicKey() const;
   dev::Signature getSingature() const;
   blk_hash_t getBlockHash() const;
-  char getType() const;
-  size_t getPeriod() const;
+  PbftVoteTypes getType() const;
+  uint64_t getPeriod() const;
   size_t getStep() const;
 
  private:
   public_t node_pk_;
   dev::Signature signature_;
   blk_hash_t blockhash_;
-  char type_;
-  size_t period_;
+  PbftVoteTypes type_;
+  uint64_t period_;
   size_t step_;
 
   mutable dev::Logger log_si_{
@@ -64,13 +65,13 @@ class VoteQueue {
   void clearQueue();
 
   size_t getSize();
-  std::vector<Vote> getVotes(int period);
+  std::vector<Vote> getVotes(uint64_t period);
   std::string getJsonStr(std::vector<Vote> &votes);
 
   void placeVote(Vote const &vote);
 
   void placeVote(public_t const &node_pk, secret_t const &node_sk,
-                 blk_hash_t const &blockhash, char type, int period, int step);
+                 blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step);
 
  private:
   std::deque<Vote> vote_queue_;

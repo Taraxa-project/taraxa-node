@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io
  * @Author: Qi Gao
  * @Date: 2019-04-09
- * @Last Modified by:
- * @Last Modified time:
+ * @Last Modified by: Qi Gao
+ * @Last Modified time: 2019-05-12
  */
 #include "pbft_manager.hpp"
 
@@ -20,7 +20,7 @@ namespace taraxa {
 
 TEST(PbftManager, pbft_manager_lambda_input_test) {
   PbftManagerConfig pbft_config;
-  pbft_config.lambda_ms = 100000000000;
+  pbft_config.lambda_ms = 1000;
   PbftManager pbft_manager(pbft_config);
   u_long lambda = pbft_manager.getLambdaMs();
   EXPECT_EQ(lambda, pbft_config.lambda_ms);
@@ -32,7 +32,7 @@ TEST(PbftManager, full_node_lambda_input_test) {
       context, std::string("./core_tests/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
   u_long lambda = pbft_mgr->getLambdaMs();
-  EXPECT_EQ(lambda, 100000000000);
+  EXPECT_EQ(lambda, 1000);
 }
 
 TEST(PbftVote, pbft_should_speak_test) {
@@ -142,9 +142,9 @@ TEST(PbftVote, transfer_vote) {
 
   // generate vote
   blk_hash_t blockhash(1);
-  char type = '1';
-  int period = 1;
-  int step = 1;
+  PbftVoteTypes type = propose_vote_type;
+  uint64_t period = 1;
+  size_t step = 1;
   std::string message = blockhash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);
   dev::KeyPair key_pair = dev::KeyPair::create();
@@ -218,9 +218,9 @@ TEST(PbftVote, vote_broadcast) {
 
   // generate vote
   blk_hash_t blockhash(1);
-  char type = '1';
-  int period = 1;
-  int step = 1;
+  PbftVoteTypes type = propose_vote_type;
+  uint64_t period = 1;
+  size_t step = 1;
   std::string message = blockhash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);
   dev::KeyPair key_pair = dev::KeyPair::create();

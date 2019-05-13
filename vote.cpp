@@ -19,14 +19,14 @@ namespace taraxa {
 Vote::Vote(public_t node_pk,
            dev::Signature signature,
            blk_hash_t blockhash,
-           char type,
-           int period,
-           int step) : node_pk_(node_pk),
-                       signature_(signature),
-                       blockhash_(blockhash),
-                       type_(type),
-                       period_(period),
-                       step_(step) {
+           PbftVoteTypes type,
+           uint64_t period,
+           size_t step) : node_pk_(node_pk),
+                          signature_(signature),
+                          blockhash_(blockhash),
+                          type_(type),
+                          period_(period),
+                          step_(step) {
 }
 
 Vote::Vote(taraxa::stream &strm) {
@@ -77,11 +77,11 @@ blk_hash_t Vote::getBlockHash() const {
   return blockhash_;
 }
 
-char Vote::getType() const {
+PbftVoteTypes Vote::getType() const {
   return type_;
 }
 
-size_t Vote::getPeriod() const {
+uint64_t Vote::getPeriod() const {
   return period_;
 }
 
@@ -119,7 +119,7 @@ size_t VoteQueue::getSize() {
   return vote_queue_.size();
 }
 
-std::vector<Vote> VoteQueue::getVotes(int period) {
+std::vector<Vote> VoteQueue::getVotes(uint64_t period) {
   std::vector<Vote> votes;
   std::deque<Vote>::iterator it = vote_queue_.begin();
 
@@ -164,9 +164,9 @@ void VoteQueue::placeVote(taraxa::Vote const &vote) {
 void VoteQueue::placeVote(public_t const &node_pk,
                           secret_t const &node_sk,
                           blk_hash_t const &blockhash,
-                          char type,
-                          int period,
-                          int step) {
+                          PbftVoteTypes type,
+                          uint64_t period,
+                          size_t step) {
   std::string message = blockhash.toString() +
                         std::to_string(type) +
                         std::to_string(period) +
