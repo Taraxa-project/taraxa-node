@@ -29,10 +29,13 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
     return false;
   }
   DagBlock dag_block(blk_json);
+  auto& log_time = node_.lock()->getTimeLogger();
 
   auto trxs_hash = dag_block.getTrxs();
   // sequential execute transaction
   for (auto const& trx_hash : trxs_hash) {
+    LOG(log_time) << "Transaction " << trx_hash
+                  << " read from db at: " << getCurrentTimeMilliSeconds();
     Transaction trx(db_trxs_->get(trx_hash.toString()));
     if (!trx.getHash()) {
       LOG(log_er_) << "Transaction is invalid" << std::endl;
@@ -40,8 +43,7 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
     }
     coinTransfer(trx);
     if (node_.lock()) {
-      auto& log_time = node_.lock()->getTimeLogger();
-      LOG(log_time) << "Transaction " << trxs_hash
+      LOG(log_time) << "Transaction " << trx_hash
                     << " executed at: " << getCurrentTimeMilliSeconds();
     }
   }

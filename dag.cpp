@@ -631,13 +631,13 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   ulock lock(mutex_);
   std::string hash = blk.getHash().toString();
   if (total_dag_->hasVertex(hash)) {
-    LOG(log_nf_) << "Block is in DAG already! " << hash << std::endl;
+    LOG(log_tr_) << "Block is in DAG already! " << hash << std::endl;
     return false;
   }
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_tr_) << "Block " << hash << " pivot " << pivot
+    LOG(log_dg_) << "Block " << hash << " pivot " << pivot
                  << " unavailable, insert = " << insert << std::endl;
     if (insert) {
       addToDagBuffer(blk);
@@ -649,7 +649,7 @@ bool DagManager::addDagBlock(DagBlock const &blk, bool insert) {
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
-      LOG(log_nf_) << "Block " << hash << " tip " << tip
+      LOG(log_dg_) << "Block " << hash << " tip " << tip
                    << " unavailable, insert = " << insert << std::endl;
 
       if (insert) {

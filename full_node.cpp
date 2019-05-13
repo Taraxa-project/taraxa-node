@@ -443,7 +443,7 @@ bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
 }
 
 void FullNode::placeVote(taraxa::blk_hash_t const &blockhash,
-    PbftVoteTypes type, uint64_t period, size_t step) {
+                         PbftVoteTypes type, uint64_t period, size_t step) {
   vote_queue_->placeVote(node_pk_, node_sk_, blockhash, type, period, step);
 }
 
@@ -465,7 +465,7 @@ void FullNode::placeVote(taraxa::Vote const &vote) {
 }
 
 void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash,
-    PbftVoteTypes type, uint64_t period, size_t step) {
+                             PbftVoteTypes type, uint64_t period, size_t step) {
   std::string message = blockhash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);
   dev::Signature signature = signMessage(message);
