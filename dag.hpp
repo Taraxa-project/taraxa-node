@@ -210,15 +210,14 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using ulock = std::unique_lock<std::mutex>;
 
-  DagManager(unsigned num_threads);
+  DagManager();
   virtual ~DagManager();
   void start();
   void stop();
   std::shared_ptr<DagManager> getShared();
 
-  bool addDagBlock(DagBlock const &blk,
-                   bool insert);  // insert to buffer if fail
-  void consume(unsigned threadId);
+  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  void consume();
 
   // use a anchor to create period, return ith_period
   uint64_t createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
@@ -268,6 +267,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   size_t getEpoch() const { return anchors_.size() - 1; }
 
  private:
+  bool addDagBlockInternal(DagBlock const &blk);
   void addToDagBuffer(DagBlock const &blk);
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
@@ -277,7 +277,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool verbose_;
   bool dag_updated_;
   bool stopped_ = true;
-  unsigned num_threads_;
   mutable std::mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
@@ -286,8 +285,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::vector<std::string> anchors_ = {
       Dag::GENESIS};  // pivots that define periods
   // DagBuffer
-  std::shared_ptr<std::vector<DagBuffer>> sb_buffer_array_;
-  std::vector<boost::thread> sb_buffer_processing_threads_;
+  std::list<std::shared_ptr<DagBlock> > sb_buffer_;
+  std::shared_ptr<boost::thread> sb_buffer_processing_thread_;
+  std::mutex sb_bufer_mutex_;
+  std::condition_variable sb_buffer_condition;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   dev::Logger log_wr_{
@@ -298,36 +299,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "DAGMGR")};
   dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
-};
-
-/**
- * Thread safe buffer for DagBlock
- * This will hold DagBlocks that are not ready to be construced in DAG
- * i.e., it's pivot and tips are not available
- * TODO: need to requese missing DagBlock from others
- */
-
-class DagBuffer {
- public:
-  using stampedBlock = std::pair<DagBlock, time_point_t>;
-  using buffIter = std::list<stampedBlock>::iterator;
-  using ulock = std::unique_lock<std::mutex>;
-  DagBuffer();
-  void insert(DagBlock const &blk);
-  buffIter getBuffer();
-  void delBuffer(buffIter);
-  void start();
-  void stop();
-  bool isStopped() const;
-  size_t size() const;
-
- private:
-  bool stopped_;
-  bool updated_;
-  std::list<stampedBlock> blocks_;
-  std::condition_variable condition_;
-  std::mutex mutex_;
-  buffIter iter_;
 };
 
 }  // namespace taraxa

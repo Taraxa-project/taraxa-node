@@ -395,7 +395,7 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
 
 // Use the example on Conflux paper
 TEST(DagManager, compute_epoch) {
-  auto mgr = std::make_shared<DagManager>(1);
+  auto mgr = std::make_shared<DagManager>();
   mgr->start();
   DagBlock blkA(blk_hash_t(0), {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
@@ -415,18 +415,18 @@ TEST(DagManager, compute_epoch) {
                 addr_t(1));
   DagBlock blkJ(blk_hash_t(6), {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(9), {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
-  mgr->addDagBlock(blkA, true);
-  mgr->addDagBlock(blkB, true);
-  mgr->addDagBlock(blkC, true);
-  mgr->addDagBlock(blkD, true);
-  mgr->addDagBlock(blkE, true);
+  mgr->addDagBlock(blkA);
+  mgr->addDagBlock(blkB);
+  mgr->addDagBlock(blkC);
+  mgr->addDagBlock(blkD);
+  mgr->addDagBlock(blkE);
   taraxa::thisThreadSleepForMilliSeconds(100);
-  mgr->addDagBlock(blkF, true);
-  mgr->addDagBlock(blkG, true);
-  mgr->addDagBlock(blkH, true);
-  mgr->addDagBlock(blkI, true);
-  mgr->addDagBlock(blkJ, true);
-  mgr->addDagBlock(blkK, true);
+  mgr->addDagBlock(blkF);
+  mgr->addDagBlock(blkG);
+  mgr->addDagBlock(blkH);
+  mgr->addDagBlock(blkI);
+  mgr->addDagBlock(blkJ);
+  mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
@@ -455,7 +455,7 @@ TEST(DagManager, compute_epoch) {
 }
 
 TEST(DagManager, receive_block_in_order) {
-  auto mgr = std::make_shared<DagManager>(1);
+  auto mgr = std::make_shared<DagManager>();
   mgr->start();
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
@@ -463,14 +463,14 @@ TEST(DagManager, receive_block_in_order) {
   DagBlock blk3(blk_hash_t(0), {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777),
                 blk_hash_t(3), addr_t(15));
 
-  mgr->addDagBlock(blk1, true);
-  mgr->addDagBlock(blk2, true);
-  mgr->addDagBlock(blk2, true);
+  mgr->addDagBlock(blk1);
+  mgr->addDagBlock(blk2);
+  mgr->addDagBlock(blk2);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 2);
 
-  mgr->addDagBlock(blk3, true);
-  mgr->addDagBlock(blk3, true);
+  mgr->addDagBlock(blk3);
+  mgr->addDagBlock(blk3);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
   std::string pivot;
@@ -492,7 +492,7 @@ TEST(DagManager, receive_block_in_order) {
 }
 
 TEST(DagManager, receive_block_out_of_order) {
-  auto mgr = std::make_shared<DagManager>(1);
+  auto mgr = std::make_shared<DagManager>();
   mgr->start();
 
   // mgr.setVerbose(true);
@@ -501,9 +501,9 @@ TEST(DagManager, receive_block_out_of_order) {
   DagBlock blk3(blk_hash_t(0), {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777),
                 blk_hash_t(3), addr_t(15));
 
-  mgr->addDagBlock(blk3, true);
-  mgr->addDagBlock(blk2, true);
-  mgr->addDagBlock(blk1, true);
+  mgr->addDagBlock(blk3);
+  mgr->addDagBlock(blk2);
+  mgr->addDagBlock(blk1);
   taraxa::thisThreadSleepForMicroSeconds(500);
 
   std::string pivot;
@@ -521,7 +521,7 @@ TEST(DagManager, receive_block_out_of_order) {
 }
 
 TEST(DagManager, get_latest_pivot_tips) {
-  auto mgr = std::make_shared<DagManager>(1);
+  auto mgr = std::make_shared<DagManager>();
   mgr->start();
 
   // mgr.setVerbose(true);
@@ -532,12 +532,12 @@ TEST(DagManager, get_latest_pivot_tips) {
   DagBlock blk5(blk_hash_t(4), {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
                 addr_t(15));
-  mgr->addDagBlock(blk3, true);
-  mgr->addDagBlock(blk6, true);
-  mgr->addDagBlock(blk4, true);
-  mgr->addDagBlock(blk5, true);
-  mgr->addDagBlock(blk2, true);
-  mgr->addDagBlock(blk1, true);
+  mgr->addDagBlock(blk3);
+  mgr->addDagBlock(blk6);
+  mgr->addDagBlock(blk4);
+  mgr->addDagBlock(blk5);
+  mgr->addDagBlock(blk2);
+  mgr->addDagBlock(blk1);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   std::string pivot;

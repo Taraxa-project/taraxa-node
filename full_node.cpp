@@ -47,7 +47,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
                                            2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
-      dag_mgr_(std::make_shared<DagManager>(conf_.dag_processing_threads)),
+      dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
@@ -153,7 +153,7 @@ void FullNode::start(bool boot_node) {
             received_blocks_++;
           }
         }
-        dag_mgr_->addDagBlock(blk.first, true);
+        dag_mgr_->addDagBlock(blk.first);
         {
           std::unique_lock<std::mutex> lck(db_blks_mutex_);
           db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
