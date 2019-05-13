@@ -154,9 +154,12 @@ void FullNode::start(bool boot_node) {
           }
         }
         dag_mgr_->addDagBlock(blk.first, true);
-        db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
+        {
+          std::unique_lock<std::mutex> lck(db_blks_mutex_);
+          db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
+          db_blks_->commit();
+        }
         network_->onNewBlockVerified(blk.first);
-        db_blks_->commit();
       }
     });
   }

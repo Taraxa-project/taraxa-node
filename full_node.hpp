@@ -177,6 +177,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // storage
   std::shared_ptr<SimpleDBFace> db_accs_;
   std::shared_ptr<SimpleDBFace> db_blks_;
+  std::mutex db_blks_mutex_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
 
   // network
