@@ -21,7 +21,7 @@
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS "9007199254740991"
 
-#define THRESHOLD 10
+#define THRESHOLD 1000
 
 namespace taraxa {
 using std::string;
