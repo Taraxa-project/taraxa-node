@@ -214,8 +214,6 @@ class PbftChain {
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
       blk_hash_t const& pbft_block_hash);
   std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
-                                                        size_t count);
-  std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
                                                         size_t count) const;
   std::string getGenesisStr() const;
 

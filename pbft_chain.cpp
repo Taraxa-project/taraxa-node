@@ -377,13 +377,18 @@ std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
     const taraxa::blk_hash_t& pbft_block_hash) {
   if (findPbftBlockInQueue(pbft_block_hash)) {
     return std::make_pair(pbft_queue_map_[pbft_block_hash], true);
-
-std::vector<std::shared_ptr<PbftBlock> > PbftChain::getPbftBlocks(size_t height, size_t count) const {
-  std::vector<std::shared_ptr<PbftBlock> > result;
-  for(auto i = height; i < height + count; i++) {
-    result.push_back(std::make_shared<PbftBlock>(pbft_blocks_map_.at(pbft_blocks_index_[i - 1])));
   }
   return std::make_pair(PbftBlock(), false);
+}
+
+std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(
+    size_t height, size_t count) const {
+  std::vector<std::shared_ptr<PbftBlock>> result;
+  for (auto i = height; i < height + count; i++) {
+    result.push_back(std::make_shared<PbftBlock>(
+        pbft_chain_map_.at(pbft_blocks_index_[i - 1])));
+  }
+  return result;
 }
 
 void PbftChain::insertPbftBlockInChain_(
@@ -391,16 +396,6 @@ void PbftChain::insertPbftBlockInChain_(
     taraxa::PbftBlock const& pbft_block) {
   pbft_chain_map_[pbft_block_hash] = pbft_block;
   pbft_blocks_index_.push_back(pbft_block_hash);
-}
-
-std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(size_t height,
-                                                                 size_t count) {
-  std::vector<std::shared_ptr<PbftBlock>> result;
-  for (auto i = height; i < height + count; i++) {
-    result.push_back(std::make_shared<PbftBlock>(
-        pbft_blocks_map_[pbft_blocks_index_[i - 1]]));
-  }
-  return result;
 }
 
 void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
