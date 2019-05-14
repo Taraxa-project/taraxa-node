@@ -215,6 +215,8 @@ class PbftChain {
       blk_hash_t const& pbft_block_hash);
   std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
                                                         size_t count);
+  std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
+                                                        size_t count) const;
   std::string getGenesisStr() const;
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);

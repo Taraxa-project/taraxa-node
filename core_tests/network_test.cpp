@@ -151,7 +151,7 @@ TEST(Network, save_network) {
     nw2->start();
     nw3->start();
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 30; i++) {
       taraxa::thisThreadSleepForSeconds(1);
       if (2 == nw1->getPeerCount() && 2 == nw2->getPeerCount() &&
           2 == nw3->getPeerCount())
