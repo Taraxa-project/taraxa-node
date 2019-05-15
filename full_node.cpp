@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-01 15:43:56
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:48:48
+ * @Last Modified time: 2019-05-15 16:13:00
  */
 #include "full_node.hpp"
 #include <boost/asio.hpp>
@@ -158,7 +158,6 @@ void FullNode::start(bool boot_node) {
         }
         dag_mgr_->addDagBlock(blk.first);
         {
-          std::unique_lock<std::mutex> lck(db_blks_mutex_);
           db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
           db_blks_->commit();
         }

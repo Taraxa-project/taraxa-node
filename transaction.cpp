@@ -320,7 +320,6 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
       if (status.first == TransactionStatus::in_queue) {
         tr = trx_qu_.getTransaction(hash);
       } else if (status.first == TransactionStatus::in_block) {
-        uLock lck(mutex_);
         std::string json = db_trxs_->get(hash.toString());
         if (!json.empty()) {
           tr = std::make_shared<Transaction>(json);
@@ -340,7 +339,6 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   // with the block some_trxs might not full trxs in the block (for syncing
   // purpose)
   {
-    uLock lock(mutex_);
     for (auto const &trx : some_trxs) {
       db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
       trx_status_.update(trx.getHash(), TransactionStatus::in_block);
@@ -355,7 +353,6 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   unsigned int delay = 0;
   while (delay < 2000) {
     {
-      uLock lock(mutex_);
       for (auto const &trx :
            trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
         db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
