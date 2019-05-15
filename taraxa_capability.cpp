@@ -325,7 +325,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         size_t myChainSize = full_node->getPbftChainSize();
         if (myChainSize > chainSize) {
           int blocksToTransfer =
-              max(maxBlocksInPacket, myChainSize - chainSize);
+              min(maxBlocksInPacket, myChainSize - chainSize);
           sendPbftBlocks(_nodeID, chainSize, blocksToTransfer);
         }
       }
