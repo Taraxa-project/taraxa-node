@@ -1,6 +1,6 @@
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/secp256k1/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -DBOOST_LOG_DYN_LINK -DETH_FATDB
+CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -9,8 +9,8 @@ ifneq ($(OS), Darwin) #Mac
 endif
 CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF
 CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
-LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb
+LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
+LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl
 BUILDDIR := build
 TESTBUILDDIR := test_build
 OBJECTDIR := obj
@@ -90,7 +90,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/crypto_test.o \
 	${OBJECTDIR}/state_unit_tests.o \
 	${OBJECTDIR}/pbft_rpc_test.o \
-	${OBJECTDIR}/pbft_manager_test.o
+	${OBJECTDIR}/pbft_manager_test.o \
+	${OBJECTDIR}/prometheus_demo.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -368,11 +369,19 @@ ${OBJECTDIR}/pbft_manager_test.o: core_tests/pbft_manager_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_manager_test.o core_tests/pbft_manager_test.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/prometheus_demo.o: prometheus_demo.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/prometheus_demo.o prometheus_demo.cpp $(CPPFLAGS)
+
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
 	submodules/secp256k1/.libs/libsecp256k1.a \
-	core_tests/create_samples.hpp
+	core_tests/create_samples.hpp \
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
@@ -394,6 +403,10 @@ submodules/secp256k1/.libs/libsecp256k1.a:
 	cd submodules/secp256k1; ./autogen.sh
 	cd submodules/secp256k1; ./configure --disable-shared --disable-tests --disable-coverage --disable-openssl-tests --disable-exhaustive-tests --disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit --with-asm=no --enable-module-ecdh --enable-module-recovery --enable-experimental 
 	cd submodules/secp256k1; make
+
+submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a:
+	@echo Attempting to compile libprometheus, if it fails try compiling it manually
+	cd submodules/prometheus-cpp; mkdir _build; cd _build; cmake .. -DBUILD_SHARED_LIBS=OFF; make -j 4; ctest -V; mkdir -p deploy; make DESTDIR=`pwd`/deploy install
 
 $(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
@@ -471,6 +484,10 @@ $(TESTBUILDDIR)/pbft_manager_test: $(OBJECTDIR)/pbft_manager_test.o $(OBJECTFILE
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_manager_test.o -o $(TESTBUILDDIR)/pbft_manager_test  $(LDFLAGS) $(LIBS)
 
+$(TESTBUILDDIR)/prometheus_demo: $(OBJECTDIR)/prometheus_demo.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
+	${MKDIR} -p ${TESTBUILDDIR}
+	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS)
+
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
@@ -496,6 +513,8 @@ run_test: test main
 	./$(TESTBUILDDIR)/pbft_chain_test
 	./$(TESTBUILDDIR)/state_unit_tests
 	./$(TESTBUILDDIR)/pbft_manager_test
+pdemo: $(TESTBUILDDIR)/prometheus_demo main
+	./$(TESTBUILDDIR)/prometheus_demo
 
 ct:
 	rm -rf $(TESTBUILDDIR)
