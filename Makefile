@@ -90,8 +90,7 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/crypto_test.o \
 	${OBJECTDIR}/state_unit_tests.o \
 	${OBJECTDIR}/pbft_rpc_test.o \
-	${OBJECTDIR}/pbft_manager_test.o \
-	${OBJECTDIR}/prometheus_demo.o
+	${OBJECTDIR}/pbft_manager_test.o
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -405,8 +404,8 @@ submodules/secp256k1/.libs/libsecp256k1.a:
 	cd submodules/secp256k1; make
 
 submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a:
-	@echo Attempting to compile libprometheus, if it fails try compiling it manually
-	cd submodules/prometheus-cpp; mkdir _build; cd _build; cmake .. -DBUILD_SHARED_LIBS=OFF; make -j 4; ctest -V; mkdir -p deploy; make DESTDIR=`pwd`/deploy install
+	@echo Attempting to compile libprometheus, if it fails try compiling it manually. See https://github.com/jupp0r/prometheus-cpp
+	cd submodules/prometheus-cpp; git submodule update --init 3rdparty/civetweb/; mkdir -p _build; cd _build; cmake .. -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF; make -j 4; mkdir -p deploy; make DESTDIR=`pwd`/deploy install
 
 $(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
@@ -513,7 +512,7 @@ run_test: test main
 	./$(TESTBUILDDIR)/pbft_chain_test
 	./$(TESTBUILDDIR)/state_unit_tests
 	./$(TESTBUILDDIR)/pbft_manager_test
-pdemo: $(TESTBUILDDIR)/prometheus_demo main
+pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main
 	./$(TESTBUILDDIR)/prometheus_demo
 
 ct:
