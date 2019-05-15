@@ -1,22 +1,26 @@
-//
-// Created by JC on 2019-04-27.
-//
+/*
+ * @Copyright: Taraxa.io
+ * @Author: JC
+ * @Date: 2019-04-27 15:44:15
+ * @Last Modified by: Chia-Chun Lin
+ * @Last Modified time: 2019-05-15 15:44:38
+ */
 
 #ifndef TARAXA_NODE_SIMPLETARAXAROCKSDBDELEGATE_H
 #define TARAXA_NODE_SIMPLETARAXAROCKSDBDELEGATE_H
-#include "rocks_db.hpp"
 #include "SimpleDBFace.h"
+#include "rocks_db.hpp"
 
 class SimpleTaraxaRocksDBDelegate : public SimpleDBFace {
-public:
-    bool put (const std::string &key, const std::string &value) override;
-    bool update (const std::string &key, const std::string &value) override;
-    std::string get  (const std::string &key) override;
-    void commit  () override;
-    SimpleTaraxaRocksDBDelegate(const std::string& path);
-private:
-    std::shared_ptr<taraxa::RocksDb> taraxa_rocks_db = nullptr;
+ public:
+  bool put(const std::string &key, const std::string &value) override;
+  bool update(const std::string &key, const std::string &value) override;
+  std::string get(const std::string &key) override;
+  void commit() override;
+  SimpleTaraxaRocksDBDelegate(const std::string &path);
+
+ private:
+  std::shared_ptr<taraxa::RocksDb> taraxa_rocks_db = nullptr;
 };
 
-
-#endif //TARAXA_NODE_SIMPLETARAXAROCKSDBDELEGATE_H
+#endif  // TARAXA_NODE_SIMPLETARAXAROCKSDBDELEGATE_H

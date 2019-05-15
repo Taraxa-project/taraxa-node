@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-02 14:19:58
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:48:07
+ * @Last Modified time: 2019-05-15 16:13:09
  */
 
 #ifndef FULL_NODE_HPP
@@ -136,15 +136,15 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // PBFT
   bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
-      uint64_t period, size_t step);
+                   uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   void placeVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-      uint64_t period, size_t step);
+                 uint64_t period, size_t step);
   std::vector<Vote> getVotes(uint64_t period);
   void placeVote(Vote const &vote);
   void broadcastVote(taraxa::blk_hash_t const &blockhash, PbftVoteTypes type,
-      uint64_t period, size_t step);
+                     uint64_t period, size_t step);
   void clearVoteQueue();
   size_t getVoteQueueSize();
   bool isKnownVote(taraxa::Vote const &vote) const;
@@ -178,7 +178,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // storage
   std::shared_ptr<SimpleDBFace> db_accs_;
   std::shared_ptr<SimpleDBFace> db_blks_;
-  std::mutex db_blks_mutex_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
 
   // network
