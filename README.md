@@ -62,6 +62,13 @@ make
 make install
 ```
 
+Install prometheus-cpp:
+```
+cd submodules
+git submodule update --init
+git submodule update --init 3rdparty/civetweb/
+```
+
 Google how to install other libs for your system.
 
 ## Protobuf and gRPC and google_apis 
