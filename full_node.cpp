@@ -143,7 +143,10 @@ void FullNode::start(bool boot_node) {
                 blk.first.getTrxs(), blk.second);
 
         // Skip block if we are missing transactions
-        if (!transactionsSave) continue;
+        if (!transactionsSave) {
+          LOG(log_er_) << "Error: Block missing transactions " << blk.first.getHash();
+          continue;
+        }
 
         LOG(log_nf_) << "Write block to db ... " << blk.first.getHash()
                      << std::endl;
@@ -245,11 +248,6 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
 }
 
 std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
-  std::string json = db_trxs_->get(hash.toString());
-  if (!json.empty()) {
-    return std::make_shared<Transaction>(json);
-  }
-  // Check the queue as well
   return trx_mgr_->getTransaction(hash);
 }
 

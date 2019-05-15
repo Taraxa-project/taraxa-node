@@ -36,41 +36,63 @@ enum SubprotocolPacketType : ::byte {
 
 enum PeerState { Idle = 0, Syncing };
 
-class TaraxaPeer {
+class TaraxaPeer : public boost::noncopyable{
  public:
   TaraxaPeer() {}
   TaraxaPeer(NodeID id) : m_id(id), m_state(Idle) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const {
+    boost::shared_lock lck(mtx_for_known_blocks);
     return m_knownBlocks.count(_hash);
   }
   void markBlockAsKnown(blk_hash_t const &_hash) {
+    boost::unique_lock lck(mtx_for_known_blocks);
     m_knownBlocks.insert(_hash);
   }
-  void clearKnownBlocks() { m_knownBlocks.clear(); }
+  void clearKnownBlocks() {
+    boost::unique_lock lck(mtx_for_known_blocks);
+    m_knownBlocks.clear();
+  }
 
   bool isTransactionKnown(trx_hash_t const &_hash) const {
+    boost::shared_lock lck(mtx_for_known_transactions);
     return m_knownTransactions.count(_hash);
   }
   void markTransactionAsKnown(trx_hash_t const &_hash) {
+    boost::unique_lock lck(mtx_for_known_transactions);
     m_knownTransactions.insert(_hash);
   }
-  void clearKnownTransactions() { m_knownTransactions.clear(); }
+  void clearKnownTransactions() {
+    boost::unique_lock lck(mtx_for_known_transactions);
+    m_knownTransactions.clear();
+  }
 
   // PBFT
   bool isVoteKnown(sig_hash_t const &_hash) const {
+    boost::shared_lock lck(mtx_for_known_votes);
     return m_knownVotes.count(_hash);
   }
-  void markVoteAsKnown(sig_hash_t const &_hash) { m_knownVotes.insert(_hash); }
-  void clearKnownVotes() { m_knownVotes.clear(); }
+  void markVoteAsKnown(sig_hash_t const &_hash) {
+    boost::unique_lock lck(mtx_for_known_votes);
+    m_knownVotes.insert(_hash);
+  }
+  void clearKnownVotes() {
+    boost::unique_lock lck(mtx_for_known_votes);
+    m_knownVotes.clear();
+  }
 
   bool isPbftBlockKnown(blk_hash_t const &_hash) const {
+    boost::shared_lock lck(mtx_for_known_pbft_blocks);
     return m_knownPbftBlocks.count(_hash);
   }
   void markPbftBlockAsKnown(blk_hash_t const &_hash) {
+    boost::unique_lock lck(mtx_for_known_pbft_blocks);
     m_knownPbftBlocks.insert(_hash);
   }
-  void cleanKnownPbftBlocks() { m_knownPbftBlocks.clear(); }
+  void cleanKnownPbftBlocks() {
+    boost::unique_lock lck(mtx_for_known_pbft_blocks);
+    m_knownPbftBlocks.clear();
+  }
 
   std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
       m_syncBlocks;
@@ -78,6 +100,10 @@ class TaraxaPeer {
   PeerState m_state;
 
  private:
+  mutable boost::shared_mutex mtx_for_known_blocks;
+  mutable boost::shared_mutex mtx_for_known_transactions;
+  mutable boost::shared_mutex mtx_for_known_votes;
+  mutable boost::shared_mutex mtx_for_known_pbft_blocks;
   std::set<blk_hash_t> m_knownBlocks;
   std::set<trx_hash_t> m_knownTransactions;
   // PBFT
@@ -161,7 +187,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::set<blk_hash_t> verified_blocks_;
   std::condition_variable condition_for_verified_blocks_;
   std::mutex mtx_for_verified_blocks;
-  
+
   // Only used for testing without the full node set
   std::map<blk_hash_t, taraxa::DagBlock> test_blocks_;
   std::map<trx_hash_t, Transaction> test_transactions_;
@@ -170,7 +196,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::weak_ptr<FullNode> full_node_;
 
-  std::unordered_map<NodeID, TaraxaPeer> peers_;
+  std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer> > peers_;
   uint16_t network_simulated_delay_;
   uint16_t network_bandwidth_;  // Mbps
   boost::thread_group delay_threads_;

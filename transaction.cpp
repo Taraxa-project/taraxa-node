@@ -238,33 +238,16 @@ std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::removeBlockTransactionsFromQueue(
     vec_trx_t const &allBlockTransactions) {
   std::unordered_map<trx_hash_t, Transaction> result;
-  while (true) {
-    {
-      uLock lock(mutex_for_verified_qu_);
-      for (auto const &trx : allBlockTransactions) {
-        auto vrf_trx = verified_trxs_.find(trx);
-        if (vrf_trx != verified_trxs_.end()) {
-          result[vrf_trx->first] = *(vrf_trx->second);
-          trx_buffer_.erase(vrf_trx->second);
-          verified_trxs_.erase(trx);
-        }
-      }
+  uLock lock(mutex_for_verified_qu_);
+  for (auto const &trx : allBlockTransactions) {
+    auto vrf_trx = verified_trxs_.find(trx);
+    if (vrf_trx != verified_trxs_.end()) {
+      result[vrf_trx->first] = *(vrf_trx->second);
+      trx_buffer_.erase(vrf_trx->second);
+      verified_trxs_.erase(trx);
     }
-    {
-      // Check that some of the block transaction is not in the unverified
-      // queue, if so wait for it to enter verified queue
-      uLock lock(mutex_for_unverified_qu_);
-      bool found = false;
-      for (auto const &trx : allBlockTransactions) {
-        auto uvrf_trx = unverified_trxs_.find(trx);
-        if (uvrf_trx != unverified_trxs_.end()) {
-          found = true;
-        }
-      }
-      if (!found) return result;
-    }
-    thisThreadSleepForMilliSeconds(10);
   }
+  return result;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -337,6 +320,7 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
       if (status.first == TransactionStatus::in_queue) {
         tr = trx_qu_.getTransaction(hash);
       } else if (status.first == TransactionStatus::in_block) {
+        uLock lck(mutex_);
         std::string json = db_trxs_->get(hash.toString());
         if (!json.empty()) {
           tr = std::make_shared<Transaction>(json);
@@ -352,13 +336,16 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
 bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
     vec_trx_t const &all_block_trx_hashes,
     std::vector<Transaction> const &some_trxs) {
-  uLock lock(mutex_);
   // First step: Save and update status for transactions that were sent together
   // with the block some_trxs might not full trxs in the block (for syncing
   // purpose)
-  for (auto const &trx : some_trxs) {
-    db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
-    trx_status_.update(trx.getHash(), TransactionStatus::in_block);
+  {
+    uLock lock(mutex_);
+    for (auto const &trx : some_trxs) {
+      db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
+      trx_status_.update(trx.getHash(), TransactionStatus::in_block);
+    }
+    db_trxs_->commit();
   }
 
   // Second step: Remove from the queue any transaction that is part of the
@@ -367,10 +354,14 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   bool allTransactionsSaved = true;
   unsigned int delay = 0;
   while (delay < 2000) {
-    for (auto const &trx :
-         trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
-      db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
-      trx_status_.update(trx.first, TransactionStatus::in_block);
+    {
+      uLock lock(mutex_);
+      for (auto const &trx :
+           trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
+        db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
+        trx_status_.update(trx.first, TransactionStatus::in_block);
+      }
+      db_trxs_->commit();
     }
     allTransactionsSaved = true;
     for (auto const &trx : all_block_trx_hashes) {
@@ -385,7 +376,6 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
     thisThreadSleepForMilliSeconds(10);
     delay += 10;
   }
-  db_trxs_->commit();
   return allTransactionsSaved;
 }
 
