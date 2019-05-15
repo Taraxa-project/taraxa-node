@@ -16,9 +16,9 @@
 
 namespace taraxa {
 
-Vote::Vote(public_t node_pk,
-           dev::Signature signature,
-           blk_hash_t blockhash,
+Vote::Vote(public_t& node_pk,
+           sig_t& signature,
+           blk_hash_t& blockhash,
            PbftVoteTypes type,
            uint64_t period,
            size_t step) : node_pk_(node_pk),
@@ -29,11 +29,11 @@ Vote::Vote(public_t node_pk,
                           step_(step) {
 }
 
-Vote::Vote(taraxa::stream &strm) {
+Vote::Vote(taraxa::stream& strm) {
   deserialize(strm);
 }
 
-bool Vote::serialize(stream &strm) const {
+bool Vote::serialize(stream& strm) const {
   bool ok = true;
 
   ok &= write(strm, node_pk_);
@@ -47,7 +47,7 @@ bool Vote::serialize(stream &strm) const {
   return ok;
 }
 
-bool Vote::deserialize(stream &strm) {
+bool Vote::deserialize(stream& strm) {
   bool ok = true;
 
   ok &= read(strm, node_pk_);
@@ -89,7 +89,7 @@ size_t Vote::getStep() const {
   return step_;
 }
 
-bool Vote::validateVote(std::pair<bal_t, bool> &vote_account_balance) const{
+bool Vote::validateVote(std::pair<bal_t, bool>& vote_account_balance) const{
   if (!vote_account_balance.second) {
     LOG(log_er_) << "Invalid vote account balance" << std::endl;
     return false;
@@ -134,7 +134,7 @@ std::vector<Vote> VoteQueue::getVotes(uint64_t period) {
   return votes;
 }
 
-std::string VoteQueue::getJsonStr(std::vector<Vote> &votes) {
+std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
   using boost::property_tree::ptree;
   ptree ptroot;
   ptree ptvotes;
@@ -157,13 +157,13 @@ std::string VoteQueue::getJsonStr(std::vector<Vote> &votes) {
   return output.str();
 }
 
-void VoteQueue::placeVote(taraxa::Vote const &vote) {
+void VoteQueue::placeVote(taraxa::Vote const& vote) {
   vote_queue_.push_back(vote);
 }
 
-void VoteQueue::placeVote(public_t const &node_pk,
-                          secret_t const &node_sk,
-                          blk_hash_t const &blockhash,
+void VoteQueue::placeVote(public_t const& node_pk,
+                          secret_t const& node_sk,
+                          blk_hash_t const& blockhash,
                           PbftVoteTypes type,
                           uint64_t period,
                           size_t step) {

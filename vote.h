@@ -22,14 +22,14 @@ namespace taraxa {
 class Vote {
  public:
   Vote() = default;
-  Vote(public_t node_pk, dev::Signature signature, blk_hash_t blockhash,
+  Vote(public_t& node_pk, sig_t& signature, blk_hash_t& blockhash,
        PbftVoteTypes type, uint64_t period, size_t step);
-  Vote(stream &strm);
+  Vote(stream& strm);
   ~Vote() {}
 
-  bool serialize(stream &strm) const;
-  bool deserialize(stream &strm);
-  bool validateVote(std::pair<bal_t, bool> &vote_account_balance) const;
+  bool serialize(stream& strm) const;
+  bool deserialize(stream& strm);
+  bool validateVote(std::pair<bal_t, bool>& vote_account_balance) const;
 
   sig_hash_t getHash() const;
   public_t getPublicKey() const;
@@ -41,7 +41,7 @@ class Vote {
 
  private:
   public_t node_pk_;
-  dev::Signature signature_;
+  sig_t signature_;
   blk_hash_t blockhash_;
   PbftVoteTypes type_;
   uint64_t period_;
@@ -66,12 +66,13 @@ class VoteQueue {
 
   size_t getSize();
   std::vector<Vote> getVotes(uint64_t period);
-  std::string getJsonStr(std::vector<Vote> &votes);
+  std::string getJsonStr(std::vector<Vote>& votes);
 
-  void placeVote(Vote const &vote);
+  void placeVote(Vote const& vote);
 
-  void placeVote(public_t const &node_pk, secret_t const &node_sk,
-                 blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, size_t step);
+  void placeVote(public_t const& node_pk, secret_t const& node_sk,
+      blk_hash_t const& blockhash, PbftVoteTypes type, uint64_t period,
+      size_t step);
 
  private:
   std::deque<Vote> vote_queue_;

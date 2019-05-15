@@ -168,8 +168,8 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
   if (block_size != trx_vectors_size) {
     std::cerr
-        << "Number of Blocks should be equal to the size of transaction vectors"
-        << std::endl;
+      << "Number of Blocks should be equal to the size of transaction vectors"
+      << std::endl;
     return false;
   }
   ok &= write(strm, block_size);
@@ -200,8 +200,8 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   ok &= read(strm, trx_vectors_size);
   if (block_size != trx_vectors_size) {
     std::cerr
-        << "Number of Blocks should be equal to the size of transaction vectors"
-        << std::endl;
+      << "Number of Blocks should be equal to the size of transaction vectors"
+      << std::endl;
     return false;
   }
   for (int i = 0; i < block_size; i++) {
@@ -392,8 +392,8 @@ std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(
 }
 
 void PbftChain::insertPbftBlockInChain_(
-    taraxa::blk_hash_t const& pbft_block_hash,
-    taraxa::PbftBlock const& pbft_block) {
+    taraxa::blk_hash_t const &pbft_block_hash,
+    taraxa::PbftBlock const &pbft_block) {
   pbft_chain_map_[pbft_block_hash] = pbft_block;
   pbft_blocks_index_.push_back(pbft_block_hash);
 }
