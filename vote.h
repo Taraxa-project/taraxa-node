@@ -22,7 +22,7 @@ namespace taraxa {
 class Vote {
  public:
   Vote() = default;
-  Vote(public_t& node_pk, sig_t& signature, blk_hash_t& blockhash,
+  Vote(public_t node_pk, dev::Signature signature, blk_hash_t blockhash,
        PbftVoteTypes type, uint64_t period, size_t step);
   Vote(stream& strm);
   ~Vote() {}
@@ -33,7 +33,7 @@ class Vote {
 
   sig_hash_t getHash() const;
   public_t getPublicKey() const;
-  dev::Signature getSingature() const;
+  sig_t getSingature() const;
   blk_hash_t getBlockHash() const;
   PbftVoteTypes getType() const;
   uint64_t getPeriod() const;

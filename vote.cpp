@@ -16,9 +16,9 @@
 
 namespace taraxa {
 
-Vote::Vote(public_t& node_pk,
-           sig_t& signature,
-           blk_hash_t& blockhash,
+Vote::Vote(public_t node_pk,
+           sig_t signature,
+           blk_hash_t blockhash,
            PbftVoteTypes type,
            uint64_t period,
            size_t step) : node_pk_(node_pk),
@@ -69,7 +69,7 @@ public_t Vote::getPublicKey() const {
   return node_pk_;
 }
 
-dev::Signature Vote::getSingature() const {
+sig_t Vote::getSingature() const {
   return signature_;
 }
 
@@ -161,18 +161,14 @@ void VoteQueue::placeVote(taraxa::Vote const& vote) {
   vote_queue_.push_back(vote);
 }
 
-void VoteQueue::placeVote(public_t const& node_pk,
-                          secret_t const& node_sk,
-                          blk_hash_t const& blockhash,
-                          PbftVoteTypes type,
-                          uint64_t period,
-                          size_t step) {
+void VoteQueue::placeVote(public_t const& node_pk, secret_t const& node_sk,
+    blk_hash_t const& blockhash, PbftVoteTypes type, uint64_t period, size_t step) {
   std::string message = blockhash.toString() +
                         std::to_string(type) +
                         std::to_string(period) +
                         std::to_string(step);
   // sign message
-  dev::Signature signature = dev::sign(node_sk, dev::sha3(message));
+  sig_t signature = dev::sign(node_sk, dev::sha3(message));
 
   Vote vote(node_pk, signature, blockhash, type, period, step);
   placeVote(vote);

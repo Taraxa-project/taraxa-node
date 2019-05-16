@@ -462,7 +462,7 @@ void FullNode::placeVote(taraxa::Vote const &vote) {
   }
 }
 
-void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash,
+void FullNode::broadcastVote(taraxa::blk_hash_t const& blockhash,
                              PbftVoteTypes type, uint64_t period, size_t step) {
   std::string message = blockhash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);

@@ -143,7 +143,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                  uint64_t period, size_t step);
   std::vector<Vote> getVotes(uint64_t period);
   void placeVote(Vote const &vote);
-  void broadcastVote(taraxa::blk_hash_t const &blockhash, PbftVoteTypes type,
+  void broadcastVote(taraxa::blk_hash_t const& blockhash, PbftVoteTypes type,
                      uint64_t period, size_t step);
   void clearVoteQueue();
   size_t getVoteQueueSize();
