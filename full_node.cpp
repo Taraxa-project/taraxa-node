@@ -192,14 +192,14 @@ std::vector<public_t> FullNode::getAllPeers() const {
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
   blk_qu_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
-  LOG(log_time_) << "Block " << blk.getHash()
-                 << " stored at: " << getCurrentTimeMilliSeconds();
+  LOG(log_time_) << "Store block " << blk.getHash()
+                 << " at: " << getCurrentTimeMilliSeconds();
 }
 
 void FullNode::storeBlock(DagBlock const &blk) {
   blk_qu_->pushUnverifiedBlock(std::move(blk));
-  LOG(log_time_) << "Block " << blk.getHash()
-                 << " stored at: " << getCurrentTimeMilliSeconds();
+  LOG(log_time_) << "Store block " << blk.getHash()
+                 << " at: " << getCurrentTimeMilliSeconds();
 }
 
 void FullNode::storeBlockAndSign(DagBlock const &blk) {
@@ -208,7 +208,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
 
   auto now = getCurrentTimeMilliSeconds();
 
-  LOG(log_time_) << "Propose block " << sign_block.getHash() << " at:" << now
+  LOG(log_time_) << "Propose block " << sign_block.getHash() << " at: " << now
                  << ", trxs: " << sign_block.getTrxs();
 
   storeBlock(sign_block);
