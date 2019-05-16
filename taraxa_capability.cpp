@@ -355,7 +355,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       auto blockCount = _r.itemCount();
       for (auto iblock = 0; iblock < blockCount; iblock++) {
         PbftBlock pbft_block(_r[iblock]);
-        peers_[_nodeID].markPbftBlockAsKnown(pbft_block.getBlockHash());
+        peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
 
         auto full_node = full_node_.lock();
         if (!full_node) {

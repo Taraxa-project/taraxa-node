@@ -263,6 +263,76 @@ TEST(Network, node_sync) {
 }
 
 /*
+Test creates a PBFT chain on one node and verifies
+that the second node syncs with it and that the resulting
+chain on the other end is the same
+*/
+TEST(Network, node_pbft_sync) {
+  boost::asio::io_context context1;
+  boost::asio::io_context context2;
+
+  auto node1(std::make_shared<taraxa::FullNode>(
+      context1, std::string("./core_tests/conf_taraxa1.json")));
+
+  node1->setDebug(true);
+  node1->start(true);
+
+  // Allow node to start up
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  std::vector<PbftBlock> blks;
+
+  blk_hash_t prev_pivot_blk(0);
+  blk_hash_t prev_res_blk(0);
+  blk_hash_t dag_blk(78);
+  uint64_t epoch = 1;
+  uint64_t timestamp1 = 123456;
+  addr_t beneficiary(10);
+
+  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+                         timestamp1, beneficiary);
+  PbftBlock pbft_block1(blk_hash_t(1));
+  pbft_block1.setPivotBlock(pivot_block);
+
+  uint64_t timestamp2 = 333333;
+  vec_blk_t blocks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
+  std::vector<std::vector<uint>> modes{
+      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
+  TrxSchedule schedule(blocks, modes);
+  blk_hash_t prev_pivot(1);
+  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
+
+  PbftBlock pbft_block2(blk_hash_t(2));
+  pbft_block2.setScheduleBlock(schedule_blk);
+
+  blks.push_back(pbft_block1);
+  blks.push_back(pbft_block2);
+
+  for (auto i = 0; i < blks.size(); ++i) {
+    node1->setPbftBlock(blks[i]);
+  }
+
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  auto node2 = std::make_shared<taraxa::FullNode>(
+      context2, std::string("./core_tests/conf_taraxa2.json"));
+
+  node2->setDebug(true);
+  node2->start(false /*boot_node*/);
+
+  std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
+  for (int i = 0; i < 20; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+    if (node2->getPbftChainSize() == 3) break;
+  }
+  node1->stop();
+  node2->stop();
+
+  EXPECT_EQ(node1->getPbftChainSize(), 3);
+  EXPECT_EQ(node2->getPbftChainSize(), 3);
+}
+
+/*
 Test creates a DAG on one node and verifies
 that the second node syncs with it and that the resulting
 DAG on the other end is the same
@@ -467,7 +537,7 @@ TEST(Network, node_sync2) {
   blks.push_back(blk11);
   blks.push_back(blk12);
 
-  std::vector<std::vector<Transaction> > trxs;
+  std::vector<std::vector<Transaction>> trxs;
   trxs.push_back(tr1);
   trxs.push_back(tr2);
   trxs.push_back(tr3);
@@ -569,7 +639,7 @@ resulting DAG is the same on all nodes
 TEST(Network, node_full_sync) {
   const int numberOfNodes = 5;
   boost::asio::io_context context1;
-  std::vector<std::shared_ptr<boost::asio::io_context> > contexts;
+  std::vector<std::shared_ptr<boost::asio::io_context>> contexts;
 
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf_taraxa1.json")));
@@ -577,7 +647,7 @@ TEST(Network, node_full_sync) {
   node1->setDebug(true);
   node1->start(true /*boot_node*/);
 
-  std::vector<std::shared_ptr<FullNode> > nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (int i = 0; i < numberOfNodes; i++) {
     contexts.push_back(std::make_shared<boost::asio::io_context>());
     FullNodeConfig config(std::string("./core_tests/conf_taraxa2.json"));
