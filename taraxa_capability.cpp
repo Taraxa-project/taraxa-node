@@ -78,7 +78,8 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
   cnt_received_messages_[_nodeID] = 0;
   test_sums_[_nodeID] = 0;
 
-  peers_.emplace(std::make_pair(_nodeID, std::make_shared<TaraxaPeer>(_nodeID)));
+  peers_.emplace(
+      std::make_pair(_nodeID, std::make_shared<TaraxaPeer>(_nodeID)));
   syncPeer(_nodeID);
   syncPeerPbft(_nodeID);
 }
@@ -258,7 +259,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
         receivedBlocks += block.getHash().toString() + " ";
         peers_[_nodeID]->m_syncBlocks[block.getHash()] = {block,
-                                                         newTransactions};
+                                                          newTransactions};
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
       if (itemCount > 0) {
