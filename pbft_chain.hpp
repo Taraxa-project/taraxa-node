@@ -160,10 +160,10 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash) : block_hash_(block_hash) {}
-  PbftBlock(PivotBlock const& pivot_block)
-      : pivot_block_(pivot_block), block_type_(pivot_block_type) {}
+  PbftBlock(PivotBlock const& pivot_block) : pivot_block_(pivot_block),
+                                             block_type_(pivot_block_type) {}
   PbftBlock(ScheduleBlock const& schedule_block)
-      : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
+    : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
   PbftBlock(dev::RLP const& _r);
   ~PbftBlock() {}
 
