@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-11-01 15:43:56
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-15 16:13:00
+ * @Last Modified time: 2019-05-16 12:54:43
  */
 #include "full_node.hpp"
 #include <boost/asio.hpp>
@@ -144,7 +144,8 @@ void FullNode::start(bool boot_node) {
 
         // Skip block if we are missing transactions
         if (!transactionsSave) {
-          LOG(log_er_) << "Error: Block missing transactions " << blk.first.getHash();
+          LOG(log_er_) << "Error: Block missing transactions "
+                       << blk.first.getHash();
           continue;
         }
 
@@ -191,10 +192,14 @@ std::vector<public_t> FullNode::getAllPeers() const {
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
   blk_qu_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
+  LOG(log_time_) << "Block " << blk.getHash()
+                 << " stored at: " << getCurrentTimeMilliSeconds();
 }
 
 void FullNode::storeBlock(DagBlock const &blk) {
   blk_qu_->pushUnverifiedBlock(std::move(blk));
+  LOG(log_time_) << "Block " << blk.getHash()
+                 << " stored at: " << getCurrentTimeMilliSeconds();
 }
 
 void FullNode::storeBlockAndSign(DagBlock const &blk) {
@@ -203,13 +208,9 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
 
   auto now = getCurrentTimeMilliSeconds();
 
-  LOG(log_time_) << "Propose and sign block " << sign_block.getHash()
-                 << " at:" << now << std::endl
-                 << sign_block << std::endl;
+  LOG(log_time_) << "Propose block " << sign_block.getHash() << " at:" << now
+                 << ", trxs: " << sign_block.getTrxs();
 
-  for (auto const &t : sign_block.getTrxs()) {
-    LOG(log_time_) << "Transaction " << t << " packed at: " << now;
-  }
   storeBlock(sign_block);
 }
 

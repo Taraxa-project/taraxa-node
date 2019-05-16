@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-10-31 16:26:37
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-14 17:30:09
+ * @Last Modified time: 2019-05-16 13:09:42
  */
 
 #ifndef DAG_BLOCKS_HPP
@@ -144,6 +144,8 @@ class BlockQueue {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "BLKQU")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "BLKQU")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "BLKQU")};
 };
 
 }  // namespace taraxa

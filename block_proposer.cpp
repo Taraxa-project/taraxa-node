@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-01-24 16:56:41
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-01-28 23:02:13
+ * @Last Modified time: 2019-05-16 12:28:12
  */
 #include "block_proposer.hpp"
 #include "dag.hpp"
@@ -110,11 +110,7 @@ void BlockProposer::proposeBlock() {
   if (ok) {
     LOG(log_nf_) << "BlockProposer: pivot: " << pivot
                  << ", tip size = " << tips.size() << std::endl;
-    LOG(log_nf_) << "Tips: " << std::endl;
-    for (auto const& s : tips) {
-      LOG(log_nf_) << s << std::endl;
-    }
-    LOG(log_nf_) << std::endl;
+    LOG(log_nf_) << "Tips: " << tips;
     BlockProposer::num_proposed_blocks.fetch_add(1);
   } else {
     LOG(log_wr_) << "Pivot and tips unavailable ..." << std::endl;

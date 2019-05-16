@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-12-14 10:59:17
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-22 13:37:22
+ * @Last Modified time: 2019-05-16 15:25:17
  */
 
 #include "dag.hpp"
@@ -611,15 +611,17 @@ void DagManager::addDagBlock(DagBlock const &blk) {
 
 bool DagManager::addDagBlockInternal(DagBlock const &blk) {
   ulock lock(mutex_);
-  std::string hash = blk.getHash().toString();
+  auto hash = blk.getHash().toString();
+  auto h = blk.getHash();
+  auto p = blk.getPivot();
   if (total_dag_->hasVertex(hash)) {
-    LOG(log_nf_) << "Block is in DAG already! " << hash << std::endl;
+    LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
     return true;
   }
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_tr_) << "Block " << hash << " pivot " << pivot << " unavailable"
+    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
                  << std::endl;
     return false;
   }
@@ -628,7 +630,7 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
-      LOG(log_nf_) << "Block " << hash << " tip " << tip << " unavailable"
+      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
                    << std::endl;
       return false;
     }
@@ -636,7 +638,7 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
   }
 
   addToDag(hash, pivot, tips);
-  LOG(log_nf_) << "Block " << hash << " added to DAG";
+  LOG(log_dg_) << "Block " << h << " added to DAG";
   recent_added_blks_.insert(hash);
   return true;
 }

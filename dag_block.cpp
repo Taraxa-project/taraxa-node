@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2018-10-31 16:26:04
  * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-14 17:50:19
+ * @Last Modified time: 2019-05-16 13:10:10
  */
 #include "dag_block.hpp"
 #include <boost/property_tree/json_parser.hpp>
@@ -221,7 +221,6 @@ void BlockQueue::stop() {
   for (auto &t : verifiers_) {
     t.join();
   }
-  // LOG(log_nf_) << "Join verifier threads = " << num_verifiers_ << std::endl;
 }
 
 bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
@@ -244,11 +243,11 @@ void BlockQueue::pushUnverifiedBlock(
   {
     upgradableLock lock(shared_mutex_);
     if (seen_blocks_.count(blk.getHash())) {
-      LOG(log_nf_) << "Seen block: " << blk.getHash() << std::endl;
+      LOG(log_dg_) << "Seen block: " << blk.getHash() << std::endl;
       return;
     }
 
-    LOG(log_nf_) << "Insert unverified block: " << blk.getHash() << std::endl;
+    LOG(log_dg_) << "Insert unverified block: " << blk.getHash() << std::endl;
     upgradeLock locked(lock);
     seen_blocks_[blk.getHash()] = blk;
   }
@@ -289,7 +288,7 @@ void BlockQueue::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
-    LOG(log_nf_) << "Verified block: " << blk.first.getHash() << std::endl;
+    LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
 
     // TODO: verify block, now just move it to verified_qu_
     {
