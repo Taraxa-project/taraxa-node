@@ -513,7 +513,7 @@ run_test: test main
 	./$(TESTBUILDDIR)/state_unit_tests
 	./$(TESTBUILDDIR)/pbft_manager_test
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main
-	./$(TESTBUILDDIR)/prometheus_demo
+	./$(TESTBUILDDIR)/prometheus_demo $(PUSHGATEWAY_IP) $(PUSHGATEWAY_PORT) $(PUSHGATEWAY_NAME)
 
 ct:
 	rm -rf $(TESTBUILDDIR)

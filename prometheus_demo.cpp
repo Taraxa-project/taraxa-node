@@ -32,7 +32,9 @@ using namespace std;
 
 namespace taraxa {
   class PrometheusDemo : public testing::Test{};
-
+  string push_gateway_name = "pushgateway";
+  string push_gateway_ip = "0.0.0.0";
+  string push_gateway_port = "9091";
   static std::string GetHostName() {
     char hostname[1024];
     if (::gethostname(hostname, sizeof(hostname))) {
@@ -51,7 +53,7 @@ TEST(PrometheusDemo, DISABLED_prometheus_gateway) {
 
   // Connect to gateway running at ip = 'localhost' (i.e. "0.0.0.0"), port = '9091'.
   // The job name is 'pushgateway' with instance name in the labels
-  prometheus::Gateway gateway{"0.0.0.0", "9091", "pushgateway", labels};
+  prometheus::Gateway gateway{push_gateway_ip, push_gateway_port, push_gateway_name, labels};
   // create a metrics registry with component=main labels applied to all its
   // metrics
   auto registry = std::make_shared<prometheus::Registry>();
@@ -93,7 +95,7 @@ TEST(PrometheusDemo, prometheus_timer) {
   const auto labels = prometheus::Gateway::GetInstanceLabel(hostName);
   // Connect to gateway running at ip = 'localhost' (i.e. "0.0.0.0"), port = '9091'.
   // The job name is 'pushgateway' with instance name in the labels
-  prometheus::Gateway gateway{"0.0.0.0", "9091", "pushgateway", labels};
+  prometheus::Gateway gateway{push_gateway_ip, push_gateway_port, push_gateway_name, labels};
   // create a metrics registry with component=main labels applied to all its
   // metrics
   auto registry = std::make_shared<prometheus::Registry>();
@@ -147,7 +149,7 @@ TEST(PrometheusDemo, prometheus_counter_multi_thread) {
   const auto labels = prometheus::Gateway::GetInstanceLabel(hostName);
   // Connect to gateway running at ip = 'localhost' (i.e. "0.0.0.0"), port = '9091'.
   // The job name is 'pushgateway' with instance name in the labels
-  prometheus::Gateway gateway{"0.0.0.0", "9091", "pushgateway", labels};
+  prometheus::Gateway gateway{push_gateway_ip, push_gateway_port, push_gateway_name, labels};
   // create a metrics registry with component=main labels applied to all its
   // metrics
   auto registry = std::make_shared<prometheus::Registry>();
@@ -188,5 +190,13 @@ int main(int argc, char** argv) {
   logOptions.verbosity = dev::VerbosityWarning;
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
+  if(argc == 4) {
+    taraxa::push_gateway_ip = argv[1];
+    taraxa::push_gateway_port = argv[2];
+    taraxa::push_gateway_name = argv[3];
+  } else if (argc != 1) {
+    cerr << "ERROR - usage: make pdemo [push_gateway_ip push_gateway_port push_gateway_name] \n";
+    return 1;
+  }
   return RUN_ALL_TESTS();
 }
