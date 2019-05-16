@@ -35,9 +35,9 @@ pipeline {
             steps {
                 sh 'docker network create --driver=bridge \
                     --subnet=172.100.1.0/24 --gateway=172.100.1.1 \
-                    --ip-range=172.100.1.2/25 smoke-test-net'
-                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net ${IMAGE}-${BRANCH_NAME}-${BUILD_NUMBER}'
-                sh ''' docker run --rm --net smoke-test-net byrnedo/alpine-curl -d \"{ 
+                    --ip-range=172.100.1.2/25 smoke-test-net-${BRANCH_NAME}'
+                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${BRANCH_NAME} ${IMAGE}-${BRANCH_NAME}-${BUILD_NUMBER}'
+                sh ''' docker run --rm --net smoke-test-net-${BRANCH_NAME} byrnedo/alpine-curl -d \"{ 
                         \"action\": \"insert_stamped_dag_block\", 
                         \"pivot\": \"0000000000000000000000000000000000000000000000000000000000000000\", 
                         \"hash\": \"0000000000000000000000000000000000000000000000000000000000000001\", 
@@ -49,7 +49,7 @@ pipeline {
             post {
                 always {
                     sh 'docker kill taraxa-node-smoke-test || true'
-                    sh 'docker network rm smoke-test-net || true'
+                    sh 'docker network rm smoke-test-net-${BRANCH_NAME} || true'
                 }
             }                   
         }        
