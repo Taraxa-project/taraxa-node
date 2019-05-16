@@ -30,6 +30,8 @@ enum SubprotocolPacketType : ::byte {
   TransactionPacket,
   TestPacket,
   PbftVotePacket,
+  NewPbftBlockPacket,
+  GetPbftBlockPacket,
   PbftBlockPacket,
   PacketCount
 };
@@ -139,6 +141,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
   void syncPeer(NodeID const &_nodeID);
+  void syncPeerPbft(NodeID const &_nodeID);
   void continueSync(NodeID const &_nodeID);
   bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
                                  RLP const &_r) override;
@@ -165,6 +168,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void requestBlockChildren(NodeID const &_id, std::vector<std::string> leaves);
   void sendTransactions(NodeID const &_id,
                         std::vector<Transaction> const &transactions);
+                        
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
@@ -177,6 +181,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
   void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block);
+  void requestPbftBlocks(NodeID const &_id, size_t pbftChainSize);
+  void sendPbftBlocks(NodeID const &_id, size_t chainSize, size_t blocksToTransfer);
 
  private:
   const int c_backround_work_period_ms_ = 1000;
