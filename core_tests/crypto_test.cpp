@@ -79,7 +79,7 @@ TEST(EthereumCrypto, sortition_rate) {
         count++;
     }
   }
-  // depend on 2t+1, count should be close to 2t+1
+  // depend on sortition THRESHOLD, count should be close to THRESHOLD
   EXPECT_GT(count, 0);
   count = 0;
   for (int i = 0; i < 10000; i++) {
@@ -91,7 +91,7 @@ TEST(EthereumCrypto, sortition_rate) {
       count++;
     }
   }
-  // depend on 2t+1, count should be close to 2t+1
+  // depend on sortition THRESHOLD, count should be close to THRESHOLD
   EXPECT_GT(count, 0);
 }
 
