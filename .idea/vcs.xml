@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/bls" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/cryptopp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/ethash" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/libff" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/libff/depends/ate-pairing" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/libff/depends/xbyak" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/libsodium" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/mcl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/rapidjson" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/rapidjson/thirdparty/gtest" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/secp256k1" vcs="Git" />
+  </component>
+</project>

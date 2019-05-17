@@ -63,13 +63,11 @@ TEST(EthereumCrypto, sortition_rate) {
   uint64_t total_coins = 9007199254740991;
   uint64_t number_of_players = 10000;
   uint64_t account_balance = total_coins / number_of_players;
-
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf_taraxa1.json")));
   addr_t account_address = node->getAddress();
   node->setBalance(account_address, account_balance);
-
   string message = "This is a test message.";
   int count = 0;
   for (int i = 0; i < 10000; i++) {
@@ -81,10 +79,8 @@ TEST(EthereumCrypto, sortition_rate) {
         count++;
     }
   }
-  // sortition rate should be close to 10%
-  std::cout << "one account win: " << count << std::endl;
-  std::cout << "one account Win rate: " << float(count) / 10000 << std::endl;
-
+  // depend on 2t+1, count should be close to 2t+1
+  EXPECT_GT(count, 0);
   count = 0;
   for (int i = 0; i < 10000; i++) {
     dev::KeyPair key_pair = dev::KeyPair::create();
@@ -95,9 +91,8 @@ TEST(EthereumCrypto, sortition_rate) {
       count++;
     }
   }
-  // sortition rate should be close to 10%
-  std::cout << "10000 accounts win: " << count << std::endl;
-  std::cout << "10000 accounts Win rate: " << float(count) / 10000 << std::endl;
+  // depend on 2t+1, count should be close to 2t+1
+  EXPECT_GT(count, 0);
 }
 
 } // namespace taraxa
