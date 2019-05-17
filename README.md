@@ -74,7 +74,9 @@ Demo prometheus-cpp:
  * Step 5: config 'prometheus.yml' (more info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
  * Step 6: start the prometheus with './prometheus --config.file=prometheus.yml'
  * ---------------------------  prometheus cpp client:  ---------------------------
- * The prometheus cpp is expected to be built through MakeFile's git submodule; run instructions below if makefile fails
+ * The prometheus cpp is expected to be built through MakeFile's git submodule (`git submodule update`). 
+ 
+ Run instructions below if makefile fails
  * Step 7: mkdir -p submodules/prometheus-cpp/
  * Step 8: in the directory, git clone https://github.com/jupp0r/prometheus-cpp.git
  * Step 9: build prometheus_cpp client following the Building section and 'via CMake' sub-section at
