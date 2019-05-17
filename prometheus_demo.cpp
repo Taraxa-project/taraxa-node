@@ -46,7 +46,8 @@ namespace taraxa {
 /* This is the simplest demo for a counter that increments every second modified from sample push client
  * https://github.com/jupp0r/prometheus-cpp/blob/4e0814ee3f93b796356a51a4795a332568940a72/push/tests/integration/sample_client.cc
  * */
-TEST(PrometheusDemo, DISABLED_prometheus_gateway) {
+//TEST(PrometheusDemo, DISABLED_prometheus_gateway) {
+TEST(PrometheusDemo, prometheus_gateway) {
   // create a link to push gateway
   std::string hostName = GetHostName();
   const auto labels = prometheus::Gateway::GetInstanceLabel(hostName);
@@ -68,6 +69,16 @@ TEST(PrometheusDemo, DISABLED_prometheus_gateway) {
   // add a counter to the metric family
   auto& second_counter = counter_family.Add({{"another_label", "value"}, {"yet_another_label", "value"}});
 
+  // add a new counter family to the registry
+  auto& counter_family_even = prometheus::BuildCounter()
+          .Name("count_of_even_i")
+          .Help("How many seconds does event 'even i' happened?")
+          .Labels({{"label", "value"}})
+          .Register(*registry);
+  // add another event counter to the metric family
+  auto& even_event_counter = counter_family_even.Add({{"another_label", "value"}, {"yet_another_label", "value"}});
+
+
   // ask the pusher to push the metrics to the pushgateway
   gateway.RegisterCollectable(registry);
 
@@ -75,6 +86,9 @@ TEST(PrometheusDemo, DISABLED_prometheus_gateway) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     // increment the counter by one (second)
     second_counter.Increment();
+    if(i % 2) {
+      even_event_counter.Increment();
+    }
     // push request shall return 200.
     EXPECT_EQ(gateway.Push(), 200);
   }
@@ -84,6 +98,11 @@ void timerTestTarget(int millis) {
   // do nothing; emulate the delayMillis
   std::this_thread::sleep_for(std::chrono::milliseconds(millis));
 }
+void timerTestTargetFast(int millis) {
+  // do nothing; emulate the delayMillis
+  std::this_thread::sleep_for(std::chrono::milliseconds(millis / 2));
+}
+
 /* This is the demo for a timer that measure a function in {50%, 90%, 99%} percentile
  * */
 TEST(PrometheusDemo, prometheus_timer) {
@@ -104,7 +123,13 @@ TEST(PrometheusDemo, prometheus_timer) {
   // same name, but distinct label dimensions)
   auto& summary_family = prometheus::BuildSummary()
           .Name("prometheus_timer")
-          .Help("How many seconds does it take for the function to run?")
+          .Help("How many seconds does it take for the function timerTestTarget to run?")
+          .Labels({{"label", "value"}})
+          .Register(*registry);
+
+  auto& summary_family_fast = prometheus::BuildSummary()
+          .Name("prometheus_timer_fast")
+          .Help("How many seconds does it take for the function timerTestTargetFast to run?")
           .Labels({{"label", "value"}})
           .Register(*registry);
 
@@ -129,13 +154,39 @@ TEST(PrometheusDemo, prometheus_timer) {
         boost::posix_time::time_duration diff = t2 - t1;
         // record the summary in ms
         second_summary.Observe(diff.total_milliseconds());
-        gateway.Push();
+        EXPECT_EQ(gateway.Push(), 200);
       }
     });
+
+    // I know this is ugly, but shall be fine for a demo testing
+    gateways.emplace_back([&gateway, &labels, &summary_family_fast, idx, this]() {
+        // add a summary for {50%, 90%, 99%} percentile of the time taken
+        auto &second_summary = summary_family_fast.Add({{"another_label",     "value"},
+                                                        {"yet_another_label", "value"}},
+                                                       prometheus::Summary::Quantiles{{0.5,  0.05},
+                                                                                      {0.90, 0.01},
+                                                                                      {0.99, 0.001}});
+        for (int delay = 10; delay <= max_delay; delay += 10) {
+          // record the local time before our Timer-Test-Target starts; note the precision is set to microsecond
+          boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+
+          // we want to know how long the target function takes
+          // the test-target delays (i.e. runs) {5ms, 10ms ... 500 ms} i.e. twice as fast as timeTestTarget runs
+          // we therefore expect to see 50% at ~250ms, 90% at ~450ms and 99% at ~500ms
+          timerTestTargetFast(delay);
+
+          boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+          boost::posix_time::time_duration diff = t2 - t1;
+          // record the summary in ms
+          second_summary.Observe(diff.total_milliseconds());
+          EXPECT_EQ(gateway.Push(), 200);
+        }
+    });
   }
-  for(int i = 0; i < num_func; i++) {
-    if (gateways[i].joinable()) {
-      gateways[i].join();
+  //for(int i = 0; i < num_func; i++) {
+  for(auto& f : gateways) {
+    if (f.joinable()) {
+      f.join();
     }
   }
 }
@@ -172,7 +223,7 @@ TEST(PrometheusDemo, prometheus_counter_multi_thread) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         // increment the counter by one
         second_counter.Increment();
-        gateway.Push();
+        EXPECT_EQ(gateway.Push(), 200);
       }
     });
   }
