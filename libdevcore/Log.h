@@ -257,7 +257,7 @@ inline boost::log::formatting_ostream& operator<<(
   _strm.stream() << EthWhite "[ " EthReset;
   int n = 0;
   for (T const& i : _value) {
-    _strm.stream() << (n++ ? EthWhite ", " EthReset : "");
+    _strm.stream() << (n++ ? EthWhite " " EthReset : "");
     _strm << i;
   }
   _strm.stream() << EthWhite " ]" EthReset;

@@ -209,7 +209,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   auto now = getCurrentTimeMilliSeconds();
 
   LOG(log_time_) << "Propose block " << sign_block.getHash() << " at: " << now
-                 << ", trxs: " << sign_block.getTrxs();
+                 << " ,trxs: " << sign_block.getTrxs();
 
   storeBlock(sign_block);
 }
