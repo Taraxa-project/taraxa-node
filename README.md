@@ -62,7 +62,7 @@ make
 make install
 ```
 
-Demo prometheus-cpp:
+## Demo prometheus-cpp:
 /* To demo the prometheus cpp locally, follow the steps below:
  * ---------------------------  pushgateway  ---------------------------
  * Step 1: download pushgateway binary from https://prometheus.io/download/#pushgateway
