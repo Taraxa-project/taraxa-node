@@ -6,11 +6,13 @@
  * @Last Modified time:
  */
 
+#include "sortition.h"
+
+#include "full_node.hpp"
 #include "libdevcore/FixedHash.h"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
-#include "sortition.h"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -55,6 +57,42 @@ TEST(EthereumCrypto, sortition_test) {
   uint64_t account_balance = 1000;
   bool sortition = taraxa::sortition(signature_hash, account_balance);
   EXPECT_EQ(sortition, true);
+}
+
+TEST(EthereumCrypto, sortition_rate) {
+  uint64_t total_coins = 9007199254740991;
+  uint64_t number_of_players = 10000;
+  uint64_t account_balance = total_coins / number_of_players;
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_taraxa1.json")));
+  addr_t account_address = node->getAddress();
+  node->setBalance(account_address, account_balance);
+  string message = "This is a test message.";
+  int count = 0;
+  for (int i = 0; i < 10000; i++) {
+      message += std::to_string(i);
+      sig_t signature = node->signMessage(message);
+      sig_hash_t sig_hash = dev::sha3(signature);
+      bool win = sortition(sig_hash.toString(), account_balance);
+      if (win) {
+        count++;
+    }
+  }
+  // depend on 2t+1, count should be close to 2t+1
+  EXPECT_GT(count, 0);
+  count = 0;
+  for (int i = 0; i < 10000; i++) {
+    dev::KeyPair key_pair = dev::KeyPair::create();
+    sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
+    sig_hash_t sig_hash = dev::sha3(signature);
+    bool win = sortition(sig_hash.toString(), account_balance);
+    if (win) {
+      count++;
+    }
+  }
+  // depend on 2t+1, count should be close to 2t+1
+  EXPECT_GT(count, 0);
 }
 
 } // namespace taraxa

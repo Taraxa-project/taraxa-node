@@ -7,6 +7,7 @@
  */
 
 #include "pbft_chain.hpp"
+#include "pbft_manager.hpp"
 
 namespace taraxa {
 std::string TrxSchedule::getJsonStr() const {
@@ -167,9 +168,6 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   uint32_t block_size = schedule_.blk_order.size();
   uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
   if (block_size != trx_vectors_size) {
-    std::cerr
-        << "Number of Blocks should be equal to the size of transaction vectors"
-        << std::endl;
     return false;
   }
   ok &= write(strm, block_size);
@@ -199,9 +197,6 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   ok &= read(strm, block_size);
   ok &= read(strm, trx_vectors_size);
   if (block_size != trx_vectors_size) {
-    std::cerr
-        << "Number of Blocks should be equal to the size of transaction vectors"
-        << std::endl;
     return false;
   }
   for (int i = 0; i < block_size; i++) {
@@ -228,10 +223,6 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
 
   return ok;
 }
-
-blk_hash_t prev_block_hash_;
-uint64_t timestamp_;
-TrxSchedule schedule_;
 
 void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
   strm << prev_block_hash_;
@@ -392,8 +383,8 @@ std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(
 }
 
 void PbftChain::insertPbftBlockInChain_(
-    taraxa::blk_hash_t const& pbft_block_hash,
-    taraxa::PbftBlock const& pbft_block) {
+    taraxa::blk_hash_t const &pbft_block_hash,
+    taraxa::PbftBlock const &pbft_block) {
   pbft_chain_map_[pbft_block_hash] = pbft_block;
   pbft_blocks_index_.push_back(pbft_block_hash);
 }
@@ -419,7 +410,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   std::pair<PbftBlock, bool> pbft_chain_last_blk =
       getPbftBlockInChain(last_pbft_block_hash_);
   if (!pbft_chain_last_blk.second) {
-    std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
+    LOG(log_err_) << "Cannot find the last pbft block in pbft chain";
     return false;
   }
   if (pbft_block.getPivotBlock().getPrevBlockHash() !=
@@ -441,7 +432,7 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   std::pair<PbftBlock, bool> pbft_chain_last_blk =
       getPbftBlockInChain(last_pbft_block_hash_);
   if (!pbft_chain_last_blk.second) {
-    std::cerr << "Cannot find the last pbft block in pbft chain" << std::endl;
+    LOG(log_err_) << "Cannot find the last pbft block in pbft chain";
     return false;
   }
   if (pbft_block.getScheduleBlock().getPrevBlockHash() !=

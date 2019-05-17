@@ -9,6 +9,7 @@
 #define PBFT_CHAIN_HPP
 
 #include <libdevcore/Common.h>
+#include <libdevcore/Log.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
@@ -160,10 +161,10 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash) : block_hash_(block_hash) {}
-  PbftBlock(PivotBlock const& pivot_block)
-      : pivot_block_(pivot_block), block_type_(pivot_block_type) {}
+  PbftBlock(PivotBlock const& pivot_block) : pivot_block_(pivot_block),
+                                             block_type_(pivot_block_type) {}
   PbftBlock(ScheduleBlock const& schedule_block)
-      : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
+    : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
   PbftBlock(dev::RLP const& _r);
   ~PbftBlock() {}
 
@@ -216,6 +217,7 @@ class PbftChain {
   std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
                                                         size_t count) const;
   std::string getGenesisStr() const;
+  dev::Logger& getLoggerErr() { return log_err_; }
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
@@ -245,6 +247,19 @@ class PbftChain {
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_queue_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
+
+  mutable dev::Logger log_sil_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_CHAIN")};
+  mutable dev::Logger log_err_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "PBFT_CHAIN")};
+  mutable dev::Logger log_war_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFT_CHAIN")};
+  mutable dev::Logger log_inf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_CHAIN")};
+  mutable dev::Logger log_deb_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFT_CHAIN")};
+  mutable dev::Logger log_tra_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_CHAIN")};
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 

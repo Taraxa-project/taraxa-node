@@ -10,25 +10,10 @@
 
 #include <gtest/gtest.h>
 
-//#include "create_samples.hpp"
-//#include "full_node.hpp"
-//#include "network.hpp"
-
-#include "full_node.hpp"
-#include <gtest/gtest.h>
-#include <atomic>
-#include <boost/thread.hpp>
-#include <iostream>
-#include <vector>
 #include "create_samples.hpp"
-#include "dag.hpp"
+#include "full_node.hpp"
 #include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
 #include "network.hpp"
-#include "pbft_chain.hpp"
-#include "rpc.hpp"
-#include "string"
-#include "top.hpp"
 
 namespace taraxa {
 
