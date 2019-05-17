@@ -64,22 +64,28 @@ make install
 
 Demo prometheus-cpp:
 /* To demo the prometheus cpp locally, follow the steps below:
- * ---------------------------  prometheus cpp client:  ---------------------------
- * The prometheus cpp is expected to be built through MakeFile's git submodule; run instructions below if makefile fails
- * Step 1: mkdir -p submodules/prometheus-cpp/
- * Step 2: in the directory, git clone https://github.com/jupp0r/prometheus-cpp.git
- * Step 3: build prometheus_cpp client following the Building section and 'via CMake' sub-section at
- *         https://github.com/jupp0r/prometheus-cpp
  * ---------------------------  pushgateway  ---------------------------
- * Step 4: download pushgateway binary from https://prometheus.io/download/#pushgateway
- * Step 5: run push gateway at localhost, set port 9091 using: './pushgateway --web.listen-address=0.0.0.0:9091'
- * Step 6: open a browser and access localhost:9091/
+ * Step 1: download pushgateway binary from https://prometheus.io/download/#pushgateway
+ * Step 2: run push gateway at localhost, set port 9091 using: './pushgateway --web.listen-address=0.0.0.0:9091'
+ * Step 3: open a browser and access localhost:9091/
  * ---------------------------  prometheus itself  ---------------------------
  * // TODO: current promethes was not connected with the push-gateway
- * Step 7: download prometheus from https://prometheus.io/download/ ; the tar file contains an executable 'prometheus'
- * Step 8: config 'prometheus.yml' (more info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
- * Step 9: start the prometheus with './prometheus --config.file=prometheus.yml'
+ * Step 4: download prometheus from https://prometheus.io/download/ ; the tar file contains an executable 'prometheus'
+ * Step 5: config 'prometheus.yml' (more info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/)
+ * Step 6: start the prometheus with './prometheus --config.file=prometheus.yml'
+ * ---------------------------  prometheus cpp client:  ---------------------------
+ * The prometheus cpp is expected to be built through MakeFile's git submodule; run instructions below if makefile fails
+ * Step 7: mkdir -p submodules/prometheus-cpp/
+ * Step 8: in the directory, git clone https://github.com/jupp0r/prometheus-cpp.git
+ * Step 9: build prometheus_cpp client following the Building section and 'via CMake' sub-section at
+ *         https://github.com/jupp0r/prometheus-cpp
  */
+
+```
+make pdemo
+# replace all of the following param for a different pushgateway setup
+# make pdemo PUSHGATEWAY_NAME=pushgateway PUSHGATEWAY_IP=0.0.0.0 PUSHGATEWAY_PORT=9091
+```
 
 Google how to install other libs for your system.
 
