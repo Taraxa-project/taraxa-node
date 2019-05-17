@@ -5,7 +5,8 @@
 /* This file serves as a demo for using prometheus c++ client assuming the push-gateway and prometheus are available.
  * To test the prometheus cpp locally, follow the steps below:
  * ---------------------------  prometheus cpp client:  ---------------------------
- * Step 1: mkdir -p taraxa-node/taraxa-node/prometheus-cpp/
+ * The prometheus cpp is expected to be built through MakeFile's git submodule; run instructions below if makefile fails
+ * Step 1: mkdir -p submodules/prometheus-cpp/
  * Step 2: in the directory, git clone https://github.com/jupp0r/prometheus-cpp.git
  * Step 3: build prometheus_cpp client following the Building section and 'via CMake' sub-section at
  *         https://github.com/jupp0r/prometheus-cpp
