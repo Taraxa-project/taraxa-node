@@ -88,11 +88,12 @@ void PbftManager::run() {
     if (consensus_pbft_period != pbft_period_) {
       LOG(log_deb_) << "Period determined from votes: "
                     << consensus_pbft_period;
-      if (consensus_pbft_period > pbft_period_ + 1) {
-        LOG(log_deb_) << "pbft chain behind, need broadcast request for missing"
-                         " blocks";
-        // TODO
-      }
+      // comments out now, psp connection should cover this
+//      if (consensus_pbft_period > pbft_period_ + 1) {
+//        LOG(log_deb_) << "pbft chain behind, need broadcast request for missing"
+//                         " blocks";
+//        // TODO
+//      }
       pbft_period_ = consensus_pbft_period;
       if (cert_voted_values_for_period.count(pbft_period_ - 1)) {
         // put pbft block into chain if have 2t+1 cert votes
@@ -672,7 +673,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     size_t count = 0;
     for (auto const& v: votes) {
       if (v.getBlockHash() == cert_vote_block_hash &&
-          static_cast<PbftVoteTypes>(v.getType()) == cert_vote_type) {
+          v.getType() == cert_vote_type) {
         // TODO: vote type need to change PbftVoteTypes
         count++;
       }

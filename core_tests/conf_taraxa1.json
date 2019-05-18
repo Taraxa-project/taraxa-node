@@ -18,5 +18,7 @@
   "rpc_port": 7777,
   "pbft_manager": {
     "lambda_ms": 1000
-  }
+  },
+  "db_pbft_votes_path": "/tmp/rocksdb/pbftvotes",
+  "db_pbft_chain_path": "/tmp/rocksdb/pbftchain"
 }

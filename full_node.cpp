@@ -55,7 +55,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       executor_(std::make_shared<Executor>(db_blks_, db_trxs_, db_accs_)),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()),
-      pbft_chain_(std::make_shared<PbftChain>()) {
+      pbft_chain_(std::make_shared<PbftChain>()),
+      db_votes_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::OverlayDBKind,
+          conf_.db_pbft_votes_path)),
+      db_pbftchain_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::OverlayDBKind,
+          conf_.db_pbft_chain_path)) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -75,6 +81,11 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   // store genesis blk to db
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
   db_blks_->commit();
+  // TODO: question, why DAG blocks initialize each time? Do should cover from DB?
+  // store pbft chain genesis(HEAD) block to db
+  db_pbftchain_->put(blk_hash_t(0).toString(), pbft_chain_->getGenesisStr());
+  db_pbftchain_->commit();
+
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
