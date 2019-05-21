@@ -98,7 +98,7 @@ class PivotBlock {
 
   friend std::ostream& operator<<(std::ostream& strm,
                                   PivotBlock const& pivot_block) {
-    strm << "[Pivot Block] " << std::endl;
+    strm << "[Pivot Block]" << std::endl;
     strm << "  previous pivot hash: " << pivot_block.prev_pivot_hash_.hex()
          << std::endl;
     strm << "  previous result hash: " << pivot_block.prev_block_hash_.hex()
@@ -172,6 +172,7 @@ class PbftBlock {
   PbftBlockTypes getBlockType() const;
   PivotBlock getPivotBlock() const;
   ScheduleBlock getScheduleBlock() const;
+  std::string getJsonStr() const;
 
   void setBlockHash();
   void setBlockType(PbftBlockTypes block_type);

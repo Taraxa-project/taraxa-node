@@ -33,6 +33,8 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   }
   vote_queue_ = full_node->getVoteQueue();
   pbft_chain_ = full_node->getPbftChain();
+  db_votes_ = full_node->getVotesDB();
+  db_pbftchain_ = full_node->getPbftChainDB();
 }
 
 void PbftManager::start() {
@@ -88,7 +90,7 @@ void PbftManager::run() {
     if (consensus_pbft_period != pbft_period_) {
       LOG(log_deb_) << "Period determined from votes: "
                     << consensus_pbft_period;
-      // comments out now, psp connection should cover this
+//      comments out now, psp connection should cover this
 //      if (consensus_pbft_period > pbft_period_ + 1) {
 //        LOG(log_deb_) << "pbft chain behind, need broadcast request for missing"
 //                         " blocks";
@@ -674,7 +676,6 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     for (auto const& v: votes) {
       if (v.getBlockHash() == cert_vote_block_hash &&
           v.getType() == cert_vote_type) {
-        // TODO: vote type need to change PbftVoteTypes
         count++;
       }
     }
@@ -700,6 +701,9 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     PbftBlockTypes next_block_type = pbft_chain_->getNextPbftBlockType();
     if (next_block_type == pivot_block_type) {
       if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
+        db_pbftchain_->put(pbft_block.first.getBlockHash().toString(),
+                           pbft_block.first.getJsonStr());
+        db_pbftchain_->commit();
         LOG(log_deb_) << "Successful push pbft anchor block "
                       << pbft_block.first.getBlockHash() << " into chain!";
         // TODO: update block Dag period
@@ -708,6 +712,9 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       }
     } else if (next_block_type == schedule_block_type) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block.first)) {
+        db_pbftchain_->put(pbft_block.first.getBlockHash().toString(),
+                           pbft_block.first.getJsonStr());
+        db_pbftchain_->commit();
         LOG(log_deb_) << "Successful push pbft schedule block "
                       << pbft_block.first.getBlockHash() << " into chain!";
         // execute schedule block

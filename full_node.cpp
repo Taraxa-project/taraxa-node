@@ -81,7 +81,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   // store genesis blk to db
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
   db_blks_->commit();
-  // TODO: question, why DAG blocks initialize each time? Do should cover from DB?
   // store pbft chain genesis(HEAD) block to db
   db_pbftchain_->put(blk_hash_t(0).toString(), pbft_chain_->getGenesisStr());
   db_pbftchain_->commit();
@@ -496,13 +495,19 @@ size_t FullNode::getPbftQueueSize() const {
 
 size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
 
-void FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
+bool FullNode::setPbftBlock(taraxa::PbftBlock const& pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
-    pbft_chain_->pushPbftPivotBlock(pbft_block);
+    if (pbft_chain_->pushPbftPivotBlock(pbft_block)) {
+      return true;
+    }
   } else if (pbft_block.getBlockType() == schedule_block_type) {
-    pbft_chain_->pushPbftScheduleBlock(pbft_block);
+    if (pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
+      return true;
+    }
   }
   // TODO: push other type pbft block into pbft chain
+
+  return false;
 }
 
 }  // namespace taraxa

@@ -143,10 +143,10 @@ ScheduleBlock::ScheduleBlock(taraxa::stream& strm) { deserialize(strm); }
 
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
-  strm << "[ScheduleBlock] " << std::endl;
-  strm << "prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
-  strm << "time_stamp: " << timestamp_ << std::endl;
-  strm << "  --> Schedule ..." << std::endl;
+  strm << "[ScheduleBlock]" << std::endl;
+  strm << " prev_block_pivot_hash: " << prev_block_hash_.toString() << std::endl;
+  strm << " time_stamp: " << timestamp_ << std::endl;
+  strm << " --> Schedule ..." << std::endl;
   strm << schedule_;
   return strm.str();
 }
@@ -260,6 +260,20 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
 }
 
 blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
+
+std::string PbftBlock::getJsonStr() const {
+  std::stringstream strm;
+
+  strm << "block_hash: " << block_hash_.toString() << std::endl;
+  strm << "block_type " << block_type_ << std::endl;
+  if (block_type_ == pivot_block_type) {
+    strm << pivot_block_;
+  } else if (block_type_ == schedule_block_type) {
+    strm << schedule_block_;
+  } // TODO: more block types
+
+  return strm.str();
+}
 
 PbftBlockTypes PbftBlock::getBlockType() const { return block_type_; }
 
