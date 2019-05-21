@@ -121,6 +121,7 @@ void FullNode::start(bool boot_node) {
         // will block if no verified block available
         auto blk = blk_qu_->getVerifiedBlock();
         if (stopped_) break;
+        LOG(log_time_) << "VerifyingTrx in block  " << blk.first.getHash() << " at: " << getCurrentTimeMilliSeconds();
         // Any transactions that are passed with the block were not verified in
         // transactions queue so they need to be verified here
         bool invalidTransaction = false;
@@ -157,12 +158,15 @@ void FullNode::start(bool boot_node) {
             received_blocks_++;
           }
         }
+        LOG(log_time_) << "VerifiedTrx block " << blk.first.getHash() << " at: " << getCurrentTimeMilliSeconds();
         dag_mgr_->addDagBlock(blk.first);
         {
           db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
           db_blks_->commit();
         }
         network_->onNewBlockVerified(blk.first);
+        LOG(log_time_) << "Broadcast block " << blk.first.getHash() << " at: " << getCurrentTimeMilliSeconds();
+
       }
     });
   }
