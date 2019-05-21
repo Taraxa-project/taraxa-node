@@ -124,7 +124,6 @@ class BlockQueue {
   size_t num_verifiers_ = 1;
   mutable boost::shared_mutex
       shared_mutex_;          // shared mutex to check seen_blocks ...
-  mutable std::mutex mutex_;  // mutex
 
   // seen blks
   std::map<blk_hash_t, DagBlock> seen_blocks_;

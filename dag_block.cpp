@@ -213,7 +213,6 @@ void BlockQueue::start() {
 void BlockQueue::stop() {
   if (stopped_) return;
   {
-    uLock lock(mutex_);
     stopped_ = true;
   }
   cond_for_unverified_qu_.notify_all();
@@ -288,13 +287,14 @@ void BlockQueue::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
-    LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
 
     // TODO: verify block, now just move it to verified_qu_
     {
       uLock lock(mutex_for_verified_qu_);
       verified_qu_.emplace_back(blk);
       cond_for_verified_qu_.notify_one();
+      LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
+
     }
   }
 }

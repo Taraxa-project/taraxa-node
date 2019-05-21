@@ -121,7 +121,7 @@ void FullNode::start(bool boot_node) {
         // will block if no verified block available
         auto blk = blk_qu_->getVerifiedBlock();
         if (stopped_) break;
-        LOG(log_time_) << "VerifyingTrx in block  " << blk.first.getHash() << " at: " << getCurrentTimeMilliSeconds();
+        LOG(log_time_) << "VerifyingTrx block  " << blk.first.getHash() << " at: " << getCurrentTimeMilliSeconds();
         // Any transactions that are passed with the block were not verified in
         // transactions queue so they need to be verified here
         bool invalidTransaction = false;
