@@ -82,7 +82,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
   db_blks_->commit();
   // store pbft chain genesis(HEAD) block to db
-  db_pbftchain_->put(blk_hash_t(0).toString(), pbft_chain_->getGenesisStr());
+  db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
+                     pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
 
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
@@ -497,17 +498,23 @@ size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
 
 bool FullNode::setPbftBlock(taraxa::PbftBlock const& pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
-    if (pbft_chain_->pushPbftPivotBlock(pbft_block)) {
-      return true;
+    if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
+      return false;
     }
   } else if (pbft_block.getBlockType() == schedule_block_type) {
-    if (pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
-      return true;
+    if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
+      return false;
     }
   }
   // TODO: push other type pbft block into pbft chain
 
-  return false;
+  // store pbft block into DB
+  db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                     pbft_block.getJsonStr());
+  db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
+                        pbft_chain_->getJsonStr());
+  db_pbftchain_->commit();
+  return true;
 }
 
 }  // namespace taraxa

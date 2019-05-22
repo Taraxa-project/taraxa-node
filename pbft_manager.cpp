@@ -701,9 +701,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     PbftBlockTypes next_block_type = pbft_chain_->getNextPbftBlockType();
     if (next_block_type == pivot_block_type) {
       if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
-        db_pbftchain_->put(pbft_block.first.getBlockHash().toString(),
-                           pbft_block.first.getJsonStr());
-        db_pbftchain_->commit();
+        updatePbftChainDB_(pbft_block.first);
         LOG(log_deb_) << "Successful push pbft anchor block "
                       << pbft_block.first.getBlockHash() << " into chain!";
         // TODO: update block Dag period
@@ -712,9 +710,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       }
     } else if (next_block_type == schedule_block_type) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block.first)) {
-        db_pbftchain_->put(pbft_block.first.getBlockHash().toString(),
-                           pbft_block.first.getJsonStr());
-        db_pbftchain_->commit();
+        updatePbftChainDB_(pbft_block.first);
         LOG(log_deb_) << "Successful push pbft schedule block "
                       << pbft_block.first.getBlockHash() << " into chain!";
         // execute schedule block
@@ -724,6 +720,23 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     } // TODO: more pbft block type
 
     return false;
+}
+
+bool PbftManager::updatePbftChainDB_(PbftBlock const& pbft_block) {
+  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                          pbft_block.getJsonStr())) {
+    LOG(log_err_) << "Failed put pbft block: "
+                  <<  pbft_block.getBlockHash().toString() << " into DB";
+    return false;
+  }
+  if (db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
+                            pbft_chain_->getJsonStr())) {
+    LOG(log_err_) << "Failed update pbft genesis in DB";
+    return false;
+  }
+  db_pbftchain_->commit();
+
+  return true;
 }
 
 }  // namespace taraxa

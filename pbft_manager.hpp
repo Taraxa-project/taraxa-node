@@ -80,6 +80,7 @@ class PbftManager {
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
   bool pushPbftBlockIntoChain_(uint64_t period,
                                blk_hash_t const& cert_vote_block_hash);
+  bool updatePbftChainDB_(PbftBlock const& pbft_block);
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
