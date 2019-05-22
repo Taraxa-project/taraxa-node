@@ -14,6 +14,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
 #include <streambuf>
@@ -101,9 +102,13 @@ unsigned long getCurrentTimeMilliSeconds();
 template <typename K, typename V>
 class StatusTable {
  public:
-  using uLock = std::unique_lock<std::mutex>;
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
   std::pair<V, bool> get(K const &hash) {
-    uLock lock(mutex_);
+    sharedLock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
       return {iter->second, true};
@@ -112,23 +117,24 @@ class StatusTable {
     }
   }
   bool insert(K const &hash, V status) {
-    uLock lock(mutex_);
+    upgradableLock lock(shared_mutex_);
     bool ret = false;
     if (status_.count(hash)) {
       ret = false;
     } else {
+      upgradeLock locked(lock);
       status_[hash] = status;
       ret = true;
     }
     return ret;
   }
   void update(K const &hash, V status) {
-    uLock lock(mutex_);
+    uLock lock(shared_mutex_);
     status_[hash] = status;
   }
 
  private:
-  std::mutex mutex_;
+  boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
 };
 /**
