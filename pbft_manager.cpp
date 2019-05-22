@@ -726,7 +726,7 @@ bool PbftManager::updatePbftChainDB_(PbftBlock const& pbft_block) {
   if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
                           pbft_block.getJsonStr())) {
     LOG(log_err_) << "Failed put pbft block: "
-                  <<  pbft_block.getBlockHash().toString() << " into DB";
+                  <<  pbft_block.getBlockHash() << " into DB";
     return false;
   }
   if (db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),

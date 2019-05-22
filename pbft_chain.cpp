@@ -162,7 +162,7 @@ ScheduleBlock::ScheduleBlock(taraxa::stream& strm) { deserialize(strm); }
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock]" << std::endl;
-  strm << " prev_block_pivot_hash: " << prev_block_hash_.toString() << std::endl;
+  strm << " prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
   strm << " time_stamp: " << timestamp_ << std::endl;
   strm << " --> Schedule ..." << std::endl;
   strm << schedule_;
