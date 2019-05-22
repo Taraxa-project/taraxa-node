@@ -212,9 +212,7 @@ void BlockQueue::start() {
 }
 void BlockQueue::stop() {
   if (stopped_) return;
-  {
-    stopped_ = true;
-  }
+  { stopped_ = true; }
   cond_for_unverified_qu_.notify_all();
   cond_for_verified_qu_.notify_all();
   for (auto &t : verifiers_) {
@@ -253,8 +251,8 @@ void BlockQueue::pushUnverifiedBlock(
   {
     uLock lock(mutex_for_unverified_qu_);
     unverified_qu_.emplace_back(std::make_pair(blk, transactions));
-    cond_for_unverified_qu_.notify_one();
   }
+  cond_for_unverified_qu_.notify_one();
 }
 
 void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
@@ -292,10 +290,9 @@ void BlockQueue::verifyBlock() {
     {
       uLock lock(mutex_for_verified_qu_);
       verified_qu_.emplace_back(blk);
-      cond_for_verified_qu_.notify_one();
-      LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
-
     }
+    cond_for_verified_qu_.notify_one();
+    LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
   }
 }
 
