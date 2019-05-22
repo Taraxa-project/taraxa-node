@@ -364,6 +364,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           return false;
         }
         if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
+          // TODO: need check 2t+1 cert votes, then put into chain and store in DB
           full_node->setPbftBlock(pbft_block);
         }
       }

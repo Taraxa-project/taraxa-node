@@ -60,6 +60,8 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   PbftManagerConfig pbft_manager;
+  std::string db_pbft_votes_path;
+  std::string db_pbft_chain_path;
 };
 std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf);

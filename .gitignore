@@ -3,3 +3,4 @@ test_build/
 .vscode/
 google/obj
 obj/
+.idea/*

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include "full_node.hpp"
+#include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
 #include "network.hpp"
 #include "pbft_manager.hpp"
@@ -83,6 +84,70 @@ TEST(ScheduleBlock, serialize_deserialize) {
   EXPECT_EQ(ss1.str(), ss2.str());
 }
 
+TEST(PbftChain, pbft_db_test) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_taraxa1.json")));
+  std::shared_ptr<SimpleDBFace> db_pbftchain = node->getPbftChainDB();
+  std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
+  std::string pbft_genesis_from_db =
+      db_pbftchain->get(pbft_chain->getGenesisHash().toString());
+  EXPECT_FALSE(pbft_genesis_from_db.empty());
+
+  // generate pbft pivot block sample
+  blk_hash_t prev_pivot_blk(0);
+  blk_hash_t prev_res_blk(0);
+  blk_hash_t dag_blk(78);
+  uint64_t epoch = 1;
+  uint64_t timestamp1 = 123456;
+  addr_t beneficiary(10);
+  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+      timestamp1, beneficiary);
+  PbftBlock pbft_block1(blk_hash_t(1));
+  pbft_block1.setPivotBlock(pivot_block);
+  // put into pbft chain and store into DB
+  node->setPbftBlock(pbft_block1);
+  EXPECT_EQ(node->getPbftChainSize(), 2);
+
+  std::string pbft_block_from_db =
+      db_pbftchain->get(pbft_block1.getBlockHash().toString());
+  PbftBlock pbft_block2(pbft_block_from_db);
+
+  std::stringstream ss1, ss2;
+  ss1 << pbft_block1;
+  ss2 << pbft_block2;
+  EXPECT_EQ(ss1.str(), ss2.str());
+
+  // generate pbft schedule block sample
+  blk_hash_t prev_pivot(1);
+  uint64_t timestamp2 = 333333;
+  vec_blk_t blks { blk_hash_t(123), blk_hash_t(456), blk_hash_t(789) };
+  std::vector<std::vector<uint>> modes{
+      {0, 1, 2, 0, 1, 2}, {1, 1, 0, 1, 1}, {0, 1, 0}};
+  TrxSchedule schedule(blks, modes);
+  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
+
+  PbftBlock pbft_block3(blk_hash_t(2));
+  pbft_block3.setScheduleBlock(schedule_blk);
+  // put into pbft chain and store into DB
+  node->setPbftBlock(pbft_block3);
+  EXPECT_EQ(node->getPbftChainSize(), 3);
+
+  pbft_block_from_db =
+      db_pbftchain->get(pbft_block3.getBlockHash().toString());
+  PbftBlock pbft_block4(pbft_block_from_db);
+
+  std::stringstream ss3, ss4;
+  ss3 << pbft_block3;
+  ss4 << pbft_block4;
+  EXPECT_EQ(ss3.str(), ss4.str());
+
+  // check pbft genesis update in DB
+  pbft_genesis_from_db =
+      db_pbftchain->get(pbft_chain->getGenesisHash().toString());
+  EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
+}
+
 TEST(PbftChain, block_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
@@ -96,9 +161,9 @@ TEST(PbftChain, block_broadcast) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true /*boot_node*/);
-  node2->start(false /*boot_node*/);
-  node3->start(false /*boot_node*/);
+  node1->start(true); // boot_node
+  node2->start(false);
+  node3->start(false);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));
@@ -421,6 +486,9 @@ int main(int argc, char** argv) {
   logOptions.includeChannels.push_back("NETWORK");
   logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
+  // use the in-memory db so test will not affect other each other through
+  // persistent storage
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

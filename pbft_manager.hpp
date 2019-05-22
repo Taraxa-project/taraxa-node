@@ -15,6 +15,7 @@
 #include "config.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
+#include "SimpleDBFace.h"
 #include "types.hpp"
 #include "vote.h"
 
@@ -23,8 +24,7 @@
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...
 #define MAX_STEPS 19
-// undef for test TODO: need remove later
-#undef LAMBDA_ms
+#undef LAMBDA_ms // undef for test TODO: need remove later
 
 namespace taraxa {
 class FullNode;
@@ -80,17 +80,20 @@ class PbftManager {
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
   bool pushPbftBlockIntoChain_(uint64_t period,
                                blk_hash_t const& cert_vote_block_hash);
+  bool updatePbftChainDB_(PbftBlock const& pbft_block);
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<std::thread> executor_;
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<SimpleDBFace> db_votes_;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_;
 
   uint64_t pbft_period_ = 1;
   size_t pbft_step_ = 1;
-  // Only for test TODO: need remove later
-  u_long LAMBDA_ms;
+
+  u_long LAMBDA_ms; // Only for test TODO: need remove later
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

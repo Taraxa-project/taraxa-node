@@ -102,6 +102,24 @@ uint64_t PivotBlock::getTimestamp() const { return timestamp_; }
 
 addr_t PivotBlock::getBeneficiary() const { return beneficiary_; }
 
+void PivotBlock::setJsonTree(ptree& tree) const {
+  tree.put("prev_pivot_hash", prev_pivot_hash_.toString());
+  tree.put("prev_block_hash", prev_block_hash_.toString());
+  tree.put("dag_block_hash", dag_block_hash_.toString());
+  tree.put("epoch", epoch_);
+  tree.put("timestamp", timestamp_);
+  tree.put("beneficiary", beneficiary_.toString());
+}
+
+void PivotBlock::setBlockByJson(ptree const& doc) {
+  prev_pivot_hash_ = blk_hash_t(doc.get<std::string>("prev_pivot_hash"));
+  prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
+  dag_block_hash_ = blk_hash_t(doc.get<std::string>("dag_block_hash"));
+  epoch_ = doc.get<uint64_t>("epoch");
+  timestamp_ = doc.get<uint64_t>("timestamp");
+  beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
+}
+
 bool PivotBlock::serialize(stream& strm) const {
   bool ok = true;
 
@@ -143,10 +161,10 @@ ScheduleBlock::ScheduleBlock(taraxa::stream& strm) { deserialize(strm); }
 
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
-  strm << "[ScheduleBlock] " << std::endl;
-  strm << "prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
-  strm << "time_stamp: " << timestamp_ << std::endl;
-  strm << "  --> Schedule ..." << std::endl;
+  strm << "[ScheduleBlock]" << std::endl;
+  strm << " prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
+  strm << " time_stamp: " << timestamp_ << std::endl;
+  strm << " --> Schedule ..." << std::endl;
   strm << schedule_;
   return strm.str();
 }
@@ -159,6 +177,49 @@ std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
 TrxSchedule ScheduleBlock::getSchedule() const { return schedule_; }
 
 blk_hash_t ScheduleBlock::getPrevBlockHash() const { return prev_block_hash_; }
+
+void ScheduleBlock::setJsonTree(ptree& tree) const {
+  tree.put("prev_block_hash", prev_block_hash_.toString());
+  tree.put("timestamp", timestamp_);
+
+  tree.put_child("block_order", ptree());
+  auto &block_order = tree.get_child("block_order");
+  uint32_t block_size = schedule_.blk_order.size();
+  for (int i = 0; i < block_size; i++) {
+    block_order.push_back(
+        std::make_pair("", ptree(schedule_.blk_order[i].toString())));
+  }
+
+  uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
+  if (block_size != trx_vectors_size) {
+    assert(false);
+  }
+  for (int i = 0; i < trx_vectors_size; i++) {
+    blk_hash_t block_hash(schedule_.blk_order[i]);
+    tree.put_child(block_hash.toString(), ptree());
+    auto &trx_modes = tree.get_child(block_hash.toString());
+    uint32_t each_block_trx_size = schedule_.vec_trx_modes[i].size();
+    for (int j = 0; j < each_block_trx_size; j++) {
+      trx_modes.push_back(std::make_pair(
+          "", ptree(std::to_string(schedule_.vec_trx_modes[i][j]))));
+    }
+  }
+}
+
+void ScheduleBlock::setBlockByJson(ptree const& doc) {
+  prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
+  timestamp_ = doc.get<uint64_t>("timestamp");
+  schedule_.blk_order = asVector<blk_hash_t, std::string>(doc, "block_order");
+  for (auto const& blk_hash: schedule_.blk_order) {
+    std::vector<std::string> block_trx_modes_str =
+        asVector<std::string, std::string>(doc, blk_hash.toString());
+    std::vector<uint> block_trx_modes;
+    for (auto const& mode: block_trx_modes_str) {
+      block_trx_modes.emplace_back(atoi(mode.c_str()));
+    }
+    schedule_.vec_trx_modes.emplace_back(block_trx_modes);
+  }
+}
 
 bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
@@ -244,6 +305,21 @@ PbftBlock::PbftBlock(dev::RLP const& _r) {
   deserialize(strm);
 }
 
+PbftBlock::PbftBlock(std::string const& json) {
+  ptree doc = strToJson(json);
+
+  block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
+  block_type_ = static_cast<PbftBlockTypes>(doc.get<int>("block_type"));
+  if (block_type_ == pivot_block_type) {
+    ptree &pivot_block = doc.get_child("pivot_block");
+    pivot_block_.setBlockByJson(pivot_block);
+  } else if (block_type_ == schedule_block_type) {
+    ptree &schedule_block = doc.get_child("schedule_block");
+    schedule_block_.setBlockByJson(schedule_block);
+  } // TODO: more block types
+  signature_ = sig_t(doc.get<std::string>("signature"));
+}
+
 void PbftBlock::setBlockHash() {
   dev::RLPStream s;
   streamRLP(s);
@@ -260,6 +336,24 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
 }
 
 blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
+
+std::string PbftBlock::getJsonStr() const {
+  ptree tree;
+  tree.put("block_hash", block_hash_.toString());
+  tree.put("block_type", block_type_);
+  if (block_type_ == pivot_block_type) {
+    tree.put_child("pivot_block", ptree());
+    pivot_block_.setJsonTree(tree.get_child("pivot_block"));
+  } else if (block_type_ == schedule_block_type) {
+    tree.put_child("schedule_block", ptree());
+    schedule_block_.setJsonTree(tree.get_child("schedule_block"));
+  } // TODO: more block types
+  tree.put("signature", signature_.toString());
+
+  std::stringstream ostrm;
+  boost::property_tree::write_json(ostrm, tree);
+  return ostrm.str();
+}
 
 PbftBlockTypes PbftBlock::getBlockType() const { return block_type_; }
 
@@ -322,7 +416,14 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   return ok;
 }
 
+std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
+  strm << pbft_blk.getJsonStr();
+  return strm;
+}
+
 size_t PbftChain::getPbftChainSize() const { return count_; }
+
+blk_hash_t PbftChain::getGenesisHash() const { return genesis_hash_; }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
   return last_pbft_block_hash_;
@@ -460,6 +561,20 @@ std::string PbftChain::getGenesisStr() const {
        << std::endl;
   // TODO: need add more info
   return strm.str();
+}
+
+std::string PbftChain::getJsonStr() const {
+  ptree tree;
+  tree.put("genesis_hash", genesis_hash_.toString());
+  tree.put("count", count_);
+  tree.put("next_pbft_block_type", next_pbft_block_type_);
+  tree.put("last_pbft_block_hash", last_pbft_block_hash_.toString());
+  tree.put("last_pbft_pivot_block", last_pbft_pivot_hash_.toString());
+  // TODO: need add more info
+
+  std::stringstream ostrm;
+  boost::property_tree::write_json(ostrm, tree);
+  return ostrm.str();
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {

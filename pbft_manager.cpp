@@ -33,6 +33,8 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   }
   vote_queue_ = full_node->getVoteQueue();
   pbft_chain_ = full_node->getPbftChain();
+  db_votes_ = full_node->getVotesDB();
+  db_pbftchain_ = full_node->getPbftChainDB();
 }
 
 void PbftManager::start() {
@@ -88,11 +90,12 @@ void PbftManager::run() {
     if (consensus_pbft_period != pbft_period_) {
       LOG(log_deb_) << "Period determined from votes: "
                     << consensus_pbft_period;
-      if (consensus_pbft_period > pbft_period_ + 1) {
-        LOG(log_deb_) << "pbft chain behind, need broadcast request for missing"
-                         " blocks";
-        // TODO
-      }
+//      comments out now, psp connection should cover this
+//      if (consensus_pbft_period > pbft_period_ + 1) {
+//        LOG(log_deb_) << "pbft chain behind, need broadcast request for missing"
+//                         " blocks";
+//        // TODO
+//      }
       pbft_period_ = consensus_pbft_period;
       if (cert_voted_values_for_period.count(pbft_period_ - 1)) {
         // put pbft block into chain if have 2t+1 cert votes
@@ -672,8 +675,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     size_t count = 0;
     for (auto const& v: votes) {
       if (v.getBlockHash() == cert_vote_block_hash &&
-          static_cast<PbftVoteTypes>(v.getType()) == cert_vote_type) {
-        // TODO: vote type need to change PbftVoteTypes
+          v.getType() == cert_vote_type) {
         count++;
       }
     }
@@ -699,6 +701,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     PbftBlockTypes next_block_type = pbft_chain_->getNextPbftBlockType();
     if (next_block_type == pivot_block_type) {
       if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
+        updatePbftChainDB_(pbft_block.first);
         LOG(log_deb_) << "Successful push pbft anchor block "
                       << pbft_block.first.getBlockHash() << " into chain!";
         // TODO: update block Dag period
@@ -707,6 +710,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       }
     } else if (next_block_type == schedule_block_type) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block.first)) {
+        updatePbftChainDB_(pbft_block.first);
         LOG(log_deb_) << "Successful push pbft schedule block "
                       << pbft_block.first.getBlockHash() << " into chain!";
         // execute schedule block
@@ -716,6 +720,23 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     } // TODO: more pbft block type
 
     return false;
+}
+
+bool PbftManager::updatePbftChainDB_(PbftBlock const& pbft_block) {
+  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                          pbft_block.getJsonStr())) {
+    LOG(log_err_) << "Failed put pbft block: "
+                  <<  pbft_block.getBlockHash() << " into DB";
+    return false;
+  }
+  if (db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
+                            pbft_chain_->getJsonStr())) {
+    LOG(log_err_) << "Failed update pbft genesis in DB";
+    return false;
+  }
+  db_pbftchain_->commit();
+
+  return true;
 }
 
 }  // namespace taraxa

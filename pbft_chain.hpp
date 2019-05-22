@@ -28,6 +28,7 @@
  * 3. ResultBlock: computing results
  */
 namespace taraxa {
+using boost::property_tree::ptree;
 
 enum PbftBlockTypes {
   pbft_block_none_type = -1,
@@ -72,6 +73,7 @@ class PivotBlock {
  public:
   PivotBlock() = default;
   PivotBlock(taraxa::stream& strm);
+  PivotBlock(std::string const &json);
 
   PivotBlock(blk_hash_t const& prev_pivot_hash,
              blk_hash_t const& prev_block_hash,
@@ -92,13 +94,16 @@ class PivotBlock {
   uint64_t getTimestamp() const;
   addr_t getBeneficiary() const;
 
+  void setJsonTree(ptree& tree) const;
+  void setBlockByJson(ptree const& doc);
+
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
   void streamRLP(dev::RLPStream& strm) const;
 
   friend std::ostream& operator<<(std::ostream& strm,
                                   PivotBlock const& pivot_block) {
-    strm << "[Pivot Block] " << std::endl;
+    strm << "[Pivot Block]" << std::endl;
     strm << "  previous pivot hash: " << pivot_block.prev_pivot_hash_.hex()
          << std::endl;
     strm << "  previous result hash: " << pivot_block.prev_block_hash_.hex()
@@ -135,6 +140,9 @@ class ScheduleBlock {
   TrxSchedule getSchedule() const;
   blk_hash_t getPrevBlockHash() const;
 
+  void setJsonTree(ptree& tree) const;
+  void setBlockByJson(ptree const& json);
+
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
 
@@ -166,12 +174,14 @@ class PbftBlock {
   PbftBlock(ScheduleBlock const& schedule_block)
     : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
   PbftBlock(dev::RLP const& _r);
+  PbftBlock(std::string const& json);
   ~PbftBlock() {}
 
   blk_hash_t getBlockHash() const;
   PbftBlockTypes getBlockType() const;
   PivotBlock getPivotBlock() const;
   ScheduleBlock getScheduleBlock() const;
+  std::string getJsonStr() const;
 
   void setBlockHash();
   void setBlockType(PbftBlockTypes block_type);
@@ -192,6 +202,7 @@ class PbftBlock {
   sig_t signature_;
   // TODO: need more pbft block type
 };
+std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
@@ -206,6 +217,7 @@ class PbftChain {
   ~PbftChain() {}
 
   size_t getPbftChainSize() const;
+  blk_hash_t getGenesisHash() const;
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
@@ -217,6 +229,7 @@ class PbftChain {
   std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
                                                         size_t count) const;
   std::string getGenesisStr() const;
+  std::string getJsonStr() const;
   dev::Logger& getLoggerErr() { return log_err_; }
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);

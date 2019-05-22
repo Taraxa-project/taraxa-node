@@ -156,9 +156,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   size_t getPbftQueueSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
-  void setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
+  bool setPbftBlock(PbftBlock const& pbft_block);  // Test purpose
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<VoteQueue> getVoteQueue() const { return vote_queue_; }
+  std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
+  std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
 
  private:
   // ** NOTE: io_context must be constructed before Network
@@ -179,6 +181,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_accs_;
   std::shared_ptr<SimpleDBFace> db_blks_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
+  std::shared_ptr<SimpleDBFace> db_votes_;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_;
 
   // network
   std::shared_ptr<Network> network_;

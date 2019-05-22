@@ -55,7 +55,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       executor_(std::make_shared<Executor>(db_blks_, db_trxs_, db_accs_)),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()),
-      pbft_chain_(std::make_shared<PbftChain>()) {
+      pbft_chain_(std::make_shared<PbftChain>()),
+      db_votes_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::OverlayDBKind,
+          conf_.db_pbft_votes_path)),
+      db_pbftchain_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::OverlayDBKind,
+          conf_.db_pbft_chain_path)) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -75,6 +81,11 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   // store genesis blk to db
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
   db_blks_->commit();
+  // store pbft chain genesis(HEAD) block to db
+  db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
+                     pbft_chain_->getJsonStr());
+  db_pbftchain_->commit();
+
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
@@ -485,13 +496,25 @@ size_t FullNode::getPbftQueueSize() const {
 
 size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
 
-void FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
+bool FullNode::setPbftBlock(taraxa::PbftBlock const& pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
-    pbft_chain_->pushPbftPivotBlock(pbft_block);
+    if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
+      return false;
+    }
   } else if (pbft_block.getBlockType() == schedule_block_type) {
-    pbft_chain_->pushPbftScheduleBlock(pbft_block);
+    if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
+      return false;
+    }
   }
   // TODO: push other type pbft block into pbft chain
+
+  // store pbft block into DB
+  db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                     pbft_block.getJsonStr());
+  db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
+                        pbft_chain_->getJsonStr());
+  db_pbftchain_->commit();
+  return true;
 }
 
 }  // namespace taraxa
