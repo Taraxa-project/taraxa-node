@@ -61,7 +61,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
-
+  std::shared_ptr<TransactionManager> getTransactionManager() const {return trx_mgr_;} 
   // network stuff
   size_t getPeerCount() const;
   std::vector<public_t> getAllPeers() const;

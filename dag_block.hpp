@@ -28,6 +28,9 @@ namespace taraxa {
 using std::string;
 class DagManager;
 class Transaction;
+class TransactionManager;
+class FullNode;
+
 // Block definition
 
 /**
@@ -110,6 +113,7 @@ class BlockQueue {
   getVerifiedBlock();  // get one verified block and pop
   void start();
   void stop();
+  void setFullNode(std::shared_ptr<FullNode> node){ node_ = node;} 
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
 
@@ -124,7 +128,8 @@ class BlockQueue {
   size_t num_verifiers_ = 1;
   mutable boost::shared_mutex
       shared_mutex_;          // shared mutex to check seen_blocks ...
-
+  std::weak_ptr<FullNode> node_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
   // seen blks
   std::map<blk_hash_t, DagBlock> seen_blocks_;
 

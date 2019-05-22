@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include "create_samples.hpp"
+#include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "types.hpp"
 
@@ -188,30 +189,34 @@ TEST(DagBlock, sign_verify) {
 }
 
 TEST(BlockQueue, push_and_pop) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf_taraxa1.json")));
   BlockQueue blk_qu(1024, 2);
+  blk_qu.setFullNode(node->getShared());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111),
-                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-                {trx_hash_t(555), trx_hash_t(666)}, sig_t(7777),
-                blk_hash_t(888), addr_t(999));
+                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {},
+                sig_t(7777), blk_hash_t(888), addr_t(999));
 
   DagBlock blk2(blk_hash_t(21111),
-                {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)},
-                {trx_hash_t(2555), trx_hash_t(2666)}, sig_t(27777),
-                blk_hash_t(2888), addr_t(2999));
+                {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {},
+                sig_t(27777), blk_hash_t(2888), addr_t(2999));
 
   blk_qu.pushUnverifiedBlock(blk1);
   blk_qu.pushUnverifiedBlock(blk2);
 
   auto blk3 = blk_qu.getVerifiedBlock();
   auto blk4 = blk_qu.getVerifiedBlock();
-  EXPECT_EQ(blk1, blk3.first);
-  EXPECT_EQ(blk2, blk4.first);
+  // The order is non-deterministic
+  bool res = (blk1 == blk3.first) ? blk2 == blk4.first : blk2 == blk3.first;
+  EXPECT_TRUE(res);
+  blk_qu.stop();
 }
 }  // namespace taraxa
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityError;
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

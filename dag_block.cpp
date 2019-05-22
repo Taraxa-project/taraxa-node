@@ -10,6 +10,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
 #include "dag.hpp"
+#include "full_node.hpp"
 #include "libdevcore/Log.h"
 
 namespace taraxa {
@@ -205,6 +206,11 @@ BlockQueue::~BlockQueue() {
 void BlockQueue::start() {
   if (!stopped_) return;
   LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
+  if (!node_.lock()) {
+    LOG(log_er_) << "FullNode is not set ...";
+    return;
+  }
+  trx_mgr_ = node_.lock()->getTransactionManager();
   stopped_ = false;
   for (auto i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
@@ -274,6 +280,7 @@ std::pair<DagBlock, std::vector<Transaction>> BlockQueue::getVerifiedBlock() {
 }
 
 void BlockQueue::verifyBlock() {
+  auto log_time = node_.lock()->getTimeLogger();
   while (!stopped_) {
     std::pair<DagBlock, std::vector<Transaction>> blk;
     {
@@ -285,6 +292,41 @@ void BlockQueue::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
+    // Verifying transaction ...
+    LOG(log_time) << "VerifyingTrx block  " << blk.first.getHash()
+                  << " at: " << getCurrentTimeMilliSeconds();
+    bool invalidTransaction = false;
+    for (auto const &trx : blk.second) {
+      auto valid = trx.verifySig();
+      if (!valid) {
+        invalidTransaction = true;
+        LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
+      }
+    }
+
+    if (invalidTransaction) {
+      LOG(log_er_) << "Ignore block " << blk.first.getHash()
+                   << " since it has invalid transactions";
+      continue;
+    }
+    LOG(log_time) << "VerifiedTrx block " << blk.first.getHash()
+                  << " at: " << getCurrentTimeMilliSeconds();
+
+    // Save the transaction that came with the block together with the
+    // transactions that are in the queue. This will update the transaction
+    // status as well and remove the transactions from the queue
+    bool transactionsSave =
+        trx_mgr_->saveBlockTransactionsAndUpdateTransactionStatus(
+            blk.first.getTrxs(), blk.second);
+
+    // Skip block if we are missing transactions
+    if (!transactionsSave) {
+      LOG(log_er_) << "Error: Block missing transactions "
+                   << blk.first.getHash();
+      continue;
+    }
+    LOG(log_time) << "VerifiedTrx stored " << blk.first.getHash()
+                  << " at: " << getCurrentTimeMilliSeconds();
 
     // TODO: verify block, now just move it to verified_qu_
     {
