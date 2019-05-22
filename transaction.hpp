@@ -309,6 +309,11 @@ class TransactionManager
       vec_trx_t const &all_block_trx_hashes,
       std::vector<Transaction> const &some_trxs);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
+  bool isTransactionVerified(trx_hash_t const &hash) {
+    // in_block means in db, i.e., already verified
+    auto status = trx_status_.get(hash);
+    return status.second ? status.first == TransactionStatus::in_block : false;
+  }
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
