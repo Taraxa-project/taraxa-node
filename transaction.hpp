@@ -39,39 +39,39 @@ enum class TransactionStatus {
  * simple thread_safe hash
  * keep track of transaction state
  */
+using TransactionStatusTable = StatusTable<trx_hash_t, TransactionStatus>;
+// class TransactionStatusTable {
+//  public:
+//   using uLock = std::unique_lock<std::mutex>;
+//   std::pair<TransactionStatus, bool> get(trx_hash_t const &hash) {
+//     uLock lock(mutex_);
+//     auto iter = status_.find(hash);
+//     if (iter != status_.end()) {
+//       return {iter->second, true};
+//     } else {
+//       return {TransactionStatus::unseen, false};
+//     }
+//   }
+//   bool insert(trx_hash_t const &hash, TransactionStatus status) {
+//     uLock lock(mutex_);
+//     bool ret = false;
+//     if (status_.count(hash)) {
+//       ret = false;
+//     } else {
+//       status_[hash] = status;
+//       ret = true;
+//     }
+//     return ret;
+//   }
+//   void update(trx_hash_t const &hash, TransactionStatus status) {
+//     uLock lock(mutex_);
+//     status_[hash] = status;
+//   }
 
-class TransactionStatusTable {
- public:
-  using uLock = std::unique_lock<std::mutex>;
-  std::pair<TransactionStatus, bool> get(trx_hash_t const &hash) {
-    uLock lock(mutex_);
-    auto iter = status_.find(hash);
-    if (iter != status_.end()) {
-      return {iter->second, true};
-    } else {
-      return {TransactionStatus::unseen, false};
-    }
-  }
-  bool insert(trx_hash_t const &hash, TransactionStatus status) {
-    uLock lock(mutex_);
-    bool ret = false;
-    if (status_.count(hash)) {
-      ret = false;
-    } else {
-      status_[hash] = status;
-      ret = true;
-    }
-    return ret;
-  }
-  void update(trx_hash_t const &hash, TransactionStatus status) {
-    uLock lock(mutex_);
-    status_[hash] = status;
-  }
-
- private:
-  std::mutex mutex_;
-  std::unordered_map<trx_hash_t, TransactionStatus> status_;
-};
+//  private:
+//   std::mutex mutex_;
+//   std::unordered_map<trx_hash_t, TransactionStatus> status_;
+// };
 
 /**
  * Note:

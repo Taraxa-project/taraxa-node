@@ -95,6 +95,43 @@ void thisThreadSleepForMicroSeconds(unsigned microsec);
 unsigned long getCurrentTimeMilliSeconds();
 
 /**
+ * simple thread_safe hash
+ */
+
+template <typename K, typename V>
+class StatusTable {
+ public:
+  using uLock = std::unique_lock<std::mutex>;
+  std::pair<V, bool> get(K const &hash) {
+    uLock lock(mutex_);
+    auto iter = status_.find(hash);
+    if (iter != status_.end()) {
+      return {iter->second, true};
+    } else {
+      return {V(), false};
+    }
+  }
+  bool insert(K const &hash, V status) {
+    uLock lock(mutex_);
+    bool ret = false;
+    if (status_.count(hash)) {
+      ret = false;
+    } else {
+      status_[hash] = status;
+      ret = true;
+    }
+    return ret;
+  }
+  void update(K const &hash, V status) {
+    uLock lock(mutex_);
+    status_[hash] = status;
+  }
+
+ private:
+  std::mutex mutex_;
+  std::unordered_map<K, V> status_;
+};
+/**
  * Observer pattern
  */
 
