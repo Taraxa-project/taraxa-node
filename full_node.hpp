@@ -30,7 +30,7 @@ class Network;
 class BlockProposer;
 class DagManager;
 class DagBlock;
-class BlockQueue;
+class BlockManager;
 class Transaction;
 class TransactionManager;
 class Executor;
@@ -61,7 +61,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
-  std::shared_ptr<TransactionManager> getTransactionManager() const {return trx_mgr_;} 
+  std::shared_ptr<TransactionManager> getTransactionManager() const {
+    return trx_mgr_;
+  }
   // network stuff
   size_t getPeerCount() const;
   std::vector<public_t> getAllPeers() const;
@@ -143,7 +145,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                  uint64_t period, size_t step);
   std::vector<Vote> getVotes(uint64_t period);
   void placeVote(Vote const &vote);
-  void broadcastVote(taraxa::blk_hash_t const& blockhash, PbftVoteTypes type,
+  void broadcastVote(taraxa::blk_hash_t const &blockhash, PbftVoteTypes type,
                      uint64_t period, size_t step);
   void clearVoteQueue();
   size_t getVoteQueueSize();
@@ -189,7 +191,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // dag
   std::shared_ptr<DagManager> dag_mgr_;
   // ledger
-  std::shared_ptr<BlockQueue> blk_qu_;
+  std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;

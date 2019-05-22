@@ -45,8 +45,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       db_trxs_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
           conf_.db_transactions_path)),
-      blk_qu_(std::make_shared<BlockQueue>(1024 /*capacity*/,
-                                           2 /* verifer thread*/)),
+      blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
+                                             2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
       dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
@@ -116,8 +116,8 @@ void FullNode::start(bool boot_node) {
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->start();
-  blk_qu_->setFullNode(getShared());
-  blk_qu_->start();
+  blk_mgr_->setFullNode(getShared());
+  blk_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   trx_mgr_->start();
@@ -133,7 +133,7 @@ void FullNode::start(bool boot_node) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
         // will block if no verified block available
-        auto blk = blk_qu_->getVerifiedBlock();
+        auto blk = blk_mgr_->getVerifiedBlock();
         if (stopped_) break;
 
         LOG(log_nf_) << "Write block to db ... " << blk.first.getHash()
@@ -164,7 +164,7 @@ void FullNode::stop() {
   stopped_ = true;
   dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
-  blk_qu_->stop();
+  blk_mgr_->stop();
   network_->stop();
   trx_mgr_->stop();
   pbft_mgr_->stop();
@@ -180,13 +180,13 @@ std::vector<public_t> FullNode::getAllPeers() const {
 
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
-  blk_qu_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
+  blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
   LOG(log_time_) << "Store block " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds();
 }
 
 void FullNode::storeBlock(DagBlock const &blk) {
-  blk_qu_->pushUnverifiedBlock(std::move(blk));
+  blk_mgr_->pushUnverifiedBlock(std::move(blk));
   LOG(log_time_) << "Store block " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds();
 }
@@ -204,7 +204,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
 }
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
-  auto known = blk_qu_->isBlockKnown(hash);
+  auto known = blk_mgr_->isBlockKnown(hash);
   if (!known) return getDagBlock(hash) != nullptr;
   return true;
 }
@@ -224,7 +224,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   std::shared_ptr<DagBlock> blk;
   // find if in block queue
-  blk = blk_qu_->getDagBlock(hash);
+  blk = blk_mgr_->getDagBlock(hash);
   // not in queue, search db
   if (!blk) {
     std::string json = db_blks_->get(hash.toString());

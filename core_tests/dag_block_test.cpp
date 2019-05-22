@@ -188,11 +188,11 @@ TEST(DagBlock, sign_verify) {
   EXPECT_TRUE(blk2.verifySig());
 }
 
-TEST(BlockQueue, push_and_pop) {
+TEST(BlockManager, push_and_pop) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf_taraxa1.json")));
-  BlockQueue blk_qu(1024, 2);
+  BlockManager blk_qu(1024, 2);
   blk_qu.setFullNode(node->getShared());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111),

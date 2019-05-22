@@ -101,10 +101,10 @@ class DagBlock {
  * Thread safe
  */
 
-class BlockQueue {
+class BlockManager {
  public:
-  BlockQueue(size_t capacity, unsigned verify_threads);
-  ~BlockQueue();
+  BlockManager(size_t capacity, unsigned verify_threads);
+  ~BlockManager();
   void pushUnverifiedBlock(DagBlock const &block);  // add to unverified queue
   void pushUnverifiedBlock(
       DagBlock const &block,
@@ -113,7 +113,7 @@ class BlockQueue {
   getVerifiedBlock();  // get one verified block and pop
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> node){ node_ = node;} 
+  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
 
@@ -127,7 +127,7 @@ class BlockQueue {
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 1;
   mutable boost::shared_mutex
-      shared_mutex_;          // shared mutex to check seen_blocks ...
+      shared_mutex_;  // shared mutex to check seen_blocks ...
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   // seen blks

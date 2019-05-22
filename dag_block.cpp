@@ -196,14 +196,14 @@ blk_hash_t DagBlock::sha3(bool include_sig) const {
   return dev::sha3(rlp(include_sig));
 }
 
-BlockQueue::BlockQueue(size_t capacity, unsigned num_verifiers)
+BlockManager::BlockManager(size_t capacity, unsigned num_verifiers)
     : capacity_(capacity), num_verifiers_(num_verifiers) {}
-BlockQueue::~BlockQueue() {
+BlockManager::~BlockManager() {
   if (!stopped_) {
     stop();
   }
 }
-void BlockQueue::start() {
+void BlockManager::start() {
   if (!stopped_) return;
   LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
   if (!node_.lock()) {
@@ -216,7 +216,7 @@ void BlockQueue::start() {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
   }
 }
-void BlockQueue::stop() {
+void BlockManager::stop() {
   if (stopped_) return;
   { stopped_ = true; }
   cond_for_unverified_qu_.notify_all();
@@ -226,12 +226,12 @@ void BlockQueue::stop() {
   }
 }
 
-bool BlockQueue::isBlockKnown(blk_hash_t const &hash) {
+bool BlockManager::isBlockKnown(blk_hash_t const &hash) {
   boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
   return seen_blocks_.count(hash);
 }
 
-std::shared_ptr<DagBlock> BlockQueue::getDagBlock(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> BlockManager::getDagBlock(blk_hash_t const &hash) {
   boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
   std::shared_ptr<DagBlock> ret;
   auto blk = seen_blocks_.find(hash);
@@ -241,7 +241,7 @@ std::shared_ptr<DagBlock> BlockQueue::getDagBlock(blk_hash_t const &hash) {
   return ret;
 }
 
-void BlockQueue::pushUnverifiedBlock(
+void BlockManager::pushUnverifiedBlock(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
   {
     upgradableLock lock(shared_mutex_);
@@ -261,11 +261,11 @@ void BlockQueue::pushUnverifiedBlock(
   cond_for_unverified_qu_.notify_one();
 }
 
-void BlockQueue::pushUnverifiedBlock(DagBlock const &blk) {
+void BlockManager::pushUnverifiedBlock(DagBlock const &blk) {
   pushUnverifiedBlock(blk, std::vector<Transaction>());
 }
 
-std::pair<DagBlock, std::vector<Transaction>> BlockQueue::getVerifiedBlock() {
+std::pair<DagBlock, std::vector<Transaction>> BlockManager::getVerifiedBlock() {
   uLock lock(mutex_for_verified_qu_);
   while (verified_qu_.empty() && !stopped_) {
     cond_for_verified_qu_.wait(lock);
@@ -279,7 +279,7 @@ std::pair<DagBlock, std::vector<Transaction>> BlockQueue::getVerifiedBlock() {
   return blk;
 }
 
-void BlockQueue::verifyBlock() {
+void BlockManager::verifyBlock() {
   auto log_time = node_.lock()->getTimeLogger();
   while (!stopped_) {
     std::pair<DagBlock, std::vector<Transaction>> blk;
