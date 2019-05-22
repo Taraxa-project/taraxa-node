@@ -36,6 +36,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
 FullNode::FullNode(boost::asio::io_context &io_context,
                    FullNodeConfig const &conf_full_node) try
     : io_context_(io_context),
+      num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
       db_accs_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_accounts_path)),
@@ -78,6 +79,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
                << std::endl;
+  LOG(log_si_) << "Number of block works: " << num_block_workers_;
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
 } catch (std::exception &e) {
