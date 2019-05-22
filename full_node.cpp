@@ -46,7 +46,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
           conf_.db_transactions_path)),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
-                                             2 /* verifer thread*/)),
+                                              2 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
       dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
@@ -210,7 +210,7 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
 }
 
 void FullNode::storeTransaction(Transaction const &trx) {
-  trx_mgr_->insertTrx(trx);
+  trx_mgr_->insertTrx(trx, true);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
@@ -385,8 +385,9 @@ std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
 }
 
 void FullNode::insertNewTransactions(
+    // transactions coming from broadcastin is less critical
     std::unordered_map<trx_hash_t, Transaction> const &transactions) {
-  for (auto const &trx : transactions) trx_mgr_->insertTrx(trx.second);
+  for (auto const &trx : transactions) trx_mgr_->insertTrx(trx.second, false);
 }
 
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }

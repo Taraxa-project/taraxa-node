@@ -166,7 +166,7 @@ void TransactionQueue::stop() {
   }
 }
 
-bool TransactionQueue::insert(Transaction trx) {
+bool TransactionQueue::insert(Transaction trx, bool critical) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
   bool ret = false;
@@ -174,7 +174,11 @@ bool TransactionQueue::insert(Transaction trx) {
     ret = trx_status_.insert(hash, TransactionStatus::in_queue);
     uLock lock(mutex_for_unverified_qu_);
     auto iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-    unverified_hash_qu_.emplace(std::make_pair(hash, iter));
+    if (critical) {
+      unverified_hash_qu_.emplace_front(std::make_pair(hash, iter));
+    } else {
+      unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
+    }
     cond_for_unverified_qu_.notify_one();
     LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
     ret = true;
@@ -204,7 +208,7 @@ void TransactionQueue::verifyTrx() {
       }
       //  utrx = std::move(unverified_qu_.front());
       item = unverified_hash_qu_.front();
-      unverified_hash_qu_.pop();
+      unverified_hash_qu_.pop_front();
     }
     try {
       trx_hash_t hash = item.first;
@@ -376,9 +380,9 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   return allTransactionsSaved;
 }
 
-bool TransactionManager::insertTrx(Transaction trx) {
+bool TransactionManager::insertTrx(Transaction trx, bool critical) {
   bool ret = false;
-  if (trx_qu_.insert(trx)) {
+  if (trx_qu_.insert(trx, critical)) {
     cond_for_pack_trx_.notify_one();
     ret = true;
   }
