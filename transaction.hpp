@@ -180,7 +180,6 @@ class Transaction {
 
 /**
  * Thread safe
- * Sort transaction based on gas price
  * Firstly import unverified transaction to deque
  * Verifier threads will verify and move the transaction to verified priority
  */
@@ -207,7 +206,7 @@ class TransactionQueue {
   }
   void start();
   void stop();
-  bool insert(Transaction trx);
+  bool insert(Transaction trx, bool critical);
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
@@ -234,7 +233,7 @@ class TransactionQueue {
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
   std::unordered_map<trx_hash_t, listIter> unverified_trxs_;
-  std::queue<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
+  std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
   std::vector<std::thread> verifiers_;
   std::mutex mutex_for_unverified_qu_;
   std::mutex mutex_for_verified_qu_;
@@ -267,7 +266,7 @@ class TransactionManager
   TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
       : db_trxs_(db_trx),
         trx_status_(),
-        trx_qu_(trx_status_, 1 /*num verifiers*/) {
+        trx_qu_(trx_status_, 8 /*num verifiers*/) {
     trx_qu_.start();
   }
   std::shared_ptr<TransactionManager> getShared() {
@@ -290,7 +289,7 @@ class TransactionManager
     stopped_ = true;
     cond_for_pack_trx_.notify_all();
   }
-  bool insertTrx(Transaction trx);
+  bool insertTrx(Transaction trx, bool critical);
   void setPackedTrxFromBlock(DagBlock const &dag_block);
   void setPackedTrxFromBlockHash(blk_hash_t blk);
   /**

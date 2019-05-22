@@ -10,9 +10,9 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include "SimpleDBFactory.h"
 #include "create_samples.hpp"
 #include "grpc_server.hpp"
-#include "SimpleDBFactory.h"
 
 namespace taraxa {
 const unsigned NUM_TRX = 40;
@@ -77,13 +77,13 @@ TEST(TransactionQueue, verifiers) {
   // insert trx
   std::thread t([&trx_qu]() {
     for (auto const& t : g_trx_samples) {
-      trx_qu.insert(t);
+      trx_qu.insert(t, true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : g_trx_samples) {
-    trx_qu.insert(t);
+    trx_qu.insert(t, false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -92,13 +92,14 @@ TEST(TransactionQueue, verifiers) {
 }
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
-  auto db_trxs = SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx");
+  auto db_trxs = SimpleDBFactory::createDelegate(
+      SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx");
   TransactionManager trx_mgr(db_trxs);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t);
+      trx_mgr.insertTrx(t, true);
     }
   });
   std::thread insertBlk([&trx_mgr]() {
@@ -118,7 +119,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   // trying to insert same trans when proposing
   std::thread insertTrx2([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t);
+      trx_mgr.insertTrx(t, false);
     }
   });
   std::cout << "Start block proposing ..." << std::endl;
@@ -136,7 +137,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   // trying to insert same trans when proposing
   std::thread insertTrx3([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t);
+      trx_mgr.insertTrx(t, true);
     }
   });
 
@@ -151,14 +152,15 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_trxs = SimpleDBFactory::createDelegate(SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx");
+  auto db_trxs = SimpleDBFactory::createDelegate(
+      SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx");
 
   TransactionManager trx_mgr(db_trxs);
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_signed_trx_samples) {
-      trx_mgr.insertTrx(t);
+      trx_mgr.insertTrx(t, false);
     }
   });
 

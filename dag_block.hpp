@@ -97,10 +97,13 @@ class DagBlock {
   mutable addr_t cached_sender_;  // block creater
 };
 
+enum class BlockStatus { invalid, unverified, verifying, verified, unseen };
+
+using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
+
 /**
  * Thread safe
  */
-
 class BlockManager {
  public:
   BlockManager(size_t capacity, unsigned verify_threads);
@@ -131,6 +134,7 @@ class BlockManager {
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   // seen blks
+  BlockStatusTable status_;
   std::map<blk_hash_t, DagBlock> seen_blocks_;
 
   std::vector<std::thread> verifiers_;
