@@ -242,7 +242,7 @@ std::shared_ptr<DagBlock> BlockManager::getDagBlock(blk_hash_t const &hash) {
 }
 
 void BlockManager::pushUnverifiedBlock(
-    DagBlock const &blk, std::vector<Transaction> const &transactions) {
+    DagBlock const &blk, std::vector<Transaction> const &transactions, bool critical) {
   {
     upgradableLock lock(shared_mutex_);
     if (seen_blocks_.count(blk.getHash())) {
@@ -250,19 +250,24 @@ void BlockManager::pushUnverifiedBlock(
       return;
     }
 
-    LOG(log_dg_) << "Insert unverified block: " << blk.getHash() << std::endl;
     upgradeLock locked(lock);
     seen_blocks_[blk.getHash()] = blk;
   }
   {
     uLock lock(mutex_for_unverified_qu_);
-    unverified_qu_.emplace_back(std::make_pair(blk, transactions));
+    if (critical){
+      unverified_qu_.emplace_front(std::make_pair(blk, transactions));
+      LOG(log_dg_) << "Insert unverified block from front: " << blk.getHash() << std::endl;
+    } else{
+      unverified_qu_.emplace_back(std::make_pair(blk, transactions));
+      LOG(log_dg_) << "Insert unverified block from back: " << blk.getHash() << std::endl;
+    }
   }
   cond_for_unverified_qu_.notify_one();
 }
 
-void BlockManager::pushUnverifiedBlock(DagBlock const &blk) {
-  pushUnverifiedBlock(blk, std::vector<Transaction>());
+void BlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
+  pushUnverifiedBlock(blk, std::vector<Transaction>(), critical);
 }
 
 std::pair<DagBlock, std::vector<Transaction>> BlockManager::getVerifiedBlock() {
