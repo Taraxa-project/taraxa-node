@@ -7,7 +7,7 @@ pipeline {
         BASE_IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
-        BRANCH_NAME_LOWER_CASE = "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]'
+        BRANCH_NAME_LOWER_CASE = sh(script: "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]', , returnStdout: true).trim()
     }
     stages {
         stage('Docker Registry Login') {
