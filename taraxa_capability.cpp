@@ -386,7 +386,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(logger_err_) << "PbftBlock full node weak pointer empty";
         return false;
       }
-      if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
+      if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
         full_node->pushPbftBlockIntoQueue(pbft_block);
         onNewPbftBlock(pbft_block);
       }
@@ -406,9 +406,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           LOG(logger_err_) << "PbftBlock full node weak pointer empty";
           return false;
         }
-        if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
-          // TODO: need check 2t+1 cert votes, then put into chain and store in
-          // DB
+        if (!full_node->isKnownPbftBlockInChain(pbft_block.getBlockHash())) {
+          // TODO: need check 2t+1 cert votes, then put into chain and store in DB. May send request for cert votes here
           full_node->setPbftBlock(pbft_block);
         }
       }
@@ -812,8 +811,9 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t chainSize,
                                       size_t blocksToTransfer) {
-  LOG(logger_debug_) << "sendPbftBlocks " << chainSize << " "
-                     << blocksToTransfer << " to " << _id;
+  LOG(logger_debug_) << "In sendPbftBlocks, already have chain size: "
+                     << chainSize << ", will send " << blocksToTransfer
+                     << " pbft blocks to " << _id;
   if (auto full_node = full_node_.lock()) {
     auto blocks =
         full_node->getPbftChain()->getPbftBlocks(chainSize, blocksToTransfer);
