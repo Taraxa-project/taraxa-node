@@ -13,6 +13,7 @@
   "network_address": "127.0.0.1",
   "network_listen_port": 10004,
   "network_simulated_delay": 0,
+  "network_transaction_interval" : 1000,
   "network_bandwidth": 40,
   "network_boot_nodes": [
     {

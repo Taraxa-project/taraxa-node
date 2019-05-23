@@ -38,7 +38,7 @@ enum SubprotocolPacketType : ::byte {
 
 enum PeerState { Idle = 0, Syncing };
 
-class TaraxaPeer : public boost::noncopyable{
+class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer() {}
   TaraxaPeer(NodeID id) : m_id(id), m_state(Idle) {}
@@ -118,11 +118,13 @@ class TaraxaPeer : public boost::noncopyable{
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, uint16_t network_simulated_delay,
-                   uint16_t network_bandwidth)
+                   uint16_t network_bandwidth,
+                   uint16_t network_transaction_interval)
       : Worker("taraxa"),
         host_(_host),
         network_simulated_delay_(network_simulated_delay),
-        network_bandwidth_(network_bandwidth) {
+        network_bandwidth_(network_bandwidth),
+        network_transaction_interval_(network_transaction_interval) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -168,7 +170,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void requestBlockChildren(NodeID const &_id, std::vector<std::string> leaves);
   void sendTransactions(NodeID const &_id,
                         std::vector<Transaction> const &transactions);
-                        
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
@@ -182,10 +183,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block);
   void requestPbftBlocks(NodeID const &_id, size_t pbftChainSize);
-  void sendPbftBlocks(NodeID const &_id, size_t chainSize, size_t blocksToTransfer);
+  void sendPbftBlocks(NodeID const &_id, size_t chainSize,
+                      size_t blocksToTransfer);
 
  private:
-  const int c_backround_work_period_ms_ = 1000;
   Host &host_;
   std::unordered_map<NodeID, int> cnt_received_messages_;
   std::unordered_map<NodeID, int> test_sums_;
@@ -202,9 +203,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::weak_ptr<FullNode> full_node_;
 
-  std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer> > peers_;
+  std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
   uint16_t network_simulated_delay_;
   uint16_t network_bandwidth_;  // Mbps
+  uint16_t network_transaction_interval_;
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;

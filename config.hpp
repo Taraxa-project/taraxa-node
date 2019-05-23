@@ -42,6 +42,7 @@ struct NetworkConfig {
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay;
   uint16_t network_bandwidth;
+  uint16_t network_transaction_interval;
 };
 
 struct PbftManagerConfig {

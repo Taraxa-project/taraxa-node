@@ -29,6 +29,11 @@ auto g_key_pair = dev::KeyPair(g_secret);
 auto g_blk_samples = samples::createMockDagBlkSamplesWithSignedTransactions(
     0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP, g_secret);
 
+const unsigned NUM_TRX = 3000;
+auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
+auto g_signed_trx_samples =
+    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+
 FullNodeConfig g_conf1("./core_tests/conf_taraxa1.json");
 FullNodeConfig g_conf2("./core_tests/conf_taraxa2.json");
 FullNodeConfig g_conf3("./core_tests/conf_taraxa3.json");
@@ -52,7 +57,8 @@ TEST(Network, node_sync) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   for (auto i = 0; i < NUM_BLK; ++i) {
-    node1->storeBlockWithTransactions(g_blk_samples[i].first, g_blk_samples[i].second);
+    node1->storeBlockWithTransactions(g_blk_samples[i].first,
+                                      g_blk_samples[i].second);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(10000);
@@ -138,14 +144,155 @@ TEST(Network, delayed_node_sync) {
     }
   }
 }
+
+/*
+Test creates a DAG on one node and verifies
+that the second node syncs with it and that the resulting
+DAG on the other end is the same using different simulated delays
+*/
+TEST(Network, delayed_node_sync2) {
+  boost::asio::io_context context1;
+
+  FullNodeConfig node1Config("./core_tests/conf_taraxa1.json");
+  node1Config.network.network_simulated_delay = 200;
+  node1Config.network.network_bandwidth = 40;
+  node1Config.proposer.param1 = 1000;
+  node1Config.proposer.param2 = 39000;
+  auto node1(std::make_shared<taraxa::FullNode>(context1, node1Config));
+
+  node1->setDebug(true);
+  node1->start(true);
+
+  // Allow node to start up
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  std::vector<std::shared_ptr<taraxa::FullNode>> nodes;
+
+  int num_nodes = 100;
+  for (auto i = 0; i < num_nodes; i++) {
+    boost::asio::io_context context2;
+    FullNodeConfig node2Config("./core_tests/conf_taraxa2.json");
+    node2Config.network.network_simulated_delay = 200;
+    node2Config.network.network_bandwidth = 40;
+    node2Config.network.network_listen_port += i;
+    node2Config.proposer.param1 = 1000;
+    node2Config.proposer.param2 = 39000;
+    node2Config.db_accounts_path += std::to_string(i);
+    node2Config.db_blocks_path += std::to_string(i);
+    node2Config.db_transactions_path += std::to_string(i);
+    nodes.push_back(std::make_shared<taraxa::FullNode>(context2, node2Config));
+    nodes[i]->start(false);
+    taraxa::thisThreadSleepForMilliSeconds(10);
+  }
+
+  while (true) {
+    bool all_connected = true;
+    for (auto i = 0; i < num_nodes; i++) {
+      if (nodes[i]->getPeerCount() < 1) {
+        all_connected = false;
+        printf("Node not connected %d\n", i);
+        taraxa::thisThreadSleepForMilliSeconds(10000);
+        break;
+      }
+    }
+    if (all_connected) {
+      printf("Nodes connected\n");
+      break;
+    }
+  }
+
+  printf("Storing transactions\n");
+  for (auto i = 0; i < NUM_TRX; i++) {
+    nodes[i % num_nodes]->storeTransaction(g_signed_trx_samples[i]);
+  }
+  printf("Stored transactions\n");
+
+  taraxa::thisThreadSleepForMilliSeconds(100000);
+}  // namespace taraxa
+
+/*
+Test creates a DAG on one node and verifies
+that the second node syncs with it and that the resulting
+DAG on the other end is the same using different simulated delays
+*/
+TEST(Network, delayed_node_sync3) {
+  boost::asio::io_context context1;
+
+  FullNodeConfig node1Config("./core_tests/conf_taraxa1.json");
+  node1Config.network.network_simulated_delay = 200;
+  node1Config.network.network_bandwidth = 40;
+  node1Config.proposer.param1 = 100000;
+  node1Config.proposer.param2 = 390000;
+  auto node1(std::make_shared<taraxa::FullNode>(context1, node1Config));
+
+  node1->setDebug(true);
+  node1->start(true);
+
+  // Allow node to start up
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  std::vector<std::shared_ptr<taraxa::FullNode>> nodes;
+
+  int num_nodes = 20;
+  for (auto i = 0; i < num_nodes; i++) {
+    boost::asio::io_context context2;
+    FullNodeConfig node2Config("./core_tests/conf_taraxa2.json");
+    node2Config.network.network_simulated_delay = 200;
+    node2Config.network.network_bandwidth = 40;
+    node2Config.network.network_listen_port += i;
+    node2Config.proposer.param1 = 100000;
+    node2Config.proposer.param2 = 390000;
+    node2Config.db_accounts_path += std::to_string(i);
+    node2Config.db_blocks_path += std::to_string(i);
+    node2Config.db_transactions_path += std::to_string(i);
+    nodes.push_back(std::make_shared<taraxa::FullNode>(context2, node2Config));
+    nodes[i]->start(false);
+    taraxa::thisThreadSleepForMilliSeconds(10);
+  }
+
+  while (true) {
+    bool all_connected = true;
+    for (auto i = 0; i < num_nodes; i++) {
+      if (nodes[i]->getPeerCount() < 1) {
+        all_connected = false;
+        printf("Node not connected %d\n", i);
+        taraxa::thisThreadSleepForMilliSeconds(10000);
+        break;
+      }
+    }
+    if (all_connected) {
+      printf("Nodes connected\n");
+      break;
+    }
+  }
+
+  printf("Storing transactions\n");
+  for (auto i = 0; i < NUM_TRX; i++) {
+    nodes[i % num_nodes]->storeTransaction(g_signed_trx_samples[i]);
+  }
+  printf("Stored transactions\n");
+
+  while (true) {
+    int totalTrx = 0;
+    for (int i = 0; i < num_nodes; i++) {
+      totalTrx += nodes[i]->getNewVerifiedTrxSnapShot(false).size();
+      if (i % 10 == 0)
+        printf("%d %lu\n", i,
+               nodes[i]->getNewVerifiedTrxSnapShot(false).size());
+    }
+    printf("Total: %d\n", totalTrx);
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+}
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityInfo;
   // logOptions.includeChannels.push_back("NETWORK");
-  //logOptions.includeChannels.push_back("DAGMGR");
-  //logOptions.includeChannels.push_back("TARCAP");
+  // logOptions.includeChannels.push_back("DAGMGR");
+  // logOptions.includeChannels.push_back("TARCAP");
+  logOptions.includeChannels.push_back("TMSTM");
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage

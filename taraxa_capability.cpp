@@ -448,7 +448,8 @@ void TaraxaCapability::onNewTransactions(
         }
       }
     }
-  } else {
+  }
+  if (!fromNetwork || network_transaction_interval_ == 0) {
     for (auto &peer : peers_) {
       std::vector<Transaction> transactionsToSend;
       for (auto const &transaction : transactions) {
@@ -688,7 +689,7 @@ void TaraxaCapability::doBackgroundWork() {
   if (auto full_node = full_node_.lock()) {
     onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
   }
-  host_.scheduleExecution(c_backround_work_period_ms_,
+  host_.scheduleExecution(network_transaction_interval_,
                           [this]() { doBackgroundWork(); });
 }
 
@@ -699,8 +700,9 @@ void TaraxaCapability::onStarting() {
     for (int i = 0; i < number_of_delayed_threads; ++i)
       delay_threads_.create_thread([&]() { io_service_.run(); });
   }
-  host_.scheduleExecution(c_backround_work_period_ms_,
-                          [this]() { doBackgroundWork(); });
+  if (network_transaction_interval_ > 0)
+    host_.scheduleExecution(network_transaction_interval_,
+                            [this]() { doBackgroundWork(); });
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
