@@ -28,7 +28,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'git submodule update --init --recursive'
-                sh 'docker build --pull -t ${IMAGE}-${BRANCH_NAME,,}-${BUILD_NUMBER} -f dockerfiles/Dockerfile .'
+                sh 'docker build --pull -t ${IMAGE}-${BRANCH_NAME.toLowerCase()}-${BUILD_NUMBER} -f dockerfiles/Dockerfile .'
             }                    
         }
         stage('Smoke Test') {
