@@ -246,7 +246,7 @@ void FullNode::storeTransaction(Transaction const &trx) {
     map_trx[trx.getHash()] = trx;
     network_->onNewTransactions(map_trx);
   }
-  trx_mgr_->insertTrx(trx);
+  trx_mgr_->insertTrx(trx, true);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
