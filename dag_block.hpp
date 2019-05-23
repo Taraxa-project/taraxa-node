@@ -108,10 +108,10 @@ class BlockManager {
  public:
   BlockManager(size_t capacity, unsigned verify_threads);
   ~BlockManager();
-  void pushUnverifiedBlock(DagBlock const &block);  // add to unverified queue
+  void pushUnverifiedBlock(DagBlock const &block, bool critical);  // add to unverified queue
   void pushUnverifiedBlock(
       DagBlock const &block,
-      std::vector<Transaction> const &transactions);  // add to unverified queue
+      std::vector<Transaction> const &transactions, bool critical);  // add to unverified queue
   std::pair<DagBlock, std::vector<Transaction> >
   getVerifiedBlock();  // get one verified block and pop
   void start();

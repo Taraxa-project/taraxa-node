@@ -161,7 +161,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(logger_) << "Storing " << newTransactions.size() << " transactions";
         full_node->insertNewTransactions(newTransactions);
         LOG(logger_) << "Storing block " << block.getHash().toString();
-        full_node->storeBlock(block);
+        std::vector<Transaction> emptyTrx;
+        full_node->storeBlockWithTransactions(block, emptyTrx);
       } else {
         for (const auto &transaction : newTransactions) {
           if (test_transactions_.find(transaction.first) ==

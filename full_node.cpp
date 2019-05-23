@@ -180,14 +180,14 @@ std::vector<public_t> FullNode::getAllPeers() const {
 
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
-  blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions));
-  LOG(log_time_) << "Store block " << blk.getHash()
+  blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions), false /*critical*/);
+  LOG(log_time_) << "Store ncblock " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds();
 }
 
 void FullNode::storeBlock(DagBlock const &blk) {
-  blk_mgr_->pushUnverifiedBlock(std::move(blk));
-  LOG(log_time_) << "Store block " << blk.getHash()
+  blk_mgr_->pushUnverifiedBlock(std::move(blk), true /*critical*/);
+  LOG(log_time_) << "Store cblock " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds();
 }
 
