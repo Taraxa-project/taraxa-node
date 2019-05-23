@@ -225,6 +225,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       dev::createLogger(dev::Verbosity::VerbosityTrace, "FULLND")};
   mutable dev::Logger log_time_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TMSTM")};
+  mutable dev::Logger log_time_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "TMSTM")};
 };
 
 }  // namespace taraxa

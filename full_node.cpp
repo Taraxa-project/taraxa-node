@@ -391,7 +391,11 @@ std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
 void FullNode::insertNewTransactions(
     // transactions coming from broadcastin is less critical
     std::unordered_map<trx_hash_t, Transaction> const &transactions) {
-  for (auto const &trx : transactions) trx_mgr_->insertTrx(trx.second, false);
+  for (auto const &trx : transactions) {
+    trx_mgr_->insertTrx(trx.second, false);
+    LOG(log_time_dg_)<<"Transaction "<<trx.second.getHash()
+                        << " brkreceived at: " << getCurrentTimeMilliSeconds();
+  }
 }
 
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }
