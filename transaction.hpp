@@ -231,14 +231,18 @@ class TransactionQueue {
   unsigned future_capacity_ = 1024;
 
   std::list<Transaction> trx_buffer_;
+  std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
+  std::mutex mutex_for_queued_trxs_;
+
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
-  std::unordered_map<trx_hash_t, listIter> unverified_trxs_;
-  std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
-  std::vector<std::thread> verifiers_;
-  std::mutex mutex_for_unverified_qu_;
   std::mutex mutex_for_verified_qu_;
 
+  std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
+  std::mutex mutex_for_unverified_qu_;
   std::condition_variable cond_for_unverified_qu_;
+
+  std::vector<std::thread> verifiers_;
+
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXQU")};
   dev::Logger log_wr_{
