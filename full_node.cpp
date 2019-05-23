@@ -135,46 +135,14 @@ void FullNode::start(bool boot_node) {
         // will block if no verified block available
         auto blk = blk_mgr_->getVerifiedBlock();
         if (stopped_) break;
-        LOG(log_time_) << "VerifyingTrx block  " << blk.first.getHash()
-                       << "at: " << getCurrentTimeMilliSeconds();
-        // Any transactions that are passed with the block were not verified in
-        // transactions queue so they need to be verified here
-        bool invalidTransaction = false;
-        for (auto const &trx : blk.second) {
-          auto valid = trx.verifySig();  // Probably move this check somewhere
-                                         // in transaction classes later
-          if (!valid) {
-            invalidTransaction = true;
-            LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
-          }
-        }
-        // Skip block if invalid transaction
-        if (invalidTransaction) continue;
 
-        // Save the transaction that came with the block together with the
-        // transactions that are in the queue This will update the transaction
-        // status as well and remove the transactions from the queue
-        bool transactionsSave =
-            trx_mgr_->saveBlockTransactionsAndUpdateTransactionStatus(
-                blk.first.getTrxs(), blk.second);
-
-        // Skip block if we are missing transactions
-        if (!transactionsSave) {
-          LOG(log_er_) << "Error: Block missing transactions "
-                       << blk.first.getHash();
-          continue;
-        }
-
-        LOG(log_nf_) << "Write block to db ... " << blk.first.getHash()
-                     << std::endl;
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
           if (!stopped_) {
             received_blocks_++;
           }
         }
-        LOG(log_time_) << "VerifiedTrx block " << blk.first.getHash()
-                       << " at: " << getCurrentTimeMilliSeconds();
+         
         dag_mgr_->addDagBlock(blk.first);
         {
           db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
