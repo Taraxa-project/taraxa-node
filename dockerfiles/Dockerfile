@@ -22,6 +22,6 @@ COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
 COPY ./core_tests/*.json ./default_config/
 
-
-ENTRYPOINT [ "./main" ]
-CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
+CMD ["/bin/bash"]
+# ENTRYPOINT [ "./main" ]
+# CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
