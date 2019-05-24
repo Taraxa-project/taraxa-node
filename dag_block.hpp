@@ -98,7 +98,7 @@ class DagBlock {
   mutable addr_t cached_sender_;  // block creater
 };
 
-enum class BlockStatus { invalid, unverified, verifying, verified, unseen };
+enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
 
 using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
 
