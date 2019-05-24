@@ -254,14 +254,16 @@ void BlockManager::pushUnverifiedBlock(
     upgradeLock locked(lock);
     seen_blocks_[blk.getHash()] = blk;
   }
-  blk_status_.insert(blk.getHash(), BlockStatus::unverified);
   {
     uLock lock(shared_mutex_for_unverified_qu_);
     if (critical) {
+      blk_status_.insert(blk.getHash(), BlockStatus::proposed);
+
       unverified_qu_.emplace_front(std::make_pair(blk, transactions));
       LOG(log_dg_) << "Insert unverified block from front: " << blk.getHash()
                    << std::endl;
     } else {
+      blk_status_.insert(blk.getHash(), BlockStatus::broadcasted);
       unverified_qu_.emplace_back(std::make_pair(blk, transactions));
       LOG(log_dg_) << "Insert unverified block from back: " << blk.getHash()
                    << std::endl;
@@ -300,7 +302,6 @@ void BlockManager::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
-    blk_status_.update(blk.first.getHash(), BlockStatus::verifying);
     // Verifying transaction ...
     LOG(log_time) << "VerifyingTrx block  " << blk.first.getHash()
                   << " at: " << getCurrentTimeMilliSeconds();
