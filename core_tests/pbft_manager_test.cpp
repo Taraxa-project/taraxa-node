@@ -39,7 +39,7 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
 
   node->setDebug(true);
-  node->start(true); // boot_node
+  node->start(true);  // boot_node
 
   // stop pbft manager for test
   pbft_mgr->stop();
@@ -58,7 +58,7 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
 
   // node1 create transactions
   for (auto const& t : g_trx_signed_samples) {
-    node->storeTransaction(t);
+    node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
   taraxa::thisThreadSleepForMilliSeconds(3000);
@@ -116,7 +116,7 @@ TEST(PbftManager, pbft_manager_run_multi_nodes) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true); // boot_node
+  node1->start(true);  // boot_node
   node2->start(false);
   node3->start(false);
 
@@ -167,9 +167,9 @@ TEST(PbftManager, pbft_manager_run_multi_nodes) {
 
   // nodes create transactions
   for (auto const& t : g_trx_signed_samples) {
-    node1->storeTransaction(t);
-    node2->storeTransaction(t);
-    node3->storeTransaction(t);
+    node1->insertTransaction(t);
+    node2->insertTransaction(t);
+    node3->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
   taraxa::thisThreadSleepForMilliSeconds(3000);
@@ -224,7 +224,7 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true); // boot_node
+  node1->start(true);  // boot_node
   node2->start(false);
   node3->start(false);
 
@@ -412,7 +412,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   EXPECT_EQ(node2->getVoteQueueSize(), current_pbft_queue_size);
 
   // period 1, step 3
-  // node1 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 1 cert vote
+  // node1 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 1
+  // cert vote
   pbft_mgr1->setPbftStep(3);
   pbft_mgr1->setPbftPeriod(1);
   pbft_mgr1->start();
@@ -438,7 +439,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   }
   EXPECT_EQ(node2->getVoteQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getVoteQueueSize(), current_pbft_queue_size);
-  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 2 cert votes
+  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 2
+  // cert votes
   pbft_mgr2->setPbftStep(3);
   pbft_mgr2->setPbftPeriod(1);
   pbft_mgr2->start();
@@ -464,7 +466,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   }
   EXPECT_EQ(node1->getVoteQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getVoteQueueSize(), current_pbft_queue_size);
-  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes
+  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes
   pbft_mgr3->setPbftStep(3);
   pbft_mgr3->setPbftPeriod(1);
   pbft_mgr3->start();
@@ -492,7 +495,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   EXPECT_EQ(node2->getVoteQueueSize(), current_pbft_queue_size);
 
   // period 1, step 4
-  // node1 next vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes, 1 next vote
+  // node1 next vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes, 1 next vote
   pbft_mgr1->setPbftStep(4);
   pbft_mgr1->setPbftPeriod(1);
   pbft_mgr1->start();
@@ -518,7 +522,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   }
   EXPECT_EQ(node2->getVoteQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getVoteQueueSize(), current_pbft_queue_size);
-  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes, 2 next votes
+  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes, 2 next votes
   pbft_mgr2->setPbftStep(4);
   pbft_mgr2->setPbftPeriod(1);
   pbft_mgr2->start();
@@ -544,7 +549,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   }
   EXPECT_EQ(node1->getVoteQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getVoteQueueSize(), current_pbft_queue_size);
-  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes, 3 next votes
+  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes, 3 next votes
   pbft_mgr3->setPbftStep(4);
   pbft_mgr3->setPbftPeriod(1);
   pbft_mgr3->start();
@@ -572,7 +578,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   EXPECT_EQ(node2->getVoteQueueSize(), current_pbft_queue_size);
 
   // period 1, step 5 TODO: need debug
-  // node1 next vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes, 4 next votes
+  // node1 next vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes, 4 next votes
   pbft_mgr1->setPbftStep(5);
   pbft_mgr1->setPbftPeriod(1);
   pbft_mgr1->start();
@@ -598,7 +605,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   }
   EXPECT_EQ(node2->getVoteQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getVoteQueueSize(), current_pbft_queue_size);
-  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes, 5 next votes
+  // node2 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes, 5 next votes
   pbft_mgr2->setPbftStep(5);
   pbft_mgr2->setPbftPeriod(1);
   pbft_mgr2->start();
@@ -624,7 +632,8 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   }
   EXPECT_EQ(node1->getVoteQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getVoteQueueSize(), current_pbft_queue_size);
-  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3 cert votes, 6 next votes
+  // node3 cert vote for the pbft anchor block, 1 propose vote 3 soft votes 3
+  // cert votes, 6 next votes
   pbft_mgr3->setPbftStep(5);
   pbft_mgr3->setPbftPeriod(1);
   pbft_mgr3->start();
@@ -663,7 +672,7 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
   t3.join();
 }
 
-} // namespace taraxa
+}  // namespace taraxa
 
 int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;

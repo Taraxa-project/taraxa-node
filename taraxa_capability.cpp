@@ -42,8 +42,8 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
         LOG(logger_) << "Storing block "
                      << block.second.first.getHash().toString() << " with "
                      << block.second.second.size() << " transactions";
-        full_node->storeBlockWithTransactions(block.second.first,
-                                              block.second.second);
+        full_node->insertBroadcastedBlockWithTransactions(block.second.first,
+                                                          block.second.second);
       }
     }
     auto start = std::chrono::steady_clock::now();
@@ -166,7 +166,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       } else if (auto full_node = full_node_.lock()) {
         LOG(logger_) << "Storing blocks " << block.getHash().toString()
                      << " with transactions " << vec_new_trxs.size();
-        full_node->storeBlockWithTransactions(block, vec_new_trxs);
+        full_node->insertBroadcastedBlockWithTransactions(block, vec_new_trxs);
       } else {
         for (const auto &transaction : newTransactions) {
           if (test_transactions_.find(transaction.first) ==
@@ -438,7 +438,7 @@ void TaraxaCapability::onNewTransactions(
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
       LOG(logger_) << "Storing " << transactions.size() << " transactions";
-      full_node->insertNewTransactions(transactions);
+      full_node->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
         if (test_transactions_.find(transaction.first) ==
@@ -479,7 +479,7 @@ void TaraxaCapability::onNewBlockReceived(
     } else {
       LOG(logger_) << "Storing block " << block.getHash().toString() << " with "
                    << transactions.size() << " transactions";
-      full_node->storeBlockWithTransactions(block, transactions);
+      full_node->insertBroadcastedBlockWithTransactions(block, transactions);
     }
   } else if (test_blocks_.find(block.getHash()) == test_blocks_.end()) {
     test_blocks_[block.getHash()] = block;

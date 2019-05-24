@@ -41,7 +41,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
-    node->storeBlock(g_mock_dag0[i]);
+    node->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
   std::string pivot;
@@ -68,7 +68,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
-    node->storeBlock(g_mock_dag0[i]);
+    node->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
 
@@ -89,7 +89,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   // -------- third period ----------
 
   for (int i = 17; i < g_mock_dag0.size(); i++) {
-    node->storeBlock(g_mock_dag0[i]);
+    node->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
 
@@ -211,7 +211,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
   for (auto const& t : g_trx_signed_samples) {
-    node->storeTransaction(t);
+    node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
 

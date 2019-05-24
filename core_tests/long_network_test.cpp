@@ -57,8 +57,8 @@ TEST(Network, node_sync) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   for (auto i = 0; i < NUM_BLK; ++i) {
-    node1->storeBlockWithTransactions(g_blk_samples[i].first,
-                                      g_blk_samples[i].second);
+    node1->insertBroadcastedBlockWithTransactions(g_blk_samples[i].first,
+                                                  g_blk_samples[i].second);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(10000);
@@ -104,8 +104,8 @@ TEST(Network, delayed_node_sync) {
       taraxa::thisThreadSleepForMilliSeconds(1000);
 
       for (auto i = 0; i < 30; ++i) {
-        node1->storeBlockWithTransactions(g_blk_samples[i].first,
-                                          g_blk_samples[i].second);
+        node1->insertBroadcastedBlockWithTransactions(g_blk_samples[i].first,
+                                                      g_blk_samples[i].second);
       }
 
       taraxa::thisThreadSleepForMilliSeconds(10000);
@@ -203,7 +203,7 @@ TEST(Network, delayed_node_sync2) {
 
   printf("Storing transactions\n");
   for (auto i = 0; i < NUM_TRX; i++) {
-    nodes[i % num_nodes]->storeTransaction(g_signed_trx_samples[i]);
+    nodes[i % num_nodes]->insertTransaction(g_signed_trx_samples[i]);
   }
   printf("Stored transactions\n");
 
@@ -268,7 +268,7 @@ TEST(Network, delayed_node_sync3) {
 
   printf("Storing transactions\n");
   for (auto i = 0; i < NUM_TRX; i++) {
-    nodes[i % num_nodes]->storeTransaction(g_signed_trx_samples[i]);
+    nodes[i % num_nodes]->insertTransaction(g_signed_trx_samples[i]);
   }
   printf("Stored transactions\n");
 
