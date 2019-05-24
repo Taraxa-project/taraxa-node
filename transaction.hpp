@@ -23,6 +23,7 @@
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
 #include "util.hpp"
+#include <boost/thread/condition_variable.hpp>
 
 namespace taraxa {
 
@@ -213,13 +214,16 @@ class TransactionQueue {
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
-      vec_trx_t const &allBlockTransactions);
+      vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
  private:
-  using uLock = std::unique_lock<std::mutex>;
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using listIter = std::list<Transaction>::iterator;
   void verifyTrx();
   bool stopped_ = true;
@@ -232,14 +236,14 @@ class TransactionQueue {
 
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
-  std::mutex mutex_for_queued_trxs_;
+  boost::shared_mutex shared_mutex_for_queued_trxs_;
 
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
-  std::mutex mutex_for_verified_qu_;
+  boost::shared_mutex shared_mutex_for_verified_qu_;
 
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
-  std::mutex mutex_for_unverified_qu_;
-  std::condition_variable cond_for_unverified_qu_;
+  boost::shared_mutex shared_mutex_for_unverified_qu_;
+  boost::condition_variable_any cond_for_unverified_qu_;
 
   std::vector<std::thread> verifiers_;
 
