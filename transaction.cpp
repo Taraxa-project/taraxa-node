@@ -176,7 +176,7 @@ bool TransactionQueue::insert(Transaction trx, bool critical) {
     {
       uLock lock(shared_mutex_for_queued_trxs_);
       iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-      assert(iter !=trx_buffer_.end());
+      assert(iter != trx_buffer_.end());
       queued_trxs_[trx.getHash()] = iter;
     }
     {
@@ -416,7 +416,6 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
 bool TransactionManager::insertTrx(Transaction trx, bool critical) {
   bool ret = false;
   if (trx_qu_.insert(trx, critical)) {
-    cond_for_pack_trx_.notify_one();
     ret = true;
   }
   return ret;
