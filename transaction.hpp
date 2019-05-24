@@ -295,7 +295,6 @@ class TransactionManager
   void stop() {
     if (stopped_) return;
     stopped_ = true;
-    cond_for_pack_trx_.notify_all();
   }
   bool insertTrx(Transaction trx, bool critical);
   void setPackedTrxFromBlock(DagBlock const &dag_block);
@@ -332,9 +331,6 @@ class TransactionManager
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;
   std::mutex mutex_;
-
-  std::mutex mutex_for_pack_trx_;
-  std::condition_variable cond_for_pack_trx_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
   dev::Logger log_wr_{
