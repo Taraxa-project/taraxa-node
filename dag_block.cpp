@@ -242,7 +242,8 @@ std::shared_ptr<DagBlock> BlockManager::getDagBlock(blk_hash_t const &hash) {
 }
 
 void BlockManager::pushUnverifiedBlock(
-    DagBlock const &blk, std::vector<Transaction> const &transactions, bool critical) {
+    DagBlock const &blk, std::vector<Transaction> const &transactions,
+    bool critical) {
   {
     upgradableLock lock(shared_mutex_);
     if (seen_blocks_.count(blk.getHash())) {
@@ -253,14 +254,17 @@ void BlockManager::pushUnverifiedBlock(
     upgradeLock locked(lock);
     seen_blocks_[blk.getHash()] = blk;
   }
+  blk_status_.insert(blk.getHash(), BlockStatus::unverified);
   {
-    uLock lock(mutex_for_unverified_qu_);
-    if (critical){
+    uLock lock(shared_mutex_for_unverified_qu_);
+    if (critical) {
       unverified_qu_.emplace_front(std::make_pair(blk, transactions));
-      LOG(log_dg_) << "Insert unverified block from front: " << blk.getHash() << std::endl;
-    } else{
+      LOG(log_dg_) << "Insert unverified block from front: " << blk.getHash()
+                   << std::endl;
+    } else {
       unverified_qu_.emplace_back(std::make_pair(blk, transactions));
-      LOG(log_dg_) << "Insert unverified block from back: " << blk.getHash() << std::endl;
+      LOG(log_dg_) << "Insert unverified block from back: " << blk.getHash()
+                   << std::endl;
     }
   }
   cond_for_unverified_qu_.notify_one();
@@ -270,15 +274,14 @@ void BlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
   pushUnverifiedBlock(blk, std::vector<Transaction>(), critical);
 }
 
-std::pair<DagBlock, std::vector<Transaction>> BlockManager::getVerifiedBlock() {
-  uLock lock(mutex_for_verified_qu_);
+DagBlock BlockManager::popVerifiedBlock() {
+  uLock lock(shared_mutex_for_verified_qu_);
   while (verified_qu_.empty() && !stopped_) {
     cond_for_verified_qu_.wait(lock);
   }
-  std::pair<DagBlock, std::vector<Transaction>> blk;
-  if (stopped_) return blk;
+  if (stopped_) return DagBlock();
 
-  blk = verified_qu_.front();
+  auto blk = verified_qu_.front().first;
 
   verified_qu_.pop_front();
   return blk;
@@ -289,7 +292,7 @@ void BlockManager::verifyBlock() {
   while (!stopped_) {
     std::pair<DagBlock, std::vector<Transaction>> blk;
     {
-      uLock lock(mutex_for_unverified_qu_);
+      uLock lock(shared_mutex_for_unverified_qu_);
       while (unverified_qu_.empty() && !stopped_) {
         cond_for_unverified_qu_.wait(lock);
       }
@@ -297,6 +300,7 @@ void BlockManager::verifyBlock() {
       blk = unverified_qu_.front();
       unverified_qu_.pop_front();
     }
+    blk_status_.update(blk.first.getHash(), BlockStatus::verifying);
     // Verifying transaction ...
     LOG(log_time) << "VerifyingTrx block  " << blk.first.getHash()
                   << " at: " << getCurrentTimeMilliSeconds();
@@ -312,6 +316,7 @@ void BlockManager::verifyBlock() {
     if (invalidTransaction) {
       LOG(log_er_) << "Ignore block " << blk.first.getHash()
                    << " since it has invalid transactions";
+      blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
       continue;
     }
     LOG(log_time) << "VerifiedTrx block " << blk.first.getHash()
@@ -328,6 +333,8 @@ void BlockManager::verifyBlock() {
     if (!transactionsSave) {
       LOG(log_er_) << "Error: Block missing transactions "
                    << blk.first.getHash();
+      blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
+
       continue;
     }
     LOG(log_time) << "VerifiedTrx stored " << blk.first.getHash()
@@ -335,9 +342,11 @@ void BlockManager::verifyBlock() {
 
     // TODO: verify block, now just move it to verified_qu_
     {
-      uLock lock(mutex_for_verified_qu_);
+      uLock lock(shared_mutex_for_verified_qu_);
       verified_qu_.emplace_back(blk);
     }
+    blk_status_.update(blk.first.getHash(), BlockStatus::verified);
+
     cond_for_verified_qu_.notify_one();
     LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
   }

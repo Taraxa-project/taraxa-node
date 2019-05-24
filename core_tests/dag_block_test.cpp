@@ -206,10 +206,10 @@ TEST(BlockManager, push_and_pop) {
   blk_qu.pushUnverifiedBlock(blk1, true);
   blk_qu.pushUnverifiedBlock(blk2, false);
 
-  auto blk3 = blk_qu.getVerifiedBlock();
-  auto blk4 = blk_qu.getVerifiedBlock();
+  auto blk3 = blk_qu.popVerifiedBlock();
+  auto blk4 = blk_qu.popVerifiedBlock();
   // The order is non-deterministic
-  bool res = (blk1 == blk3.first) ? blk2 == blk4.first : blk2 == blk3.first;
+  bool res = (blk1 == blk3) ? blk2 == blk4 : blk2 == blk3;
   EXPECT_TRUE(res);
   blk_qu.stop();
 }

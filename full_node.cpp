@@ -46,7 +46,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
           conf_.db_transactions_path)),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
-                                              2 /* verifer thread*/)),
+                                              4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
       dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
@@ -133,7 +133,7 @@ void FullNode::start(bool boot_node) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
         // will block if no verified block available
-        auto blk = blk_mgr_->getVerifiedBlock();
+        auto blk = blk_mgr_->popVerifiedBlock();
         if (stopped_) break;
 
         if (debug_) {
@@ -142,14 +142,14 @@ void FullNode::start(bool boot_node) {
             received_blocks_++;
           }
         }
-         
-        dag_mgr_->addDagBlock(blk.first);
+
+        dag_mgr_->addDagBlock(blk);
         {
-          db_blks_->put(blk.first.getHash().toString(), blk.first.getJsonStr());
+          db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
           db_blks_->commit();
         }
-        network_->onNewBlockVerified(blk.first);
-        LOG(log_time_) << "Broadcast block " << blk.first.getHash()
+        network_->onNewBlockVerified(blk);
+        LOG(log_time_) << "Broadcast block " << blk.getHash()
                        << " at: " << getCurrentTimeMilliSeconds();
       }
     });
@@ -179,7 +179,8 @@ std::vector<public_t> FullNode::getAllPeers() const {
 
 void FullNode::storeBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
-  blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions), false /*critical*/);
+  blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions),
+                                false /*critical*/);
   LOG(log_time_) << "Store ncblock " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds();
 }
@@ -393,8 +394,8 @@ void FullNode::insertNewTransactions(
     std::unordered_map<trx_hash_t, Transaction> const &transactions) {
   for (auto const &trx : transactions) {
     trx_mgr_->insertTrx(trx.second, false);
-    LOG(log_time_dg_)<<"Transaction "<<trx.second.getHash()
-                        << " brkreceived at: " << getCurrentTimeMilliSeconds();
+    LOG(log_time_dg_) << "Transaction " << trx.second.getHash()
+                      << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
 }
 
@@ -505,7 +506,7 @@ size_t FullNode::getPbftQueueSize() const {
 
 size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
 
-bool FullNode::setPbftBlock(taraxa::PbftBlock const& pbft_block) {
+bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       return false;
