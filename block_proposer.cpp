@@ -126,7 +126,7 @@ void BlockProposer::proposeBlock() {
   if (!full_node_.expired()) {
     LOG(log_nf_) << "Propose block" << std::endl;
 
-    full_node_.lock()->storeBlockAndSign(blk);
+    full_node_.lock()->insertBlockAndSign(blk);
   } else {
     LOG(log_er_) << "FullNode unavailable ..." << std::endl;
     return;

@@ -177,7 +177,7 @@ std::vector<public_t> FullNode::getAllPeers() const {
   return network_->getAllPeers();
 }
 
-void FullNode::storeBlockWithTransactions(
+void FullNode::insertBroadcastedBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
   blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions),
                                 false /*critical*/);
@@ -185,13 +185,13 @@ void FullNode::storeBlockWithTransactions(
                  << " at: " << getCurrentTimeMilliSeconds();
 }
 
-void FullNode::storeBlock(DagBlock const &blk) {
+void FullNode::insertBlock(DagBlock const &blk) {
   blk_mgr_->pushUnverifiedBlock(std::move(blk), true /*critical*/);
   LOG(log_time_) << "Store cblock " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds();
 }
 
-void FullNode::storeBlockAndSign(DagBlock const &blk) {
+void FullNode::insertBlockAndSign(DagBlock const &blk) {
   DagBlock sign_block(blk);
   sign_block.sign(node_sk_);
 
@@ -200,7 +200,7 @@ void FullNode::storeBlockAndSign(DagBlock const &blk) {
   LOG(log_time_) << "Propose block " << sign_block.getHash() << " at: " << now
                  << " ,trxs: " << sign_block.getTrxs();
 
-  storeBlock(sign_block);
+  insertBlock(sign_block);
 }
 
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
@@ -209,7 +209,7 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
-void FullNode::storeTransaction(Transaction const &trx) {
+void FullNode::insertTransaction(Transaction const &trx) {
   if (conf_.network.network_transaction_interval == 0) {
     std::unordered_map<trx_hash_t, Transaction> map_trx;
     map_trx[trx.getHash()] = trx;
@@ -389,11 +389,11 @@ std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
   return trx_mgr_->getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-void FullNode::insertNewTransactions(
+void FullNode::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
     std::unordered_map<trx_hash_t, Transaction> const &transactions) {
   for (auto const &trx : transactions) {
-    trx_mgr_->insertTrx(trx.second, false);
+    trx_mgr_->insertTrx(trx.second, false /* critical */);
     LOG(log_time_dg_) << "Transaction " << trx.second.getHash()
                       << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }

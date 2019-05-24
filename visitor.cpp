@@ -18,7 +18,7 @@ BlockVisitor::BlockVisitor(std::weak_ptr<FullNode> full_node)
 void BlockVisitor::visit(stream &strm) {
   block_.deserialize(strm);
   if (auto fn = full_node_.lock()) {
-    fn->storeBlock(block_);
+    fn->insertBlock(block_);
   }
 }
 DagBlock BlockVisitor::getDagBlock() { return block_; }

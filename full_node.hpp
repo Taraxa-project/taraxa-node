@@ -64,20 +64,25 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionManager> getTransactionManager() const {
     return trx_mgr_;
   }
+
   // network stuff
   size_t getPeerCount() const;
   std::vector<public_t> getAllPeers() const;
-  // Store a block in persistent storage and build in dag
-  void storeBlock(DagBlock const &blk);
-  void storeBlockAndSign(DagBlock const &blk);
+
+  // Insert a block in persistent storage and build in dag
+  void insertBlock(DagBlock const &blk);
+  void insertBlockAndSign(DagBlock const &blk);
 
   // Only used in initial syncs when blocks are received with full list of
   // transactions
-  void storeBlockWithTransactions(DagBlock const &blk,
-                                  std::vector<Transaction> const &transactions);
-
-  // Store transaction
-  void storeTransaction(Transaction const &trx);
+  void insertBroadcastedBlockWithTransactions(
+      DagBlock const &blk, std::vector<Transaction> const &transactions);
+  // Insert new transaction, critical
+  void insertTransaction(Transaction const &trx);
+  // Transactions coming from broadcasting is less critical
+  void insertBroadcastedTransactions(
+      std::unordered_map<trx_hash_t, Transaction> const &transactions);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // Dag related: return childern, siblings, tips before time stamp
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
@@ -132,9 +137,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
-  void insertNewTransactions(
-      std::unordered_map<trx_hash_t, Transaction> const &transactions);
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
 
   // PBFT
   bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -158,7 +160,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   size_t getPbftQueueSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
-  bool setPbftBlock(PbftBlock const& pbft_block);  // Test purpose
+  bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<VoteQueue> getVoteQueue() const { return vote_queue_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }

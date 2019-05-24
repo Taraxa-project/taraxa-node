@@ -231,7 +231,7 @@ TEST(Network, node_sync) {
   blks.push_back(blk1);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->storeBlock(blks[i]);
+    node1->insertBlock(blks[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -385,12 +385,12 @@ TEST(Network, node_sync_with_transactions) {
                 blk_hash_t(06), addr_t(999));
   std::vector<Transaction> tr6;
 
-  node1->storeBlockWithTransactions(blk6, tr6);
-  node1->storeBlockWithTransactions(blk5, tr5);
-  node1->storeBlockWithTransactions(blk4, tr4);
-  node1->storeBlockWithTransactions(blk3, tr3);
-  node1->storeBlockWithTransactions(blk2, tr2);
-  node1->storeBlockWithTransactions(blk1, tr1);
+  node1->insertBroadcastedBlockWithTransactions(blk6, tr6);
+  node1->insertBroadcastedBlockWithTransactions(blk5, tr5);
+  node1->insertBroadcastedBlockWithTransactions(blk4, tr4);
+  node1->insertBroadcastedBlockWithTransactions(blk3, tr3);
+  node1->insertBroadcastedBlockWithTransactions(blk2, tr2);
+  node1->insertBroadcastedBlockWithTransactions(blk1, tr1);
 
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -552,7 +552,7 @@ TEST(Network, node_sync2) {
   trxs.push_back(tr12);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->storeBlockWithTransactions(blks[i], trxs[i]);
+    node1->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -606,7 +606,7 @@ TEST(Network, node_transaction_sync) {
     transactions[t.getHash()] = t;
   }
 
-  node1->insertNewTransactions(transactions);
+  node1->insertBroadcastedTransactions(transactions);
 
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
@@ -674,7 +674,7 @@ TEST(Network, node_full_sync) {
   for (auto const& t : g_signed_trx_samples2) {
     std::unordered_map<trx_hash_t, Transaction> transactions;
     transactions[t.getHash()] = t;
-    nodes[distNodes(rng)]->insertNewTransactions(transactions);
+    nodes[distNodes(rng)]->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
     // printf("Created transaction %d, vertices %lu\n", counter,

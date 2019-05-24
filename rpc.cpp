@@ -184,7 +184,7 @@ void RpcHandler::processRequest() {
 
         DagBlock blk(pivot, tips, {}, signature, hash, sender);
         res = blk.getJsonStr();
-        node_->storeBlock(std::move(blk));
+        node_->insertBlock(std::move(blk));
       } catch (std::exception &e) {
         res = e.what();
       }
@@ -200,7 +200,7 @@ void RpcHandler::processRequest() {
         time_stamp_t stamp = in_doc_.get<time_stamp_t>("stamp");
         DagBlock blk(pivot, tips, {}, signature, hash, sender);
         res = blk.getJsonStr();
-        node_->storeBlock(std::move(blk));
+        node_->insertBlock(std::move(blk));
         node_->setDagBlockTimeStamp(hash, stamp);
         res += ("\n Block stamped at: " + std::to_string(stamp));
       } catch (std::exception &e) {
@@ -314,7 +314,7 @@ void RpcHandler::processRequest() {
         Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
         LOG(log_time) << "Transaction " << trx.getHash()
                       << " received at: " << now;
-        node_->storeTransaction(trx);
+        node_->insertTransaction(trx);
         res = trx.getJsonStr();
       } catch (std::exception &e) {
         res = e.what();
@@ -337,7 +337,7 @@ void RpcHandler::processRequest() {
                           addr_t(i * seed), data, sk);
           LOG(log_time) << "Transaction " << trx.getHash()
                         << " received at: " << now;
-          node_->storeTransaction(trx);
+          node_->insertTransaction(trx);
           thisThreadSleepForMicroSeconds(delay);
         }
         res = "Number of " + std::to_string(number) + " created";
