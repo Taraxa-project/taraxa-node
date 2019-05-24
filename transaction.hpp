@@ -33,7 +33,8 @@ class DagBlock;
 enum class TransactionStatus {
   invalid,
   in_block,  // confirmed state, inside of block created by us or someone else
-  in_queue,  // not packed yet
+  in_queue_unverified,  // not packed yet
+  in_queue_verified,    // not packed yet
   unseen
 };
 /**
