@@ -35,8 +35,7 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh 'docker network create --driver=bridge \
-                    --subnet=172.100.1.0/24 --gateway=172.100.1.1 \
-                    --ip-range=172.100.1.2/25 smoke-test-net-${BRANCH_NAME_LOWER_CASE}'
+                    smoke-test-net-${BRANCH_NAME_LOWER_CASE}'
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${BRANCH_NAME_LOWER_CASE} ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER}'
                 sh ''' docker run --rm --net smoke-test-net-${BRANCH_NAME_LOWER_CASE} byrnedo/alpine-curl -d \"{ 
                         \"action\": \"insert_stamped_dag_block\", 
