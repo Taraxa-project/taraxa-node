@@ -444,7 +444,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
 
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
-  uLock lock(mutex_);
   bool changed = false;
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;

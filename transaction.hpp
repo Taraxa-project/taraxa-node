@@ -331,7 +331,6 @@ class TransactionManager
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
   std::vector<std::thread> worker_threads_;
-  std::mutex mutex_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
   dev::Logger log_wr_{
