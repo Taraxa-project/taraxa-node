@@ -120,6 +120,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                                                      unsigned _id,
                                                      RLP const &_r) {
   switch (_id) {
+    // Means a new block is proposed, full block body and all transaction are
+    // received.
     case NewBlockPacket: {
       LOG(logger_debug_) << "Received NewBlockPacket";
       DagBlock block(_r[0]);
@@ -137,32 +139,34 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       onNewBlockReceived(block, newTransactions);
       break;
     }
+    // Full block and partial transactions are received
     case BlockPacket: {
       DagBlock block(_r[0]);
 
       auto transactionsCount = _r.itemCount() - 1;
       std::unordered_map<trx_hash_t, Transaction> newTransactions;
+      std::vector<Transaction> vec_new_trxs;
       for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
            iTransaction++) {
         Transaction transaction(_r[iTransaction]);
         newTransactions[transaction.getHash()] = transaction;
+        vec_new_trxs.emplace_back(transaction);
         peers_[_nodeID]->markTransactionAsKnown(transaction.getHash());
       }
 
       LOG(logger_debug_) << "Received BlockPacket "
                          << block.getHash().toString();
       peers_[_nodeID]->markBlockAsKnown(block.getHash());
+      // Initial syncing
       if (peers_[_nodeID]->m_lastRequest == block.getHash()) {
         std::vector<Transaction> vTransactions;
         for (const auto &t : newTransactions) vTransactions.push_back(t.second);
         peers_[_nodeID]->m_syncBlocks[block.getHash()] = {block, vTransactions};
         continueSync(_nodeID);
       } else if (auto full_node = full_node_.lock()) {
-        LOG(logger_) << "Storing " << newTransactions.size() << " transactions";
-        full_node->insertNewTransactions(newTransactions);
-        LOG(logger_) << "Storing block " << block.getHash().toString();
-        std::vector<Transaction> emptyTrx;
-        full_node->storeBlockWithTransactions(block, emptyTrx);
+        LOG(logger_) << "Storing blocks " << block.getHash().toString()
+                     << " with transactions " << vec_new_trxs.size();
+        full_node->storeBlockWithTransactions(block, vec_new_trxs);
       } else {
         for (const auto &transaction : newTransactions) {
           if (test_transactions_.find(transaction.first) ==
@@ -365,7 +369,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           return false;
         }
         if (!full_node->isKnownPbftBlock(pbft_block.getBlockHash())) {
-          // TODO: need check 2t+1 cert votes, then put into chain and store in DB
+          // TODO: need check 2t+1 cert votes, then put into chain and store in
+          // DB
           full_node->setPbftBlock(pbft_block);
         }
       }
