@@ -14,6 +14,7 @@
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
 #include <boost/thread.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <condition_variable>
 #include <deque>
 #include <iostream>
@@ -108,12 +109,12 @@ class BlockManager {
  public:
   BlockManager(size_t capacity, unsigned verify_threads);
   ~BlockManager();
-  void pushUnverifiedBlock(DagBlock const &block, bool critical);  // add to unverified queue
-  void pushUnverifiedBlock(
-      DagBlock const &block,
-      std::vector<Transaction> const &transactions, bool critical);  // add to unverified queue
-  std::pair<DagBlock, std::vector<Transaction> >
-  getVerifiedBlock();  // get one verified block and pop
+  void pushUnverifiedBlock(DagBlock const &block,
+                           bool critical);  // add to unverified queue
+  void pushUnverifiedBlock(DagBlock const &block,
+                           std::vector<Transaction> const &transactions,
+                           bool critical);  // add to unverified queue
+  DagBlock popVerifiedBlock();  // get one verified block and pop
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
@@ -121,28 +122,29 @@ class BlockManager {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
 
  private:
-  using uLock = std::unique_lock<std::mutex>;
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   void verifyBlock();
   bool stopped_ = true;
   size_t capacity_ = 2048;
-  size_t num_verifiers_ = 1;
-  mutable boost::shared_mutex
-      shared_mutex_;  // shared mutex to check seen_blocks ...
+  size_t num_verifiers_ = 4;
+
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   // seen blks
-  BlockStatusTable status_;
+  BlockStatusTable blk_status_;
   std::map<blk_hash_t, DagBlock> seen_blocks_;
-
+  mutable boost::shared_mutex
+      shared_mutex_;  // shared mutex to check seen_blocks ...
   std::vector<std::thread> verifiers_;
-  mutable std::mutex mutex_for_unverified_qu_;
-  mutable std::mutex mutex_for_verified_qu_;
+  mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
+  mutable boost::shared_mutex shared_mutex_for_verified_qu_;
 
-  std::condition_variable cond_for_unverified_qu_;
-  std::condition_variable cond_for_verified_qu_;
+  boost::condition_variable_any cond_for_unverified_qu_;
+  boost::condition_variable_any cond_for_verified_qu_;
 
   std::deque<std::pair<DagBlock, std::vector<Transaction> > > unverified_qu_;
   std::deque<std::pair<DagBlock, std::vector<Transaction> > > verified_qu_;

@@ -12,6 +12,7 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+#include <boost/thread/condition_variable.hpp>
 #include <condition_variable>
 #include <iostream>
 #include <list>
@@ -23,7 +24,6 @@
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
 #include "util.hpp"
-#include <boost/thread/condition_variable.hpp>
 
 namespace taraxa {
 
