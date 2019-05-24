@@ -338,15 +338,21 @@ void BlockManager::verifyBlock() {
 
       continue;
     }
-    LOG(log_time) << "VerifiedTrx stored " << blk.first.getHash()
-                  << " at: " << getCurrentTimeMilliSeconds();
+    auto status = blk_status_.get(blk.first.getHash()).first;
 
     // TODO: verify block, now just move it to verified_qu_
     {
       uLock lock(shared_mutex_for_verified_qu_);
-      verified_qu_.emplace_back(blk);
+      if (status == BlockStatus::proposed) {
+        verified_qu_.emplace_front(blk);
+      } else if (status == BlockStatus::broadcasted) {
+        verified_qu_.emplace_back(blk);
+      }
     }
     blk_status_.update(blk.first.getHash(), BlockStatus::verified);
+
+    LOG(log_time) << "VerifiedTrx stored " << blk.first.getHash()
+                  << " at: " << getCurrentTimeMilliSeconds();
 
     cond_for_verified_qu_.notify_one();
     LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
