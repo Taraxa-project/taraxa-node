@@ -259,7 +259,6 @@ std::unordered_map<trx_hash_t, Transaction>
 TransactionQueue::removeBlockTransactionsFromQueue(
     vec_trx_t const &all_block_trxs) {
   std::unordered_map<trx_hash_t, Transaction> result;
-
   {
     std::vector<trx_hash_t> removed_trx;
     for (auto const &trx : all_block_trxs) {
@@ -276,6 +275,8 @@ TransactionQueue::removeBlockTransactionsFromQueue(
         }
       }
     }
+    // TODO: can also remove from unverified_hash_qu_
+
     // clear trx_buffer
     {
       uLock lock(shared_mutex_for_queued_trxs_);
@@ -377,7 +378,7 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
   return tr;
 }
 // Received block means some trx might be packed by others
-bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
+bool TransactionManager::saveBlockTransactionAndDeduplicate(
     vec_trx_t const &all_block_trx_hashes,
     std::vector<Transaction> const &some_trxs) {
   // First step: Save and update status for transactions that were sent together
@@ -398,8 +399,9 @@ bool TransactionManager::saveBlockTransactionsAndUpdateTransactionStatus(
   unsigned int delay = 0;
   while (delay < 2000) {
     {
-      for (auto const &trx :
-           trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes)) {
+      auto removed_trx =
+          trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
+      for (auto const &trx : removed_trx) {
         db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
         trx_status_.update(trx.first, TransactionStatus::in_block);
       }
@@ -466,6 +468,32 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   if (changed) {
     db_trxs_->commit();
   }
+}
+
+bool TransactionManager::verifyBlockTransactions(
+    DagBlock const &blk, std::vector<Transaction> const &trxs) {
+  bool invalidTransaction = false;
+  for (auto const &trx : trxs) {
+    auto valid = trx.verifySig();
+    if (!valid) {
+      invalidTransaction = true;
+      LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
+    }
+  }
+  if (invalidTransaction) {
+    return false;
+  }
+
+  // Save the transaction that came with the block together with the
+  // transactions that are in the queue. This will update the transaction
+  // status as well and remove the transactions from the queue
+  bool transactionsSave =
+      saveBlockTransactionAndDeduplicate(blk.getTrxs(), trxs);
+  if (!transactionsSave) {
+    LOG(log_er_) << "Error: Block missing transactions " << blk.getHash();
+    return false;
+  }
+  return true;
 }
 
 }  // namespace taraxa
