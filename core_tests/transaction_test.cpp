@@ -106,8 +106,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
     std::vector<Transaction> transactions;
     transactions.push_back(g_trx_samples[0]);
     for (auto const& b : g_blk_samples) {
-      trx_mgr.saveBlockTransactionsAndUpdateTransactionStatus(b.getTrxs(),
-                                                              transactions);
+      trx_mgr.saveBlockTransactionAndDeduplicate(b.getTrxs(), transactions);
     }
   });
   thisThreadSleepForSeconds(1);

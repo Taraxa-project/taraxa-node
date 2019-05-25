@@ -184,6 +184,8 @@ class Transaction {
  * Thread safe
  * Firstly import unverified transaction to deque
  * Verifier threads will verify and move the transaction to verified priority
+ * Note: The queue is for transaction packing, those transaction coming from
+ * block broadcasting will not be here!
  */
 
 class TransactionQueue {
@@ -311,16 +313,22 @@ class TransactionManager
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
-  // Received block means some trx might be packed by others
-  bool saveBlockTransactionsAndUpdateTransactionStatus(
-      vec_trx_t const &all_block_trx_hashes,
-      std::vector<Transaction> const &some_trxs);
+
+  // Verify transactions in broadcasted blocks
+  bool verifyBlockTransactions(DagBlock const &blk,
+                               std::vector<Transaction> const &trxs);
+
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
   bool isTransactionVerified(trx_hash_t const &hash) {
     // in_block means in db, i.e., already verified
     auto status = trx_status_.get(hash);
     return status.second ? status.first == TransactionStatus::in_block : false;
   }
+
+  // Received block means these trxs are packed by others
+  bool saveBlockTransactionAndDeduplicate(
+      vec_trx_t const &all_block_trx_hashes,
+      std::vector<Transaction> const &some_trxs);
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
