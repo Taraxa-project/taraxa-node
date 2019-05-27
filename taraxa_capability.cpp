@@ -1,4 +1,5 @@
 #include "taraxa_capability.h"
+#include "dag.hpp"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "vote.h"
@@ -6,20 +7,22 @@
 using namespace taraxa;
 
 void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
-  if (auto full_node = full_node_.lock()) {
-    LOG(logger_) << "Sync Peer:" << _nodeID.toString();
-    peers_[_nodeID]->m_state = Syncing;
-    auto leaves = full_node->collectTotalLeaves();
-    requestBlockChildren(_nodeID, leaves);
-  }
+  if (peer_syncing_ == _nodeID)
+    if (auto full_node = full_node_.lock()) {
+      LOG(logger_) << "Sync Peer:" << _nodeID.toString();
+      peers_[_nodeID]->m_state = Syncing;
+      auto leaves = full_node->collectTotalLeaves();
+      requestBlockChildren(_nodeID, leaves);
+    }
 }
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
-  if (auto full_node = full_node_.lock()) {
-    LOG(logger_) << "Sync Peer Pbft:" << _nodeID.toString();
-    auto pbftChainSize = full_node->getPbftChainSize();
-    requestPbftBlocks(_nodeID, pbftChainSize);
-  }
+  if (peer_syncing_ == _nodeID)
+    if (auto full_node = full_node_.lock()) {
+      LOG(logger_) << "Sync Peer Pbft:" << _nodeID.toString();
+      auto pbftChainSize = full_node->getPbftChainSize();
+      requestPbftBlocks(_nodeID, pbftChainSize);
+    }
 }
 
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
@@ -80,13 +83,12 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
 
   peers_.emplace(
       std::make_pair(_nodeID, std::make_shared<TaraxaPeer>(_nodeID)));
-  syncPeer(_nodeID);
-  syncPeerPbft(_nodeID);
+  sendStatus(_nodeID);
 }
 
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                                                  unsigned _id, RLP const &_r) {
-  if (network_simulated_delay_ == 0) {
+  if (conf_.network_simulated_delay == 0) {
     return interpretCapabilityPacketImpl(_nodeID, _id, _r);
   }
   // RLP contains memory it does not own so deep copy of bytes is needed
@@ -94,9 +96,9 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   int messageSize = rBytes.size() * 8;
   unsigned int dist =
       *((int *)this->host_.id().data()) ^ *((int *)_nodeID.data());
-  unsigned int delay = dist % network_simulated_delay_;
+  unsigned int delay = dist % conf_.network_simulated_delay;
 
-  auto bandwidth = network_bandwidth_ ? network_bandwidth_ : 40;
+  auto bandwidth = conf_.network_bandwidth ? conf_.network_bandwidth : 40;
   unsigned int bandwidth_delay = messageSize / (bandwidth * 1000);  // in ms
 
   // Random component up to +-10%
@@ -120,6 +122,42 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                                                      unsigned _id,
                                                      RLP const &_r) {
   switch (_id) {
+    case StatusPacket: {
+      auto const peer_protocol_version = _r[0].toInt<unsigned>();
+      auto const network_id = _r[1].toString();
+      auto const num_vertices = _r[2].toInt();
+      auto const genesis_hash = _r[3].toString();
+      LOG(logger_debug_) << "Received status message from " << _nodeID << " "
+                 << peer_protocol_version << network_id
+                 << num_vertices << Dag::GENESIS;
+    
+      if (peer_protocol_version != c_protocolVersion) {
+        LOG(logger_err_) << "Incorrect protocol version "
+                         << peer_protocol_version << ", host " << _nodeID
+                         << " will be disconnected";                 
+        host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
+      }
+      if (network_id != conf_.network_id) {
+        LOG(logger_err_) << "Incorrect network id " << network_id << ", host "
+                         << _nodeID << " will be disconnected";
+        host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
+      }
+      if (genesis_hash != Dag::GENESIS) {
+        LOG(logger_err_) << "Incorrect genesis hash " << genesis_hash
+                         << ", host " << _nodeID << " will be disconnected";
+        host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
+      }
+      if (auto full_node = full_node_.lock()) {
+        peers_[_nodeID]->vertices_count_ = num_vertices;
+        if (num_vertices > max_peer_vertices_) {
+          max_peer_vertices_ = num_vertices;
+          peer_syncing_ = _nodeID;
+          syncPeer(_nodeID);
+          syncPeerPbft(_nodeID);
+        }
+      }
+      break;
+    }
     // Means a new block is proposed, full block body and all transaction are
     // received.
     case NewBlockPacket: {
@@ -390,12 +428,38 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(logger_) << "Node " << _nodeID << " disconnected";
   cnt_received_messages_.erase(_nodeID);
   test_sums_.erase(_nodeID);
+  // If syncing to the disconnected peer, find another peer to sync with
+  if (peer_syncing_ == _nodeID && peers_.size() > 0) {
+    NodeID max_vertices_nodeID;
+    unsigned long max_vertices_count = 0;
+    for (auto const peer : peers_) {
+      if (peer.second->vertices_count_ > max_vertices_count) {
+        max_vertices_count = peer.second->vertices_count_;
+        max_vertices_nodeID = peer.first;
+      }
+    }
+    syncPeer(max_vertices_nodeID);
+    syncPeerPbft(max_vertices_nodeID);
+  }
 }
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
   RLPStream s;
   host_.capabilityHost()->sealAndSend(
       _id, host_.capabilityHost()->prep(_id, name(), s, TestPacket, 1) << _x);
+}
+
+void TaraxaCapability::sendStatus(NodeID const &_id) {
+  RLPStream s;
+  if (auto full_node = full_node_.lock()) {
+    LOG(logger_debug_) << "Sending status message to " << _id << " "
+                 << c_protocolVersion << conf_.network_id
+                 << full_node->getNumVerticesInDag().first << Dag::GENESIS;
+    host_.capabilityHost()->sealAndSend(
+        _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
+                 << c_protocolVersion << conf_.network_id
+                 << full_node->getNumVerticesInDag().first << Dag::GENESIS);
+  }
 }
 
 vector<NodeID> TaraxaCapability::selectPeers(
@@ -454,7 +518,7 @@ void TaraxaCapability::onNewTransactions(
       }
     }
   }
-  if (!fromNetwork || network_transaction_interval_ == 0) {
+  if (!fromNetwork || conf_.network_transaction_interval == 0) {
     for (auto &peer : peers_) {
       std::vector<Transaction> transactionsToSend;
       for (auto const &transaction : transactions) {
@@ -694,19 +758,19 @@ void TaraxaCapability::doBackgroundWork() {
   if (auto full_node = full_node_.lock()) {
     onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
   }
-  host_.scheduleExecution(network_transaction_interval_,
+  host_.scheduleExecution(conf_.network_transaction_interval,
                           [this]() { doBackgroundWork(); });
 }
 
 void TaraxaCapability::onStarting() {
-  if (network_simulated_delay_ > 0) {
+  if (conf_.network_simulated_delay > 0) {
     const int number_of_delayed_threads = 5;
     io_work_ = std::make_shared<boost::asio::io_service::work>(io_service_);
     for (int i = 0; i < number_of_delayed_threads; ++i)
       delay_threads_.create_thread([&]() { io_service_.run(); });
   }
-  if (network_transaction_interval_ > 0)
-    host_.scheduleExecution(network_transaction_interval_,
+  if (conf_.network_transaction_interval > 0)
+    host_.scheduleExecution(conf_.network_transaction_interval,
                             [this]() { doBackgroundWork(); });
 }
 
