@@ -38,7 +38,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
                                 conf_.network_listen_port, false, true));
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
-      *host_.get(), conf_.network_simulated_delay, conf_.network_bandwidth, conf_.network_transaction_interval);
+      *host_.get(), conf_);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
