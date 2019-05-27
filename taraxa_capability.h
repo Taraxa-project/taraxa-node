@@ -20,7 +20,9 @@ using namespace dev::p2p;
 namespace taraxa {
 
 enum SubprotocolPacketType : ::byte {
-  NewBlockPacket = 0x0,
+
+  StatusPacket = 0x0,
+  NewBlockPacket,
   NewBlockHashPacket,
   GetNewBlockPacket,
   GetBlockPacket,
@@ -100,6 +102,7 @@ class TaraxaPeer : public boost::noncopyable {
       m_syncBlocks;
   blk_hash_t m_lastRequest;
   PeerState m_state;
+  unsigned long vertices_count_ = 0;
 
  private:
   mutable boost::shared_mutex mtx_for_known_blocks;
@@ -117,14 +120,8 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, uint16_t network_simulated_delay,
-                   uint16_t network_bandwidth,
-                   uint16_t network_transaction_interval)
-      : Worker("taraxa"),
-        host_(_host),
-        network_simulated_delay_(network_simulated_delay),
-        network_bandwidth_(network_bandwidth),
-        network_transaction_interval_(network_transaction_interval) {
+  TaraxaCapability(Host &_host, NetworkConfig &_conf)
+      : Worker("taraxa"), host_(_host), conf_(_conf) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -138,7 +135,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void onStarting() override;
   void onStopping() override {
-    if (network_simulated_delay_ > 0) io_service_.stop();
+    if (conf_.network_simulated_delay > 0) io_service_.stop();
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
@@ -151,6 +148,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                                      RLP const &_r);
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
+  void sendStatus(NodeID const &_id);
   void onNewBlockReceived(DagBlock block,
                           std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock block);
@@ -204,12 +202,12 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::weak_ptr<FullNode> full_node_;
 
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
-  uint16_t network_simulated_delay_;
-  uint16_t network_bandwidth_;  // Mbps
-  uint16_t network_transaction_interval_;
+  NetworkConfig conf_;
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
+  unsigned long max_peer_vertices_ = 0;
+  NodeID peer_syncing_;
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;

@@ -24,6 +24,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     proposer.shards = doc.get<uint>("block_proposer.shards");
 
     network.network_address = doc.get<std::string>("network_address");
+    network.network_id = doc.get<std::string>("network_id");
     network.network_listen_port = doc.get<uint16_t>("network_listen_port");
     network.network_simulated_delay =
         doc.get<uint16_t>("network_simulated_delay");
@@ -98,6 +99,7 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_transaction_interval: " << conf.network_transaction_interval
        << std::endl;
   strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;
+  strm << "  network_id: " << conf.network_id << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
   for (auto const &c : conf.network_boot_nodes) {

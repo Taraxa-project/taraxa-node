@@ -43,6 +43,7 @@ struct NetworkConfig {
   uint16_t network_simulated_delay;
   uint16_t network_bandwidth;
   uint16_t network_transaction_interval;
+  std::string network_id;
 };
 
 struct PbftManagerConfig {

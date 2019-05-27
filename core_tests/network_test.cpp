@@ -187,6 +187,61 @@ TEST(Network, save_network) {
 }
 
 /*
+Test creates one node with testnet network ID and one node with main ID and
+verifies that connection fails
+*/
+TEST(Network, node_network_id) {
+  {
+    boost::asio::io_context context1;
+    boost::asio::io_context context2;
+
+    FullNodeConfig conf1(std::string("./core_tests/conf_taraxa1.json"));
+    conf1.network.network_id = "main";
+    auto node1(std::make_shared<taraxa::FullNode>(context1, conf1));
+
+    node1->setDebug(true);
+    node1->start(true);
+
+    FullNodeConfig conf2(std::string("./core_tests/conf_taraxa2.json"));
+    conf2.network.network_id = "main";
+    auto node2 = std::make_shared<taraxa::FullNode>(context2, conf2);
+
+    node2->setDebug(true);
+    node2->start(false /*boot_node*/);
+
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+    EXPECT_EQ(node1->getPeerCount(), 1);
+    EXPECT_EQ(node2->getPeerCount(), 1);
+    node1->stop();
+    node2->stop();
+  }
+  {
+    boost::asio::io_context context1;
+    boost::asio::io_context context2;
+
+    FullNodeConfig conf1(std::string("./core_tests/conf_taraxa1.json"));
+    conf1.network.network_id = "main";
+    auto node1(std::make_shared<taraxa::FullNode>(context1, conf1));
+
+    node1->setDebug(true);
+    node1->start(true);
+
+    FullNodeConfig conf2(std::string("./core_tests/conf_taraxa2.json"));
+    conf2.network.network_id = "testnet";
+    auto node2 = std::make_shared<taraxa::FullNode>(context2, conf2);
+
+    node2->setDebug(true);
+    node2->start(false /*boot_node*/);
+
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+    EXPECT_EQ(node1->getPeerCount(), 0);
+    EXPECT_EQ(node2->getPeerCount(), 0);
+    node1->stop();
+    node2->stop();
+  }
+}
+
+/*
 Test creates a DAG on one node and verifies
 that the second node syncs with it and that the resulting
 DAG on the other end is the same
