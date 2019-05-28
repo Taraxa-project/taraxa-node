@@ -118,14 +118,31 @@ void BlockProposer::proposeBlock() {
   LOG(log_time) << "Pivot and Tips retrieved at: "
                 << getCurrentTimeMilliSeconds();
 
-  vec_blk_t tmp;
+  vec_blk_t tip_hashes;
   for (auto const& t : tips) {
-    tmp.emplace_back(blk_hash_t(t));
+    tip_hashes.emplace_back(blk_hash_t(t));
   }
-  DagBlock blk(blk_hash_t(pivot), tmp, sharded_trxs);
-  if (!full_node_.expired()) {
-    LOG(log_nf_) << "Propose block" << std::endl;
 
+  if (!full_node_.expired()) {
+    // get current level
+    auto pivot_blk = full_node_.lock()->getDagBlock(blk_hash_t(pivot));
+    level_t max_level = 0;
+
+    if (!pivot_blk) {
+      LOG(log_er_) << "Cannot find pivot dag block " << blk_hash_t(pivot);
+      return;
+    }
+    max_level = std::max(pivot_blk->getLevel(), max_level);
+    for (auto const& t : tip_hashes) {
+      auto tip_blk = full_node_.lock()->getDagBlock(t);
+      if (!tip_blk) {
+        LOG(log_er_) << "Cannot find tip dag block " << blk_hash_t(t);
+        return;
+      }
+      max_level = std::max(tip_blk->getLevel(), max_level);
+    }
+    LOG(log_nf_) << "Propose block" << std::endl;
+    DagBlock blk(blk_hash_t(pivot), max_level + 1, tip_hashes, sharded_trxs);
     full_node_.lock()->insertBlockAndSign(blk);
   } else {
     LOG(log_er_) << "FullNode unavailable ..." << std::endl;
