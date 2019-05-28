@@ -7,22 +7,24 @@
 using namespace taraxa;
 
 void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
-  if (peer_syncing_ == _nodeID)
+  if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
       LOG(logger_) << "Sync Peer:" << _nodeID.toString();
       peers_[_nodeID]->m_state = Syncing;
       auto leaves = full_node->collectTotalLeaves();
       requestBlockChildren(_nodeID, leaves);
     }
+  }
 }
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
-  if (peer_syncing_ == _nodeID)
+  if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
       LOG(logger_) << "Sync Peer Pbft:" << _nodeID.toString();
       auto pbftChainSize = full_node->getPbftChainSize();
       requestPbftBlocks(_nodeID, pbftChainSize);
     }
+  }
 }
 
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
@@ -333,7 +335,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case PbftVotePacket: {
-      LOG(logger_debug_) << "Received PBFT vote";
+      LOG(logger_debug_) << "In PbftVotePacket";
 
       std::vector<::byte> pbft_vote_bytes;
 
@@ -343,6 +345,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       taraxa::bufferstream strm(pbft_vote_bytes.data(), pbft_vote_bytes.size());
       Vote vote;
       vote.deserialize(strm);
+      LOG(logger_debug_) << "Received PBFT vote " << vote.getHash();
 
       peers_[_nodeID]->markVoteAsKnown(vote.getHash());
 
@@ -376,9 +379,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case NewPbftBlockPacket: {
-      LOG(logger_debug_) << "Received PBFT Block";
+      LOG(logger_debug_) << "In NewPbftBlockPacket";
 
       PbftBlock pbft_block(_r[0]);
+      LOG(logger_debug_)
+          << "Received PBFT Block " << pbft_block.getBlockHash();
       peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
 
       auto full_node = full_node_.lock();
@@ -394,11 +399,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case PbftBlockPacket: {
-      LOG(logger_debug_) << "Received PBFT Blocks";
+      LOG(logger_debug_) << "In PbftBlockPacket";
 
       auto blockCount = _r.itemCount();
       for (auto iblock = 0; iblock < blockCount; iblock++) {
         PbftBlock pbft_block(_r[iblock]);
+        LOG(logger_debug_)
+          << "Received PBFT Block " << pbft_block.getBlockHash();
         peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
 
         auto full_node = full_node_.lock();

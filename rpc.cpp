@@ -383,6 +383,13 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
+    } else if (action == "get_account_address") {
+      try {
+        addr_t addr = node_->getAddress();
+        res = addr.toString();
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     } else if (action == "set_account_balance") {
       try {
         addr_t addr = in_doc_.get<addr_t>("address");

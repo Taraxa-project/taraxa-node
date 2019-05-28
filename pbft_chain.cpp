@@ -499,6 +499,8 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 2;
   setNextPbftBlockType(static_cast<PbftBlockTypes>(next_pbft_block_type));
   count_++;
+  LOG(log_deb_) << "Push block " << pbft_block_hash
+                << " into pbft chain, current pbft chain size is " << count_;
 }
 
 bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
@@ -547,6 +549,8 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
 void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
   pbft_queue_.emplace_back(pbft_block.getBlockHash());
   pbft_queue_map_[pbft_block.getBlockHash()] = pbft_block;
+  LOG(log_deb_) << "Push block " << pbft_block.getBlockHash() << " into queue."
+                << "Pbft queue size: " << pbft_queue_.size();
 }
 
 std::string PbftChain::getGenesisStr() const {
