@@ -160,11 +160,13 @@ TEST(DagBlock, string_format) {
 
 TEST(DagBlock, sign_verify) {
   DagBlock blk1(blk_hash_t(111),   // pivot
+                0,                 // level
                 {blk_hash_t(222),  // tips
                  blk_hash_t(333), blk_hash_t(444)},
                 {trx_hash_t(555),  // trxs
                  trx_hash_t(666)});
   DagBlock blk1c(blk_hash_t(111),   // pivot
+                 0,                 // level
                  {blk_hash_t(222),  // tips
                   blk_hash_t(333), blk_hash_t(444)},
                  {trx_hash_t(555),  // trxs
@@ -178,6 +180,7 @@ TEST(DagBlock, sign_verify) {
   EXPECT_TRUE(blk1.verifySig());
 
   DagBlock blk2(blk_hash_t(9999),  // pivot
+                0,                 // level
                 {},                // tips,
                 {});               // trxs
   blk2.sign(g_secret);

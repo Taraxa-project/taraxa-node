@@ -29,9 +29,9 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
-DagBlock::DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs) try
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try
     : pivot_(pivot),
-      level_(0),
+      level_(level),
       tips_(tips),
       trxs_(trxs) {
 } catch (std::exception &e) {

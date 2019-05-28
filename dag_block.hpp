@@ -44,7 +44,7 @@ class DagBlock {
   DagBlock() = default;
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
            sig_t signature, blk_hash_t hash, addr_t sender);
-  DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs);
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
   DagBlock(const string &json);
   DagBlock(dev::RLP const &_r);
