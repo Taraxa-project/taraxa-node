@@ -97,10 +97,11 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
     }
 
     DagBlock blk(blk_hash_t(pivot),                              // pivot
+                 level_t(0),                                     // level
                  {blk_hash_t(2), blk_hash_t(3), blk_hash_t(4)},  // tips
                  trxs,                                           // trxs
                  sig_t(7777),                                    // sig
-                 blk_hash_t(hash),                              // hash
+                 blk_hash_t(hash),                               // hash
                  addr_t(12345));                                 // sender
 
     blks.emplace_back(blk);
@@ -108,20 +109,19 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
   return blks;
 }
 
-std::vector<std::pair<DagBlock, std::vector<Transaction> > > createMockDagBlkSamplesWithSignedTransactions(unsigned pivot_start,
-                                              unsigned blk_num,
-                                              unsigned trx_start,
-                                              unsigned trx_len,
-                                              unsigned trx_overlap,
-                                                secret_t const &sk) {
+std::vector<std::pair<DagBlock, std::vector<Transaction> > >
+createMockDagBlkSamplesWithSignedTransactions(
+    unsigned pivot_start, unsigned blk_num, unsigned trx_start,
+    unsigned trx_len, unsigned trx_overlap, secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<std::pair<DagBlock, std::vector<Transaction> > > blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
     std::string pivot, hash;
-    auto full_trx = createSignedTrxSamples(trx_start + i*trx_len, trx_len, sk);
+    auto full_trx =
+        createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
     vec_trx_t trxs;
-    for(auto t : full_trx) trxs.push_back(t.getHash());
+    for (auto t : full_trx) trxs.push_back(t.getHash());
     {
       std::stringstream strm;
       strm << std::setw(64) << std::setfill('0');
@@ -135,12 +135,13 @@ std::vector<std::pair<DagBlock, std::vector<Transaction> > > createMockDagBlkSam
       hash = strm.str();
     }
 
-    DagBlock blk(blk_hash_t(pivot),                              // pivot
-                 {},  // tips
-                 trxs,                                           // trxs
-                 sig_t(7777),                                    // sig
-                 blk_hash_t(hash),                              // hash
-                 addr_t(12345));                                 // sender
+    DagBlock blk(blk_hash_t(pivot),  // pivot
+                 0,                  // level
+                 {},                 // tips
+                 trxs,               // trxs
+                 sig_t(7777),        // sig
+                 blk_hash_t(hash),   // hash
+                 addr_t(12345));     // sender
 
     blks.emplace_back(std::make_pair(blk, full_trx));
   }
@@ -152,6 +153,7 @@ std::vector<DagBlock> createMockDag0() {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(0),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
@@ -159,108 +161,126 @@ std::vector<DagBlock> createMockDag0() {
                 addr_t(123));
 
   DagBlock blk2(blk_hash_t(0),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
                 blk_hash_t(2),  // hash
                 addr_t(123));
   DagBlock blk3(blk_hash_t(0),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
                 blk_hash_t(3),  // hash
                 addr_t(123));
   DagBlock blk4(blk_hash_t(1),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
                 blk_hash_t(4),  // hash
                 addr_t(123));
   DagBlock blk5(blk_hash_t(1),    // pivot
+                0,                // level
                 {blk_hash_t(2)},  // tips
                 {},               // trxs
                 sig_t(0),         // sig
                 blk_hash_t(5),    // hash
                 addr_t(123));
   DagBlock blk6(blk_hash_t(3),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
                 blk_hash_t(6),  // hash
                 addr_t(123));
   DagBlock blk7(blk_hash_t(5),    // pivot
+                0,                // level
                 {blk_hash_t(6)},  // tips
                 {},               // trxs
                 sig_t(0),         // sig
                 blk_hash_t(7),    // hash
                 addr_t(123));
   DagBlock blk8(blk_hash_t(5),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
                 blk_hash_t(8),  // hash
                 addr_t(123));
   DagBlock blk9(blk_hash_t(6),  // pivot
+                0,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
                 blk_hash_t(9),  // hash
                 addr_t(123));
   DagBlock blk10(blk_hash_t(7),   // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(10),  // hash
                  addr_t(123));
   DagBlock blk11(blk_hash_t(7),   // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(11),  // hash
                  addr_t(123));
   DagBlock blk12(blk_hash_t(9),   // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(12),  // hash
                  addr_t(123));
   DagBlock blk13(blk_hash_t(10),  // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(13),  // hash
                  addr_t(123));
   DagBlock blk14(blk_hash_t(11),    // pivot
+                 0,                 // level
                  {blk_hash_t(12)},  // tips
                  {},                // trxs
                  sig_t(0),          // sig
                  blk_hash_t(14),    // hash
                  addr_t(123));
   DagBlock blk15(blk_hash_t(13),    // pivot
+                 0,                 // level
                  {blk_hash_t(14)},  // tips
                  {},                // trxs
                  sig_t(0),          // sig
                  blk_hash_t(15),    // hash
                  addr_t(123));
   DagBlock blk16(blk_hash_t(13),  // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(16),  // hash
                  addr_t(123));
   DagBlock blk17(blk_hash_t(12),  // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(17),  // hash
                  addr_t(123));
   DagBlock blk18(blk_hash_t(15),                                   // pivot
+                 0,                                                // level
                  {blk_hash_t(8), blk_hash_t(16), blk_hash_t(17)},  // tips
                  {},                                               // trxs
                  sig_t(0),                                         // sig
                  blk_hash_t(18),                                   // hash
                  addr_t(123));
   DagBlock blk19(blk_hash_t(18),  // pivot
+                 0,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig

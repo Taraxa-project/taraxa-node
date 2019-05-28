@@ -161,8 +161,6 @@ TEST(Top, sync_two_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
     vertices2 = node2->getNumVerticesInDag();
-    std::cout << "vertices1 = " << vertices1.first
-              << " , vertices2 = " << vertices2.first << std::endl;
   }
 
   EXPECT_EQ(vertices1, vertices2);
@@ -283,13 +281,18 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   nw2->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(77777), blk_hash_t(1), addr_t(16));
-  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(77777), blk_hash_t(2), addr_t(16));
-  DagBlock blk3(blk_hash_t(2), {}, {}, sig_t(77777), blk_hash_t(3), addr_t(16));
-  DagBlock blk4(blk_hash_t(3), {}, {}, sig_t(77777), blk_hash_t(4), addr_t(16));
-  DagBlock blk5(blk_hash_t(4), {}, {}, sig_t(77777), blk_hash_t(5), addr_t(16));
-  DagBlock blk6(blk_hash_t(5), {blk_hash_t(4), blk_hash_t(3)}, {}, sig_t(77777),
-                blk_hash_t(6), addr_t(16));
+  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(77777), blk_hash_t(1),
+                addr_t(16));
+  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(77777), blk_hash_t(2),
+                addr_t(16));
+  DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(77777), blk_hash_t(3),
+                addr_t(16));
+  DagBlock blk4(blk_hash_t(3), 0, {}, {}, sig_t(77777), blk_hash_t(4),
+                addr_t(16));
+  DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(77777), blk_hash_t(5),
+                addr_t(16));
+  DagBlock blk6(blk_hash_t(5), 0, {blk_hash_t(4), blk_hash_t(3)}, {},
+                sig_t(77777), blk_hash_t(6), addr_t(16));
 
   blks.emplace_back(blk6);
   blks.emplace_back(blk5);

@@ -42,14 +42,15 @@ class FullNode;
 class DagBlock {
  public:
   DagBlock() = default;
-  DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs, sig_t signature,
-           blk_hash_t hash, addr_t sender);
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
+           sig_t signature, blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
   DagBlock(const string &json);
   DagBlock(dev::RLP const &_r);
   friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
+    str << "	level		= " << u.level_ << std::endl;
     str << "	tips ( " << u.tips_.size() << " )	= ";
     for (auto const &t : u.tips_) str << t.abridged() << " ";
     str << std::endl;
@@ -68,6 +69,7 @@ class DagBlock {
 
   void serializeRLP(dev::RLPStream &s);
   blk_hash_t getPivot() const { return pivot_; }
+  level_t getLevel() const { return level_; }
   vec_blk_t getTips() const { return tips_; }
   vec_trx_t getTrxs() const { return trxs_; }
   sig_t getSig() const { return sig_; }
@@ -91,6 +93,7 @@ class DagBlock {
   bytes rlp(bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
   blk_hash_t pivot_;
+  level_t level_ = 0;
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
@@ -114,7 +117,7 @@ class BlockManager {
   void pushUnverifiedBlock(DagBlock const &block,
                            std::vector<Transaction> const &transactions,
                            bool critical);  // add to unverified queue
-  DagBlock popVerifiedBlock();  // get one verified block and pop
+  DagBlock popVerifiedBlock();              // get one verified block and pop
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }

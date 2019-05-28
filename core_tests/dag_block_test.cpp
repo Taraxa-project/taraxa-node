@@ -120,6 +120,7 @@ TEST(DagBlock, string_format) {
   DagBlock blk(
       blk_hash_t(
           "1111111111111111111111111111111111111111111111111111111111111111"),
+      level_t(0),
       {blk_hash_t(
            "2222222222222222222222222222222222222222222222222222222222222222"),
        blk_hash_t(
@@ -146,7 +147,7 @@ TEST(DagBlock, string_format) {
     blk.serialize(strm1);
   }
   // check stream size
-  ASSERT_EQ(bytes.size(), 317);
+  ASSERT_EQ(bytes.size(), 325);
   bufferstream strm2(bytes.data(), bytes.size());
   DagBlock blk2;
   blk2.deserialize(strm2);
@@ -195,11 +196,11 @@ TEST(BlockManager, push_and_pop) {
   BlockManager blk_qu(1024, 2);
   blk_qu.setFullNode(node->getShared());
   blk_qu.start();
-  DagBlock blk1(blk_hash_t(1111),
+  DagBlock blk1(blk_hash_t(1111), level_t(0),
                 {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {},
                 sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  DagBlock blk2(blk_hash_t(21111),
+  DagBlock blk2(blk_hash_t(21111), level_t(0),
                 {blk_hash_t(2222), blk_hash_t(2333), blk_hash_t(2444)}, {},
                 sig_t(27777), blk_hash_t(2888), addr_t(2999));
 
