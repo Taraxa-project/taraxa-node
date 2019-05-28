@@ -17,19 +17,21 @@ namespace taraxa {
 
 using std::to_string;
 
-DagBlock::DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs, sig_t sig,
-                   blk_hash_t hash, addr_t sender) try
-    : pivot_(pivot),
-      tips_(tips),
-      trxs_(trxs),
-      sig_(sig),
-      hash_(hash),
-      cached_sender_(sender) {
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
+                   vec_trx_t trxs, sig_t sig, blk_hash_t hash,
+                   addr_t sender) try : pivot_(pivot),
+                                        level_(level),
+                                        tips_(tips),
+                                        trxs_(trxs),
+                                        sig_(sig),
+                                        hash_(hash),
+                                        cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
 DagBlock::DagBlock(blk_hash_t pivot, vec_blk_t tips, vec_trx_t trxs) try
     : pivot_(pivot),
+      level_(0),
       tips_(tips),
       trxs_(trxs) {
 } catch (std::exception &e) {
@@ -41,6 +43,7 @@ DagBlock::DagBlock(std::string const &json) {
   try {
     boost::property_tree::ptree doc = strToJson(json);
     pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
+    level_ = level_t(doc.get<level_t>("level"));
     tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
     trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
     sig_ = sig_t(doc.get<std::string>("sig"));
@@ -74,7 +77,7 @@ std::string DagBlock::getJsonStr() const {
 
   ptree tree;
   tree.put("pivot", pivot_.toString());
-
+  tree.put("level", std::to_string(level_));
   tree.put_child("tips", ptree());
   auto &tips_array = tree.get_child("tips");
   for (auto const &t : tips_) {
@@ -103,6 +106,7 @@ bool DagBlock::serialize(stream &strm) const {
   ok &= write(strm, num_tips);
   ok &= write(strm, num_trxs);
   ok &= write(strm, pivot_);
+  ok &= write(strm, level_);
   for (auto i = 0; i < num_tips; ++i) {
     ok &= write(strm, tips_[i]);
   }
@@ -123,6 +127,8 @@ bool DagBlock::deserialize(stream &strm) {
   ok &= read(strm, num_tips);
   ok &= read(strm, num_trxs);
   ok &= read(strm, pivot_);
+  ok &= read(strm, level_);
+
   for (auto i = 0; i < num_tips; ++i) {
     blk_hash_t t;
     ok &= read(strm, t);
@@ -176,9 +182,10 @@ addr_t DagBlock::sender() const {
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   auto num_tips = tips_.size();
   auto num_trxs = trxs_.size();
-  auto total = 1 + num_tips + num_trxs;
+  auto total = 2 + num_tips + num_trxs;
   s.appendList(include_sig ? total + 1 : total);
   s << pivot_;
+  s << level_;
   for (auto i = 0; i < num_tips; ++i) s << tips_[i];
   for (auto i = 0; i < num_trxs; ++i) s << trxs_[i];
   if (include_sig) {

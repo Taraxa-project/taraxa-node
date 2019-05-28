@@ -397,24 +397,24 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
 TEST(DagManager, compute_epoch) {
   auto mgr = std::make_shared<DagManager>();
   mgr->start();
-  DagBlock blkA(blk_hash_t(0), {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
+  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
-  DagBlock blkB(blk_hash_t(0), {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
+  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
                 blk_hash_t(2), addr_t(1));
-  DagBlock blkC(blk_hash_t(1), {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3),
+  DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3),
                 addr_t(1));
-  DagBlock blkD(blk_hash_t(1), {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
-  DagBlock blkE(blk_hash_t(3), {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1),
+  DagBlock blkD(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
+  DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1),
                 blk_hash_t(5), addr_t(1));
-  DagBlock blkF(blk_hash_t(2), {}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
-  DagBlock blkG(blk_hash_t(1), {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7),
+  DagBlock blkF(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
+  DagBlock blkG(blk_hash_t(1), 0, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7),
                 addr_t(1));
-  DagBlock blkH(blk_hash_t(5), {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1),
+  DagBlock blkH(blk_hash_t(5), 0, {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1),
                 blk_hash_t(8), addr_t(1));
-  DagBlock blkI(blk_hash_t(10), {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
+  DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
                 addr_t(1));
-  DagBlock blkJ(blk_hash_t(6), {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
-  DagBlock blkK(blk_hash_t(9), {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
+  DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -458,10 +458,12 @@ TEST(DagManager, receive_block_in_order) {
   auto mgr = std::make_shared<DagManager>();
   mgr->start();
   // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
-  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
-  DagBlock blk3(blk_hash_t(0), {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777),
-                blk_hash_t(3), addr_t(15));
+  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
+                addr_t(15));
+  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2),
+                addr_t(15));
+  DagBlock blk3(blk_hash_t(0), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
+                sig_t(777), blk_hash_t(3), addr_t(15));
 
   mgr->addDagBlock(blk1);
   mgr->addDagBlock(blk2);
@@ -496,10 +498,12 @@ TEST(DagManager, receive_block_out_of_order) {
   mgr->start();
 
   // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
-  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
-  DagBlock blk3(blk_hash_t(0), {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777),
-                blk_hash_t(3), addr_t(15));
+  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
+                addr_t(15));
+  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2),
+                addr_t(15));
+  DagBlock blk3(blk_hash_t(0), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
+                sig_t(777), blk_hash_t(3), addr_t(15));
 
   mgr->addDagBlock(blk3);
   mgr->addDagBlock(blk2);
@@ -525,12 +529,12 @@ TEST(DagManager, get_latest_pivot_tips) {
   mgr->start();
 
   // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
-  DagBlock blk2(blk_hash_t(1), {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
-  DagBlock blk3(blk_hash_t(2), {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
-  DagBlock blk4(blk_hash_t(1), {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
-  DagBlock blk5(blk_hash_t(4), {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
-  DagBlock blk6(blk_hash_t(2), {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
+  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
+  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
+  DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
+  DagBlock blk4(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
+  DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
+  DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
                 addr_t(15));
   mgr->addDagBlock(blk3);
   mgr->addDagBlock(blk6);
@@ -552,81 +556,6 @@ TEST(DagManager, get_latest_pivot_tips) {
             "0000000000000000000000000000000000000000000000000000000000000006");
   mgr->stop();
 }
-/**
- * Note: TODO, Disable for now
- * The first thread has more change to win the Dag lock,
- * probably need to add some variation
- */
-
-/*
-TEST(DagManager, receive_block_out_of_order_multi_thread){
-       auto mgr = std::make_shared<DagManager> (2);
-
-       //mgr->setVerbose(true);
-       mgr->start();
-
-       DagBlock blk1 (
-       ("0000000000000000000000000000000000000000000000000000000000000000"),
-       {},
-       {},
-       ("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
-       ("0000000000000000000000000000000000000000000000000000000000000001"));
-
-       DagBlock blk2 (
-       ("0000000000000000000000000000000000000000000000000000000000000001"),
-       {},
-       {},
-       ("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
-       ("0000000000000000000000000000000000000000000000000000000000000002"));
-
-       DagBlock blk3 (
-       ("0000000000000000000000000000000000000000000000000000000000000000"),
-       {"0000000000000000000000000000000000000000000000000000000000000001",
-        "0000000000000000000000000000000000000000000000000000000000000002"
-       },
-       {},
-       ("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
-       ("0000000000000000000000000000000000000000000000000000000000000003"));
-
-       DagBlock blk4 (
-       ("0000000000000000000000000000000000000000000000000000000000000002"),
-       {"0000000000000000000000000000000000000000000000000000000000000003",
-       },
-       {},
-       ("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
-       ("0000000000000000000000000000000000000000000000000000000000000004"));
-
-       DagBlock blk5 (
-       ("0000000000000000000000000000000000000000000000000000000000000004"),
-       {"0000000000000000000000000000000000000000000000000000000000000003",
-       },
-       {},
-       ("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
-       ("0000000000000000000000000000000000000000000000000000000000000005"));
-
-       DagBlock blk6 (
-       ("0000000000000000000000000000000000000000000000000000000000000005"),
-       {},
-       {},
-       ("77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"),
-       ("0000000000000000000000000000000000000000000000000000000000000006"));
-
-       mgr->addDagBlock(blk6, true);
-       mgr->addDagBlock(blk5, true);
-       mgr->addDagBlock(blk4, true);
-       mgr->addDagBlock(blk3, true);
-       mgr->addDagBlock(blk2, true);
-       mgr->addDagBlock(blk1, true);
-
-
-       thisThreadSleepForMicroSeconds(500);
-       mgr->stop();
-       EXPECT_EQ(mgr->getNumVerticesInDag(),7);
-       EXPECT_EQ(mgr->getNumEdgesInDag(),10);
-       EXPECT_EQ(mgr->getBufferSize(), 0);
-
-}
-*/
 
 }  // namespace taraxa
 
