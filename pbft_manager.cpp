@@ -574,7 +574,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::vector<std::string> ghost;
     full_node->getGhostPath(Dag::GENESIS, ghost);
     blk_hash_t dag_block_hash(ghost.back());
-    // compare with last dag block hash. If they are same, which means no new dag blocks generated with last period
+    // compare with last dag block hash. If they are same, which means no new dag blocks generated since last period
     // In that case PBFT proposer should propose NULL BLOCK HASH as their value and not produce a new block
     // In practice this should never happen
     std::pair<PbftBlock, bool> last_period_pbft_anchor_block =

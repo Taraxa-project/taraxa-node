@@ -28,7 +28,7 @@ string hashSignature(dev::Signature signature) {
 
 /*
  * Sortition return true:
- * HASH(signature) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS * THRESHOLD
+ * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS * THRESHOLD
  * otherwise return false
  */
 bool sortition(string signature_hash, uint64_t account_balance) {
