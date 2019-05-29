@@ -76,8 +76,8 @@ void PbftManager::run() {
     auto elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
-    LOG(log_deb_) << "PBFT period is " << pbft_period_;
-    LOG(log_deb_) << "PBFT step is " << pbft_step_;
+    LOG(log_tra_) << "PBFT period is " << pbft_period_;
+    LOG(log_tra_) << "PBFT step is " << pbft_step_;
 
     // Get votes
     std::vector<Vote> votes = vote_queue_->getVotes(pbft_period_ - 1);
@@ -119,8 +119,8 @@ void PbftManager::run() {
     if (pbft_step_ == 1) {
       // Value Proposal
       if (pbft_period_ == 1) {
-        LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH for period 1 by "
-                         "protocol";
+        LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
+                      << NULL_BLOCK_HASH <<" for period 1 by protocol";
         placeVoteIfCanSpeak_(NULL_BLOCK_HASH, propose_vote_type,
                              pbft_period_, pbft_step_, false);
       } else if (push_block_values_for_period.count(pbft_period_ -1) ||
@@ -145,7 +145,7 @@ void PbftManager::run() {
         }
       }
       next_step_time_ms = 2 * LAMBDA_ms;
-      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
+      LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
       pbft_step_ += 1;
 
     } else if (pbft_step_ == 2) {
@@ -156,8 +156,8 @@ void PbftManager::run() {
          (pbft_period_ >= 2 &&
           nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
         // Identity leader
-        LOG(log_deb_) << "Identify leader l_i_p for period p and soft vote the"
-                        " value that they proposed...";
+        LOG(log_deb_) << "Identify leader l_i_p for period " << pbft_period_
+                      <<" and soft vote the value that they proposed...";
         std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
         if (leader_block.second) {
           placeVoteIfCanSpeak_(leader_block.first, soft_vote_type, pbft_period_,
@@ -176,7 +176,7 @@ void PbftManager::run() {
       }
 
       next_step_time_ms = 2 * LAMBDA_ms;
-      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
+      LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
       pbft_step_ = pbft_step_ + 1;
 
     } else if (pbft_step_ == 3) {
@@ -212,7 +212,7 @@ void PbftManager::run() {
       } else {
         next_step_time_ms = next_step_time_ms + POLLING_INTERVAL_ms;
       }
-      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
+      LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 4) {
       if (cert_voted_values_for_period.find(pbft_period_) !=
@@ -236,7 +236,7 @@ void PbftManager::run() {
 
       pbft_step_ += 1;
       next_step_time_ms = 4 * LAMBDA_ms;
-      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
+      LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 5) {
       std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
@@ -267,7 +267,7 @@ void PbftManager::run() {
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
-      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
+      LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ % 2 == 0) {
       // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
@@ -330,7 +330,7 @@ void PbftManager::run() {
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
-      LOG(log_deb_) << "next step time(ms): " << next_step_time_ms;
+      LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
     }
 
     now = std::chrono::system_clock::now();
@@ -338,7 +338,7 @@ void PbftManager::run() {
     elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto time_to_sleep_for_ms = next_step_time_ms - elapsed_time_in_round_ms;
-    LOG(log_deb_) << "Time to sleep(ms): " << time_to_sleep_for_ms;
+    LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms;
     if (time_to_sleep_for_ms > 0) {
       thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
     }
@@ -574,6 +574,25 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::vector<std::string> ghost;
     full_node->getGhostPath(Dag::GENESIS, ghost);
     blk_hash_t dag_block_hash(ghost.back());
+    // compare with last dag block hash. If they are same, which means no new dag blocks generated with last period
+    // In that case PBFT proposer should propose NULL BLOCK HASH as their value and not produce a new block
+    // In practice this should never happen
+    std::pair<PbftBlock, bool> last_period_pbft_anchor_block =
+        pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
+    if (!last_period_pbft_anchor_block.second) {
+      LOG(log_err_)
+        << "Can not find the last period pbft anchor block with block hash: "
+        << prev_pivot_hash;
+      return std::make_pair(blk_hash_t(0), false);
+    }
+    blk_hash_t last_period_dag_anchor_block_hash =
+        last_period_pbft_anchor_block.first.getPivotBlock().getDagBlockHash();
+    if (dag_block_hash == last_period_dag_anchor_block_hash) {
+      LOG(log_deb_)
+        << "Last period DAG anchor block hash " << dag_block_hash
+        << " No new DAG blocks generated, PBFT propose NULL_BLOCK_HASH";
+      return std::make_pair(NULL_BLOCK_HASH, true);
+    }
 
     uint64_t epoch = full_node->getEpoch();
     uint64_t timestamp = std::time(nullptr);
@@ -686,9 +705,10 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     std::pair<PbftBlock, bool> pbft_block =
         pbft_chain_->getPbftBlockInQueue(cert_vote_block_hash);
     if (!pbft_block.second) {
-      LOG(log_err_) << "Can not find the cert vote block hash "
-                    << cert_vote_block_hash
-                    << " in pbft queue";
+      if (cert_vote_block_hash) {
+        LOG(log_err_) << "Can not find the cert vote block hash "
+                      << cert_vote_block_hash << " in pbft queue";
+      }
       return false;
     }
 
@@ -704,8 +724,8 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
         updatePbftChainDB_(pbft_block.first);
         LOG(log_deb_) << "Successful push pbft anchor block "
                       << pbft_block.first.getBlockHash() << " into chain!";
-        // TODO: update block Dag period
-        // full_node->updateBlkDagPeriods()
+        // Update block Dag period
+        full_node->updateBlkDagPeriods(pbft_block.first.getBlockHash(), period);
         return true;
       }
     } else if (next_block_type == schedule_block_type) {

@@ -84,7 +84,7 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
 }
 
 // need change 2t+1 = 3 to test
-TEST(PbftManager, pbft_manager_run_multi_nodes) {
+TEST(PbftManager, DISABLED_pbft_manager_run_multi_nodes) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf_taraxa1.json")));

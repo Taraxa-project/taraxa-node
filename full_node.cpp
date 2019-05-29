@@ -487,8 +487,13 @@ void FullNode::setVoteKnown(taraxa::Vote const &vote) {
   known_votes_.insert(vote.getHash());
 }
 
-bool FullNode::isKnownPbftBlock(
-    taraxa::blk_hash_t const &pbft_block_hash) const {
+bool FullNode::isKnownPbftBlockInChain(
+    taraxa::blk_hash_t const& pbft_block_hash) const {
+  return pbft_chain_->findPbftBlockInChain(pbft_block_hash);
+}
+
+bool FullNode::isKnownPbftBlockInQueue(
+    taraxa::blk_hash_t const& pbft_block_hash) const {
   return pbft_chain_->findPbftBlockInQueue(pbft_block_hash);
 }
 

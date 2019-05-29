@@ -155,7 +155,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setVoteKnown(taraxa::Vote const &vote);
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  bool isKnownPbftBlock(blk_hash_t const &pbft_block_hash) const;
+  bool isKnownPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
+  bool isKnownPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
   size_t getPbftChainSize() const;
   size_t getPbftQueueSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
