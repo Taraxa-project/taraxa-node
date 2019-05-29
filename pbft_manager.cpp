@@ -574,6 +574,25 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::vector<std::string> ghost;
     full_node->getGhostPath(Dag::GENESIS, ghost);
     blk_hash_t dag_block_hash(ghost.back());
+    // compare with last dag block hash. If they are same, which means no new dag blocks generated with last period
+    // In that case PBFT proposer should propose NULL BLOCK HASH as their value and not produce a new block
+    // In practice this should never happen
+    std::pair<PbftBlock, bool> last_period_pbft_anchor_block =
+        pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
+    if (!last_period_pbft_anchor_block.second) {
+      LOG(log_err_)
+        << "Can not find the last period pbft anchor block with block hash: "
+        << prev_pivot_hash;
+      return std::make_pair(blk_hash_t(0), false);
+    }
+    blk_hash_t last_period_dag_anchor_block_hash =
+        last_period_pbft_anchor_block.first.getPivotBlock().getDagBlockHash();
+    if (dag_block_hash == last_period_dag_anchor_block_hash) {
+      LOG(log_deb_)
+        << "Last period DAG anchor block hash " << dag_block_hash
+        << " No new DAG blocks generated, PBFT propose NULL_BLOCK_HASH";
+      return std::make_pair(NULL_BLOCK_HASH, true);
+    }
 
     uint64_t epoch = full_node->getEpoch();
     uint64_t timestamp = std::time(nullptr);
@@ -686,9 +705,10 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     std::pair<PbftBlock, bool> pbft_block =
         pbft_chain_->getPbftBlockInQueue(cert_vote_block_hash);
     if (!pbft_block.second) {
-      LOG(log_err_) << "Can not find the cert vote block hash "
-                    << cert_vote_block_hash
-                    << " in pbft queue";
+      if (cert_vote_block_hash) {
+        LOG(log_err_) << "Can not find the cert vote block hash "
+                      << cert_vote_block_hash << " in pbft queue";
+      }
       return false;
     }
 
@@ -704,8 +724,8 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
         updatePbftChainDB_(pbft_block.first);
         LOG(log_deb_) << "Successful push pbft anchor block "
                       << pbft_block.first.getBlockHash() << " into chain!";
-        // TODO: update block Dag period
-        // full_node->updateBlkDagPeriods()
+        // Update block Dag period
+        full_node->updateBlkDagPeriods(pbft_block.first.getBlockHash(), period);
         return true;
       }
     } else if (next_block_type == schedule_block_type) {
