@@ -38,9 +38,9 @@ void SimpleStateDBDelegate::commit() {
   boost::unique_lock lock(shared_mutex_);
   state_->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
 }
-SimpleStateDBDelegate::SimpleStateDBDelegate(const std::string &path)
+SimpleStateDBDelegate::SimpleStateDBDelegate(const std::string &path, bool overwrite)
     : state_(std::make_shared<dev::eth::State>(
           0,
           dev::eth::State::openDB(path, TEMP_GENESIS_HASH,
-                                  dev::WithExisting::Kill),
+                                  overwrite ? dev::WithExisting::Kill : dev::WithExisting::Trust),
           dev::eth::BaseState::Empty)) {}

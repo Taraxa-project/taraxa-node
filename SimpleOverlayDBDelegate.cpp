@@ -38,7 +38,7 @@ void SimpleOverlayDBDelegate::commit() {
   odb_->commit();
 }
 
-SimpleOverlayDBDelegate::SimpleOverlayDBDelegate(const std::string &path)
+SimpleOverlayDBDelegate::SimpleOverlayDBDelegate(const std::string &path, bool overwrite)
     : odb_(std::make_shared<dev::OverlayDB>(
           dev::OverlayDB(dev::eth::State::openDB(path, TEMP_GENESIS_HASH,
-                                                 dev::WithExisting::Kill)))) {}
+                                                 overwrite ? dev::WithExisting::Kill : dev::WithExisting::Trust)))) {}

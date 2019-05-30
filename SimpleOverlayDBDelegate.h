@@ -14,7 +14,7 @@ class SimpleOverlayDBDelegate : public SimpleDBFace {
   bool update(const std::string &key, const std::string &value) override;
   std::string get(const std::string &key) override;
   void commit() override;
-  SimpleOverlayDBDelegate(const std::string &path);
+  SimpleOverlayDBDelegate(const std::string &path, bool overwrite);
 
  private:
   static h256 stringToHashKey(const std::string &s) { return h256(s); }

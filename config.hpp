@@ -54,16 +54,13 @@ struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
-  std::string db_accounts_path;
-  std::string db_blocks_path;
-  std::string db_transactions_path;
+  std::string db_path;
+  bool overwrite_db = true;
   uint16_t dag_processing_threads;
   ProposerConfig proposer;
   NetworkConfig network;
   RpcConfig rpc;
   PbftManagerConfig pbft_manager;
-  std::string db_pbft_votes_path;
-  std::string db_pbft_chain_path;
 };
 std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf);

@@ -22,7 +22,7 @@
 namespace taraxa {
 class RocksDb : public std::enable_shared_from_this<RocksDb> {
  public:
-  RocksDb(std::string path);
+  RocksDb(std::string path, bool overwrite);
   ~RocksDb();
   bool put(const std::string &key, const std::string &value);
   bool update(const std::string &key, const std::string &value);

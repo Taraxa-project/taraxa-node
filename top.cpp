@@ -33,7 +33,7 @@ void Top::start(int argc, const char* argv[]) {
         "conf_taraxa", boost::program_options::value<std::string>(&conf_taraxa),
         "Configure file for taraxa node [required]")(
         "boot_node", boost::program_options::bool_switch(&boot_node),
-        "Configure file for taraxa node [required]");
+        "Flag to mark this node as boot node");
 
     boost::program_options::options_description allowed_options(
         "Allowed options");

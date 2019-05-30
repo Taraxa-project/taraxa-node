@@ -12,7 +12,7 @@
 namespace taraxa {
 using namespace rocksdb;
 
-RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
+RocksDb::RocksDb(std::string path_str, bool overwrite) : db_path_(path_str) {
   boost::filesystem::path path(db_path_);
   if (path.size() == 0) {
     throw std::invalid_argument("Error, invalid db path: " + db_path_);
@@ -28,15 +28,16 @@ RocksDb::RocksDb(std::string path_str) : db_path_(path_str) {
   }
   rocksdb::Status status;
 
-  // Will remove all old data!
-  status = DestroyDB(db_path_, opt_);
-  if (status.ok()) {
-    LOG(log_wr_) << "Warning! DB is cleared : " << db_path_ << std::endl;
-  } else {
-    LOG(log_er_) << "Cannot clear DB : " << db_path_ << std::endl
-                 << status.ToString() << std::endl;
+  if (overwrite) {
+    // Will remove all old data!
+    status = DestroyDB(db_path_, opt_);
+    if (status.ok()) {
+      LOG(log_wr_) << "Warning! DB is cleared : " << db_path_ << std::endl;
+    } else {
+      LOG(log_er_) << "Cannot clear DB : " << db_path_ << std::endl
+                   << status.ToString() << std::endl;
+    }
   }
-
   opt_.IncreaseParallelism();
   opt_.OptimizeLevelStyleCompaction();
   opt_.create_if_missing = true;

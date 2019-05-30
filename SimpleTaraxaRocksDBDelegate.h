@@ -17,7 +17,7 @@ class SimpleTaraxaRocksDBDelegate : public SimpleDBFace {
   bool update(const std::string &key, const std::string &value) override;
   std::string get(const std::string &key) override;
   void commit() override;
-  SimpleTaraxaRocksDBDelegate(const std::string &path);
+  SimpleTaraxaRocksDBDelegate(const std::string &path, bool overwrite);
 
  private:
   std::shared_ptr<taraxa::RocksDb> taraxa_rocks_db = nullptr;
