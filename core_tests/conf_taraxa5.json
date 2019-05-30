@@ -1,8 +1,7 @@
 {
   "node_secret": "",
-  "db_accounts_path": "/tmp/rocksdb/acc5",
-  "db_blocks_path": "/tmp/rocksdb/blk5",
-  "db_transactions_path": "/tmp/rocksdb/trx5",
+  "db_path": "/tmp/taraxa5",
+  "overwrite_db": true,
   "dag_processing_threads": 1,
   "block_proposer": {
     "mode": 0,
@@ -26,7 +25,5 @@
   "rpc_port": 7781,
   "pbft_manager": {
     "lambda_ms": 1000
-  },
-  "db_pbft_votes_path": "/tmp/rocksdb/pbftvotes5",
-  "db_pbft_chain_path": "/tmp/rocksdb/pbftchain5"
+  }
 }

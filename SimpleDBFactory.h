@@ -20,14 +20,14 @@ public:
         StateDBKind
     };
 
-    static std::shared_ptr<SimpleDBFace> createDelegate(const SimpleDBType type, const std::string &path) {
+    static std::shared_ptr<SimpleDBFace> createDelegate(const SimpleDBType type, const std::string &path, bool overwrite) {
       switch(type) {
         case TaraxaRocksDBKind:
-          return std::make_shared<SimpleTaraxaRocksDBDelegate>(path);
+          return std::make_shared<SimpleTaraxaRocksDBDelegate>(path, overwrite);
         case StateDBKind:
-          return std::make_shared<SimpleStateDBDelegate>(path);
+          return std::make_shared<SimpleStateDBDelegate>(path, overwrite);
         case OverlayDBKind:
-          return std::make_shared<SimpleOverlayDBDelegate>(path);
+          return std::make_shared<SimpleOverlayDBDelegate>(path, overwrite);
         default:
           assert(false);
       }

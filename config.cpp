@@ -13,9 +13,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
   try {
     boost::property_tree::ptree doc = loadJsonFile(json_file);
     node_secret = doc.get<std::string>("node_secret");
-    db_accounts_path = doc.get<std::string>("db_accounts_path");
-    db_blocks_path = doc.get<std::string>("db_blocks_path");
-    db_transactions_path = doc.get<std::string>("db_transactions_path");
+    db_path = doc.get<std::string>("db_path");
+    overwrite_db = doc.get<bool>("overwrite_db");
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
 
     proposer.mode = doc.get<uint>("block_proposer.mode");
@@ -42,8 +41,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         boost::asio::ip::address::from_string(network.network_address);
     rpc.port = doc.get<uint16_t>("rpc_port");
     pbft_manager.lambda_ms = doc.get<u_long>("pbft_manager.lambda_ms");
-    db_pbft_votes_path = doc.get<std::string>("db_pbft_votes_path");
-    db_pbft_chain_path = doc.get<std::string>("db_pbft_chain_path");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -96,8 +93,8 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_listen_port: " << conf.network_listen_port << std::endl;
   strm << "  network_simulated_delay: " << conf.network_simulated_delay
        << std::endl;
-  strm << "  network_transaction_interval: " << conf.network_transaction_interval
-       << std::endl;
+  strm << "  network_transaction_interval: "
+       << conf.network_transaction_interval << std::endl;
   strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;
   strm << "  network_id: " << conf.network_id << std::endl;
 
@@ -111,9 +108,8 @@ std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
   strm << "[FullNode Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
   strm << "  node_secret: " << conf.node_secret << std::endl;
-  strm << "  db_accoutns_path: " << conf.db_accounts_path << std::endl;
-  strm << "  db_blocks_path: " << conf.db_blocks_path << std::endl;
-  strm << "  db_transactions_path: " << conf.db_transactions_path << std::endl;
+  strm << "  db_path: " << conf.db_path << std::endl;
+  strm << "  overwrite_db: " << conf.overwrite_db << std::endl;
   strm << "  dag_processing_thread: " << conf.dag_processing_threads
        << std::endl;
   strm << conf.proposer;

@@ -177,9 +177,7 @@ TEST(Network, delayed_node_sync2) {
     node2Config.network.network_listen_port += i;
     node2Config.proposer.param1 = 1000;
     node2Config.proposer.param2 = 39000;
-    node2Config.db_accounts_path += std::to_string(i);
-    node2Config.db_blocks_path += std::to_string(i);
-    node2Config.db_transactions_path += std::to_string(i);
+    node2Config.db_path += std::to_string(i);
     nodes.push_back(std::make_shared<taraxa::FullNode>(context2, node2Config));
     nodes[i]->start(false);
     taraxa::thisThreadSleepForMilliSeconds(10);
@@ -242,9 +240,7 @@ TEST(Network, delayed_node_sync3) {
     node2Config.network.network_listen_port += i;
     node2Config.proposer.param1 = 100000;
     node2Config.proposer.param2 = 390000;
-    node2Config.db_accounts_path += std::to_string(i);
-    node2Config.db_blocks_path += std::to_string(i);
-    node2Config.db_transactions_path += std::to_string(i);
+    node2Config.db_path += std::to_string(i);
     nodes.push_back(std::make_shared<taraxa::FullNode>(context2, node2Config));
     nodes[i]->start(false);
     taraxa::thisThreadSleepForMilliSeconds(10);

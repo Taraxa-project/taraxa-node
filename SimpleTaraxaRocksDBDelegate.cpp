@@ -21,5 +21,5 @@ void SimpleTaraxaRocksDBDelegate::commit() {
 }
 
 SimpleTaraxaRocksDBDelegate::SimpleTaraxaRocksDBDelegate(
-    const std::string &path)
-    : taraxa_rocks_db(std::make_shared<taraxa::RocksDb>(path)) {}
+    const std::string &path, bool overwrite)
+    : taraxa_rocks_db(std::make_shared<taraxa::RocksDb>(path, overwrite)) {}

@@ -6,6 +6,8 @@
  * @Last Modified time: 2019-05-16 12:54:43
  */
 #include "full_node.hpp"
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/asio.hpp>
 #include <chrono>
 #include "SimpleDBFactory.h"
@@ -39,12 +41,17 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
       db_accs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_accounts_path)),
+          SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/acc",
+          conf_.overwrite_db)),
       db_blks_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_blocks_path)),
+          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          conf_.db_path + "/blk", conf_.overwrite_db)),
+      db_blks_index_(SimpleDBFactory::createDelegate(
+          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          conf_.db_path + "/blk_index", conf_.overwrite_db)),
       db_trxs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_transactions_path)),
+          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+          conf_.db_path + "/trx", conf_.overwrite_db)),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
@@ -58,10 +65,10 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_chain_(std::make_shared<PbftChain>()),
       db_votes_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_pbft_votes_path)),
+          conf_.db_path + "pbftvotes", conf_.overwrite_db)),
       db_pbftchain_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_pbft_chain_path)) {
+          conf_.db_path + "pbftchain", conf_.overwrite_db)) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -85,6 +92,22 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                      pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
+
+  if (!conf_.overwrite_db) {
+    unsigned long level = 1;
+    while (true) {
+      string entry = db_blks_index_->get(std::to_string(level));
+      if (entry.empty()) break;
+      vector<string> blocks;
+      boost::split(blocks, entry, boost::is_any_of(","));
+      for (auto const &block : blocks) {
+        auto block_json = db_blks_->get(block);
+        assert(block_json != "");
+        dag_mgr_->addDagBlock(DagBlock(block_json));
+      }
+      level++;
+    }
+  }
 
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
@@ -147,6 +170,13 @@ void FullNode::start(bool boot_node) {
         {
           db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
           db_blks_->commit();
+          std::string level = std::to_string(blk.getLevel());
+          std::string blocks = db_blks_index_->get(level);
+          if (blocks == "")
+            db_blks_index_->put(level, blk.getHash().hex());
+          else
+            db_blks_index_->update(level, blocks + "," + blk.getHash().hex());
+          db_blks_index_->commit();
         }
         network_->onNewBlockVerified(blk);
         LOG(log_time_) << "Broadcast block " << blk.getHash()
@@ -488,12 +518,12 @@ void FullNode::setVoteKnown(taraxa::Vote const &vote) {
 }
 
 bool FullNode::isKnownPbftBlockInChain(
-    taraxa::blk_hash_t const& pbft_block_hash) const {
+    taraxa::blk_hash_t const &pbft_block_hash) const {
   return pbft_chain_->findPbftBlockInChain(pbft_block_hash);
 }
 
 bool FullNode::isKnownPbftBlockInQueue(
-    taraxa::blk_hash_t const& pbft_block_hash) const {
+    taraxa::blk_hash_t const &pbft_block_hash) const {
   return pbft_chain_->findPbftBlockInQueue(pbft_block_hash);
 }
 

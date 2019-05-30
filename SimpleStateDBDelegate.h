@@ -16,7 +16,7 @@ class SimpleStateDBDelegate : public SimpleDBFace {
   bool update(const std::string &key, const std::string &value) override;
   std::string get(const std::string &key) override;
   void commit() override;
-  SimpleStateDBDelegate(const std::string &path);
+  SimpleStateDBDelegate(const std::string &path, bool overwrite);
 
  private:
   static dev::Address stringToAddress(const std::string &s) {

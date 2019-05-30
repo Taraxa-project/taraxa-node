@@ -310,6 +310,44 @@ TEST(Top, create_top) {
   }
 }
 
+TEST(Top, reconstruct_dag) {
+  unsigned long vertices1 = 0;
+  unsigned long vertices2 = 0;
+  auto num_blks = g_mock_dag0.size();
+  {
+    boost::asio::io_context context;
+    FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+    conf.overwrite_db = true;
+    auto node(std::make_shared<taraxa::FullNode>(context, conf));
+
+    node->start(false);
+    taraxa::thisThreadSleepForMilliSeconds(500);
+
+    for (int i = 1; i < num_blks; i++) {
+      node->insertBlock(g_mock_dag0[i]);
+    }
+
+    taraxa::thisThreadSleepForMilliSeconds(500);
+    vertices1 = node->getNumVerticesInDag().first;
+    EXPECT_EQ(vertices1, num_blks);
+    node->stop();
+  }
+  {
+    boost::asio::io_context context;
+    FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+    conf.overwrite_db = false;
+    auto node(std::make_shared<taraxa::FullNode>(context, conf));
+
+    node->start(false);
+    taraxa::thisThreadSleepForMilliSeconds(500);
+
+    vertices2 = node->getNumVerticesInDag().first;
+    EXPECT_EQ(vertices2, num_blks);
+    node->stop();
+  }
+  EXPECT_EQ(vertices1, vertices2);
+}
+
 TEST(Top, sync_two_nodes) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf_taraxa1.json", "-v", "0"};
