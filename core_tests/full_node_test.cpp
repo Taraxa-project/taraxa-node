@@ -144,131 +144,66 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_NE(node4, nullptr);
   EXPECT_NE(node5, nullptr);
 
-  // // check transactions
-  // auto knowntrx1 = node1->getNumKnownTransactions();
-  // auto knowntrx2 = node2->getNumKnownTransactions();
-  // auto knowntrx3 = node3->getNumKnownTransactions();
-  // auto knowntrx4 = node3->getNumKnownTransactions();
-  // auto knowntrx5 = node3->getNumKnownTransactions();
+  auto num_peers1 = node1->getPeerCount();
+  auto num_peers2 = node2->getPeerCount();
+  auto num_peers3 = node3->getPeerCount();
+  auto num_peers4 = node4->getPeerCount();
+  auto num_peers5 = node5->getPeerCount();
 
-  // for (auto i = 0; i < 180; i++) {
-  //   if (i % 10 == 0) {
-  //     std::cout << "Wait for trxs syncing ..." << std::endl;
-  //   }
-  //   knowntrx1 = node1->getNumKnownTransactions();
-  //   knowntrx2 = node2->getNumKnownTransactions();
-  //   knowntrx3 = node3->getNumKnownTransactions();
-  //   knowntrx4 = node4->getNumKnownTransactions();
-  //   knowntrx5 = node5->getNumKnownTransactions();
+  for (auto i = 0; i < 180; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for peers syncing ..." << std::endl;
+    }
+    num_peers1 = node1->getPeerCount();
+    num_peers2 = node2->getPeerCount();
+    num_peers3 = node3->getPeerCount();
+    num_peers4 = node4->getPeerCount();
+    num_peers5 = node5->getPeerCount();
 
-  //   if (knowntrx1 == knowntrx2 && knowntrx2 == knowntrx3 &&
-  //       knowntrx3 == knowntrx4 && knowntrx4 == knowntrx5 && knowntrx5 ==
-  //       20000)
-  //     break;
-  //   taraxa::thisThreadSleepForMilliSeconds(500);
-  // }
-
-  // // check blocks
-  // auto knownBlocks1 = node1->getNumKnownBlocks();
-  // auto knownBlocks2 = node2->getNumKnownBlocks();
-  // auto knownBlocks3 = node3->getNumKnownBlocks();
-  // auto knownBlocks4 = node4->getNumKnownBlocks();
-  // auto knownBlocks5 = node5->getNumKnownBlocks();
-
-  // for (auto i = 0; i < 180; i++) {
-  //   if (i % 10 == 0) {
-  //     std::cout << "Wait for blocks syncing ..." << std::endl;
-  //   }
-  //   knownBlocks1 = node1->getNumKnownBlocks();
-  //   knownBlocks2 = node2->getNumKnownBlocks();
-  //   knownBlocks3 = node3->getNumKnownBlocks();
-  //   knownBlocks4 = node4->getNumKnownBlocks();
-  //   knownBlocks5 = node5->getNumKnownBlocks();
-
-  //   if (knownBlocks1 == knownBlocks2 && knownBlocks2 == knownBlocks3 &&
-  //       knownBlocks3 == knownBlocks4 && knownBlocks4 == knownBlocks5 &&
-  //       (knownBlocks5 > 0))
-  //     break;
-  //   taraxa::thisThreadSleepForMilliSeconds(500);
-  // }
+    if (num_peers1 == 4 && num_peers2 == 4 && num_peers3 == 4 &&
+        num_peers4 == 4 && num_peers5 == 4)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+  EXPECT_EQ(num_peers1, 4);
+  EXPECT_EQ(num_peers2, 4);
+  EXPECT_EQ(num_peers3, 4);
+  EXPECT_EQ(num_peers4, 4);
+  EXPECT_EQ(num_peers5, 4);
 
   // check dags
-  auto numVertices1 = node1->getNumVerticesInDag();
-  auto numVertices2 = node2->getNumVerticesInDag();
-  auto numVertices3 = node3->getNumVerticesInDag();
-  auto numVertices4 = node4->getNumVerticesInDag();
-  auto numVertices5 = node5->getNumVerticesInDag();
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
 
   for (auto i = 0; i < 180; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
-    numVertices1 = node1->getNumVerticesInDag();
-    numVertices2 = node2->getNumVerticesInDag();
-    numVertices3 = node3->getNumVerticesInDag();
-    numVertices4 = node4->getNumVerticesInDag();
-    numVertices5 = node5->getNumVerticesInDag();
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
+    num_vertices3 = node3->getNumVerticesInDag();
+    num_vertices4 = node4->getNumVerticesInDag();
+    num_vertices5 = node5->getNumVerticesInDag();
 
-    if (numVertices1 == numVertices2 && numVertices2 == numVertices3 &&
-        numVertices3 == numVertices4 && numVertices4 == numVertices5)
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
-  // knowntrx1 = node1->getNumKnownTransactions();
-  // knowntrx2 = node2->getNumKnownTransactions();
-  // knowntrx3 = node3->getNumKnownTransactions();
-  // knowntrx4 = node4->getNumKnownTransactions();
-  // knowntrx5 = node5->getNumKnownTransactions();
+  num_vertices1 = node1->getNumVerticesInDag();
+  num_vertices2 = node2->getNumVerticesInDag();
+  num_vertices3 = node3->getNumVerticesInDag();
+  num_vertices4 = node4->getNumVerticesInDag();
+  num_vertices5 = node5->getNumVerticesInDag();
 
-  // EXPECT_EQ(knowntrx1, knowntrx2);
-  // EXPECT_EQ(knowntrx2, knowntrx3);
-  // EXPECT_EQ(knowntrx3, knowntrx4);
-  // EXPECT_EQ(knowntrx4, knowntrx5);
-  // EXPECT_EQ(knowntrx5, 20000);
-
-  // knownBlocks1 = node1->getNumKnownBlocks();
-  // knownBlocks2 = node2->getNumKnownBlocks();
-  // knownBlocks3 = node3->getNumKnownBlocks();
-  // knownBlocks4 = node4->getNumKnownBlocks();
-  // knownBlocks5 = node5->getNumKnownBlocks();
-
-  // EXPECT_EQ(knownBlocks1, knownBlocks2);
-  // EXPECT_EQ(knownBlocks2, knownBlocks3);
-  // EXPECT_EQ(knownBlocks3, knownBlocks4);
-  // EXPECT_EQ(knownBlocks4, knownBlocks5);
-
-  // auto verifiedBlocks1 = node1->getNumVerifiedBlocks();
-  // auto verifiedBlocks2 = node2->getNumVerifiedBlocks();
-  // auto verifiedBlocks3 = node3->getNumVerifiedBlocks();
-  // auto verifiedBlocks4 = node4->getNumVerifiedBlocks();
-  // auto verifiedBlocks5 = node5->getNumVerifiedBlocks();
-  // EXPECT_EQ(knownBlocks1, verifiedBlocks1)
-  //     << " Unverified Transactions: "
-  //     << ::testing::PrintToString(node1->getNumUnverifiedTransactions());
-  // EXPECT_EQ(knownBlocks2, verifiedBlocks2)
-  //     << " Unverified Transactions: "
-  //     << ::testing::PrintToString(node2->getNumUnverifiedTransactions());
-  // EXPECT_EQ(knownBlocks3, verifiedBlocks3)
-  //     << " Unverified Transactions: "
-  //     << ::testing::PrintToString(node3->getNumUnverifiedTransactions());
-  // EXPECT_EQ(knownBlocks4, verifiedBlocks4)
-  //     << " Unverified Transactions: "
-  //     << ::testing::PrintToString(node4->getNumUnverifiedTransactions());
-  // EXPECT_EQ(knownBlocks5, verifiedBlocks5)
-  //     << " Unverified Transactions: "
-  //     << ::testing::PrintToString(node5->getNumUnverifiedTransactions());
-
-  numVertices1 = node1->getNumVerticesInDag();
-  numVertices2 = node2->getNumVerticesInDag();
-  numVertices3 = node3->getNumVerticesInDag();
-  numVertices4 = node4->getNumVerticesInDag();
-  numVertices5 = node5->getNumVerticesInDag();
-
-  EXPECT_EQ(numVertices1, numVertices2);
-  EXPECT_EQ(numVertices2, numVertices3);
-  EXPECT_EQ(numVertices3, numVertices4);
-  EXPECT_EQ(numVertices4, numVertices5);
+  EXPECT_EQ(num_vertices1, num_vertices2);
+  EXPECT_EQ(num_vertices2, num_vertices3);
+  EXPECT_EQ(num_vertices3, num_vertices4);
+  EXPECT_EQ(num_vertices4, num_vertices5);
 
   top5.stop();
   top4.stop();
