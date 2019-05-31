@@ -29,11 +29,11 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs) try
-    : pivot_(pivot),
-      level_(level),
-      tips_(tips),
-      trxs_(trxs) {
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
+                   vec_trx_t trxs) try : pivot_(pivot),
+                                         level_(level),
+                                         tips_(tips),
+                                         trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -319,7 +319,7 @@ void BlockManager::verifyBlock() {
       bool valid = trx_mgr_->verifyBlockTransactions(blk.first, blk.second);
       if (!valid) {
         LOG(log_er_) << "Ignore block " << blk.first.getHash()
-                     << " since it has invalid transactions";
+                     << " since it has invalid or missing transactions";
         blk_status_.update(blk.first.getHash(), BlockStatus::invalid);
         continue;
       }

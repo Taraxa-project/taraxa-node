@@ -396,8 +396,9 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // block Verify that all transactions are saved in the database If all
   // transactions are not available within 10 seconds fail the block
   // verification
-  bool allTransactionsSaved = true;
+  bool all_transactions_saved = true;
   unsigned int delay = 0;
+  vec_trx_t unsaved_trx;
   while (delay < 10000) {
     {
       auto removed_trx =
@@ -408,20 +409,25 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       }
       db_trxs_->commit();
     }
-    allTransactionsSaved = true;
+    all_transactions_saved = true;
+    unsaved_trx.clear();
     for (auto const &trx : all_block_trx_hashes) {
       auto res = trx_status_.get(trx);
       if (res.second == false || res.first != TransactionStatus::in_block)
-        allTransactionsSaved = false;
+        all_transactions_saved = false;
+      unsaved_trx.emplace_back(trx);
     }
     // Only if all transactions are saved in the db can we verify a new block
-    if (allTransactionsSaved) break;
+    if (all_transactions_saved) break;
     // Getting here should be a very rare case where in a racing condition block
     // was processed before the transactions
     thisThreadSleepForMilliSeconds(10);
     delay += 10;
   }
-  return allTransactionsSaved;
+  if (!all_transactions_saved) {
+    LOG(log_er_) << "Missing transactions " << unsaved_trx;
+  }
+  return all_transactions_saved;
 }
 
 bool TransactionManager::insertTrx(Transaction trx, bool critical) {
@@ -491,7 +497,7 @@ bool TransactionManager::verifyBlockTransactions(
   bool transactionsSave =
       saveBlockTransactionAndDeduplicate(blk.getTrxs(), trxs);
   if (!transactionsSave) {
-    LOG(log_er_) << "Error: Block missing transactions " << blk.getHash();
+    LOG(log_er_) << "Block " << blk.getHash() << " has missing transactions ";
     return false;
   }
   return true;
