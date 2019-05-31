@@ -394,10 +394,11 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
 
   // Second step: Remove from the queue any transaction that is part of the
   // block Verify that all transactions are saved in the database If all
-  // transactions are not available within 2 seconds fail the block verification
+  // transactions are not available within 10 seconds fail the block
+  // verification
   bool allTransactionsSaved = true;
   unsigned int delay = 0;
-  while (delay < 2000) {
+  while (delay < 10000) {
     {
       auto removed_trx =
           trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
