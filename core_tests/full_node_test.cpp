@@ -33,7 +33,7 @@ auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
 
-TEST(Top, sync_five_nodes_simple) {
+TEST(Top, sync_five_nodes_simple_DISABLED) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf_taraxa1.json", "-v", "0"};
   const char* input2[] = {"./build/main2", "--conf_taraxa",
