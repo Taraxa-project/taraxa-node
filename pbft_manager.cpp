@@ -437,7 +437,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
 
   for (Vote &v : votes) {
     if (is_first_block) {
-      vote_type = static_cast<PbftVoteTypes>(v.getType()); //TODO: need change vote type to PbftVoteTypes
+      vote_type = v.getType();
       vote_period = v.getPeriod();
       is_first_block = false;
     } else {
@@ -749,8 +749,8 @@ bool PbftManager::updatePbftChainDB_(PbftBlock const& pbft_block) {
                   <<  pbft_block.getBlockHash() << " into DB";
     return false;
   }
-  if (db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
-                            pbft_chain_->getJsonStr())) {
+  if (!db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
+                             pbft_chain_->getJsonStr())) {
     LOG(log_err_) << "Failed update pbft genesis in DB";
     return false;
   }

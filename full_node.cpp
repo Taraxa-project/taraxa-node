@@ -524,11 +524,19 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   // TODO: push other type pbft block into pbft chain
 
   // store pbft block into DB
-  db_pbftchain_->put(pbft_block.getBlockHash().toString(),
-                     pbft_block.getJsonStr());
-  db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
-                        pbft_chain_->getJsonStr());
+  if(!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                         pbft_block.getJsonStr())) {
+    LOG(log_er_) << "Failed put pbft block: "
+                  << pbft_block.getBlockHash() << " into DB";
+    return false;
+  }
+  if (!db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
+                             pbft_chain_->getJsonStr())) {
+    LOG(log_er_) << "Failed update pbft genesis in DB";
+    return false;
+  }
   db_pbftchain_->commit();
+
   return true;
 }
 

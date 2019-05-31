@@ -20,7 +20,7 @@
 #include "vote.h"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define TWO_T_PLUS_ONE 5  // this is the 2t+1 value.. // TODO: need to change the value
+#define TWO_T_PLUS_ONE 3  // this is the 2t+1 value.. // TODO: need to change the value
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...
 #define MAX_STEPS 19
