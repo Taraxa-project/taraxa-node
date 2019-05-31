@@ -311,6 +311,7 @@ TEST(Top, create_top) {
 }
 
 TEST(Top, reconstruct_dag) {
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
   auto num_blks = g_mock_dag0.size();
@@ -403,6 +404,7 @@ TEST(Top, sync_two_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
 TEST(FullNode, account_bal) {

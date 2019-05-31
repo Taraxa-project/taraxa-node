@@ -44,14 +44,14 @@ FullNode::FullNode(boost::asio::io_context &io_context,
           SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/acc",
           conf_.overwrite_db)),
       db_blks_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
-          conf_.db_path + "/blk", conf_.overwrite_db)),
+          SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/blk",
+          conf_.overwrite_db)),
       db_blks_index_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
           conf_.db_path + "/blk_index", conf_.overwrite_db)),
       db_trxs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
-          conf_.db_path + "/trx", conf_.overwrite_db)),
+          SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/trx",
+          conf_.overwrite_db)),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
@@ -65,10 +65,10 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_chain_(std::make_shared<PbftChain>()),
       db_votes_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_path + "pbftvotes", conf_.overwrite_db)),
+          conf_.db_path + "/pbftvotes", conf_.overwrite_db)),
       db_pbftchain_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_path + "pbftchain", conf_.overwrite_db)) {
+          conf_.db_path + "/pbftchain", conf_.overwrite_db)) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
