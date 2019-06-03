@@ -318,8 +318,7 @@ TEST(Top, reconstruct_dag) {
   {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-    conf.overwrite_db = true;
-    auto node(std::make_shared<taraxa::FullNode>(context, conf));
+    auto node(std::make_shared<taraxa::FullNode>(context, conf, true));
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -336,8 +335,7 @@ TEST(Top, reconstruct_dag) {
   {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-    conf.overwrite_db = false;
-    auto node(std::make_shared<taraxa::FullNode>(context, conf));
+    auto node(std::make_shared<taraxa::FullNode>(context, conf, false));
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);

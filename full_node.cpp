@@ -33,25 +33,25 @@ void FullNode::setVerbose(bool verbose) {
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   std::string const &conf_full_node_file)
-    : FullNode(io_context, FullNodeConfig(conf_full_node_file)) {}
+                   std::string const &conf_full_node_file, bool destroy_db)
+    : FullNode(io_context, FullNodeConfig(conf_full_node_file), destroy_db) {}
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig const &conf_full_node) try
+                   FullNodeConfig const &conf_full_node, bool destroy_db) try
     : io_context_(io_context),
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
       db_accs_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/acc",
-          conf_.overwrite_db)),
+          destroy_db)),
       db_blks_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/blk",
-          conf_.overwrite_db)),
+          destroy_db)),
       db_blks_index_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
-          conf_.db_path + "/blk_index", conf_.overwrite_db)),
+          conf_.db_path + "/blk_index", destroy_db)),
       db_trxs_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/trx",
-          conf_.overwrite_db)),
+          destroy_db)),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
@@ -65,10 +65,10 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_chain_(std::make_shared<PbftChain>()),
       db_votes_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_path + "/pbftvotes", conf_.overwrite_db)),
+          conf_.db_path + "/pbftvotes", destroy_db)),
       db_pbftchain_(SimpleDBFactory::createDelegate(
           SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_path + "/pbftchain", conf_.overwrite_db)) {
+          conf_.db_path + "/pbftchain", destroy_db)) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -93,7 +93,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                      pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
 
-  if (!conf_.overwrite_db) {
+  if (!destroy_db) {
     unsigned long level = 1;
     while (true) {
       string entry = db_blks_index_->get(std::to_string(level));
@@ -102,8 +102,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
         auto block_json = db_blks_->get(block);
-        assert(block_json != "");
-        dag_mgr_->addDagBlock(DagBlock(block_json));
+        if (block_json != "") dag_mgr_->addDagBlock(DagBlock(block_json));
       }
       level++;
     }
@@ -554,10 +553,10 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   // TODO: push other type pbft block into pbft chain
 
   // store pbft block into DB
-  if(!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
-                         pbft_block.getJsonStr())) {
-    LOG(log_er_) << "Failed put pbft block: "
-                  << pbft_block.getBlockHash() << " into DB";
+  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                          pbft_block.getJsonStr())) {
+    LOG(log_er_) << "Failed put pbft block: " << pbft_block.getBlockHash()
+                 << " into DB";
     return false;
   }
   if (!db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
