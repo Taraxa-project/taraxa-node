@@ -363,7 +363,6 @@ bool PbftManager::shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
     return false;
   }
   if (taraxa::sortition(signature_hash, account_balance.first)) {
-    LOG(log_inf_) << "Win sortition" << std::endl;
     return true;
   } else {
     return false;
