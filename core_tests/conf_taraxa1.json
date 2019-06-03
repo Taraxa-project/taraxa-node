@@ -1,7 +1,6 @@
 {
   "node_secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
   "db_path": "/tmp/taraxa",
-  "overwrite_db": true,
   "dag_processing_threads": 1,
   "block_proposer": {
     "mode": 0,

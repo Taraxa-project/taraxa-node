@@ -55,7 +55,6 @@ struct FullNodeConfig {
   std::string json_file_name;
   std::string node_secret;
   std::string db_path;
-  bool overwrite_db = true;
   uint16_t dag_processing_threads;
   ProposerConfig proposer;
   NetworkConfig network;

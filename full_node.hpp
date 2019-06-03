@@ -42,9 +42,9 @@ class NetworkConfig;
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   explicit FullNode(boost::asio::io_context &io_context,
-                    std::string const &conf_full_node_file);
+                    std::string const &conf_full_node_file, bool destroy_db = false);
   explicit FullNode(boost::asio::io_context &io_context,
-                    FullNodeConfig const &conf_full_node);
+                    FullNodeConfig const &conf_full_node, bool destroy_db = false);
 
   virtual ~FullNode() {
     if (!stopped_) {

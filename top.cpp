@@ -21,6 +21,7 @@ void Top::start(int argc, const char* argv[]) {
     bool verbose = false;
     std::string conf_taraxa;
     bool boot_node = false;
+    bool destroy_db = false;
     // loggin options
     dev::LoggingOptions loggingOptions;
     boost::program_options::options_description loggingProgramOptions(
@@ -33,7 +34,9 @@ void Top::start(int argc, const char* argv[]) {
         "conf_taraxa", boost::program_options::value<std::string>(&conf_taraxa),
         "Configure file for taraxa node [required]")(
         "boot_node", boost::program_options::bool_switch(&boot_node),
-        "Flag to mark this node as boot node");
+        "Flag to mark this node as boot node")(
+        "destroy_db", boost::program_options::bool_switch(&destroy_db),
+        "Destroys all the existing data in the database");
 
     boost::program_options::options_description allowed_options(
         "Allowed options");
@@ -63,7 +66,7 @@ void Top::start(int argc, const char* argv[]) {
     stopped_ = false;
     try {
       taraxa::FullNodeConfig conf(conf_taraxa);
-      node_ = std::make_shared<taraxa::FullNode>(context_, conf);
+      node_ = std::make_shared<taraxa::FullNode>(context_, conf, destroy_db);
       node_->setVerbose(verbose);
       node_->start(boot_node);
       rpc_ =

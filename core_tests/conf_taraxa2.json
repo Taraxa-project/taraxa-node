@@ -1,7 +1,6 @@
 {
   "node_secret": "",
   "db_path": "/tmp/taraxa2",
-  "overwrite_db": true,
   "dag_processing_threads": 1,
   "block_proposer": {
     "mode": 0,
