@@ -260,6 +260,7 @@ TEST(PbftVote, vote_broadcast) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityDebug;
   logOptions.includeChannels.push_back("network");

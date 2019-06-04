@@ -98,6 +98,7 @@ TEST(EthereumCrypto, sortition_rate) {
 } // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbositySilent;
   dev::setupLogging(logOptions);

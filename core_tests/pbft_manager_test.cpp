@@ -675,6 +675,7 @@ TEST(PbftManager, DISABLED_pbft_manager_workflow_simulate_steps) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st ;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_MGR");

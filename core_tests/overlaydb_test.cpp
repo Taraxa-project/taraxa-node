@@ -2,11 +2,11 @@
         This file is a modified version of cpp-ethereum unit-test for OverlayDB.
 */
 
+#include <gtest/gtest.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/OverlayDB.h>
-
-#include <gtest/gtest.h>
 #include "libdevcore/Log.h"
+#include "util.hpp"
 
 using namespace std;
 using namespace dev;
@@ -98,6 +98,7 @@ TEST(OverlayDB, rollback) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbositySilent;
   dev::setupLogging(logOptions);

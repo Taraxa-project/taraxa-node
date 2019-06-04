@@ -328,6 +328,7 @@ TEST(Detector, conflict_detector_single_thread) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

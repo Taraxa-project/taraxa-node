@@ -560,6 +560,7 @@ TEST(DagManager, get_latest_pivot_tips) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   dev::setupLogging(logOptions);
