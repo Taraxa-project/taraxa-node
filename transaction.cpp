@@ -173,35 +173,43 @@ bool TransactionQueue::insert(Transaction trx, bool critical) {
   std::list<Transaction>::iterator iter;
   if (status.second == false) {  // never seen before
     ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
-    {
-      uLock lock(shared_mutex_for_queued_trxs_);
-      iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-      assert(iter != trx_buffer_.end());
-      queued_trxs_[trx.getHash()] = iter;
-    }
-    {
-      uLock lock(shared_mutex_for_unverified_qu_);
-      if (critical) {
-        unverified_hash_qu_.emplace_front(std::make_pair(hash, iter));
-      } else {
-        unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
+    if (ret) {
+      {
+        uLock lock(shared_mutex_for_queued_trxs_);
+        iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+        assert(iter != trx_buffer_.end());
+        queued_trxs_[trx.getHash()] = iter;
       }
+      {
+        uLock lock(shared_mutex_for_unverified_qu_);
+        if (critical) {
+          unverified_hash_qu_.emplace_front(std::make_pair(hash, iter));
+        } else {
+          unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
+        }
+      }
+      cond_for_unverified_qu_.notify_one();
+      LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
+    } else {
+      // If ret is false status was just changed by another thread so ask for it
+      // again
+      status = trx_status_.get(hash);
     }
-    cond_for_unverified_qu_.notify_one();
-    LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
-    ret = true;
-  } else if (status.first == TransactionStatus::in_queue_unverified) {
-    LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (unverified). "
-                 << std::endl;
-  } else if (status.first == TransactionStatus::in_queue_verified) {
-    LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (verified). "
-                 << std::endl;
-  } else if (status.first == TransactionStatus::in_block) {
-    LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
-  } else if (status.first == TransactionStatus::invalid) {
-    LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. " << std::endl;
   }
-
+  if (status.second == true) {
+    if (status.first == TransactionStatus::in_queue_unverified) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (unverified). "
+                   << std::endl;
+    } else if (status.first == TransactionStatus::in_queue_verified) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (verified). "
+                   << std::endl;
+    } else if (status.first == TransactionStatus::in_block) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
+    } else if (status.first == TransactionStatus::invalid) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
+                   << std::endl;
+    }
+  }
   return ret;
 }
 
@@ -244,10 +252,14 @@ void TransactionQueue::verifyTrx() {
       } else {
         // push to verified qu
         LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
-        trx_status_.update(trx.getHash(), TransactionStatus::in_queue_verified);
-        uLock lock(shared_mutex_for_verified_qu_);
-        verified_trxs_[hash] = item.second;
-        new_verified_transactions = true;
+        bool ret = trx_status_.update(trx.getHash(),
+                                      TransactionStatus::in_queue_verified,
+                                      TransactionStatus::in_queue_unverified);
+        if (ret) {
+          uLock lock(shared_mutex_for_verified_qu_);
+          verified_trxs_[hash] = item.second;
+          new_verified_transactions = true;
+        }
       }
     } catch (...) {
     }
@@ -350,13 +362,17 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
+unsigned long TransactionManager::getTransactionStatusCount() {
+  return trx_status_.size();
+}
+
 std::shared_ptr<Transaction> TransactionManager::getTransaction(
     trx_hash_t const &hash) {
   // Check the status
   std::shared_ptr<Transaction> tr;
   // Loop needed because moving transactions from queue to database is not
-  // secure Probably a better fix is to have transactions saved to the database
-  // first and only then removed from the queue
+  // secure Probably a better fix is to have transactions saved to the
+  // database first and only then removed from the queue
   while (tr == nullptr) {
     auto status = trx_status_.get(hash);
     if (status.second) {
@@ -381,9 +397,9 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
 bool TransactionManager::saveBlockTransactionAndDeduplicate(
     vec_trx_t const &all_block_trx_hashes,
     std::vector<Transaction> const &some_trxs) {
-  // First step: Save and update status for transactions that were sent together
-  // with the block some_trxs might not full trxs in the block (for syncing
-  // purpose)
+  // First step: Save and update status for transactions that were sent
+  // together with the block some_trxs might not full trxs in the block (for
+  // syncing purpose)
   {
     for (auto const &trx : some_trxs) {
       db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
@@ -413,14 +429,15 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
     unsaved_trx.clear();
     for (auto const &trx : all_block_trx_hashes) {
       auto res = trx_status_.get(trx);
-      if (res.second == false || res.first != TransactionStatus::in_block)
+      if (res.second == false || res.first != TransactionStatus::in_block) {
         all_transactions_saved = false;
-      unsaved_trx.emplace_back(trx);
+        unsaved_trx.emplace_back(trx);
+      }
     }
     // Only if all transactions are saved in the db can we verify a new block
     if (all_transactions_saved) break;
-    // Getting here should be a very rare case where in a racing condition block
-    // was processed before the transactions
+    // Getting here should be a very rare case where in a racing condition
+    // block was processed before the transactions
     thisThreadSleepForMilliSeconds(10);
     delay += 10;
   }
@@ -457,9 +474,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
+
     // Skip if transaction is already in existing block
     if (!db_trxs_->put(hash.toString(), trx.getJsonStr())) {
-      trx_status_.insert(hash, TransactionStatus::in_block);
       continue;
     }
     changed = true;

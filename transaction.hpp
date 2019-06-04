@@ -319,6 +319,7 @@ class TransactionManager
                                std::vector<Transaction> const &trxs);
 
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
+  unsigned long getTransactionStatusCount();
   bool isTransactionVerified(trx_hash_t const &hash) {
     // in_block means in db, i.e., already verified
     auto status = trx_status_.get(hash);

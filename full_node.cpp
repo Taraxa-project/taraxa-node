@@ -274,6 +274,10 @@ std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
   return trx_mgr_->getTransaction(hash);
 }
 
+unsigned long FullNode::getTransactionStatusCount() {
+  return trx_mgr_->getTransactionStatusCount();
+}
+
 time_stamp_t FullNode::getDagBlockTimeStamp(blk_hash_t const &hash) {
   return dag_mgr_->getDagBlockTimeStamp(hash.toString());
 }
