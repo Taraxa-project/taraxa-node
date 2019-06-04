@@ -9,7 +9,7 @@ using namespace taraxa;
 void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
-      LOG(logger_) << "Sync Peer:" << _nodeID.toString();
+      LOG(log_nf_) << "Sync Peer:" << _nodeID.toString();
       peers_[_nodeID]->m_state = Syncing;
       auto leaves = full_node->collectTotalLeaves();
       requestBlockChildren(_nodeID, leaves);
@@ -20,7 +20,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
-      LOG(logger_) << "Sync Peer Pbft:" << _nodeID.toString();
+      LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID.toString();
       auto pbftChainSize = full_node->getPbftChainSize();
       requestPbftBlocks(_nodeID, pbftChainSize);
     }
@@ -35,7 +35,7 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
         if (!tipKnown && peers_[_nodeID]->m_syncBlocks.find(tip) ==
                              peers_[_nodeID]->m_syncBlocks.end()) {
           peers_[_nodeID]->m_lastRequest = tip;
-          LOG(logger_) << "Block " << block.second.first.getHash().toString()
+          LOG(log_nf_) << "Block " << block.second.first.getHash().toString()
                        << " has a missing tip " << tip.toString();
           requestBlock(_nodeID, tip, false);
           return;
@@ -44,7 +44,7 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     }
     for (auto block : peers_[_nodeID]->m_syncBlocks) {
       if (!full_node->isBlockKnown(block.first)) {
-        LOG(logger_) << "Storing block "
+        LOG(log_nf_) << "Storing block "
                      << block.second.first.getHash().toString() << " with "
                      << block.second.second.size() << " transactions";
         full_node->insertBroadcastedBlockWithTransactions(block.second.first,
@@ -79,7 +79,7 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
 }
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
-  LOG(logger_) << "Node " << _nodeID << " connected";
+  LOG(log_nf_) << "Node " << _nodeID << " connected";
   cnt_received_messages_[_nodeID] = 0;
   test_sums_[_nodeID] = 0;
 
@@ -107,9 +107,8 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   int random_component = random_dist_(delay_rng_);
 
   unsigned int total_delay = (delay + bandwidth_delay) * random_component / 100;
-  LOG(logger_debug_) << "Delaying packet by: (" << delay << " , "
-                     << bandwidth_delay << " ), actual delay =" << total_delay
-                     << " milliseconds";
+  LOG(log_dg_) << "Delaying packet by: (" << delay << " , " << bandwidth_delay
+               << " ), actual delay =" << total_delay << " milliseconds";
   auto timer = std::make_shared<boost::asio::deadline_timer>(io_service_);
   timer->expires_from_now(boost::posix_time::milliseconds(total_delay));
   timer->async_wait((
@@ -129,24 +128,23 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       auto const network_id = _r[1].toString();
       auto const num_vertices = _r[2].toInt();
       auto const genesis_hash = _r[3].toString();
-      LOG(logger_debug_) << "Received status message from " << _nodeID << " "
-                 << peer_protocol_version << network_id
-                 << num_vertices << Dag::GENESIS;
-    
+      LOG(log_dg_) << "Received status message from " << _nodeID << " "
+                   << peer_protocol_version << network_id << num_vertices
+                   << Dag::GENESIS;
+
       if (peer_protocol_version != c_protocolVersion) {
-        LOG(logger_err_) << "Incorrect protocol version "
-                         << peer_protocol_version << ", host " << _nodeID
-                         << " will be disconnected";                 
+        LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
+                     << ", host " << _nodeID << " will be disconnected";
         host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
       }
       if (network_id != conf_.network_id) {
-        LOG(logger_err_) << "Incorrect network id " << network_id << ", host "
-                         << _nodeID << " will be disconnected";
+        LOG(log_er_) << "Incorrect network id " << network_id << ", host "
+                     << _nodeID << " will be disconnected";
         host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
       }
       if (genesis_hash != Dag::GENESIS) {
-        LOG(logger_err_) << "Incorrect genesis hash " << genesis_hash
-                         << ", host " << _nodeID << " will be disconnected";
+        LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host "
+                     << _nodeID << " will be disconnected";
         host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
       }
       if (auto full_node = full_node_.lock()) {
@@ -163,7 +161,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     // Means a new block is proposed, full block body and all transaction are
     // received.
     case NewBlockPacket: {
-      LOG(logger_debug_) << "Received NewBlockPacket";
+      LOG(log_dg_) << "Received NewBlockPacket";
       DagBlock block(_r[0]);
 
       auto transactionsCount = _r.itemCount() - 1;
@@ -194,8 +192,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         peers_[_nodeID]->markTransactionAsKnown(transaction.getHash());
       }
 
-      LOG(logger_debug_) << "Received BlockPacket "
-                         << block.getHash().toString();
+      LOG(log_dg_) << "Received BlockPacket " << block.getHash().toString();
       peers_[_nodeID]->markBlockAsKnown(block.getHash());
       // Initial syncing
       if (peers_[_nodeID]->m_lastRequest == block.getHash()) {
@@ -204,7 +201,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         peers_[_nodeID]->m_syncBlocks[block.getHash()] = {block, vTransactions};
         continueSync(_nodeID);
       } else if (auto full_node = full_node_.lock()) {
-        LOG(logger_) << "Storing blocks " << block.getHash().toString()
+        LOG(log_nf_) << "Storing blocks " << block.getHash().toString()
                      << " with transactions " << vec_new_trxs.size();
         full_node->insertBroadcastedBlockWithTransactions(block, vec_new_trxs);
       } else {
@@ -212,12 +209,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (test_transactions_.find(transaction.first) ==
               test_transactions_.end()) {
             test_transactions_[transaction.first] = transaction.second;
-            LOG(logger_debug_)
-                << "Received New Transaction " << transaction.first.toString();
+            LOG(log_dg_) << "Received New Transaction "
+                         << transaction.first.toString();
           } else {
-            LOG(logger_debug_)
-                << "Received New Transaction" << transaction.first.toString()
-                << "that is already known";
+            LOG(log_dg_) << "Received New Transaction"
+                         << transaction.first.toString()
+                         << "that is already known";
           }
         }
         test_blocks_[block.getHash()] = block;
@@ -225,7 +222,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     } break;
     case NewBlockHashPacket: {
       blk_hash_t hash(_r[0]);
-      LOG(logger_debug_) << "Received NewBlockHashPacket" << hash.toString();
+      LOG(log_dg_) << "Received NewBlockHashPacket" << hash.toString();
       peers_[_nodeID]->markBlockAsKnown(hash);
       if (auto full_node = full_node_.lock()) {
         if (!full_node->isBlockKnown(hash) &&
@@ -242,43 +239,43 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     }
     case GetBlockPacket: {
       blk_hash_t hash(_r[0]);
-      LOG(logger_debug_) << "Received GetBlockPacket" << hash.toString();
+      LOG(log_dg_) << "Received GetBlockPacket" << hash.toString();
       peers_[_nodeID]->markBlockAsKnown(hash);
       if (auto full_node = full_node_.lock()) {
         auto block = full_node->getDagBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, false);
         } else
-          LOG(logger_) << "NO PACKET: " << hash.toString();
+          LOG(log_nf_) << "NO PACKET: " << hash.toString();
       }
       break;
     }
     case GetNewBlockPacket: {
       blk_hash_t hash(_r[0]);
       peers_[_nodeID]->markBlockAsKnown(hash);
-      LOG(logger_debug_) << "Received GetNewBlockPacket" << hash.toString();
+      LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
       if (auto full_node = full_node_.lock()) {
         auto block = full_node->getDagBlock(hash);
         if (block) {
           sendBlock(_nodeID, *block, true);
         } else
-          LOG(logger_) << "NO NEW PACKET: " << hash.toString();
+          LOG(log_nf_) << "NO NEW PACKET: " << hash.toString();
       } else if (test_blocks_.find(hash) != test_blocks_.end()) {
         sendBlock(_nodeID, test_blocks_[hash], true);
       }
       break;
     }
     case GetBlockChildrenPacket: {
-      LOG(logger_debug_) << "Received GetBlockChildrenPacket with "
-                         << _r.itemCount() << " child blocks";
+      LOG(log_dg_) << "Received GetBlockChildrenPacket with " << _r.itemCount()
+                   << " child blocks";
       auto blockCount = _r.itemCount();
       dev::strings totalChildren;
       for (auto iBlock = 0; iBlock < blockCount; iBlock++) {
         blk_hash_t hash(_r[iBlock]);
         if (auto full_node = full_node_.lock()) {
           auto children = full_node->getTotalDagBlockChildren(hash, ULONG_MAX);
-          LOG(logger_debug_) << "Found " << children.size() << " children";
+          LOG(log_dg_) << "Found " << children.size() << " children";
           totalChildren += children;
         }
       }
@@ -308,9 +305,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
       if (itemCount > 0) {
-        LOG(logger_debug_) << "Received BlockChildrenPacket with "
-                           << _r.itemCount()
-                           << " child blocks:" << receivedBlocks.c_str();
+        LOG(log_dg_) << "Received BlockChildrenPacket with " << _r.itemCount()
+                     << " child blocks:" << receivedBlocks.c_str();
         continueSync(_nodeID);
       }
       break;
@@ -327,15 +323,14 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         transactions[transaction.getHash()] = transaction;
       }
       if (transactionCount > 0) {
-        LOG(logger_debug_) << "Received TransactionPacket with "
-                           << _r.itemCount()
-                           << " transactions:" << receivedTransactions.c_str();
+        LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
+                     << " transactions:" << receivedTransactions.c_str();
         onNewTransactions(transactions, true);
       }
       break;
     }
     case PbftVotePacket: {
-      LOG(logger_debug_) << "In PbftVotePacket";
+      LOG(log_dg_) << "In PbftVotePacket";
 
       std::vector<::byte> pbft_vote_bytes;
 
@@ -345,13 +340,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       taraxa::bufferstream strm(pbft_vote_bytes.data(), pbft_vote_bytes.size());
       Vote vote;
       vote.deserialize(strm);
-      LOG(logger_debug_) << "Received PBFT vote " << vote.getHash();
+      LOG(log_dg_) << "Received PBFT vote " << vote.getHash();
 
       peers_[_nodeID]->markVoteAsKnown(vote.getHash());
 
       auto full_node = full_node_.lock();
       if (!full_node) {
-        LOG(logger_err_) << "PbftVote full node weak pointer empty";
+        LOG(log_er_) << "PbftVote full node weak pointer empty";
         return false;
       }
 
@@ -364,7 +359,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case GetPbftBlockPacket: {
-      LOG(logger_debug_) << "Received GetPbftBlockPacket Block";
+      LOG(log_dg_) << "Received GetPbftBlockPacket Block";
       const unsigned long maxBlocksInPacket = 2;
       auto full_node = full_node_.lock();
       if (full_node) {
@@ -379,16 +374,15 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case NewPbftBlockPacket: {
-      LOG(logger_debug_) << "In NewPbftBlockPacket";
+      LOG(log_dg_) << "In NewPbftBlockPacket";
 
       PbftBlock pbft_block(_r[0]);
-      LOG(logger_debug_)
-          << "Received PBFT Block " << pbft_block.getBlockHash();
+      LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
       peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
 
       auto full_node = full_node_.lock();
       if (!full_node) {
-        LOG(logger_err_) << "PbftBlock full node weak pointer empty";
+        LOG(log_er_) << "PbftBlock full node weak pointer empty";
         return false;
       }
       if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
@@ -399,22 +393,22 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case PbftBlockPacket: {
-      LOG(logger_debug_) << "In PbftBlockPacket";
+      LOG(log_dg_) << "In PbftBlockPacket";
 
       auto blockCount = _r.itemCount();
       for (auto iblock = 0; iblock < blockCount; iblock++) {
         PbftBlock pbft_block(_r[iblock]);
-        LOG(logger_debug_)
-          << "Received PBFT Block " << pbft_block.getBlockHash();
+        LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
         peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
 
         auto full_node = full_node_.lock();
         if (!full_node) {
-          LOG(logger_err_) << "PbftBlock full node weak pointer empty";
+          LOG(log_er_) << "PbftBlock full node weak pointer empty";
           return false;
         }
         if (!full_node->isKnownPbftBlockInChain(pbft_block.getBlockHash())) {
-          // TODO: need check 2t+1 cert votes, then put into chain and store in DB. May send request for cert votes here
+          // TODO: need check 2t+1 cert votes, then put into chain and store in
+          // DB. May send request for cert votes here
           full_node->setPbftBlock(pbft_block);
         }
       }
@@ -422,7 +416,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       break;
     }
     case TestPacket:
-      LOG(logger_debug_) << "Received TestPacket";
+      LOG(log_dg_) << "Received TestPacket";
       ++cnt_received_messages_[_nodeID];
       test_sums_[_nodeID] += _r[0].toInt();
       BOOST_ASSERT(_id == TestPacket);
@@ -431,7 +425,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
   return true;
 }
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
-  LOG(logger_) << "Node " << _nodeID << " disconnected";
+  LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   cnt_received_messages_.erase(_nodeID);
   test_sums_.erase(_nodeID);
   // If syncing to the disconnected peer, find another peer to sync with
@@ -458,7 +452,7 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
 void TaraxaCapability::sendStatus(NodeID const &_id) {
   RLPStream s;
   if (auto full_node = full_node_.lock()) {
-    LOG(logger_debug_) << "Sending status message to " << _id << " "
+    LOG(log_dg_) << "Sending status message to " << _id << " "
                  << c_protocolVersion << conf_.network_id
                  << full_node->getNumVerticesInDag().first << Dag::GENESIS;
     host_.capabilityHost()->sealAndSend(
@@ -507,19 +501,19 @@ void TaraxaCapability::onNewTransactions(
     bool fromNetwork) {
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
-      LOG(logger_) << "Storing " << transactions.size() << " transactions";
+      LOG(log_nf_) << "Storing " << transactions.size() << " transactions";
       full_node->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
         if (test_transactions_.find(transaction.first) ==
             test_transactions_.end()) {
           test_transactions_[transaction.first] = transaction.second;
-          LOG(logger_debug_)
-              << "Received New Transaction " << transaction.first.toString();
+          LOG(log_dg_) << "Received New Transaction "
+                       << transaction.first.toString();
         } else {
-          LOG(logger_debug_)
-              << "Received New Transaction" << transaction.first.toString()
-              << "that is already known";
+          LOG(log_dg_) << "Received New Transaction"
+                       << transaction.first.toString()
+                       << "that is already known";
         }
       }
     }
@@ -543,11 +537,11 @@ void TaraxaCapability::onNewBlockReceived(
     DagBlock block, std::vector<Transaction> transactions) {
   if (auto full_node = full_node_.lock()) {
     if (full_node->isBlockKnown(block.getHash())) {
-      LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                         << "that is already known";
+      LOG(log_dg_) << "Received NewBlock " << block.getHash().toString()
+                   << "that is already known";
       return;
     } else {
-      LOG(logger_) << "Storing block " << block.getHash().toString() << " with "
+      LOG(log_nf_) << "Storing block " << block.getHash().toString() << " with "
                    << transactions.size() << " transactions";
       full_node->insertBroadcastedBlockWithTransactions(block, transactions);
     }
@@ -559,14 +553,14 @@ void TaraxaCapability::onNewBlockReceived(
     onNewBlockVerified(block);
 
   } else {
-    LOG(logger_debug_) << "Received NewBlock " << block.getHash().toString()
-                       << "that is already known";
+    LOG(log_dg_) << "Received NewBlock " << block.getHash().toString()
+                 << "that is already known";
     return;
   }
 }
 
 void TaraxaCapability::onNewBlockVerified(DagBlock block) {
-  LOG(logger_debug_) << "Verified NewBlock " << block.getHash().toString();
+  LOG(log_dg_) << "Verified NewBlock " << block.getHash().toString();
   verified_blocks_.insert(block.getHash());
   {
     std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
@@ -594,7 +588,7 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
     }
   }
   if (!peersToSend.empty())
-    LOG(logger_debug_) << "Sent block to" << peersToSend.size() << " peers";
+    LOG(log_dg_) << "Sent block to" << peersToSend.size() << " peers";
 
   for (NodeID const &peerID : peersToAnnounce) {
     RLPStream ts;
@@ -605,13 +599,12 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
     }
   }
   if (!peersToAnnounce.empty())
-    LOG(logger_debug_) << "Anounced block to " << peersToAnnounce.size()
-                       << " peers";
+    LOG(log_dg_) << "Anounced block to " << peersToAnnounce.size() << " peers";
 }
 
 void TaraxaCapability::sendChildren(NodeID const &_id,
                                     std::vector<std::string> children) {
-  LOG(logger_debug_) << "sendChildren " << children.size();
+  LOG(log_dg_) << "sendChildren " << children.size();
   RLPStream s;
   std::vector<DagBlock> blocksToSend;
   std::vector<std::vector<Transaction>> blockTransactions;
@@ -619,9 +612,19 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
   if (auto full_node = full_node_.lock()) {
     for (auto child : children) {
       auto block = full_node->getDagBlock(blk_hash_t(child));
+
+      if (!block) {
+        LOG(log_er_) << "Block " << block << " is not available";
+      }
+      assert(block);
       std::vector<Transaction> transactions;
       for (auto trx : block->getTrxs()) {
-        transactions.push_back(*full_node->getTransaction(trx));
+        auto t = full_node->getTransaction(trx);
+        if (!t) {
+          LOG(log_er_) << "Transacation " << trx << " is not available";
+        }
+        assert(t);
+        transactions.push_back(*t);
         totalTransactionsCount++;
       }
       blocksToSend.push_back(*block);
@@ -641,8 +644,7 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
 
 void TaraxaCapability::sendTransactions(
     NodeID const &_id, std::vector<Transaction> const &transactions) {
-  LOG(logger_debug_) << "sendTransactions" << transactions.size() << " to "
-                     << _id;
+  LOG(log_dg_) << "sendTransactions" << transactions.size() << " to " << _id;
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, TransactionPacket,
                                transactions.size());
@@ -654,7 +656,7 @@ void TaraxaCapability::sendTransactions(
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
                                  bool newBlock) {
-  LOG(logger_debug_) << "sendBlock " << block.getHash().toString();
+  LOG(log_dg_) << "sendBlock " << block.getHash().toString();
   RLPStream s;
   vec_trx_t transactionsToSend;
   if (newBlock) {
@@ -688,7 +690,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
 
 void TaraxaCapability::sendBlockHash(NodeID const &_id,
                                      taraxa::DagBlock block) {
-  LOG(logger_debug_) << "sendBlockHash " << block.getHash().toString();
+  LOG(log_dg_) << "sendBlockHash " << block.getHash().toString();
   RLPStream s;
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, NewBlockHashPacket, 1);
@@ -698,7 +700,7 @@ void TaraxaCapability::sendBlockHash(NodeID const &_id,
 
 void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
                                     bool newBlock) {
-  LOG(logger_debug_) << "requestBlock " << hash.toString();
+  LOG(log_dg_) << "requestBlock " << hash.toString();
   RLPStream s;
   std::vector<uint8_t> bytes;
   if (newBlock)
@@ -715,8 +717,7 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << pbftChainSize;
-  LOG(logger_debug_) << "Sending GetPbftBlockPacket with size:"
-                     << pbftChainSize;
+  LOG(log_dg_) << "Sending GetPbftBlockPacket with size:" << pbftChainSize;
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -732,7 +733,7 @@ void TaraxaCapability::requestBlockChildren(NodeID const &_id,
     blk_hash_t bHash(leaf);
     s.append(bHash);
   }
-  LOG(logger_debug_) << "Sending GetBlockChildrenPacket of blocks:" << blocks;
+  LOG(log_dg_) << "Sending GetBlockChildrenPacket of blocks:" << blocks;
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -790,7 +791,7 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 
 void TaraxaCapability::sendPbftVote(NodeID const &_id,
                                     taraxa::Vote const &vote) {
-  LOG(logger_debug_) << "sendPbftVote " << vote.getHash() << " to " << _id;
+  LOG(log_dg_) << "sendPbftVote " << vote.getHash() << " to " << _id;
 
   RLPStream s;
   std::vector<uint8_t> bytes;
@@ -818,9 +819,9 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t chainSize,
                                       size_t blocksToTransfer) {
-  LOG(logger_debug_) << "In sendPbftBlocks, already have chain size: "
-                     << chainSize << ", will send " << blocksToTransfer
-                     << " pbft blocks to " << _id;
+  LOG(log_dg_) << "In sendPbftBlocks, already have chain size: " << chainSize
+               << ", will send " << blocksToTransfer << " pbft blocks to "
+               << _id;
   if (auto full_node = full_node_.lock()) {
     auto blocks =
         full_node->getPbftChain()->getPbftBlocks(chainSize, blocksToTransfer);
@@ -834,8 +835,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t chainSize,
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id,
                                      taraxa::PbftBlock const &pbft_block) {
-  LOG(logger_debug_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to "
-                     << _id;
+  LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to "
+               << _id;
 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 1);

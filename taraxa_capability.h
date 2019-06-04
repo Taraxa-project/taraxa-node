@@ -212,11 +212,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
-  dev::Logger logger_{
+  dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
-  dev::Logger logger_debug_{
+  dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TARCAP")};
-  dev::Logger logger_err_{
+  dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
 };
 }  // namespace taraxa
