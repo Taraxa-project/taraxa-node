@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include "libdevcore/Log.h"
-
+#include "util.hpp"
 #include <libdevcore/MemoryDB.h>
 
 using namespace std;
@@ -228,6 +228,7 @@ TEST(MemoryDB, commitMultipleBatches) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbositySilent;
   dev::setupLogging(logOptions);

@@ -54,6 +54,7 @@ TEST(grpc, DISABLED_server_client) {
 }  // namespace taraxa
 
 int main(int argc, char* argv[]) {
+  TaraxaStackTrace st;
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

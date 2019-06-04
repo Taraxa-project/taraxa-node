@@ -773,6 +773,7 @@ TEST(Network, node_full_sync) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   logOptions.includeChannels.push_back("NETWORK");

@@ -39,7 +39,7 @@ TEST(PivotBlock, serialize_deserialize) {
   uint64_t timestamp = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block1(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-      timestamp, beneficiary);
+                          timestamp, beneficiary);
 
   std::stringstream ss1, ss2;
   ss1 << pivot_block1;
@@ -61,7 +61,7 @@ TEST(PivotBlock, serialize_deserialize) {
 TEST(ScheduleBlock, serialize_deserialize) {
   blk_hash_t prev_pivot(22);
   uint64_t timestamp = 333333;
-  vec_blk_t blks { blk_hash_t(123), blk_hash_t(456), blk_hash_t(789) };
+  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
   TrxSchedule schedule(blks, modes);
@@ -102,7 +102,7 @@ TEST(PbftChain, pbft_db_test) {
   uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-      timestamp1, beneficiary);
+                         timestamp1, beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
   // put into pbft chain and store into DB
@@ -121,7 +121,7 @@ TEST(PbftChain, pbft_db_test) {
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
   uint64_t timestamp2 = 333333;
-  vec_blk_t blks { blk_hash_t(123), blk_hash_t(456), blk_hash_t(789) };
+  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 0, 1, 1}, {0, 1, 0}};
   TrxSchedule schedule(blks, modes);
@@ -133,8 +133,7 @@ TEST(PbftChain, pbft_db_test) {
   node->setPbftBlock(pbft_block3);
   EXPECT_EQ(node->getPbftChainSize(), 3);
 
-  pbft_block_from_db =
-      db_pbftchain->get(pbft_block3.getBlockHash().toString());
+  pbft_block_from_db = db_pbftchain->get(pbft_block3.getBlockHash().toString());
   PbftBlock pbft_block4(pbft_block_from_db);
 
   std::stringstream ss3, ss4;
@@ -161,7 +160,7 @@ TEST(PbftChain, block_broadcast) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true); // boot_node
+  node1->start(true);  // boot_node
   node2->start(false);
   node3->start(false);
 
@@ -202,13 +201,13 @@ TEST(PbftChain, block_broadcast) {
   uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-      timestamp1, beneficiary);
+                         timestamp1, beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
 
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftQueueSize(), 1);
-  node1->setPbftBlock(pbft_block1); // Test pbft chain
+  node1->setPbftBlock(pbft_block1);  // Test pbft chain
   EXPECT_EQ(node1->getPbftChainSize(), 2);
 
   nw1->onNewPbftBlock(pbft_block1);
@@ -224,15 +223,15 @@ TEST(PbftChain, block_broadcast) {
   }
   EXPECT_EQ(node2->getPbftQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getPbftQueueSize(), current_pbft_queue_size);
-  node2->setPbftBlock(pbft_block1); // Test pbft chain
+  node2->setPbftBlock(pbft_block1);  // Test pbft chain
   EXPECT_EQ(node2->getPbftChainSize(), 2);
-  node3->setPbftBlock(pbft_block1); // Test pbft chain
+  node3->setPbftBlock(pbft_block1);  // Test pbft chain
   EXPECT_EQ(node3->getPbftChainSize(), 2);
 
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
   uint64_t timestamp2 = 333333;
-  vec_blk_t blks { blk_hash_t(123), blk_hash_t(456), blk_hash_t(789) };
+  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
   TrxSchedule schedule(blks, modes);
@@ -243,7 +242,7 @@ TEST(PbftChain, block_broadcast) {
 
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftQueueSize(), 2);
-  node1->setPbftBlock(pbft_block2); // Test pbft chain
+  node1->setPbftBlock(pbft_block2);  // Test pbft chain
   EXPECT_EQ(node1->getPbftChainSize(), 3);
 
   nw1->onNewPbftBlock(pbft_block2);
@@ -259,9 +258,9 @@ TEST(PbftChain, block_broadcast) {
   }
   EXPECT_EQ(node2->getPbftQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getPbftQueueSize(), current_pbft_queue_size);
-  node2->setPbftBlock(pbft_block2); // Test pbft chain
+  node2->setPbftBlock(pbft_block2);  // Test pbft chain
   EXPECT_EQ(node2->getPbftChainSize(), 3);
-  node3->setPbftBlock(pbft_block2); // Test pbft chain
+  node3->setPbftBlock(pbft_block2);  // Test pbft chain
   EXPECT_EQ(node3->getPbftChainSize(), 3);
 
   work1.reset();
@@ -357,8 +356,8 @@ TEST(PbftChain, simulate_pbft_execute_round) {
                         std::to_string(step);
   sig_t sig1 = dev::sign(key_pair1.secret(), dev::sha3(message));
   // node1 should speak
-  bool node1_should_speak = shouldSpeak(pivot_hash, pivot_block_type, period, step);
-  EXPECT_TRUE(node1_should_speak);
+  bool node1_should_speak = shouldSpeak(pivot_hash, pivot_block_type, period,
+step); EXPECT_TRUE(node1_should_speak);
 
   Vote vote1(key_pair1.pub(), sig1, pivot_hash, pivot_block_type, period, step);
   PivotBlock pivot_block(pivot_hash, prev_pivot_blk, prev_res_blk, dag_blk,
@@ -480,6 +479,7 @@ TEST(PbftChain, simulate_pbft_execute_round) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_MGR");

@@ -9,6 +9,8 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <execinfo.h>
+#include <signal.h>
 #include <boost/asio.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -20,7 +22,6 @@
 #include <streambuf>
 #include <string>
 #include <unordered_set>
-
 #include "types.hpp"
 namespace taraxa {
 
@@ -137,6 +138,7 @@ class StatusTable {
   boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
 };
+
 /**
  * Observer pattern
  */
@@ -166,4 +168,19 @@ class Observer : std::enable_shared_from_this<Observer> {
 
 }  // namespace taraxa
 
+/**
+ * Stack Trace
+ * https://oroboro.com/stack-trace-on-crash/
+ */
+void abortHandler(int sig);
+static inline void printStackTrace();
+class TaraxaStackTrace {
+ public:
+  TaraxaStackTrace() {
+    signal(SIGABRT, abortHandler);
+    signal(SIGSEGV, abortHandler);
+    signal(SIGILL, abortHandler);
+    signal(SIGFPE, abortHandler);
+  }
+};
 #endif

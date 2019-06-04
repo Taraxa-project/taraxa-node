@@ -9,6 +9,7 @@
 #include "top.hpp"
 
 int main(int argc, const char* argv[]) {
+  TaraxaStackTrace st;
   try {
     Top top(argc, argv);
     if (top.isActive()) {

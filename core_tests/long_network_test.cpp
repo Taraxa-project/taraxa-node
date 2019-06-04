@@ -283,6 +283,7 @@ TEST(Network, delayed_node_sync3) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityInfo;
   // logOptions.includeChannels.push_back("NETWORK");

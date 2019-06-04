@@ -219,6 +219,7 @@ TEST(BlockManager, push_and_pop) {
 }
 }  // namespace taraxa
 int main(int argc, char** argv) {
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   dev::setupLogging(logOptions);

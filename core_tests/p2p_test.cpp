@@ -65,12 +65,12 @@ TEST(p2p, p2p_discovery) {
   for (int i = 0; i < 20; i++) {
     bool allNodesFound = true;
     for (int j = 0; j < NUMBER_OF_NODES; j++)
-      if (NUMBER_OF_NODES/2 > nodes[j]->getNodeCount()) allNodesFound = false;
+      if (NUMBER_OF_NODES / 2 > nodes[j]->getNodeCount()) allNodesFound = false;
     if (allNodesFound) break;
     taraxa::thisThreadSleepForSeconds(1);
   }
   for (int i = 0; i < NUMBER_OF_NODES; i++) {
-    ASSERT_LT(NUMBER_OF_NODES/2, nodes[i]->getNodeCount());
+    ASSERT_LT(NUMBER_OF_NODES / 2, nodes[i]->getNodeCount());
   }
 }
 
@@ -90,11 +90,9 @@ TEST(p2p, capability_send_test) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 =
-      make_shared<TaraxaCapability>(host1, network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf);
   host1.registerCapability(thc1);
-  auto thc2 =
-      make_shared<TaraxaCapability>(host2, network_conf);
+  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -154,11 +152,9 @@ TEST(p2p, capability_send_block) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 =
-      make_shared<TaraxaCapability>(host1, network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf);
   host1.registerCapability(thc1);
-  auto thc2 =
-      make_shared<TaraxaCapability>(host2, network_conf);
+  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -238,14 +234,13 @@ TEST(p2p, block_propagate) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  
-  auto thc1 =
-      make_shared<TaraxaCapability>(host1, network_conf);
+
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf);
   host1.registerCapability(thc1);
   std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
-    vCapabilities.push_back(make_shared<TaraxaCapability>(
-        *vHosts[i], network_conf));
+    vCapabilities.push_back(
+        make_shared<TaraxaCapability>(*vHosts[i], network_conf));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
   host1.start(true);
@@ -355,6 +350,7 @@ TEST(p2p, block_propagate) {
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
+  TaraxaStackTrace st;
   LoggingOptions logOptions;
   logOptions.verbosity = VerbositySilent;
   setupLogging(logOptions);

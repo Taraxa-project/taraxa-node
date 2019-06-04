@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include "libdevcore/Log.h"
-
+#include "util.hpp"
 #include <fstream>
 #include <json_spirit/JsonSpiritHeaders.h>
 #include <libdevcore/CommonIO.h>
@@ -666,7 +666,8 @@ namespace taraxa {
     }
 }  // namespace taraxa
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) {  
+    TaraxaStackTrace st;
     dev::LoggingOptions logOptions;
     logOptions.verbosity = dev::VerbositySilent;
     dev::setupLogging(logOptions);
