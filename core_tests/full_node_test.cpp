@@ -33,7 +33,7 @@ auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
 
-TEST(Top, DISABLED_sync_five_nodes_simple) {
+TEST(Top, sync_five_nodes_simple) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf_taraxa1.json", "-v", "0"};
   const char* input2[] = {"./build/main2", "--conf_taraxa",
@@ -189,7 +189,12 @@ TEST(Top, DISABLED_sync_five_nodes_simple) {
     num_vertices5 = node5->getNumVerticesInDag();
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
-        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5)
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
+        node1->getTransactionStatusCount() == 20000 &&
+        node2->getTransactionStatusCount() == 20000 &&
+        node3->getTransactionStatusCount() == 20000 &&
+        node4->getTransactionStatusCount() == 20000 &&
+        node5->getTransactionStatusCount() == 20000)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -204,6 +209,12 @@ TEST(Top, DISABLED_sync_five_nodes_simple) {
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
+
+  EXPECT_EQ(node1->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
 
   top5.stop();
   top4.stop();

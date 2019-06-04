@@ -117,6 +117,10 @@ class StatusTable {
       return {V(), false};
     }
   }
+  unsigned long size() {
+    sharedLock lock(shared_mutex_);
+    return status_.size();
+  }
   bool insert(K const &hash, V status) {
     upgradableLock lock(shared_mutex_);
     bool ret = false;
@@ -132,6 +136,16 @@ class StatusTable {
   void update(K const &hash, V status) {
     uLock lock(shared_mutex_);
     status_[hash] = status;
+  }
+  bool update(K const &hash, V status, V expected_status) {
+    bool ret = false;
+    uLock lock(shared_mutex_);
+    auto current_status = status_.find(hash);
+    if(current_status != status_.end() && current_status->second == expected_status) {
+      status_[hash] = status;
+      ret = true;
+    }
+    return ret;
   }
 
  private:
