@@ -8,6 +8,7 @@
 #include "pbft_manager.hpp"
 
 #include "full_node.hpp"
+#include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "network.hpp"
@@ -265,6 +266,9 @@ int main(int argc, char** argv) {
   logOptions.verbosity = dev::VerbosityDebug;
   logOptions.includeChannels.push_back("network");
   dev::setupLogging(logOptions);
+  // use the in-memory db so test will not affect other each other through
+  // persistent storage
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
