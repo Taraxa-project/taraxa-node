@@ -131,6 +131,12 @@ Verbosity setting (-v):
 
 0: Error, 1: Warning (default), 2: Info, 3: Debug, 4: Trace 
 
+## Build debug executable:
+
+```
+make main DEBUG=1
+```
+
 ## Docker
 
 Docker has to be installed. If it is not, visit this [web](https://docs.docker.com/install/).
