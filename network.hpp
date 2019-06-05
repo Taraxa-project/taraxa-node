@@ -66,6 +66,9 @@ class Network {
   int getReceivedTransactionsCount() {
     return taraxa_capability_->getTransactions().size();
   }
+  std::shared_ptr<TaraxaCapability> getTaraxaCapability() const {
+    return taraxa_capability_;
+  }
 
   // PBFT
   void onNewPbftVote(Vote const &vote);

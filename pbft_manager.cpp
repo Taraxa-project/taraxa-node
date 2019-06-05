@@ -35,6 +35,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   pbft_chain_ = full_node->getPbftChain();
   db_votes_ = full_node->getVotesDB();
   db_pbftchain_ = full_node->getPbftChainDB();
+  capability_ = full_node->getNetwork()->getTaraxaCapability();
 }
 
 void PbftManager::start() {
@@ -706,8 +707,8 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       return false;
     }
     if (!checkPbftBlockValid_(cert_vote_block_hash)) {
-      // TODO: Get partition, need send request to get missing pbft blocks from peers
-
+      // Get partition, need send request to get missing pbft blocks from peers
+      capability_->syncPeerPbft(capability_->getAllPeers()[0]);
       return false;
     }
     std::pair<PbftBlock, bool> pbft_block =

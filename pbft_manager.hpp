@@ -16,6 +16,7 @@
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "SimpleDBFace.h"
+#include "taraxa_capability.h"
 #include "types.hpp"
 #include "vote.h"
 
@@ -90,6 +91,7 @@ class PbftManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<SimpleDBFace> db_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
+  std::shared_ptr<TaraxaCapability> capability_;
 
   uint64_t pbft_period_ = 1;
   size_t pbft_step_ = 1;
