@@ -200,8 +200,10 @@ void PbftManager::run() {
                         << " for this period";
           cert_voted_values_for_period[pbft_period_] =
               soft_voted_block_for_this_period.first;
-          placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
-                               cert_vote_type, pbft_period_, pbft_step_, false);
+          if (checkPbftBlockValid_(soft_voted_block_for_this_period.first)) {
+            placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
+                cert_vote_type, pbft_period_, pbft_step_, false);
+          }
         }
       }
 
@@ -512,20 +514,22 @@ void PbftManager::placeVoteIfCanSpeak_(taraxa::blk_hash_t blockhash,
   if (!override_sortition_check) {
     should_i_speak_response = shouldSpeak(blockhash, vote_type, period, step);
   }
-  if (should_i_speak_response) {
-    auto full_node = node_.lock();
-    if (!full_node) {
-      LOG(log_err_) << "Full node unavailable" << std::endl;
-      return;
-    }
-    full_node->placeVote(blockhash, vote_type, period, step);
-    LOG(log_deb_) << "vote block hash: " << blockhash
-                  << " vote type: " << vote_type
-                  << " period: " << period
-                  << " step: " << step;
-    // pbft vote broadcast
-    broadcastPbftVote_(blockhash, vote_type, period, step);
+  if (!should_i_speak_response) {
+    return;
   }
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
+  full_node->placeVote(blockhash, vote_type, period, step);
+  LOG(log_deb_) << "vote block hash: " << blockhash
+                << " vote type: " << vote_type
+                << " period: " << period
+                << " step: " << step;
+  // pbft vote broadcast
+  broadcastPbftVote_(blockhash, vote_type, period, step);
 }
 
 void PbftManager::broadcastPbftVote_(taraxa::blk_hash_t &blockhash,
@@ -701,6 +705,11 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     if (count < TWO_T_PLUS_ONE) {
       return false;
     }
+    if (!checkPbftBlockValid_(cert_vote_block_hash)) {
+      // TODO: Get partition of network, need send request to get missing pbft blocks from peers
+
+      return false;
+    }
     std::pair<PbftBlock, bool> pbft_block =
         pbft_chain_->getPbftBlockInQueue(cert_vote_block_hash);
     if (!pbft_block.second) {
@@ -754,6 +763,54 @@ bool PbftManager::updatePbftChainDB_(PbftBlock const& pbft_block) {
     return false;
   }
   db_pbftchain_->commit();
+
+  return true;
+}
+
+bool PbftManager::checkPbftBlockValid_(blk_hash_t const& block_hash) {
+  std::pair<PbftBlock, bool> cert_vote_block =
+      pbft_chain_->getPbftBlockInQueue(block_hash);
+  if (!cert_vote_block.second) {
+    LOG(log_deb_) << "Cannot find the pbft block hash in queue, block hash "
+                  << block_hash;
+    return false;
+  }
+  PbftBlockTypes cert_block_type = cert_vote_block.first.getBlockType();
+  if (pbft_chain_->getNextPbftBlockType() != cert_block_type) {
+    LOG(log_deb_) << "Pbft chain next pbft block type should be "
+                  << pbft_chain_->getNextPbftBlockType()
+                  << " Invalid pbft block type "
+                  << cert_vote_block.first.getBlockType();
+    return false;
+  }
+  if (cert_block_type == pivot_block_type) {
+    blk_hash_t prev_pivot_block_hash =
+        cert_vote_block.first.getPivotBlock().getPrevPivotBlockHash();
+    if (pbft_chain_->getLastPbftPivotHash() != prev_pivot_block_hash) {
+      LOG(log_deb_) << "Pbft chain last pivot block hash "
+                    << pbft_chain_->getLastPbftPivotHash()
+                    << " Invalid pbft prev pivot block hash "
+                    << prev_pivot_block_hash;
+      return false;
+    }
+    blk_hash_t prev_block_hash =
+        cert_vote_block.first.getPivotBlock().getPrevBlockHash();
+    if (pbft_chain_->getLastPbftBlockHash() != prev_block_hash) {
+      LOG(log_deb_) << "Pbft chain last block hash "
+                    << pbft_chain_->getLastPbftBlockHash()
+                    << " Invalid pbft prev block hash " << prev_block_hash;
+      return false;
+    }
+  } else if (cert_block_type == schedule_block_type) {
+    blk_hash_t prev_block_hash =
+        cert_vote_block.first.getScheduleBlock().getPrevBlockHash();
+    if (pbft_chain_->getLastPbftBlockHash() != prev_block_hash) {
+      LOG(log_deb_) << "Pbft chain last block hash "
+                    << pbft_chain_->getLastPbftBlockHash()
+                    << " Invalid pbft prev block hash " << prev_block_hash;
+      return false;
+    }
+  } // TODO: More pbft block types
 
   return true;
 }

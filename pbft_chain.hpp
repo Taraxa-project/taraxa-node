@@ -243,6 +243,8 @@ class PbftChain {
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
 
+  void removePbftBlockInQueue(blk_hash_t const& block_hash);
+
   // only for test
   void cleanPbftQueue() { pbft_queue_.clear(); }
   void cleanPbftChain() { PbftChain(); }
