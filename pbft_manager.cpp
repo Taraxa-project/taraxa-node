@@ -706,7 +706,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       return false;
     }
     if (!checkPbftBlockValid_(cert_vote_block_hash)) {
-      // TODO: Get partition of network, need send request to get missing pbft blocks from peers
+      // TODO: Get partition, need send request to get missing pbft blocks from peers
 
       return false;
     }
