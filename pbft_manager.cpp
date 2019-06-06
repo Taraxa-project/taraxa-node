@@ -196,14 +196,26 @@ void PbftManager::run() {
             softVotedBlockForPeriod_(votes, pbft_period_);
         if (soft_voted_block_for_this_period.second) {
           should_go_to_step_four = true;
-          LOG(log_deb_) << "Cert voting "
-                        << soft_voted_block_for_this_period.first
-                        << " for this period";
-          cert_voted_values_for_period[pbft_period_] =
-              soft_voted_block_for_this_period.first;
           if (checkPbftBlockValid_(soft_voted_block_for_this_period.first)) {
+            LOG(log_deb_) << "Cert voting "
+                          << soft_voted_block_for_this_period.first
+                          << " for this period";
+            cert_voted_values_for_period[pbft_period_] =
+                soft_voted_block_for_this_period.first;
             placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
                 cert_vote_type, pbft_period_, pbft_step_, false);
+          } else {
+            // Get partition, need send request to get missing pbft blocks from peers
+            vector<NodeID> peers = capability_->getAllPeers();
+            if (peers.empty()) {
+              LOG(log_err_) << "There is no peers with connection.";
+            } else {
+              LOG(log_deb_)
+                  << "In period " << pbft_period_
+                  << " sync pbft chain with node " << peers[0]
+                  << " Send request to ask missing pbft blocks in chain";
+              capability_->syncPeerPbft(peers[0]);
+            }
           }
         }
       }
@@ -231,8 +243,9 @@ void PbftManager::run() {
         placeVoteIfCanSpeak_(NULL_BLOCK_HASH, next_vote_type, pbft_period_,
                              pbft_step_, false);
       } else {
-        LOG(log_deb_) << "Next voting nodes own starting value for period "
-                      << pbft_period_;
+        LOG(log_deb_) << "Next voting nodes own starting value "
+                      << nodes_own_starting_value_for_period
+                      << " for period " << pbft_period_;
         placeVoteIfCanSpeak_(nodes_own_starting_value_for_period,
                              next_vote_type, pbft_period_, pbft_step_, false);
       }
@@ -704,11 +717,20 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
     }
 
     if (count < TWO_T_PLUS_ONE) {
+      LOG(log_deb_) << "Not enough cert votes. Need " << TWO_T_PLUS_ONE
+                    << " cert votes." << " But only have " << count;
       return false;
     }
     if (!checkPbftBlockValid_(cert_vote_block_hash)) {
       // Get partition, need send request to get missing pbft blocks from peers
-      capability_->syncPeerPbft(capability_->getAllPeers()[0]);
+      vector<NodeID> peers = capability_->getAllPeers();
+      if (peers.empty()) {
+        LOG(log_err_) << "There is no peers with connection.";
+        return false;
+      }
+      LOG(log_deb_) << "Sync pbft chain with node " << peers[0]
+                    << ". Send request to ask missing pbft blocks in chain";
+      capability_->syncPeerPbft(peers[0]);
       return false;
     }
     std::pair<PbftBlock, bool> pbft_block =
