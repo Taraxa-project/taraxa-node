@@ -29,10 +29,7 @@ class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
-  Executor(std::shared_ptr<SimpleDBFace> db_blks,
-           std::shared_ptr<SimpleDBFace> db_trxs,
-           std::shared_ptr<SimpleDBFace> db_accs)
-      : db_blks_(db_blks), db_trxs_(db_trxs), db_accs_(db_accs) {}
+  Executor() {}
   ~Executor();
   void start();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }

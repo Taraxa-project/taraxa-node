@@ -208,7 +208,7 @@ TEST(BlockManager, push_and_pop) {
                 sig_t(27777), blk_hash_t(2888), addr_t(2999));
 
   blk_qu.pushUnverifiedBlock(blk1, true);
-  blk_qu.pushUnverifiedBlock(blk2, false);
+  blk_qu.pushUnverifiedBlock(blk2, true);
 
   auto blk3 = blk_qu.popVerifiedBlock();
   auto blk4 = blk_qu.popVerifiedBlock();

@@ -329,7 +329,8 @@ TEST(Top, reconstruct_dag) {
   {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-    auto node(std::make_shared<taraxa::FullNode>(context, conf, true));
+    auto node(
+        std::make_shared<taraxa::FullNode>(context, conf, true /*destroy_db*/));
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -346,7 +347,8 @@ TEST(Top, reconstruct_dag) {
   {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-    auto node(std::make_shared<taraxa::FullNode>(context, conf, false));
+    auto node(std::make_shared<taraxa::FullNode>(context, conf,
+                                                 false /*destroy_db*/));
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -354,8 +356,12 @@ TEST(Top, reconstruct_dag) {
     vertices2 = node->getNumVerticesInDag().first;
     EXPECT_EQ(vertices2, num_blks);
     node->stop();
+    // std::cout << "Delete DB ..." << std::endl;
+    // node->destroyDB();
+    // node->start(false);
   }
   EXPECT_EQ(vertices1, vertices2);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
 TEST(Top, sync_two_nodes) {
@@ -413,7 +419,6 @@ TEST(Top, sync_two_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
 TEST(FullNode, account_bal) {

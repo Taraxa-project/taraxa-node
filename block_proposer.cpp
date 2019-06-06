@@ -43,12 +43,6 @@ void BlockProposer::start() {
     return;
   }
 
-  if (!trx_mgr_.expired()) {
-    trx_mgr_.lock()->start();
-  } else {
-    LOG(log_er_) << "Cannot start TransactionManager ..." << std::endl;
-    return;
-  }
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
   stopped_ = false;
   // reset number of proposed blocks

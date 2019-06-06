@@ -17,6 +17,13 @@ Executor::~Executor() {
 }
 void Executor::start() {
   if (!stopped_) return;
+  if (!node_.lock()) {
+    LOG(log_er_) << "FullNode is not set ..." << std::endl;
+    return;
+  }
+  db_blks_ = node_.lock()->getBlksDB();
+  db_trxs_ = node_.lock()->getTrxsDB();
+  db_accs_ = node_.lock()->getAccsDB();
   stopped_ = false;
 }
 void Executor::stop() {
