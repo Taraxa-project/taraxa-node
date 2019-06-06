@@ -790,7 +790,7 @@ bool PbftManager::updatePbftChainDB_(PbftBlock const& pbft_block) {
   return true;
 }
 
-bool PbftManager::checkPbftBlockValid_(blk_hash_t const& block_hash) {
+bool PbftManager::checkPbftBlockValid_(blk_hash_t const& block_hash) const {
   std::pair<PbftBlock, bool> cert_vote_block =
       pbft_chain_->getPbftBlockInQueue(block_hash);
   if (!cert_vote_block.second) {

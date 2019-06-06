@@ -260,7 +260,7 @@ class PbftChain {
   blk_hash_t last_pbft_pivot_hash_;
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::deque<blk_hash_t> pbft_queue_;
+  std::deque<blk_hash_t> pbft_queue_; // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
 
   mutable dev::Logger log_sil_{

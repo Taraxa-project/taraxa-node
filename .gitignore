@@ -4,3 +4,6 @@ test_build/
 google/obj
 obj/
 .idea/*
+start_full_nodes_test.py
+pbft_test.py
+
