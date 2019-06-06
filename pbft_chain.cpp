@@ -562,6 +562,19 @@ void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
                 << "Pbft queue size: " << pbft_queue_.size();
 }
 
+void PbftChain::removePbftBlockInQueue(taraxa::blk_hash_t const& block_hash) {
+  std::deque<blk_hash_t>::iterator it = pbft_queue_.begin();
+  while (it != pbft_queue_.end()) {
+    if (*it == block_hash) {
+      it = pbft_queue_.erase(it);
+      break;
+    }
+    it++;
+  }
+
+  pbft_queue_map_.erase(block_hash);
+}
+
 std::string PbftChain::getGenesisStr() const {
   std::stringstream strm;
   strm << "[PbftChain]" << std::endl;
