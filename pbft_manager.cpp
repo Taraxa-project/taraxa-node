@@ -210,11 +210,13 @@ void PbftManager::run() {
             if (peers.empty()) {
               LOG(log_err_) << "There is no peers with connection.";
             } else {
-              LOG(log_deb_)
-                  << "In period " << pbft_period_
-                  << " sync pbft chain with node " << peers[0]
-                  << " Send request to ask missing pbft blocks in chain";
-              capability_->syncPeerPbft(peers[0]);
+              for (auto& peer: peers) {
+                LOG(log_deb_)
+                    << "In period " << pbft_period_
+                    << " sync pbft chain with node " << peer
+                    << " Send request to ask missing pbft blocks in chain";
+                capability_->syncPeerPbft(peer);
+              }
             }
           }
         }
@@ -728,9 +730,11 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
         LOG(log_err_) << "There is no peers with connection.";
         return false;
       }
-      LOG(log_deb_) << "Sync pbft chain with node " << peers[0]
-                    << ". Send request to ask missing pbft blocks in chain";
-      capability_->syncPeerPbft(peers[0]);
+      for (auto& peer: peers) {
+        LOG(log_deb_) << "Sync pbft chain with node " << peer
+                      << ". Send request to ask missing pbft blocks in chain";
+        capability_->syncPeerPbft(peer);
+      }
       return false;
     }
     std::pair<PbftBlock, bool> pbft_block =
