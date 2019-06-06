@@ -4,6 +4,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <string>
 #include <utility>
+#include "full_node.hpp"
 
 namespace taraxa {
 
@@ -355,6 +356,20 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
 unsigned long TransactionQueue::getVerifiedTrxCount() {
   sharedLock lock(shared_mutex_for_verified_qu_);
   return verified_trxs_.size();
+}
+
+void TransactionManager::start() {
+  if (!stopped_) return;
+  if (!node_.lock()) {
+    LOG(log_wr_) << "FullNode is not set ...";
+    assert(db_trxs_);
+  } else {
+    if (!db_trxs_) {
+      db_trxs_ = node_.lock()->getTrxsDB();
+    }
+  }
+
+  stopped_ = false;
 }
 
 std::unordered_map<trx_hash_t, Transaction>

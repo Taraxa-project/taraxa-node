@@ -42,9 +42,11 @@ class NetworkConfig;
 class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   explicit FullNode(boost::asio::io_context &io_context,
-                    std::string const &conf_full_node_file, bool destroy_db = false);
+                    std::string const &conf_full_node_file,
+                    bool destroy_db = false);
   explicit FullNode(boost::asio::io_context &io_context,
-                    FullNodeConfig const &conf_full_node, bool destroy_db = false);
+                    FullNodeConfig const &conf_full_node,
+                    bool destroy_db = false);
 
   virtual ~FullNode() {
     if (!stopped_) {
@@ -55,6 +57,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setDebug(bool debug);
   void start(bool boot_node);
   void stop();
+  void initDB(bool destroy_db);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
   boost::asio::io_context &getIoContext();
@@ -135,6 +138,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag();
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;
+  bool destroyDB();
+
+  // get DBs
+  std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
+  std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
+  std::shared_ptr<SimpleDBFace> getAccsDB() const { return db_accs_; }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
@@ -156,8 +165,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setVoteKnown(taraxa::Vote const &vote);
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  bool isKnownPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
-  bool isKnownPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
+  bool isKnownPbftBlockInChain(blk_hash_t const &pbft_block_hash) const;
+  bool isKnownPbftBlockInQueue(blk_hash_t const &pbft_block_hash) const;
   size_t getPbftChainSize() const;
   size_t getPbftQueueSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
@@ -173,6 +182,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   boost::asio::io_context &io_context_;
   size_t num_block_workers_ = 2;
   bool stopped_ = true;
+  bool db_inited_ = false;
   // configuration
   FullNodeConfig conf_;
   bool verbose_ = false;
@@ -184,12 +194,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t node_addr_;
 
   // storage
-  std::shared_ptr<SimpleDBFace> db_accs_;
-  std::shared_ptr<SimpleDBFace> db_blks_;
-  std::shared_ptr<SimpleDBFace> db_blks_index_;
-  std::shared_ptr<SimpleDBFace> db_trxs_;
-  std::shared_ptr<SimpleDBFace> db_votes_;
-  std::shared_ptr<SimpleDBFace> db_pbftchain_;
+  std::shared_ptr<SimpleDBFace> db_accs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
 
   // network
   std::shared_ptr<Network> network_;

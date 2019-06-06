@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
 #include <chrono>
 #include "SimpleDBFactory.h"
 #include "block_proposer.hpp"
@@ -40,37 +41,19 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
-      db_accs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/acc",
-          destroy_db)),
-      db_blks_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/blk",
-          destroy_db)),
-      db_blks_index_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
-          conf_.db_path + "/blk_index", destroy_db)),
-      db_trxs_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/trx",
-          destroy_db)),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>(db_trxs_)),
+      trx_mgr_(std::make_shared<TransactionManager>()),
       dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>(db_blks_, db_trxs_, db_accs_)),
+      executor_(std::make_shared<Executor>()),
       pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()),
-      pbft_chain_(std::make_shared<PbftChain>()),
-      db_votes_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_path + "/pbftvotes", destroy_db)),
-      db_pbftchain_(SimpleDBFactory::createDelegate(
-          SimpleDBFactory::SimpleDBType::OverlayDBKind,
-          conf_.db_path + "/pbftchain", destroy_db)) {
+      pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
-
+  initDB(destroy_db);
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -84,6 +67,63 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
+
+  LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
+               << std::endl;
+  LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
+               << std::endl;
+  LOG(log_si_) << "Number of block works: " << num_block_workers_;
+  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
+
+} catch (std::exception &e) {
+  std::cerr << e.what() << std::endl;
+  throw e;
+}
+void FullNode::initDB(bool destroy_db) {
+  if (!stopped_) {
+    LOG(log_er_) << "Cannot init DB if node started ...";
+    return;
+  }
+
+  if (db_accs_ == nullptr) {
+    db_accs_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/acc",
+        destroy_db);
+    assert(db_accs_);
+  }
+  if (db_blks_ == nullptr) {
+    db_blks_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/blk",
+        destroy_db);
+    assert(db_blks_);
+  }
+  if (db_blks_index_ == nullptr) {
+    db_blks_index_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+        conf_.db_path + "/blk_index", destroy_db);
+    assert(db_blks_index_);
+  }
+  if (db_trxs_ == nullptr) {
+    db_trxs_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/trx",
+        destroy_db);
+    assert(db_trxs_);
+  }
+
+  if (db_votes_ == nullptr) {
+    db_votes_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+        conf_.db_path + "/pbftvotes", destroy_db);
+    assert(db_votes_);
+  }
+  if (db_pbftchain_ == nullptr) {
+    db_pbftchain_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+        conf_.db_path + "/pbftchain", destroy_db);
+    assert(db_pbftchain_);
+  }
+  LOG(log_nf_) << "DB initialized ...";
+  db_inited_ = true;
   DagBlock genesis;
   // store genesis blk to db
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
@@ -92,7 +132,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                      pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
-
+  // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
     while (true) {
@@ -107,19 +147,36 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       level++;
     }
   }
-
-  LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
-               << std::endl;
-  LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
-               << std::endl;
-  LOG(log_si_) << "Number of block works: " << num_block_workers_;
-  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
-
-} catch (std::exception &e) {
-  std::cerr << e.what() << std::endl;
-  throw e;
 }
 
+bool FullNode::destroyDB() {
+  if (!stopped_) {
+    LOG(log_wr_) << "Cannot destroyDb if node is running ...";
+    return false;
+  }
+
+  db_accs_ = nullptr;
+  db_blks_ = nullptr;
+  db_blks_index_ = nullptr;
+  db_trxs_ = nullptr;
+  db_votes_ = nullptr;
+  db_pbftchain_ = nullptr;
+  db_inited_ = false;
+  boost::filesystem::path path(conf_.db_path);
+  if (path.size() == 0) {
+    throw std::invalid_argument("Error, invalid db path: " + conf_.db_path);
+    return false;
+  }
+  if (boost::filesystem::exists(path)) {
+    LOG(log_wr_) << "Delete db directory: " << path << std::endl;
+    if (!boost::filesystem::remove_all(path)) {
+      throw std::invalid_argument("Error, cannot delete db path: " +
+                                  conf_.db_path);
+      return false;
+    }
+  }
+  return true;
+}
 std::shared_ptr<FullNode> FullNode::getShared() {
   try {
     return shared_from_this();
@@ -134,15 +191,20 @@ void FullNode::start(bool boot_node) {
   if (!stopped_) {
     return;
   }
+  if (!db_inited_) {
+    initDB(false);
+  }
   stopped_ = false;
+  // order depend, be careful when changing the order
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->start();
   blk_mgr_->setFullNode(getShared());
   blk_mgr_->start();
+  trx_mgr_->setFullNode(getShared());
+  trx_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
-  trx_mgr_->start();
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
   executor_->setFullNode(getShared());
