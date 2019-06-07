@@ -219,6 +219,7 @@ void BlockManager::start() {
   }
   trx_mgr_ = node_.lock()->getTransactionManager();
   stopped_ = false;
+  verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
   }

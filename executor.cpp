@@ -28,6 +28,9 @@ void Executor::start() {
 }
 void Executor::stop() {
   if (stopped_) return;
+  db_blks_ = nullptr;
+  db_trxs_ = nullptr;
+  db_accs_ = nullptr;
 }
 bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
   std::string blk_json = db_blks_->get(blk.toString());

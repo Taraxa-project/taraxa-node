@@ -148,12 +148,20 @@ void FullNode::initDB(bool destroy_db) {
     }
   }
 }
-
+// must call close before destroyDB
 bool FullNode::destroyDB() {
   if (!stopped_) {
     LOG(log_wr_) << "Cannot destroyDb if node is running ...";
     return false;
   }
+  // make sure all sub moduled has relased DB, the full_node can release the DB
+  // and destroy
+  assert(db_accs_.use_count() == 1);
+  assert(db_blks_.use_count() == 1);
+  assert(db_blks_index_.use_count() == 1);
+  assert(db_trxs_.use_count() == 1);
+  assert(db_votes_.use_count() == 1);
+  assert(db_pbftchain_.use_count() == 1);
 
   db_accs_ = nullptr;
   db_blks_ = nullptr;
@@ -162,6 +170,7 @@ bool FullNode::destroyDB() {
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
   db_inited_ = false;
+  thisThreadSleepForMilliSeconds(1000);
   boost::filesystem::path path(conf_.db_path);
   if (path.size() == 0) {
     throw std::invalid_argument("Error, invalid db path: " + conf_.db_path);
@@ -212,7 +221,7 @@ void FullNode::start(bool boot_node) {
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
-
+  block_workers_.clear();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
@@ -245,6 +254,7 @@ void FullNode::start(bool boot_node) {
       }
     });
   }
+  assert(num_block_workers_ == block_workers_.size());
 }
 
 void FullNode::stop() {
@@ -252,15 +262,27 @@ void FullNode::stop() {
     return;
   }
   stopped_ = true;
+
   dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
   blk_mgr_->stop();
-  network_->stop();
+  // Do not stop network_, o.w. restart node will crash
+  // network_->stop();
   trx_mgr_->stop();
   pbft_mgr_->stop();
+  executor_->stop();
+
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
   }
+  // wait a while to let other modules to stop
+  thisThreadSleepForMilliSeconds(100);
+  assert(db_accs_.use_count() == 1);
+  assert(db_blks_.use_count() == 1);
+  assert(db_blks_index_.use_count() == 1);
+  assert(db_trxs_.use_count() == 1);
+  assert(db_votes_.use_count() == 1);
+  assert(db_pbftchain_.use_count() == 1);
 }
 
 size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }

@@ -259,14 +259,16 @@ TEST(FullNode, insert_anchor_and_compute_order) {
       node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
-  if (order->size() == 6) {
-    (*order)[0] = blk_hash_t(2);
-    (*order)[1] = blk_hash_t(3);
-    (*order)[2] = blk_hash_t(6);
-    (*order)[3] = blk_hash_t(1);
-    (*order)[4] = blk_hash_t(5);
-    (*order)[5] = blk_hash_t(7);
-  }
+  // un-deterministic order, need to fix
+
+  // if (order->size() == 6) {
+  //   EXPECT_EQ((*order)[0], blk_hash_t(3));
+  //   EXPECT_EQ((*order)[1], blk_hash_t(6));
+  //   EXPECT_EQ((*order)[2], blk_hash_t(2));
+  //   EXPECT_EQ((*order)[3], blk_hash_t(1));
+  //   EXPECT_EQ((*order)[4], blk_hash_t(5));
+  //   EXPECT_EQ((*order)[5], blk_hash_t(7));
+  // }
 
   // -------- second period ----------
 
@@ -279,15 +281,15 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   std::tie(period, order) =
       node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 2);
-  if (order->size() == 7) {
-    (*order)[0] = blk_hash_t(10);
-    (*order)[1] = blk_hash_t(13);
-    (*order)[2] = blk_hash_t(11);
-    (*order)[3] = blk_hash_t(9);
-    (*order)[4] = blk_hash_t(12);
-    (*order)[5] = blk_hash_t(14);
-    (*order)[5] = blk_hash_t(15);
-  }
+  // if (order->size() == 7) {
+  //   EXPECT_EQ((*order)[0], blk_hash_t(10));
+  //   EXPECT_EQ((*order)[1], blk_hash_t(13));
+  //   EXPECT_EQ((*order)[2], blk_hash_t(11));
+  //   EXPECT_EQ((*order)[3], blk_hash_t(9));
+  //   EXPECT_EQ((*order)[4], blk_hash_t(12));
+  //   EXPECT_EQ((*order)[5], blk_hash_t(14));
+  //   EXPECT_EQ((*order)[6], blk_hash_t(15));
+  // }
 
   // -------- third period ----------
 
@@ -300,21 +302,50 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   std::tie(period, order) =
       node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 3);
-  if (order->size() == 5) {
-    (*order)[0] = blk_hash_t(17);
-    (*order)[1] = blk_hash_t(16);
-    (*order)[2] = blk_hash_t(8);
-    (*order)[3] = blk_hash_t(18);
-    (*order)[4] = blk_hash_t(19);
-  }
+  // if (order->size() == 5) {
+  //   EXPECT_EQ((*order)[0], blk_hash_t(17));
+  //   EXPECT_EQ((*order)[1], blk_hash_t(16));
+  //   EXPECT_EQ((*order)[2], blk_hash_t(8));
+  //   EXPECT_EQ((*order)[3], blk_hash_t(18));
+  //   EXPECT_EQ((*order)[4], blk_hash_t(19));
+  // }
+  // node->stop();
 }
 
-TEST(Top, create_top) {
+ TEST(Top, create_top_level_db) {
   {
+    dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
+
     const char* inputs[] = {"./build/main", "--conf_taraxa",
                             "./core_tests/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
+    EXPECT_TRUE(top.isActive());
+    top.stop();
+    std::cout << "Top stopped ..." << std::endl;
+    EXPECT_FALSE(top.isActive());
+    std::cout << "Top restart ..." << std::endl;
+    top.start(5, inputs);
+    EXPECT_TRUE(top.isActive());
+    top.stop();
+    EXPECT_FALSE(top.isActive());
+  }
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+}
+
+TEST(Top, create_top_memory_db) {
+  {
+
+    const char* inputs[] = {"./build/main", "--conf_taraxa",
+                            "./core_tests/conf_taraxa1.json", "-v", "0"};
+    Top top(5, inputs);
+    taraxa::thisThreadSleepForSeconds(1);
+    EXPECT_TRUE(top.isActive());
+    top.stop();
+    std::cout << "Top stopped ..." << std::endl;
+    EXPECT_FALSE(top.isActive());
+    std::cout << "Top restart ..." << std::endl;
+    top.start(5, inputs);
     EXPECT_TRUE(top.isActive());
     top.stop();
     EXPECT_FALSE(top.isActive());
@@ -325,6 +356,9 @@ TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
+  unsigned long vertices3 = 0;
+  unsigned long vertices4 = 0;
+
   auto num_blks = g_mock_dag0.size();
   {
     boost::asio::io_context context;
@@ -356,11 +390,26 @@ TEST(Top, reconstruct_dag) {
     vertices2 = node->getNumVerticesInDag().first;
     EXPECT_EQ(vertices2, num_blks);
     node->stop();
-    // std::cout << "Delete DB ..." << std::endl;
-    // node->destroyDB();
-    // node->start(false);
+    std::cout << "Delete DB ..." << std::endl;
+    node->destroyDB();
+    std::cout << "DB deleted ..." << std::endl;
+
+    node->start(false);
+    for (int i = 1; i < num_blks; i++) {
+      node->insertBlock(g_mock_dag0[i]);
+    }
+
+    vertices3 = node->getNumVerticesInDag().first;
+    node->stop();
+
+    node->start(false);
+    vertices4 = node->getNumVerticesInDag().first;
+    node->stop();
   }
   EXPECT_EQ(vertices1, vertices2);
+  EXPECT_EQ(vertices2, vertices3);
+  EXPECT_EQ(vertices3, vertices4);
+
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
@@ -370,7 +419,7 @@ TEST(Top, sync_two_nodes) {
 
   Top top1(5, input1);
   EXPECT_TRUE(top1.isActive());
-  taraxa::thisThreadSleepForMilliSeconds(500);
+  thisThreadSleepForMilliSeconds(500);
 
   // send 1000 trxs
   try {
@@ -387,6 +436,9 @@ TEST(Top, sync_two_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+  top1.stop();
+  top1.start(5, input1);
+  taraxa::thisThreadSleepForMilliSeconds(500);
 
   const char* input2[] = {"./build/main2", "--conf_taraxa",
                           "./core_tests/conf_taraxa2.json", "-v", "0"};

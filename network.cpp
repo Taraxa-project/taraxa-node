@@ -37,8 +37,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true));
   }
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(
-      *host_.get(), conf_);
+  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -62,6 +61,10 @@ void Network::start(bool boot_node) {
     return;
   }
   stopped_ = false;
+
+  if (host_->isStarted()) {
+    return;
+  }
   host_->start(boot_node);
   LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":"
                << conf_.network_listen_port << std::endl;
