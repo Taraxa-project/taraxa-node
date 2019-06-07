@@ -99,6 +99,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                                time_stamp_t stamp);
   std::vector<std::string> getTotalDagBlockChildren(blk_hash_t const &blk,
                                                     time_stamp_t stamp);
+  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
+      unsigned long level, int number_of_levels);
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
@@ -147,6 +149,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
+
+  // Get max level
+  unsigned long getDagMaxLevel() { return max_dag_level_; }
 
   // PBFT
   bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -200,6 +205,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+
+  // DAG max level
+  unsigned long max_dag_level_ = 0;
 
   // network
   std::shared_ptr<Network> network_;

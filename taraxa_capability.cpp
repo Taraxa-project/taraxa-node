@@ -6,13 +6,14 @@
 
 using namespace taraxa;
 
-void TaraxaCapability::syncPeer(NodeID const &_nodeID) {
+void TaraxaCapability::syncPeer(NodeID const &_nodeID,
+                                unsigned long level_to_sync) {
+  const int number_of_levels_to_sync = 2;
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
       LOG(log_nf_) << "Sync Peer:" << _nodeID.toString();
       peers_[_nodeID]->m_state = Syncing;
-      auto leaves = full_node->collectTotalLeaves();
-      requestBlockChildren(_nodeID, leaves);
+      requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
     }
   }
 }
@@ -74,7 +75,8 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     if (!blocksAddedToDag)
       return;  // This would probably mean that the peer is corrupted as well
 
-    if (peers_[_nodeID]->m_state == Syncing) syncPeer(_nodeID);
+    if (peers_[_nodeID]->m_state == Syncing)
+      syncPeer(_nodeID, full_node->getDagMaxLevel() + 1);
   }
 }
 
@@ -152,7 +154,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         if (num_vertices > max_peer_vertices_) {
           max_peer_vertices_ = num_vertices;
           peer_syncing_ = _nodeID;
-          syncPeer(_nodeID);
+          syncPeer(_nodeID, full_node->getDagMaxLevel());
           syncPeerPbft(_nodeID);
         }
       }
@@ -266,23 +268,19 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       break;
     }
-    case GetBlockChildrenPacket: {
-      LOG(log_dg_) << "Received GetBlockChildrenPacket with " << _r.itemCount()
-                   << " child blocks";
-      auto blockCount = _r.itemCount();
-      dev::strings totalChildren;
-      for (auto iBlock = 0; iBlock < blockCount; iBlock++) {
-        blk_hash_t hash(_r[iBlock]);
-        if (auto full_node = full_node_.lock()) {
-          auto children = full_node->getTotalDagBlockChildren(hash, ULONG_MAX);
-          LOG(log_dg_) << "Found " << children.size() << " children";
-          totalChildren += children;
-        }
+    case GetBlocksLevelPacket: {
+      auto level = _r[0].toInt();
+      auto number_of_levels = _r[1].toInt();
+      LOG(log_dg_) << "Received GetBlocksLevelPacket with level" << level << " "
+                   << number_of_levels;
+
+      if (auto full_node = full_node_.lock()) {
+        auto blocks = full_node->getDagBlocksAtLevel(level, number_of_levels);
+        if (blocks.size() > 0) sendBlocks(_nodeID, blocks);
       }
-      sendChildren(_nodeID, totalChildren);
       break;
     }
-    case BlockChildrenPacket: {
+    case BlocksPacket: {
       std::string receivedBlocks;
       auto itemCount = _r.itemCount();
 
@@ -305,8 +303,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         if (iBlock + transactionCount + 1 >= itemCount) break;
       }
       if (itemCount > 0) {
-        LOG(log_dg_) << "Received BlockChildrenPacket with " << _r.itemCount()
-                     << " child blocks:" << receivedBlocks.c_str();
+        LOG(log_dg_) << "Received BlocksPacket with " << _r.itemCount()
+                     << "  blocks:" << receivedBlocks.c_str();
         continueSync(_nodeID);
       }
       break;
@@ -438,8 +436,10 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
         max_vertices_nodeID = peer.first;
       }
     }
-    syncPeer(max_vertices_nodeID);
-    syncPeerPbft(max_vertices_nodeID);
+    if (auto full_node = full_node_.lock()) {
+      syncPeer(max_vertices_nodeID, full_node->getDagMaxLevel());
+      syncPeerPbft(max_vertices_nodeID);
+    }
   }
 }
 
@@ -602,21 +602,13 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
     LOG(log_dg_) << "Anounced block to " << peersToAnnounce.size() << " peers";
 }
 
-void TaraxaCapability::sendChildren(NodeID const &_id,
-                                    std::vector<std::string> children) {
-  LOG(log_dg_) << "sendChildren " << children.size();
+void TaraxaCapability::sendBlocks(
+    NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
   RLPStream s;
-  std::vector<DagBlock> blocksToSend;
-  std::vector<std::vector<Transaction>> blockTransactions;
+  std::map<blk_hash_t, std::vector<Transaction>> blockTransactions;
   int totalTransactionsCount = 0;
   if (auto full_node = full_node_.lock()) {
-    for (auto child : children) {
-      auto block = full_node->getDagBlock(blk_hash_t(child));
-
-      if (!block) {
-        LOG(log_er_) << "Block " << block << " is not available";
-      }
-      assert(block);
+    for (auto &block : blocks) {
       std::vector<Transaction> transactions;
       for (auto trx : block->getTrxs()) {
         auto t = full_node->getTransaction(trx);
@@ -627,15 +619,14 @@ void TaraxaCapability::sendChildren(NodeID const &_id,
         transactions.push_back(*t);
         totalTransactionsCount++;
       }
-      blocksToSend.push_back(*block);
-      blockTransactions.push_back(transactions);
+      blockTransactions[block->getHash()] = transactions;
     }
   }
-  host_.capabilityHost()->prep(_id, name(), s, BlockChildrenPacket,
-                               children.size() + totalTransactionsCount);
-  for (int iBlock = 0; iBlock < blocksToSend.size(); iBlock++) {
-    blocksToSend[iBlock].serializeRLP(s);
-    for (auto &trx : blockTransactions[iBlock]) {
+  host_.capabilityHost()->prep(_id, name(), s, BlocksPacket,
+                               blocks.size() + totalTransactionsCount);
+  for (auto &block : blocks) {
+    block->serializeRLP(s);
+    for (auto &trx : blockTransactions[block->getHash()]) {
       trx.serializeRLP(s);
     }
   }
@@ -721,19 +712,16 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
-void TaraxaCapability::requestBlockChildren(NodeID const &_id,
-                                            std::vector<std::string> leaves) {
+void TaraxaCapability::requestBlocksLevel(NodeID const &_id,
+                                          unsigned long level,
+                                          int number_of_levels) {
   RLPStream s;
   std::vector<uint8_t> bytes;
-  host_.capabilityHost()->prep(_id, name(), s, GetBlockChildrenPacket,
-                               leaves.size());
-  std::string blocks;
-  for (auto leaf : leaves) {
-    blocks += leaf + " ";
-    blk_hash_t bHash(leaf);
-    s.append(bHash);
-  }
-  LOG(log_dg_) << "Sending GetBlockChildrenPacket of blocks:" << blocks;
+  host_.capabilityHost()->prep(_id, name(), s, GetBlocksLevelPacket, 2);
+  s << level;
+  s << number_of_levels;
+  LOG(log_dg_) << "Sending GetBlocksLevelPacket of level:" << level << " "
+               << number_of_levels;
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 

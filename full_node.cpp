@@ -142,7 +142,10 @@ void FullNode::initDB(bool destroy_db) {
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
         auto block_json = db_blks_->get(block);
-        if (block_json != "") dag_mgr_->addDagBlock(DagBlock(block_json));
+        if (block_json != "") {
+          dag_mgr_->addDagBlock(DagBlock(block_json));
+          max_dag_level_ = level;
+        }
       }
       level++;
     }
@@ -242,6 +245,7 @@ void FullNode::start(bool boot_node) {
           db_blks_->commit();
           std::string level = std::to_string(blk.getLevel());
           std::string blocks = db_blks_index_->get(level);
+          if (blk.getLevel() > max_dag_level_) max_dag_level_ = blk.getLevel();
           if (blocks == "")
             db_blks_index_->put(level, blk.getHash().hex());
           else
@@ -383,6 +387,26 @@ std::vector<std::string> FullNode::getTotalDagBlockChildren(
   std::vector<std::string> children =
       dag_mgr_->getTotalChildrenBeforeTimeStamp(hash.toString(), stamp);
   return children;
+}
+
+std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
+    unsigned long level, int number_of_levels) {
+  std::vector<std::shared_ptr<DagBlock>> res;
+  for (int i = 0; i < number_of_levels; i++) {
+    if(level + i == 0) continue;//Skip genesis
+    string entry = db_blks_index_->get(std::to_string(level + i));
+
+    if (entry.empty()) break;
+    vector<string> blocks;
+    boost::split(blocks, entry, boost::is_any_of(","));
+    for (auto const &block : blocks) {
+      auto block_json = db_blks_->get(block);
+      if (block_json != "") {
+        res.push_back(std::make_shared<DagBlock>(block_json));
+      }
+    }
+  }
+  return res;
 }
 
 std::vector<std::string> FullNode::collectTotalLeaves() {
