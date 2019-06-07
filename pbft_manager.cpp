@@ -752,38 +752,36 @@ bool PbftManager::pushPbftBlockIntoChain_(
     }
     return false;
   }
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return false;
+  }
+
+  PbftBlockTypes next_block_type = pbft_chain_->getNextPbftBlockType();
+  if (next_block_type == pivot_block_type) {
+    if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
+      updatePbftChainDB_(pbft_block.first);
+      LOG(log_deb_) << "Successful push pbft anchor block "
+                    << pbft_block.first.getBlockHash() << " into chain!";
+      // Update block Dag period
+      full_node->updateBlkDagPeriods(pbft_block.first.getBlockHash(), period);
+      return true;
+    }
+  } else if (next_block_type == schedule_block_type) {
+    if (pbft_chain_->pushPbftScheduleBlock(pbft_block.first)) {
+      updatePbftChainDB_(pbft_block.first);
+      LOG(log_deb_) << "Successful push pbft schedule block "
+                    << pbft_block.first.getBlockHash() << " into chain!";
+      // execute schedule block
+      full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock());
+      return true;
+    }
+  }  // TODO: more pbft block type
+
   return false;
 }
-
-auto full_node = node_.lock();
-if (!full_node) {
-  LOG(log_err_) << "Full node unavailable" << std::endl;
-  return false;
-}
-
-PbftBlockTypes next_block_type = pbft_chain_->getNextPbftBlockType();
-if (next_block_type == pivot_block_type) {
-  if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
-    updatePbftChainDB_(pbft_block.first);
-    LOG(log_deb_) << "Successful push pbft anchor block "
-                  << pbft_block.first.getBlockHash() << " into chain!";
-    // Update block Dag period
-    full_node->updateBlkDagPeriods(pbft_block.first.getBlockHash(), period);
-    return true;
-  }
-} else if (next_block_type == schedule_block_type) {
-  if (pbft_chain_->pushPbftScheduleBlock(pbft_block.first)) {
-    updatePbftChainDB_(pbft_block.first);
-    LOG(log_deb_) << "Successful push pbft schedule block "
-                  << pbft_block.first.getBlockHash() << " into chain!";
-    // execute schedule block
-    full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock());
-    return true;
-  }
-}  // TODO: more pbft block type
-
-return false;
-}  // namespace taraxa
 
 bool PbftManager::updatePbftChainDB_(PbftBlock const &pbft_block) {
   if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
