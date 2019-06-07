@@ -27,8 +27,8 @@ enum SubprotocolPacketType : ::byte {
   GetNewBlockPacket,
   GetBlockPacket,
   BlockPacket,
-  GetBlockChildrenPacket,
-  BlockChildrenPacket,
+  GetBlocksLevelPacket,
+  BlocksPacket,
   TransactionPacket,
   TestPacket,
   PbftVotePacket,
@@ -139,7 +139,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
-  void syncPeer(NodeID const &_nodeID);
+  void syncPeer(NodeID const &_nodeID, unsigned long level_to_sync);
   void syncPeerPbft(NodeID const &_nodeID);
   void continueSync(NodeID const &_nodeID);
   bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
@@ -162,10 +162,12 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       std::vector<NodeID> const &_peers, std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
-  void sendChildren(NodeID const &_id, std::vector<std::string> children);
+  void sendBlocks(NodeID const &_id,
+                  std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
-  void requestBlockChildren(NodeID const &_id, std::vector<std::string> leaves);
+  void requestBlocksLevel(NodeID const &_id, unsigned long level,
+                          int number_of_levels);
   void sendTransactions(NodeID const &_id,
                         std::vector<Transaction> const &transactions);
 
