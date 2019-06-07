@@ -276,15 +276,11 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager()
-      : trx_status_(), trx_qu_(trx_status_, 8 /*num verifiers*/) {
-    trx_qu_.start();
-  }
+      : trx_status_(), trx_qu_(trx_status_, 8 /*num verifiers*/) {}
   TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
       : db_trxs_(db_trx),
         trx_status_(),
-        trx_qu_(trx_status_, 8 /*num verifiers*/) {
-    trx_qu_.start();
-  }
+        trx_qu_(trx_status_, 8 /*num verifiers*/) {}
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -297,10 +293,7 @@ class TransactionManager
     if (!stopped_) stop();
   }
   void start();
-  void stop() {
-    if (stopped_) return;
-    stopped_ = true;
-  }
+  void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
 
   bool insertTrx(Transaction trx, bool critical);
@@ -340,10 +333,9 @@ class TransactionManager
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
-  std::shared_ptr<SimpleDBFace> db_trxs_;
+  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   TransactionStatusTable trx_status_;
   TransactionQueue trx_qu_;
-  std::vector<std::thread> worker_threads_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
   dev::Logger log_wr_{

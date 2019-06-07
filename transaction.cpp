@@ -152,10 +152,12 @@ blk_hash_t Transaction::sha3(bool include_sig) const {
 void TransactionQueue::start() {
   if (!stopped_) return;
   stopped_ = false;
+  verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
     verifiers_.emplace_back([this]() { verifyTrx(); });
   }
+  assert(num_verifiers_ == verifiers_.size());
 }
 
 void TransactionQueue::stop() {
@@ -364,12 +366,19 @@ void TransactionManager::start() {
     LOG(log_wr_) << "FullNode is not set ...";
     assert(db_trxs_);
   } else {
-    if (!db_trxs_) {
-      db_trxs_ = node_.lock()->getTrxsDB();
-    }
+    assert(!db_trxs_); 
+    db_trxs_ = node_.lock()->getTrxsDB();
   }
+  trx_qu_.start();
 
   stopped_ = false;
+}
+
+void TransactionManager::stop() {
+  if (stopped_) return;
+    db_trxs_ = nullptr;
+    trx_qu_.stop();
+    stopped_ = true;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
