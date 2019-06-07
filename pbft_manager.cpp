@@ -33,6 +33,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   }
   vote_queue_ = full_node->getVoteQueue();
   pbft_chain_ = full_node->getPbftChain();
+  capability_ = full_node->getNetwork()->getTaraxaCapability();
 }
 
 void PbftManager::start() {
