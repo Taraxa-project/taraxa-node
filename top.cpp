@@ -16,8 +16,8 @@ Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
 void Top::start(int argc, const char* argv[]) {
   if (!stopped_) return;
-  stopped_ = false;
   if (!th_) {
+    stopped_ = false;
     th_ = std::make_shared<std::thread>([this, argc, argv]() {
       bool verbose = false;
       std::string conf_taraxa;
@@ -82,11 +82,18 @@ void Top::start(int argc, const char* argv[]) {
       }
     });
   } else {
-    node_->start(boot_node_);
+    start();
   }
   // Important!!! Wait for a while and have the child thread initialize
   // everything ... Otherwise node_ will get nullptr
   taraxa::thisThreadSleepForSeconds(2);
+}
+void Top::start() {
+  if (!stopped_) return;
+  stopped_ = false;
+  assert(node_);
+  node_->start(boot_node_);
+  rpc_->start();
 }
 void Top::run() {
   std::unique_lock<std::mutex> lock(mu_);
@@ -94,15 +101,22 @@ void Top::run() {
     cond_.wait(lock);
   }
 }
+void Top::kill() {
+  if (stopped_) return;
+  stop();
+  rpc_->stop();
+  cond_.notify_all();
+}
 void Top::stop() {
   if (stopped_) return;
   stopped_ = true;
-  cond_.notify_all();
-  rpc_->stop();
   node_->stop();
 }
-
+void Top::reset() {
+  if (!stopped_) return;
+  node_->reset();
+}
 Top::~Top() {
-  stop();
+  kill();
   th_->join();
 }

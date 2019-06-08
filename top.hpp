@@ -16,11 +16,15 @@ class Top {
   Top(int argc, const char* argv[]);
   Top(std::string const& command);
 
-  // Top(std::vector<std::string> strs);
   ~Top();
   void start(int argc, const char* argv[]);
+  void start();
   void run();
+  // stop() won't stop rpc
   void stop();
+  void reset();
+  // use kill to exit program
+  void kill();
   bool isActive() { return !stopped_; }
   std::shared_ptr<taraxa::FullNode>& getNode() { return node_; }
   std::shared_ptr<taraxa::Rpc>& getRpc() { return rpc_; }

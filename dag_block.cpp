@@ -342,6 +342,6 @@ void BlockManager::verifyBlock() {
     cond_for_verified_qu_.notify_one();
     LOG(log_dg_) << "Verified block: " << blk.first.getHash() << std::endl;
   }
-}  // namespace taraxa
+}
 
 }  // namespace taraxa
