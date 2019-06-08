@@ -252,7 +252,6 @@ TEST(FullNode, full_node_reset) {
 
   node1->stop();
   node1->reset();
-  std::cout << "Node reset ...\n";
   node1->start(true /*boot_node*/);
   std::cout << "Waiting connection for 100 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(100);
@@ -567,9 +566,7 @@ TEST(Top, create_top_level_db) {
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
     top.stop();
-    std::cout << "Top stopped ..." << std::endl;
     EXPECT_FALSE(top.isActive());
-    std::cout << "Top restart ..." << std::endl;
     top.start(5, inputs);
     EXPECT_TRUE(top.isActive());
     top.kill();
@@ -586,9 +583,7 @@ TEST(Top, create_top_memory_db) {
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
     top.stop();
-    std::cout << "Top stopped ..." << std::endl;
     EXPECT_FALSE(top.isActive());
-    std::cout << "Top restart ..." << std::endl;
     top.start(5, inputs);
     EXPECT_TRUE(top.isActive());
     top.kill();

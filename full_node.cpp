@@ -150,6 +150,7 @@ void FullNode::initDB(bool destroy_db) {
       level++;
     }
   }
+  LOG(log_wr_) << "DB initialized ... ";
 }
 // must call close before destroyDB
 bool FullNode::destroyDB() {
@@ -180,13 +181,15 @@ bool FullNode::destroyDB() {
     return false;
   }
   if (boost::filesystem::exists(path)) {
-    LOG(log_wr_) << "Delete db directory: " << path << std::endl;
+    LOG(log_wr_) << "Delete db directory: " << path;
     if (!boost::filesystem::remove_all(path)) {
       throw std::invalid_argument("Error, cannot delete db path: " +
                                   conf_.db_path);
       return false;
     }
   }
+  LOG(log_wr_) << "DB destroyed ... ";
+
   return true;
 }
 std::shared_ptr<FullNode> FullNode::getShared() {
@@ -265,6 +268,7 @@ void FullNode::start(bool boot_node) {
   assert(db_trxs_);
   assert(db_votes_);
   assert(db_pbftchain_);
+  LOG(log_wr_) << "Node started ... ";
 }
 
 void FullNode::stop() {
@@ -293,6 +297,7 @@ void FullNode::stop() {
   assert(db_trxs_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  LOG(log_wr_) << "Node stopped ... ";
 }
 
 bool FullNode::reset() {
@@ -341,6 +346,7 @@ bool FullNode::reset() {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.pbft_manager);
   vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
+  LOG(log_wr_) << "Node reset ... ";
   return true;
 }
 
