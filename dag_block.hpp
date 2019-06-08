@@ -123,6 +123,7 @@ class BlockManager {
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
+  void clearBlockStatausTable() { blk_status_.clear(); }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;

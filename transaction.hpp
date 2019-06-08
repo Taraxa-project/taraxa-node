@@ -295,7 +295,6 @@ class TransactionManager
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
-
   bool insertTrx(Transaction trx, bool critical);
   void setPackedTrxFromBlock(DagBlock const &dag_block);
   void setPackedTrxFromBlockHash(blk_hash_t blk);
@@ -327,6 +326,7 @@ class TransactionManager
   bool saveBlockTransactionAndDeduplicate(
       vec_trx_t const &all_block_trx_hashes,
       std::vector<Transaction> const &some_trxs);
+  void clearTransactionStatusTable() { trx_status_.clear(); }
 
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
