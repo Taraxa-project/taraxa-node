@@ -147,7 +147,11 @@ class StatusTable {
     }
     return ret;
   }
-
+  // clear everything
+  void clear(){
+    uLock lock(shared_mutex_);
+    status_.clear();
+  }
  private:
   boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
