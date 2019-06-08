@@ -49,7 +49,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>()),
-      pbft_mgr_(std::make_shared<PbftManager>(conf_full_node.pbft_manager)),
+      pbft_mgr_(std::make_shared<PbftManager>(conf_.pbft_manager)),
       vote_queue_(std::make_shared<VoteQueue>()),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
@@ -259,6 +259,12 @@ void FullNode::start(bool boot_node) {
     });
   }
   assert(num_block_workers_ == block_workers_.size());
+  assert(db_accs_);
+  assert(db_blks_);
+  assert(db_blks_index_);
+  assert(db_trxs_);
+  assert(db_votes_);
+  assert(db_pbftchain_);
 }
 
 void FullNode::stop() {
@@ -287,6 +293,55 @@ void FullNode::stop() {
   assert(db_trxs_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+}
+
+bool FullNode::reset() {
+  destroyDB();
+  network_ = nullptr;
+  dag_mgr_ = nullptr;
+  blk_mgr_ = nullptr;
+  trx_mgr_ = nullptr;
+  blk_proposer_ = nullptr;
+  executor_ = nullptr;
+  vote_queue_ = nullptr;
+  pbft_mgr_ = nullptr;
+  pbft_chain_ = nullptr;
+
+  assert(network_.use_count() == 0);
+  // dag
+  assert(dag_mgr_.use_count() == 0);
+  // ledger
+  assert(blk_mgr_.use_count() == 0);
+  assert(trx_mgr_.use_count() == 0);
+  // block proposer (multi processing)
+  assert(blk_proposer_.use_count() == 0);
+  // transaction executor
+  assert(executor_.use_count() == 0);
+  // PBFT
+  assert(vote_queue_.use_count() == 0);
+
+  assert(pbft_mgr_.use_count() == 0);
+
+  assert(pbft_chain_.use_count() == 0);
+
+  known_votes_.clear();
+  max_dag_level_ = 0;
+  received_blocks_ = 0;
+  received_trxs_ = 0;
+
+  // init
+  network_ = std::make_shared<Network>(conf_.network, "", node_sk_);
+  blk_mgr_ =
+      std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
+  trx_mgr_ = std::make_shared<TransactionManager>();
+  dag_mgr_ = std::make_shared<DagManager>();
+  blk_proposer_ = std::make_shared<BlockProposer>(
+      conf_.proposer, dag_mgr_->getShared(), trx_mgr_->getShared());
+  executor_ = std::make_shared<Executor>();
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.pbft_manager);
+  vote_queue_ = std::make_shared<VoteQueue>();
+  pbft_chain_ = std::make_shared<PbftChain>();
+  return true;
 }
 
 size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }
@@ -393,7 +448,7 @@ std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
     unsigned long level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
-    if(level + i == 0) continue;//Skip genesis
+    if (level + i == 0) continue;  // Skip genesis
     string entry = db_blks_index_->get(std::to_string(level + i));
 
     if (entry.empty()) break;

@@ -57,6 +57,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setDebug(bool debug);
   void start(bool boot_node);
   void stop();
+  bool reset(); // clean db, reset everything ... can be called only stopped
   void initDB(bool destroy_db);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
