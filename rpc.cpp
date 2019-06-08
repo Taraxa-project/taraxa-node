@@ -430,6 +430,28 @@ void RpcHandler::processRequest() {
       } catch (std::exception &e) {
         res = e.what();
       }
+    } else if (action == "node_stop") {
+      try {
+        node_->stop();
+        res = "Taraxa node stopped ...\n";
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    } else if (action == "node_reset") {
+      try {
+        node_->reset();
+        res = "Taraxa node reset ...\n";
+
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+    } else if (action == "node_start") {
+      try {
+        node_->start(false /*destroy_db*/);
+        res = "Taraxa node start ...\n";
+      } catch (std::exception &e) {
+        res = e.what();
+      }
     }
     // PBFT
     else if (action == "should_speak") {
