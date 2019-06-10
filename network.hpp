@@ -82,6 +82,7 @@ class Network {
 
   NetworkConfig conf_;
   bool stopped_ = true;
+  std::string network_file_;
 
   std::weak_ptr<FullNode> full_node_;
   dev::Logger log_si_{

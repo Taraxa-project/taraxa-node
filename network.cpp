@@ -25,6 +25,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
   }
 
   if (network_file != "") {
+    network_file_ = network_file;
     auto networkData = contents(network_file);
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode",
@@ -96,6 +97,7 @@ void Network::stop() {
   }
   stopped_ = true;
   host_->stop();
+  if (network_file_ != "") saveNetwork(network_file_);
 }
 
 void Network::sendTest(NodeID const &id) {

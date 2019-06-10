@@ -23,6 +23,7 @@ void Top::start(int argc, const char* argv[]) {
       std::string conf_taraxa;
       bool boot_node = false;
       bool destroy_db = false;
+      bool rebuild_network = false;
       // loggin options
       dev::LoggingOptions loggingOptions;
       boost::program_options::options_description loggingProgramOptions(
@@ -38,7 +39,9 @@ void Top::start(int argc, const char* argv[]) {
           "boot_node", boost::program_options::bool_switch(&boot_node),
           "Flag to mark this node as boot node")(
           "destroy_db", boost::program_options::bool_switch(&destroy_db),
-          "Destroys all the existing data in the database");
+          "Destroys all the existing data in the database")(
+          "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
+          "Delete all saved network/nodes information and rebuild network from boot nodes");
 
       boost::program_options::options_description allowed_options(
           "Allowed options");
@@ -69,7 +72,7 @@ void Top::start(int argc, const char* argv[]) {
       boot_node_ = boot_node;
       try {
         taraxa::FullNodeConfig conf(conf_taraxa);
-        node_ = std::make_shared<taraxa::FullNode>(context_, conf, destroy_db);
+        node_ = std::make_shared<taraxa::FullNode>(context_, conf, destroy_db, rebuild_network);
         node_->setVerbose(verbose);
         node_->start(boot_node_);
         rpc_ = std::make_shared<taraxa::Rpc>(context_, conf.rpc,

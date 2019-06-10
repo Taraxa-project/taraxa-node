@@ -868,6 +868,61 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   t.join();
 }
 
+TEST(FullNode, save_network_to_file) {
+  {
+    boost::asio::io_context context1;
+    FullNodeConfig conf1("./core_tests/conf_taraxa1.json");
+    auto node1(std::make_shared<taraxa::FullNode>(context1, conf1));
+    boost::asio::io_context context2;
+    FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+    auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
+    boost::asio::io_context context3;
+    FullNodeConfig conf3("./core_tests/conf_taraxa3.json");
+    auto node3(std::make_shared<taraxa::FullNode>(context3, conf3));
+
+    node1->start(true);
+    node2->start(false);
+    node3->start(false);
+
+    for (int i = 0; i < 30; i++) {
+      taraxa::thisThreadSleepForSeconds(1);
+      if (2 == node1->getPeerCount() && 2 == node2->getPeerCount() &&
+          2 == node3->getPeerCount())
+        break;
+    }
+
+    ASSERT_EQ(2, node1->getPeerCount());
+    ASSERT_EQ(2, node2->getPeerCount());
+    ASSERT_EQ(2, node3->getPeerCount());
+    node1->stop();
+    node2->stop();
+    node3->stop();
+  }
+  {
+    boost::asio::io_context context2;
+    FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+    auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
+    boost::asio::io_context context3;
+    FullNodeConfig conf3("./core_tests/conf_taraxa3.json");
+    auto node3(std::make_shared<taraxa::FullNode>(context3, conf3));
+
+    node2->start(false);
+    node3->start(false);
+
+    for (int i = 0; i < 30; i++) {
+      taraxa::thisThreadSleepForSeconds(1);
+      if (1 == node2->getPeerCount() &&
+          1 == node3->getPeerCount())
+        break;
+    }
+
+    ASSERT_EQ(1, node2->getPeerCount());
+    ASSERT_EQ(1, node3->getPeerCount());
+    node2->stop();
+    node3->stop();
+  }
+}
+
 TEST(FullNode, receive_send_transaction) {
   boost::asio::io_context context1;
   FullNodeConfig conf("./core_tests/conf_taraxa1.json");
