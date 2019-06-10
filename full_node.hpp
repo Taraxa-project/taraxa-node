@@ -43,10 +43,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
  public:
   explicit FullNode(boost::asio::io_context &io_context,
                     std::string const &conf_full_node_file,
-                    bool destroy_db = false);
+                    bool destroy_db = false, bool rebuild_network = false);
   explicit FullNode(boost::asio::io_context &io_context,
                     FullNodeConfig const &conf_full_node,
-                    bool destroy_db = false);
+                    bool destroy_db = false, bool rebuild_network = false);
 
   virtual ~FullNode() {
     if (!stopped_) {
@@ -57,7 +57,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setDebug(bool debug);
   void start(bool boot_node);
   void stop();
-  bool reset(); // clean db, reset everything ... can be called only stopped
+  bool reset();  // clean db, reset everything ... can be called only stopped
   void initDB(bool destroy_db);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();

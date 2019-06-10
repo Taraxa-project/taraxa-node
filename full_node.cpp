@@ -34,10 +34,13 @@ void FullNode::setVerbose(bool verbose) {
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   std::string const &conf_full_node_file, bool destroy_db)
-    : FullNode(io_context, FullNodeConfig(conf_full_node_file), destroy_db) {}
+                   std::string const &conf_full_node_file, bool destroy_db,
+                   bool rebuild_network)
+    : FullNode(io_context, FullNodeConfig(conf_full_node_file), destroy_db,
+               rebuild_network) {}
 FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig const &conf_full_node, bool destroy_db) try
+                   FullNodeConfig const &conf_full_node, bool destroy_db,
+                   bool rebuild_network) try
     : io_context_(io_context),
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
@@ -62,8 +65,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                               dev::Secret::ConstructFromStringType::FromHex);
     key = dev::KeyPair(secret);
   }
-  network_ =
-      std::make_shared<Network>(conf_full_node.network, "", key.secret());
+  if (rebuild_network) {
+    network_ =
+        std::make_shared<Network>(conf_full_node.network, "", key.secret());
+  } else {
+    network_ = std::make_shared<Network>(conf_full_node.network,
+                                         conf_.db_path + "/net", key.secret());
+  }
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
