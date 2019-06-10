@@ -107,7 +107,8 @@ void BlockProposer::proposeBlock() {
     LOG(log_nf_) << "Tips: " << tips;
     BlockProposer::num_proposed_blocks.fetch_add(1);
   } else {
-    LOG(log_wr_) << "Pivot and tips unavailable ..." << std::endl;
+    LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
+    return;
   }
   LOG(log_time) << "Pivot and Tips retrieved at: "
                 << getCurrentTimeMilliSeconds();
@@ -137,6 +138,7 @@ void BlockProposer::proposeBlock() {
     }
     LOG(log_nf_) << "Propose block" << std::endl;
     DagBlock blk(blk_hash_t(pivot), max_level + 1, tip_hashes, sharded_trxs);
+    assert(sharded_trxs.size());
     full_node_.lock()->insertBlockAndSign(blk);
   } else {
     LOG(log_er_) << "FullNode unavailable ..." << std::endl;

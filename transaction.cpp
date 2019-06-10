@@ -366,7 +366,7 @@ void TransactionManager::start() {
     LOG(log_wr_) << "FullNode is not set ...";
     assert(db_trxs_);
   } else {
-    assert(!db_trxs_); 
+    assert(!db_trxs_);
     db_trxs_ = node_.lock()->getTrxsDB();
   }
   trx_qu_.start();
@@ -376,9 +376,9 @@ void TransactionManager::start() {
 
 void TransactionManager::stop() {
   if (stopped_) return;
-    db_trxs_ = nullptr;
-    trx_qu_.stop();
-    stopped_ = true;
+  db_trxs_ = nullptr;
+  trx_qu_.stop();
+  stopped_ = true;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -421,10 +421,13 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
 bool TransactionManager::saveBlockTransactionAndDeduplicate(
     vec_trx_t const &all_block_trx_hashes,
     std::vector<Transaction> const &some_trxs) {
+  if (all_block_trx_hashes.empty()) {
+    return true;
+  }
   // First step: Save and update status for transactions that were sent
   // together with the block some_trxs might not full trxs in the block (for
   // syncing purpose)
-  {
+  if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
       db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
       trx_status_.update(trx.getHash(), TransactionStatus::in_block);
