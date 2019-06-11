@@ -302,11 +302,12 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
     return false;
   }
   ordered_period_vertices.clear();
-  std::set<vertex_t> epfriend;  // this is unordered epoch
-  epfriend.insert(target);
+
   vertex_iter_t s, e;
   vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
   vertex_period_map_t ep_map = boost::get(boost::vertex_index2, graph_);
+  std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
+  epfriend[blk_hash_t(name_map[target])] = target;
 
   // Step 1: collect all epoch blks between from and to blks
   // Erase from recent_added_blks after mark epoch number
@@ -325,7 +326,7 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
     if (!reachable(v, source) && reachable(v, target)) {
       ep_map[v] = ith_peroid;
       iter = recent_added_blks.erase(iter);
-      epfriend.insert(v);
+      epfriend[blk_hash_t(name_map[v])] = v;
     } else {
       iter++;
     }
@@ -336,7 +337,8 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
   std::stack<std::pair<bool, vertex_t>> dfs;
   vertex_adj_iter_t adj_s, adj_e;
 
-  for (auto const &v : epfriend) {
+  for (auto const &vp : epfriend) {
+    auto const &v = vp.second;
     if (visited.count(v)) {
       continue;
     }
@@ -353,7 +355,8 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
       // iterate through neighbots
       for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.second, graph_);
            adj_s != adj_e; adj_s++) {
-        if (!epfriend.count(*adj_s)) {  // not in this epoch
+        if (epfriend.find(blk_hash_t(name_map[*adj_s])) ==
+            epfriend.end()) {  // not in this epoch
           continue;
         }
         if (visited.count(*adj_s)) {
@@ -775,8 +778,9 @@ uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
   auto ok = total_dag_->updatePeriodVerticesAndComputeOrder(
       prev, anchor.toString(), new_period, recent_added_blks_, blk_orders);
   if (!ok) {
-    LOG(log_er_) << "Create epoch " << new_period << " from " << prev << " to "
-                 << anchor << " failed " << std::endl;
+    LOG(log_er_) << "Create epoch " << new_period << " from "
+                 << blk_hash_t(prev) << " to " << anchor << " failed "
+                 << std::endl;
     return new_period;
   }
   anchors_.emplace_back(anchor.toString());
@@ -784,8 +788,8 @@ uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
   for (auto const &i : blk_orders) {
     orders.emplace_back(blk_hash_t(i));
   }
-  LOG(log_dg_) << "Create epoch " << new_period << " from " << prev << " to "
-               << anchor << " with " << blk_orders.size() << " blks"
+  LOG(log_dg_) << "Create epoch " << new_period << " from " << blk_hash_t(prev)
+               << " to " << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
   return new_period;
 }
@@ -804,8 +808,8 @@ void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period) {
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {
-    LOG(log_er_) << "Create epoch " << period << " from " << prev << " to "
-                 << anchor << " failed ";
+    LOG(log_er_) << "Create epoch " << period << " from " << blk_hash_t(prev)
+                 << " to " << anchor << " failed ";
     return;
   }
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;

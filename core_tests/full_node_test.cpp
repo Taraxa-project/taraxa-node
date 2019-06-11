@@ -503,16 +503,15 @@ TEST(FullNode, insert_anchor_and_compute_order) {
       node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
-  // un-deterministic order, need to fix
 
-  // if (order->size() == 6) {
-  //   EXPECT_EQ((*order)[0], blk_hash_t(3));
-  //   EXPECT_EQ((*order)[1], blk_hash_t(6));
-  //   EXPECT_EQ((*order)[2], blk_hash_t(2));
-  //   EXPECT_EQ((*order)[3], blk_hash_t(1));
-  //   EXPECT_EQ((*order)[4], blk_hash_t(5));
-  //   EXPECT_EQ((*order)[5], blk_hash_t(7));
-  // }
+  if (order->size() == 6) {
+    EXPECT_EQ((*order)[0], blk_hash_t(3));
+    EXPECT_EQ((*order)[1], blk_hash_t(6));
+    EXPECT_EQ((*order)[2], blk_hash_t(2));
+    EXPECT_EQ((*order)[3], blk_hash_t(1));
+    EXPECT_EQ((*order)[4], blk_hash_t(5));
+    EXPECT_EQ((*order)[5], blk_hash_t(7));
+  }
 
   // -------- second period ----------
 
@@ -525,15 +524,15 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   std::tie(period, order) =
       node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 2);
-  // if (order->size() == 7) {
-  //   EXPECT_EQ((*order)[0], blk_hash_t(10));
-  //   EXPECT_EQ((*order)[1], blk_hash_t(13));
-  //   EXPECT_EQ((*order)[2], blk_hash_t(11));
-  //   EXPECT_EQ((*order)[3], blk_hash_t(9));
-  //   EXPECT_EQ((*order)[4], blk_hash_t(12));
-  //   EXPECT_EQ((*order)[5], blk_hash_t(14));
-  //   EXPECT_EQ((*order)[6], blk_hash_t(15));
-  // }
+  if (order->size() == 7) {
+    EXPECT_EQ((*order)[0], blk_hash_t(11));
+    EXPECT_EQ((*order)[1], blk_hash_t(10));
+    EXPECT_EQ((*order)[2], blk_hash_t(13));
+    EXPECT_EQ((*order)[3], blk_hash_t(9));
+    EXPECT_EQ((*order)[4], blk_hash_t(12));
+    EXPECT_EQ((*order)[5], blk_hash_t(14));
+    EXPECT_EQ((*order)[6], blk_hash_t(15));
+  }
 
   // -------- third period ----------
 
@@ -546,14 +545,14 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   std::tie(period, order) =
       node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 3);
-  // if (order->size() == 5) {
-  //   EXPECT_EQ((*order)[0], blk_hash_t(17));
-  //   EXPECT_EQ((*order)[1], blk_hash_t(16));
-  //   EXPECT_EQ((*order)[2], blk_hash_t(8));
-  //   EXPECT_EQ((*order)[3], blk_hash_t(18));
-  //   EXPECT_EQ((*order)[4], blk_hash_t(19));
-  // }
-  // node->stop();
+  if (order->size() == 5) {
+    EXPECT_EQ((*order)[0], blk_hash_t(17));
+    EXPECT_EQ((*order)[1], blk_hash_t(16));
+    EXPECT_EQ((*order)[2], blk_hash_t(8));
+    EXPECT_EQ((*order)[3], blk_hash_t(18));
+    EXPECT_EQ((*order)[4], blk_hash_t(19));
+  }
+  node->stop();
 }
 
 TEST(Top, create_top_level_db) {
@@ -911,9 +910,7 @@ TEST(FullNode, save_network_to_file) {
 
     for (int i = 0; i < 30; i++) {
       taraxa::thisThreadSleepForSeconds(1);
-      if (1 == node2->getPeerCount() &&
-          1 == node3->getPeerCount())
-        break;
+      if (1 == node2->getPeerCount() && 1 == node3->getPeerCount()) break;
     }
 
     ASSERT_EQ(1, node2->getPeerCount());
@@ -966,6 +963,8 @@ int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
+  logOptions.includeChannels.push_back("DAGMGR");
+
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage

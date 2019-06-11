@@ -9,6 +9,7 @@
 namespace taraxa {
 
 using namespace taraxa_grpc;
+
 Transaction::Transaction(stream &strm) { deserialize(strm); }
 
 Transaction::Transaction(string const &json) {
