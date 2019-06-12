@@ -46,56 +46,71 @@ class TaraxaPeer : public boost::noncopyable {
   TaraxaPeer(NodeID id) : m_id(id), m_state(Idle) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_blocks);
-    return m_knownBlocks.count(_hash);
+    boost::shared_lock lck(mtx_for_known_blocks_);
+    return known_blocks_.count(_hash);
   }
   void markBlockAsKnown(blk_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_blocks);
-    m_knownBlocks.insert(_hash);
+    boost::unique_lock lck(mtx_for_known_blocks_);
+    known_blocks_.insert(_hash);
   }
   void clearKnownBlocks() {
-    boost::unique_lock lck(mtx_for_known_blocks);
-    m_knownBlocks.clear();
+    boost::unique_lock lck(mtx_for_known_blocks_);
+    known_blocks_.clear();
   }
 
   bool isTransactionKnown(trx_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_transactions);
-    return m_knownTransactions.count(_hash);
+    boost::shared_lock lck(mtx_for_known_transactions_);
+    return known_transactions_.count(_hash);
   }
   void markTransactionAsKnown(trx_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_transactions);
-    m_knownTransactions.insert(_hash);
+    boost::unique_lock lck(mtx_for_known_transactions_);
+    known_transactions_.insert(_hash);
   }
   void clearKnownTransactions() {
-    boost::unique_lock lck(mtx_for_known_transactions);
-    m_knownTransactions.clear();
+    boost::unique_lock lck(mtx_for_known_transactions_);
+    known_transactions_.clear();
   }
 
   // PBFT
   bool isVoteKnown(vote_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_votes);
-    return m_knownVotes.count(_hash);
+    boost::shared_lock lck(mtx_for_known_votes_);
+    return known_votes_.count(_hash);
   }
   void markVoteAsKnown(vote_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_votes);
-    m_knownVotes.insert(_hash);
+    boost::unique_lock lck(mtx_for_known_votes_);
+    known_votes_.insert(_hash);
   }
   void clearKnownVotes() {
-    boost::unique_lock lck(mtx_for_known_votes);
-    m_knownVotes.clear();
+    boost::unique_lock lck(mtx_for_known_votes_);
+    known_votes_.clear();
   }
 
   bool isPbftBlockKnown(blk_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_pbft_blocks);
-    return m_knownPbftBlocks.count(_hash);
+    boost::shared_lock lck(mtx_for_known_pbft_blocks_);
+    return known_pbft_blocks_.count(_hash);
   }
   void markPbftBlockAsKnown(blk_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_pbft_blocks);
-    m_knownPbftBlocks.insert(_hash);
+    boost::unique_lock lck(mtx_for_known_pbft_blocks_);
+    known_pbft_blocks_.insert(_hash);
   }
   void cleanKnownPbftBlocks() {
-    boost::unique_lock lck(mtx_for_known_pbft_blocks);
-    m_knownPbftBlocks.clear();
+    boost::unique_lock lck(mtx_for_known_pbft_blocks_);
+    known_pbft_blocks_.clear();
+  }
+
+  time_t lastAsk() const { return last_ask_; }
+  time_t lastMessageTime() const { return last_message_time_; }
+
+  bool asking() const { return asking_; }
+  void setAsking(bool asking) {
+    asking_ = asking;
+    if (asking)
+      last_ask_ =
+          std::chrono::system_clock::to_time_t(chrono::system_clock::now());
+  }
+  void setLastMessage() {
+    last_message_time_ =
+        std::chrono::system_clock::to_time_t(chrono::system_clock::now());
   }
 
   std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
@@ -105,17 +120,23 @@ class TaraxaPeer : public boost::noncopyable {
   unsigned long vertices_count_ = 0;
 
  private:
-  mutable boost::shared_mutex mtx_for_known_blocks;
-  mutable boost::shared_mutex mtx_for_known_transactions;
-  mutable boost::shared_mutex mtx_for_known_votes;
-  mutable boost::shared_mutex mtx_for_known_pbft_blocks;
-  std::set<blk_hash_t> m_knownBlocks;
-  std::set<trx_hash_t> m_knownTransactions;
+  mutable boost::shared_mutex mtx_for_known_blocks_;
+  mutable boost::shared_mutex mtx_for_known_transactions_;
+  mutable boost::shared_mutex mtx_for_known_votes_;
+  mutable boost::shared_mutex mtx_for_known_pbft_blocks_;
+  std::set<blk_hash_t> known_blocks_;
+  std::set<trx_hash_t> known_transactions_;
   // PBFT
-  std::set<vote_hash_t> m_knownVotes; // for peers
-  std::set<blk_hash_t> m_knownPbftBlocks;
+  std::set<vote_hash_t> known_votes_; // for peers
+  std::set<blk_hash_t> known_pbft_blocks_;
 
   NodeID m_id;
+
+  // Did we ask peer for something
+  bool asking_ = false;
+  // When we asked for it. Allows a time out.
+  time_t last_ask_ = 0;
+  time_t last_message_time_ = 0;
 };
 
 class TaraxaCapability : public CapabilityFace, public Worker {
