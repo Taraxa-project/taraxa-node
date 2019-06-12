@@ -124,6 +124,8 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
 bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                                                      unsigned _id,
                                                      RLP const &_r) {
+  peers_[_nodeID]->setAsking(false);
+  peers_[_nodeID]->setLastMessage();
   switch (_id) {
     case StatusPacket: {
       auto const peer_protocol_version = _r[0].toInt<unsigned>();
@@ -700,6 +702,7 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
   else
     host_.capabilityHost()->prep(_id, name(), s, GetBlockPacket, 1);
   s.append(hash);
+  peers_[_id]->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -710,6 +713,7 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << pbftChainSize;
   LOG(log_dg_) << "Sending GetPbftBlockPacket with size: " << pbftChainSize;
+  peers_[_id]->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -723,6 +727,7 @@ void TaraxaCapability::requestBlocksLevel(NodeID const &_id,
   s << number_of_levels;
   LOG(log_dg_) << "Sending GetBlocksLevelPacket of level:" << level << " "
                << number_of_levels;
+  peers_[_id]->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -753,6 +758,16 @@ void TaraxaCapability::setFullNode(std::shared_ptr<FullNode> full_node) {
 void TaraxaCapability::doBackgroundWork() {
   if (auto full_node = full_node_.lock()) {
     onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
+  }
+  for (auto const &peer : peers_) {
+    time_t now =
+        std::chrono::system_clock::to_time_t(chrono::system_clock::now());
+    //Disconnect any node that do not respond within 10 seconds
+    if (peer.second->asking() && now - peer.second->lastAsk() > 10)
+      host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
+    //Disconnect any node that did not send any message for over 120 seconds
+    if (now - peer.second->lastMessageTime() > 120)
+      host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
   }
   host_.scheduleExecution(conf_.network_transaction_interval,
                           [this]() { doBackgroundWork(); });
