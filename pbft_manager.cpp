@@ -75,7 +75,9 @@ void PbftManager::stop() {
  */
 void PbftManager::run() {
   auto period_clock_initial_datetime = std::chrono::system_clock::now();
+  // <period, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_period;
+  // <period, block_hash_added_into_chain>
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_period;
   auto next_step_time_ms = 0;
 
@@ -97,15 +99,14 @@ void PbftManager::run() {
     size_t consensus_pbft_period =
         periodDeterminedFromVotes_(votes, pbft_period_);
     if (consensus_pbft_period != pbft_period_) {
-      LOG(log_deb_) << "Period determined from votes: "
-                    << consensus_pbft_period;
-      //      comments out now, psp connection should cover this
-      //      if (consensus_pbft_period > pbft_period_ + 1) {
-      //        LOG(log_deb_) << "pbft chain behind, need broadcast request for
-      //        missing"
-      //                         " blocks";
-      //        // TODO
-      //      }
+      LOG(log_deb_)
+        << "Period determined from votes: " << consensus_pbft_period;
+//      // comments out now, p2p connection syncing should cover this
+//      if (consensus_pbft_period > pbft_period_ + 1) {
+//        LOG(log_deb_)
+//          << "pbft chain behind, need broadcast request for missing blocks";
+//        // TODO
+//      }
       pbft_period_ = consensus_pbft_period;
       if (cert_voted_values_for_period.count(pbft_period_ - 1)) {
         // put pbft block into chain if have 2t+1 cert votes
@@ -271,7 +272,7 @@ void PbftManager::run() {
     } else if (pbft_step_ == 5) {
       std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
           softVotedBlockForPeriod_(votes, pbft_period_);
-      bool have_next_voted = false;
+      bool have_next_voted = false; // TODO: may need to remove
 
       if (soft_voted_block_for_this_period.second) {
         LOG(log_deb_) << "Next voting "
@@ -325,7 +326,7 @@ void PbftManager::run() {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
       std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
           softVotedBlockForPeriod_(votes, pbft_period_);
-      bool have_next_voted = false;
+      bool have_next_voted = false; // TODO: may need to delete
 
       if (soft_voted_block_for_this_period.second) {
         LOG(log_deb_) << "Next voting "
@@ -403,8 +404,9 @@ bool PbftManager::shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
  */
 size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
                                                uint64_t local_period) {
+  // TODO: local_period may be able to change to pbft_period_, and remove local_period
   // tally next votes by period
-  // store in reverse order
+  // <vote_period, count>, period store in reverse order
   std::map<size_t, size_t, std::greater<size_t>> next_votes_tally_by_period;
 
   for (Vote &v : votes) {
@@ -425,10 +427,10 @@ size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
 
   for (auto &vp : next_votes_tally_by_period) {
     if (vp.second >= TWO_T_PLUS_ONE) {
-      std::vector<Vote> next_vote_for_period =
+      std::vector<Vote> next_votes_for_period =
           getVotesOfTypeFromPeriod_(next_vote_type, votes, vp.first,
                                     std::make_pair(blk_hash_t(0), false));
-      if (blockWithEnoughVotes_(next_vote_for_period).second) {
+      if (blockWithEnoughVotes_(next_votes_for_period).second) {
         return vp.first + 1;
       }
     }
@@ -440,6 +442,7 @@ size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
 std::vector<Vote> PbftManager::getVotesOfTypeFromPeriod_(
     PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t period,
     std::pair<blk_hash_t, bool> blockhash) {
+  // TODO: need to delete, since have getVotesOfTypeFromVotesForPeriod_
   // We should read through the votes ...
   std::vector<Vote> votes_of_requested_type;
 
@@ -460,7 +463,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
   PbftVoteTypes vote_type;
   uint64_t vote_period;
   blk_hash_t blockhash;
-  // store in reverse order
+  // <block_hash, count>, store in reverse order
   std::map<blk_hash_t, size_t, std::greater<blk_hash_t>> tally_by_blockhash;
 
   for (Vote &v : votes) {
@@ -474,7 +477,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
       if (!vote_type_and_period_is_consistent) {
         LOG(log_err_) << "Vote types and periods were not internally"
                          " consistent!";
-        assert(false);
+        return std::make_pair(blk_hash_t(0), false);
       }
     }
 
@@ -632,7 +635,6 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     pbft_block.setBlockHash();
   } else if (current_block_type == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
-    blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
     uint64_t timestamp = std::time(nullptr);
     // get dag block hash from the last pbft block(pivot) in pbft chain
     blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -657,7 +659,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       return std::make_pair(blk_hash_t(0), false);
     }
     // generate pbft schedule block
-    ScheduleBlock schedule_block(prev_block_hash, timestamp, *schedule);
+    ScheduleBlock schedule_block(last_block_hash, timestamp, *schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
     pbft_block.setBlockHash();
