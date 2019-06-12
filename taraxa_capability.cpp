@@ -384,6 +384,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         return false;
       }
       if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
+        // TODO: need to check block valid, like propose vote(maybe come later), if get sortition etc
         full_node->pushPbftBlockIntoQueue(pbft_block);
         onNewPbftBlock(pbft_block);
       }
