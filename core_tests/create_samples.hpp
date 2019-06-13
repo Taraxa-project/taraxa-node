@@ -182,7 +182,7 @@ std::vector<DagBlock> createMockDag0() {
                 blk_hash_t(4),  // hash
                 addr_t(123));
   DagBlock blk5(blk_hash_t(1),    // pivot
-                3,                // level
+                2,                // level
                 {blk_hash_t(2)},  // tips
                 {},               // trxs
                 sig_t(0),         // sig
@@ -196,14 +196,14 @@ std::vector<DagBlock> createMockDag0() {
                 blk_hash_t(6),  // hash
                 addr_t(123));
   DagBlock blk7(blk_hash_t(5),    // pivot
-                4,                // level
+                3,                // level
                 {blk_hash_t(6)},  // tips
                 {},               // trxs
                 sig_t(0),         // sig
                 blk_hash_t(7),    // hash
                 addr_t(123));
   DagBlock blk8(blk_hash_t(5),  // pivot
-                4,              // level
+                3,              // level
                 {},             // tips
                 {},             // trxs
                 sig_t(0),       // sig
@@ -217,14 +217,14 @@ std::vector<DagBlock> createMockDag0() {
                 blk_hash_t(9),  // hash
                 addr_t(123));
   DagBlock blk10(blk_hash_t(7),   // pivot
-                 5,               // level
+                 4,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(10),  // hash
                  addr_t(123));
   DagBlock blk11(blk_hash_t(7),   // pivot
-                 5,               // level
+                 4,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
@@ -238,28 +238,28 @@ std::vector<DagBlock> createMockDag0() {
                  blk_hash_t(12),  // hash
                  addr_t(123));
   DagBlock blk13(blk_hash_t(10),  // pivot
-                 6,               // level
+                 5,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
                  blk_hash_t(13),  // hash
                  addr_t(123));
   DagBlock blk14(blk_hash_t(11),    // pivot
-                 6,                 // level
+                 5,                 // level
                  {blk_hash_t(12)},  // tips
                  {},                // trxs
                  sig_t(0),          // sig
                  blk_hash_t(14),    // hash
                  addr_t(123));
   DagBlock blk15(blk_hash_t(13),    // pivot
-                 7,                 // level
+                 6,                 // level
                  {blk_hash_t(14)},  // tips
                  {},                // trxs
                  sig_t(0),          // sig
                  blk_hash_t(15),    // hash
                  addr_t(123));
   DagBlock blk16(blk_hash_t(13),  // pivot
-                 7,               // level
+                 6,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
@@ -273,14 +273,14 @@ std::vector<DagBlock> createMockDag0() {
                  blk_hash_t(17),  // hash
                  addr_t(123));
   DagBlock blk18(blk_hash_t(15),                                   // pivot
-                 8,                                                // level
+                 7,                                                // level
                  {blk_hash_t(8), blk_hash_t(16), blk_hash_t(17)},  // tips
                  {},                                               // trxs
                  sig_t(0),                                         // sig
                  blk_hash_t(18),                                   // hash
                  addr_t(123));
   DagBlock blk19(blk_hash_t(18),  // pivot
-                 9,               // level
+                 8,               // level
                  {},              // tips
                  {},              // trxs
                  sig_t(0),        // sig
