@@ -1,6 +1,9 @@
 build/
+build-d/
 test_build/
+test_build-d/
 .vscode/
 google/obj
 obj/
+obj-d/
 .idea/*
