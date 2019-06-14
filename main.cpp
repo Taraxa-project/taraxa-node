@@ -7,6 +7,7 @@
  */
 
 #include "top.hpp"
+#include "cmake-build-debug/taraxa_evm_cgo/taraxa_evm_cgo.h"
 
 int main(int argc, const char* argv[]) {
   TaraxaStackTrace st;

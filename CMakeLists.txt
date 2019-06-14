@@ -13,6 +13,7 @@ include(FindBoost)
 include(FindProtobuf)
 include(cmake/cryptopp.cmake)
 include(cmake/secp256k1.cmake)
+include(cmake/taraxa_vm.cmake)
 
 find_package(Boost)
 find_package(Protobuf)
@@ -151,6 +152,7 @@ target_link_libraries(main
         z
         curl
         #       CMAKE library targets
+        taraxa_vm_cgo
         secp256k1
         cryptopp
         ethash
