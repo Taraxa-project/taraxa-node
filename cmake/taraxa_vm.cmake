@@ -1,9 +1,9 @@
 set(taraxa_vm_GO_MODULE ${PROJECT_SOURCE_DIR}/submodules/taraxa-evm/main)
-set(taraxa_vm_CGO_LIB_FILE ${CMAKE_CURRENT_BINARY_DIR}/taraxa_evm_cgo/taraxa_evm_cgo.a)
+set(taraxa_vm_CGO_LIB_FILE ${PROJECT_SOURCE_DIR}/vm/cgo_generated/taraxa_vm_cgo.a)
 add_library(taraxa_vm_cgo STATIC IMPORTED)
 add_custom_target(
         taraxa_vm_cgo_build
-        COMMAND go build -tags=lib_cpp -buildmode=c-archive -o ${taraxa_vm_CGO_LIB_FILE}
+        COMMAND go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ${taraxa_vm_CGO_LIB_FILE}
         WORKING_DIRECTORY ${taraxa_vm_GO_MODULE}
         COMMENT "Build CGO static lib from ${taraxa_vm_GO_MODULE} to ${taraxa_vm_CGO_LIB_FILE}"
 )

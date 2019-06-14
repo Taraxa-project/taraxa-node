@@ -106,7 +106,8 @@ set(SOURCES_taraxa
         ${PROJECT_SOURCE_DIR}/config.cpp
         ${PROJECT_SOURCE_DIR}/SimpleStateDBDelegate.cpp
         ${PROJECT_SOURCE_DIR}/SimpleTaraxaRocksDBDelegate.cpp
-        ${PROJECT_SOURCE_DIR}/SimpleOverlayDBDelegate.cpp)
+        ${PROJECT_SOURCE_DIR}/SimpleOverlayDBDelegate.cpp
+        ${PROJECT_SOURCE_DIR}/vm/TaraxaVM.cpp)
 add_executable(main ${SOURCES_p2p} ${SOURCES_taraxa} ${PROJECT_SOURCE_DIR}/main.cpp)
 target_compile_definitions(main PUBLIC
         BOOST_LOG_DYN_LINK
@@ -160,3 +161,8 @@ target_link_libraries(main
         prometheus-cpp::core
         prometheus-cpp::push
         prometheus-cpp::pull)
+#if (APPLE) TODO remove?
+#    target_link_libraries(main
+#            "-framework CoreFoundation"
+#            "-framework Security")
+#endif (APPLE)

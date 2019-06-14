@@ -8,6 +8,7 @@
 #include "executor.hpp"
 #include "full_node.hpp"
 #include "util.hpp"
+#include "vm/TaraxaVM.hpp"
 
 namespace taraxa {
 Executor::~Executor() {
