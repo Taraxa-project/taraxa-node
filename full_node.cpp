@@ -654,7 +654,7 @@ bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
   return true;
 }
 
-void FullNode::pushVoteIntoQueue(taraxa::Vote const& vote) {
+void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
   vote_queue_->pushBackVote(vote);
 }
 
@@ -662,7 +662,7 @@ std::vector<Vote> FullNode::getVotes(uint64_t period) {
   return vote_queue_->getVotes(period);
 }
 
-void FullNode::receivedVotePushIntoQueue(taraxa::Vote const& vote) {
+void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<bal_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
@@ -677,7 +677,7 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const& vote) {
   }
 }
 
-void FullNode::broadcastVote(Vote const& vote) {
+void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
   network_->onNewPbftVote(vote);
 }
@@ -690,11 +690,11 @@ void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
 
 size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
 
-bool FullNode::isKnownVote(vote_hash_t const& vote_hash) const {
+bool FullNode::isKnownVote(vote_hash_t const &vote_hash) const {
   return known_votes_.count(vote_hash);
 }
 
-void FullNode::setVoteKnown(vote_hash_t const& vote_hash) {
+void FullNode::setVoteKnown(vote_hash_t const &vote_hash) {
   known_votes_.insert(vote_hash);
 }
 
@@ -751,8 +751,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   return true;
 }
 
-Vote FullNode::generateVote(blk_hash_t const& blockhash, PbftVoteTypes type,
-    uint64_t period, size_t step) {
+Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+                            uint64_t period, size_t step) {
   blk_hash_t lask_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   // sortition signature
   sig_t sortition_signature =
@@ -765,5 +765,6 @@ Vote FullNode::generateVote(blk_hash_t const& blockhash, PbftVoteTypes type,
             period, step);
   return vote;
 }
+level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
 
 }  // namespace taraxa
