@@ -99,8 +99,8 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   LOG(log_nf_) << "Block proposer in " << ith_shard_ << " shard ...";
 }
 
-bool BlockProposer::getLatestPivotAndTips(std::string pivot,
-                                          std::vector<std::string> tips) {
+bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
+                                          std::vector<std::string>& tips) {
   bool ok = dag_mgr_.lock()->getLatestPivotAndTips(pivot, tips);
   if (ok) {
     LOG(log_nf_) << "BlockProposer: pivot: " << pivot
@@ -202,10 +202,12 @@ void BlockProposer::proposeBlock() {
   auto pivot_hash = blk_hash_t(pivot);
   auto propose_level = getProposeLevel(pivot_hash, tip_hashes) + 1;
 
-  LOG(log_nf_) << "Propose block" << std::endl;
   DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
+
   assert(sharded_trxs.size());
   full_node->insertBlockAndSign(blk);
+  LOG(log_nf_) << "Propose block " << blk;
+
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 

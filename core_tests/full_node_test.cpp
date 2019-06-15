@@ -965,6 +965,9 @@ int main(int argc, char** argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   logOptions.includeChannels.push_back("DAGMGR");
+  logOptions.includeChannels.push_back("EXETOR");
+  logOptions.includeChannels.push_back("BLK_PP");
+  logOptions.includeChannels.push_back("PR_MDL");
 
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through

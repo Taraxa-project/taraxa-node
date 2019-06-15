@@ -109,8 +109,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
-  bool getLatestPivotAndTips(std::string pivot, std::vector<std::string> tips);
-  level_t getProposeLevel(blk_hash_t const &pivot, vec_blk_t const &tips);
+  bool getLatestPivotAndTips(std::string &pivot, std::vector<std::string> &tips);
+  level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   // debug
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;
