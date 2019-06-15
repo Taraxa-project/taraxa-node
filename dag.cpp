@@ -642,6 +642,7 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
 
   addToDag(hash, pivot, tips);
   LOG(log_dg_) << "Block " << h << " added to DAG";
+  max_level_ = std::max(max_level_, blk.getLevel());
   recent_added_blks_.insert(hash);
   return true;
 }

@@ -26,12 +26,15 @@ class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
   virtual bool propose() = 0;
-  void setProposer(std::shared_ptr<BlockProposer> proposer) {
+  void setProposer(std::shared_ptr<BlockProposer> proposer,
+                   secret_t const& sk) {
     proposer_ = proposer;
+    sk_ = sk;
   }
 
  protected:
   std::weak_ptr<BlockProposer> proposer_;
+  secret_t sk_;
 };
 
 class RandomPropose : public ProposeModelFace {
@@ -43,6 +46,31 @@ class RandomPropose : public ProposeModelFace {
  private:
   std::uniform_int_distribution<std::mt19937::result_type> distribution_;
   static std::mt19937 generator;
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
+  dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PR_MDL")};
+};
+
+/**
+ * sortition = sign({anchor_blk_hash, level}, secret_key) >= threshold
+ */
+
+class SortitionPropose : public ProposeModelFace {
+ public:
+  SortitionPropose(uint interval) : propose_interval_(interval) {}
+  ~SortitionPropose(){};
+  bool propose() override;
+  bool propose(blk_hash_t const& blk, uint64_t level);
+
+ private:
+  uint propose_interval_ = 1000;
+  blk_hash_t anchor_hash_;
+  sig_hash_t threshold_ = sig_hash_t("ffffffffffffffffffffffffffffffff");
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
   dev::Logger log_wr_{
@@ -69,6 +97,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
     if (conf_.mode == 0) {
       propose_model_ =
           std::make_unique<RandomPropose>(conf_.param1, conf_.param2);
+    } else if (conf_.mode == 1) {
+      propose_model_ = std::make_unique<SortitionPropose>(conf_.param1);
     }
   }
   ~BlockProposer() {
@@ -79,7 +109,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
-
+  bool getLatestPivotAndTips(std::string pivot, std::vector<std::string> tips);
+  level_t getProposeLevel(blk_hash_t const &pivot, vec_blk_t const &tips);
   // debug
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;

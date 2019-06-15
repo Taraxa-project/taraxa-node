@@ -265,6 +265,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setVerbose(bool verbose);
   size_t getBufferSize() const;
   size_t getEpoch() const { return anchors_.size() - 1; }
+  level_t getMaxLevel() const { return max_level_; }
+  uint64_t getCurrentPeriod() const { return anchors_.size() - 1; }
+  std::string getCurrentPeriodHash() const { return anchors_.back(); }
 
  private:
   bool addDagBlockInternal(DagBlock const &blk);
@@ -277,6 +280,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool verbose_;
   bool dag_updated_;
   bool stopped_ = true;
+  level_t max_level_ = 0;
   mutable std::mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
@@ -285,7 +289,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::vector<std::string> anchors_ = {
       Dag::GENESIS};  // pivots that define periods
   // DagBuffer
-  std::list<std::shared_ptr<DagBlock> > sb_buffer_;
+  std::list<std::shared_ptr<DagBlock>> sb_buffer_;
   std::shared_ptr<boost::thread> sb_buffer_processing_thread_;
   std::mutex sb_bufer_mutex_;
   std::condition_variable sb_buffer_condition;

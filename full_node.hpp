@@ -133,12 +133,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
-
+  secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
   bool executeScheduleBlock(ScheduleBlock const &sche_blk);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
+  level_t getMaxDagLevel() const; 
   std::pair<uint64_t, uint64_t> getNumVerticesInDag();
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;
