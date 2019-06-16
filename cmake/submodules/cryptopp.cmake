@@ -1,9 +1,10 @@
+include_guard()
 add_library(cryptopp STATIC IMPORTED)
 set(CRYPTOPP_BUILD_CMD $(MAKE) -C submodules/cryptopp)
-if (NOT APPLE)
-    set(CRYPTOPP_BUILD_CMD
-            $(MAKE) -C submodules/cryptopp CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC -DCRYPTOPP_DISABLE_ASM -pthread -pipe -c")
-endif ()
+#if (NOT APPLE)
+#    set(CRYPTOPP_BUILD_CMD TODO transfered from Makefile, but doesn't seem to be needed
+#            $(MAKE) -C submodules/cryptopp CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC -DCRYPTOPP_DISABLE_ASM -pthread -pipe -c")
+#endif ()
 add_custom_target(
         cryptopp_build
         COMMAND ${CRYPTOPP_BUILD_CMD}

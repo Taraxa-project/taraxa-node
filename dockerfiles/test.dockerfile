@@ -1,8 +1,8 @@
 FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
 
 ARG go_version=1.12.1
-# Go RocksDB wrapper requires at least v5.16
 ARG rocksdb_version=5.18.3
+ENV ROCKSDB_VERSION="$rocksdb_version"
 
 ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
@@ -14,36 +14,20 @@ RUN wget -qO- --show-progress --progress=bar:force \
 ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-# Cmake
+# cmake
 RUN apt-get -y install python3-pip
 RUN pip3 install cmake
-# RocksDB
+# rocksdb
 RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
     && unzip v$rocksdb_version.zip -d /tmp \
     && cd /tmp/rocksdb-$rocksdb_version \
     && make shared_lib \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
-RUN CGO_CFLAGS="-I/usr/local/include" \
-    CGO_LDFLAGS="-L/usr/local/lib -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4 -lzstd" \
-    go get github.com/tecbot/gorocksdb
-# Main build
+## Go rocksdb wrapper (requires at least v5.16)
+#RUN CGO_CFLAGS="-I/usr/local/include" \
+#    CGO_LDFLAGS="-L/usr/local/lib -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4 -lzstd" \
+#    go get github.com/tecbot/gorocksdb
+
 ADD . .
 RUN mkdir build && cd build && cmake .. && cmake --build . --target main -j $(nproc --all)
-
-FROM ubuntu:18.10
-
-ENV DEBIAN_FRONTEND noninteractive
-ENV TERM xterm
-ENV APP_PATH /opt/taraxa/taraxa-node
-ENV LD_LIBRARY_PATH /usr/local/lib
-
-RUN mkdir -p ${APP_PATH}/config
-WORKDIR ${APP_PATH}
-COPY --from=builder ${APP_PATH}/build/main .
-COPY --from=builder /usr/local/lib/* /usr/local/lib/
-COPY --from=builder /usr/lib/* /usr/lib/
-COPY ./core_tests/*.json ./default_config/
-
-ENTRYPOINT [ "./main" ]
-CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]

@@ -6,5 +6,5 @@ test_build-d/
 google/obj
 obj/
 obj-d/
-.idea/*
+.idea
 cmake-*

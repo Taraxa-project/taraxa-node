@@ -3,3 +3,8 @@ Dockerfile
 .gitignore
 build/
 .vscode/
+cmake-*
+.idea/
+submodules/cryptopp/*.o
+submodules/cryptopp/adhoc.cpp
+submodules/cryptopp/libcryptopp.a
