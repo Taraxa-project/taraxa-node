@@ -139,7 +139,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
-  level_t getMaxDagLevel() const; 
+  level_t getMaxDagLevel() const;
   std::pair<uint64_t, uint64_t> getNumVerticesInDag();
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;

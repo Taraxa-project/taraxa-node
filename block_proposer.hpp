@@ -21,7 +21,7 @@ class DagManager;
 class TransactionManager;
 class FullNode;
 class BlockProposer;
-
+class DagBlock;
 class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
@@ -52,6 +52,8 @@ class RandomPropose : public ProposeModelFace {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "PR_MDL")};
   dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PR_MDL")};
 };
@@ -77,6 +79,8 @@ class SortitionPropose : public ProposeModelFace {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "PR_MDL")};
   dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PR_MDL")};
 };
@@ -91,7 +95,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   BlockProposer(ProposerConfig& conf, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr)
       : conf_(conf),
-        num_shards_(std::max(conf.shards, 1u)),
+        total_shards_(std::max(conf.shards, 1u)),
         dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr) {
     if (conf_.mode == 0) {
@@ -105,11 +109,15 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
     if (!stopped_) stop();
   }
   void setFullNode(std::shared_ptr<FullNode> full_node);
-  void proposeBlock();
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
-  bool getLatestPivotAndTips(std::string &pivot, std::vector<std::string> &tips);
+  void proposeBlock(DagBlock const& blk);
+  bool getShardedTrxs(vec_trx_t& sharded_trx) {
+    return getShardedTrxs(total_shards_, my_shard_, sharded_trx);
+  }
+  bool getLatestPivotAndTips(std::string& pivot,
+                             std::vector<std::string>& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   // debug
   static uint64_t getNumProposedBlocks() {
@@ -118,11 +126,13 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
+  bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
+
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;
   ProposerConfig conf_;
-  uint num_shards_;
-  uint ith_shard_;
+  uint total_shards_;
+  uint my_shard_;
   std::weak_ptr<DagManager> dag_mgr_;
   std::weak_ptr<TransactionManager> trx_mgr_;
   std::weak_ptr<FullNode> full_node_;
@@ -134,6 +144,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "BLK_PP")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "BLK_PP")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "BLK_PP")};
   dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "BLK_PP")};
 };
