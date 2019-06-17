@@ -958,6 +958,44 @@ TEST(FullNode, receive_send_transaction) {
   EXPECT_GT(node1->getNumProposedBlocks(), 0);
 }
 
+TEST(FullNode, propose_with_sortition) {
+  boost::asio::io_context context1;
+  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  conf.proposer.mode = 1;
+  conf.proposer.param1 = 100;
+  auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
+  auto rpc(
+      std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
+  rpc->start();
+  node1->setDebug(true);
+  node1->start(true /*boot_node*/);
+
+  std::unique_ptr<boost::asio::io_context::work> work(
+      new boost::asio::io_context::work(context1));
+
+  boost::thread t([&context1]() { context1.run(); });
+
+  try {
+    system("./core_tests/curl_send_1000_trx.sh");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+  std::cout << "1000 transaction are sent through RPC ..." << std::endl;
+
+  auto num_proposed_blk = node1->getNumProposedBlocks();
+  for (auto i = 0; i < 10; i++) {
+    if (num_proposed_blk > 0) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+
+  work.reset();
+  node1->stop();
+  rpc->stop();
+  t.join();
+  EXPECT_GT(node1->getNumProposedBlocks(), 0);
+}
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
