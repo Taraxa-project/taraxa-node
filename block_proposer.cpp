@@ -79,6 +79,22 @@ bool SortitionPropose::propose() {
 
   // get sortition
 
+  // TODO: remove, now prevent from getting stuck
+  propose_level = std::max(last_fail_propose_level_ + 1, propose_level);
+  //
+
+  bool win = proposer->winProposeSortition(propose_level);
+  if (win) {
+    vec_trx_t sharded_trxs;
+    ok = proposer->getShardedTrxs(sharded_trxs);
+    if (!ok) {
+      return false;
+    }
+    DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
+    proposer_.lock()->proposeBlock(blk);
+  } else {
+    last_fail_propose_level_ = propose_level;
+  }
   return true;
 }
 
@@ -218,11 +234,17 @@ bool BlockProposer::winProposeSortition(level_t propose_level) {
   auto threshold = uint(full_node->getBlockProposeThreshold());
   LOG(log_nf_) << "Sortition: " << sortition << " , Threshold: " << threshold;
   if (sortition < threshold) {
-    LOG(log_nf_) << "Win sortition at level: " << propose_level;
+    LOG(log_er_) << "Win sortition at level: " << propose_level
+                 << " , ticket= " << sortition
+                 << " , threshold = " << threshold;
     ret = true;
+  } else {
+    LOG(log_er_) << "Loose sortition at level: " << propose_level
+                 << " , ticket= " << sortition
+                 << " , threshold = " << threshold;
   }
   return ret;
-}
+}  // namespace taraxa
 void BlockProposer::proposeBlock(DagBlock const& blk) {
   full_node_.lock()->insertBlockAndSign(blk);
   LOG(log_nf_) << "Propose block :" << blk;

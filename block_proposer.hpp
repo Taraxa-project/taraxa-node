@@ -71,6 +71,8 @@ class SortitionPropose : public ProposeModelFace {
 
  private:
   uint propose_interval_ = 1000;
+  level_t last_fail_propose_level_ = 0;
+
   blk_hash_t anchor_hash_;
   sig_hash_t threshold_ = sig_hash_t("ffffffffffffffffffffffffffffffff");
   dev::Logger log_er_{
