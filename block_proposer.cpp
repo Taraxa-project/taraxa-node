@@ -119,8 +119,8 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
   auto addr = std::stoull(
       full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);
-  my_shard_ = addr % conf_.shards;
-  LOG(log_nf_) << "Block proposer in " << my_shard_ << " shard ...";
+  my_trx_shard_ = addr % conf_.shards;
+  LOG(log_nf_) << "Block proposer in " << my_trx_shard_ << " shard ...";
 }
 
 bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
@@ -169,7 +169,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard,
   sharded_trxs.clear();
   for (auto const& t : to_be_packed_trx) {
     auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
-    if (shard % total_shards_ == my_shard_) {
+    if (shard % total_trx_shards_ == my_trx_shard_) {
       sharded_trxs.emplace_back(t);
     }
   }
@@ -208,7 +208,21 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
   }
   return max_level;
 }
-
+bool BlockProposer::winProposeSortition(level_t propose_level) {
+  bool ret = false;
+  auto full_node = full_node_.lock();
+  auto anchor = full_node->getLatestAnchor();
+  auto message = anchor.toString() + std::to_string(propose_level);
+  // use first byte to do sharding
+  auto sortition = uint(full_node->signMessage(message)[0]);
+  auto threshold = uint(full_node->getBlockProposeThreshold());
+  LOG(log_nf_) << "Sortition: " << sortition << " , Threshold: " << threshold;
+  if (sortition < threshold) {
+    LOG(log_nf_) << "Win sortition at level: " << propose_level;
+    ret = true;
+  }
+  return ret;
+}
 void BlockProposer::proposeBlock(DagBlock const& blk) {
   full_node_.lock()->insertBlockAndSign(blk);
   LOG(log_nf_) << "Propose block :" << blk;

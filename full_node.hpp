@@ -125,6 +125,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   createPeriodAndComputeBlockOrder(blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods
   void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period);
+  uint64_t getLatestPeriod() const;
+  blk_hash_t getLatestAnchor() const;
+  uint getBlockProposeThreshold() const { return 100;}
   // fake trx schedule
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
