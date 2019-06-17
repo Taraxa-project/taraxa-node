@@ -48,7 +48,7 @@ class DagBlock {
   DagBlock(stream &strm);
   DagBlock(const string &json);
   DagBlock(dev::RLP const &_r);
-  friend std::ostream &operator<<(std::ostream &str, DagBlock &u) {
+  friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
     str << "	level		= " << u.level_ << std::endl;
     str << "	tips ( " << u.tips_.size() << " )	= ";

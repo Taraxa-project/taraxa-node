@@ -16,14 +16,38 @@ std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 std::mt19937 RandomPropose::generator;
 
 bool RandomPropose::propose() {
-  auto delay = distribution_(RandomPropose::generator);
-  thisThreadSleepForMilliSeconds(delay);
-  LOG(log_tr_) << "Add proposer delay " << delay << std::endl;
-  if (proposer_.expired()) {
+  auto proposer = proposer_.lock();
+  if (!proposer) {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
   }
-  proposer_.lock()->proposeBlock();
+  auto delay = distribution_(RandomPropose::generator);
+  thisThreadSleepForMilliSeconds(delay);
+  LOG(log_tr_) << "Add proposer delay " << delay << std::endl;
+
+  std::string pivot;
+  std::vector<std::string> tips;
+  vec_trx_t sharded_trxs;
+
+  bool ok = proposer->getShardedTrxs(sharded_trxs);
+  if (!ok) {
+    return false;
+  }
+  ok = proposer->getLatestPivotAndTips(pivot, tips);
+  if (!ok) {
+    return false;
+  }
+
+  vec_blk_t tip_hashes;
+  for (auto const& t : tips) {
+    tip_hashes.emplace_back(blk_hash_t(t));
+  }
+  auto pivot_hash = blk_hash_t(pivot);
+  auto propose_level = proposer->getProposeLevel(pivot_hash, tip_hashes) + 1;
+
+  DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
+
+  proposer_.lock()->proposeBlock(blk);
   return true;
 }
 
@@ -95,13 +119,18 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
   auto addr = std::stoull(
       full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);
-  ith_shard_ = addr % conf_.shards;
-  LOG(log_nf_) << "Block proposer in " << ith_shard_ << " shard ...";
+  my_shard_ = addr % conf_.shards;
+  LOG(log_nf_) << "Block proposer in " << my_shard_ << " shard ...";
 }
 
 bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
                                           std::vector<std::string>& tips) {
-  bool ok = dag_mgr_.lock()->getLatestPivotAndTips(pivot, tips);
+  auto dag_mgr = dag_mgr_.lock();
+  if (!dag_mgr) {
+    LOG(log_wr_) << "DagManager expired ..." << std::endl;
+    return false;
+  }
+  bool ok = dag_mgr->getLatestPivotAndTips(pivot, tips);
   if (ok) {
     LOG(log_nf_) << "BlockProposer: pivot: " << pivot
                  << ", tip size = " << tips.size() << std::endl;
@@ -115,6 +144,41 @@ bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
   LOG(log_time) << "Pivot and Tips retrieved at: "
                 << getCurrentTimeMilliSeconds();
   return ok;
+}
+
+bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard,
+                                   vec_trx_t& sharded_trxs) {
+  auto full_node = full_node_.lock();
+  if (!full_node) {
+    LOG(log_er_) << "FullNode expired ..." << std::endl;
+    return false;
+  }
+  auto& log_time = full_node->getTimeLogger();
+  vec_trx_t to_be_packed_trx;
+  auto trx_mgr = trx_mgr_.lock();
+  if (!trx_mgr) {
+    LOG(log_er_) << "TransactionManager expired ..." << std::endl;
+    return false;
+  }
+  trx_mgr->packTrxs(to_be_packed_trx);
+  if (to_be_packed_trx.empty()) {
+    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
+                 << std::endl;
+    return false;
+  }
+  sharded_trxs.clear();
+  for (auto const& t : to_be_packed_trx) {
+    auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
+    if (shard % total_shards_ == my_shard_) {
+      sharded_trxs.emplace_back(t);
+    }
+  }
+  if (sharded_trxs.empty()) {
+    LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..."
+                 << std::endl;
+    return false;
+  }
+  return true;
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
@@ -145,69 +209,9 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
   return max_level;
 }
 
-void BlockProposer::proposeBlock() {
-  std::string pivot;
-  std::vector<std::string> tips;
-  vec_trx_t to_be_packed_trx;
-  if (trx_mgr_.expired()) {
-    LOG(log_er_) << "TransactionManager expired ..." << std::endl;
-    return;
-  }
-  auto full_node = full_node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "FullNode expired ..." << std::endl;
-    return;
-  }
-  auto& log_time = full_node->getTimeLogger();
-
-  trx_mgr_.lock()->packTrxs(to_be_packed_trx);
-  if (to_be_packed_trx.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
-                 << std::endl;
-    return;
-  }
-
-  vec_trx_t sharded_trxs;
-  for (auto const& t : to_be_packed_trx) {
-    auto shard = std::stoull(t.toString().substr(0, 10), NULL, 16);
-    if (shard % num_shards_ == ith_shard_) {
-      sharded_trxs.emplace_back(t);
-    }
-  }
-  if (sharded_trxs.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..."
-                 << std::endl;
-    return;
-  }
-  if (dag_mgr_.expired()) {
-    LOG(log_wr_) << "DagManager expired ..." << std::endl;
-    return;
-  }
-  bool ok = getLatestPivotAndTips(pivot, tips);
-  if (ok) {
-    LOG(log_nf_) << "BlockProposer: pivot: " << pivot
-                 << ", tip size = " << tips.size() << std::endl;
-    LOG(log_nf_) << "Tips: " << tips;
-  } else {
-    LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
-    return;
-  }
-  LOG(log_time) << "Pivot and Tips retrieved at: "
-                << getCurrentTimeMilliSeconds();
-
-  vec_blk_t tip_hashes;
-  for (auto const& t : tips) {
-    tip_hashes.emplace_back(blk_hash_t(t));
-  }
-  auto pivot_hash = blk_hash_t(pivot);
-  auto propose_level = getProposeLevel(pivot_hash, tip_hashes) + 1;
-
-  DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
-
-  assert(sharded_trxs.size());
-  full_node->insertBlockAndSign(blk);
-  LOG(log_nf_) << "Propose block " << blk;
-
+void BlockProposer::proposeBlock(DagBlock const& blk) {
+  full_node_.lock()->insertBlockAndSign(blk);
+  LOG(log_nf_) << "Propose block :" << blk;
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 
