@@ -11,7 +11,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
   const int number_of_levels_to_sync = 2;
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
-      LOG(log_nf_) << "Sync Peer:" << _nodeID.toString();
+      LOG(log_nf_) << "Sync Peer:" << _nodeID;
       peers_[_nodeID]->m_state = Syncing;
       requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
     }
@@ -21,7 +21,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
-      LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID.toString();
+      LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
       auto pbftChainSize = full_node->getPbftChainSize();
       requestPbftBlocks(_nodeID, pbftChainSize);
     }
@@ -348,9 +348,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         return false;
       }
 
-      if (!full_node->isKnownVote(vote)) {
-        full_node->placeVote(vote);
-        full_node->setVoteKnown(vote);
+      if (!full_node->isKnownVote(vote.getHash())) {
+        full_node->setVoteKnown(vote.getHash());
+        full_node->receivedVotePushIntoQueue(vote);
         onNewPbftVote(vote);
       }
 
@@ -709,7 +709,7 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << pbftChainSize;
-  LOG(log_dg_) << "Sending GetPbftBlockPacket with size:" << pbftChainSize;
+  LOG(log_dg_) << "Sending GetPbftBlockPacket with size: " << pbftChainSize;
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 

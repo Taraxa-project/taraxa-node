@@ -22,39 +22,60 @@ namespace taraxa {
 class Vote {
  public:
   Vote() = default;
-  Vote(public_t node_pk, sig_t signature, blk_hash_t blockhash,
-       PbftVoteTypes type, uint64_t period, size_t step);
+  Vote(public_t const& node_pk, sig_t const& sortition_signature,
+      sig_t const& vote_signature, blk_hash_t const& blockhash,
+      PbftVoteTypes type, uint64_t period, size_t step);
   Vote(stream& strm);
   ~Vote() {}
 
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
-  bool validateVote(std::pair<bal_t, bool>& vote_account_balance) const;
 
-  sig_hash_t getHash() const;
+
+
+  vote_hash_t getHash() const;
   public_t getPublicKey() const;
-  sig_t getSingature() const;
+  sig_t getSortitionSignature() const;
+  sig_t getVoteSignature() const;
   blk_hash_t getBlockHash() const;
   PbftVoteTypes getType() const;
   uint64_t getPeriod() const;
   size_t getStep() const;
 
  private:
+  void streamRLP_(dev::RLPStream& strm) const;
+
+  vote_hash_t vote_hash_;
   public_t node_pk_;
-  sig_t signature_;
+  sig_t sortition_signature_;
+  sig_t vote_signatue_;
   blk_hash_t blockhash_;
   PbftVoteTypes type_;
   uint64_t period_;
   size_t step_;
+};
 
-  mutable dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE")};
-  mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "VOTE")};
-  mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTE")};
-  mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE")};
+class VoteManager {
+ public:
+  VoteManager() = default;
+  ~VoteManager() {}
+
+  sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
+      PbftVoteTypes type, uint64_t period, size_t step);
+  bool voteValidation(blk_hash_t const& last_pbft_block_hash,
+      Vote const& vote, bal_t& account_balance) const;
+
+ private:
+  vote_hash_t hash_(std::string const& str) const;
+
+  mutable dev::Logger log_sil_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};
+  mutable dev::Logger log_err_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "VOTE_MGR")};
+  mutable dev::Logger log_war_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTE_MGR")};
+  mutable dev::Logger log_inf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE_MGR")};
 };
 
 class VoteQueue {
@@ -68,11 +89,7 @@ class VoteQueue {
   std::vector<Vote> getVotes(uint64_t period);
   std::string getJsonStr(std::vector<Vote>& votes);
 
-  void placeVote(Vote const& vote);
-
-  void placeVote(public_t const& node_pk, secret_t const& node_sk,
-      blk_hash_t const& blockhash, PbftVoteTypes type, uint64_t period,
-      size_t step);
+  void pushBackVote(Vote const& vote);
 
  private:
   std::deque<Vote> vote_queue_;

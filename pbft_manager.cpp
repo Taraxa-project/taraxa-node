@@ -100,22 +100,25 @@ void PbftManager::run() {
         periodDeterminedFromVotes_(votes, pbft_period_);
     if (consensus_pbft_period != pbft_period_) {
       LOG(log_deb_)
-        << "Period determined from votes: " << consensus_pbft_period;
-//      // comments out now, p2p connection syncing should cover this
-//      if (consensus_pbft_period > pbft_period_ + 1) {
-//        LOG(log_deb_)
-//          << "pbft chain behind, need broadcast request for missing blocks";
-//        // TODO
-//      }
+        << "From votes determined period " << consensus_pbft_period;
+      // comments out now, p2p connection syncing should cover this
+      if (consensus_pbft_period > pbft_period_ + 1) {
+        LOG(log_deb_)
+          << "pbft chain behind, need broadcast request for missing blocks";
+        syncPbftChainFromPeers_();
+      }
       pbft_period_ = consensus_pbft_period;
-      if (cert_voted_values_for_period.count(pbft_period_ - 1)) {
+      std::vector<Vote> cert_votes_for_period =
+          getVotesOfTypeFromVotesForPeriod_(cert_vote_type, votes,
+              pbft_period_ - 1, std::make_pair(blk_hash_t(0), false));
+      std::pair<blk_hash_t, bool> cert_voted_block_hash =
+          blockWithEnoughVotes_(cert_votes_for_period);
+      if (cert_voted_block_hash.second) {
         // put pbft block into chain if have 2t+1 cert votes
-        bool cert_voted_a_block_last_period = pushPbftBlockIntoChain_(
-            pbft_period_ - 1, cert_voted_values_for_period[pbft_period_ - 1]);
-
-        if (cert_voted_a_block_last_period) {
+        if (pushPbftBlockIntoChain_(pbft_period_ - 1,
+                                    cert_voted_block_hash.first)) {
           push_block_values_for_period[pbft_period_ - 1] =
-              cert_voted_values_for_period[pbft_period_ - 1];
+              cert_voted_block_hash.first;
         }
       }
 
@@ -129,31 +132,33 @@ void PbftManager::run() {
 
     if (pbft_step_ == 1) {
       // Value Proposal
-      if (pbft_period_ == 1) {
-        LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
-                      << NULL_BLOCK_HASH << " for period 1 by protocol";
-        placeVoteIfCanSpeak_(NULL_BLOCK_HASH, propose_vote_type, pbft_period_,
-                             pbft_step_, false);
-      } else if (push_block_values_for_period.count(pbft_period_ - 1) ||
-                 (pbft_period_ >= 2 &&
-                  nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
-        // Propose value...
-        LOG(log_deb_) << "Propose my value...";
-        std::pair<blk_hash_t, bool> proposed_block_hash = proposeMyPbftBlock_();
-        if (proposed_block_hash.second) {
-          placeVoteIfCanSpeak_(proposed_block_hash.first, propose_vote_type,
-                               pbft_period_, pbft_step_, false);
-        }
-      } else if (pbft_period_ >= 2) {
-        std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
-            nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
-        if (next_voted_block_from_previous_period.second) {
-          LOG(log_deb_) << "Proposing next voted block "
-                        << next_voted_block_from_previous_period.first
-                        << " from previous period.";
-          placeVoteIfCanSpeak_(next_voted_block_from_previous_period.first,
-                               propose_vote_type, pbft_period_, pbft_step_,
-                               false);
+      if (shouldSpeak(propose_vote_type, pbft_period_, pbft_step_)) {
+        if (pbft_period_ == 1) {
+          LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
+                        << NULL_BLOCK_HASH << " for period 1 by protocol";
+          placeVote_(NULL_BLOCK_HASH, propose_vote_type, pbft_period_,
+              pbft_step_);
+        } else if (push_block_values_for_period.count(pbft_period_ - 1) ||
+                   (pbft_period_ >= 2 &&
+                    nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
+          // Propose value...
+          std::pair<blk_hash_t, bool> proposed_block_hash =
+              proposeMyPbftBlock_();
+          if (proposed_block_hash.second) {
+            placeVote_(proposed_block_hash.first, propose_vote_type,
+                pbft_period_, pbft_step_);
+          }
+        } else if (pbft_period_ >= 2) {
+          std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
+              nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
+          if (next_voted_block_from_previous_period.second &&
+              next_voted_block_from_previous_period.first != NULL_BLOCK_HASH) {
+            LOG(log_deb_) << "Proposing next voted block "
+                          << next_voted_block_from_previous_period.first
+                          << " from previous period.";
+            placeVote_(next_voted_block_from_previous_period.first,
+                       propose_vote_type, pbft_period_, pbft_step_);
+          }
         }
       }
       next_step_time_ms = 2 * LAMBDA_ms;
@@ -162,28 +167,32 @@ void PbftManager::run() {
 
     } else if (pbft_step_ == 2) {
       // The Filtering Step
-      if (pbft_period_ == 1 ||
-          (pbft_period_ >= 2 &&
-           push_block_values_for_period.count(pbft_period_ - 1)) ||
-          (pbft_period_ >= 2 &&
-           nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
-        // Identity leader
-        LOG(log_deb_) << "Identify leader l_i_p for period " << pbft_period_
-                      << " and soft vote the value that they proposed...";
-        std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
-        if (leader_block.second) {
-          placeVoteIfCanSpeak_(leader_block.first, soft_vote_type, pbft_period_,
-                               pbft_step_, false);
-        }
-      } else if (pbft_period_ >= 2) {
-        std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
-            nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
-        if (next_voted_block_from_previous_period.second) {
-          LOG(log_deb_) << "Soft voting "
-                        << next_voted_block_from_previous_period.first
-                        << " from previous period";
-          placeVoteIfCanSpeak_(next_voted_block_from_previous_period.first,
-                               soft_vote_type, pbft_period_, pbft_step_, false);
+      if (shouldSpeak(soft_vote_type, pbft_period_, pbft_step_)) {
+        if (pbft_period_ == 1 ||
+            (pbft_period_ >= 2 &&
+             push_block_values_for_period.count(pbft_period_ - 1)) ||
+            (pbft_period_ >= 2 &&
+             nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1))) {
+          // Identity leader
+          std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
+          if (leader_block.second) {
+            LOG(log_deb_) << "Identify leader block " << leader_block.first
+                          << " for period " << pbft_period_
+                          << " and soft vote the value";
+            placeVote_(leader_block.first, soft_vote_type, pbft_period_,
+                pbft_step_);
+          }
+        } else if (pbft_period_ >= 2) {
+          std::pair<blk_hash_t, bool> next_voted_block_from_previous_period =
+              nextVotedBlockForPeriod_(votes, pbft_period_ - 1);
+          if (next_voted_block_from_previous_period.second &&
+              next_voted_block_from_previous_period.first != NULL_BLOCK_HASH) {
+            LOG(log_deb_) << "Soft voting "
+                          << next_voted_block_from_previous_period.first
+                          << " from previous period";
+            placeVote_(next_voted_block_from_previous_period.first,
+                soft_vote_type, pbft_period_, pbft_step_);
+          }
         }
       }
 
@@ -194,45 +203,38 @@ void PbftManager::run() {
     } else if (pbft_step_ == 3) {
       // The Certifying Step
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
-        LOG(log_deb_) << "PBFT Reached step 3 too quickly?";
+        // Should not happen
+        LOG(log_err_) << "PBFT Reached step 3 too quickly?";
+        assert(false);
       }
 
-      bool should_go_to_step_four = false;
+      bool should_go_to_step_four = false; // TODO: may not need
 
       if (elapsed_time_in_round_ms > 4 * LAMBDA_ms - POLLING_INTERVAL_ms) {
-        LOG(log_deb_) << "will go to step 4";
+        LOG(log_deb_) << "Reached step 3 late, will go to step 4";
         should_go_to_step_four = true;
       } else {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
             softVotedBlockForPeriod_(votes, pbft_period_);
-        if (soft_voted_block_for_this_period.second) {
+        if (soft_voted_block_for_this_period.second &&
+            soft_voted_block_for_this_period.first != NULL_BLOCK_HASH) {
+          cert_voted_values_for_period[pbft_period_] =
+              soft_voted_block_for_this_period.first;
           should_go_to_step_four = true;
           if (checkPbftBlockValid_(soft_voted_block_for_this_period.first)) {
-            LOG(log_deb_) << "Cert voting "
-                          << soft_voted_block_for_this_period.first
-                          << " for this period";
-            cert_voted_values_for_period[pbft_period_] =
-                soft_voted_block_for_this_period.first;
-            placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
-                                 cert_vote_type, pbft_period_, pbft_step_,
-                                 false);
-          } else {
-            // Get partition, need send request to get missing pbft blocks from
-            // peers
-            vector<NodeID> peers = capability_->getAllPeers();
-            if (peers.empty()) {
-              LOG(log_err_) << "There is no peers with connection.";
-            } else {
-              for (auto &peer : peers) {
-                LOG(log_deb_)
-                    << "In period " << pbft_period_
-                    << " sync pbft chain with node " << peer
-                    << " Send request to ask missing pbft blocks in chain";
-                capability_->syncPeerPbft(peer);
-              }
+            if (shouldSpeak(cert_vote_type, pbft_period_, pbft_step_)) {
+              LOG(log_deb_)
+                  << "Cert voting " << soft_voted_block_for_this_period.first
+                  << " for period " << pbft_period_;
+              placeVote_(soft_voted_block_for_this_period.first,
+                         cert_vote_type, pbft_period_, pbft_step_);
             }
+          } else {
+            // Get partition, need send request to get missing pbft blocks from peers
+            syncPbftChainFromPeers_();
           }
         }
+
       }
 
       if (should_go_to_step_four) {
@@ -245,24 +247,25 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 4) {
-      if (cert_voted_values_for_period.find(pbft_period_) !=
-          cert_voted_values_for_period.end()) {
-        LOG(log_deb_) << "Next voting value "
-                      << cert_voted_values_for_period[pbft_period_]
-                      << " for period " << pbft_period_;
-        placeVoteIfCanSpeak_(cert_voted_values_for_period[pbft_period_],
-                             next_vote_type, pbft_period_, pbft_step_, false);
-      } else if (pbft_period_ >= 2 &&
-                 nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1)) {
-        LOG(log_deb_) << "Next voting NULL BLOCK for period " << pbft_period_;
-        placeVoteIfCanSpeak_(NULL_BLOCK_HASH, next_vote_type, pbft_period_,
-                             pbft_step_, false);
-      } else {
-        LOG(log_deb_) << "Next voting nodes own starting value "
-                      << nodes_own_starting_value_for_period << " for period "
-                      << pbft_period_;
-        placeVoteIfCanSpeak_(nodes_own_starting_value_for_period,
-                             next_vote_type, pbft_period_, pbft_step_, false);
+      if (shouldSpeak(next_vote_type, pbft_period_, pbft_step_)) {
+        if (cert_voted_values_for_period.find(pbft_period_) !=
+            cert_voted_values_for_period.end()) {
+          LOG(log_deb_) << "Next voting value "
+                        << cert_voted_values_for_period[pbft_period_]
+                        << " for period " << pbft_period_;
+          placeVote_(cert_voted_values_for_period[pbft_period_], next_vote_type,
+              pbft_period_, pbft_step_);
+        } else if (pbft_period_ >= 2 &&
+                   nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1)) {
+          LOG(log_deb_) << "Next voting NULL BLOCK for period " << pbft_period_;
+          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_period_, pbft_step_);
+        } else {
+          LOG(log_deb_) << "Next voting nodes own starting value "
+                        << nodes_own_starting_value_for_period << " for period "
+                        << pbft_period_;
+          placeVote_(nodes_own_starting_value_for_period, next_vote_type,
+              pbft_period_, pbft_step_);
+        }
       }
 
       pbft_step_ += 1;
@@ -270,25 +273,23 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 5) {
-      std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
-          softVotedBlockForPeriod_(votes, pbft_period_);
-      bool have_next_voted = false; // TODO: may need to remove
-
-      if (soft_voted_block_for_this_period.second) {
-        LOG(log_deb_) << "Next voting "
-                      << soft_voted_block_for_this_period.first
-                      << " for this period";
-        have_next_voted = true;
-        placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
-                             next_vote_type, pbft_period_, pbft_step_, false);
-      } else if (pbft_period_ >= 2 &&
-                 nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1) &&
-                 (cert_voted_values_for_period.find(pbft_period_) ==
-                  cert_voted_values_for_period.end())) {
-        LOG(log_deb_) << "Next voting NULL BLOCK for this period";
-        have_next_voted = true;
-        placeVoteIfCanSpeak_(NULL_BLOCK_HASH, next_vote_type, pbft_period_,
-                             pbft_step_, false);
+      if (shouldSpeak(next_vote_type, pbft_period_, pbft_step_)) {
+        std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
+            softVotedBlockForPeriod_(votes, pbft_period_);
+        if (soft_voted_block_for_this_period.second &&
+            soft_voted_block_for_this_period.first != NULL_BLOCK_HASH) {
+          LOG(log_deb_) << "Next voting "
+                        << soft_voted_block_for_this_period.first
+                        << " for period " << pbft_period_;
+          placeVote_(soft_voted_block_for_this_period.first, next_vote_type,
+              pbft_period_, pbft_step_);
+        } else if (pbft_period_ >= 2 &&
+                   nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1) &&
+                   (cert_voted_values_for_period.find(pbft_period_) ==
+                    cert_voted_values_for_period.end())) {
+          LOG(log_deb_) << "Next voting NULL BLOCK for period " << pbft_period_;
+          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_period_, pbft_step_);
+        }
       }
 
       if (elapsed_time_in_round_ms > 6 * LAMBDA_ms - POLLING_INTERVAL_ms) {
@@ -301,48 +302,47 @@ void PbftManager::run() {
 
     } else if (pbft_step_ % 2 == 0) {
       // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
-      if (cert_voted_values_for_period.find(pbft_period_) !=
-          cert_voted_values_for_period.end()) {
-        LOG(log_deb_) << "Next voting value "
-                      << cert_voted_values_for_period[pbft_period_]
-                      << " for period " << pbft_period_;
-        placeVoteIfCanSpeak_(cert_voted_values_for_period[pbft_period_],
-                             next_vote_type, pbft_period_, pbft_step_, false);
-      } else if (pbft_period_ >= 2 &&
-                 nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1)) {
-        LOG(log_deb_) << "Next voting NULL BLOCK for period " << pbft_period_;
-        placeVoteIfCanSpeak_(NULL_BLOCK_HASH, next_vote_type, pbft_period_,
-                             pbft_step_, false);
-      } else {
-        LOG(log_deb_) << "Next voting nodes own starting value for period "
-                      << pbft_period_;
-        placeVoteIfCanSpeak_(nodes_own_starting_value_for_period,
-                             next_vote_type, pbft_period_, pbft_step_, false);
+      if (shouldSpeak(next_vote_type, pbft_period_, pbft_step_)) {
+        if (cert_voted_values_for_period.find(pbft_period_) !=
+            cert_voted_values_for_period.end()) {
+          LOG(log_deb_) << "Next voting value "
+                        << cert_voted_values_for_period[pbft_period_]
+                        << " for period " << pbft_period_;
+          placeVote_(cert_voted_values_for_period[pbft_period_], next_vote_type,
+              pbft_period_, pbft_step_);
+        } else if (pbft_period_ >= 2 &&
+                   nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1)) {
+          LOG(log_deb_) << "Next voting NULL BLOCK for period " << pbft_period_;
+          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_period_, pbft_step_);
+        } else {
+          LOG(log_deb_) << "Next voting nodes own starting value for period "
+                        << pbft_period_;
+          placeVote_(nodes_own_starting_value_for_period, next_vote_type,
+              pbft_period_, pbft_step_);
+        }
       }
 
       pbft_step_ += 1;
 
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
-      std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
-          softVotedBlockForPeriod_(votes, pbft_period_);
-      bool have_next_voted = false; // TODO: may need to delete
-
-      if (soft_voted_block_for_this_period.second) {
-        LOG(log_deb_) << "Next voting "
-                      << soft_voted_block_for_this_period.first
-                      << " for this period";
-        have_next_voted = true;
-        placeVoteIfCanSpeak_(soft_voted_block_for_this_period.first,
-                             next_vote_type, pbft_period_, pbft_step_, false);
-      } else if (pbft_period_ >= 2 &&
-                 nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1) &&
-                 (cert_voted_values_for_period.find(pbft_period_) ==
-                  cert_voted_values_for_period.end())) {
-        LOG(log_deb_) << "Next voting NULL BLOCK for this period";
-        have_next_voted = true;
-        placeVoteIfCanSpeak_(NULL_BLOCK_HASH, next_vote_type, pbft_period_,
-                             pbft_step_, false);
+      if (shouldSpeak(next_vote_type, pbft_period_, pbft_step_)) {
+        std::pair<blk_hash_t, bool> soft_voted_block_for_this_period =
+            softVotedBlockForPeriod_(votes, pbft_period_);
+        if (soft_voted_block_for_this_period.second &&
+            soft_voted_block_for_this_period.first != NULL_BLOCK_HASH) {
+          LOG(log_deb_) << "Next voting "
+                        << soft_voted_block_for_this_period.first
+                        << " for period " << pbft_period_;
+          placeVote_(soft_voted_block_for_this_period.first, next_vote_type,
+              pbft_period_, pbft_step_);
+        } else if (pbft_period_ >= 2 &&
+                   nullBlockNextVotedForPeriod_(votes, pbft_period_ - 1) &&
+                   (cert_voted_values_for_period.find(pbft_period_) ==
+                    cert_voted_values_for_period.end())) {
+          LOG(log_deb_) << "Next voting NULL BLOCK for this period";
+          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_period_, pbft_step_);
+        }
       }
 
       if (pbft_step_ >= MAX_STEPS) {
@@ -375,28 +375,29 @@ void PbftManager::run() {
   }
 }
 
-bool PbftManager::shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
-                              uint64_t period, size_t step) {
-  std::string message = blockhash.toString() + std::to_string(type) +
+bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t period,
+    size_t step) {
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  std::string message = last_pbft_block_hash.toString() + std::to_string(type) +
                         std::to_string(period) + std::to_string(step);
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return false;
   }
-  dev::Signature signature = full_node->signMessage(message);
-  string signature_hash = taraxa::hashSignature(signature);
+  dev::Signature sortition_signature = full_node->signMessage(message);
+  string sortition_signature_hash = taraxa::hashSignature(sortition_signature);
   std::pair<bal_t, bool> account_balance =
       full_node->getBalance(full_node->getAddress());
   if (!account_balance.second) {
-    LOG(log_deb_) << "Full node account unavailable" << std::endl;
+    LOG(log_tra_) << "Full node account unavailable" << std::endl;
     return false;
   }
-  if (taraxa::sortition(signature_hash, account_balance.first)) {
-    return true;
-  } else {
+  if (!taraxa::sortition(sortition_signature_hash, account_balance.first)) {
+    LOG(log_tra_) << "Don't get sortition";
     return false;
   }
+  return true;
 }
 
 /* Find the latest period, p-1, for which there is a quorum of next-votes
@@ -428,8 +429,8 @@ size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
   for (auto &vp : next_votes_tally_by_period) {
     if (vp.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_period =
-          getVotesOfTypeFromPeriod_(next_vote_type, votes, vp.first,
-                                    std::make_pair(blk_hash_t(0), false));
+          getVotesOfTypeFromVotesForPeriod_(next_vote_type, votes, vp.first,
+              std::make_pair(blk_hash_t(0), false));
       if (blockWithEnoughVotes_(next_votes_for_period).second) {
         return vp.first + 1;
       }
@@ -437,23 +438,6 @@ size_t PbftManager::periodDeterminedFromVotes_(std::vector<Vote> &votes,
   }
 
   return local_period;
-}
-
-std::vector<Vote> PbftManager::getVotesOfTypeFromPeriod_(
-    PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t period,
-    std::pair<blk_hash_t, bool> blockhash) {
-  // TODO: need to delete, since have getVotesOfTypeFromVotesForPeriod_
-  // We should read through the votes ...
-  std::vector<Vote> votes_of_requested_type;
-
-  for (Vote &v : votes) {
-    if (v.getType() == vote_type && v.getPeriod() == period &&
-        (blockhash.second == false || blockhash.first == v.getBlockHash())) {
-      votes_of_requested_type.emplace_back(v);
-    }
-  }
-
-  return votes_of_requested_type;
 }
 
 // Assumption is that all votes are in the same period and of same type...
@@ -466,7 +450,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
   // <block_hash, count>, store in reverse order
   std::map<blk_hash_t, size_t, std::greater<blk_hash_t>> tally_by_blockhash;
 
-  for (Vote &v : votes) {
+  for (Vote const& v : votes) {
     if (is_first_block) {
       vote_type = v.getType();
       vote_period = v.getPeriod();
@@ -488,8 +472,12 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
       tally_by_blockhash[blockhash] = 1;
     }
 
-    for (auto &blockhash_pair : tally_by_blockhash) {
+    for (auto const& blockhash_pair : tally_by_blockhash) {
       if (blockhash_pair.second >= TWO_T_PLUS_ONE) {
+        LOG(log_deb_)
+          << "find block hash " << blockhash_pair.first << " vote type "
+          << vote_type << " in period " << vote_period << " has "
+          << blockhash_pair.second << " votes";
         return std::make_pair(blockhash_pair.first, true);
       }
     }
@@ -534,49 +522,23 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForPeriod_(
   return blockWithEnoughVotes_(next_votes_for_period);
 }
 
-void PbftManager::placeVoteIfCanSpeak_(taraxa::blk_hash_t blockhash,
-                                       PbftVoteTypes vote_type, uint64_t period,
-                                       size_t step,
-                                       bool override_sortition_check) {
-  bool should_i_speak_response = true;
-
-  if (!override_sortition_check) {
-    should_i_speak_response = shouldSpeak(blockhash, vote_type, period, step);
-  }
-  if (!should_i_speak_response) {
-    return;
-  }
-
+void PbftManager::placeVote_(taraxa::blk_hash_t const& blockhash,
+    PbftVoteTypes vote_type, uint64_t period, size_t step) {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return;
   }
-  full_node->placeVote(blockhash, vote_type, period, step);
-  LOG(log_deb_) << "vote block hash: " << blockhash
-                << " vote type: " << vote_type << " period: " << period
-                << " step: " << step;
+
+  Vote vote = full_node->generateVote(blockhash, vote_type, period, step);
+  full_node->pushVoteIntoQueue(vote);
+  full_node->setVoteKnown(vote.getHash());
+  LOG(log_deb_)
+    << "vote block hash: " << blockhash << " vote type: " << vote_type
+    << " period: " << period << " step: " << step << " vote hash "
+    << vote.getHash();
   // pbft vote broadcast
-  broadcastPbftVote_(blockhash, vote_type, period, step);
-}
-
-void PbftManager::broadcastPbftVote_(taraxa::blk_hash_t &blockhash,
-                                     taraxa::PbftVoteTypes vote_type,
-                                     uint64_t period, size_t step) {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
-  }
-
-  std::string message = blockhash.toString() + std::to_string(vote_type) +
-                        std::to_string(period) + std::to_string(step);
-  sig_t signature = full_node->signMessage(message);
-  public_t public_key = full_node->getPublicKey();
-  Vote vote(public_key, signature, blockhash, vote_type, period, step);
-
-  std::shared_ptr<Network> network = full_node->getNetwork();
-  network->onNewPbftVote(vote);
+  full_node->broadcastVote(vote);
 }
 
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForPeriod_(
@@ -610,6 +572,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::pair<PbftBlock, bool> last_period_pbft_anchor_block =
         pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
     if (!last_period_pbft_anchor_block.second) {
+      // Should not happen
       LOG(log_err_)
           << "Can not find the last period pbft anchor block with block hash: "
           << prev_pivot_hash;
@@ -632,7 +595,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
                            epoch, timestamp, beneficiary);
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
-    pbft_block.setBlockHash();
+
   } else if (current_block_type == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
     uint64_t timestamp = std::time(nullptr);
@@ -641,6 +604,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::pair<PbftBlock, bool> last_pbft_block =
         pbft_chain_->getPbftBlockInChain(last_block_hash);
     if (!last_pbft_block.second) {
+      // Should not happen
       LOG(log_err_) << "Can not find last pbft block with block hash: "
                     << last_block_hash;
       return std::make_pair(blk_hash_t(0), false);
@@ -662,27 +626,21 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     ScheduleBlock schedule_block(last_block_hash, timestamp, *schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
-    pbft_block.setBlockHash();
   }  // TODO: More pbft block types
 
-  blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  // sortition
-  if (!shouldSpeak(pbft_block_hash, propose_vote_type, pbft_period_,
-                   pbft_step_)) {
-    LOG(log_deb_) << "Don't get sortion!";
-    return std::make_pair(blk_hash_t(0), false);
-  }
   // sign the pbft block
-  std::string message =
-      pbft_block_hash.toString() + std::to_string(propose_vote_type) +
-      std::to_string(pbft_period_) + std::to_string(pbft_step_);
-  sig_t signature = full_node->signMessage(message);
+  std::string pbft_block_str = pbft_block.getJsonStr();
+  sig_t signature = full_node->signMessage(pbft_block_str);
   pbft_block.setSignature(signature);
+  pbft_block.setBlockHash();
+
   // push pbft block into pbft queue
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
   // broadcast pbft block
   std::shared_ptr<Network> network = full_node->getNetwork();
   network->onNewPbftBlock(pbft_block);
+
+  blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   LOG(log_deb_) << "Propose succussful! block hash: " << pbft_block_hash
                 << " in period: " << pbft_period_ << " in step: " << pbft_step_;
 
@@ -692,13 +650,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   std::vector<Vote> votes = vote_queue_->getVotes(pbft_period_);
   PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
-  LOG(log_deb_) << "block type should be: " << next_pbft_block_type;
+  LOG(log_deb_) << "leader block type should be: " << next_pbft_block_type;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
     if (v.getPeriod() == pbft_period_ && v.getType() == propose_vote_type) {
       leader_candidates.emplace_back(
-          std::make_pair(dev::sha3(v.getSingature()), v.getBlockHash()));
+          std::make_pair(dev::sha3(v.getVoteSignature()), v.getBlockHash()));
     }
   }
   if (leader_candidates.empty()) {
@@ -715,13 +673,18 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   return std::make_pair(leader.second, true);
 }
 
-bool PbftManager::pushPbftBlockIntoChain_(
-    uint64_t period, taraxa::blk_hash_t const &cert_vote_block_hash) {
+bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
+    taraxa::blk_hash_t const& cert_voted_block_hash) {
   std::vector<Vote> votes = vote_queue_->getVotes(period);
   size_t count = 0;
   for (auto const &v : votes) {
-    if (v.getBlockHash() == cert_vote_block_hash &&
-        v.getType() == cert_vote_type) {
+    if (v.getBlockHash() == cert_voted_block_hash &&
+        v.getType() == cert_vote_type &&
+        v.getPeriod() == period) {
+      LOG(log_deb_)
+        << "find cert vote " << v.getHash() << " for block hash "
+        << v.getBlockHash() << " in period " << v.getPeriod() << " step "
+        << v.getStep();
       count++;
     }
   }
@@ -732,27 +695,17 @@ bool PbftManager::pushPbftBlockIntoChain_(
                   << " But only have " << count;
     return false;
   }
-  if (!checkPbftBlockValid_(cert_vote_block_hash)) {
+
+  if (!checkPbftBlockValid_(cert_voted_block_hash)) {
     // Get partition, need send request to get missing pbft blocks from peers
-    vector<NodeID> peers = capability_->getAllPeers();
-    if (peers.empty()) {
-      LOG(log_err_) << "There is no peers with connection.";
-      return false;
-    }
-    for (auto &peer : peers) {
-      LOG(log_deb_) << "Sync pbft chain with node " << peer
-                    << ". Send request to ask missing pbft blocks in chain";
-      capability_->syncPeerPbft(peer);
-    }
+    syncPbftChainFromPeers_();
     return false;
   }
   std::pair<PbftBlock, bool> pbft_block =
-      pbft_chain_->getPbftBlockInQueue(cert_vote_block_hash);
+      pbft_chain_->getPbftBlockInQueue(cert_voted_block_hash);
   if (!pbft_block.second) {
-    if (cert_vote_block_hash) {
-      LOG(log_err_) << "Can not find the cert vote block hash "
-                    << cert_vote_block_hash << " in pbft queue";
-    }
+    LOG(log_err_) << "Can not find the cert vote block hash "
+                  << cert_voted_block_hash << " in pbft queue";
     return false;
   }
 
@@ -849,6 +802,21 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   }  // TODO: More pbft block types
 
   return true;
+}
+
+void PbftManager::syncPbftChainFromPeers_() {
+  vector<NodeID> peers = capability_->getAllPeers();
+  if (peers.empty()) {
+    LOG(log_err_) << "There is no peers with connection.";
+  } else {
+    for (auto &peer : peers) {
+      LOG(log_deb_)
+          << "In period " << pbft_period_
+          << " sync pbft chain with node " << peer
+          << " Send request to ask missing pbft blocks in chain";
+      capability_->syncPeerPbft(peer);
+    }
+  }
 }
 
 }  // namespace taraxa

@@ -456,12 +456,11 @@ void RpcHandler::processRequest() {
     // PBFT
     else if (action == "should_speak") {
       try {
-        blk_hash_t blockhash = in_doc_.get<blk_hash_t>("blockhash");
         PbftVoteTypes type =
             static_cast<PbftVoteTypes>(in_doc_.get<int>("type"));
         uint64_t period = in_doc_.get<uint64_t>("period");
         size_t step = in_doc_.get<size_t>("step");
-        if (node_->shouldSpeak(blockhash, type, period, step)) {
+        if (node_->shouldSpeak(type, period, step)) {
           res = "True";
         } else {
           res = "False";
@@ -477,10 +476,12 @@ void RpcHandler::processRequest() {
         uint64_t period = in_doc_.get<uint64_t>("period");
         size_t step = in_doc_.get<size_t>("step");
 
+        // generate vote
+        Vote vote = node_->generateVote(blockhash, type, period, step);
         // put vote into vote queue
-        node_->placeVote(blockhash, type, period, step);
+        node_->pushVoteIntoQueue(vote);
         // broadcast vote
-        node_->broadcastVote(blockhash, type, period, step);
+        node_->broadcastVote(vote);
 
         res = "Place vote successfully";
       } catch (std::exception &e) {
