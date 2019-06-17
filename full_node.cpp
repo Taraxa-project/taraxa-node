@@ -555,6 +555,9 @@ void FullNode::updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period) {
   dag_mgr_->setDagBlockPeriods(anchor, period);
 }
 
+uint64_t FullNode::getLatestPeriod() const{ return dag_mgr_->getLatestPeriod();}
+blk_hash_t FullNode::getLatestAnchor() const{ return blk_hash_t(dag_mgr_->getLatestAnchor());}
+
 std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
     std::shared_ptr<vec_blk_t> blk_order) {
   if (!blk_order) {

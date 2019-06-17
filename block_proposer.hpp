@@ -95,7 +95,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   BlockProposer(ProposerConfig& conf, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr)
       : conf_(conf),
-        total_shards_(std::max(conf.shards, 1u)),
+        total_trx_shards_(std::max(conf.shards, 1u)),
         dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr) {
     if (conf_.mode == 0) {
@@ -114,7 +114,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<BlockProposer> getShared();
   void proposeBlock(DagBlock const& blk);
   bool getShardedTrxs(vec_trx_t& sharded_trx) {
-    return getShardedTrxs(total_shards_, my_shard_, sharded_trx);
+    return getShardedTrxs(total_trx_shards_, my_trx_shard_, sharded_trx);
   }
   bool getLatestPivotAndTips(std::string& pivot,
                              std::vector<std::string>& tips);
@@ -123,6 +123,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;
   }
+  bool winProposeSortition(level_t proposeLevel);
   friend ProposeModelFace;
 
  private:
@@ -131,8 +132,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;
   ProposerConfig conf_;
-  uint total_shards_;
-  uint my_shard_;
+  uint total_trx_shards_;
+  uint my_trx_shard_;
   std::weak_ptr<DagManager> dag_mgr_;
   std::weak_ptr<TransactionManager> trx_mgr_;
   std::weak_ptr<FullNode> full_node_;

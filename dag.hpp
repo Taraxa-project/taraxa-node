@@ -266,8 +266,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   size_t getBufferSize() const;
   size_t getEpoch() const { return anchors_.size() - 1; }
   level_t getMaxLevel() const { return max_level_; }
-  uint64_t getCurrentPeriod() const { return anchors_.size() - 1; }
-  std::string getCurrentPeriodHash() const { return anchors_.back(); }
+  uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
+  std::string getLatestAnchor() const { return anchors_.back(); }
 
  private:
   bool addDagBlockInternal(DagBlock const &blk);
