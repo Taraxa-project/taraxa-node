@@ -632,6 +632,14 @@ std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
   }
   return {std::stoull(bal), ret};
 }
+bal_t FullNode::getMyBalance() const {
+  auto my_bal = getBalance(node_addr_);
+  if (!my_bal.second) {
+    return 0;
+  } else {
+    return my_bal.first;
+  }
+}
 
 bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
   bool ret = true;
@@ -679,7 +687,6 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
     vote_queue_->pushBackVote(vote);
   }
 }
-
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
   network_->onNewPbftVote(vote);

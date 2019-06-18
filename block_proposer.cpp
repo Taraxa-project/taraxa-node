@@ -6,6 +6,7 @@
  * @Last Modified time: 2019-05-16 12:28:12
  */
 #include "block_proposer.hpp"
+#include <cmath>
 #include "dag.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
@@ -83,7 +84,7 @@ bool SortitionPropose::propose() {
   propose_level = std::max(last_fail_propose_level_ + 1, propose_level);
   //
 
-  bool win = proposer->winProposeSortition(propose_level);
+  bool win = proposer->winProposeSortition(propose_level, threshold_);
   if (win) {
     vec_trx_t sharded_trxs;
     ok = proposer->getShardedTrxs(sharded_trxs);
@@ -224,23 +225,34 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
   }
   return max_level;
 }
-bool BlockProposer::winProposeSortition(level_t propose_level) {
+bool BlockProposer::winProposeSortition(level_t propose_level,
+                                        uint64_t threshold) {
   bool ret = false;
   auto full_node = full_node_.lock();
   auto anchor = full_node->getLatestAnchor();
   auto message = anchor.toString() + std::to_string(propose_level);
-  // use first byte to do sharding
-  auto sortition = uint(full_node->signMessage(message)[0]);
-  auto threshold = uint(full_node->getBlockProposeThreshold());
-  LOG(log_nf_) << "Sortition: " << sortition << " , Threshold: " << threshold;
-  if (sortition < threshold) {
-    LOG(log_er_) << "Win sortition at level: " << propose_level
-                 << " , ticket= " << sortition
+  uint64_t ticket = uint64_t(
+      uint256_t(dev::sha3(full_node->signMessage(message))) >> 210);  // 46 bits
+  uint64_t beta = (full_node->getBlockProposeThresholdBeta());        // 10 bits
+  auto my_bal = full_node->getMyBalance();  //  0 ~ 2^53 - 1
+  if (my_bal == 0) {
+    LOG(log_er_) << "Cannot win ticket, balance is 0 ...";
+    return false;
+  }
+  uint64_t log_bal = log10(my_bal) + 1;                // 1~16, 4 bits
+  uint64_t my_threshold = log_bal * beta * threshold;  // 46 bits
+  if (ticket < my_threshold) {
+    LOG(log_nf_) << "Win sortition at level: " << propose_level
+                 << " , ticket = " << ticket
+                 << " , threshold = " << my_threshold
+                 << " , log_bal = " << log_bal << " , beta = " << beta
                  << " , threshold = " << threshold;
     ret = true;
   } else {
-    LOG(log_er_) << "Loose sortition at level: " << propose_level
-                 << " , ticket= " << sortition
+    LOG(log_nf_) << "Loose sortition at level: " << propose_level
+                 << " , ticket = " << ticket
+                 << " , threshold = " << my_threshold
+                 << " , log_bal = " << log_bal << " , beta = " << beta
                  << " , threshold = " << threshold;
   }
   return ret;
