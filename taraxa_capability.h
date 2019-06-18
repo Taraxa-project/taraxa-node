@@ -72,11 +72,11 @@ class TaraxaPeer : public boost::noncopyable {
   }
 
   // PBFT
-  bool isVoteKnown(sig_hash_t const &_hash) const {
+  bool isVoteKnown(vote_hash_t const &_hash) const {
     boost::shared_lock lck(mtx_for_known_votes);
     return m_knownVotes.count(_hash);
   }
-  void markVoteAsKnown(sig_hash_t const &_hash) {
+  void markVoteAsKnown(vote_hash_t const &_hash) {
     boost::unique_lock lck(mtx_for_known_votes);
     m_knownVotes.insert(_hash);
   }
@@ -112,7 +112,7 @@ class TaraxaPeer : public boost::noncopyable {
   std::set<blk_hash_t> m_knownBlocks;
   std::set<trx_hash_t> m_knownTransactions;
   // PBFT
-  std::set<sig_hash_t> m_knownVotes;
+  std::set<vote_hash_t> m_knownVotes; // for peers
   std::set<blk_hash_t> m_knownPbftBlocks;
 
   NodeID m_id;

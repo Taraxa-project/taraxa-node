@@ -16,17 +16,23 @@
 
 namespace taraxa {
 
-Vote::Vote(public_t node_pk,
-           sig_t signature,
-           blk_hash_t blockhash,
+// Vote
+Vote::Vote(public_t const& node_pk,
+           sig_t const& sortition_signaure,
+           sig_t const& vote_signature,
+           blk_hash_t const& blockhash,
            PbftVoteTypes type,
            uint64_t period,
            size_t step) : node_pk_(node_pk),
-                          signature_(signature),
+                          sortition_signature_(sortition_signaure),
+                          vote_signatue_(vote_signature),
                           blockhash_(blockhash),
                           type_(type),
                           period_(period),
                           step_(step) {
+  dev::RLPStream s;
+  streamRLP_(s);
+  vote_hash_ = dev::sha3(s.out());
 }
 
 Vote::Vote(taraxa::stream& strm) {
@@ -36,8 +42,10 @@ Vote::Vote(taraxa::stream& strm) {
 bool Vote::serialize(stream& strm) const {
   bool ok = true;
 
+  ok &= write(strm, vote_hash_);
   ok &= write(strm, node_pk_);
-  ok &= write(strm, signature_);
+  ok &= write(strm, sortition_signature_);
+  ok &= write(strm, vote_signatue_);
   ok &= write(strm, blockhash_);
   ok &= write(strm, type_);
   ok &= write(strm, period_);
@@ -50,8 +58,10 @@ bool Vote::serialize(stream& strm) const {
 bool Vote::deserialize(stream& strm) {
   bool ok = true;
 
+  ok &= read(strm, vote_hash_);
   ok &= read(strm, node_pk_);
-  ok &= read(strm, signature_);
+  ok &= read(strm, sortition_signature_);
+  ok &= read(strm, vote_signatue_);
   ok &= read(strm, blockhash_);
   ok &= read(strm, type_);
   ok &= read(strm, period_);
@@ -61,16 +71,31 @@ bool Vote::deserialize(stream& strm) {
   return ok;
 }
 
-sig_hash_t Vote::getHash() const {
-  return dev::sha3(signature_);
+void Vote::streamRLP_(dev::RLPStream& strm) const {
+  strm << vote_hash_;
+  strm << node_pk_;
+  strm << sortition_signature_;
+  strm << vote_signatue_;
+  strm << blockhash_;
+  strm << type_;
+  strm << period_;
+  strm << step_;
+}
+
+vote_hash_t Vote::getHash() const {
+  return vote_hash_;
 }
 
 public_t Vote::getPublicKey() const {
   return node_pk_;
 }
 
-sig_t Vote::getSingature() const {
-  return signature_;
+sig_t Vote::getSortitionSignature() const {
+  return sortition_signature_;
+}
+
+sig_t Vote::getVoteSignature() const {
+  return vote_signatue_;
 }
 
 blk_hash_t Vote::getBlockHash() const {
@@ -89,28 +114,60 @@ size_t Vote::getStep() const {
   return step_;
 }
 
-bool Vote::validateVote(std::pair<bal_t, bool>& vote_account_balance) const{
-  if (!vote_account_balance.second) {
-    LOG(log_er_) << "Invalid vote account balance" << std::endl;
-    return false;
-  }
-  // verify signature
-  std::string vote_message = blockhash_.toString() +
-                             std::to_string(type_) +
-                             std::to_string(period_) +
-                             std::to_string(step_);
-  if (!dev::verify(node_pk_, signature_, dev::sha3(vote_message))) {
-    LOG(log_er_) << "Invalid vote signature: " << signature_ << std::endl;
-    return false;
-  }
-  // verify sortition
-  std::string vote_signature_hash = taraxa::hashSignature(signature_);
-  if (taraxa::sortition(vote_signature_hash, vote_account_balance.first)) {
-    return true;
-  }
-  return false;
+// Vote Manager
+sig_t VoteManager::signVote(secret_t const& node_sk,
+    taraxa::blk_hash_t const& block_hash, taraxa::PbftVoteTypes type,
+    uint64_t period, size_t step) {
+  std::string message = block_hash.toString() + std::to_string(type) +
+                        std::to_string(period) + std::to_string(step);
+  // sign message
+  return dev::sign(node_sk, hash_(message));
 }
 
+bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
+    taraxa::Vote const& vote, taraxa::bal_t& account_balance) const {
+  PbftVoteTypes type = vote.getType();
+  uint64_t period = vote.getPeriod();
+  size_t step = vote.getStep();
+  // verify vote signature
+  std::string const vote_message = vote.getBlockHash().toString() +
+                                   std::to_string(type) +
+                                   std::to_string(period) +
+                                   std::to_string(step);
+  public_t public_key = vote.getPublicKey();
+  sig_t vote_signature = vote.getVoteSignature();
+  if (!dev::verify(public_key, vote_signature, hash_(vote_message))) {
+    LOG(log_err_) << "Invalid vote signature: " << vote_signature;
+    return false;
+  }
+
+  // verify sortition signature
+  std::string const sortition_message = last_pbft_block_hash.toString() +
+                                        std::to_string(type) +
+                                        std::to_string(period) +
+                                        std::to_string(step);
+  sig_t sortition_signature = vote.getSortitionSignature();
+  if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
+    LOG(log_err_) << "Invalid sortition signature: " << sortition_signature;
+    return false;
+  }
+
+  // verify sortition
+  std::string sortition_signature_hash =
+      taraxa::hashSignature(sortition_signature);
+  if (!taraxa::sortition(sortition_signature_hash, account_balance)) {
+    LOG(log_err_)
+      << "Vote sortition failed, sortition signature " << sortition_signature;
+    return false;
+  }
+  return true;
+}
+
+vote_hash_t VoteManager::hash_(std::string const& str) const {
+  return dev::sha3(str);
+}
+
+// Vote Queue
 void VoteQueue::clearQueue() {
   vote_queue_.clear();
 }
@@ -127,7 +184,7 @@ std::vector<Vote> VoteQueue::getVotes(uint64_t period) {
     if (it->getPeriod() < period) {
       it = vote_queue_.erase(it);
     } else {
-      votes.push_back(*it++);
+      votes.emplace_back(*it++);
     }
   }
 
@@ -139,10 +196,12 @@ std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
   ptree ptroot;
   ptree ptvotes;
 
-  for (Vote v : votes) {
+  for (Vote const& v : votes) {
     ptree ptvote;
+    ptvote.put("vote_hash", v.getHash());
     ptvote.put("accounthash", v.getPublicKey());
-    ptvote.put("signature", v.getSingature());
+    ptvote.put("sortition_signature", v.getSortitionSignature());
+    ptvote.put("vote_signature", v.getVoteSignature());
     ptvote.put("blockhash", v.getBlockHash());
     ptvote.put("type", v.getType());
     ptvote.put("period", v.getPeriod());
@@ -157,21 +216,8 @@ std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
   return output.str();
 }
 
-void VoteQueue::placeVote(taraxa::Vote const& vote) {
-  vote_queue_.push_back(vote);
-}
-
-void VoteQueue::placeVote(public_t const& node_pk, secret_t const& node_sk,
-    blk_hash_t const& blockhash, PbftVoteTypes type, uint64_t period, size_t step) {
-  std::string message = blockhash.toString() +
-                        std::to_string(type) +
-                        std::to_string(period) +
-                        std::to_string(step);
-  // sign message
-  sig_t signature = dev::sign(node_sk, dev::sha3(message));
-
-  Vote vote(node_pk, signature, blockhash, type, period, step);
-  placeVote(vote);
+void VoteQueue::pushBackVote(taraxa::Vote const& vote) {
+  vote_queue_.emplace_back(vote);
 }
 
 } // namespace taraxa

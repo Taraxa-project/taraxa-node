@@ -22,6 +22,7 @@
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
 #include "util.hpp"
+#include "vote.h"
 
 namespace taraxa {
 
@@ -155,20 +156,15 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   unsigned long getDagMaxLevel() { return max_dag_level_; }
 
   // PBFT
-  bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
-                   uint64_t period, size_t step);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
-  void placeVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                 uint64_t period, size_t step);
   std::vector<Vote> getVotes(uint64_t period);
-  void placeVote(Vote const &vote);
-  void broadcastVote(taraxa::blk_hash_t const &blockhash, PbftVoteTypes type,
-                     uint64_t period, size_t step);
+  void receivedVotePushIntoQueue(Vote const& vote);
   void clearVoteQueue();
   size_t getVoteQueueSize();
-  bool isKnownVote(taraxa::Vote const &vote) const;
-  void setVoteKnown(taraxa::Vote const &vote);
+  bool isKnownVote(vote_hash_t const& vote_hash) const;
+  void setVoteKnown(vote_hash_t const& vote_hash);
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
   bool isKnownPbftBlockInChain(blk_hash_t const &pbft_block_hash) const;
@@ -182,6 +178,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteQueue> getVoteQueue() const { return vote_queue_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
+  // PBFT RPC
+  void pushVoteIntoQueue(Vote const& vote);
+  void broadcastVote(Vote const& vote);
+  Vote generateVote(blk_hash_t const& blockhash, PbftVoteTypes type,
+      uint64_t period, size_t step);
 
  private:
   // ** NOTE: io_context must be constructed before Network
@@ -226,10 +227,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::thread> block_workers_;
 
   // PBFT
+  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::unordered_set<sig_hash_t> known_votes_;
+  std::unordered_set<vote_hash_t> known_votes_; // per node itself
 
   // debugger
   std::mutex debug_mutex_;

@@ -36,9 +36,9 @@ class PbftManager {
   PbftManager();
   PbftManager(PbftManagerConfig const &config);
   ~PbftManager() { stop(); }
+
   void setFullNode(std::shared_ptr<FullNode> node);
-  bool shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
-                   uint64_t period, size_t step);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   void start();
   void stop();
   void run();
@@ -54,35 +54,36 @@ class PbftManager {
  private:
   size_t periodDeterminedFromVotes_(std::vector<Vote> &votes,
                                     uint64_t local_period);
-  std::vector<Vote> getVotesOfTypeFromPeriod_(
-      PbftVoteTypes vote_type,
-      std::vector<Vote> &votes,
-      uint64_t period,
-      std::pair<blk_hash_t, bool> blockhash);
+
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
+
   bool nullBlockNextVotedForPeriod_(std::vector<Vote> &votes, uint64_t period);
-  std::vector<Vote> getVotesOfTypeFromVotesForPeriod_(
-      PbftVoteTypes vote_type,
-      std::vector<Vote> &votes,
-      uint64_t period,
+
+  std::vector<Vote> getVotesOfTypeFromVotesForPeriod_(PbftVoteTypes vote_type,
+      std::vector<Vote> &votes, uint64_t period,
       std::pair<blk_hash_t, bool> blockhash);
+
   std::pair<blk_hash_t, bool> nextVotedBlockForPeriod_(
       std::vector<Vote> &votes, uint64_t period);
-  void placeVoteIfCanSpeak_(blk_hash_t blockhash,
-                            PbftVoteTypes vote_type,
-                            uint64_t period,
-                            size_t step,
-                            bool override_sortition_check);
-  void broadcastPbftVote_(blk_hash_t &blockhash, PbftVoteTypes vote_type,
+
+  void placeVote_(blk_hash_t const& blockhash, PbftVoteTypes vote_type,
       uint64_t period, size_t step);
+
   std::pair<blk_hash_t, bool> softVotedBlockForPeriod_(std::vector<Vote> &votes,
-                                                       uint64_t period);
+      uint64_t period);
+
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
+
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+
   bool pushPbftBlockIntoChain_(uint64_t period,
-                               blk_hash_t const& cert_vote_block_hash);
+      blk_hash_t const& cert_voted_block_hash);
+
   bool updatePbftChainDB_(PbftBlock const& pbft_block);
+
   bool checkPbftBlockValid_(blk_hash_t const& block_hash) const;
+
+  void syncPbftChainFromPeers_();
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
