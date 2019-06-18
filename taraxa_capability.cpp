@@ -444,6 +444,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
       syncPeerPbft(max_vertices_nodeID);
     }
   }
+  peers_.erase(_nodeID);
 }
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
@@ -763,11 +764,15 @@ void TaraxaCapability::doBackgroundWork() {
     time_t now =
         std::chrono::system_clock::to_time_t(chrono::system_clock::now());
     //Disconnect any node that do not respond within 10 seconds
-    if (peer.second->asking() && now - peer.second->lastAsk() > 10)
+    if (peer.second->asking() && now - peer.second->lastAsk() > 10) {
+      LOG(log_nf_) << "Host disconnected, no response in 10 seconds" << peer.first;
       host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
+    }
     //Disconnect any node that did not send any message for over 120 seconds
-    if (now - peer.second->lastMessageTime() > 120)
+    if (now - peer.second->lastMessageTime() > 120) {
+      LOG(log_nf_) << "Host disconnected, no message in 120 seconds" << peer.first;
       host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
+    }
   }
   host_.scheduleExecution(conf_.network_transaction_interval,
                           [this]() { doBackgroundWork(); });
