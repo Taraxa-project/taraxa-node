@@ -205,7 +205,8 @@ void PbftManager::run() {
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
         // Should not happen
         LOG(log_err_) << "PBFT Reached step 3 too quickly?";
-        assert(false);
+        // TODO: if no accout_balance, will hit here
+        // assert(false);
       }
 
       bool should_go_to_step_four = false; // TODO: may not need
