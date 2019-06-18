@@ -817,17 +817,17 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   nw2->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(77777), blk_hash_t(1),
+  DagBlock blk1(blk_hash_t(0), 1, {}, {}, sig_t(77777), blk_hash_t(1),
                 addr_t(16));
-  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(77777), blk_hash_t(2),
+  DagBlock blk2(blk_hash_t(1), 2, {}, {}, sig_t(77777), blk_hash_t(2),
                 addr_t(16));
-  DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(77777), blk_hash_t(3),
+  DagBlock blk3(blk_hash_t(2), 3, {}, {}, sig_t(77777), blk_hash_t(3),
                 addr_t(16));
-  DagBlock blk4(blk_hash_t(3), 0, {}, {}, sig_t(77777), blk_hash_t(4),
+  DagBlock blk4(blk_hash_t(3), 4, {}, {}, sig_t(77777), blk_hash_t(4),
                 addr_t(16));
-  DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(77777), blk_hash_t(5),
+  DagBlock blk5(blk_hash_t(4), 5, {}, {}, sig_t(77777), blk_hash_t(5),
                 addr_t(16));
-  DagBlock blk6(blk_hash_t(5), 0, {blk_hash_t(4), blk_hash_t(3)}, {},
+  DagBlock blk6(blk_hash_t(5), 6, {blk_hash_t(4), blk_hash_t(3)}, {},
                 sig_t(77777), blk_hash_t(6), addr_t(16));
 
   blks.emplace_back(blk6);
