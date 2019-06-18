@@ -64,17 +64,19 @@ class RandomPropose : public ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(uint interval) : propose_interval_(interval) {}
-  ~SortitionPropose(){};
+  SortitionPropose(uint interval, uint threshold)
+      : propose_interval_(interval), threshold_(threshold) {
+    LOG(log_nf_) << "Set block propose sorition threshold " << threshold_;
+  }
+  ~SortitionPropose() {}
   bool propose() override;
   bool propose(blk_hash_t const& blk, uint64_t level);
 
  private:
   uint propose_interval_ = 1000;
   level_t last_fail_propose_level_ = 0;
-
   blk_hash_t anchor_hash_;
-  sig_hash_t threshold_ = sig_hash_t("ffffffffffffffffffffffffffffffff");
+  uint64_t threshold_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
   dev::Logger log_wr_{
@@ -104,7 +106,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
       propose_model_ =
           std::make_unique<RandomPropose>(conf_.param1, conf_.param2);
     } else if (conf_.mode == 1) {
-      propose_model_ = std::make_unique<SortitionPropose>(conf_.param1);
+      propose_model_ =
+          std::make_unique<SortitionPropose>(conf_.param1, conf_.param2);
     }
   }
   ~BlockProposer() {
@@ -125,9 +128,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;
   }
-  bool winProposeSortition(level_t proposeLevel);
+  bool winProposeSortition(level_t proposeLevel, uint64_t threshold);
   friend ProposeModelFace;
-
+  
  private:
   bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
 

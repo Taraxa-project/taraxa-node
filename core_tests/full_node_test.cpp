@@ -963,13 +963,20 @@ TEST(FullNode, propose_with_sortition) {
   FullNodeConfig conf("./core_tests/conf_taraxa1.json");
   conf.proposer.mode = 1;
   conf.proposer.param1 = 100;
+  conf.proposer.param2 = 4294967295;
+
   auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
   auto rpc(
       std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
   rpc->start();
   node1->setDebug(true);
   node1->start(true /*boot_node*/);
-
+  auto addr = node1->getAddress();
+  bal_t init_bal = 100000000;
+  node1->setBalance(addr, init_bal);
+  auto res = node1->getBalance(addr);
+  EXPECT_TRUE(res.second);
+  EXPECT_EQ(res.first, init_bal);
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
 
@@ -994,7 +1001,7 @@ TEST(FullNode, propose_with_sortition) {
   node1->stop();
   rpc->stop();
   t.join();
-  EXPECT_GT(node1->getNumProposedBlocks(), 0);
+  EXPECT_GT(node1->getNumProposedBlocks(), 5);
 }
 }  // namespace taraxa
 
