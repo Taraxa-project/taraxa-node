@@ -113,8 +113,8 @@ TEST(Top, top_reset) {
   EXPECT_EQ(node1->getTransactionStatusCount(), 10000);
   EXPECT_EQ(node2->getTransactionStatusCount(), 10000);
 
-  top2.stop();
-  top1.stop();
+  // top2.stop();
+  // top1.stop();
 
   // // ------------------------ Reset -----------------
   // top1.reset();
