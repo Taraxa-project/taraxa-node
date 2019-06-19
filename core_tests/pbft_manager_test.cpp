@@ -30,7 +30,7 @@ auto g_mock_dag0 = samples::createMockDag0();
 TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   addr_t account_address = node->getAddress();
@@ -87,13 +87,13 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
 TEST(PbftManager, pbft_manager_run_multi_nodes) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
   boost::asio::io_context context3;
   auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf_taraxa3.json")));
+      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
 
   bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   addr_t account_address1 = node1->getAddress();
@@ -213,7 +213,7 @@ TEST(PbftManager, pbft_manager_run_multi_nodes) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st ;
+  TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_MGR");

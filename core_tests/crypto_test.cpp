@@ -15,8 +15,8 @@
 #include "libdevcrypto/Common.h"
 
 #include <gtest/gtest.h>
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace taraxa {
 using std::string;
@@ -38,22 +38,31 @@ TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
 }
 
 TEST(EthereumCrypto, hex_to_decimal_test) {
-  string hex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-  string hex_decimal = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+  string hex =
+      "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+  string hex_decimal =
+      "115792089237316195423570985008687907853269984665640564039457584007913129"
+      "639935";
   string decimal = taraxa::hexToDecimal(hex);
   EXPECT_EQ(decimal, hex_decimal);
 }
 
 TEST(EthereumCrypto, big_number_multiplication_test) {
   // input num is the decimal of the max hash number 64 F
-  string num = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-  string output = "13407807929942597099574024998205846127479365820592393377723561443721764030073315392623399665776056285720014482370779510884422601683867654778417822746804225";
+  string num =
+      "115792089237316195423570985008687907853269984665640564039457584007913129"
+      "639935";
+  string output =
+      "134078079299425970995740249982058461274793658205923933777235614437217640"
+      "300733153926233996657760562857200144823707795108844226016838676547784178"
+      "22746804225";
   string sum = taraxa::bigNumberMultiplication(num, num);
   EXPECT_EQ(sum, output);
 }
 
 TEST(EthereumCrypto, sortition_test) {
-  string signature_hash = "0000000000000000000000000000000000000000000000000000000000000011";
+  string signature_hash =
+      "0000000000000000000000000000000000000000000000000000000000000011";
   uint64_t account_balance = 1000;
   bool sortition = taraxa::sortition(signature_hash, account_balance);
   EXPECT_EQ(sortition, true);
@@ -65,7 +74,7 @@ TEST(EthereumCrypto, sortition_rate) {
   uint64_t account_balance = total_coins / number_of_players;
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   addr_t account_address = node->getAddress();
   node->setBalance(account_address, account_balance);
   string message = "This is a test message.";
@@ -106,7 +115,7 @@ TEST(EthereumCrypto, sortition_rate) {
   EXPECT_GT(count, 0);
 }
 
-} // namespace taraxa
+}  // namespace taraxa
 
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
