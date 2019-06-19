@@ -29,9 +29,9 @@
 #include <grpcpp/impl/codegen/sync_stream.h>
 
 namespace grpc {
-//class CompletionQueue;
-//class Channel;
-//class ServerCompletionQueue;
+class CompletionQueue;
+class Channel;
+class ServerCompletionQueue;
 class ServerContext;
 }  // namespace grpc
 

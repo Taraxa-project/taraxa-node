@@ -34,7 +34,6 @@ auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
-// TODO don't use relative paths maybe?
 FullNodeConfig g_conf1("./core_tests/conf_taraxa1.json");
 FullNodeConfig g_conf2("./core_tests/conf_taraxa2.json");
 FullNodeConfig g_conf3("./core_tests/conf_taraxa3.json");

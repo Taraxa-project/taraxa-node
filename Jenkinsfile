@@ -23,7 +23,7 @@ pipeline {
             }
             steps {
                 sh 'git submodule update --init --recursive'
-                sh 'make run_test'
+                sh 'mkdir build && cd build && cmake .. && cmake --build . --target run_test -j `nproc`'
             }                    
         }            
         stage('Build Docker Image') {

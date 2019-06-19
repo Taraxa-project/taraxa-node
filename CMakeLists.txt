@@ -1,64 +1,49 @@
-add_subdirectory(submodules/ethash EXCLUDE_FROM_ALL)
-option(WITH_PROCPS OFF)
-add_subdirectory(submodules/libff EXCLUDE_FROM_ALL)
-add_subdirectory(submodules/prometheus-cpp EXCLUDE_FROM_ALL)
+set(CMAKE_MACOSX_RPATH 1)
+
+include(cmake/scoped_include.cmake)
+scoped_include(cmake/submodules/ethash.cmake) # ethash must be included before project() directive
 
 project(taraxa-node)
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.13) # actual minimal version might be lower, feel free to change
 
 include(FindBoost)
 include(FindProtobuf)
-include(cmake/submodules/cryptopp.cmake)
-include(cmake/submodules/secp256k1.cmake)
-include(cmake/submodules/taraxa_vm.cmake)
+scoped_include(cmake/submodules/libff.cmake)
+scoped_include(cmake/submodules/prometheus-cpp.cmake)
+scoped_include(cmake/submodules/cryptopp.cmake)
+scoped_include(cmake/submodules/secp256k1.cmake)
+scoped_include(cmake/submodules/taraxa-evm.cmake)
 
 find_package(Boost)
 find_package(Protobuf)
 
-# TODO transfered from Makefile, but doesn't seem to be needed
-#execute_process(
-#        COMMAND
-#        pkg-config --cflags protobuf grpc++ --libs protobuf grpc++
-#        OUTPUT_VARIABLE GRPC_COMPILE_ARGS)
-#
-#add_link_options(-DBOOST_LOG_DYN_LINK -DETH_FATDB)
-#add_compile_options(${GRPC_COMPILE_ARGS} -lgrpc++_reflection -ldl -I./grpc)
+set(CMAKE_CXX_STANDARD) # disable the problematic cmake std flag inference
+set(CXX_STD_FLAG -std=c++17)
+set(CXX_COMPILER_FLAGS ${CXX_STD_FLAG} -MMD -MP -MF)
+string(JOIN " " CMAKE_CXX_FLAGS ${CXX_COMPILER_FLAGS} ${CMAKE_CXX_FLAGS})
 
-# Doesn't work for all compilers/platforms, sometimes need to use specific flags
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_MACOSX_RPATH 1)
-set(LOG_LIB boost_log-mt) # TODO do we really need this?
-if (NOT APPLE)
-    set(LOG_LIB boost_log)
-    #    target_compile_definitions(main PUBLIC TODO transfered from Makefile, but doesn't seem to be needed
-    #            CRYPTOPP_DISABLE_ASM)
-endif ()
-
-add_compile_options(-std=c++17 -c -O3 -MMD -MP -MF)
 add_compile_definitions(BOOST_LOG_DYN_LINK ETH_FATDB)
-add_link_options(-DBOOST_LOG_DYN_LINK)
-execute_process(COMMAND echo ${Boost_INCLUDE_DIR})
-execute_process(COMMAND echo ${Boost_LIBRARY_DIRS})
 include_directories(
         ${Boost_INCLUDE_DIR}
         ${Protobuf_INCLUDE_DIR}
-        ${PROJECT_SOURCE_DIR}
-        ${PROJECT_SOURCE_DIR}/submodules
-        ${PROJECT_SOURCE_DIR}/submodules/rapidjson/include
-        ${PROJECT_SOURCE_DIR}/submodules/libff
-        ${PROJECT_SOURCE_DIR}/submodules/libff/libff
-        ${PROJECT_SOURCE_DIR}/submodules/ethash/include
-        ${PROJECT_SOURCE_DIR}/concur_storage
-        ${PROJECT_SOURCE_DIR}/grpc
-        ${PROJECT_SOURCE_DIR}/submodules/prometheus-cpp/push/include
-        ${PROJECT_SOURCE_DIR}/submodules/prometheus-cpp/pull/include
-        ${PROJECT_SOURCE_DIR}/submodules/prometheus-cpp/core/include
-        ${PROJECT_SOURCE_DIR}/submodules/secp256k1/include)
+        .
+        submodules
+        submodules/rapidjson/include
+        submodules/libff
+        submodules/libff/libff
+        submodules/ethash/include
+        concur_storage
+        grpc
+        submodules/prometheus-cpp/push/include
+        submodules/prometheus-cpp/pull/include
+        submodules/prometheus-cpp/core/include
+        submodules/secp256k1/include)
 
+add_link_options(${CXX_STD_FLAG})
 link_directories(${Boost_LIBRARY_DIRS})
 link_libraries(
         #       Linker search path libraries
-        ${LOG_LIB}
+        boost_log
         dl
         pthread
         protobuf
@@ -85,121 +70,135 @@ link_libraries(
         ff
         prometheus-cpp::core
         prometheus-cpp::push
-        prometheus-cpp::pull)
-#if (APPLE) # TODO might be required for CGO in some circumstances (not sure which)
-#    link_libraries("-framework CoreFoundation" "-framework Security")
-#endif (APPLE)
+        prometheus-cpp::pull
+)
+if (APPLE)
+    link_libraries(
+            # TODO will be required for Go runtime
+            #            "-framework CoreFoundation"
+            #            "-framework Security"
+            boost_log-mt)
+endif (APPLE)
 
-set(p2p_SOURCES ${PROJECT_SOURCE_DIR}/libdevcore/Address.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/Base64.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/Common.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/CommonData.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/CommonIO.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/CommonJS.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/DBFactory.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/FileSystem.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/FixedHash.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/Guards.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/JsonUtils.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/LevelDB.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/Log.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/LoggingProgramOptions.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/MemoryDB.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/OverlayDB.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/RLP.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/RocksDB.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/SHA3.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/StateCacheDB.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/TransientDirectory.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/TrieCommon.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/TrieHash.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcore/Worker.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcrypto/AES.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcrypto/Common.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcrypto/CryptoPP.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcrypto/Hash.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcrypto/LibSnark.cpp
-        ${PROJECT_SOURCE_DIR}/libdevcrypto/SecretStore.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/CapabilityHost.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/Common.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/Host.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/Network.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/NodeTable.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/Peer.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/RLPXFrameCoder.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/RLPxHandshake.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/Session.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/UDP.cpp
-        ${PROJECT_SOURCE_DIR}/libp2p/UPnP.cpp)
-add_library(node_obj OBJECT
-        ${p2p_SOURCES}
-        ${PROJECT_SOURCE_DIR}/rocks_db.cpp
-        ${PROJECT_SOURCE_DIR}/dag_block.cpp
-        ${PROJECT_SOURCE_DIR}/util.cpp
-        ${PROJECT_SOURCE_DIR}/udp_buffer.cpp
-        ${PROJECT_SOURCE_DIR}/network.cpp
-        ${PROJECT_SOURCE_DIR}/full_node.cpp
-        ${PROJECT_SOURCE_DIR}/types.cpp
-        ${PROJECT_SOURCE_DIR}/visitor.cpp
-        ${PROJECT_SOURCE_DIR}/dag.cpp
-        ${PROJECT_SOURCE_DIR}/block_proposer.cpp
-        ${PROJECT_SOURCE_DIR}/rpc.cpp
-        ${PROJECT_SOURCE_DIR}/grpc_client.cpp
-        ${PROJECT_SOURCE_DIR}/grpc_server.cpp
-        ${PROJECT_SOURCE_DIR}/grpc_util.cpp
-        ${PROJECT_SOURCE_DIR}/transaction.cpp
-        ${PROJECT_SOURCE_DIR}/executor.cpp
-        ${PROJECT_SOURCE_DIR}/pbft_chain.cpp
-        ${PROJECT_SOURCE_DIR}/grpc/proto/taraxa_grpc.pb.cc
-        ${PROJECT_SOURCE_DIR}/grpc/proto/taraxa_grpc.grpc.pb.cc
-        ${PROJECT_SOURCE_DIR}/taraxa_capability.cpp
-        ${PROJECT_SOURCE_DIR}/libethereum/Account.cpp
-        ${PROJECT_SOURCE_DIR}/libethcore/LogEntry.cpp
-        ${PROJECT_SOURCE_DIR}/libethereum/TransactionReceipt.cpp
-        ${PROJECT_SOURCE_DIR}/libethereum/State.cpp
-        ${PROJECT_SOURCE_DIR}/sortition.cpp
-        ${PROJECT_SOURCE_DIR}/pbft_manager.cpp
-        ${PROJECT_SOURCE_DIR}/vote.cpp
-        ${PROJECT_SOURCE_DIR}/top.cpp
-        ${PROJECT_SOURCE_DIR}/config.cpp
-        ${PROJECT_SOURCE_DIR}/SimpleStateDBDelegate.cpp
-        ${PROJECT_SOURCE_DIR}/SimpleTaraxaRocksDBDelegate.cpp
-        ${PROJECT_SOURCE_DIR}/SimpleOverlayDBDelegate.cpp
-        ${PROJECT_SOURCE_DIR}/vm/TaraxaVM.cpp)
+add_library(p2p_objects OBJECT
+        libdevcore/Address.cpp
+        libdevcore/Base64.cpp
+        libdevcore/Common.cpp
+        libdevcore/CommonData.cpp
+        libdevcore/CommonIO.cpp
+        libdevcore/CommonJS.cpp
+        libdevcore/DBFactory.cpp
+        libdevcore/FileSystem.cpp
+        libdevcore/FixedHash.cpp
+        libdevcore/Guards.cpp
+        libdevcore/JsonUtils.cpp
+        libdevcore/LevelDB.cpp
+        libdevcore/Log.cpp
+        libdevcore/LoggingProgramOptions.cpp
+        libdevcore/MemoryDB.cpp
+        libdevcore/OverlayDB.cpp
+        libdevcore/RLP.cpp
+        libdevcore/RocksDB.cpp
+        libdevcore/SHA3.cpp
+        libdevcore/StateCacheDB.cpp
+        libdevcore/TransientDirectory.cpp
+        libdevcore/TrieCommon.cpp
+        libdevcore/TrieHash.cpp
+        libdevcore/Worker.cpp
+        libdevcrypto/AES.cpp
+        libdevcrypto/Common.cpp
+        libdevcrypto/CryptoPP.cpp
+        libdevcrypto/Hash.cpp
+        libdevcrypto/LibSnark.cpp
+        libdevcrypto/SecretStore.cpp
+        libp2p/CapabilityHost.cpp
+        libp2p/Common.cpp
+        libp2p/Host.cpp
+        libp2p/Network.cpp
+        libp2p/NodeTable.cpp
+        libp2p/Peer.cpp
+        libp2p/RLPXFrameCoder.cpp
+        libp2p/RLPxHandshake.cpp
+        libp2p/Session.cpp
+        libp2p/UDP.cpp
+        libp2p/UPnP.cpp)
 
-add_executable(main ${PROJECT_SOURCE_DIR}/main.cpp)
-target_link_libraries(main node_obj)
+add_library(node_objects OBJECT
+        rocks_db.cpp
+        dag_block.cpp
+        util.cpp
+        udp_buffer.cpp
+        network.cpp
+        full_node.cpp
+        types.cpp
+        visitor.cpp
+        dag.cpp
+        block_proposer.cpp
+        rpc.cpp
+        grpc_client.cpp
+        grpc_server.cpp
+        grpc_util.cpp
+        transaction.cpp
+        executor.cpp
+        pbft_chain.cpp
+        grpc/proto/taraxa_grpc.pb.cc
+        grpc/proto/taraxa_grpc.grpc.pb.cc
+        taraxa_capability.cpp
+        libethereum/Account.cpp
+        libethcore/LogEntry.cpp
+        libethereum/TransactionReceipt.cpp
+        libethereum/State.cpp
+        sortition.cpp
+        pbft_manager.cpp
+        vote.cpp
+        top.cpp
+        config.cpp
+        SimpleStateDBDelegate.cpp
+        SimpleTaraxaRocksDBDelegate.cpp
+        SimpleOverlayDBDelegate.cpp
+        vm/TaraxaVM.cpp)
 
-enable_testing()
+set(main_deps_objects $<TARGET_OBJECTS:node_objects> $<TARGET_OBJECTS:p2p_objects>)
+add_library(main_objects OBJECT main.cpp)
+add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
 
 set(CORE_TESTS
-        concur_hash_test
         crypto_test
-        dag_block_test
-        dag_test
-        full_node_test
-        grpc_test
-        long_network_test
+        pbft_rpc_test
         memorydb_test
         overlaydb_test
-        p2p_test
-        pbft_chain_test
-        pbft_manager_test
-        pbft_rpc_test
-        state_unit_tests
         statecachedb_test
-        transaction_test)
-set(ALL_TESTS ${CORE_TESTS})
+        transaction_test
+        dag_test
+        concur_hash_test
+        dag_block_test
+        grpc_test
+        full_node_test
+        p2p_test
+        network_test
+        pbft_chain_test
+        state_unit_tests
+        pbft_manager_test)
 foreach (t ${CORE_TESTS})
-    add_executable(${t} ${PROJECT_SOURCE_DIR}/core_tests/${t}.cpp)
-    target_link_libraries(${t} node_obj)
-    add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_library(${t}_objects OBJECT core_tests/${t}.cpp)
 endforeach ()
+target_sources(concur_hash_test_objects PRIVATE
+        concur_storage/concur_hash.cpp
+        concur_storage/conflict_detector.cpp)
 
-target_sources(concur_hash_test PUBLIC
-        ${PROJECT_SOURCE_DIR}/concur_storage/concur_hash.cpp
-        ${PROJECT_SOURCE_DIR}/concur_storage/conflict_detector.cpp)
+add_library(trie_test_objects OBJECT
+        crypto_tests/MemTrie.cpp
+        crypto_tests/trie_test.cpp)
 
+set(ALL_TESTS
+        ${CORE_TESTS}
+        trie_test)
+foreach (t ${ALL_TESTS})
+    add_executable(${t} ${main_deps_objects} $<TARGET_OBJECTS:${t}_objects>)
+    add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    list(APPEND ALL_TESTS_COMMANDS COMMAND ${t})
+endforeach ()
 add_custom_target(run_test
-        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR} --target test
-        DEPENDS ${ALL_TESTS})
+        ${ALL_TESTS_COMMANDS}
+        DEPENDS main ${ALL_TESTS}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

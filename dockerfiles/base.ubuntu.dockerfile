@@ -6,8 +6,11 @@ ENV TERM xterm
 RUN apt-get update \
     && apt-get install -y \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
-    libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl libcurl4-openssl-dev cmake unzip pkg-config git \
+    libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl libcurl4-openssl-dev unzip pkg-config git \
     rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool
+
+RUN apt-get -y install python3-pip
+RUN pip3 install cmake
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8    
 
@@ -30,7 +33,7 @@ ENV ROCKSDB_VERSION="$rocksdb_version"
 RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
     && unzip v$rocksdb_version.zip -d /tmp \
     && cd /tmp/rocksdb-$rocksdb_version \
-    && make shared_lib \
+    && make shared_lib -j `nproc` \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
 
@@ -40,7 +43,7 @@ RUN wget https://github.com/google/leveldb/archive/v${LEVELDB_VERSION}.tar.gz \
   && tar xvf v${LEVELDB_VERSION}.tar.gz \
   && rm -f v${LEVELDB_VERSION}.tar.gz
 WORKDIR /tmp/leveldb-${LEVELDB_VERSION}
-RUN make
+RUN make -j `nproc`
 RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
 RUN scp -r include/leveldb /usr/local/include
 RUN ldconfig
@@ -48,7 +51,8 @@ RUN ldconfig
 ENV CC=gcc
 ENV CXX=g++
 ENV GRPC_VERSION="v1.19.1"
-RUN cd /tmp && git clone --verbose --progress --recursive --depth 1 --jobs 10 --branch ${GRPC_VERSION} https://github.com/grpc/grpc.git
+RUN cd /tmp && git clone --verbose --progress --recursive --depth 1 --jobs `nproc` \
+    --branch ${GRPC_VERSION} https://github.com/grpc/grpc.git
 RUN cd /tmp/grpc/ && git submodule update --init
 ENV PROTOBUF_VERSION="v3.7.1" 
 RUN cd /tmp/grpc/third_party/protobuf \
@@ -57,10 +61,17 @@ RUN cd /tmp/grpc/third_party/protobuf \
   && ./autogen.sh \
   && ./configure --prefix=/usr \
   && make -j `nproc` \
-  && make install
+  && make install -j `nproc`
 RUN cd /tmp/grpc/third_party/cares/cares && (git pull || true)
 RUN cd /tmp/grpc/third_party/boringssl && (git pull || true)  
 RUN cd /tmp/grpc \
   && make clean \
   && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' -j `nproc` \
-  && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install
+  && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install -j `nproc`
+
+ARG go_version=1.12.1
+RUN wget -qO- --show-progress --progress=bar:force \
+    https://dl.google.com/go/go$go_version.linux-amd64.tar.gz | tar xvz -C /usr/local
+ENV GOROOT=/usr/local/go
+ENV GOPATH=$HOME/.go
+ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
