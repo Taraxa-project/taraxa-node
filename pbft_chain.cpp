@@ -333,6 +333,7 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.streamRLP(strm);
   }  // TODO: more block types
+  strm << signature_;
 }
 
 blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }

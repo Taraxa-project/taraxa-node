@@ -71,12 +71,12 @@ TEST(EthereumCrypto, sortition_rate) {
   string message = "This is a test message.";
   int count = 0;
   for (int i = 0; i < 10000; i++) {
-      message += std::to_string(i);
-      sig_t signature = node->signMessage(message);
-      sig_hash_t sig_hash = dev::sha3(signature);
-      bool win = sortition(sig_hash.toString(), account_balance);
-      if (win) {
-        count++;
+    message += std::to_string(i);
+    sig_t signature = node->signMessage(message);
+    vote_hash_t sig_hash = dev::sha3(signature);
+    bool win = sortition(sig_hash.toString(), account_balance);
+    if (win) {
+      count++;
     }
   }
   // depend on sortition THRESHOLD, count should be close to THRESHOLD
@@ -85,7 +85,7 @@ TEST(EthereumCrypto, sortition_rate) {
   for (int i = 0; i < 10000; i++) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
-    sig_hash_t sig_hash = dev::sha3(signature);
+    vote_hash_t sig_hash = dev::sha3(signature);
     bool win = sortition(sig_hash.toString(), account_balance);
     if (win) {
       count++;

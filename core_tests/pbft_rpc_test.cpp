@@ -43,7 +43,7 @@ TEST(PbftVote, pbft_should_speak_test) {
   auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
-  node->start(true /*boot_node*/);
+  node->start(true); // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context));
@@ -62,10 +62,9 @@ TEST(PbftVote, pbft_should_speak_test) {
   t.join();
 }
 
-/* Place votes period 1, 2 and 3 into vote queue.
- * Get vote period 2, will remove period 1 in the queue. Queue size changes
- * to 2.
- */
+// Place votes period 1, 2 and 3 into vote queue.
+// Get vote period 2, will remove period 1 in the queue. Queue size changes
+// to 2.
 TEST(PbftVote, pbft_place_and_get_vote_test) {
   boost::asio::io_context context;
 
@@ -74,7 +73,7 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
   auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
-  node->start(true /*boot_node*/);
+  node->start(true); // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context));
@@ -115,8 +114,8 @@ TEST(PbftVote, transfer_vote) {
 
   node1->setDebug(true);
   node2->setDebug(true);
-  node1->start(true /*boot_node*/);
-  node2->start(false /*boot_node*/);
+  node1->start(true); // boot node
+  node2->start(false);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));
@@ -141,22 +140,30 @@ TEST(PbftVote, transfer_vote) {
   ASSERT_EQ(node_peers, nw1->getPeerCount());
   ASSERT_EQ(node_peers, nw2->getPeerCount());
 
+  // set nodes account balance
+  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  addr_t account_address1 = node1->getAddress();
+  node1->setBalance(account_address1, new_balance);
+  node2->setBalance(account_address1, new_balance);
+  addr_t account_address2 = node2->getAddress();
+  node1->setBalance(account_address2, new_balance);
+  node2->setBalance(account_address2, new_balance);
+
+  // stop PBFT manager, that will place vote
+  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
+
   // generate vote
   blk_hash_t blockhash(1);
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  std::string message = blockhash.toString() + std::to_string(type) +
-                        std::to_string(period) + std::to_string(step);
-  dev::KeyPair key_pair = dev::KeyPair::create();
-  dev::Signature signature = dev::sign(key_pair.secret(), dev::sha3(message));
-  Vote vote(key_pair.pub(), signature, blockhash, type, period, step);
-
-  addr_t account_address = dev::toAddress(key_pair.pub());
-  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  node1->setBalance(account_address, new_balance);
+  Vote vote = node2->generateVote(blockhash, type, period, step);
 
   node1->clearVoteQueue();
+  node2->clearVoteQueue();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -184,9 +191,9 @@ TEST(PbftVote, vote_broadcast) {
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true /*boot_node*/);
-  node2->start(false /*boot_node*/);
-  node3->start(false /*boot_node*/);
+  node1->start(true); // boot node
+  node2->start(false);
+  node3->start(false);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));
@@ -217,22 +224,35 @@ TEST(PbftVote, vote_broadcast) {
   ASSERT_EQ(node_peers, nw2->getPeerCount());
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
+  // set nodes account balance
+  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  addr_t account_address1 = node1->getAddress();
+  node1->setBalance(account_address1, new_balance);
+  node2->setBalance(account_address1, new_balance);
+  node3->setBalance(account_address1, new_balance);
+  addr_t account_address2 = node2->getAddress();
+  node1->setBalance(account_address2, new_balance);
+  node2->setBalance(account_address2, new_balance);
+  node3->setBalance(account_address2, new_balance);
+  addr_t account_address3 = node3->getAddress();
+  node1->setBalance(account_address3, new_balance);
+  node2->setBalance(account_address3, new_balance);
+  node3->setBalance(account_address3, new_balance);
+
+  // stop PBFT manager, that will place vote
+  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
+  pbft_mgr3->stop();
+
   // generate vote
   blk_hash_t blockhash(1);
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  std::string message = blockhash.toString() + std::to_string(type) +
-                        std::to_string(period) + std::to_string(step);
-  dev::KeyPair key_pair = dev::KeyPair::create();
-  dev::Signature signature = dev::sign(key_pair.secret(), dev::sha3(message));
-  Vote vote(key_pair.pub(), signature, blockhash, type, period, step);
-
-  addr_t account_address = dev::toAddress(key_pair.pub());
-  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  node1->setBalance(account_address, new_balance);
-  node2->setBalance(account_address, new_balance);
-  node3->setBalance(account_address, new_balance);
+  Vote vote = node1->generateVote(blockhash, type, period, step);
 
   node1->clearVoteQueue();
   node2->clearVoteQueue();
@@ -263,8 +283,10 @@ TEST(PbftVote, vote_broadcast) {
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityDebug;
-  logOptions.includeChannels.push_back("network");
+  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.includeChannels.push_back("NETWORK");
+  logOptions.includeChannels.push_back("TARCAP");
+  logOptions.includeChannels.push_back("VOTE_MGR");
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage

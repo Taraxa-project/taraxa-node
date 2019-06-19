@@ -11,7 +11,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
   const int number_of_levels_to_sync = 2;
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
-      LOG(log_nf_) << "Sync Peer:" << _nodeID.toString();
+      LOG(log_nf_) << "Sync Peer:" << _nodeID;
       peers_[_nodeID]->m_state = Syncing;
       requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
     }
@@ -21,7 +21,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
-      LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID.toString();
+      LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
       auto pbftChainSize = full_node->getPbftChainSize();
       requestPbftBlocks(_nodeID, pbftChainSize);
     }
@@ -124,6 +124,8 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
 bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                                                      unsigned _id,
                                                      RLP const &_r) {
+  peers_[_nodeID]->setAsking(false);
+  peers_[_nodeID]->setLastMessage();
   switch (_id) {
     case StatusPacket: {
       auto const peer_protocol_version = _r[0].toInt<unsigned>();
@@ -348,9 +350,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         return false;
       }
 
-      if (!full_node->isKnownVote(vote)) {
-        full_node->placeVote(vote);
-        full_node->setVoteKnown(vote);
+      if (!full_node->isKnownVote(vote.getHash())) {
+        full_node->setVoteKnown(vote.getHash());
+        full_node->receivedVotePushIntoQueue(vote);
         onNewPbftVote(vote);
       }
 
@@ -384,6 +386,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         return false;
       }
       if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
+        // TODO: need to check block valid, like propose vote(maybe come later), if get sortition etc
         full_node->pushPbftBlockIntoQueue(pbft_block);
         onNewPbftBlock(pbft_block);
       }
@@ -441,6 +444,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
       syncPeerPbft(max_vertices_nodeID);
     }
   }
+  peers_.erase(_nodeID);
 }
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
@@ -699,6 +703,7 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
   else
     host_.capabilityHost()->prep(_id, name(), s, GetBlockPacket, 1);
   s.append(hash);
+  peers_[_id]->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -708,7 +713,8 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << pbftChainSize;
-  LOG(log_dg_) << "Sending GetPbftBlockPacket with size:" << pbftChainSize;
+  LOG(log_dg_) << "Sending GetPbftBlockPacket with size: " << pbftChainSize;
+  peers_[_id]->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -722,6 +728,7 @@ void TaraxaCapability::requestBlocksLevel(NodeID const &_id,
   s << number_of_levels;
   LOG(log_dg_) << "Sending GetBlocksLevelPacket of level:" << level << " "
                << number_of_levels;
+  peers_[_id]->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -752,6 +759,20 @@ void TaraxaCapability::setFullNode(std::shared_ptr<FullNode> full_node) {
 void TaraxaCapability::doBackgroundWork() {
   if (auto full_node = full_node_.lock()) {
     onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
+  }
+  for (auto const &peer : peers_) {
+    time_t now =
+        std::chrono::system_clock::to_time_t(chrono::system_clock::now());
+    //Disconnect any node that do not respond within 10 seconds
+    if (peer.second->asking() && now - peer.second->lastAsk() > 10) {
+      LOG(log_nf_) << "Host disconnected, no response in 10 seconds" << peer.first;
+      host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
+    }
+    //Disconnect any node that did not send any message for over 120 seconds
+    if (now - peer.second->lastMessageTime() > 120) {
+      LOG(log_nf_) << "Host disconnected, no message in 120 seconds" << peer.first;
+      host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
+    }
   }
   host_.scheduleExecution(conf_.network_transaction_interval,
                           [this]() { doBackgroundWork(); });

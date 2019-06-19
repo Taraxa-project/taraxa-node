@@ -52,8 +52,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                                     dag_mgr_->getShared(),
                                                     trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>()),
-      pbft_mgr_(std::make_shared<PbftManager>(conf_.pbft_manager)),
+      vote_mgr_(std::make_shared<VoteManager>()),
       vote_queue_(std::make_shared<VoteQueue>()),
+      pbft_mgr_(std::make_shared<PbftManager>(conf_.pbft_manager)),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
   initDB(destroy_db);
@@ -316,6 +317,7 @@ bool FullNode::reset() {
   trx_mgr_ = nullptr;
   blk_proposer_ = nullptr;
   executor_ = nullptr;
+  vote_mgr_ = nullptr;
   vote_queue_ = nullptr;
   pbft_mgr_ = nullptr;
   pbft_chain_ = nullptr;
@@ -331,6 +333,8 @@ bool FullNode::reset() {
   // transaction executor
   assert(executor_.use_count() == 0);
   // PBFT
+  assert(vote_mgr_.use_count() == 0);
+
   assert(vote_queue_.use_count() == 0);
 
   assert(pbft_mgr_.use_count() == 0);
@@ -352,6 +356,7 @@ bool FullNode::reset() {
       conf_.proposer, dag_mgr_->getShared(), trx_mgr_->getShared());
   executor_ = std::make_shared<Executor>();
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.pbft_manager);
+  vote_mgr_ = std::make_shared<VoteManager>();
   vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
   LOG(log_wr_) << "Node reset ... ";
@@ -649,52 +654,48 @@ bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
   return true;
 }
 
-void FullNode::placeVote(taraxa::blk_hash_t const &blockhash,
-                         PbftVoteTypes type, uint64_t period, size_t step) {
-  vote_queue_->placeVote(node_pk_, node_sk_, blockhash, type, period, step);
+void FullNode::pushVoteIntoQueue(taraxa::Vote const& vote) {
+  vote_queue_->pushBackVote(vote);
 }
 
 std::vector<Vote> FullNode::getVotes(uint64_t period) {
   return vote_queue_->getVotes(period);
 }
 
-void FullNode::placeVote(taraxa::Vote const &vote) {
+void FullNode::receivedVotePushIntoQueue(taraxa::Vote const& vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<bal_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
-    LOG(log_er_) << "Cannot find the vote account balance: " << vote_address
-                 << std::endl;
+    LOG(log_er_) << "Cannot find the vote account balance: " << vote_address;
     return;
   }
-  if (vote.validateVote(account_balance)) {
-    vote_queue_->placeVote(vote);
+
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+                                account_balance.first)) {
+    vote_queue_->pushBackVote(vote);
   }
 }
 
-void FullNode::broadcastVote(taraxa::blk_hash_t const &blockhash,
-                             PbftVoteTypes type, uint64_t period, size_t step) {
-  std::string message = blockhash.toString() + std::to_string(type) +
-                        std::to_string(period) + std::to_string(step);
-  dev::Signature signature = signMessage(message);
-  Vote vote(node_pk_, signature, blockhash, type, period, step);
+void FullNode::broadcastVote(Vote const& vote) {
+  // come from RPC
   network_->onNewPbftVote(vote);
 }
 
-bool FullNode::shouldSpeak(blk_hash_t const &blockhash, PbftVoteTypes type,
-                           uint64_t period, size_t step) {
-  return pbft_mgr_->shouldSpeak(blockhash, type, period, step);
+bool FullNode::shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step) {
+  return pbft_mgr_->shouldSpeak(type, period, step);
 }
 
 void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
 
 size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
 
-bool FullNode::isKnownVote(taraxa::Vote const &vote) const {
-  return known_votes_.count(vote.getHash());
+bool FullNode::isKnownVote(vote_hash_t const& vote_hash) const {
+  return known_votes_.count(vote_hash);
 }
 
-void FullNode::setVoteKnown(taraxa::Vote const &vote) {
-  known_votes_.insert(vote.getHash());
+void FullNode::setVoteKnown(vote_hash_t const& vote_hash) {
+  known_votes_.insert(vote_hash);
 }
 
 bool FullNode::isKnownPbftBlockInChain(
@@ -748,6 +749,21 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   db_pbftchain_->commit();
 
   return true;
+}
+
+Vote FullNode::generateVote(blk_hash_t const& blockhash, PbftVoteTypes type,
+    uint64_t period, size_t step) {
+  blk_hash_t lask_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  // sortition signature
+  sig_t sortition_signature =
+      vote_mgr_->signVote(node_sk_, lask_pbft_block_hash, type, period, step);
+  // vote signature
+  sig_t vote_signature =
+      vote_mgr_->signVote(node_sk_, blockhash, type, period, step);
+
+  Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
+            period, step);
+  return vote;
 }
 
 }  // namespace taraxa
