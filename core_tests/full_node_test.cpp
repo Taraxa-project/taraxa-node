@@ -35,9 +35,9 @@ auto g_mock_dag0 = samples::createMockDag0();
 
 TEST(Top, top_reset) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
@@ -191,13 +191,13 @@ TEST(FullNode, full_node_reset) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start(true /*boot_node*/);
 
   // send package
-  FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
   auto nw2(std::make_shared<taraxa::Network>(conf2.network));
 
   std::unique_ptr<boost::asio::io_context::work> work(
@@ -279,15 +279,15 @@ TEST(FullNode, full_node_reset) {
 
 TEST(Top, sync_five_nodes_simple) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
   const char* input3[] = {"./build/main3", "--conf_taraxa",
-                          "./core_tests/conf_taraxa3.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
   const char* input4[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf_taraxa4.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
   const char* input5[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf_taraxa5.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
 
   // copy main2, main3, main4, main5
   try {
@@ -483,7 +483,7 @@ TEST(Top, sync_five_nodes_simple) {
 TEST(FullNode, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true /*boot_node*/);
 
   auto num_blks = g_mock_dag0.size();
@@ -560,7 +560,7 @@ TEST(Top, create_top_level_db) {
     dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
 
     const char* inputs[] = {"./build/main", "--conf_taraxa",
-                            "./core_tests/conf_taraxa1.json", "-v", "0"};
+                            "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
@@ -577,7 +577,7 @@ TEST(Top, create_top_level_db) {
 TEST(Top, create_top_memory_db) {
   {
     const char* inputs[] = {"./build/main", "--conf_taraxa",
-                            "./core_tests/conf_taraxa1.json", "-v", "0"};
+                            "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
@@ -600,7 +600,7 @@ TEST(Top, reconstruct_dag) {
   auto num_blks = g_mock_dag0.size();
   {
     boost::asio::io_context context;
-    FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(
         std::make_shared<taraxa::FullNode>(context, conf, true /*destroy_db*/));
 
@@ -618,7 +618,7 @@ TEST(Top, reconstruct_dag) {
   }
   {
     boost::asio::io_context context;
-    FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(std::make_shared<taraxa::FullNode>(context, conf,
                                                  false /*destroy_db*/));
 
@@ -804,7 +804,7 @@ TEST(FullNode, account_bal) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   addr_t addr1(100);
   bal_t bal1(1000);
   node->setBalance(addr1, bal1);
@@ -825,7 +825,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true /*boot_node*/);
   addr_t acc1 = node->getAddress();
 
@@ -898,14 +898,14 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   // node1->setVerbose(true);
   node1->setDebug(true);
   node1->start(true /*boot_node*/);
 
   // send package
-  FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
   auto nw2(std::make_shared<taraxa::Network>(conf2.network));
 
   std::unique_ptr<boost::asio::io_context::work> work(
@@ -969,13 +969,13 @@ TEST(FullNode, send_and_receive_out_order_messages) {
 TEST(FullNode, save_network_to_file) {
   {
     boost::asio::io_context context1;
-    FullNodeConfig conf1("./core_tests/conf_taraxa1.json");
+    FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
     auto node1(std::make_shared<taraxa::FullNode>(context1, conf1));
     boost::asio::io_context context2;
-    FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+    FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
     auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
     boost::asio::io_context context3;
-    FullNodeConfig conf3("./core_tests/conf_taraxa3.json");
+    FullNodeConfig conf3("./core_tests/conf/conf_taraxa3.json");
     auto node3(std::make_shared<taraxa::FullNode>(context3, conf3));
 
     node1->start(true);
@@ -998,10 +998,10 @@ TEST(FullNode, save_network_to_file) {
   }
   {
     boost::asio::io_context context2;
-    FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+    FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
     auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
     boost::asio::io_context context3;
-    FullNodeConfig conf3("./core_tests/conf_taraxa3.json");
+    FullNodeConfig conf3("./core_tests/conf/conf_taraxa3.json");
     auto node3(std::make_shared<taraxa::FullNode>(context3, conf3));
 
     node2->start(false);
@@ -1021,7 +1021,7 @@ TEST(FullNode, save_network_to_file) {
 
 TEST(FullNode, receive_send_transaction) {
   boost::asio::io_context context1;
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
   auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
   auto rpc(
       std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
@@ -1035,7 +1035,7 @@ TEST(FullNode, receive_send_transaction) {
   boost::thread t([&context1]() { context1.run(); });
 
   try {
-    system("./core_tests/curl_send_1000_trx.sh");
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1056,9 +1056,9 @@ TEST(FullNode, receive_send_transaction) {
   EXPECT_GT(node1->getNumProposedBlocks(), 0);
 }
 
-TEST(FullNode, propose_with_sortition) {
+TEST(FullNode, sortition_propose_one_node) {
   boost::asio::io_context context1;
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
   conf.proposer.mode = 1;
   conf.proposer.param1 = 100;
   conf.proposer.param2 = 4294967295;
@@ -1084,7 +1084,7 @@ TEST(FullNode, propose_with_sortition) {
   boost::thread t([&context1]() { context1.run(); });
 
   try {
-    system("./core_tests/curl_send_1000_trx.sh");
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1104,6 +1104,210 @@ TEST(FullNode, propose_with_sortition) {
   t.join();
   EXPECT_GT(node1->getNumProposedBlocks(), 5);
 }
+
+TEST(Top, sortition_propose_five_nodes) {
+  const char* input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+  const char* input2[] = {"./build/main2", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
+  const char* input3[] = {"./build/main3", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
+  const char* input4[] = {"./build/main4", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
+  const char* input5[] = {"./build/main4", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
+
+  // copy main2, main3, main4, main5
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+    std::cout << "Copying main3 ..." << std::endl;
+    system("cp ./build/main ./build/main3");
+    std::cout << "Copying main4 ..." << std::endl;
+    system("cp ./build/main ./build/main4");
+    std::cout << "Copying main5 ..." << std::endl;
+    system("cp ./build/main ./build/main5");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  Top top1(5, input1);
+  EXPECT_TRUE(top1.isActive());
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+  std::cout << "Top1 created ..." << std::endl;
+
+  Top top2(5, input2);
+  EXPECT_TRUE(top2.isActive());
+  std::cout << "Top2 created ..." << std::endl;
+
+  Top top3(5, input3);
+  EXPECT_TRUE(top3.isActive());
+  std::cout << "Top3 created ..." << std::endl;
+
+  Top top4(5, input4);
+  EXPECT_TRUE(top4.isActive());
+  std::cout << "Top4 created ..." << std::endl;
+
+  Top top5(5, input5);
+  EXPECT_TRUE(top5.isActive());
+  std::cout << "Top5 created ..." << std::endl;
+  // wait for top2, top3, top4, top5 initialize
+  taraxa::thisThreadSleepForMilliSeconds(2000);
+
+  // send 1000 trxs
+  try {
+    std::string sendtrx1 =
+        R"(curl -s -d '{"action": "create_test_coin_transactions", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce", 
+                                      "delay": 5, 
+                                      "number": 6000, 
+                                      "seed": 1 }' 0.0.0.0:7777)";
+    std::string sendtrx2 =
+        R"(curl -s -d '{"action": "create_test_coin_transactions", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
+                                      "delay": 7, 
+                                      "number": 4000, 
+                                      "seed": 2 }' 0.0.0.0:7778)";
+    std::string sendtrx3 =
+        R"(curl -s -d '{"action": "create_test_coin_transactions", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1", 
+                                      "delay": 3, 
+                                      "number": 3000, 
+                                      "seed": 3 }' 0.0.0.0:7779)";
+    std::string sendtrx4 =
+        R"(curl -s -d '{"action": "create_test_coin_transactions", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2", 
+                                      "delay": 10, 
+                                      "number": 3000, 
+                                      "seed": 4 }' 0.0.0.0:7780)";
+    std::string sendtrx5 =
+        R"(curl -s -d '{"action": "create_test_coin_transactions", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3", 
+                                      "delay": 23, 
+                                      "number": 4000, 
+                                      "seed": 5 }' 0.0.0.0:7781)";
+    std::cout << "Sending trxs ..." << std::endl;
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+    std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
+    std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
+    std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+    std::cout << "All trxs sent..." << std::endl;
+
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  auto node3 = top3.getNode();
+  auto node4 = top4.getNode();
+  auto node5 = top5.getNode();
+
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  EXPECT_NE(node3, nullptr);
+  EXPECT_NE(node4, nullptr);
+  EXPECT_NE(node5, nullptr);
+
+  auto num_peers1 = node1->getPeerCount();
+  auto num_peers2 = node2->getPeerCount();
+  auto num_peers3 = node3->getPeerCount();
+  auto num_peers4 = node4->getPeerCount();
+  auto num_peers5 = node5->getPeerCount();
+
+  for (auto i = 0; i < 180; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for peers syncing ..." << std::endl;
+    }
+    num_peers1 = node1->getPeerCount();
+    num_peers2 = node2->getPeerCount();
+    num_peers3 = node3->getPeerCount();
+    num_peers4 = node4->getPeerCount();
+    num_peers5 = node5->getPeerCount();
+
+    if (num_peers1 == 4 && num_peers2 == 4 && num_peers3 == 4 &&
+        num_peers4 == 4 && num_peers5 == 4)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+  EXPECT_EQ(num_peers1, 4);
+  EXPECT_EQ(num_peers2, 4);
+  EXPECT_EQ(num_peers3, 4);
+  EXPECT_EQ(num_peers4, 4);
+  EXPECT_EQ(num_peers5, 4);
+
+  // check dags
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
+
+  for (auto i = 0; i < 180; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for vertices syncing ..." << std::endl;
+    }
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
+    num_vertices3 = node3->getNumVerticesInDag();
+    num_vertices4 = node4->getNumVerticesInDag();
+    num_vertices5 = node5->getNumVerticesInDag();
+
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
+        node1->getTransactionStatusCount() == 20000 &&
+        node2->getTransactionStatusCount() == 20000 &&
+        node3->getTransactionStatusCount() == 20000 &&
+        node4->getTransactionStatusCount() == 20000 &&
+        node5->getTransactionStatusCount() == 20000)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+
+  num_vertices1 = node1->getNumVerticesInDag();
+  num_vertices2 = node2->getNumVerticesInDag();
+  num_vertices3 = node3->getNumVerticesInDag();
+  num_vertices4 = node4->getNumVerticesInDag();
+  num_vertices5 = node5->getNumVerticesInDag();
+
+  EXPECT_EQ(num_vertices1, num_vertices2);
+  EXPECT_EQ(num_vertices2, num_vertices3);
+  EXPECT_EQ(num_vertices3, num_vertices4);
+  EXPECT_EQ(num_vertices4, num_vertices5);
+
+  EXPECT_EQ(node1->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
+
+  top5.kill();
+  top4.kill();
+  top3.kill();
+  top2.kill();
+  top1.kill();
+  // delete main2
+  try {
+    std::cout << "main5 deleted ..." << std::endl;
+    system("rm -f ./build/main5");
+    std::cout << "main4 deleted ..." << std::endl;
+    system("rm -f ./build/main4");
+    std::cout << "main3 deleted ..." << std::endl;
+    system("rm -f ./build/main3");
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+}
+
 }  // namespace taraxa
 
 int main(int argc, char** argv) {

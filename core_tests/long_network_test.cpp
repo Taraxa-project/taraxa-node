@@ -34,9 +34,9 @@ auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
-FullNodeConfig g_conf1("./core_tests/conf_taraxa1.json");
-FullNodeConfig g_conf2("./core_tests/conf_taraxa2.json");
-FullNodeConfig g_conf3("./core_tests/conf_taraxa3.json");
+FullNodeConfig g_conf1("./core_tests/conf/conf_taraxa1.json");
+FullNodeConfig g_conf2("./core_tests/conf/conf_taraxa2.json");
+FullNodeConfig g_conf3("./core_tests/conf/conf_taraxa3.json");
 
 /*
 Test creates a DAG on one node and verifies
@@ -48,7 +48,7 @@ TEST(Network, node_sync) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   node1->setDebug(true);
   node1->start(true);
@@ -64,7 +64,7 @@ TEST(Network, node_sync) {
   taraxa::thisThreadSleepForMilliSeconds(10000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json"));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json"));
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -92,7 +92,7 @@ TEST(Network, delayed_node_sync) {
       boost::asio::io_context context1;
       boost::asio::io_context context2;
 
-      FullNodeConfig node1Config("./core_tests/conf_taraxa1.json");
+      FullNodeConfig node1Config("./core_tests/conf/conf_taraxa1.json");
       node1Config.network.network_simulated_delay = simulated_delay;
       node1Config.network.network_bandwidth = bandwidth;
       auto node1(std::make_shared<taraxa::FullNode>(context1, node1Config));
@@ -110,7 +110,7 @@ TEST(Network, delayed_node_sync) {
 
       taraxa::thisThreadSleepForMilliSeconds(10000);
 
-      FullNodeConfig node2Config("./core_tests/conf_taraxa2.json");
+      FullNodeConfig node2Config("./core_tests/conf/conf_taraxa2.json");
       node2Config.network.network_simulated_delay = simulated_delay;
       node2Config.network.network_bandwidth = bandwidth;
       auto node2(std::make_shared<taraxa::FullNode>(context1, node2Config));
@@ -153,7 +153,7 @@ DAG on the other end is the same using different simulated delays
 TEST(Network, delayed_node_sync2) {
   boost::asio::io_context context1;
 
-  FullNodeConfig node1Config("./core_tests/conf_taraxa1.json");
+  FullNodeConfig node1Config("./core_tests/conf/conf_taraxa1.json");
   node1Config.network.network_simulated_delay = 200;
   node1Config.network.network_bandwidth = 40;
   node1Config.proposer.param1 = 1000;
@@ -171,7 +171,7 @@ TEST(Network, delayed_node_sync2) {
   int num_nodes = 100;
   for (auto i = 0; i < num_nodes; i++) {
     boost::asio::io_context context2;
-    FullNodeConfig node2Config("./core_tests/conf_taraxa2.json");
+    FullNodeConfig node2Config("./core_tests/conf/conf_taraxa2.json");
     node2Config.network.network_simulated_delay = 200;
     node2Config.network.network_bandwidth = 40;
     node2Config.network.network_listen_port += i;
@@ -216,7 +216,7 @@ DAG on the other end is the same using different simulated delays
 TEST(Network, delayed_node_sync3) {
   boost::asio::io_context context1;
 
-  FullNodeConfig node1Config("./core_tests/conf_taraxa1.json");
+  FullNodeConfig node1Config("./core_tests/conf/conf_taraxa1.json");
   node1Config.network.network_simulated_delay = 200;
   node1Config.network.network_bandwidth = 40;
   node1Config.proposer.param1 = 100000;
@@ -234,7 +234,7 @@ TEST(Network, delayed_node_sync3) {
   int num_nodes = 20;
   for (auto i = 0; i < num_nodes; i++) {
     boost::asio::io_context context2;
-    FullNodeConfig node2Config("./core_tests/conf_taraxa2.json");
+    FullNodeConfig node2Config("./core_tests/conf/conf_taraxa2.json");
     node2Config.network.network_simulated_delay = 200;
     node2Config.network.network_bandwidth = 40;
     node2Config.network.network_listen_port += i;

@@ -30,7 +30,7 @@ TEST(PbftManager, pbft_manager_lambda_input_test) {
 TEST(PbftManager, full_node_lambda_input_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
   u_long lambda = pbft_mgr->getLambdaMs();
   EXPECT_EQ(lambda, 1000);
@@ -38,12 +38,12 @@ TEST(PbftManager, full_node_lambda_input_test) {
 
 TEST(PbftVote, pbft_should_speak_test) {
   boost::asio::io_context context;
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
   auto node(std::make_shared<taraxa::FullNode>(context, conf));
   auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
-  node->start(true); // boot node
+  node->start(true);  // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context));
@@ -51,7 +51,7 @@ TEST(PbftVote, pbft_should_speak_test) {
   boost::thread t([&context]() { context.run(); });
 
   try {
-    system("./core_tests/curl_pbft_should_speak.sh");
+    system("./core_tests/scripts/curl_pbft_should_speak.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
@@ -68,12 +68,12 @@ TEST(PbftVote, pbft_should_speak_test) {
 TEST(PbftVote, pbft_place_and_get_vote_test) {
   boost::asio::io_context context;
 
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
   auto node(std::make_shared<taraxa::FullNode>(context, conf));
   auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
   rpc->start();
   node->setDebug(true);
-  node->start(true); // boot node
+  node->start(true);  // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context));
@@ -83,13 +83,13 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
   node->clearVoteQueue();
 
   try {
-    system("./core_tests/curl_pbft_place_vote.sh");
+    system("./core_tests/scripts/curl_pbft_place_vote.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
 
   try {
-    system("./core_tests/curl_pbft_get_votes.sh");
+    system("./core_tests/scripts/curl_pbft_get_votes.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
@@ -107,14 +107,14 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
 TEST(PbftVote, transfer_vote) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
 
   node1->setDebug(true);
   node2->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   node2->start(false);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
@@ -181,17 +181,17 @@ TEST(PbftVote, transfer_vote) {
 TEST(PbftVote, vote_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
   boost::asio::io_context context3;
   auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf_taraxa3.json")));
+      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   node2->start(false);
   node3->start(false);
 
