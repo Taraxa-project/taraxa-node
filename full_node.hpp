@@ -130,7 +130,17 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint getBlockProposeThresholdBeta()
       const { /*TODO: should receive it from pbft-block, use threshold from
                  0 ~ 1024 */
-    return 512;
+    return propose_threshold_;
+  }
+  void setBlockProposeThresholdBeta(
+      uint threshold) { /*TODO: should receive it from pbft-block, use threshold
+                           from 0 ~ 1024, if larger than 4096, should always
+                           success */
+    if (threshold >= (1u << 20)) {
+      threshold = (1u << 20);
+    }
+    propose_threshold_ = threshold;
+    LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
   // fake trx schedule
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
@@ -203,7 +213,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   FullNodeConfig conf_;
   bool verbose_ = false;
   bool debug_ = false;
-
+  uint64_t propose_threshold_ = 512;
   // node secrets
   secret_t node_sk_;
   public_t node_pk_;

@@ -80,21 +80,16 @@ bool SortitionPropose::propose() {
 
   // get sortition
 
-  // TODO: remove, now prevent from getting stuck
-  propose_level = std::max(last_fail_propose_level_ + 1, propose_level);
-  //
-
   bool win = proposer->winProposeSortition(propose_level, threshold_);
   if (win) {
     vec_trx_t sharded_trxs;
     ok = proposer->getShardedTrxs(sharded_trxs);
     if (!ok) {
+      LOG(log_dg_) << "Cannot get transactions ... ";
       return false;
     }
     DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
     proposer_.lock()->proposeBlock(blk);
-  } else {
-    last_fail_propose_level_ = propose_level;
   }
   return true;
 }
@@ -179,7 +174,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard,
   }
   trx_mgr->packTrxs(to_be_packed_trx);
   if (to_be_packed_trx.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
+    LOG(log_dg_) << "Skip block proposer, zero unpacked transactions ..."
                  << std::endl;
     return false;
   }
@@ -242,16 +237,18 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
   uint64_t log_bal = log10(my_bal) + 1;                // 1~16, 4 bits
   uint64_t my_threshold = log_bal * beta * threshold;  // 46 bits
   if (ticket < my_threshold) {
-    LOG(log_nf_) << "Win sortition at level: " << propose_level
+    LOG(log_dg_) << "Win sortition at level: " << propose_level
                  << " , ticket = " << ticket
                  << " , threshold = " << my_threshold
+                 << " , diff (%) = " << double(my_threshold - ticket) / ticket
                  << " , log_bal = " << log_bal << " , beta = " << beta
                  << " , threshold = " << threshold;
     ret = true;
   } else {
-    LOG(log_nf_) << "Loose sortition at level: " << propose_level
+    LOG(log_dg_) << "Loose sortition at level: " << propose_level
                  << " , ticket = " << ticket
                  << " , threshold = " << my_threshold
+                 << " , diff (%) = " << double(my_threshold - ticket) / ticket
                  << " , log_bal = " << log_bal << " , beta = " << beta
                  << " , threshold = " << threshold;
   }
