@@ -74,7 +74,6 @@ class SortitionPropose : public ProposeModelFace {
 
  private:
   uint propose_interval_ = 1000;
-  level_t last_fail_propose_level_ = 0;
   blk_hash_t anchor_hash_;
   uint64_t threshold_;
   dev::Logger log_er_{
@@ -130,7 +129,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   }
   bool winProposeSortition(level_t proposeLevel, uint64_t threshold);
   friend ProposeModelFace;
-  
+
  private:
   bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
 

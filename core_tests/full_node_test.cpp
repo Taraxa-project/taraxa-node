@@ -970,6 +970,8 @@ TEST(FullNode, propose_with_sortition) {
       std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
   rpc->start();
   node1->setDebug(true);
+  // destroy db !!
+  node1->destroyDB();
   node1->start(true /*boot_node*/);
   auto addr = node1->getAddress();
   bal_t init_bal = 100000000;
@@ -977,6 +979,7 @@ TEST(FullNode, propose_with_sortition) {
   auto res = node1->getBalance(addr);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, init_bal);
+  node1->setBlockProposeThresholdBeta(2048);
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
 
