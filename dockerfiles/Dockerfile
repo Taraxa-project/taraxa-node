@@ -20,7 +20,7 @@ WORKDIR ${APP_PATH}
 COPY --from=builder ${APP_PATH}/build/main .
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
-COPY ./core_tests/*.json ./default_config/
+COPY ./core_tests/conf/*.json ./default_config/
 
 ENTRYPOINT [ "./main" ]
 CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
