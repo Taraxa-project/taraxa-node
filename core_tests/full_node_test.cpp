@@ -659,7 +659,7 @@ TEST(Top, sync_two_nodes1) {
                           "0",
                           "--destroy_db"};
 
-  Top top1(5, input1);
+  Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   std::cout << "Top1 created ..." << std::endl;
 
