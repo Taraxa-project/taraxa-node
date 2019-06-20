@@ -26,7 +26,7 @@ namespace dev
 class UnixDomainSocketServer : public IpcServerBase<int>
 {
 public:
-    explicit UnixDomainSocketServer(std::string const& _appId);
+    explicit UnixDomainSocketServer(std::string const& _path);
     ~UnixDomainSocketServer() override;
     bool StartListening() override;
     bool StopListening() override;

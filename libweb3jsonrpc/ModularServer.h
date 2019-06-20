@@ -97,13 +97,15 @@ public:
 
     virtual void HandleMethodCall(jsonrpc::Procedure& _proc, Json::Value const& _input, Json::Value& _output) override
     {
+        printf("HandleMethodCall\n");
         if (_proc.GetProcedureName() == "rpc_modules")
             modules(_input, _output);
     }
 
     virtual void HandleNotificationCall(jsonrpc::Procedure& _proc, Json::Value const& _input) override
     {
-        (void)_proc;
+        printf("HandleNotificationCall\n");
+       (void)_proc;
         (void)_input;
     }
 

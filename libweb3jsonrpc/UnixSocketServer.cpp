@@ -56,8 +56,8 @@ fs::path getIpcPathOrDataDir()
 }
 }
 
-UnixDomainSocketServer::UnixDomainSocketServer(string const& _appId):
-	IpcServerBase((getIpcPathOrDataDir() / fs::path(_appId + ".ipc")).string().substr(0, c_socketPathMaxLength))
+UnixDomainSocketServer::UnixDomainSocketServer(string const& _path):
+	IpcServerBase((fs::path(_path + "/taraxa.ipc")).string().substr(0, c_socketPathMaxLength))
 {
 }
 
@@ -68,10 +68,13 @@ UnixDomainSocketServer::~UnixDomainSocketServer()
 
 bool UnixDomainSocketServer::StartListening()
 {
+	printf("%s startListening\n", m_path.c_str());
 	if (!m_running)
 	{
-		if (access(m_path.c_str(), F_OK) != -1)
+		if (access(m_path.c_str(), F_OK) != -1) {
+			printf("access failed\n");
 			unlink(m_path.c_str());
+		}
 
 		if (access(m_path.c_str(), F_OK) != -1)
 			return false;

@@ -24,16 +24,16 @@
 #include <jsonrpccpp/common/errors.h>
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
-#include <libethereum/ChainParams.h>
-#include <libethereum/ClientTest.h>
+#include "types.hpp"
 
 using namespace std;
 using namespace dev;
 using namespace dev::eth;
 using namespace dev::rpc;
 using namespace jsonrpc;
+using namespace taraxa;
 
-Test::Test(eth::Client& _eth): m_eth(_eth) {}
+Test::Test(std::shared_ptr<taraxa::FullNode>& _full_node): full_node_(_full_node) {}
 
 namespace
 {
@@ -59,88 +59,405 @@ h256 stringToHash(string const& _hashString)
 }
 }
 
-string Test::test_getLogHash(string const& _txHash)
+Json::Value Test::insert_dag_block(const Json::Value& param1)
 {
-    try
+    Json::Value res;
+    try 
     {
-        h256 txHash = stringToHash(_txHash);
-        if (m_eth.blockChain().isKnownTransaction(txHash))
+        if(auto node = full_node_.lock()) 
         {
-            LocalisedTransaction t = m_eth.localisedTransaction(txHash);
-            BlockReceipts const& blockReceipts = m_eth.blockChain().receipts(t.blockHash());
-            if (blockReceipts.receipts.size() != 0)
-                return logEntriesToLogHash(blockReceipts.receipts[t.transactionIndex()].log());
+            blk_hash_t pivot = blk_hash_t(param1["pivot"].asString());
+            
+            vec_blk_t tips = asVector<blk_hash_t>(param1["tips"]);
+            taraxa::sig_t signature = taraxa::sig_t(
+                "777777777777777777777777777777777777777777777777777777777777777777"
+                "777777777777777777777777777777777777777777777777777777777777777");
+            blk_hash_t hash = blk_hash_t(param1["hash"].asString());
+            addr_t sender = addr_t(param1["sender"].asString());
+
+            DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
+            res = blk.getJsonStr();
+            node->insertBlock(std::move(blk));
         }
-        return toJS(dev::EmptyListSHA3);
-    }
-    catch (std::exception const& ex)
-    {
-        cwarn << ex.what();
-        throw JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR, ex.what());
-    }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
 }
 
-bool Test::test_setChainParams(Json::Value const& param1)
+
+Json::Value Test::insert_stamped_dag_block(const Json::Value& param1)
 {
-    try
+    Json::Value res;
+    try 
     {
-        Json::FastWriter fastWriter;
-        std::string output = fastWriter.write(param1);
-        asClientTest(m_eth).setChainParams(output);
-        asClientTest(m_eth).completeSync();  // set sync state to idle for mining
-        return true;
-    }
-    catch (std::exception const& ex)
-    {
-        cwarn << ex.what();
-        throw JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR, ex.what());
-    }
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
 }
 
-bool Test::test_mineBlocks(int _number)
+Json::Value Test::get_dag_block(const Json::Value& param1)
 {
-    if (!asClientTest(m_eth).mineBlocks(_number))  // Synchronous
-        throw JsonRpcException("Mining failed.");
-    return true;
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
 }
 
-bool Test::test_modifyTimestamp(int _timestamp)
+Json::Value Test::get_dag_block_children(const Json::Value& param1) 
 {
-    // FIXME: Fix year 2038 issue.
-    try
+    Json::Value res;
+    try 
     {
-        asClientTest(m_eth).modifyTimestamp(_timestamp);
-    }
-    catch (std::exception const&)
-    {
-        BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
-    }
-    return true;
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
 }
 
-bool Test::test_rewindToBlock(int _number)
+Json::Value Test::get_dag_block_siblings(const Json::Value& param1) 
 {
-    try
+    Json::Value res;
+    try 
     {
-        m_eth.rewind(_number);
-        asClientTest(m_eth).completeSync();
-    }
-    catch (std::exception const&)
-    {
-        BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
-    }
-    return true;
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
 }
 
-std::string Test::test_importRawBlock(string const& _blockRLP)
+Json::Value Test::get_dag_block_tips(const Json::Value& param1) 
 {
-    try
+    Json::Value res;
+    try 
     {
-        ClientTest& client = asClientTest(m_eth);
-        return toJS(client.importRawBlock(_blockRLP));
-    }
-    catch (std::exception const& ex)
-    {
-        BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR, ex.what()));
-    }
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
 }
+
+Json::Value Test::get_dag_block_pivot_chain(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_dag_block_subtree(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_dag_block_epfriend(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::send_coin_transaction(const Json::Value& param1)
+{
+    printf("send_coin_transaction");
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+            auto &log_time = node->getTimeLogger();
+            secret_t sk = secret_t(param1["secret"].asString());
+            bal_t nonce = param1["nonce"].asUInt64();
+            bal_t value = param1["value"].asUInt64();
+            val_t gas_price = val_t(param1["gas_price"].asString());
+            val_t gas = val_t(param1["gas"].asString());
+            addr_t receiver = addr_t(param1["receiver"].asString());
+            bytes data;
+            // get trx receiving time stamp
+            auto now = getCurrentTimeMilliSeconds();
+            taraxa::Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
+            LOG(log_time) << "Transaction " << trx.getHash()
+                        << " received at: " << now;
+            node->insertTransaction(trx);
+            res = trx.getJsonStr();
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::create_test_coin_transactions(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_num_proposed_blocks(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::send_pbft_schedule_block(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_account_address(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::set_account_balance(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_account_balance(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_peer_count(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_all_peers(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::node_stop(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::node_reset(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::node_start(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::should_speak(const Json::Value& param1)
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::place_vote(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::get_votes(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+
+Json::Value Test::draw_graph(const Json::Value& param1) 
+{
+    Json::Value res;
+    try 
+    {
+        if(auto node = full_node_.lock()) 
+        {
+
+        }
+      } catch (std::exception &e) {
+        res = e.what();
+      }
+      return res;
+}
+

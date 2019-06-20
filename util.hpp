@@ -26,6 +26,7 @@
 
 #define MASTER_BOOT_NODE_ADDRESS "de2b1203d72d3549ee2f733b00b2789414c7cea5"
 
+#include <json/json.h>
 namespace taraxa {
 
 boost::property_tree::ptree strToJson(std::string str);
@@ -51,6 +52,15 @@ std::vector<T> asVector(boost::property_tree::ptree const &pt,
   std::vector<T> v;
   for (auto &item : pt.get_child(key)) {
     v.push_back(T(item.second.get_value<U>()));
+  }
+  return v;
+}
+
+template <typename T>
+std::vector<T> asVector(Json::Value const &json) {
+  std::vector<T> v;
+  for (auto &item : json) {
+    v.push_back(T(item.asString()));
   }
   return v;
 }

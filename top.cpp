@@ -10,6 +10,7 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
+#include "libweb3jsonrpc/IpcServer.h"
 #include "config.hpp"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
@@ -75,9 +76,10 @@ void Top::start(int argc, const char* argv[]) {
         node_ = std::make_shared<taraxa::FullNode>(context_, conf, destroy_db, rebuild_network);
         node_->setVerbose(verbose);
         node_->start(boot_node_);
-        rpc_ = std::make_shared<taraxa::Rpc>(context_, conf.rpc,
-                                             node_->getShared());
-        rpc_->start();
+        rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node_));
+        auto ipcConnector = new dev::IpcServer(conf.db_path);
+        rpc_->addConnector(ipcConnector);
+        ipcConnector->StartListening();
         context_.run();
       } catch (std::exception& e) {
         stopped_ = true;
@@ -96,7 +98,7 @@ void Top::start() {
   stopped_ = false;
   assert(node_);
   node_->start(boot_node_);
-  rpc_->start();
+  rpc_->StartListening();
 }
 void Top::run() {
   std::unique_lock<std::mutex> lock(mu_);
@@ -107,7 +109,7 @@ void Top::run() {
 void Top::kill() {
   if (stopped_) return;
   stop();
-  rpc_->stop();
+  rpc_->StopListening();
   cond_.notify_all();
 }
 void Top::stop() {
