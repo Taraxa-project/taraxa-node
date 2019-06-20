@@ -723,7 +723,10 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       LOG(log_deb_) << "Successful push pbft anchor block "
                     << pbft_block.first.getBlockHash() << " into chain!";
       // Update block Dag period
-      full_node->updateBlkDagPeriods(pbft_block.first.getBlockHash(), period);
+      blk_hash_t dag_block_hash =
+          pbft_block.first.getPivotBlock().getDagBlockHash();
+      uint64_t dag_epoch = pbft_block.first.getPivotBlock().getEpoch();
+      full_node->updateBlkDagPeriods(dag_block_hash, dag_epoch);
       return true;
     }
   } else if (next_block_type == schedule_block_type) {
@@ -732,7 +735,11 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       LOG(log_deb_) << "Successful push pbft schedule block "
                     << pbft_block.first.getBlockHash() << " into chain!";
       // execute schedule block
-      full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock());
+      if (!full_node->executeScheduleBlock(
+          pbft_block.first.getScheduleBlock())) {
+        LOG(log_err_) << "Failed to execute schedule block";
+        // TODO: If valid transaction failed execute, how to do?
+      }
       return true;
     }
   }  // TODO: more pbft block type
