@@ -8,11 +8,14 @@ j="0000000000000000000000000000000000000000000000000000000000000000"
 
 for i in $(seq -f "%064g" 1 100); do
   
-  cmd="{ \"action\": \"insert_dag_block\", 
+  cmd="{ \"jsonrpc\": \"2.0\",
+				 \"method\": \"insert_dag_block\", 
+         \"id\": \"1\", 
+				 \"params\": [{
          \"pivot\": \"$j\", 
          \"hash\": \"$i\", 
          \"sender\":\"0000000000000000000000000000000000000001\", 
-         \"tips\": []}"
+         \"tips\": []}]}"
   printf -v j "%064g" $i
   
   curl -d "$cmd" 0.0.0.0:7777 &>/dev/null
