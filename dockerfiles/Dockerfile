@@ -3,7 +3,6 @@ FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:vm-integratio
 ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
-
 ADD . .
 RUN mkdir build && cd build && cmake .. && cmake --build . --target main -j `nproc --all`
 
