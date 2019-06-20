@@ -10,13 +10,15 @@ for i in  {1..1001}; do
   
   printf -v j "%064g" $i
   printf -v rec "%040g" $i
-  cmd="{ \"action\": \"send_coin_transaction\", 
+  cmd="{ \"jsonrpc\": \"2.0\",
+				 \"method\": \"send_coin_transaction\",
+				 \"id\": \"0\", 
 				 \"nonce\": 0,  
 				 \"value\": $i,  
 				 \"gas\": \"$j\",  
 				 \"gas_price\": \"$j\", 
 				 \"receiver\": \"$rec\", 
-				 \"secret\": \"$sk\"
+				 \"secret\": \"$sk\"}]
 	       }"
   curl -d "$cmd" 0.0.0.0:7778 &>/dev/null
 
