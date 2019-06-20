@@ -46,6 +46,7 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libweb3jsonrpc/SessionManager.o \
 	${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o \
 	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
+	${OBJECTDIR}/libweb3jsonrpc/Test.o \
 
 #	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
 #	${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o \

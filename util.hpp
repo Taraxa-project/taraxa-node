@@ -10,6 +10,7 @@
 #define UTIL_HPP
 
 #include <execinfo.h>
+#include <json/json.h>
 #include <signal.h>
 #include <boost/asio.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
@@ -51,6 +52,15 @@ std::vector<T> asVector(boost::property_tree::ptree const &pt,
   std::vector<T> v;
   for (auto &item : pt.get_child(key)) {
     v.push_back(T(item.second.get_value<U>()));
+  }
+  return v;
+}
+
+template <typename T>
+std::vector<T> asVector(Json::Value const &json) {
+  std::vector<T> v;
+  for (auto &item : json) {
+    v.push_back(T(item.asString()));
   }
   return v;
 }
@@ -144,17 +154,19 @@ class StatusTable {
     bool ret = false;
     uLock lock(shared_mutex_);
     auto current_status = status_.find(hash);
-    if(current_status != status_.end() && current_status->second == expected_status) {
+    if (current_status != status_.end() &&
+        current_status->second == expected_status) {
       status_[hash] = status;
       ret = true;
     }
     return ret;
   }
   // clear everything
-  void clear(){
+  void clear() {
     uLock lock(shared_mutex_);
     status_.clear();
   }
+
  private:
   boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
