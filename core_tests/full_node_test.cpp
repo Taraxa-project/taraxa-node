@@ -651,21 +651,19 @@ TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST(Top, sync_two_nodes) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json", "-v", "0"};
+TEST(Top, sync_two_nodes1) {
+  const char* input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
 
   Top top1(5, input1);
   EXPECT_TRUE(top1.isActive());
-  thisThreadSleepForMilliSeconds(500);
+  std::cout << "Top1 created ..." << std::endl;
 
-  // send 1000 trxs
-  try {
-    std::cout << "Sending 1000 trxs ..." << std::endl;
-    system("./core_tests/curl_send_1000_trx.sh");
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
+  thisThreadSleepForMilliSeconds(500);
 
   // copy main2
   try {
@@ -674,13 +672,106 @@ TEST(Top, sync_two_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+  // top1.stop();
+  // top1.start(6, input1);
+  // taraxa::thisThreadSleepForMilliSeconds(500);
+
+  const char* input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  Top top2(6, input2);
+  EXPECT_TRUE(top2.isActive());
+  std::cout << "Top2 created ..." << std::endl;
+  // wait for top2 initialize
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  // send 1000 trxs
+  try {
+    std::cout << "Sending 1000 trxs ..." << std::endl;
+    system("./core_tests/curl_send_1000_trx.sh");
+    std::cout << "1000 trxs sent ..." << std::endl;
+
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  auto vertices1 = node1->getNumVerticesInDag();
+  auto vertices2 = node2->getNumVerticesInDag();
+  // add more delay if sync is not done
+  for (auto i = 0; i < 60; i++) {
+    if (vertices1 == vertices2 && vertices1.first > 3) break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+    vertices1 = node1->getNumVerticesInDag();
+    vertices2 = node2->getNumVerticesInDag();
+  }
+  EXPECT_GT(vertices1.first, 3);
+  EXPECT_GT(vertices1.second, 3);
+  EXPECT_EQ(vertices1, vertices2);
+  std::cout << "vertices1: (" << vertices1.first << " , " << vertices1.second
+            << ")" << std::endl;
+  std::cout << "vertices2: (" << vertices2.first << " , " << vertices2.second
+            << ")" << std::endl;
+  top2.kill();
+  top1.kill();
+  // delete main2
+  try {
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+}
+
+TEST(Top, sync_two_nodes2) {
+  const char* input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  std::cout << "Top1 created ..." << std::endl;
+
+  thisThreadSleepForMilliSeconds(500);
+
+  // send 1000 trxs
+  try {
+    std::cout << "Sending 1000 trxs ..." << std::endl;
+    system("./core_tests/curl_send_1000_trx.sh");
+    std::cout << "1000 trxs sent ..." << std::endl;
+
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
   top1.stop();
-  top1.start(5, input1);
+  top1.start(6, input1);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
-  const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json", "-v", "0"};
-  Top top2(5, input2);
+  // copy main2
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  const char* input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
   // wait for top2 initialize
@@ -691,14 +782,19 @@ TEST(Top, sync_two_nodes) {
   EXPECT_NE(node2, nullptr);
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
-  // add more delay if sync is not done
+  // let node2 sync node1
   for (auto i = 0; i < 60; i++) {
-    if (vertices1 == vertices2) break;
+    if (vertices1 == vertices2 && vertices1.first > 3) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
     vertices2 = node2->getNumVerticesInDag();
   }
-
+  EXPECT_GT(vertices1.first, 3);
+  EXPECT_GT(vertices1.second, 3);
+  std::cout << "vertices1: (" << vertices1.first << " , " << vertices1.second
+            << ")" << std::endl;
+  std::cout << "vertices2: (" << vertices2.first << " , " << vertices2.second
+            << ")" << std::endl;
   EXPECT_EQ(vertices1, vertices2);
   top2.kill();
   top1.kill();
