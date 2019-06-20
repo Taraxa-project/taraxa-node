@@ -657,7 +657,7 @@ TEST(Top, reconstruct_dag) {
 TEST(Top, sync_two_nodes1) {
   const char* input1[] = {"./build/main",
                           "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json",
+                          "./core_tests/conf/conf_taraxa1.json",
                           "-v",
                           "0",
                           "--destroy_db"};
@@ -681,7 +681,7 @@ TEST(Top, sync_two_nodes1) {
 
   const char* input2[] = {"./build/main2",
                           "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json",
+                          "./core_tests/conf/conf_taraxa2.json",
                           "-v",
                           "0",
                           "--destroy_db"};
@@ -694,7 +694,7 @@ TEST(Top, sync_two_nodes1) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    system("./core_tests/curl_send_1000_trx.sh");
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception& e) {
@@ -732,7 +732,7 @@ TEST(Top, sync_two_nodes1) {
 TEST(Top, sync_two_nodes2) {
   const char* input1[] = {"./build/main",
                           "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json",
+                          "./core_tests/conf/conf_taraxa1.json",
                           "-v",
                           "0",
                           "--destroy_db"};
@@ -746,7 +746,7 @@ TEST(Top, sync_two_nodes2) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    system("./core_tests/curl_send_1000_trx.sh");
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception& e) {
@@ -767,7 +767,7 @@ TEST(Top, sync_two_nodes2) {
 
   const char* input2[] = {"./build/main2",
                           "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json",
+                          "./core_tests/conf/conf_taraxa2.json",
                           "-v",
                           "0",
                           "--destroy_db"};
