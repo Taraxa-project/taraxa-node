@@ -22,7 +22,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'git submodule update --init --recursive'
+                sh 'git submodule update --recursive'
                 sh 'rm -rf build && mkdir build && cd build && cmake .. && cmake --build . --target run_test -j `nproc`'
             }                    
         }            
