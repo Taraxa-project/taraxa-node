@@ -22,13 +22,13 @@ pipeline {
                 }
             }
             steps {
-                sh 'git submodule deinit -f --all && git submodule update --init'
+                sh 'git submodule deinit -f --all && git submodule update --init --recursive'
                 sh 'rm -rf build && mkdir build && cd build && cmake .. && cmake --build . --target run_test -j `nproc`'
             }                    
         }            
         stage('Build Docker Image') {
             steps {
-                sh 'git submodule deinit -f --all && git submodule update --init'
+                sh 'git submodule deinit -f --all && git submodule update --init --recursive'
                 sh 'docker build --pull -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/Dockerfile .'
             }                    
         }
