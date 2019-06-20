@@ -9,7 +9,9 @@
 #include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/LoggingProgramOptions.h"
-#include "rpc.hpp"
+#include <libweb3jsonrpc/ModularServer.h>
+#include <libweb3jsonrpc/IpcServer.h>
+#include <libweb3jsonrpc/Test.h>
 
 class Top {
  public:
@@ -27,14 +29,14 @@ class Top {
   void kill();
   bool isActive() { return !stopped_; }
   std::shared_ptr<taraxa::FullNode>& getNode() { return node_; }
-  std::shared_ptr<taraxa::Rpc>& getRpc() { return rpc_; }
+  std::shared_ptr<ModularServer<>>& getRpc() { return rpc_; }
 
  private:
   bool stopped_ = true;
   bool boot_node_ = false;
   std::shared_ptr<std::thread> th_;
   std::shared_ptr<taraxa::FullNode> node_;
-  std::shared_ptr<taraxa::Rpc> rpc_;
+  std::shared_ptr<ModularServer<>> rpc_;
   std::condition_variable cond_;
   std::mutex mu_;
   boost::asio::io_context context_;
