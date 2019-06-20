@@ -474,7 +474,8 @@ std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
-    string entry = db_blks_index_->get(std::to_string(level + i));
+    dev::h256 level_key(level + i);
+    string entry = db_blks_index_->get(level_key.toString());
 
     if (entry.empty()) break;
     vector<string> blocks;
