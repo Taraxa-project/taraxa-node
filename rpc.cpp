@@ -305,9 +305,9 @@ void RpcHandler::processRequest() {
         secret_t sk = secret_t(in_doc_.get<std::string>("secret"));
         bal_t nonce = in_doc_.get<uint64_t>("nonce");
         bal_t value = in_doc_.get<uint64_t>("value");
-        val_t gas_price = val_t(in_doc_.get<std::string>("gas_price"));
-        val_t gas = val_t(in_doc_.get<std::string>("gas"));
-        addr_t receiver = addr_t(in_doc_.get<std::string>("receiver"));
+        val_t gas_price = in_doc_.get<val_t>("gas_price");
+        val_t gas = in_doc_.get<val_t>("gas");
+        addr_t receiver = in_doc_.get<addr_t>("receiver");
         bytes data;
         // get trx receiving time stamp
         auto now = getCurrentTimeMilliSeconds();
