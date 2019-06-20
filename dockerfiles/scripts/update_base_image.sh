@@ -1,7 +1,7 @@
 #!/bin/bash
 
 clear 
-DOCKER_IMAGE="541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base"
+DOCKER_IMAGE="541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:vm-integration"
 
 set -e
 

@@ -1,4 +1,4 @@
-FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
+FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:vm-integration as builder
 
 ARG go_version=1.12.1
 # Go RocksDB wrapper requires at least v5.16
