@@ -661,8 +661,7 @@ bool FullNode::verifySignature(dev::Signature const &signature,
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
 bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
-  executor_->execute(sche_blk.getSchedule());
-  return true;
+  return executor_->execute(sche_blk.getSchedule());
 }
 
 void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
