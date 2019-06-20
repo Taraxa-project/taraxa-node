@@ -89,8 +89,8 @@ bool Executor::coinTransfer(Transaction const& trx) {
   }
   bal_t new_sender_bal = sender_initial_coin - value;
   bal_t new_receiver_bal = receiver_initial_coin + value;
-  db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
-  db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
+  db_accs_->update(sender.toString(), std::to_string(new_sender_bal));
+  db_accs_->update(receiver.toString(), std::to_string(new_receiver_bal));
   LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
   LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
 

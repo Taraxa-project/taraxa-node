@@ -835,11 +835,12 @@ TEST(FullNode, execute_chain_pbft_transactions) {
       context, std::string("./core_tests/conf_taraxa1.json")));
   node->start(true /*boot_node*/);
   addr_t acc1 = node->getAddress();
-  bal_t bal1(10000000);
-  node->setBalance(acc1, bal1);
+
+  bal_t initbal(10000000);
+  node->setBalance(acc1, initbal);
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
-  EXPECT_EQ(res.first, bal1);
+  EXPECT_EQ(res.first, initbal);
   for (auto const& t : g_trx_signed_samples) {
     node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
@@ -883,12 +884,15 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   }
 
   node->stop();
-
+  auto coin_distributed = 0;
   for (auto const& t : g_trx_signed_samples) {
     auto res = node->getBalance(t.getReceiver());
     EXPECT_TRUE(res.second);
     EXPECT_EQ(res.first, t.getValue());
+    coin_distributed += res.first;
   }
+  res = node->getBalance(acc1);
+  EXPECT_EQ(res.first, initbal - coin_distributed);
 }
 
 TEST(FullNode, send_and_receive_out_order_messages) {
