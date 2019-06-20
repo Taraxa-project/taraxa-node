@@ -4,7 +4,7 @@ include(cmake/scoped_include.cmake)
 scoped_include(cmake/submodules/ethash.cmake) # ethash must be included before project() directive
 
 project(taraxa-node)
-cmake_minimum_required(VERSION 3.13) # actual minimal version might be lower, feel free to change
+cmake_minimum_required(VERSION 3.12) # actual minimal version might be lower, feel free to change
 
 include(FindBoost)
 include(FindProtobuf)
