@@ -108,7 +108,7 @@ void FullNode::initDB(bool destroy_db) {
   }
   if (db_blks_index_ == nullptr) {
     db_blks_index_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
+        SimpleDBFactory::SimpleDBType::OverlayDBKind,
         conf_.db_path + "/blk_index", destroy_db);
     assert(db_blks_index_);
   }
@@ -145,14 +145,16 @@ void FullNode::initDB(bool destroy_db) {
   if (!destroy_db) {
     unsigned long level = 1;
     while (true) {
-      string entry = db_blks_index_->get(std::to_string(level));
+      h256 level_key(level);
+      string entry = db_blks_index_->get(level_key.toString());
       if (entry.empty()) break;
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
         auto block_json = db_blks_->get(block);
         if (block_json != "") {
-          dag_mgr_->addDagBlock(DagBlock(block_json));
+          auto blk = DagBlock(block_json);
+          dag_mgr_->addDagBlock(blk);
           max_dag_level_ = level;
         }
       }
@@ -255,13 +257,17 @@ void FullNode::start(bool boot_node) {
         {
           db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
           db_blks_->commit();
-          std::string level = std::to_string(blk.getLevel());
-          std::string blocks = db_blks_index_->get(level);
-          if (blk.getLevel() > max_dag_level_) max_dag_level_ = blk.getLevel();
-          if (blocks == "")
-            db_blks_index_->put(level, blk.getHash().hex());
-          else
-            db_blks_index_->update(level, blocks + "," + blk.getHash().hex());
+          auto level = blk.getLevel();
+          h256 level_key(level);
+          std::string blocks = db_blks_index_->get(level_key.toString());
+          if (level > max_dag_level_) max_dag_level_ = level;
+          if (blocks == "") {
+            db_blks_index_->put(level_key.toString(), blk.getHash().toString());
+          } else {
+            auto newblocks = blocks + "," + blk.getHash().toString();
+            db_blks_index_->update(level_key.toString(),
+                                   blocks + "," + blk.getHash().hex());
+          }
           db_blks_index_->commit();
         }
         network_->onNewBlockVerified(blk);
