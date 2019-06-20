@@ -739,8 +739,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     }
     // Update block Dag period
     blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
-    uint64_t dag_epoch = pbft_block.getPivotBlock().getEpoch();
-    updateBlkDagPeriods(dag_block_hash, dag_epoch);
+    uint64_t pbft_chain_period = pbft_block.getPivotBlock().getPeriod();
+    updateBlkDagPeriods(dag_block_hash, pbft_chain_period);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
       return false;
