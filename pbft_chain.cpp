@@ -424,7 +424,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
 
 uint64_t PbftChain::getPbftChainSize() const { return size_; }
 
-uint64_t PbftChain::getPbftChainPeriod() const {return period_; }
+uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
 
 blk_hash_t PbftChain::getGenesisHash() const { return genesis_hash_; }
 

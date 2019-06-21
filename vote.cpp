@@ -22,13 +22,13 @@ Vote::Vote(public_t const& node_pk,
            sig_t const& vote_signature,
            blk_hash_t const& blockhash,
            PbftVoteTypes type,
-           uint64_t period,
+           uint64_t round,
            size_t step) : node_pk_(node_pk),
                           sortition_signature_(sortition_signaure),
                           vote_signatue_(vote_signature),
                           blockhash_(blockhash),
                           type_(type),
-                          period_(period),
+                          round_(round),
                           step_(step) {
   dev::RLPStream s;
   streamRLP_(s);
@@ -48,7 +48,7 @@ bool Vote::serialize(stream& strm) const {
   ok &= write(strm, vote_signatue_);
   ok &= write(strm, blockhash_);
   ok &= write(strm, type_);
-  ok &= write(strm, period_);
+  ok &= write(strm, round_);
   ok &= write(strm, step_);
   assert(ok);
 
@@ -64,7 +64,7 @@ bool Vote::deserialize(stream& strm) {
   ok &= read(strm, vote_signatue_);
   ok &= read(strm, blockhash_);
   ok &= read(strm, type_);
-  ok &= read(strm, period_);
+  ok &= read(strm, round_);
   ok &= read(strm, step_);
   assert(ok);
 
@@ -78,7 +78,7 @@ void Vote::streamRLP_(dev::RLPStream& strm) const {
   strm << vote_signatue_;
   strm << blockhash_;
   strm << type_;
-  strm << period_;
+  strm << round_;
   strm << step_;
 }
 
@@ -106,8 +106,8 @@ PbftVoteTypes Vote::getType() const {
   return type_;
 }
 
-uint64_t Vote::getPeriod() const {
-  return period_;
+uint64_t Vote::getRound() const {
+  return round_;
 }
 
 size_t Vote::getStep() const {
@@ -117,9 +117,9 @@ size_t Vote::getStep() const {
 // Vote Manager
 sig_t VoteManager::signVote(secret_t const& node_sk,
     taraxa::blk_hash_t const& block_hash, taraxa::PbftVoteTypes type,
-    uint64_t period, size_t step) {
+    uint64_t round, size_t step) {
   std::string message = block_hash.toString() + std::to_string(type) +
-                        std::to_string(period) + std::to_string(step);
+                        std::to_string(round) + std::to_string(step);
   // sign message
   return dev::sign(node_sk, hash_(message));
 }
@@ -127,12 +127,12 @@ sig_t VoteManager::signVote(secret_t const& node_sk,
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     taraxa::Vote const& vote, taraxa::bal_t& account_balance) const {
   PbftVoteTypes type = vote.getType();
-  uint64_t period = vote.getPeriod();
+  uint64_t round = vote.getRound();
   size_t step = vote.getStep();
   // verify vote signature
   std::string const vote_message = vote.getBlockHash().toString() +
                                    std::to_string(type) +
-                                   std::to_string(period) +
+                                   std::to_string(round) +
                                    std::to_string(step);
   public_t public_key = vote.getPublicKey();
   sig_t vote_signature = vote.getVoteSignature();
@@ -145,7 +145,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   // verify sortition signature
   std::string const sortition_message = last_pbft_block_hash.toString() +
                                         std::to_string(type) +
-                                        std::to_string(period) +
+                                        std::to_string(round) +
                                         std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
@@ -178,12 +178,12 @@ size_t VoteQueue::getSize() {
   return vote_queue_.size();
 }
 
-std::vector<Vote> VoteQueue::getVotes(uint64_t period) {
+std::vector<Vote> VoteQueue::getVotes(uint64_t round) {
   std::vector<Vote> votes;
   std::deque<Vote>::iterator it = vote_queue_.begin();
 
   while (it != vote_queue_.end()) {
-    if (it->getPeriod() < period) {
+    if (it->getRound() < round) {
       it = vote_queue_.erase(it);
     } else {
       votes.emplace_back(*it++);
@@ -206,7 +206,7 @@ std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
     ptvote.put("vote_signature", v.getVoteSignature());
     ptvote.put("blockhash", v.getBlockHash());
     ptvote.put("type", v.getType());
-    ptvote.put("period", v.getPeriod());
+    ptvote.put("round", v.getRound());
     ptvote.put("step", v.getStep());
     ptvotes.push_back(std::make_pair("", ptvote));
   }

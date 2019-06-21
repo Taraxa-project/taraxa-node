@@ -38,7 +38,7 @@ class PbftManager {
   ~PbftManager() { stop(); }
 
   void setFullNode(std::shared_ptr<FullNode> node);
-  bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();
   void stop();
   void run();
@@ -46,37 +46,37 @@ class PbftManager {
 
   // only for test
   u_long getLambdaMs() const { return LAMBDA_ms; }
-  void setPbftPeriod(uint64_t const pbft_period) { pbft_period_ = pbft_period; }
+  void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
-  uint64_t getPbftPeriod() const { return pbft_period_; }
+  uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
  private:
-  size_t periodDeterminedFromVotes_(std::vector<Vote> &votes,
-                                    uint64_t local_period);
+  size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
+                                    uint64_t local_round);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
 
-  bool nullBlockNextVotedForPeriod_(std::vector<Vote> &votes, uint64_t period);
+  bool nullBlockNextVotedForRound_(std::vector<Vote> &votes, uint64_t round);
 
-  std::vector<Vote> getVotesOfTypeFromVotesForPeriod_(PbftVoteTypes vote_type,
-      std::vector<Vote> &votes, uint64_t period,
+  std::vector<Vote> getVotesOfTypeFromVotesForRound_(PbftVoteTypes vote_type,
+      std::vector<Vote> &votes, uint64_t round,
       std::pair<blk_hash_t, bool> blockhash);
 
-  std::pair<blk_hash_t, bool> nextVotedBlockForPeriod_(
-      std::vector<Vote> &votes, uint64_t period);
+  std::pair<blk_hash_t, bool> nextVotedBlockForRound_(
+      std::vector<Vote> &votes, uint64_t round);
 
   void placeVote_(blk_hash_t const& blockhash, PbftVoteTypes vote_type,
-      uint64_t period, size_t step);
+      uint64_t round, size_t step);
 
-  std::pair<blk_hash_t, bool> softVotedBlockForPeriod_(std::vector<Vote> &votes,
-      uint64_t period);
+  std::pair<blk_hash_t, bool> softVotedBlockForRound_(std::vector<Vote> &votes,
+      uint64_t round);
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
 
-  bool pushPbftBlockIntoChain_(uint64_t period,
+  bool pushPbftBlockIntoChain_(uint64_t round,
       blk_hash_t const& cert_voted_block_hash);
 
   bool updatePbftChainDB_(PbftBlock const& pbft_block);
@@ -94,7 +94,7 @@ class PbftManager {
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
   std::shared_ptr<TaraxaCapability> capability_;
 
-  uint64_t pbft_period_ = 1;
+  uint64_t pbft_round_ = 1;
   size_t pbft_step_ = 1;
 
   u_long LAMBDA_ms; // Only for test TODO: need remove later
