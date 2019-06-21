@@ -58,7 +58,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/visitor.o \
 	${OBJECTDIR}/dag.o \
 	${OBJECTDIR}/block_proposer.o \
-	${OBJECTDIR}/rpc.o \
 	${OBJECTDIR}/grpc_client.o \
 	${OBJECTDIR}/grpc_server.o \
 	${OBJECTDIR}/grpc_util.o \
@@ -180,11 +179,6 @@ ${OBJECTDIR}/block_proposer.o: block_proposer.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/block_proposer.o block_proposer.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/rpc.o: rpc.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/rpc.o rpc.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/concur_hash.o: concur_storage/concur_hash.cpp 
 	${MKDIR} -p ${OBJECTDIR}
