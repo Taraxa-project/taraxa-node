@@ -47,16 +47,14 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o \
 	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
 	${OBJECTDIR}/libweb3jsonrpc/Test.o \
+	${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o \
+	${OBJECTDIR}/libweb3jsonrpc/Debug.o \
+	${OBJECTDIR}/libweb3jsonrpc/Taraxa.o \
+	${OBJECTDIR}/libweb3jsonrpc/Personal.o \
+
 
 #	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
 #	${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o \
-#	${OBJECTDIR}/libweb3jsonrpc/AdminEth.o \
-#	${OBJECTDIR}/libweb3jsonrpc/AdminEthFace.o \
-#	${OBJECTDIR}/libweb3jsonrpc/AdminNetFace.o \
-#	${OBJECTDIR}/libweb3jsonrpc/Debug.o \
-#	${OBJECTDIR}/libweb3jsonrpc/Eth.o \
-#	${OBJECTDIR}/libweb3jsonrpc/Personal.o \
-#	${OBJECTDIR}/libweb3jsonrpc/Test.o \
 	
 ${OBJECTDIR}/libdevcore/Address.o: libdevcore/Address.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -309,11 +307,11 @@ ${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o: libweb3jsonrpc/AccountHolder.cpp
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o libweb3jsonrpc/AccountHolder.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/libweb3jsonrpc/AdminEth.o: libweb3jsonrpc/AdminEth.cpp
+${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o: libweb3jsonrpc/AdminTaraxa.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
-	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AdminEth.o libweb3jsonrpc/AdminEth.cpp $(CPPFLAGS)
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o libweb3jsonrpc/AdminTaraxa.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libweb3jsonrpc/AdminEthFace.o: libweb3jsonrpc/AdminEthFace.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -339,11 +337,11 @@ ${OBJECTDIR}/libweb3jsonrpc/Debug.o: libweb3jsonrpc/Debug.cpp
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Debug.o libweb3jsonrpc/Debug.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/libweb3jsonrpc/Eth.o: libweb3jsonrpc/Eth.cpp
+${OBJECTDIR}/libweb3jsonrpc/Taraxa.o: libweb3jsonrpc/Taraxa.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
-	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Eth.o libweb3jsonrpc/Eth.cpp $(CPPFLAGS)
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Taraxa.o libweb3jsonrpc/Taraxa.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o: libweb3jsonrpc/IpcServerBase.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -386,4 +384,5 @@ ${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o: libweb3jsonrpc/UnixSocketServer.
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o libweb3jsonrpc/UnixSocketServer.cpp $(CPPFLAGS)
+
 

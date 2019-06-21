@@ -24,6 +24,6 @@ for i in  {1..1001}; do
   curl -d "$cmd" 0.0.0.0:7777 &>/dev/null
 
 done
-curl -d '{"action": "get_num_proposed_blocks" }' 0.0.0.0:7777 &>/dev/null
+curl -d '{"jsonrpc": "2.0", "id": "0", "method": "get_num_proposed_blocks", params:[] }' 0.0.0.0:7777 &>/dev/null
 
 
