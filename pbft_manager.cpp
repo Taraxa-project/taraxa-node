@@ -725,7 +725,8 @@ bool PbftManager::pushPbftBlockIntoChain_(
       blk_hash_t dag_block_hash =
           pbft_block.first.getPivotBlock().getDagBlockHash();
       uint64_t pbft_chain_period = pbft_block.first.getPivotBlock().getPeriod();
-      full_node->updateDagBlockPeriod(dag_block_hash, pbft_chain_period);
+      full_node->setDagBlockOrder(dag_block_hash, pbft_chain_period);
+
 
       return true;
     }
