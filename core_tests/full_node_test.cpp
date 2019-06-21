@@ -511,6 +511,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(5));
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
+  node->setDagBlockOrder(blk_hash_t(pivot), period);
 
   // -------- second period ----------
 
@@ -531,6 +532,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(14));
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
+  node->setDagBlockOrder(blk_hash_t(pivot), period);
 
   // -------- third period ----------
 
@@ -549,6 +551,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[3], blk_hash_t(18));
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
+  node->setDagBlockOrder(blk_hash_t(pivot), period);
   node->stop();
 }
 
@@ -860,8 +863,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_NE(sche, nullptr);
     // if (!sche) continue;
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    // set periiod
-    node->updateDagBlockPeriod(anchor, cur_period);
+    // set period
+    node->setDagBlockOrder(anchor, cur_period);
     bool ret = node->executeScheduleBlock(sche_blk);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
