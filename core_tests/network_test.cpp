@@ -351,10 +351,7 @@ TEST(Network, node_pbft_sync) {
   pbft_block1.setPivotBlock(pivot_block);
 
   uint64_t timestamp2 = 333333;
-  vec_blk_t blocks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<std::vector<uint>> modes{
-      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
-  TrxSchedule schedule(blocks, modes);
+  TrxSchedule schedule;
   blk_hash_t prev_pivot(1);
   ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
 

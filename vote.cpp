@@ -137,7 +137,8 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   public_t public_key = vote.getPublicKey();
   sig_t vote_signature = vote.getVoteSignature();
   if (!dev::verify(public_key, vote_signature, hash_(vote_message))) {
-    LOG(log_err_) << "Invalid vote signature: " << vote_signature;
+    LOG(log_err_) << "Invalid vote signature " << vote_signature
+                  << " vote hash " << vote.getHash();
     return false;
   }
 
@@ -148,7 +149,8 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                         std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
-    LOG(log_err_) << "Invalid sortition signature: " << sortition_signature;
+    LOG(log_err_) << "Invalid sortition signature: " << sortition_signature
+                  << " vote hash " << vote.getHash();
     return false;
   }
 

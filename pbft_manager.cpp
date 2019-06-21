@@ -588,12 +588,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       return std::make_pair(NULL_BLOCK_HASH, true);
     }
 
-    uint64_t epoch = full_node->getEpoch();
+    uint64_t propose_period = pbft_chain_->getPbftChainPeriod() + 1;
     uint64_t timestamp = std::time(nullptr);
     addr_t beneficiary = full_node->getAddress();
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
-                           epoch, timestamp, beneficiary);
+                           propose_period, timestamp, beneficiary);
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
@@ -723,7 +723,10 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       LOG(log_deb_) << "Successful push pbft anchor block "
                     << pbft_block.first.getBlockHash() << " into chain!";
       // Update block Dag period
-      full_node->updateBlkDagPeriods(pbft_block.first.getBlockHash(), period);
+      blk_hash_t dag_block_hash =
+          pbft_block.first.getPivotBlock().getDagBlockHash();
+      uint64_t pbft_chain_period = pbft_block.first.getPivotBlock().getPeriod();
+      full_node->updateBlkDagPeriods(dag_block_hash, pbft_chain_period);
       return true;
     }
   } else if (next_block_type == schedule_block_type) {
@@ -732,7 +735,11 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t period,
       LOG(log_deb_) << "Successful push pbft schedule block "
                     << pbft_block.first.getBlockHash() << " into chain!";
       // execute schedule block
-      full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock());
+      if (!full_node->executeScheduleBlock(
+          pbft_block.first.getScheduleBlock())) {
+        LOG(log_err_) << "Failed to execute schedule block";
+        // TODO: If valid transaction failed execute, how to do?
+      }
       return true;
     }
   }  // TODO: more pbft block type

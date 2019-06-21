@@ -77,12 +77,12 @@ class PivotBlock {
 
   PivotBlock(blk_hash_t const& prev_pivot_hash,
              blk_hash_t const& prev_block_hash,
-             blk_hash_t const& dag_block_hash, uint64_t epoch,
+             blk_hash_t const& dag_block_hash, uint64_t period,
              uint64_t timestamp, addr_t beneficiary)
       : prev_pivot_hash_(prev_pivot_hash),
         prev_block_hash_(prev_block_hash),
         dag_block_hash_(dag_block_hash),
-        epoch_(epoch),
+        period_(period),
         timestamp_(timestamp),
         beneficiary_(beneficiary) {}
   ~PivotBlock() {}
@@ -90,7 +90,7 @@ class PivotBlock {
   blk_hash_t getPrevPivotBlockHash() const;
   blk_hash_t getPrevBlockHash() const;
   blk_hash_t getDagBlockHash() const;
-  uint64_t getEpoch() const;
+  uint64_t getPeriod() const;
   uint64_t getTimestamp() const;
   addr_t getBeneficiary() const;
 
@@ -109,7 +109,7 @@ class PivotBlock {
     strm << "  previous result hash: " << pivot_block.prev_block_hash_.hex()
          << std::endl;
     strm << "  dag hash: " << pivot_block.dag_block_hash_.hex() << std::endl;
-    strm << "  epoch: " << pivot_block.epoch_ << std::endl;
+    strm << "  period: " << pivot_block.period_ << std::endl;
     strm << "  timestamp: " << pivot_block.timestamp_ << std::endl;
     strm << "  beneficiary: " << pivot_block.beneficiary_.hex() << std::endl;
     return strm;
@@ -119,7 +119,7 @@ class PivotBlock {
   blk_hash_t prev_pivot_hash_;
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_;
-  uint64_t epoch_;
+  uint64_t period_;
   uint64_t timestamp_;
   addr_t beneficiary_;
 };
@@ -208,7 +208,8 @@ class PbftChain {
  public:
   PbftChain()
       : genesis_hash_(blk_hash_t(0)),
-        count_(1),
+        size_(1),
+        period_(0),
         next_pbft_block_type_(pivot_block_type) {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
@@ -216,7 +217,8 @@ class PbftChain {
   }
   ~PbftChain() {}
 
-  size_t getPbftChainSize() const;
+  uint64_t getPbftChainSize() const;
+  uint64_t getPbftChainPeriod() const;
   blk_hash_t getGenesisHash() const;
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
@@ -254,7 +256,8 @@ class PbftChain {
                                PbftBlock const& pbft_block);
 
   blk_hash_t genesis_hash_;
-  uint64_t count_;
+  uint64_t size_;
+  uint64_t period_;
   PbftBlockTypes next_pbft_block_type_;
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;

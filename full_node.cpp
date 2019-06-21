@@ -661,8 +661,7 @@ bool FullNode::verifySignature(dev::Signature const &signature,
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
 bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
-  executor_->execute(sche_blk.getSchedule());
-  return true;
+  return executor_->execute(sche_blk.getSchedule());
 }
 
 void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
@@ -682,10 +681,11 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   }
 
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-                                account_balance.first)) {
-    vote_queue_->pushBackVote(vote);
-  }
+  // TODO: remove vote validation, need add later
+  //if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+  //                              account_balance.first)) {
+  vote_queue_->pushBackVote(vote);
+  //}
 }
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
@@ -737,9 +737,18 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       return false;
     }
+    // Update block Dag period
+    blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
+    uint64_t pbft_chain_period = pbft_block.getPivotBlock().getPeriod();
+    updateBlkDagPeriods(dag_block_hash, pbft_chain_period);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
       return false;
+    }
+    // execute schedule block
+    if (!executeScheduleBlock(pbft_block.getScheduleBlock())) {
+      LOG(log_er_) << "Failed to execute schedule block";
+      // TODO: If valid transaction failed execute, how to do?
     }
   }
   // TODO: push other type pbft block into pbft chain
