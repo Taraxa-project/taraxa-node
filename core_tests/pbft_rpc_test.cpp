@@ -12,7 +12,7 @@
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "network.hpp"
-#include "rpc.hpp"
+#include "top.hpp"
 
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>
@@ -36,50 +36,20 @@ TEST(PbftManager, full_node_lambda_input_test) {
   EXPECT_EQ(lambda, 1000);
 }
 
-TEST(PbftVote, pbft_should_speak_test) {
-  boost::asio::io_context context;
-  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-  auto node(std::make_shared<taraxa::FullNode>(context, conf));
-  auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
-  rpc->start();
-  node->setDebug(true);
-  node->start(true);  // boot node
-
-  std::unique_ptr<boost::asio::io_context::work> work(
-      new boost::asio::io_context::work(context));
-
-  boost::thread t([&context]() { context.run(); });
-
-  try {
-    system("./core_tests/scripts/curl_pbft_should_speak.sh");
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-
-  work.reset();
-  node->stop();
-  rpc->stop();
-  t.join();
-}
-
-// Place votes period 1, 2 and 3 into vote queue.
-// Get vote period 2, will remove period 1 in the queue. Queue size changes
-// to 2.
+/* Place votes period 1, 2 and 3 into vote queue.
+ * Get vote period 2, will remove period 1 in the queue. Queue size changes
+ * to 2.
+ */
 TEST(PbftVote, pbft_place_and_get_vote_test) {
-  boost::asio::io_context context;
+  const char* input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
 
-  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-  auto node(std::make_shared<taraxa::FullNode>(context, conf));
-  auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
-  rpc->start();
-  node->setDebug(true);
-  node->start(true);  // boot node
+  Top top1(5, input1);
+  EXPECT_TRUE(top1.isActive());
+  thisThreadSleepForMilliSeconds(500);
 
-  std::unique_ptr<boost::asio::io_context::work> work(
-      new boost::asio::io_context::work(context));
-
-  boost::thread t([&context]() { context.run(); });
-
+  auto node = top1.getNode();
+  
   node->clearVoteQueue();
 
   try {
@@ -94,11 +64,8 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
     std::cerr << e.what() << std::endl;
   }
 
-  work.reset();
   node->stop();
-  rpc->stop();
-  t.join();
-
+  
   size_t vote_queue_size = node->getVoteQueueSize();
   EXPECT_EQ(vote_queue_size, 2);
 }

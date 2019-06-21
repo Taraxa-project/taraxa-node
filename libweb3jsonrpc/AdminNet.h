@@ -1,5 +1,6 @@
 #pragma once
 #include "AdminNetFace.h"
+#include "../full_node.hpp"
 
 namespace dev
 {
@@ -14,7 +15,7 @@ class SessionManager;
 class AdminNet: public dev::rpc::AdminNetFace
 {
 public:
-	AdminNet(NetworkFace& _network, SessionManager& _sm);
+	AdminNet(std::shared_ptr<taraxa::FullNode>& _full_node);
 	virtual RPCModules implementedModules() const override
 	{
 		return RPCModules{RPCModule{"admin", "1.0"}};
@@ -27,8 +28,7 @@ public:
 	virtual bool admin_addPeer(std::string const& _node) override;
 
 private:
-	NetworkFace& m_network;
-	SessionManager& m_sm;
+	std::weak_ptr<taraxa::FullNode> full_node_;
 };
 	
 }

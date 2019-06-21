@@ -262,9 +262,11 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
         thisThreadSleepForMicroSeconds(delay);
       }
       res = "Number of " + std::to_string(number) + " created";
+      printf("RES: %s\n",res.asString().c_str());
     }
   } catch (std::exception &e) {
     res = e.what();
+    printf("RES: %s\n",res.asString().c_str());
   }
   return res;
 }
@@ -439,6 +441,7 @@ Json::Value Test::node_start(const Json::Value &param1) {
 Json::Value Test::should_speak(const Json::Value &param1) {
   Json::Value res;
   try {
+    printf("SPEAK\n");
     if (auto node = full_node_.lock()) {
       blk_hash_t blockhash = blk_hash_t(param1["blockhash"].asString());
       PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());

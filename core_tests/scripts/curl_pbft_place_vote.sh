@@ -11,7 +11,7 @@ for i in  {1..3}; do
          \"type\": $i,
          \"period\": $i,
          \"step\": $i
-       ]}}"
+       }]}"
 
   curl -d "$cmd" 0.0.0.0:7777 &>/dev/null
 

@@ -72,7 +72,6 @@ bool UnixDomainSocketServer::StartListening()
 	if (!m_running)
 	{
 		if (access(m_path.c_str(), F_OK) != -1) {
-			printf("access failed\n");
 			unlink(m_path.c_str());
 		}
 

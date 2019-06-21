@@ -36,7 +36,7 @@ if sys.platform == 'win32':
 VERSION = '0.3.0'
 BUFSIZE = 32
 DELIMITER = ord('\n')
-BACKEND_CONNECTION_TIMEOUT=30.0
+BACKEND_CONNECTION_TIMEOUT=60.0
 INFO = """Dopple JSON-RPC Proxy
 
 Version:  {version}
@@ -70,7 +70,7 @@ class UnixSocketConnector(object):
             try:
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 s.connect(self._socket_path)
-                s.settimeout(1)
+                s.settimeout(10)
                 # Assign last, to keep it None in case of exception.
                 self._socket = s
             except OSError as ex:
