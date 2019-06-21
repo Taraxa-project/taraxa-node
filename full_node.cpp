@@ -686,7 +686,7 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
 
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   // TODO: remove vote validation, need add later
-  //if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+  // if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
   //                              account_balance.first)) {
   vote_queue_->pushBackVote(vote);
   //}
@@ -742,7 +742,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     // Update block Dag period
     blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
     uint64_t pbft_chain_period = pbft_block.getPivotBlock().getPeriod();
-    updateBlkDagPeriods(dag_block_hash, pbft_chain_period);
+    setDagBlockOrder(dag_block_hash, pbft_chain_period);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
       return false;
