@@ -61,7 +61,7 @@ TEST(EthereumCrypto, sortition_test) {
 
 TEST(EthereumCrypto, sortition_rate) {
   uint64_t total_coins = 9007199254740991;
-  uint64_t number_of_players = 10000;
+  uint64_t number_of_players = 100;
   uint64_t account_balance = total_coins / number_of_players;
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
@@ -70,7 +70,9 @@ TEST(EthereumCrypto, sortition_rate) {
   node->setBalance(account_address, account_balance);
   string message = "This is a test message.";
   int count = 0;
-  for (int i = 0; i < 10000; i++) {
+  int round = 1000;
+  // Test for one player sign round messages to get sortition
+  for (int i = 0; i < round; i++) {
     message += std::to_string(i);
     sig_t signature = node->signMessage(message);
     vote_hash_t sig_hash = dev::sha3(signature);
@@ -79,19 +81,28 @@ TEST(EthereumCrypto, sortition_rate) {
       count++;
     }
   }
-  // depend on sortition THRESHOLD, count should be close to THRESHOLD
+  // depend on sortition THRESHOLD, sortition rate: THRESHOLD / number_of_players
+  // count should be close to sortition rate * round
   EXPECT_GT(count, 0);
+
   count = 0;
-  for (int i = 0; i < 10000; i++) {
+  round = 10;
+  // Test for number of players sign message to get sortition,
+  // Each player sign round messages, sortition rate for one player: THRESHOLD / number_of_players * round
+  for (int i = 0; i < number_of_players; i++) {
     dev::KeyPair key_pair = dev::KeyPair::create();
-    sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
-    vote_hash_t sig_hash = dev::sha3(signature);
-    bool win = sortition(sig_hash.toString(), account_balance);
-    if (win) {
-      count++;
+    for (int j = 0; j < round; j++) {
+      message += std::to_string(j);
+      sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
+      vote_hash_t sig_hash = dev::sha3(signature);
+      bool win = sortition(sig_hash.toString(), account_balance);
+      if (win) {
+        count++;
+      }
     }
   }
-  // depend on sortition THRESHOLD, count should be close to THRESHOLD
+  // depend on sortition THRESHOLD, sortition rate for all players: THRESHOLD / number_of_players * round * number_of_players
+  // count should be close to sortition rate
   EXPECT_GT(count, 0);
 }
 
