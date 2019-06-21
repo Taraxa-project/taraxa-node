@@ -499,8 +499,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   node->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
   std::shared_ptr<vec_blk_t> order;
-  std::tie(period, order) =
-      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
 
@@ -521,8 +520,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) =
-      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 2);
   if (order->size() == 7) {
     EXPECT_EQ((*order)[0], blk_hash_t(11));
@@ -542,8 +540,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) =
-      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 3);
   if (order->size() == 5) {
     EXPECT_EQ((*order)[0], blk_hash_t(17));
@@ -672,9 +669,9 @@ TEST(Top, sync_two_nodes1) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-  // top1.stop();
-  // top1.start(6, input1);
-  // taraxa::thisThreadSleepForMilliSeconds(500);
+  top1.stop();
+  top1.start(6, input1);
+  taraxa::thisThreadSleepForMilliSeconds(500);
 
   const char* input2[] = {"./build/main2",
                           "--conf_taraxa",
@@ -714,10 +711,7 @@ TEST(Top, sync_two_nodes1) {
   EXPECT_GT(vertices1.first, 3);
   EXPECT_GT(vertices1.second, 3);
   EXPECT_EQ(vertices1, vertices2);
-  std::cout << "vertices1: (" << vertices1.first << " , " << vertices1.second
-            << ")" << std::endl;
-  std::cout << "vertices2: (" << vertices2.first << " , " << vertices2.second
-            << ")" << std::endl;
+
   top2.kill();
   top1.kill();
   // delete main2
@@ -791,10 +785,6 @@ TEST(Top, sync_two_nodes2) {
   }
   EXPECT_GT(vertices1.first, 3);
   EXPECT_GT(vertices1.second, 3);
-  std::cout << "vertices1: (" << vertices1.first << " , " << vertices1.second
-            << ")" << std::endl;
-  std::cout << "vertices2: (" << vertices2.first << " , " << vertices2.second
-            << ")" << std::endl;
   EXPECT_EQ(vertices1, vertices2);
   top2.kill();
   top1.kill();
@@ -856,17 +846,22 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
   EXPECT_GT(ghost.size(), 1);
-  uint64_t period = 0, cur_period;
+  uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
   // create a period for every 2 pivots
   for (int i = 0; i < ghost.size(); i += 2) {
-    std::tie(cur_period, order) =
-        node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost[i]));
+    auto anchor = blk_hash_t(ghost[i]);
+    std::tie(cur_period, order) = node->getDagBlockOrder(anchor);
+    // call twice should not change states
+    std::tie(cur_period2, order) = node->getDagBlockOrder(anchor);
+    EXPECT_EQ(cur_period, cur_period2);
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     EXPECT_NE(sche, nullptr);
     // if (!sche) continue;
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
+    // set periiod
+    node->updateDagBlockPeriod(anchor, cur_period);
     bool ret = node->executeScheduleBlock(sche_blk);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
@@ -874,7 +869,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   // pickup the last period when dag (chain) size is odd number
   if (ghost.size() % 2 == 0) {
     std::tie(cur_period, order) =
-        node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost.back()));
+        node->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);

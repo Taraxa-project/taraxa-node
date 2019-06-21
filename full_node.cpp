@@ -544,19 +544,23 @@ std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash,
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
-std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
-FullNode::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor) {
+std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
+    blk_hash_t const &anchor) {
   vec_blk_t orders;
-  auto period = dag_mgr_->createPeriodAndComputeBlockOrder(anchor, orders);
+  auto period = dag_mgr_->getDagBlockOrder(anchor, orders);
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
 // receive pbft-povit-blk, update periods
-void FullNode::updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period) {
-  dag_mgr_->setDagBlockPeriods(anchor, period);
+void FullNode::updateDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
+  dag_mgr_->setDagBlockPeriod(anchor, period);
 }
 
-uint64_t FullNode::getLatestPeriod() const{ return dag_mgr_->getLatestPeriod();}
-blk_hash_t FullNode::getLatestAnchor() const{ return blk_hash_t(dag_mgr_->getLatestAnchor());}
+uint64_t FullNode::getLatestPeriod() const {
+  return dag_mgr_->getLatestPeriod();
+}
+blk_hash_t FullNode::getLatestAnchor() const {
+  return blk_hash_t(dag_mgr_->getLatestAnchor());
+}
 
 std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
     std::shared_ptr<vec_blk_t> blk_order) {
@@ -729,8 +733,6 @@ size_t FullNode::getPbftChainSize() const {
 size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
-
-size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
 
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {

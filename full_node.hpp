@@ -120,11 +120,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::string> getDagBlockEpFriend(blk_hash_t const &from,
                                                blk_hash_t const &to);
 
-  // return {period, block order}, for pbft-pivot-blk proposing
-  std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
-  createPeriodAndComputeBlockOrder(blk_hash_t const &anchor);
-  // receive pbft-povit-blk, update periods
-  void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period);
+  // return {period, block order}, for pbft-pivot-blk proposing (does not
+  // finialize)
+  std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
+      blk_hash_t const &anchor);
+  // receive pbft-povit-blk, update periods and finalized
+  void updateDagBlockPeriod(blk_hash_t const &anchor, uint64_t period);
   uint64_t getLatestPeriod() const;
   blk_hash_t getLatestAnchor() const;
   uint getBlockProposeThresholdBeta()
