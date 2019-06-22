@@ -39,7 +39,10 @@ class ProposeModelFace {
 
 class RandomPropose : public ProposeModelFace {
  public:
-  RandomPropose(int min, int max) : distribution_(min, max) {}
+  RandomPropose(int min, int max) : distribution_(min, max) {
+    LOG(log_nf_) << "Set random block propose threshold " << min << " ~ " << max
+                 << " milli seconds.";
+  }
   ~RandomPropose(){};
   bool propose() override;
 
@@ -59,14 +62,14 @@ class RandomPropose : public ProposeModelFace {
 };
 
 /**
- * sortition = sign({anchor_blk_hash, level}, secret_key) >= threshold
+ * sortition = sign({anchor_blk_hash, level}, secret_key) < threshold
  */
 
 class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(uint interval, uint threshold)
       : propose_interval_(interval), threshold_(threshold) {
-    LOG(log_nf_) << "Set block propose sorition threshold " << threshold_;
+    LOG(log_nf_) << "Set sorition block propose threshold " << threshold_;
   }
   ~SortitionPropose() {}
   bool propose() override;
