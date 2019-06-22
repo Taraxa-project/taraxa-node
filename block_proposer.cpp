@@ -55,6 +55,7 @@ bool RandomPropose::propose() {
 bool SortitionPropose::propose() {
   thisThreadSleepForMilliSeconds(propose_interval_);
   auto proposer = proposer_.lock();
+  bool ret = false;
   if (!proposer) {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
@@ -90,8 +91,9 @@ bool SortitionPropose::propose() {
     }
     DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
     proposer_.lock()->proposeBlock(blk);
+    ret = true;
   }
-  return true;
+  return ret;
 }
 
 std::shared_ptr<BlockProposer> BlockProposer::getShared() {
@@ -234,7 +236,7 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
     LOG(log_er_) << "Cannot win ticket, balance is 0 ...";
     return false;
   }
-  uint64_t log_bal = log10(my_bal) + 1;                // 1~16, 4 bits
+  uint64_t log_bal = log2(my_bal) + 1;                 // 1~16, 6 bits
   uint64_t my_threshold = log_bal * beta * threshold;  // 46 bits
   if (ticket < my_threshold) {
     LOG(log_dg_) << "Win sortition at level: " << propose_level

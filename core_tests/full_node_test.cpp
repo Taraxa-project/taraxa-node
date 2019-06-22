@@ -289,7 +289,7 @@ TEST(Top, sync_five_nodes_simple) {
                           "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
   const char* input4[] = {"./build/main4", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
-  const char* input5[] = {"./build/main4", "--conf_taraxa",
+  const char* input5[] = {"./build/main5", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
 
   // copy main2, main3, main4, main5
@@ -462,6 +462,12 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
   EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
   EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
+
+  EXPECT_GT(node1->getNumProposedBlocks(), 2);
+  EXPECT_GT(node2->getNumProposedBlocks(), 2);
+  EXPECT_GT(node3->getNumProposedBlocks(), 2);
+  EXPECT_GT(node4->getNumProposedBlocks(), 2);
+  EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
   top5.kill();
   top4.kill();
@@ -1064,7 +1070,7 @@ TEST(FullNode, sortition_propose_one_node) {
   FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
   conf.proposer.mode = 1;
   conf.proposer.param1 = 100;
-  conf.proposer.param2 = 4294967295;
+  conf.proposer.param2 = 4294967295;  // 2^32
 
   auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
   auto rpc(
@@ -1109,16 +1115,41 @@ TEST(FullNode, sortition_propose_one_node) {
 }
 
 TEST(Top, sortition_propose_five_nodes) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-  const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
-  const char* input3[] = {"./build/main3", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
-  const char* input4[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
-  const char* input5[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
+  const char* input1[] = {
+      "./build/main",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa1.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input2[] = {
+      "./build/main2",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa2.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input3[] = {
+      "./build/main3",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa3.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input4[] = {
+      "./build/main4",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa4.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input5[] = {
+      "./build/main5",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa5.json",
+      "-v",
+      "0",
+      "--destroy_db"};
 
   // copy main2, main3, main4, main5
   try {
@@ -1134,28 +1165,41 @@ TEST(Top, sortition_propose_five_nodes) {
     std::cerr << e.what() << std::endl;
   }
 
-  Top top1(5, input1);
+  Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   taraxa::thisThreadSleepForMilliSeconds(1000);
   std::cout << "Top1 created ..." << std::endl;
 
-  Top top2(5, input2);
+  Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
 
-  Top top3(5, input3);
+  Top top3(6, input3);
   EXPECT_TRUE(top3.isActive());
   std::cout << "Top3 created ..." << std::endl;
 
-  Top top4(5, input4);
+  Top top4(6, input4);
   EXPECT_TRUE(top4.isActive());
   std::cout << "Top4 created ..." << std::endl;
 
-  Top top5(5, input5);
+  Top top5(6, input5);
   EXPECT_TRUE(top5.isActive());
   std::cout << "Top5 created ..." << std::endl;
   // wait for top2, top3, top4, top5 initialize
   taraxa::thisThreadSleepForMilliSeconds(2000);
+
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  auto node3 = top3.getNode();
+  auto node4 = top4.getNode();
+  auto node5 = top5.getNode();
+
+  // set balance
+  bal_t bal(100000000);
+  node1->setBalance(node1->getAddress(), bal);
+  node2->setBalance(node2->getAddress(), bal);
+  node3->setBalance(node3->getAddress(), bal);
+  node4->setBalance(node4->getAddress(), bal);
 
   // send 1000 trxs
   try {
@@ -1206,12 +1250,6 @@ TEST(Top, sortition_propose_five_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  auto node1 = top1.getNode();
-  auto node2 = top2.getNode();
-  auto node3 = top3.getNode();
-  auto node4 = top4.getNode();
-  auto node5 = top5.getNode();
 
   EXPECT_NE(node1, nullptr);
   EXPECT_NE(node2, nullptr);
@@ -1290,6 +1328,10 @@ TEST(Top, sortition_propose_five_nodes) {
   EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
   EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
   EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
+
+  // num_proposed_block is static, in the case, all nodes has
+  // same num proposed blocks
+  EXPECT_GT(node1->getNumProposedBlocks(), 1);
 
   top5.kill();
   top4.kill();
