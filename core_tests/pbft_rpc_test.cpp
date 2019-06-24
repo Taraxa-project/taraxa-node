@@ -40,7 +40,7 @@ TEST(PbftManager, full_node_lambda_input_test) {
  * Get vote period 2, will remove period 1 in the queue. Queue size changes
  * to 2.
  */
-TEST(PbftVote, pbft_place_and_get_vote_test) {
+TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
 
