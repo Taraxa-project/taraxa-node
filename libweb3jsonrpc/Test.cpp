@@ -262,11 +262,9 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
         thisThreadSleepForMicroSeconds(delay);
       }
       res = "Number of " + std::to_string(number) + " created";
-      printf("RES: %s\n",res.asString().c_str());
     }
   } catch (std::exception &e) {
     res = e.what();
-    printf("RES: %s\n",res.asString().c_str());
   }
   return res;
 }
@@ -441,13 +439,12 @@ Json::Value Test::node_start(const Json::Value &param1) {
 Json::Value Test::should_speak(const Json::Value &param1) {
   Json::Value res;
   try {
-    printf("SPEAK\n");
     if (auto node = full_node_.lock()) {
       blk_hash_t blockhash = blk_hash_t(param1["blockhash"].asString());
       PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
       uint64_t period = param1["period"].asUInt64();
       size_t step = param1["step"].asUInt();
-      if (node->shouldSpeak(blockhash, type, period, step)) {
+      if (node->shouldSpeak(type, period, step)) {
         res = "True";
       } else {
         res = "False";
@@ -469,9 +466,9 @@ Json::Value Test::place_vote(const Json::Value &param1) {
       size_t step = param1["step"].asUInt();
 
       // put vote into vote queue
-      node->placeVote(blockhash, type, period, step);
+      //node->placeVote(blockhash, type, period, step);
       // broadcast vote
-      node->broadcastVote(blockhash, type, period, step);
+      //node->broadcastVote(blockhash, type, period, step);
 
       res = "Place vote successfully";
     }

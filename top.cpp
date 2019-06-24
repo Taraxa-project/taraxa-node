@@ -72,14 +72,11 @@ void Top::start(int argc, const char* argv[]) {
       stopped_ = false;
       boot_node_ = boot_node;
       try {
-        taraxa::FullNodeConfig conf(conf_taraxa);
-        node_ = std::make_shared<taraxa::FullNode>(context_, conf, destroy_db, rebuild_network);
+        conf_ = std::make_shared<taraxa::FullNodeConfig>(conf_taraxa);
+        node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db, rebuild_network);
         node_->setVerbose(verbose);
         node_->start(boot_node_);
-        rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node_));
-        auto ipcConnector = new dev::IpcServer(conf.db_path);
-        rpc_->addConnector(ipcConnector);
-        ipcConnector->StartListening();
+        startRpc();
         context_.run();
       } catch (std::exception& e) {
         stopped_ = true;
@@ -93,12 +90,24 @@ void Top::start(int argc, const char* argv[]) {
   // everything ... Otherwise node_ will get nullptr
   taraxa::thisThreadSleepForSeconds(2);
 }
+
+void Top::startRpc() {
+  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node_));
+  auto ipcConnector = new dev::IpcServer(conf_->db_path);
+  rpc_->addConnector(ipcConnector);
+  ipcConnector->StartListening();
+  if(conf_->rpc.port > 0) {
+    boost::process::ipstream pipe_stream;
+    proxy_ = std::make_shared<boost::process::child>((std::string("dopple/dopple.py ") + conf_->db_path + "/taraxa.ipc http://" + conf_->rpc.address.to_string() + ":" + std::to_string(conf_->rpc.port)).c_str(), boost::process::std_out > pipe_stream);
+  }
+}
+
 void Top::start() {
   if (!stopped_) return;
   stopped_ = false;
   assert(node_);
   node_->start(boot_node_);
-  rpc_->StartListening();
+  startRpc();
 }
 void Top::run() {
   std::unique_lock<std::mutex> lock(mu_);
@@ -116,6 +125,7 @@ void Top::stop() {
   if (stopped_) return;
   stopped_ = true;
   node_->stop();
+  proxy_->terminate();
 }
 void Top::reset() {
   if (!stopped_) return;

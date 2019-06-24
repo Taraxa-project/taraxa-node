@@ -7,6 +7,7 @@
  */
 
 #include "full_node.hpp"
+#include <boost/process.hpp>
 #include "libdevcore/Log.h"
 #include "libdevcore/LoggingProgramOptions.h"
 #include <libweb3jsonrpc/ModularServer.h>
@@ -30,14 +31,17 @@ class Top {
   bool isActive() { return !stopped_; }
   std::shared_ptr<taraxa::FullNode>& getNode() { return node_; }
   std::shared_ptr<ModularServer<>>& getRpc() { return rpc_; }
+  void startRpc();
 
  private:
   bool stopped_ = true;
   bool boot_node_ = false;
   std::shared_ptr<std::thread> th_;
+  std::shared_ptr<boost::process::child> proxy_;
   std::shared_ptr<taraxa::FullNode> node_;
   std::shared_ptr<ModularServer<>> rpc_;
   std::condition_variable cond_;
   std::mutex mu_;
   boost::asio::io_context context_;
+  std::shared_ptr<taraxa::FullNodeConfig> conf_;
 };
