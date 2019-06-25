@@ -17,6 +17,7 @@
 #include "libdevcore/Log.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
+#include "pbft_manager.hpp"
 #include "rpc.hpp"
 #include "string"
 #include "top.hpp"
@@ -854,6 +855,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   EXPECT_GT(ghost.size(), 1);
   uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
+  std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
   // create a period for every 2 pivots
   for (int i = 0; i < ghost.size(); i += 2) {
     auto anchor = blk_hash_t(ghost[i]);
@@ -868,7 +870,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
     // set period
     node->setDagBlockOrder(anchor, cur_period);
-    bool ret = node->executeScheduleBlock(sche_blk);
+    bool ret = node->executeScheduleBlock(sche_blk,
+        pbft_mgr->account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
@@ -879,7 +882,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    bool ret = node->executeScheduleBlock(sche_blk);
+    bool ret = node->executeScheduleBlock(sche_blk,
+        pbft_mgr->account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
