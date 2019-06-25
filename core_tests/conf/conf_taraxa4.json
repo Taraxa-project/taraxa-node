@@ -1,5 +1,5 @@
 {
-  "node_secret": "",
+  "node_secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
   "db_path": "/tmp/taraxa4",
   "dag_processing_threads": 1,
   "block_proposer": {
