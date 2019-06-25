@@ -35,17 +35,17 @@ string hexToDecimal(string hex);
 string bigNumberMultiplication(string num1, string num2);
 
 static dev::Logger log_sil_{
-  dev::createLogger(dev::Verbosity::VerbositySilent, "SORTITION")};
+  dev::createLogger(dev::Verbosity::VerbositySilent, "SORTI")};
 static dev::Logger log_err_{
-  dev::createLogger(dev::Verbosity::VerbosityError, "SORTITION")};
+  dev::createLogger(dev::Verbosity::VerbosityError, "SORTI")};
 static dev::Logger log_war_{
-  dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTITION")};
+  dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTI")};
 static dev::Logger log_inf_{
-  dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTITION")};
+  dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTI")};
 static dev::Logger log_deb_{
-  dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTITION")};
+  dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTI")};
 static dev::Logger log_tra_{
-  dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTITION")};
+  dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTI")};
 
 } // namespace taraxa
 
