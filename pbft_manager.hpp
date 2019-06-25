@@ -21,11 +21,11 @@
 #include "vote.h"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define TWO_T_PLUS_ONE 3  // this is the 2t+1 value.. // TODO: need to change the value
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...
 #define MAX_STEPS 19
 #undef LAMBDA_ms // undef for test TODO: need remove later
+#define COMMITTEE_SIZE 3 // TODO: The value for local test, need to change
 
 namespace taraxa {
 class FullNode;
@@ -44,12 +44,22 @@ class PbftManager {
   void run();
   bool isActive() { return executor_ != nullptr; }
 
+  size_t getSortitionThreshold() const { return sortition_threshold_; }
+  void setSortitionThreshold(size_t const sortition_threshold) {
+    sortition_threshold_ = sortition_threshold;
+  }
+  void setTwoTPlusOne(size_t const two_t_plus_one) {
+    TWO_T_PLUS_ONE = two_t_plus_one;
+  }
+
   // only for test
   u_long getLambdaMs() const { return LAMBDA_ms; }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
+
+  std::map<addr_t, bal_t> account_balance_table;
 
  private:
   size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
@@ -97,6 +107,8 @@ class PbftManager {
   uint64_t pbft_round_ = 1;
   size_t pbft_step_ = 1;
 
+  size_t sortition_threshold_;
+  size_t TWO_T_PLUS_ONE; // This is 2t+1
   u_long LAMBDA_ms; // Only for test TODO: need remove later
 
   mutable dev::Logger log_sil_{

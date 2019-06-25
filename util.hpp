@@ -23,6 +23,9 @@
 #include <string>
 #include <unordered_set>
 #include "types.hpp"
+
+#define MASTER_BOOT_NODE_ADDRESS "de2b1203d72d3549ee2f733b00b2789414c7cea5"
+
 namespace taraxa {
 
 boost::property_tree::ptree strToJson(std::string str);

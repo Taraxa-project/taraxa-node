@@ -125,7 +125,8 @@ sig_t VoteManager::signVote(secret_t const& node_sk,
 }
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
-    taraxa::Vote const& vote, taraxa::bal_t& account_balance) const {
+    taraxa::Vote const& vote, taraxa::bal_t& account_balance,
+    size_t sortition_threshold) const {
   PbftVoteTypes type = vote.getType();
   uint64_t round = vote.getRound();
   size_t step = vote.getStep();
@@ -157,7 +158,8 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   // verify sortition
   std::string sortition_signature_hash =
       taraxa::hashSignature(sortition_signature);
-  if (!taraxa::sortition(sortition_signature_hash, account_balance)) {
+  if (!taraxa::sortition(sortition_signature_hash, account_balance,
+                         sortition_threshold)) {
     LOG(log_err_)
       << "Vote sortition failed, sortition signature " << sortition_signature;
     return false;

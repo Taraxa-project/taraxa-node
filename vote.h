@@ -63,7 +63,8 @@ class VoteManager {
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
       PbftVoteTypes type, uint64_t round, size_t step);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash,
-      Vote const& vote, bal_t& account_balance) const;
+      Vote const& vote, bal_t& account_balance,
+      size_t sortition_threshold) const;
 
  private:
   vote_hash_t hash_(std::string const& str) const;

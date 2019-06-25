@@ -17,6 +17,7 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
+#include "sortition.h"
 #include "vote.h"
 
 namespace taraxa {
@@ -76,6 +77,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
+
+  // Initialize MASTER BOOT NODE to all coins
+  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
+  bal_t total_coins(TARASA_COINS_DECIMAL);
+  if (!setBalance(master_boot_node_address, total_coins)) {
+    LOG(log_er_) << "Failed to set master boot node account balance";
+  }
 
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
@@ -671,8 +679,10 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
-bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
-  return executor_->execute(sche_blk.getSchedule());
+bool FullNode::executeScheduleBlock(
+    ScheduleBlock const& sche_blk,
+    std::map<addr_t, bal_t>& account_balance_table) {
+  return executor_->execute(sche_blk.getSchedule(), account_balance_table);
 }
 
 void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
@@ -692,11 +702,12 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   }
 
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  // TODO: remove vote validation, need add later
-  // if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-  //                              account_balance.first)) {
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+  // TODO: there is bug here, need add back later
+//  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+//                                account_balance.first, sortition_threshold)) {
   vote_queue_->pushBackVote(vote);
-  //}
+//  }
 }
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
@@ -754,11 +765,29 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
       return false;
     }
+
+
     // execute schedule block
-    if (!executeScheduleBlock(pbft_block.getScheduleBlock())) {
+    if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
+                              pbft_mgr_->account_balance_table)) {
       LOG(log_er_) << "Failed to execute schedule block";
       // TODO: If valid transaction failed execute, how to do?
     }
+    // reset sortition_threshold and TWO_T_PLUS_ONE
+    size_t accounts = pbft_mgr_->account_balance_table.size();
+    size_t two_t_plus_one;
+    size_t sortition_threshold;
+    if (COMMITTEE_SIZE <= accounts) {
+      two_t_plus_one = COMMITTEE_SIZE * 2 / 3 + 1;
+      sortition_threshold = COMMITTEE_SIZE;
+    } else {
+      two_t_plus_one = accounts * 2 / 3 + 1;
+      sortition_threshold = accounts;
+    }
+    pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
+    pbft_mgr_->setSortitionThreshold(sortition_threshold);
+    LOG(log_deb_) << "Reset 2t+1 " << two_t_plus_one << " Threshold "
+                  << sortition_threshold;
   }
   // TODO: push other type pbft block into pbft chain
 
