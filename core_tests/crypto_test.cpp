@@ -13,6 +13,7 @@
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
+#include "pbft_manager.hpp"
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -62,9 +63,11 @@ TEST(EthereumCrypto, big_number_multiplication_test) {
 
 TEST(EthereumCrypto, sortition_test) {
   string signature_hash =
-      "0000000000000000000000000000000000000000000000000000000000000011";
+      "0000000000000000000000000000000000000000000000000000000000000001";
   uint64_t account_balance = 1000;
-  bool sortition = taraxa::sortition(signature_hash, account_balance);
+  size_t sortition_threshold = 1;
+  bool sortition = taraxa::sortition(signature_hash, account_balance,
+                                     sortition_threshold);
   EXPECT_EQ(sortition, true);
 }
 
@@ -80,12 +83,19 @@ TEST(EthereumCrypto, sortition_rate) {
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;
+  int sortition_threshold;
+  if (COMMITTEE_SIZE <= number_of_players) {
+    sortition_threshold = COMMITTEE_SIZE;
+  } else {
+    sortition_threshold = number_of_players;
+  }
   // Test for one player sign round messages to get sortition
   for (int i = 0; i < round; i++) {
     message += std::to_string(i);
     sig_t signature = node->signMessage(message);
     vote_hash_t sig_hash = dev::sha3(signature);
-    bool win = sortition(sig_hash.toString(), account_balance);
+    bool win = sortition(sig_hash.toString(), account_balance,
+        sortition_threshold);
     if (win) {
       count++;
     }
@@ -104,7 +114,8 @@ TEST(EthereumCrypto, sortition_rate) {
       message += std::to_string(j);
       sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
       vote_hash_t sig_hash = dev::sha3(signature);
-      bool win = sortition(sig_hash.toString(), account_balance);
+      bool win = sortition(sig_hash.toString(), account_balance,
+          sortition_threshold);
       if (win) {
         count++;
       }
@@ -120,7 +131,8 @@ TEST(EthereumCrypto, sortition_rate) {
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("SORTITION");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
