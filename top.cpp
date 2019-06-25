@@ -97,8 +97,7 @@ void Top::startRpc() {
   rpc_->addConnector(ipcConnector);
   ipcConnector->StartListening();
   if(conf_->rpc.port > 0) {
-    boost::process::ipstream pipe_stream;
-    proxy_ = std::make_shared<boost::process::child>((std::string("dopple/dopple.py ") + conf_->db_path + "/taraxa.ipc http://" + conf_->rpc.address.to_string() + ":" + std::to_string(conf_->rpc.port)).c_str(), boost::process::std_out > pipe_stream);
+    proxy_ = std::make_shared<boost::process::child>((std::string("dopple/dopple.py ") + conf_->db_path + "/taraxa.ipc http://" + conf_->rpc.address.to_string() + ":" + std::to_string(conf_->rpc.port)).c_str());
   }
 }
 

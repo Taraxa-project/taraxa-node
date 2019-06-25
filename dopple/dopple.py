@@ -280,7 +280,9 @@ def parse_args():
 def run(proxy_url=DEFAULT_PROXY_URL, backend_path=DEFAULT_BACKEND_PATH):
     proxy = Proxy(proxy_url, backend_path)
     try:
-        proxy.run()
+    	sys.stdout = open(backend_path + '.log', 'w')
+    	sys.stderr = open(backend_path + '.log', 'w')
+    	proxy.run()
     except KeyboardInterrupt:
         proxy.shutdown()
 
