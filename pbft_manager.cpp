@@ -42,7 +42,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   if (!master_boot_node_account_balance.second) {
     LOG(log_err_) << "Failed initial master boot node account balance."
                   << " Master boot node balance is not exist.";
-  } else if (master_boot_node_account_balance.first != TARASA_COINS_DECIMAL) {
+  } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
     LOG(log_err_)
       << "Failed initial master boot node account balance. Current balance "
       << master_boot_node_account_balance.first;

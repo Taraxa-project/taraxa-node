@@ -80,7 +80,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
 
   // Initialize MASTER BOOT NODE to all coins
   addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  bal_t total_coins(TARASA_COINS_DECIMAL);
+  bal_t total_coins(TARAXA_COINS_DECIMAL);
   if (!setBalance(master_boot_node_address, total_coins)) {
     LOG(log_er_) << "Failed to set master boot node account balance";
   }

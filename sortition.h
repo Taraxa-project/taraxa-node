@@ -21,7 +21,7 @@
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS "9007199254740991"
-#define TARASA_COINS_DECIMAL 9007199254740991
+#define TARAXA_COINS_DECIMAL 9007199254740991
 
 namespace taraxa {
 using std::string;
