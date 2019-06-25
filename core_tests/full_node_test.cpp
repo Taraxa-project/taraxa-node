@@ -35,10 +35,18 @@ auto g_trx_signed_samples =
 auto g_mock_dag0 = samples::createMockDag0();
 
 TEST(Top, top_reset) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json", "-v", "0", "--destroy_db"};
-  const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json", "-v", "0", "--destroy_db"};
+  const char* input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  const char* input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
@@ -364,21 +372,11 @@ TEST(Top, sync_five_nodes_simple) {
                                       "number": 4000, 
                                       "seed": 5 }]}' 0.0.0.0:7780)";
     std::cout << "Sending trxs ..." << std::endl;
-    std::thread t1([sendtrx1]() {
-      system(sendtrx1.c_str());
-    });
-    std::thread t2([sendtrx2]() {
-      system(sendtrx2.c_str());
-    });
-    std::thread t3([sendtrx3]() {
-      system(sendtrx3.c_str());
-    });
-    std::thread t4([sendtrx4]() {
-      system(sendtrx4.c_str());
-    });
-    std::thread t5([sendtrx5]() {
-      system(sendtrx5.c_str());
-    });
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+    std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
+    std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
+    std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
 
     t1.join();
     t2.join();
@@ -1091,7 +1089,8 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   // destroy db !!
   node1->destroyDB();
   node1->start(true /*boot_node*/);
-  auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node1));
+  auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
+      new dev::rpc::Test(node1));
   auto ipcConnector = new dev::IpcServer(conf.db_path);
   rpc->addConnector(ipcConnector);
   ipcConnector->StartListening();
@@ -1103,7 +1102,7 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, init_bal);
   node1->setBlockProposeThresholdBeta(2048);
-  
+
   try {
     system("./core_tests/scripts/curl_send_1000_trx.sh");
   } catch (std::exception& e) {
@@ -1369,7 +1368,7 @@ int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
-  logOptions.includeChannels.push_back("rpc");
+  logOptions.includeChannels.push_back("JSRPC");
   logOptions.includeChannels.push_back("DAGMGR");
   logOptions.includeChannels.push_back("EXETOR");
   logOptions.includeChannels.push_back("BLK_PP");

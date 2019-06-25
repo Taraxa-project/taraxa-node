@@ -35,7 +35,7 @@ int const c_bufferSize = 1024;
 
 template <class S>
 IpcServerBase<S>::IpcServerBase(string const& _path) : m_path(_path) {
-  clog(VerbosityInfo, "rpc") << "JSON-RPC socket path: " << _path;
+  clog(VerbosityInfo, "JSRPC") << "JSON-RPC socket path: " << _path;
 }
 
 template <class S>
@@ -78,7 +78,7 @@ bool IpcServerBase<S>::SendResponse(string const& _response, void* _addInfo) {
     } else
       fullyWritten = true;
   } while (!fullyWritten && !errorOccured);
-  clog(VerbosityTrace, "rpc") << _response;
+  clog(VerbosityTrace, "JSRPC") << _response;
   return fullyWritten && !errorOccured;
 }
 
@@ -114,7 +114,7 @@ void IpcServerBase<S>::GenerateResponse(S _connection) {
         if (depth == 0) {
           std::string r = request.substr(0, i + 1);
           request.erase(0, i + 1);
-          clog(VerbosityTrace, "rpc") << r;
+          clog(VerbosityTrace, "JSRPC") << r;
           string response;
           if (GetHandler() != NULL) {
             GetHandler()->HandleRequest(r, response);
