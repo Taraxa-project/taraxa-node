@@ -10,6 +10,7 @@
 #define SORTITION_H
 
 #include "libdevcrypto/Common.h"
+#include "libdevcore/Log.h"
 
 #include <string>
 
@@ -20,19 +21,31 @@
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS "9007199254740991"
-
-#define THRESHOLD 3
+#define TARASA_COINS_DECIMAL 9007199254740991
 
 namespace taraxa {
 using std::string;
 
 string hashSignature(dev::Signature signature);
 
-bool sortition(string signature, uint64_t account_balance);
+bool sortition(string signature, uint64_t account_balance, size_t threshold);
 
 string hexToDecimal(string hex);
 
 string bigNumberMultiplication(string num1, string num2);
+
+static dev::Logger log_sil_{
+  dev::createLogger(dev::Verbosity::VerbositySilent, "SORTITION")};
+static dev::Logger log_err_{
+  dev::createLogger(dev::Verbosity::VerbosityError, "SORTITION")};
+static dev::Logger log_war_{
+  dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTITION")};
+static dev::Logger log_inf_{
+  dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTITION")};
+static dev::Logger log_deb_{
+  dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTITION")};
+static dev::Logger log_tra_{
+  dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTITION")};
 
 } // namespace taraxa
 
