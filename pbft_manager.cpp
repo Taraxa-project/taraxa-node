@@ -34,6 +34,21 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   vote_queue_ = full_node->getVoteQueue();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
+
+  // Initialize master boot node account balance
+  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
+  std::pair<bal_t, bool> master_boot_node_account_balance =
+      full_node->getBalance(master_boot_node_address);
+  if (!master_boot_node_account_balance.second) {
+    LOG(log_err_) << "Failed initial master boot node account balance."
+                  << " Master boot node balance is not exist.";
+  } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
+    LOG(log_err_)
+      << "Failed initial master boot node account balance. Current balance "
+      << master_boot_node_account_balance.first;
+  }
+  account_balance_table[master_boot_node_address] =
+      master_boot_node_account_balance.first;
 }
 
 void PbftManager::start() {
@@ -74,6 +89,13 @@ void PbftManager::stop() {
  * users from which have received valid round p credentials
  */
 void PbftManager::run() {
+  // Initilize TWO_T_PLUS_ONE and sortition_threshold
+  size_t accounts = account_balance_table.size();
+  TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
+  sortition_threshold_ = accounts;
+  LOG(log_deb_) << "Initialize 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
+                << sortition_threshold_;
+
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round;
@@ -394,7 +416,8 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round,
     LOG(log_tra_) << "Full node account unavailable" << std::endl;
     return false;
   }
-  if (!taraxa::sortition(sortition_signature_hash, account_balance.first)) {
+  if (!taraxa::sortition(sortition_signature_hash, account_balance.first,
+                         sortition_threshold_)) {
     LOG(log_tra_) << "Don't get sortition";
     return false;
   }
@@ -737,10 +760,21 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
                     << pbft_block.first.getBlockHash() << " into chain!";
       // execute schedule block
       if (!full_node->executeScheduleBlock(
-          pbft_block.first.getScheduleBlock())) {
+          pbft_block.first.getScheduleBlock(), account_balance_table)) {
         LOG(log_err_) << "Failed to execute schedule block";
         // TODO: If valid transaction failed execute, how to do?
       }
+      // reset sortition_threshold and TWO_T_PLUS_ONE
+      size_t accounts = account_balance_table.size();
+      if (COMMITTEE_SIZE <= accounts) {
+        TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
+        sortition_threshold_ = COMMITTEE_SIZE;
+      } else {
+        TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
+        sortition_threshold_ = accounts;
+      }
+      LOG(log_deb_) << "Reset 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
+                    << sortition_threshold_;
       return true;
     }
   }  // TODO: more pbft block type

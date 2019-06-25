@@ -35,9 +35,12 @@ class Executor {
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();
   void clear();
-  bool execute(TrxSchedule const& schedule);
-  bool executeBlkTrxs(blk_hash_t const& blk);
-  bool coinTransfer(Transaction const& trx);
+  bool execute(TrxSchedule const& schedule,
+               std::map<addr_t, bal_t>& account_balance_table);
+  bool executeBlkTrxs(blk_hash_t const& blk,
+                      std::map<addr_t, bal_t>& account_balance_table);
+  bool coinTransfer(Transaction const& trx,
+                    std::map<addr_t, bal_t>& account_balance_table);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;

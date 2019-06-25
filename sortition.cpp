@@ -28,31 +28,38 @@ string hashSignature(dev::Signature signature) {
 
 /*
  * Sortition return true:
- * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS * THRESHOLD
+ * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS * sortition_threshold
  * otherwise return false
  */
-bool sortition(string signature_hash, uint64_t account_balance) {
+bool sortition(string signature_hash, uint64_t account_balance,
+               size_t threshold) {
   if (signature_hash.length() != 64) {
-    std::cerr << "signature has string length should be 64, but "
-              << signature_hash.length()
-              << " given" << std::endl;
+    LOG(log_err_) << "signature has string length should be 64, but "
+                  << signature_hash.length() << " given" << std::endl;
     return false;
   }
   string signature_hash_decimal = taraxa::hexToDecimal(signature_hash);
   if (signature_hash_decimal.empty()) {
+    LOG(log_err_) << "Cannot convert singature hash from hex to decimal";
     return false;
   }
 
   string sum_left;
   string sum_right;
 
-  sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal, TARAXA_COINS);
+  sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal,
+                                             TARAXA_COINS);
   if (sum_left.empty()) {
+    LOG(log_err_) << "Failed multiplication of signature hash * total coins";
     return false;
   }
-  uint64_t sum = account_balance * THRESHOLD;
-  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, std::to_string(sum));
+  uint64_t sum = account_balance * threshold;
+  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX,
+                                              std::to_string(sum));
   if (sum_right.empty()) {
+    LOG(log_err_)
+      << "Failed multiplication of "
+      << "max signature hash * account balance * sortition threshold";
     return false;
   }
 
@@ -68,7 +75,7 @@ bool sortition(string signature_hash, uint64_t account_balance) {
 string hexToDecimal(string hex) {
   for (int i = 0; i < hex.length(); i++) {
     if (!std::isxdigit(hex[i])) {
-      std::cerr << "invalid hex character: " << hex[i] << std::endl;
+      LOG(log_err_) << "invalid hex character: " << hex[i] << std::endl;
       return "";
     }
   }
@@ -84,21 +91,23 @@ string hexToDecimal(string hex) {
 
 string bigNumberMultiplication(string num1, string num2) {
   std::stringstream result;
-  if (num1.length() > SIGNATURE_HASH_SIZE_MAX || num2.length() > SIGNATURE_HASH_SIZE_MAX) {
-    std::cerr << "The length of the input decimal strings cannot larger than 78, "
-              << "the length of num1: " << num1.length()
-              << ", and the length of num2: " << num2.length() << std::endl;
+  if (num1.length() > SIGNATURE_HASH_SIZE_MAX ||
+      num2.length() > SIGNATURE_HASH_SIZE_MAX) {
+    LOG(log_err_)
+      << "The length of the input decimal strings cannot larger than 78, "
+      << "the length of num1: " << num1.length()
+      << ", and the length of num2: " << num2.length() << std::endl;
     return result.str();
   }
   for (char n: num1) {
     if (!isdigit(n)) {
-      std::cerr << "invalid decimal digit: " << n << std::endl;
+      LOG(log_err_) << "invalid decimal digit: " << n << std::endl;
       return result.str();
     }
   }
   for (char n: num2) {
     if (!isdigit(n)) {
-      std::cerr << "invalid decimal digit: " << n << std::endl;
+      LOG(log_err_) << "invalid decimal digit: " << n << std::endl;
       return result.str();
     }
   }
