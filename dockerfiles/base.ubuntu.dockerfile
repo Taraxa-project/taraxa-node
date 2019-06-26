@@ -7,7 +7,12 @@ RUN apt-get update \
     && apt-get install -y \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
     libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl libcurl4-openssl-dev cmake unzip pkg-config git \
-    rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool
+    rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool \
+    libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools
+
+# After install and link for json/json.h include dir
+RUN ln -s /usr/include/jsoncpp/json /usr/include/json
+
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 
@@ -74,9 +79,6 @@ RUN cd /tmp/grpc \
   && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install
 
 FROM grpc-layer as release
-# Install and link for json/json.h include dir
-RUN apt-get install -y libjsoncpp-dev && \
-  ln -s /usr/include/jsoncpp/json /usr/include/json
 
 # Clean up image
 WORKDIR /app
