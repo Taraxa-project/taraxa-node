@@ -16,6 +16,7 @@
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "transaction.hpp"
+#include "vm/TaraxaVM.hpp"
 
 namespace taraxa {
 /**
@@ -37,7 +38,6 @@ class Executor {
   void clear();
   bool execute(TrxSchedule const& schedule);
   bool executeBlkTrxs(blk_hash_t const& blk);
-  bool coinTransfer(Transaction const& trx);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;
@@ -46,6 +46,7 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_blks_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
   std::shared_ptr<SimpleDBFace> db_accs_;
+  std::shared_ptr<vm::TaraxaVM> taraxaVM;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{

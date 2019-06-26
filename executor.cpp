@@ -10,7 +10,11 @@
 #include "util.hpp"
 #include "vm/TaraxaVM.hpp"
 
+using namespace std;
 namespace taraxa {
+
+string LAST_STATE_ROOT_KEY = "last_root";
+
 Executor::~Executor() {
   if (!stopped_) {
     stop();
@@ -25,6 +29,7 @@ void Executor::start() {
   db_blks_ = node_.lock()->getBlksDB();
   db_trxs_ = node_.lock()->getTrxsDB();
   db_accs_ = node_.lock()->getAccsDB();
+  taraxaVM = node_.lock()->getVM();
   stopped_ = false;
 }
 void Executor::stop() {
@@ -32,18 +37,20 @@ void Executor::stop() {
   db_blks_ = nullptr;
   db_trxs_ = nullptr;
   db_accs_ = nullptr;
+  taraxaVM = nullptr;
 }
 bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
-  std::string blk_json = db_blks_->get(blk.toString());
+  string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
   DagBlock dag_block(blk_json);
+  vm::Block vmBlock{
+      dag_block.sender(), 1, 0, 0, 100000000000, dag_block.getHash(),
+  };
   auto& log_time = node_.lock()->getTimeLogger();
-
   auto trxs_hash = dag_block.getTrxs();
-  // sequential execute transaction
   for (auto const& trx_hash : trxs_hash) {
     LOG(log_time) << "Transaction " << trx_hash
                   << " read from db at: " << getCurrentTimeMilliSeconds();
@@ -52,13 +59,26 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
       LOG(log_er_) << "Transaction is invalid" << std::endl;
       continue;
     }
-    coinTransfer(trx);
-    if (node_.lock()) {
-      LOG(log_time) << "Transaction " << trx_hash
-                    << " executed at: " << getCurrentTimeMilliSeconds();
-    }
+    const auto& receiver = trx.getReceiver();
+    vmBlock.transactions.push_back({
+        receiver ? make_optional(receiver) : nullopt,
+        trx.getSender(),
+        trx.getNonce(),
+        trx.getValue(),
+        trx.getGas(),
+        trx.getGasPrice(),
+        trx.getData(),
+        trx.getHash(),
+    });
   }
-  db_trxs_->commit();
+  const auto& lastRootStr = db_accs_->get(LAST_STATE_ROOT_KEY);
+  const auto& lastRoot = lastRootStr.size() == 0 ? h256() : h256(lastRootStr);
+  const auto& result = taraxaVM->transitionState({lastRoot, vmBlock});
+  db_accs_->update(LAST_STATE_ROOT_KEY, toHexPrefixed(result.stateRoot));
+//  if (node_.lock()) { TODO logging
+//    LOG(log_time) << "Block " << blk
+//                  << " executed at: " << getCurrentTimeMilliSeconds();
+//  }
   return true;
 }
 bool Executor::execute(TrxSchedule const& sche) {
@@ -70,32 +90,4 @@ bool Executor::execute(TrxSchedule const& sche) {
   return true;
 }
 
-bool Executor::coinTransfer(Transaction const& trx) {
-  addr_t sender = trx.getSender();
-  addr_t receiver = trx.getReceiver();
-  bal_t value = trx.getValue();
-  auto sender_bal = db_accs_->get(sender.toString());
-  auto receiver_bal = db_accs_->get(receiver.toString());
-  bal_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
-  bal_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
-
-  if (sender_initial_coin < trx.getValue()) {
-    LOG(log_er_) << "Error! Insufficient fund for transfer ..." << std::endl;
-    return false;
-  }
-  if (receiver_initial_coin >
-      std::numeric_limits<uint64_t>::max() - trx.getValue()) {
-    LOG(log_er_) << "Error! Fund can overflow ..." << std::endl;
-    return false;
-  }
-  bal_t new_sender_bal = sender_initial_coin - value;
-  bal_t new_receiver_bal = receiver_initial_coin + value;
-  db_accs_->put(sender.toString(), std::to_string(new_sender_bal));
-  db_accs_->put(receiver.toString(), std::to_string(new_receiver_bal));
-  LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
-  LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
-
-  return true;
 }
-
-}  // namespace taraxa

@@ -4,7 +4,7 @@
 #include <errno.h>
 namespace taraxa {
 
-boost::property_tree::ptree strToJson(std::string str) {
+boost::property_tree::ptree strToJson(const std::string &str) {
   std::stringstream iss(str);
   boost::property_tree::ptree doc;
   try {

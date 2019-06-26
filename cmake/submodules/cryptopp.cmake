@@ -5,8 +5,7 @@ set(CRYPTOPP_BUILD_CMD $(MAKE) -C ${PROJECT_SOURCE_DIR}/submodules/cryptopp)
 if (NOT APPLE)
     set(CRYPTOPP_COMPILE_DEFINITIONS CRYPTOPP_DISABLE_ASM)
     set(CRYPTOPP_BUILD_CMD
-            ${CRYPTOPP_BUILD_CMD}
-            CXXFLAGS=\"-DNDEBUG -g2 -O3 -fPIC -D${CRYPTOPP_COMPILE_DEFINITIONS} -pthread -pipe -c\")
+            ${CRYPTOPP_BUILD_CMD} CXXFLAGS='-DNDEBUG -g2 -O3 -fPIC -D${CRYPTOPP_COMPILE_DEFINITIONS} -pthread -pipe -c')
 endif ()
 external_lib(cryptopp STATIC ${PROJECT_SOURCE_DIR}/submodules/cryptopp/libcryptopp.a
         COMMAND ${CRYPTOPP_BUILD_CMD}

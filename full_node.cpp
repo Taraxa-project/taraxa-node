@@ -21,6 +21,7 @@
 
 namespace taraxa {
 
+using boost::property_tree::ptree;
 using std::string;
 using std::to_string;
 
@@ -96,39 +97,39 @@ void FullNode::initDB(bool destroy_db) {
 
   if (db_accs_ == nullptr) {
     db_accs_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/acc",
+        SimpleDBFactory::SimpleDBType::StateDBKind, conf_.account_db_path(),
         destroy_db);
     assert(db_accs_);
   }
   if (db_blks_ == nullptr) {
     db_blks_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/blk",
+        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.block_db_path(),
         destroy_db);
     assert(db_blks_);
   }
   if (db_blks_index_ == nullptr) {
     db_blks_index_ = SimpleDBFactory::createDelegate(
         SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
-        conf_.db_path + "/blk_index", destroy_db);
+        conf_.block_index_db_path(), destroy_db);
     assert(db_blks_index_);
   }
   if (db_trxs_ == nullptr) {
     db_trxs_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/trx",
-        destroy_db);
+        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+        conf_.transactions_db_path(), destroy_db);
     assert(db_trxs_);
   }
 
   if (db_votes_ == nullptr) {
     db_votes_ = SimpleDBFactory::createDelegate(
         SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/pbftvotes", destroy_db);
+        conf_.pbft_votes_db_path(), destroy_db);
     assert(db_votes_);
   }
   if (db_pbftchain_ == nullptr) {
     db_pbftchain_ = SimpleDBFactory::createDelegate(
         SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/pbftchain", destroy_db);
+        conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
   LOG(log_nf_) << "DB initialized ...";
@@ -218,6 +219,14 @@ void FullNode::start(bool boot_node) {
   if (!db_inited_) {
     initDB(false);
   }
+  ptree rocksdbOpts;
+  rocksdbOpts.put("file", conf_.account_db_path());
+  taraxaVM = vm::TaraxaVM::fromConfig({
+      vm::StateDBConfig{
+          vm::DBConfig{"rocksdb", rocksdbOpts},
+          0,
+      },
+  });
   stopped_ = false;
   // order depend, be careful when changing the order
   network_->setFullNode(getShared());
@@ -654,7 +663,7 @@ bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
   return true;
 }
 
-void FullNode::pushVoteIntoQueue(taraxa::Vote const& vote) {
+void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
   vote_queue_->pushBackVote(vote);
 }
 
@@ -662,7 +671,7 @@ std::vector<Vote> FullNode::getVotes(uint64_t period) {
   return vote_queue_->getVotes(period);
 }
 
-void FullNode::receivedVotePushIntoQueue(taraxa::Vote const& vote) {
+void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<bal_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
@@ -677,7 +686,7 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const& vote) {
   }
 }
 
-void FullNode::broadcastVote(Vote const& vote) {
+void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
   network_->onNewPbftVote(vote);
 }
@@ -690,11 +699,11 @@ void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
 
 size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
 
-bool FullNode::isKnownVote(vote_hash_t const& vote_hash) const {
+bool FullNode::isKnownVote(vote_hash_t const &vote_hash) const {
   return known_votes_.count(vote_hash);
 }
 
-void FullNode::setVoteKnown(vote_hash_t const& vote_hash) {
+void FullNode::setVoteKnown(vote_hash_t const &vote_hash) {
   known_votes_.insert(vote_hash);
 }
 
@@ -751,8 +760,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   return true;
 }
 
-Vote FullNode::generateVote(blk_hash_t const& blockhash, PbftVoteTypes type,
-    uint64_t period, size_t step) {
+Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+                            uint64_t period, size_t step) {
   blk_hash_t lask_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   // sortition signature
   sig_t sortition_signature =

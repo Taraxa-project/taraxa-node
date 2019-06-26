@@ -19,13 +19,14 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
 #include "types.hpp"
 namespace taraxa {
 
-boost::property_tree::ptree strToJson(std::string str);
+boost::property_tree::ptree strToJson(const std::string &str);
 // load file and convert to json doc
 boost::property_tree::ptree loadJsonFile(std::string json_file_name);
 
@@ -141,17 +142,19 @@ class StatusTable {
     bool ret = false;
     uLock lock(shared_mutex_);
     auto current_status = status_.find(hash);
-    if(current_status != status_.end() && current_status->second == expected_status) {
+    if (current_status != status_.end() &&
+        current_status->second == expected_status) {
       status_[hash] = status;
       ret = true;
     }
     return ret;
   }
   // clear everything
-  void clear(){
+  void clear() {
     uLock lock(shared_mutex_);
     status_.clear();
   }
+
  private:
   boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
@@ -183,6 +186,44 @@ class Observer : std::enable_shared_from_this<Observer> {
  protected:
   std::shared_ptr<Subject> subject_;
 };
+
+constexpr char *cgo_str(const std::string &str) {
+  return const_cast<char *>(str.c_str());
+}
+
+// Boost serializes everything as string
+inline std::string unquote_numbers(const std::string &json_str) {
+  std::regex re(R"(\"([0-9]+\.{0,1}[0-9]*)\")");
+  return std::regex_replace(json_str, re, "$1");
+}
+
+inline std::string toJsonObjectString(const boost::property_tree::ptree &p) {
+  std::stringstream stream;
+  // Note: boost appends a newline
+  write_json(stream, p, false);
+  return unquote_numbers(stream.str());
+}
+
+// Boost can't handle top-level arrays
+inline std::string toJsonArrayString(const boost::property_tree::ptree &p) {
+  std::stringstream ss;
+  ss << "[";
+  auto addComma = false;
+  for (const auto &child : p) {
+    if (addComma) {
+      ss << ",";
+    }
+    addComma = true;
+    ss << toJsonObjectString(child.second);
+  }
+  ss << "]";
+  return ss.str();
+}
+
+template <typename T>
+inline void append(boost::property_tree::ptree &ptree, const T &value) {
+  ptree.push_back(make_pair("", value));
+}
 
 }  // namespace taraxa
 

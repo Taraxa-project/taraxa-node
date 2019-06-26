@@ -44,6 +44,18 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     std::cerr << e.what() << std::endl;
   }
 }
+std::string FullNodeConfig::account_db_path() { return db_path + "/acc"; }
+std::string FullNodeConfig::block_db_path() { return db_path + "/blk"; }
+std::string FullNodeConfig::block_index_db_path() {
+  return db_path + "/blk_index";
+}
+std::string FullNodeConfig::transactions_db_path() { return db_path + "/trx"; }
+std::string FullNodeConfig::pbft_votes_db_path() {
+  return db_path + "/pbftvotes";
+}
+std::string FullNodeConfig::pbft_chain_db_path() {
+  return db_path + "/pbftchain";
+}
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   try {

@@ -23,6 +23,7 @@
 #include "pbft_chain.hpp"
 #include "util.hpp"
 #include "vote.h"
+#include "vm/TaraxaVM.hpp"
 
 namespace taraxa {
 
@@ -145,9 +146,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool destroyDB();
 
   // get DBs
+  // fixme: breaks the pattern of declaration-only headers
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
   std::shared_ptr<SimpleDBFace> getAccsDB() const { return db_accs_; }
+  std::shared_ptr<vm::TaraxaVM> getVM() const { return taraxaVM; }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
@@ -207,6 +210,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  // vm
+  std::shared_ptr<vm::TaraxaVM> taraxaVM = nullptr;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;

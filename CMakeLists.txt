@@ -39,7 +39,7 @@ include_directories(
         submodules/prometheus-cpp/core/include
         submodules/secp256k1/include)
 
-add_link_options(${CXX_STD_FLAG})
+add_link_options(${CXX_STD_FLAG} $<$<CONFIG:Debug>:-rdynamic>)
 link_directories(${Boost_LIBRARY_DIRS})
 link_libraries(
         #       Linker search path libraries
@@ -59,7 +59,6 @@ link_libraries(
         boost_log_setup
         gtest
         boost_thread-mt
-        rocksdb
         z
         curl
         #       CMAKE library targets
@@ -74,9 +73,8 @@ link_libraries(
 )
 if (APPLE)
     link_libraries(
-            # TODO will be required for Go runtime
-            #            "-framework CoreFoundation"
-            #            "-framework Security"
+            "-framework CoreFoundation"
+            "-framework Security"
             boost_log-mt)
 endif (APPLE)
 
@@ -162,6 +160,7 @@ set(main_deps_objects $<TARGET_OBJECTS:node_objects> $<TARGET_OBJECTS:p2p_object
 add_library(main_objects OBJECT main.cpp)
 add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
 
+enable_testing()
 set(CORE_TESTS
         crypto_test
         pbft_rpc_test
@@ -178,7 +177,12 @@ set(CORE_TESTS
         network_test
         pbft_chain_test
         state_unit_tests
-        pbft_manager_test)
+        pbft_manager_test
+        vm_test)
+set(ALL_TESTS
+        ${CORE_TESTS}
+        trie_test)
+
 foreach (t ${CORE_TESTS})
     add_library(${t}_objects OBJECT core_tests/${t}.cpp)
 endforeach ()
@@ -190,9 +194,6 @@ add_library(trie_test_objects OBJECT
         crypto_tests/MemTrie.cpp
         crypto_tests/trie_test.cpp)
 
-set(ALL_TESTS
-        ${CORE_TESTS}
-        trie_test)
 foreach (t ${ALL_TESTS})
     add_executable(${t} ${main_deps_objects} $<TARGET_OBJECTS:${t}_objects>)
     add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
