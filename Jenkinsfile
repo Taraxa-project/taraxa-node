@@ -18,7 +18,9 @@ pipeline {
         stage('Unit Tests') {
             agent {
                 docker {
-                    image '${REGISTRY}/${BASE_IMAGE}'
+                    alwaysPull true
+                    image '${BASE_IMAGE}'
+                    registryUrl '${REGISTRY}'
                 }
             }
             steps {
