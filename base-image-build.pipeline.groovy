@@ -20,12 +20,23 @@ pipeline {
             }
         }
         stage('Push Docker Image') {
-            when {branch 'master'}
+            when { branch 'master' }
             steps {
-                sh 'docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}'
-                sh 'docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker push ${REGISTRY}/${IMAGE}'
+                sh '''
+                  docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
+                  docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}
+                  docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
+                  docker push ${REGISTRY}/${IMAGE}
+                '''
+            }
+        }
+        stage('Push Docker Image') {
+            when { not { branch 'master' } }
+            steps {
+              sh '''
+                docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BRANCH_NAME_LOWER_CASE}
+                docker push ${REGISTRY}/${IMAGE}:${BRANCH_NAME_LOWER_CASE}
+              '''
             }
         }
     }
