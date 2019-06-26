@@ -4,7 +4,7 @@ pipeline {
         AWS = credentials('AWS')
         REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
         IMAGE = 'taraxa-node'
-        BASE_IMAGE = 'taraxa-node-base'
+        BASE_IMAGE = 'taraxa-node-base:rpc'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
         BRANCH_NAME_LOWER_CASE = sh(script: 'echo "${BRANCH_NAME}" | tr "[:upper:]" "[:lower:]"', , returnStdout: true).trim()
