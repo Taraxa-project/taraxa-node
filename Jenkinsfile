@@ -19,8 +19,7 @@ pipeline {
             agent {
                 docker {
                     alwaysPull true
-                    image '${BASE_IMAGE}'
-                    registryUrl '${REGISTRY}'
+                    image '${REGISTRY}/${BASE_IMAGE}'
                 }
             }
             steps {
