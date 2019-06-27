@@ -45,7 +45,7 @@ struct ProcessReturn {
   taraxa::addr_t user_account;
 };
 
-template <typename T, typename U>
+template <typename T, typename U = T>
 std::vector<T> asVector(boost::property_tree::ptree const &pt,
                         boost::property_tree::ptree::key_type const &key) {
   std::vector<T> v;
@@ -65,6 +65,14 @@ constexpr inline
     typename std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E>
     toEnum(T value) noexcept {
   return static_cast<E>(value);
+}
+
+template <typename T>
+std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
+  for (auto const &i : vec) {
+    strm << i << " ";
+  }
+  return strm;
 }
 
 using stream = std::basic_streambuf<uint8_t>;
@@ -144,17 +152,19 @@ class StatusTable {
     bool ret = false;
     uLock lock(shared_mutex_);
     auto current_status = status_.find(hash);
-    if(current_status != status_.end() && current_status->second == expected_status) {
+    if (current_status != status_.end() &&
+        current_status->second == expected_status) {
       status_[hash] = status;
       ret = true;
     }
     return ret;
   }
   // clear everything
-  void clear(){
+  void clear() {
     uLock lock(shared_mutex_);
     status_.clear();
   }
+
  private:
   boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;

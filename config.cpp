@@ -40,6 +40,16 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         boost::asio::ip::address::from_string(network.network_address);
     rpc.port = doc.get<uint16_t>("rpc_port");
     pbft_manager.lambda_ms = doc.get<u_long>("pbft_manager.lambda_ms");
+
+    {  // for test experiments
+      for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
+        test_params.block_proposer.push_back(i);
+      }
+
+      for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
+        test_params.pbft.push_back(i);
+      }
+    }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -55,6 +65,14 @@ RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
     std::cerr << e.what() << std::endl;
   }
 }
+
+std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf) {
+  strm << "[TestNet Config] " << std::endl;
+  strm << "   block_proposer: " << conf.block_proposer << std::endl;
+  strm << "   pbft: " << conf.pbft << std::endl;
+  return strm;
+}
+
 std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf) {
   strm << "[Rpc Config] " << std::endl;
   strm << "   json_file_name: " << conf.json_file_name << std::endl;
@@ -114,6 +132,7 @@ std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
   strm << conf.network;
   strm << conf.rpc;
   strm << conf.pbft_manager;
+  strm << conf.test_params;
   return strm;
 }
 }  // namespace taraxa

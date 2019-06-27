@@ -50,6 +50,12 @@ struct PbftManagerConfig {
   u_long lambda_ms;
 };
 
+// Parameter Tuning purpose
+struct TestParamsConfig {
+  std::vector<uint> block_proposer;  // test_params.block_proposer
+  std::vector<uint> pbft;            // test_params.pbft
+};
+
 struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
@@ -60,7 +66,10 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   PbftManagerConfig pbft_manager;
+  TestParamsConfig test_params;
 };
+
+std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf);

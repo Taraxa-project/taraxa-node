@@ -24,5 +24,18 @@
   "rpc_port": 7780,
   "pbft_manager": {
     "lambda_ms": 1000
+  },
+  "test_params": {
+    "block_proposer": [
+      1,
+      1,
+      500,
+      1073741823
+    ],
+    "pbft": [
+      1000,
+      0,
+      0
+    ]
   }
 }
