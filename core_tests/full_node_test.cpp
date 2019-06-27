@@ -198,7 +198,7 @@ TEST(FullNode, full_node_reset) {
       context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start(true /*boot_node*/);
+  node1->start(true); // boot node
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
@@ -256,7 +256,7 @@ TEST(FullNode, full_node_reset) {
 
   node1->stop();
   node1->reset();
-  node1->start(true /*boot_node*/);
+  node1->start(true); // boot node
   std::cout << "Waiting connection for 100 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(100);
 
@@ -488,7 +488,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(true /*boot_node*/);
+  node->start(true); // boot node
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
@@ -606,7 +606,7 @@ TEST(Top, reconstruct_dag) {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(
-        std::make_shared<taraxa::FullNode>(context, conf, true /*destroy_db*/));
+        std::make_shared<taraxa::FullNode>(context, conf, true)); // destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -624,7 +624,7 @@ TEST(Top, reconstruct_dag) {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(std::make_shared<taraxa::FullNode>(context, conf,
-                                                 false /*destroy_db*/));
+                                                 false)); // no destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -830,7 +830,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(true /*boot_node*/);
+  node->start(true); // boot node
   addr_t acc1 = node->getAddress();
 
   bal_t initbal(10000000);
@@ -909,7 +909,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
 
   // node1->setVerbose(true);
   node1->setDebug(true);
-  node1->start(true /*boot_node*/);
+  node1->start(true); // boot node
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
@@ -1034,7 +1034,7 @@ TEST(FullNode, receive_send_transaction) {
       std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
   rpc->start();
   node1->setDebug(true);
-  node1->start(true /*boot_node*/);
+  node1->start(true); // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -1077,7 +1077,7 @@ TEST(FullNode, sortition_propose_one_node) {
   node1->setDebug(true);
   // destroy db !!
   node1->destroyDB();
-  node1->start(true /*boot_node*/);
+  node1->start(true); // boot node
   auto addr = node1->getAddress();
   bal_t init_bal = 100000000;
   node1->setBalance(addr, init_bal);

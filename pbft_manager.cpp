@@ -64,7 +64,7 @@ void PbftManager::start() {
   db_votes_ = full_node->getVotesDB();
   db_pbftchain_ = full_node->getPbftChainDB();
   stopped_ = false;
-  executor_ = std::make_shared<std::thread>([this]() { run(); });
+  daemon_ = std::make_shared<std::thread>([this]() { run(); });
   LOG(log_inf_) << "A PBFT executor initiated ..." << std::endl;
 }
 
@@ -75,10 +75,10 @@ void PbftManager::stop() {
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
   stopped_ = true;
-  executor_->join();
-  executor_.reset();
+  daemon_->join();
+  daemon_.reset();
   LOG(log_inf_) << "A PBFT executor terminated ..." << std::endl;
-  assert(executor_ == nullptr);
+  assert(daemon_ == nullptr);
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
