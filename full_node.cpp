@@ -239,10 +239,11 @@ void FullNode::start(bool boot_node) {
   trx_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
-  pbft_mgr_->setFullNode(getShared());
-  pbft_mgr_->start();
   executor_->setFullNode(getShared());
   executor_->start();
+  pbft_mgr_->setFullNode(getShared());
+  pbft_mgr_->start();
+
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }

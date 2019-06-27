@@ -43,7 +43,7 @@ class PbftManager {
   void start();
   void stop();
   void run();
-  bool isActive() { return executor_ != nullptr; }
+  bool isActive() { return daemon_ != nullptr; }
 
   size_t getSortitionThreshold() const { return sortition_threshold_; }
   void setSortitionThreshold(size_t const sortition_threshold) {
@@ -98,7 +98,7 @@ class PbftManager {
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
-  std::shared_ptr<std::thread> executor_;
+  std::shared_ptr<std::thread> daemon_;
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<SimpleDBFace> db_votes_;

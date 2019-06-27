@@ -17,7 +17,9 @@ Executor::~Executor() {
   }
 }
 void Executor::start() {
-  if (!stopped_) return;
+  if (!stopped_) {
+    return;
+  }
   if (!node_.lock()) {
     LOG(log_er_) << "FullNode is not set ..." << std::endl;
     return;
@@ -32,6 +34,7 @@ void Executor::stop() {
   db_blks_ = nullptr;
   db_trxs_ = nullptr;
   db_accs_ = nullptr;
+  stopped_ = true;
 }
 bool Executor::executeBlkTrxs(blk_hash_t const& blk,
     std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
