@@ -38,11 +38,14 @@ pipeline {
                     smoke-test-net-${BRANCH_NAME_LOWER_CASE}'
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${BRANCH_NAME_LOWER_CASE} ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER}'
                 sh ''' docker run --rm --net smoke-test-net-${BRANCH_NAME_LOWER_CASE} byrnedo/alpine-curl -d \"{
-                        \"action\": \"insert_stamped_dag_block\",
+                        \"jsonrpc\": \"2.0\",
+                        \"id\":\"0\",
+                        \"method\": \"insert_stamped_dag_block\",
+                        \"params\":[{
                         \"pivot\": \"0000000000000000000000000000000000000000000000000000000000000000\",
                         \"hash\": \"0000000000000000000000000000000000000000000000000000000000000001\",
                         \"sender\":\"000000000000000000000000000000000000000000000000000000000000000F\",
-                        \"tips\": [], \"stamp\": 43}\" \
+                        \"tips\": [], \"stamp\": 43}]}\" \
                         taraxa-node-smoke-test:7777
                    '''
             }
