@@ -679,10 +679,10 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
-bool FullNode::executeScheduleBlock(
-    ScheduleBlock const& sche_blk,
-    std::map<addr_t, bal_t>& account_balance_table) {
-  return executor_->execute(sche_blk.getSchedule(), account_balance_table);
+bool FullNode::executeScheduleBlock(ScheduleBlock const& sche_blk,
+    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
+  return executor_->execute(sche_blk.getSchedule(),
+                            sortition_account_balance_table);
 }
 
 void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
@@ -766,15 +766,17 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
       return false;
     }
 
-
+    // TODO: VM executor will not take sortition_account_balance_table as reference.
+    //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
+    //  Will need update sortition_account_balance_table here
     // execute schedule block
     if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
-                              pbft_mgr_->account_balance_table)) {
+                              pbft_mgr_->sortition_account_balance_table)) {
       LOG(log_er_) << "Failed to execute schedule block";
       // TODO: If valid transaction failed execute, how to do?
     }
     // reset sortition_threshold and TWO_T_PLUS_ONE
-    size_t accounts = pbft_mgr_->account_balance_table.size();
+    size_t accounts = pbft_mgr_->sortition_account_balance_table.size();
     size_t two_t_plus_one;
     size_t sortition_threshold;
     if (COMMITTEE_SIZE <= accounts) {

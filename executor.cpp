@@ -7,6 +7,7 @@
  */
 #include "executor.hpp"
 #include "full_node.hpp"
+#include "pbft_manager.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -33,7 +34,7 @@ void Executor::stop() {
   db_accs_ = nullptr;
 }
 bool Executor::executeBlkTrxs(blk_hash_t const& blk,
-                              std::map<addr_t, bal_t>& account_balance_table) {
+    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
   std::string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
@@ -52,7 +53,7 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk,
       LOG(log_er_) << "Transaction is invalid" << std::endl;
       continue;
     }
-    coinTransfer(trx, account_balance_table);
+    coinTransfer(trx, sortition_account_balance_table);
     if (node_.lock()) {
       LOG(log_time) << "Transaction " << trx_hash
                     << " executed at: " << getCurrentTimeMilliSeconds();
@@ -62,9 +63,9 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk,
   return true;
 }
 bool Executor::execute(TrxSchedule const& sche,
-                       std::map<addr_t, bal_t>& account_balance_table) {
+    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
   for (auto const& blk : sche.blk_order) {
-    if (!executeBlkTrxs(blk, account_balance_table)) {
+    if (!executeBlkTrxs(blk, sortition_account_balance_table)) {
       return false;
     }
   }
@@ -72,7 +73,7 @@ bool Executor::execute(TrxSchedule const& sche,
 }
 
 bool Executor::coinTransfer(Transaction const& trx,
-                            std::map<addr_t, bal_t>& account_balance_table) {
+    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   bal_t value = trx.getValue();
@@ -94,9 +95,17 @@ bool Executor::coinTransfer(Transaction const& trx,
   bal_t new_receiver_bal = receiver_initial_coin + value;
   db_accs_->update(sender.toString(), std::to_string(new_sender_bal));
   db_accs_->update(receiver.toString(), std::to_string(new_receiver_bal));
-  // Update account balance table
-  account_balance_table[sender] = new_sender_bal;
-  account_balance_table[receiver] = new_receiver_bal;
+  // Update account balance table. Will remove in VM since vm return a list of modified balance accounts
+  if (new_sender_bal >= VALID_SORTITION_COINS) {
+    sortition_account_balance_table[sender] = new_sender_bal;
+  } else if (sortition_account_balance_table.find(sender) !=
+             sortition_account_balance_table.end()) {
+    sortition_account_balance_table.erase(sender);
+  }
+  if (new_receiver_bal >= VALID_SORTITION_COINS) {
+    sortition_account_balance_table[receiver] = new_receiver_bal;
+  }
+
   LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
   LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
 

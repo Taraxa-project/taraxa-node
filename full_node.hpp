@@ -155,7 +155,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
   bool executeScheduleBlock(ScheduleBlock const& sche_blk,
-                            std::map<addr_t, bal_t>& account_balance_table);
+      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
