@@ -295,7 +295,7 @@ TEST(FullNode, full_node_reset) {
   t.join();
 }
 
-TEST(Top, sync_five_nodes_simple) {
+TEST(Top, DISABLED_sync_five_nodes_simple) {
   const char* input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
