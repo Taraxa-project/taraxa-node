@@ -871,7 +871,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     // set period
     node->setDagBlockOrder(anchor, cur_period);
     bool ret = node->executeScheduleBlock(sche_blk,
-        pbft_mgr->account_balance_table);
+        pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
@@ -883,7 +883,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     auto sche = node->createMockTrxSchedule(order);
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
     bool ret = node->executeScheduleBlock(sche_blk,
-        pbft_mgr->account_balance_table);
+        pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
