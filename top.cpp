@@ -10,8 +10,8 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "libweb3jsonrpc/IpcServer.h"
 #include "config.hpp"
+#include "libweb3jsonrpc/IpcServer.h"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
@@ -41,8 +41,10 @@ void Top::start(int argc, const char* argv[]) {
           "Flag to mark this node as boot node")(
           "destroy_db", boost::program_options::bool_switch(&destroy_db),
           "Destroys all the existing data in the database")(
-          "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
-          "Delete all saved network/nodes information and rebuild network from boot nodes");
+          "rebuild_network",
+          boost::program_options::bool_switch(&rebuild_network),
+          "Delete all saved network/nodes information and rebuild network from "
+          "boot nodes");
 
       boost::program_options::options_description allowed_options(
           "Allowed options");
@@ -73,7 +75,10 @@ void Top::start(int argc, const char* argv[]) {
       boot_node_ = boot_node;
       try {
         conf_ = std::make_shared<taraxa::FullNodeConfig>(conf_taraxa);
-        node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db, rebuild_network);
+        boost::filesystem::create_directory(
+            boost::filesystem::path(conf_->db_path));
+        node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db,
+                                                   rebuild_network);
         node_->setVerbose(verbose);
         node_->start(boot_node_);
         startRpc();
@@ -92,12 +97,17 @@ void Top::start(int argc, const char* argv[]) {
 }
 
 void Top::startRpc() {
-  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node_));
+  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(
+      new dev::rpc::Test(node_));
   auto ipcConnector = new dev::IpcServer(conf_->db_path);
   rpc_->addConnector(ipcConnector);
   ipcConnector->StartListening();
-  if(conf_->rpc.port > 0) {
-    proxy_ = std::make_shared<boost::process::child>((std::string("dopple/dopple.py ") + conf_->db_path + "/taraxa.ipc http://" + conf_->rpc.address.to_string() + ":" + std::to_string(conf_->rpc.port)).c_str());
+  if (conf_->rpc.port > 0) {
+    proxy_ = std::make_shared<boost::process::child>(
+        (std::string("dopple/dopple.py ") + conf_->db_path +
+         "/taraxa.ipc http://" + conf_->rpc.address.to_string() + ":" +
+         std::to_string(conf_->rpc.port))
+            .c_str());
   }
 }
 
