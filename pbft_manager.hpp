@@ -24,8 +24,9 @@
 #define LAMBDA_ms 1000  // milliseconds
 #define POLLING_INTERVAL_ms 100 // milliseconds...
 #define MAX_STEPS 19
-#undef LAMBDA_ms // undef for test TODO: need remove later
 #define COMMITTEE_SIZE 3 // TODO: The value for local test, need to change
+#define VALID_SORTITION_COINS 10000 // TODO: the value may change later
+#undef LAMBDA_ms // undef for test TODO: need remove later
 
 namespace taraxa {
 class FullNode;
@@ -59,7 +60,7 @@ class PbftManager {
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
-  std::map<addr_t, bal_t> account_balance_table;
+  std::unordered_map<addr_t, bal_t> sortition_account_balance_table;
 
  private:
   size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,

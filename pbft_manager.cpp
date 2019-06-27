@@ -47,7 +47,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
       << "Failed initial master boot node account balance. Current balance "
       << master_boot_node_account_balance.first;
   }
-  account_balance_table[master_boot_node_address] =
+  sortition_account_balance_table[master_boot_node_address] =
       master_boot_node_account_balance.first;
 }
 
@@ -90,7 +90,7 @@ void PbftManager::stop() {
  */
 void PbftManager::run() {
   // Initilize TWO_T_PLUS_ONE and sortition_threshold
-  size_t accounts = account_balance_table.size();
+  size_t accounts = sortition_account_balance_table.size();
   TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
   sortition_threshold_ = accounts;
   LOG(log_deb_) << "Initialize 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
@@ -400,22 +400,31 @@ void PbftManager::run() {
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round,
     size_t step) {
-  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  std::string message = last_pbft_block_hash.toString() + std::to_string(type) +
-                        std::to_string(round) + std::to_string(step);
   auto full_node = node_.lock();
   if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
+    LOG(log_err_) << "Full node unavailable";
     return false;
   }
-  dev::Signature sortition_signature = full_node->signMessage(message);
-  string sortition_signature_hash = taraxa::hashSignature(sortition_signature);
+  addr_t account_address = full_node->getAddress();
+  if (sortition_account_balance_table.find(account_address) ==
+      sortition_account_balance_table.end()) {
+    LOG(log_tra_) << "Don't have enough coins to vote";
+    return false;
+  }
   std::pair<bal_t, bool> account_balance =
-      full_node->getBalance(full_node->getAddress());
+      full_node->getBalance(account_address);
   if (!account_balance.second) {
     LOG(log_tra_) << "Full node account unavailable" << std::endl;
     return false;
   }
+
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  std::string message = last_pbft_block_hash.toString() + std::to_string(type) +
+                        std::to_string(round) + std::to_string(step);
+
+  dev::Signature sortition_signature = full_node->signMessage(message);
+  string sortition_signature_hash = taraxa::hashSignature(sortition_signature);
+
   if (!taraxa::sortition(sortition_signature_hash, account_balance.first,
                          sortition_threshold_)) {
     LOG(log_tra_) << "Don't get sortition";
@@ -759,13 +768,16 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       LOG(log_deb_) << "Successful push pbft schedule block "
                     << pbft_block.first.getBlockHash() << " into chain!";
       // execute schedule block
-      if (!full_node->executeScheduleBlock(
-          pbft_block.first.getScheduleBlock(), account_balance_table)) {
+      // TODO: VM executor will not take sortition_account_balance_table as reference.
+      //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
+      //  Will need update sortition_account_balance_table here
+      if (!full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock(),
+                                           sortition_account_balance_table)) {
         LOG(log_err_) << "Failed to execute schedule block";
         // TODO: If valid transaction failed execute, how to do?
       }
       // reset sortition_threshold and TWO_T_PLUS_ONE
-      size_t accounts = account_balance_table.size();
+      size_t accounts = sortition_account_balance_table.size();
       if (COMMITTEE_SIZE <= accounts) {
         TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
         sortition_threshold_ = COMMITTEE_SIZE;
