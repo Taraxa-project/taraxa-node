@@ -82,7 +82,9 @@ bool Executor::coinTransfer(Transaction const& trx,
   bal_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
 
   if (sender_initial_coin < trx.getValue()) {
-    LOG(log_er_) << "Error! Insufficient fund for transfer ..." << std::endl;
+    LOG(log_wr_) << "Insufficient fund to transfer ..., sender: " << sender
+                 << " , coin " << sender_initial_coin << " , distributing coin "
+                 << trx.getValue() << std::endl;
     return false;
   }
   if (receiver_initial_coin >
