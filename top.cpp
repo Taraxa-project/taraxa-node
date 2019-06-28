@@ -10,8 +10,8 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "libweb3jsonrpc/RpcServer.h"
 #include "config.hpp"
+#include "libweb3jsonrpc/RpcServer.h"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
@@ -41,8 +41,10 @@ void Top::start(int argc, const char* argv[]) {
           "Flag to mark this node as boot node")(
           "destroy_db", boost::program_options::bool_switch(&destroy_db),
           "Destroys all the existing data in the database")(
-          "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
-          "Delete all saved network/nodes information and rebuild network from boot nodes");
+          "rebuild_network",
+          boost::program_options::bool_switch(&rebuild_network),
+          "Delete all saved network/nodes information and rebuild network from "
+          "boot nodes");
 
       boost::program_options::options_description allowed_options(
           "Allowed options");
@@ -73,7 +75,8 @@ void Top::start(int argc, const char* argv[]) {
       boot_node_ = boot_node;
       try {
         conf_ = std::make_shared<taraxa::FullNodeConfig>(conf_taraxa);
-        node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db, rebuild_network);
+        node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db,
+                                                   rebuild_network);
         node_->setVerbose(verbose);
         node_->start(boot_node_);
         startRpc();
@@ -92,8 +95,10 @@ void Top::start(int argc, const char* argv[]) {
 }
 
 void Top::startRpc() {
-  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node_));
-  auto rpc_server(std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
+  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(
+      new dev::rpc::Test(node_));
+  auto rpc_server(
+      std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
   rpc_->addConnector(rpc_server);
   rpc_server->StartListening();
 }
@@ -103,7 +108,6 @@ void Top::start() {
   stopped_ = false;
   assert(node_);
   node_->start(boot_node_);
-  startRpc();
 }
 void Top::run() {
   std::unique_lock<std::mutex> lock(mu_);
