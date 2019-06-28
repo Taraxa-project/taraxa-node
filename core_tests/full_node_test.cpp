@@ -106,8 +106,6 @@ TEST(Top, top_reset) {
 
   num_vertices1 = node1->getNumVerticesInDag();
   num_vertices2 = node2->getNumVerticesInDag();
-  std::cout << "num_vertices 1 pivot: " << num_vertices1.first << std::endl;
-  std::cout << "num_vertices 2 pivot: " << num_vertices2.first << std::endl;
 
   EXPECT_EQ(num_vertices1, num_vertices2);
 
@@ -330,6 +328,26 @@ TEST(Top, sync_five_nodes_simple) {
   // wait for top2, top3, top4, top5 initialize
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  auto node3 = top3.getNode();
+  auto node4 = top4.getNode();
+  auto node5 = top5.getNode();
+
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  EXPECT_NE(node3, nullptr);
+  EXPECT_NE(node4, nullptr);
+  EXPECT_NE(node5, nullptr);
+
+  // set balance
+  bal_t bal(100000000);
+  // node1->setBalance(node1->getAddress(), bal);
+  node2->setBalance(node2->getAddress(), bal);
+  node3->setBalance(node3->getAddress(), bal);
+  node4->setBalance(node4->getAddress(), bal);
+  node5->setBalance(node5->getAddress(), bal);
+
   // send 1000 trxs
   try {
     std::string sendtrx1 =
@@ -379,18 +397,6 @@ TEST(Top, sync_five_nodes_simple) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  auto node1 = top1.getNode();
-  auto node2 = top2.getNode();
-  auto node3 = top3.getNode();
-  auto node4 = top4.getNode();
-  auto node5 = top5.getNode();
-
-  EXPECT_NE(node1, nullptr);
-  EXPECT_NE(node2, nullptr);
-  EXPECT_NE(node3, nullptr);
-  EXPECT_NE(node4, nullptr);
-  EXPECT_NE(node5, nullptr);
 
   auto num_peers1 = node1->getPeerCount();
   auto num_peers2 = node2->getPeerCount();
@@ -1166,42 +1172,43 @@ TEST(Top, sortition_propose_five_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
+  // set balance
+  bal_t bal(100000000);
 
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
+  auto node1 = top1.getNode();
+  // node1->setBalance(node1->getAddress(), bal);
   taraxa::thisThreadSleepForMilliSeconds(1000);
   std::cout << "Top1 created ..." << std::endl;
 
   Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
+  auto node2 = top2.getNode();
+  node2->setBalance(node2->getAddress(), bal);
+
   std::cout << "Top2 created ..." << std::endl;
 
   Top top3(6, input3);
   EXPECT_TRUE(top3.isActive());
+  auto node3 = top3.getNode();
+  node3->setBalance(node3->getAddress(), bal);
   std::cout << "Top3 created ..." << std::endl;
 
   Top top4(6, input4);
   EXPECT_TRUE(top4.isActive());
+  auto node4 = top4.getNode();
+  node4->setBalance(node4->getAddress(), bal);
   std::cout << "Top4 created ..." << std::endl;
 
   Top top5(6, input5);
   EXPECT_TRUE(top5.isActive());
   std::cout << "Top5 created ..." << std::endl;
+  auto node5 = top5.getNode();
+  node5->setBalance(node5->getAddress(), bal);
+
   // wait for top2, top3, top4, top5 initialize
   taraxa::thisThreadSleepForMilliSeconds(2000);
-
-  auto node1 = top1.getNode();
-  auto node2 = top2.getNode();
-  auto node3 = top3.getNode();
-  auto node4 = top4.getNode();
-  auto node5 = top5.getNode();
-
-  // set balance
-  bal_t bal(100000000);
-  node1->setBalance(node1->getAddress(), bal);
-  node2->setBalance(node2->getAddress(), bal);
-  node3->setBalance(node3->getAddress(), bal);
-  node4->setBalance(node4->getAddress(), bal);
 
   // send 1000 trxs
   try {
@@ -1252,12 +1259,6 @@ TEST(Top, sortition_propose_five_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  EXPECT_NE(node1, nullptr);
-  EXPECT_NE(node2, nullptr);
-  EXPECT_NE(node3, nullptr);
-  EXPECT_NE(node4, nullptr);
-  EXPECT_NE(node5, nullptr);
 
   auto num_peers1 = node1->getPeerCount();
   auto num_peers2 = node2->getPeerCount();
@@ -1360,11 +1361,12 @@ TEST(Top, sortition_propose_five_nodes) {
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityWarning;
-  logOptions.includeChannels.push_back("DAGMGR");
-  logOptions.includeChannels.push_back("EXETOR");
-  logOptions.includeChannels.push_back("BLK_PP");
-  logOptions.includeChannels.push_back("PR_MDL");
+  logOptions.verbosity = dev::VerbosityError;
+  // logOptions.includeChannels.push_back("FULLND");
+  // logOptions.includeChannels.push_back("DAGMGR");
+  // logOptions.includeChannels.push_back("EXETOR");
+  // logOptions.includeChannels.push_back("BLK_PP");
+  // logOptions.includeChannels.push_back("PR_MDL");
 
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
