@@ -110,7 +110,7 @@ public:
     }
 
     /// server takes ownership of the connector
-    unsigned addConnector(jsonrpc::AbstractServerConnector* _connector)
+    unsigned addConnector(std::shared_ptr<jsonrpc::AbstractServerConnector> _connector)
     {
         m_connectors.emplace_back(_connector);
         _connector->SetHandler(m_handler.get());
@@ -123,7 +123,7 @@ public:
     }
 
 protected:
-    std::vector<std::unique_ptr<jsonrpc::AbstractServerConnector>> m_connectors;
+    std::vector<std::shared_ptr<jsonrpc::AbstractServerConnector>> m_connectors;
     std::unique_ptr<jsonrpc::IProtocolHandler> m_handler;
     /// Mapping for implemented modules, to be filled by subclasses during construction.
     Json::Value m_implementedModules;

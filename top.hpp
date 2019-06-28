@@ -37,7 +37,6 @@ class Top {
   bool stopped_ = true;
   bool boot_node_ = false;
   std::shared_ptr<std::thread> th_;
-  std::shared_ptr<boost::process::child> proxy_;
   std::shared_ptr<taraxa::FullNode> node_;
   std::shared_ptr<ModularServer<>> rpc_;
   std::condition_variable cond_;

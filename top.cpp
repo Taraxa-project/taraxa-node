@@ -10,7 +10,7 @@
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include "libweb3jsonrpc/IpcServer.h"
+#include "libweb3jsonrpc/RpcServer.h"
 #include "config.hpp"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
@@ -93,12 +93,9 @@ void Top::start(int argc, const char* argv[]) {
 
 void Top::startRpc() {
   rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace> >(new dev::rpc::Test(node_));
-  auto ipcConnector = new dev::IpcServer(conf_->db_path);
-  rpc_->addConnector(ipcConnector);
-  ipcConnector->StartListening();
-  if(conf_->rpc.port > 0) {
-    proxy_ = std::make_shared<boost::process::child>((std::string("dopple/dopple.py ") + conf_->db_path + "/taraxa.ipc http://" + conf_->rpc.address.to_string() + ":" + std::to_string(conf_->rpc.port)).c_str());
-  }
+  auto rpc_server(std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
+  rpc_->addConnector(rpc_server);
+  rpc_server->StartListening();
 }
 
 void Top::start() {
@@ -124,7 +121,6 @@ void Top::stop() {
   if (stopped_) return;
   stopped_ = true;
   node_->stop();
-  proxy_->terminate();
 }
 void Top::reset() {
   if (!stopped_) return;

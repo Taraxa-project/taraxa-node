@@ -51,6 +51,7 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libweb3jsonrpc/Debug.o \
 	${OBJECTDIR}/libweb3jsonrpc/Taraxa.o \
 	${OBJECTDIR}/libweb3jsonrpc/Personal.o \
+	${OBJECTDIR}/libweb3jsonrpc/RpcServer.o \
 
 
 #	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
@@ -384,5 +385,11 @@ ${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o: libweb3jsonrpc/UnixSocketServer.
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o libweb3jsonrpc/UnixSocketServer.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/RpcServer.o: libweb3jsonrpc/RpcServer.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/RpcServer.o libweb3jsonrpc/RpcServer.cpp $(CPPFLAGS)
 
 
