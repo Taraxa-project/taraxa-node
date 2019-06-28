@@ -98,19 +98,30 @@ class SortitionPropose : public ProposeModelFace {
 
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  BlockProposer(ProposerConfig& conf, std::shared_ptr<DagManager> dag_mgr,
-                std::shared_ptr<TransactionManager> trx_mgr)
-      : conf_(conf),
-        total_trx_shards_(std::max(conf.shards, 1u)),
-        dag_mgr_(dag_mgr),
-        trx_mgr_(trx_mgr) {
+  
+   BlockProposer(std::vector<uint> const& params,
+                  std::shared_ptr<DagManager> dag_mgr,
+                  std::shared_ptr<TransactionManager> trx_mgr)
+      : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
+    // configure
+    conf_.mode = params[0];
+    conf_.shard = params[1];
+    conf_.params.push_back(params[2]);
+    conf_.params.push_back(params[3]);
+
     if (conf_.mode == 0) {
-      propose_model_ =
-          std::make_unique<RandomPropose>(conf_.param1, conf_.param2);
+      uint min_freq = conf_.params[0];
+      uint max_freq = conf_.params[1];
+      propose_model_ = std::make_unique<RandomPropose>(min_freq, max_freq);
     } else if (conf_.mode == 1) {
+      uint propose_rate = conf_.params[0];
+      uint threshold = conf_.params[1];
       propose_model_ =
-          std::make_unique<SortitionPropose>(conf_.param1, conf_.param2);
+          std::make_unique<SortitionPropose>(propose_rate, threshold);
     }
+    total_trx_shards_ = std::max(conf_.shard, 1u);
+
+    // setup shards
   }
   ~BlockProposer() {
     if (!stopped_) stop();
@@ -134,11 +145,17 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
+
+  struct Conf {
+    uint mode;
+    uint shard;
+    std::vector<uint> params;
+  };
   bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
 
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;
-  ProposerConfig conf_;
+  Conf conf_;
   uint total_trx_shards_;
   uint my_trx_shard_;
   std::weak_ptr<DagManager> dag_mgr_;
