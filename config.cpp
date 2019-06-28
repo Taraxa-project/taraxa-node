@@ -16,11 +16,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     db_path = doc.get<std::string>("db_path");
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
 
-    proposer.mode = doc.get<uint>("block_proposer.mode");
-    proposer.param1 = doc.get<uint>("block_proposer.param1");
-    proposer.param2 = doc.get<uint>("block_proposer.param2");
-    proposer.shards = doc.get<uint>("block_proposer.shards");
-
     network.network_address = doc.get<std::string>("network_address");
     network.network_id = doc.get<std::string>("network_id");
     network.network_listen_port = doc.get<uint16_t>("network_listen_port");
@@ -87,15 +82,6 @@ std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf) {
   return strm;
 }
 
-std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf) {
-  strm << "[Proposer Config] " << std::endl;
-  strm << "  mode: " << conf.mode << std::endl;
-  strm << "  param1: " << conf.param1 << std::endl;
-  strm << "  param2: " << conf.param2 << std::endl;
-  strm << "  shards: " << conf.shards << std::endl;
-  return strm;
-}
-
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
@@ -128,7 +114,6 @@ std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
   strm << "  db_path: " << conf.db_path << std::endl;
   strm << "  dag_processing_thread: " << conf.dag_processing_threads
        << std::endl;
-  strm << conf.proposer;
   strm << conf.network;
   strm << conf.rpc;
   strm << conf.pbft_manager;

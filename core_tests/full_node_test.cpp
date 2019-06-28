@@ -876,8 +876,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
     // set period
     node->setDagBlockOrder(anchor, cur_period);
-    bool ret = node->executeScheduleBlock(sche_blk,
-        pbft_mgr->sortition_account_balance_table);
+    bool ret = node->executeScheduleBlock(
+        sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
@@ -888,8 +888,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    bool ret = node->executeScheduleBlock(sche_blk,
-        pbft_mgr->sortition_account_balance_table);
+    bool ret = node->executeScheduleBlock(
+        sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
@@ -1072,9 +1072,7 @@ TEST(FullNode, receive_send_transaction) {
 TEST(FullNode, sortition_propose_one_node) {
   boost::asio::io_context context1;
   FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-  conf.proposer.mode = 1;
-  conf.proposer.param1 = 100;
-  conf.proposer.param2 = 4294967295;  // 2^32
+  conf.test_params.block_proposer = {1, 1, 100, 4294967295};  // 2^32
 
   auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
   auto rpc(

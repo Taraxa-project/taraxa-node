@@ -2,12 +2,6 @@
   "node_secret": "",
   "db_path": "/tmp/taraxa5",
   "dag_processing_threads": 1,
-  "block_proposer": {
-    "mode": 1,
-    "param1": 500,
-    "param2": 1073741823,
-    "shards": 1
-  },
   "network_address": "127.0.0.1",
   "network_listen_port": 10006,
   "network_simulated_delay": 0,

@@ -49,9 +49,9 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
       dag_mgr_(std::make_shared<DagManager>()),
-      blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
-                                                    dag_mgr_->getShared(),
-                                                    trx_mgr_->getShared())),
+      blk_proposer_(std::make_shared<BlockProposer>(
+          conf_.test_params.block_proposer, dag_mgr_->getShared(),
+          trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>()),
       vote_mgr_(std::make_shared<VoteManager>()),
       vote_queue_(std::make_shared<VoteQueue>()),
@@ -368,7 +368,8 @@ bool FullNode::reset() {
   trx_mgr_ = std::make_shared<TransactionManager>();
   dag_mgr_ = std::make_shared<DagManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
-      conf_.proposer, dag_mgr_->getShared(), trx_mgr_->getShared());
+      conf_.test_params.block_proposer, dag_mgr_->getShared(),
+      trx_mgr_->getShared());
   executor_ = std::make_shared<Executor>();
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.pbft_manager);
   vote_mgr_ = std::make_shared<VoteManager>();
@@ -680,8 +681,9 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
-bool FullNode::executeScheduleBlock(ScheduleBlock const& sche_blk,
-    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
+bool FullNode::executeScheduleBlock(
+    ScheduleBlock const &sche_blk,
+    std::unordered_map<addr_t, bal_t> &sortition_account_balance_table) {
   return executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table);
 }
@@ -705,10 +707,11 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
   // TODO: there is bug here, need add back later
-//  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-//                                account_balance.first, sortition_threshold)) {
+  //  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+  //                                account_balance.first, sortition_threshold))
+  //                                {
   vote_queue_->pushBackVote(vote);
-//  }
+  //  }
 }
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
@@ -767,7 +770,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
       return false;
     }
 
-    // TODO: VM executor will not take sortition_account_balance_table as reference.
+    // TODO: VM executor will not take sortition_account_balance_table as
+    // reference.
     //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
     //  Will need update sortition_account_balance_table here
     // execute schedule block
