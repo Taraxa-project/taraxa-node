@@ -36,7 +36,8 @@ void Executor::stop() {
   db_accs_ = nullptr;
   stopped_ = true;
 }
-bool Executor::executeBlkTrxs(blk_hash_t const& blk,
+bool Executor::executeBlkTrxs(
+    blk_hash_t const& blk,
     std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
   std::string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
@@ -53,7 +54,7 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk,
                   << " read from db at: " << getCurrentTimeMilliSeconds();
     Transaction trx(db_trxs_->get(trx_hash.toString()));
     if (!trx.getHash()) {
-      LOG(log_er_) << "Transaction is invalid" << std::endl;
+      LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
     coinTransfer(trx, sortition_account_balance_table);
@@ -65,7 +66,8 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk,
   db_trxs_->commit();
   return true;
 }
-bool Executor::execute(TrxSchedule const& sche,
+bool Executor::execute(
+    TrxSchedule const& sche,
     std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
   for (auto const& blk : sche.blk_order) {
     if (!executeBlkTrxs(blk, sortition_account_balance_table)) {
@@ -75,7 +77,8 @@ bool Executor::execute(TrxSchedule const& sche,
   return true;
 }
 
-bool Executor::coinTransfer(Transaction const& trx,
+bool Executor::coinTransfer(
+    Transaction const& trx,
     std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
@@ -98,7 +101,8 @@ bool Executor::coinTransfer(Transaction const& trx,
   bal_t new_receiver_bal = receiver_initial_coin + value;
   db_accs_->update(sender.toString(), std::to_string(new_sender_bal));
   db_accs_->update(receiver.toString(), std::to_string(new_receiver_bal));
-  // Update account balance table. Will remove in VM since vm return a list of modified balance accounts
+  // Update account balance table. Will remove in VM since vm return a list of
+  // modified balance accounts
   if (new_sender_bal >= VALID_SORTITION_COINS) {
     sortition_account_balance_table[sender] = new_sender_bal;
   } else if (sortition_account_balance_table.find(sender) !=
