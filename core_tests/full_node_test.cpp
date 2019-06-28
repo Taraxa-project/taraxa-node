@@ -15,10 +15,10 @@
 #include "dag.hpp"
 #include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
+#include "libweb3jsonrpc/RpcServer.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
-#include "rpc.hpp"
 #include "string"
 #include "top.hpp"
 
@@ -34,7 +34,7 @@ auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
 
-TEST(Top, top_reset) {
+TEST(Top, DISABLED_top_reset) {
   const char* input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -130,7 +130,7 @@ TEST(Top, top_reset) {
   std::cout << "Top2 reset ...\n";
   top1.start();
   top2.start();
-  taraxa::thisThreadSleepForMilliSeconds(500);
+  taraxa::thisThreadSleepForMilliSeconds(2500);
   node1 = top1.getNode();
   node2 = top2.getNode();
   EXPECT_NE(node1, nullptr);
@@ -1116,9 +1116,9 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   node1->start(true /*boot_node*/);
   auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
       new dev::rpc::Test(node1));
-  auto ipcConnector = new dev::IpcServer(conf.db_path);
-  rpc->addConnector(ipcConnector);
-  ipcConnector->StartListening();
+  auto rpc_server(std::make_shared<taraxa::RpcServer>(context1, conf.rpc, node1));
+  rpc->addConnector(rpc_server);
+  rpc_server->StartListening();
   taraxa::thisThreadSleepForMilliSeconds(500);
   auto addr = node1->getAddress();
   bal_t init_bal = 9007199254740991;
