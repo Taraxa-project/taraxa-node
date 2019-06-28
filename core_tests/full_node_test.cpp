@@ -59,13 +59,13 @@ TEST(Top, top_reset) {
   try {
     std::string sendtrx1 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
                                       "delay": 5, 
                                       "number": 6000, 
                                       "seed": 1 }' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
+                                      "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e", 
                                       "delay": 7, 
                                       "number": 4000, 
                                       "seed": 2 }' 0.0.0.0:7778)";
@@ -114,70 +114,70 @@ TEST(Top, top_reset) {
   EXPECT_EQ(node1->getTransactionStatusCount(), 10000);
   EXPECT_EQ(node2->getTransactionStatusCount(), 10000);
 
-  // top2.stop();
-  // top1.stop();
+  top2.stop();
+  top1.stop();
 
-  // // ------------------------ Reset -----------------
-  // top1.reset();
-  // std::cout << "Top1 reset ...\n";
-  // top2.reset();
-  // std::cout << "Top2 reset ...\n";
-  // top1.start();
-  // top2.start();
-  // node1 = top1.getNode();
-  // node2 = top2.getNode();
-  // EXPECT_NE(node1, nullptr);
-  // EXPECT_NE(node2, nullptr);
+  // ------------------------ Reset -----------------
+  top1.reset();
+  std::cout << "Top1 reset ...\n";
+  top2.reset();
+  std::cout << "Top2 reset ...\n";
+  top1.start();
+  top2.start();
+  node1 = top1.getNode();
+  node2 = top2.getNode();
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
 
-  // try {
-  //   std::string sendtrx1 =
-  //       R"(curl -d '{"action": "create_test_coin_transactions",
-  //                                     "secret":
-  //                                     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
-  //                                     "delay": 5,
-  //                                     "number": 6000,
-  //                                     "seed": 1 }' 0.0.0.0:7777)";
-  //   std::string sendtrx2 =
-  //       R"(curl -d '{"action": "create_test_coin_transactions",
-  //                                     "secret":
-  //                                     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-  //                                     "delay": 7,
-  //                                     "number": 4000,
-  //                                     "seed": 2 }' 0.0.0.0:7778)";
-  //   std::cout << "Sending trxs ..." << std::endl;
-  //   std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-  //   std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+  try {
+    std::string sendtrx1 =
+        R"(curl -d '{"action": "create_test_coin_transactions",
+                                      "secret":
+                                      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5,
+                                      "number": 6000,
+                                      "seed": 1 }' 0.0.0.0:7777)";
+    std::string sendtrx2 =
+        R"(curl -d '{"action": "create_test_coin_transactions",
+                                      "secret":
+                                      "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7,
+                                      "number": 4000,
+                                      "seed": 2 }' 0.0.0.0:7778)";
+    std::cout << "Sending trxs ..." << std::endl;
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
 
-  //   t1.join();
-  //   t2.join();
-  //   std::cout << "All trxs sent..." << std::endl;
-  // } catch (std::exception& e) {
-  //   std::cerr << e.what() << std::endl;
-  // }
-  // num_vertices1 = node1->getNumVerticesInDag();
-  // num_vertices2 = node2->getNumVerticesInDag();
+    t1.join();
+    t2.join();
+    std::cout << "All trxs sent..." << std::endl;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+  num_vertices1 = node1->getNumVerticesInDag();
+  num_vertices2 = node2->getNumVerticesInDag();
 
-  // for (auto i = 0; i < 50; i++) {
-  //   if (i % 10 == 0) {
-  //     std::cout << "Wait for vertices syncing ..." << std::endl;
-  //   }
-  //   num_vertices1 = node1->getNumVerticesInDag();
-  //   num_vertices2 = node2->getNumVerticesInDag();
+  for (auto i = 0; i < 50; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for vertices syncing ..." << std::endl;
+    }
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
 
-  //   if (num_vertices1 == num_vertices2 &&
-  //       node1->getTransactionStatusCount() == 10000 &&
-  //       node2->getTransactionStatusCount() == 10000)
-  //     break;
-  //   taraxa::thisThreadSleepForMilliSeconds(500);
-  // }
+    if (num_vertices1 == num_vertices2 &&
+        node1->getTransactionStatusCount() == 10000 &&
+        node2->getTransactionStatusCount() == 10000)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
 
-  // num_vertices1 = node1->getNumVerticesInDag();
-  // num_vertices2 = node2->getNumVerticesInDag();
+  num_vertices1 = node1->getNumVerticesInDag();
+  num_vertices2 = node2->getNumVerticesInDag();
 
-  // EXPECT_EQ(num_vertices1, num_vertices2);
+  EXPECT_EQ(num_vertices1, num_vertices2);
 
-  // EXPECT_EQ(node1->getTransactionStatusCount(), 10000);
-  // EXPECT_EQ(node2->getTransactionStatusCount(), 10000);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10000);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 10000);
 
   top2.kill();
   top1.kill();
@@ -198,7 +198,7 @@ TEST(FullNode, full_node_reset) {
       context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
@@ -256,7 +256,7 @@ TEST(FullNode, full_node_reset) {
 
   node1->stop();
   node1->reset();
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   std::cout << "Waiting connection for 100 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(100);
 
@@ -334,31 +334,31 @@ TEST(Top, sync_five_nodes_simple) {
   try {
     std::string sendtrx1 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
                                       "delay": 5, 
                                       "number": 6000, 
                                       "seed": 1 }' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
+                                      "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e", 
                                       "delay": 7, 
                                       "number": 4000, 
                                       "seed": 2 }' 0.0.0.0:7778)";
     std::string sendtrx3 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1", 
+                                      "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f", 
                                       "delay": 3, 
                                       "number": 3000, 
                                       "seed": 3 }' 0.0.0.0:7779)";
     std::string sendtrx4 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2", 
+                                      "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029", 
                                       "delay": 10, 
                                       "number": 3000, 
                                       "seed": 4 }' 0.0.0.0:7780)";
     std::string sendtrx5 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3", 
+                                      "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe", 
                                       "delay": 23, 
                                       "number": 4000, 
                                       "seed": 5 }' 0.0.0.0:7781)";
@@ -494,7 +494,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(true); // boot node
+  node->start(true);  // boot node
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
@@ -612,7 +612,7 @@ TEST(Top, reconstruct_dag) {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(
-        std::make_shared<taraxa::FullNode>(context, conf, true)); // destroy DB
+        std::make_shared<taraxa::FullNode>(context, conf, true));  // destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -630,7 +630,7 @@ TEST(Top, reconstruct_dag) {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(std::make_shared<taraxa::FullNode>(context, conf,
-                                                 false)); // no destroy DB
+                                                 false));  // no destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -836,7 +836,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(true); // boot node
+  node->start(true);  // boot node
   addr_t acc1 = node->getAddress();
 
   bal_t initbal(10000000);
@@ -915,7 +915,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
 
   // node1->setVerbose(true);
   node1->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
@@ -1040,7 +1040,7 @@ TEST(FullNode, receive_send_transaction) {
       std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
   rpc->start();
   node1->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -1081,7 +1081,7 @@ TEST(FullNode, sortition_propose_one_node) {
   node1->setDebug(true);
   // destroy db !!
   node1->destroyDB();
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   auto addr = node1->getAddress();
   bal_t init_bal = 100000000;
   node1->setBalance(addr, init_bal);
@@ -1207,31 +1207,31 @@ TEST(Top, sortition_propose_five_nodes) {
   try {
     std::string sendtrx1 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce", 
+                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
                                       "delay": 5, 
                                       "number": 6000, 
                                       "seed": 1 }' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
+                                      "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e", 
                                       "delay": 7, 
                                       "number": 4000, 
                                       "seed": 2 }' 0.0.0.0:7778)";
     std::string sendtrx3 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1", 
+                                      "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f", 
                                       "delay": 3, 
                                       "number": 3000, 
                                       "seed": 3 }' 0.0.0.0:7779)";
     std::string sendtrx4 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2", 
+                                      "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029", 
                                       "delay": 10, 
                                       "number": 3000, 
                                       "seed": 4 }' 0.0.0.0:7780)";
     std::string sendtrx5 =
         R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3", 
+                                      "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe", 
                                       "delay": 23, 
                                       "number": 4000, 
                                       "seed": 5 }' 0.0.0.0:7781)";
