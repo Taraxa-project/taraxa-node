@@ -78,13 +78,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   node_pk_ = key.pub();
   node_addr_ = key.address();
 
-  // Initialize MASTER BOOT NODE to all coins
-  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  bal_t total_coins(TARAXA_COINS_DECIMAL);
-  if (!setBalance(master_boot_node_address, total_coins)) {
-    LOG(log_er_) << "Failed to set master boot node account balance";
-  }
-
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
@@ -149,6 +142,13 @@ void FullNode::initDB(bool destroy_db) {
   db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                      pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
+
+  // Initialize MASTER BOOT NODE to all coins
+  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
+  bal_t total_coins(TARAXA_COINS_DECIMAL);
+  if (!setBalance(master_boot_node_address, total_coins)) {
+    LOG(log_er_) << "Failed to set master boot node account balance";
+  }
   // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
@@ -177,8 +177,8 @@ bool FullNode::destroyDB() {
     LOG(log_wr_) << "Cannot destroyDb if node is running ...";
     return false;
   }
-  // make sure all sub moduled has relased DB, the full_node can release the DB
-  // and destroy
+  // make sure all sub moduled has relased DB, the full_node can release the
+  // DB and destroy
   assert(db_accs_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
@@ -708,7 +708,8 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
   // TODO: there is bug here, need add back later
   //  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-  //                                account_balance.first, sortition_threshold))
+  //                                account_balance.first,
+  //                                sortition_threshold))
   //                                {
   vote_queue_->pushBackVote(vote);
   //  }
