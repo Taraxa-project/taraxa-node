@@ -342,11 +342,30 @@ TEST(Top, sync_five_nodes_simple) {
 
   // set balance
   bal_t bal(9007199254740991);
+  // transfer some coins to your friends ...
+  Transaction trx1to2(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
+                      bytes(), g_secret);
+  Transaction trx1to3(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
+                      bytes(), g_secret);
+  Transaction trx1to4(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
+                      bytes(), g_secret);
+  Transaction trx1to5(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
+                      bytes(), g_secret);
+  node1->insertTransaction(trx1to2);
+  node1->insertTransaction(trx1to3);
+  node1->insertTransaction(trx1to4);
+  node1->insertTransaction(trx1to5);
+
   // node1->setBalance(node1->getAddress(), bal);
-  node2->setBalance(node2->getAddress(), bal);
-  node3->setBalance(node3->getAddress(), bal);
-  node4->setBalance(node4->getAddress(), bal);
-  node5->setBalance(node5->getAddress(), bal);
+  // node2->setBalance(node2->getAddress(), bal);
+  // node3->setBalance(node3->getAddress(), bal);
+  // node4->setBalance(node4->getAddress(), bal);
+  // node5->setBalance(node5->getAddress(), bal);
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   // send 1000 trxs
   try {
@@ -444,11 +463,11 @@ TEST(Top, sync_five_nodes_simple) {
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 20000 &&
-        node2->getTransactionStatusCount() == 20000 &&
-        node3->getTransactionStatusCount() == 20000 &&
-        node4->getTransactionStatusCount() == 20000 &&
-        node5->getTransactionStatusCount() == 20000)
+        node1->getTransactionStatusCount() == 20004 &&
+        node2->getTransactionStatusCount() == 20004 &&
+        node3->getTransactionStatusCount() == 20004 &&
+        node4->getTransactionStatusCount() == 20004 &&
+        node5->getTransactionStatusCount() == 20004)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -464,11 +483,11 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 20004);
 
   EXPECT_GT(node1->getNumProposedBlocks(), 2);
   EXPECT_GT(node2->getNumProposedBlocks(), 2);
@@ -843,9 +862,10 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
+
   addr_t acc1 = node->getAddress();
 
-  bal_t initbal(9007199254740991);
+  bal_t initbal(100000000);  // disable pbft sortition
   node->setBalance(acc1, initbal);
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
@@ -868,6 +888,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
+
   // create a period for every 2 pivots
   for (int i = 0; i < ghost.size(); i += 2) {
     auto anchor = blk_hash_t(ghost[i]);
@@ -1172,9 +1193,6 @@ TEST(Top, sortition_propose_five_nodes) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-  // set balance
-  bal_t bal(9007199254740991);
-
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   auto node1 = top1.getNode();
@@ -1185,30 +1203,45 @@ TEST(Top, sortition_propose_five_nodes) {
   Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   auto node2 = top2.getNode();
-  node2->setBalance(node2->getAddress(), bal);
 
   std::cout << "Top2 created ..." << std::endl;
 
   Top top3(6, input3);
   EXPECT_TRUE(top3.isActive());
   auto node3 = top3.getNode();
-  node3->setBalance(node3->getAddress(), bal);
   std::cout << "Top3 created ..." << std::endl;
 
   Top top4(6, input4);
   EXPECT_TRUE(top4.isActive());
   auto node4 = top4.getNode();
-  node4->setBalance(node4->getAddress(), bal);
   std::cout << "Top4 created ..." << std::endl;
 
   Top top5(6, input5);
   EXPECT_TRUE(top5.isActive());
   std::cout << "Top5 created ..." << std::endl;
   auto node5 = top5.getNode();
-  node5->setBalance(node5->getAddress(), bal);
 
+  // set balance
+  bal_t bal(9007199254740991);
+  // transfer some coins to your friends ...
+  Transaction trx1to2(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
+                      bytes(), g_secret);
+  Transaction trx1to3(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
+                      bytes(), g_secret);
+  Transaction trx1to4(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
+                      bytes(), g_secret);
+  Transaction trx1to5(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
+                      bytes(), g_secret);
+  node1->insertTransaction(trx1to2);
+  node1->insertTransaction(trx1to3);
+  node1->insertTransaction(trx1to4);
+  node1->insertTransaction(trx1to5);
   // wait for top2, top3, top4, top5 initialize
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  taraxa::thisThreadSleepForMilliSeconds(3000);
 
   // send 1000 trxs
   try {
@@ -1306,11 +1339,11 @@ TEST(Top, sortition_propose_five_nodes) {
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 20000 &&
-        node2->getTransactionStatusCount() == 20000 &&
-        node3->getTransactionStatusCount() == 20000 &&
-        node4->getTransactionStatusCount() == 20000 &&
-        node5->getTransactionStatusCount() == 20000)
+        node1->getTransactionStatusCount() == 20004 &&
+        node2->getTransactionStatusCount() == 20004 &&
+        node3->getTransactionStatusCount() == 20004 &&
+        node4->getTransactionStatusCount() == 20004 &&
+        node5->getTransactionStatusCount() == 20004)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -1326,11 +1359,11 @@ TEST(Top, sortition_propose_five_nodes) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 20004);
 
   // num_proposed_block is static, in the case, all nodes has
   // same num proposed blocks
