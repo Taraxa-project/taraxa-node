@@ -341,7 +341,7 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_NE(node5, nullptr);
 
   // set balance
-  bal_t bal(100000000);
+  bal_t bal(9007199254740991);
   // node1->setBalance(node1->getAddress(), bal);
   node2->setBalance(node2->getAddress(), bal);
   node3->setBalance(node3->getAddress(), bal);
@@ -845,7 +845,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   node->start(true);  // boot node
   addr_t acc1 = node->getAddress();
 
-  bal_t initbal(10000000);
+  bal_t initbal(9007199254740991);
   node->setBalance(acc1, initbal);
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
@@ -1089,7 +1089,7 @@ TEST(FullNode, sortition_propose_one_node) {
   node1->destroyDB();
   node1->start(true);  // boot node
   auto addr = node1->getAddress();
-  bal_t init_bal = 100000000;
+  bal_t init_bal = 9007199254740991;
   node1->setBalance(addr, init_bal);
   auto res = node1->getBalance(addr);
   EXPECT_TRUE(res.second);
@@ -1173,7 +1173,7 @@ TEST(Top, sortition_propose_five_nodes) {
     std::cerr << e.what() << std::endl;
   }
   // set balance
-  bal_t bal(100000000);
+  bal_t bal(9007199254740991);
 
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
