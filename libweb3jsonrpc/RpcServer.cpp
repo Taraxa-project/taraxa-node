@@ -53,6 +53,7 @@ void RpcServer::waitForAccept() {
   acceptor_.async_accept(
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
+        LOG(log_tr_) << "Accept: " << ec;
         if (!ec) {
           connection->read();
         } else {
@@ -71,6 +72,7 @@ bool RpcServer::StopListening() {
   if (stopped_) return true;
   stopped_ = true;
   acceptor_.close();
+  LOG(log_tr_) << "StopListening: ";
   return true;
 }
 
@@ -98,6 +100,7 @@ void RpcConnection::read() {
   boost::beast::http::async_read(
       socket_, buffer_, request_,
       [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
+        LOG(this_sp->rpc_->log_tr_) << "XX" << (int)this_sp->request_.method();
         if (!ec) {
           // define response handler
           auto replier([this_sp](std::string const &msg) {
@@ -110,15 +113,23 @@ void RpcConnection::read() {
                 [this_sp](boost::system::error_code const &ec,
                           size_t byte_transfered) {});
           });
-          // pass response handler
+          if (this_sp->request_.method() == boost::beast::http::verb::options) {
+            this_sp->write_options_response();
+            // async write
+            boost::beast::http::async_write(
+                this_sp->socket_, this_sp->response_,
+                [this_sp](boost::system::error_code const &ec,
+                          size_t byte_transfered) {});
+          }
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
             string response;
             if (this_sp->rpc_->GetHandler() != NULL) {
-              LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
+              LOG(this_sp->rpc_->log_tr_)
+                  << "Read: " << this_sp->request_.body();
               this_sp->rpc_->GetHandler()->HandleRequest(
                   this_sp->request_.body(), response);
             }
-            LOG(this_sp->rpc_->log_tr_) << "Write: " << response;          
+            LOG(this_sp->rpc_->log_tr_) << "Write: " << response;
             replier(response);
           }
         } else {
@@ -138,6 +149,20 @@ void RpcConnection::write_response(std::string const &msg) {
     response_.set("Connection", "close");
     response_.result(boost::beast::http::status::ok);
     response_.body() = msg;
+    response_.prepare_payload();
+  } else {
+    assert(false && "RPC already responded ...\n");
+  }
+}
+
+void RpcConnection::write_options_response() {
+  if (!responded_.test_and_set()) {
+    response_.set("Allow", "OPTIONS, GET, HEAD, POST");
+    response_.set("Access-Control-Allow-Origin", "*");
+    response_.set("Access-Control-Allow-Headers",
+                  "Accept, Accept-Language, Content-Language, Content-Type");
+    response_.set("Connection", "close");
+    response_.result(boost::beast::http::status::no_content);
     response_.prepare_payload();
   } else {
     assert(false && "RPC already responded ...\n");

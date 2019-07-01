@@ -21,6 +21,7 @@ namespace dev {
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_gasPrice", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_gasPriceI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_accounts", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_ARRAY,  NULL), &dev::rpc::TaraxaFace::taraxa_accountsI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_blockNumberI);
+                    this->bindAndAddMethod(jsonrpc::Procedure("eth_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_blockNumberI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getBalance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getBalanceI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getStorageAt", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING,"param3",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getStorageAtI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getStorageRoot", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getStorageRootI);
