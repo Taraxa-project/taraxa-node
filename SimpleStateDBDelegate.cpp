@@ -7,10 +7,15 @@
  */
 
 #include "SimpleStateDBDelegate.h"
+#include "util_eth.hpp"
 
-bool SimpleStateDBDelegate::put(const std::string &key,
-                                const std::string &value) {
-  const dev::Address id = stringToAddress(key);
+using namespace std;
+using namespace taraxa::util::eth;
+using namespace dev;
+using namespace dev::eth;
+
+bool SimpleStateDBDelegate::put(const string &key, const string &value) {
+  const Address id = stringToAddress(key);
   upgradableLock lock(shared_mutex_);
   if (state_->addressInUse(id)) {
     return false;
@@ -19,28 +24,31 @@ bool SimpleStateDBDelegate::put(const std::string &key,
   state_->setBalance(id, stringToBalance(value));
   return true;
 }
-bool SimpleStateDBDelegate::update(const std::string &key,
-                                   const std::string &value) {
+bool SimpleStateDBDelegate::update(const string &key, const string &value) {
   boost::unique_lock lock(shared_mutex_);
   state_->setBalance(stringToAddress(key), stringToBalance(value));
   return true;
 }
-std::string SimpleStateDBDelegate::get(const std::string &key) {
-  const dev::Address id = stringToAddress(key);
+string SimpleStateDBDelegate::get(const string &key) {
+  const Address id = stringToAddress(key);
   sharedLock lock(shared_mutex_);
   if (!state_->addressInUse(id)) {
     return "";
   }
-  return std::to_string(state_->balance(id));
+  return to_string(state_->balance(id));
 }
+
 void SimpleStateDBDelegate::commit() {
   // TODO: perhaps we shall let the CommitBehaviour be flexible
   boost::unique_lock lock(shared_mutex_);
-  state_->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
+  state_->commit(State::CommitBehaviour::KeepEmptyAccounts);
 }
-SimpleStateDBDelegate::SimpleStateDBDelegate(const std::string &path, bool overwrite)
-    : state_(std::make_shared<dev::eth::State>(
-          0,
-          dev::eth::State::openDB(path, TEMP_GENESIS_HASH,
-                                  overwrite ? dev::WithExisting::Kill : dev::WithExisting::Trust),
-          dev::eth::BaseState::Empty)) {}
+
+SimpleStateDBDelegate::SimpleStateDBDelegate(const OverlayAndRawDB &dbs)
+    : state_(make_shared<State>(0, dbs.overlayDB, BaseState::Empty)),
+      raw_db_(dbs.rawDB) {}
+
+SimpleStateDBDelegate::SimpleStateDBDelegate(const string &path, bool overwrite)
+    : SimpleStateDBDelegate(
+          newOverlayDB(path, TEMP_GENESIS_HASH,
+                       overwrite ? WithExisting::Kill : WithExisting::Trust)) {}

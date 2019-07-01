@@ -13,6 +13,7 @@
 #include <memory>
 #include <set>
 #include <thread>
+#include "SimpleStateDBDelegate.h"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "transaction.hpp"
@@ -32,6 +33,8 @@ class Executor {
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
   Executor() {}
   ~Executor();
+  // fixme: start/stop methods seem to be excessive, and complicate the
+  // lifecycle
   void start();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();
@@ -45,7 +48,7 @@ class Executor {
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<SimpleDBFace> db_blks_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
-  std::shared_ptr<SimpleDBFace> db_accs_;
+  std::shared_ptr<SimpleStateDBDelegate> db_accs_;
   std::shared_ptr<vm::TaraxaVM> taraxaVM;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};

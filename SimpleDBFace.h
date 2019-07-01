@@ -22,6 +22,7 @@ class SimpleDBFace {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+  using uniqueLock = boost::unique_lock<boost::shared_mutex>;
 
   // @return if key exist, return false without updating value.
   virtual bool put(const std::string &key, const std::string &value) = 0;
@@ -32,6 +33,6 @@ class SimpleDBFace {
   virtual ~SimpleDBFace() = default;
 
  protected:
-  boost::shared_mutex shared_mutex_;
+  mutable boost::shared_mutex shared_mutex_;
 };
 #endif  // TARAXA_NODE_TEST_H

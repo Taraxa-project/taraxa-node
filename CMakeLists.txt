@@ -1,4 +1,3 @@
-set(CMAKE_MACOSX_RPATH 1)
 
 include(cmake/scoped_include.cmake)
 scoped_include(cmake/submodules/ethash.cmake) # ethash must be included before project() directive
@@ -6,8 +5,13 @@ scoped_include(cmake/submodules/ethash.cmake) # ethash must be included before p
 project(taraxa-node)
 cmake_minimum_required(VERSION 3.13)
 
+string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
+set(CMAKE_MACOSX_RPATH 1)
+#set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+
 include(FindBoost)
 include(FindProtobuf)
+include(cmake/cotire.cmake)
 scoped_include(cmake/submodules/libff.cmake)
 scoped_include(cmake/submodules/prometheus-cpp.cmake)
 scoped_include(cmake/submodules/cryptopp.cmake)
@@ -17,10 +21,16 @@ scoped_include(cmake/submodules/taraxa-evm.cmake)
 find_package(Boost)
 find_package(Protobuf)
 
-set(CMAKE_CXX_STANDARD) # disable the problematic cmake std flag inference
+set(CMAKE_CXX_FLAGS_PREDEFINED ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}})
+string(REPLACE " " ";" CMAKE_CXX_FLAGS_PREDEFINED "${CMAKE_CXX_FLAGS_PREDEFINED}")
+list(REMOVE_DUPLICATES CMAKE_CXX_FLAGS_PREDEFINED)
+
+set(CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER} "") # disable auto predef flags
+unset(CMAKE_CXX_STANDARD) # disable the problematic cmake std flag inference
+
 set(CXX_STD_FLAG -std=c++17)
-set(CXX_COMPILER_FLAGS ${CXX_STD_FLAG} -MMD -MP -MF)
-string(JOIN " " CMAKE_CXX_FLAGS ${CXX_COMPILER_FLAGS} ${CMAKE_CXX_FLAGS})
+set(CXX_COMPILER_FLAGS ${CXX_STD_FLAG} ${CMAKE_CXX_FLAGS_PREDEFINED} -MMD -MF -MP)
+string(JOIN " " CMAKE_CXX_FLAGS ${CXX_COMPILER_FLAGS})
 
 add_compile_definitions(BOOST_LOG_DYN_LINK ETH_FATDB)
 include_directories(
@@ -160,6 +170,9 @@ set(main_deps_objects $<TARGET_OBJECTS:node_objects> $<TARGET_OBJECTS:p2p_object
 add_library(main_objects OBJECT main.cpp)
 add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
 
+#add_dependencies(main all_pch)
+cotire(node_objects p2p_objects main_objects)
+
 enable_testing()
 set(CORE_TESTS
         crypto_test
@@ -195,11 +208,13 @@ add_library(trie_test_objects OBJECT
         crypto_tests/trie_test.cpp)
 
 foreach (t ${ALL_TESTS})
+    cotire(${t}_objects)
     add_executable(${t} ${main_deps_objects} $<TARGET_OBJECTS:${t}_objects>)
+    add_dependencies(${t} main)
     add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     list(APPEND ALL_TESTS_COMMANDS COMMAND ${t})
 endforeach ()
 add_custom_target(run_test
         ${ALL_TESTS_COMMANDS}
-        DEPENDS main ${ALL_TESTS}
+        DEPENDS ${ALL_TESTS}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

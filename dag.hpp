@@ -6,6 +6,9 @@
  * @Last Modified time: 2019-04-22 13:39:27
  */
 
+#ifndef TARAXA_NODE_DAG_HPP
+#define TARAXA_NODE_DAG_HPP
+
 #include <atomic>
 #include <bitset>
 #include <boost/function.hpp>
@@ -285,7 +288,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::vector<std::string> anchors_ = {
       Dag::GENESIS};  // pivots that define periods
   // DagBuffer
-  std::list<std::shared_ptr<DagBlock> > sb_buffer_;
+  std::list<std::shared_ptr<DagBlock>> sb_buffer_;
   std::shared_ptr<boost::thread> sb_buffer_processing_thread_;
   std::mutex sb_bufer_mutex_;
   std::condition_variable sb_buffer_condition;
@@ -302,3 +305,5 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 };
 
 }  // namespace taraxa
+
+#endif  // TARAXA_NODE_DAG_HPP

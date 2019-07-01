@@ -5,32 +5,20 @@
 #define TARAXA_NODE_SIMPLEDBFACTORY_H
 
 #include "SimpleOverlayDBDelegate.h"
-#include "SimpleTaraxaRocksDBDelegate.h"
 #include "SimpleStateDBDelegate.h"
+#include "SimpleTaraxaRocksDBDelegate.h"
 
 class SimpleDBFace;
 
 class SimpleDBFactory {
-public:
-    SimpleDBFactory() = delete;
-    ~SimpleDBFactory() = delete;
-    enum SimpleDBType {
-        TaraxaRocksDBKind,
-        OverlayDBKind,
-        StateDBKind
-    };
+ public:
+  SimpleDBFactory() = delete;
+  ~SimpleDBFactory() = delete;
 
-    static std::shared_ptr<SimpleDBFace> createDelegate(const SimpleDBType type, const std::string &path, bool overwrite) {
-      switch(type) {
-        case TaraxaRocksDBKind:
-          return std::make_shared<SimpleTaraxaRocksDBDelegate>(path, overwrite);
-        case StateDBKind:
-          return std::make_shared<SimpleStateDBDelegate>(path, overwrite);
-        case OverlayDBKind:
-          return std::make_shared<SimpleOverlayDBDelegate>(path, overwrite);
-        default:
-          assert(false);
-      }
-    }
+  template <typename T>
+  static std::shared_ptr<T> createDelegate(const std::string &path,
+                                           bool overwrite) {
+    return std::make_shared<T>(path, overwrite);
+  }
 };
-#endif //TARAXA_NODE_SIMPLEDBFACTORY_H
+#endif  // TARAXA_NODE_SIMPLEDBFACTORY_H

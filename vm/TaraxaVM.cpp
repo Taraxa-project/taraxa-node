@@ -43,7 +43,7 @@ void LogEntry::fromPtree(const ptree& p) {
         topicPtree.second.get_value<decltype(topics)::value_type>());
   }
   data = fromHex(p.get<string>("data"));
-  blockNumber = p.get<decltype(blockNumber)>("blockNumber");
+  blockNumber = decltype(blockNumber)(p.get<string>("blockNumber"));
   transactionHash = p.get<decltype(transactionHash)>("transactionHash");
   transactionIndex = p.get<decltype(transactionIndex)>("transactionIndex");
   blockHash = p.get<decltype(blockHash)>("blockHash");
@@ -105,7 +105,10 @@ ptree Block::toPtree() const {
   for (auto& tx : transactions) {
     append(transactionsPtree, tx.toPtree());
   }
-  ret.put_child("transactions", transactionsPtree);
+  if (!transactionsPtree.empty()) {
+    // No way to represent empty array in ptree
+    ret.put_child("transactions", transactionsPtree);
+  }
   return ret;
 }
 
@@ -148,12 +151,14 @@ void VmConfig::fromPtree(const ptree& ptree) {}
 
 TaraxaVM::TaraxaVM(string goAddress) : goAddress(move(goAddress)) {}
 
+TaraxaVM::~TaraxaVM() { taraxa_cgo_Free(cgo_str(goAddress)); }
+
 shared_ptr<TaraxaVM> TaraxaVM::fromConfig(const VmConfig& config) {
   ptree argsPtree;
   append(argsPtree, config.toPtree());
   const auto& argsEncoded = toJsonArrayString(argsPtree);
   const auto& resultJson =
-      Call(nullptr, cgo_str("NewVM"), cgo_str(argsEncoded));
+      taraxa_cgo_Call(nullptr, cgo_str("NewVM"), cgo_str(argsEncoded));
   const auto& resultPtree = strToJson(resultJson);
   auto i = resultPtree.begin();
   const auto& goAddr = (i++)->second.get_value<string>();
@@ -166,8 +171,8 @@ StateTransitionResult TaraxaVM::transitionState(
   ptree argsPtree;
   append(argsPtree, req.toPtree());
   const auto& argsEncoded = toJsonArrayString(argsPtree);
-  const auto& resultJson = Call(cgo_str(goAddress), cgo_str("RunLikeEthereum"),
-                                cgo_str(argsEncoded));
+  const auto& resultJson = taraxa_cgo_Call(
+      cgo_str(goAddress), cgo_str("RunLikeEthereum"), cgo_str(argsEncoded));
   const auto& resultPtree = strToJson(resultJson);
   auto i = resultPtree.begin();
   const auto& result = (i++)->second;

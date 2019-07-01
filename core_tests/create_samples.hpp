@@ -46,13 +46,13 @@ std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num,
     strm << std::setw(64) << std::setfill('0');
     strm << std::to_string(i);
     std::string hash = strm.str();
-    Transaction trx(i,                                      // nonce
+    Transaction trx(0,                                      // nonce
                     i * 100,                                // value
-                    val_t(4),                               // gas_price
-                    val_t(5),                               // gas
+                    val_t(0),                               // gas_price
+                    val_t(1000000),                         // gas
                     addr_t(i * 100),                        // receiver
                     str2bytes("00FEDCBA9876543210000000"),  // data
-                    sk);                                    // secret
+                    secret_t::random());                    // secret
     trxs.emplace_back(trx);
   }
   return trxs;

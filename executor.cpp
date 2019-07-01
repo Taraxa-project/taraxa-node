@@ -11,6 +11,7 @@
 #include "vm/TaraxaVM.hpp"
 
 using namespace std;
+
 namespace taraxa {
 
 string LAST_STATE_ROOT_KEY = "last_root";
@@ -71,14 +72,22 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
         trx.getHash(),
     });
   }
-  const auto& lastRootStr = db_accs_->get(LAST_STATE_ROOT_KEY);
-  const auto& lastRoot = lastRootStr.size() == 0 ? h256() : h256(lastRootStr);
-  const auto& result = taraxaVM->transitionState({lastRoot, vmBlock});
-  db_accs_->update(LAST_STATE_ROOT_KEY, toHexPrefixed(result.stateRoot));
-//  if (node_.lock()) { TODO logging
-//    LOG(log_time) << "Block " << blk
-//                  << " executed at: " << getCurrentTimeMilliSeconds();
-//  }
+  auto state = db_accs_->getState<boost::unique_lock>();
+  const auto& baseRoot = state->rootHash();
+  cout << "BAR: " << baseRoot << endl;
+  const auto& result = taraxaVM->transitionState({
+      baseRoot,
+      vmBlock,
+  });
+  // TODO: use another persistent storage to track the reference
+  // to the last committed block, and add stateRoot field to blocks
+  //  blkIndexDB->update(LAST_STATE_ROOT_KEY, toHexPrefixed(result.stateRoot));
+  state->setRoot(result.stateRoot);
+  //  if (node_.lock()) {
+  // TODO: logging
+  //  LOG(log_time) << "Block " << blk << " executed at: " <<
+  //  getCurrentTimeMilliSeconds();
+  //  }
   return true;
 }
 bool Executor::execute(TrxSchedule const& sche) {

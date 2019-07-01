@@ -1,23 +1,29 @@
 #include <gtest/gtest.h>
 #include <libdevcore/Log.h>
+#include <libdevcore/db.h>
+#include <libdevcore/MemoryDB.h>
+#include <iostream>
 #include <memory>
 #include <thread>
+#include <utility>
 #include <vector>
 #include "util.hpp"
 #include "vm/TaraxaVM.hpp"
 
 using namespace boost::property_tree;
 using namespace dev;
+using namespace dev::db;
 using namespace std;
 
 namespace taraxa::vm {
+using namespace cgo::db;
 
 TEST(VM, call_dummy) {
-  ptree rocksdbOpts;
-  rocksdbOpts.put("file", "/tmp/fooo");
+  setDatabaseKind(DatabaseKind::MemoryDB);
+  SimpleStateDBDelegate stateDB("", true);
   const auto& vm = TaraxaVM::fromConfig({
       StateDBConfig{
-          DBConfig{"rocksdb", rocksdbOpts},
+          vm::DBConfig::fromTaraxaStateDB(stateDB),
           0,
       },
   });

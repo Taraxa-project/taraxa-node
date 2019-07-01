@@ -1,18 +1,19 @@
 #ifndef TARAXA_NODE_TARAXAVM_HPP
 #define TARAXA_NODE_TARAXAVM_HPP
 
+#include <SimpleStateDBDelegate.h>
 #include <libethcore/Common.h>
 #include <boost/property_tree/ptree.hpp>
-#include <map>
 #include <string>
+#include "cgo/db.hpp"
 #include "types.hpp"
 extern "C" {
-#include "cgo_generated/taraxa_vm_cgo.h"
+#include "cgo/generated/taraxa_vm_cgo.h"
 }
 
 namespace taraxa::vm {
 
-//struct PtreeSerializable {
+// struct PtreeSerializable {
 //  boost::property_tree::ptree toPtree() const {
 //    throw std::runtime_error("not implemented");
 //  };
@@ -27,6 +28,18 @@ namespace taraxa::vm {
 struct DBConfig {
   std::string type;
   boost::property_tree::ptree options;
+
+  inline static DBConfig fromCgoDB(taraxa_cgo_ethdb_Database *db) {
+    boost::property_tree::ptree dbOpts;
+    dbOpts.put("pointer", reinterpret_cast<intptr_t>(db));
+    return {"cgo", dbOpts};
+  }
+
+  inline static DBConfig fromTaraxaStateDB(const SimpleStateDBDelegate &db) {
+    using namespace cgo::db;
+    auto alethDB = new AlethDatabase(db.getRawDB().dbPtr);
+    return fromCgoDB(alethDB->newCgoDB());
+  }
 
   boost::property_tree::ptree toPtree() const;
   void fromPtree(const boost::property_tree::ptree &ptree);
@@ -51,7 +64,7 @@ struct LogEntry {
   dev::Address address;
   std::vector<dev::h256> topics;
   dev::bytes data;
-  int64_t blockNumber;
+  dev::u256 blockNumber;
   dev::h256 transactionHash;
   uint transactionIndex;
   dev::h256 blockHash;
@@ -135,6 +148,7 @@ class TaraxaVM {
 
  public:
   explicit TaraxaVM(std::string goAddress);
+  ~TaraxaVM();
 
   static std::shared_ptr<TaraxaVM> fromConfig(const VmConfig &config);
   StateTransitionResult transitionState(const StateTransitionRequest &req);

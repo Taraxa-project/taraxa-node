@@ -20,8 +20,7 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 
 
 #line 3 "cgo_exports.go"
-//------#---cgo CFLAGS: -I ../lib_cpp/include
-//------#--include "taraxa_evm/cgo_imports.h"
+#include "cgo_imports.h"
 
 #line 1 "cgo-generated-wrapper"
 
@@ -74,13 +73,13 @@ extern "C" {
 #endif
 
 
-extern char* Call(char* p0, char* p1, char* p2);
+extern char* taraxa_cgo_Call(char* p0, char* p1, char* p2);
 
-extern void SetGCPercent(int p0);
+extern void taraxa_cgo_Free(char* p0);
 
-extern void GC();
+extern void taraxa_cgo_SetGCPercent(int p0);
 
-extern void Free(char* p0);
+extern void taraxa_cgo_GC();
 
 #ifdef __cplusplus
 }

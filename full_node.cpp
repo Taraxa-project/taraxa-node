@@ -96,39 +96,34 @@ void FullNode::initDB(bool destroy_db) {
   }
 
   if (db_accs_ == nullptr) {
-    db_accs_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::StateDBKind, conf_.account_db_path(),
-        destroy_db);
+    db_accs_ = SimpleDBFactory::createDelegate<SimpleStateDBDelegate>(
+        conf_.account_db_path(), destroy_db);
     assert(db_accs_);
   }
   if (db_blks_ == nullptr) {
-    db_blks_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.block_db_path(),
-        destroy_db);
+    db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.block_db_path(), destroy_db);
     assert(db_blks_);
   }
   if (db_blks_index_ == nullptr) {
-    db_blks_index_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind,
-        conf_.block_index_db_path(), destroy_db);
+    db_blks_index_ =
+        SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+            conf_.block_index_db_path(), destroy_db);
     assert(db_blks_index_);
   }
   if (db_trxs_ == nullptr) {
-    db_trxs_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+    db_trxs_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.transactions_db_path(), destroy_db);
     assert(db_trxs_);
   }
 
   if (db_votes_ == nullptr) {
-    db_votes_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+    db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.pbft_votes_db_path(), destroy_db);
     assert(db_votes_);
   }
   if (db_pbftchain_ == nullptr) {
-    db_pbftchain_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+    db_pbftchain_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
@@ -219,11 +214,9 @@ void FullNode::start(bool boot_node) {
   if (!db_inited_) {
     initDB(false);
   }
-  ptree rocksdbOpts;
-  rocksdbOpts.put("file", conf_.account_db_path());
   taraxaVM = vm::TaraxaVM::fromConfig({
       vm::StateDBConfig{
-          vm::DBConfig{"rocksdb", rocksdbOpts},
+          vm::DBConfig::fromTaraxaStateDB(*db_accs_),
           0,
       },
   });
@@ -303,6 +296,7 @@ void FullNode::stop() {
   trx_mgr_->stop();
   pbft_mgr_->stop();
   executor_->stop();
+  taraxaVM = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
@@ -330,6 +324,7 @@ bool FullNode::reset() {
   vote_queue_ = nullptr;
   pbft_mgr_ = nullptr;
   pbft_chain_ = nullptr;
+  taraxaVM = nullptr;
 
   assert(network_.use_count() == 0);
   // dag

@@ -92,9 +92,8 @@ TEST(TransactionQueue, verifiers) {
 }
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
-  auto db_trxs = SimpleDBFactory::createDelegate(
-      SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx",
-      true);
+  auto db_trxs = SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+      "/tmp/rocksdb/trx", true);
   TransactionManager trx_mgr(db_trxs);
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
@@ -152,9 +151,8 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_trxs = SimpleDBFactory::createDelegate(
-      SimpleDBFactory::SimpleDBType::TaraxaRocksDBKind, "/tmp/rocksdb/trx",
-      true);
+  auto db_trxs = SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+      "/tmp/rocksdb/trx", true);
 
   TransactionManager trx_mgr(db_trxs);
   trx_mgr.start();
