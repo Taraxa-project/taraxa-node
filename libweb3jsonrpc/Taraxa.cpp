@@ -29,9 +29,9 @@ string Taraxa::taraxa_gasPrice() { return ""; }
 
 Json::Value Taraxa::taraxa_accounts() { return ""; }
 
-string Taraxa::taraxa_blockNumber() { 
+string Taraxa::taraxa_blockNumber() {
   if (auto full_node = full_node_.lock()) {
-    return toJS(full_node->getDagMaxLevel()); 
+    return toJS(full_node->getDagMaxLevel());
   }
 }
 
@@ -110,9 +110,10 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
 
 Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
                                             bool _includeTransactions) {
-  if (auto full_node = full_node_.lock()) {
-    return toJS(full_node->getDagBlocksAtLevel(std::stoi(_blockNumber), 1));
-  }
+  // if (auto full_node = full_node_.lock()) {
+  //   return toJS(full_node->getDagBlocksAtLevel(std::stoi(_blockNumber), 1));
+  // }
+  return "";
 }
 
 Json::Value Taraxa::taraxa_getTransactionByHash(
