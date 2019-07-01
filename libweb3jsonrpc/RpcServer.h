@@ -33,8 +33,8 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
 
   virtual bool StartListening() override;
   virtual bool StopListening() override;
-  bool virtual SendResponse(const std::string &response,
-                            void *addInfo = NULL) override;
+  virtual bool SendResponse(const std::string &response,
+                            void *addInfo = NULL) ;
   void waitForAccept();
   boost::asio::io_context &getIoContext() { return io_context_; }
   std::shared_ptr<RpcServer> getShared();
