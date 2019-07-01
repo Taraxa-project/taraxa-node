@@ -71,6 +71,7 @@ class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
   virtual ~RpcConnection() = default;
   virtual void read();
   virtual void write_response(std::string const &msg);
+  virtual void write_options_response();
   boost::asio::ip::tcp::socket &getSocket() { return socket_; }
   virtual std::shared_ptr<RpcConnection> getShared();
 
