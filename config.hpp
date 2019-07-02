@@ -39,10 +39,6 @@ struct NetworkConfig {
   std::string network_id;
 };
 
-struct PbftManagerConfig {
-  u_long lambda_ms;
-};
-
 // Parameter Tuning purpose
 struct TestParamsConfig {
   std::vector<uint> block_proposer;  // test_params.block_proposer
@@ -57,13 +53,11 @@ struct FullNodeConfig {
   uint16_t dag_processing_threads;
   NetworkConfig network;
   RpcConfig rpc;
-  PbftManagerConfig pbft_manager;
   TestParamsConfig test_params;
 };
 
 std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);

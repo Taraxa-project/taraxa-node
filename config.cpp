@@ -34,7 +34,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.address =
         boost::asio::ip::address::from_string(network.network_address);
     rpc.port = doc.get<uint16_t>("rpc_port");
-    pbft_manager.lambda_ms = doc.get<u_long>("pbft_manager.lambda_ms");
 
     {  // for test experiments
       for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
@@ -76,12 +75,6 @@ std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf) {
   return strm;
 }
 
-std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf) {
-  strm << "[PbftManager Config] " << std::endl;
-  strm << "   lambda: " << conf.lambda_ms << std::endl;
-  return strm;
-}
-
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
@@ -116,7 +109,6 @@ std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
        << std::endl;
   strm << conf.network;
   strm << conf.rpc;
-  strm << conf.pbft_manager;
   strm << conf.test_params;
   return strm;
 }

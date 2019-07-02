@@ -26,7 +26,9 @@
 #define MAX_STEPS 19
 #define COMMITTEE_SIZE 3 // TODO: The value for local test, need to change
 #define VALID_SORTITION_COINS 10000 // TODO: the value may change later
-#undef LAMBDA_ms // undef for test TODO: need remove later
+#undef LAMBDA_ms // TODO: undef for test, need remove later
+#undef COMMITTEE_SIZE // TODO: undef for test, need remove later
+#undef VALID_SORTITION_COINS // // TODO: undef for test, need remove later
 
 namespace taraxa {
 class FullNode;
@@ -35,7 +37,7 @@ class VoteQueue;
 class PbftManager {
  public:
   PbftManager();
-  PbftManager(PbftManagerConfig const &config);
+  PbftManager(std::vector<uint> const& params);
   ~PbftManager() { stop(); }
 
   void setFullNode(std::shared_ptr<FullNode> node);
@@ -54,13 +56,15 @@ class PbftManager {
   }
 
   // only for test
-  u_long getLambdaMs() const { return LAMBDA_ms; }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
   std::unordered_map<addr_t, bal_t> sortition_account_balance_table;
+  u_long LAMBDA_ms; // TODO: Only for test, need remove later
+  bal_t COMMITTEE_SIZE; // TODO: Only for test, need remove later
+  uint64_t VALID_SORTITION_COINS; // TODO: Only for test, need remove later
 
  private:
   size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
@@ -110,7 +114,6 @@ class PbftManager {
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE; // This is 2t+1
-  u_long LAMBDA_ms; // Only for test TODO: need remove later
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

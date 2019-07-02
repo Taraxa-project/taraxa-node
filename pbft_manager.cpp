@@ -21,8 +21,11 @@
 namespace taraxa {
 
 PbftManager::PbftManager() {}
-PbftManager::PbftManager(const PbftManagerConfig &config)
-    : LAMBDA_ms(config.lambda_ms) {}  // TODO: for debug, need remove later
+PbftManager::PbftManager(std::vector<uint> const& params)
+  // TODO: for debug, need remove later
+  : LAMBDA_ms(params[0]),
+    COMMITTEE_SIZE(params[1]),
+    VALID_SORTITION_COINS(params[2]) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
