@@ -20,11 +20,17 @@
 namespace taraxa {
 
 TEST(PbftManager, pbft_manager_lambda_input_test) {
-  PbftManagerConfig pbft_config;
-  pbft_config.lambda_ms = 1000;
-  PbftManager pbft_manager(pbft_config);
-  u_long lambda = pbft_manager.getLambdaMs();
-  EXPECT_EQ(lambda, pbft_config.lambda_ms);
+  uint lambda_ms = 1000;
+  uint committee_size = 3;
+  uint valid_sortition_coins = 10000;
+  std::vector<uint> pbft_params { lambda_ms,
+                                  committee_size,
+                                  valid_sortition_coins };
+
+  PbftManager pbft_manager(pbft_params);
+  EXPECT_EQ(lambda_ms, pbft_manager.LAMBDA_ms);
+  EXPECT_EQ(committee_size, pbft_manager.COMMITTEE_SIZE);
+  EXPECT_EQ(valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);
 }
 
 TEST(PbftManager, full_node_lambda_input_test) {
@@ -32,8 +38,9 @@ TEST(PbftManager, full_node_lambda_input_test) {
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
-  u_long lambda = pbft_mgr->getLambdaMs();
-  EXPECT_EQ(lambda, 1000);
+  EXPECT_EQ(pbft_mgr->LAMBDA_ms, 1000);
+  EXPECT_EQ(pbft_mgr->COMMITTEE_SIZE, 3);
+  EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 10000);
 }
 
 /* Place votes period 1, 2 and 3 into vote queue.
