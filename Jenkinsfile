@@ -34,7 +34,7 @@ pipeline {
                     git submodule update --init --recursive
                     docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} \
-                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}
+                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
                     -f dockerfiles/Dockerfile .
                 '''
             }
