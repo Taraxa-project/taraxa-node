@@ -33,8 +33,14 @@ auto g_key_pair = dev::KeyPair(g_secret);
 auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
+auto g_test_account =
+    samples::createTestAccountTable("core_tests/account_table.txt");
 
 TEST(Top, top_reset) {
+  std::cout << "Print g_test_account \n";
+  for (auto const& i : g_test_account) {
+    std::cout << i.first << " " << i.second << std::endl;
+  }
   const char* input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -1116,7 +1122,8 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   node1->start(true /*boot_node*/);
   auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
       new dev::rpc::Test(node1));
-  auto rpc_server(std::make_shared<taraxa::RpcServer>(context1, conf.rpc, node1));
+  auto rpc_server(
+      std::make_shared<taraxa::RpcServer>(context1, conf.rpc, node1));
   rpc->addConnector(rpc_server);
   rpc_server->StartListening();
   taraxa::thisThreadSleepForMilliSeconds(500);
@@ -1406,7 +1413,6 @@ int main(int argc, char** argv) {
   // logOptions.includeChannels.push_back("BLK_PP");
   // logOptions.includeChannels.push_back("PR_MDL");
 
-  
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage
