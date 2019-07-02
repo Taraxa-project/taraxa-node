@@ -38,7 +38,9 @@ string Taraxa::taraxa_blockNumber() {
 
 string Taraxa::taraxa_getBalance(string const& _address,
                                  string const& _blockNumber) {
-  return "";
+  if (auto full_node = full_node_.lock()) {
+    return toJS(full_node->getBalance(taraxa::addr_t(_address)).first);
+  }
 }
 
 string Taraxa::taraxa_getStorageAt(string const& _address,
@@ -111,9 +113,53 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
 
 Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
                                             bool _includeTransactions) {
-  // if (auto full_node = full_node_.lock()) {
-  //   return toJS(full_node->getDagBlocksAtLevel(std::stoi(_blockNumber), 1));
-  // }
+  if (auto full_node = full_node_.lock()) {
+    Json::Value res;
+    auto blocks = full_node->getDagBlocksAtLevel(std::stoi(_blockNumber, 0, 16), 1);
+    if (blocks.size() == 0) return res;
+    auto block = blocks[0];
+    res["hash"] = toJS(block->getHash());
+    res["parentHash"] = toJS(block->getPivot());
+    res["sha3Uncles"] = "";
+    res["author"] = "";
+    res["stateRoot"] = "";
+    res["transactionsRoot"] = "";
+    res["receiptsRoot"] = "";
+    res["number"] = toJS(block->getLevel());
+    res["gasUsed"] = "";   // TODO calculate gasUsed
+    res["gasLimit"] = "";  // TODO calculate gasLimit
+    res["extraData"] = "";
+    res["logsBloom"] = "";
+    res["timestamp"] = "";
+    res["author"] = "";
+    res["nonce"] = "";
+    res["sha3Uncles"] = "";
+    res["difficulty"] = "";
+    res["totalDifficulty"] = "";
+    res["size"] = "";  // Get total size of blocks
+    res["uncles"] = "";
+    res["transactions"] = Json::Value(Json::arrayValue);
+    for (unsigned i = 0; i < block->getTrxs().size(); i++) {
+      Json::Value tr_js;
+      auto _t = full_node->getTransaction(block->getTrxs()[i]);
+      tr_js["hash"] = toJS(_t->getHash());
+      tr_js["input"] = toJS(_t->getData());
+      tr_js["to"] = toJS(_t->getReceiver());
+      tr_js["from"] = toJS(_t->getSender());
+      tr_js["gas"] = toJS(_t->getGas());
+      tr_js["gasPrice"] = toJS(_t->getGasPrice());
+      tr_js["nonce"] = "";
+      tr_js["value"] = toJS(_t->getValue());
+      tr_js["blockHash"] = toJS(block->getHash());
+      tr_js["transactionIndex"] = toJS(i);
+      tr_js["blockNumber"] = toJS(block->getLevel());
+      tr_js["v"] = toJS("");
+      tr_js["r"] = toJS("");
+      tr_js["s"] = toJS("");
+      res["transactions"].append(tr_js);
+    }
+    return res;
+  }
   return "";
 }
 
