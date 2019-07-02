@@ -16,7 +16,13 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build --pull -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
+                try {
+                    sh 'docker pull ${REGISTRY}/${IMAGE}'
+                }
+                catch (exc) {
+                    echo 'Something failed, I should sound the klaxons!'
+                }
+                sh 'docker build --pull --cache-from=${REGISTRY}/${IMAGE} -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }
         }
         stage('Push Docker Image') {
@@ -24,7 +30,7 @@ pipeline {
             steps {
                 sh '''
                   docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
-                  docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}
+                  docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER}
                   docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
                   docker push ${REGISTRY}/${IMAGE}
                 '''

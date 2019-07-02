@@ -1,9 +1,11 @@
-FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
+ARG BASE_IMAGE=541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:latest
+FROM $BASE_IMAGE as builder
+#FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
 
 ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
-ADD . .  
+ADD . .
 RUN make main
 
 

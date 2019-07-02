@@ -8,6 +8,7 @@ pipeline {
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
         BRANCH_NAME_LOWER_CASE = sh(script: 'echo "${BRANCH_NAME}" | tr "[:upper:]" "[:lower:]"', , returnStdout: true).trim()
+        DOCKER_BRANCH_TAG = sh(script: '[[ ${BRANCH_NAME} == "master" ]] && echo latest || echo ${BRANCH_NAME_LOWER_CASE}', , returnStdout: true).trim()
     }
     stages {
         stage('Docker Registry Login') {
@@ -19,7 +20,7 @@ pipeline {
             agent {
                 docker {
                     alwaysPull true
-                    image '${REGISTRY}/${BASE_IMAGE}'
+                    image '${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}'
                 }
             }
             steps {
@@ -29,8 +30,13 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'git submodule update --init --recursive'
-                sh 'docker build --pull -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/Dockerfile .'
+                sh '''
+                    git submodule update --init --recursive
+                    docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
+                    -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} \
+                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}
+                    -f dockerfiles/Dockerfile .
+                '''
             }
         }
         stage('Smoke Test') {
