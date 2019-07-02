@@ -19,9 +19,9 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /u
 # Add multi-stage build for docker layer caching
 FROM builder as boost-layer
 
-ENV BOOST_VERSION="1_68_0"
+ENV BOOST_VERSION="1_70_0"
 RUN cd /tmp \
-    && wget https://dl.bintray.com/boostorg/release/1.68.0/source/boost_${BOOST_VERSION}.tar.bz2 \
+    && wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_${BOOST_VERSION}.tar.bz2 \
     && tar --bzip2 -xf boost_${BOOST_VERSION}.tar.bz2 \
     && export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python2.7/" \
     && cd boost_${BOOST_VERSION} \
@@ -74,7 +74,6 @@ RUN cd /tmp/grpc/third_party/cares/cares && (git pull || true)
 RUN cd /tmp/grpc/third_party/boringssl && (git pull || true)
 RUN cd /tmp/grpc \
   && make clean \
-
   && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' -j `nproc` \
   && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install
 
