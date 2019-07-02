@@ -36,9 +36,8 @@ struct DBConfig {
   }
 
   inline static DBConfig fromTaraxaStateDB(const SimpleStateDBDelegate &db) {
-    using namespace cgo::db;
-    auto alethDB = new AlethDatabase(db.getRawDB().dbPtr);
-    return fromCgoDB(alethDB->newCgoDB());
+    auto alethDB = new cgo::db::AlethDatabase(db.getRawDB().dbPtr);
+    return fromCgoDB(alethDB->cImpl());
   }
 
   boost::property_tree::ptree toPtree() const;

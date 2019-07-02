@@ -198,6 +198,9 @@ inline std::string unquote_numbers(const std::string &json_str) {
 }
 
 inline std::string toJsonObjectString(const boost::property_tree::ptree &p) {
+  if (p.empty()) {
+    return "{}";
+  }
   std::stringstream stream;
   // Note: boost appends a newline
   write_json(stream, p, false);

@@ -21,13 +21,9 @@ class SimpleStateDBDelegate : public SimpleDBFace {
 
   template <typename Lock>
   struct LockedState {
-    std::shared_ptr<dev::eth::State> state;
-    Lock lock;
+    decltype(state_) state;
+    const Lock lock;
 
-    void release() {
-      state = nullptr;
-      lock.unlock();
-    }
     const auto &operator-> () const { return state; }
   };
 
@@ -41,8 +37,6 @@ class SimpleStateDBDelegate : public SimpleDBFace {
   LockedState<Lock<decltype(shared_mutex_)>> getState() {
     return {state_, Lock(shared_mutex_)};
   }
-
-  //  const auto &getState() { return state_; }
 
   const auto &getRawDB() const { return raw_db_; }
 

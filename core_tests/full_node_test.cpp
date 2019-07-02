@@ -744,28 +744,15 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
-  const auto& stateDB = node->getAccsDB();
-  auto rawDB = stateDB->getRawDB().dbPtr;
-  auto state = stateDB->getState<unique_lock>();
-  cout << "base root: " << state->rootHash() << endl;
-  for (auto const& t : g_trx_signed_samples) {
-    state->addBalance(t.getSender(), t.getValue());
+  {
+    auto state = node->getAccsDB()->getState<boost::unique_lock>();
+    for (auto const& t : g_trx_signed_samples) {
+      state->addBalance(t.getSender(), t.getValue());
+    }
+    state->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
+    state->db().commit();
   }
-  state->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
-  state->db().commit();
-  const auto& root = state->rootHash();
-  state.release();
-  cout << "root: " << root << endl;
-  dev::eth::State state2{
-      0,
-      OverlayDB(unique_ptr<dev::db::DatabaseFace>(rawDB.get())),
-  };
-  state2.setRoot(root);
-  for (auto const& t : g_trx_signed_samples) {
-    const auto& sender = t.getSender();
-    cout << ">> " << sender << ": " << state2.balance(sender) << endl;
-  }
-//  cout << "root val: " << rawDB->lookup(util::eth::toSlice(root)) << endl;
+
   for (auto const& t : g_trx_signed_samples) {
     node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
@@ -806,13 +793,12 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
-
   node->stop();
-
+  auto state = node->getAccsDB()->getState<boost::shared_lock>();
   for (auto const& t : g_trx_signed_samples) {
-    auto res = node->getBalance(t.getReceiver());
-    EXPECT_TRUE(res.second);
-    EXPECT_EQ(res.first, t.getValue());
+//    auto res = state->balance(t.getReceiver());
+//    EXPECT_TRUE(res.second);
+    EXPECT_EQ(state->balance(t.getReceiver()), t.getValue());
   }
 }
 

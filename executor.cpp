@@ -72,17 +72,14 @@ bool Executor::executeBlkTrxs(blk_hash_t const& blk) {
         trx.getHash(),
     });
   }
-  auto state = db_accs_->getState<boost::unique_lock>();
-  const auto& baseRoot = state->rootHash();
-  cout << "BAR: " << baseRoot << endl;
+  const auto& baseRoot = db_accs_->getState<boost::shared_lock>()->rootHash();
   const auto& result = taraxaVM->transitionState({
       baseRoot,
       vmBlock,
   });
-  // TODO: use another persistent storage to track the reference
+  // TODO: use persistent storage to track the reference
   // to the last committed block, and add stateRoot field to blocks
-  //  blkIndexDB->update(LAST_STATE_ROOT_KEY, toHexPrefixed(result.stateRoot));
-  state->setRoot(result.stateRoot);
+  db_accs_->getState<boost::unique_lock>()->setRoot(result.stateRoot);
   //  if (node_.lock()) {
   // TODO: logging
   //  LOG(log_time) << "Block " << blk << " executed at: " <<

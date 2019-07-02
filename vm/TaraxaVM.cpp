@@ -126,7 +126,9 @@ void StateTransitionRequest::fromPtree(const ptree& ptree) {}
 ptree DBConfig::toPtree() const {
   ptree ret;
   ret.put("type", type);
-  ret.put_child("options", options);
+  if (!options.empty()) {
+    ret.put_child("options", options);
+  }
   return ret;
 }
 
