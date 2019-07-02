@@ -15,13 +15,10 @@ pipeline {
             }
         }
         stage('Build Docker Image') {
-            try {
-                sh 'docker pull ${REGISTRY}/${IMAGE}'
+            steps {
+                sh 'docker pull ${REGISTRY}/${IMAGE}|| echo "Image not found"'
+                sh 'docker build --pull --cache-from=${REGISTRY}/${IMAGE} -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }
-            catch (exc) {
-                echo 'Something failed, I should sound the klaxons!'
-            }
-            sh 'docker build --pull --cache-from=${REGISTRY}/${IMAGE} -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
         }
         stage('Push Docker Image') {
             when { branch 'master' }
