@@ -21,7 +21,6 @@ namespace dev {
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_gasPrice", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_gasPriceI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_accounts", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_ARRAY,  NULL), &dev::rpc::TaraxaFace::taraxa_accountsI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_blockNumberI);
-                    this->bindAndAddMethod(jsonrpc::Procedure("eth_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_blockNumberI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getBalance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getBalanceI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getStorageAt", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING,"param3",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getStorageAtI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getStorageRoot", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getStorageRootI);
@@ -67,6 +66,12 @@ namespace dev {
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_syncing", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,  NULL), &dev::rpc::TaraxaFace::taraxa_syncingI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_estimateGas", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_OBJECT, NULL), &dev::rpc::TaraxaFace::taraxa_estimateGasI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_chainId", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_chainIdI);
+                
+                    //This section only points "eth_" methods to "taraxa_" implementation to support ethereum clients
+                    this->bindAndAddMethod(jsonrpc::Procedure("eth_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_blockNumberI);
+                    this->bindAndAddMethod(jsonrpc::Procedure("eth_getBlockByNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_BOOLEAN, NULL), &dev::rpc::TaraxaFace::taraxa_getBlockByNumberI);
+                    this->bindAndAddMethod(jsonrpc::Procedure("eth_getBalance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getBalanceI);
+                    
                 }
 
                 inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response)
