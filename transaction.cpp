@@ -436,8 +436,13 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
         if (!json.empty()) {
           tr = std::make_shared<Transaction>(json);
         }
-      } else
+      } else {
+        std::string json = db_trxs_->get(hash.toString());
+        if (!json.empty()) {
+          tr = std::make_shared<Transaction>(json);
+        }
         break;
+      }
     } else
       break;
   }
