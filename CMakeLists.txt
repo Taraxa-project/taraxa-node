@@ -1,4 +1,3 @@
-
 include(cmake/scoped_include.cmake)
 scoped_include(cmake/submodules/ethash.cmake) # ethash must be included before project() directive
 
@@ -7,11 +6,11 @@ cmake_minimum_required(VERSION 3.13)
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
 set(CMAKE_MACOSX_RPATH 1)
-#set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
 include(FindBoost)
 include(FindProtobuf)
-include(cmake/cotire.cmake)
+# TODO use cotire for header precompilation
+#include(cmake/cotire.cmake)
 scoped_include(cmake/submodules/libff.cmake)
 scoped_include(cmake/submodules/prometheus-cpp.cmake)
 scoped_include(cmake/submodules/cryptopp.cmake)
@@ -170,13 +169,12 @@ set(main_deps_objects $<TARGET_OBJECTS:node_objects> $<TARGET_OBJECTS:p2p_object
 add_library(main_objects OBJECT main.cpp)
 add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
 
-#add_dependencies(main all_pch)
-cotire(node_objects p2p_objects main_objects)
+#cotire(node_objects p2p_objects main_objects)
 
 enable_testing()
 set(CORE_TESTS
         crypto_test
-        pbft_rpc_test
+#        pbft_rpc_test
         memorydb_test
         overlaydb_test
         statecachedb_test
@@ -208,7 +206,7 @@ add_library(trie_test_objects OBJECT
         crypto_tests/trie_test.cpp)
 
 foreach (t ${ALL_TESTS})
-    cotire(${t}_objects)
+#    cotire(${t}_objects)
     add_executable(${t} ${main_deps_objects} $<TARGET_OBJECTS:${t}_objects>)
     add_dependencies(${t} main)
     add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

@@ -19,8 +19,9 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 /* Start of preamble from import "C" comments.  */
 
 
-#line 3 "cgo_exports.go"
-#include "cgo_imports.h"
+#line 3 "main.go"
+#include <stdlib.h>
+#include "cgo_db/ethdb.h"
 
 #line 1 "cgo-generated-wrapper"
 
@@ -73,13 +74,17 @@ extern "C" {
 #endif
 
 
-extern char* taraxa_cgo_Call(char* p0, char* p1, char* p2);
+extern char* taraxa_cgo_env_Call(char* p0, char* p1, char* p2);
 
-extern void taraxa_cgo_Free(char* p0);
+extern void taraxa_cgo_env_Free(char* p0);
 
 extern void taraxa_cgo_SetGCPercent(int p0);
 
 extern void taraxa_cgo_GC();
+
+extern void* taraxa_cgo_malloc(size_t p0);
+
+extern void taraxa_cgo_free(void* p0);
 
 #ifdef __cplusplus
 }

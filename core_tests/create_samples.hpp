@@ -46,15 +46,39 @@ std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num,
     strm << std::setw(64) << std::setfill('0');
     strm << std::to_string(i);
     std::string hash = strm.str();
-    Transaction trx(0,               // nonce
+    Transaction trx(i,               // nonce
                     i * 100,         // value
                     val_t(0),        // gas_price
                     val_t(1000000),  // gas
-                    // `i + 1` because zero address is reserved
+                    // (i + 1) - because zero address is reserved
                     addr_t((i + 1) * 100),                  // receiver
                     str2bytes("00FEDCBA9876543210000000"),  // data
-                    secret_t::random());                    // secret
+                    sk);                                    // secret
     trxs.emplace_back(trx);
+  }
+  return trxs;
+}
+
+std::vector<Transaction> createTrxRandomUniqueSenders(unsigned num) {
+  using namespace std;
+  using namespace dev;
+  assert(num < numeric_limits<decltype(num)>::max());
+  vector<Transaction> trxs(num);
+  unordered_set<FixedHash<secret_t::size>> prevSecrets(num);
+  for (decltype(num) i = 0; i < num; ++i) {
+    auto secret = secret_t::random();
+    while (!prevSecrets.insert(secret.makeInsecure()).second) {
+      secret = secret_t::random();
+    }
+    trxs.emplace_back(
+        Transaction(0,                                      // nonce
+                    i * 100,                                // value
+                    val_t(0),                               // gas_price
+                    val_t(1000000),                         // gas
+                    addr_t((i + 1) * 100),                  // receiver
+                    str2bytes("00FEDCBA9876543210000000"),  // data
+                    secret)                                 // secret
+    );
   }
   return trxs;
 }
@@ -110,12 +134,12 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
   return blks;
 }
 
-std::vector<std::pair<DagBlock, std::vector<Transaction> > >
+std::vector<std::pair<DagBlock, std::vector<Transaction>>>
 createMockDagBlkSamplesWithSignedTransactions(
     unsigned pivot_start, unsigned blk_num, unsigned trx_start,
     unsigned trx_len, unsigned trx_overlap, secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
-  std::vector<std::pair<DagBlock, std::vector<Transaction> > > blks;
+  std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
     std::string pivot, hash;

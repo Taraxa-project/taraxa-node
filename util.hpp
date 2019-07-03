@@ -26,7 +26,11 @@
 #include "types.hpp"
 namespace taraxa {
 
-boost::property_tree::ptree strToJson(const std::string &str);
+boost::property_tree::ptree strToJson(const std::string_view &str);
+
+inline boost::property_tree::ptree strToJson(const std::string &str) {
+  return strToJson(std::string_view(str));
+}
 // load file and convert to json doc
 boost::property_tree::ptree loadJsonFile(std::string json_file_name);
 
@@ -188,7 +192,7 @@ class Observer : std::enable_shared_from_this<Observer> {
 };
 
 constexpr char *cgo_str(const std::string &str) {
-  return const_cast<char *>(str.c_str());
+  return const_cast<char *>(str.data());
 }
 
 // Boost serializes everything as string

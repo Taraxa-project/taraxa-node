@@ -744,16 +744,17 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
+
+  auto transactions = samples::createTrxRandomUniqueSenders(NUM_TRX);
   {
     auto state = node->getAccsDB()->getState<boost::unique_lock>();
-    for (auto const& t : g_trx_signed_samples) {
+    for (auto const& t : transactions) {
       state->addBalance(t.getSender(), t.getValue());
     }
     state->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
     state->db().commit();
   }
-
-  for (auto const& t : g_trx_signed_samples) {
+  for (auto const& t : transactions) {
     node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
@@ -796,8 +797,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   node->stop();
   auto state = node->getAccsDB()->getState<boost::shared_lock>();
   for (auto const& t : g_trx_signed_samples) {
-//    auto res = state->balance(t.getReceiver());
-//    EXPECT_TRUE(res.second);
+    //    auto res = state->balance(t.getReceiver());
+    //    EXPECT_TRUE(res.second);
     EXPECT_EQ(state->balance(t.getReceiver()), t.getValue());
   }
 }

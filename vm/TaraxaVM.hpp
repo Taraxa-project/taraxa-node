@@ -36,7 +36,9 @@ struct DBConfig {
   }
 
   inline static DBConfig fromTaraxaStateDB(const SimpleStateDBDelegate &db) {
-    auto alethDB = new cgo::db::AlethDatabase(db.getRawDB().dbPtr);
+    // TODO this isn't a proper state management
+    auto dbPtr = db.getRawDB().dbPtr.get();
+    auto alethDB = new cgo::db::AlethDatabase({dbPtr, [](auto p) {}});
     return fromCgoDB(alethDB->cImpl());
   }
 

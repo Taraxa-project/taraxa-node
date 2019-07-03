@@ -12,17 +12,21 @@ using namespace dev;
 using namespace dev::db;
 using namespace std;
 using namespace util::eth;
-using Slice = dev::db::Slice;
 
 namespace exports {
+using SliceType = taraxa_cgo_ethdb_SliceType;
+using SliceSize = taraxa_cgo_ethdb_SliceSize;
+using Slice = taraxa_cgo_ethdb_Slice;
 using Error = taraxa_cgo_ethdb_Error;
 using Key = taraxa_cgo_ethdb_Key;
 using Value = taraxa_cgo_ethdb_Value;
 using ValueAndErr = taraxa_cgo_ethdb_ValueAndErr;
 using BoolAndErr = taraxa_cgo_ethdb_BoolAndErr;
+using CgoBatch = taraxa_cgo_ethdb_Batch;
+using CgoDatabase = taraxa_cgo_ethdb_Database;
 
 struct Batch {
-  const taraxa_cgo_ethdb_Batch c_impl_ = {
+  const CgoBatch c_impl_ = {
       this,
       [](auto self) { delete decltype(this)(self); },
       [](auto self, auto key, auto value) {
@@ -33,7 +37,7 @@ struct Batch {
       [](auto self) { return decltype(this)(self)->Reset(); },
   };
 
-  auto cImpl() { return const_cast<taraxa_cgo_ethdb_Batch*>(&c_impl_); }
+  auto cImpl() { return const_cast<CgoBatch*>(&c_impl_); }
 
   virtual ~Batch() = default;
   virtual Error Put(Key key, Value value) = 0;
@@ -43,7 +47,7 @@ struct Batch {
 };
 
 struct Database {
-  const taraxa_cgo_ethdb_Database c_impl_ = {
+  const CgoDatabase c_impl_ = {
       this,
       [](auto self) { delete decltype(this)(self); },
       [](auto self, auto key, auto value) {
@@ -56,7 +60,7 @@ struct Database {
       [](auto self) { return decltype(this)(self)->NewBatch()->cImpl(); },
   };
 
-  auto cImpl() { return const_cast<taraxa_cgo_ethdb_Database*>(&c_impl_); }
+  auto cImpl() { return const_cast<CgoDatabase*>(&c_impl_); }
 
   virtual ~Database() = default;
   virtual Error Put(Key key, Value value) = 0;
@@ -67,6 +71,10 @@ struct Database {
   virtual Batch* NewBatch() = 0;
 };
 
+inline auto alethSlice(const Slice& s) {
+  return dev::db::Slice(s.offset, s.size);
+}
+
 class AlethBatch : public Batch {
   const shared_ptr<DatabaseFace> database;
   unique_ptr<WriteBatchFace> batch;
@@ -76,12 +84,12 @@ class AlethBatch : public Batch {
       : database(db), batch(db->createWriteBatch()) {}
 
   Error Put(Key key, Value value) override {
-    batch->insert({key.offset, key.size}, {value.offset, value.size});
+    batch->insert(alethSlice(key), alethSlice(value));
     return {};
   }
 
   Error Delete(Key key) override {
-    batch->kill({key.offset, key.size});
+    batch->kill(alethSlice(key));
     return {};
   }
 
@@ -100,25 +108,25 @@ class AlethDatabase : public Database {
   explicit AlethDatabase(decltype(database) db) : database(move(db)) {}
 
   Error Put(Key key, Value value) override {
-    database->insert({key.offset, key.size}, {value.offset, value.size});
+    database->insert(alethSlice(key), alethSlice(value));
     return {};
   }
 
   Error Delete(Key key) override {
-    database->kill({key.offset, key.size});
+    database->kill(alethSlice(key));
     return {};
   }
 
   ValueAndErr Get(Key key) override {
-    const auto& value = database->lookup({key.offset, key.size});
-    const auto& valueSize = value.size();
-    auto valueCpy = (char*)malloc(sizeof(char) * valueSize);
-    value.copy(valueCpy, valueSize);
-    return {{valueCpy, valueSize}};
+    const auto& value = database->lookup(alethSlice(key));
+    const SliceSize& size = value.size();
+    auto offset = (char*)taraxa_cgo_malloc(sizeof(char) * size);
+    memcpy(offset, value.data(), size);
+    return {{offset, size}};
   }
 
   BoolAndErr Has(Key key) override {
-    return {database->exists({key.offset, key.size})};
+    return {database->exists(alethSlice(key))};
   }
 
   void Close() override {}

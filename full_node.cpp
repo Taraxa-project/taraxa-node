@@ -216,7 +216,6 @@ void FullNode::start(bool boot_node) {
   }
   taraxaVM = vm::TaraxaVM::fromConfig({
       vm::StateDBConfig{
-          //          {"memory"},
           vm::DBConfig::fromTaraxaStateDB(*db_accs_),
       },
   });

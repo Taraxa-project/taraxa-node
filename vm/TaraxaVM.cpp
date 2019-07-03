@@ -153,15 +153,16 @@ void VmConfig::fromPtree(const ptree& ptree) {}
 
 TaraxaVM::TaraxaVM(string goAddress) : goAddress(move(goAddress)) {}
 
-TaraxaVM::~TaraxaVM() { taraxa_cgo_Free(cgo_str(goAddress)); }
+TaraxaVM::~TaraxaVM() { taraxa_cgo_env_Free(cgo_str(goAddress)); }
 
 shared_ptr<TaraxaVM> TaraxaVM::fromConfig(const VmConfig& config) {
   ptree argsPtree;
   append(argsPtree, config.toPtree());
   const auto& argsEncoded = toJsonArrayString(argsPtree);
-  const auto& resultJson =
-      taraxa_cgo_Call(nullptr, cgo_str("NewVM"), cgo_str(argsEncoded));
-  const auto& resultPtree = strToJson(resultJson);
+  char* resultJson =
+      taraxa_cgo_env_Call(nullptr, cgo_str("NewVM"), cgo_str(argsEncoded));
+  const auto& resultPtree = strToJson(string_view(resultJson));
+  taraxa_cgo_free(resultJson);
   auto i = resultPtree.begin();
   const auto& goAddr = (i++)->second.get_value<string>();
   const auto& err = (i++)->second.get_value<string>();
@@ -173,9 +174,10 @@ StateTransitionResult TaraxaVM::transitionState(
   ptree argsPtree;
   append(argsPtree, req.toPtree());
   const auto& argsEncoded = toJsonArrayString(argsPtree);
-  const auto& resultJson = taraxa_cgo_Call(
+  char* resultJson = taraxa_cgo_env_Call(
       cgo_str(goAddress), cgo_str("RunLikeEthereum"), cgo_str(argsEncoded));
-  const auto& resultPtree = strToJson(resultJson);
+  const auto& resultPtree = strToJson(string_view(resultJson));
+  taraxa_cgo_free(resultJson);
   auto i = resultPtree.begin();
   const auto& result = (i++)->second;
   const auto& totalTime = (i++)->second.get_value<int64_t>();
