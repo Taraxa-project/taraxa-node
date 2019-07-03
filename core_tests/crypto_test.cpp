@@ -84,8 +84,8 @@ TEST(EthereumCrypto, sortition_rate) {
   int count = 0;
   int round = 1000;
   int sortition_threshold;
-  if (COMMITTEE_SIZE <= number_of_players) {
-    sortition_threshold = COMMITTEE_SIZE;
+  if (node->getPbftManager()->COMMITTEE_SIZE <= number_of_players) {
+    sortition_threshold = node->getPbftManager()->COMMITTEE_SIZE;
   } else {
     sortition_threshold = number_of_players;
   }

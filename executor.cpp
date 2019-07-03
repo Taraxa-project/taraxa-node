@@ -105,13 +105,20 @@ bool Executor::coinTransfer(
   db_accs_->update(receiver.toString(), std::to_string(new_receiver_bal));
   // Update account balance table. Will remove in VM since vm return a list of
   // modified balance accounts
-  if (new_sender_bal >= VALID_SORTITION_COINS) {
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_er_) << "Full node unavailable" << std::endl;
+    return false;
+  }
+  size_t pbft_require_sortition_coins =
+      full_node->getPbftManager()->VALID_SORTITION_COINS;
+  if (new_sender_bal >= pbft_require_sortition_coins) {
     sortition_account_balance_table[sender] = new_sender_bal;
   } else if (sortition_account_balance_table.find(sender) !=
              sortition_account_balance_table.end()) {
     sortition_account_balance_table.erase(sender);
   }
-  if (new_receiver_bal >= VALID_SORTITION_COINS) {
+  if (new_receiver_bal >= pbft_require_sortition_coins) {
     sortition_account_balance_table[receiver] = new_receiver_bal;
   }
 

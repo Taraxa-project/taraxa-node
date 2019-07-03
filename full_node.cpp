@@ -55,7 +55,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       executor_(std::make_shared<Executor>()),
       vote_mgr_(std::make_shared<VoteManager>()),
       vote_queue_(std::make_shared<VoteQueue>()),
-      pbft_mgr_(std::make_shared<PbftManager>(conf_.pbft_manager)),
+      pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft)),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
   initDB(destroy_db);
@@ -371,7 +371,7 @@ bool FullNode::reset() {
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
       trx_mgr_->getShared());
   executor_ = std::make_shared<Executor>();
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.pbft_manager);
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft);
   vote_mgr_ = std::make_shared<VoteManager>();
   vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
@@ -785,9 +785,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     size_t accounts = pbft_mgr_->sortition_account_balance_table.size();
     size_t two_t_plus_one;
     size_t sortition_threshold;
-    if (COMMITTEE_SIZE <= accounts) {
-      two_t_plus_one = COMMITTEE_SIZE * 2 / 3 + 1;
-      sortition_threshold = COMMITTEE_SIZE;
+    if (pbft_mgr_->COMMITTEE_SIZE <= accounts) {
+      two_t_plus_one = pbft_mgr_->COMMITTEE_SIZE * 2 / 3 + 1;
+      sortition_threshold = pbft_mgr_->COMMITTEE_SIZE;
     } else {
       two_t_plus_one = accounts * 2 / 3 + 1;
       sortition_threshold = accounts;

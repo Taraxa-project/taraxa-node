@@ -16,9 +16,6 @@
   ],
   "network_id": "testnet",
   "rpc_port": 7781,
-  "pbft_manager": {
-    "lambda_ms": 1000
-  },
   "test_params": {
     "block_proposer": [
       0,
@@ -28,8 +25,8 @@
     ],
     "pbft": [
       1000,
-      0,
-      0
+      3,
+      10000
     ]
   }
 }
