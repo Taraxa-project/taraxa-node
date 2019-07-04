@@ -34,9 +34,9 @@ auto g_trx_samples2 = samples::createMockTrxSamples(0, NUM_TRX2);
 auto g_signed_trx_samples2 =
     samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
 
-FullNodeConfig g_conf1("./core_tests/conf_taraxa1.json");
-FullNodeConfig g_conf2("./core_tests/conf_taraxa2.json");
-FullNodeConfig g_conf3("./core_tests/conf_taraxa3.json");
+FullNodeConfig g_conf1("./core_tests/conf/conf_taraxa1.json");
+FullNodeConfig g_conf2("./core_tests/conf/conf_taraxa2.json");
+FullNodeConfig g_conf3("./core_tests/conf/conf_taraxa3.json");
 
 /*
 Test creates two Network setup and verifies sending block
@@ -195,14 +195,14 @@ TEST(Network, node_network_id) {
     boost::asio::io_context context1;
     boost::asio::io_context context2;
 
-    FullNodeConfig conf1(std::string("./core_tests/conf_taraxa1.json"));
+    FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
     conf1.network.network_id = "main";
     auto node1(std::make_shared<taraxa::FullNode>(context1, conf1, true));
 
     node1->setDebug(true);
     node1->start(true);
 
-    FullNodeConfig conf2(std::string("./core_tests/conf_taraxa2.json"));
+    FullNodeConfig conf2(std::string("./core_tests/conf/conf_taraxa2.json"));
     conf2.network.network_id = "main";
     auto node2 = std::make_shared<taraxa::FullNode>(context2, conf2, true);
 
@@ -219,14 +219,14 @@ TEST(Network, node_network_id) {
     boost::asio::io_context context1;
     boost::asio::io_context context2;
 
-    FullNodeConfig conf1(std::string("./core_tests/conf_taraxa1.json"));
+    FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
     conf1.network.network_id = "main";
     auto node1(std::make_shared<taraxa::FullNode>(context1, conf1, true));
 
     node1->setDebug(true);
     node1->start(true);
 
-    FullNodeConfig conf2(std::string("./core_tests/conf_taraxa2.json"));
+    FullNodeConfig conf2(std::string("./core_tests/conf/conf_taraxa2.json"));
     conf2.network.network_id = "testnet";
     auto node2 = std::make_shared<taraxa::FullNode>(context2, conf2, true);
 
@@ -251,7 +251,7 @@ TEST(Network, node_sync) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json"), true));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -293,7 +293,7 @@ TEST(Network, node_sync) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json"), true);
+      context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -328,7 +328,7 @@ TEST(Network, node_pbft_sync) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json"), true));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -351,10 +351,7 @@ TEST(Network, node_pbft_sync) {
   pbft_block1.setPivotBlock(pivot_block);
 
   uint64_t timestamp2 = 333333;
-  vec_blk_t blocks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<std::vector<uint>> modes{
-      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
-  TrxSchedule schedule(blocks, modes);
+  TrxSchedule schedule;
   blk_hash_t prev_pivot(1);
   ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
 
@@ -371,7 +368,7 @@ TEST(Network, node_pbft_sync) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json"), true);
+      context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -400,7 +397,7 @@ TEST(Network, node_sync_with_transactions) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json"), true));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -452,7 +449,7 @@ TEST(Network, node_sync_with_transactions) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json"), true);
+      context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -490,7 +487,7 @@ TEST(Network, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json"), true));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -614,7 +611,7 @@ TEST(Network, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json"), true));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json"), true));
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -652,7 +649,7 @@ TEST(Network, node_transaction_sync) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json"), true));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -667,7 +664,7 @@ TEST(Network, node_transaction_sync) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json"), true);
+      context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -698,7 +695,7 @@ TEST(Network, node_full_sync) {
   std::vector<std::shared_ptr<boost::asio::io_context>> contexts;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json"), true));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true /*boot_node*/);
@@ -706,7 +703,7 @@ TEST(Network, node_full_sync) {
   std::vector<std::shared_ptr<FullNode>> nodes;
   for (int i = 0; i < numberOfNodes; i++) {
     contexts.push_back(std::make_shared<boost::asio::io_context>());
-    FullNodeConfig config(std::string("./core_tests/conf_taraxa2.json"));
+    FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa2.json"));
     config.db_path += std::to_string(i + 1);
     config.network.network_listen_port += i + 1;
     config.node_secret = "";

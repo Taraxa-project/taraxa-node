@@ -1,6 +1,5 @@
 #!/bin/bash
 
-clear 
 DOCKER_IMAGE="541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:vm-integration"
 
 set -e
@@ -16,7 +15,7 @@ echo -e "\n* Checking AWS credentials ..."
 
 
 echo -e "\n* Docker Registry log in ..."
-eval $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email) 
+eval $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
 
 echo -e "\n* Building Docker Image $DOCKER_IMAGE ..."
 docker build -t $DOCKER_IMAGE -f ../base.ubuntu.dockerfile ../..

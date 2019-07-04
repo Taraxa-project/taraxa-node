@@ -87,7 +87,7 @@ TEST(ScheduleBlock, serialize_deserialize) {
 TEST(PbftChain, pbft_db_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   std::shared_ptr<SimpleDBFace> db_pbftchain = node->getPbftChainDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::string pbft_genesis_from_db =
@@ -95,14 +95,14 @@ TEST(PbftChain, pbft_db_test) {
   EXPECT_FALSE(pbft_genesis_from_db.empty());
 
   // generate pbft pivot block sample
-  blk_hash_t prev_pivot_blk(0);
-  blk_hash_t prev_res_blk(0);
-  blk_hash_t dag_blk(78);
-  uint64_t epoch = 1;
+  blk_hash_t prev_pivot_hash(0);
+  blk_hash_t prev_blk_hash(0);
+  blk_hash_t dag_blk_hash(78);
+  uint64_t pbft_chain_period = 1;
   uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
-  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-                         timestamp1, beneficiary);
+  PivotBlock pivot_block(prev_pivot_hash, prev_blk_hash, dag_blk_hash,
+      pbft_chain_period, timestamp1, beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
   // put into pbft chain and store into DB
@@ -121,10 +121,7 @@ TEST(PbftChain, pbft_db_test) {
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
   uint64_t timestamp2 = 333333;
-  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<std::vector<uint>> modes{
-      {0, 1, 2, 0, 1, 2}, {1, 1, 0, 1, 1}, {0, 1, 0}};
-  TrxSchedule schedule(blks, modes);
+  TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
 
   PbftBlock pbft_block3(blk_hash_t(2));
@@ -150,13 +147,13 @@ TEST(PbftChain, pbft_db_test) {
 TEST(PbftChain, block_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
   boost::asio::io_context context3;
   auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf_taraxa3.json")));
+      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
@@ -231,10 +228,7 @@ TEST(PbftChain, block_broadcast) {
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
   uint64_t timestamp2 = 333333;
-  vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<std::vector<uint>> modes{
-      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
-  TrxSchedule schedule(blks, modes);
+  TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
 
   PbftBlock pbft_block2(blk_hash_t(2));
@@ -279,13 +273,13 @@ TEST(PbftChain, block_broadcast) {
 TEST(PbftChain, simulate_pbft_execute_round) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
   boost::asio::io_context context3;
   auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf_taraxa3.json")));
+      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);

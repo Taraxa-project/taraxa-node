@@ -39,9 +39,24 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libp2p/RLPxHandshake.o \
 	${OBJECTDIR}/libp2p/Session.o \
 	${OBJECTDIR}/libp2p/UDP.o \
-	${OBJECTDIR}/libp2p/UPnP.o
+	${OBJECTDIR}/libp2p/UPnP.o \
+	${OBJECTDIR}/libweb3jsonrpc/AdminNet.o \
+	${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o \
+	${OBJECTDIR}/libweb3jsonrpc/Net.o \
+	${OBJECTDIR}/libweb3jsonrpc/SessionManager.o \
+	${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o \
+	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
+	${OBJECTDIR}/libweb3jsonrpc/Test.o \
+	${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o \
+	${OBJECTDIR}/libweb3jsonrpc/Debug.o \
+	${OBJECTDIR}/libweb3jsonrpc/Taraxa.o \
+	${OBJECTDIR}/libweb3jsonrpc/Personal.o \
+	${OBJECTDIR}/libweb3jsonrpc/RpcServer.o \
 
 
+#	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
+#	${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o \
+	
 ${OBJECTDIR}/libdevcore/Address.o: libdevcore/Address.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libdevcore
@@ -286,4 +301,95 @@ ${OBJECTDIR}/libp2p/UPnP.o: libp2p/UPnP.cpp
 	${MKDIR} -p ${OBJECTDIR}/libp2p
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libp2p/UPnP.o libp2p/UPnP.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o: libweb3jsonrpc/AccountHolder.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o libweb3jsonrpc/AccountHolder.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o: libweb3jsonrpc/AdminTaraxa.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o libweb3jsonrpc/AdminTaraxa.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/AdminEthFace.o: libweb3jsonrpc/AdminEthFace.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AdminEthFace.o libweb3jsonrpc/AdminEthFace.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/AdminNet.o: libweb3jsonrpc/AdminNet.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AdminNet.o libweb3jsonrpc/AdminNet.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/AdminNetFace.o: libweb3jsonrpc/AdminNetFace.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AdminNetFace.o libweb3jsonrpc/AdminNetFace.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/Debug.o: libweb3jsonrpc/Debug.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Debug.o libweb3jsonrpc/Debug.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/Taraxa.o: libweb3jsonrpc/Taraxa.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Taraxa.o libweb3jsonrpc/Taraxa.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o: libweb3jsonrpc/IpcServerBase.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o libweb3jsonrpc/IpcServerBase.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o: libweb3jsonrpc/JsonHelper.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o libweb3jsonrpc/JsonHelper.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/Net.o: libweb3jsonrpc/Net.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Net.o libweb3jsonrpc/Net.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/Personal.o: libweb3jsonrpc/Personal.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Personal.o libweb3jsonrpc/Personal.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/SessionManager.o: libweb3jsonrpc/SessionManager.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/SessionManager.o libweb3jsonrpc/SessionManager.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/Test.o: libweb3jsonrpc/Test.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Test.o libweb3jsonrpc/Test.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o: libweb3jsonrpc/UnixSocketServer.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o libweb3jsonrpc/UnixSocketServer.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/RpcServer.o: libweb3jsonrpc/RpcServer.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/RpcServer.o libweb3jsonrpc/RpcServer.cpp $(CPPFLAGS)
+
 

@@ -113,12 +113,13 @@ class Dag {
   void getLeavesBeforeTimeStamp(vertex_hash const &veretx, time_stamp_t stamp,
                                 std::vector<vertex_hash> &tips) const;
 
-  // Note, the function will delete recent_added_blks when marking ith_number
-  bool updatePeriodVerticesAndComputeOrder(
-      vertex_hash const &from, vertex_hash const &to, uint64_t ith_peroid,
-      std::unordered_set<vertex_hash>
-          &recent_added_blks,  // iterater only from new blocks
-      std::vector<vertex_hash> &ordered_period_vertices);
+  // Note, the function will not delete recent_added_blks when marking
+  // ith_number
+  bool computeOrder(bool finialized, vertex_hash const &from,
+                    vertex_hash const &to, uint64_t ith_peroid,
+                    std::unordered_set<vertex_hash>
+                        &recent_added_blks,  // iterater only from new blocks
+                    std::vector<vertex_hash> &ordered_period_vertices);
   // warning! slow, iterate through all vertices ...
   void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
                            std::vector<vertex_hash> &epfriend) const;
@@ -222,11 +223,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
   void consume();
 
-  // use a anchor to create period, return ith_period
-  uint64_t createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
-                                            vec_blk_t &orders);
-  // assuming a period is confirmed
-  void setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period);
+  // use a anchor to create period, return current_period, does not finalize
+  uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
+  // assuming a period is confirmed, will finialize
+  void setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period);
 
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
@@ -267,7 +267,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setDebug(bool debug);
   void setVerbose(bool verbose);
   size_t getBufferSize() const;
-  size_t getEpoch() const { return anchors_.size() - 1; }
+  level_t getMaxLevel() const { return max_level_; }
+  uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
+  std::string getLatestAnchor() const { return anchors_.back(); }
 
  private:
   bool addDagBlockInternal(DagBlock const &blk);
@@ -280,6 +282,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool verbose_;
   bool dag_updated_;
   bool stopped_ = true;
+  level_t max_level_ = 0;
   mutable std::mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges

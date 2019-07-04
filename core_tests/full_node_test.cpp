@@ -15,9 +15,10 @@
 #include "dag.hpp"
 #include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
+#include "libweb3jsonrpc/RpcServer.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
-#include "rpc.hpp"
+#include "pbft_manager.hpp"
 #include "string"
 #include "top.hpp"
 
@@ -32,12 +33,26 @@ auto g_key_pair = dev::KeyPair(g_secret);
 auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
+auto g_test_account =
+    samples::createTestAccountTable("core_tests/account_table.txt");
 
 TEST(Top, top_reset) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json", "-v", "0"};
-  const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json", "-v", "0"};
+  std::cout << "Print g_test_account \n";
+  for (auto const& i : g_test_account) {
+    std::cout << i.first << " " << i.second << std::endl;
+  }
+  const char* input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  const char* input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
@@ -45,28 +60,29 @@ TEST(Top, top_reset) {
     std::cerr << e.what() << std::endl;
   }
 
-  Top top1(5, input1);
+  Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
-  taraxa::thisThreadSleepForMilliSeconds(1000);
   std::cout << "Top1 created ..." << std::endl;
 
-  Top top2(5, input2);
+  Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
+  std::cout << "Sleep for 1 second ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   try {
     std::string sendtrx1 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce", 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5, 
                                       "number": 6000, 
-                                      "seed": 1 }' 0.0.0.0:7777)";
+                                      "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7, 
                                       "number": 4000, 
-                                      "seed": 2 }' 0.0.0.0:7778)";
+                                      "seed": 2 }]}' 0.0.0.0:7778)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -88,7 +104,7 @@ TEST(Top, top_reset) {
   auto num_vertices1 = node1->getNumVerticesInDag();
   auto num_vertices2 = node2->getNumVerticesInDag();
 
-  for (auto i = 0; i < 20; i++) {
+  for (auto i = 0; i < 50; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
@@ -120,6 +136,7 @@ TEST(Top, top_reset) {
   std::cout << "Top2 reset ...\n";
   top1.start();
   top2.start();
+  taraxa::thisThreadSleepForMilliSeconds(2500);
   node1 = top1.getNode();
   node2 = top2.getNode();
   EXPECT_NE(node1, nullptr);
@@ -127,19 +144,19 @@ TEST(Top, top_reset) {
 
   try {
     std::string sendtrx1 =
-        R"(curl -d '{"action": "create_test_coin_transactions",
-                                      "secret":
+        R"(curl -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret":
                                       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5,
                                       "number": 6000,
-                                      "seed": 1 }' 0.0.0.0:7777)";
+                                      "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -d '{"action": "create_test_coin_transactions",
-                                      "secret":
+        R"(curl -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret":
                                       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7,
                                       "number": 4000,
-                                      "seed": 2 }' 0.0.0.0:7778)";
+                                      "seed": 2 }]}' 0.0.0.0:7778)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -153,7 +170,7 @@ TEST(Top, top_reset) {
   num_vertices1 = node1->getNumVerticesInDag();
   num_vertices2 = node2->getNumVerticesInDag();
 
-  for (auto i = 0; i < 20; i++) {
+  for (auto i = 0; i < 50; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
@@ -191,13 +208,13 @@ TEST(FullNode, full_node_reset) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   node1->setDebug(true);
-  node1->start(true /*boot_node*/);
+  node1->start(true);  // boot node
 
   // send package
-  FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
   auto nw2(std::make_shared<taraxa::Network>(conf2.network));
 
   std::unique_ptr<boost::asio::io_context::work> work(
@@ -252,7 +269,7 @@ TEST(FullNode, full_node_reset) {
 
   node1->stop();
   node1->reset();
-  node1->start(true /*boot_node*/);
+  node1->start(true);  // boot node
   std::cout << "Waiting connection for 100 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(100);
 
@@ -279,15 +296,15 @@ TEST(FullNode, full_node_reset) {
 
 TEST(Top, sync_five_nodes_simple) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
   const char* input3[] = {"./build/main3", "--conf_taraxa",
-                          "./core_tests/conf_taraxa3.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
   const char* input4[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf_taraxa4.json", "-v", "0"};
-  const char* input5[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf_taraxa5.json", "-v", "0"};
+                          "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
+  const char* input5[] = {"./build/main5", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
 
   // copy main2, main3, main4, main5
   try {
@@ -326,38 +343,77 @@ TEST(Top, sync_five_nodes_simple) {
   // wait for top2, top3, top4, top5 initialize
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  auto node3 = top3.getNode();
+  auto node4 = top4.getNode();
+  auto node5 = top5.getNode();
+
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  EXPECT_NE(node3, nullptr);
+  EXPECT_NE(node4, nullptr);
+  EXPECT_NE(node5, nullptr);
+
+  // set balance
+  bal_t bal(9007199254740991);
+  // transfer some coins to your friends ...
+  Transaction trx1to2(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
+                      bytes(), g_secret);
+  Transaction trx1to3(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
+                      bytes(), g_secret);
+  Transaction trx1to4(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
+                      bytes(), g_secret);
+  Transaction trx1to5(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
+                      bytes(), g_secret);
+  node1->insertTransaction(trx1to2);
+  node1->insertTransaction(trx1to3);
+  node1->insertTransaction(trx1to4);
+  node1->insertTransaction(trx1to5);
+
+  // node1->setBalance(node1->getAddress(), bal);
+  // node2->setBalance(node2->getAddress(), bal);
+  // node3->setBalance(node3->getAddress(), bal);
+  // node4->setBalance(node4->getAddress(), bal);
+  // node5->setBalance(node5->getAddress(), bal);
+  taraxa::thisThreadSleepForMilliSeconds(2000);
+
   // send 1000 trxs
   try {
     std::string sendtrx1 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce", 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5, 
                                       "number": 6000, 
-                                      "seed": 1 }' 0.0.0.0:7777)";
+                                      "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7, 
                                       "number": 4000, 
-                                      "seed": 2 }' 0.0.0.0:7778)";
+                                      "seed": 2 }]}' 0.0.0.0:7778)";
     std::string sendtrx3 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1", 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
                                       "delay": 3, 
                                       "number": 3000, 
-                                      "seed": 3 }' 0.0.0.0:7779)";
+                                      "seed": 3 }]}' 0.0.0.0:7779)";
     std::string sendtrx4 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2", 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
                                       "delay": 10, 
                                       "number": 3000, 
-                                      "seed": 4 }' 0.0.0.0:7780)";
+                                      "seed": 4 }]}' 0.0.0.0:7781)";
     std::string sendtrx5 =
-        R"(curl -s -d '{"action": "create_test_coin_transactions", 
-                                      "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3", 
-                                      "delay": 23, 
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3",
+                                      "delay": 2,
                                       "number": 4000, 
-                                      "seed": 5 }' 0.0.0.0:7781)";
+                                      "seed": 5 }]}' 0.0.0.0:7780)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -375,18 +431,6 @@ TEST(Top, sync_five_nodes_simple) {
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  auto node1 = top1.getNode();
-  auto node2 = top2.getNode();
-  auto node3 = top3.getNode();
-  auto node4 = top4.getNode();
-  auto node5 = top5.getNode();
-
-  EXPECT_NE(node1, nullptr);
-  EXPECT_NE(node2, nullptr);
-  EXPECT_NE(node3, nullptr);
-  EXPECT_NE(node4, nullptr);
-  EXPECT_NE(node5, nullptr);
 
   auto num_peers1 = node1->getPeerCount();
   auto num_peers2 = node2->getPeerCount();
@@ -434,11 +478,11 @@ TEST(Top, sync_five_nodes_simple) {
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 20000 &&
-        node2->getTransactionStatusCount() == 20000 &&
-        node3->getTransactionStatusCount() == 20000 &&
-        node4->getTransactionStatusCount() == 20000 &&
-        node5->getTransactionStatusCount() == 20000)
+        node1->getTransactionStatusCount() == 20004 &&
+        node2->getTransactionStatusCount() == 20004 &&
+        node3->getTransactionStatusCount() == 20004 &&
+        node4->getTransactionStatusCount() == 20004 &&
+        node5->getTransactionStatusCount() == 20004)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -454,11 +498,17 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 20000);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 20000);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 20004);
+
+  EXPECT_GT(node1->getNumProposedBlocks(), 2);
+  EXPECT_GT(node2->getNumProposedBlocks(), 2);
+  EXPECT_GT(node3->getNumProposedBlocks(), 2);
+  EXPECT_GT(node4->getNumProposedBlocks(), 2);
+  EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
   top5.kill();
   top4.kill();
@@ -483,8 +533,8 @@ TEST(Top, sync_five_nodes_simple) {
 TEST(FullNode, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
-  node->start(true /*boot_node*/);
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->start(true);  // boot node
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
@@ -499,8 +549,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   node->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
   std::shared_ptr<vec_blk_t> order;
-  std::tie(period, order) =
-      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
 
@@ -512,6 +561,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(5));
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
+  node->setDagBlockOrder(blk_hash_t(pivot), period);
 
   // -------- second period ----------
 
@@ -521,8 +571,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) =
-      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 2);
   if (order->size() == 7) {
     EXPECT_EQ((*order)[0], blk_hash_t(11));
@@ -533,6 +582,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(14));
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
+  node->setDagBlockOrder(blk_hash_t(pivot), period);
 
   // -------- third period ----------
 
@@ -542,8 +592,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) =
-      node->createPeriodAndComputeBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 3);
   if (order->size() == 5) {
     EXPECT_EQ((*order)[0], blk_hash_t(17));
@@ -552,6 +601,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[3], blk_hash_t(18));
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
+  node->setDagBlockOrder(blk_hash_t(pivot), period);
   node->stop();
 }
 
@@ -560,7 +610,7 @@ TEST(Top, create_top_level_db) {
     dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
 
     const char* inputs[] = {"./build/main", "--conf_taraxa",
-                            "./core_tests/conf_taraxa1.json", "-v", "0"};
+                            "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
@@ -577,7 +627,7 @@ TEST(Top, create_top_level_db) {
 TEST(Top, create_top_memory_db) {
   {
     const char* inputs[] = {"./build/main", "--conf_taraxa",
-                            "./core_tests/conf_taraxa1.json", "-v", "0"};
+                            "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
@@ -600,9 +650,9 @@ TEST(Top, reconstruct_dag) {
   auto num_blks = g_mock_dag0.size();
   {
     boost::asio::io_context context;
-    FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(
-        std::make_shared<taraxa::FullNode>(context, conf, true /*destroy_db*/));
+        std::make_shared<taraxa::FullNode>(context, conf, true));  // destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -618,9 +668,9 @@ TEST(Top, reconstruct_dag) {
   }
   {
     boost::asio::io_context context;
-    FullNodeConfig conf("./core_tests/conf_taraxa1.json");
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(std::make_shared<taraxa::FullNode>(context, conf,
-                                                 false /*destroy_db*/));
+                                                 false));  // no destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -651,21 +701,19 @@ TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST(Top, sync_two_nodes) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf_taraxa1.json", "-v", "0"};
+TEST(Top, sync_two_nodes1) {
+  const char* input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
 
-  Top top1(5, input1);
+  Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
-  thisThreadSleepForMilliSeconds(500);
+  std::cout << "Top1 created ..." << std::endl;
 
-  // send 1000 trxs
-  try {
-    std::cout << "Sending 1000 trxs ..." << std::endl;
-    system("./core_tests/curl_send_1000_trx.sh");
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
+  thisThreadSleepForMilliSeconds(500);
 
   // copy main2
   try {
@@ -675,12 +723,102 @@ TEST(Top, sync_two_nodes) {
     std::cerr << e.what() << std::endl;
   }
   top1.stop();
-  top1.start(5, input1);
+  top1.start(6, input1);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
-  const char* input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf_taraxa2.json", "-v", "0"};
-  Top top2(5, input2);
+  const char* input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  Top top2(6, input2);
+  EXPECT_TRUE(top2.isActive());
+  std::cout << "Top2 created ..." << std::endl;
+  // wait for top2 initialize
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  // send 1000 trxs
+  try {
+    std::cout << "Sending 1000 trxs ..." << std::endl;
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
+    std::cout << "1000 trxs sent ..." << std::endl;
+
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  auto vertices1 = node1->getNumVerticesInDag();
+  auto vertices2 = node2->getNumVerticesInDag();
+  // add more delay if sync is not done
+  for (auto i = 0; i < 60; i++) {
+    if (vertices1 == vertices2 && vertices1.first > 3) break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+    vertices1 = node1->getNumVerticesInDag();
+    vertices2 = node2->getNumVerticesInDag();
+  }
+  EXPECT_GT(vertices1.first, 3);
+  EXPECT_GT(vertices1.second, 3);
+  EXPECT_EQ(vertices1, vertices2);
+
+  top2.kill();
+  top1.kill();
+  // delete main2
+  try {
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+}
+
+TEST(Top, sync_two_nodes2) {
+  const char* input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  std::cout << "Top1 created ..." << std::endl;
+
+  thisThreadSleepForMilliSeconds(500);
+
+  // send 1000 trxs
+  try {
+    std::cout << "Sending 1000 trxs ..." << std::endl;
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
+    std::cout << "1000 trxs sent ..." << std::endl;
+
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  top1.stop();
+  top1.start(6, input1);
+  taraxa::thisThreadSleepForMilliSeconds(500);
+
+  // copy main2
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  const char* input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
   // wait for top2 initialize
@@ -691,15 +829,17 @@ TEST(Top, sync_two_nodes) {
   EXPECT_NE(node2, nullptr);
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
-  // add more delay if sync is not done
+  // let node2 sync node1
   for (auto i = 0; i < 60; i++) {
-    if (vertices1 == vertices2) break;
+    if (vertices1 == vertices2 && vertices1.first > 3) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
     vertices2 = node2->getNumVerticesInDag();
   }
-
+  EXPECT_GT(vertices1.first, 3);
+  EXPECT_GT(vertices1.second, 3);
   EXPECT_EQ(vertices1, vertices2);
+  EXPECT_GT(vertices1.first, 2);
   top2.kill();
   top1.kill();
   // delete main2
@@ -715,7 +855,7 @@ TEST(FullNode, account_bal) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   addr_t addr1(100);
   bal_t bal1(1000);
   node->setBalance(addr1, bal1);
@@ -736,14 +876,16 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   boost::asio::io_context context;
 
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
-  node->start(true /*boot_node*/);
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->start(true);  // boot node
+
   addr_t acc1 = node->getAddress();
-  bal_t bal1(10000000);
-  node->setBalance(acc1, bal1);
+
+  bal_t initbal(100000000);  // disable pbft sortition
+  node->setBalance(acc1, initbal);
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
-  EXPECT_EQ(res.first, bal1);
+  EXPECT_EQ(res.first, initbal);
 
   auto transactions = samples::createTrxRandomUniqueSenders(NUM_TRX);
   {
@@ -768,39 +910,53 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   node->getGhostPath(Dag::GENESIS, ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
-
-  uint64_t period = 0, cur_period;
+  EXPECT_GT(ghost.size(), 1);
+  uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
+  std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
+
   // create a period for every 2 pivots
   for (int i = 0; i < ghost.size(); i += 2) {
-    std::tie(cur_period, order) =
-        node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost[i]));
+    auto anchor = blk_hash_t(ghost[i]);
+    std::tie(cur_period, order) = node->getDagBlockOrder(anchor);
+    // call twice should not change states
+    std::tie(cur_period2, order) = node->getDagBlockOrder(anchor);
+    EXPECT_EQ(cur_period, cur_period2);
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
-    if (!sche) continue;
+    EXPECT_NE(sche, nullptr);
+    // if (!sche) continue;
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    bool ret = node->executeScheduleBlock(sche_blk);
+    // set period
+    node->setDagBlockOrder(anchor, cur_period);
+    bool ret = node->executeScheduleBlock(
+        sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
   // pickup the last period when dag (chain) size is odd number
   if (ghost.size() % 2 == 0) {
     std::tie(cur_period, order) =
-        node->createPeriodAndComputeBlockOrder(blk_hash_t(ghost.back()));
+        node->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
     auto sche = node->createMockTrxSchedule(order);
     ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
-    bool ret = node->executeScheduleBlock(sche_blk);
+    bool ret = node->executeScheduleBlock(
+        sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
   node->stop();
+  auto coin_distributed = 0;
   auto state = node->getAccsDB()->getState<boost::shared_lock>();
   for (auto const& t : g_trx_signed_samples) {
     //    auto res = state->balance(t.getReceiver());
     //    EXPECT_TRUE(res.second);
     EXPECT_EQ(state->balance(t.getReceiver()), t.getValue());
+    coin_distributed += res.first;
   }
+  res = node->getBalance(acc1);
+  EXPECT_EQ(res.first, initbal - coin_distributed);
 }
 
 TEST(FullNode, send_and_receive_out_order_messages) {
@@ -808,14 +964,14 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   boost::asio::io_context context2;
 
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
 
   // node1->setVerbose(true);
   node1->setDebug(true);
-  node1->start(true /*boot_node*/);
+  node1->start(true);  // boot node
 
   // send package
-  FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
   auto nw2(std::make_shared<taraxa::Network>(conf2.network));
 
   std::unique_ptr<boost::asio::io_context::work> work(
@@ -879,13 +1035,13 @@ TEST(FullNode, send_and_receive_out_order_messages) {
 TEST(FullNode, save_network_to_file) {
   {
     boost::asio::io_context context1;
-    FullNodeConfig conf1("./core_tests/conf_taraxa1.json");
+    FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
     auto node1(std::make_shared<taraxa::FullNode>(context1, conf1));
     boost::asio::io_context context2;
-    FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+    FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
     auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
     boost::asio::io_context context3;
-    FullNodeConfig conf3("./core_tests/conf_taraxa3.json");
+    FullNodeConfig conf3("./core_tests/conf/conf_taraxa3.json");
     auto node3(std::make_shared<taraxa::FullNode>(context3, conf3));
 
     node1->start(true);
@@ -908,10 +1064,10 @@ TEST(FullNode, save_network_to_file) {
   }
   {
     boost::asio::io_context context2;
-    FullNodeConfig conf2("./core_tests/conf_taraxa2.json");
+    FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
     auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
     boost::asio::io_context context3;
-    FullNodeConfig conf3("./core_tests/conf_taraxa3.json");
+    FullNodeConfig conf3("./core_tests/conf/conf_taraxa3.json");
     auto node3(std::make_shared<taraxa::FullNode>(context3, conf3));
 
     node2->start(false);
@@ -931,21 +1087,21 @@ TEST(FullNode, save_network_to_file) {
 
 TEST(FullNode, receive_send_transaction) {
   boost::asio::io_context context1;
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-  auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
-  auto rpc(
-      std::make_shared<taraxa::Rpc>(context1, conf.rpc, node1->getShared()));
-  rpc->start();
+
+  const char* input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+  Top top1(5, input1);
+  EXPECT_TRUE(top1.isActive());
+
+  auto node1 = top1.getNode();
   node1->setDebug(true);
-  node1->start(true /*boot_node*/);
+  node1->start(true);  // boot node
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
 
-  boost::thread t([&context1]() { context1.run(); });
-
   try {
-    system("./core_tests/curl_send_1000_trx.sh");
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
@@ -961,9 +1117,298 @@ TEST(FullNode, receive_send_transaction) {
 
   work.reset();
   node1->stop();
-  rpc->stop();
-  t.join();
   EXPECT_GT(node1->getNumProposedBlocks(), 0);
+}
+
+TEST(FullNode, DISABLED_sortition_propose_one_node) {
+  boost::asio::io_context context1;
+  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+  conf.test_params.block_proposer = {1, 1, 100, 4294967295};  // 2^32
+
+  auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
+  node1->setDebug(true);
+  // destroy db !!
+  node1->destroyDB();
+  node1->start(true /*boot_node*/);
+  auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
+      new dev::rpc::Test(node1));
+  auto rpc_server(
+      std::make_shared<taraxa::RpcServer>(context1, conf.rpc, node1));
+  rpc->addConnector(rpc_server);
+  rpc_server->StartListening();
+  taraxa::thisThreadSleepForMilliSeconds(500);
+  auto addr = node1->getAddress();
+  bal_t init_bal = 9007199254740991;
+  node1->setBalance(addr, init_bal);
+  auto res = node1->getBalance(addr);
+  EXPECT_TRUE(res.second);
+  EXPECT_EQ(res.first, init_bal);
+  node1->setBlockProposeThresholdBeta(2048);
+
+  try {
+    system("./core_tests/scripts/curl_send_1000_trx.sh");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+  std::cout << "1000 transaction are sent through RPC ..." << std::endl;
+
+  auto num_proposed_blk = node1->getNumProposedBlocks();
+  for (auto i = 0; i < 10; i++) {
+    if (num_proposed_blk > 0) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+
+  node1->stop();
+  rpc->StopListening();
+  EXPECT_GT(node1->getNumProposedBlocks(), 5);
+}
+
+TEST(Top, sortition_propose_five_nodes) {
+  const char* input1[] = {
+      "./build/main",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa1.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input2[] = {
+      "./build/main2",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa2.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input3[] = {
+      "./build/main3",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa3.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input4[] = {
+      "./build/main4",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa4.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+  const char* input5[] = {
+      "./build/main5",
+      "--conf_taraxa",
+      "./core_tests/conf/sortition_propose_block/conf_taraxa5.json",
+      "-v",
+      "0",
+      "--destroy_db"};
+
+  // copy main2, main3, main4, main5
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+    std::cout << "Copying main3 ..." << std::endl;
+    system("cp ./build/main ./build/main3");
+    std::cout << "Copying main4 ..." << std::endl;
+    system("cp ./build/main ./build/main4");
+    std::cout << "Copying main5 ..." << std::endl;
+    system("cp ./build/main ./build/main5");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  auto node1 = top1.getNode();
+  // node1->setBalance(node1->getAddress(), bal);
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+  std::cout << "Top1 created ..." << std::endl;
+
+  Top top2(6, input2);
+  EXPECT_TRUE(top2.isActive());
+  auto node2 = top2.getNode();
+
+  std::cout << "Top2 created ..." << std::endl;
+
+  Top top3(6, input3);
+  EXPECT_TRUE(top3.isActive());
+  auto node3 = top3.getNode();
+  std::cout << "Top3 created ..." << std::endl;
+
+  Top top4(6, input4);
+  EXPECT_TRUE(top4.isActive());
+  auto node4 = top4.getNode();
+  std::cout << "Top4 created ..." << std::endl;
+
+  Top top5(6, input5);
+  EXPECT_TRUE(top5.isActive());
+  std::cout << "Top5 created ..." << std::endl;
+  auto node5 = top5.getNode();
+
+  // set balance
+  bal_t bal(9007199254740991);
+  // transfer some coins to your friends ...
+  Transaction trx1to2(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
+                      bytes(), g_secret);
+  Transaction trx1to3(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
+                      bytes(), g_secret);
+  Transaction trx1to4(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
+                      bytes(), g_secret);
+  Transaction trx1to5(0, 1000000000000, val_t(0), val_t(0),
+                      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
+                      bytes(), g_secret);
+  node1->insertTransaction(trx1to2);
+  node1->insertTransaction(trx1to3);
+  node1->insertTransaction(trx1to4);
+  node1->insertTransaction(trx1to5);
+  // wait for top2, top3, top4, top5 initialize
+  taraxa::thisThreadSleepForMilliSeconds(3000);
+
+  // send 1000 trxs
+  try {
+    std::string sendtrx1 =
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
+                                      "delay": 5,
+                                      "number": 6000,
+                                      "seed": 1 }]}' 0.0.0.0:7777)";
+    std::string sendtrx2 =
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 7,
+                                      "number": 4000,
+                                      "seed": 2 }]}' 0.0.0.0:7778)";
+    std::string sendtrx3 =
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
+                                      "delay": 3,
+                                      "number": 3000,
+                                      "seed": 3 }]}' 0.0.0.0:7779)";
+    std::string sendtrx4 =
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
+                                      "delay": 10,
+                                      "number": 3000,
+                                      "seed": 4 }]}' 0.0.0.0:7780)";
+    std::string sendtrx5 =
+        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3",
+                                      "delay": 23,
+                                      "number": 4000,
+                                      "seed": 5 }]}' 0.0.0.0:7781)";
+    std::cout << "Sending trxs ..." << std::endl;
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+    std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
+    std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
+    std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+    std::cout << "All trxs sent..." << std::endl;
+
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  auto num_peers1 = node1->getPeerCount();
+  auto num_peers2 = node2->getPeerCount();
+  auto num_peers3 = node3->getPeerCount();
+  auto num_peers4 = node4->getPeerCount();
+  auto num_peers5 = node5->getPeerCount();
+
+  for (auto i = 0; i < 180; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for peers syncing ..." << std::endl;
+    }
+    num_peers1 = node1->getPeerCount();
+    num_peers2 = node2->getPeerCount();
+    num_peers3 = node3->getPeerCount();
+    num_peers4 = node4->getPeerCount();
+    num_peers5 = node5->getPeerCount();
+
+    if (num_peers1 == 4 && num_peers2 == 4 && num_peers3 == 4 &&
+        num_peers4 == 4 && num_peers5 == 4)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+  EXPECT_EQ(num_peers1, 4);
+  EXPECT_EQ(num_peers2, 4);
+  EXPECT_EQ(num_peers3, 4);
+  EXPECT_EQ(num_peers4, 4);
+  EXPECT_EQ(num_peers5, 4);
+
+  // check dags
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
+
+  for (auto i = 0; i < 180; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for vertices syncing ..." << std::endl;
+    }
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
+    num_vertices3 = node3->getNumVerticesInDag();
+    num_vertices4 = node4->getNumVerticesInDag();
+    num_vertices5 = node5->getNumVerticesInDag();
+
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
+        node1->getTransactionStatusCount() == 20004 &&
+        node2->getTransactionStatusCount() == 20004 &&
+        node3->getTransactionStatusCount() == 20004 &&
+        node4->getTransactionStatusCount() == 20004 &&
+        node5->getTransactionStatusCount() == 20004)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+
+  num_vertices1 = node1->getNumVerticesInDag();
+  num_vertices2 = node2->getNumVerticesInDag();
+  num_vertices3 = node3->getNumVerticesInDag();
+  num_vertices4 = node4->getNumVerticesInDag();
+  num_vertices5 = node5->getNumVerticesInDag();
+
+  EXPECT_EQ(num_vertices1, num_vertices2);
+  EXPECT_EQ(num_vertices2, num_vertices3);
+  EXPECT_EQ(num_vertices3, num_vertices4);
+  EXPECT_EQ(num_vertices4, num_vertices5);
+
+  EXPECT_EQ(node1->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 20004);
+
+  // num_proposed_block is static, in the case, all nodes has
+  // same num proposed blocks
+  EXPECT_GT(node1->getNumProposedBlocks(), 1);
+
+  top5.kill();
+  top4.kill();
+  top3.kill();
+  top2.kill();
+  top1.kill();
+  // delete main2
+  try {
+    std::cout << "main5 deleted ..." << std::endl;
+    system("rm -f ./build/main5");
+    std::cout << "main4 deleted ..." << std::endl;
+    system("rm -f ./build/main4");
+    std::cout << "main3 deleted ..." << std::endl;
+    system("rm -f ./build/main3");
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 }  // namespace taraxa
@@ -971,8 +1416,12 @@ TEST(FullNode, receive_send_transaction) {
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityWarning;
-  logOptions.includeChannels.push_back("DAGMGR");
+  logOptions.verbosity = dev::VerbosityError;
+  // logOptions.includeChannels.push_back("FULLND");
+  // logOptions.includeChannels.push_back("DAGMGR");
+  // logOptions.includeChannels.push_back("EXETOR");
+  // logOptions.includeChannels.push_back("BLK_PP");
+  // logOptions.includeChannels.push_back("PR_MDL");
 
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through

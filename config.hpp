@@ -27,13 +27,6 @@ struct NodeConfig {
   uint16_t port;
 };
 
-struct ProposerConfig {
-  uint mode;
-  uint param1;
-  uint param2;
-  uint shards;
-};
-
 struct NetworkConfig {
   NetworkConfig() = default;
   std::string json_file_name;
@@ -46,8 +39,10 @@ struct NetworkConfig {
   std::string network_id;
 };
 
-struct PbftManagerConfig {
-  u_long lambda_ms;
+// Parameter Tuning purpose
+struct TestParamsConfig {
+  std::vector<uint> block_proposer;  // test_params.block_proposer
+  std::vector<uint> pbft;            // test_params.pbft
 };
 
 struct FullNodeConfig {
@@ -56,10 +51,9 @@ struct FullNodeConfig {
   std::string node_secret;
   std::string db_path;
   uint16_t dag_processing_threads;
-  ProposerConfig proposer;
   NetworkConfig network;
   RpcConfig rpc;
-  PbftManagerConfig pbft_manager;
+  TestParamsConfig test_params;
 
   std::string account_db_path();
   std::string block_db_path();
@@ -67,11 +61,10 @@ struct FullNodeConfig {
   std::string transactions_db_path();
   std::string pbft_votes_db_path();
   std::string pbft_chain_db_path();
-
 };
+
+std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, PbftManagerConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, ProposerConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);

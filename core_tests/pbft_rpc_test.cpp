@@ -12,7 +12,7 @@
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "network.hpp"
-#include "rpc.hpp"
+#include "top.hpp"
 
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>
@@ -20,85 +20,59 @@
 namespace taraxa {
 
 TEST(PbftManager, pbft_manager_lambda_input_test) {
-  PbftManagerConfig pbft_config;
-  pbft_config.lambda_ms = 1000;
-  PbftManager pbft_manager(pbft_config);
-  u_long lambda = pbft_manager.getLambdaMs();
-  EXPECT_EQ(lambda, pbft_config.lambda_ms);
+  uint lambda_ms = 1000;
+  uint committee_size = 3;
+  uint valid_sortition_coins = 10000;
+  std::vector<uint> pbft_params { lambda_ms,
+                                  committee_size,
+                                  valid_sortition_coins };
+
+  PbftManager pbft_manager(pbft_params);
+  EXPECT_EQ(lambda_ms, pbft_manager.LAMBDA_ms);
+  EXPECT_EQ(committee_size, pbft_manager.COMMITTEE_SIZE);
+  EXPECT_EQ(valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);
 }
 
 TEST(PbftManager, full_node_lambda_input_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf_taraxa1.json")));
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
-  u_long lambda = pbft_mgr->getLambdaMs();
-  EXPECT_EQ(lambda, 1000);
+  EXPECT_EQ(pbft_mgr->LAMBDA_ms, 1000);
+  EXPECT_EQ(pbft_mgr->COMMITTEE_SIZE, 3);
+  EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 10000);
 }
 
-TEST(PbftVote, pbft_should_speak_test) {
-  boost::asio::io_context context;
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-  auto node(std::make_shared<taraxa::FullNode>(context, conf));
-  auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
-  rpc->start();
-  node->setDebug(true);
-  node->start(true); // boot node
+/* Place votes period 1, 2 and 3 into vote queue.
+ * Get vote period 2, will remove period 1 in the queue. Queue size changes
+ * to 2.
+ */
+TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
+  const char* input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
 
-  std::unique_ptr<boost::asio::io_context::work> work(
-      new boost::asio::io_context::work(context));
+  Top top1(5, input1);
+  EXPECT_TRUE(top1.isActive());
+  thisThreadSleepForMilliSeconds(500);
 
-  boost::thread t([&context]() { context.run(); });
-
-  try {
-    system("./core_tests/curl_pbft_should_speak.sh");
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-
-  work.reset();
-  node->stop();
-  rpc->stop();
-  t.join();
-}
-
-// Place votes period 1, 2 and 3 into vote queue.
-// Get vote period 2, will remove period 1 in the queue. Queue size changes
-// to 2.
-TEST(PbftVote, pbft_place_and_get_vote_test) {
-  boost::asio::io_context context;
-
-  FullNodeConfig conf("./core_tests/conf_taraxa1.json");
-  auto node(std::make_shared<taraxa::FullNode>(context, conf));
-  auto rpc(std::make_shared<taraxa::Rpc>(context, conf.rpc, node->getShared()));
-  rpc->start();
-  node->setDebug(true);
-  node->start(true); // boot node
-
-  std::unique_ptr<boost::asio::io_context::work> work(
-      new boost::asio::io_context::work(context));
-
-  boost::thread t([&context]() { context.run(); });
-
+  auto node = top1.getNode();
+  
   node->clearVoteQueue();
 
   try {
-    system("./core_tests/curl_pbft_place_vote.sh");
+    system("./core_tests/scripts/curl_pbft_place_vote.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
 
   try {
-    system("./core_tests/curl_pbft_get_votes.sh");
+    system("./core_tests/scripts/curl_pbft_get_votes.sh");
   } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
 
-  work.reset();
   node->stop();
-  rpc->stop();
-  t.join();
-
+  
   size_t vote_queue_size = node->getVoteQueueSize();
   EXPECT_EQ(vote_queue_size, 2);
 }
@@ -107,14 +81,14 @@ TEST(PbftVote, pbft_place_and_get_vote_test) {
 TEST(PbftVote, transfer_vote) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
 
   node1->setDebug(true);
   node2->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   node2->start(false);
 
   std::unique_ptr<boost::asio::io_context::work> work1(
@@ -181,17 +155,17 @@ TEST(PbftVote, transfer_vote) {
 TEST(PbftVote, vote_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf_taraxa1.json")));
+      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
   boost::asio::io_context context2;
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf_taraxa2.json")));
+      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
   boost::asio::io_context context3;
   auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf_taraxa3.json")));
+      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   node2->start(false);
   node3->start(false);
 

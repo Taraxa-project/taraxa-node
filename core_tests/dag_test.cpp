@@ -247,9 +247,18 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   EXPECT_EQ(epfriend.size(), 4);
 
   // ------------------ epoch A ------------------
+
   recent_added_blks.insert(vA);
-  graph.updatePeriodVerticesAndComputeOrder(Dag::GENESIS, vA, 1,
-                                            recent_added_blks, epfriend);
+
+  {  // get only, do not finalize
+    graph.computeOrder(false /*finialized */, Dag::GENESIS, vA, 1,
+                       recent_added_blks, epfriend);
+
+    EXPECT_EQ(epfriend.size(), 1);  // vA
+    EXPECT_EQ(recent_added_blks.size(), 1);
+  }
+  graph.computeOrder(true /*finialized */, Dag::GENESIS, vA, 1,
+                     recent_added_blks, epfriend);
 
   EXPECT_EQ(epfriend.size(), 1);  // vA
   EXPECT_EQ(recent_added_blks.size(), 0);
@@ -259,8 +268,15 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vB);
   recent_added_blks.insert(vC);
 
-  graph.updatePeriodVerticesAndComputeOrder(vA, vC, 2, recent_added_blks,
-                                            epfriend);
+  {  // get only, do not finalize
+    graph.computeOrder(false /*finialized */, vA, vC, 2, recent_added_blks,
+                       epfriend);
+    EXPECT_EQ(epfriend.size(), 2);  // vB, vC
+    EXPECT_EQ(recent_added_blks.size(), 2);
+  }
+
+  graph.computeOrder(true /*finialized */, vA, vC, 2, recent_added_blks,
+                     epfriend);
   EXPECT_EQ(epfriend.size(), 2);  // vB, vC
   EXPECT_EQ(recent_added_blks.size(), 0);
 
@@ -269,8 +285,8 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vD);
   recent_added_blks.insert(vE);
   recent_added_blks.insert(vF);
-  graph.updatePeriodVerticesAndComputeOrder(vC, vE, 3, recent_added_blks,
-                                            epfriend);
+  graph.computeOrder(true /*finialized */, vC, vE, 3, recent_added_blks,
+                     epfriend);
   EXPECT_EQ(epfriend.size(), 3);  // vD, vF, vE
   EXPECT_EQ(recent_added_blks.size(), 0);
 
@@ -279,8 +295,8 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vH);
   recent_added_blks.insert(vI);
   recent_added_blks.insert(vJ);
-  graph.updatePeriodVerticesAndComputeOrder(vE, vH, 4, recent_added_blks,
-                                            epfriend);
+  graph.computeOrder(true /*finialized */, vE, vH, 4, recent_added_blks,
+                     epfriend);
   EXPECT_EQ(epfriend.size(), 4);  // vG, vJ, vI, vH
   EXPECT_EQ(recent_added_blks.size(), 0);
 
@@ -431,27 +447,46 @@ TEST(DagManager, compute_epoch) {
 
   vec_blk_t orders;
   uint64_t period;
-  period = mgr->createPeriodAndComputeBlockOrder(blkA.getHash(), orders);
+  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 1);
-  period = mgr->createPeriodAndComputeBlockOrder(blkC.getHash(), orders);
+  // repeat, should not change
+  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
+  EXPECT_EQ(orders.size(), 1);
+  EXPECT_EQ(period, 1);
+
+  mgr->setDagBlockPeriod(blkA.getHash(), period);
+
+  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
   EXPECT_EQ(orders.size(), 2);
   EXPECT_EQ(period, 2);
-  period = mgr->createPeriodAndComputeBlockOrder(blkE.getHash(), orders);
+  // repeat, should not change
+  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
+  EXPECT_EQ(orders.size(), 2);
+  EXPECT_EQ(period, 2);
+
+  mgr->setDagBlockPeriod(blkC.getHash(), period);
+
+  period = mgr->getDagBlockOrder(blkE.getHash(), orders);
   EXPECT_EQ(orders.size(), 3);
   EXPECT_EQ(period, 3);
-  period = mgr->createPeriodAndComputeBlockOrder(blkH.getHash(), orders);
+  mgr->setDagBlockPeriod(blkE.getHash(), period);
+
+  period = mgr->getDagBlockOrder(blkH.getHash(), orders);
   EXPECT_EQ(orders.size(), 4);
   EXPECT_EQ(period, 4);
+  mgr->setDagBlockPeriod(blkH.getHash(), period);
+
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(10));
     EXPECT_EQ(orders[1], blk_hash_t(9));
     EXPECT_EQ(orders[2], blk_hash_t(7));
     EXPECT_EQ(orders[3], blk_hash_t(8));
   }
-  period = mgr->createPeriodAndComputeBlockOrder(blkK.getHash(), orders);
+  period = mgr->getDagBlockOrder(blkK.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
+  mgr->setDagBlockPeriod(blkK.getHash(), period);
 }
 
 TEST(DagManager, receive_block_in_order) {

@@ -76,6 +76,9 @@ struct uint_hash_t {
 template <std::size_t Byte>
 std::ostream &operator<<(std::ostream &strm, uint_hash_t<Byte> const &num);
 
+using uint256_t = boost::multiprecision::uint256_t;
+using uint512_t = boost::multiprecision::uint512_t;
+
 using uint256_hash_t = dev::FixedHash<32>;
 using uint512_hash_t = dev::FixedHash<64>;
 using uint520_hash_t = dev::FixedHash<65>;
@@ -85,9 +88,11 @@ using secret_t = dev::SecureFixedHash<32>;
 using public_t = uint512_hash_t;
 using addr_t = uint160_hash_t;
 using sig_t = uint520_hash_t;
+using sig_hash_t = uint256_hash_t;
 using vote_hash_t = uint256_hash_t;
 using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
+using sig_hash_t = uint256_hash_t;
 
 using key_t = std::string;
 using bal_t = uint64_t;

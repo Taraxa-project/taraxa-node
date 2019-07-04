@@ -24,7 +24,7 @@ class Vote {
   Vote() = default;
   Vote(public_t const& node_pk, sig_t const& sortition_signature,
       sig_t const& vote_signature, blk_hash_t const& blockhash,
-      PbftVoteTypes type, uint64_t period, size_t step);
+      PbftVoteTypes type, uint64_t round, size_t step);
   Vote(stream& strm);
   ~Vote() {}
 
@@ -39,7 +39,7 @@ class Vote {
   sig_t getVoteSignature() const;
   blk_hash_t getBlockHash() const;
   PbftVoteTypes getType() const;
-  uint64_t getPeriod() const;
+  uint64_t getRound() const;
   size_t getStep() const;
 
  private:
@@ -51,7 +51,7 @@ class Vote {
   sig_t vote_signatue_;
   blk_hash_t blockhash_;
   PbftVoteTypes type_;
-  uint64_t period_;
+  uint64_t round_;
   size_t step_;
 };
 
@@ -61,9 +61,10 @@ class VoteManager {
   ~VoteManager() {}
 
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
-      PbftVoteTypes type, uint64_t period, size_t step);
+      PbftVoteTypes type, uint64_t round, size_t step);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash,
-      Vote const& vote, bal_t& account_balance) const;
+      Vote const& vote, bal_t& account_balance,
+      size_t sortition_threshold) const;
 
  private:
   vote_hash_t hash_(std::string const& str) const;
@@ -86,7 +87,7 @@ class VoteQueue {
   void clearQueue();
 
   size_t getSize();
-  std::vector<Vote> getVotes(uint64_t period);
+  std::vector<Vote> getVotes(uint64_t round);
   std::string getJsonStr(std::vector<Vote>& votes);
 
   void pushBackVote(Vote const& vote);

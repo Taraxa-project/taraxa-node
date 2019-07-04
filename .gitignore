@@ -6,5 +6,6 @@ test_build-d/
 google/obj
 obj/
 obj-d/
-.idea
+.idea/*
+dockerfiles/scripts/env_variables\.sh
 cmake-*

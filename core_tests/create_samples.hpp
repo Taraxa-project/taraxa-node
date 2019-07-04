@@ -8,12 +8,55 @@
 
 #ifndef CREATE_SAMPLES_HPP
 #define CREATE_SAMPLES_HPP
+#include <fstream>
+#include <map>
 #include <string>
 #include "dag_block.hpp"
 #include "transaction.hpp"
 
 namespace taraxa {
 namespace samples {
+// read account
+
+struct TestAccount {
+  TestAccount() = default;
+  TestAccount(int id, std::string const &sk, std::string const &pk,
+              std::string const &addr)
+      : id(id), sk(sk), pk(pk), addr(addr) {}
+  friend std::ostream;
+  int id;
+  std::string sk;
+  std::string pk;
+  std::string addr;
+};
+std::ostream &operator<<(std::ostream &strm, TestAccount const &acc) {
+  strm << "sk: " << acc.sk << "\npk: " << acc.pk << "\naddr: " << acc.addr
+       << std::endl;
+  return strm;
+}
+
+std::map<int, TestAccount> createTestAccountTable(std::string const &filename) {
+  std::map<int, TestAccount> acc_table;
+  std::ifstream file;
+  file.open(filename);
+  if (file.fail()) {
+    std::cerr << "Error! Cannot open " << filename << std::endl;
+    return acc_table;
+  }
+
+  std::string id, sk, pk, addr;
+
+  while (file>>id>>sk>>pk>>addr) {
+    if (id.empty()) break;
+    if (sk.empty()) break;
+    if (pk.empty()) break;
+    if (addr.empty()) break;
+
+    int idx = std::stoi(id);
+    acc_table[idx] = TestAccount(idx, sk, pk, addr);
+  }
+  return acc_table;
+}
 
 std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned num) {
   assert(start + num < std::numeric_limits<unsigned>::max());

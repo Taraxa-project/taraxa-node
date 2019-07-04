@@ -17,6 +17,7 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
+#include "sortition.h"
 #include "vote.h"
 
 namespace taraxa {
@@ -49,13 +50,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
       dag_mgr_(std::make_shared<DagManager>()),
-      blk_proposer_(std::make_shared<BlockProposer>(conf_.proposer,
-                                                    dag_mgr_->getShared(),
-                                                    trx_mgr_->getShared())),
+      blk_proposer_(std::make_shared<BlockProposer>(
+          conf_.test_params.block_proposer, dag_mgr_->getShared(),
+          trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>()),
       vote_mgr_(std::make_shared<VoteManager>()),
       vote_queue_(std::make_shared<VoteQueue>()),
-      pbft_mgr_(std::make_shared<PbftManager>(conf_.pbft_manager)),
+      pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft)),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
   initDB(destroy_db);
@@ -107,7 +108,7 @@ void FullNode::initDB(bool destroy_db) {
   }
   if (db_blks_index_ == nullptr) {
     db_blks_index_ =
-        SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
             conf_.block_index_db_path(), destroy_db);
     assert(db_blks_index_);
   }
@@ -137,18 +138,27 @@ void FullNode::initDB(bool destroy_db) {
   db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                      pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
+
+  // Initialize MASTER BOOT NODE to all coins
+  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
+  bal_t total_coins(TARAXA_COINS_DECIMAL);
+  if (!setBalance(master_boot_node_address, total_coins)) {
+    LOG(log_er_) << "Failed to set master boot node account balance";
+  }
   // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
     while (true) {
-      string entry = db_blks_index_->get(std::to_string(level));
+      h256 level_key(level);
+      string entry = db_blks_index_->get(level_key.toString());
       if (entry.empty()) break;
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
         auto block_json = db_blks_->get(block);
         if (block_json != "") {
-          dag_mgr_->addDagBlock(DagBlock(block_json));
+          auto blk = DagBlock(block_json);
+          dag_mgr_->addDagBlock(blk);
           max_dag_level_ = level;
         }
       }
@@ -163,8 +173,8 @@ bool FullNode::destroyDB() {
     LOG(log_wr_) << "Cannot destroyDb if node is running ...";
     return false;
   }
-  // make sure all sub moduled has relased DB, the full_node can release the DB
-  // and destroy
+  // make sure all sub moduled has relased DB, the full_node can release the
+  // DB and destroy
   assert(db_accs_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
@@ -230,10 +240,11 @@ void FullNode::start(bool boot_node) {
   trx_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
-  pbft_mgr_->setFullNode(getShared());
-  pbft_mgr_->start();
   executor_->setFullNode(getShared());
   executor_->start();
+  pbft_mgr_->setFullNode(getShared());
+  pbft_mgr_->start();
+
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
@@ -256,13 +267,17 @@ void FullNode::start(bool boot_node) {
         {
           db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
           db_blks_->commit();
-          std::string level = std::to_string(blk.getLevel());
-          std::string blocks = db_blks_index_->get(level);
-          if (blk.getLevel() > max_dag_level_) max_dag_level_ = blk.getLevel();
-          if (blocks == "")
-            db_blks_index_->put(level, blk.getHash().hex());
-          else
-            db_blks_index_->update(level, blocks + "," + blk.getHash().hex());
+          auto level = blk.getLevel();
+          h256 level_key(level);
+          std::string blocks = db_blks_index_->get(level_key.toString());
+          if (level > max_dag_level_) max_dag_level_ = level;
+          if (blocks == "") {
+            db_blks_index_->put(level_key.toString(), blk.getHash().toString());
+          } else {
+            auto newblocks = blocks + "," + blk.getHash().toString();
+            db_blks_index_->update(level_key.toString(),
+                                   blocks + "," + blk.getHash().hex());
+          }
           db_blks_index_->commit();
         }
         network_->onNewBlockVerified(blk);
@@ -356,9 +371,10 @@ bool FullNode::reset() {
   trx_mgr_ = std::make_shared<TransactionManager>();
   dag_mgr_ = std::make_shared<DagManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
-      conf_.proposer, dag_mgr_->getShared(), trx_mgr_->getShared());
+      conf_.test_params.block_proposer, dag_mgr_->getShared(),
+      trx_mgr_->getShared());
   executor_ = std::make_shared<Executor>();
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.pbft_manager);
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft);
   vote_mgr_ = std::make_shared<VoteManager>();
   vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
@@ -471,7 +487,8 @@ std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
-    string entry = db_blks_index_->get(std::to_string(level + i));
+    dev::h256 level_key(level + i);
+    string entry = db_blks_index_->get(level_key.toString());
 
     if (entry.empty()) break;
     vector<string> blocks;
@@ -547,15 +564,22 @@ std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash,
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
-std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
-FullNode::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor) {
+std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
+    blk_hash_t const &anchor) {
   vec_blk_t orders;
-  auto period = dag_mgr_->createPeriodAndComputeBlockOrder(anchor, orders);
+  auto period = dag_mgr_->getDagBlockOrder(anchor, orders);
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
 // receive pbft-povit-blk, update periods
-void FullNode::updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period) {
-  dag_mgr_->setDagBlockPeriods(anchor, period);
+void FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
+  dag_mgr_->setDagBlockPeriod(anchor, period);
+}
+
+uint64_t FullNode::getLatestPeriod() const {
+  return dag_mgr_->getLatestPeriod();
+}
+blk_hash_t FullNode::getLatestAnchor() const {
+  return blk_hash_t(dag_mgr_->getLatestAnchor());
 }
 
 std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
@@ -632,6 +656,14 @@ std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
   }
   return {std::stoull(bal), ret};
 }
+bal_t FullNode::getMyBalance() const {
+  auto my_bal = getBalance(node_addr_);
+  if (!my_bal.second) {
+    return 0;
+  } else {
+    return my_bal.first;
+  }
+}
 
 bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
   bool ret = true;
@@ -652,9 +684,11 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
-bool FullNode::executeScheduleBlock(ScheduleBlock const &sche_blk) {
-  executor_->execute(sche_blk.getSchedule());
-  return true;
+bool FullNode::executeScheduleBlock(
+    ScheduleBlock const &sche_blk,
+    std::unordered_map<addr_t, bal_t> &sortition_account_balance_table) {
+  return executor_->execute(sche_blk.getSchedule(),
+                            sortition_account_balance_table);
 }
 
 void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
@@ -674,12 +708,15 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   }
 
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-                                account_balance.first)) {
-    vote_queue_->pushBackVote(vote);
-  }
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+  // TODO: there is bug here, need add back later
+  //  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+  //                                account_balance.first,
+  //                                sortition_threshold))
+  //                                {
+  vote_queue_->pushBackVote(vote);
+  //  }
 }
-
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
   network_->onNewPbftVote(vote);
@@ -723,17 +760,45 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
-size_t FullNode::getEpoch() const { return dag_mgr_->getEpoch(); }
-
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       return false;
     }
+    // Update block Dag period
+    blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
+    uint64_t pbft_chain_period = pbft_block.getPivotBlock().getPeriod();
+    setDagBlockOrder(dag_block_hash, pbft_chain_period);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
       return false;
     }
+
+    // TODO: VM executor will not take sortition_account_balance_table as
+    // reference.
+    //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
+    //  Will need update sortition_account_balance_table here
+    // execute schedule block
+    if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
+                              pbft_mgr_->sortition_account_balance_table)) {
+      LOG(log_er_) << "Failed to execute schedule block";
+      // TODO: If valid transaction failed execute, how to do?
+    }
+    // reset sortition_threshold and TWO_T_PLUS_ONE
+    size_t accounts = pbft_mgr_->sortition_account_balance_table.size();
+    size_t two_t_plus_one;
+    size_t sortition_threshold;
+    if (pbft_mgr_->COMMITTEE_SIZE <= accounts) {
+      two_t_plus_one = pbft_mgr_->COMMITTEE_SIZE * 2 / 3 + 1;
+      sortition_threshold = pbft_mgr_->COMMITTEE_SIZE;
+    } else {
+      two_t_plus_one = accounts * 2 / 3 + 1;
+      sortition_threshold = accounts;
+    }
+    pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
+    pbft_mgr_->setSortitionThreshold(sortition_threshold);
+    LOG(log_deb_) << "Reset 2t+1 " << two_t_plus_one << " Threshold "
+                  << sortition_threshold;
   }
   // TODO: push other type pbft block into pbft chain
 
@@ -768,5 +833,6 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
             period, step);
   return vote;
 }
+level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
 
 }  // namespace taraxa

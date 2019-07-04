@@ -122,25 +122,46 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::vector<std::string> getDagBlockEpFriend(blk_hash_t const &from,
                                                blk_hash_t const &to);
 
-  // return {period, block order}, for pbft-pivot-blk proposing
-  std::pair<uint64_t, std::shared_ptr<vec_blk_t>>
-  createPeriodAndComputeBlockOrder(blk_hash_t const &anchor);
-  // receive pbft-povit-blk, update periods
-  void updateBlkDagPeriods(blk_hash_t const &anchor, uint64_t period);
+  // return {period, block order}, for pbft-pivot-blk proposing (does not
+  // finialize)
+  std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
+      blk_hash_t const &anchor);
+  // receive pbft-povit-blk, update periods and finalized
+  void setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
+  uint64_t getLatestPeriod() const;
+  blk_hash_t getLatestAnchor() const;
+  uint getBlockProposeThresholdBeta()
+      const { /*TODO: should receive it from pbft-block, use threshold from
+                 0 ~ 1024 */
+    return propose_threshold_;
+  }
+  void setBlockProposeThresholdBeta(
+      uint threshold) { /*TODO: should receive it from pbft-block, use threshold
+                           from 0 ~ 1024, if larger than 4096, should always
+                           success */
+    if (threshold >= (1u << 20)) {
+      threshold = (1u << 20);
+    }
+    propose_threshold_ = threshold;
+    LOG(log_wr_) << "Set propose threshold beta to " << threshold;
+  }
   // fake trx schedule
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff
   std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
+  bal_t getMyBalance() const;
   bool setBalance(addr_t const &acc, bal_t const &new_bal);
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
-
+  secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
-  bool executeScheduleBlock(ScheduleBlock const &sche_blk);
+  bool executeScheduleBlock(ScheduleBlock const& sche_blk,
+      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
+  level_t getMaxDagLevel() const;
   std::pair<uint64_t, uint64_t> getNumVerticesInDag();
   std::pair<uint64_t, uint64_t> getNumEdgesInDag();
   void drawGraph(std::string const &dotfile) const;
@@ -199,7 +220,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   FullNodeConfig conf_;
   bool verbose_ = false;
   bool debug_ = false;
-
+  uint64_t propose_threshold_ = 512;
   // node secrets
   secret_t node_sk_;
   public_t node_pk_;

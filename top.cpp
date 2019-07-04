@@ -11,6 +11,8 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include "config.hpp"
+#include "libweb3jsonrpc/RpcServer.h"
+#include "libweb3jsonrpc/Taraxa.h"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
@@ -40,8 +42,10 @@ void Top::start(int argc, const char* argv[]) {
           "Flag to mark this node as boot node")(
           "destroy_db", boost::program_options::bool_switch(&destroy_db),
           "Destroys all the existing data in the database")(
-          "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
-          "Delete all saved network/nodes information and rebuild network from boot nodes");
+          "rebuild_network",
+          boost::program_options::bool_switch(&rebuild_network),
+          "Delete all saved network/nodes information and rebuild network from "
+          "boot nodes");
 
       boost::program_options::options_description allowed_options(
           "Allowed options");
@@ -71,13 +75,12 @@ void Top::start(int argc, const char* argv[]) {
       stopped_ = false;
       boot_node_ = boot_node;
       try {
-        taraxa::FullNodeConfig conf(conf_taraxa);
-        node_ = std::make_shared<taraxa::FullNode>(context_, conf, destroy_db, rebuild_network);
+        conf_ = std::make_shared<taraxa::FullNodeConfig>(conf_taraxa);
+        node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db,
+                                                   rebuild_network);
         node_->setVerbose(verbose);
         node_->start(boot_node_);
-        rpc_ = std::make_shared<taraxa::Rpc>(context_, conf.rpc,
-                                             node_->getShared());
-        rpc_->start();
+        startRpc();
         context_.run();
       } catch (std::exception& e) {
         stopped_ = true;
@@ -91,12 +94,21 @@ void Top::start(int argc, const char* argv[]) {
   // everything ... Otherwise node_ will get nullptr
   taraxa::thisThreadSleepForSeconds(2);
 }
+
+void Top::startRpc() {
+  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace> >(
+      new dev::rpc::Test(node_), new dev::rpc::Taraxa(node_));
+  auto rpc_server(
+      std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
+  rpc_->addConnector(rpc_server);
+  rpc_server->StartListening();
+}
+
 void Top::start() {
   if (!stopped_) return;
   stopped_ = false;
   assert(node_);
   node_->start(boot_node_);
-  rpc_->start();
 }
 void Top::run() {
   std::unique_lock<std::mutex> lock(mu_);
@@ -107,7 +119,7 @@ void Top::run() {
 void Top::kill() {
   if (stopped_) return;
   stop();
-  rpc_->stop();
+  rpc_->StopListening();
   cond_.notify_all();
 }
 void Top::stop() {

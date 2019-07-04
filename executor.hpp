@@ -39,8 +39,10 @@ class Executor {
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();
   void clear();
-  bool execute(TrxSchedule const& schedule);
-  bool executeBlkTrxs(blk_hash_t const& blk);
+  bool execute(TrxSchedule const& schedule,
+      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
+  bool executeBlkTrxs(blk_hash_t const& blk,
+      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;

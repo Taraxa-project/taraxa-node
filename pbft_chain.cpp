@@ -96,7 +96,7 @@ blk_hash_t PivotBlock::getPrevBlockHash() const { return prev_block_hash_; }
 
 blk_hash_t PivotBlock::getDagBlockHash() const { return dag_block_hash_; }
 
-uint64_t PivotBlock::getEpoch() const { return epoch_; }
+uint64_t PivotBlock::getPeriod() const { return period_; }
 
 uint64_t PivotBlock::getTimestamp() const { return timestamp_; }
 
@@ -106,7 +106,7 @@ void PivotBlock::setJsonTree(ptree& tree) const {
   tree.put("prev_pivot_hash", prev_pivot_hash_.toString());
   tree.put("prev_block_hash", prev_block_hash_.toString());
   tree.put("dag_block_hash", dag_block_hash_.toString());
-  tree.put("epoch", epoch_);
+  tree.put("period", period_);
   tree.put("timestamp", timestamp_);
   tree.put("beneficiary", beneficiary_.toString());
 }
@@ -115,7 +115,7 @@ void PivotBlock::setBlockByJson(ptree const& doc) {
   prev_pivot_hash_ = blk_hash_t(doc.get<std::string>("prev_pivot_hash"));
   prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
   dag_block_hash_ = blk_hash_t(doc.get<std::string>("dag_block_hash"));
-  epoch_ = doc.get<uint64_t>("epoch");
+  period_ = doc.get<uint64_t>("period");
   timestamp_ = doc.get<uint64_t>("timestamp");
   beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
 }
@@ -126,7 +126,7 @@ bool PivotBlock::serialize(stream& strm) const {
   ok &= write(strm, prev_pivot_hash_);
   ok &= write(strm, prev_block_hash_);
   ok &= write(strm, dag_block_hash_);
-  ok &= write(strm, epoch_);
+  ok &= write(strm, period_);
   ok &= write(strm, timestamp_);
   ok &= write(strm, beneficiary_);
   assert(ok);
@@ -140,7 +140,7 @@ bool PivotBlock::deserialize(stream& strm) {
   ok &= read(strm, prev_pivot_hash_);
   ok &= read(strm, prev_block_hash_);
   ok &= read(strm, dag_block_hash_);
-  ok &= read(strm, epoch_);
+  ok &= read(strm, period_);
   ok &= read(strm, timestamp_);
   ok &= read(strm, beneficiary_);
   assert(ok);
@@ -152,7 +152,7 @@ void PivotBlock::streamRLP(dev::RLPStream& strm) const {
   strm << prev_pivot_hash_;
   strm << prev_block_hash_;
   strm << dag_block_hash_;
-  strm << epoch_;
+  strm << period_;
   strm << timestamp_;
   strm << beneficiary_;
 }
@@ -422,7 +422,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
-size_t PbftChain::getPbftChainSize() const { return count_; }
+uint64_t PbftChain::getPbftChainSize() const { return size_; }
+
+uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
 
 blk_hash_t PbftChain::getGenesisHash() const { return genesis_hash_; }
 
@@ -497,19 +499,21 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   setLastPbftBlockHash(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later
-  int next_pbft_block_type = (pbft_block.getBlockType() + 1) % 2;
-  setNextPbftBlockType(static_cast<PbftBlockTypes>(next_pbft_block_type));
-  count_++;
-  if (count_ % 2 == 0) {
+  size_++;
+  if (pbft_block.getBlockType() == pivot_block_type) {
     // PBFT ancher block
     LOG(log_deb_) << "Push pbft block " << pbft_block_hash
                   << " with DAG block hash "
                   << pbft_block.getPivotBlock().getDagBlockHash()
-                  << " into pbft chain, current pbft chain size is " << count_;
-  } else {
+                  << " into pbft chain, current pbft chain period " << period_
+                  << " chain size is " << size_;
+    setNextPbftBlockType(schedule_block_type);
+  } else if (pbft_block.getBlockType() == schedule_block_type){
     // PBFT concurrent schedule block
     LOG(log_deb_) << "Push pbft block " << pbft_block_hash
-                  << " into pbft chain, current pbft chain size is " << count_;
+                  << " into pbft chain, current pbft chain period " << period_
+                  << " chain size is " << size_;
+    setNextPbftBlockType(pivot_block_type);
   }
 }
 
@@ -530,6 +534,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
       pbft_chain_last_blk.first.getBlockHash()) {
     return false;
   }
+  period_++;
   pushPbftBlock(pbft_block);
   last_pbft_pivot_hash_ = pbft_block.getBlockHash();
   return true;
@@ -580,7 +585,8 @@ std::string PbftChain::getGenesisStr() const {
   std::stringstream strm;
   strm << "[PbftChain]" << std::endl;
   strm << "genesis hash: " << genesis_hash_.toString() << std::endl;
-  strm << "count: " << count_ << std::endl;
+  strm << "size: " << size_ << std::endl;
+  strm << "period: " << period_ << std::endl;
   strm << "next pbft block type: " << next_pbft_block_type_ << std::endl;
   strm << "last pbft block hash: " << last_pbft_pivot_hash_.toString()
        << std::endl;
@@ -593,7 +599,8 @@ std::string PbftChain::getGenesisStr() const {
 std::string PbftChain::getJsonStr() const {
   ptree tree;
   tree.put("genesis_hash", genesis_hash_.toString());
-  tree.put("count", count_);
+  tree.put("size", size_);
+  tree.put("period", period_);
   tree.put("next_pbft_block_type", next_pbft_block_type_);
   tree.put("last_pbft_block_hash", last_pbft_block_hash_.toString());
   tree.put("last_pbft_pivot_block", last_pbft_pivot_hash_.toString());

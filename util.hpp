@@ -24,6 +24,10 @@
 #include <string>
 #include <unordered_set>
 #include "types.hpp"
+
+#define MASTER_BOOT_NODE_ADDRESS "de2b1203d72d3549ee2f733b00b2789414c7cea5"
+
+#include <json/json.h>
 namespace taraxa {
 
 boost::property_tree::ptree strToJson(const std::string_view &str);
@@ -47,12 +51,21 @@ struct ProcessReturn {
   taraxa::addr_t user_account;
 };
 
-template <typename T, typename U>
+template <typename T, typename U = T>
 std::vector<T> asVector(boost::property_tree::ptree const &pt,
                         boost::property_tree::ptree::key_type const &key) {
   std::vector<T> v;
   for (auto &item : pt.get_child(key)) {
     v.push_back(T(item.second.get_value<U>()));
+  }
+  return v;
+}
+
+template <typename T>
+std::vector<T> asVector(Json::Value const &json) {
+  std::vector<T> v;
+  for (auto &item : json) {
+    v.push_back(T(item.asString()));
   }
   return v;
 }
@@ -67,6 +80,14 @@ constexpr inline
     typename std::enable_if_t<std::is_enum_v<E> && std::is_integral_v<T>, E>
     toEnum(T value) noexcept {
   return static_cast<E>(value);
+}
+
+template <typename T>
+std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
+  for (auto const &i : vec) {
+    strm << i << " ";
+  }
+  return strm;
 }
 
 using stream = std::basic_streambuf<uint8_t>;

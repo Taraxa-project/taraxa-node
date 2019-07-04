@@ -282,10 +282,10 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   }
 }
 // only iterate only through non finalized blocks
-bool Dag::updatePeriodVerticesAndComputeOrder(
-    vertex_hash const &from, vertex_hash const &to, uint64_t ith_peroid,
-    std::unordered_set<vertex_hash> &recent_added_blks,
-    std::vector<vertex_hash> &ordered_period_vertices) {
+bool Dag::computeOrder(bool finialized, vertex_hash const &from,
+                       vertex_hash const &to, uint64_t ith_peroid,
+                       std::unordered_set<vertex_hash> &recent_added_blks,
+                       std::vector<vertex_hash> &ordered_period_vertices) {
   ulock lock(mutex_);
 
   vertex_t source = graph_.vertex(from);
@@ -293,7 +293,7 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
 
   if (source == graph_.null_vertex()) {
     LOG(log_wr_) << "Warning! cannot find vertex (from) "
-                    "(updatePeriodVerticesAndComputeOrder) "
+                    "(computeOrder) "
                  << from << "\n";
     return false;
   }
@@ -310,7 +310,7 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
   epfriend[blk_hash_t(name_map[target])] = target;
 
   // Step 1: collect all epoch blks between from and to blks
-  // Erase from recent_added_blks after mark epoch number
+  // Erase from recent_added_blks after mark epoch number if finialized
 
   auto iter = recent_added_blks.begin();
   while (iter != recent_added_blks.end()) {
@@ -324,8 +324,12 @@ bool Dag::updatePeriodVerticesAndComputeOrder(
       return false;
     }
     if (!reachable(v, source) && reachable(v, target)) {
-      ep_map[v] = ith_peroid;
-      iter = recent_added_blks.erase(iter);
+      if (finialized) {
+        ep_map[v] = ith_peroid;
+        iter = recent_added_blks.erase(iter);
+      } else {
+        iter++;
+      }
       epfriend[blk_hash_t(name_map[v])] = v;
     } else {
       iter++;
@@ -642,6 +646,7 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
 
   addToDag(hash, pivot, tips);
   LOG(log_dg_) << "Block " << h << " added to DAG";
+  max_level_ = std::max(max_level_, blk.getLevel());
   recent_added_blks_.insert(hash);
   return true;
 }
@@ -765,8 +770,8 @@ void DagManager::setDagBlockTimeStamp(std::string const &vertex,
   pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
-uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
-                                                      vec_blk_t &orders) {
+uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
+                                      vec_blk_t &orders) {
   // TODO: need to check if the anchor already processed
   // if the period already processed
   orders.clear();
@@ -775,25 +780,25 @@ uint64_t DagManager::createPeriodAndComputeBlockOrder(blk_hash_t const &anchor,
   auto prev = anchors_.back();
   auto new_period = anchors_.size();
 
-  auto ok = total_dag_->updatePeriodVerticesAndComputeOrder(
-      prev, anchor.toString(), new_period, recent_added_blks_, blk_orders);
+  auto ok =
+      total_dag_->computeOrder(false /* finalized */, prev, anchor.toString(),
+                               new_period, recent_added_blks_, blk_orders);
   if (!ok) {
-    LOG(log_er_) << "Create epoch " << new_period << " from "
+    LOG(log_er_) << "Create period " << new_period << " from "
                  << blk_hash_t(prev) << " to " << anchor << " failed "
                  << std::endl;
-    return new_period;
+    return 0;
   }
-  anchors_.emplace_back(anchor.toString());
 
   for (auto const &i : blk_orders) {
     orders.emplace_back(blk_hash_t(i));
   }
-  LOG(log_dg_) << "Create epoch " << new_period << " from " << blk_hash_t(prev)
+  LOG(log_dg_) << "Get period " << new_period << " from " << blk_hash_t(prev)
                << " to " << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
   return new_period;
 }
-void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period) {
+void DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
     LOG(log_er_) << "Inserting period " << period
                  << " does not match ..., previous internal period "
@@ -803,8 +808,9 @@ void DagManager::setDagBlockPeriods(blk_hash_t const &anchor, uint64_t period) {
   auto prev = anchors_.back();
   std::vector<std::string> blk_orders;
 
-  auto ok = total_dag_->updatePeriodVerticesAndComputeOrder(
-      prev, anchor.toString(), period, recent_added_blks_, blk_orders);
+  auto ok =
+      total_dag_->computeOrder(true /* finalized */, prev, anchor.toString(),
+                               period, recent_added_blks_, blk_orders);
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {
