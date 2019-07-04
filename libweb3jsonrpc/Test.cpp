@@ -247,7 +247,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::get_num_proposed_blocks(const Json::Value &param1) {
+Json::Value Test::get_num_proposed_blocks() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -299,7 +299,7 @@ Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::get_account_address(const Json::Value &param1) {
+Json::Value Test::get_account_address() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -332,7 +332,7 @@ Json::Value Test::get_account_balance(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::get_peer_count(const Json::Value &param1) {
+Json::Value Test::get_peer_count() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -345,7 +345,7 @@ Json::Value Test::get_peer_count(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::get_all_peers(const Json::Value &param1) {
+Json::Value Test::get_all_peers() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -360,7 +360,7 @@ Json::Value Test::get_all_peers(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::node_stop(const Json::Value &param1) {
+Json::Value Test::node_stop() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -373,7 +373,7 @@ Json::Value Test::node_stop(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::node_reset(const Json::Value &param1) {
+Json::Value Test::node_reset() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -386,7 +386,7 @@ Json::Value Test::node_reset(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::node_start(const Json::Value &param1) {
+Json::Value Test::node_start() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {

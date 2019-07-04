@@ -32,7 +32,7 @@ using namespace dev::rpc;
 Net::Net(std::shared_ptr<taraxa::FullNode> &_full_node)
     : full_node_(_full_node) {}
 
-std::string Net::net_version() { return ""; }
+std::string Net::net_version() { return "5"; }
 
 std::string Net::net_peerCount() { return ""; }
 

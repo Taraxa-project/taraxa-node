@@ -78,9 +78,7 @@
   },
   {
     "name": "get_num_proposed_blocks",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
@@ -92,9 +90,7 @@
   },
   {
     "name": "get_account_address",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
@@ -106,37 +102,27 @@
   },
   {
     "name": "get_peer_count",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
     "name": "get_all_peers",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
     "name": "node_stop",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
     "name": "node_reset",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
     "name": "node_start",
-    "params": [
-      {}
-    ],
+    "params": [],
     "returns": {}
   },
   {
