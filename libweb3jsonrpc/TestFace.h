@@ -70,7 +70,7 @@ class TestFace : public ServerInterface<TestFace> {
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_num_proposed_blocks",
                            jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                           "param1", jsonrpc::JSON_OBJECT, NULL),
+                           "param1", NULL),
         &TestFace::get_num_proposed_blocksI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("send_pbft_schedule_block",
@@ -79,8 +79,7 @@ class TestFace : public ServerInterface<TestFace> {
         &TestFace::send_pbft_schedule_blockI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_account_address", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
+                           jsonrpc::JSON_OBJECT, "param1", NULL),
         &TestFace::get_account_addressI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("set_account_balance", jsonrpc::PARAMS_BY_POSITION,
@@ -94,28 +93,23 @@ class TestFace : public ServerInterface<TestFace> {
         &TestFace::get_account_balanceI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_peer_count", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
+                           jsonrpc::JSON_OBJECT, "param1", NULL),
         &TestFace::get_peer_countI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_all_peers", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
+                           jsonrpc::JSON_OBJECT, "param1", NULL),
         &TestFace::get_all_peersI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("node_stop", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
+                           jsonrpc::JSON_OBJECT, "param1", NULL),
         &TestFace::node_stopI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("node_reset", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
+                           jsonrpc::JSON_OBJECT, "param1", NULL),
         &TestFace::node_resetI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("node_start", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
+                           jsonrpc::JSON_OBJECT, "param1", NULL),
         &TestFace::node_startI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("should_speak", jsonrpc::PARAMS_BY_POSITION,
@@ -194,7 +188,7 @@ class TestFace : public ServerInterface<TestFace> {
   }
   inline virtual void get_num_proposed_blocksI(const Json::Value &request,
                                                Json::Value &response) {
-    response = this->get_num_proposed_blocks(request[0u]);
+    response = this->get_num_proposed_blocks();
   }
   inline virtual void send_pbft_schedule_blockI(const Json::Value &request,
                                                 Json::Value &response) {
@@ -202,7 +196,7 @@ class TestFace : public ServerInterface<TestFace> {
   }
   inline virtual void get_account_addressI(const Json::Value &request,
                                            Json::Value &response) {
-    response = this->get_account_address(request[0u]);
+    response = this->get_account_address();
   }
   inline virtual void set_account_balanceI(const Json::Value &request,
                                            Json::Value &response) {
@@ -214,23 +208,23 @@ class TestFace : public ServerInterface<TestFace> {
   }
   inline virtual void get_peer_countI(const Json::Value &request,
                                       Json::Value &response) {
-    response = this->get_peer_count(request[0u]);
+    response = this->get_peer_count();
   }
   inline virtual void get_all_peersI(const Json::Value &request,
                                      Json::Value &response) {
-    response = this->get_all_peers(request[0u]);
+    response = this->get_all_peers();
   }
   inline virtual void node_stopI(const Json::Value &request,
                                  Json::Value &response) {
-    response = this->node_stop(request[0u]);
+    response = this->node_stop();
   }
   inline virtual void node_resetI(const Json::Value &request,
                                   Json::Value &response) {
-    response = this->node_reset(request[0u]);
+    response = this->node_reset();
   }
   inline virtual void node_startI(const Json::Value &request,
                                   Json::Value &response) {
-    response = this->node_start(request[0u]);
+    response = this->node_start();
   }
   inline virtual void should_speakI(const Json::Value &request,
                                     Json::Value &response) {
@@ -270,14 +264,14 @@ class TestFace : public ServerInterface<TestFace> {
       const Json::Value &param1) = 0;
   virtual Json::Value get_num_proposed_blocks(const Json::Value &param1) = 0;
   virtual Json::Value send_pbft_schedule_block(const Json::Value &param1) = 0;
-  virtual Json::Value get_account_address(const Json::Value &param1) = 0;
+  virtual Json::Value get_account_address() = 0;
   virtual Json::Value set_account_balance(const Json::Value &param1) = 0;
   virtual Json::Value get_account_balance(const Json::Value &param1) = 0;
-  virtual Json::Value get_peer_count(const Json::Value &param1) = 0;
-  virtual Json::Value get_all_peers(const Json::Value &param1) = 0;
-  virtual Json::Value node_stop(const Json::Value &param1) = 0;
-  virtual Json::Value node_reset(const Json::Value &param1) = 0;
-  virtual Json::Value node_start(const Json::Value &param1) = 0;
+  virtual Json::Value get_peer_count() = 0;
+  virtual Json::Value get_all_peers() = 0;
+  virtual Json::Value node_stop() = 0;
+  virtual Json::Value node_reset() = 0;
+  virtual Json::Value node_start() = 0;
   virtual Json::Value should_speak(const Json::Value &param1) = 0;
   virtual Json::Value place_vote(const Json::Value &param1) = 0;
   virtual Json::Value get_votes(const Json::Value &param1) = 0;
