@@ -13,6 +13,7 @@
 #include "config.hpp"
 #include "libweb3jsonrpc/RpcServer.h"
 #include "libweb3jsonrpc/Taraxa.h"
+#include "libweb3jsonrpc/Net.h"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
@@ -96,9 +97,8 @@ void Top::start(int argc, const char* argv[]) {
 }
 
 void Top::startRpc() {
-  rpc_ = std::make_shared<
-      ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace> >(
-      new dev::rpc::Test(node_), new dev::rpc::Taraxa(node_));
+  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace, dev::rpc::NetFace> >(
+      new dev::rpc::Test(node_), new dev::rpc::Taraxa(node_), new dev::rpc::Net(node_));
   auto rpc_server(
       std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
   rpc_->addConnector(rpc_server);
