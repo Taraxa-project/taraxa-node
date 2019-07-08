@@ -138,6 +138,9 @@ void FullNode::initDB(bool destroy_db) {
   // store genesis blk to db
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
   db_blks_->commit();
+  // Initilize DAG genesis at DAG block heigh 0
+  pbft_chain_->pushDagBlockHashIntoArray(genesis.getHash());
+  pbft_chain_->pushDagBlockHashIntoMap(genesis.getHash());
   // store pbft chain genesis(HEAD) block to db
   db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                      pbft_chain_->getJsonStr());
@@ -796,6 +799,12 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
     LOG(log_deb_) << "Reset 2t+1 " << two_t_plus_one << " Threshold "
                   << sortition_threshold;
+    // update DAG blocks order and DAG blocks map
+    for (auto const& dag_blk_hash :
+        pbft_block.getScheduleBlock().getSchedule().blk_order) {
+      pbft_chain_->pushDagBlockHashIntoArray(dag_blk_hash);
+      pbft_chain_->pushDagBlockHashIntoMap(dag_blk_hash);
+    }
   }
   // TODO: push other type pbft block into pbft chain
 

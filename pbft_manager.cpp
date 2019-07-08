@@ -440,7 +440,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round,
  * and set determine that round p should be the current round...
  */
 size_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
-                                               uint64_t local_round) {
+                                              uint64_t local_round) {
   // TODO: local_round may be able to change to pbft_round_, and remove local_round
   // tally next votes by round
   // <vote_round, count>, round store in reverse order
@@ -790,6 +790,13 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       }
       LOG(log_deb_) << "Reset 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
                     << sortition_threshold_;
+      // update DAG blocks order and DAG blocks map
+      for (auto const& dag_blk_hash :
+           pbft_block.first.getScheduleBlock().getSchedule().blk_order) {
+        pbft_chain_->pushDagBlockHashIntoArray(dag_blk_hash);
+        pbft_chain_->pushDagBlockHashIntoMap(dag_blk_hash);
+      }
+
       return true;
     }
   }  // TODO: more pbft block type

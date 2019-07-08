@@ -233,6 +233,9 @@ class PbftChain {
   std::string getGenesisStr() const;
   std::string getJsonStr() const;
   dev::Logger& getLoggerErr() { return log_err_; }
+  std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
+  std::pair<uint64_t, bool> getDagBlockHeight(
+      blk_hash_t const& dag_block_hash);
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
@@ -244,6 +247,8 @@ class PbftChain {
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
+  void pushDagBlockHashIntoArray(blk_hash_t const& dag_block_hash);
+  void pushDagBlockHashIntoMap(blk_hash_t const& dag_block_hash);
 
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
@@ -265,6 +270,9 @@ class PbftChain {
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_queue_; // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
+  std::vector<blk_hash_t> dag_blocks_order_; // DAG genesis at index 0
+  // map<dag_block_hash, block_number> DAG genesis is block height 0
+  std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_CHAIN")};
