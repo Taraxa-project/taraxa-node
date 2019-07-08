@@ -56,6 +56,7 @@ struct StateDBConfig {
 
 struct VmConfig {
   StateDBConfig readDB;
+  bool disableEthereumBlockReward;
 
   boost::property_tree::ptree toPtree() const;
   void fromPtree(const boost::property_tree::ptree &ptree);
@@ -112,9 +113,9 @@ struct StateTransitionResult {
 struct Transaction {
   std::optional<dev::Address> to;
   dev::Address from;
-  dev::u256 nonce;
+  uint64_t nonce;
   dev::u256 amount;
-  dev::u256 gasLimit;
+  uint64_t gasLimit;
   dev::u256 gasPrice;
   dev::bytes data;
   dev::h256 hash;
@@ -128,7 +129,7 @@ struct Block {
   dev::u256 number;
   dev::u256 difficulty;
   int64_t time;
-  dev::u256 gasLimit;
+  uint64_t gasLimit;
   dev::h256 hash;
   std::vector<Transaction> transactions;
 

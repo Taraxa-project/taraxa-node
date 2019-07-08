@@ -36,18 +36,45 @@ auto g_mock_dag0 = samples::createMockDag0();
 auto g_test_account =
     samples::createTestAccountTable("core_tests/account_table.txt");
 
+void send1000trx() {
+  auto pattern = R"(
+      curl -s -m 10 -d \
+      '{
+        "jsonrpc": "2.0",
+        "method": "send_coin_transaction",
+        "id": "0",
+        "params": [
+          {
+            "nonce": 0,
+            "value": 0,
+            "gas": "%s",
+            "gas_price": "%s",
+            "receiver": "%s",
+            "secret": "%s"
+          }
+        ]
+      }' 0.0.0.0:7777 &>/dev/null
+    )";
+  for (auto i = 0; i < 1000; ++i) {
+    system(fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
+               addr_t::random(),
+               samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure())
+               .c_str());
+  }
+}
+
 TEST(Top, top_reset) {
   std::cout << "Print g_test_account \n";
-  for (auto const& i : g_test_account) {
+  for (auto const &i : g_test_account) {
     std::cout << i.first << " " << i.second << std::endl;
   }
-  const char* input1[] = {"./build/main",
+  const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
                           "-v",
                           "0",
                           "--destroy_db"};
-  const char* input2[] = {"./build/main2",
+  const char *input2[] = {"./build/main2",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa2.json",
                           "-v",
@@ -56,7 +83,7 @@ TEST(Top, top_reset) {
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -90,7 +117,7 @@ TEST(Top, top_reset) {
     t1.join();
     t2.join();
     std::cout << "All trxs sent..." << std::endl;
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -164,7 +191,7 @@ TEST(Top, top_reset) {
     t1.join();
     t2.join();
     std::cout << "All trxs sent..." << std::endl;
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
   num_vertices1 = node1->getNumVerticesInDag();
@@ -198,7 +225,7 @@ TEST(Top, top_reset) {
   try {
     std::cout << "main2 deleted ..." << std::endl;
     system("rm -f ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
@@ -295,15 +322,15 @@ TEST(FullNode, full_node_reset) {
 }
 
 TEST(Top, sync_five_nodes_simple) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
+  const char *input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-  const char* input2[] = {"./build/main2", "--conf_taraxa",
+  const char *input2[] = {"./build/main2", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
-  const char* input3[] = {"./build/main3", "--conf_taraxa",
+  const char *input3[] = {"./build/main3", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
-  const char* input4[] = {"./build/main4", "--conf_taraxa",
+  const char *input4[] = {"./build/main4", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
-  const char* input5[] = {"./build/main5", "--conf_taraxa",
+  const char *input5[] = {"./build/main5", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
 
   // copy main2, main3, main4, main5
@@ -316,7 +343,7 @@ TEST(Top, sync_five_nodes_simple) {
     system("cp ./build/main ./build/main4");
     std::cout << "Copying main5 ..." << std::endl;
     system("cp ./build/main ./build/main5");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -356,20 +383,20 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_NE(node5, nullptr);
 
   // set balance
-  bal_t bal(9007199254740991);
+  //  bal_t bal(9007199254740991);
   // transfer some coins to your friends ...
-  Transaction trx1to2(0, 1000000000000, val_t(0), val_t(0),
+  Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
-                      bytes(), g_secret);
-  Transaction trx1to3(0, 1000000000000, val_t(0), val_t(0),
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+  Transaction trx1to3(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
-                      bytes(), g_secret);
-  Transaction trx1to4(0, 1000000000000, val_t(0), val_t(0),
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+  Transaction trx1to4(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
-                      bytes(), g_secret);
-  Transaction trx1to5(0, 1000000000000, val_t(0), val_t(0),
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+  Transaction trx1to5(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
-                      bytes(), g_secret);
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
   node1->insertTransaction(trx1to2);
   node1->insertTransaction(trx1to3);
   node1->insertTransaction(trx1to4);
@@ -428,7 +455,7 @@ TEST(Top, sync_five_nodes_simple) {
     t5.join();
     std::cout << "All trxs sent..." << std::endl;
 
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -525,7 +552,7 @@ TEST(Top, sync_five_nodes_simple) {
     system("rm -f ./build/main3");
     std::cout << "main2 deleted ..." << std::endl;
     system("rm -f ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
@@ -609,7 +636,7 @@ TEST(Top, create_top_level_db) {
   {
     dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
 
-    const char* inputs[] = {"./build/main", "--conf_taraxa",
+    const char *inputs[] = {"./build/main", "--conf_taraxa",
                             "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
@@ -626,7 +653,7 @@ TEST(Top, create_top_level_db) {
 
 TEST(Top, create_top_memory_db) {
   {
-    const char* inputs[] = {"./build/main", "--conf_taraxa",
+    const char *inputs[] = {"./build/main", "--conf_taraxa",
                             "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
     Top top(5, inputs);
     taraxa::thisThreadSleepForSeconds(1);
@@ -651,8 +678,8 @@ TEST(Top, reconstruct_dag) {
   {
     boost::asio::io_context context;
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-    auto node(
-        std::make_shared<taraxa::FullNode>(context, conf, true));  // destroy DB
+    auto node(std::make_shared<taraxa::FullNode>(context, conf,
+                                                 true));  // destroy DB
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -702,7 +729,7 @@ TEST(Top, reconstruct_dag) {
 }
 
 TEST(Top, sync_two_nodes1) {
-  const char* input1[] = {"./build/main",
+  const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
                           "-v",
@@ -719,14 +746,14 @@ TEST(Top, sync_two_nodes1) {
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
   top1.stop();
   top1.start(6, input1);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
-  const char* input2[] = {"./build/main2",
+  const char *input2[] = {"./build/main2",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa2.json",
                           "-v",
@@ -741,10 +768,10 @@ TEST(Top, sync_two_nodes1) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    system("./core_tests/scripts/curl_send_1000_trx.sh");
+    send1000trx();
     std::cout << "1000 trxs sent ..." << std::endl;
 
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -771,13 +798,13 @@ TEST(Top, sync_two_nodes1) {
   try {
     std::cout << "main2 deleted ..." << std::endl;
     system("rm -f ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
 
 TEST(Top, sync_two_nodes2) {
-  const char* input1[] = {"./build/main",
+  const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
                           "-v",
@@ -793,10 +820,10 @@ TEST(Top, sync_two_nodes2) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    system("./core_tests/scripts/curl_send_1000_trx.sh");
+    send1000trx();
     std::cout << "1000 trxs sent ..." << std::endl;
 
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -808,11 +835,11 @@ TEST(Top, sync_two_nodes2) {
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
-  const char* input2[] = {"./build/main2",
+  const char *input2[] = {"./build/main2",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa2.json",
                           "-v",
@@ -846,7 +873,7 @@ TEST(Top, sync_two_nodes2) {
   try {
     std::cout << "main2 deleted ..." << std::endl;
     system("rm -f ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
@@ -887,16 +914,20 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, initbal);
 
-  auto transactions = samples::createTrxRandomUniqueSenders(NUM_TRX);
+  std::vector<Transaction> transactions;
+  for (auto i = 0; i < NUM_TRX; ++i) {
+    transactions.emplace_back(
+        samples::TX_GEN.getWithRandomUniqueSender(i * 100, addr_t((i + 1) * 100)));
+  }
   {
     auto state = node->getAccsDB()->getState<boost::unique_lock>();
-    for (auto const& t : transactions) {
+    for (auto const &t : transactions) {
       state->addBalance(t.getSender(), t.getValue());
     }
     state->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
     state->db().commit();
   }
-  for (auto const& t : transactions) {
+  for (auto const &t : transactions) {
     node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
@@ -949,14 +980,14 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   node->stop();
   auto coin_distributed = 0;
   auto state = node->getAccsDB()->getState<boost::shared_lock>();
-  for (auto const& t : g_trx_signed_samples) {
-    //    auto res = state->balance(t.getReceiver());
-    //    EXPECT_TRUE(res.second);
-    EXPECT_EQ(state->balance(t.getReceiver()), t.getValue());
-    coin_distributed += res.first;
+  for (auto const &t : g_trx_signed_samples) {
+    auto res = state->balance(t.getReceiver());
+    EXPECT_EQ(res, t.getValue());
+    coin_distributed += res;
   }
-  res = node->getBalance(acc1);
-  EXPECT_EQ(res.first, initbal - coin_distributed);
+  // TODO because of the nonce rule, testing distributing coins
+  // from single account requires more thought
+  //  EXPECT_EQ(state->balance(acc1), initbal - coin_distributed);
 }
 
 TEST(FullNode, send_and_receive_out_order_messages) {
@@ -1088,7 +1119,7 @@ TEST(FullNode, save_network_to_file) {
 TEST(FullNode, receive_send_transaction) {
   boost::asio::io_context context1;
 
-  const char* input1[] = {"./build/main", "--conf_taraxa",
+  const char *input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top1(5, input1);
   EXPECT_TRUE(top1.isActive());
@@ -1101,8 +1132,8 @@ TEST(FullNode, receive_send_transaction) {
       new boost::asio::io_context::work(context1));
 
   try {
-    system("./core_tests/scripts/curl_send_1000_trx.sh");
-  } catch (std::exception& e) {
+    send1000trx();
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
@@ -1146,8 +1177,8 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   node1->setBlockProposeThresholdBeta(2048);
 
   try {
-    system("./core_tests/scripts/curl_send_1000_trx.sh");
-  } catch (std::exception& e) {
+    send1000trx();
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
@@ -1166,35 +1197,35 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
 }
 
 TEST(Top, sortition_propose_five_nodes) {
-  const char* input1[] = {
+  const char *input1[] = {
       "./build/main",
       "--conf_taraxa",
       "./core_tests/conf/sortition_propose_block/conf_taraxa1.json",
       "-v",
       "0",
       "--destroy_db"};
-  const char* input2[] = {
+  const char *input2[] = {
       "./build/main2",
       "--conf_taraxa",
       "./core_tests/conf/sortition_propose_block/conf_taraxa2.json",
       "-v",
       "0",
       "--destroy_db"};
-  const char* input3[] = {
+  const char *input3[] = {
       "./build/main3",
       "--conf_taraxa",
       "./core_tests/conf/sortition_propose_block/conf_taraxa3.json",
       "-v",
       "0",
       "--destroy_db"};
-  const char* input4[] = {
+  const char *input4[] = {
       "./build/main4",
       "--conf_taraxa",
       "./core_tests/conf/sortition_propose_block/conf_taraxa4.json",
       "-v",
       "0",
       "--destroy_db"};
-  const char* input5[] = {
+  const char *input5[] = {
       "./build/main5",
       "--conf_taraxa",
       "./core_tests/conf/sortition_propose_block/conf_taraxa5.json",
@@ -1212,7 +1243,7 @@ TEST(Top, sortition_propose_five_nodes) {
     system("cp ./build/main ./build/main4");
     std::cout << "Copying main5 ..." << std::endl;
     system("cp ./build/main ./build/main5");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
   Top top1(6, input1);
@@ -1244,20 +1275,20 @@ TEST(Top, sortition_propose_five_nodes) {
   auto node5 = top5.getNode();
 
   // set balance
-  bal_t bal(9007199254740991);
+  //  bal_t bal(9007199254740991);
   // transfer some coins to your friends ...
-  Transaction trx1to2(0, 1000000000000, val_t(0), val_t(0),
+  Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
-                      bytes(), g_secret);
-  Transaction trx1to3(0, 1000000000000, val_t(0), val_t(0),
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+  Transaction trx1to3(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
-                      bytes(), g_secret);
-  Transaction trx1to4(0, 1000000000000, val_t(0), val_t(0),
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+  Transaction trx1to4(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
-                      bytes(), g_secret);
-  Transaction trx1to5(0, 1000000000000, val_t(0), val_t(0),
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+  Transaction trx1to5(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
-                      bytes(), g_secret);
+                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
   node1->insertTransaction(trx1to2);
   node1->insertTransaction(trx1to3);
   node1->insertTransaction(trx1to4);
@@ -1311,7 +1342,7 @@ TEST(Top, sortition_propose_five_nodes) {
     t5.join();
     std::cout << "All trxs sent..." << std::endl;
 
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -1406,14 +1437,14 @@ TEST(Top, sortition_propose_five_nodes) {
     system("rm -f ./build/main3");
     std::cout << "main2 deleted ..." << std::endl;
     system("rm -f ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
 
 }  // namespace taraxa
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;

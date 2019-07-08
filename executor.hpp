@@ -29,6 +29,9 @@ namespace taraxa {
 class FullNode;
 class Executor {
  public:
+  inline static const auto MOCK_BLOCK_GAS_LIMIT =
+      std::numeric_limits<uint64_t>::max();
+
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
   Executor() {}
@@ -39,9 +42,14 @@ class Executor {
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();
   void clear();
-  bool execute(TrxSchedule const& schedule,
+  bool execute(
+      TrxSchedule const& schedule,
       std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
-  bool executeBlkTrxs(blk_hash_t const& blk,
+  bool executeBlkTrxs(
+      blk_hash_t const& blk,
+      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
+  bool coinTransfer(
+      Transaction const& trx,
       std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
 
  private:

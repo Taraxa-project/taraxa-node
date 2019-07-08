@@ -234,7 +234,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
   // vm
-  std::shared_ptr<vm::TaraxaVM> taraxaVM = nullptr;
+  std::shared_ptr<vm::TaraxaVM> taraxa_vm_ = nullptr;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;

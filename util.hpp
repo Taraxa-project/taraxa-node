@@ -217,8 +217,8 @@ constexpr char *cgo_str(const std::string &str) {
 }
 
 // Boost serializes everything as string
-inline std::string unquote_numbers(const std::string &json_str) {
-  std::regex re(R"(\"([0-9]+\.{0,1}[0-9]*)\")");
+inline std::string unquote_non_str_literals(const std::string &json_str) {
+  std::regex re(R"(\"(true|false|[0-9]+\.{0,1}[0-9]*)\")");
   return std::regex_replace(json_str, re, "$1");
 }
 
@@ -229,7 +229,7 @@ inline std::string toJsonObjectString(const boost::property_tree::ptree &p) {
   std::stringstream stream;
   // Note: boost appends a newline
   write_json(stream, p, false);
-  return unquote_numbers(stream.str());
+  return unquote_non_str_literals(stream.str());
 }
 
 // Boost can't handle top-level arrays
@@ -249,8 +249,13 @@ inline std::string toJsonArrayString(const boost::property_tree::ptree &p) {
 }
 
 template <typename T>
-inline void append(boost::property_tree::ptree &ptree, const T &value) {
+void append(boost::property_tree::ptree &ptree, const T &value) {
   ptree.push_back(make_pair("", value));
+}
+
+template <typename... TS>
+std::string fmt(const std::string &pattern, const TS &... args) {
+  return (boost::format(pattern) % ... % args).str();
 }
 
 }  // namespace taraxa

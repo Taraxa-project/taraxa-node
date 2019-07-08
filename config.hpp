@@ -55,12 +55,24 @@ struct FullNodeConfig {
   RpcConfig rpc;
   TestParamsConfig test_params;
 
-  std::string account_db_path();
-  std::string block_db_path();
-  std::string block_index_db_path();
-  std::string transactions_db_path();
-  std::string pbft_votes_db_path();
-  std::string pbft_chain_db_path();
+  auto account_db_path() {
+    return db_path + "/acc";
+  }
+  auto block_db_path() {
+    return db_path + "/blk";
+  }
+  auto block_index_db_path() {
+    return db_path + "/blk_index";
+  }
+  auto transactions_db_path() {
+    return db_path + "/trx";
+  }
+  auto pbft_votes_db_path() {
+    return db_path + "/pbftvotes";
+  }
+  auto pbft_chain_db_path() {
+    return db_path + "/pbftchain";
+  }
 };
 
 std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);

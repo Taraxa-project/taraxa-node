@@ -1,7 +1,6 @@
 include_guard()
 include(${PROJECT_SOURCE_DIR}/cmake/external_lib.cmake)
 
-#set(taraxa_vm_GO_MODULE ~/projects/taraxa.io/taraxa-evm/main)
 set(taraxa_vm_GO_MODULE ${PROJECT_SOURCE_DIR}/submodules/taraxa-evm/main)
 set(taraxa_vm_CGO_LIB_FILE ${PROJECT_SOURCE_DIR}/vm/cgo/generated/taraxa_vm_cgo.a)
 external_lib(taraxa_vm_cgo STATIC ${taraxa_vm_CGO_LIB_FILE}

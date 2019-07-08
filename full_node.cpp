@@ -107,9 +107,8 @@ void FullNode::initDB(bool destroy_db) {
     assert(db_blks_);
   }
   if (db_blks_index_ == nullptr) {
-    db_blks_index_ =
-        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-            conf_.block_index_db_path(), destroy_db);
+    db_blks_index_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.block_index_db_path(), destroy_db);
     assert(db_blks_index_);
   }
   if (db_trxs_ == nullptr) {
@@ -224,10 +223,11 @@ void FullNode::start(bool boot_node) {
   if (!db_inited_) {
     initDB(false);
   }
-  taraxaVM = vm::TaraxaVM::fromConfig({
+  taraxa_vm_ = vm::TaraxaVM::fromConfig({
       vm::StateDBConfig{
           vm::DBConfig::fromTaraxaStateDB(*db_accs_),
       },
+      true,
   });
   stopped_ = false;
   // order depend, be careful when changing the order
@@ -310,7 +310,7 @@ void FullNode::stop() {
   trx_mgr_->stop();
   pbft_mgr_->stop();
   executor_->stop();
-  taraxaVM = nullptr;
+  taraxa_vm_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
@@ -338,7 +338,7 @@ bool FullNode::reset() {
   vote_queue_ = nullptr;
   pbft_mgr_ = nullptr;
   pbft_chain_ = nullptr;
-  taraxaVM = nullptr;
+  taraxa_vm_ = nullptr;
 
   assert(network_.use_count() == 0);
   // dag

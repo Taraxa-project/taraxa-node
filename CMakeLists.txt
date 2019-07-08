@@ -35,6 +35,7 @@ add_compile_definitions(BOOST_LOG_DYN_LINK ETH_FATDB)
 include_directories(
         ${Boost_INCLUDE_DIR}
         ${Protobuf_INCLUDE_DIR}
+        /usr/include/jsoncpp
         .
         submodules
         submodules/rapidjson/include
@@ -70,6 +71,9 @@ link_libraries(
         boost_thread-mt
         z
         curl
+        jsoncpp
+        jsonrpccpp-common
+        jsonrpccpp-server
         #       CMAKE library targets
         taraxa_vm_cgo
         secp256k1
@@ -130,6 +134,23 @@ add_library(p2p_objects OBJECT
         libp2p/UDP.cpp
         libp2p/UPnP.cpp)
 
+add_library(web3jsonrpc OBJECT
+        libweb3jsonrpc/AdminNet.cpp
+        libweb3jsonrpc/IpcServerBase.cpp
+        libweb3jsonrpc/Net.cpp
+        libweb3jsonrpc/SessionManager.cpp
+        libweb3jsonrpc/UnixSocketServer.cpp
+        libweb3jsonrpc/JsonHelper.cpp
+        libweb3jsonrpc/Test.cpp
+        libweb3jsonrpc/AdminTaraxa.cpp
+        libweb3jsonrpc/Debug.cpp
+        libweb3jsonrpc/Taraxa.cpp
+        libweb3jsonrpc/Personal.cpp
+        libweb3jsonrpc/RpcServer.cpp
+        #	libweb3jsonrpc/JsonHelper.cpp
+        #	libweb3jsonrpc/AccountHolder.pp
+        )
+
 add_library(node_objects OBJECT
         rocks_db.cpp
         dag_block.cpp
@@ -141,7 +162,6 @@ add_library(node_objects OBJECT
         visitor.cpp
         dag.cpp
         block_proposer.cpp
-        rpc.cpp
         grpc_client.cpp
         grpc_server.cpp
         grpc_util.cpp
@@ -165,16 +185,18 @@ add_library(node_objects OBJECT
         SimpleOverlayDBDelegate.cpp
         vm/TaraxaVM.cpp)
 
-set(main_deps_objects $<TARGET_OBJECTS:node_objects> $<TARGET_OBJECTS:p2p_objects>)
+set(main_deps_objects
+        $<TARGET_OBJECTS:node_objects>
+        $<TARGET_OBJECTS:p2p_objects>
+        $<TARGET_OBJECTS:web3jsonrpc>)
 add_library(main_objects OBJECT main.cpp)
 add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
-
 #cotire(node_objects p2p_objects main_objects)
 
 enable_testing()
 set(CORE_TESTS
         crypto_test
-#        pbft_rpc_test
+        #        pbft_rpc_test
         memorydb_test
         overlaydb_test
         statecachedb_test
@@ -206,7 +228,7 @@ add_library(trie_test_objects OBJECT
         crypto_tests/trie_test.cpp)
 
 foreach (t ${ALL_TESTS})
-#    cotire(${t}_objects)
+    #    cotire(${t}_objects)
     add_executable(${t} ${main_deps_objects} $<TARGET_OBJECTS:${t}_objects>)
     add_dependencies(${t} main)
     add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

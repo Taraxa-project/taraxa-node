@@ -3,6 +3,7 @@
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
 #include "../pbft_manager.hpp"
+#include "core_tests/create_samples.hpp"
 #include "types.hpp"
 
 using namespace std;
@@ -227,13 +228,10 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       uint seed = param1["seed"].asUInt();
       bytes data;
       // get trx receiving time stamp
-      uint rnd = 1234567891;
       for (auto i = 0; i < number; ++i) {
-        uint t = seed + i + 31432;
-        rnd = t ^ (rnd <<= 2);
         auto now = getCurrentTimeMilliSeconds();
-        taraxa::Transaction trx(rnd, rnd, val_t(i + seed), val_t(i + seed),
-                                addr_t(i * seed), data, sk);
+        auto trx = samples::TX_GEN.getWithRandomUniqueSender(
+            0, addr_t((i + 1) * 100), data);
         LOG(log_time) << "Transaction " << trx.getHash()
                       << " received at: " << now;
         node->insertTransaction(trx);
@@ -444,9 +442,9 @@ Json::Value Test::place_vote(const Json::Value &param1) {
       size_t step = param1["step"].asUInt();
 
       // put vote into vote queue
-      //node->placeVote(blockhash, type, period, step);
+      // node->placeVote(blockhash, type, period, step);
       // broadcast vote
-      //node->broadcastVote(blockhash, type, period, step);
+      // node->broadcastVote(blockhash, type, period, step);
 
       res = "Place vote successfully";
     }
