@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:vm-integration
+ARG BASE_IMAGE=541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base
 FROM $BASE_IMAGE as builder
 #FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
 ENV APP_PATH /opt/taraxa/taraxa-node

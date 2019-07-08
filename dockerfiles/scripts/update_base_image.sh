@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOCKER_IMAGE="541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:vm-integration"
+DOCKER_IMAGE="541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base"
 
 set -e
 
