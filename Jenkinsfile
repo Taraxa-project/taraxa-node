@@ -7,7 +7,6 @@ pipeline {
         BASE_IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
-        BRANCH_NAME_LOWER_CASE = sh(script: 'echo "${BRANCH_NAME}" | tr "[:upper:]" "[:lower:]"', , returnStdout: true).trim()
         DOCKER_BRANCH_TAG = sh(script: '$(./dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}")', , returnStdout: true).trim()
     }
     stages {
@@ -33,7 +32,7 @@ pipeline {
                 sh '''
                     git submodule update --init --recursive
                     docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
-                    -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} \
+                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
                     --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
                     -f dockerfiles/Dockerfile .
                 '''
@@ -42,9 +41,9 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh 'docker network create --driver=bridge \
-                    smoke-test-net-${BRANCH_NAME_LOWER_CASE}'
-                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${BRANCH_NAME_LOWER_CASE} ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER}'
-                sh ''' docker run --rm --net smoke-test-net-${BRANCH_NAME_LOWER_CASE} byrnedo/alpine-curl -d \"{
+                    smoke-test-net-${DOCKER_BRANCH_TAG}'
+                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
+                sh ''' docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG} byrnedo/alpine-curl -d \"{
                         \"jsonrpc\": \"2.0\",
                         \"id\":\"0\",
                         \"method\": \"insert_stamped_dag_block\",
@@ -66,8 +65,8 @@ pipeline {
         stage('Push Docker Image') {
             when {branch 'master'}
             steps {
-                sh 'docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}'
                 sh 'docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
                 sh 'docker push ${REGISTRY}/${IMAGE}'
             }
