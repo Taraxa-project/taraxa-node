@@ -24,16 +24,17 @@ pipeline {
                 }
             }
             steps {
-                sh 'git clean -dfx && git submodule foreach git clean -dfx'
-                sh 'git submodule deinit -f --all && git submodule update --init --recursive'
-                sh 'rm -rf build && mkdir build && cd build && cmake .. && cmake --build . --target run_test -j `nproc`'
-            }                    
-        }            
+                sh 'git submodule update --init --recursive'
+                sh '''
+                    rm -rf build && mkdir build && cd build && cmake ..\
+                    && cmake --build . --target run_test -j `nproc`
+                '''
+            }
+        }
         stage('Build Docker Image') {
             steps {
-                sh 'git clean -dfx && git submodule foreach git clean -dfx'
-                sh 'git submodule deinit -f --all && git submodule update --init --recursive'
                 sh '''
+                    git submodule update --init --recursive
                     docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} \
                     --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
