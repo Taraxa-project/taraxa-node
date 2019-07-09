@@ -8,7 +8,7 @@ pipeline {
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
         BRANCH_NAME_LOWER_CASE = sh(script: 'echo "${BRANCH_NAME}" | tr "[:upper:]" "[:lower:]"', , returnStdout: true).trim()
-        DOCKER_BRANCH_TAG = sh(script: '$(./dockerfiles/scripts/current_docker_tag.sh)', , returnStdout: true).trim()
+        DOCKER_BRANCH_TAG = sh(script: '$(./dockerfiles/scripts/docker_tag_from_branch.sh ${BRANCH_NAME})', , returnStdout: true).trim()
     }
     stages {
         stage('Docker Registry Login') {
