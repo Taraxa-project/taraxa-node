@@ -1,3 +1,17 @@
+def branchSlug(branch='') {
+  def slug = ""
+  if (branch == '') {
+    try {
+        branch = env.BRANCH_NAME
+    } catch (e) {
+        echo "BRANCH_NAME not in scope, probably triggered from another job"
+    }
+  }
+  slug = branch.toLowerCase()
+  slug = slug.replaceAll(/origin\//, "").replaceAll(/\W/, "-")
+  return slug
+}
+
 pipeline {
     agent any
     environment {
@@ -6,7 +20,7 @@ pipeline {
         IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
-        BRANCH_NAME_LOWER_CASE = sh(script: 'echo "${BRANCH_NAME}" | tr "[:upper:]" "[:lower:]"', , returnStdout: true).trim()
+        DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
     }
     stages {
         stage('Docker Registry Login') {
@@ -17,15 +31,15 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'docker pull ${REGISTRY}/${IMAGE}|| echo "Image not found"'
-                sh 'docker build --pull --cache-from=${REGISTRY}/${IMAGE} -t ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
+                sh 'docker build --pull --cache-from=${REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }
         }
         stage('Push Docker Image') {
             when { branch 'master' }
             steps {
                 sh '''
-                  docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
-                  docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER}
+                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
+                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}
                   docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
                   docker push ${REGISTRY}/${IMAGE}
                 '''
@@ -35,8 +49,8 @@ pipeline {
             when { not { branch 'master' } }
             steps {
               sh '''
-                docker tag ${IMAGE}-${BRANCH_NAME_LOWER_CASE}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BRANCH_NAME_LOWER_CASE}
-                docker push ${REGISTRY}/${IMAGE}:${BRANCH_NAME_LOWER_CASE}
+                docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${DOCKER_BRANCH_TAG}
+                docker push ${REGISTRY}/${IMAGE}:${DOCKER_BRANCH_TAG}
               '''
             }
         }
