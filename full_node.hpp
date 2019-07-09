@@ -173,7 +173,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
   auto getAccsDB() const { return db_accs_; }
   std::shared_ptr<SimpleDBFace> getBlkIndexDB() const { return db_blks_index_; }
-  auto getVM() const { return taraxaVM; }
+  auto getVM() const { return taraxa_vm_; }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
