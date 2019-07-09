@@ -20,7 +20,7 @@ pipeline {
         IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
-        DOCKER_BRANCH_TAG = sh(script: '$(./dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}")', , returnStdout: true).trim()
+        DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
     }
     stages {
         stage('Docker Registry Login') {
