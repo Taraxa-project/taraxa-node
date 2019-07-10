@@ -597,13 +597,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_deb_) << "Into propose anchor block";
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
-    // define pivot block in DAG
+    // choose the last DAG block as PBFT pivot block in this period
     std::vector<std::string> ghost;
     full_node->getGhostPath(Dag::GENESIS, ghost);
     blk_hash_t dag_block_hash(ghost.back());
     // compare with last dag block hash. If they are same, which means no new
     // dag blocks generated since last round In that case PBFT proposer should
-    // propose NULL BLOCK HASH as their value and not produce a new block In
+    // propose NULL BLOCK HASH as their value and not produce a new block. In
     // practice this should never happen
     std::pair<PbftBlock, bool> last_round_pbft_anchor_block =
         pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
@@ -647,12 +647,20 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
     blk_hash_t dag_block_hash =
         last_pbft_block.first.getPivotBlock().getDagBlockHash();
+
     // get dag blocks order
     uint64_t pbft_chain_period;
     std::shared_ptr<vec_blk_t> dag_blocks_order;
     std::tie(pbft_chain_period, dag_blocks_order) =
         full_node->getDagBlockOrder(dag_block_hash);
-    // generate fake transaction schedule
+
+    // TODO: get transactions overlap table, we haven't have yet.
+//    std::shared_ptr<std::vector<std::pair<blk_hash_t, vector<bool>>>>
+//        trx_overlap_table =
+//            full_node->getTransactionOverlapTable(
+//                std::shared_ptr<vec_blk_t> dag_blocks_order);
+
+    // TODO: generate fake transaction schedule for now, will pass trx_overlap_table to VM
     auto schedule = full_node->createMockTrxSchedule(dag_blocks_order);
     if (schedule == nullptr) {
       LOG(log_deb_) << "There is no any new transactions.";
@@ -757,11 +765,19 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       updatePbftChainDB_(pbft_block.first);
       LOG(log_deb_) << "Successful push pbft anchor block "
                     << pbft_block.first.getBlockHash() << " into chain!";
-      // Update block Dag period
+      // get dag blocks order
       blk_hash_t dag_block_hash =
           pbft_block.first.getPivotBlock().getDagBlockHash();
-      uint64_t pbft_chain_period = pbft_block.first.getPivotBlock().getPeriod();
-      full_node->setDagBlockOrder(dag_block_hash, pbft_chain_period);
+      uint64_t current_period;
+      std::shared_ptr<vec_blk_t> dag_blocks_order;
+      std::tie(current_period, dag_blocks_order) =
+          full_node->getDagBlockOrder(dag_block_hash);
+
+      // update DAG blocks order and DAG blocks map
+      for (auto const& dag_blk_hash : *dag_blocks_order) {
+        pbft_chain_->pushDagBlockHashIntoArray(dag_blk_hash);
+        pbft_chain_->pushDagBlockHashIntoMap(dag_blk_hash);
+      }
 
       return true;
     }
@@ -770,6 +786,23 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       updatePbftChainDB_(pbft_block.first);
       LOG(log_deb_) << "Successful push pbft schedule block "
                     << pbft_block.first.getBlockHash() << " into chain!";
+
+      // set DAG blocks period
+      blk_hash_t last_pivot_block_hash = pbft_chain_->getLastPbftPivotHash();
+      std::pair<PbftBlock, bool> last_pivot_block =
+          pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
+      if (!last_pivot_block.second) {
+        LOG(log_err_) << "Cannot find the last pivot block hash "
+                      << last_pivot_block_hash
+                      << " in pbft chain. Should never happen here!";
+        assert(false);
+      }
+      blk_hash_t dag_block_hash =
+          last_pivot_block.first.getPivotBlock().getDagBlockHash();
+      uint64_t current_pbft_chain_period =
+          last_pivot_block.first.getPivotBlock().getPeriod();
+      full_node->setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+
       // execute schedule block
       // TODO: VM executor will not take sortition_account_balance_table as reference.
       //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
@@ -779,6 +812,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
         LOG(log_err_) << "Failed to execute schedule block";
         // TODO: If valid transaction failed execute, how to do?
       }
+
       // reset sortition_threshold and TWO_T_PLUS_ONE
       size_t accounts = sortition_account_balance_table.size();
       if (COMMITTEE_SIZE <= accounts) {
@@ -790,12 +824,6 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       }
       LOG(log_deb_) << "Reset 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
                     << sortition_threshold_;
-      // update DAG blocks order and DAG blocks map
-      for (auto const& dag_blk_hash :
-           pbft_block.first.getScheduleBlock().getSchedule().blk_order) {
-        pbft_chain_->pushDagBlockHashIntoArray(dag_blk_hash);
-        pbft_chain_->pushDagBlockHashIntoMap(dag_blk_hash);
-      }
 
       return true;
     }
