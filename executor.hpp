@@ -25,6 +25,8 @@ namespace taraxa {
  * be a blocking call.
  */
 class FullNode;
+class DagBlock;
+
 class Executor {
  public:
   using uLock = std::unique_lock<std::mutex>;
@@ -35,11 +37,14 @@ class Executor {
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();
   void clear();
-  bool execute(TrxSchedule const& schedule,
+  bool execute(
+      TrxSchedule const& schedule,
       std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
-  bool executeBlkTrxs(blk_hash_t const& blk,
+  bool executeBlkTrxs(
+      blk_hash_t const& blk,
       std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
-  bool coinTransfer(Transaction const& trx,
+  bool coinTransfer(
+      Transaction const& trx,
       std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
 
  private:
@@ -49,6 +54,7 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_blks_;
   std::shared_ptr<SimpleDBFace> db_trxs_;
   std::shared_ptr<SimpleDBFace> db_accs_;
+  StatusTable<trx_hash_t, bool> excuted_trx_table_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
@@ -56,4 +62,25 @@ class Executor {
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
 };
+
+using TransactionOverlapTable =
+    std::vector<std::pair<blk_hash_t, std::vector<bool>>>;
+enum class TransactionExecStatus { non_ordered, ordered, executed };
+using TransactionExecStatusTable =
+    StatusTable<trx_hash_t, TransactionExecStatus>;
+using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
+
+class TransactionOverlapDetector {
+ public:
+  //   TransactionOverlapDetector(std::shared_ptr<FullNode> node) : node_(node)
+  //   {}
+  std::vector<bool> computeOverlapInBlock(DagBlock const& blk);
+  std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOverlapInBlocks(
+      std::vector<DagBlock> const& blks);
+
+ private:
+  //   std::weak_ptr<FullNode> node_;
+  TransactionExecStatusTable status_;
+};
+
 }  // namespace taraxa

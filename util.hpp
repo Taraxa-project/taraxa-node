@@ -174,6 +174,16 @@ class StatusTable {
     uLock lock(shared_mutex_);
     status_.clear();
   }
+  bool erase(K const &hash) {
+    bool ret = false;
+    upgradableLock lock(shared_mutex_);
+    if (status_.count(hash)) {
+      upgradeLock locked(lock);
+      status_.erase(hash);
+      ret = true;
+    }
+    return ret;
+  }
 
  private:
   boost::shared_mutex shared_mutex_;

@@ -6,6 +6,7 @@
  * @Last Modified time: 2019-03-20 22:11:46
  */
 #include "executor.hpp"
+#include "dag_block.hpp"
 #include "full_node.hpp"
 #include "pbft_manager.hpp"
 #include "util.hpp"
@@ -128,4 +129,28 @@ bool Executor::coinTransfer(
   return true;
 }
 
+std::vector<bool> TransactionOverlapDetector::computeOverlapInBlock(
+    DagBlock const& blk) {
+  auto trxs = blk.getTrxs();
+  std::vector<bool> res;
+  for (auto const& t : trxs) {
+    if (status_.get(t).second == false) {
+      res.emplace_back(true);
+      status_.insert(t, TransactionExecStatus::ordered);
+    } else {
+      res.emplace_back(false);
+    }
+  }
+  assert(trxs.size() == res.size());
+  return res;
+}
+std::shared_ptr<std::vector<TrxOverlapInBlock>>
+TransactionOverlapDetector::computeOverlapInBlocks(
+    std::vector<DagBlock> const& blks) {
+  auto ret = std::make_shared<std::vector<TrxOverlapInBlock>>();
+  for (auto const& b : blks) {
+    ret->emplace_back(std::make_pair(b.getHash(), computeOverlapInBlock(b)));
+  }
+  return ret;
+}
 }  // namespace taraxa
