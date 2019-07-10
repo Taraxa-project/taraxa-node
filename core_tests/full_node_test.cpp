@@ -38,7 +38,7 @@ auto g_test_account =
 
 void send1000trx() {
   auto pattern = R"(
-      curl -s -m 10 -d \
+      curl --silent -m 10 --output /dev/null -d \
       '{
         "jsonrpc": "2.0",
         "method": "send_coin_transaction",
@@ -53,7 +53,7 @@ void send1000trx() {
             "secret": "%s"
           }
         ]
-      }' 0.0.0.0:7777 &>/dev/null
+      }' 0.0.0.0:7777
     )";
   for (auto i = 0; i < 1000; ++i) {
     system(fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
@@ -916,8 +916,8 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   std::vector<Transaction> transactions;
   for (auto i = 0; i < NUM_TRX; ++i) {
-    transactions.emplace_back(
-        samples::TX_GEN.getWithRandomUniqueSender(i * 100, addr_t((i + 1) * 100)));
+    transactions.emplace_back(samples::TX_GEN.getWithRandomUniqueSender(
+        i * 100, addr_t((i + 1) * 100)));
   }
   {
     auto state = node->getAccsDB()->getState<boost::unique_lock>();

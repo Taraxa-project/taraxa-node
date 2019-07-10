@@ -175,7 +175,6 @@ StateTransitionResult TaraxaVM::transitionState(
   ptree argsPtree;
   append(argsPtree, req.toPtree());
   const auto& argsEncoded = toJsonArrayString(argsPtree);
-  cout << argsEncoded << endl;
   char* resultJson = taraxa_cgo_env_Call(
       cgo_str(goAddress), cgo_str("RunLikeEthereum"), cgo_str(argsEncoded));
   const auto& resultPtree = strToJson(string_view(resultJson));
