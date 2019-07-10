@@ -37,11 +37,7 @@ auto g_test_account =
     samples::createTestAccountTable("core_tests/account_table.txt");
 
 TEST(Top, top_reset) {
-  std::cout << "Print g_test_account \n";
-  for (auto const& i : g_test_account) {
-    std::cout << i.first << " " << i.second << std::endl;
-  }
-  const char* input1[] = {"./build/main",
+    const char* input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
                           "-v",
