@@ -11,5 +11,5 @@ external_lib(secp256k1 STATIC ${PROJECT_SOURCE_DIR}/submodules/secp256k1/.libs/l
         --with-asm=no --enable-module-ecdh --enable-module-recovery --enable-experimental
         || true
         COMMAND
-        make
+        $(MAKE)
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/submodules/secp256k1)

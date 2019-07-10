@@ -212,7 +212,7 @@ class Observer : std::enable_shared_from_this<Observer> {
   std::shared_ptr<Subject> subject_;
 };
 
-constexpr char *cgo_str(const std::string &str) {
+inline char *cgo_str(const std::string &str) {
   return const_cast<char *>(str.data());
 }
 
