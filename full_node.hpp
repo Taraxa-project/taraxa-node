@@ -34,6 +34,7 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
+class TransactionOverlapDetector;
 class Executor;
 class Vote;
 class VoteQueue;
@@ -143,7 +144,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
-  // fake trx schedule
+  // get transaction schecules stuff ...
+  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+  getTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff
@@ -240,6 +243,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // ledger
   std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<TransactionOverlapDetector> trx_overlap_detector_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
 

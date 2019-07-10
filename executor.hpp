@@ -70,16 +70,15 @@ using TransactionExecStatusTable =
     StatusTable<trx_hash_t, TransactionExecStatus>;
 using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
+// TODO: the table need to flush out
 class TransactionOverlapDetector {
  public:
-  //   TransactionOverlapDetector(std::shared_ptr<FullNode> node) : node_(node)
-  //   {}
+  void clear() { status_.clear(); }
   std::vector<bool> computeOverlapInBlock(DagBlock const& blk);
   std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOverlapInBlocks(
-      std::vector<DagBlock> const& blks);
+      std::vector<std::shared_ptr<DagBlock>> const& blks);
 
  private:
-  //   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
 };
 

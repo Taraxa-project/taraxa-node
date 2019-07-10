@@ -146,10 +146,10 @@ std::vector<bool> TransactionOverlapDetector::computeOverlapInBlock(
 }
 std::shared_ptr<std::vector<TrxOverlapInBlock>>
 TransactionOverlapDetector::computeOverlapInBlocks(
-    std::vector<DagBlock> const& blks) {
+    std::vector<std::shared_ptr<DagBlock>> const& blks) {
   auto ret = std::make_shared<std::vector<TrxOverlapInBlock>>();
   for (auto const& b : blks) {
-    ret->emplace_back(std::make_pair(b.getHash(), computeOverlapInBlock(b)));
+    ret->emplace_back(std::make_pair(b->getHash(), computeOverlapInBlock(*b)));
   }
   return ret;
 }

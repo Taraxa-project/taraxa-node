@@ -48,6 +48,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
+      trx_overlap_detector_(std::make_shared<TransactionOverlapDetector>()),
       dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -176,7 +177,7 @@ void FullNode::initDB(bool destroy_db) {
   }
   LOG(log_wr_) << "DB initialized ... ";
 }
-// must call close before destroyDB
+// must call close() before destroyDB
 bool FullNode::destroyDB() {
   if (!stopped_) {
     LOG(log_wr_) << "Cannot destroyDb if node is running ...";
@@ -335,6 +336,7 @@ bool FullNode::reset() {
   dag_mgr_ = nullptr;
   blk_mgr_ = nullptr;
   trx_mgr_ = nullptr;
+  trx_overlap_detector_ = nullptr;
   blk_proposer_ = nullptr;
   executor_ = nullptr;
   vote_mgr_ = nullptr;
@@ -348,6 +350,7 @@ bool FullNode::reset() {
   // ledger
   assert(blk_mgr_.use_count() == 0);
   assert(trx_mgr_.use_count() == 0);
+  assert(trx_overlap_detector_.use_count() == 0);
   // block proposer (multi processing)
   assert(blk_proposer_.use_count() == 0);
   // transaction executor
@@ -371,6 +374,7 @@ bool FullNode::reset() {
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
   trx_mgr_ = std::make_shared<TransactionManager>();
+  trx_overlap_detector_ = std::make_shared<TransactionOverlapDetector>();
   dag_mgr_ = std::make_shared<DagManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -582,6 +586,18 @@ uint64_t FullNode::getLatestPeriod() const {
 }
 blk_hash_t FullNode::getLatestAnchor() const {
   return blk_hash_t(dag_mgr_->getLatestAnchor());
+}
+
+std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+FullNode::getTransactionOverlapTable(
+    std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
+  std::vector<std::shared_ptr<DagBlock>> blks;
+  for (auto const &b : *ordered_dag_blocks) {
+    auto dagblk = getDagBlock(b);
+    assert(dagblk);
+    blks.emplace_back(dagblk);
+  }
+  return trx_overlap_detector_->computeOverlapInBlocks(blks);
 }
 
 std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
