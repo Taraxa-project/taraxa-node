@@ -268,6 +268,31 @@ TEST(PbftChain, block_broadcast) {
   t3.join();
 }
 
+TEST(PbftChain, get_dag_block_hash) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+
+  std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
+  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
+  EXPECT_TRUE(dag_genesis_hash.second);
+  DagBlock dag_genesis;
+  EXPECT_EQ(dag_genesis_hash.first, dag_genesis.getHash());
+}
+
+TEST(PbftChain, get_dag_block_height) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+
+  std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
+  DagBlock dag_genesis;
+  std::pair<uint64_t, bool> dag_genesis_height =
+      pbft_chain->getDagBlockHeight(dag_genesis.getHash());
+  EXPECT_TRUE(dag_genesis_height.second);
+  EXPECT_EQ(dag_genesis_height.first, 0);
+}
+
 /*
 // TODO: not done
 TEST(PbftChain, simulate_pbft_execute_round) {

@@ -130,9 +130,14 @@ void FullNode::initDB(bool destroy_db) {
   LOG(log_nf_) << "DB initialized ...";
   db_inited_ = true;
   DagBlock genesis;
+
   // store genesis blk to db
   db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
   db_blks_->commit();
+
+  // Initilize DAG genesis at DAG block heigh 0
+  pbft_chain_->pushDagBlockHash(genesis.getHash());
+
   // store pbft chain genesis(HEAD) block to db
   db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                      pbft_chain_->getJsonStr());
@@ -765,14 +770,36 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       return false;
     }
-    // Update block Dag period
+    // get dag blocks order
     blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
-    uint64_t pbft_chain_period = pbft_block.getPivotBlock().getPeriod();
-    setDagBlockOrder(dag_block_hash, pbft_chain_period);
+    uint64_t current_period;
+    std::shared_ptr<vec_blk_t> dag_blocks_order;
+    std::tie(current_period, dag_blocks_order) =
+        getDagBlockOrder(dag_block_hash);
+    // update DAG blocks order and DAG blocks table
+    for (auto const& dag_blk_hash : *dag_blocks_order) {
+      pbft_chain_->pushDagBlockHash(dag_blk_hash);
+    }
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
       return false;
     }
+    // set Dag blocks period
+    blk_hash_t last_pivot_block_hash =
+        pbft_block.getScheduleBlock().getPrevBlockHash();
+    std::pair<PbftBlock, bool> last_pivot_block =
+        pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
+    if (!last_pivot_block.second) {
+      LOG(log_err_) << "Cannot find the last pivot block hash "
+                    << last_pivot_block_hash
+                    << " in pbft chain. Should never happen here!";
+      assert(false);
+    }
+    blk_hash_t dag_block_hash =
+        last_pivot_block.first.getPivotBlock().getDagBlockHash();
+    uint64_t current_pbft_chain_period =
+        last_pivot_block.first.getPivotBlock().getPeriod();
+    setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
 
     // TODO: VM executor will not take sortition_account_balance_table as
     // reference.
