@@ -773,10 +773,9 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       std::tie(current_period, dag_blocks_order) =
           full_node->getDagBlockOrder(dag_block_hash);
 
-      // update DAG blocks order and DAG blocks map
+      // update DAG blocks order and DAG blocks table
       for (auto const& dag_blk_hash : *dag_blocks_order) {
-        pbft_chain_->pushDagBlockHashIntoArray(dag_blk_hash);
-        pbft_chain_->pushDagBlockHashIntoMap(dag_blk_hash);
+        pbft_chain_->pushDagBlockHash(dag_blk_hash);
       }
 
       return true;

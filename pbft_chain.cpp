@@ -596,15 +596,12 @@ void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
                 << "Pbft queue size: " << pbft_queue_.size();
 }
 
-// DAG genesis at index 0
-void PbftChain::pushDagBlockHashIntoArray(
-    const taraxa::blk_hash_t& dag_block_hash) {
+void PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
+  // push DAG block hash into array. DAG genesis at index 0
   dag_blocks_order_.emplace_back(dag_block_hash);
-}
 
-// map<dag_block_hash, block_number> DAG genesis is block height 0
-void PbftChain::pushDagBlockHashIntoMap(
-    const taraxa::blk_hash_t& dag_block_hash) {
+  // push DAG block hash into map
+  // map<dag_block_hash, block_number> DAG genesis is block height 0
   uint64_t dag_block_height = dag_blocks_map_.size();
   dag_blocks_map_[dag_block_hash] = dag_block_height;
 }

@@ -246,8 +246,7 @@ class PbftChain {
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
-  void pushDagBlockHashIntoArray(blk_hash_t const& dag_block_hash);
-  void pushDagBlockHashIntoMap(blk_hash_t const& dag_block_hash);
+  void pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
@@ -265,6 +264,8 @@ class PbftChain {
   PbftBlockTypes next_pbft_block_type_;
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
+
+  // TODO: Need to think of how to shrink these info(by using LRU cache?), or move to DB
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_queue_; // TODO: may not need it
