@@ -422,11 +422,17 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
-uint64_t PbftChain::getPbftChainSize() const { return size_; }
+uint64_t PbftChain::getPbftChainSize() const {
+  return size_;
+}
 
-uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
+uint64_t PbftChain::getPbftChainPeriod() const {
+  return period_;
+}
 
-blk_hash_t PbftChain::getGenesisHash() const { return genesis_hash_; }
+blk_hash_t PbftChain::getGenesisHash() const {
+  return genesis_hash_;
+}
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
   return last_pbft_block_hash_;
@@ -440,7 +446,29 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
-size_t PbftChain::getPbftQueueSize() const { return pbft_queue_.size(); }
+size_t PbftChain::getPbftQueueSize() const {
+  return pbft_queue_.size();
+}
+
+std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
+    uint64_t dag_block_height) const {
+  if (dag_block_height >= dag_blocks_order_.size()) {
+    LOG(log_err_) << "The DAG block height " << dag_block_height
+      << " is greater than dag blocks order size " << dag_blocks_order_.size();
+    return std::make_pair(blk_hash_t(0), false);
+  }
+  return std::make_pair(dag_blocks_order_[dag_block_height], true);
+}
+
+std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
+    blk_hash_t const& dag_block_hash) {
+  if (dag_blocks_map_.find(dag_block_hash) == dag_blocks_map_.end()) {
+    LOG(log_err_) << "Cannot find the DAG block hash " << dag_block_hash
+                  << " in dag blocks map";
+    return std::make_pair(0, false);
+  }
+  return std::make_pair(dag_blocks_map_[dag_block_hash], true);
+}
 
 void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
   last_pbft_block_hash_ = new_pbft_block_hash;
@@ -566,6 +594,16 @@ void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
   pbft_queue_map_[pbft_block.getBlockHash()] = pbft_block;
   LOG(log_deb_) << "Push block " << pbft_block.getBlockHash() << " into queue."
                 << "Pbft queue size: " << pbft_queue_.size();
+}
+
+void PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
+  // push DAG block hash into array. DAG genesis at index 0
+  dag_blocks_order_.emplace_back(dag_block_hash);
+
+  // push DAG block hash into map
+  // map<dag_block_hash, block_number> DAG genesis is block height 0
+  uint64_t dag_block_height = dag_blocks_map_.size();
+  dag_blocks_map_[dag_block_hash] = dag_block_height;
 }
 
 void PbftChain::removePbftBlockInQueue(taraxa::blk_hash_t const& block_hash) {
