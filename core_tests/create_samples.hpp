@@ -53,7 +53,7 @@ class TxGenerator {
 
 inline const TxGenerator TX_GEN;
 
-inline void send1000trx() {
+inline bool sendTrx(uint64_t count, unsigned port) {
   auto pattern = R"(
       curl --silent -m 10 --output /dev/null -d \
       '{
@@ -70,15 +70,22 @@ inline void send1000trx() {
             "secret": "%s"
           }
         ]
-      }' 0.0.0.0:7777
+      }' 0.0.0.0:%s
     )";
-  for (auto i = 0; i < 1000; ++i) {
-    system(fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
-               addr_t::random(),
-               samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure())
-               .c_str());
+  for (auto i = 0; i < count; ++i) {
+    auto retcode = system(
+        fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
+            addr_t::random(),
+            samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure(), port)
+            .c_str());
+    if (retcode != 0) {
+      return false;
+    }
   }
+  return true;
 }
+
+inline bool send1000trx() { return sendTrx(1000, 777); }
 
 struct TestAccount {
   TestAccount() = default;
