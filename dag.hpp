@@ -6,6 +6,9 @@
  * @Last Modified time: 2019-04-22 13:39:27
  */
 
+#ifndef TARAXA_NODE_DAG_HPP
+#define TARAXA_NODE_DAG_HPP
+
 #include <atomic>
 #include <bitset>
 #include <boost/function.hpp>
@@ -305,3 +308,5 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 };
 
 }  // namespace taraxa
+
+#endif  // TARAXA_NODE_DAG_HPP

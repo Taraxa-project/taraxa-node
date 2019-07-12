@@ -8,15 +8,77 @@
 
 #ifndef CREATE_SAMPLES_HPP
 #define CREATE_SAMPLES_HPP
+#include <executor.hpp>
 #include <fstream>
 #include <map>
 #include <string>
 #include "dag_block.hpp"
 #include "transaction.hpp"
 
-namespace taraxa {
-namespace samples {
-// read account
+namespace taraxa::samples {
+
+inline const val_t::Arith TEST_MAX_TRANSACTIONS_IN_BLOCK = 10000;
+inline const val_t::Arith TEST_BLOCK_GAS_LIMIT = Executor::MOCK_BLOCK_GAS_LIMIT;
+inline const val_t::Arith TEST_TX_GAS_LIMIT =
+    TEST_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
+
+class TxGenerator {
+  mutable std::mutex mutex;
+  mutable std::unordered_set<dev::FixedHash<secret_t::size>> usedSecrets;
+
+ public:
+  // this function guarantees uniqueness for generated values
+  // scoped to the class instance
+  auto getRandomUniqueSenderSecret() const {
+    std::unique_lock l(mutex);
+    auto secret = secret_t::random();
+    while (!usedSecrets.insert(secret.makeInsecure()).second) {
+      secret = secret_t::random();
+    }
+    return secret;
+  }
+
+  auto getWithRandomUniqueSender(
+      const bal_t &value = 0, const addr_t &to = addr_t::random(),
+      const bytes &data = str2bytes("00FEDCBA9876543210000000")) const {
+    return Transaction(0,                               // nonce
+                       value,                           // value
+                       val_t(0),                        // gas_price
+                       TEST_TX_GAS_LIMIT,               // gas
+                       to,                              // receiver
+                       data,                            // data
+                       getRandomUniqueSenderSecret());  // secret
+  }
+};
+
+inline const TxGenerator TX_GEN;
+
+void send1000trx() {
+  auto pattern = R"(
+      curl --silent -m 10 --output /dev/null -d \
+      '{
+        "jsonrpc": "2.0",
+        "method": "send_coin_transaction",
+        "id": "0",
+        "params": [
+          {
+            "nonce": 0,
+            "value": 0,
+            "gas": "%s",
+            "gas_price": "%s",
+            "receiver": "%s",
+            "secret": "%s"
+          }
+        ]
+      }' 0.0.0.0:7777
+    )";
+  for (auto i = 0; i < 1000; ++i) {
+    system(fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
+               addr_t::random(),
+               samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure())
+               .c_str());
+  }
+}
 
 struct TestAccount {
   TestAccount() = default;
@@ -29,13 +91,15 @@ struct TestAccount {
   std::string pk;
   std::string addr;
 };
-std::ostream &operator<<(std::ostream &strm, TestAccount const &acc) {
+
+inline std::ostream &operator<<(std::ostream &strm, TestAccount const &acc) {
   strm << "sk: " << acc.sk << "\npk: " << acc.pk << "\naddr: " << acc.addr
        << std::endl;
   return strm;
 }
 
-std::map<int, TestAccount> createTestAccountTable(std::string const &filename) {
+inline std::map<int, TestAccount> createTestAccountTable(
+    std::string const &filename) {
   std::map<int, TestAccount> acc_table;
   std::ifstream file;
   file.open(filename);
@@ -58,7 +122,8 @@ std::map<int, TestAccount> createTestAccountTable(std::string const &filename) {
   return acc_table;
 }
 
-std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned num) {
+inline std::vector<Transaction> createMockTrxSamples(unsigned start,
+                                                     unsigned num) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
@@ -80,8 +145,9 @@ std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned num) {
   return trxs;
 }
 
-std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num,
-                                                secret_t const &sk) {
+inline std::vector<Transaction> createSignedTrxSamples(unsigned start,
+                                                       unsigned num,
+                                                       secret_t const &sk) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
@@ -89,11 +155,12 @@ std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num,
     strm << std::setw(64) << std::setfill('0');
     strm << std::to_string(i);
     std::string hash = strm.str();
-    Transaction trx(i,                                      // nonce
-                    i * 100,                                // value
-                    val_t(4),                               // gas_price
-                    val_t(5),                               // gas
-                    addr_t(i * 100),                        // receiver
+    Transaction trx(i,               // nonce
+                    i * 100,         // value
+                    val_t(0),        // gas_price
+                    val_t(1000000),  // gas
+                    // (i + 1) - because zero address is reserved
+                    addr_t((i + 1) * 100),                  // receiver
                     str2bytes("00FEDCBA9876543210000000"),  // data
                     sk);                                    // secret
     trxs.emplace_back(trx);
@@ -101,11 +168,11 @@ std::vector<Transaction> createSignedTrxSamples(unsigned start, unsigned num,
   return trxs;
 }
 
-std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
-                                              unsigned blk_num,
-                                              unsigned trx_start,
-                                              unsigned trx_len,
-                                              unsigned trx_overlap) {
+inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
+                                                     unsigned blk_num,
+                                                     unsigned trx_start,
+                                                     unsigned trx_len,
+                                                     unsigned trx_overlap) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
   std::vector<DagBlock> blks;
   unsigned trx = trx_start;
@@ -152,12 +219,12 @@ std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
   return blks;
 }
 
-std::vector<std::pair<DagBlock, std::vector<Transaction> > >
+inline std::vector<std::pair<DagBlock, std::vector<Transaction>>>
 createMockDagBlkSamplesWithSignedTransactions(
     unsigned pivot_start, unsigned blk_num, unsigned trx_start,
     unsigned trx_len, unsigned trx_overlap, secret_t const &sk) {
   assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
-  std::vector<std::pair<DagBlock, std::vector<Transaction> > > blks;
+  std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
     std::string pivot, hash;
@@ -192,7 +259,7 @@ createMockDagBlkSamplesWithSignedTransactions(
 }
 
 //
-std::vector<DagBlock> createMockDag0() {
+inline std::vector<DagBlock> createMockDag0() {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(0),  // pivot
@@ -353,7 +420,6 @@ std::vector<DagBlock> createMockDag0() {
   return blks;
 }
 
-}  // namespace samples
-}  // namespace taraxa
+}  // namespace taraxa::samples
 
 #endif

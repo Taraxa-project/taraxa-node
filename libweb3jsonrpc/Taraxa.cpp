@@ -33,6 +33,7 @@ string Taraxa::taraxa_blockNumber() {
   if (auto full_node = full_node_.lock()) {
     return toJS(full_node->getDagMaxLevel());
   }
+  //  assert(false); fixme: return??
 }
 
 string Taraxa::taraxa_getBalance(string const& _address,

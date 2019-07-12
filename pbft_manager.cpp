@@ -227,6 +227,7 @@ void PbftManager::run() {
       // The Certifying Step
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
         // Should not happen
+        // fixme: Happens nevertheless
         LOG(log_err_) << "PBFT Reached step 3 too quickly?";
         // TODO: if no accout_balance, will hit here
         // assert(false);
