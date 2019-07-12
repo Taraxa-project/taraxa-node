@@ -125,8 +125,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // finialize)
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
       blk_hash_t const &anchor);
-  // receive pbft-povit-blk, update periods and finalized
-  void setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
+  // receive pbft-povit-blk, update periods and finalized, return size of
+  // ordered blocks
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
   uint64_t getLatestPeriod() const;
   blk_hash_t getLatestAnchor() const;
   uint getBlockProposeThresholdBeta()

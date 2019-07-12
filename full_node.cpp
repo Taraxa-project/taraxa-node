@@ -592,8 +592,8 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
 // receive pbft-povit-blk, update periods
-void FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
-  dag_mgr_->setDagBlockPeriod(anchor, period);
+uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
+  return dag_mgr_->setDagBlockPeriod(anchor, period);
 }
 
 uint64_t FullNode::getLatestPeriod() const {
