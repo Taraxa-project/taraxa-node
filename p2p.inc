@@ -1,5 +1,5 @@
-P2POBJECTFILES= \
-	${OBJECTDIR}/libdevcore/Address.o \
+ALETH_OBJ=\
+    ${OBJECTDIR}/libdevcore/Address.o \
 	${OBJECTDIR}/libdevcore/Base64.o \
 	${OBJECTDIR}/libdevcore/Common.o \
 	${OBJECTDIR}/libdevcore/CommonData.o \
@@ -28,7 +28,9 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libdevcrypto/CryptoPP.o \
 	${OBJECTDIR}/libdevcrypto/Hash.o \
 	${OBJECTDIR}/libdevcrypto/LibSnark.o \
-	${OBJECTDIR}/libdevcrypto/SecretStore.o \
+	${OBJECTDIR}/libdevcrypto/SecretStore.o
+P2POBJECTFILES= \
+	${ALETH_OBJ}\
 	${OBJECTDIR}/libp2p/CapabilityHost.o \
 	${OBJECTDIR}/libp2p/Common.o \
 	${OBJECTDIR}/libp2p/Host.o \

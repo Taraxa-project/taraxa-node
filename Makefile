@@ -376,6 +376,12 @@ ${OBJECTDIR}/prometheus_demo.o: prometheus_demo.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/prometheus_demo.o prometheus_demo.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/util_cmd/keygen.o: util_cmd/keygen.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/util_cmd
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/util_cmd/keygen.o util_cmd/keygen.cpp $(CPPFLAGS)
+
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
@@ -413,6 +419,10 @@ submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a s
 $(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS)
+
+$(BUILDDIR)/keygen: $(ALETH_OBJ) $(DEPENDENCIES) $(OBJECTDIR)/util_cmd/keygen.o
+	${MKDIR} -p ${BUILDDIR}
+	$(CXX) -std=c++17 $(ALETH_OBJ) $(OBJECTDIR)/util_cmd/keygen.o -o $(BUILDDIR)/keygen $(LDFLAGS) $(LIBS)
 
 $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
@@ -493,7 +503,9 @@ $(TESTBUILDDIR)/prometheus_demo: $(OBJECTDIR)/prometheus_demo.o $(OBJECTFILES) $
 protoc_taraxa_grpc: 
 	@echo Refresh protobuf ...
 	protoc -I. --grpc_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
-	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto 
+	protoc -I. --cpp_out=./grpc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin proto/taraxa_grpc.proto
+
+keygen: $(BUILDDIR)/keygen
 
 test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/state_unit_tests $(TESTBUILDDIR)/pbft_rpc_test $(TESTBUILDDIR)/pbft_manager_test
 
