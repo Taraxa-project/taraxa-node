@@ -53,7 +53,7 @@ class TxGenerator {
 
 inline const TxGenerator TX_GEN;
 
-void send1000trx() {
+inline void send1000trx() {
   auto pattern = R"(
       curl --silent -m 10 --output /dev/null -d \
       '{
