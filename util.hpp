@@ -19,6 +19,7 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
@@ -29,7 +30,11 @@
 #include <json/json.h>
 namespace taraxa {
 
-boost::property_tree::ptree strToJson(std::string str);
+boost::property_tree::ptree strToJson(const std::string_view &str);
+
+inline boost::property_tree::ptree strToJson(const std::string &str) {
+  return strToJson(std::string_view(str));
+}
 // load file and convert to json doc
 boost::property_tree::ptree loadJsonFile(std::string json_file_name);
 
@@ -216,6 +221,52 @@ class Observer : std::enable_shared_from_this<Observer> {
  protected:
   std::shared_ptr<Subject> subject_;
 };
+
+inline char *cgo_str(const std::string &str) {
+  return const_cast<char *>(str.data());
+}
+
+// Boost serializes everything as string
+inline std::string unquote_non_str_literals(const std::string &json_str) {
+  std::regex re(R"(\"(true|false|[0-9]+\.{0,1}[0-9]*)\")");
+  return std::regex_replace(json_str, re, "$1");
+}
+
+inline std::string toJsonObjectString(const boost::property_tree::ptree &p) {
+  if (p.empty()) {
+    return "{}";
+  }
+  std::stringstream stream;
+  // Note: boost appends a newline
+  write_json(stream, p, false);
+  return unquote_non_str_literals(stream.str());
+}
+
+// Boost can't handle top-level arrays
+inline std::string toJsonArrayString(const boost::property_tree::ptree &p) {
+  std::stringstream ss;
+  ss << "[";
+  auto addComma = false;
+  for (const auto &child : p) {
+    if (addComma) {
+      ss << ",";
+    }
+    addComma = true;
+    ss << toJsonObjectString(child.second);
+  }
+  ss << "]";
+  return ss.str();
+}
+
+template <typename T>
+void append(boost::property_tree::ptree &ptree, const T &value) {
+  ptree.push_back(make_pair("", value));
+}
+
+template <typename... TS>
+std::string fmt(const std::string &pattern, const TS &... args) {
+  return (boost::format(pattern) % ... % args).str();
+}
 
 }  // namespace taraxa
 

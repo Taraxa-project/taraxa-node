@@ -29,10 +29,15 @@ class DagBlock;
 
 class Executor {
  public:
+  inline static const auto MOCK_BLOCK_GAS_LIMIT =
+      std::numeric_limits<uint64_t>::max();
+
   using uLock = std::unique_lock<std::mutex>;
   enum class ExecutorStatus { idle, run_parallel, run_sequential };
   Executor() {}
   ~Executor();
+  // fixme: start/stop methods seem to be excessive, and complicate the
+  // lifecycle
   void start();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   void stop();

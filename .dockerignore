@@ -1,5 +1,11 @@
 Dockerfile
 .travis.yml
-.gitignore
+.git*
 build/
 .vscode/
+.idea/
+submodules/cryptopp/*.o
+submodules/cryptopp/adhoc.cpp
+submodules/cryptopp/libcryptopp.a
+test_build/
+obj/
