@@ -85,8 +85,6 @@ inline bool sendTrx(uint64_t count, unsigned port) {
   return true;
 }
 
-inline bool send1000trx() { return sendTrx(1000, 777); }
-
 struct TestAccount {
   TestAccount() = default;
   TestAccount(int id, std::string const &sk, std::string const &pk,

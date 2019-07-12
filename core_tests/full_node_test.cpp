@@ -24,7 +24,7 @@
 
 namespace taraxa {
 
-using samples::send1000trx;
+using samples::sendTrx;
 
 const unsigned NUM_TRX = 200;
 
@@ -742,7 +742,7 @@ TEST(Top, sync_two_nodes1) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    send1000trx();
+    sendTrx(1000, 7777);
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception &e) {
@@ -794,7 +794,7 @@ TEST(Top, sync_two_nodes2) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    send1000trx();
+    sendTrx(1000, 7777);
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception &e) {
@@ -1104,7 +1104,7 @@ TEST(FullNode, receive_send_transaction) {
       new boost::asio::io_context::work(context1));
 
   try {
-    send1000trx();
+    sendTrx(1000, 7777);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1149,7 +1149,7 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   node1->setBlockProposeThresholdBeta(2048);
 
   try {
-    send1000trx();
+    sendTrx(1000, 7777);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1409,37 +1409,37 @@ TEST(Top, sortition_propose_five_nodes) {
     system("rm -f ./build/main3");
     std::cout << "main2 deleted ..." << std::endl;
     system("rm -f ./build/main2");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 }
 
 TEST(Top, detect_overlap_transactions) {
-  const char* input1[] = {"./build/main",
+  const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
                           "-v",
                           "0",
                           "--destroy_db"};
-  const char* input2[] = {"./build/main2",
+  const char *input2[] = {"./build/main2",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa2.json",
                           "-v",
                           "0",
                           "--destroy_db"};
-  const char* input3[] = {"./build/main3",
+  const char *input3[] = {"./build/main3",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa3.json",
                           "-v",
                           "0",
                           "--destroy_db"};
-  const char* input4[] = {"./build/main4",
+  const char *input4[] = {"./build/main4",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa4.json",
                           "-v",
                           "0",
                           "--destroy_db"};
-  const char* input5[] = {"./build/main5",
+  const char *input5[] = {"./build/main5",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa5.json",
                           "-v",
@@ -1454,7 +1454,7 @@ TEST(Top, detect_overlap_transactions) {
     system("cp ./build/main ./build/main4");
     std::cout << "Copying main5 ..." << std::endl;
     system("cp ./build/main ./build/main5");
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
@@ -1544,7 +1544,7 @@ TEST(Top, detect_overlap_transactions) {
     t5.join();
 
     std::cout << "All trxs sent..." << std::endl;
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1561,11 +1561,11 @@ TEST(Top, detect_overlap_transactions) {
   // check transaction overlapping ...
   std::unordered_set<trx_hash_t> ordered_trxs;
   uint packed_trxs = 0;
-  for (auto const& entry : *overlap_table) {
-    auto const& blk = entry.first;
-    auto const& overlap_vec = entry.second;
-    auto const& dag_blk = node1->getDagBlock(blk);
-    auto const& trxs = dag_blk->getTrxs();
+  for (auto const &entry : *overlap_table) {
+    auto const &blk = entry.first;
+    auto const &overlap_vec = entry.second;
+    auto const &dag_blk = node1->getDagBlock(blk);
+    auto const &trxs = dag_blk->getTrxs();
     ASSERT_TRUE(trxs.size() == overlap_vec.size());
     packed_trxs += overlap_vec.size();
 
@@ -1583,7 +1583,7 @@ TEST(Top, detect_overlap_transactions) {
   EXPECT_EQ(ordered_trxs.size(), 10000);
 
   // check transaction to dagblock mapping
-  for (auto const& t : ordered_trxs) {
+  for (auto const &t : ordered_trxs) {
     auto blk = node1->getDagBlockFromTransaction(t);
     EXPECT_FALSE(blk.isZero());
   }
