@@ -218,7 +218,7 @@ TEST(BlockManager, push_and_pop) {
   blk_qu.stop();
 }
 
-TEST(TransactionOverlapDetector, overlap) {
+TEST(TransactionOrderManager, overlap) {
   DagBlock blk1(blk_hash_t(1111), level_t(1), {},
                 {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)},
                 sig_t(7777), blk_hash_t(888), addr_t(999));
@@ -228,9 +228,9 @@ TEST(TransactionOverlapDetector, overlap) {
       {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)},
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  TransactionOverlapDetector detector;
-  auto overlap1 = detector.computeOverlapInBlock(blk1);
-  auto overlap2 = detector.computeOverlapInBlock(blk2);
+  TransactionOrderManager detector;
+  auto overlap1 = detector.computeOrderInBlock(blk1);
+  auto overlap2 = detector.computeOrderInBlock(blk2);
   EXPECT_TRUE(overlap1[0]);
   EXPECT_TRUE(overlap1[1]);
   EXPECT_TRUE(overlap1[2]);

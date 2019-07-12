@@ -34,7 +34,7 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
-class TransactionOverlapDetector;
+class TransactionOrderManager;
 class Executor;
 class Vote;
 class VoteQueue;
@@ -144,7 +144,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
+
   // get transaction schecules stuff ...
+  blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
+    return trx_order_mgr_->getDagBlockFromTransaction(trx);
+  }
+
   std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
   getTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
@@ -173,6 +178,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
   std::shared_ptr<SimpleDBFace> getAccsDB() const { return db_accs_; }
+  std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
+    return db_trxs_to_blk_;
+  }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
@@ -230,6 +238,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
 
@@ -243,7 +252,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // ledger
   std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<TransactionOverlapDetector> trx_overlap_detector_;
+  std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
 
