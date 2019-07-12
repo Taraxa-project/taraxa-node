@@ -98,10 +98,9 @@ class SortitionPropose : public ProposeModelFace {
 
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  
-   BlockProposer(std::vector<uint> const& params,
-                  std::shared_ptr<DagManager> dag_mgr,
-                  std::shared_ptr<TransactionManager> trx_mgr)
+  BlockProposer(std::vector<uint> const& params,
+                std::shared_ptr<DagManager> dag_mgr,
+                std::shared_ptr<TransactionManager> trx_mgr)
       : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
     // configure
     conf_.mode = params[0];
@@ -145,7 +144,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
-
   struct Conf {
     uint mode;
     uint shard;

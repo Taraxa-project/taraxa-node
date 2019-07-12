@@ -9,14 +9,18 @@
 #ifndef SORTITION_H
 #define SORTITION_H
 
-#include "libdevcrypto/Common.h"
 #include "libdevcore/Log.h"
+#include "libdevcrypto/Common.h"
 
 #include <string>
 
-// max signature hash 64 hex "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-// change to decimal should be "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-#define SIGNATURE_HASH_MAX  "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+// max signature hash 64 hex
+// "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" change to
+// decimal should be
+// "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+#define SIGNATURE_HASH_MAX                                                     \
+  "11579208923731619542357098500868790785326998466564056403945758400791312963" \
+  "9935"
 #define SIGNATURE_HASH_SIZE_MAX 78
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
@@ -35,18 +39,18 @@ string hexToDecimal(string hex);
 string bigNumberMultiplication(string num1, string num2);
 
 static dev::Logger log_sil_{
-  dev::createLogger(dev::Verbosity::VerbositySilent, "SORTI")};
+    dev::createLogger(dev::Verbosity::VerbositySilent, "SORTI")};
 static dev::Logger log_err_{
-  dev::createLogger(dev::Verbosity::VerbosityError, "SORTI")};
+    dev::createLogger(dev::Verbosity::VerbosityError, "SORTI")};
 static dev::Logger log_war_{
-  dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTI")};
+    dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTI")};
 static dev::Logger log_inf_{
-  dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTI")};
+    dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTI")};
 static dev::Logger log_deb_{
-  dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTI")};
+    dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTI")};
 static dev::Logger log_tra_{
-  dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTI")};
+    dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTI")};
 
-} // namespace taraxa
+}  // namespace taraxa
 
 #endif  // SORTITION_H

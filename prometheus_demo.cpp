@@ -28,13 +28,13 @@
  * */
 
 #include <gtest/gtest.h>
-#include "libdevcore/Log.h"
 #include <string>
-#include "util.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "libdevcore/Log.h"
 #include "prometheus/gateway.h"
 #include "prometheus/registry.h"
 #include "prometheus/summary.h"
+#include "util.hpp"
 using namespace std;
 
 namespace taraxa {

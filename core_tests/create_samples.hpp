@@ -46,7 +46,7 @@ std::map<int, TestAccount> createTestAccountTable(std::string const &filename) {
 
   std::string id, sk, pk, addr;
 
-  while (file>>id>>sk>>pk>>addr) {
+  while (file >> id >> sk >> pk >> addr) {
     if (id.empty()) break;
     if (sk.empty()) break;
     if (pk.empty()) break;

@@ -6,13 +6,13 @@
  * @Last Modified time: 2019-04-22 14:54:34
  */
 
-#include "full_node.hpp"
+#include <libweb3jsonrpc/IpcServer.h>
+#include <libweb3jsonrpc/ModularServer.h>
+#include <libweb3jsonrpc/Test.h>
 #include <boost/process.hpp>
+#include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/LoggingProgramOptions.h"
-#include <libweb3jsonrpc/ModularServer.h>
-#include <libweb3jsonrpc/IpcServer.h>
-#include <libweb3jsonrpc/Test.h>
 
 class Top {
  public:

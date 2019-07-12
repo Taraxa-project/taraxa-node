@@ -32,11 +32,12 @@ class RocksDb : public std::enable_shared_from_this<RocksDb> {
   std::shared_ptr<RocksDb> getShared() {
     try {
       return shared_from_this();
-    } catch (std::bad_weak_ptr &e){
-      std::cerr<<"RocksDb: "<<e.what()<<std::endl;
+    } catch (std::bad_weak_ptr &e) {
+      std::cerr << "RocksDb: " << e.what() << std::endl;
       return nullptr;
     }
   }
+
  private:
   bool verbose_ = false;
   std::string db_path_;

@@ -183,7 +183,7 @@ void ScheduleBlock::setJsonTree(ptree& tree) const {
   tree.put("timestamp", timestamp_);
 
   tree.put_child("block_order", ptree());
-  auto &block_order = tree.get_child("block_order");
+  auto& block_order = tree.get_child("block_order");
   uint32_t block_size = schedule_.blk_order.size();
   for (int i = 0; i < block_size; i++) {
     block_order.push_back(
@@ -197,7 +197,7 @@ void ScheduleBlock::setJsonTree(ptree& tree) const {
   for (int i = 0; i < trx_vectors_size; i++) {
     blk_hash_t block_hash(schedule_.blk_order[i]);
     tree.put_child(block_hash.toString(), ptree());
-    auto &trx_modes = tree.get_child(block_hash.toString());
+    auto& trx_modes = tree.get_child(block_hash.toString());
     uint32_t each_block_trx_size = schedule_.vec_trx_modes[i].size();
     for (int j = 0; j < each_block_trx_size; j++) {
       trx_modes.push_back(std::make_pair(
@@ -210,11 +210,11 @@ void ScheduleBlock::setBlockByJson(ptree const& doc) {
   prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
   timestamp_ = doc.get<uint64_t>("timestamp");
   schedule_.blk_order = asVector<blk_hash_t, std::string>(doc, "block_order");
-  for (auto const& blk_hash: schedule_.blk_order) {
+  for (auto const& blk_hash : schedule_.blk_order) {
     std::vector<std::string> block_trx_modes_str =
         asVector<std::string, std::string>(doc, blk_hash.toString());
     std::vector<uint> block_trx_modes;
-    for (auto const& mode: block_trx_modes_str) {
+    for (auto const& mode : block_trx_modes_str) {
       block_trx_modes.emplace_back(atoi(mode.c_str()));
     }
     schedule_.vec_trx_modes.emplace_back(block_trx_modes);
@@ -311,12 +311,12 @@ PbftBlock::PbftBlock(std::string const& json) {
   block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
   block_type_ = static_cast<PbftBlockTypes>(doc.get<int>("block_type"));
   if (block_type_ == pivot_block_type) {
-    ptree &pivot_block = doc.get_child("pivot_block");
+    ptree& pivot_block = doc.get_child("pivot_block");
     pivot_block_.setBlockByJson(pivot_block);
   } else if (block_type_ == schedule_block_type) {
-    ptree &schedule_block = doc.get_child("schedule_block");
+    ptree& schedule_block = doc.get_child("schedule_block");
     schedule_block_.setBlockByJson(schedule_block);
-  } // TODO: more block types
+  }  // TODO: more block types
   signature_ = sig_t(doc.get<std::string>("signature"));
 }
 
@@ -348,7 +348,7 @@ std::string PbftBlock::getJsonStr() const {
   } else if (block_type_ == schedule_block_type) {
     tree.put_child("schedule_block", ptree());
     schedule_block_.setJsonTree(tree.get_child("schedule_block"));
-  } // TODO: more block types
+  }  // TODO: more block types
   tree.put("signature", signature_.toString());
 
   std::stringstream ostrm;
@@ -422,17 +422,11 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
-uint64_t PbftChain::getPbftChainSize() const {
-  return size_;
-}
+uint64_t PbftChain::getPbftChainSize() const { return size_; }
 
-uint64_t PbftChain::getPbftChainPeriod() const {
-  return period_;
-}
+uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
 
-blk_hash_t PbftChain::getGenesisHash() const {
-  return genesis_hash_;
-}
+blk_hash_t PbftChain::getGenesisHash() const { return genesis_hash_; }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
   return last_pbft_block_hash_;
@@ -446,15 +440,14 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
-size_t PbftChain::getPbftQueueSize() const {
-  return pbft_queue_.size();
-}
+size_t PbftChain::getPbftQueueSize() const { return pbft_queue_.size(); }
 
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
     uint64_t dag_block_height) const {
   if (dag_block_height >= dag_blocks_order_.size()) {
     LOG(log_err_) << "The DAG block height " << dag_block_height
-      << " is greater than dag blocks order size " << dag_blocks_order_.size();
+                  << " is greater than dag blocks order size "
+                  << dag_blocks_order_.size();
     return std::make_pair(blk_hash_t(0), false);
   }
   return std::make_pair(dag_blocks_order_[dag_block_height], true);
@@ -515,8 +508,8 @@ std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(
 }
 
 void PbftChain::insertPbftBlockInChain_(
-    taraxa::blk_hash_t const &pbft_block_hash,
-    taraxa::PbftBlock const &pbft_block) {
+    taraxa::blk_hash_t const& pbft_block_hash,
+    taraxa::PbftBlock const& pbft_block) {
   pbft_chain_map_[pbft_block_hash] = pbft_block;
   pbft_blocks_index_.push_back(pbft_block_hash);
 }
@@ -536,7 +529,7 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
                   << " into pbft chain, current pbft chain period " << period_
                   << " chain size is " << size_;
     setNextPbftBlockType(schedule_block_type);
-  } else if (pbft_block.getBlockType() == schedule_block_type){
+  } else if (pbft_block.getBlockType() == schedule_block_type) {
     // PBFT concurrent schedule block
     LOG(log_deb_) << "Push pbft block " << pbft_block_hash
                   << " into pbft chain, current pbft chain period " << period_
