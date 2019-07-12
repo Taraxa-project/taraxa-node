@@ -23,24 +23,21 @@ inline const val_t::Arith TEST_TX_GAS_LIMIT =
     TEST_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
 
 class TxGenerator {
-  mutable std::mutex mutex;
-  mutable std::unordered_set<dev::FixedHash<secret_t::size>> usedSecrets;
-
  public:
   // this function guarantees uniqueness for generated values
   // scoped to the class instance
   auto getRandomUniqueSenderSecret() const {
-    std::unique_lock l(mutex);
+    std::unique_lock l(mutex_);
     auto secret = secret_t::random();
-    while (!usedSecrets.insert(secret.makeInsecure()).second) {
+    while (!used_secrets_.insert(secret.makeInsecure()).second) {
       secret = secret_t::random();
     }
     return secret;
   }
 
   auto getWithRandomUniqueSender(
-      const bal_t &value = 0, const addr_t &to = addr_t::random(),
-      const bytes &data = str2bytes("00FEDCBA9876543210000000")) const {
+      bal_t const &value = 0, addr_t const &to = addr_t::random(),
+      bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
     return Transaction(0,                               // nonce
                        value,                           // value
                        val_t(0),                        // gas_price
@@ -49,6 +46,26 @@ class TxGenerator {
                        data,                            // data
                        getRandomUniqueSenderSecret());  // secret
   }
+  auto getSerialTrxWithSameSender(
+      uint trx_num, bal_t const &start_nonce, bal_t const &value,
+      addr_t const &receiver = addr_t::random()) const {
+    std::vector<Transaction> trxs;
+    for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
+      trxs.emplace_back(
+          Transaction(bal_t(i),                               // nonce
+                      value,                                  // value
+                      val_t(0),                               // gas_price
+                      TEST_TX_GAS_LIMIT,                      // gas
+                      receiver,                               // receiver
+                      str2bytes("00FEDCBA9876543210000000"),  // data
+                      getRandomUniqueSenderSecret()));        // secret
+    }
+    return trxs;
+  }
+
+ private:
+  mutable std::mutex mutex_;
+  mutable std::unordered_set<dev::FixedHash<secret_t::size>> used_secrets_;
 };
 
 inline const TxGenerator TX_GEN;
