@@ -66,5 +66,7 @@ class Executor {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "EXETOR")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
+  std::mutex mu;
+  std::unordered_set<trx_hash_t> txHashes;
 };
 }  // namespace taraxa

@@ -48,6 +48,7 @@ void Executor::stop() {
 bool Executor::executeBlkTrxs(
     blk_hash_t const& blk,
     unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
+  std::unique_lock l(mu);
   string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
@@ -66,6 +67,11 @@ bool Executor::executeBlkTrxs(
     if (!trx.getHash()) {
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
+    }
+    // TODO remove
+    if (!txHashes.insert(trx.getHash()).second) {
+      cerr << endl << "Duplicate tx" << endl;
+      exit(1);
     }
     const auto& receiver = trx.getReceiver();
     vmBlock.transactions.push_back({
@@ -105,7 +111,6 @@ bool Executor::execute(
   return true;
 }
 
-// TODO make sense
 bool Executor::coinTransfer(
     Transaction const& trx,
     std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {

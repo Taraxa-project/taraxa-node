@@ -412,31 +412,31 @@ TEST(Top, sync_five_nodes_simple) {
   // send 1000 trxs
   try {
     std::string sendtrx1 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5, 
                                       "number": 6000, 
                                       "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7, 
                                       "number": 4000, 
                                       "seed": 2 }]}' 0.0.0.0:7778)";
     std::string sendtrx3 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
                                       "delay": 3, 
                                       "number": 3000, 
                                       "seed": 3 }]}' 0.0.0.0:7779)";
     std::string sendtrx4 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
                                       "delay": 10, 
                                       "number": 3000, 
                                       "seed": 4 }]}' 0.0.0.0:7781)";
     std::string sendtrx5 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3",
                                       "delay": 2,
                                       "number": 4000, 
@@ -1299,31 +1299,31 @@ TEST(Top, sortition_propose_five_nodes) {
   // send 1000 trxs
   try {
     std::string sendtrx1 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5,
                                       "number": 6000,
                                       "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7,
                                       "number": 4000,
                                       "seed": 2 }]}' 0.0.0.0:7778)";
     std::string sendtrx3 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
                                       "delay": 3,
                                       "number": 3000,
                                       "seed": 3 }]}' 0.0.0.0:7779)";
     std::string sendtrx4 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
                                       "delay": 10,
                                       "number": 3000,
                                       "seed": 4 }]}' 0.0.0.0:7780)";
     std::string sendtrx5 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3",
                                       "delay": 23,
                                       "number": 4000,

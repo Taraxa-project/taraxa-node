@@ -75,7 +75,7 @@ inline auto alethSlice(const Slice& s) {
   return dev::db::Slice(s.offset, s.size);
 }
 
-class AlethBatch : public Batch {
+class AlethBatch : public virtual Batch {
   const shared_ptr<DatabaseFace> database;
   unique_ptr<WriteBatchFace> batch;
 
@@ -101,7 +101,7 @@ class AlethBatch : public Batch {
   void Reset() override { batch = database->createWriteBatch(); }
 };
 
-class AlethDatabase : public Database {
+class AlethDatabase : public virtual Database {
   shared_ptr<DatabaseFace> database;
 
  public:
