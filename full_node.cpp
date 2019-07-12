@@ -827,7 +827,19 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
         last_pivot_block.first.getPivotBlock().getDagBlockHash();
     uint64_t current_pbft_chain_period =
         last_pivot_block.first.getPivotBlock().getPeriod();
-    setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    uint dag_ordered_blocks_size =
+        setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    // checking: DAG ordered blocks size in this period should equal to the
+    // DAG blocks inside PBFT CS block
+    uint dag_blocks_inside_pbft_cs =
+        pbft_block.getScheduleBlock().getSchedule().blk_order.size();
+    if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
+      LOG(log_err_) << "Setting DAG block order finalize "
+                    << dag_ordered_blocks_size << " blocks."
+                    << " But the PBFT CS block has "
+                    << dag_blocks_inside_pbft_cs << " DAG block hash.";
+      // TODO: need to handle the error condition(should never happen)
+    }
 
     // TODO: VM executor will not take sortition_account_balance_table as
     // reference.
