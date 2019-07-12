@@ -557,8 +557,8 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(5));
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
-  node->setDagBlockOrder(blk_hash_t(pivot), period);
-
+  auto num_blks_set = node->setDagBlockOrder(blk_hash_t(pivot), period);
+  EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
@@ -578,7 +578,8 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(14));
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
-  node->setDagBlockOrder(blk_hash_t(pivot), period);
+  num_blks_set = node->setDagBlockOrder(blk_hash_t(pivot), period);
+  EXPECT_EQ(num_blks_set, 7);
 
   // -------- third period ----------
 
@@ -597,7 +598,9 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[3], blk_hash_t(18));
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
-  node->setDagBlockOrder(blk_hash_t(pivot), period);
+  num_blks_set = node->setDagBlockOrder(blk_hash_t(pivot), period);
+  EXPECT_EQ(num_blks_set, 5);
+
   node->stop();
 }
 
