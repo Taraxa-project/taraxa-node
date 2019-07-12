@@ -174,7 +174,7 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
   return res;
 }
 
-blk_hash_t TransactionOrderManager::getDagBlockFromTransaction (
+blk_hash_t TransactionOrderManager::getDagBlockFromTransaction(
     trx_hash_t const& trx) {
   auto blk = db_trxs_to_blk_->get(trx.toString());
   return blk_hash_t(blk);

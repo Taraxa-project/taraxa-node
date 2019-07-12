@@ -102,7 +102,7 @@ TEST(PbftChain, pbft_db_test) {
   uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_hash, prev_blk_hash, dag_blk_hash,
-      pbft_chain_period, timestamp1, beneficiary);
+                         pbft_chain_period, timestamp1, beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
   // put into pbft chain and store into DB

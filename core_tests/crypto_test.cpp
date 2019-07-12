@@ -66,8 +66,8 @@ TEST(EthereumCrypto, sortition_test) {
       "0000000000000000000000000000000000000000000000000000000000000001";
   uint64_t account_balance = 1000;
   size_t sortition_threshold = 1;
-  bool sortition = taraxa::sortition(signature_hash, account_balance,
-                                     sortition_threshold);
+  bool sortition =
+      taraxa::sortition(signature_hash, account_balance, sortition_threshold);
   EXPECT_EQ(sortition, true);
 }
 
@@ -94,35 +94,37 @@ TEST(EthereumCrypto, sortition_rate) {
     message += std::to_string(i);
     sig_t signature = node->signMessage(message);
     vote_hash_t sig_hash = dev::sha3(signature);
-    bool win = sortition(sig_hash.toString(), account_balance,
-        sortition_threshold);
+    bool win =
+        sortition(sig_hash.toString(), account_balance, sortition_threshold);
     if (win) {
       count++;
     }
   }
-  // depend on sortition THRESHOLD, sortition rate: THRESHOLD / number_of_players
-  // count should be close to sortition rate * round
+  // depend on sortition THRESHOLD, sortition rate: THRESHOLD /
+  // number_of_players count should be close to sortition rate * round
   EXPECT_GT(count, 0);
 
   count = 0;
   round = 10;
   // Test for number of players sign message to get sortition,
-  // Each player sign round messages, sortition rate for one player: THRESHOLD / number_of_players * round
+  // Each player sign round messages, sortition rate for one player: THRESHOLD /
+  // number_of_players * round
   for (int i = 0; i < number_of_players; i++) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
       message += std::to_string(j);
       sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
       vote_hash_t sig_hash = dev::sha3(signature);
-      bool win = sortition(sig_hash.toString(), account_balance,
-          sortition_threshold);
+      bool win =
+          sortition(sig_hash.toString(), account_balance, sortition_threshold);
       if (win) {
         count++;
       }
     }
   }
-  // depend on sortition THRESHOLD, sortition rate for all players: THRESHOLD / number_of_players * round * number_of_players
-  // count should be close to sortition rate
+  // depend on sortition THRESHOLD, sortition rate for all players: THRESHOLD /
+  // number_of_players * round * number_of_players count should be close to
+  // sortition rate
   EXPECT_GT(count, 0);
 }
 

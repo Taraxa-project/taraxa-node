@@ -16,7 +16,6 @@
 #include <locale>
 #include <sstream>
 
-
 namespace taraxa {
 using std::string;
 using uint256_t = boost::multiprecision::uint256_t;
@@ -28,8 +27,8 @@ string hashSignature(dev::Signature signature) {
 
 /*
  * Sortition return true:
- * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS * sortition_threshold
- * otherwise return false
+ * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS *
+ * sortition_threshold otherwise return false
  */
 bool sortition(string signature_hash, uint64_t account_balance,
                size_t threshold) {
@@ -47,19 +46,19 @@ bool sortition(string signature_hash, uint64_t account_balance,
   string sum_left;
   string sum_right;
 
-  sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal,
-                                             TARAXA_COINS);
+  sum_left =
+      taraxa::bigNumberMultiplication(signature_hash_decimal, TARAXA_COINS);
   if (sum_left.empty()) {
     LOG(log_err_) << "Failed multiplication of signature hash * total coins";
     return false;
   }
   uint64_t sum = account_balance * threshold;
-  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX,
-                                              std::to_string(sum));
+  sum_right =
+      taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, std::to_string(sum));
   if (sum_right.empty()) {
     LOG(log_err_)
-      << "Failed multiplication of "
-      << "max signature hash * account balance * sortition threshold";
+        << "Failed multiplication of "
+        << "max signature hash * account balance * sortition threshold";
     return false;
   }
 
@@ -94,18 +93,18 @@ string bigNumberMultiplication(string num1, string num2) {
   if (num1.length() > SIGNATURE_HASH_SIZE_MAX ||
       num2.length() > SIGNATURE_HASH_SIZE_MAX) {
     LOG(log_err_)
-      << "The length of the input decimal strings cannot larger than 78, "
-      << "the length of num1: " << num1.length()
-      << ", and the length of num2: " << num2.length() << std::endl;
+        << "The length of the input decimal strings cannot larger than 78, "
+        << "the length of num1: " << num1.length()
+        << ", and the length of num2: " << num2.length() << std::endl;
     return result.str();
   }
-  for (char n: num1) {
+  for (char n : num1) {
     if (!isdigit(n)) {
       LOG(log_err_) << "invalid decimal digit: " << n << std::endl;
       return result.str();
     }
   }
-  for (char n: num2) {
+  for (char n : num2) {
     if (!isdigit(n)) {
       LOG(log_err_) << "invalid decimal digit: " << n << std::endl;
       return result.str();
@@ -120,4 +119,4 @@ string bigNumberMultiplication(string num1, string num2) {
   return result.str();
 }
 
-} // namespace taraxa
+}  // namespace taraxa

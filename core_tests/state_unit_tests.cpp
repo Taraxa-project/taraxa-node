@@ -2,10 +2,10 @@
         Modified Testing from StateUnitTests
 */
 
+#include <gtest/gtest.h>
 #include <libdevcore/DBFactory.h>
 #include "libethereum/State.h"
 #include "util.hpp"
-#include <gtest/gtest.h>
 
 using namespace std;
 using namespace dev;
