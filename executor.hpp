@@ -51,10 +51,9 @@ class Executor {
   ExecutorStatus status_ = ExecutorStatus::idle;
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
-  std::shared_ptr<SimpleDBFace> db_blks_;
-  std::shared_ptr<SimpleDBFace> db_trxs_;
-  std::shared_ptr<SimpleDBFace> db_accs_;
-  StatusTable<trx_hash_t, bool> excuted_trx_table_;
+  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_accs_ = nullptr;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
@@ -71,15 +70,32 @@ using TransactionExecStatusTable =
 using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
 // TODO: the table need to flush out
-class TransactionOverlapDetector {
+// Compute 1) transaction order and 2) map[transaction --> dagblock]
+class TransactionOrderManager {
  public:
+  TransactionOrderManager() = default;
+  ~TransactionOrderManager();
+  void start();
+  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
+  void stop();
   void clear() { status_.clear(); }
-  std::vector<bool> computeOverlapInBlock(DagBlock const& blk);
-  std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOverlapInBlocks(
+
+  std::vector<bool> computeOrderInBlock(DagBlock const& blk);
+  std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
       std::vector<std::shared_ptr<DagBlock>> const& blks);
+  blk_hash_t getDagBlockFromTransaction(trx_hash_t const& t);
 
  private:
+  bool stopped_ = true;
+  std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
+  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
+  dev::Logger log_er_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXODR")};
+  dev::Logger log_nf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXODR")};
 };
 
 }  // namespace taraxa

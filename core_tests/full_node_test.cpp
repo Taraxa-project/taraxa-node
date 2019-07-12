@@ -1565,6 +1565,12 @@ TEST(Top, detect_overlap_transactions) {
   EXPECT_GT(packed_trxs, 10000);
   EXPECT_EQ(ordered_trxs.size(), 10000);
 
+  // check transaction to dagblock mapping
+  for (auto const& t : ordered_trxs) {
+    auto blk = node1->getDagBlockFromTransaction(t);
+    EXPECT_FALSE(blk.isZero());
+  }
+
   top5.kill();
   top4.kill();
   top3.kill();
