@@ -73,7 +73,7 @@ class PivotBlock {
  public:
   PivotBlock() = default;
   PivotBlock(taraxa::stream& strm);
-  PivotBlock(std::string const &json);
+  PivotBlock(std::string const& json);
 
   PivotBlock(blk_hash_t const& prev_pivot_hash,
              blk_hash_t const& prev_block_hash,
@@ -169,10 +169,10 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash) : block_hash_(block_hash) {}
-  PbftBlock(PivotBlock const& pivot_block) : pivot_block_(pivot_block),
-                                             block_type_(pivot_block_type) {}
+  PbftBlock(PivotBlock const& pivot_block)
+      : pivot_block_(pivot_block), block_type_(pivot_block_type) {}
   PbftBlock(ScheduleBlock const& schedule_block)
-    : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
+      : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
   PbftBlock(dev::RLP const& _r);
   PbftBlock(std::string const& json);
   ~PbftBlock() {}
@@ -265,12 +265,13 @@ class PbftChain {
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
 
-  // TODO: Need to think of how to shrink these info(by using LRU cache?), or move to DB
+  // TODO: Need to think of how to shrink these info(by using LRU cache?), or
+  // move to DB
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::deque<blk_hash_t> pbft_queue_; // TODO: may not need it
+  std::deque<blk_hash_t> pbft_queue_;  // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
-  std::vector<blk_hash_t> dag_blocks_order_; // DAG genesis at index 0
+  std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
 

@@ -65,7 +65,8 @@ TEST(p2p, p2p_discovery) {
   for (int i = 0; i < 60; i++) {
     bool allNodesFound = true;
     for (int j = 0; j < NUMBER_OF_NODES; j++)
-      if (NUMBER_OF_NODES / 2 >= nodes[j]->getNodeCount()) allNodesFound = false;
+      if (NUMBER_OF_NODES / 2 >= nodes[j]->getNodeCount())
+        allNodesFound = false;
     if (allNodesFound) break;
     taraxa::thisThreadSleepForSeconds(1);
   }
@@ -73,8 +74,7 @@ TEST(p2p, p2p_discovery) {
     ASSERT_LT(NUMBER_OF_NODES / 3, nodes[i]->getNodeCount());
   }
   bootHost.stop();
-  for (int j = 0; j < NUMBER_OF_NODES; j++)
-    nodes[j]->stop();
+  for (int j = 0; j < NUMBER_OF_NODES; j++) nodes[j]->stop();
 }
 
 /*

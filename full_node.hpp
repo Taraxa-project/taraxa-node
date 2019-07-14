@@ -36,6 +36,7 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
+class TransactionOrderManager;
 class Executor;
 class Vote;
 class VoteQueue;
@@ -126,8 +127,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // finialize)
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
       blk_hash_t const &anchor);
-  // receive pbft-povit-blk, update periods and finalized
-  void setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
+  // receive pbft-povit-blk, update periods and finalized, return size of
+  // ordered blocks
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
   uint64_t getLatestPeriod() const;
   blk_hash_t getLatestAnchor() const;
   uint getBlockProposeThresholdBeta()
@@ -145,7 +147,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
-  // fake trx schedule
+
+  // get transaction schecules stuff ...
+  blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
+    return trx_order_mgr_->getDagBlockFromTransaction(trx);
+  }
+
+  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+  getTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff
@@ -156,8 +165,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
-  bool executeScheduleBlock(ScheduleBlock const& sche_blk,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
+  bool executeScheduleBlock(
+      ScheduleBlock const &sche_blk,
+      std::unordered_map<addr_t, bal_t> &sortition_account_balance_table);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();
@@ -172,7 +182,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
   auto getAccsDB() const { return db_accs_; }
-  std::shared_ptr<SimpleDBFace> getBlkIndexDB() const { return db_blks_index_; }
+  std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
+    return db_trxs_to_blk_;
+  }
   auto getVM() const { return taraxa_vm_; }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
@@ -231,6 +243,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
   // vm
@@ -246,6 +259,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // ledger
   std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
 

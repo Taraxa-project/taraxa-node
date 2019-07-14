@@ -23,9 +23,8 @@ TEST(PbftManager, pbft_manager_lambda_input_test) {
   uint lambda_ms = 1000;
   uint committee_size = 3;
   uint valid_sortition_coins = 10000;
-  std::vector<uint> pbft_params { lambda_ms,
-                                  committee_size,
-                                  valid_sortition_coins };
+  std::vector<uint> pbft_params{lambda_ms, committee_size,
+                                valid_sortition_coins};
 
   PbftManager pbft_manager(pbft_params);
   EXPECT_EQ(lambda_ms, pbft_manager.LAMBDA_ms);
@@ -56,7 +55,7 @@ TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
   thisThreadSleepForMilliSeconds(500);
 
   auto node = top1.getNode();
-  
+
   node->clearVoteQueue();
 
   try {
@@ -72,7 +71,7 @@ TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
   }
 
   node->stop();
-  
+
   size_t vote_queue_size = node->getVoteQueueSize();
   EXPECT_EQ(vote_queue_size, 2);
 }

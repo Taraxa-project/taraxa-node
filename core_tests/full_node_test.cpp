@@ -24,6 +24,8 @@
 
 namespace taraxa {
 
+using samples::sendTrx;
+
 const unsigned NUM_TRX = 200;
 
 auto g_secret = dev::Secret(
@@ -36,38 +38,7 @@ auto g_mock_dag0 = samples::createMockDag0();
 auto g_test_account =
     samples::createTestAccountTable("core_tests/account_table.txt");
 
-void send1000trx() {
-  auto pattern = R"(
-      curl --silent -m 10 --output /dev/null -d \
-      '{
-        "jsonrpc": "2.0",
-        "method": "send_coin_transaction",
-        "id": "0",
-        "params": [
-          {
-            "nonce": 0,
-            "value": 0,
-            "gas": "%s",
-            "gas_price": "%s",
-            "receiver": "%s",
-            "secret": "%s"
-          }
-        ]
-      }' 0.0.0.0:7777
-    )";
-  for (auto i = 0; i < 1000; ++i) {
-    system(fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
-               addr_t::random(),
-               samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure())
-               .c_str());
-  }
-}
-
 TEST(Top, top_reset) {
-  std::cout << "Print g_test_account \n";
-  for (auto const &i : g_test_account) {
-    std::cout << i.first << " " << i.second << std::endl;
-  }
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -99,13 +70,13 @@ TEST(Top, top_reset) {
 
   try {
     std::string sendtrx1 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5, 
                                       "number": 6000, 
                                       "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7, 
                                       "number": 4000, 
@@ -171,14 +142,14 @@ TEST(Top, top_reset) {
 
   try {
     std::string sendtrx1 =
-        R"(curl -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret":
                                       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
                                       "delay": 5,
                                       "number": 6000,
                                       "seed": 1 }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
-        R"(curl -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret":
                                       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 7,
@@ -588,8 +559,8 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(5));
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
-  node->setDagBlockOrder(blk_hash_t(pivot), period);
-
+  auto num_blks_set = node->setDagBlockOrder(blk_hash_t(pivot), period);
+  EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
@@ -609,7 +580,8 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(14));
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
-  node->setDagBlockOrder(blk_hash_t(pivot), period);
+  num_blks_set = node->setDagBlockOrder(blk_hash_t(pivot), period);
+  EXPECT_EQ(num_blks_set, 7);
 
   // -------- third period ----------
 
@@ -628,7 +600,9 @@ TEST(FullNode, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[3], blk_hash_t(18));
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
-  node->setDagBlockOrder(blk_hash_t(pivot), period);
+  num_blks_set = node->setDagBlockOrder(blk_hash_t(pivot), period);
+  EXPECT_EQ(num_blks_set, 5);
+
   node->stop();
 }
 
@@ -919,14 +893,11 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     transactions.emplace_back(samples::TX_GEN.getWithRandomUniqueSender(
         i * 100, addr_t((i + 1) * 100)));
   }
-  {
-    auto state = node->getAccsDB()->getState<boost::unique_lock>();
-    for (auto const &t : transactions) {
-      state->addBalance(t.getSender(), t.getValue());
-    }
-    state->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
-    state->db().commit();
+  for (auto const &t : transactions) {
+    auto res = node->getBalance(t.getSender());
+    node->setBalance(t.getSender(), res.first + t.getValue());
   }
+  node->getAccsDB()->commit();
   for (auto const &t : transactions) {
     node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
@@ -977,13 +948,14 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     EXPECT_TRUE(ret);
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
+
   node->stop();
   auto coin_distributed = 0;
-  auto state = node->getAccsDB()->getState<boost::shared_lock>();
   for (auto const &t : g_trx_signed_samples) {
-    auto res = state->balance(t.getReceiver());
-    EXPECT_EQ(res, t.getValue());
-    coin_distributed += res;
+    auto res = node->getBalance(t.getReceiver());
+    EXPECT_TRUE(res.second);
+    EXPECT_EQ(res.first, t.getValue());
+    coin_distributed += res.first;
   }
   // TODO because of the nonce rule, testing distributing coins
   // from single account requires more thought
@@ -1132,7 +1104,7 @@ TEST(FullNode, receive_send_transaction) {
       new boost::asio::io_context::work(context1));
 
   try {
-    send1000trx();
+    sendTrx(1000, 7777);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1177,7 +1149,7 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   node1->setBlockProposeThresholdBeta(2048);
 
   try {
-    send1000trx();
+    sendTrx(1000, 7777);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1421,6 +1393,200 @@ TEST(Top, sortition_propose_five_nodes) {
   // num_proposed_block is static, in the case, all nodes has
   // same num proposed blocks
   EXPECT_GT(node1->getNumProposedBlocks(), 1);
+
+  top5.kill();
+  top4.kill();
+  top3.kill();
+  top2.kill();
+  top1.kill();
+  // delete main2
+  try {
+    std::cout << "main5 deleted ..." << std::endl;
+    system("rm -f ./build/main5");
+    std::cout << "main4 deleted ..." << std::endl;
+    system("rm -f ./build/main4");
+    std::cout << "main3 deleted ..." << std::endl;
+    system("rm -f ./build/main3");
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+}
+
+TEST(Top, detect_overlap_transactions) {
+  const char *input1[] = {"./build/main",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  const char *input2[] = {"./build/main2",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  const char *input3[] = {"./build/main3",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa3.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  const char *input4[] = {"./build/main4",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa4.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  const char *input5[] = {"./build/main5",
+                          "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa5.json",
+                          "-v",
+                          "0",
+                          "--destroy_db"};
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+    std::cout << "Copying main3 ..." << std::endl;
+    system("cp ./build/main ./build/main3");
+    std::cout << "Copying main4 ..." << std::endl;
+    system("cp ./build/main ./build/main4");
+    std::cout << "Copying main5 ..." << std::endl;
+    system("cp ./build/main ./build/main5");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  std::cout << "Top1 created ..." << std::endl;
+
+  Top top2(6, input2);
+  EXPECT_TRUE(top2.isActive());
+  std::cout << "Top2 created ..." << std::endl;
+
+  Top top3(6, input3);
+  EXPECT_TRUE(top3.isActive());
+  std::cout << "Top3 created ..." << std::endl;
+
+  Top top4(6, input4);
+  EXPECT_TRUE(top4.isActive());
+  std::cout << "Top4 created ..." << std::endl;
+
+  Top top5(6, input5);
+  EXPECT_TRUE(top5.isActive());
+  std::cout << "Top5 created ..." << std::endl;
+
+  std::cout << "Sleep for 1 second ..." << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  auto node3 = top3.getNode();
+  auto node4 = top4.getNode();
+  auto node5 = top5.getNode();
+
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  EXPECT_NE(node3, nullptr);
+  EXPECT_NE(node4, nullptr);
+  EXPECT_NE(node5, nullptr);
+
+  node1->getPbftManager()->stop();
+  node2->getPbftManager()->stop();
+  node3->getPbftManager()->stop();
+  node4->getPbftManager()->stop();
+  node5->getPbftManager()->stop();
+
+  try {
+    std::string sendtrx1 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
+                                      "delay": 5,
+                                      "number": 2000,
+                                      "seed": 1 }]}' 0.0.0.0:7777)";
+    std::string sendtrx2 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 7,
+                                      "number": 2000,
+                                      "seed": 2 }]}' 0.0.0.0:7778)";
+    std::string sendtrx3 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcf",
+                                      "delay": 2,
+                                      "number": 2000,
+                                      "seed": 3 }]}' 0.0.0.0:7779)";
+    std::string sendtrx4 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
+                                      "delay": 1,
+                                      "number": 2000,
+                                      "seed": 4 }]}' 0.0.0.0:7780)";
+    std::string sendtrx5 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
+                                      "delay": 3,
+                                      "number": 2000,
+                                      "seed": 5 }]}' 0.0.0.0:7781)";
+    std::cout << "Sending trxs ..." << std::endl;
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+    std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
+    std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
+    std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+
+    std::cout << "All trxs sent..." << std::endl;
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+  taraxa::thisThreadSleepForMilliSeconds(2000);
+
+  std::vector<std::string> ghost;
+  node1->getGhostPath(Dag::GENESIS, ghost);
+  uint64_t period = 0, cur_period, cur_period2;
+  std::shared_ptr<vec_blk_t> order;
+  auto anchor = blk_hash_t(ghost.back());
+  std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
+  EXPECT_GT(order->size(), 5);
+  std::cout << "Ordered dagblock size: " << order->size() << std::endl;
+  auto overlap_table = node1->getTransactionOverlapTable(order);
+  // check transaction overlapping ...
+  std::unordered_set<trx_hash_t> ordered_trxs;
+  uint packed_trxs = 0;
+  for (auto const &entry : *overlap_table) {
+    auto const &blk = entry.first;
+    auto const &overlap_vec = entry.second;
+    auto const &dag_blk = node1->getDagBlock(blk);
+    auto const &trxs = dag_blk->getTrxs();
+    ASSERT_TRUE(trxs.size() == overlap_vec.size());
+    packed_trxs += overlap_vec.size();
+
+    for (auto i = 0; i < trxs.size(); i++) {
+      if (!ordered_trxs.count(trxs[i])) {
+        EXPECT_TRUE(overlap_vec[i]);
+        ordered_trxs.insert(trxs[i]);
+      } else {
+        EXPECT_FALSE(overlap_vec[i]);
+      }
+    }
+  }
+  std::cout << "Total packed trxs: " << packed_trxs << std::endl;
+  EXPECT_GT(packed_trxs, 10000);
+  EXPECT_EQ(ordered_trxs.size(), 10000);
+
+  // check transaction to dagblock mapping
+  for (auto const &t : ordered_trxs) {
+    auto blk = node1->getDagBlockFromTransaction(t);
+    EXPECT_FALSE(blk.isZero());
+  }
 
   top5.kill();
   top4.kill();

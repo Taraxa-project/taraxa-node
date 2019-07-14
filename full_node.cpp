@@ -49,6 +49,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
+      trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
       dag_mgr_(std::make_shared<DagManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -117,6 +118,13 @@ void FullNode::initDB(bool destroy_db) {
     assert(db_trxs_);
   }
 
+  if (db_trxs_to_blk_ == nullptr) {
+    db_trxs_to_blk_ = SimpleDBFactory::createDelegate(
+        SimpleDBFactory::SimpleDBType::OverlayDBKind,
+        conf_.db_path + "/trxs_to_blk", destroy_db);
+    assert(db_trxs_to_blk_);
+  }
+
   if (db_votes_ == nullptr) {
     db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.pbft_votes_db_path(), destroy_db);
@@ -171,7 +179,7 @@ void FullNode::initDB(bool destroy_db) {
   }
   LOG(log_wr_) << "DB initialized ... ";
 }
-// must call close before destroyDB
+// must call close() before destroyDB
 bool FullNode::destroyDB() {
   if (!stopped_) {
     LOG(log_wr_) << "Cannot destroyDb if node is running ...";
@@ -183,6 +191,7 @@ bool FullNode::destroyDB() {
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
+  assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
 
@@ -190,6 +199,7 @@ bool FullNode::destroyDB() {
   db_blks_ = nullptr;
   db_blks_index_ = nullptr;
   db_trxs_ = nullptr;
+  db_trxs_to_blk_ = nullptr;
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
   db_inited_ = false;
@@ -243,6 +253,8 @@ void FullNode::start(bool boot_node) {
   blk_mgr_->start();
   trx_mgr_->setFullNode(getShared());
   trx_mgr_->start();
+  trx_order_mgr_->setFullNode(getShared());
+  trx_order_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   executor_->setFullNode(getShared());
@@ -296,6 +308,7 @@ void FullNode::start(bool boot_node) {
   assert(db_blks_);
   assert(db_blks_index_);
   assert(db_trxs_);
+  assert(db_trxs_to_blk_);
   assert(db_votes_);
   assert(db_pbftchain_);
   LOG(log_wr_) << "Node started ... ";
@@ -313,6 +326,7 @@ void FullNode::stop() {
   // Do not stop network_, o.w. restart node will crash
   // network_->stop();
   trx_mgr_->stop();
+  trx_order_mgr_->stop();
   pbft_mgr_->stop();
   executor_->stop();
   taraxa_vm_ = nullptr;
@@ -326,6 +340,8 @@ void FullNode::stop() {
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
+  assert(db_trxs_to_blk_.use_count() == 1);
+
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
@@ -337,6 +353,7 @@ bool FullNode::reset() {
   dag_mgr_ = nullptr;
   blk_mgr_ = nullptr;
   trx_mgr_ = nullptr;
+  trx_order_mgr_ = nullptr;
   blk_proposer_ = nullptr;
   executor_ = nullptr;
   vote_mgr_ = nullptr;
@@ -351,6 +368,7 @@ bool FullNode::reset() {
   // ledger
   assert(blk_mgr_.use_count() == 0);
   assert(trx_mgr_.use_count() == 0);
+  assert(trx_order_mgr_.use_count() == 0);
   // block proposer (multi processing)
   assert(blk_proposer_.use_count() == 0);
   // transaction executor
@@ -374,6 +392,7 @@ bool FullNode::reset() {
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
   trx_mgr_ = std::make_shared<TransactionManager>();
+  trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
   dag_mgr_ = std::make_shared<DagManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -576,8 +595,8 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
 // receive pbft-povit-blk, update periods
-void FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
-  dag_mgr_->setDagBlockPeriod(anchor, period);
+uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
+  return dag_mgr_->setDagBlockPeriod(anchor, period);
 }
 
 uint64_t FullNode::getLatestPeriod() const {
@@ -585,6 +604,18 @@ uint64_t FullNode::getLatestPeriod() const {
 }
 blk_hash_t FullNode::getLatestAnchor() const {
   return blk_hash_t(dag_mgr_->getLatestAnchor());
+}
+
+std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+FullNode::getTransactionOverlapTable(
+    std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
+  std::vector<std::shared_ptr<DagBlock>> blks;
+  for (auto const &b : *ordered_dag_blocks) {
+    auto dagblk = getDagBlock(b);
+    assert(dagblk);
+    blks.emplace_back(dagblk);
+  }
+  return trx_order_mgr_->computeOrderInBlocks(blks);
 }
 
 std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
@@ -777,7 +808,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     std::tie(current_period, dag_blocks_order) =
         getDagBlockOrder(dag_block_hash);
     // update DAG blocks order and DAG blocks table
-    for (auto const& dag_blk_hash : *dag_blocks_order) {
+    for (auto const &dag_blk_hash : *dag_blocks_order) {
       pbft_chain_->pushDagBlockHash(dag_blk_hash);
     }
   } else if (pbft_block.getBlockType() == schedule_block_type) {

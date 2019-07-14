@@ -53,6 +53,38 @@ class TxGenerator {
 
 inline const TxGenerator TX_GEN;
 
+inline bool sendTrx(uint64_t count, unsigned port) {
+  auto pattern = R"(
+      curl --silent -m 10 --output /dev/null -d \
+      '{
+        "jsonrpc": "2.0",
+        "method": "send_coin_transaction",
+        "id": "0",
+        "params": [
+          {
+            "nonce": 0,
+            "value": 0,
+            "gas": "%s",
+            "gas_price": "%s",
+            "receiver": "%s",
+            "secret": "%s"
+          }
+        ]
+      }' 0.0.0.0:%s
+    )";
+  for (auto i = 0; i < count; ++i) {
+    auto retcode = system(
+        fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
+            addr_t::random(),
+            samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure(), port)
+            .c_str());
+    if (retcode != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 struct TestAccount {
   TestAccount() = default;
   TestAccount(int id, std::string const &sk, std::string const &pk,

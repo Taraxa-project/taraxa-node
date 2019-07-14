@@ -225,8 +225,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
-  // assuming a period is confirmed, will finialize
-  void setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period);
+  // assuming a period is confirmed, will finialize, return size of blocks in the period
+  uint setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period);
 
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;

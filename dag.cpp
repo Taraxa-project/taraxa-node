@@ -798,12 +798,12 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
                << std::endl;
   return new_period;
 }
-void DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
+uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
     LOG(log_er_) << "Inserting period " << period
                  << " does not match ..., previous internal period "
                  << anchors_.size() - 1;
-    return;
+    return 0;
   }
   auto prev = anchors_.back();
   std::vector<std::string> blk_orders;
@@ -816,8 +816,9 @@ void DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (!ok) {
     LOG(log_er_) << "Create epoch " << period << " from " << blk_hash_t(prev)
                  << " to " << anchor << " failed ";
-    return;
+    return 0;
   }
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
+  return blk_orders.size();
 }
 }  // namespace taraxa

@@ -23,15 +23,13 @@ class Vote {
  public:
   Vote() = default;
   Vote(public_t const& node_pk, sig_t const& sortition_signature,
-      sig_t const& vote_signature, blk_hash_t const& blockhash,
-      PbftVoteTypes type, uint64_t round, size_t step);
+       sig_t const& vote_signature, blk_hash_t const& blockhash,
+       PbftVoteTypes type, uint64_t round, size_t step);
   Vote(stream& strm);
   ~Vote() {}
 
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
-
-
 
   vote_hash_t getHash() const;
   public_t getPublicKey() const;
@@ -61,10 +59,9 @@ class VoteManager {
   ~VoteManager() {}
 
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
-      PbftVoteTypes type, uint64_t round, size_t step);
-  bool voteValidation(blk_hash_t const& last_pbft_block_hash,
-      Vote const& vote, bal_t& account_balance,
-      size_t sortition_threshold) const;
+                 PbftVoteTypes type, uint64_t round, size_t step);
+  bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
+                      bal_t& account_balance, size_t sortition_threshold) const;
 
  private:
   vote_hash_t hash_(std::string const& str) const;

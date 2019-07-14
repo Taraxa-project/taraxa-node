@@ -21,11 +21,11 @@
 namespace taraxa {
 
 PbftManager::PbftManager() {}
-PbftManager::PbftManager(std::vector<uint> const& params)
-  // TODO: for debug, need remove later
-  : LAMBDA_ms(params[0]),
-    COMMITTEE_SIZE(params[1]),
-    VALID_SORTITION_COINS(params[2]) {}
+PbftManager::PbftManager(std::vector<uint> const &params)
+    // TODO: for debug, need remove later
+    : LAMBDA_ms(params[0]),
+      COMMITTEE_SIZE(params[1]),
+      VALID_SORTITION_COINS(params[2]) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
@@ -47,8 +47,8 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
                   << " Master boot node balance is not exist.";
   } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
     LOG(log_err_)
-      << "Failed initial master boot node account balance. Current balance "
-      << master_boot_node_account_balance.first;
+        << "Failed initial master boot node account balance. Current balance "
+        << master_boot_node_account_balance.first;
   }
   sortition_account_balance_table[master_boot_node_address] =
       master_boot_node_account_balance.first;
@@ -121,11 +121,9 @@ void PbftManager::run() {
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
     // Check if we are synced to the right step ...
-    size_t consensus_pbft_round =
-        roundDeterminedFromVotes_(votes, pbft_round_);
+    size_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
     if (consensus_pbft_round != pbft_round_) {
-      LOG(log_deb_)
-        << "From votes determined round " << consensus_pbft_round;
+      LOG(log_deb_) << "From votes determined round " << consensus_pbft_round;
       // comments out now, p2p connection syncing should cover this
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_deb_)
@@ -133,9 +131,9 @@ void PbftManager::run() {
         syncPbftChainFromPeers_();
       }
       pbft_round_ = consensus_pbft_round;
-      std::vector<Vote> cert_votes_for_round =
-          getVotesOfTypeFromVotesForRound_(cert_vote_type, votes,
-              pbft_round_ - 1, std::make_pair(blk_hash_t(0), false));
+      std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRound_(
+          cert_vote_type, votes, pbft_round_ - 1,
+          std::make_pair(blk_hash_t(0), false));
       std::pair<blk_hash_t, bool> cert_voted_block_hash =
           blockWithEnoughVotes_(cert_votes_for_round);
       if (cert_voted_block_hash.second) {
@@ -162,7 +160,7 @@ void PbftManager::run() {
           LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
                         << NULL_BLOCK_HASH << " for round 1 by protocol";
           placeVote_(NULL_BLOCK_HASH, propose_vote_type, pbft_round_,
-              pbft_step_);
+                     pbft_step_);
         } else if (push_block_values_for_round.count(pbft_round_ - 1) ||
                    (pbft_round_ >= 2 &&
                     nullBlockNextVotedForRound_(votes, pbft_round_ - 1))) {
@@ -171,7 +169,7 @@ void PbftManager::run() {
               proposeMyPbftBlock_();
           if (proposed_block_hash.second) {
             placeVote_(proposed_block_hash.first, propose_vote_type,
-                pbft_round_, pbft_step_);
+                       pbft_round_, pbft_step_);
           }
         } else if (pbft_round_ >= 2) {
           std::pair<blk_hash_t, bool> next_voted_block_from_previous_round =
@@ -205,7 +203,7 @@ void PbftManager::run() {
                           << " for round " << pbft_round_
                           << " and soft vote the value";
             placeVote_(leader_block.first, soft_vote_type, pbft_round_,
-                pbft_step_);
+                       pbft_step_);
           }
         } else if (pbft_round_ >= 2) {
           std::pair<blk_hash_t, bool> next_voted_block_from_previous_round =
@@ -216,7 +214,7 @@ void PbftManager::run() {
                           << next_voted_block_from_previous_round.first
                           << " from previous round";
             placeVote_(next_voted_block_from_previous_round.first,
-                soft_vote_type, pbft_round_, pbft_step_);
+                       soft_vote_type, pbft_round_, pbft_step_);
           }
         }
       }
@@ -254,7 +252,7 @@ void PbftManager::run() {
                   << "Cert voting " << soft_voted_block_for_this_round.first
                   << " for round " << pbft_round_;
               placeVote_(soft_voted_block_for_this_round.first, cert_vote_type,
-                  pbft_round_, pbft_step_);
+                         pbft_round_, pbft_step_);
             }
           } else {
             // Get partition, need send request to get missing pbft blocks from
@@ -281,7 +279,7 @@ void PbftManager::run() {
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
-              pbft_round_, pbft_step_);
+                     pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
@@ -291,7 +289,7 @@ void PbftManager::run() {
                         << nodes_own_starting_value_for_round << " for round "
                         << pbft_round_;
           placeVote_(nodes_own_starting_value_for_round, next_vote_type,
-              pbft_round_, pbft_step_);
+                     pbft_round_, pbft_step_);
         }
       }
 
@@ -309,7 +307,7 @@ void PbftManager::run() {
                         << soft_voted_block_for_this_round.first
                         << " for round " << pbft_round_;
           placeVote_(soft_voted_block_for_this_round.first, next_vote_type,
-              pbft_round_, pbft_step_);
+                     pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
                    (cert_voted_values_for_round.find(pbft_round_) ==
@@ -336,7 +334,7 @@ void PbftManager::run() {
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
-              pbft_round_, pbft_step_);
+                     pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
@@ -345,7 +343,7 @@ void PbftManager::run() {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
                         << pbft_round_;
           placeVote_(nodes_own_starting_value_for_round, next_vote_type,
-              pbft_round_, pbft_step_);
+                     pbft_round_, pbft_step_);
         }
       }
 
@@ -362,7 +360,7 @@ void PbftManager::run() {
                         << soft_voted_block_for_this_round.first
                         << " for round " << pbft_round_;
           placeVote_(soft_voted_block_for_this_round.first, next_vote_type,
-              pbft_round_, pbft_step_);
+                     pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
                    (cert_voted_values_for_round.find(pbft_round_) ==
@@ -402,8 +400,7 @@ void PbftManager::run() {
   }
 }
 
-bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round,
-    size_t step) {
+bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable";
@@ -442,9 +439,9 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round,
  */
 size_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
                                               uint64_t local_round) {
-  // TODO: local_round may be able to change to pbft_round_, and remove local_round
-  // tally next votes by round
-  // <vote_round, count>, round store in reverse order
+  // TODO: local_round may be able to change to pbft_round_, and remove
+  // local_round tally next votes by round <vote_round, count>, round store in
+  // reverse order
   std::map<size_t, size_t, std::greater<size_t>> next_votes_tally_by_round;
 
   for (Vote &v : votes) {
@@ -465,9 +462,9 @@ size_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
 
   for (auto &vp : next_votes_tally_by_round) {
     if (vp.second >= TWO_T_PLUS_ONE) {
-      std::vector<Vote> next_votes_for_round =
-          getVotesOfTypeFromVotesForRound_(next_vote_type, votes, vp.first,
-              std::make_pair(blk_hash_t(0), false));
+      std::vector<Vote> next_votes_for_round = getVotesOfTypeFromVotesForRound_(
+          next_vote_type, votes, vp.first,
+          std::make_pair(blk_hash_t(0), false));
       if (blockWithEnoughVotes_(next_votes_for_round).second) {
         return vp.first + 1;
       }
@@ -511,10 +508,10 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
 
     for (auto const &blockhash_pair : tally_by_blockhash) {
       if (blockhash_pair.second >= TWO_T_PLUS_ONE) {
-        LOG(log_deb_)
-          << "find block hash " << blockhash_pair.first << " vote type "
-          << vote_type << " in round " << vote_round << " has "
-          << blockhash_pair.second << " votes";
+        LOG(log_deb_) << "find block hash " << blockhash_pair.first
+                      << " vote type " << vote_type << " in round "
+                      << vote_round << " has " << blockhash_pair.second
+                      << " votes";
         return std::make_pair(blockhash_pair.first, true);
       }
     }
@@ -524,12 +521,12 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
 }
 
 bool PbftManager::nullBlockNextVotedForRound_(std::vector<Vote> &votes,
-                                               uint64_t round) {
+                                              uint64_t round) {
   blk_hash_t blockhash = NULL_BLOCK_HASH;
   std::pair<blk_hash_t, bool> blockhash_pair = std::make_pair(blockhash, true);
   std::vector<Vote> votes_for_null_block_in_round =
       getVotesOfTypeFromVotesForRound_(next_vote_type, votes, round,
-                                        blockhash_pair);
+                                       blockhash_pair);
   if (votes_for_null_block_in_round.size() >= TWO_T_PLUS_ONE) {
     return true;
   }
@@ -559,8 +556,9 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForRound_(
   return blockWithEnoughVotes_(next_votes_for_round);
 }
 
-void PbftManager::placeVote_(taraxa::blk_hash_t const& blockhash,
-    PbftVoteTypes vote_type, uint64_t round, size_t step) {
+void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
+                             PbftVoteTypes vote_type, uint64_t round,
+                             size_t step) {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
@@ -570,10 +568,9 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const& blockhash,
   Vote vote = full_node->generateVote(blockhash, vote_type, round, step);
   full_node->pushVoteIntoQueue(vote);
   full_node->setVoteKnown(vote.getHash());
-  LOG(log_deb_)
-    << "vote block hash: " << blockhash << " vote type: " << vote_type
-    << " round: " << round << " step: " << step << " vote hash "
-    << vote.getHash();
+  LOG(log_deb_) << "vote block hash: " << blockhash
+                << " vote type: " << vote_type << " round: " << round
+                << " step: " << step << " vote hash " << vote.getHash();
   // pbft vote broadcast
   full_node->broadcastVote(vote);
 }
@@ -629,7 +626,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     addr_t beneficiary = full_node->getAddress();
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
-        propose_pbft_chain_period, timestamp, beneficiary);
+                           propose_pbft_chain_period, timestamp, beneficiary);
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
@@ -656,12 +653,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
         full_node->getDagBlockOrder(dag_block_hash);
 
     // TODO: get transactions overlap table, we haven't have yet.
-//    std::shared_ptr<std::vector<std::pair<blk_hash_t, vector<bool>>>>
-//        trx_overlap_table =
-//            full_node->getTransactionOverlapTable(
-//                std::shared_ptr<vec_blk_t> dag_blocks_order);
+    //    std::shared_ptr<std::vector<std::pair<blk_hash_t, vector<bool>>>>
+    //        trx_overlap_table =
+    //            full_node->getTransactionOverlapTable(
+    //                std::shared_ptr<vec_blk_t> dag_blocks_order);
 
-    // TODO: generate fake transaction schedule for now, will pass trx_overlap_table to VM
+    // TODO: generate fake transaction schedule for now, will pass
+    // trx_overlap_table to VM
     auto schedule = full_node->createMockTrxSchedule(dag_blocks_order);
     if (schedule == nullptr) {
       LOG(log_deb_) << "There is no any new transactions.";
@@ -718,18 +716,16 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   return std::make_pair(leader.second, true);
 }
 
-bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
-    taraxa::blk_hash_t const& cert_voted_block_hash) {
+bool PbftManager::pushPbftBlockIntoChain_(
+    uint64_t round, taraxa::blk_hash_t const &cert_voted_block_hash) {
   std::vector<Vote> votes = vote_queue_->getVotes(round);
   size_t count = 0;
   for (auto const &v : votes) {
     if (v.getBlockHash() == cert_voted_block_hash &&
-        v.getType() == cert_vote_type &&
-        v.getRound() == round) {
-      LOG(log_deb_)
-        << "find cert vote " << v.getHash() << " for block hash "
-        << v.getBlockHash() << " in round " << v.getRound() << " step "
-        << v.getStep();
+        v.getType() == cert_vote_type && v.getRound() == round) {
+      LOG(log_deb_) << "find cert vote " << v.getHash() << " for block hash "
+                    << v.getBlockHash() << " in round " << v.getRound()
+                    << " step " << v.getStep();
       count++;
     }
   }
@@ -775,7 +771,7 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
           full_node->getDagBlockOrder(dag_block_hash);
 
       // update DAG blocks order and DAG blocks table
-      for (auto const& dag_blk_hash : *dag_blocks_order) {
+      for (auto const &dag_blk_hash : *dag_blocks_order) {
         pbft_chain_->pushDagBlockHash(dag_blk_hash);
       }
 
@@ -804,7 +800,8 @@ bool PbftManager::pushPbftBlockIntoChain_(uint64_t round,
       full_node->setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
 
       // execute schedule block
-      // TODO: VM executor will not take sortition_account_balance_table as reference.
+      // TODO: VM executor will not take sortition_account_balance_table as
+      // reference.
       //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
       //  Will need update sortition_account_balance_table here
       if (!full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock(),
@@ -903,10 +900,9 @@ void PbftManager::syncPbftChainFromPeers_() {
     LOG(log_err_) << "There is no peers with connection.";
   } else {
     for (auto &peer : peers) {
-      LOG(log_deb_)
-          << "In round " << pbft_round_
-          << " sync pbft chain with node " << peer
-          << " Send request to ask missing pbft blocks in chain";
+      LOG(log_deb_) << "In round " << pbft_round_
+                    << " sync pbft chain with node " << peer
+                    << " Send request to ask missing pbft blocks in chain";
       capability_->syncPeerPbft(peer);
     }
   }

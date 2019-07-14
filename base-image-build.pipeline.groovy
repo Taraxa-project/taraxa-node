@@ -39,9 +39,10 @@ pipeline {
             steps {
                 sh '''
                   docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
-                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}
+                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:latest
+
                   docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
-                  docker push ${REGISTRY}/${IMAGE}
+                  docker push ${REGISTRY}/${IMAGE}:latest
                 '''
             }
         }

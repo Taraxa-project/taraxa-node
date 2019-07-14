@@ -3,10 +3,10 @@ Dockerfile
 .git*
 build/
 .vscode/
-cmake-*/
 .idea/
 submodules/cryptopp/*.o
 submodules/cryptopp/adhoc.cpp
 submodules/cryptopp/libcryptopp.a
 test_build/
 obj/
+cmake-*/

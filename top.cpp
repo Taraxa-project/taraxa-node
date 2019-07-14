@@ -96,7 +96,8 @@ void Top::start(int argc, const char* argv[]) {
 }
 
 void Top::startRpc() {
-  rpc_ = std::make_shared<ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace> >(
+  rpc_ = std::make_shared<
+      ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace> >(
       new dev::rpc::Test(node_), new dev::rpc::Taraxa(node_));
   auto rpc_server(
       std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));

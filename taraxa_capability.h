@@ -43,9 +43,7 @@ enum PeerState { Idle = 0, Syncing };
 class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer() {}
-  TaraxaPeer(NodeID id) : m_id(id), m_state(Idle) {
-    setLastMessage();
-  }
+  TaraxaPeer(NodeID id) : m_id(id), m_state(Idle) { setLastMessage(); }
 
   bool isBlockKnown(blk_hash_t const &_hash) const {
     boost::shared_lock lck(mtx_for_known_blocks_);
@@ -129,7 +127,7 @@ class TaraxaPeer : public boost::noncopyable {
   std::set<blk_hash_t> known_blocks_;
   std::set<trx_hash_t> known_transactions_;
   // PBFT
-  std::set<vote_hash_t> known_votes_; // for peers
+  std::set<vote_hash_t> known_votes_;  // for peers
   std::set<blk_hash_t> known_pbft_blocks_;
 
   NodeID m_id;

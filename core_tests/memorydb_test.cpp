@@ -3,9 +3,9 @@
 */
 
 #include <gtest/gtest.h>
+#include <libdevcore/MemoryDB.h>
 #include "libdevcore/Log.h"
 #include "util.hpp"
-#include <libdevcore/MemoryDB.h>
 
 using namespace std;
 using namespace dev::db;
