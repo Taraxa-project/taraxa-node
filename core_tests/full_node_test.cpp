@@ -742,7 +742,7 @@ TEST(Top, sync_two_nodes1) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    send1000trx();
+    sendTrx(1000, 7777);
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception &e) {
@@ -794,7 +794,7 @@ TEST(Top, sync_two_nodes2) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    send1000trx();
+    sendTrx(1000, 7777);
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception &e) {
