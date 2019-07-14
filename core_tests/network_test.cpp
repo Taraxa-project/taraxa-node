@@ -494,89 +494,65 @@ TEST(Network, node_sync2) {
   std::vector<DagBlock> blks;
 
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
-  DagBlock blk1(
-      blk_hash_t(0), 1, {},
-      {transactions[0].getHash(), transactions[1].getHash()},
-      sig_t(777), blk_hash_t(0xB1), addr_t(999));
-  std::vector<Transaction> tr1(
-      {transactions[0], transactions[1]});
+  DagBlock blk1(blk_hash_t(0), 1, {},
+                {transactions[0].getHash(), transactions[1].getHash()},
+                sig_t(777), blk_hash_t(0xB1), addr_t(999));
+  std::vector<Transaction> tr1({transactions[0], transactions[1]});
 
-  DagBlock blk2(
-      blk_hash_t(0), 1, {},
-      {transactions[2].getHash(), transactions[3].getHash()},
-      sig_t(777), blk_hash_t(0xB2), addr_t(999));
-  std::vector<Transaction> tr2(
-      {transactions[2], transactions[3]});
+  DagBlock blk2(blk_hash_t(0), 1, {},
+                {transactions[2].getHash(), transactions[3].getHash()},
+                sig_t(777), blk_hash_t(0xB2), addr_t(999));
+  std::vector<Transaction> tr2({transactions[2], transactions[3]});
 
-  DagBlock blk3(
-      blk_hash_t(0xB1), 2, {},
-      {transactions[4].getHash(), transactions[5].getHash()},
-      sig_t(777), blk_hash_t(0xB6), addr_t(999));
-  std::vector<Transaction> tr3(
-      {transactions[4], transactions[5]});
+  DagBlock blk3(blk_hash_t(0xB1), 2, {},
+                {transactions[4].getHash(), transactions[5].getHash()},
+                sig_t(777), blk_hash_t(0xB6), addr_t(999));
+  std::vector<Transaction> tr3({transactions[4], transactions[5]});
 
-  DagBlock blk4(
-      blk_hash_t(0xB6), 7, {},
-      {transactions[6].getHash(), transactions[7].getHash()},
-      sig_t(777), blk_hash_t(0xB10), addr_t(999));
-  std::vector<Transaction> tr4(
-      {transactions[6], transactions[7]});
+  DagBlock blk4(blk_hash_t(0xB6), 7, {},
+                {transactions[6].getHash(), transactions[7].getHash()},
+                sig_t(777), blk_hash_t(0xB10), addr_t(999));
+  std::vector<Transaction> tr4({transactions[6], transactions[7]});
 
-  DagBlock blk5(
-      blk_hash_t(0xB2), 3, {},
-      {transactions[8].getHash(), transactions[9].getHash()},
-      sig_t(777), blk_hash_t(0xB8), addr_t(999));
-  std::vector<Transaction> tr5(
-      {transactions[8], transactions[9]});
+  DagBlock blk5(blk_hash_t(0xB2), 3, {},
+                {transactions[8].getHash(), transactions[9].getHash()},
+                sig_t(777), blk_hash_t(0xB8), addr_t(999));
+  std::vector<Transaction> tr5({transactions[8], transactions[9]});
 
   DagBlock blk6(blk_hash_t(0xB1), 2, {},
-                {transactions[10].getHash(),
-                 transactions[11].getHash()},
+                {transactions[10].getHash(), transactions[11].getHash()},
                 sig_t(777), blk_hash_t(0xB3), addr_t(999));
-  std::vector<Transaction> tr6(
-      {transactions[10], transactions[11]});
+  std::vector<Transaction> tr6({transactions[10], transactions[11]});
 
   DagBlock blk7(blk_hash_t(0xB3), 4, {},
-                {transactions[12].getHash(),
-                 transactions[13].getHash()},
+                {transactions[12].getHash(), transactions[13].getHash()},
                 sig_t(777), blk_hash_t(0xB4), addr_t(999));
-  std::vector<Transaction> tr7(
-      {transactions[12], transactions[13]});
+  std::vector<Transaction> tr7({transactions[12], transactions[13]});
 
   DagBlock blk8(blk_hash_t(0xB1), 5, {blk_hash_t(0xB4)},
-                {transactions[14].getHash(),
-                 transactions[15].getHash()},
+                {transactions[14].getHash(), transactions[15].getHash()},
                 sig_t(777), blk_hash_t(0xB5), addr_t(999));
-  std::vector<Transaction> tr8(
-      {transactions[14], transactions[15]});
+  std::vector<Transaction> tr8({transactions[14], transactions[15]});
 
   DagBlock blk9(blk_hash_t(0xB1), 2, {},
-                {transactions[16].getHash(),
-                 transactions[17].getHash()},
+                {transactions[16].getHash(), transactions[17].getHash()},
                 sig_t(777), blk_hash_t(0xB7), addr_t(999));
-  std::vector<Transaction> tr9(
-      {transactions[16], transactions[17]});
+  std::vector<Transaction> tr9({transactions[16], transactions[17]});
 
   DagBlock blk10(blk_hash_t(0xB5), 6, {},
-                 {transactions[18].getHash(),
-                  transactions[19].getHash()},
+                 {transactions[18].getHash(), transactions[19].getHash()},
                  sig_t(777), blk_hash_t(0xB9), addr_t(999));
-  std::vector<Transaction> tr10(
-      {transactions[18], transactions[19]});
+  std::vector<Transaction> tr10({transactions[18], transactions[19]});
 
   DagBlock blk11(blk_hash_t(0xB6), 7, {},
-                 {transactions[20].getHash(),
-                  transactions[21].getHash()},
+                 {transactions[20].getHash(), transactions[21].getHash()},
                  sig_t(777), blk_hash_t(0xB11), addr_t(999));
-  std::vector<Transaction> tr11(
-      {transactions[20], transactions[21]});
+  std::vector<Transaction> tr11({transactions[20], transactions[21]});
 
   DagBlock blk12(blk_hash_t(0xB8), 8, {},
-                 {transactions[22].getHash(),
-                  transactions[23].getHash()},
+                 {transactions[22].getHash(), transactions[23].getHash()},
                  sig_t(777), blk_hash_t(0xB12), addr_t(999));
-  std::vector<Transaction> tr12(
-      {transactions[22], transactions[23]});
+  std::vector<Transaction> tr12({transactions[22], transactions[23]});
 
   blks.push_back(blk1);
   blks.push_back(blk2);
