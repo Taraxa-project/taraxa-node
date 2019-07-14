@@ -10,6 +10,11 @@ pipeline {
         DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
     }
     stages {
+        stage('Validate C++ formatting') {
+            steps {
+                sh './scripts/validate_format_project_files_cxx.sh'
+            }
+        }
         stage('Docker Registry Login') {
             steps {
                 sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
