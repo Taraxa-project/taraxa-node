@@ -5,8 +5,8 @@
 #define TARAXA_NODE_SIMPLEDBFACTORY_H
 
 #include "SimpleOverlayDBDelegate.h"
-#include "SimpleTaraxaRocksDBDelegate.h"
 #include "SimpleStateDBDelegate.h"
+#include "SimpleTaraxaRocksDBDelegate.h"
 
 class SimpleDBFace;
 
@@ -21,4 +21,4 @@ class SimpleDBFactory {
     return std::make_shared<T>(path, overwrite);
   }
 };
-#endif //TARAXA_NODE_SIMPLEDBFACTORY_H
+#endif  // TARAXA_NODE_SIMPLEDBFACTORY_H

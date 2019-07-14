@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <libdevcore/Log.h>
-#include <libdevcore/db.h>
 #include <libdevcore/MemoryDB.h>
+#include <libdevcore/db.h>
 #include <iostream>
 #include <memory>
 #include <thread>
