@@ -89,7 +89,7 @@ if (APPLE)
             boost_log-mt)
 endif (APPLE)
 
-add_library(p2p_objects OBJECT
+add_library(eth_core_objects OBJECT
         libdevcore/Address.cpp
         libdevcore/Base64.cpp
         libdevcore/Common.cpp
@@ -119,7 +119,9 @@ add_library(p2p_objects OBJECT
         libdevcrypto/CryptoPP.cpp
         libdevcrypto/Hash.cpp
         libdevcrypto/LibSnark.cpp
-        libdevcrypto/SecretStore.cpp
+        libdevcrypto/SecretStore.cpp)
+
+add_library(p2p_objects OBJECT
         libp2p/CapabilityHost.cpp
         libp2p/Common.cpp
         libp2p/Host.cpp
@@ -132,7 +134,7 @@ add_library(p2p_objects OBJECT
         libp2p/UDP.cpp
         libp2p/UPnP.cpp)
 
-add_library(web3jsonrpc OBJECT
+add_library(web3jsonrpc_objects OBJECT
         libweb3jsonrpc/AdminNet.cpp
         libweb3jsonrpc/IpcServerBase.cpp
         libweb3jsonrpc/Net.cpp
@@ -184,16 +186,22 @@ add_library(node_objects OBJECT
         vm/TaraxaVM.cpp)
 
 set(main_deps_objects
-        $<TARGET_OBJECTS:node_objects>
+        $<TARGET_OBJECTS:eth_core_objects>
         $<TARGET_OBJECTS:p2p_objects>
-        $<TARGET_OBJECTS:web3jsonrpc>)
+        $<TARGET_OBJECTS:web3jsonrpc_objects>
+        $<TARGET_OBJECTS:node_objects>)
 add_library(main_objects OBJECT main.cpp)
 add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
+
+add_library(keygen_objects OBJECT util_cmd/keygen.cpp)
+add_executable(keygen
+        $<TARGET_OBJECTS:eth_core_objects>
+        $<TARGET_OBJECTS:keygen_objects>)
 
 enable_testing()
 set(CORE_TESTS
         crypto_test
-        #        pbft_rpc_test
+        pbft_rpc_test
         memorydb_test
         overlaydb_test
         statecachedb_test
