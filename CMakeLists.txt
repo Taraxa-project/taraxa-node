@@ -9,8 +9,6 @@ set(CMAKE_MACOSX_RPATH 1)
 
 include(FindBoost)
 include(FindProtobuf)
-# TODO use cotire for header precompilation
-#include(cmake/cotire.cmake)
 scoped_include(cmake/submodules/libff.cmake)
 scoped_include(cmake/submodules/prometheus-cpp.cmake)
 scoped_include(cmake/submodules/cryptopp.cmake)
@@ -191,7 +189,6 @@ set(main_deps_objects
         $<TARGET_OBJECTS:web3jsonrpc>)
 add_library(main_objects OBJECT main.cpp)
 add_executable(main ${main_deps_objects} $<TARGET_OBJECTS:main_objects>)
-#cotire(node_objects p2p_objects main_objects)
 
 enable_testing()
 set(CORE_TESTS
@@ -228,7 +225,6 @@ add_library(trie_test_objects OBJECT
         crypto_tests/trie_test.cpp)
 
 foreach (t ${ALL_TESTS})
-    #    cotire(${t}_objects)
     add_executable(${t} ${main_deps_objects} $<TARGET_OBJECTS:${t}_objects>)
     add_dependencies(${t} main)
     add_test(NAME ${t} COMMAND ${t} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

@@ -61,6 +61,7 @@ struct FullNodeConfig {
   auto transactions_db_path() { return db_path + "/trx"; }
   auto pbft_votes_db_path() { return db_path + "/pbftvotes"; }
   auto pbft_chain_db_path() { return db_path + "/pbftchain"; }
+  auto trxs_to_blk_db_path() { return db_path + "/trxs_to_blk"; }
 };
 
 std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);

@@ -119,9 +119,8 @@ void FullNode::initDB(bool destroy_db) {
   }
 
   if (db_trxs_to_blk_ == nullptr) {
-    db_trxs_to_blk_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/trxs_to_blk", destroy_db);
+    db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.trxs_to_blk_db_path(), destroy_db);
     assert(db_trxs_to_blk_);
   }
 
