@@ -45,7 +45,9 @@ pipeline {
         }
         stage('Smoke Test') {
             steps {
-                sh 'docker network create --driver=bridge \
+                sh 'docker network rm \
+                    smoke-test-net-${DOCKER_BRANCH_TAG} &>/dev/null;
+                    docker network create --driver=bridge \
                     smoke-test-net-${DOCKER_BRANCH_TAG}'
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
                 sh ''' docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG} byrnedo/alpine-curl -d \"{
