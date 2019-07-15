@@ -158,7 +158,7 @@ void FullNode::initDB(bool destroy_db) {
 
   // Initialize MASTER BOOT NODE to all coins
   addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  bal_t total_coins(TARAXA_COINS_DECIMAL);
+  val_t total_coins(TARAXA_COINS_DECIMAL);
   if (!setBalance(master_boot_node_address, total_coins)) {
     LOG(log_er_) << "Failed to set master boot node account balance";
   }
@@ -677,7 +677,7 @@ void FullNode::insertBroadcastedTransactions(
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
-std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
+std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
   std::string bal = db_accs_->get(acc.toString());
   bool ret = false;
   if (bal.empty()) {
@@ -689,7 +689,7 @@ std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
   }
   return {std::stoull(bal), ret};
 }
-bal_t FullNode::getMyBalance() const {
+val_t FullNode::getMyBalance() const {
   auto my_bal = getBalance(node_addr_);
   if (!my_bal.second) {
     return 0;
@@ -698,9 +698,9 @@ bal_t FullNode::getMyBalance() const {
   }
 }
 
-bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
+bool FullNode::setBalance(addr_t const &acc, val_t const &new_bal) {
   bool ret = true;
-  if (!db_accs_->update(acc.toString(), std::to_string(new_bal))) {
+  if (!db_accs_->update(acc.toString(), toString(new_bal))) {
     LOG(log_wr_) << "Account " << acc.toString() << " update fail ..."
                  << std::endl;
   }
@@ -719,7 +719,7 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, bal_t> &sortition_account_balance_table) {
+    std::unordered_map<addr_t, val_t> &sortition_account_balance_table) {
   return executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table);
 }
@@ -734,7 +734,7 @@ std::vector<Vote> FullNode::getVotes(uint64_t period) {
 
 void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
-  std::pair<bal_t, bool> account_balance = getBalance(vote_address);
+  std::pair<val_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
     LOG(log_er_) << "Cannot find the vote account balance: " << vote_address;
     return;
@@ -831,7 +831,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
     // TODO: VM executor will not take sortition_account_balance_table as
     // reference.
-    //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
+    //  But will return a list of modified accounts as pairs<addr_t, val_t>.
     //  Will need update sortition_account_balance_table here
     // execute schedule block
     if (!executeScheduleBlock(pbft_block.getScheduleBlock(),

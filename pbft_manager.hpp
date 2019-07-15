@@ -24,7 +24,7 @@
 #define LAMBDA_ms 1000           // milliseconds
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 19
-#define COMMITTEE_SIZE 3  // TODO: The value for local test, need to change
+#define COMMITTEE_SIZE val_t(3)  // TODO: The value for local test, need to change
 #define VALID_SORTITION_COINS 10000  // TODO: the value may change later
 #undef LAMBDA_ms                     // TODO: undef for test, need remove later
 #undef COMMITTEE_SIZE                // TODO: undef for test, need remove later
@@ -61,9 +61,9 @@ class PbftManager {
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
-  std::unordered_map<addr_t, bal_t> sortition_account_balance_table;
+  std::unordered_map<addr_t, val_t> sortition_account_balance_table;
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
-  bal_t COMMITTEE_SIZE;            // TODO: Only for test, need remove later
+  size_t COMMITTEE_SIZE;            // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
 
  private:

@@ -32,7 +32,7 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
 
-  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   addr_t account_address = node->getAddress();
   node->setBalance(account_address, new_balance);
 
@@ -95,7 +95,7 @@ TEST(PbftManager, pbft_manager_run_multi_nodes) {
   auto node3(std::make_shared<taraxa::FullNode>(
       context3, std::string("./core_tests/conf/conf_taraxa3.json")));
 
-  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   addr_t account_address1 = node1->getAddress();
   node1->setBalance(account_address1, new_balance);
   node2->setBalance(account_address1, new_balance);

@@ -7,6 +7,7 @@
  */
 
 #include "SimpleStateDBDelegate.h"
+#include "types.hpp"
 
 bool SimpleStateDBDelegate::put(const std::string &key,
                                 const std::string &value) {
@@ -31,7 +32,7 @@ std::string SimpleStateDBDelegate::get(const std::string &key) {
   if (!state_->addressInUse(id)) {
     return "";
   }
-  return std::to_string(state_->balance(id));
+  return taraxa::toString(state_->balance(id));
 }
 void SimpleStateDBDelegate::commit() {
   // TODO: perhaps we shall let the CommitBehaviour be flexible

@@ -106,7 +106,7 @@ sig_t VoteManager::signVote(secret_t const& node_sk,
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
-                                 taraxa::bal_t& account_balance,
+                                 taraxa::val_t& account_balance,
                                  size_t sortition_threshold) const {
   PbftVoteTypes type = vote.getType();
   uint64_t round = vote.getRound();

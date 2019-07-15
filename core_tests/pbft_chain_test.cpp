@@ -342,7 +342,7 @@ TEST(PbftChain, simulate_pbft_execute_round) {
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
   // Max Taraxa coins 2^53 - 1, make sure will get sortition
-  bal_t new_balance = 9007199254740991;
+  val_t new_balance = 9007199254740991;
   // setup account1 for node1
   dev::KeyPair key_pair1 = dev::KeyPair::create();
   addr_t account_address1 = dev::toAddress(key_pair1.pub());

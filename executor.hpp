@@ -44,13 +44,13 @@ class Executor {
   void clear();
   bool execute(
       TrxSchedule const& schedule,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
+      std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool executeBlkTrxs(
       blk_hash_t const& blk,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
+      std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool coinTransfer(
       Transaction const& trx,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
+      std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
 
  private:
   ExecutorStatus status_ = ExecutorStatus::idle;

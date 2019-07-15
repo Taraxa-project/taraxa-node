@@ -30,8 +30,7 @@ string hashSignature(dev::Signature signature) {
  * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS *
  * sortition_threshold otherwise return false
  */
-bool sortition(string signature_hash, uint64_t account_balance,
-               size_t threshold) {
+bool sortition(string signature_hash, val_t account_balance, size_t threshold) {
   if (signature_hash.length() != 64) {
     LOG(log_err_) << "signature has string length should be 64, but "
                   << signature_hash.length() << " given" << std::endl;
@@ -52,9 +51,9 @@ bool sortition(string signature_hash, uint64_t account_balance,
     LOG(log_err_) << "Failed multiplication of signature hash * total coins";
     return false;
   }
-  uint64_t sum = account_balance * threshold;
+  val_t sum = account_balance * threshold;
   sum_right =
-      taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, std::to_string(sum));
+      taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, toString(sum));
   if (sum_right.empty()) {
     LOG(log_err_)
         << "Failed multiplication of "

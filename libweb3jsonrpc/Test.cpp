@@ -197,8 +197,8 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
       secret_t sk = secret_t(param1["secret"].asString());
-      bal_t nonce = param1["nonce"].asUInt64();
-      bal_t value = param1["value"].asUInt64();
+      val_t nonce = param1["nonce"].asUInt64();
+      val_t value = param1["value"].asUInt64();
       val_t gas_price = val_t(param1["gas_price"].asString());
       val_t gas = val_t(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
@@ -315,7 +315,7 @@ Json::Value Test::set_account_balance(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       addr_t addr = addr_t(param1["address"].asString());
-      bal_t bal = param1["balance"].asUInt64();
+      val_t bal = param1["balance"].asUInt64();
       node->setBalance(addr, bal);
       res = "Set " + addr.toString() +
             " balance: " + boost::lexical_cast<std::string>(bal) + "\n";

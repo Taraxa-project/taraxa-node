@@ -22,8 +22,8 @@ class SimpleStateDBDelegate : public SimpleDBFace {
   static dev::Address stringToAddress(const std::string &s) {
     return dev::Address(s);
   }
-  static taraxa::bal_t stringToBalance(const std::string &s) {
-    return (taraxa::bal_t)std::stoull(s);
+  static taraxa::val_t stringToBalance(const std::string &s) {
+    return (taraxa::val_t)std::stoull(s);
   }
 
   std::shared_ptr<dev::eth::State> state_ = nullptr;

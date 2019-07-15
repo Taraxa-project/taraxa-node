@@ -11,7 +11,7 @@
 
 #include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"
-
+#include "types.hpp"
 #include <string>
 
 // max signature hash 64 hex
@@ -32,7 +32,7 @@ using std::string;
 
 string hashSignature(dev::Signature signature);
 
-bool sortition(string signature, uint64_t account_balance, size_t threshold);
+bool sortition(string signature, val_t account_balance, size_t threshold);
 
 string hexToDecimal(string hex);
 
