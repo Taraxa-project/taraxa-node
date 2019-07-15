@@ -82,11 +82,12 @@ Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t) {
   tr_js["from"] = toJS(_t->getSender());
   tr_js["gas"] = toJS(_t->getGas());
   tr_js["gasPrice"] = toJS(_t->getGasPrice());
-  tr_js["nonce"] = "";
+  tr_js["nonce"] = toJS(_t->getNonce());
   tr_js["value"] = toJS(_t->getValue());
-  tr_js["v"] = toJS("");
-  tr_js["r"] = toJS("");
-  tr_js["s"] = toJS("");
+  dev::SignatureStruct sig(_t->getSig());
+  tr_js["v"] = toJS(sig.v);
+  tr_js["r"] = toJS(sig.r);
+  tr_js["s"] = toJS(sig.s);
   return tr_js;
 }
 
