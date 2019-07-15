@@ -14,9 +14,8 @@ In your `feature` branch, do:
 This makes sure your codebase is up-to-date. 
 Please resolve any conflicts you may find.  :)
 
-Before filing pull request, please do:
-
-`make run_test` 
+Before filing pull request, please run `run_test` build target e.g. 
+`cmake -Bbuild && cmake --build build --target run_test`
 
 and make sure all test are passed! :)
 
@@ -26,6 +25,44 @@ Please run your code format with `.clang-format` checking.
 ```
 git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
 ```
+The project uses CMake as the build system. 
+The build directory has to be `${repository_root}/build` 
+in order for the tests to work.
+
+To generate the build system e.g. Makefile:
+```
+cmake -Bbuild
+```
+To generate a specific build type (default is 'Release') e.g. 'Debug':
+```
+cmake -DCMAKE_BUILD_TYPE=Debug -Bbuild
+```
+Re-run this command if you change the build definitions.
+
+To run a build target:
+```
+cmake --build build --target ${YOUR TARGET}
+```
+If you want to have parallel build, append 
+```
+-j ${NUMBER OF THREADS}
+```
+Or define the env variable: 
+```
+CMAKE_BUILD_PARALLEL_LEVEL=${NUMBER OF THREADS}
+```
+To make sure your build is always up to date:
+```
+cmake -Bbuild && cmake --build build --target ${YOUR TARGET}
+```
+To run a build target directly on the build system:
+```
+cd build && make ${YOUR TARGET}
+```
+Make sure the build system has been generated.
+
+***`make` commands in this document assume the build directory
+is the current directory***
 
 ## Library dependency:
 
@@ -89,6 +126,10 @@ make install
 make pdemo
 # replace all of the following param for a different pushgateway setup
 # make pdemo PUSHGATEWAY_NAME=pushgateway PUSHGATEWAY_IP=0.0.0.0 PUSHGATEWAY_PORT=9091
+
+# simple self-contained example:
+docker run --name pdemo_gateway -d -p 9091:9091 prom/pushgateway && make pdemo;
+docker rm -f pdemo_gateway;
 ```
 
 Google how to install other libs for your system.
@@ -131,13 +172,7 @@ Please change ip address, binding port, number of threads, etc, in the configura
 
 Verbosity setting (-v):
 
-0: Error, 1: Warning (default), 2: Info, 3: Debug, 4: Trace 
-
-## Build debug executable:
-
-```
-make main DEBUG=1
-```
+0: Error, 1: Warning (default), 2: Info, 3: Debug, 4: Trace
 
 ## Docker
 

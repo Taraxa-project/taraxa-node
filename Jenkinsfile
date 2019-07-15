@@ -24,7 +24,11 @@ pipeline {
             }
             steps {
                 sh 'git submodule update --init --recursive'
-                sh 'make run_test'
+                sh '''
+                    export VERBOSE=1 &&
+                    cmake -Bbuild &&
+                    cmake --build build --target run_test -j $(nproc)
+                '''
             }
         }
         stage('Build Docker Image') {
