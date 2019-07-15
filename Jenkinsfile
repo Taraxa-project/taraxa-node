@@ -26,7 +26,7 @@ pipeline {
                 sh 'git submodule update --init --recursive'
                 sh '''
                     export VERBOSE=1 &&
-                    cmake -Bbuild -S. &&
+                    cmake -Bbuild &&
                     cmake --build build --target run_test -j $(nproc)
                 '''
             }
