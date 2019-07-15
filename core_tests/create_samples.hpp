@@ -17,9 +17,9 @@
 
 namespace taraxa::samples {
 
-inline const val_t::Arith TEST_MAX_TRANSACTIONS_IN_BLOCK = 10000;
-inline const val_t::Arith TEST_BLOCK_GAS_LIMIT = Executor::MOCK_BLOCK_GAS_LIMIT;
-inline const val_t::Arith TEST_TX_GAS_LIMIT =
+inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK = 10000;
+inline const val_t TEST_BLOCK_GAS_LIMIT = Executor::MOCK_BLOCK_GAS_LIMIT;
+inline const val_t TEST_TX_GAS_LIMIT =
     TEST_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
 
 class TxGenerator {
@@ -36,7 +36,7 @@ class TxGenerator {
   }
 
   auto getWithRandomUniqueSender(
-      bal_t const &value = 0, addr_t const &to = addr_t::random(),
+      val_t const &value = 0, addr_t const &to = addr_t::random(),
       bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
     return Transaction(0,                               // nonce
                        value,                           // value
@@ -47,12 +47,12 @@ class TxGenerator {
                        getRandomUniqueSenderSecret());  // secret
   }
   auto getSerialTrxWithSameSender(
-      uint trx_num, bal_t const &start_nonce, bal_t const &value,
+      uint trx_num, val_t const &start_nonce, val_t const &value,
       addr_t const &receiver = addr_t::random()) const {
     std::vector<Transaction> trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
       trxs.emplace_back(
-          Transaction(bal_t(i),                               // nonce
+          Transaction(val_t(i),                               // nonce
                       value,                                  // value
                       val_t(0),                               // gas_price
                       TEST_TX_GAS_LIMIT,                      // gas

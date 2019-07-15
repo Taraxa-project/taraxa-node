@@ -39,7 +39,7 @@ void Executor::stop() {
 }
 bool Executor::executeBlkTrxs(
     blk_hash_t const& blk,
-    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
+    std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   std::string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
@@ -69,7 +69,7 @@ bool Executor::executeBlkTrxs(
 }
 bool Executor::execute(
     TrxSchedule const& sche,
-    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
+    std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   for (auto const& blk : sche.blk_order) {
     if (!executeBlkTrxs(blk, sortition_account_balance_table)) {
       return false;
@@ -80,14 +80,14 @@ bool Executor::execute(
 
 bool Executor::coinTransfer(
     Transaction const& trx,
-    std::unordered_map<addr_t, bal_t>& sortition_account_balance_table) {
+    std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
-  bal_t value = trx.getValue();
+  val_t value = trx.getValue();
   auto sender_bal = db_accs_->get(sender.toString());
   auto receiver_bal = db_accs_->get(receiver.toString());
-  bal_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
-  bal_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
+  val_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
+  val_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
 
   if (sender_initial_coin < trx.getValue()) {
     LOG(log_er_) << "Insufficient fund for transfer ... , sender " << sender
@@ -100,10 +100,10 @@ bool Executor::coinTransfer(
     LOG(log_er_) << "Error! Fund can overflow ..." << std::endl;
     return false;
   }
-  bal_t new_sender_bal = sender_initial_coin - value;
-  bal_t new_receiver_bal = receiver_initial_coin + value;
-  db_accs_->update(sender.toString(), std::to_string(new_sender_bal));
-  db_accs_->update(receiver.toString(), std::to_string(new_receiver_bal));
+  val_t new_sender_bal = sender_initial_coin - value;
+  val_t new_receiver_bal = receiver_initial_coin + value;
+  db_accs_->update(sender.toString(), toString(new_sender_bal));
+  db_accs_->update(receiver.toString(), toString(new_receiver_bal));
   // Update account balance table. Will remove in VM since vm return a list of
   // modified balance accounts
   auto full_node = node_.lock();

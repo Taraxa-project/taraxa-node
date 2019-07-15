@@ -64,8 +64,8 @@ class Transaction {
         sig_(t.sig()),
         data_(str2bytes(t.data())) {}
   // default constructor
-  Transaction(trx_hash_t const &hash, Type type, bal_t const &nonce,
-              bal_t const &value, val_t const &gas_price, val_t const &gas,
+  Transaction(trx_hash_t const &hash, Type type, val_t const &nonce,
+              val_t const &value, val_t const &gas_price, val_t const &gas,
               addr_t const &receiver, sig_t const &sig, bytes const &data) try
       : hash_(hash),
         type_(type),
@@ -81,7 +81,7 @@ class Transaction {
   }
 
   // sign message call
-  Transaction(bal_t const &nonce, bal_t const &value, val_t const &gas_price,
+  Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
               val_t const &gas, addr_t const &receiver, bytes const &data,
               secret_t const &sk) try : type_(Transaction::Type::Call),
                                         nonce_(nonce),
@@ -97,7 +97,7 @@ class Transaction {
   }
 
   // sign contract create
-  Transaction(bal_t const &nonce, bal_t const &value, val_t const &gas_price,
+  Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
               val_t const &gas, bytes const &data, secret_t const &sk) try
       : type_(Transaction::Type::Create),
         nonce_(nonce),
@@ -118,8 +118,8 @@ class Transaction {
   void serializeRLP(dev::RLPStream &s);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
-  bal_t getNonce() const { return nonce_; }
-  bal_t getValue() const { return value_; }
+  val_t getNonce() const { return nonce_; }
+  val_t getValue() const { return value_; }
   val_t getGasPrice() const { return gas_price_; }
   val_t getGas() const { return gas_; }
   addr_t getSender() const { return sender(); }
@@ -170,8 +170,8 @@ class Transaction {
   blk_hash_t sha3(bool include_sig) const;
   trx_hash_t hash_;
   Type type_ = Type::Null;
-  bal_t nonce_ = 0;
-  bal_t value_ = 0;
+  val_t nonce_ = 0;
+  val_t value_ = 0;
   val_t gas_price_;
   val_t gas_;
   addr_t receiver_;

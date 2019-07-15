@@ -6,8 +6,8 @@
  * @Last Modified time: 2019-04-08 17:06:06
  */
 
-#ifndef TYPES_HPP
-#define TYPES_HPP
+#ifndef TARAXA_NODE_TYPES_HPP
+#define TARAXA_NODE_TYPES_HPP
 #include <boost/asio.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <chrono>
@@ -95,15 +95,24 @@ using trx_hash_t = uint256_hash_t;
 using sig_hash_t = uint256_hash_t;
 
 using key_t = std::string;
-using bal_t = uint64_t;
 using level_t = uint64_t;
-using val_t = uint256_hash_t;
+using val_t = dev::u256;
 
 using vec_blk_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
+
+// val_t type related helper functions
+inline val_t operator+=(val_t const &val, val_t const &other) {
+  return val + other;
+}
+inline std::string toString(val_t const &val) {
+  std::stringstream strm;
+  strm << val;
+  return strm.str();
+}
 
 std::ostream &operator<<(std::ostream &strm, bytes const &bytes);
 

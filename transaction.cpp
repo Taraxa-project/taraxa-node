@@ -90,8 +90,8 @@ string Transaction::getJsonStr() const {
   tree.put("type", asInteger(type_));
   tree.put("nonce", nonce_);
   tree.put("value", value_);
-  tree.put("gas_price", gas_price_.toString());
-  tree.put("gas", gas_.toString());
+  tree.put("gas_price", toString(gas_price_));
+  tree.put("gas", toString(gas_));
   tree.put("sig", sig_.toString());
   tree.put("receiver", receiver_.toString());
   tree.put("data", bytes2str(data_));

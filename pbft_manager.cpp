@@ -40,7 +40,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
 
   // Initialize master boot node account balance
   addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  std::pair<bal_t, bool> master_boot_node_account_balance =
+  std::pair<val_t, bool> master_boot_node_account_balance =
       full_node->getBalance(master_boot_node_address);
   if (!master_boot_node_account_balance.second) {
     LOG(log_err_) << "Failed initial master boot node account balance."
@@ -412,7 +412,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_tra_) << "Don't have enough coins to vote";
     return false;
   }
-  std::pair<bal_t, bool> account_balance =
+  std::pair<val_t, bool> account_balance =
       full_node->getBalance(account_address);
   if (!account_balance.second) {
     LOG(log_tra_) << "Full node account unavailable" << std::endl;
@@ -802,7 +802,7 @@ bool PbftManager::pushPbftBlockIntoChain_(
       // execute schedule block
       // TODO: VM executor will not take sortition_account_balance_table as
       // reference.
-      //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
+      //  But will return a list of modified accounts as pairs<addr_t, val_t>.
       //  Will need update sortition_account_balance_table here
       if (!full_node->executeScheduleBlock(pbft_block.first.getScheduleBlock(),
                                            sortition_account_balance_table)) {

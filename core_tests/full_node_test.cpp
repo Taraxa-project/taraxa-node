@@ -354,7 +354,7 @@ TEST(Top, sync_five_nodes_simple) {
   EXPECT_NE(node5, nullptr);
 
   // set balance
-  //  bal_t bal(9007199254740991);
+  //  val_t bal(9007199254740991);
   // transfer some coins to your friends ...
   Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
@@ -858,7 +858,7 @@ TEST(FullNode, account_bal) {
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   addr_t addr1(100);
-  bal_t bal1(1000);
+  val_t bal1(1000);
   node->setBalance(addr1, bal1);
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
@@ -866,7 +866,7 @@ TEST(FullNode, account_bal) {
   addr_t addr2(200);
   res = node->getBalance(addr2);
   EXPECT_FALSE(res.second);
-  bal_t bal2(2000);
+  val_t bal2(2000);
   node->setBalance(addr1, bal2);
   res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
@@ -882,7 +882,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
 
   addr_t acc1 = node->getAddress();
 
-  bal_t initbal(100000000);  // disable pbft sortition
+  val_t initbal(100000000);  // disable pbft sortition
   node->setBalance(acc1, initbal);
   auto res = node->getBalance(acc1);
   EXPECT_TRUE(res.second);
@@ -1141,7 +1141,7 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   rpc_server->StartListening();
   taraxa::thisThreadSleepForMilliSeconds(500);
   auto addr = node1->getAddress();
-  bal_t init_bal = 9007199254740991;
+  val_t init_bal = 9007199254740991;
   node1->setBalance(addr, init_bal);
   auto res = node1->getBalance(addr);
   EXPECT_TRUE(res.second);
@@ -1247,7 +1247,7 @@ TEST(Top, sortition_propose_five_nodes) {
   auto node5 = top5.getNode();
 
   // set balance
-  //  bal_t bal(9007199254740991);
+  //  val_t bal(9007199254740991);
   // transfer some coins to your friends ...
   Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),

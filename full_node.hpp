@@ -156,16 +156,16 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TrxSchedule> createMockTrxSchedule(
       std::shared_ptr<vec_blk_t> blk_order);
   // account stuff
-  std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
-  bal_t getMyBalance() const;
-  bool setBalance(addr_t const &acc, bal_t const &new_bal);
+  std::pair<val_t, bool> getBalance(addr_t const &acc) const;
+  val_t getMyBalance() const;
+  bool setBalance(addr_t const &acc, val_t const &new_bal);
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
   bool executeScheduleBlock(
       ScheduleBlock const &sche_blk,
-      std::unordered_map<addr_t, bal_t> &sortition_account_balance_table);
+      std::unordered_map<addr_t, val_t> &sortition_account_balance_table);
   // debugger
   uint64_t getNumReceivedBlocks();
   uint64_t getNumProposedBlocks();

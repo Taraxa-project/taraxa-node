@@ -16,6 +16,16 @@ namespace taraxa {
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 std::mt19937 RandomPropose::generator;
 
+uint posLog2(val_t val) {
+  if (val <= 0) return 0;
+  int count = 0;
+  while (val) {
+    val >>= 1;
+    count += 1;
+  }
+  return count - 1;
+}
+
 bool RandomPropose::propose() {
   auto proposer = proposer_.lock();
   if (!proposer) {
@@ -237,8 +247,8 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
                  << " balance is 0 ...";
     return false;
   }
-  uint64_t log_bal = log2(my_bal) + 1;                 // 1~16, 6 bits
-  uint64_t my_threshold = log_bal * beta * threshold;  // 46 bits
+  auto log_bal = posLog2(my_bal) + 1;                 // 1~16, 6 bits
+  auto my_threshold = log_bal * beta * threshold;  // 46 bits
   if (ticket < my_threshold) {
     LOG(log_dg_) << "Win sortition at level: " << propose_level
                  << " , ticket = " << ticket

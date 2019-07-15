@@ -114,7 +114,7 @@ TEST(PbftVote, transfer_vote) {
   ASSERT_EQ(node_peers, nw2->getPeerCount());
 
   // set nodes account balance
-  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   addr_t account_address1 = node1->getAddress();
   node1->setBalance(account_address1, new_balance);
   node2->setBalance(account_address1, new_balance);
@@ -198,7 +198,7 @@ TEST(PbftVote, vote_broadcast) {
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
   // set nodes account balance
-  bal_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   addr_t account_address1 = node1->getAddress();
   node1->setBalance(account_address1, new_balance);
   node2->setBalance(account_address1, new_balance);
