@@ -1,5 +1,3 @@
-set(ENV{CMAKE_BUILD_PARALLEL_LEVEL} 12)
-
 include(cmake/scoped_include.cmake)
 # ethash must be included before project() directive
 scoped_include(cmake/submodules/ethash.cmake)
