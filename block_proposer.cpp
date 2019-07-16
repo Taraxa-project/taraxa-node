@@ -247,7 +247,7 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
                  << " balance is 0 ...";
     return false;
   }
-  auto log_bal = posLog2(my_bal) + 1;                 // 1~16, 6 bits
+  auto log_bal = posLog2(my_bal) + 1;              // 1~16, 6 bits
   auto my_threshold = log_bal * beta * threshold;  // 46 bits
   if (ticket < my_threshold) {
     LOG(log_dg_) << "Win sortition at level: " << propose_level

@@ -83,9 +83,9 @@ bool Transaction::deserialize(stream &strm) {
   }
 
   dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
-    if (sig_struct.isValid()) {
-      vrs_ = sig_struct;
-    }
+  if (sig_struct.isValid()) {
+    vrs_ = sig_struct;
+  }
 
   assert(ok);
   return ok;
