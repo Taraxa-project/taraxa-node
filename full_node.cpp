@@ -920,7 +920,7 @@ std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
 }
 
 std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
-    blk_hash_t const& dag_block_hash) {
+    blk_hash_t const &dag_block_hash) {
   return pbft_chain_->getDagBlockHeight(dag_block_hash);
 }
 
