@@ -81,10 +81,11 @@ bool Transaction::deserialize(stream &strm) {
   for (auto i = 0; i < byte_size; ++i) {
     ok &= read(strm, data_[i]);
   }
-
-  dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
-  if (sig_struct.isValid()) {
-    vrs_ = sig_struct;
+  if (!sig_.isZero()) {
+    dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+    if (sig_struct.isValid()) {
+      vrs_ = sig_struct;
+    }
   }
 
   assert(ok);
@@ -146,13 +147,18 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
   }
   s << value_ << data_;
   if (include_sig) {
-    if (hasZeroSig()) {
-      s << magic_number_;
+    if (!vrs_) {
+      // unsigned signature
+      s << 0 << 0 << 0;
     } else {
-      int const v_offset = magic_number_ * 2 + 35;
-      s << (vrs_->v + v_offset);
+      if (hasZeroSig()) {
+        s << magic_number_;
+      } else {
+        int const v_offset = magic_number_ * 2 + 35;
+        s << (vrs_->v + v_offset);
+      }
+      s << vrs_->r << vrs_->s;
     }
-    s << vrs_->r << vrs_->s;
   }
 }
 
