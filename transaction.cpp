@@ -25,6 +25,12 @@ Transaction::Transaction(string const &json) {
     receiver_ = addr_t(doc.get<string>("receiver"));
     string data = doc.get<string>("data");
     data_ = str2bytes(data);
+    if (!sig_.isZero()) {
+      dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+      if (sig_struct.isValid()) {
+        vrs_ = sig_struct;
+      }
+    }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -148,15 +154,14 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
   }
   s << value_ << data_;
   if (use_sig) {
-     assert(vrs_);
-      if (hasZeroSig()) {
-        s << magic_number_;
-      } else {
-        int const v_offset = magic_number_ * 2 + 35;
-        s << (vrs_->v + v_offset);
-      }
-      s << vrs_->r << vrs_->s;
-     
+    assert(vrs_);
+    if (hasZeroSig()) {
+      s << magic_number_;
+    } else {
+      int const v_offset = magic_number_ * 2 + 35;
+      s << (vrs_->v + v_offset);
+    }
+    s << vrs_->r << vrs_->s;
   }
 }
 
