@@ -138,7 +138,8 @@ addr_t Transaction::sender() const {
 }
 void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
   if (type_ == Transaction::Type::Null) return;
-  s.appendList(include_sig ? 9 : 6);
+  bool use_sig = include_sig && !sig_.isZero();
+  s.appendList(use_sig ? 9 : 6);
   s << nonce_ << gas_price_ << gas_;
   if (type_ == Transaction::Type::Call) {
     s << receiver_;
@@ -146,11 +147,8 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
     s << "";
   }
   s << value_ << data_;
-  if (include_sig) {
-    if (!vrs_) {
-      // unsigned signature
-      s << 0 << 0 << 0;
-    } else {
+  if (use_sig) {
+     assert(vrs_);
       if (hasZeroSig()) {
         s << magic_number_;
       } else {
@@ -158,7 +156,7 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
         s << (vrs_->v + v_offset);
       }
       s << vrs_->r << vrs_->s;
-    }
+     
   }
 }
 
