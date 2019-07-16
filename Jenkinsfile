@@ -9,6 +9,10 @@ pipeline {
         SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
     }
+    options {
+      ansiColor('xterm')
+      disableConcurrentBuilds()
+    }
     stages {
         stage('Validate C++ formatting') {
             steps {
@@ -46,26 +50,41 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh '''
+                    if [ $(docker network list | grep smoke-test-net-${DOCKER_BRANCH_TAG}) ]; then
+                      docker network rm \
+                      smoke-test-net-${DOCKER_BRANCH_TAG} 2>&1 >/dev/null;
+                    fi
                     docker network create --driver=bridge \
                     smoke-test-net-${DOCKER_BRANCH_TAG}
                 '''
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
-                sh ''' docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG} byrnedo/alpine-curl -d \"{
-                        \"jsonrpc\": \"2.0\",
-                        \"id\":\"0\",
-                        \"method\": \"insert_stamped_dag_block\",
-                        \"params\":[{
-                        \"pivot\": \"0000000000000000000000000000000000000000000000000000000000000000\",
-                        \"hash\": \"0000000000000000000000000000000000000000000000000000000000000001\",
-                        \"sender\":\"000000000000000000000000000000000000000000000000000000000000000F\",
-                        \"tips\": [], \"stamp\": 43}]}\" \
-                        taraxa-node-smoke-test:7777
+                sh '''
+                    mkdir -p  test_build-d/
+                    http_code=$(docker run --rm --net smoke-test-net  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
+                                       -sS --fail -w '%{http_code}' -o /data/http.out \
+                                       --url taraxa-node-smoke-test:7777 \
+                                       -d '{
+                                            "jsonrpc": "2.0",
+                                            "id":"0",
+                                            "method": "insert_stamped_dag_block",
+                                            "params":[{
+                                              "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
+                                              "hash": "0000000000000000000000000000000000000000000000000000000000000001",
+                                              "sender":"000000000000000000000000000000000000000000000000000000000000000F",
+                                              "tips": [], "stamp": 43}]
+                                            }')
+                    cat test_build-d/http.out
+                    if [[ $http_code -eq 200 ]] ; then
+                        exit 0
+                    else
+                        exit $http_code
+                    fi
                    '''
             }
             post {
                 always {
                     sh 'docker kill taraxa-node-smoke-test || true'
-                    sh 'docker network rm smoke-test-net-${BRANCH_NAME} || true'
+                    sh 'docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true'
                 }
             }
         }
