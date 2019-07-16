@@ -890,4 +890,14 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 }
 level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
 
+std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
+    uint64_t dag_block_height) const {
+  return pbft_chain_->getDagBlockHash(dag_block_height);
+}
+
+std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
+    blk_hash_t const& dag_block_hash) {
+  return pbft_chain_->getDagBlockHeight(dag_block_hash);
+}
+
 }  // namespace taraxa
