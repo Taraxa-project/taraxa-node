@@ -652,21 +652,28 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::tie(pbft_chain_period, dag_blocks_order) =
         full_node->getDagBlockOrder(dag_block_hash);
 
-    // TODO: get transactions overlap table, we haven't have yet.
-    //    std::shared_ptr<std::vector<std::pair<blk_hash_t, vector<bool>>>>
-    //        trx_overlap_table =
-    //            full_node->getTransactionOverlapTable(
-    //                std::shared_ptr<vec_blk_t> dag_blocks_order);
-
-    // TODO: generate fake transaction schedule for now, will pass
-    // trx_overlap_table to VM
-    auto schedule = full_node->createMockTrxSchedule(dag_blocks_order);
-    if (schedule == nullptr) {
-      LOG(log_deb_) << "There is no any new transactions.";
+    // get transactions overlap table,
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+    trx_overlap_table = full_node->getTransactionOverlapTable(dag_blocks_order);
+    if (!trx_overlap_table) {
+      LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
+                    << "transactions schedule";
       return std::make_pair(blk_hash_t(0), false);
     }
+    if (trx_overlap_table->empty()) {
+      LOG(log_deb_) << "Transaction overlap table is empty, no DAG block needs "
+                    << " generate mock trx schedule";
+      return std::make_pair(blk_hash_t(0), false);
+    }
+
+    // TODO: generate fake transaction schedule for now, will pass
+    //  trx_overlap_table to VM
+    std::vector<std::vector<uint>> dag_blocks_trx_modes =
+        full_node->createMockTrxSchedule(trx_overlap_table);
+    TrxSchedule schedule(*dag_blocks_order, dag_blocks_trx_modes);
+
     // generate pbft schedule block
-    ScheduleBlock schedule_block(last_block_hash, timestamp, *schedule);
+    ScheduleBlock schedule_block(last_block_hash, timestamp, schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
   }  // TODO: More pbft block types

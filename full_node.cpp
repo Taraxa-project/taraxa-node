@@ -615,29 +615,41 @@ FullNode::getTransactionOverlapTable(
   return trx_order_mgr_->computeOrderInBlocks(blks);
 }
 
-std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
-    std::shared_ptr<vec_blk_t> blk_order) {
-  if (!blk_order) {
-    LOG(log_er_) << "Blk order NULL, cannot create mock trx schedule ...";
-    return nullptr;
-  }
-  if (blk_order->empty()) {
-    LOG(log_wr_)
-        << "Blk order is empty ..., create empty mock trx schedule ...";
+std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+    trx_overlap_table) {
+  std::vector<std::vector<uint>> blocks_trx_modes;
+
+  if (!trx_overlap_table) {
+    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
+                  << "transactions schedule";
+    return blocks_trx_modes;
   }
 
-  std::vector<std::vector<uint>> modes;
-  for (auto const &b : *blk_order) {
-    auto blk = getDagBlock(b);
+  for (auto i = 0; i < trx_overlap_table->size(); i++) {
+    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
+    auto blk = getDagBlock(dag_block_hash);
     if (!blk) {
-      LOG(log_er_) << "Cannot create schedule blk, blk missing ... " << b
-                   << std::endl;
-      return nullptr;
+      LOG(log_er_) << "Cannot create schedule block, DAG block missing "
+                   << dag_block_hash;
+      continue;
     }
+
     auto num_trx = blk->getTrxs().size();
-    modes.emplace_back(std::vector<uint>(num_trx, 1));
+    std::vector<uint> block_trx_modes;
+    for (auto j = 0; j < num_trx; j++) {
+      if ((*trx_overlap_table)[i].second[j]) {
+        // trx sequential mode
+        block_trx_modes.emplace_back(1);
+      } else {
+        // trx invalid mode
+        block_trx_modes.emplace_back(0);
+      }
+    }
+    blocks_trx_modes.emplace_back(block_trx_modes);
   }
-  return std::make_shared<TrxSchedule>(*blk_order, modes);
+
+  return blocks_trx_modes;
 }
 
 uint64_t FullNode::getNumReceivedBlocks() { return received_blocks_; }
