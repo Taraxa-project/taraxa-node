@@ -617,7 +617,7 @@ FullNode::getTransactionOverlapTable(
 
 std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-    trx_overlap_table) {
+        trx_overlap_table) {
   std::vector<std::vector<uint>> blocks_trx_modes;
 
   if (!trx_overlap_table) {

@@ -654,7 +654,8 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
     // get transactions overlap table,
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-    trx_overlap_table = full_node->getTransactionOverlapTable(dag_blocks_order);
+        trx_overlap_table =
+            full_node->getTransactionOverlapTable(dag_blocks_order);
     if (!trx_overlap_table) {
       LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
                     << "transactions schedule";
@@ -804,9 +805,8 @@ bool PbftManager::pushPbftBlockIntoChain_(
           last_pivot_block.first.getPivotBlock().getDagBlockHash();
       uint64_t current_pbft_chain_period =
           last_pivot_block.first.getPivotBlock().getPeriod();
-      uint dag_ordered_blocks_size =
-          full_node->setDagBlockOrder(dag_block_hash,
-                                      current_pbft_chain_period);
+      uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
+          dag_block_hash, current_pbft_chain_period);
       // checking: DAG ordered blocks size in this period should equal to the
       // DAG blocks inside PBFT CS block
       uint dag_blocks_inside_pbft_cs =
