@@ -87,6 +87,7 @@ Json::Value Taraxa::taraxa_getBlockTransactionCountByHash(
   if (auto full_node = full_node_.lock()) {
     auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
     if (block) return toJS(block->getTrxs().size());
+    return Json::Value();
   }
   BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
@@ -96,6 +97,7 @@ Json::Value Taraxa::taraxa_getBlockTransactionCountByNumber(
   if (auto full_node = full_node_.lock()) {
     auto blocks = full_node->getDagBlocksAtLevel(std::stoi(_blockNumber), 1);
     if (blocks.size() > 0) return toJS(blocks[0]->getTrxs().size());
+    return Json::Value();
   }
   BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
@@ -141,41 +143,9 @@ Json::Value Taraxa::taraxa_inspectTransaction(std::string const& _rlp) {
 }
 
 string Taraxa::taraxa_sendRawTransaction(std::string const& _rlp) {
-  auto tr_bytes = jsToBytes(_rlp, OnFailed::Throw);
-  RLP const rlp(&tr_bytes);
-
-  if (!rlp.isList())
-    BOOST_THROW_EXCEPTION(InvalidTransactionFormat()
-                          << errinfo_comment("transaction RLP must be a list"));
-
-  auto nonce = rlp[0].toInt<u256>();
-  auto gasPrice = rlp[1].toInt<u256>();
-  auto gas = rlp[2].toInt<u256>();
-  auto type = rlp[3].isEmpty() ? taraxa::Transaction::Type::Create
-                               : taraxa::Transaction::Type::Call;
-  auto receive_address =
-      rlp[3].isEmpty() ? Address() : rlp[3].toHash<Address>(RLP::VeryStrict);
-  auto value = rlp[4].toInt<u256>();
-
-  if (!rlp[5].isData())
-    BOOST_THROW_EXCEPTION(InvalidTransactionFormat() << errinfo_comment(
-                              "transaction data RLP must be an array"));
-
-  auto data = rlp[5].toBytes();
-
-  int const v = rlp[6].toInt<int>();
-  h256 const r = rlp[7].toInt<u256>();
-  h256 const s = rlp[8].toInt<u256>();
-
-  dev::SignatureStruct sig(r, s, v);
-  if (rlp.itemCount() > 9)
-    BOOST_THROW_EXCEPTION(InvalidTransactionFormat() << errinfo_comment(
-                              "too many fields in the transaction RLP"));
   if (auto full_node = full_node_.lock()) {
-    taraxa::Transaction trx(
-        taraxa::trx_hash_t(30), taraxa::Transaction::Type::Call,
-        taraxa::val_t(nonce), taraxa::val_t(value), taraxa::val_t(gasPrice),
-        taraxa::val_t(gas), taraxa::addr_t(receive_address), sig, data);
+    taraxa::Transaction trx(jsToBytes(_rlp, OnFailed::Throw));
+    trx.updateHash();
     full_node->insertTransaction(trx);
     return toJS(trx.getHash());
   }
