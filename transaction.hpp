@@ -117,7 +117,10 @@ class Transaction {
   Transaction(Transaction const &trx) = default;
   Transaction(stream &strm);
   Transaction(string const &json);
+  Transaction(bytes const &_rlp);
+  //TODO: Modify, this uses different RLP for transaction sync, we should only use one RLP format
   Transaction(dev::RLP const &_r);
+  //TODO: Remove and use unique RLP for everything
   void serializeRLP(dev::RLPStream &s);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
@@ -167,9 +170,9 @@ class Transaction {
   bool hasZeroSig() const { return vrs_ && isZeroSig(vrs_->r, vrs_->s); }
   bool isZeroSig(val_t const &r, val_t const &s) const { return !r && !s; }
 
- protected:
+protected:
   // Serialises this transaction to an RLPStream.
-  void streamRLP(dev::RLPStream &s, bool include_sig) const;
+  void streamRLP(dev::RLPStream &s, bool include_sig, bool _forEip155hash = false) const;
   // @returns the RLP serialisation of this transaction.
   bytes rlp(bool include_sig) const;
   // @returns the SHA3 hash of the RLP serialisation of this transaction.
@@ -184,8 +187,7 @@ class Transaction {
   sig_t sig_;
   bytes data_;
   boost::optional<dev::SignatureStruct> vrs_;
-  int magic_number_ = -4;  ///< EIP155 value for calculating transaction hash
-                           ///< https://github.com/ethereum/EIPs/issues/155
+  int chain_id_ = -4;
   mutable addr_t cached_sender_;  ///< Cached sender, determined from signature.
 };
 

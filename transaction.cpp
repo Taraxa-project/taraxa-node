@@ -31,6 +31,7 @@ Transaction::Transaction(string const &json) {
         vrs_ = sig_struct;
       }
     }
+    chain_id_ = doc.get<uint8_t>("chain_id");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -41,6 +42,51 @@ Transaction::Transaction(dev::RLP const &_r) {
   blockBytes = _r.toBytes();
   taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
   deserialize(strm);
+}
+
+Transaction::Transaction(bytes const &_rlp) {
+  dev::RLP const rlp(_rlp);
+  if (!rlp.isList()) throw std::invalid_argument("transaction RLP must be a list");
+
+  nonce_ = rlp[0].toInt<dev::u256>();
+  gas_price_ = rlp[1].toInt<dev::u256>();
+  gas_ = rlp[2].toInt<dev::u256>();
+  type_ = rlp[3].isEmpty() ? taraxa::Transaction::Type::Create
+                           : taraxa::Transaction::Type::Call;
+  receiver_ =
+      rlp[3].isEmpty() ? dev::Address() : rlp[3].toHash<dev::Address>(dev::RLP::VeryStrict);
+  value_ = rlp[4].toInt<dev::u256>();
+
+  if (!rlp[5].isData())
+    throw std::invalid_argument("transaction data RLP must be an array");
+
+  data_ = rlp[5].toBytes();
+
+  int const v = rlp[6].toInt<int>();
+  h256 const r = rlp[7].toInt<dev::u256>();
+  h256 const s = rlp[8].toInt<dev::u256>();
+
+  if (!r && !s) {
+    chain_id_ = v;
+    sig_ = dev::SignatureStruct{r, s, 0};
+  } else {
+    if (v > 36)
+      chain_id_ = (v - 35) / 2;
+    else if (v == 27 || v == 28)
+      chain_id_ = -4;
+    else
+      throw std::invalid_argument("InvalidSignature()");
+
+    sig_ = dev::SignatureStruct{
+        r, s, static_cast<::byte>(v - (chain_id_ * 2 + 35))};
+  }
+  dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+  if (sig_struct.isValid()) {
+    vrs_ = sig_struct;
+  }
+
+  if (rlp.itemCount() > 9)
+    throw std::invalid_argument("too many fields in the transaction RLP");
 }
 
 void Transaction::serializeRLP(dev::RLPStream &s) {
@@ -108,6 +154,7 @@ string Transaction::getJsonStr() const {
   tree.put("sig", sig_.toString());
   tree.put("receiver", receiver_.toString());
   tree.put("data", bytes2str(data_));
+  tree.put("chain_id", chain_id_);
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
@@ -142,10 +189,9 @@ addr_t Transaction::sender() const {
   }
   return cached_sender_;
 }
-void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
+void Transaction::streamRLP(dev::RLPStream &s, bool include_sig, bool _forEip155hash) const {
   if (type_ == Transaction::Type::Null) return;
-  bool use_sig = include_sig && !sig_.isZero();
-  s.appendList(use_sig ? 9 : 6);
+  s.appendList(include_sig || _forEip155hash? 9 : 6);
   s << nonce_ << gas_price_ << gas_;
   if (type_ == Transaction::Type::Call) {
     s << receiver_;
@@ -156,18 +202,20 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
   if (use_sig) {
     assert(vrs_);
     if (hasZeroSig()) {
-      s << magic_number_;
+      s << chain_id_;
     } else {
-      int const v_offset = magic_number_ * 2 + 35;
+      int const v_offset = chain_id_ * 2 + 35;
       s << (vrs_->v + v_offset);
     }
     s << vrs_->r << vrs_->s;
   }
+  else if (_forEip155hash)
+		s << chain_id_ << 0 << 0;
 }
 
 bytes Transaction::rlp(bool include_sig) const {
   dev::RLPStream s;
-  streamRLP(s, include_sig);
+  streamRLP(s, include_sig, chain_id_ > 0 && !include_sig);
   return s.out();
 };
 
