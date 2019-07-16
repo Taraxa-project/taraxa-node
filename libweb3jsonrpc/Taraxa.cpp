@@ -26,6 +26,7 @@ string Taraxa::taraxa_coinbase() {
   if (auto full_node = full_node_.lock()) {
     return toJS(full_node->getAddress());
   }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_hashrate() { return toJS("0"); }
@@ -40,7 +41,7 @@ string Taraxa::taraxa_blockNumber() {
   if (auto full_node = full_node_.lock()) {
     return toJS(full_node->getDagMaxLevel());
   }
-  return "";
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_getBalance(string const& _address,
@@ -48,7 +49,7 @@ string Taraxa::taraxa_getBalance(string const& _address,
   if (auto full_node = full_node_.lock()) {
     return toJS(full_node->getBalance(taraxa::addr_t(_address)).first);
   }
-  return "";
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_getStorageAt(string const& _address,
@@ -73,12 +74,12 @@ Json::Value Taraxa::taraxa_pendingTransactions() {
     }
     return js_trxs;
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_getTransactionCount(string const& _address,
                                           string const& _blockNumber) {
-  return toJS("0");
+  return toJS("0");//TO DO look up nonce for the address
 }
 
 Json::Value Taraxa::taraxa_getBlockTransactionCountByHash(
@@ -87,7 +88,7 @@ Json::Value Taraxa::taraxa_getBlockTransactionCountByHash(
     auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
     if (block) return toJS(block->getTrxs().size());
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getBlockTransactionCountByNumber(
@@ -96,7 +97,7 @@ Json::Value Taraxa::taraxa_getBlockTransactionCountByNumber(
     auto blocks = full_node->getDagBlocksAtLevel(std::stoi(_blockNumber), 1);
     if (blocks.size() > 0) return toJS(blocks[0]->getTrxs().size());
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getUncleCountByBlockHash(string const& _blockHash) {
@@ -128,7 +129,7 @@ string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
     full_node->insertTransaction(trx);
     return toJS(trx.getHash());
   }
-  return "";
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_signTransaction(Json::Value const& _json) {
@@ -178,7 +179,7 @@ string Taraxa::taraxa_sendRawTransaction(std::string const& _rlp) {
     full_node->insertTransaction(trx);
     return toJS(trx.getHash());
   }
-  return "";
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_call(Json::Value const& _json,
@@ -187,6 +188,7 @@ string Taraxa::taraxa_call(Json::Value const& _json,
 }
 
 string Taraxa::taraxa_estimateGas(Json::Value const& _json) {
+  //Dummy data
   return toJS("0x5208");
 }
 
@@ -232,7 +234,7 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
     }
     return res;
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
@@ -278,7 +280,7 @@ Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
     }
     return res;
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionByHash(
@@ -287,8 +289,9 @@ Json::Value Taraxa::taraxa_getTransactionByHash(
     Json::Value res;
     auto trx = full_node->getTransaction(taraxa::trx_hash_t(_transactionHash));
     if (trx) return toJson(trx);
+    return Json::Value();
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
@@ -302,7 +305,7 @@ Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
       if (t) return toJson(t);
     }
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
@@ -318,7 +321,7 @@ Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
       }
     }
   }
-  return Json::Value();
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionReceipt(
