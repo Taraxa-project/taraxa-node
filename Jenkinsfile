@@ -46,8 +46,6 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh '''
-                    docker network rm \
-                    smoke-test-net-${DOCKER_BRANCH_TAG} &>/dev/null;
                     docker network create --driver=bridge \
                     smoke-test-net-${DOCKER_BRANCH_TAG}
                 '''
