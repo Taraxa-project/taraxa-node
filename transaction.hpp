@@ -160,6 +160,9 @@ class Transaction {
     }
   }
   bool verifySig() const;
+  bool hasSig() const { return vrs_.is_initialized(); }
+  bool hasZeroSig() const { return vrs_ && isZeroSig(vrs_->r, vrs_->s); }
+  bool isZeroSig(val_t const &r, val_t const &s) const { return !r && !s; }
 
  protected:
   // Serialises this transaction to an RLPStream.
@@ -177,7 +180,8 @@ class Transaction {
   addr_t receiver_;
   sig_t sig_;
   bytes data_;
-
+  boost::optional<dev::SignatureStruct> vrs_;
+  int magic_number_ = -4;
   mutable addr_t cached_sender_;  ///< Cached sender, determined from signature.
 };
 

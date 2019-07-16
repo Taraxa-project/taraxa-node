@@ -81,6 +81,12 @@ bool Transaction::deserialize(stream &strm) {
   for (auto i = 0; i < byte_size; ++i) {
     ok &= read(strm, data_[i]);
   }
+
+  dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+    if (sig_struct.isValid()) {
+      vrs_ = sig_struct;
+    }
+
   assert(ok);
   return ok;
 }
@@ -102,6 +108,10 @@ string Transaction::getJsonStr() const {
 void Transaction::sign(secret_t const &sk) {
   if (!sig_) {
     sig_ = dev::sign(sk, sha3(false));
+    dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+    if (sig_struct.isValid()) {
+      vrs_ = sig_struct;
+    }
   }
   sender();
   updateHash();
@@ -127,16 +137,22 @@ addr_t Transaction::sender() const {
 }
 void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
   if (type_ == Transaction::Type::Null) return;
-  s.appendList(include_sig ? 7 : 6);
-  s << nonce_ << value_ << gas_price_ << gas_;
+  s.appendList(include_sig ? 9 : 6);
+  s << nonce_ << gas_price_ << gas_;
   if (type_ == Transaction::Type::Call) {
     s << receiver_;
   } else {
     s << "";
   }
-  s << data_;
+  s << value_ << data_;
   if (include_sig) {
-    s << sig_;
+    if (hasZeroSig()) {
+      s << magic_number_;
+    } else {
+      int const v_offset = magic_number_ * 2 + 35;
+      s << (vrs_->v + v_offset);
+    }
+    s << vrs_->r << vrs_->s;
   }
 }
 
