@@ -53,7 +53,6 @@ void RpcServer::waitForAccept() {
   acceptor_.async_accept(
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
-        LOG(log_tr_) << "Accept: " << ec;
         if (!ec) {
           connection->read();
         } else {
@@ -100,7 +99,6 @@ void RpcConnection::read() {
   boost::beast::http::async_read(
       socket_, buffer_, request_,
       [this_sp](boost::system::error_code const &ec, size_t byte_transfered) {
-        LOG(this_sp->rpc_->log_tr_) << "XX" << (int)this_sp->request_.method();
         if (!ec) {
           // define response handler
           auto replier([this_sp](std::string const &msg) {

@@ -121,7 +121,7 @@ string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
   if (auto full_node = full_node_.lock()) {
     taraxa::Transaction trx(
         taraxa::trx_hash_t("0x1"), taraxa::Transaction::Type::Call,
-        taraxa::bal_t(1), taraxa::bal_t(std::stoi(_json["value"].asString())),
+        taraxa::val_t(1), taraxa::val_t(std::stoi(_json["value"].asString())),
         taraxa::val_t((_json["gas_price"].asString())),
         taraxa::val_t(_json["gas"].asString()),
         taraxa::addr_t(_json["to"].asString()), taraxa::sig_t(),
@@ -174,7 +174,7 @@ string Taraxa::taraxa_sendRawTransaction(std::string const& _rlp) {
   if (auto full_node = full_node_.lock()) {
     taraxa::Transaction trx(
         taraxa::trx_hash_t(30), taraxa::Transaction::Type::Call,
-        taraxa::bal_t(nonce), taraxa::bal_t(value), taraxa::val_t(gasPrice),
+        taraxa::val_t(nonce), taraxa::val_t(value), taraxa::val_t(gasPrice),
         taraxa::val_t(gas), taraxa::addr_t(receive_address), sig, data);
     full_node->insertTransaction(trx);
     return toJS(trx.getHash());
