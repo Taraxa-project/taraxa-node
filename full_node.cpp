@@ -615,29 +615,41 @@ FullNode::getTransactionOverlapTable(
   return trx_order_mgr_->computeOrderInBlocks(blks);
 }
 
-std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
-    std::shared_ptr<vec_blk_t> blk_order) {
-  if (!blk_order) {
-    LOG(log_er_) << "Blk order NULL, cannot create mock trx schedule ...";
-    return nullptr;
-  }
-  if (blk_order->empty()) {
-    LOG(log_wr_)
-        << "Blk order is empty ..., create empty mock trx schedule ...";
+std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+        trx_overlap_table) {
+  std::vector<std::vector<uint>> blocks_trx_modes;
+
+  if (!trx_overlap_table) {
+    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
+                  << "transactions schedule";
+    return blocks_trx_modes;
   }
 
-  std::vector<std::vector<uint>> modes;
-  for (auto const &b : *blk_order) {
-    auto blk = getDagBlock(b);
+  for (auto i = 0; i < trx_overlap_table->size(); i++) {
+    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
+    auto blk = getDagBlock(dag_block_hash);
     if (!blk) {
-      LOG(log_er_) << "Cannot create schedule blk, blk missing ... " << b
-                   << std::endl;
-      return nullptr;
+      LOG(log_er_) << "Cannot create schedule block, DAG block missing "
+                   << dag_block_hash;
+      continue;
     }
+
     auto num_trx = blk->getTrxs().size();
-    modes.emplace_back(std::vector<uint>(num_trx, 1));
+    std::vector<uint> block_trx_modes;
+    for (auto j = 0; j < num_trx; j++) {
+      if ((*trx_overlap_table)[i].second[j]) {
+        // trx sequential mode
+        block_trx_modes.emplace_back(1);
+      } else {
+        // trx invalid mode
+        block_trx_modes.emplace_back(0);
+      }
+    }
+    blocks_trx_modes.emplace_back(block_trx_modes);
   }
-  return std::make_shared<TrxSchedule>(*blk_order, modes);
+
+  return blocks_trx_modes;
 }
 
 uint64_t FullNode::getNumReceivedBlocks() { return received_blocks_; }
@@ -827,7 +839,19 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
         last_pivot_block.first.getPivotBlock().getDagBlockHash();
     uint64_t current_pbft_chain_period =
         last_pivot_block.first.getPivotBlock().getPeriod();
-    setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    uint dag_ordered_blocks_size =
+        setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    // checking: DAG ordered blocks size in this period should equal to the
+    // DAG blocks inside PBFT CS block
+    uint dag_blocks_inside_pbft_cs =
+        pbft_block.getScheduleBlock().getSchedule().blk_order.size();
+    if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
+      LOG(log_err_) << "Setting DAG block order finalize "
+                    << dag_ordered_blocks_size << " blocks."
+                    << " But the PBFT CS block has "
+                    << dag_blocks_inside_pbft_cs << " DAG block hash.";
+      // TODO: need to handle the error condition(should never happen)
+    }
 
     // TODO: VM executor will not take sortition_account_balance_table as
     // reference.
@@ -896,7 +920,7 @@ std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
 }
 
 std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
-    blk_hash_t const& dag_block_hash) {
+    blk_hash_t const &dag_block_hash) {
   return pbft_chain_->getDagBlockHeight(dag_block_hash);
 }
 

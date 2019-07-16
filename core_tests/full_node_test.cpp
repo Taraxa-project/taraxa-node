@@ -925,10 +925,13 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     std::tie(cur_period2, order) = node->getDagBlockOrder(anchor);
     EXPECT_EQ(cur_period, cur_period2);
     EXPECT_EQ(cur_period, ++period);
-    auto sche = node->createMockTrxSchedule(order);
-    EXPECT_NE(sche, nullptr);
-    // if (!sche) continue;
-    ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+        trx_overlap_table = node->getTransactionOverlapTable(order);
+    EXPECT_NE(trx_overlap_table, nullptr);
+    std::vector<std::vector<uint>> blocks_trx_modes =
+        node->createMockTrxSchedule(trx_overlap_table);
+    TrxSchedule sche(*order, blocks_trx_modes);
+    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sche);
     // set period
     node->setDagBlockOrder(anchor, cur_period);
     bool ret = node->executeScheduleBlock(
@@ -941,8 +944,13 @@ TEST(FullNode, execute_chain_pbft_transactions) {
     std::tie(cur_period, order) =
         node->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
-    auto sche = node->createMockTrxSchedule(order);
-    ScheduleBlock sche_blk(blk_hash_t(100), 12345, *sche);
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+        trx_overlap_table = node->getTransactionOverlapTable(order);
+    EXPECT_NE(trx_overlap_table, nullptr);
+    std::vector<std::vector<uint>> blocks_trx_modes =
+        node->createMockTrxSchedule(trx_overlap_table);
+    TrxSchedule sche(*order, blocks_trx_modes);
+    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sche);
     bool ret = node->executeScheduleBlock(
         sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
