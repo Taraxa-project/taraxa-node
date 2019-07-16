@@ -38,7 +38,7 @@ FROM gtest-layer as rocksdb-layer
 RUN wget https://github.com/facebook/rocksdb/archive/v5.14.3.zip \
     && unzip v5.14.3.zip -d /tmp \
     && cd /tmp/rocksdb-5.14.3 \
-    && make shared_lib \
+    && make shared_lib PORTABLE=1 \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
 
