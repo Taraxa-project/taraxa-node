@@ -79,7 +79,7 @@ Json::Value Taraxa::taraxa_pendingTransactions() {
 
 string Taraxa::taraxa_getTransactionCount(string const& _address,
                                           string const& _blockNumber) {
-  return toJS("0");//TO DO look up nonce for the address
+  return toJS("0");  // TO DO look up nonce for the address
 }
 
 Json::Value Taraxa::taraxa_getBlockTransactionCountByHash(
@@ -158,7 +158,7 @@ string Taraxa::taraxa_call(Json::Value const& _json,
 }
 
 string Taraxa::taraxa_estimateGas(Json::Value const& _json) {
-  //Dummy data
+  // Dummy data
   return toJS("0x5208");
 }
 
@@ -258,7 +258,16 @@ Json::Value Taraxa::taraxa_getTransactionByHash(
   if (auto full_node = full_node_.lock()) {
     Json::Value res;
     auto trx = full_node->getTransaction(taraxa::trx_hash_t(_transactionHash));
-    if (trx) return toJson(trx);
+    auto json_trx = toJson(trx);
+    if (trx) {
+      auto blk_hash = full_node->getDagBlockFromTransaction(trx->getHash());
+      if (!blk_hash.isZero()) {
+        json_trx["blockHash"] = toJS(blk_hash);
+        auto blk = full_node->getDagBlock(blk_hash);
+        if (blk) json_trx["blockHash"] = toJS(blk->getLevel());
+      }
+      return json_trx;
+    }
     return Json::Value();
   }
   BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
