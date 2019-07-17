@@ -748,13 +748,14 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<val_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
-    LOG(log_er_) << "Cannot find the vote account balance: " << vote_address;
+    // TODO: Nodes received vote before they execute trx
+    LOG(log_wr_) << "Vote too fast! Cannot find the vote account balance: "
+                 << vote_address;
     return;
   }
 
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
-  // TODO: there is bug here, need add back later
   if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
                                 account_balance.first, sortition_threshold)) {
     vote_queue_->pushBackVote(vote);
