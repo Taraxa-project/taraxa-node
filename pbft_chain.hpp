@@ -235,6 +235,7 @@ class PbftChain {
   dev::Logger& getLoggerErr() { return log_err_; }
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
   std::pair<uint64_t, bool> getDagBlockHeight(blk_hash_t const& dag_block_hash);
+  uint64_t getDagBlockMaxHeight();
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only

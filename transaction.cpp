@@ -199,7 +199,7 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig, bool _forEip155
     s << "";
   }
   s << value_ << data_;
-  if (use_sig) {
+  if (include_sig) {
     assert(vrs_);
     if (hasZeroSig()) {
       s << chain_id_;

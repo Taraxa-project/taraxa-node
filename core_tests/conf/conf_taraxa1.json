@@ -21,6 +21,10 @@
       1000,
       3,
       10000
-    ]
+    ],
+    "balance": [{
+      "address":"0x2Ee9E5FfDe2BDD527A597aB08B70e6679EDC96Cb",
+      "coins":300
+    }]
   }
 }
