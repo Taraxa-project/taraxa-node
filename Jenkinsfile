@@ -66,12 +66,14 @@ pipeline {
                                        -d '{
                                             "jsonrpc": "2.0",
                                             "id":"0",
-                                            "method": "insert_stamped_dag_block",
+                                            "method": "send_coin_transaction",
                                             "params":[{
-                                              "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
-                                              "hash": "0000000000000000000000000000000000000000000000000000000000000001",
-                                              "sender":"000000000000000000000000000000000000000000000000000000000000000F",
-                                              "tips": [], "stamp": 43}]
+                                            "nonce": 0,  
+                                            "value": 0, 
+                                            "gas": 0,
+                                            "gas_price": 0,
+                                            "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                                            "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"]
                                             }')
                     cat $PWD/test_build-d/http.out || true
                     if [[ $http_code -eq 200 ]] ; then
@@ -79,6 +81,7 @@ pipeline {
                     else
                         exit $http_code
                     fi
+
                    '''
             }
             post {
