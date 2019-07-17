@@ -222,8 +222,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
-  std::pair<uint64_t, bool> getDagBlockHeight(
-      blk_hash_t const &dag_block_hash) const;
+  std::pair<uint64_t, bool> getDagBlockHeight(blk_hash_t const &dag_block_hash);
+  uint64_t getDagBlockMaxHeight();
   // PBFT RPC
   void pushVoteIntoQueue(Vote const &vote);
   void broadcastVote(Vote const &vote);
@@ -283,7 +283,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   // TODO: need to shrink later
-// TODO: need to shrink later
+  // TODO: need to shrink later
   std::unordered_set<vote_hash_t> known_votes_;  // per node itself
 
   // debugger

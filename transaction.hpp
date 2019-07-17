@@ -59,8 +59,8 @@ class Transaction {
   Transaction(::taraxa_grpc::ProtoTransaction const &t)
       : hash_(t.hash()),
         type_(toEnum<Type>(t.type())),
-        nonce_(stoull(t.nonce())),
-        value_(stoull(t.value())),
+        nonce_(val_t(t.nonce())),
+        value_(val_t(t.value())),
         gas_price_(t.gas_price()),
         gas_(t.gas()),
         receiver_(t.receiver()),
