@@ -756,8 +756,7 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
   // TODO: there is bug here, need add back later
   if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-                                account_balance.first,
-                                sortition_threshold)) {
+                                account_balance.first, sortition_threshold)) {
     vote_queue_->pushBackVote(vote);
   }
 }
@@ -910,8 +909,8 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
-  LOG(log_deb_) << "last pbft block hash " << last_pbft_block_hash << " vote: "
-                << vote.getHash();
+  LOG(log_deb_) << "last pbft block hash " << last_pbft_block_hash
+                << " vote: " << vote.getHash();
 
   return vote;
 }
