@@ -182,6 +182,11 @@ void FullNode::initDB(bool destroy_db) {
       level++;
     }
   }
+  //Test balance is only local to this node and not to the network
+  for(auto bal : conf_.test_params.balance) {
+    setBalance(addr_t(bal.first), val_t(bal.second) * val_t(1000000000000000) * 1000);
+  }
+  
   LOG(log_wr_) << "DB initialized ... ";
 }
 // must call close() before destroyDB
@@ -699,7 +704,7 @@ std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
     LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
     ret = true;
   }
-  return {std::stoull(bal), ret};
+  return {val_t(bal), ret};
 }
 val_t FullNode::getMyBalance() const {
   auto my_bal = getBalance(node_addr_);
@@ -922,6 +927,10 @@ std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
 std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
     blk_hash_t const &dag_block_hash) {
   return pbft_chain_->getDagBlockHeight(dag_block_hash);
+}
+
+uint64_t FullNode::getDagBlockMaxHeight() {
+  return pbft_chain_->getDagBlockMaxHeight();
 }
 
 }  // namespace taraxa

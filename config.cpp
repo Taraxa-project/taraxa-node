@@ -43,6 +43,12 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
         test_params.pbft.push_back(i);
       }
+
+      for (auto &item : doc.get_child("test_params.balance")) {
+        std::string address = item.second.get<std::string>("address");
+        uint64_t coins = item.second.get<uint64_t>("coins");
+        test_params.balance[address] = coins;
+      }
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;

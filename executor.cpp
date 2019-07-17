@@ -86,8 +86,8 @@ bool Executor::coinTransfer(
   val_t value = trx.getValue();
   auto sender_bal = db_accs_->get(sender.toString());
   auto receiver_bal = db_accs_->get(receiver.toString());
-  val_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
-  val_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
+  val_t sender_initial_coin = sender_bal.empty() ? 0 : val_t(sender_bal);
+  val_t receiver_initial_coin = receiver_bal.empty() ? 0 : val_t(receiver_bal);
 
   if (sender_initial_coin < trx.getValue()) {
     LOG(log_er_) << "Insufficient fund for transfer ... , sender " << sender
