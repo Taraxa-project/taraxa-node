@@ -44,11 +44,13 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         test_params.pbft.push_back(i);
       }
 
-      for (auto &item : doc.get_child("test_params.balance")) {
-        std::string address = item.second.get<std::string>("address");
-        uint64_t coins = item.second.get<uint64_t>("coins");
-        test_params.balance[address] = coins;
-      }
+      auto test_balances = doc.get_child_optional("test_params.balance");
+      if (test_balances)
+        for (auto &item : test_balances.get()) {
+          std::string address = item.second.get<std::string>("address");
+          uint64_t coins = item.second.get<uint64_t>("coins");
+          test_params.balance[address] = coins;
+        }
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
