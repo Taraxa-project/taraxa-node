@@ -59,7 +59,7 @@ pipeline {
                 '''
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
                 sh '''
-                    mkdir -p  test_build-d/
+                    mkdir -p  $PWD/test_build-d/
                     http_code=$(docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG}  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
                                        -sS --fail -w '%{http_code}' -o /data/http.out \
                                        --url taraxa-node-smoke-test:7777 \
@@ -73,7 +73,7 @@ pipeline {
                                               "sender":"000000000000000000000000000000000000000000000000000000000000000F",
                                               "tips": [], "stamp": 43}]
                                             }')
-                    cat test_build-d/http.out
+                    cat $PWD/test_build-d/http.out
                     if [[ $http_code -eq 200 ]] ; then
                         exit 0
                     else
