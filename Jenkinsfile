@@ -73,7 +73,7 @@ pipeline {
                                               "sender":"000000000000000000000000000000000000000000000000000000000000000F",
                                               "tips": [], "stamp": 43}]
                                             }')
-                    cat $PWD/test_build-d/http.out
+                    cat $PWD/test_build-d/http.out || true
                     if [[ $http_code -eq 200 ]] ; then
                         exit 0
                     else
