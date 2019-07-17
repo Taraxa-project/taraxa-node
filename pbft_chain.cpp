@@ -454,13 +454,15 @@ std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
 }
 
 std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
-    blk_hash_t const& dag_block_hash) {
-  if (dag_blocks_map_.find(dag_block_hash) == dag_blocks_map_.end()) {
+    blk_hash_t const& dag_block_hash) const {
+  std::unordered_map<blk_hash_t, uint64_t>::const_iterator got =
+      dag_blocks_map_.find(dag_block_hash);
+  if (got == dag_blocks_map_.end()) {
     LOG(log_err_) << "Cannot find the DAG block hash " << dag_block_hash
                   << " in dag blocks map";
     return std::make_pair(0, false);
   }
-  return std::make_pair(dag_blocks_map_[dag_block_hash], true);
+  return std::make_pair(got->second, true);
 }
 
 void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
