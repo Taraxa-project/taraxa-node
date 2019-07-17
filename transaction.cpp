@@ -31,7 +31,7 @@ Transaction::Transaction(string const &json) {
         vrs_ = sig_struct;
       }
     }
-    chain_id_ = doc.get<uint8_t>("chain_id");
+    chain_id_ = doc.get<int8_t>("chain_id");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -147,8 +147,8 @@ string Transaction::getJsonStr() const {
   boost::property_tree::ptree tree;
   tree.put("hash", hash_.toString());
   tree.put("type", asInteger(type_));
-  tree.put("nonce", toString(nonce_));
-  tree.put("value", toString(value_));
+  tree.put("nonce", nonce_.str());
+  tree.put("value", value_.str());
   tree.put("gas_price", toString(gas_price_));
   tree.put("gas", toString(gas_));
   tree.put("sig", sig_.toString());
