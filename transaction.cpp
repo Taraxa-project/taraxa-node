@@ -181,7 +181,7 @@ void TransactionQueue::start() {
   verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
-    verifiers_.emplace_back([this]() { verifyTrx(); });
+    verifiers_.emplace_back([this]() { verifyQueuedTrxs(); });
   }
   assert(num_verifiers_ == verifiers_.size());
 }
@@ -242,7 +242,7 @@ bool TransactionQueue::insert(Transaction trx, bool critical) {
   return ret;
 }
 
-void TransactionQueue::verifyTrx() {
+void TransactionQueue::verifyQueuedTrxs() {
   while (!stopped_) {
     // Transaction utrx;
     std::pair<trx_hash_t, listIter> item;
