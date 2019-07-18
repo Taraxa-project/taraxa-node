@@ -24,7 +24,7 @@ COPY --from=builder ${APP_PATH}/build/* ./bin/
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
 COPY ./core_tests/conf/*.json ./default_config/
-COPY ./scripts/exec.sh ./
+COPY ./scripts/docker-entrypoint.sh ./
 
-ENTRYPOINT [ "./exec.sh", "bin", "main" ]
+ENTRYPOINT [ "./docker-entrypoint.sh", "bin", "main" ]
 CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
