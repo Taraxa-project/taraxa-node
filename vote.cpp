@@ -133,7 +133,6 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     //  Need to save the valid votes
     LOG(log_war_) << "Get it too fast! Invalid sortition signature: "
                   << sortition_signature << " vote hash " << vote.getHash();
-    return false;
   }
 
   // verify sortition
