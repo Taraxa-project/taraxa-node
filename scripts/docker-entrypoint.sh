@@ -10,7 +10,7 @@ fi
 
 # Launch an interactive shell. Makes sense for little cmd utils that work fast,
 # Since the performance overhead of `docker run` is quite dramatic.
-# The interactive shell will be sandboxed in the current directory
+# The interactive shell will be sandboxed in the WORKDIR
 if [ "$3" == "shell" ]; then
   cd "${WORKDIR}"
   PATH=${PATH}:"$(pwd)" exec "${SHELL}" --restricted ${@:4:$#+1}
