@@ -25,7 +25,6 @@ const unsigned NUM_TRX = 9;
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
-auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
@@ -192,12 +191,12 @@ TEST(p2p, capability_send_block) {
 
   DagBlock blk(blk_hash_t(1111), 0,
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()},
+               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
                sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
-  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
-  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
+  transactions[g_signed_trx_samples[1].getHash()] = g_signed_trx_samples[1];
   thc2->onNewTransactions(transactions, true);
   thc2->sendBlock(host1.id(), blk, true);
 
@@ -208,10 +207,10 @@ TEST(p2p, capability_send_block) {
   if (blocks.size()) EXPECT_EQ(blk, blocks.begin()->second);
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
-    EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
-              rtransactions[g_trx_samples[0].getHash()]);
-    EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
-              rtransactions[g_trx_samples[1].getHash()]);
+    EXPECT_EQ(transactions[g_signed_trx_samples[0].getHash()],
+              rtransactions[g_signed_trx_samples[0].getHash()]);
+    EXPECT_EQ(transactions[g_signed_trx_samples[1].getHash()],
+              rtransactions[g_signed_trx_samples[1].getHash()]);
   }
 }
 
@@ -311,12 +310,12 @@ TEST(p2p, block_propagate) {
 
   DagBlock blk(blk_hash_t(1111), 0,
                {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()},
+               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
                sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
-  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
-  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
+  transactions[g_signed_trx_samples[1].getHash()] = g_signed_trx_samples[1];
   thc1->onNewTransactions(transactions, true);
   std::vector<Transaction> transactions2;
   thc1->onNewBlockReceived(blk, transactions2);
@@ -341,10 +340,10 @@ TEST(p2p, block_propagate) {
     auto rtransactions = vCapabilities[i]->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
-      EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
-                rtransactions[g_trx_samples[0].getHash()]);
-      EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
-                rtransactions[g_trx_samples[1].getHash()]);
+      EXPECT_EQ(transactions[g_signed_trx_samples[0].getHash()],
+                rtransactions[g_signed_trx_samples[0].getHash()]);
+      EXPECT_EQ(transactions[g_signed_trx_samples[1].getHash()],
+                rtransactions[g_signed_trx_samples[1].getHash()]);
     }
   }
   EXPECT_EQ(blocks1.size(), 1);
