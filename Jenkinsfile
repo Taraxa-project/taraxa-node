@@ -50,12 +50,12 @@ pipeline {
         stage('Smoke Test') {
             steps {
                 sh '''
-                    if [ $(docker network list | grep smoke-test-net-${DOCKER_BRANCH_TAG}) ]; then
+                    if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoke-test-net-${DOCKER_BRANCH_TAG})" ]; then
                       docker network rm \
-                      smoke-test-net-${DOCKER_BRANCH_TAG} 2>&1 >/dev/null;
+                        smoke-test-net-${DOCKER_BRANCH_TAG} >/dev/null;
                     fi
                     docker network create --driver=bridge \
-                    smoke-test-net-${DOCKER_BRANCH_TAG}
+                      smoke-test-net-${DOCKER_BRANCH_TAG}
                 '''
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
                 sh '''
