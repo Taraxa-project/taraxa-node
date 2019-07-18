@@ -33,16 +33,19 @@ class FullNode;
 
 enum class TransactionStatus {
   invalid,
-  in_block,  // confirmed state, inside of block created by us or someone else
+  nonce_gap,  // nonce has gap, need to re-verify later
+  in_block,   // confirmed state, inside of block created by us or someone else
   in_queue_unverified,  // not packed yet
   in_queue_verified,    // not packed yet
   unseen
 };
+
 /**
  * simple thread_safe hash
  * keep track of transaction state
  */
 using TransactionStatusTable = StatusTable<trx_hash_t, TransactionStatus>;
+using AccountNonceTable = StatusTable<addr_t, uint>;
 
 /**
  * Note:
@@ -181,7 +184,8 @@ class Transaction {
   sig_t sig_;
   bytes data_;
   boost::optional<dev::SignatureStruct> vrs_;
-  int magic_number_ = -4;
+  int magic_number_ = -4;  ///< EIP155 value for calculating transaction hash
+                           ///< https://github.com/ethereum/EIPs/issues/155
   mutable addr_t cached_sender_;  ///< Cached sender, determined from signature.
 };
 
@@ -195,19 +199,18 @@ class Transaction {
 
 class TransactionQueue {
  public:
-  struct SizeLimit {
-    size_t current = 1024;
-    size_t future = 1024;
-  };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
-  TransactionQueue(TransactionStatusTable &status, size_t num_verifiers)
-      : trx_status_(status), num_verifiers_(num_verifiers) {}
-  TransactionQueue(TransactionStatusTable &status, size_t num_verifiers,
+  TransactionQueue(TransactionStatusTable &status,
+                   AccountNonceTable &accs_nonce, size_t num_verifiers)
+      : trx_status_(status),
+        accs_nonce_(accs_nonce),
+        num_verifiers_(num_verifiers) {}
+  TransactionQueue(TransactionStatusTable &status,
+                   AccountNonceTable &accs_nonce, size_t num_verifiers,
                    unsigned current_capacity, unsigned future_capacity)
       : trx_status_(status),
-        num_verifiers_(num_verifiers),
-        current_capacity_(current_capacity),
-        future_capacity_(future_capacity) {}
+        accs_nonce_(accs_nonce),
+        num_verifiers_(num_verifiers) {}
   ~TransactionQueue() {
     if (!stopped_) {
       stop();
@@ -233,14 +236,13 @@ class TransactionQueue {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using listIter = std::list<Transaction>::iterator;
-  void verifyTrx();
+  void verifyQueuedTrxs();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions = true;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
-  unsigned current_capacity_ = 1024;
-  unsigned future_capacity_ = 1024;
+  AccountNonceTable &accs_nonce_;
 
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
@@ -280,11 +282,14 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager()
-      : trx_status_(), trx_qu_(trx_status_, 8 /*num verifiers*/) {}
+      : trx_status_(),
+        accs_nonce_(),
+        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
       : db_trxs_(db_trx),
         trx_status_(),
-        trx_qu_(trx_status_, 8 /*num verifiers*/) {}
+        accs_nonce_(),
+        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -300,8 +305,7 @@ class TransactionManager
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool insertTrx(Transaction trx, bool critical);
-  void setPackedTrxFromBlock(DagBlock const &dag_block);
-  void setPackedTrxFromBlockHash(blk_hash_t blk);
+
   /**
    * The following function will require a lock for verified qu
    */
@@ -339,6 +343,7 @@ class TransactionManager
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   TransactionStatusTable trx_status_;
+  AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};

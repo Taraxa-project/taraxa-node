@@ -70,7 +70,9 @@ TEST(Transaction, signer_signature_verify) {
 
 TEST(TransactionQueue, verifiers) {
   TransactionStatusTable status_table;
-  TransactionQueue trx_qu(status_table, 2 /*num verifiers*/);
+  AccountNonceTable accs_table;
+
+  TransactionQueue trx_qu(status_table, accs_table, 2 /*num verifiers*/);
   trx_qu.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
   trx_qu.start();
 

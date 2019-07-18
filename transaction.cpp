@@ -17,14 +17,20 @@ Transaction::Transaction(string const &json) {
     boost::property_tree::ptree doc = strToJson(json);
     hash_ = trx_hash_t(doc.get<string>("hash"));
     type_ = toEnum<Transaction::Type>(doc.get<uint8_t>("type"));
-    nonce_ = doc.get<uint64_t>("nonce");
-    value_ = doc.get<uint64_t>("value");
+    nonce_ = val_t(doc.get<string>("nonce"));
+    value_ = val_t(doc.get<string>("value"));
     gas_price_ = val_t(doc.get<string>("gas_price"));
     gas_ = val_t(doc.get<string>("gas"));
     sig_ = sig_t(doc.get<string>("sig"));
     receiver_ = addr_t(doc.get<string>("receiver"));
     string data = doc.get<string>("data");
     data_ = str2bytes(data);
+    if (!sig_.isZero()) {
+      dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+      if (sig_struct.isValid()) {
+        vrs_ = sig_struct;
+      }
+    }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -81,10 +87,11 @@ bool Transaction::deserialize(stream &strm) {
   for (auto i = 0; i < byte_size; ++i) {
     ok &= read(strm, data_[i]);
   }
-
-  dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
-  if (sig_struct.isValid()) {
-    vrs_ = sig_struct;
+  if (!sig_.isZero()) {
+    dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+    if (sig_struct.isValid()) {
+      vrs_ = sig_struct;
+    }
   }
 
   assert(ok);
@@ -94,8 +101,8 @@ string Transaction::getJsonStr() const {
   boost::property_tree::ptree tree;
   tree.put("hash", hash_.toString());
   tree.put("type", asInteger(type_));
-  tree.put("nonce", nonce_);
-  tree.put("value", value_);
+  tree.put("nonce", toString(nonce_));
+  tree.put("value", toString(value_));
   tree.put("gas_price", toString(gas_price_));
   tree.put("gas", toString(gas_));
   tree.put("sig", sig_.toString());
@@ -137,7 +144,8 @@ addr_t Transaction::sender() const {
 }
 void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
   if (type_ == Transaction::Type::Null) return;
-  s.appendList(include_sig ? 9 : 6);
+  bool use_sig = include_sig && !sig_.isZero();
+  s.appendList(use_sig ? 9 : 6);
   s << nonce_ << gas_price_ << gas_;
   if (type_ == Transaction::Type::Call) {
     s << receiver_;
@@ -145,7 +153,8 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
     s << "";
   }
   s << value_ << data_;
-  if (include_sig) {
+  if (use_sig) {
+    assert(vrs_);
     if (hasZeroSig()) {
       s << magic_number_;
     } else {
@@ -172,7 +181,7 @@ void TransactionQueue::start() {
   verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
-    verifiers_.emplace_back([this]() { verifyTrx(); });
+    verifiers_.emplace_back([this]() { verifyQueuedTrxs(); });
   }
   assert(num_verifiers_ == verifiers_.size());
 }
@@ -233,7 +242,7 @@ bool TransactionQueue::insert(Transaction trx, bool critical) {
   return ret;
 }
 
-void TransactionQueue::verifyTrx() {
+void TransactionQueue::verifyQueuedTrxs() {
   while (!stopped_) {
     // Transaction utrx;
     std::pair<trx_hash_t, listIter> item;
