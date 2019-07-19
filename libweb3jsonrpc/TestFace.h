@@ -67,11 +67,10 @@ class TestFace : public ServerInterface<TestFace> {
                            jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                            "param1", jsonrpc::JSON_OBJECT, NULL),
         &TestFace::create_test_coin_transactionsI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_num_proposed_blocks",
-                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                           "param1", NULL),
-        &TestFace::get_num_proposed_blocksI);
+    this->bindAndAddMethod(jsonrpc::Procedure("get_num_proposed_blocks",
+                                              jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, NULL),
+                           &TestFace::get_num_proposed_blocksI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("send_pbft_schedule_block",
                            jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
@@ -79,7 +78,7 @@ class TestFace : public ServerInterface<TestFace> {
         &TestFace::send_pbft_schedule_blockI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_account_address", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", NULL),
+                           jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_account_addressI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("set_account_balance", jsonrpc::PARAMS_BY_POSITION,
@@ -93,23 +92,23 @@ class TestFace : public ServerInterface<TestFace> {
         &TestFace::get_account_balanceI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_peer_count", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", NULL),
+                           jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_peer_countI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_all_peers", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", NULL),
+                           jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_all_peersI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("node_stop", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", NULL),
+                           jsonrpc::JSON_OBJECT, NULL),
         &TestFace::node_stopI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("node_reset", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", NULL),
+                           jsonrpc::JSON_OBJECT, NULL),
         &TestFace::node_resetI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("node_start", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", NULL),
+                           jsonrpc::JSON_OBJECT, NULL),
         &TestFace::node_startI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("should_speak", jsonrpc::PARAMS_BY_POSITION,
