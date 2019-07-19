@@ -129,7 +129,9 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       std::to_string(round) + std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
-    // TODO: Get vote too fast, and PBFT chain has not add the new block yet.
+    // TODO: 1. Get vote too fast, and PBFT chain has not add the new block yet.
+    //  2. When new node join, the new node doesn't have the last pbft block to
+    //  verify.
     //  Need to save the valid votes
     LOG(log_war_) << "Get it too fast! Invalid sortition signature: "
                   << sortition_signature << " vote hash " << vote.getHash();
