@@ -191,11 +191,12 @@ void FullNode::initDB(bool destroy_db) {
       level++;
     }
   }
-  //Test balance is only local to this node and not to the network
-  for(auto bal : conf_.test_params.balance) {
-    setBalance(addr_t(bal.first), val_t(bal.second) * val_t(1000000000000000) * 1000);
+  // Test balance is only local to this node and not to the network
+  for (auto bal : conf_.test_params.balance) {
+    setBalance(addr_t(bal.first),
+               val_t(bal.second) * val_t(1000000000000000) * 1000);
   }
-  
+
   LOG(log_wr_) << "DB initialized ... ";
 }
 // must call close() before destroyDB
