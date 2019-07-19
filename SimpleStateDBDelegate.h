@@ -15,7 +15,14 @@ class SimpleStateDBDelegate : public SimpleDBFace {
   bool put(const std::string &key, const std::string &value) override;
   bool update(const std::string &key, const std::string &value) override;
   std::string get(const std::string &key) override;
-  void commit() override;
+  // TODO this SimpleDBFace is a leaky abstraction
+  void commit() override { commitToTrie(); }
+  taraxa::uint256_hash_t commitToTrie(
+      bool flush = true,
+      dev::eth::State::CommitBehaviour const & =
+          dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
+  void flushTrie();
+  void setRoot(taraxa::root_t const &);
   SimpleStateDBDelegate(const std::string &path, bool overwrite);
 
  private:
