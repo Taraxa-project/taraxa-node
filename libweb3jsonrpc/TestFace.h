@@ -262,7 +262,7 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value send_coin_transaction(const Json::Value &param1) = 0;
   virtual Json::Value create_test_coin_transactions(
       const Json::Value &param1) = 0;
-  virtual Json::Value get_num_proposed_blocks(const Json::Value &param1) = 0;
+  virtual Json::Value get_num_proposed_blocks() = 0;
   virtual Json::Value send_pbft_schedule_block(const Json::Value &param1) = 0;
   virtual Json::Value get_account_address() = 0;
   virtual Json::Value set_account_balance(const Json::Value &param1) = 0;
