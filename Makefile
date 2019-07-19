@@ -63,6 +63,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/grpc_util.o \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/executor.o \
+	${OBJECTDIR}/TransactionOrderManager.o \
+	${OBJECTDIR}/StateRegistry.o \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
@@ -134,7 +136,17 @@ ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
-	
+
+${OBJECTDIR}/TransactionOrderManager.o: TransactionOrderManager.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/TransactionOrderManager.o TransactionOrderManager.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/StateRegistry.o: StateRegistry.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/StateRegistry.o StateRegistry.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"

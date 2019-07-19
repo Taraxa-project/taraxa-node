@@ -12,6 +12,7 @@
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include "SimpleDBFactory.h"
+#include "StateRegistry.hpp"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
@@ -53,7 +54,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
           trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>()),
       vote_mgr_(std::make_shared<VoteManager>()),
       vote_queue_(std::make_shared<VoteQueue>()),
       pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft)),
@@ -95,49 +95,50 @@ void FullNode::initDB(bool destroy_db) {
     LOG(log_er_) << "Cannot init DB if node started ...";
     return;
   }
-
+  if (state_registry_ == nullptr) {
+    state_registry_ = make_shared<StateRegistry>(
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+            conf_.dag_blk_to_state_root_db_path(), destroy_db));
+  }
   if (db_accs_ == nullptr) {
-    db_accs_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::StateDBKind, conf_.db_path + "/accs",
-        destroy_db);
+    db_accs_ = SimpleDBFactory::createDelegate<SimpleStateDBDelegate>(
+        conf_.account_db_path(), destroy_db);
     assert(db_accs_);
+    auto curr_block = state_registry_->getCurrentBlock();
+    if (curr_block) {
+      db_accs_->setRoot(*(state_registry_->getStateRoot(*curr_block)));
+    }
   }
   if (db_blks_ == nullptr) {
-    db_blks_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/blks",
-        destroy_db);
+    db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.block_db_path(), destroy_db);
     assert(db_blks_);
   }
   if (db_blks_index_ == nullptr) {
-    db_blks_index_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/blk_index", destroy_db);
+    db_blks_index_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.block_index_db_path(), destroy_db);
     assert(db_blks_index_);
   }
   if (db_trxs_ == nullptr) {
-    db_trxs_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind, conf_.db_path + "/trxs",
-        destroy_db);
+    db_trxs_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.transactions_db_path(), destroy_db);
     assert(db_trxs_);
   }
 
   if (db_trxs_to_blk_ == nullptr) {
-    db_trxs_to_blk_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/trxs_to_blk", destroy_db);
+    db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.trxs_to_blk_db_path(), destroy_db);
     assert(db_trxs_to_blk_);
   }
 
   if (db_votes_ == nullptr) {
-    db_votes_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/pbftvotes", destroy_db);
+    db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.pbft_votes_db_path(), destroy_db);
     assert(db_votes_);
   }
   if (db_pbftchain_ == nullptr) {
-    db_pbftchain_ = SimpleDBFactory::createDelegate(
-        SimpleDBFactory::SimpleDBType::OverlayDBKind,
-        conf_.db_path + "/pbftchain", destroy_db);
+    db_pbftchain_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+        conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
   LOG(log_nf_) << "DB initialized ...";
@@ -205,6 +206,7 @@ bool FullNode::destroyDB() {
   assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(state_registry_.use_count() == 1);
 
   db_accs_ = nullptr;
   db_blks_ = nullptr;
@@ -213,6 +215,7 @@ bool FullNode::destroyDB() {
   db_trxs_to_blk_ = nullptr;
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
+  state_registry_ = nullptr;
   db_inited_ = false;
   thisThreadSleepForMilliSeconds(1000);
   boost::filesystem::path path(conf_.db_path);
@@ -262,11 +265,11 @@ void FullNode::start(bool boot_node) {
   trx_order_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
-  executor_->setFullNode(getShared());
-  executor_->start();
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
-
+  executor_ =
+      std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
+                                 db_blks_, db_trxs_, db_accs_, state_registry_);
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
@@ -316,6 +319,7 @@ void FullNode::start(bool boot_node) {
   assert(db_trxs_to_blk_);
   assert(db_votes_);
   assert(db_pbftchain_);
+  assert(state_registry_);
   LOG(log_wr_) << "Node started ... ";
 }
 
@@ -333,7 +337,7 @@ void FullNode::stop() {
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
-  executor_->stop();
+  executor_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_[i].join();
@@ -348,6 +352,7 @@ void FullNode::stop() {
 
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(state_registry_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
 }
 
@@ -400,11 +405,13 @@ bool FullNode::reset() {
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
       trx_mgr_->getShared());
-  executor_ = std::make_shared<Executor>();
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft);
   vote_mgr_ = std::make_shared<VoteManager>();
   vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
+  executor_ =
+      std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
+                                 db_blks_, db_trxs_, db_accs_, state_registry_);
   LOG(log_wr_) << "Node reset ... ";
   return true;
 }

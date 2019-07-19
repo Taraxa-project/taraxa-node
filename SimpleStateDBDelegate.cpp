@@ -9,6 +9,10 @@
 #include "SimpleStateDBDelegate.h"
 #include "types.hpp"
 
+using namespace std;
+using namespace taraxa;
+using namespace dev::eth;
+
 bool SimpleStateDBDelegate::put(const std::string &key,
                                 const std::string &value) {
   const dev::Address id = stringToAddress(key);
@@ -34,11 +38,27 @@ std::string SimpleStateDBDelegate::get(const std::string &key) {
   }
   return taraxa::toString(state_->balance(id));
 }
-void SimpleStateDBDelegate::commit() {
-  // TODO: perhaps we shall let the CommitBehaviour be flexible
+
+root_t SimpleStateDBDelegate::commitToTrie(
+    bool flush, State::CommitBehaviour const &commit_behaviour) {
   boost::unique_lock lock(shared_mutex_);
-  state_->commit(dev::eth::State::CommitBehaviour::KeepEmptyAccounts);
+  state_->commit(commit_behaviour);
+  if (flush) {
+    state_->db().commit();
+  }
+  return state_->rootHash();
 }
+
+void SimpleStateDBDelegate::flushTrie() {
+  boost::unique_lock lock(shared_mutex_);
+  state_->db().commit();
+}
+
+void SimpleStateDBDelegate::setRoot(root_t const &root) {
+  boost::unique_lock lock(shared_mutex_);
+  state_->setRoot(root);
+}
+
 SimpleStateDBDelegate::SimpleStateDBDelegate(const std::string &path,
                                              bool overwrite)
     : state_(std::make_shared<dev::eth::State>(

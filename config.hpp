@@ -55,6 +55,17 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
+
+  auto account_db_path() { return db_path + "/acc"; }
+  auto block_db_path() { return db_path + "/blk"; }
+  auto block_index_db_path() { return db_path + "/blk_index"; }
+  auto transactions_db_path() { return db_path + "/trx"; }
+  auto pbft_votes_db_path() { return db_path + "/pbftvotes"; }
+  auto pbft_chain_db_path() { return db_path + "/pbftchain"; }
+  auto trxs_to_blk_db_path() { return db_path + "/trxs_to_blk"; }
+  auto dag_blk_to_state_root_db_path() {
+    return db_path + "/blk_to_state_root";
+  }
 };
 
 std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);

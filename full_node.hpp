@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "TransactionOrderManager.hpp"
 #include "config.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
@@ -34,8 +35,6 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
-class TransactionOrderManager;
-class Executor;
 class Vote;
 class VoteQueue;
 class PbftManager;
@@ -181,7 +180,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // get DBs
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
-  std::shared_ptr<SimpleDBFace> getAccsDB() const { return db_accs_; }
+  auto getAccsDB() const { return db_accs_; }
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
@@ -241,13 +240,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t node_addr_;
 
   // storage
-  std::shared_ptr<SimpleDBFace> db_accs_ = nullptr;
+  std::shared_ptr<SimpleStateDBDelegate> db_accs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;
@@ -264,7 +264,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<BlockProposer> blk_proposer_;
 
   // transaction executor
-  std::shared_ptr<Executor> executor_;
+  std::shared_ptr<Executor> executor_ = nullptr;
   //
   std::vector<std::thread> block_workers_;
 
