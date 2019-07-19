@@ -58,9 +58,7 @@ void Network::setFullNode(std::shared_ptr<FullNode> full_node) {
 
 NetworkConfig Network::getConfig() { return conf_; }
 
-bool Network::isStarted() {
-  return !stopped_;
-}
+bool Network::isStarted() { return !stopped_; }
 
 void Network::start(bool boot_node) {
   if (!stopped_) {
