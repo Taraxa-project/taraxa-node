@@ -46,15 +46,17 @@ Transaction::Transaction(dev::RLP const &_r) {
 
 Transaction::Transaction(bytes const &_rlp) {
   dev::RLP const rlp(_rlp);
-  if (!rlp.isList()) throw std::invalid_argument("transaction RLP must be a list");
+  if (!rlp.isList())
+    throw std::invalid_argument("transaction RLP must be a list");
 
   nonce_ = rlp[0].toInt<dev::u256>();
   gas_price_ = rlp[1].toInt<dev::u256>();
   gas_ = rlp[2].toInt<dev::u256>();
   type_ = rlp[3].isEmpty() ? taraxa::Transaction::Type::Create
                            : taraxa::Transaction::Type::Call;
-  receiver_ =
-      rlp[3].isEmpty() ? dev::Address() : rlp[3].toHash<dev::Address>(dev::RLP::VeryStrict);
+  receiver_ = rlp[3].isEmpty()
+                  ? dev::Address()
+                  : rlp[3].toHash<dev::Address>(dev::RLP::VeryStrict);
   value_ = rlp[4].toInt<dev::u256>();
 
   if (!rlp[5].isData())
@@ -77,8 +79,8 @@ Transaction::Transaction(bytes const &_rlp) {
     else
       throw std::invalid_argument("InvalidSignature()");
 
-    sig_ = dev::SignatureStruct{
-        r, s, static_cast<::byte>(v - (chain_id_ * 2 + 35))};
+    sig_ = dev::SignatureStruct{r, s,
+                                static_cast<::byte>(v - (chain_id_ * 2 + 35))};
   }
   dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
   if (sig_struct.isValid()) {
@@ -189,9 +191,10 @@ addr_t Transaction::sender() const {
   }
   return cached_sender_;
 }
-void Transaction::streamRLP(dev::RLPStream &s, bool include_sig, bool _forEip155hash) const {
+void Transaction::streamRLP(dev::RLPStream &s, bool include_sig,
+                            bool _forEip155hash) const {
   if (type_ == Transaction::Type::Null) return;
-  s.appendList(include_sig || _forEip155hash? 9 : 6);
+  s.appendList(include_sig || _forEip155hash ? 9 : 6);
   s << nonce_ << gas_price_ << gas_;
   if (type_ == Transaction::Type::Call) {
     s << receiver_;
@@ -208,9 +211,8 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig, bool _forEip155
       s << (vrs_->v + v_offset);
     }
     s << vrs_->r << vrs_->s;
-  }
-  else if (_forEip155hash)
-		s << chain_id_ << 0 << 0;
+  } else if (_forEip155hash)
+    s << chain_id_ << 0 << 0;
 }
 
 bytes Transaction::rlp(bool include_sig) const {
