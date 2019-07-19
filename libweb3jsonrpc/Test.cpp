@@ -442,9 +442,9 @@ Json::Value Test::place_vote(const Json::Value &param1) {
       size_t step = param1["step"].asUInt();
 
       // put vote into vote queue
-      //node->placeVote(blockhash, type, period, step);
+      // node->placeVote(blockhash, type, period, step);
       // broadcast vote
-      //node->broadcastVote(blockhash, type, period, step);
+      // node->broadcastVote(blockhash, type, period, step);
 
       res = "Place vote successfully";
     }
@@ -477,6 +477,32 @@ Json::Value Test::draw_graph(const Json::Value &param1) {
       std::string filename = param1["filename"].asString();
       node->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";
+    }
+  } catch (std::exception &e) {
+    res = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_transaction_count(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getTransactionStatusCount();
+      res = std::to_string(count);
+    }
+  } catch (std::exception &e) {
+    res = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_dag_size(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getNumVerticesInDag();
+      res = std::to_string(count.first) + " , " + std::to_string(count.second);
     }
   } catch (std::exception &e) {
     res = e.what();
