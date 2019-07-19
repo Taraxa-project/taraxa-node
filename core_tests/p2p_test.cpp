@@ -189,10 +189,10 @@ TEST(p2p, capability_send_block) {
   EXPECT_GT(host1.peerCount(), 0);
   EXPECT_GT(host2.peerCount(), 0);
 
-  DagBlock blk(blk_hash_t(1111), 0,
-               {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-               sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk(
+      blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
+      {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
+      sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
   transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
@@ -308,10 +308,10 @@ TEST(p2p, block_propagate) {
   EXPECT_TRUE(connected);
   EXPECT_GT(host1.peerCount(), 0);
 
-  DagBlock blk(blk_hash_t(1111), 0,
-               {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-               sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk(
+      blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
+      {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
+      sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
   transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
