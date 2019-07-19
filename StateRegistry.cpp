@@ -20,7 +20,7 @@ optional<root_t> StateRegistry::getStateRoot(blk_hash_t const& blk_hash) {
 }
 
 bool StateRegistry::putStateRoot(blk_hash_t const& blk_hash,
-                                     root_t const& root) {
+                                 root_t const& root) {
   if (db->put(blk_hash.hex(), root.hex())) {
     db->commit();
     return true;
@@ -28,4 +28,4 @@ bool StateRegistry::putStateRoot(blk_hash_t const& blk_hash,
   return false;
 }
 
-}  // namespace taraxa::__StateRootRegistry__
+}  // namespace taraxa::__StateRegistry__
