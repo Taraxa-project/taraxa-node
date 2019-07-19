@@ -42,6 +42,7 @@ class Network {
   ~Network();
   void start(bool boot_node = false);
   void stop();
+  bool isStarted();
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
