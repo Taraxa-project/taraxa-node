@@ -222,16 +222,18 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
-      secret_t sk = secret_t(param1["secret"].asString());
       uint delay = param1["delay"].asUInt();
       uint number = param1["number"].asUInt();
-      uint seed = param1["seed"].asUInt();
+      val_t nonce = val_t(param1["nonce"].asUInt());
+      addr_t receiver = addr_t(param1["receiver"].asString());
       bytes data;
       // get trx receiving time stamp
       for (auto i = 0; i < number; ++i) {
         auto now = getCurrentTimeMilliSeconds();
-        auto trx = samples::TX_GEN.getWithRandomUniqueSender(
-            0, addr_t((i + 1) * 100), data);
+        val_t value = nonce + val_t(i);
+        auto trx = taraxa::Transaction(value, value, val_t(0),
+                                       taraxa::samples::TEST_TX_GAS_LIMIT,
+                                       receiver, data, node->getSecretKey());
         LOG(log_time) << "Transaction " << trx.getHash()
                       << " received at: " << now;
         node->insertTransaction(trx);
