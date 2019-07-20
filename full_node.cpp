@@ -748,20 +748,20 @@ void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
   addr_t vote_address = dev::toAddress(vote.getPublicKey());
   std::pair<val_t, bool> account_balance = getBalance(vote_address);
   if (!account_balance.second) {
-    LOG(log_er_) << "Cannot find the vote account balance: " << vote_address;
+    // TODO: Nodes received vote before they execute trx
+    LOG(log_wr_) << "Vote too fast! Cannot find the vote account balance: "
+                 << vote_address;
     return;
   }
 
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
-  // TODO: there is bug here, need add back later
-  //  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-  //                                account_balance.first,
-  //                                sortition_threshold))
-  //                                {
-  vote_queue_->pushBackVote(vote);
-  //  }
+  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
+                                account_balance.first, sortition_threshold)) {
+    vote_queue_->pushBackVote(vote);
+  }
 }
+
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
   network_->onNewPbftVote(vote);
@@ -900,18 +900,22 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             uint64_t period, size_t step) {
-  blk_hash_t lask_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   // sortition signature
   sig_t sortition_signature =
-      vote_mgr_->signVote(node_sk_, lask_pbft_block_hash, type, period, step);
+      vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);
   // vote signature
   sig_t vote_signature =
       vote_mgr_->signVote(node_sk_, blockhash, type, period, step);
 
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
+  LOG(log_deb_) << "last pbft block hash " << last_pbft_block_hash
+                << " vote: " << vote.getHash();
+
   return vote;
 }
+
 level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
 
 std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
@@ -920,7 +924,7 @@ std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
 }
 
 std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
-    blk_hash_t const &dag_block_hash) {
+    blk_hash_t const &dag_block_hash) const {
   return pbft_chain_->getDagBlockHeight(dag_block_hash);
 }
 

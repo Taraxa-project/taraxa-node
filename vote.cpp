@@ -118,7 +118,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   public_t public_key = vote.getPublicKey();
   sig_t vote_signature = vote.getVoteSignature();
   if (!dev::verify(public_key, vote_signature, hash_(vote_message))) {
-    LOG(log_err_) << "Invalid vote signature " << vote_signature
+    LOG(log_war_) << "Invalid vote signature " << vote_signature
                   << " vote hash " << vote.getHash();
     return false;
   }
@@ -129,9 +129,12 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       std::to_string(round) + std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
-    LOG(log_err_) << "Invalid sortition signature: " << sortition_signature
-                  << " vote hash " << vote.getHash();
-    return false;
+    // TODO: 1. Get vote too fast, and PBFT chain has not add the new block yet.
+    //  2. When new node join, the new node doesn't have the last pbft block to
+    //  verify.
+    //  Need to save the valid votes
+    LOG(log_war_) << "Get it too fast! Invalid sortition signature: "
+                  << sortition_signature << " vote hash " << vote.getHash();
   }
 
   // verify sortition
@@ -139,7 +142,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       taraxa::hashSignature(sortition_signature);
   if (!taraxa::sortition(sortition_signature_hash, account_balance,
                          sortition_threshold)) {
-    LOG(log_err_) << "Vote sortition failed, sortition signature "
+    LOG(log_war_) << "Vote sortition failed, sortition signature "
                   << sortition_signature;
     return false;
   }
