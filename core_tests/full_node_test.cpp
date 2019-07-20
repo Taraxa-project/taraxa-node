@@ -71,16 +71,18 @@ TEST(Top, top_reset) {
   try {
     std::string sendtrx1 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 5, 
                                       "number": 6000, 
-                                      "seed": 1 }]}' 0.0.0.0:7777)";
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 7, 
                                       "number": 4000, 
-                                      "seed": 2 }]}' 0.0.0.0:7778)";
+                                      "nonce": 2 , 
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -143,18 +145,19 @@ TEST(Top, top_reset) {
   try {
     std::string sendtrx1 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret":
-                                      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
-                                      "delay": 5,
-                                      "number": 6000,
-                                      "seed": 1 }]}' 0.0.0.0:7777)";
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5, 
+                                      "number": 6000, 
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret":
-                                      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 7,
-                                      "number": 4000,
-                                      "seed": 2 }]}' 0.0.0.0:7778)";
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7, 
+                                      "number": 4000, 
+                                      "nonce": 2 , 
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
+    std::cout << "Sending trxs ..." << std::endl;
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -384,34 +387,39 @@ TEST(Top, sync_five_nodes_simple) {
   try {
     std::string sendtrx1 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 5, 
                                       "number": 6000, 
-                                      "seed": 1 }]}' 0.0.0.0:7777)";
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 7, 
                                       "number": 4000, 
-                                      "seed": 2 }]}' 0.0.0.0:7778)";
+                                      "nonce": 2,
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778)";
     std::string sendtrx3 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
+                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
                                       "delay": 3, 
                                       "number": 3000, 
-                                      "seed": 3 }]}' 0.0.0.0:7779)";
+                                      "nonce": 3,
+                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779)";
     std::string sendtrx4 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
+                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
                                       "delay": 10, 
                                       "number": 3000, 
-                                      "seed": 4 }]}' 0.0.0.0:7781)";
+                                      "nonce": 4,
+                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780)";
     std::string sendtrx5 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3",
+                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
                                       "delay": 2,
                                       "number": 4000, 
-                                      "seed": 5 }]}' 0.0.0.0:7780)";
+                                      "nonce": 5,
+                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -1280,34 +1288,39 @@ TEST(Top, sortition_propose_five_nodes) {
   try {
     std::string sendtrx1 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
-                                      "delay": 5,
-                                      "number": 6000,
-                                      "seed": 1 }]}' 0.0.0.0:7777)";
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5, 
+                                      "number": 6000, 
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 7,
-                                      "number": 4000,
-                                      "seed": 2 }]}' 0.0.0.0:7778)";
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7, 
+                                      "number": 4000, 
+                                      "nonce": 2,
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778)";
     std::string sendtrx3 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
-                                      "delay": 3,
-                                      "number": 3000,
-                                      "seed": 3 }]}' 0.0.0.0:7779)";
+                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
+                                      "delay": 3, 
+                                      "number": 3000, 
+                                      "nonce": 3,
+                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779)";
     std::string sendtrx4 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
-                                      "delay": 10,
-                                      "number": 3000,
-                                      "seed": 4 }]}' 0.0.0.0:7780)";
+                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
+                                      "delay": 10, 
+                                      "number": 3000, 
+                                      "nonce": 4,
+                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780)";
     std::string sendtrx5 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc3",
-                                      "delay": 23,
-                                      "number": 4000,
-                                      "seed": 5 }]}' 0.0.0.0:7781)";
+                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
+                                      "delay": 2,
+                                      "number": 4000, 
+                                      "nonce": 5,
+                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -1510,34 +1523,39 @@ TEST(Top, detect_overlap_transactions) {
   try {
     std::string sendtrx1 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dce",
-                                      "delay": 5,
-                                      "number": 2000,
-                                      "seed": 1 }]}' 0.0.0.0:7777)";
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5, 
+                                      "number": 2000, 
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777)";
     std::string sendtrx2 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 7,
-                                      "number": 2000,
-                                      "seed": 2 }]}' 0.0.0.0:7778)";
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7, 
+                                      "number": 2000, 
+                                      "nonce": 2,
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778)";
     std::string sendtrx3 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcf",
-                                      "delay": 2,
-                                      "number": 2000,
-                                      "seed": 3 }]}' 0.0.0.0:7779)";
+                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
+                                      "delay": 3, 
+                                      "number": 2000, 
+                                      "nonce": 3,
+                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779)";
     std::string sendtrx4 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc1",
-                                      "delay": 1,
-                                      "number": 2000,
-                                      "seed": 4 }]}' 0.0.0.0:7780)";
+                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
+                                      "delay": 10, 
+                                      "number": 2000, 
+                                      "nonce": 4,
+                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780)";
     std::string sendtrx5 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dc2",
-                                      "delay": 3,
-                                      "number": 2000,
-                                      "seed": 5 }]}' 0.0.0.0:7781)";
+                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
+                                      "delay": 2,
+                                      "number": 2000, 
+                                      "nonce": 5,
+                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
