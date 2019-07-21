@@ -253,7 +253,7 @@ Json::Value Test::get_num_proposed_blocks(const Json::Value &param1) {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
       auto num_prop_block = node->getNumProposedBlocks();
-      res["value"] = uint64_t(num_prop_block);
+      res["value"] = Json::UInt64(num_prop_block);
       LOG(log_time) << "Number of proposed block " << num_prop_block
                     << std::endl;
     }
@@ -353,7 +353,7 @@ Json::Value Test::get_peer_count(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       auto peer = node->getPeerCount();
-      res["value"] = int(peer);
+      res["value"] = Json::UInt64(peer);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -492,7 +492,7 @@ Json::Value Test::get_transaction_count(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       auto count = node->getTransactionStatusCount();
-      res["value"] = int64_t(count);
+      res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
