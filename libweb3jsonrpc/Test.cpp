@@ -253,7 +253,7 @@ Json::Value Test::get_num_proposed_blocks(const Json::Value &param1) {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
       auto num_prop_block = node->getNumProposedBlocks();
-      res["value"] = num_prop_block;
+      res["value"] = uint64_t(num_prop_block);
       LOG(log_time) << "Number of proposed block " << num_prop_block
                     << std::endl;
     }
