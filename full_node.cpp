@@ -156,12 +156,29 @@ void FullNode::initDB(bool destroy_db) {
                      pbft_chain_->getJsonStr());
   db_pbftchain_->commit();
 
-  // Initialize MASTER BOOT NODE to all coins
-  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  val_t total_coins(TARAXA_COINS_DECIMAL);
-  if (!setBalance(master_boot_node_address, total_coins)) {
-    LOG(log_er_) << "Failed to set master boot node account balance";
+  bool boot_node_balance_initialized = false;
+
+  // init master boot node ...
+  for (auto &node : conf_.network.network_boot_nodes) {
+    auto node_public_key = dev::Public(node.id);
+
+    // Assume only first boot node is initialized
+    if (boot_node_balance_initialized == false) {
+      addr_t master_boot_node_address(dev::toAddress(node_public_key));
+      val_t total_coins(TARAXA_COINS_DECIMAL);
+      bool ok = setBalance(master_boot_node_address, total_coins);
+      if (!ok) {
+        LOG(log_er_) << "Failed to set master boot node account balance";
+      } else {
+        LOG(log_wr_) << "Init master boot node " << master_boot_node_address
+                     << ", balance " << TARAXA_COINS_DECIMAL;
+        boot_node_balance_initialized = true;
+        setMasterBootNodeAddress(master_boot_node_address);
+        break;
+      }
+    }
   }
+
   // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
