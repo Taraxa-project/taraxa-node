@@ -11,6 +11,7 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+#include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "dag.hpp"
 #include "libdevcore/DBFactory.h"
@@ -23,7 +24,7 @@
 #include "top.hpp"
 
 namespace taraxa {
-
+using namespace core_tests::util;
 using samples::sendTrx;
 
 const unsigned NUM_TRX = 200;
@@ -38,7 +39,10 @@ auto g_mock_dag0 = samples::createMockDag0();
 auto g_test_account =
     samples::createTestAccountTable("core_tests/account_table.txt");
 
-TEST(Top, top_reset) {
+struct TopTest : public DBUsingTest<> {};
+struct FullNodeTest : public DBUsingTest<> {};
+
+TEST_F(TopTest, top_reset) {
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -201,7 +205,7 @@ TEST(Top, top_reset) {
   }
 }
 
-TEST(FullNode, full_node_reset) {
+TEST_F(FullNodeTest, full_node_reset) {
   boost::asio::io_context context1;
   boost::asio::io_context context2;
 
@@ -292,7 +296,8 @@ TEST(FullNode, full_node_reset) {
   t.join();
 }
 
-TEST(Top, sync_five_nodes_simple) {
+// fixme: flaky
+TEST_F(TopTest, sync_five_nodes_simple) {
   const char *input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   const char *input2[] = {"./build/main2", "--conf_taraxa",
@@ -528,7 +533,7 @@ TEST(Top, sync_five_nodes_simple) {
   }
 }
 
-TEST(FullNode, insert_anchor_and_compute_order) {
+TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
@@ -606,7 +611,7 @@ TEST(FullNode, insert_anchor_and_compute_order) {
   node->stop();
 }
 
-TEST(Top, create_top_level_db) {
+TEST_F(TopTest, create_top_level_db) {
   {
     dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
 
@@ -625,7 +630,7 @@ TEST(Top, create_top_level_db) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST(Top, create_top_memory_db) {
+TEST_F(TopTest, create_top_memory_db) {
   {
     const char *inputs[] = {"./build/main", "--conf_taraxa",
                             "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
@@ -641,7 +646,7 @@ TEST(Top, create_top_memory_db) {
   }
 }
 
-TEST(Top, reconstruct_dag) {
+TEST_F(TopTest, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
@@ -702,7 +707,7 @@ TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST(Top, sync_two_nodes1) {
+TEST_F(TopTest, sync_two_nodes1) {
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -777,7 +782,7 @@ TEST(Top, sync_two_nodes1) {
   }
 }
 
-TEST(Top, sync_two_nodes2) {
+TEST_F(TopTest, sync_two_nodes2) {
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -852,52 +857,41 @@ TEST(Top, sync_two_nodes2) {
   }
 }
 
-TEST(FullNode, account_bal) {
-  boost::asio::io_context context;
-
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+TEST_F(FullNodeTest, genesis_balance) {
   addr_t addr1(100);
   val_t bal1(1000);
-  node->setBalance(addr1, bal1);
+  addr_t addr2(200);
+  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  cfg.genesis_state.accounts[addr1] = {bal1};
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(context, cfg));
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
-  addr_t addr2(200);
   res = node->getBalance(addr2);
   EXPECT_FALSE(res.second);
-  val_t bal2(2000);
-  node->setBalance(addr1, bal2);
-  res = node->getBalance(addr1);
-  EXPECT_TRUE(res.second);
-  EXPECT_EQ(res.first, bal2);
 }
 
-TEST(FullNode, execute_chain_pbft_transactions) {
-  boost::asio::io_context context;
-
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(true);  // boot node
-
-  addr_t acc1 = node->getAddress();
-
+TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
   val_t initbal(100000000);  // disable pbft sortition
-  node->setBalance(acc1, initbal);
-  auto res = node->getBalance(acc1);
-  EXPECT_TRUE(res.second);
-  EXPECT_EQ(res.first, initbal);
-
   std::vector<Transaction> transactions;
   for (auto i = 0; i < NUM_TRX; ++i) {
     transactions.emplace_back(samples::TX_GEN.getWithRandomUniqueSender(
         i * 100, addr_t((i + 1) * 100)));
   }
+  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  addr_t acc1 = addr(cfg.node_secret);
+  cfg.genesis_state.accounts[acc1] = {initbal};
   for (auto const &t : transactions) {
-    auto res = node->getBalance(t.getSender());
-    node->setBalance(t.getSender(), res.first + t.getValue());
+    cfg.genesis_state.accounts[t.getSender()] = {t.getValue()};
   }
-  node->getAccsDB()->commit();
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(context, cfg));
+  node->start(true);  // boot node
+  auto res = node->getBalance(acc1);
+  EXPECT_TRUE(res.second);
+  EXPECT_EQ(res.first, initbal);
+
   for (auto const &t : transactions) {
     node->insertTransaction(t);
     taraxa::thisThreadSleepForMilliSeconds(50);
@@ -970,7 +964,7 @@ TEST(FullNode, execute_chain_pbft_transactions) {
   //  EXPECT_EQ(state->balance(acc1), initbal - coin_distributed);
 }
 
-TEST(FullNode, send_and_receive_out_order_messages) {
+TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
   boost::asio::io_context context1;
   boost::asio::io_context context2;
 
@@ -1043,7 +1037,7 @@ TEST(FullNode, send_and_receive_out_order_messages) {
   t.join();
 }
 
-TEST(FullNode, save_network_to_file) {
+TEST_F(FullNodeTest, save_network_to_file) {
   {
     boost::asio::io_context context1;
     FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
@@ -1096,7 +1090,7 @@ TEST(FullNode, save_network_to_file) {
   }
 }
 
-TEST(FullNode, receive_send_transaction) {
+TEST_F(FullNodeTest, receive_send_transaction) {
   boost::asio::io_context context1;
 
   const char *input1[] = {"./build/main", "--conf_taraxa",
@@ -1131,12 +1125,13 @@ TEST(FullNode, receive_send_transaction) {
   EXPECT_GT(node1->getNumProposedBlocks(), 0);
 }
 
-TEST(FullNode, DISABLED_sortition_propose_one_node) {
+TEST_F(FullNodeTest, DISABLED_sortition_propose_one_node) {
+  val_t init_bal = 9007199254740991;
+  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  cfg.test_params.block_proposer = {1, 1, 100, 4294967295};  // 2^32
+  cfg.genesis_state.accounts[addr(cfg.node_secret)] = {init_bal};
   boost::asio::io_context context1;
-  FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-  conf.test_params.block_proposer = {1, 1, 100, 4294967295};  // 2^32
-
-  auto node1(std::make_shared<taraxa::FullNode>(context1, conf));
+  auto node1(std::make_shared<taraxa::FullNode>(context1, cfg));
   node1->setDebug(true);
   // destroy db !!
   node1->destroyDB();
@@ -1144,13 +1139,11 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
       new dev::rpc::Test(node1));
   auto rpc_server(
-      std::make_shared<taraxa::RpcServer>(context1, conf.rpc, node1));
+      std::make_shared<taraxa::RpcServer>(context1, cfg.rpc, node1));
   rpc->addConnector(rpc_server);
   rpc_server->StartListening();
   taraxa::thisThreadSleepForMilliSeconds(500);
   auto addr = node1->getAddress();
-  val_t init_bal = 9007199254740991;
-  node1->setBalance(addr, init_bal);
   auto res = node1->getBalance(addr);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, init_bal);
@@ -1176,7 +1169,7 @@ TEST(FullNode, DISABLED_sortition_propose_one_node) {
   EXPECT_GT(node1->getNumProposedBlocks(), 5);
 }
 
-TEST(Top, sortition_propose_five_nodes) {
+TEST_F(TopTest, sortition_propose_five_nodes) {
   const char *input1[] = {
       "./build/main",
       "--conf_taraxa",
@@ -1422,7 +1415,7 @@ TEST(Top, sortition_propose_five_nodes) {
   }
 }
 
-TEST(Top, detect_overlap_transactions) {
+TEST_F(TopTest, detect_overlap_transactions) {
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
@@ -1588,6 +1581,7 @@ TEST(Top, detect_overlap_transactions) {
   }
   std::cout << "Total packed trxs: " << packed_trxs << std::endl;
   EXPECT_GT(packed_trxs, 10000);
+  // fixme: flaky
   EXPECT_EQ(ordered_trxs.size(), 10000);
 
   // check transaction to dagblock mapping

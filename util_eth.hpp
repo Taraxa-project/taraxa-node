@@ -38,24 +38,23 @@ inline bool isDiskDatabase(const DatabaseKind& kind) {
   }
 }
 
-struct RawDBAndMeta {
-  //  RawDBAndMeta(RawDBAndMeta&&) = default;
-  //  RawDBAndMeta& operator=(RawDBAndMeta&&) = default;
-  shared_ptr<DatabaseFace> dbPtr;
+template <typename DB>
+inline h256 calculateGenesisState(DB& db, AccountMap const& accounts) {
+  SecureTrieDB<Address, DB> state(&db);
+  state.init();
+  commit(accounts, state);
+  return state.root();
+}
+
+// partially copied from /libethereum/State.cpp
+struct DBAndMeta {
+  unique_ptr<DatabaseFace> db;
   DatabaseKind kind;
   fs::path path;
 };
-
-struct OverlayAndRawDB {
-  OverlayDB overlayDB;
-  RawDBAndMeta rawDB;
-};
-
-// partially copied from /libethereum/State.cpp
-inline OverlayAndRawDB newOverlayDB(fs::path const& _basePath,
-                                    h256 const& _genesisHash, WithExisting _we,
-                                    DatabaseKind kind = databaseKind()) {
-  const auto isDiskDB = isDiskDatabase(kind);
+inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
+                       WithExisting _we, DatabaseKind kind = databaseKind()) {
+  auto isDiskDB = isDiskDatabase(kind);
   auto path = _basePath.empty() ? db::databasePath() : _basePath;
   if (isDiskDB && _we == WithExisting::Kill) {
     clog(VerbosityDebug, "statedb")
@@ -72,8 +71,7 @@ inline OverlayAndRawDB newOverlayDB(fs::path const& _basePath,
   try {
     auto db = DBFactory::create(kind, path);
     clog(VerbosityTrace, "statedb") << "Opened state DB.";
-    shared_ptr<DatabaseFace> dbRawPtr(db.get(), [](auto ptr) {});
-    return {OverlayDB(move(db)), RawDBAndMeta{move(dbRawPtr), kind, path}};
+    return {move(db), kind, path};
   } catch (boost::exception const& ex) {
     cwarn << boost::diagnostic_information(ex) << '\n';
     if (!isDiskDB)

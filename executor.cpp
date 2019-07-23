@@ -12,21 +12,22 @@ namespace taraxa {
 bool Executor::execute(
     TrxSchedule const& sche,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
+  if (sche.blk_order.empty()) {
+    return true;
+  }
+  // TODO this state instance is reusable
+  auto state = state_registry_->getCurrentState();
   for (auto const& blk : sche.blk_order) {
-    if (!executeBlkTrxs(blk, sortition_account_balance_table)) {
+    if (!executeBlkTrxs(state, blk, sortition_account_balance_table)) {
       return false;
     }
   }
-  auto const& root = db_accs_->commitToTrie();
-  for (auto& blk : sche.blk_order) {
-    assert(state_root_registry_->putStateRoot(blk, root));
-  }
-  state_root_registry_->setCurrentBlock(sche.blk_order.back());
+  state_registry_->commit(state, sche.blk_order);
   return true;
 }
 
 bool Executor::executeBlkTrxs(
-    blk_hash_t const& blk,
+    StateRegistry::State& state, blk_hash_t const& blk,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   std::string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
@@ -45,7 +46,7 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
-    coinTransfer(trx, sortition_account_balance_table);
+    coinTransfer(state, trx, sortition_account_balance_table);
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
@@ -53,16 +54,13 @@ bool Executor::executeBlkTrxs(
 }
 
 bool Executor::coinTransfer(
-    Transaction const& trx,
+    StateRegistry::State& state, Transaction const& trx,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   val_t value = trx.getValue();
-  auto sender_bal = db_accs_->get(sender.toString());
-  auto receiver_bal = db_accs_->get(receiver.toString());
-  val_t sender_initial_coin = sender_bal.empty() ? 0 : stoull(sender_bal);
-  val_t receiver_initial_coin = receiver_bal.empty() ? 0 : stoull(receiver_bal);
-
+  val_t sender_initial_coin = state.balance(sender);
+  val_t receiver_initial_coin = state.balance(receiver);
   if (sender_initial_coin < trx.getValue()) {
     LOG(log_er_) << "Insufficient fund for transfer ... , sender " << sender
                  << " , sender balance: " << sender_initial_coin
@@ -76,8 +74,8 @@ bool Executor::coinTransfer(
   }
   val_t new_sender_bal = sender_initial_coin - value;
   val_t new_receiver_bal = receiver_initial_coin + value;
-  db_accs_->update(sender.toString(), toString(new_sender_bal));
-  db_accs_->update(receiver.toString(), toString(new_receiver_bal));
+  state.setBalance(sender, new_sender_bal);
+  state.setBalance(receiver, new_receiver_bal);
   // Update account balance table. Will remove in VM since vm return a list of
   // modified balance accounts
   if (new_sender_bal >= pbft_require_sortition_coins_) {
@@ -89,10 +87,8 @@ bool Executor::coinTransfer(
   if (new_receiver_bal >= pbft_require_sortition_coins_) {
     sortition_account_balance_table[receiver] = new_receiver_bal;
   }
-
   LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
   LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
-
   return true;
 }
 

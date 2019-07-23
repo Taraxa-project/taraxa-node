@@ -10,12 +10,15 @@
 
 #include <gtest/gtest.h>
 
+#include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "full_node.hpp"
 #include "libdevcore/DBFactory.h"
 #include "network.hpp"
+#include "util.hpp"
 
 namespace taraxa {
+using namespace core_tests::util;
 
 const unsigned NUM_TRX = 200;
 auto g_secret = dev::Secret(
@@ -26,15 +29,16 @@ auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
 
+struct PbftManagerTest : public DBUsingTest<> {};
+
 // need change 2t+1 = 1 to test
-TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
+TEST_F(PbftManagerTest, DISABLED_pbft_manager_run_single_node) {
   boost::asio::io_context context;
+  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  cfg.genesis_state.accounts[addr(cfg.node_secret)] = {new_balance};
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  addr_t account_address = node->getAddress();
-  node->setBalance(account_address, new_balance);
 
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
 
@@ -84,30 +88,24 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
 }
 
 // need change 2t+1 = 3 to test
-TEST(PbftManager, pbft_manager_run_multi_nodes) {
-  boost::asio::io_context context1;
-  auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
-  boost::asio::io_context context2;
-  auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
-  boost::asio::io_context context3;
-  auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
-
+TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  addr_t account_address1 = node1->getAddress();
-  node1->setBalance(account_address1, new_balance);
-  node2->setBalance(account_address1, new_balance);
-  node3->setBalance(account_address1, new_balance);
-  addr_t account_address2 = node2->getAddress();
-  node1->setBalance(account_address2, new_balance);
-  node2->setBalance(account_address2, new_balance);
-  node3->setBalance(account_address2, new_balance);
-  addr_t account_address3 = node3->getAddress();
-  node1->setBalance(account_address3, new_balance);
-  node2->setBalance(account_address3, new_balance);
-  node3->setBalance(account_address3, new_balance);
+  vector<FullNodeConfig> cfgs;
+  for (auto i = 1; i <= 3; ++i) {
+    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
+  }
+  for (auto& cfg : cfgs) {
+    for (auto& cfg_other : cfgs) {
+      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+    }
+  }
+  auto node_count = 0;
+  boost::asio::io_context context1;
+  auto node1(std::make_shared<taraxa::FullNode>(context1, cfgs[node_count++]));
+  boost::asio::io_context context2;
+  auto node2(std::make_shared<taraxa::FullNode>(context2, cfgs[node_count++]));
+  boost::asio::io_context context3;
+  auto node3(std::make_shared<taraxa::FullNode>(context3, cfgs[node_count++]));
 
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();

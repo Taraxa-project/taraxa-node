@@ -310,22 +310,6 @@ Json::Value Test::get_account_address(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::set_account_balance(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      addr_t addr = addr_t(param1["address"].asString());
-      val_t bal = param1["balance"].asUInt64();
-      node->setBalance(addr, bal);
-      res = "Set " + addr.toString() +
-            " balance: " + boost::lexical_cast<std::string>(bal) + "\n";
-    }
-  } catch (std::exception &e) {
-    res = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::get_account_balance(const Json::Value &param1) {
   Json::Value res;
   try {

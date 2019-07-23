@@ -15,7 +15,6 @@
 #include <memory>
 #include <set>
 #include <thread>
-#include "SimpleStateDBDelegate.h"
 #include "StateRegistry.hpp"
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
@@ -31,12 +30,16 @@ namespace taraxa {
  */
 
 class Executor {
+ public:
+  inline static const auto MOCK_BLOCK_GAS_LIMIT =
+      std::numeric_limits<uint64_t>::max();
+
+ private:
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
-  std::shared_ptr<SimpleStateDBDelegate> db_accs_ = nullptr;
-  std::shared_ptr<StateRegistry> state_root_registry_ = nullptr;
+  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
@@ -45,21 +48,16 @@ class Executor {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
 
  public:
-  inline static const auto MOCK_BLOCK_GAS_LIMIT =
-      std::numeric_limits<uint64_t>::max();
-
   Executor(uint64_t pbft_require_sortition_coins,
            decltype(log_time_) log_time,  //
            decltype(db_blks_) db_blks,
            decltype(db_trxs_) db_trxs,  //
-           decltype(db_accs_) db_accs,
-           decltype(state_root_registry_) state_root_registry)
+           decltype(state_registry_) state_registry)
       : pbft_require_sortition_coins_(pbft_require_sortition_coins),
         log_time_(std::move(log_time)),
         db_blks_(std::move(db_blks)),
         db_trxs_(std::move(db_trxs)),
-        db_accs_(std::move(db_accs)),
-        state_root_registry_(std::move(state_root_registry)) {}
+        state_registry_(std::move(state_registry)) {}
 
   bool execute(
       TrxSchedule const& schedule,
@@ -67,10 +65,10 @@ class Executor {
 
  private:
   bool executeBlkTrxs(
-      blk_hash_t const& blk,
+      StateRegistry::State&, blk_hash_t const& blk,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool coinTransfer(
-      Transaction const& trx,
+      StateRegistry::State&, Transaction const& trx,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
 };
 

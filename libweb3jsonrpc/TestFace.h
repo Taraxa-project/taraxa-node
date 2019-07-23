@@ -83,11 +83,6 @@ class TestFace : public ServerInterface<TestFace> {
                            NULL),
         &TestFace::get_account_addressI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("set_account_balance", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
-        &TestFace::set_account_balanceI);
-    this->bindAndAddMethod(
         jsonrpc::Procedure("get_account_balance", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
                            NULL),
@@ -204,10 +199,6 @@ class TestFace : public ServerInterface<TestFace> {
                                            Json::Value &response) {
     response = this->get_account_address(request[0u]);
   }
-  inline virtual void set_account_balanceI(const Json::Value &request,
-                                           Json::Value &response) {
-    response = this->set_account_balance(request[0u]);
-  }
   inline virtual void get_account_balanceI(const Json::Value &request,
                                            Json::Value &response) {
     response = this->get_account_balance(request[0u]);
@@ -271,7 +262,6 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_num_proposed_blocks(const Json::Value &param1) = 0;
   virtual Json::Value send_pbft_schedule_block(const Json::Value &param1) = 0;
   virtual Json::Value get_account_address(const Json::Value &param1) = 0;
-  virtual Json::Value set_account_balance(const Json::Value &param1) = 0;
   virtual Json::Value get_account_balance(const Json::Value &param1) = 0;
   virtual Json::Value get_peer_count(const Json::Value &param1) = 0;
   virtual Json::Value get_all_peers(const Json::Value &param1) = 0;

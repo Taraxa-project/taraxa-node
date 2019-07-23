@@ -9,9 +9,12 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 #include <string>
+#include "GenesisState.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
+// TODO make all the classes json/ptree (ser|de)serializable and use it in
+// << operator
 namespace taraxa {
 struct RpcConfig {
   RpcConfig() = default;
@@ -54,8 +57,10 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
+  GenesisState genesis_state;
 
   auto account_db_path() { return db_path + "/acc"; }
+  auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }
   auto block_db_path() { return db_path + "/blk"; }
   auto block_index_db_path() { return db_path + "/blk_index"; }
   auto transactions_db_path() { return db_path + "/trx"; }
@@ -67,8 +72,6 @@ struct FullNodeConfig {
   }
 };
 
-std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);

@@ -5,7 +5,6 @@
 #define TARAXA_NODE_SIMPLEDBFACTORY_H
 
 #include "SimpleOverlayDBDelegate.h"
-#include "SimpleStateDBDelegate.h"
 #include "SimpleTaraxaRocksDBDelegate.h"
 
 class SimpleDBFace;

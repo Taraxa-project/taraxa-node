@@ -160,7 +160,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
-  bool setBalance(addr_t const &acc, val_t const &new_bal);
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
@@ -180,7 +179,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // get DBs
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
-  auto getAccsDB() const { return db_accs_; }
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
@@ -239,7 +237,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t node_addr_;
 
   // storage
-  std::shared_ptr<SimpleStateDBDelegate> db_accs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;

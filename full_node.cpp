@@ -19,12 +19,14 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.h"
+#include "util_eth.hpp"
 #include "vote.h"
 
 namespace taraxa {
 
 using std::string;
 using std::to_string;
+using util::eth::newDB;
 
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
@@ -95,20 +97,6 @@ void FullNode::initDB(bool destroy_db) {
     LOG(log_er_) << "Cannot init DB if node started ...";
     return;
   }
-  if (state_registry_ == nullptr) {
-    state_registry_ = make_shared<StateRegistry>(
-        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-            conf_.dag_blk_to_state_root_db_path(), destroy_db));
-  }
-  if (db_accs_ == nullptr) {
-    db_accs_ = SimpleDBFactory::createDelegate<SimpleStateDBDelegate>(
-        conf_.account_db_path(), destroy_db);
-    assert(db_accs_);
-    auto curr_block = state_registry_->getCurrentBlock();
-    if (curr_block) {
-      db_accs_->setRoot(*(state_registry_->getStateRoot(*curr_block)));
-    }
-  }
   if (db_blks_ == nullptr) {
     db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.block_db_path(), destroy_db);
@@ -124,13 +112,11 @@ void FullNode::initDB(bool destroy_db) {
         conf_.transactions_db_path(), destroy_db);
     assert(db_trxs_);
   }
-
   if (db_trxs_to_blk_ == nullptr) {
     db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.trxs_to_blk_db_path(), destroy_db);
     assert(db_trxs_to_blk_);
   }
-
   if (db_votes_ == nullptr) {
     db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.pbft_votes_db_path(), destroy_db);
@@ -141,28 +127,36 @@ void FullNode::initDB(bool destroy_db) {
         conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
+  if (state_registry_ == nullptr) {
+    // THIS IS THE GENESIS
+    // TODO extract to a function
+    auto const &genesis_block = conf_.genesis_state.block;
+    auto const &genesis_hash = genesis_block.getHash();
+    // store genesis blk to db
+    db_blks_->put(genesis_hash.toString(), genesis_block.getJsonStr());
+    db_blks_->commit();
+    // Initilize DAG genesis at DAG block heigh 0
+    pbft_chain_->pushDagBlockHash(genesis_hash);
+    // store pbft chain genesis(HEAD) block to db
+    db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
+                       pbft_chain_->getJsonStr());
+    db_pbftchain_->commit();
+    // TODO add move to a StateRegistry constructor?
+    auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
+    auto acc_db = newDB(conf_.account_db_path(),
+                        genesis_hash,  //
+                        mode);
+    auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
+                             genesis_hash,  //
+                             mode);
+    state_registry_ =
+        make_shared<StateRegistry>(conf_.genesis_state,
+                                   dev::OverlayDB(move(acc_db.db)),  //
+                                   move(snapshot_db.db));
+  }
   LOG(log_nf_) << "DB initialized ...";
   db_inited_ = true;
-  DagBlock genesis;
 
-  // store genesis blk to db
-  db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
-  db_blks_->commit();
-
-  // Initilize DAG genesis at DAG block heigh 0
-  pbft_chain_->pushDagBlockHash(genesis.getHash());
-
-  // store pbft chain genesis(HEAD) block to db
-  db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
-                     pbft_chain_->getJsonStr());
-  db_pbftchain_->commit();
-
-  // Initialize MASTER BOOT NODE to all coins
-  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  val_t total_coins(TARAXA_COINS_DECIMAL);
-  if (!setBalance(master_boot_node_address, total_coins)) {
-    LOG(log_er_) << "Failed to set master boot node account balance";
-  }
   // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
@@ -193,7 +187,6 @@ bool FullNode::destroyDB() {
   }
   // make sure all sub moduled has relased DB, the full_node can release the
   // DB and destroy
-  assert(db_accs_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
@@ -202,7 +195,6 @@ bool FullNode::destroyDB() {
   assert(db_pbftchain_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
 
-  db_accs_ = nullptr;
   db_blks_ = nullptr;
   db_blks_index_ = nullptr;
   db_trxs_ = nullptr;
@@ -263,7 +255,7 @@ void FullNode::start(bool boot_node) {
   pbft_mgr_->start();
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
-                                 db_blks_, db_trxs_, db_accs_, state_registry_);
+                                 db_blks_, db_trxs_, state_registry_);
   if (boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
@@ -306,7 +298,6 @@ void FullNode::start(bool boot_node) {
     });
   }
   assert(num_block_workers_ == block_workers_.size());
-  assert(db_accs_);
   assert(db_blks_);
   assert(db_blks_index_);
   assert(db_trxs_);
@@ -338,7 +329,6 @@ void FullNode::stop() {
   }
   // wait a while to let other modules to stop
   thisThreadSleepForMilliSeconds(100);
-  assert(db_accs_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
@@ -405,7 +395,7 @@ bool FullNode::reset() {
   pbft_chain_ = std::make_shared<PbftChain>();
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
-                                 db_blks_, db_trxs_, db_accs_, state_registry_);
+                                 db_blks_, db_trxs_, state_registry_);
   LOG(log_wr_) << "Node reset ... ";
   return true;
 }
@@ -697,16 +687,14 @@ FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  std::string bal = db_accs_->get(acc.toString());
-  bool ret = false;
-  if (bal.empty()) {
+  auto state = state_registry_->getCurrentState();
+  auto bal = state.balance(acc);
+  if (bal == 0 && !state.addressInUse(acc)) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
-    bal = "0";
-  } else {
-    LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
-    ret = true;
+    return {0, false};
   }
-  return {std::stoull(bal), ret};
+  LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
+  return {bal, true};
 }
 val_t FullNode::getMyBalance() const {
   auto my_bal = getBalance(node_addr_);
@@ -715,15 +703,6 @@ val_t FullNode::getMyBalance() const {
   } else {
     return my_bal.first;
   }
-}
-
-bool FullNode::setBalance(addr_t const &acc, val_t const &new_bal) {
-  bool ret = true;
-  if (!db_accs_->update(acc.toString(), toString(new_bal))) {
-    LOG(log_wr_) << "Account " << acc.toString() << " update fail ..."
-                 << std::endl;
-  }
-  return ret;
 }
 
 addr_t FullNode::getAddress() const { return node_addr_; }

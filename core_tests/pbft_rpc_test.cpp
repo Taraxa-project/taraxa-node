@@ -16,10 +16,15 @@
 
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>
+#include "core_tests/util.hpp"
 
 namespace taraxa {
+using namespace core_tests::util;
 
-TEST(PbftManager, pbft_manager_lambda_input_test) {
+struct PbftManagerTest : public DBUsingTest<> {};
+struct PbftVoteTest : public DBUsingTest<> {};
+
+TEST_F(PbftManagerTest, pbft_manager_lambda_input_test) {
   uint lambda_ms = 1000;
   uint committee_size = 3;
   uint valid_sortition_coins = 10000;
@@ -32,7 +37,7 @@ TEST(PbftManager, pbft_manager_lambda_input_test) {
   EXPECT_EQ(valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);
 }
 
-TEST(PbftManager, full_node_lambda_input_test) {
+TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
@@ -46,7 +51,7 @@ TEST(PbftManager, full_node_lambda_input_test) {
  * Get vote period 2, will remove period 1 in the queue. Queue size changes
  * to 2.
  */
-TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
+TEST_F(PbftVoteTest, DISABLED_pbft_place_and_get_vote_test) {
   const char* input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
 
@@ -77,13 +82,23 @@ TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
 }
 
 // Generate a vote, send the vote from node2 to node1
-TEST(PbftVote, transfer_vote) {
+TEST_F(PbftVoteTest, transfer_vote) {
+  // set nodes account balance
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  vector<FullNodeConfig> cfgs;
+  for (auto i = 1; i <= 2; ++i) {
+    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
+  }
+  for (auto& cfg : cfgs) {
+    for (auto& cfg_other : cfgs) {
+      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+    }
+  }
+  auto node_count = 0;
   boost::asio::io_context context1;
-  auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node1(std::make_shared<taraxa::FullNode>(context1, cfgs[node_count++]));
   boost::asio::io_context context2;
-  auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
+  auto node2(std::make_shared<taraxa::FullNode>(context2, cfgs[node_count++]));
 
   node1->setDebug(true);
   node2->setDebug(true);
@@ -112,15 +127,6 @@ TEST(PbftVote, transfer_vote) {
   }
   ASSERT_EQ(node_peers, nw1->getPeerCount());
   ASSERT_EQ(node_peers, nw2->getPeerCount());
-
-  // set nodes account balance
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  addr_t account_address1 = node1->getAddress();
-  node1->setBalance(account_address1, new_balance);
-  node2->setBalance(account_address1, new_balance);
-  addr_t account_address2 = node2->getAddress();
-  node1->setBalance(account_address2, new_balance);
-  node2->setBalance(account_address2, new_balance);
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
@@ -151,16 +157,25 @@ TEST(PbftVote, transfer_vote) {
   EXPECT_EQ(vote_queue_size, 1);
 }
 
-TEST(PbftVote, vote_broadcast) {
+TEST_F(PbftVoteTest, vote_broadcast) {
+  // set nodes account balance
+  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
+  vector<FullNodeConfig> cfgs;
+  for (auto i = 1; i <= 3; ++i) {
+    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
+  }
+  for (auto& cfg : cfgs) {
+    for (auto& cfg_other : cfgs) {
+      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+    }
+  }
+  auto node_count = 0;
   boost::asio::io_context context1;
-  auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node1(std::make_shared<taraxa::FullNode>(context1, cfgs[node_count++]));
   boost::asio::io_context context2;
-  auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
+  auto node2(std::make_shared<taraxa::FullNode>(context2, cfgs[node_count++]));
   boost::asio::io_context context3;
-  auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
+  auto node3(std::make_shared<taraxa::FullNode>(context3, cfgs[node_count++]));
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
@@ -196,21 +211,6 @@ TEST(PbftVote, vote_broadcast) {
   ASSERT_EQ(node_peers, nw1->getPeerCount());
   ASSERT_EQ(node_peers, nw2->getPeerCount());
   ASSERT_EQ(node_peers, nw3->getPeerCount());
-
-  // set nodes account balance
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  addr_t account_address1 = node1->getAddress();
-  node1->setBalance(account_address1, new_balance);
-  node2->setBalance(account_address1, new_balance);
-  node3->setBalance(account_address1, new_balance);
-  addr_t account_address2 = node2->getAddress();
-  node1->setBalance(account_address2, new_balance);
-  node2->setBalance(account_address2, new_balance);
-  node3->setBalance(account_address2, new_balance);
-  addr_t account_address3 = node3->getAddress();
-  node1->setBalance(account_address3, new_balance);
-  node2->setBalance(account_address3, new_balance);
-  node3->setBalance(account_address3, new_balance);
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
