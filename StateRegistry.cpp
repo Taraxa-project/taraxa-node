@@ -72,7 +72,11 @@ optional<State> StateRegistry::getState(dag_blk_num_t const &blk_num) {
   if (!snapshot) {
     return nullopt;
   }
-  return {{account_start_nonce_, account_db_, snapshot->state_root}};
+  auto const &root = snapshot->state_root;
+  if (account_db_.lookup(root).empty()) {
+    return nullopt;
+  }
+  return {{account_start_nonce_, account_db_, root}};
 }
 
 optional<dag_blk_num_t> StateRegistry::getNumber(blk_hash_t const &blk_hash) {
