@@ -87,8 +87,12 @@ bool Executor::coinTransfer(
   if (new_receiver_bal >= pbft_require_sortition_coins_) {
     sortition_account_balance_table[receiver] = new_receiver_bal;
   }
-  LOG(log_nf_) << "New sender bal: " << new_sender_bal << std::endl;
-  LOG(log_nf_) << "New receiver bal: " << new_receiver_bal << std::endl;
+
+  LOG(log_nf_) << "Update sender bal: " << sender << " --> " << new_sender_bal
+               << std::endl;
+  LOG(log_nf_) << "New receiver bal: " << receiver << " --> "
+               << new_receiver_bal << std::endl;
+
   return true;
 }
 

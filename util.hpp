@@ -10,6 +10,7 @@
 #define UTIL_HPP
 
 #include <execinfo.h>
+#include <json/json.h>
 #include <signal.h>
 #include <boost/asio.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
@@ -25,9 +26,6 @@
 #include <unordered_set>
 #include "types.hpp"
 
-#define MASTER_BOOT_NODE_ADDRESS "de2b1203d72d3549ee2f733b00b2789414c7cea5"
-
-#include <json/json.h>
 namespace taraxa {
 
 boost::property_tree::ptree strToJson(const std::string_view &str);

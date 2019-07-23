@@ -39,7 +39,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   capability_ = full_node->getNetwork()->getTaraxaCapability();
 
   // Initialize master boot node account balance
-  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
+  addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
   std::pair<val_t, bool> master_boot_node_account_balance =
       full_node->getBalance(master_boot_node_address);
   if (!master_boot_node_account_balance.second) {

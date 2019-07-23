@@ -70,6 +70,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return trx_mgr_;
   }
 
+  // master boot node
+  addr_t getMasterBootNodeAddress() const { return master_boot_node_address; }
+  void setMasterBootNodeAddress(addr_t const &addr) {
+    master_boot_node_address = addr;
+  }
+
   // network stuff
   size_t getPeerCount() const;
   std::vector<public_t> getAllPeers() const;
@@ -213,7 +219,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
-  std::pair<uint64_t, bool> getDagBlockHeight(blk_hash_t const &dag_block_hash);
+  std::pair<uint64_t, bool> getDagBlockHeight(
+      blk_hash_t const &dag_block_hash) const;
   // PBFT RPC
   void pushVoteIntoQueue(Vote const &vote);
   void broadcastVote(Vote const &vote);
@@ -221,6 +228,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                     uint64_t period, size_t step);
 
  private:
+  //
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;
   size_t num_block_workers_ = 2;
@@ -235,6 +243,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   secret_t node_sk_;
   public_t node_pk_;
   addr_t node_addr_;
+  addr_t master_boot_node_address;
 
   // storage
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
@@ -269,6 +278,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  // TODO: need to shrink later
   std::unordered_set<vote_hash_t> known_votes_;  // per node itself
 
   // debugger
