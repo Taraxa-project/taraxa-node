@@ -37,7 +37,7 @@ class TransactionManager;
 class TransactionOrderManager;
 class Executor;
 class Vote;
-class VoteQueue;
+class VoteManager;
 class PbftManager;
 class NetworkConfig;
 
@@ -202,12 +202,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
-  std::vector<Vote> getVotes(uint64_t period);
-  void receivedVotePushIntoQueue(Vote const &vote);
-  void clearVoteQueue();
-  size_t getVoteQueueSize();
+  std::vector<Vote> getVotes(uint64_t round);
+  void addVote(Vote const &vote);
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
   bool isKnownVote(uint64_t pbft_round, vote_hash_t const &vote_hash) const;
-  void setVoteKnown(vote_hash_t const &vote_hash);
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
   bool isKnownPbftBlockInChain(blk_hash_t const &pbft_block_hash) const;
@@ -217,21 +216,19 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
+  std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<VoteQueue> getVoteQueue() const { return vote_queue_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
   std::pair<uint64_t, bool> getDagBlockHeight(
       blk_hash_t const &dag_block_hash) const;
   // PBFT RPC
-  void pushVoteIntoQueue(Vote const &vote);
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                     uint64_t period, size_t step);
 
  private:
-  //
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;
   size_t num_block_workers_ = 2;
@@ -279,7 +276,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // PBFT
   std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
 

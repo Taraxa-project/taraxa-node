@@ -464,8 +464,8 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t period = param1["period"].asUInt64();
 
       std::vector<Vote> votes = node->getVotes(period);
-      VoteQueue vote_queue;
-      res = vote_queue.getJsonStr(votes);
+      VoteManager vote_mgr;
+      res = vote_mgr.getJsonStr(votes);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

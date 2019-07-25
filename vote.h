@@ -68,11 +68,14 @@ class VoteManager {
                       val_t& account_balance, size_t sortition_threshold) const;
 
   bool isKnownVote(uint64_t pbft_round, vote_hash_t const& vote_hash) const;
-  void setVoteKnown(vote_hash_t const& vote_hash);
 
   void addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
   std::vector<Vote> getVotes(uint64_t pbft_round);
+
+  std::string getJsonStr(std::vector<Vote>& votes);
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
@@ -81,11 +84,9 @@ class VoteManager {
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   vote_hash_t hash_(std::string const& str) const;
-  // TODO: need to shrink later
-  // unveriried votes
-//  std::set<vote_hash_t> known_votes_;
-  // <PBFt round, votes for the round>, unverified votes
+
   std::map<uint64_t, std::vector<Vote>> unverified_votes_;
+
   mutable boost::shared_mutex access_;
 
   std::weak_ptr<FullNode> node_;
@@ -102,22 +103,22 @@ class VoteManager {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE_MGR")};
 };
 
-class VoteQueue {
- public:
-  VoteQueue() = default;
-  ~VoteQueue() {}
-
-  void clearQueue();
-
-  size_t getSize();
-  std::vector<Vote> getVotes(uint64_t round);
-  std::string getJsonStr(std::vector<Vote>& votes);
-
-  void pushBackVote(Vote const& vote);
-
- private:
-  std::deque<Vote> vote_queue_;
-};
+//class VoteQueue {
+// public:
+//  VoteQueue() = default;
+//  ~VoteQueue() {}
+//
+//  void clearQueue();
+//
+//  size_t getSize();
+//  std::vector<Vote> getVotes(uint64_t round);
+//  std::string getJsonStr(std::vector<Vote>& votes);
+//
+//  void pushBackVote(Vote const& vote);
+//
+// private:
+//  std::deque<Vote> vote_queue_;
+//};
 
 }  // namespace taraxa
 

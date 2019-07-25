@@ -143,12 +143,9 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       std::to_string(round) + std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
-    // TODO: 1. Get vote too fast, and PBFT chain has not add the new block yet.
-    //  2. When new node join, the new node doesn't have the last pbft block to
-    //  verify.
-    //  Need to save the valid votes
     LOG(log_war_) << "Invalid vote sortition signature: " << sortition_signature
                   << " vote hash " << vote.getHash();
+    return false;
   }
 
   // verify sortition
@@ -160,6 +157,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                   << sortition_signature;
     return false;
   }
+
   return true;
 }
 
@@ -178,11 +176,6 @@ bool VoteManager::isKnownVote(uint64_t pbft_round,
     }
   }
   return false;
-  //return known_votes_.find(vote_hash) != known_votes_.end();
-}
-
-void VoteManager::setVoteKnown(const taraxa::vote_hash_t& vote_hash) {
-//  known_votes_.insert(vote_hash);
 }
 
 void VoteManager::addVote(taraxa::Vote const& vote) {
@@ -208,6 +201,23 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   while (it != unverified_votes_.end() && it->first < pbft_round) {
     it = unverified_votes_.erase(it);
   }
+}
+
+void VoteManager::clearUnverifiedVotesTable() {
+  uniqueLock_ lock(access_);
+  unverified_votes_.clear();
+}
+
+uint64_t VoteManager::getUnverifiedVotesSize() const {
+  uint64_t size = 0;
+
+  sharedLock_ lock(access_);
+  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
+    size += it->second.size();
+  }
+
+  return size;
 }
 
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
@@ -246,31 +256,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   return verified_votes;
 }
 
-vote_hash_t VoteManager::hash_(std::string const& str) const {
-  return dev::sha3(str);
-}
-
-// Vote Queue
-void VoteQueue::clearQueue() { vote_queue_.clear(); }
-
-size_t VoteQueue::getSize() { return vote_queue_.size(); }
-
-std::vector<Vote> VoteQueue::getVotes(uint64_t round) {
-  std::vector<Vote> votes;
-  std::deque<Vote>::iterator it = vote_queue_.begin();
-
-  while (it != vote_queue_.end()) {
-    if (it->getRound() < round) {
-      it = vote_queue_.erase(it);
-    } else {
-      votes.emplace_back(*it++);
-    }
-  }
-
-  return votes;
-}
-
-std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
+std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
   using boost::property_tree::ptree;
   ptree ptroot;
   ptree ptvotes;
@@ -295,8 +281,57 @@ std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
   return output.str();
 }
 
-void VoteQueue::pushBackVote(taraxa::Vote const& vote) {
-  vote_queue_.emplace_back(vote);
+vote_hash_t VoteManager::hash_(std::string const& str) const {
+  return dev::sha3(str);
 }
+
+// Vote Queue
+//void VoteQueue::clearQueue() { vote_queue_.clear(); }
+//
+//size_t VoteQueue::getSize() { return vote_queue_.size(); }
+//
+//std::vector<Vote> VoteQueue::getVotes(uint64_t round) {
+//  std::vector<Vote> votes;
+//  std::deque<Vote>::iterator it = vote_queue_.begin();
+//
+//  while (it != vote_queue_.end()) {
+//    if (it->getRound() < round) {
+//      it = vote_queue_.erase(it);
+//    } else {
+//      votes.emplace_back(*it++);
+//    }
+//  }
+//
+//  return votes;
+//}
+//
+//std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
+//  using boost::property_tree::ptree;
+//  ptree ptroot;
+//  ptree ptvotes;
+//
+//  for (Vote const& v : votes) {
+//    ptree ptvote;
+//    ptvote.put("vote_hash", v.getHash());
+//    ptvote.put("accounthash", v.getPublicKey());
+//    ptvote.put("sortition_signature", v.getSortitionSignature());
+//    ptvote.put("vote_signature", v.getVoteSignature());
+//    ptvote.put("blockhash", v.getBlockHash());
+//    ptvote.put("type", v.getType());
+//    ptvote.put("round", v.getRound());
+//    ptvote.put("step", v.getStep());
+//    ptvotes.push_back(std::make_pair("", ptvote));
+//  }
+//  ptroot.add_child("votes", ptvotes);
+//
+//  std::stringstream output;
+//  boost::property_tree::write_json(output, ptroot);
+//
+//  return output.str();
+//}
+//
+//void VoteQueue::pushBackVote(taraxa::Vote const& vote) {
+//  vote_queue_.emplace_back(vote);
+//}
 
 }  // namespace taraxa

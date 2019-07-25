@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-07-25
  */
 
 #include "pbft_manager.hpp"
@@ -34,7 +34,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return;
   }
-  vote_queue_ = full_node->getVoteQueue();
+  vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
 
@@ -116,7 +116,7 @@ void PbftManager::run() {
     LOG(log_tra_) << "PBFT step is " << pbft_step_;
 
     // Get votes
-    std::vector<Vote> votes = vote_queue_->getVotes(pbft_round_ - 1);
+    std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
 
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
@@ -566,8 +566,7 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
   }
 
   Vote vote = full_node->generateVote(blockhash, vote_type, round, step);
-  full_node->pushVoteIntoQueue(vote);
-  full_node->setVoteKnown(vote.getHash());
+  vote_mgr_->addVote(vote);
   LOG(log_deb_) << "vote block hash: " << blockhash
                 << " vote type: " << vote_type << " round: " << round
                 << " step: " << step << " vote hash " << vote.getHash();
@@ -699,7 +698,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 }
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
-  std::vector<Vote> votes = vote_queue_->getVotes(pbft_round_);
+  std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_);
   PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
   LOG(log_deb_) << "leader block type should be: " << next_pbft_block_type;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
@@ -726,7 +725,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
 
 bool PbftManager::pushPbftBlockIntoChain_(
     uint64_t round, taraxa::blk_hash_t const &cert_voted_block_hash) {
-  std::vector<Vote> votes = vote_queue_->getVotes(round);
+  std::vector<Vote> votes = vote_mgr_->getVotes(round);
   size_t count = 0;
   for (auto const &v : votes) {
     if (v.getBlockHash() == cert_voted_block_hash &&

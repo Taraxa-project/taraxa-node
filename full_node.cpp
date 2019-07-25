@@ -55,7 +55,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
           trx_mgr_->getShared())),
       executor_(std::make_shared<Executor>()),
       vote_mgr_(std::make_shared<VoteManager>()),
-      vote_queue_(std::make_shared<VoteQueue>()),
       pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft)),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
@@ -390,7 +389,6 @@ bool FullNode::reset() {
   blk_proposer_ = nullptr;
   executor_ = nullptr;
   vote_mgr_ = nullptr;
-  vote_queue_ = nullptr;
   pbft_mgr_ = nullptr;
   pbft_chain_ = nullptr;
 
@@ -407,8 +405,6 @@ bool FullNode::reset() {
   assert(executor_.use_count() == 0);
   // PBFT
   assert(vote_mgr_.use_count() == 0);
-
-  assert(vote_queue_.use_count() == 0);
 
   assert(pbft_mgr_.use_count() == 0);
 
@@ -431,7 +427,6 @@ bool FullNode::reset() {
   executor_ = std::make_shared<Executor>();
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft);
   vote_mgr_ = std::make_shared<VoteManager>();
-  vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
   LOG(log_wr_) << "Node reset ... ";
   return true;
@@ -770,30 +765,12 @@ bool FullNode::executeScheduleBlock(
                             sortition_account_balance_table);
 }
 
-void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
-  vote_queue_->pushBackVote(vote);
+std::vector<Vote> FullNode::getVotes(uint64_t round) {
+  return vote_mgr_->getVotes(round);
 }
 
-std::vector<Vote> FullNode::getVotes(uint64_t period) {
-  return vote_queue_->getVotes(period);
-}
-
-void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
-  addr_t vote_address = dev::toAddress(vote.getPublicKey());
-  std::pair<val_t, bool> account_balance = getBalance(vote_address);
-  if (!account_balance.second) {
-    // TODO: Nodes received vote before they execute trx
-    LOG(log_wr_) << "Vote too fast! Cannot find the vote account balance: "
-                 << vote_address;
-    return;
-  }
-
-  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
-  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-                                account_balance.first, sortition_threshold)) {
-    vote_queue_->pushBackVote(vote);
-  }
+void FullNode::addVote(taraxa::Vote const &vote) {
+    vote_mgr_->addVote(vote);
 }
 
 void FullNode::broadcastVote(Vote const &vote) {
@@ -805,17 +782,17 @@ bool FullNode::shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step) {
   return pbft_mgr_->shouldSpeak(type, period, step);
 }
 
-void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
-
-size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
-
-bool FullNode::isKnownVote(uint64_t pbft_round,
-                           vote_hash_t const &vote_hash) const {
-  return vote_mgr_->isKnownVote(pbft_round, vote_hash);
+void FullNode::clearUnverifiedVotesTable() {
+  vote_mgr_->clearUnverifiedVotesTable();
 }
 
-void FullNode::setVoteKnown(vote_hash_t const &vote_hash) {
-  vote_mgr_->setVoteKnown(vote_hash);
+uint64_t FullNode::getUnverifiedVotesSize() const {
+  return vote_mgr_->getUnverifiedVotesSize();
+}
+
+bool FullNode::isKnownVote(uint64_t pbft_round,
+                           vote_hash_t const& vote_hash) const {
+  return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
 bool FullNode::isKnownPbftBlockInChain(
