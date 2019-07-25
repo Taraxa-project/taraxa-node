@@ -101,7 +101,7 @@ void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
 
   auto full_node = node_.lock();
   if (!full_node) {
-    LOG(log_err_) << "Full node is not available in Vote Manager"
+    LOG(log_err_) << "Full node is not available in Vote Manager";
     return;
   }
   pbft_chain_ = full_node->getPbftChain();
@@ -147,8 +147,8 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     //  2. When new node join, the new node doesn't have the last pbft block to
     //  verify.
     //  Need to save the valid votes
-    LOG(log_war_) << "Get it too fast! Invalid sortition signature: "
-                  << sortition_signature << " vote hash " << vote.getHash();
+    LOG(log_war_) << "Invalid vote sortition signature: " << sortition_signature
+                  << " vote hash " << vote.getHash();
   }
 
   // verify sortition
@@ -221,9 +221,12 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
     return verified_votes;
   }
 
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+
   sharedLock_ lock(access_);
   if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
-    for (auto const& v: unverified_votes_[pbft_round]) {
+    for (auto const& v : unverified_votes_[pbft_round]) {
       // vote verification
       addr_t vote_address = dev::toAddress(v.getPublicKey());
       std::pair<val_t, bool> account_balance =
@@ -233,12 +236,14 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
                       << v.getHash() << " vote address: " << vote_address;
         continue;
       }
-      // TODO
+      if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+                         sortition_threshold)) {
+        verified_votes.emplace_back(v);
+      }
     }
-    return unverified_votes_[pbft_round];
-  } else {
-    return verified_votes;
   }
+
+  return verified_votes;
 }
 
 vote_hash_t VoteManager::hash_(std::string const& str) const {
