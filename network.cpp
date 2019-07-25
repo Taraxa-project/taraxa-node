@@ -72,6 +72,10 @@ void Network::start(bool boot_node) {
   LOG(log_nf_) << "Started Node id: " << host_->id();
   size_t boot_node_added = 0;
   for (auto &node : conf_.network_boot_nodes) {
+    if (auto full_node = full_node_.lock()) {
+      if (Public(node.id) == full_node->getPublicKey()) continue;
+    }
+
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;
     if (node.ip.empty()) {
       LOG(log_wr_) << "Boot node ip is empty:" << node.ip << ":" << node.port;
