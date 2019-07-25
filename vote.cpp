@@ -10,6 +10,7 @@
 
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
+#include "pbft_manager.hpp"
 #include "sortition.h"
 
 #include <boost/property_tree/json_parser.hpp>
@@ -97,6 +98,14 @@ size_t Vote::getStep() const { return step_; }
 // Vote Manager
 void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
   node_ = node;
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node is not available in Vote Manager"
+    return;
+  }
+  pbft_chain_ = full_node->getPbftChain();
+  pbft_mgr_ = full_node->getPbftManager();
 }
 
 sig_t VoteManager::signVote(secret_t const& node_sk,
@@ -206,19 +215,25 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
 
   std::vector<Vote> verified_votes;
 
-//  auto full_node = full_node_.lock();
-//  if (!full_node) {
-//    LOG(log_er_) << "PbftVote full node weak pointer empty";
-//    return false;
-//  }
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Vote Manager full node weak pointer empty";
+    return verified_votes;
+  }
 
   sharedLock_ lock(access_);
   if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
-    // TODO: verify votes
     for (auto const& v: unverified_votes_[pbft_round]) {
+      // vote verification
       addr_t vote_address = dev::toAddress(v.getPublicKey());
-//      std::pair<val_t, bool> account_balance = getBalance(vote_address);
-
+      std::pair<val_t, bool> account_balance =
+          full_node->getBalance(vote_address);
+      if (!account_balance.second) {
+        LOG(log_err_) << "Cannot find the vote account balance. vote hash: "
+                      << v.getHash() << " vote address: " << vote_address;
+        continue;
+      }
+      // TODO
     }
     return unverified_votes_[pbft_round];
   } else {

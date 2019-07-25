@@ -19,6 +19,7 @@
 
 namespace taraxa {
 class FullNode;
+class PbftManager;
 
 class Vote {
  public:
@@ -88,6 +89,8 @@ class VoteManager {
   mutable boost::shared_mutex access_;
 
   std::weak_ptr<FullNode> node_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};
