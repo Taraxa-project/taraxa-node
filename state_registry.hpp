@@ -9,8 +9,8 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-#include "GenesisState.hpp"
 #include "SimpleDBFace.h"
+#include "genesis_state.hpp"
 #include "types.hpp"
 
 namespace taraxa::__StateRegistry__ {
@@ -50,7 +50,7 @@ class StateRegistry {
   static inline string const BLOCK_NUMBER_KEY_PREFIX = "blk_num_";
 
  private:
-  uint256_hash_t const account_start_nonce_;
+  uint256_t const account_start_nonce_;
   OverlayDB account_db_;
   unique_ptr<db::DatabaseFace> snapshot_db_;
   Snapshot current_snapshot_;
@@ -76,7 +76,8 @@ class StateRegistry {
     return BLOCK_HASH_KEY_PREFIX + x.hex();
   }
 
-  Snapshot commit(State &, vector<blk_hash_t> const &,
+  Snapshot commit(State &,
+                  vector<blk_hash_t> const &,  //
                   eth::State::CommitBehaviour const & =
                       eth::State::CommitBehaviour::KeepEmptyAccounts);
   optional<Snapshot> getSnapshot(dag_blk_num_t const &);

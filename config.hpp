@@ -9,7 +9,7 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 #include <string>
-#include "GenesisState.hpp"
+#include "genesis_state.hpp"
 #include "types.hpp"
 #include "util.hpp"
 

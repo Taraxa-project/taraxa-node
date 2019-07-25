@@ -6,8 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <string>
 #include <type_traits>
-#include "GenesisState.hpp"
 #include "config.hpp"
+#include "genesis_state.hpp"
 
 namespace taraxa::core_tests::_util {
 using namespace std;

@@ -1,4 +1,4 @@
-#include "GenesisState.hpp"
+#include "genesis_state.hpp"
 
 namespace taraxa::_GenesisState_ {
 
@@ -15,4 +15,4 @@ GenesisState GenesisState::fromPtree(ptree const &p) {
   return move(ret);
 }
 
-}
+}  // namespace taraxa::_GenesisState_

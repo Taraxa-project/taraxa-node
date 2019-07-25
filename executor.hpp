@@ -15,10 +15,10 @@
 #include <memory>
 #include <set>
 #include <thread>
-#include "StateRegistry.hpp"
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
+#include "state_registry.hpp"
 #include "transaction.hpp"
 
 namespace taraxa {

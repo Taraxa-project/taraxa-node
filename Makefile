@@ -64,8 +64,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/executor.o \
 	${OBJECTDIR}/TransactionOrderManager.o \
-	${OBJECTDIR}/StateRegistry.o \
-	${OBJECTDIR}/GenesisState.o \
+	${OBJECTDIR}/state_registry.o \
+	${OBJECTDIR}/genesis_state.o \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
@@ -142,15 +142,15 @@ ${OBJECTDIR}/TransactionOrderManager.o: TransactionOrderManager.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/TransactionOrderManager.o TransactionOrderManager.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/StateRegistry.o: StateRegistry.cpp
+${OBJECTDIR}/state_registry.o: state_registry.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/StateRegistry.o StateRegistry.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_registry.o state_registry.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/GenesisState.o: GenesisState.cpp
+${OBJECTDIR}/genesis_state.o: genesis_state.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/GenesisState.o GenesisState.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/genesis_state.o genesis_state.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}
