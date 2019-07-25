@@ -26,7 +26,9 @@ pipeline {
         }
         stage('Unit Tests') {
             steps {
-              build 'docker-base-image'
+              build 'docker-base-image/${BRANCH_NAME}', parameters: [
+                  string(name: 'upsteam_project_name', value: env.NAME)
+              ], propagate: true, wait: true
               sh '''
                   git submodule update --init --recursive
                   docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
@@ -69,8 +71,8 @@ pipeline {
                                             "id":"0",
                                             "method": "send_coin_transaction",
                                             "params":[{
-                                            "nonce": 0,  
-                                            "value": 0, 
+                                            "nonce": 0,
+                                            "value": 0,
                                             "gas": 0,
                                             "gas_price": 0,
                                             "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
