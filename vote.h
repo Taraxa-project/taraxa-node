@@ -9,6 +9,7 @@
 #ifndef VOTE_H
 #define VOTE_H
 
+//#include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
@@ -63,8 +64,28 @@ class VoteManager {
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
                       val_t& account_balance, size_t sortition_threshold) const;
 
+  bool isKnownVote(uint64_t pbft_round, vote_hash_t const& vote_hash) const;
+  void setVoteKnown(vote_hash_t const& vote_hash);
+
+  void addVote(taraxa::Vote const& vote);
+  void cleanupVotes(uint64_t pbft_round);
+  std::vector<Vote> getVotes(uint64_t pbft_round);
+
  private:
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
   vote_hash_t hash_(std::string const& str) const;
+  // TODO: need to shrink later
+  // unveriried votes
+//  std::set<vote_hash_t> known_votes_;
+  // <PBFt round, votes for the round>, unverified votes
+  std::map<uint64_t, std::vector<Vote>> unverified_votes_;
+  mutable boost::shared_mutex access_;
+
+  //std::weak_ptr<FullNode> node_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};

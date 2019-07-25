@@ -149,6 +149,78 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   return true;
 }
 
+bool VoteManager::isKnownVote(uint64_t pbft_round,
+                              vote_hash_t const& vote_hash) const {
+  sharedLock_ lock(access_);
+
+  std::map<uint64_t, std::vector<Vote>>::const_iterator found =
+      unverified_votes_.find(pbft_round);
+  if (found == unverified_votes_.end()) {
+    return false;
+  }
+  for (Vote const& v: found->second) {
+    if (v.getHash() == vote_hash) {
+      return true;
+    }
+  }
+  return false;
+  //return known_votes_.find(vote_hash) != known_votes_.end();
+}
+
+void VoteManager::setVoteKnown(const taraxa::vote_hash_t& vote_hash) {
+//  known_votes_.insert(vote_hash);
+}
+
+void VoteManager::addVote(taraxa::Vote const& vote) {
+  uint64_t pbft_round = vote.getRound();
+
+  upgradableLock_ lock(access_);
+  if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
+    upgradeLock_ locked(lock);
+    unverified_votes_[pbft_round].emplace_back(vote);
+  } else {
+    std::vector<Vote> votes { vote };
+    upgradeLock_ locked(lock);
+    unverified_votes_[pbft_round] = votes;
+  }
+}
+
+void VoteManager::cleanupVotes(uint64_t pbft_round) {
+  upgradableLock_ lock(access_);
+  std::map<uint64_t, std::vector<Vote>>::iterator it =
+      unverified_votes_.begin();
+
+  upgradeLock_ locked(lock);
+  while (it != unverified_votes_.end() && it->first < pbft_round) {
+    it = unverified_votes_.erase(it);
+  }
+}
+
+std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
+  cleanupVotes(pbft_round);
+
+  std::vector<Vote> verified_votes;
+
+//  auto full_node = full_node_.lock();
+//  if (!full_node) {
+//    LOG(log_er_) << "PbftVote full node weak pointer empty";
+//    return false;
+//  }
+
+  sharedLock_ lock(access_);
+  if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
+    // TODO: verify votes
+    for (auto const& v: unverified_votes_[pbft_round]) {
+      addr_t vote_address = dev::toAddress(v.getPublicKey());
+//      std::pair<val_t, bool> account_balance = getBalance(vote_address);
+
+    }
+    return unverified_votes_[pbft_round];
+  } else {
+    return verified_votes;
+  }
+}
+
 vote_hash_t VoteManager::hash_(std::string const& str) const {
   return dev::sha3(str);
 }
