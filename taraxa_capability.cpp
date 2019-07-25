@@ -350,8 +350,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         return false;
       }
 
-      if (!full_node->isKnownVote(vote.getHash())) {
-        full_node->setVoteKnown(vote.getHash());
+      if (!full_node->isKnownVote(vote.getRound(), vote.getHash())) {
+        //full_node->setVoteKnown(vote.getHash());
         full_node->receivedVotePushIntoQueue(vote);
         onNewPbftVote(vote);
       }

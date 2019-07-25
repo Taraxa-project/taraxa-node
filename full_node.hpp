@@ -206,7 +206,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void receivedVotePushIntoQueue(Vote const &vote);
   void clearVoteQueue();
   size_t getVoteQueueSize();
-  bool isKnownVote(vote_hash_t const &vote_hash) const;
+  bool isKnownVote(uint64_t pbft_round, vote_hash_t const &vote_hash) const;
   void setVoteKnown(vote_hash_t const &vote_hash);
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
@@ -282,9 +282,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  // TODO: need to shrink later
-// TODO: need to shrink later
-  std::unordered_set<vote_hash_t> known_votes_;  // per node itself
 
   // debugger
   std::mutex debug_mutex_;

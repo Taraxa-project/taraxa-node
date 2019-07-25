@@ -413,7 +413,6 @@ bool FullNode::reset() {
 
   assert(pbft_chain_.use_count() == 0);
 
-  known_votes_.clear();
   max_dag_level_ = 0;
   received_blocks_ = 0;
   received_trxs_ = 0;
@@ -809,12 +808,13 @@ void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
 
 size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
 
-bool FullNode::isKnownVote(vote_hash_t const &vote_hash) const {
-  return known_votes_.count(vote_hash);
+bool FullNode::isKnownVote(uint64_t pbft_round,
+                           vote_hash_t const &vote_hash) const {
+  return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
 void FullNode::setVoteKnown(vote_hash_t const &vote_hash) {
-  known_votes_.insert(vote_hash);
+  vote_mgr_->setVoteKnown(vote_hash);
 }
 
 bool FullNode::isKnownPbftBlockInChain(
