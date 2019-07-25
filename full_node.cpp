@@ -180,7 +180,7 @@ void FullNode::initDB(bool destroy_db) {
   }
   // assign my self as boot node and initialize balance (walk around, to be
   // removed)
-  if (i_am_boot_node_ && boot_node_balance_initialized == false) {
+  if (boot_node_balance_initialized == false) {
     val_t total_coins(TARAXA_COINS_DECIMAL);
     auto ok = setBalance(node_addr_, total_coins);
     if (!ok) {
