@@ -25,15 +25,16 @@ pipeline {
             }
         }
         stage('Unit Tests') {
-            agent {
-                docker {
-                    alwaysPull true
-                    image '${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}'
-                }
-            }
             steps {
-                sh 'git submodule update --init --recursive'
-                sh 'make run_test'
+              build 'docker-base-image'
+              sh '''
+                  git submodule update --init --recursive
+                  docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
+                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
+                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
+                    --target=test
+                    -f dockerfiles/Dockerfile .
+              '''
             }
         }
         stage('Build Docker Image') {

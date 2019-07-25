@@ -535,7 +535,7 @@ ct:
 
 c: clean
 clean:
-	@echo CLEAN && rm -rf $(BUILDIR) $(TESTBUILDDIR) $(OBJECTDIR)
+	@echo CLEAN && rm -rf $(BUILDDIR) $(TESTBUILDDIR) $(OBJECTDIR)
 
 .PHONY: run_test protoc grpc
 
