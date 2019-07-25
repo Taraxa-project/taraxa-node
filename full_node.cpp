@@ -166,7 +166,7 @@ void FullNode::initDB(bool destroy_db) {
     if (boot_node_balance_initialized == false) {
       addr_t master_boot_node_address(dev::toAddress(node_public_key));
       val_t total_coins(TARAXA_COINS_DECIMAL);
-      bool ok = setBalance(master_boot_node_address, total_coins);
+      auto ok = setBalance(master_boot_node_address, total_coins);
       if (!ok) {
         LOG(log_er_) << "Failed to set master boot node account balance";
       } else {
@@ -176,6 +176,20 @@ void FullNode::initDB(bool destroy_db) {
         setMasterBootNodeAddress(master_boot_node_address);
         break;
       }
+    }
+  }
+  // assign my self as boot node and initialize balance (walk around, to be
+  // removed)
+  if (i_am_boot_node_ && boot_node_balance_initialized == false) {
+    val_t total_coins(TARAXA_COINS_DECIMAL);
+    auto ok = setBalance(node_addr_, total_coins);
+    if (!ok) {
+      LOG(log_er_) << "Failed to initialize my account balance";
+    } else {
+      LOG(log_wr_) << "Init myself as master boot node, balance "
+                   << TARAXA_COINS_DECIMAL;
+      boot_node_balance_initialized = true;
+      setMasterBootNodeAddress(node_addr_);
     }
   }
 
@@ -278,7 +292,8 @@ void FullNode::start(bool boot_node) {
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
 
-  if (boot_node) {
+  i_am_boot_node_ = boot_node;
+  if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
   block_workers_.clear();
