@@ -242,6 +242,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool verbose_ = false;
   bool debug_ = false;
   uint64_t propose_threshold_ = 512;
+  bool i_am_boot_node_ = false;
   // node secrets
   secret_t node_sk_;
   public_t node_pk_;
@@ -282,6 +283,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   // TODO: need to shrink later
+// TODO: need to shrink later
   std::unordered_set<vote_hash_t> known_votes_;  // per node itself
 
   // debugger
