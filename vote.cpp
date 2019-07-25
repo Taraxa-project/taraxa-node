@@ -3,11 +3,12 @@
  * @Author: Qi Gao
  * @Date: 2019-04-11
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-07-25
  */
 
 #include "vote.h"
 
+#include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "sortition.h"
 
@@ -94,6 +95,10 @@ uint64_t Vote::getRound() const { return round_; }
 size_t Vote::getStep() const { return step_; }
 
 // Vote Manager
+void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
+  node_ = node;
+}
+
 sig_t VoteManager::signVote(secret_t const& node_sk,
                             taraxa::blk_hash_t const& block_hash,
                             taraxa::PbftVoteTypes type, uint64_t round,

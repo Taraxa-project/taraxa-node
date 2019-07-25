@@ -3,13 +3,12 @@
  * @Author: Qi Gao
  * @Date: 2019-04-11
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-07-25
  */
 
 #ifndef VOTE_H
 #define VOTE_H
 
-//#include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
@@ -19,6 +18,7 @@
 #include <deque>
 
 namespace taraxa {
+class FullNode;
 
 class Vote {
  public:
@@ -59,6 +59,8 @@ class VoteManager {
   VoteManager() = default;
   ~VoteManager() {}
 
+  void setFullNode(std::shared_ptr<FullNode> node);
+
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
                  PbftVoteTypes type, uint64_t round, size_t step);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
@@ -85,7 +87,7 @@ class VoteManager {
   std::map<uint64_t, std::vector<Vote>> unverified_votes_;
   mutable boost::shared_mutex access_;
 
-  //std::weak_ptr<FullNode> node_;
+  std::weak_ptr<FullNode> node_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};

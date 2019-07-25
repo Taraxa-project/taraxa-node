@@ -291,6 +291,7 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->start();
   executor_->setFullNode(getShared());
   executor_->start();
+  vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
 
