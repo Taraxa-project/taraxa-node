@@ -103,23 +103,6 @@ class VoteManager {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE_MGR")};
 };
 
-//class VoteQueue {
-// public:
-//  VoteQueue() = default;
-//  ~VoteQueue() {}
-//
-//  void clearQueue();
-//
-//  size_t getSize();
-//  std::vector<Vote> getVotes(uint64_t round);
-//  std::string getJsonStr(std::vector<Vote>& votes);
-//
-//  void pushBackVote(Vote const& vote);
-//
-// private:
-//  std::deque<Vote> vote_queue_;
-//};
-
 }  // namespace taraxa
 
 #endif  // VOTE_H
