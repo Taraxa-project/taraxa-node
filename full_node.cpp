@@ -59,7 +59,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft)),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
-  initDB(destroy_db);
+
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -84,6 +84,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
+  initDB(destroy_db);
+
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
 } catch (std::exception &e) {
