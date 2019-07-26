@@ -912,7 +912,7 @@ std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
   return pbft_chain_->getDagBlockHeight(dag_block_hash);
 }
 
-uint64_t FullNode::getDagBlockMaxHeight() {
+uint64_t FullNode::getDagBlockMaxHeight() const {
   return pbft_chain_->getDagBlockMaxHeight();
 }
 
