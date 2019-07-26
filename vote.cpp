@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-11
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-25
+ * @Last Modified time: 2019-07-26
  */
 
 #include "vote.h"
@@ -143,7 +143,14 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       std::to_string(round) + std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
-    LOG(log_war_) << "Invalid vote sortition signature: " << sortition_signature
+    // 1. PBFT chain has not have the newest PBFT block yet
+    // 2. When new node join, the new node doesn't have the lastest pbft block
+    // to verify the vote.
+    // Return false, will not effect PBFT consensus
+    // if the vote is valid, will count when node has the relative pbft block
+    // if the vote is invalid, will remove when pass the pbft round
+    LOG(log_tra_) << "Haven't have the newest PBFT block to verify the vote "
+                  << "sortition signature: " << sortition_signature
                   << " vote hash " << vote.getHash();
     return false;
   }
@@ -192,6 +199,7 @@ void VoteManager::addVote(taraxa::Vote const& vote) {
   }
 }
 
+// cleanup votes < pbft_round
 void VoteManager::cleanupVotes(uint64_t pbft_round) {
   upgradableLock_ lock(access_);
   std::map<uint64_t, std::vector<Vote>>::iterator it =
@@ -220,6 +228,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
+// Return all votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   cleanupVotes(pbft_round);
 
@@ -234,15 +243,18 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
+  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
   sharedLock_ lock(access_);
-  if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
-    for (auto const& v : unverified_votes_[pbft_round]) {
+  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
+    for (auto const& v : it->second) {
       // vote verification
       addr_t vote_address = dev::toAddress(v.getPublicKey());
       std::pair<val_t, bool> account_balance =
           full_node->getBalance(vote_address);
       if (!account_balance.second) {
-        LOG(log_err_) << "Cannot find the vote account balance. vote hash: "
+        // New node join, it doesn't have other nodes info.
+        // Wait unit sync PBFT chain with peers, and execute to get states.
+        LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
                       << v.getHash() << " vote address: " << vote_address;
         continue;
       }

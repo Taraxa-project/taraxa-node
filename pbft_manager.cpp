@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-25
+ * @Last Modified time: 2019-07-26
  */
 
 #include "pbft_manager.hpp"
@@ -124,7 +124,7 @@ void PbftManager::run() {
     size_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
     if (consensus_pbft_round != pbft_round_) {
       LOG(log_deb_) << "From votes determined round " << consensus_pbft_round;
-      // comments out now, p2p connection syncing should cover this
+      // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_deb_)
             << "pbft chain behind, need broadcast request for missing blocks";
@@ -226,11 +226,8 @@ void PbftManager::run() {
     } else if (pbft_step_ == 3) {
       // The Certifying Step
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
-        // Should not happen
-        // fixme: Happens nevertheless
+        // Should not happen, add log here for safety checking
         LOG(log_err_) << "PBFT Reached step 3 too quickly?";
-        // TODO: if no accout_balance, will hit here
-        // assert(false);
       }
 
       bool should_go_to_step_four = false;  // TODO: may not need
@@ -239,6 +236,7 @@ void PbftManager::run() {
         LOG(log_deb_) << "Reached step 3 late, will go to step 4";
         should_go_to_step_four = true;
       } else {
+        LOG(log_tra_) << "In step 3";
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
@@ -838,7 +836,7 @@ bool PbftManager::pushPbftBlockIntoChain_(
         TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
         sortition_threshold_ = accounts;
       }
-      LOG(log_deb_) << "Reset 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
+      LOG(log_deb_) << "Update 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
                     << sortition_threshold_;
 
       return true;
