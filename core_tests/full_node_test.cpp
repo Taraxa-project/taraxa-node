@@ -647,7 +647,55 @@ TEST_F(TopTest, create_top_memory_db) {
   }
 }
 
-TEST_F(TopTest, reconstruct_dag) {
+TEST(Top, destroy_db) {
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
+
+  {
+    boost::asio::io_context context;
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(std::make_shared<taraxa::FullNode>(context, conf,
+                                                 true));  // destroy DB
+    node->start(false);
+    auto trx_db = node->getTrxsDB();
+    trx_db->put(g_trx_signed_samples[0].getHash().toString(),
+                g_trx_signed_samples[0].getJsonStr());
+    EXPECT_TRUE(
+        !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
+    trx_db->commit();
+    trx_db = nullptr;
+    node->stop();
+  }
+
+  {
+    boost::asio::io_context context;
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(std::make_shared<taraxa::FullNode>(context, conf,
+                                                 false));  // destroy DB
+    node->start(false);
+    auto trx_db = node->getTrxsDB();
+    EXPECT_TRUE(
+        !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
+    trx_db = nullptr;
+    node->stop();
+  }
+
+  {
+    boost::asio::io_context context;
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(std::make_shared<taraxa::FullNode>(context, conf,
+                                                 true));  // destroy DB
+    node->start(false);
+    auto trx_db = node->getTrxsDB();
+    EXPECT_TRUE(
+        trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
+    trx_db = nullptr;
+    node->stop();
+  }
+
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+}
+
+TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
