@@ -40,14 +40,14 @@ OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash, Wit
 {
     fs::path path = _basePath.empty() ? db::databasePath() : _basePath;
 
+    path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / //fs::path(toString(c_databaseVersion));
+        fs::path(toString(9 + (23 << 9))); // copied from libethcore/Common.c
     if (db::isDiskDatabase() && _we == WithExisting::Kill)
     {
         clog(VerbosityDebug, "statedb") << "Killing state database (WithExisting::Kill).";
         fs::remove_all(path / fs::path("state"));
     }
 
-    path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / //fs::path(toString(c_databaseVersion));
-        fs::path(toString(9 + (23 << 9))); // copied from libethcore/Common.c
     if (db::isDiskDatabase())
     {
         fs::create_directories(path);
