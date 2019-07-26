@@ -267,7 +267,7 @@ class PbftChain {
   blk_hash_t last_pbft_pivot_hash_;
 
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
-  // move to DB
+  //  move to DB
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_queue_;  // TODO: may not need it

@@ -26,8 +26,7 @@ auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
 
-// need change 2t+1 = 1 to test
-TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
+TEST(PbftManager, pbft_manager_run_single_node) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
@@ -83,7 +82,6 @@ TEST(PbftManager, DISABLED_pbft_manager_run_single_node) {
   t.join();
 }
 
-// need change 2t+1 = 3 to test
 TEST(PbftManager, pbft_manager_run_multi_nodes) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(

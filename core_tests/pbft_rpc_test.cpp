@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-09
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-12
+ * @Last Modified time: 2019-07-25
  */
 #include "pbft_manager.hpp"
 
@@ -56,7 +56,7 @@ TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
 
   auto node = top1.getNode();
 
-  node->clearVoteQueue();
+  node->clearUnverifiedVotesTable();
 
   try {
     system("./core_tests/scripts/curl_pbft_place_vote.sh");
@@ -72,8 +72,8 @@ TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
 
   node->stop();
 
-  size_t vote_queue_size = node->getVoteQueueSize();
-  EXPECT_EQ(vote_queue_size, 2);
+  size_t votes_size = node->getUnverifiedVotesSize();
+  EXPECT_EQ(votes_size, 2);
 }
 
 // Generate a vote, send the vote from node2 to node1
@@ -135,8 +135,8 @@ TEST(PbftVote, transfer_vote) {
   size_t step = 1;
   Vote vote = node2->generateVote(blockhash, type, period, step);
 
-  node1->clearVoteQueue();
-  node2->clearVoteQueue();
+  node1->clearUnverifiedVotesTable();
+  node2->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -147,7 +147,7 @@ TEST(PbftVote, transfer_vote) {
   t1.join();
   t2.join();
 
-  size_t vote_queue_size = node1->getVoteQueueSize();
+  size_t vote_queue_size = node1->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size, 1);
 }
 
@@ -227,9 +227,9 @@ TEST(PbftVote, vote_broadcast) {
   size_t step = 1;
   Vote vote = node1->generateVote(blockhash, type, period, step);
 
-  node1->clearVoteQueue();
-  node2->clearVoteQueue();
-  node3->clearVoteQueue();
+  node1->clearUnverifiedVotesTable();
+  node2->clearUnverifiedVotesTable();
+  node3->clearUnverifiedVotesTable();
 
   nw1->onNewPbftVote(vote);
 
@@ -243,9 +243,9 @@ TEST(PbftVote, vote_broadcast) {
   t2.join();
   t3.join();
 
-  size_t vote_queue_size1 = node1->getVoteQueueSize();
-  size_t vote_queue_size2 = node2->getVoteQueueSize();
-  size_t vote_queue_size3 = node3->getVoteQueueSize();
+  size_t vote_queue_size1 = node1->getUnverifiedVotesSize();
+  size_t vote_queue_size2 = node2->getUnverifiedVotesSize();
+  size_t vote_queue_size3 = node3->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size1, 0);
   EXPECT_EQ(vote_queue_size2, 1);
   EXPECT_EQ(vote_queue_size3, 1);
