@@ -177,7 +177,7 @@ bool VoteManager::isKnownVote(uint64_t pbft_round,
   if (found == unverified_votes_.end()) {
     return false;
   }
-  for (Vote const& v: found->second) {
+  for (Vote const& v : found->second) {
     if (v.getHash() == vote_hash) {
       return true;
     }
@@ -193,7 +193,7 @@ void VoteManager::addVote(taraxa::Vote const& vote) {
     upgradeLock_ locked(lock);
     unverified_votes_[pbft_round].emplace_back(vote);
   } else {
-    std::vector<Vote> votes { vote };
+    std::vector<Vote> votes{vote};
     upgradeLock_ locked(lock);
     unverified_votes_[pbft_round] = votes;
   }
