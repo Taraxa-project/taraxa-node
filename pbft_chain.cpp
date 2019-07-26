@@ -465,7 +465,7 @@ std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
   return std::make_pair(got->second, true);
 }
 
-uint64_t PbftChain::getDagBlockMaxHeight() {
+uint64_t PbftChain::getDagBlockMaxHeight() const {
   return dag_blocks_map_.size() - 1;
 }
 
