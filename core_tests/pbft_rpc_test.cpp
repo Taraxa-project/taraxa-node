@@ -81,7 +81,7 @@ TEST(PbftVote, DISABLED_pbft_place_and_get_vote_test) {
 // votes
 TEST(VoteManager, add_cleanup_get_votes) {
   const char* input[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+                         "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top(5, input);
   EXPECT_TRUE(top.isActive());
   auto node = top.getNode();
@@ -119,7 +119,7 @@ TEST(VoteManager, add_cleanup_get_votes) {
   // Test cleanup votes
   votes_size = node->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 4);
-  vote_mgr->cleanupVotes(4); // cleanup round 2 & 3
+  vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
   votes_size = node->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 0);
 
