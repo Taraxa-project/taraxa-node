@@ -346,13 +346,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
       auto full_node = full_node_.lock();
       if (!full_node) {
-        LOG(log_er_) << "PbftVote full node weak pointer empty";
+        LOG(log_er_) << "Full node weak pointer empty in PbftVotePacket";
         return false;
       }
 
-      if (!full_node->isKnownVote(vote.getHash())) {
-        full_node->setVoteKnown(vote.getHash());
-        full_node->receivedVotePushIntoQueue(vote);
+      if (!full_node->isKnownVote(vote.getRound(), vote.getHash())) {
+        full_node->addVote(vote);
         onNewPbftVote(vote);
       }
 
@@ -387,7 +386,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
         // TODO: need to check block valid, like propose vote(maybe come later),
-        // if get sortition etc
+        //  if get sortition etc
         full_node->pushPbftBlockIntoQueue(pbft_block);
         onNewPbftBlock(pbft_block);
       }
@@ -410,7 +409,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (!full_node->isKnownPbftBlockInChain(pbft_block.getBlockHash())) {
           // TODO: need check 2t+1 cert votes, then put into chain and store in
-          // DB. May send request for cert votes here
+          //  DB. May send request for cert votes here
           full_node->setPbftBlock(pbft_block);
         }
       }

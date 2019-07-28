@@ -31,8 +31,7 @@ auto g_mock_dag0 = samples::createMockDag0();
 
 struct PbftManagerTest : public DBUsingTest<> {};
 
-// need change 2t+1 = 1 to test
-TEST_F(PbftManagerTest, DISABLED_pbft_manager_run_single_node) {
+TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   boost::asio::io_context context;
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
@@ -87,7 +86,6 @@ TEST_F(PbftManagerTest, DISABLED_pbft_manager_run_single_node) {
   t.join();
 }
 
-// need change 2t+1 = 3 to test
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;

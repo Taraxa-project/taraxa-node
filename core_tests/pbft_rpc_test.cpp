@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-09
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-12
+ * @Last Modified time: 2019-07-26
  */
 #include "pbft_manager.hpp"
 
@@ -23,6 +23,8 @@ using namespace core_tests::util;
 
 struct PbftManagerTest : public DBUsingTest<> {};
 struct PbftVoteTest : public DBUsingTest<> {};
+struct NetworkTest : public DBUsingTest<> {};
+struct VoteManagerTest : public DBUsingTest<> {};
 
 TEST_F(PbftManagerTest, pbft_manager_lambda_input_test) {
   uint lambda_ms = 1000;
@@ -61,7 +63,7 @@ TEST_F(PbftVoteTest, DISABLED_pbft_place_and_get_vote_test) {
 
   auto node = top1.getNode();
 
-  node->clearVoteQueue();
+  node->clearUnverifiedVotesTable();
 
   try {
     system("./core_tests/scripts/curl_pbft_place_vote.sh");
@@ -77,12 +79,62 @@ TEST_F(PbftVoteTest, DISABLED_pbft_place_and_get_vote_test) {
 
   node->stop();
 
-  size_t vote_queue_size = node->getVoteQueueSize();
-  EXPECT_EQ(vote_queue_size, 2);
+  size_t votes_size = node->getUnverifiedVotesSize();
+  EXPECT_EQ(votes_size, 2);
+}
+
+// Add votes round 1, 2 and 3 into unverified vote table
+// Get votes round 2, will remove round 1 in the table, and return round 2 & 3
+// votes
+TEST_F(VoteManagerTest, add_cleanup_get_votes) {
+  const char* input[] = {"./build/main", "--conf_taraxa",
+                         "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+  Top top(5, input);
+  EXPECT_TRUE(top.isActive());
+  auto node = top.getNode();
+  EXPECT_NE(node, nullptr);
+
+  // stop PBFT manager, that will place vote
+  std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
+  pbft_mgr->stop();
+
+  std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
+  node->clearUnverifiedVotesTable();
+
+  // generate 6 votes, each round has 2 votes
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 2; j++) {
+      blk_hash_t blockhash(1);
+      PbftVoteTypes type = propose_vote_type;
+      uint64_t round = i;
+      size_t step = j;
+      Vote vote = node->generateVote(blockhash, type, round, step);
+      node->addVote(vote);
+    }
+  }
+  // Test add vote
+  size_t votes_size = node->getUnverifiedVotesSize();
+  EXPECT_EQ(votes_size, 6);
+
+  // Test get votes
+  std::vector<Vote> votes = node->getVotes(2);
+  EXPECT_EQ(votes.size(), 4);
+  for (Vote const& v : votes) {
+    EXPECT_GT(v.getRound(), 1);
+  }
+
+  // Test cleanup votes
+  votes_size = node->getUnverifiedVotesSize();
+  EXPECT_EQ(votes_size, 4);
+  vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
+  votes_size = node->getUnverifiedVotesSize();
+  EXPECT_EQ(votes_size, 0);
+
+  top.kill();
 }
 
 // Generate a vote, send the vote from node2 to node1
-TEST_F(PbftVoteTest, transfer_vote) {
+TEST_F(NetworkTest, transfer_vote) {
   // set nodes account balance
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;
@@ -141,8 +193,8 @@ TEST_F(PbftVoteTest, transfer_vote) {
   size_t step = 1;
   Vote vote = node2->generateVote(blockhash, type, period, step);
 
-  node1->clearVoteQueue();
-  node2->clearVoteQueue();
+  node1->clearUnverifiedVotesTable();
+  node2->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -153,11 +205,11 @@ TEST_F(PbftVoteTest, transfer_vote) {
   t1.join();
   t2.join();
 
-  size_t vote_queue_size = node1->getVoteQueueSize();
+  size_t vote_queue_size = node1->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size, 1);
 }
 
-TEST_F(PbftVoteTest, vote_broadcast) {
+TEST_F(NetworkTest, vote_broadcast) {
   // set nodes account balance
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;
@@ -227,9 +279,9 @@ TEST_F(PbftVoteTest, vote_broadcast) {
   size_t step = 1;
   Vote vote = node1->generateVote(blockhash, type, period, step);
 
-  node1->clearVoteQueue();
-  node2->clearVoteQueue();
-  node3->clearVoteQueue();
+  node1->clearUnverifiedVotesTable();
+  node2->clearUnverifiedVotesTable();
+  node3->clearUnverifiedVotesTable();
 
   nw1->onNewPbftVote(vote);
 
@@ -243,9 +295,9 @@ TEST_F(PbftVoteTest, vote_broadcast) {
   t2.join();
   t3.join();
 
-  size_t vote_queue_size1 = node1->getVoteQueueSize();
-  size_t vote_queue_size2 = node2->getVoteQueueSize();
-  size_t vote_queue_size3 = node3->getVoteQueueSize();
+  size_t vote_queue_size1 = node1->getUnverifiedVotesSize();
+  size_t vote_queue_size2 = node2->getUnverifiedVotesSize();
+  size_t vote_queue_size3 = node3->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size1, 0);
   EXPECT_EQ(vote_queue_size2, 1);
   EXPECT_EQ(vote_queue_size3, 1);

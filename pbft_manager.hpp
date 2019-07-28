@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-01
+ * @Last Modified time: 2019-07-25
  */
 
 #ifndef PBFT_MANAGER_HPP
@@ -32,7 +32,6 @@
 
 namespace taraxa {
 class FullNode;
-class VoteQueue;
 
 class PbftManager {
  public:
@@ -103,7 +102,7 @@ class PbftManager {
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<std::thread> daemon_;
-  std::shared_ptr<VoteQueue> vote_queue_;
+  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<SimpleDBFace> db_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
