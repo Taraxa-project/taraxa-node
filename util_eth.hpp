@@ -56,13 +56,13 @@ inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
                        WithExisting _we, DatabaseKind kind = databaseKind()) {
   auto isDiskDB = isDiskDatabase(kind);
   auto path = _basePath.empty() ? db::databasePath() : _basePath;
+  path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) /
+          fs::path(toString(9 + (23 << 9)));  // copied from libethcore/Common.c
   if (isDiskDB && _we == WithExisting::Kill) {
     clog(VerbosityDebug, "statedb")
         << "Killing state database (WithExisting::Kill).";
     fs::remove_all(path / fs::path("state"));
   }
-  path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) /
-          fs::path(toString(9 + (23 << 9)));  // copied from libethcore/Common.c
   if (isDiskDB) {
     fs::create_directories(path);
     DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
