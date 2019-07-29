@@ -44,7 +44,7 @@ enum PbftVoteTypes {
   next_vote_type
 };
 
-class TrxSchedule {
+struct TrxSchedule {
  public:
   enum class TrxStatus : uint8_t { invalid, sequential, parallel };
 

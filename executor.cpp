@@ -17,8 +17,10 @@ bool Executor::execute(
   }
   // TODO this state instance is reusable
   auto state = state_registry_->getCurrentState();
-  for (auto const& blk : sche.blk_order) {
-    if (!executeBlkTrxs(state, blk, sortition_account_balance_table)) {
+  for (auto i(0); i < sche.blk_order.size(); ++i) {
+    auto blk = sche.blk_order[i];
+    auto trx_modes = sche.vec_trx_modes[i];
+    if (!executeBlkTrxs(state, blk, trx_modes, sortition_account_balance_table)) {
       return false;
     }
   }
@@ -28,6 +30,7 @@ bool Executor::execute(
 
 bool Executor::executeBlkTrxs(
     StateRegistry::State& state, blk_hash_t const& blk,
+    std::vector<uint> const& trx_modes,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   std::string blk_json = db_blks_->get(blk.toString());
   if (blk_json.empty()) {
@@ -38,7 +41,15 @@ bool Executor::executeBlkTrxs(
 
   auto trxs_hash = dag_block.getTrxs();
   // sequential execute transaction
-  for (auto const& trx_hash : trxs_hash) {
+
+  for (auto i(0); i < trxs_hash.size(); ++i) {
+    auto const& trx_hash = trxs_hash[i];
+    auto mode = trx_modes[i];
+    if (mode == 0) {
+      LOG(log_nf_) << "Transaction " << trx_hash << "in block " << blk
+                   << " is overlapped";
+      continue;
+    }
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
     Transaction trx(db_trxs_->get(trx_hash.toString()));

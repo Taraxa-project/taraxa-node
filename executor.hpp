@@ -40,12 +40,16 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  // for debug purpose
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "EXETOR")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "EXETOR")};
+};
 
  public:
   Executor(uint64_t pbft_require_sortition_coins,
@@ -66,6 +70,7 @@ class Executor {
  private:
   bool executeBlkTrxs(
       StateRegistry::State&, blk_hash_t const& blk,
+      std::vector<uint> const& trx_modes
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool coinTransfer(
       StateRegistry::State&, Transaction const& trx,
