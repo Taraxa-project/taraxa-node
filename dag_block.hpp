@@ -46,7 +46,8 @@ class DagBlock {
            sig_t signature, blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
-  DagBlock(const string &json);
+  DagBlock(string const &json) : DagBlock(strToJson(json)) {}
+  DagBlock(boost::property_tree::ptree const &);
   DagBlock(dev::RLP const &_r);
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;

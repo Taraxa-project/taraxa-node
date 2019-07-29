@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-07-26
  */
 
 #include "pbft_manager.hpp"
@@ -34,7 +34,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return;
   }
-  vote_queue_ = full_node->getVoteQueue();
+  vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
 
@@ -116,7 +116,7 @@ void PbftManager::run() {
     LOG(log_tra_) << "PBFT step is " << pbft_step_;
 
     // Get votes
-    std::vector<Vote> votes = vote_queue_->getVotes(pbft_round_ - 1);
+    std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
 
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
@@ -124,7 +124,7 @@ void PbftManager::run() {
     size_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
     if (consensus_pbft_round != pbft_round_) {
       LOG(log_deb_) << "From votes determined round " << consensus_pbft_round;
-      // comments out now, p2p connection syncing should cover this
+      // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_deb_)
             << "pbft chain behind, need broadcast request for missing blocks";
@@ -226,11 +226,8 @@ void PbftManager::run() {
     } else if (pbft_step_ == 3) {
       // The Certifying Step
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
-        // Should not happen
-        // fixme: Happens nevertheless
+        // Should not happen, add log here for safety checking
         LOG(log_err_) << "PBFT Reached step 3 too quickly?";
-        // TODO: if no accout_balance, will hit here
-        // assert(false);
       }
 
       bool should_go_to_step_four = false;  // TODO: may not need
@@ -239,6 +236,7 @@ void PbftManager::run() {
         LOG(log_deb_) << "Reached step 3 late, will go to step 4";
         should_go_to_step_four = true;
       } else {
+        LOG(log_tra_) << "In step 3";
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
@@ -566,8 +564,7 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
   }
 
   Vote vote = full_node->generateVote(blockhash, vote_type, round, step);
-  full_node->pushVoteIntoQueue(vote);
-  full_node->setVoteKnown(vote.getHash());
+  vote_mgr_->addVote(vote);
   LOG(log_deb_) << "vote block hash: " << blockhash
                 << " vote type: " << vote_type << " round: " << round
                 << " step: " << step << " vote hash " << vote.getHash();
@@ -699,7 +696,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 }
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
-  std::vector<Vote> votes = vote_queue_->getVotes(pbft_round_);
+  std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_);
   PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
   LOG(log_deb_) << "leader block type should be: " << next_pbft_block_type;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
@@ -726,7 +723,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
 
 bool PbftManager::pushPbftBlockIntoChain_(
     uint64_t round, taraxa::blk_hash_t const &cert_voted_block_hash) {
-  std::vector<Vote> votes = vote_queue_->getVotes(round);
+  std::vector<Vote> votes = vote_mgr_->getVotes(round);
   size_t count = 0;
   for (auto const &v : votes) {
     if (v.getBlockHash() == cert_voted_block_hash &&
@@ -839,7 +836,7 @@ bool PbftManager::pushPbftBlockIntoChain_(
         TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
         sortition_threshold_ = accounts;
       }
-      LOG(log_deb_) << "Reset 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
+      LOG(log_deb_) << "Update 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
                     << sortition_threshold_;
 
       return true;

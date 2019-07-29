@@ -666,6 +666,7 @@ intervals on randomly selected nodes It verifies that the blocks created from
 these transactions which get created on random nodes are synced and the
 resulting DAG is the same on all nodes
 */
+// fixme: flaky
 TEST(Network, node_full_sync) {
   const int numberOfNodes = 5;
   boost::asio::io_context context1;

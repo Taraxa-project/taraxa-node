@@ -1,6 +1,6 @@
 {
   "node_secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
-  "db_path": "/tmp/taraxa4",
+  "db_path": "/tmp/taraxa_sortition_propose_block4",
   "dag_processing_threads": 1,
   "network_address": "127.0.0.1",
   "network_listen_port": 10005,
@@ -31,5 +31,21 @@
       0,
       0
     ]
+  },
+  "genesis_state": {
+    "account_start_nonce": 0,
+    "block": {
+      "level": 0,
+      "tips": [],
+      "trxs": [],
+      "sig": "",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "sender": ""
+    },
+    "accounts": {
+      "de2b1203d72d3549ee2f733b00b2789414c7cea5": {
+        "balance": 9007199254740991
+      }
+    }
   }
 }

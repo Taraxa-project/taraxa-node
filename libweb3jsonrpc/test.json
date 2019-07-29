@@ -94,13 +94,6 @@
     "returns": {}
   },
   {
-    "name": "set_account_balance",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
     "name": "get_account_balance",
     "params": [
       {}

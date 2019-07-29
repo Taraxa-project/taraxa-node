@@ -63,6 +63,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/grpc_util.o \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/executor.o \
+	${OBJECTDIR}/transaction_order_manager.o \
+	${OBJECTDIR}/state_registry.o \
+	${OBJECTDIR}/genesis_state.o \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
@@ -76,7 +79,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/SimpleStateDBDelegate.o \
 	${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o \
 	${OBJECTDIR}/SimpleOverlayDBDelegate.o
 
@@ -134,7 +136,22 @@ ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
-	
+
+${OBJECTDIR}/transaction_order_manager.o: transaction_order_manager.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_order_manager.o transaction_order_manager.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/state_registry.o: state_registry.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_registry.o state_registry.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/genesis_state.o: genesis_state.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/genesis_state.o genesis_state.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -264,11 +281,6 @@ ${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o: SimpleTaraxaRocksDBDelegate.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o SimpleTaraxaRocksDBDelegate.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/SimpleStateDBDelegate.o: SimpleStateDBDelegate.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleStateDBDelegate.o SimpleStateDBDelegate.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}

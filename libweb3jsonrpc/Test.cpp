@@ -312,22 +312,6 @@ Json::Value Test::get_account_address() {
   return res;
 }
 
-Json::Value Test::set_account_balance(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      addr_t addr = addr_t(param1["address"].asString());
-      val_t bal = param1["balance"].asUInt64();
-      node->setBalance(addr, bal);
-      res = "Set " + addr.toString() +
-            " balance: " + boost::lexical_cast<std::string>(bal) + "\n";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::get_account_balance(const Json::Value &param1) {
   Json::Value res;
   try {
@@ -464,8 +448,8 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t period = param1["period"].asUInt64();
 
       std::vector<Vote> votes = node->getVotes(period);
-      VoteQueue vote_queue;
-      res = vote_queue.getJsonStr(votes);
+      VoteManager vote_mgr;
+      res = vote_mgr.getJsonStr(votes);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
