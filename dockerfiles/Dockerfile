@@ -6,7 +6,7 @@ ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
 ADD . .
-RUN make main
+RUN make main -j $(nproc)
 
 
 FROM ubuntu:18.10
