@@ -258,7 +258,7 @@ inline std::string toJsonArrayString(const boost::property_tree::ptree &p) {
 
 template <typename T>
 void append(boost::property_tree::ptree &ptree, const T &value) {
-  ptree.push_back(make_pair("", value));
+  ptree.push_back(std::make_pair("", value));
 }
 
 template <typename... TS>
@@ -276,6 +276,7 @@ void abortHandler(int sig);
 static inline void printStackTrace();
 class TaraxaStackTrace {
  public:
+  // TODO why constructor???
   TaraxaStackTrace() {
     signal(SIGABRT, abortHandler);
     signal(SIGSEGV, abortHandler);

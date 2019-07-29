@@ -21,6 +21,7 @@
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
+#include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "vote.h"
 
@@ -34,8 +35,6 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
-class TransactionOrderManager;
-class Executor;
 class Vote;
 class VoteManager;
 class PbftManager;
@@ -167,7 +166,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
-  bool setBalance(addr_t const &acc, val_t const &new_bal);
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
@@ -187,7 +185,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // get DBs
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
-  std::shared_ptr<SimpleDBFace> getAccsDB() const { return db_accs_; }
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
@@ -247,13 +244,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t master_boot_node_address;
 
   // storage
-  std::shared_ptr<SimpleDBFace> db_accs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;
@@ -270,7 +267,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<BlockProposer> blk_proposer_;
 
   // transaction executor
-  std::shared_ptr<Executor> executor_;
+  std::shared_ptr<Executor> executor_ = nullptr;
   //
   std::vector<std::thread> block_workers_;
 
