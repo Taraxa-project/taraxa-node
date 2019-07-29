@@ -1,8 +1,5 @@
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-ifneq ($(shell which ccache),)
-    CXX := ccache $(CXX)
-endif
 CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I grpc -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
@@ -30,6 +27,9 @@ MKDIR := mkdir
 RM := rm -f
 
 COMPILE = $(CXX) $(CXXFLAGS)
+ifneq ($(shell which ccache),)
+    COMPILE := ccache $(COMPILE)
+endif
 
 GOOGLE_APIS_OBJ := $(wildcard google/obj/*.o)
 GOOGLE_APIS_FLAG := `pkg-config --cflags protobuf grpc++ --libs protobuf grpc++` -lgrpc++_reflection -ldl -I./grpc
