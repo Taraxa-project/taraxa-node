@@ -409,15 +409,23 @@ submodules/cryptopp/libcryptopp.a:
 
 	@if [ $(OS) = 'Darwin' ]; then $(MAKE) -C submodules/cryptopp; else $(MAKE) -C submodules/cryptopp CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC -DCRYPTOPP_DISABLE_ASM -pthread -pipe -c"; fi
 
-submodules/ethash/build/lib/ethash/libethash.a:
-	@echo Attempting to compile ethash, if it fails try compiling it manually
-	cd submodules/ethash; ${MKDIR} -p build
-	cd submodules/ethash/build; cmake ..; $(MAKE)
+submodules/ethash/build:
+	cd submodules/ethash; cmake -Bbuild
 
-submodules/libff/build/libff/libff.a:
+submodules/ethash/build/lib/ethash/libethash.a: submodules/ethash/build
+	@echo Attempting to compile ethash, if it fails try compiling it manually
+	cd submodules/ethash/build; $(MAKE)
+
+submodules/libff/build:
+	cd submodules/libff; \
+	cmake -Bbuild \
+		-DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc \
+		-DCMAKE_CXX_COMPILER=c++ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+		-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib
+
+submodules/libff/build/libff/libff.a: submodules/libff/build
 	@echo Attempting to compile libff, if it fails try compiling it manually
-	cd submodules/libff; ${MKDIR} -p build
-	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; $(MAKE)
+	cd submodules/libff/build; $(MAKE)
 
 submodules/secp256k1/.libs/libsecp256k1.a:
 	@echo Attempting to compile libsecp256k1, if it fails try compiling it manually
@@ -425,9 +433,15 @@ submodules/secp256k1/.libs/libsecp256k1.a:
 	cd submodules/secp256k1; ./configure --disable-shared --disable-tests --disable-coverage --disable-openssl-tests --disable-exhaustive-tests --disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit --with-asm=no --enable-module-ecdh --enable-module-recovery --enable-experimental 
 	cd submodules/secp256k1; $(MAKE)
 
-submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a:
+submodules/prometheus-cpp/_build:
+	cd submodules/prometheus-cpp; \
+	git submodule update --init 3rdparty/civetweb; \
+	cmake -B_build -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF
+
+submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a: submodules/prometheus-cpp/_build
 	@echo Attempting to compile libprometheus, if it fails try compiling it manually. See https://github.com/jupp0r/prometheus-cpp
-	cd submodules/prometheus-cpp; git submodule update --init 3rdparty/civetweb/; mkdir -p _build; cd _build; cmake .. -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF; $(MAKE); mkdir -p deploy; $(MAKE) DESTDIR=`pwd`/deploy install
+	cd submodules/prometheus-cpp/_build; $(MAKE) && \
+	mkdir -p deploy && $(MAKE) DESTDIR=`pwd`/deploy install
 
 $(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
@@ -442,7 +456,7 @@ $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILE
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) 
 
 $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}	
+	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(GOOGLE_APIS_FLAG) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) 
 
 $(TESTBUILDDIR)/long_network_test: $(OBJECTDIR)/long_network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
@@ -551,6 +565,11 @@ clean:
 	@echo CLEAN && rm -rf $(BUILDIR) $(TESTBUILDDIR) $(OBJECTDIR)
 
 .PHONY: run_test protoc grpc
+
+.NOTPARALLEL: \
+    submodules/ethash/build \
+    submodules/libff/build \
+    submodules/prometheus-cpp/_build
 
 # Enable dependency checking
 .dep.inc: .depcheck-impl
