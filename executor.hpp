@@ -46,7 +46,7 @@ class Executor {
       TrxSchedule const& schedule,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool executeBlkTrxs(
-      blk_hash_t const& blk,
+      blk_hash_t const& blk, std::vector<uint> const& trx_modes,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool coinTransfer(
       Transaction const& trx,
@@ -59,12 +59,15 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_accs_ = nullptr;
+  // for debug purpose
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "EXETOR")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "EXETOR")};
 };
 
 using TransactionOverlapTable =
