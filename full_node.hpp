@@ -15,13 +15,13 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "TransactionOrderManager.hpp"
 #include "config.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
 #include "pbft_chain.hpp"
+#include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "vote.h"
 

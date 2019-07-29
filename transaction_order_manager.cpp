@@ -5,7 +5,7 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2019-03-20 22:11:46
  */
-#include "TransactionOrderManager.hpp"
+#include "transaction_order_manager.hpp"
 #include "full_node.hpp"
 
 namespace taraxa {
