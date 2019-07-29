@@ -49,7 +49,6 @@ class Executor {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
   dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "EXETOR")};
-};
 
  public:
   Executor(uint64_t pbft_require_sortition_coins,
@@ -70,7 +69,7 @@ class Executor {
  private:
   bool executeBlkTrxs(
       StateRegistry::State&, blk_hash_t const& blk,
-      std::vector<uint> const& trx_modes
+      std::vector<uint> const& trx_modes,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
   bool coinTransfer(
       StateRegistry::State&, Transaction const& trx,

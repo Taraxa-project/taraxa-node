@@ -5,6 +5,7 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2019-03-20 22:11:46
  */
+
 #include "executor.hpp"
 
 namespace taraxa {
@@ -20,7 +21,8 @@ bool Executor::execute(
   for (auto i(0); i < sche.blk_order.size(); ++i) {
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
-    if (!executeBlkTrxs(state, blk, trx_modes, sortition_account_balance_table)) {
+    if (!executeBlkTrxs(state, blk, trx_modes,
+                        sortition_account_balance_table)) {
       return false;
     }
   }
