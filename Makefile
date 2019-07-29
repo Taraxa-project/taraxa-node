@@ -9,13 +9,11 @@ ifneq ($(OS), Darwin) #Mac
 endif
 DEBUG = 0
 CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
-CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF 
 OBJECTDIR := obj
 BUILDDIR := build
 TESTBUILDDIR := test_build
 ifneq ($(DEBUG), 0)
 	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
-	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF 
 	CPPFLAGS += -Wl,--export-dynamic
 	BUILDDIR := build-d
 	TESTBUILDDIR := test_build-d
