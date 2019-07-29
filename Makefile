@@ -63,7 +63,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/grpc_util.o \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/executor.o \
-	${OBJECTDIR}/TransactionOrderManager.o \
+	${OBJECTDIR}/transaction_order_manager.o \
 	${OBJECTDIR}/state_registry.o \
 	${OBJECTDIR}/genesis_state.o \
 	${OBJECTDIR}/pbft_chain.o \
@@ -137,10 +137,10 @@ ${OBJECTDIR}/executor.o: executor.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/TransactionOrderManager.o: TransactionOrderManager.cpp
+${OBJECTDIR}/transaction_order_manager.o: transaction_order_manager.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/TransactionOrderManager.o TransactionOrderManager.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_order_manager.o transaction_order_manager.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/state_registry.o: state_registry.cpp
 	${MKDIR} -p ${OBJECTDIR}
