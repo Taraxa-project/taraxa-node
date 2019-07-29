@@ -154,11 +154,6 @@ void FullNode::initDB(bool destroy_db) {
         make_shared<StateRegistry>(conf_.genesis_state,
                                    dev::OverlayDB(move(acc_db.db)),  //
                                    move(snapshot_db.db));
-    // Test balance is only local to this node and not to the network
-    for (auto bal : conf_.test_params.balance) {
-      setBalance(addr_t(bal.first),
-                 val_t(bal.second) * val_t(1000000000000000) * 1000);
-    }
   }
   LOG(log_nf_) << "DB initialized ...";
   db_inited_ = true;

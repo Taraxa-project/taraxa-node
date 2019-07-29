@@ -27,12 +27,6 @@
       1000,
       3,
       10000
-    ],
-    "balance": [
-      {
-        "address": "0x2Ee9E5FfDe2BDD527A597aB08B70e6679EDC96Cb",
-        "coins": 300
-      }
     ]
   },
   "genesis_state": {
@@ -48,6 +42,9 @@
     "accounts": {
       "de2b1203d72d3549ee2f733b00b2789414c7cea5": {
         "balance": 9007199254740991
+      },
+      "0x2Ee9E5FfDe2BDD527A597aB08B70e6679EDC96Cb": {
+        "balance": 300000000000000000000
       }
     }
   }
