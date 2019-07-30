@@ -141,8 +141,8 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf)
-      : Worker("taraxa"), host_(_host), conf_(_conf) {
+  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string genesis)
+      : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -231,6 +231,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::shared_ptr<boost::asio::io_service::work> io_work_;
   unsigned long max_peer_vertices_ = 0;
   NodeID peer_syncing_;
+  std::string genesis_;
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;

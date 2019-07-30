@@ -20,14 +20,15 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager() {}
-PbftManager::PbftManager(std::vector<uint> const &params)
+PbftManager::PbftManager(std::string genesis) : genesis_(genesis) {}
+PbftManager::PbftManager(std::vector<uint> const &params, std::string genesis)
     // TODO: for debug, need remove later
     : LAMBDA_ms(params[0]),
       COMMITTEE_SIZE(params[1]),
-      VALID_SORTITION_COINS(params[2]) {}
+      VALID_SORTITION_COINS(params[2]),
+      genesis_(genesis){}
 
-void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
+          void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
   auto full_node = node_.lock();
   if (!full_node) {
@@ -594,7 +595,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
     // choose the last DAG block as PBFT pivot block in this period
     std::vector<std::string> ghost;
-    full_node->getGhostPath(Dag::GENESIS, ghost);
+    full_node->getGhostPath(genesis_, ghost);
     blk_hash_t dag_block_hash(ghost.back());
     // compare with last dag block hash. If they are same, which means no new
     // dag blocks generated since last round In that case PBFT proposer should
