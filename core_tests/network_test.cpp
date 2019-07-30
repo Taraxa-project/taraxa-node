@@ -261,7 +261,7 @@ TEST(Network, node_sync) {
 
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), 1, {}, {}, sig_t(777), blk_hash_t(1),
+  DagBlock blk1(node1->getConfig().genesis_state.block.getHash(), 1, {}, {}, sig_t(777), blk_hash_t(1),
                 addr_t(999));
 
   DagBlock blk2(blk_hash_t(01), 2, {}, {}, sig_t(777), blk_hash_t(02),
@@ -404,7 +404,7 @@ TEST(Network, node_sync_with_transactions) {
   std::vector<DagBlock> blks;
 
   DagBlock blk1(
-      blk_hash_t(0), 1, {},
+      node1->getConfig().genesis_state.block.getHash(), 1, {},
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
       sig_t(777), blk_hash_t(1), addr_t(999));
   std::vector<Transaction> tr1(
@@ -494,12 +494,12 @@ TEST(Network, node_sync2) {
   std::vector<DagBlock> blks;
 
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
-  DagBlock blk1(blk_hash_t(0), 1, {},
+  DagBlock blk1(node1->getConfig().genesis_state.block.getHash(), 1, {},
                 {transactions[0].getHash(), transactions[1].getHash()},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
 
-  DagBlock blk2(blk_hash_t(0), 1, {},
+  DagBlock blk2(node1->getConfig().genesis_state.block.getHash(), 1, {},
                 {transactions[2].getHash(), transactions[3].getHash()},
                 sig_t(777), blk_hash_t(0xB2), addr_t(999));
   std::vector<Transaction> tr2({transactions[2], transactions[3]});
