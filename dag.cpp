@@ -18,13 +18,10 @@
 
 namespace taraxa {
 
-std::string const Dag::GENESIS =
-    "0000000000000000000000000000000000000000000000000000000000000000";
-
-Dag::Dag() : debug_(false), verbose_(false) {
+Dag::Dag(std::string genesis) : debug_(false), verbose_(false) {
   vertex_hash pivot = "";
   std::vector<vertex_hash> tips;
-  genesis_ = addVEEs(Dag::GENESIS, pivot, tips);
+  genesis_ = addVEEs(genesis, pivot, tips);
 }
 Dag::~Dag() {}
 void Dag::setVerbose(bool verbose) { verbose_ = verbose; }
@@ -543,12 +540,14 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   }
 }
 
-DagManager::DagManager() try : debug_(false),
+DagManager::DagManager(std::string genesis) try : debug_(false),
                                verbose_(false),
                                dag_updated_(false),
                                inserting_index_counter_(0),
-                               total_dag_(std::make_shared<Dag>()),
-                               pivot_tree_(std::make_shared<PivotTree>()) {
+                               total_dag_(std::make_shared<Dag>(genesis)),
+                               pivot_tree_(std::make_shared<PivotTree>(genesis)),
+                               anchors_({genesis}),
+                               genesis_(genesis) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -694,7 +693,7 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   pivot.clear();
   tips.clear();
   pivot_tree_->getGhostPathBeforeTimeStamp(
-      Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
+      genesis_, std::numeric_limits<uint64_t>::max(), pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->getLeaves(tips);

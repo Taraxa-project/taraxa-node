@@ -43,8 +43,8 @@ Test creates two Network setup and verifies sending block
 between is successfull
 */
 TEST(Network, transfer_block) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network, g_conf2.genesis_state.block.getHash().toString()));
 
   nw1->start();
   nw2->start();
@@ -81,8 +81,8 @@ Test creates two Network setup and verifies sending transaction
 between is successfull
 */
 TEST(Network, transfer_transaction) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
+  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network, g_conf2.genesis_state.block.getHash().toString()));
 
   nw1->start(true);
   nw2->start();
@@ -143,9 +143,9 @@ connections even with boot nodes down
 */
 TEST(Network, save_network) {
   {
-    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
-    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
-    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3.network));
+    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
+    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network, g_conf2.genesis_state.block.getHash().toString()));
+    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3.network, g_conf3.genesis_state.block.getHash().toString()));
 
     nw1->start(true);
     nw2->start();
@@ -171,9 +171,9 @@ TEST(Network, save_network) {
   }
 
   std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2.network, "/tmp/nw2"));
+      new taraxa::Network(g_conf2.network, "/tmp/nw2", g_conf2.genesis_state.block.getHash().toString()));
   std::shared_ptr<Network> nw3(
-      new taraxa::Network(g_conf3.network, "/tmp/nw3"));
+      new taraxa::Network(g_conf3.network, "/tmp/nw3", g_conf2.genesis_state.block.getHash().toString()));
   nw2->start();
   nw3->start();
 

@@ -95,7 +95,8 @@ Json::Value Taraxa::taraxa_getBlockTransactionCountByHash(
 Json::Value Taraxa::taraxa_getBlockTransactionCountByNumber(
     string const& _blockNumber) {
   if (auto full_node = full_node_.lock()) {
-    auto block_hash = full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
+    auto block_hash =
+        full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
     if (!block_hash.first.isZero()) {
       auto block = full_node->getDagBlock(block_hash.first);
       if (block) return toJS(block->getTrxs().size());
@@ -116,15 +117,15 @@ Json::Value Taraxa::taraxa_getUncleCountByBlockNumber(
 
 string Taraxa::taraxa_getCode(string const& _address,
                               string const& _blockNumber) {
-  return toJS(
-      "0x0");
+  return toJS("0x0");
 }
 
 string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
   if (auto full_node = full_node_.lock()) {
     taraxa::Transaction trx(
         taraxa::trx_hash_t("0x1"), taraxa::Transaction::Type::Call,
-        taraxa::val_t(1), taraxa::val_t(std::stoul(_json["value"].asString(), 0, 16)),
+        taraxa::val_t(1),
+        taraxa::val_t(std::stoul(_json["value"].asString(), 0, 16)),
         taraxa::val_t((_json["gas_price"].asString())),
         taraxa::val_t(_json["gas"].asString()),
         taraxa::addr_t(_json["to"].asString()), taraxa::sig_t(),
@@ -170,31 +171,10 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
   if (auto full_node = full_node_.lock()) {
     Json::Value res;
     auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
-    res["hash"] = toJS(block->getHash());
-    res["parentHash"] = toJS(block->getPivot());
-    res["sha3Uncles"] = "";
-    res["author"] = "";
-    res["stateRoot"] = "";
-    res["transactionsRoot"] = "";
-    res["receiptsRoot"] = "";
+    uint64_t block_number = 0;
     auto height = full_node->getDagBlockHeight(block->getHash());
-    if (height.second)
-      res["number"] = toJS(height.first);
-    else
-      res["number"] = Json::Value();
-    res["gasUsed"] = "";   // TODO calculate gasUsed
-    res["gasLimit"] = "";  // TODO calculate gasLimit
-    res["extraData"] = "";
-    res["logsBloom"] = "";
-    res["timestamp"] = "";
-    res["author"] = "";
-    res["nonce"] = "";
-    res["sha3Uncles"] = "";
-    res["difficulty"] = "";
-    res["totalDifficulty"] = "";
-    res["size"] = "";  // Get total size of blocks
-    res["uncles"] = "";
-    res["transactions"] = Json::Value(Json::arrayValue);
+    if (height.second) block_number = height.first;
+    res = toJson(block, block_number);
     for (unsigned i = 0; i < block->getTrxs().size(); i++) {
       auto _t = full_node->getTransaction(block->getTrxs()[i]);
       if (_includeTransactions) {
@@ -219,38 +199,22 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
 Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
                                             bool _includeTransactions) {
   if (auto full_node = full_node_.lock()) {
+    int block_number = 0;
+    if (_blockNumber == "latest") {
+      block_number = full_node->getDagBlockMaxHeight();
+    } else if (_blockNumber == "earliest") {
+      block_number == 0;
+    } else if (_blockNumber == "pending") {
+      block_number = full_node->getDagBlockMaxHeight() + 1;
+    } else {
+      block_number = std::stoi(_blockNumber, 0, 16);
+    }
     Json::Value res;
-    auto block_hash = full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
-    printf("%s %d \n", block_hash.first.toString().c_str(), block_hash.second);
-    if (!block_hash.first.isZero()) {
+    auto block_hash = full_node->getDagBlockHash(block_number);
+    {
       auto block = full_node->getDagBlock(block_hash.first);
-      printf("%d\n", block == nullptr);
       if (block) {
-        res["hash"] = toJS(block->getHash());
-        res["parentHash"] = toJS(block->getPivot());
-        res["sha3Uncles"] = "";
-        res["author"] = "";
-        res["stateRoot"] = "";
-        res["transactionsRoot"] = "";
-        res["receiptsRoot"] = "";
-        auto height = full_node->getDagBlockHeight(block->getHash());
-        if (height.second)
-          res["number"] = toJS(height.first);
-        else
-          res["number"] = Json::Value();
-        res["gasUsed"] = "";   // TODO calculate gasUsed
-        res["gasLimit"] = "";  // TODO calculate gasLimit
-        res["extraData"] = "";
-        res["logsBloom"] = "";
-        res["timestamp"] = "";
-        res["author"] = "";
-        res["nonce"] = "";
-        res["sha3Uncles"] = "";
-        res["difficulty"] = "";
-        res["totalDifficulty"] = "";
-        res["size"] = "";  // Get total size of blocks
-        res["uncles"] = "";
-        res["transactions"] = Json::Value(Json::arrayValue);
+        res = toJson(block, block_number);
         for (unsigned i = 0; i < block->getTrxs().size(); i++) {
           auto _t = full_node->getTransaction(block->getTrxs()[i]);
           if (_includeTransactions) {
@@ -307,7 +271,8 @@ Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
     auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
     auto trxs = block->getTrxs();
     if (trxs.size() > std::stoi(_transactionIndex, 0, 16)) {
-      auto trx = full_node->getTransaction(trxs[std::stoi(_transactionIndex, 0, 16)]);
+      auto trx =
+          full_node->getTransaction(trxs[std::stoi(_transactionIndex, 0, 16)]);
       if (trx) {
         auto json_trx = toJson(trx);
         json_trx["blockHash"] = toJS(block->getHash());
@@ -327,14 +292,15 @@ Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
     string const& _blockNumber, string const& _transactionIndex) {
   if (auto full_node = full_node_.lock()) {
     Json::Value res;
-    auto block_hash = full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
+    auto block_hash =
+        full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
     if (!block_hash.first.isZero()) {
       auto block = full_node->getDagBlock(block_hash.first);
       if (block) {
         auto trxs = block->getTrxs();
         if (trxs.size() > std::stoi(_transactionIndex, 0, 16)) {
-          auto trx =
-              full_node->getTransaction(trxs[std::stoi(_transactionIndex, 0, 16)]);
+          auto trx = full_node->getTransaction(
+              trxs[std::stoi(_transactionIndex, 0, 16)]);
           if (trx) {
             auto json_trx = toJson(trx);
             json_trx["blockHash"] = toJS(block->getHash());

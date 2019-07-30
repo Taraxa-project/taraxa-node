@@ -134,7 +134,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       auto const genesis_hash = _r[3].toString();
       LOG(log_dg_) << "Received status message from " << _nodeID << " "
                    << peer_protocol_version << network_id << num_vertices
-                   << Dag::GENESIS;
+                   << genesis_;
 
       if (peer_protocol_version != c_protocolVersion) {
         LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
@@ -146,7 +146,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                      << _nodeID << " will be disconnected";
         host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
       }
-      if (genesis_hash != Dag::GENESIS) {
+      if (genesis_hash != genesis_) {
         LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host "
                      << _nodeID << " will be disconnected";
         host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
@@ -458,11 +458,11 @@ void TaraxaCapability::sendStatus(NodeID const &_id) {
   if (auto full_node = full_node_.lock()) {
     LOG(log_dg_) << "Sending status message to " << _id << " "
                  << c_protocolVersion << conf_.network_id
-                 << full_node->getNumVerticesInDag().first << Dag::GENESIS;
+                 << full_node->getNumVerticesInDag().first << genesis_;
     host_.capabilityHost()->sealAndSend(
         _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
                  << c_protocolVersion << conf_.network_id
-                 << full_node->getNumVerticesInDag().first << Dag::GENESIS);
+                 << full_node->getNumVerticesInDag().first << genesis_);
   }
 }
 

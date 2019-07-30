@@ -220,7 +220,7 @@ TEST_F(FullNodeTest, full_node_reset) {
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
-  auto nw2(std::make_shared<taraxa::Network>(conf2.network));
+  auto nw2(std::make_shared<taraxa::Network>(conf2.network, conf2.genesis_state.block.getHash().toString()));
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -949,10 +949,11 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
   taraxa::thisThreadSleepForMilliSeconds(3000);
 
   EXPECT_GT(node->getNumProposedBlocks(), 0);
+  cfg.genesis_state.block.updateHash();
 
   // The test will form a single chain
   std::vector<std::string> ghost;
-  node->getGhostPath(Dag::GENESIS, ghost);
+  node->getGhostPath(cfg.genesis_state.block.getHash().toString(), ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
   EXPECT_GT(ghost.size(), 1);
@@ -1026,7 +1027,7 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
-  auto nw2(std::make_shared<taraxa::Network>(conf2.network));
+  auto nw2(std::make_shared<taraxa::Network>(conf2.network, conf2.genesis_state.block.getHash().toString()));
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -1609,8 +1610,10 @@ TEST_F(TopTest, detect_overlap_transactions) {
   }
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
+  auto block = node1->getConfig().genesis_state.block;
+  block.updateHash();
   std::vector<std::string> ghost;
-  node1->getGhostPath(Dag::GENESIS, ghost);
+  node1->getGhostPath(block.getHash().toString(), ghost);
   uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
   auto anchor = blk_hash_t(ghost.back());
