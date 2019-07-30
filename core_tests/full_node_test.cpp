@@ -42,7 +42,7 @@ auto g_test_account =
 struct TopTest : public DBUsingTest<> {};
 struct FullNodeTest : public DBUsingTest<> {};
 
-TEST_F(TopTest, top_reset) {
+TEST_F(TopTest, DISABLED_top_reset) {
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json",
