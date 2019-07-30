@@ -716,6 +716,8 @@ TEST_F(TopTest, reconstruct_dag) {
     auto node(std::make_shared<taraxa::FullNode>(context, conf,
                                                  true));  // destroy DB
 
+    g_mock_dag0 = samples::createMockDag0(conf.genesis_state.block.getHash().toString());
+
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
