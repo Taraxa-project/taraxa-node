@@ -272,25 +272,39 @@ TEST(PbftChain, get_dag_block_hash) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->start(false);
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
-  EXPECT_TRUE(dag_genesis_hash.second);
-  DagBlock dag_genesis;
-  EXPECT_EQ(dag_genesis_hash.first, dag_genesis.getHash());
+  for (int i = 0; i < 100; i++) {
+    std::pair<blk_hash_t, bool> dag_genesis_hash =
+        pbft_chain->getDagBlockHash(0);
+    if (i == 99 || dag_genesis_hash.first) {
+      EXPECT_TRUE(dag_genesis_hash.second);
+      EXPECT_EQ(dag_genesis_hash.first,
+                node->getConfig().genesis_state.block.getHash());
+      break;
+    } else
+      taraxa::thisThreadSleepForMilliSeconds(100);
+  }
 }
 
 TEST(PbftChain, get_dag_block_height) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->start(false);
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  DagBlock dag_genesis;
-  std::pair<uint64_t, bool> dag_genesis_height =
-      pbft_chain->getDagBlockHeight(dag_genesis.getHash());
-  EXPECT_TRUE(dag_genesis_height.second);
-  EXPECT_EQ(dag_genesis_height.first, 0);
+  for (int i = 0; i < 100; i++) {
+    std::pair<uint64_t, bool> dag_genesis_height =
+        pbft_chain->getDagBlockHeight(
+            node->getConfig().genesis_state.block.getHash());
+    if (i == 99 || dag_genesis_height.second) {
+      EXPECT_TRUE(dag_genesis_height.second);
+      EXPECT_EQ(dag_genesis_height.first, 0);
+    } else
+      taraxa::thisThreadSleepForMilliSeconds(100);
+  }
 }
 
 /*
@@ -378,11 +392,10 @@ TEST(PbftChain, simulate_pbft_execute_round) {
   bool node1_should_speak = shouldSpeak(pivot_hash, pivot_block_type, period,
 step); EXPECT_TRUE(node1_should_speak);
 
-  Vote vote1(key_pair1.pub(), sig1, pivot_hash, pivot_block_type, period, step);
-  PivotBlock pivot_block(pivot_hash, prev_pivot_blk, prev_res_blk, dag_blk,
-                         epoch, timestamp1, beneficiary, sig1);
-  PbftBlock pbft_block1(pivot_hash);
-  pbft_block1.setPivotBlock(pivot_block);
+  Vote vote1(key_pair1.pub(), sig1, pivot_hash, pivot_block_type, period,
+step); PivotBlock pivot_block(pivot_hash, prev_pivot_blk, prev_res_blk,
+dag_blk, epoch, timestamp1, beneficiary, sig1); PbftBlock
+pbft_block1(pivot_hash); pbft_block1.setPivotBlock(pivot_block);
   pbft_block1.setBlockType(pivot_block_type);
 
   // node1 put vote1 into vote queue
@@ -501,6 +514,7 @@ int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
   logOptions.includeChannels.push_back("PBFT_MGR");
   logOptions.includeChannels.push_back("NETWORK");
   logOptions.includeChannels.push_back("TARCAP");
