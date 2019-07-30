@@ -47,6 +47,7 @@ DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
     sig_ = sig_t(doc.get<std::string>("sig"));
     hash_ = blk_hash_t(doc.get<std::string>("hash"));
     cached_sender_ = addr_t(doc.get<std::string>("sender"));
+    pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
