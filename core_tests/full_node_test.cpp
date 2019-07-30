@@ -28,7 +28,7 @@ using namespace core_tests::util;
 using samples::sendTrx;
 
 const unsigned NUM_TRX = 200;
-
+const unsigned SYNC_TIMEOUT = 200;
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
@@ -108,7 +108,7 @@ TEST_F(TopTest, top_reset) {
   auto num_vertices1 = node1->getNumVerticesInDag();
   auto num_vertices2 = node2->getNumVerticesInDag();
 
-  for (auto i = 0; i < 50; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
@@ -175,7 +175,7 @@ TEST_F(TopTest, top_reset) {
   num_vertices1 = node1->getNumVerticesInDag();
   num_vertices2 = node2->getNumVerticesInDag();
 
-  for (auto i = 0; i < 50; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
@@ -261,7 +261,7 @@ TEST_F(FullNodeTest, full_node_reset) {
 
   auto num_received_blks = node1->getNumReceivedBlocks();
   auto num_vertices_in_dag = node1->getNumVerticesInDag().first;
-  for (auto i = 0; i < 10; ++i) {
+  for (auto i = 0; i < SYNC_TIMEOUT; ++i) {
     if (num_received_blks == blks.size() && num_vertices_in_dag == 7) {
       break;
     }
@@ -286,7 +286,7 @@ TEST_F(FullNodeTest, full_node_reset) {
 
   num_received_blks = node1->getNumReceivedBlocks();
   num_vertices_in_dag = node1->getNumVerticesInDag().first;
-  for (auto i = 0; i < 10; ++i) {
+  for (auto i = 0; i < SYNC_TIMEOUT; ++i) {
     if (num_received_blks == blks.size() && num_vertices_in_dag == 7) {
       break;
     }
@@ -361,8 +361,6 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   EXPECT_NE(node4, nullptr);
   EXPECT_NE(node5, nullptr);
 
-  // set balance
-  //  val_t bal(9007199254740991);
   // transfer some coins to your friends ...
   Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
@@ -381,11 +379,6 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   node1->insertTransaction(trx1to4);
   node1->insertTransaction(trx1to5);
 
-  // node1->setBalance(node1->getAddress(), bal);
-  // node2->setBalance(node2->getAddress(), bal);
-  // node3->setBalance(node3->getAddress(), bal);
-  // node4->setBalance(node4->getAddress(), bal);
-  // node5->setBalance(node5->getAddress(), bal);
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   // send 1000 trxs
@@ -449,7 +442,7 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   auto num_peers4 = node4->getPeerCount();
   auto num_peers5 = node5->getPeerCount();
 
-  for (auto i = 0; i < 180; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for peers syncing ..." << std::endl;
     }
@@ -477,7 +470,7 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   auto num_vertices4 = node4->getNumVerticesInDag();
   auto num_vertices5 = node5->getNumVerticesInDag();
 
-  for (auto i = 0; i < 180; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
@@ -769,7 +762,7 @@ TEST_F(TopTest, sync_two_nodes1) {
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
   // add more delay if sync is not done
-  for (auto i = 0; i < 60; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (vertices1 == vertices2 && vertices1.first > 3) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
@@ -844,7 +837,7 @@ TEST_F(TopTest, sync_two_nodes2) {
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
   // let node2 sync node1
-  for (auto i = 0; i < 60; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (vertices1 == vertices2 && vertices1.first > 3) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     vertices1 = node1->getNumVerticesInDag();
@@ -1086,7 +1079,7 @@ TEST_F(FullNodeTest, save_network_to_file) {
     node2->start(false);
     node3->start(false);
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < SYNC_TIMEOUT; i++) {
       taraxa::thisThreadSleepForSeconds(1);
       if (1 == node2->getPeerCount() && 1 == node3->getPeerCount()) break;
     }
@@ -1121,7 +1114,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
 
   auto num_proposed_blk = node1->getNumProposedBlocks();
-  for (auto i = 0; i < 10; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_proposed_blk > 0) {
       break;
     }
@@ -1338,7 +1331,7 @@ TEST_F(TopTest, sortition_propose_five_nodes) {
   auto num_peers4 = node4->getPeerCount();
   auto num_peers5 = node5->getPeerCount();
 
-  for (auto i = 0; i < 180; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for peers syncing ..." << std::endl;
     }
@@ -1366,7 +1359,7 @@ TEST_F(TopTest, sortition_propose_five_nodes) {
   auto num_vertices4 = node4->getNumVerticesInDag();
   auto num_vertices5 = node5->getNumVerticesInDag();
 
-  for (auto i = 0; i < 180; i++) {
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
     }
