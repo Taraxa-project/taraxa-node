@@ -13,8 +13,9 @@
 
 namespace taraxa {
 TEST(Dag, build_dag) {
-  taraxa::Dag graph;
-
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::Dag graph(GENESIS);
+  
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
 
@@ -23,16 +24,16 @@ TEST(Dag, build_dag) {
   auto v3 = "0000000000000000000000000000000000000000000000000000000000000003";
 
   std::vector<std::string> empty;
-  graph.addVEEs(v1, Dag::GENESIS, empty);
+  graph.addVEEs(v1, GENESIS, empty);
   EXPECT_EQ(2, graph.getNumVertices());
   EXPECT_EQ(1, graph.getNumEdges());
 
   // try insert same vertex, no multiple edges
-  graph.addVEEs(v1, Dag::GENESIS, empty);
+  graph.addVEEs(v1, GENESIS, empty);
   EXPECT_EQ(2, graph.getNumVertices());
   EXPECT_EQ(1, graph.getNumEdges());
 
-  graph.addVEEs(v2, Dag::GENESIS, empty);
+  graph.addVEEs(v2, GENESIS, empty);
   EXPECT_EQ(3, graph.getNumVertices());
   EXPECT_EQ(2, graph.getNumEdges());
 
@@ -42,8 +43,9 @@ TEST(Dag, build_dag) {
 }
 
 TEST(Dag, dag_traverse_get_children_tips) {
-  taraxa::Dag graph;
-
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::Dag graph(GENESIS);
+  
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
 
@@ -70,8 +72,8 @@ TEST(Dag, dag_traverse_get_children_tips) {
   graph.getLeaves(leaves);
   EXPECT_EQ(3, leaves.size());
 
-  graph.addVEEs(v3, Dag::GENESIS, empty);
-  graph.addVEEs(v4, Dag::GENESIS, empty);
+  graph.addVEEs(v3, GENESIS, empty);
+  graph.addVEEs(v4, GENESIS, empty);
   EXPECT_EQ(5, graph.getNumVertices());
   EXPECT_EQ(2, graph.getNumEdges());
 
@@ -148,8 +150,9 @@ TEST(Dag, dag_traverse_get_children_tips) {
 }
 
 TEST(Dag, dag_traverse2_get_children_tips) {
-  taraxa::Dag graph;
-
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::Dag graph(GENESIS);
+  
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
 
@@ -163,7 +166,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
   std::vector<std::string> empty;
   std::string no = "";
 
-  graph.addVEEs(v1, Dag::GENESIS, empty);
+  graph.addVEEs(v1, GENESIS, empty);
   graph.addVEEs(v2, v1, empty);
   graph.addVEEs(v3, v2, empty);
   graph.addVEEs(v4, v2, empty);
@@ -213,7 +216,8 @@ TEST(Dag, dag_traverse2_get_children_tips) {
 
 // Use the example on Conflux paper
 TEST(Dag, dag_traverse3_get_epfriend) {
-  taraxa::Dag graph;
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::Dag graph(GENESIS);
   auto vA = "0000000000000000000000000000000000000000000000000000000000000001";
   auto vB = "0000000000000000000000000000000000000000000000000000000000000002";
   auto vC = "0000000000000000000000000000000000000000000000000000000000000003";
@@ -228,8 +232,8 @@ TEST(Dag, dag_traverse3_get_epfriend) {
 
   std::vector<std::string> empty;
   std::string no = "";
-  graph.addVEEs(vA, Dag::GENESIS, empty);
-  graph.addVEEs(vB, Dag::GENESIS, empty);
+  graph.addVEEs(vA, GENESIS, empty);
+  graph.addVEEs(vB, GENESIS, empty);
   graph.addVEEs(vC, vA, {vB});
   graph.addVEEs(vD, vA, empty);
   graph.addVEEs(vF, vB, empty);
@@ -251,13 +255,13 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vA);
 
   {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, Dag::GENESIS, vA, 1,
+    graph.computeOrder(false /*finialized */, GENESIS, vA, 1,
                        recent_added_blks, epfriend);
 
     EXPECT_EQ(epfriend.size(), 1);  // vA
     EXPECT_EQ(recent_added_blks.size(), 1);
   }
-  graph.computeOrder(true /*finialized */, Dag::GENESIS, vA, 1,
+  graph.computeOrder(true /*finialized */, GENESIS, vA, 1,
                      recent_added_blks, epfriend);
 
   EXPECT_EQ(epfriend.size(), 1);  // vA
@@ -308,18 +312,20 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   }
 }
 TEST(PivotTree, genesis_get_pivot) {
-  taraxa::PivotTree graph;
-
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::PivotTree graph(GENESIS);
+  
   std::vector<std::string> pivot_chain, leaves;
-  graph.getGhostPath(Dag::GENESIS, pivot_chain);
+  graph.getGhostPath(GENESIS, pivot_chain);
   EXPECT_EQ(pivot_chain.size(), 1);
   graph.getLeaves(leaves);
   EXPECT_EQ(leaves.size(), 1);
 }
 
 TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
-  taraxa::PivotTree graph;
-
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::PivotTree graph(GENESIS);
+  
   auto v1 = "0000000000000000000000000000000000000000000000000000000000000001";
   auto v2 = "0000000000000000000000000000000000000000000000000000000000000002";
   auto v3 = "0000000000000000000000000000000000000000000000000000000000000003";
@@ -333,9 +339,9 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
   auto v11 = "000000000000000000000000000000000000000000000000000000000000000B";
   std::vector<std::string> empty;
   std::string no = "";
-  graph.addVEEs(v1, Dag::GENESIS, empty);
-  graph.addVEEs(v2, Dag::GENESIS, empty);
-  graph.addVEEs(v3, Dag::GENESIS, empty);
+  graph.addVEEs(v1, GENESIS, empty);
+  graph.addVEEs(v2, GENESIS, empty);
+  graph.addVEEs(v3, GENESIS, empty);
   graph.addVEEs(v4, v1, empty);
   graph.addVEEs(v5, v1, empty);
   graph.addVEEs(v6, v2, empty);
@@ -384,7 +390,8 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
 }
 
 TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
-  taraxa::PivotTree graph;
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  taraxa::PivotTree graph(GENESIS);
 
   auto v1 = "0000000000000000000000000000000000000000000000000000000000000001";
   auto v2 = "0000000000000000000000000000000000000000000000000000000000000002";
@@ -392,18 +399,18 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
   std::vector<std::string> empty;
   std::string no = "";
 
-  graph.addVEEs(v1, Dag::GENESIS, empty);
-  graph.addVEEs(v2, Dag::GENESIS, empty);
-  graph.setVertexTimeStamp(Dag::GENESIS, 1);
+  graph.addVEEs(v1, GENESIS, empty);
+  graph.addVEEs(v2, GENESIS, empty);
+  graph.setVertexTimeStamp(GENESIS, 1);
   graph.setVertexTimeStamp(v1, 50);
   graph.setVertexTimeStamp(v2, 25);
 
   {
     std::vector<std::string> pivot_chain;
-    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, 26, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(GENESIS, 26, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 2);
     EXPECT_EQ(pivot_chain.back(), v2);
-    graph.getGhostPathBeforeTimeStamp(Dag::GENESIS, 51, pivot_chain);
+    graph.getGhostPathBeforeTimeStamp(GENESIS, 51, pivot_chain);
     EXPECT_EQ(pivot_chain.size(), 2);
     EXPECT_EQ(pivot_chain.back(), v1);
   }
@@ -411,7 +418,8 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
 
 // Use the example on Conflux paper
 TEST(DagManager, compute_epoch) {
-  auto mgr = std::make_shared<DagManager>();
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
@@ -490,7 +498,8 @@ TEST(DagManager, compute_epoch) {
 }
 
 TEST(DagManager, receive_block_in_order) {
-  auto mgr = std::make_shared<DagManager>();
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
@@ -529,7 +538,8 @@ TEST(DagManager, receive_block_in_order) {
 }
 
 TEST(DagManager, receive_block_out_of_order) {
-  auto mgr = std::make_shared<DagManager>();
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
 
   // mgr.setVerbose(true);
@@ -560,7 +570,8 @@ TEST(DagManager, receive_block_out_of_order) {
 }
 
 TEST(DagManager, get_latest_pivot_tips) {
-  auto mgr = std::make_shared<DagManager>();
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
 
   // mgr.setVerbose(true);

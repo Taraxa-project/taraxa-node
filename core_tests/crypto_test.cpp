@@ -80,7 +80,7 @@ TEST(EthereumCrypto, sortition_rate) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   cfg.genesis_state.accounts[addr(cfg.node_secret)] = {account_balance};
   boost::asio::io_context context;
-  auto node(std::make_shared<FullNode>(context, cfg));
+  auto node(std::make_shared<FullNode>(context, cfg, true));
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;

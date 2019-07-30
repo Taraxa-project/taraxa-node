@@ -27,13 +27,14 @@ struct NetworkTest : public DBUsingTest<> {};
 struct VoteManagerTest : public DBUsingTest<> {};
 
 TEST_F(PbftManagerTest, pbft_manager_lambda_input_test) {
+  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
   uint lambda_ms = 1000;
   uint committee_size = 3;
   uint valid_sortition_coins = 10000;
   std::vector<uint> pbft_params{lambda_ms, committee_size,
                                 valid_sortition_coins};
 
-  PbftManager pbft_manager(pbft_params);
+  PbftManager pbft_manager(pbft_params, GENESIS);
   EXPECT_EQ(lambda_ms, pbft_manager.LAMBDA_ms);
   EXPECT_EQ(committee_size, pbft_manager.COMMITTEE_SIZE);
   EXPECT_EQ(valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);

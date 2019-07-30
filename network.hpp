@@ -35,10 +35,11 @@ namespace taraxa {
 
 class Network {
  public:
-  Network(NetworkConfig const &config);
-  Network(NetworkConfig const &config, std::string networkFile);
+  Network(NetworkConfig const &config, std::string genesis);
   Network(NetworkConfig const &config, std::string networkFile,
-          secret_t const &sk);
+          std::string genesis);
+  Network(NetworkConfig const &config, std::string networkFile,
+          secret_t const &sk, std::string genesis);
   ~Network();
   void start(bool boot_node = false);
   void stop();

@@ -35,8 +35,8 @@ class FullNode;
 
 class PbftManager {
  public:
-  PbftManager();
-  PbftManager(std::vector<uint> const &params);
+  PbftManager(std::string genesis);
+  PbftManager(std::vector<uint> const &params, std::string genesis);
   ~PbftManager() { stop(); }
 
   void setFullNode(std::shared_ptr<FullNode> node);
@@ -113,6 +113,8 @@ class PbftManager {
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
+
+  std::string genesis_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

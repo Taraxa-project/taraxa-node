@@ -10,12 +10,13 @@
 
 namespace taraxa {
 
-Network::Network(NetworkConfig const &config)
-    : Network(config, "", secret_t()) {}
-Network::Network(NetworkConfig const &config, std::string network_file)
-    : Network(config, network_file, secret_t()) {}
+Network::Network(NetworkConfig const &config, std::string genesis)
+    : Network(config, "", secret_t(), genesis) {}
 Network::Network(NetworkConfig const &config, std::string network_file,
-                 secret_t const &sk) try : conf_(config) {
+                 std::string genesis)
+    : Network(config, network_file, secret_t(), genesis) {}
+Network::Network(NetworkConfig const &config, std::string network_file,
+                 secret_t const &sk, std::string genesis) try : conf_(config) {
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {
@@ -38,7 +39,8 @@ Network::Network(NetworkConfig const &config, std::string network_file,
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true));
   }
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_);
+  taraxa_capability_ =
+      std::make_shared<TaraxaCapability>(*host_.get(), conf_, genesis);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
