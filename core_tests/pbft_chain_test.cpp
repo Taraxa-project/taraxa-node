@@ -144,7 +144,7 @@ TEST(PbftChain, pbft_db_test) {
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
 }
 
-TEST(PbftChain, block_broadcast) {
+TEST(PbftChain, DISABLED_block_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf/conf_taraxa1.json")));
