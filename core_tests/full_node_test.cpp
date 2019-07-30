@@ -1221,7 +1221,7 @@ TEST_F(FullNodeTest, DISABLED_sortition_propose_one_node) {
   EXPECT_GT(node1->getNumProposedBlocks(), 5);
 }
 
-TEST_F(TopTest, sortition_propose_five_nodes) {
+TEST_F(TopTest, DISABLED_sortition_propose_five_nodes) {
   const char *input1[] = {
       "./build/main",
       "--conf_taraxa",
