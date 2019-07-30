@@ -230,7 +230,7 @@ TEST_F(FullNodeTest, full_node_reset) {
   nw2->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(77777), blk_hash_t(1),
+  DagBlock blk1(conf2.genesis_state.block.getHash(), 0, {}, {}, sig_t(77777), blk_hash_t(1),
                 addr_t(16));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(77777), blk_hash_t(2),
                 addr_t(16));
@@ -1039,7 +1039,7 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
   nw2->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), 1, {}, {}, sig_t(77777), blk_hash_t(1),
+  DagBlock blk1(conf2.genesis_state.block.getHash(), 1, {}, {}, sig_t(77777), blk_hash_t(1),
                 addr_t(16));
   DagBlock blk2(blk_hash_t(1), 2, {}, {}, sig_t(77777), blk_hash_t(2),
                 addr_t(16));
