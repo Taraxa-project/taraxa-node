@@ -26,7 +26,7 @@ pipeline {
         }
         stage('Unit Tests') {
             steps {
-              build job: 'docker-base-image', parameters: [
+              build job: "docker-base-image/${BRANCH_NAME}", parameters: [
                   string(name: 'upsteam_project_name', value: env.NAME)
               ], propagate: true, wait: true
               sh '''

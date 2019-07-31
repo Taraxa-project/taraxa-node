@@ -13,9 +13,6 @@ def branchSlug(branch='') {
 }
 
 pipeline {
-    triggers {
-      upstream(upstreamProjects: "taraxa-node", threshold: hudson.model.Result.SUCCESS)
-    }
     agent any
     environment {
         AWS = credentials('AWS')
