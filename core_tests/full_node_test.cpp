@@ -535,10 +535,13 @@ TEST_F(TopTest, sync_five_nodes_simple) {
 }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
+
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
+
+  g_mock_dag0 = samples::createMockDag0(node->getConfig().genesis_state.block.getHash().toString());
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
