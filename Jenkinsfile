@@ -34,7 +34,7 @@ pipeline {
                   docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
                     --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
-                    --target=test
+                    --target=test \
                     -f dockerfiles/Dockerfile .
               '''
             }
