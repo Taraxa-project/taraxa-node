@@ -1,48 +1,82 @@
 #ifndef TARAXA_NODE_STATEREGISTRY_HPP
 #define TARAXA_NODE_STATEREGISTRY_HPP
 
-#include <libdevcore/CommonData.h>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <shared_mutex>
-#include <tuple>
 #include <utility>
 #include <vector>
 #include "SimpleDBFace.h"
 #include "genesis_state.hpp"
+#include "thread_safe_state.hpp"
 #include "types.hpp"
 
-namespace taraxa::__StateRegistry__ {
+namespace taraxa::state_registry {
 using namespace std;
 using namespace dev;
 
 class StateRegistry {
  public:
-  class State : public eth::State {
-    friend class StateRegistry;
+  struct Snapshot {
+    dag_blk_num_t block_number;
+    blk_hash_t block_hash;
+    root_t state_root;
 
-   private:
-    State(u256 const &account_start_nonce, OverlayDB const &db,
-          root_t const &state_root)
-        : eth::State(account_start_nonce, db) {
-      setRoot(state_root);
+    bool operator==(Snapshot const &s) const {
+      return block_number == s.block_number && block_hash == s.block_hash &&
+             state_root == s.state_root;
     }
-
-    OverlayDB &db() { return eth::State::db(); }
-    void populateFrom(eth::AccountMap const &account_map) {
-      eth::State::populateFrom(account_map);
-    }
-    void commit(CommitBehaviour commit_behaviour) {
-      eth::State::commit(commit_behaviour);
-    }
-    void setRoot(root_t const &root) { eth::State::setRoot(root); }
+    bool operator!=(Snapshot const &s) const { return !operator==(s); }
   };
 
-  struct Snapshot {
-    dag_blk_num_t dag_block_number;
-    blk_hash_t dag_block_hash;
-    root_t state_root;
+  class State : public ThreadSafeState {
+    friend class StateRegistry;
+
+    StateRegistry *const host_;
+    Snapshot snapshot_;
+
+    State(decltype(host_) &host,
+          decltype(snapshot_) const &snapshot,  //
+          u256 const &account_start_nonce,      //
+          OverlayDB const &db)
+        : host_(host),
+          snapshot_(snapshot),
+          ThreadSafeState(account_start_nonce, db, eth::BaseState::Empty) {
+      setRoot(snapshot.state_root);
+    }
+
+   public:
+    State &operator=(State const &s) {
+      if (&s != this) {
+        assert(host_ == s.host_);
+        unique_lock l(m_);
+        eth::State::operator=(s);
+        snapshot_ = s.snapshot_;
+      }
+      return *this;
+    }
+
+    Snapshot getSnapshot() {
+      unique_lock l(m_);
+      return snapshot_;
+    }
+
+   private:
+    void setSnapshot(Snapshot const &snapshot) {
+      unique_lock l(m_);
+      snapshot_ = snapshot;
+    }
+
+    h256 commitAndPush(CommitBehaviour behaviour) {
+      unique_lock l(m_);
+      eth::State::commit(behaviour);
+      eth::State::db().commit();
+      return eth::State::rootHash();
+    }
+
+    using eth::State::db;
+    using eth::State::setRoot;
   };
 
   static inline string const CURRENT_BLOCK_NUMBER_KEY = "blk_num_current";
@@ -53,8 +87,8 @@ class StateRegistry {
   uint256_t const account_start_nonce_;
   OverlayDB account_db_;
   unique_ptr<db::DatabaseFace> snapshot_db_;
-  Snapshot current_snapshot_;
-  shared_mutex m_;
+  atomic<Snapshot> current_snapshot_;
+  mutex m_;
 
   void init(GenesisState const &);
 
@@ -76,10 +110,11 @@ class StateRegistry {
     return BLOCK_HASH_KEY_PREFIX + x.hex();
   }
 
-  Snapshot commit(State &,
-                  vector<blk_hash_t> const &,  //
-                  eth::State::CommitBehaviour const & =
-                      eth::State::CommitBehaviour::KeepEmptyAccounts);
+  void commitAndPush(State &,
+              vector<blk_hash_t> const &,  //
+              eth::State::CommitBehaviour const & =
+                  eth::State::CommitBehaviour::KeepEmptyAccounts);
+  State &rebase(State &);
   optional<Snapshot> getSnapshot(dag_blk_num_t const &);
   Snapshot getCurrentSnapshot();
   State getCurrentState();
@@ -90,10 +125,10 @@ class StateRegistry {
   void append(root_t const &, vector<blk_hash_t> const &, bool init = false);
 };
 
-}  // namespace taraxa::__StateRegistry__
+}  // namespace taraxa::state_registry
 
 namespace taraxa {
-using __StateRegistry__::StateRegistry;
+using state_registry::StateRegistry;
 }
 
 #endif  // TARAXA_NODE_STATEREGISTRY_HPP

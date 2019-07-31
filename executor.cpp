@@ -26,7 +26,7 @@ bool Executor::execute(
       return false;
     }
   }
-  state_registry_->commit(state, sche.blk_order);
+  state_registry_->commitAndPush(state, sche.blk_order);
   return true;
 }
 

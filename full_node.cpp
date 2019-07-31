@@ -154,6 +154,8 @@ void FullNode::initDB(bool destroy_db) {
         make_shared<StateRegistry>(conf_.genesis_state,
                                    dev::OverlayDB(move(acc_db.db)),  //
                                    move(snapshot_db.db));
+    state_ =
+        make_shared<StateRegistry::State>(state_registry_->getCurrentState());
   }
   LOG(log_nf_) << "DB initialized ...";
   db_inited_ = true;
@@ -208,6 +210,7 @@ bool FullNode::destroyDB() {
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
+  assert(state_.use_count() == 1);
 
   db_blks_ = nullptr;
   db_blks_index_ = nullptr;
@@ -216,6 +219,7 @@ bool FullNode::destroyDB() {
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
   state_registry_ = nullptr;
+  state_ = nullptr;
   db_inited_ = false;
   thisThreadSleepForMilliSeconds(1000);
   boost::filesystem::path path(conf_.db_path);
@@ -321,6 +325,7 @@ void FullNode::start(bool boot_node) {
   assert(db_votes_);
   assert(db_pbftchain_);
   assert(state_registry_);
+  assert(state_);
   LOG(log_wr_) << "Node started ... ";
 }
 
@@ -353,6 +358,7 @@ void FullNode::stop() {
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
+  assert(state_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
 }
 
@@ -698,9 +704,9 @@ FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  auto state = state_registry_->getCurrentState();
-  auto bal = state.balance(acc);
-  if (bal == 0 && !state.addressInUse(acc)) {
+  auto const& state = updateAndGetState();
+  auto bal = state->balance(acc);
+  if (bal == 0 && !state->addressInUse(acc)) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
     return {0, false};
   }
