@@ -18,7 +18,7 @@
 
 namespace taraxa {
 
-Dag::Dag(std::string genesis) : debug_(false), verbose_(false) {
+Dag::Dag(std::string const &genesis) : debug_(false), verbose_(false) {
   vertex_hash pivot = "";
   std::vector<vertex_hash> tips;
   genesis_ = addVEEs(genesis, pivot, tips);
@@ -540,14 +540,15 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   }
 }
 
-DagManager::DagManager(std::string genesis) try : debug_(false),
-                               verbose_(false),
-                               dag_updated_(false),
-                               inserting_index_counter_(0),
-                               total_dag_(std::make_shared<Dag>(genesis)),
-                               pivot_tree_(std::make_shared<PivotTree>(genesis)),
-                               anchors_({genesis}),
-                               genesis_(genesis) {
+DagManager::DagManager(std::string const &genesis) try
+    : debug_(false),
+      verbose_(false),
+      dag_updated_(false),
+      inserting_index_counter_(0),
+      total_dag_(std::make_shared<Dag>(genesis)),
+      pivot_tree_(std::make_shared<PivotTree>(genesis)),
+      anchors_({genesis}),
+      genesis_(genesis) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }

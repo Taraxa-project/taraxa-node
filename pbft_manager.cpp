@@ -20,15 +20,16 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager(std::string genesis) : genesis_(genesis) {}
-PbftManager::PbftManager(std::vector<uint> const &params, std::string genesis)
+PbftManager::PbftManager(std::string const &genesis) : genesis_(genesis) {}
+PbftManager::PbftManager(std::vector<uint> const &params,
+                         std::string const &genesis)
     // TODO: for debug, need remove later
     : LAMBDA_ms(params[0]),
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
-      genesis_(genesis){}
+      genesis_(genesis) {}
 
-          void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
+void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
   auto full_node = node_.lock();
   if (!full_node) {

@@ -181,7 +181,6 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
         Json::Value tr_js = dev::toJson(_t);
         tr_js["blockHash"] = toJS(block->getHash());
         tr_js["transactionIndex"] = toJS(i);
-        auto height = full_node->getDagBlockHeight(block->getHash());
         if (height.second)
           tr_js["blockNumber"] = toJS(height.first);
         else

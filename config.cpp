@@ -45,14 +45,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
         test_params.pbft.push_back(i);
       }
-
-      auto test_balances = doc.get_child_optional("test_params.balance");
-      if (test_balances)
-        for (auto &item : test_balances.get()) {
-          std::string address = item.second.get<std::string>("address");
-          uint64_t coins = item.second.get<uint64_t>("coins");
-          test_params.balance[address] = coins;
-        }
     }
     genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
     genesis_state.block.updateHash();
