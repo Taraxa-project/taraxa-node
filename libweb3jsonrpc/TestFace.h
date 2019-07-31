@@ -254,7 +254,7 @@ class TestFace : public ServerInterface<TestFace> {
       const Json::Value &param1) = 0;
   virtual Json::Value get_num_proposed_blocks() = 0;
   virtual Json::Value send_pbft_schedule_block(const Json::Value &param1) = 0;
-  virtual Json::Value get_account_address(const Json::Value &param1) = 0;
+  virtual Json::Value get_account_address() = 0;
   virtual Json::Value get_account_balance(const Json::Value &param1) = 0;
   virtual Json::Value get_peer_count() = 0;
   virtual Json::Value get_all_peers() = 0;
