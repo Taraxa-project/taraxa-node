@@ -141,7 +141,8 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf, std::string genesis)
+  TaraxaCapability(Host &_host, NetworkConfig &_conf,
+                   std::string const &genesis)
       : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());

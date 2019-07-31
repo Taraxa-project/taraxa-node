@@ -35,8 +35,8 @@ class FullNode;
 
 class PbftManager {
  public:
-  PbftManager(std::string genesis);
-  PbftManager(std::vector<uint> const &params, std::string genesis);
+  PbftManager(std::string const &genesis);
+  PbftManager(std::vector<uint> const &params, std::string const &genesis);
   ~PbftManager() { stop(); }
 
   void setFullNode(std::shared_ptr<FullNode> node);

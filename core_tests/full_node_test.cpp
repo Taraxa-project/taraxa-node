@@ -662,6 +662,7 @@ TEST(Top, destroy_db) {
     auto trx_db = node->getTrxsDB();
     trx_db->put(g_trx_signed_samples[0].getHash().toString(),
                 g_trx_signed_samples[0].getJsonStr());
+    //Verify trx saved in db
     EXPECT_TRUE(
         !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
     trx_db->commit();
@@ -676,6 +677,7 @@ TEST(Top, destroy_db) {
                                                  false));  // destroy DB
     node->start(false);
     auto trx_db = node->getTrxsDB();
+    //Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(
         !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
     trx_db = nullptr;
@@ -689,6 +691,7 @@ TEST(Top, destroy_db) {
                                                  true));  // destroy DB
     node->start(false);
     auto trx_db = node->getTrxsDB();
+    //Verify trx not in db after restart with destroy_db true
     EXPECT_TRUE(
         trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
     trx_db = nullptr;
