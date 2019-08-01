@@ -3,10 +3,9 @@
 #include <string>
 #include "util_eth.hpp"
 
-namespace taraxa::__StateRegistry__ {
+namespace taraxa::state_registry {
 using Snapshot = StateRegistry::Snapshot;
 using State = StateRegistry::State;
-using dev::StateCacheDB;
 using util::eth::calculateGenesisState;
 using util::eth::toSlice;
 
@@ -27,21 +26,27 @@ void StateRegistry::init(GenesisState const &genesis_state) {
   StateCacheDB tmp_mem_db;
   auto genesis_root = calculateGenesisState(tmp_mem_db, genesis_accs_eth);
   assert(genesis_snapshot.state_root == genesis_root);
-  assert(genesis_snapshot.dag_block_hash == genesis_hash);
+  assert(genesis_snapshot.block_hash == genesis_hash);
   current_snapshot_ = *getSnapshot(stoull(current_block_num));
 }
 
-Snapshot StateRegistry::commit(
+void StateRegistry::commitAndPush(
     State &state,  //
     vector<blk_hash_t> const &blks,
     eth::State::CommitBehaviour const &commit_behaviour) {
-  // TODO less agressive locking
+  assert(state.host_ == this);
+  assert(state.getSnapshot() == getCurrentSnapshot());
   unique_lock l(m_);
-  assert(state.rootHash() == current_snapshot_.state_root);
-  state.commit(commit_behaviour);
-  state.db().commit();
-  append(state.rootHash(), blks);
-  return current_snapshot_;
+  append(state.commitAndPush(commit_behaviour), blks);
+  state.setSnapshot(current_snapshot_);
+}
+
+State &StateRegistry::rebase(State &state) {
+  assert(state.host_ == this);
+  if (state.getSnapshot() != getCurrentSnapshot()) {
+    state = getCurrentState();
+  }
+  return state;
 }
 
 optional<Snapshot> StateRegistry::getSnapshot(dag_blk_num_t const &blk_num) {
@@ -51,20 +56,16 @@ optional<Snapshot> StateRegistry::getSnapshot(dag_blk_num_t const &blk_num) {
   }
   RLP snapshot_rlp(snapshot_str);
   return {{
-      snapshot_rlp[0].toInt<decltype(Snapshot::dag_block_number)>(),
-      snapshot_rlp[1].toHash<decltype(Snapshot::dag_block_hash)>(),
+      snapshot_rlp[0].toInt<decltype(Snapshot::block_number)>(),
+      snapshot_rlp[1].toHash<decltype(Snapshot::block_hash)>(),
       snapshot_rlp[2].toHash<decltype(Snapshot::state_root)>(),
   }};
 }
 
-Snapshot StateRegistry::getCurrentSnapshot() {
-  shared_lock l(m_);
-  return current_snapshot_;
-}
+Snapshot StateRegistry::getCurrentSnapshot() { return current_snapshot_; }
 
 State StateRegistry::getCurrentState() {
-  shared_lock l(m_);
-  return {account_start_nonce_, account_db_, current_snapshot_.state_root};
+  return {this, getCurrentSnapshot(), account_start_nonce_, account_db_};
 }
 
 optional<State> StateRegistry::getState(dag_blk_num_t const &blk_num) {
@@ -72,11 +73,10 @@ optional<State> StateRegistry::getState(dag_blk_num_t const &blk_num) {
   if (!snapshot) {
     return nullopt;
   }
-  auto const &root = snapshot->state_root;
-  if (account_db_.lookup(root).empty()) {
+  if (account_db_.lookup(snapshot->state_root).empty()) {
     return nullopt;
   }
-  return {{account_start_nonce_, account_db_, root}};
+  return {{this, *snapshot, account_start_nonce_, account_db_}};
 }
 
 optional<dag_blk_num_t> StateRegistry::getNumber(blk_hash_t const &blk_hash) {
@@ -88,7 +88,7 @@ void StateRegistry::append(root_t const &state_root,
                            vector<blk_hash_t> const &blk_hashes, bool init) {
   assert(!blk_hashes.empty());
   auto batch = snapshot_db_->createWriteBatch();
-  auto blk_num = init ? 0 : current_snapshot_.dag_block_number + 1;
+  auto blk_num = init ? 0 : getCurrentSnapshot().block_number + 1;
   for (auto &blk_hash : blk_hashes) {
     auto blk_hash_key = blkHashKey(blk_hash);
     if (blk_num > 1) {
@@ -96,9 +96,7 @@ void StateRegistry::append(root_t const &state_root,
       assert(snapshot_db_->lookup(blk_hash_key).empty());
     }
     RLPStream snapshot_rlp(3);
-    snapshot_rlp << blk_num;
-    snapshot_rlp << blk_hash;
-    snapshot_rlp << state_root;
+    snapshot_rlp << blk_num << blk_hash << state_root;
     batch->insert(blkNumKey(blk_num), toSlice(snapshot_rlp.out()));
     batch->insert(blk_hash_key, to_string(blk_num));
     ++blk_num;
@@ -109,4 +107,4 @@ void StateRegistry::append(root_t const &state_root,
   current_snapshot_ = {blk_num, blk_hashes.back(), state_root};
 }
 
-}  // namespace taraxa::__StateRegistry__
+}  // namespace taraxa::state_registry

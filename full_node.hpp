@@ -188,6 +188,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
+  std::shared_ptr<StateRegistry::State> updateAndGetState() const {
+    state_registry_->rebase(*state_);
+    return state_;
+  }
 
   std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
       bool onlyNew);
@@ -252,6 +256,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<StateRegistry::State> state_ = nullptr;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;
