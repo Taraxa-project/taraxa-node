@@ -35,8 +35,8 @@ void StateRegistry::commitAndPush(
     vector<blk_hash_t> const &blks,
     eth::State::CommitBehaviour const &commit_behaviour) {
   assert(state.host_ == this);
-  assert(state.getSnapshot() == getCurrentSnapshot());
   unique_lock l(m_);
+  assert(state.getSnapshot() == getCurrentSnapshot());
   append(state.commitAndPush(commit_behaviour), blks);
   state.setSnapshot(current_snapshot_);
 }
