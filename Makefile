@@ -27,6 +27,9 @@ LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -l
 LIBATOMIC_NOT_FOUND = $(shell \
     $(CXX) $(LDFLAGS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
 )
+# Optional linking for libatomic (part of standard library).
+# Some toolchains provide this library,
+# and assume programs using <atomic> would link against it.
 ifeq ($(LIBATOMIC_NOT_FOUND), 0)
     LIBS += -latomic
 endif
