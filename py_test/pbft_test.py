@@ -19,7 +19,7 @@ import time
 
 
 # local test
-START_FULL_NODE = "./build/main --conf_taraxa ./core_tests/conf/conf_taraxa{}.json -v 3 --log-filename logs/node{}.log --log-channels PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR"
+START_FULL_NODE = "../build/main --conf_taraxa ../core_tests/conf/conf_taraxa{}.json -v 3 --log-filename logs/node{}.log --log-channels PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR"
 node_ip = "0.0.0.0"
 nodes_port = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786]
 TOTAL_TARAXA_COINS = 9007199254740991
