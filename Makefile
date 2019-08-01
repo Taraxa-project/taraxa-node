@@ -15,7 +15,7 @@ BUILDDIR := build
 TESTBUILDDIR := test_build
 ifneq ($(DEBUG), 0)
 	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
-	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF 
+	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
 	CPPFLAGS += -Wl,--export-dynamic
 	BUILDDIR := build-d
 	TESTBUILDDIR := test_build-d
@@ -23,6 +23,14 @@ ifneq ($(DEBUG), 0)
 endif
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
 LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server
+# Note: makefile translates `$$?` into `$?`
+LIBATOMIC_NOT_FOUND = $(shell \
+    $(CXX) $(LDFLAGS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
+)
+ifeq ($(LIBATOMIC_NOT_FOUND), 0)
+    LIBS += -latomic
+endif
+
 MKDIR := mkdir
 RM := rm -f
 
