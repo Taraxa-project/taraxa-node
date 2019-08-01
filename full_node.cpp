@@ -704,7 +704,7 @@ FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  auto const& state = updateAndGetState();
+  auto const &state = updateAndGetState();
   auto bal = state->balance(acc);
   if (bal == 0 && !state->addressInUse(acc)) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;

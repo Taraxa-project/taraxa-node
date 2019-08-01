@@ -68,8 +68,8 @@ class StateRegistry {
       snapshot_ = snapshot;
     }
 
-    using ThreadSafeState::commitAndPush;
     using eth::State::setRoot;
+    using ThreadSafeState::commitAndPush;
   };
 
   static inline string const CURRENT_BLOCK_NUMBER_KEY = "blk_num_current";
@@ -91,7 +91,8 @@ class StateRegistry {
                 decltype(snapshot_db_) snapshot_db)
       : account_start_nonce_(genesis_state.account_start_nonce),
         account_db_(move(account_db)),
-        snapshot_db_(move(snapshot_db)) {
+        snapshot_db_(move(snapshot_db)),
+        current_snapshot_(Snapshot()) {
     init(genesis_state);
   }
 

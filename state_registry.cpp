@@ -107,4 +107,4 @@ void StateRegistry::append(root_t const &state_root,
   current_snapshot_ = {blk_num, blk_hashes.back(), state_root};
 }
 
-}
+}  // namespace taraxa::state_registry
