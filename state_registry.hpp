@@ -68,14 +68,7 @@ class StateRegistry {
       snapshot_ = snapshot;
     }
 
-    h256 commitAndPush(CommitBehaviour behaviour) {
-      unique_lock l(m_);
-      eth::State::commit(behaviour);
-      eth::State::db().commit();
-      return eth::State::rootHash();
-    }
-
-    using eth::State::db;
+    using ThreadSafeState::commitAndPush;
     using eth::State::setRoot;
   };
 
@@ -111,9 +104,9 @@ class StateRegistry {
   }
 
   void commitAndPush(State &,
-              vector<blk_hash_t> const &,  //
-              eth::State::CommitBehaviour const & =
-                  eth::State::CommitBehaviour::KeepEmptyAccounts);
+                     vector<blk_hash_t> const &,  //
+                     eth::State::CommitBehaviour const & =
+                         eth::State::CommitBehaviour::KeepEmptyAccounts);
   State &rebase(State &);
   optional<Snapshot> getSnapshot(dag_blk_num_t const &);
   Snapshot getCurrentSnapshot();

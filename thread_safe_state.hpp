@@ -13,6 +13,8 @@ class ThreadSafeState : public eth::State {
  protected:
   mutex mutable m_;
 
+  using eth::State::db;
+
  public:
   using eth::State::State;
 
@@ -24,14 +26,11 @@ class ThreadSafeState : public eth::State {
     return *this;
   }
 
-  OverlayDB& db() {
+  h256 commitAndPush(CommitBehaviour behaviour) {
     unique_lock l(m_);
-    return eth::State::db();
-  }
-
-  const OverlayDB& db() const {
-    unique_lock l(m_);
-    return eth::State::db();
+    eth::State::commit(behaviour);
+    eth::State::db().commit();
+    return eth::State::rootHash();
   }
 
   void populateFrom(eth::AccountMap const& account_map) {
