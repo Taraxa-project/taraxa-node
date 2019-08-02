@@ -141,8 +141,6 @@ void FullNode::initDB(bool destroy_db) {
     // store genesis blk to db
     db_blks_->put(genesis_hash.toString(), genesis_block.getJsonStr());
     db_blks_->commit();
-    // Initilize DAG genesis at DAG block heigh 0
-    pbft_chain_->pushDagBlockHash(genesis_hash);
     // store pbft chain genesis(HEAD) block to db
     db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                        pbft_chain_->getJsonStr());
