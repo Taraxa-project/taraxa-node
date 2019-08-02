@@ -202,7 +202,7 @@ Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
     if (_blockNumber == "latest") {
       block_number = full_node->getDagBlockMaxHeight();
     } else if (_blockNumber == "earliest") {
-      block_number == 0;
+      block_number = 0;
     } else if (_blockNumber == "pending") {
       block_number = full_node->getDagBlockMaxHeight() + 1;
     } else {

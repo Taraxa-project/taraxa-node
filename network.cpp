@@ -10,13 +10,14 @@
 
 namespace taraxa {
 
-Network::Network(NetworkConfig const &config, std::string  const &genesis)
+Network::Network(NetworkConfig const &config, std::string const &genesis)
     : Network(config, "", secret_t(), genesis) {}
 Network::Network(NetworkConfig const &config, std::string network_file,
-                 std::string  const &genesis)
+                 std::string const &genesis)
     : Network(config, network_file, secret_t(), genesis) {}
 Network::Network(NetworkConfig const &config, std::string network_file,
-                 secret_t const &sk, std::string  const &genesis) try : conf_(config) {
+                 secret_t const &sk, std::string const &genesis) try
+    : conf_(config) {
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {

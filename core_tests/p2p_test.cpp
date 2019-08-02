@@ -82,7 +82,8 @@ to each other and that a test packet message can be sent from one host
 to the other using TaraxaCapability
 */
 TEST(p2p, capability_send_test) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
@@ -145,7 +146,8 @@ to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
 TEST(p2p, capability_send_block) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
@@ -223,7 +225,8 @@ propagated to all other hosts. Test verifies that each node has received
 the block
 */
 TEST(p2p, block_propagate) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   int const nodeCount = 30;
   const char *const localhost = "127.0.0.1";

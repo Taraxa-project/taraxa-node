@@ -13,9 +13,10 @@
 
 namespace taraxa {
 TEST(Dag, build_dag) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
-  
+
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
 
@@ -43,9 +44,10 @@ TEST(Dag, build_dag) {
 }
 
 TEST(Dag, dag_traverse_get_children_tips) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
-  
+
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
 
@@ -150,9 +152,10 @@ TEST(Dag, dag_traverse_get_children_tips) {
 }
 
 TEST(Dag, dag_traverse2_get_children_tips) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
-  
+
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
 
@@ -216,7 +219,8 @@ TEST(Dag, dag_traverse2_get_children_tips) {
 
 // Use the example on Conflux paper
 TEST(Dag, dag_traverse3_get_epfriend) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
   auto vA = "0000000000000000000000000000000000000000000000000000000000000001";
   auto vB = "0000000000000000000000000000000000000000000000000000000000000002";
@@ -255,14 +259,14 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vA);
 
   {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, GENESIS, vA, 1,
-                       recent_added_blks, epfriend);
+    graph.computeOrder(false /*finialized */, GENESIS, vA, 1, recent_added_blks,
+                       epfriend);
 
     EXPECT_EQ(epfriend.size(), 1);  // vA
     EXPECT_EQ(recent_added_blks.size(), 1);
   }
-  graph.computeOrder(true /*finialized */, GENESIS, vA, 1,
-                     recent_added_blks, epfriend);
+  graph.computeOrder(true /*finialized */, GENESIS, vA, 1, recent_added_blks,
+                     epfriend);
 
   EXPECT_EQ(epfriend.size(), 1);  // vA
   EXPECT_EQ(recent_added_blks.size(), 0);
@@ -312,9 +316,10 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   }
 }
 TEST(PivotTree, genesis_get_pivot) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::PivotTree graph(GENESIS);
-  
+
   std::vector<std::string> pivot_chain, leaves;
   graph.getGhostPath(GENESIS, pivot_chain);
   EXPECT_EQ(pivot_chain.size(), 1);
@@ -323,9 +328,10 @@ TEST(PivotTree, genesis_get_pivot) {
 }
 
 TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::PivotTree graph(GENESIS);
-  
+
   auto v1 = "0000000000000000000000000000000000000000000000000000000000000001";
   auto v2 = "0000000000000000000000000000000000000000000000000000000000000002";
   auto v3 = "0000000000000000000000000000000000000000000000000000000000000003";
@@ -390,7 +396,8 @@ TEST(PivotTree, dag_traverse_pivot_chain_and_subtree) {
 }
 
 TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::PivotTree graph(GENESIS);
 
   auto v1 = "0000000000000000000000000000000000000000000000000000000000000001";
@@ -418,7 +425,8 @@ TEST(DagManager, dag_traverse_pivot_chain_and_subtree_2) {
 
 // Use the example on Conflux paper
 TEST(DagManager, compute_epoch) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
@@ -498,7 +506,8 @@ TEST(DagManager, compute_epoch) {
 }
 
 TEST(DagManager, receive_block_in_order) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
   // mgr.setVerbose(true);
@@ -538,7 +547,8 @@ TEST(DagManager, receive_block_in_order) {
 }
 
 TEST(DagManager, receive_block_out_of_order) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
 
@@ -570,7 +580,8 @@ TEST(DagManager, receive_block_out_of_order) {
 }
 
 TEST(DagManager, get_latest_pivot_tips) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
   mgr->start();
 
