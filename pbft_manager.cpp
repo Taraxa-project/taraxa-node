@@ -246,7 +246,7 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
-             compare_pbft_cs_block_with_dag_blocks_(
+             comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           cert_voted_values_for_round[pbft_round_] =
               soft_voted_block_for_this_round.first;
@@ -311,7 +311,7 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
-             compare_pbft_cs_block_with_dag_blocks_(
+             comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
@@ -369,7 +369,7 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
-             compare_pbft_cs_block_with_dag_blocks_(
+             comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
@@ -942,7 +942,7 @@ void PbftManager::syncPbftChainFromPeers_() {
   }
 }
 
-bool PbftManager::compare_pbft_cs_block_with_dag_blocks_(
+bool PbftManager::comparePbftCSblockWithDAGblocks_(
     blk_hash_t const &cs_block_hash) {
   std::pair<PbftBlock, bool> cs_block =
       pbft_chain_->getPbftBlockInQueue(cs_block_hash);
