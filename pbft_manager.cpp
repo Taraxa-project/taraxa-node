@@ -986,9 +986,9 @@ bool PbftManager::compare_pbft_cs_block_with_dag_blocks_(
     }
   } else {
     LOG(log_inf_) << "DAG blocks have not sync yet. in period: "
-                  << pbft_chain_period << " PBFT CS blocks size: "
-                  << blocks_in_cs.size() << " DAG blocks size: "
-                  << dag_blocks_order->size();
+                  << pbft_chain_period
+                  << " PBFT CS blocks size: " << blocks_in_cs.size()
+                  << " DAG blocks size: " << dag_blocks_order->size();
     return false;
   }
   // compare number of transactions in CS with DAG blocks
