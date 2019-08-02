@@ -220,7 +220,7 @@ def start_nodes_one_by_one_test():
 
     start_full_node_process(1)
     get_peer_count(1)
-    time.sleep(5)
+    time.sleep(15)
     get_account_balance(node_ip, nodes_port[0], boot_node_address)
 
     start_full_node_process(2)
@@ -234,7 +234,7 @@ def start_nodes_one_by_one_test():
     start_full_node_process(3)
     get_peer_count(3)
     send_coins(node_ip, nodes_port[0], node_address3, coins)
-    time.sleep(60)
+    time.sleep(30)
     get_account_balance(node_ip, nodes_port[0], boot_node_address)
     get_account_balance(node_ip, nodes_port[1], node_address2)
     get_account_balance(node_ip, nodes_port[2], node_address3)
@@ -242,7 +242,7 @@ def start_nodes_one_by_one_test():
     start_full_node_process(4)
     get_peer_count(4)
     send_coins(node_ip, nodes_port[0], node_address4, coins)
-    time.sleep(60)
+    time.sleep(30)
     get_account_balance(node_ip, nodes_port[0], boot_node_address)
     get_account_balance(node_ip, nodes_port[1], node_address2)
     get_account_balance(node_ip, nodes_port[2], node_address3)
