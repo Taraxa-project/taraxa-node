@@ -99,7 +99,7 @@ class PbftManager {
 
   void syncPbftChainFromPeers_();
 
-  bool compare_pbft_cs_block_with_dag_blocks_(blk_hash_t const &cs_block_hash);
+  bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
 
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;

@@ -246,7 +246,7 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
-             compare_pbft_cs_block_with_dag_blocks_(
+             comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           cert_voted_values_for_round[pbft_round_] =
               soft_voted_block_for_this_round.first;
@@ -311,7 +311,7 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
-             compare_pbft_cs_block_with_dag_blocks_(
+             comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
@@ -369,7 +369,7 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
-             compare_pbft_cs_block_with_dag_blocks_(
+             comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
@@ -622,9 +622,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     if (!last_round_pbft_anchor_block.second) {
       // Should not happen
       LOG(log_err_)
-          << "Can not find the last round pbft anchor block with block hash: "
+          << "Can not find the last round pbft pivot block with block hash: "
           << prev_pivot_hash;
-      return std::make_pair(blk_hash_t(0), false);
+      assert(false);
     }
     blk_hash_t last_round_dag_anchor_block_hash =
         last_round_pbft_anchor_block.first.getPivotBlock().getDagBlockHash();
@@ -655,7 +655,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       // Should not happen
       LOG(log_err_) << "Can not find last pbft block with block hash: "
                     << last_block_hash;
-      return std::make_pair(blk_hash_t(0), false);
+      assert(false);
     }
     blk_hash_t dag_block_hash =
         last_pbft_block.first.getPivotBlock().getDagBlockHash();
@@ -942,7 +942,7 @@ void PbftManager::syncPbftChainFromPeers_() {
   }
 }
 
-bool PbftManager::compare_pbft_cs_block_with_dag_blocks_(
+bool PbftManager::comparePbftCSblockWithDAGblocks_(
     blk_hash_t const &cs_block_hash) {
   std::pair<PbftBlock, bool> cs_block =
       pbft_chain_->getPbftBlockInQueue(cs_block_hash);
@@ -960,7 +960,7 @@ bool PbftManager::compare_pbft_cs_block_with_dag_blocks_(
     // Should not happen
     LOG(log_err_) << "Can not find last pbft block with block hash: "
                   << last_block_hash;
-    return false;
+    assert(false);
   }
   blk_hash_t dag_block_hash =
       last_pbft_block.first.getPivotBlock().getDagBlockHash();
