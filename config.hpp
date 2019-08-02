@@ -21,6 +21,7 @@ struct RpcConfig {
   RpcConfig(std::string const &json_file);
   std::string json_file_name;
   uint16_t port;
+  uint16_t ws_port;
   boost::asio::ip::address address;
 };
 

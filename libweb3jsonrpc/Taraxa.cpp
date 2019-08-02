@@ -319,9 +319,39 @@ Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
 
 Json::Value Taraxa::taraxa_getTransactionReceipt(
     string const& _transactionHash) {
+  if (auto full_node = full_node_.lock()) {
+    Json::Value res;
+    res["transactionHash"] = _transactionHash;
+    auto trx = full_node->getTransaction(taraxa::trx_hash_t(_transactionHash));
+    if (trx) {
+      auto json_trx = toJson(trx);
+      auto blk_hash = full_node->getDagBlockFromTransaction(trx->getHash());
+      if (!blk_hash.isZero()) {
+        auto blk = full_node->getDagBlock(blk_hash);
+        if (blk) {
+          auto height = full_node->getDagBlockHeight(blk->getHash());
+          if (height.second) {
+            for (int i = 0; i < blk->getTrxs().size(); i++) {
+              if (taraxa::trx_hash_t(_transactionHash) == blk->getTrxs()[i]) {
+                res["transactionIndex"] = toJS(i);
+                res["blockNumber"] = toJS(height.first);
+                res["blockHash"] = toJS(blk_hash);
+                res["cumulativeGasUsed"] = toJS(0);
+                res["gasUsed"] = toJS(0);
+                res["contractAddress"] = Json::Value();
+                res["logs"] = Json::Value(Json::arrayValue);
+                res["logsBloom"] = i;
+                res["status"] = toJS(1);
+                return res;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   return Json::Value();
 }
-
 Json::Value Taraxa::taraxa_getUncleByBlockHashAndIndex(
     string const& _blockHash, string const& _uncleIndex) {
   return Json::Value();

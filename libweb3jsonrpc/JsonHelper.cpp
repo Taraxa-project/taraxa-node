@@ -77,7 +77,12 @@ Json::Value toJson(p2p::PeerSessionInfo const& _p) {
 Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t) {
   Json::Value tr_js;
   tr_js["hash"] = toJS(_t->getHash());
-  tr_js["input"] = toJS(_t->getData());
+  // It seems that it is expected by block explorer for input to be 0x0 if no
+  // input
+  if (_t->getData().size() > 0)
+    tr_js["input"] = toJS(_t->getData());
+  else
+    tr_js["input"] = toJS(0);
   tr_js["to"] = toJS(_t->getReceiver());
   tr_js["from"] = toJS(_t->getSender());
   tr_js["gas"] = toJS(_t->getGas());
@@ -91,9 +96,9 @@ Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t) {
   return tr_js;
 }
 
-Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block, uint64_t block_height) {
+Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block,
+                   uint64_t block_height) {
   Json::Value res;
-  //block->updateHash();
   static const auto MOCK_BLOCK_GAS_LIMIT =
       toJS(std::numeric_limits<uint64_t>::max());
   res["hash"] = toJS(block->getHash());
@@ -107,8 +112,8 @@ Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block, uint64_t block_hei
   res["extraData"] = "";
   res["logsBloom"] = "";
   res["timestamp"] = std::to_string(0x54e34e8e + block_height * 100);
-  res["author"] = "0x4e65fda2159562a496f9f3522f89122a3088497a";
-  res["miner"] = "0x4e65fda2159562a496f9f3522f89122a3088497a";
+  res["author"] = toJS(block->getSender());
+  res["miner"] = toJS(block->getSender());;
   res["nonce"] = "0x7bb9369dcbaec019";
   res["sha3Uncles"] = "0x0";
   res["difficulty"] = "0x0";

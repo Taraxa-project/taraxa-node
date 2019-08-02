@@ -54,10 +54,8 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libweb3jsonrpc/Taraxa.o \
 	${OBJECTDIR}/libweb3jsonrpc/Personal.o \
 	${OBJECTDIR}/libweb3jsonrpc/RpcServer.o \
+	${OBJECTDIR}/libweb3jsonrpc/WSServer.o \
 
-
-#	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
-#	${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o \
 	
 ${OBJECTDIR}/libdevcore/Address.o: libdevcore/Address.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -393,5 +391,11 @@ ${OBJECTDIR}/libweb3jsonrpc/RpcServer.o: libweb3jsonrpc/RpcServer.cpp
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/RpcServer.o libweb3jsonrpc/RpcServer.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libweb3jsonrpc/WSServer.o: libweb3jsonrpc/WSServer.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
+	${RM} "$@.d"
+	${CXX} ${CXXFLAGS2} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/WSServer.o libweb3jsonrpc/WSServer.cpp $(CPPFLAGS)
 
 
