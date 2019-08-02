@@ -281,30 +281,32 @@ createMockDagBlkSamplesWithSignedTransactions(
 }
 
 //
-inline std::vector<DagBlock> createMockDag0(std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000") {
+inline std::vector<DagBlock> createMockDag0(
+    std::string genesis =
+        "0000000000000000000000000000000000000000000000000000000000000000") {
   std::vector<DagBlock> blks;
   DagBlock dummy;
   DagBlock blk1(blk_hash_t(genesis),  // pivot
-                1,              // level
-                {},             // tips
-                {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(1),  // hash
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
+                blk_hash_t(1),        // hash
                 addr_t(123));
 
   DagBlock blk2(blk_hash_t(genesis),  // pivot
-                1,              // level
-                {},             // tips
-                {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(2),  // hash
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
+                blk_hash_t(2),        // hash
                 addr_t(123));
   DagBlock blk3(blk_hash_t(genesis),  // pivot
-                1,              // level
-                {},             // tips
-                {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(3),  // hash
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
+                blk_hash_t(3),        // hash
                 addr_t(123));
   DagBlock blk4(blk_hash_t(1),  // pivot
                 2,              // level

@@ -220,7 +220,8 @@ TEST_F(FullNodeTest, full_node_reset) {
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
-  auto nw2(std::make_shared<taraxa::Network>(conf2.network, conf2.genesis_state.block.getHash().toString()));
+  auto nw2(std::make_shared<taraxa::Network>(
+      conf2.network, conf2.genesis_state.block.getHash().toString()));
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -230,8 +231,8 @@ TEST_F(FullNodeTest, full_node_reset) {
   nw2->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(conf2.genesis_state.block.getHash(), 0, {}, {}, sig_t(77777), blk_hash_t(1),
-                addr_t(16));
+  DagBlock blk1(conf2.genesis_state.block.getHash(), 0, {}, {}, sig_t(77777),
+                blk_hash_t(1), addr_t(16));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(77777), blk_hash_t(2),
                 addr_t(16));
   DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(77777), blk_hash_t(3),
@@ -535,13 +536,13 @@ TEST_F(TopTest, sync_five_nodes_simple) {
 }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
-
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
 
-  g_mock_dag0 = samples::createMockDag0(node->getConfig().genesis_state.block.getHash().toString());
+  g_mock_dag0 = samples::createMockDag0(
+      node->getConfig().genesis_state.block.getHash().toString());
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
@@ -662,7 +663,7 @@ TEST(Top, destroy_db) {
     auto trx_db = node->getTrxsDB();
     trx_db->put(g_trx_signed_samples[0].getHash().toString(),
                 g_trx_signed_samples[0].getJsonStr());
-    //Verify trx saved in db
+    // Verify trx saved in db
     EXPECT_TRUE(
         !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
     trx_db->commit();
@@ -677,7 +678,7 @@ TEST(Top, destroy_db) {
                                                  false));  // destroy DB
     node->start(false);
     auto trx_db = node->getTrxsDB();
-    //Verify trx saved in db after restart with destroy_db false
+    // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(
         !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
     trx_db = nullptr;
@@ -691,7 +692,7 @@ TEST(Top, destroy_db) {
                                                  true));  // destroy DB
     node->start(false);
     auto trx_db = node->getTrxsDB();
-    //Verify trx not in db after restart with destroy_db true
+    // Verify trx not in db after restart with destroy_db true
     EXPECT_TRUE(
         trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
     trx_db = nullptr;
@@ -715,7 +716,8 @@ TEST(Top, reconstruct_dag) {
     auto node(std::make_shared<taraxa::FullNode>(context, conf,
                                                  true));  // destroy DB
 
-    g_mock_dag0 = samples::createMockDag0(conf.genesis_state.block.getHash().toString());
+    g_mock_dag0 =
+        samples::createMockDag0(conf.genesis_state.block.getHash().toString());
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -1035,7 +1037,8 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
-  auto nw2(std::make_shared<taraxa::Network>(conf2.network, conf2.genesis_state.block.getHash().toString()));
+  auto nw2(std::make_shared<taraxa::Network>(
+      conf2.network, conf2.genesis_state.block.getHash().toString()));
 
   std::unique_ptr<boost::asio::io_context::work> work(
       new boost::asio::io_context::work(context1));
@@ -1045,8 +1048,8 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
   nw2->start();
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(conf2.genesis_state.block.getHash(), 1, {}, {}, sig_t(77777), blk_hash_t(1),
-                addr_t(16));
+  DagBlock blk1(conf2.genesis_state.block.getHash(), 1, {}, {}, sig_t(77777),
+                blk_hash_t(1), addr_t(16));
   DagBlock blk2(blk_hash_t(1), 2, {}, {}, sig_t(77777), blk_hash_t(2),
                 addr_t(16));
   DagBlock blk3(blk_hash_t(2), 3, {}, {}, sig_t(77777), blk_hash_t(3),

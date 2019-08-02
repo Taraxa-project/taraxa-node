@@ -52,12 +52,15 @@ FullNode::FullNode(boost::asio::io_context &io_context,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
       trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
-      dag_mgr_(std::make_shared<DagManager>(conf_.genesis_state.block.getHash().toString())),
+      dag_mgr_(std::make_shared<DagManager>(
+          conf_.genesis_state.block.getHash().toString())),
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
           trx_mgr_->getShared())),
       vote_mgr_(std::make_shared<VoteManager>()),
-      pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString())),
+      pbft_mgr_(std::make_shared<PbftManager>(
+          conf_.test_params.pbft,
+          conf_.genesis_state.block.getHash().toString())),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
@@ -70,11 +73,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     key = dev::KeyPair(secret);
   }
   if (rebuild_network) {
-    network_ =
-        std::make_shared<Network>(conf_full_node.network, "", key.secret(), conf_.genesis_state.block.getHash().toString());
+    network_ = std::make_shared<Network>(
+        conf_full_node.network, "", key.secret(),
+        conf_.genesis_state.block.getHash().toString());
   } else {
-    network_ = std::make_shared<Network>(conf_full_node.network,
-                                         conf_.db_path + "/net", key.secret(), conf_.genesis_state.block.getHash().toString());
+    network_ = std::make_shared<Network>(
+        conf_full_node.network, conf_.db_path + "/net", key.secret(),
+        conf_.genesis_state.block.getHash().toString());
   }
   node_sk_ = key.secret();
   node_pk_ = key.pub();
@@ -399,16 +404,20 @@ bool FullNode::reset() {
   received_trxs_ = 0;
 
   // init
-  network_ = std::make_shared<Network>(conf_.network, "", node_sk_, conf_.genesis_state.block.getHash().toString());
+  network_ =
+      std::make_shared<Network>(conf_.network, "", node_sk_,
+                                conf_.genesis_state.block.getHash().toString());
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
   trx_mgr_ = std::make_shared<TransactionManager>();
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
-  dag_mgr_ = std::make_shared<DagManager>(conf_.genesis_state.block.getHash().toString());
+  dag_mgr_ = std::make_shared<DagManager>(
+      conf_.genesis_state.block.getHash().toString());
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
       trx_mgr_->getShared());
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
+  pbft_mgr_ = std::make_shared<PbftManager>(
+      conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
   vote_mgr_ = std::make_shared<VoteManager>();
   pbft_chain_ = std::make_shared<PbftChain>();
   executor_ =

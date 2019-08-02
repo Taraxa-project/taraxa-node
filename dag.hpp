@@ -85,7 +85,7 @@ class Dag {
 
   using ulock = std::unique_lock<std::mutex>;
 
-  Dag(std::string  const &genesis);
+  Dag(std::string const &genesis);
   ~Dag();
   void setVerbose(bool verbose);
   void setDebug(bool debug);
@@ -179,7 +179,7 @@ class Dag {
 
 class PivotTree : public Dag {
  public:
-  PivotTree(std::string const &genesis) : Dag(genesis) {};
+  PivotTree(std::string const &genesis) : Dag(genesis){};
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_name_map_const_t = Dag::vertex_name_map_const_t;

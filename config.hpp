@@ -44,8 +44,8 @@ struct NetworkConfig {
 
 // Parameter Tuning purpose
 struct TestParamsConfig {
-  std::vector<uint> block_proposer;         // test_params.block_proposer
-  std::vector<uint> pbft;                   // test_params.pbft
+  std::vector<uint> block_proposer;  // test_params.block_proposer
+  std::vector<uint> pbft;            // test_params.pbft
 };
 
 struct FullNodeConfig {

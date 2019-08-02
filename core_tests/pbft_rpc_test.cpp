@@ -27,7 +27,8 @@ struct NetworkTest : public DBUsingTest<> {};
 struct VoteManagerTest : public DBUsingTest<> {};
 
 TEST_F(PbftManagerTest, pbft_manager_lambda_input_test) {
-  const std::string GENESIS = "0000000000000000000000000000000000000000000000000000000000000000";
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   uint lambda_ms = 1000;
   uint committee_size = 3;
   uint valid_sortition_coins = 10000;
