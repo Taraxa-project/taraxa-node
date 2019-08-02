@@ -622,9 +622,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     if (!last_round_pbft_anchor_block.second) {
       // Should not happen
       LOG(log_err_)
-          << "Can not find the last round pbft anchor block with block hash: "
+          << "Can not find the last round pbft pivot block with block hash: "
           << prev_pivot_hash;
-      return std::make_pair(blk_hash_t(0), false);
+      assert(false);
     }
     blk_hash_t last_round_dag_anchor_block_hash =
         last_round_pbft_anchor_block.first.getPivotBlock().getDagBlockHash();
@@ -655,7 +655,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       // Should not happen
       LOG(log_err_) << "Can not find last pbft block with block hash: "
                     << last_block_hash;
-      return std::make_pair(blk_hash_t(0), false);
+      assert(false);
     }
     blk_hash_t dag_block_hash =
         last_pbft_block.first.getPivotBlock().getDagBlockHash();
@@ -960,7 +960,7 @@ bool PbftManager::compare_pbft_cs_block_with_dag_blocks_(
     // Should not happen
     LOG(log_err_) << "Can not find last pbft block with block hash: "
                   << last_block_hash;
-    return false;
+    assert(false);
   }
   blk_hash_t dag_block_hash =
       last_pbft_block.first.getPivotBlock().getDagBlockHash();
