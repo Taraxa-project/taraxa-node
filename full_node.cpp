@@ -626,7 +626,7 @@ blk_hash_t FullNode::getLatestAnchor() const {
 }
 
 std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-FullNode::getTransactionOverlapTable(
+FullNode::computeTransactionOverlapTablelapTable(
     std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
   std::vector<std::shared_ptr<DagBlock>> blks;
   for (auto const &b : *ordered_dag_blocks) {

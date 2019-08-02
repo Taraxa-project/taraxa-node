@@ -157,7 +157,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-  getTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
+  computeTransactionOverlapTablelapTable(
+      std::shared_ptr<vec_blk_t> ordered_dag_blocks);
 
   std::vector<std::vector<uint>> createMockTrxSchedule(
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
