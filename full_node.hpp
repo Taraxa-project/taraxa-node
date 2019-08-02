@@ -282,9 +282,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  // TODO: need to shrink later
-  // TODO: need to shrink later
-  std::unordered_set<vote_hash_t> known_votes_;  // per node itself
 
   // debugger
   std::mutex debug_mutex_;
