@@ -155,6 +155,8 @@ void PbftManager::run() {
       continue;
     }
 
+    next_pbft_block_type_ = pbft_chain_->getNextPbftBlockType();
+
     if (pbft_step_ == 1) {
       // Value Proposal
       if (shouldSpeak(propose_vote_type, pbft_round_, pbft_step_)) {
@@ -239,13 +241,11 @@ void PbftManager::run() {
         should_go_to_step_four = true;
       } else {
         LOG(log_tra_) << "In step 3";
-        PbftBlockTypes next_pbft_block_type =
-            pbft_chain_->getNextPbftBlockType();
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            (next_pbft_block_type != schedule_block_type ||
+            (next_pbft_block_type_ != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           cert_voted_values_for_round[pbft_round_] =
@@ -304,13 +304,11 @@ void PbftManager::run() {
 
     } else if (pbft_step_ == 5) {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        PbftBlockTypes next_pbft_block_type =
-            pbft_chain_->getNextPbftBlockType();
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            (next_pbft_block_type != schedule_block_type ||
+            (next_pbft_block_type_ != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
@@ -362,13 +360,11 @@ void PbftManager::run() {
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        PbftBlockTypes next_pbft_block_type =
-            pbft_chain_->getNextPbftBlockType();
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            (next_pbft_block_type != schedule_block_type ||
+            (next_pbft_block_type_ != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
@@ -604,8 +600,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     return std::make_pair(blk_hash_t(0), false);
   }
   PbftBlock pbft_block;
-  PbftBlockTypes current_block_type = pbft_chain_->getNextPbftBlockType();
-  if (current_block_type == pivot_block_type) {
+  if (next_pbft_block_type_ == pivot_block_type) {
     LOG(log_deb_) << "Into propose anchor block";
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -644,7 +639,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
-  } else if (current_block_type == schedule_block_type) {
+  } else if (next_pbft_block_type_ == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
     uint64_t timestamp = std::time(nullptr);
     // get dag block hash from the last pbft block(pivot) in pbft chain
@@ -714,8 +709,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_);
-  PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
-  LOG(log_deb_) << "leader block type should be: " << next_pbft_block_type;
+  LOG(log_deb_) << "leader block type should be: " << next_pbft_block_type_;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
@@ -778,8 +772,7 @@ bool PbftManager::pushPbftBlockIntoChain_(
     return false;
   }
 
-  PbftBlockTypes next_block_type = pbft_chain_->getNextPbftBlockType();
-  if (next_block_type == pivot_block_type) {
+  if (next_pbft_block_type_ == pivot_block_type) {
     if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
       updatePbftChainDB_(pbft_block.first);
       LOG(log_deb_) << "Successful push pbft anchor block "
@@ -799,7 +792,7 @@ bool PbftManager::pushPbftBlockIntoChain_(
 
       return true;
     }
-  } else if (next_block_type == schedule_block_type) {
+  } else if (next_pbft_block_type_ == schedule_block_type) {
     if (pbft_chain_->pushPbftScheduleBlock(pbft_block.first)) {
       updatePbftChainDB_(pbft_block.first);
       LOG(log_deb_) << "Successful push pbft schedule block "
@@ -881,44 +874,44 @@ bool PbftManager::updatePbftChainDB_(PbftBlock const &pbft_block) {
 }
 
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
-  std::pair<PbftBlock, bool> cert_vote_block =
+  std::pair<PbftBlock, bool> cert_voted_block =
       pbft_chain_->getPbftBlockInQueue(block_hash);
-  if (!cert_vote_block.second) {
-    LOG(log_deb_) << "Cannot find the pbft block hash in queue, block hash "
+  if (!cert_voted_block.second) {
+    LOG(log_inf_) << "Cannot find the pbft block hash in queue, block hash "
                   << block_hash;
     return false;
   }
-  PbftBlockTypes cert_block_type = cert_vote_block.first.getBlockType();
-  if (pbft_chain_->getNextPbftBlockType() != cert_block_type) {
-    LOG(log_deb_) << "Pbft chain next pbft block type should be "
-                  << pbft_chain_->getNextPbftBlockType()
+  PbftBlockTypes cert_voted_block_type = cert_voted_block.first.getBlockType();
+  if (next_pbft_block_type_ != cert_voted_block_type) {
+    LOG(log_inf_) << "Pbft chain next pbft block type should be "
+                  << next_pbft_block_type_
                   << " Invalid pbft block type "
-                  << cert_vote_block.first.getBlockType();
+                  << cert_voted_block.first.getBlockType();
     return false;
   }
-  if (cert_block_type == pivot_block_type) {
+  if (cert_voted_block_type == pivot_block_type) {
     blk_hash_t prev_pivot_block_hash =
-        cert_vote_block.first.getPivotBlock().getPrevPivotBlockHash();
+        cert_voted_block.first.getPivotBlock().getPrevPivotBlockHash();
     if (pbft_chain_->getLastPbftPivotHash() != prev_pivot_block_hash) {
-      LOG(log_deb_) << "Pbft chain last pivot block hash "
+      LOG(log_inf_) << "Pbft chain last pivot block hash "
                     << pbft_chain_->getLastPbftPivotHash()
                     << " Invalid pbft prev pivot block hash "
                     << prev_pivot_block_hash;
       return false;
     }
     blk_hash_t prev_block_hash =
-        cert_vote_block.first.getPivotBlock().getPrevBlockHash();
+        cert_voted_block.first.getPivotBlock().getPrevBlockHash();
     if (pbft_chain_->getLastPbftBlockHash() != prev_block_hash) {
-      LOG(log_deb_) << "Pbft chain last block hash "
+      LOG(log_inf_) << "Pbft chain last block hash "
                     << pbft_chain_->getLastPbftBlockHash()
                     << " Invalid pbft prev block hash " << prev_block_hash;
       return false;
     }
-  } else if (cert_block_type == schedule_block_type) {
+  } else if (cert_voted_block_type == schedule_block_type) {
     blk_hash_t prev_block_hash =
-        cert_vote_block.first.getScheduleBlock().getPrevBlockHash();
+        cert_voted_block.first.getScheduleBlock().getPrevBlockHash();
     if (pbft_chain_->getLastPbftBlockHash() != prev_block_hash) {
-      LOG(log_deb_) << "Pbft chain last block hash "
+      LOG(log_inf_) << "Pbft chain last block hash "
                     << pbft_chain_->getLastPbftBlockHash()
                     << " Invalid pbft prev block hash " << prev_block_hash;
       return false;

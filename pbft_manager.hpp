@@ -102,13 +102,17 @@ class PbftManager {
   bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
 
   bool stopped_ = true;
+  PbftBlockTypes next_pbft_block_type_ = pbft_block_none_type;
+
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<std::thread> daemon_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<TaraxaCapability> capability_;
+  // Database
   std::shared_ptr<SimpleDBFace> db_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
-  std::shared_ptr<TaraxaCapability> capability_;
+
 
   uint64_t pbft_round_ = 1;
   size_t pbft_step_ = 1;
