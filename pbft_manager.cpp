@@ -237,10 +237,15 @@ void PbftManager::run() {
         should_go_to_step_four = true;
       } else {
         LOG(log_tra_) << "In step 3";
+        PbftBlockTypes next_pbft_block_type =
+            pbft_chain_->getNextPbftBlockType();
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH) {
+            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
+            (next_pbft_block_type != schedule_block_type ||
+             compare_pbft_cs_block_with_dag_blocks_(
+                 soft_voted_block_for_this_round.first))) {
           cert_voted_values_for_round[pbft_round_] =
               soft_voted_block_for_this_round.first;
           should_go_to_step_four = true;
@@ -265,7 +270,7 @@ void PbftManager::run() {
         next_step_time_ms = 4 * LAMBDA_ms;
         pbft_step_ += 1;
       } else {
-        next_step_time_ms = next_step_time_ms + POLLING_INTERVAL_ms;
+        next_step_time_ms += POLLING_INTERVAL_ms;
       }
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
@@ -297,10 +302,15 @@ void PbftManager::run() {
 
     } else if (pbft_step_ == 5) {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
+        PbftBlockTypes next_pbft_block_type =
+            pbft_chain_->getNextPbftBlockType();
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH) {
+            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
+            (next_pbft_block_type != schedule_block_type ||
+             compare_pbft_cs_block_with_dag_blocks_(
+                 soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
                         << " for round " << pbft_round_;
@@ -350,10 +360,15 @@ void PbftManager::run() {
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
+        PbftBlockTypes next_pbft_block_type =
+            pbft_chain_->getNextPbftBlockType();
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH) {
+            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
+            (next_pbft_block_type != schedule_block_type ||
+             compare_pbft_cs_block_with_dag_blocks_(
+                 soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
                         << " for round " << pbft_round_;
@@ -923,6 +938,78 @@ void PbftManager::syncPbftChainFromPeers_() {
       capability_->syncPeerPbft(peer);
     }
   }
+}
+
+bool PbftManager::compare_pbft_cs_block_with_dag_blocks_(
+    blk_hash_t const &cs_block_hash) {
+  std::pair<PbftBlock, bool> cs_block =
+      pbft_chain_->getPbftBlockInQueue(cs_block_hash);
+  if (!cs_block.second) {
+    LOG(log_inf_) << "Have not got the PBFT CS block yet. block hash: "
+                  << cs_block_hash;
+    return false;
+  }
+
+  // get dag block hash from the last pbft pivot block in pbft chain
+  blk_hash_t last_block_hash = pbft_chain_->getLastPbftPivotHash();
+  std::pair<PbftBlock, bool> last_pbft_block =
+      pbft_chain_->getPbftBlockInChain(last_block_hash);
+  if (!last_pbft_block.second) {
+    // Should not happen
+    LOG(log_err_) << "Can not find last pbft block with block hash: "
+                  << last_block_hash;
+    return false;
+  }
+  blk_hash_t dag_block_hash =
+      last_pbft_block.first.getPivotBlock().getDagBlockHash();
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return false;
+  }
+  // get dag blocks order
+  uint64_t pbft_chain_period;
+  std::shared_ptr<vec_blk_t> dag_blocks_order;
+  std::tie(pbft_chain_period, dag_blocks_order) =
+      full_node->getDagBlockOrder(dag_block_hash);
+  // compare blocks hash in CS with DAG blocks
+  vec_blk_t blocks_in_cs =
+      cs_block.first.getScheduleBlock().getSchedule().blk_order;
+  if (blocks_in_cs.size() == dag_blocks_order->size()) {
+    for (auto i = 0; i < blocks_in_cs.size(); i++) {
+      if (blocks_in_cs[i] != (*dag_blocks_order)[i]) {
+        LOG(log_err_) << "Block hash: " << blocks_in_cs[i]
+                      << " in PBFT CS is different with DAG block hash "
+                      << (*dag_blocks_order)[i];
+        return false;
+      }
+    }
+  } else {
+    LOG(log_inf_) << "DAG blocks have not sync yet. in period: "
+                  << pbft_chain_period << " PBFT CS blocks size: "
+                  << blocks_in_cs.size() << " DAG blocks size: "
+                  << dag_blocks_order->size();
+    return false;
+  }
+  // compare number of transactions in CS with DAG blocks
+  // PBFT CS block number of transactions
+  std::vector<std::vector<uint>> trx_modes =
+      cs_block.first.getScheduleBlock().getSchedule().vec_trx_modes;
+  for (int i = 0; i < dag_blocks_order->size(); i++) {
+    std::shared_ptr<DagBlock> dag_block =
+        full_node->getDagBlock((*dag_blocks_order)[i]);
+    // DAG block transations
+    vec_trx_t dag_block_trxs = dag_block->getTrxs();
+    if (trx_modes[i].size() != dag_block_trxs.size()) {
+      LOG(log_err_) << "In DAG block hash: " << (*dag_blocks_order)[i]
+                    << " has " << dag_block_trxs.size()
+                    << " transactions. But the DAG block in PBFT CS block only"
+                    << " has " << trx_modes[i].size() << " transactions.";
+      return false;
+    }
+  }
+
+  return true;
 }
 
 }  // namespace taraxa
