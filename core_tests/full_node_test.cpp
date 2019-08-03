@@ -980,7 +980,7 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
     EXPECT_EQ(cur_period, cur_period2);
     EXPECT_EQ(cur_period, ++period);
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-        trx_overlap_table = node->computeTransactionOverlapTablelapTable(order);
+        trx_overlap_table = node->computeTransactionOverlapTable(order);
     EXPECT_NE(trx_overlap_table, nullptr);
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);
@@ -999,7 +999,7 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
         node->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-        trx_overlap_table = node->computeTransactionOverlapTablelapTable(order);
+        trx_overlap_table = node->computeTransactionOverlapTable(order);
     EXPECT_NE(trx_overlap_table, nullptr);
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);
@@ -1631,7 +1631,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
   std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
   EXPECT_GT(order->size(), 5);
   std::cout << "Ordered dagblock size: " << order->size() << std::endl;
-  auto overlap_table = node1->computeTransactionOverlapTablelapTable(order);
+  auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
   std::unordered_set<trx_hash_t> ordered_trxs;
   uint packed_trxs = 0;
