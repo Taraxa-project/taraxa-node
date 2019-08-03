@@ -667,7 +667,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     // get transactions overlap table,
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
         trx_overlap_table =
-            full_node->computeTransactionOverlapTablelapTable(dag_blocks_order);
+            full_node->computeTransactionOverlapTable(dag_blocks_order);
     if (!trx_overlap_table) {
       LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
                     << "transactions schedule";
