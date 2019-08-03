@@ -889,8 +889,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   PbftBlockTypes cert_voted_block_type = cert_voted_block.first.getBlockType();
   if (next_pbft_block_type_ != cert_voted_block_type) {
     LOG(log_inf_) << "Pbft chain next pbft block type should be "
-                  << next_pbft_block_type_
-                  << " Invalid pbft block type "
+                  << next_pbft_block_type_ << " Invalid pbft block type "
                   << cert_voted_block.first.getBlockType();
     return false;
   }
