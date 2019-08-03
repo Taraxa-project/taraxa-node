@@ -220,7 +220,7 @@ def start_nodes_one_by_one_test():
 
     start_full_node_process(1)
     get_peer_count(1)
-    time.sleep(15)
+    time.sleep(5)
     get_account_balance(node_ip, nodes_port[0], boot_node_address)
 
     start_full_node_process(2)
