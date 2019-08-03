@@ -103,6 +103,9 @@ class PbftManager {
 
   bool stopped_ = true;
   PbftBlockTypes next_pbft_block_type_ = pbft_block_none_type;
+  // Using to check if PBFT CS block has proposed already in one period
+  std::pair<blk_hash_t, bool> proposed_block_hash_ =
+      std::make_pair(NULL_BLOCK_HASH, false);
 
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<std::thread> daemon_;

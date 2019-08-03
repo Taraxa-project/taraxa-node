@@ -135,7 +135,7 @@ void PbftManager::run() {
       pbft_round_ = consensus_pbft_round;
       std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRound_(
           cert_vote_type, votes, pbft_round_ - 1,
-          std::make_pair(blk_hash_t(0), false));
+          std::make_pair(NULL_BLOCK_HASH, false));
       std::pair<blk_hash_t, bool> cert_voted_block_hash =
           blockWithEnoughVotes_(cert_votes_for_round);
       if (cert_voted_block_hash.second) {
@@ -168,11 +168,14 @@ void PbftManager::run() {
         } else if (push_block_values_for_round.count(pbft_round_ - 1) ||
                    (pbft_round_ >= 2 &&
                     nullBlockNextVotedForRound_(votes, pbft_round_ - 1))) {
-          // Propose value...
-          std::pair<blk_hash_t, bool> proposed_block_hash =
-              proposeMyPbftBlock_();
-          if (proposed_block_hash.second) {
-            placeVote_(proposed_block_hash.first, propose_vote_type,
+          // PBFT CS block only be proposed once in one period
+          if (next_pbft_block_type_ != schedule_block_type ||
+              !proposed_block_hash_.second) {
+            // Propose value...
+            proposed_block_hash_ = proposeMyPbftBlock_();
+          }
+          if (proposed_block_hash_.second) {
+            placeVote_(proposed_block_hash_.first, propose_vote_type,
                        pbft_round_, pbft_step_);
           }
         } else if (pbft_round_ >= 2) {
@@ -475,7 +478,7 @@ size_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
     if (vp.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round = getVotesOfTypeFromVotesForRound_(
           next_vote_type, votes, vp.first,
-          std::make_pair(blk_hash_t(0), false));
+          std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round).second) {
         return vp.first + 1;
       }
@@ -506,7 +509,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
       if (!vote_type_and_round_is_consistent) {
         LOG(log_err_) << "Vote types and rounds were not internally"
                          " consistent!";
-        return std::make_pair(blk_hash_t(0), false);
+        return std::make_pair(NULL_BLOCK_HASH, false);
       }
     }
 
@@ -528,7 +531,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
     }
   }
 
-  return std::make_pair(blk_hash_t(0), false);
+  return std::make_pair(NULL_BLOCK_HASH, false);
 }
 
 bool PbftManager::nullBlockNextVotedForRound_(std::vector<Vote> &votes,
@@ -562,7 +565,7 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRound_(
 std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForRound_(
     std::vector<Vote> &votes, uint64_t round) {
   std::vector<Vote> next_votes_for_round = getVotesOfTypeFromVotesForRound_(
-      next_vote_type, votes, round, std::make_pair(blk_hash_t(0), false));
+      next_vote_type, votes, round, std::make_pair(NULL_BLOCK_HASH, false));
 
   return blockWithEnoughVotes_(next_votes_for_round);
 }
@@ -588,7 +591,7 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(
     std::vector<taraxa::Vote> &votes, uint64_t round) {
   std::vector<Vote> soft_votes_for_round = getVotesOfTypeFromVotesForRound_(
-      soft_vote_type, votes, round, std::make_pair(blk_hash_t(0), false));
+      soft_vote_type, votes, round, std::make_pair(NULL_BLOCK_HASH, false));
 
   return blockWithEnoughVotes_(soft_votes_for_round);
 }
@@ -597,7 +600,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
-    return std::make_pair(blk_hash_t(0), false);
+    return std::make_pair(NULL_BLOCK_HASH, false);
   }
   PbftBlock pbft_block;
   if (next_pbft_block_type_ == pivot_block_type) {
@@ -668,12 +671,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     if (!trx_overlap_table) {
       LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
                     << "transactions schedule";
-      return std::make_pair(blk_hash_t(0), false);
+      return std::make_pair(NULL_BLOCK_HASH, false);
     }
     if (trx_overlap_table->empty()) {
       LOG(log_deb_) << "Transaction overlap table is empty, no DAG block needs "
                     << " generate mock trx schedule";
-      return std::make_pair(blk_hash_t(0), false);
+      return std::make_pair(NULL_BLOCK_HASH, false);
     }
 
     // TODO: generate fake transaction schedule for now, will pass
@@ -720,7 +723,7 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   }
   if (leader_candidates.empty()) {
     // no eligible leader
-    return std::make_pair(blk_hash_t(0), false);
+    return std::make_pair(NULL_BLOCK_HASH, false);
   }
   std::pair<blk_hash_t, blk_hash_t> leader = leader_candidates[0];
   for (auto const &candinate : leader_candidates) {
@@ -774,6 +777,8 @@ bool PbftManager::pushPbftBlockIntoChain_(
 
   if (next_pbft_block_type_ == pivot_block_type) {
     if (pbft_chain_->pushPbftPivotBlock(pbft_block.first)) {
+      // reset proposed PBFT block hash to False for next CS block proposal
+      proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
       updatePbftChainDB_(pbft_block.first);
       LOG(log_deb_) << "Successful push pbft anchor block "
                     << pbft_block.first.getBlockHash() << " into chain!";
