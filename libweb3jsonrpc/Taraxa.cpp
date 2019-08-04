@@ -177,7 +177,9 @@ Json::Value Taraxa::taraxa_getTransactionByHash(
   }
   auto trx_js = toJson(*trx);
   auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
-  if (blk_hash.isZero()) return trx_js;
+  if (blk_hash.isZero()) {
+    return trx_js;
+  }
   auto const& trxs = node->getDagBlock(blk_hash)->getTrxs();
   auto blk_num = node->getStateRegistry()->getNumber(blk_hash);
   if (blk_num) {
