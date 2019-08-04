@@ -188,9 +188,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
-  std::shared_ptr<StateRegistry> getStateRegistry() const {
-    return state_registry_;
-  }
   std::shared_ptr<StateRegistry::State> updateAndGetState() const {
     state_registry_->rebase(*state_);
     return state_;

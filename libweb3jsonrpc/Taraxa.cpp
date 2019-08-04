@@ -14,16 +14,20 @@ using namespace dev;
 using namespace eth;
 using namespace shh;
 using namespace dev::rpc;
-using namespace taraxa;
 
-Taraxa::Taraxa(std::shared_ptr<FullNode>& _full_node)
+Taraxa::Taraxa(std::shared_ptr<taraxa::FullNode>& _full_node)
     : full_node_(_full_node) {}
 
 string Taraxa::taraxa_protocolVersion() {
   return toJS(dev::p2p::c_protocolVersion);
 }
 
-string Taraxa::taraxa_coinbase() { return toJS(tryGetNode()->getAddress()); }
+string Taraxa::taraxa_coinbase() {
+  if (auto full_node = full_node_.lock()) {
+    return toJS(full_node->getAddress());
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+}
 
 string Taraxa::taraxa_hashrate() { return toJS("0"); }
 
@@ -31,107 +35,123 @@ bool Taraxa::taraxa_mining() { return false; }
 
 string Taraxa::taraxa_gasPrice() { return toJS("0"); }
 
-Json::Value Taraxa::taraxa_accounts() { return JSON_NULL; }
+Json::Value Taraxa::taraxa_accounts() { return Json::Value(); }
 
 string Taraxa::taraxa_blockNumber() {
-  return toJS(getSnapshot(tryGetNode(), BlockNumber::latest)->block_number);
+  if (auto full_node = full_node_.lock()) {
+    return toJS(full_node->getDagBlockMaxHeight());
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_getBalance(string const& _address,
                                  string const& _blockNumber) {
-  auto state = getState(tryGetNode(), BlockNumber::from(_blockNumber));
-  return state ? toJS(state->balance(addr_t(_address))) : "";
+  if (auto full_node = full_node_.lock()) {
+    return toJS(full_node->getBalance(taraxa::addr_t(_address)).first);
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_getStorageAt(string const& _address,
                                    string const& _position,
                                    string const& _blockNumber) {
-  auto state = getState(tryGetNode(), BlockNumber::from(_blockNumber));
-  return state ? toJS(state->storage(addr_t(_address), u256(_position))) : "";
+  return "";
 }
 
 string Taraxa::taraxa_getStorageRoot(string const& _address,
                                      string const& _blockNumber) {
-  auto state = getState(tryGetNode(), BlockNumber::from(_blockNumber));
-  return state ? toJS(state->storageRoot(addr_t(_address))) : "";
+  return "";
 }
 
 Json::Value Taraxa::taraxa_pendingTransactions() {
-  Json::Value ret(Json::arrayValue);
-  for (auto const& [_, trx] : tryGetNode()->getNewVerifiedTrxSnapShot(false)) {
-    ret.append(toJson(trx));
+  if (auto full_node = full_node_.lock()) {
+    auto trxs = full_node->getNewVerifiedTrxSnapShot(false);
+    auto js_trxs = Json::Value(Json::arrayValue);
+    for (auto& trx : trxs) {
+      Json::Value tr_js =
+          dev::toJson(std::make_shared<taraxa::Transaction>(trx.second));
+      js_trxs["transactions"].append(tr_js);
+    }
+    return js_trxs;
   }
-  return ret;
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_getTransactionCount(string const& _address,
                                           string const& _blockNumber) {
-  auto state = getState(tryGetNode(), BlockNumber::from(_blockNumber));
-  return state ? toJS(state->getNonce(addr_t(_address))) : "";
+  return toJS("0");  // TO DO look up nonce for the address
 }
 
 Json::Value Taraxa::taraxa_getBlockTransactionCountByHash(
     string const& _blockHash) {
-  auto blk = tryGetNode()->getDagBlock(blk_hash_t(_blockHash));
-  return blk ? toJS(blk->getTrxs().size()) : JSON_NULL;
+  if (auto full_node = full_node_.lock()) {
+    auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
+    if (block) return toJS(block->getTrxs().size());
+    return Json::Value();
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getBlockTransactionCountByNumber(
     string const& _blockNumber) {
-  auto node = tryGetNode();
-  auto snapshot = getSnapshot(node, BlockNumber::from(_blockNumber));
-  if (!snapshot) {
-    return JSON_NULL;
+  if (auto full_node = full_node_.lock()) {
+    auto block_hash =
+        full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
+    if (!block_hash.first.isZero()) {
+      auto block = full_node->getDagBlock(block_hash.first);
+      if (block) return toJS(block->getTrxs().size());
+    }
+    return Json::Value();
   }
-  return toJS(node->getDagBlock(snapshot->block_hash)->getTrxs().size());
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getUncleCountByBlockHash(string const& _blockHash) {
-  auto blk = tryGetNode()->getDagBlock(blk_hash_t(_blockHash));
-  return blk ? toJS(0) : JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getUncleCountByBlockNumber(
     string const& _blockNumber) {
-  auto snapshot = getSnapshot(tryGetNode(), BlockNumber::from(_blockNumber));
-  return snapshot ? toJS(0) : JSON_NULL;
+  return Json::Value();
 }
 
 string Taraxa::taraxa_getCode(string const& _address,
                               string const& _blockNumber) {
-  auto state = getState(tryGetNode(), BlockNumber::from(_blockNumber));
-  return state ? toJS(state->code(addr_t(_address))) : "";
+  return toJS("0x0");
 }
 
 string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
-  auto node = tryGetNode();
-  taraxa::Transaction trx(trx_hash_t("0x1"),
-                          taraxa::Transaction::Type::Call,  //
-                          val_t(1),
-                          val_t(std::stoul(_json["value"].asString(), 0, 16)),
-                          val_t((_json["gas_price"].asString())),
-                          val_t(_json["gas"].asString()),  //
-                          addr_t(_json["to"].asString()),
-                          taraxa::sig_t(),  //
-                          str2bytes(_json["data"].asString()));
-  node->insertTransaction(trx);
-  return toJS(trx.getHash());
+  if (auto full_node = full_node_.lock()) {
+    taraxa::Transaction trx(
+        taraxa::trx_hash_t("0x1"), taraxa::Transaction::Type::Call,
+        taraxa::val_t(1),
+        taraxa::val_t(std::stoul(_json["value"].asString(), 0, 16)),
+        taraxa::val_t((_json["gas_price"].asString())),
+        taraxa::val_t(_json["gas"].asString()),
+        taraxa::addr_t(_json["to"].asString()), taraxa::sig_t(),
+        taraxa::str2bytes(_json["data"].asString()));
+    full_node->insertTransaction(trx);
+    return toJS(trx.getHash());
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_signTransaction(Json::Value const& _json) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_inspectTransaction(std::string const& _rlp) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 string Taraxa::taraxa_sendRawTransaction(std::string const& _rlp) {
-  auto full_node = tryGetNode();
-  taraxa::Transaction trx(jsToBytes(_rlp, OnFailed::Throw));
-  trx.updateHash();
-  full_node->insertTransaction(trx);
-  return toJS(trx.getHash());
+  if (auto full_node = full_node_.lock()) {
+    taraxa::Transaction trx(jsToBytes(_rlp, OnFailed::Throw));
+    trx.updateHash();
+    full_node->insertTransaction(trx);
+    return toJS(trx.getHash());
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 string Taraxa::taraxa_call(Json::Value const& _json,
@@ -148,103 +168,168 @@ bool Taraxa::taraxa_flush() { return false; }
 
 Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
                                           bool _includeTransactions) {
-  auto node = tryGetNode();
-  blk_hash_t hash(_blockHash);
-  auto blk_num_opt = node->getStateRegistry()->getNumber(hash);
-  return blockToJson(node, hash, blk_num_opt, _includeTransactions);
+  if (auto full_node = full_node_.lock()) {
+    Json::Value res;
+    auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
+    uint64_t block_number = 0;
+    auto height = full_node->getDagBlockHeight(block->getHash());
+    if (height.second) block_number = height.first;
+    res = toJson(block, block_number);
+    for (unsigned i = 0; i < block->getTrxs().size(); i++) {
+      auto _t = full_node->getTransaction(block->getTrxs()[i]);
+      if (_includeTransactions) {
+        Json::Value tr_js = dev::toJson(_t);
+        tr_js["blockHash"] = toJS(block->getHash());
+        tr_js["transactionIndex"] = toJS(i);
+        if (height.second)
+          tr_js["blockNumber"] = toJS(height.first);
+        else
+          tr_js["blockNumber"] = Json::Value();
+        res["transactions"].append(tr_js);
+      } else {
+        res["transactions"].append(toJS(_t->getHash()));
+      }
+    }
+    return res;
+  }
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
                                             bool _includeTransactions) {
-  auto node = tryGetNode();
-  auto snapshot = getSnapshot(node, BlockNumber::from(_blockNumber));
-  if (!snapshot) {
-    return JSON_NULL;
+  if (auto full_node = full_node_.lock()) {
+    int block_number = 0;
+    if (_blockNumber == "latest") {
+      block_number = full_node->getDagBlockMaxHeight();
+    } else if (_blockNumber == "earliest") {
+      block_number = 0;
+    } else if (_blockNumber == "pending") {
+      block_number = full_node->getDagBlockMaxHeight() + 1;
+    } else {
+      block_number = std::stoi(_blockNumber, 0, 16);
+    }
+    Json::Value res;
+    auto block_hash = full_node->getDagBlockHash(block_number);
+    {
+      auto block = full_node->getDagBlock(block_hash.first);
+      if (block) {
+        res = toJson(block, block_number);
+        for (unsigned i = 0; i < block->getTrxs().size(); i++) {
+          auto _t = full_node->getTransaction(block->getTrxs()[i]);
+          if (_includeTransactions) {
+            Json::Value tr_js = dev::toJson(_t);
+            tr_js["blockHash"] = toJS(block->getHash());
+            tr_js["transactionIndex"] = toJS(i);
+            auto height = full_node->getDagBlockHeight(block->getHash());
+            if (height.second)
+              tr_js["blockNumber"] = toJS(height.first);
+            else
+              tr_js["blockNumber"] = Json::Value();
+            res["transactions"].append(tr_js);
+          } else {
+            res["transactions"].append(toJS(_t->getHash()));
+          }
+        }
+      }
+    }
+    return res;
   }
-  return blockToJson(node,
-                     snapshot->block_hash,    //
-                     snapshot->block_number,  //
-                     _includeTransactions);
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionByHash(
     string const& _transactionHash) {
-  auto node = tryGetNode();
-  trx_hash_t trx_hash(_transactionHash);
-  auto trx = node->getTransaction(trx_hash);
-  if (!trx) {
-    return JSON_NULL;
+  if (auto full_node = full_node_.lock()) {
+    Json::Value res;
+    auto trx = full_node->getTransaction(taraxa::trx_hash_t(_transactionHash));
+    if (trx) {
+      auto json_trx = toJson(trx);
+      auto blk_hash = full_node->getDagBlockFromTransaction(trx->getHash());
+      if (!blk_hash.isZero()) {
+        json_trx["blockHash"] = toJS(blk_hash);
+        auto blk = full_node->getDagBlock(blk_hash);
+        if (blk) {
+          auto height = full_node->getDagBlockHeight(blk->getHash());
+          if (height.second)
+            json_trx["blockNumber"] = toJS(height.first);
+          else
+            json_trx["blockNumber"] = Json::Value();
+        }
+      }
+      return json_trx;
+    }
+    return Json::Value();
   }
-  auto trx_js = toJson(*trx);
-  auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
-  if (blk_hash.isZero()) return trx_js;
-  auto const& trxs = node->getDagBlock(blk_hash)->getTrxs();
-  auto blk_num = node->getStateRegistry()->getNumber(blk_hash);
-  if (blk_num) {
-    trx_js["blockNumber"] = toJS(*blk_num);
-  }
-  trx_js["blockHash"] = toJS(blk_hash);
-  trx_js["transactionIndex"] = toJS(*taraxa::find(trxs, trx_hash));
-  return trx_js;
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
     string const& _blockHash, string const& _transactionIndex) {
-  auto node = tryGetNode();
-  auto trx_num = to_trx_num(_transactionIndex);
-  blk_hash_t blk_hash(_blockHash);
-  auto blk = node->getDagBlock(blk_hash);
-  if (!blk) {
-    return JSON_NULL;
+  if (auto full_node = full_node_.lock()) {
+    Json::Value res;
+    auto block = full_node->getDagBlock(taraxa::blk_hash_t(_blockHash));
+    auto trxs = block->getTrxs();
+    if (trxs.size() > std::stoi(_transactionIndex, 0, 16)) {
+      auto trx =
+          full_node->getTransaction(trxs[std::stoi(_transactionIndex, 0, 16)]);
+      if (trx) {
+        auto json_trx = toJson(trx);
+        json_trx["blockHash"] = toJS(block->getHash());
+        auto height = full_node->getDagBlockHeight(block->getHash());
+        if (height.second)
+          json_trx["blockNumber"] = toJS(height.first);
+        else
+          json_trx["blockNumber"] = Json::Value();
+        return json_trx;
+      }
+    }
   }
-  auto const& trxs = blk->getTrxs();
-  if (trx_num >= trxs.size()) {
-    return JSON_NULL;
-  }
-  auto trx = node->getTransaction(trxs[trx_num]);
-  auto trx_js = toJson(*trx);
-  auto blk_num = node->getStateRegistry()->getNumber(blk_hash);
-  if (blk_num) {
-    trx_js["blockNumber"] = toJS(*blk_num);
-  }
-  trx_js["blockHash"] = toJS(blk_hash);
-  trx_js["transactionIndex"] = toJS(trx_num);
-  return trx_js;
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
     string const& _blockNumber, string const& _transactionIndex) {
-  auto node = tryGetNode();
-  auto trx_num = to_trx_num(_transactionIndex);
-  auto snapshot = getSnapshot(node, BlockNumber::from(_blockNumber));
-  if (!snapshot) {
-    return JSON_NULL;
+  if (auto full_node = full_node_.lock()) {
+    Json::Value res;
+    auto block_hash =
+        full_node->getDagBlockHash(std::stoi(_blockNumber, 0, 16));
+    if (!block_hash.first.isZero()) {
+      auto block = full_node->getDagBlock(block_hash.first);
+      if (block) {
+        auto trxs = block->getTrxs();
+        if (trxs.size() > std::stoi(_transactionIndex, 0, 16)) {
+          auto trx = full_node->getTransaction(
+              trxs[std::stoi(_transactionIndex, 0, 16)]);
+          if (trx) {
+            auto json_trx = toJson(trx);
+            json_trx["blockHash"] = toJS(block->getHash());
+            auto height = full_node->getDagBlockHeight(block->getHash());
+            if (height.second)
+              json_trx["blockNumber"] = toJS(height.first);
+            else
+              json_trx["blockNumber"] = Json::Value();
+            return json_trx;
+          }
+        }
+      }
+    }
   }
-  auto const& trxs = node->getDagBlock(snapshot->block_hash)->getTrxs();
-  if (trx_num >= trxs.size()) {
-    return JSON_NULL;
-  }
-  auto trx = node->getTransaction(trxs[trx_num]);
-  auto trx_js = toJson(*trx);
-  trx_js["blockNumber"] = toJS(snapshot->block_number);
-  trx_js["blockHash"] = toJS(snapshot->block_hash);
-  trx_js["transactionIndex"] = toJS(trx_num);
-  return trx_js;
+  BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getTransactionReceipt(
     string const& _transactionHash) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getUncleByBlockHashAndIndex(
     string const& _blockHash, string const& _uncleIndex) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getUncleByBlockNumberAndIndex(
     string const& _blockNumber, string const& _uncleIndex) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 string Taraxa::taraxa_newFilter(Json::Value const& _json) { return ""; }
@@ -258,32 +343,32 @@ string Taraxa::taraxa_newPendingTransactionFilter() { return ""; }
 bool Taraxa::taraxa_uninstallFilter(string const& _filterId) { return false; }
 
 Json::Value Taraxa::taraxa_getFilterChanges(string const& _filterId) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getFilterChangesEx(string const& _filterId) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getFilterLogs(string const& _filterId) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getFilterLogsEx(string const& _filterId) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getLogs(Json::Value const& _json) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getLogsEx(Json::Value const& _json) {
-  return JSON_NULL;
+  return Json::Value();
 }
 
-Json::Value Taraxa::taraxa_getWork() { return JSON_NULL; }
+Json::Value Taraxa::taraxa_getWork() { return Json::Value(); }
 
-Json::Value Taraxa::taraxa_syncing() { return JSON_NULL; }
+Json::Value Taraxa::taraxa_syncing() { return Json::Value(); }
 
 string Taraxa::taraxa_chainId() { return ""; }
 
@@ -301,64 +386,5 @@ string Taraxa::taraxa_register(string const& _address) { return ""; }
 bool Taraxa::taraxa_unregister(string const& _accountId) { return false; }
 
 Json::Value Taraxa::taraxa_fetchQueuedTransactions(string const& _accountId) {
-  return JSON_NULL;
-}
-
-Taraxa::NodePtr Taraxa::tryGetNode() {
-  if (auto full_node = full_node_.lock()) {
-    return full_node;
-  }
-  BOOST_THROW_EXCEPTION(
-      jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR));
-}
-
-optional<StateRegistry::Snapshot> Taraxa::getSnapshot(NodePtr const& node,
-                                                      BlockNumber const& num) {
-  switch (num.kind) {
-    case BlockNumber::Kind::earliest:
-    case BlockNumber::Kind::specific: {
-      auto const& state = getState(node, num);
-      return state ? optional(state->getSnapshot()) : nullopt;
-    }
-    default:
-      return node->getStateRegistry()->getSnapshot(*num.block_number);
-  }
-}
-
-shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
-                                                  BlockNumber const& num) {
-  switch (num.kind) {
-    case BlockNumber::Kind::latest:
-    case BlockNumber::Kind::pending:
-      return node->updateAndGetState();
-    case BlockNumber::Kind::earliest:
-    case BlockNumber::Kind::specific: {
-      // TODO cache
-      auto state = node->getStateRegistry()->getState(*num.block_number);
-      return state ? make_shared<StateRegistry::State>(*state) : nullptr;
-    }
-  }
-}
-
-Json::Value Taraxa::blockToJson(NodePtr const& node,
-                                blk_hash_t const& hash,  //
-                                optional<taraxa::dag_blk_num_t> const& num,
-                                bool include_trx) {
-  auto blk = node->getDagBlock(hash);
-  auto blk_js = toJson(*blk, num);
-  taraxa::trx_num_t trx_added(0);
-  for (auto const& trx_hash : blk->getTrxs()) {
-    if (!include_trx) {
-      blk_js["transactions"].append(toJS(trx_hash));
-      continue;
-    }
-    auto const& trx = node->getTransaction(trx_hash);
-    auto trx_js = toJson(*trx);
-    trx_js["blockHash"] = blk_js["hash"];
-    trx_js["blockNumber"] = blk_js["number"];
-    trx_js["transactionIndex"] = toJS(trx_added);
-    blk_js["transactions"].append(trx_js);
-    ++trx_added;
-  }
-  return blk_js;
+  return Json::Value();
 }

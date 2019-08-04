@@ -20,7 +20,6 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
-#include <optional>
 #include <regex>
 #include <streambuf>
 #include <string>
@@ -265,20 +264,6 @@ void append(boost::property_tree::ptree &ptree, const T &value) {
 template <typename... TS>
 std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
-}
-
-template <typename Where, typename What, typename Pos = std::size_t>
-std::optional<Pos> find(Where const &where, What const &what) {
-  constexpr auto max_pos = std::numeric_limits<Pos>::max();
-  Pos i(0);
-  for (What const &e : where) {
-    if (what == e) {
-      return i;
-    }
-    assert(i <= max_pos);
-    ++i;
-  }
-  return std::nullopt;
 }
 
 }  // namespace taraxa

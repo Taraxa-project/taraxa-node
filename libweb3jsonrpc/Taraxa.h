@@ -5,7 +5,6 @@
 #include <libdevcore/Common.h>
 #include <iosfwd>
 #include <memory>
-#include <optional>
 #include "../full_node.hpp"
 #include "SessionManager.h"
 #include "TaraxaFace.h"
@@ -13,48 +12,6 @@
 namespace dev {
 
 namespace rpc {
-
-inline taraxa::dag_blk_num_t to_blk_num(std::string const& str) {
-  assert(str.find("0x") == 0);
-  return stoull(str, 0, 16);
-}
-
-inline taraxa::trx_num_t to_trx_num(std::string const& str) {
-  assert(str.find("0x") == 0);
-  auto const& num = stoull(str, 0, 16);
-  assert(num <= std::numeric_limits<taraxa::trx_num_t>::max());
-  return taraxa::trx_num_t(num);
-}
-
-// As per
-// https://github.com/ethereum/wiki/wiki/JSON-RPC#the-default-block-parameter
-struct BlockNumber {
-  enum class Kind { earliest, latest, pending, specific };
-
-  static BlockNumber const earliest, latest, pending;
-
-  Kind const kind;
-  std::optional<taraxa::dag_blk_num_t> const block_number;
-
-  static BlockNumber from(std::string const& str) {
-    if ("earliest" == str) return earliest;
-    if ("latest" == str) return latest;
-    if ("pending" == str) return pending;
-    return from(to_blk_num(str));
-  }
-
-  static BlockNumber from(taraxa::dag_blk_num_t const& val) {
-    return val == 0 ? earliest : BlockNumber(Kind::specific, val);
-  }
-
- private:
-  BlockNumber(decltype(kind)& kind,
-              decltype(block_number)& block_number = std::nullopt)
-      : kind(kind), block_number(block_number) {}
-};
-inline BlockNumber const BlockNumber::earliest(Kind::earliest, 0);
-inline BlockNumber const BlockNumber::latest(Kind::latest);
-inline BlockNumber const BlockNumber::pending(Kind::pending);
 
 /**
  * @brief JSON-RPC api implementation
@@ -155,19 +112,6 @@ class Taraxa : public dev::rpc::TaraxaFace {
 
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;
-
- private:
-  using NodePtr = decltype(full_node_.lock());
-
-  NodePtr tryGetNode();
-  static std::optional<taraxa::StateRegistry::Snapshot> getSnapshot(
-      NodePtr const&, BlockNumber const&);
-  static std::shared_ptr<taraxa::StateRegistry::State> getState(
-      NodePtr const&, BlockNumber const&);
-  static Json::Value blockToJson(NodePtr const&,
-                                 taraxa::blk_hash_t const&,  //
-                                 std::optional<taraxa::dag_blk_num_t> const&,
-                                 bool include_trx);
 };
 
 }  // namespace rpc

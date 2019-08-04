@@ -102,7 +102,6 @@ using dag_blk_num_t = uint64_t;
 
 using vec_blk_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
-using trx_num_t = vec_trx_t::size_type;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;

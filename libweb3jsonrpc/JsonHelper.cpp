@@ -74,50 +74,46 @@ Json::Value toJson(p2p::PeerSessionInfo const& _p) {
 // taraxa
 // ////////////////////////////////////////////////////////////////////////////////
 
-Json::Value toJson(::taraxa::Transaction const& _t) {
+Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t) {
   Json::Value tr_js;
-  tr_js["hash"] = toJS(_t.getHash());
-  tr_js["input"] = toJS(_t.getData());
-  tr_js["to"] = toJS(_t.getReceiver());
-  tr_js["from"] = toJS(_t.getSender());
-  tr_js["gas"] = toJS(_t.getGas());
-  tr_js["gasPrice"] = toJS(_t.getGasPrice());
-  tr_js["nonce"] = toJS(_t.getNonce());
-  tr_js["value"] = toJS(_t.getValue());
-  dev::SignatureStruct sig(_t.getSig());
+  tr_js["hash"] = toJS(_t->getHash());
+  tr_js["input"] = toJS(_t->getData());
+  tr_js["to"] = toJS(_t->getReceiver());
+  tr_js["from"] = toJS(_t->getSender());
+  tr_js["gas"] = toJS(_t->getGas());
+  tr_js["gasPrice"] = toJS(_t->getGasPrice());
+  tr_js["nonce"] = toJS(_t->getNonce());
+  tr_js["value"] = toJS(_t->getValue());
+  dev::SignatureStruct sig(_t->getSig());
   tr_js["v"] = toJS(sig.v);
   tr_js["r"] = toJS(sig.r);
   tr_js["s"] = toJS(sig.s);
   return tr_js;
 }
 
-Json::Value toJson(taraxa::DagBlock const& block,
-                   optional<taraxa::dag_blk_num_t> const& blk_num) {
+Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block, uint64_t block_height) {
   Json::Value res;
-  // block->updateHash();
+  //block->updateHash();
   static const auto MOCK_BLOCK_GAS_LIMIT =
       toJS(std::numeric_limits<uint64_t>::max());
-  res["hash"] = toJS(block.getHash());
-  res["parentHash"] = toJS(block.getPivot());
+  res["hash"] = toJS(block->getHash());
+  res["parentHash"] = toJS(block->getPivot());
   res["stateRoot"] = "";
   res["transactionsRoot"] = "";
   res["receiptsRoot"] = "";
-  res["number"] = blk_num ? toJS(*blk_num) : JSON_NULL;
+  res["number"] = toJS(block_height);
   res["gasUsed"] = "0x0";
   res["gasLimit"] = MOCK_BLOCK_GAS_LIMIT;
   res["extraData"] = "";
   res["logsBloom"] = "";
-  if (blk_num) {
-    // TODO this has to go
-    res["timestamp"] = std::to_string(0x54e34e8e + *blk_num * 100);
-  }
+  res["timestamp"] = std::to_string(0x54e34e8e + block_height * 100);
   res["author"] = "0x4e65fda2159562a496f9f3522f89122a3088497a";
   res["miner"] = "0x4e65fda2159562a496f9f3522f89122a3088497a";
   res["nonce"] = "0x7bb9369dcbaec019";
   res["sha3Uncles"] = "0x0";
   res["difficulty"] = "0x0";
   res["totalDifficulty"] = "0x0";
-  res["size"] = toJS(sizeof(block));
+  res["size"] = toJS(sizeof(*block));
   res["uncles"] = Json::Value(Json::arrayValue);
   res["transactions"] = Json::Value(Json::arrayValue);
 

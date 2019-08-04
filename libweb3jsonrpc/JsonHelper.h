@@ -33,11 +33,8 @@ namespace dev {
 Json::Value toJson(std::map<h256, std::pair<u256, u256>> const& _storage);
 Json::Value toJson(std::unordered_map<u256, u256> const& _storage);
 Json::Value toJson(Address const& _address);
-Json::Value toJson(taraxa::Transaction const& _t);
-Json::Value toJson(taraxa::DagBlock const&,
-                   std::optional<taraxa::dag_blk_num_t> const&);
-
-inline auto const JSON_NULL = Json::Value();
+Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t);
+Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block, uint64_t block_height);
 
 namespace p2p {
 
