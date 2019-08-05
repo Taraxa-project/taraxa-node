@@ -398,6 +398,7 @@ bool PbftBlock::serialize(stream& strm) const {
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.serialize(strm);
   }
+  ok &= write(strm, signature_);
   // TODO: serialize other pbft blocks
   assert(ok);
   return ok;
@@ -412,6 +413,7 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.deserialize(strm);
   }
+  ok &= read(strm, signature_);
   // TODO: serialize other pbft blocks
   assert(ok);
   return ok;
