@@ -107,11 +107,12 @@ void Top::startRpc() {
       std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
   rpc_->addConnector(rpc_server);
   rpc_server->StartListening();
-  std::make_shared<taraxa::WSListener>(
+  auto ws_listener = std::make_shared<taraxa::WSServer>(
       context_,
       tcp::endpoint{net::ip::make_address(conf_->rpc.address.to_string()),
-                    conf_->rpc.ws_port})
-      ->run();
+                    conf_->rpc.ws_port});
+  node_->setWSServer(ws_listener);
+  ws_listener->run();
 }
 
 void Top::start() {

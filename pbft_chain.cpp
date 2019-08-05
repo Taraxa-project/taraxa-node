@@ -597,7 +597,7 @@ void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
                 << "Pbft queue size: " << pbft_queue_.size();
 }
 
-void PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
+uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   // push DAG block hash into array. DAG genesis at index 0
   dag_blocks_order_.emplace_back(dag_block_hash);
 
@@ -605,6 +605,7 @@ void PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   uint64_t dag_block_height = dag_blocks_map_.size();
   dag_blocks_map_[dag_block_hash] = dag_block_height;
+  return dag_block_height;
 }
 
 void PbftChain::removePbftBlockInQueue(taraxa::blk_hash_t const& block_hash) {

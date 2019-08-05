@@ -5,6 +5,7 @@
 #include <jsoncpp/json/writer.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <libweb3jsonrpc/JsonHelper.h>
 #include "libdevcore/CommonJS.h"
 #include "util.hpp"
 
@@ -47,7 +48,11 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   boost::ignore_unused(bytes_transferred);
 
   // This indicates that the session was closed
-  if (ec == websocket::error::closed) return;
+  if (ec == websocket::error::closed) {
+    LOG(log_tr_) << "WS closed";
+    closed = true;
+    return;
+  }
 
   if (ec) LOG(log_er_) << ec << " read";
 
@@ -64,13 +69,13 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   auto id = json.get("id", 0);
   Json::Value json_response;
+  auto params = json.get("params", Json::Value(Json::Value(Json::arrayValue)));
   json_response["id"] = id;
   json_response["jsonrpc"] = "2.0";
-  // TO DO: Currently we just accept subscription, with subscription never
-  // returning any data Implement full_node sending blocks/transactions with
-  // subscriptions
-  static int subscription_id = 0;
   subscription_id++;
+  if(params.size() == 1 && params[0].asString() == "newHeads") {
+    new_heads_subscription = subscription_id;
+  } 
   json_response["result"] = dev::toJS(subscription_id);
   Json::FastWriter fastWriter;
   std::string response = fastWriter.write(json_response);
@@ -95,7 +100,31 @@ void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
   do_read();
 }
 
-WSListener::WSListener(net::io_context& ioc, tcp::endpoint endpoint)
+void WSSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transferred) {
+  boost::ignore_unused(bytes_transferred);
+
+  if (ec) {
+    LOG(log_er_) << ec << " write";
+    return;
+  }
+  // Clear the buffer
+  buffer_.consume(buffer_.size());
+}
+
+void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number) {
+  Json::Value res;
+  res["result"] = dev::toJson(blk, block_number);
+  res["subscription"] = dev::toJS(new_heads_subscription);
+  Json::FastWriter fastWriter;
+  std::string response = fastWriter.write(res);
+  ws_.text(ws_.got_text());
+  LOG(log_tr_) << "WS WRITE " << response.c_str();
+  ws_.async_write(
+      boost::asio::buffer(response),
+      beast::bind_front_handler(&WSSession::on_write_no_read, shared_from_this()));
+}
+
+WSServer::WSServer(net::io_context& ioc, tcp::endpoint endpoint)
     : ioc_(ioc), acceptor_(ioc) {
   beast::error_code ec;
 
@@ -130,24 +159,46 @@ WSListener::WSListener(net::io_context& ioc, tcp::endpoint endpoint)
 }
 
 // Start accepting incoming connections
-void WSListener::run() { do_accept(); }
+void WSServer::run() { do_accept(); }
 
-void WSListener::do_accept() {
+void WSServer::do_accept() {
   // The new connection gets its own strand
   acceptor_.async_accept(
       net::make_strand(ioc_),
-      beast::bind_front_handler(&WSListener::on_accept, shared_from_this()));
+      beast::bind_front_handler(&WSServer::on_accept, shared_from_this()));
 }
 
-void WSListener::on_accept(beast::error_code ec, tcp::socket socket) {
+void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (ec) {
     LOG(log_er_) << ec << " accept";
   } else {
+    //Remove any close sessions
+    auto session = sessions.begin();
+    while (session != sessions.end())
+    {
+        if ((*session)->is_closed())
+        {
+            sessions.erase(session++);
+        }
+        else
+        {
+            session++;
+        }
+    }
     // Create the session and run it
-    std::make_shared<WSSession>(std::move(socket))->run();
+    sessions.push_back(std::make_shared<WSSession>(std::move(socket)));
+    sessions.back()->run();
   }
 
   // Accept another connection
   do_accept();
 }
+
+void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number) {
+  for(auto const &session : sessions) {
+    if(!session->is_closed())
+      session->newOrderedBlock(blk, block_number);
+  }
+}
+
 }  // namespace taraxa
