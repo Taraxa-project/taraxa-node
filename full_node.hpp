@@ -24,6 +24,7 @@
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "vote.h"
+#include "libweb3jsonrpc/WSServer.h"
 
 namespace taraxa {
 
@@ -217,6 +218,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
+  void newOrderedBlock(blk_hash_t const &dag_block_hash, uint64_t const &block_number);
+  void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
+    ws_server_ = ws_server;
+  }
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
@@ -281,6 +286,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+
+  std::shared_ptr<taraxa::WSServer> ws_server_;
 
   // debugger
   std::mutex debug_mutex_;

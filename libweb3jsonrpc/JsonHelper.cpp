@@ -111,7 +111,7 @@ Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block,
   res["gasLimit"] = MOCK_BLOCK_GAS_LIMIT;
   res["extraData"] = "";
   res["logsBloom"] = "";
-  res["timestamp"] = std::to_string(0x54e34e8e + block_height * 100);
+  res["timestamp"] = toJS(block->getTimestamp());
   res["author"] = toJS(block->getSender());
   res["miner"] = toJS(block->getSender());;
   res["nonce"] = "0x7bb9369dcbaec019";

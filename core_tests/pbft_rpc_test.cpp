@@ -88,7 +88,7 @@ TEST_F(PbftVoteTest, DISABLED_pbft_place_and_get_vote_test) {
 // Add votes round 1, 2 and 3 into unverified vote table
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3
 // votes
-TEST_F(VoteManagerTest, add_cleanup_get_votes) {
+TEST_F(VoteManagerTest, DISABLED_add_cleanup_get_votes) {
   const char* input[] = {"./build/main", "--conf_taraxa",
                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top(5, input);

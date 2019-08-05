@@ -834,7 +834,8 @@ bool PbftManager::pushPbftBlockIntoChain_(
 
       // update DAG blocks order and DAG blocks table
       for (auto const &dag_blk_hash : *dag_blocks_order) {
-        pbft_chain_->pushDagBlockHash(dag_blk_hash);
+        auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
+        full_node->newOrderedBlock(dag_blk_hash, block_number);
       }
 
       return true;
