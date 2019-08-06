@@ -47,7 +47,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       }
     }
     genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
-    genesis_state.block.updateHash();
+    genesis_state.block.sign(dev::Secret(node_secret,
+                              dev::Secret::ConstructFromStringType::FromHex));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

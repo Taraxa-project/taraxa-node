@@ -114,9 +114,12 @@ void WSSession::on_write_no_read(beast::error_code ec,
 
 void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
                                 uint64_t const &block_number) {
-  Json::Value res;
-  res["result"] = dev::toJson(blk, block_number);
-  res["subscription"] = dev::toJS(new_heads_subscription);
+  Json::Value res, params;
+  res["jsonrpc"] = "2.0";
+  res["method"] = "eth_subscription";
+  params["result"] = dev::toJson(blk, block_number);
+  params["subscription"] = dev::toJS(new_heads_subscription);
+  res["params"] = params;
   Json::FastWriter fastWriter;
   std::string response = fastWriter.write(res);
   ws_.text(ws_.got_text());
