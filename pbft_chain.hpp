@@ -124,8 +124,7 @@ class ScheduleBlock {
  public:
   ScheduleBlock() = default;
   ScheduleBlock(blk_hash_t const& prev_block_hash, TrxSchedule const& schedule)
-      : prev_block_hash_(prev_block_hash),
-        schedule_(schedule) {}
+      : prev_block_hash_(prev_block_hash), schedule_(schedule) {}
   ScheduleBlock(taraxa::stream& strm);
   ~ScheduleBlock() {}
   void streamRLP(dev::RLPStream& strm) const;
