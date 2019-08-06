@@ -14,7 +14,6 @@
 #include "libweb3jsonrpc/Net.h"
 #include "libweb3jsonrpc/RpcServer.h"
 #include "libweb3jsonrpc/Taraxa.h"
-#include "libweb3jsonrpc/WSServer.h"
 
 Top::Top(int argc, const char* argv[]) { start(argc, argv); }
 
@@ -107,12 +106,12 @@ void Top::startRpc() {
       std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
   rpc_->addConnector(rpc_server);
   rpc_server->StartListening();
-  auto ws_listener = std::make_shared<taraxa::WSServer>(
+  ws_listener_ = std::make_shared<taraxa::WSServer>(
       context_,
       tcp::endpoint{net::ip::make_address(conf_->rpc.address.to_string()),
                     conf_->rpc.ws_port});
-  node_->setWSServer(ws_listener);
-  ws_listener->run();
+  node_->setWSServer(ws_listener_);
+  ws_listener_->run();
 }
 
 void Top::start() {
@@ -131,6 +130,7 @@ void Top::kill() {
   if (stopped_) return;
   stop();
   rpc_->StopListening();
+  ws_listener_->stop();
   cond_.notify_all();
 }
 void Top::stop() {

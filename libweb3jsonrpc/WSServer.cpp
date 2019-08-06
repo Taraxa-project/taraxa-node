@@ -3,9 +3,9 @@
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/value.h>
 #include <jsoncpp/json/writer.h>
+#include <libweb3jsonrpc/JsonHelper.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <libweb3jsonrpc/JsonHelper.h>
 #include "libdevcore/CommonJS.h"
 #include "util.hpp"
 
@@ -18,7 +18,7 @@ void WSSession::run() {
 
   // Set a decorator to change the Server of the handshake
   ws_.set_option(
-      websocket::stream_base::decorator([](websocket::response_type& res) {
+      websocket::stream_base::decorator([](websocket::response_type &res) {
         res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) +
                                          " websocket-server-async");
       }));
@@ -56,12 +56,12 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   if (ec) LOG(log_er_) << ec << " read";
 
-  LOG(log_tr_) << "WS READ " << ((char*)buffer_.data().data());
+  LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
 
   Json::Value json;
   Json::Reader reader;
   bool parsingSuccessful =
-      reader.parse((char*)buffer_.data().data(), json);  // parse process
+      reader.parse((char *)buffer_.data().data(), json);  // parse process
   if (!parsingSuccessful) {
     LOG(log_er_) << "Failed to parse" << reader.getFormattedErrorMessages();
     return;
@@ -73,9 +73,9 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   json_response["id"] = id;
   json_response["jsonrpc"] = "2.0";
   subscription_id++;
-  if(params.size() == 1 && params[0].asString() == "newHeads") {
+  if (params.size() == 1 && params[0].asString() == "newHeads") {
     new_heads_subscription = subscription_id;
-  } 
+  }
   json_response["result"] = dev::toJS(subscription_id);
   Json::FastWriter fastWriter;
   std::string response = fastWriter.write(json_response);
@@ -100,7 +100,8 @@ void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
   do_read();
 }
 
-void WSSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transferred) {
+void WSSession::on_write_no_read(beast::error_code ec,
+                                 std::size_t bytes_transferred) {
   boost::ignore_unused(bytes_transferred);
 
   if (ec) {
@@ -111,7 +112,8 @@ void WSSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transfe
   buffer_.consume(buffer_.size());
 }
 
-void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number) {
+void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
+                                uint64_t const &block_number) {
   Json::Value res;
   res["result"] = dev::toJson(blk, block_number);
   res["subscription"] = dev::toJS(new_heads_subscription);
@@ -119,12 +121,17 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, u
   std::string response = fastWriter.write(res);
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "WS WRITE " << response.c_str();
-  ws_.async_write(
-      boost::asio::buffer(response),
-      beast::bind_front_handler(&WSSession::on_write_no_read, shared_from_this()));
+  ws_.async_write(boost::asio::buffer(response),
+                  beast::bind_front_handler(&WSSession::on_write_no_read,
+                                            shared_from_this()));
 }
 
-WSServer::WSServer(net::io_context& ioc, tcp::endpoint endpoint)
+void WSSession::close() {
+  closed = true;
+  ws_.close("close");
+}
+
+WSServer::WSServer(net::io_context &ioc, tcp::endpoint endpoint)
     : ioc_(ioc), acceptor_(ioc) {
   beast::error_code ec;
 
@@ -161,6 +168,15 @@ WSServer::WSServer(net::io_context& ioc, tcp::endpoint endpoint)
 // Start accepting incoming connections
 void WSServer::run() { do_accept(); }
 
+void WSServer::stop() {
+  stopped_ = true;
+  acceptor_.close();
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->close();
+  }
+  sessions.clear();
+}
+
 void WSServer::do_accept() {
   // The new connection gets its own strand
   acceptor_.async_accept(
@@ -172,18 +188,14 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (ec) {
     LOG(log_er_) << ec << " accept";
   } else {
-    //Remove any close sessions
+    // Remove any close sessions
     auto session = sessions.begin();
-    while (session != sessions.end())
-    {
-        if ((*session)->is_closed())
-        {
-            sessions.erase(session++);
-        }
-        else
-        {
-            session++;
-        }
+    while (session != sessions.end()) {
+      if ((*session)->is_closed()) {
+        sessions.erase(session++);
+      } else {
+        session++;
+      }
     }
     // Create the session and run it
     sessions.push_back(std::make_shared<WSSession>(std::move(socket)));
@@ -191,13 +203,13 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
   }
 
   // Accept another connection
-  do_accept();
+  if (!stopped_) do_accept();
 }
 
-void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number) {
-  for(auto const &session : sessions) {
-    if(!session->is_closed())
-      session->newOrderedBlock(blk, block_number);
+void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
+                               uint64_t const &block_number) {
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->newOrderedBlock(blk, block_number);
   }
 }
 
