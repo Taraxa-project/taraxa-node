@@ -1,0 +1,1 @@
+taraxa @ git+https://github.com/Taraxa-project/taraxa-node@sdk_python#subdirectory=sdk_python
