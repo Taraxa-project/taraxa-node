@@ -98,8 +98,6 @@ blk_hash_t PivotBlock::getDagBlockHash() const { return dag_block_hash_; }
 
 uint64_t PivotBlock::getPeriod() const { return period_; }
 
-uint64_t PivotBlock::getTimestamp() const { return timestamp_; }
-
 addr_t PivotBlock::getBeneficiary() const { return beneficiary_; }
 
 void PivotBlock::setJsonTree(ptree& tree) const {
@@ -107,7 +105,6 @@ void PivotBlock::setJsonTree(ptree& tree) const {
   tree.put("prev_block_hash", prev_block_hash_.toString());
   tree.put("dag_block_hash", dag_block_hash_.toString());
   tree.put("period", period_);
-  tree.put("timestamp", timestamp_);
   tree.put("beneficiary", beneficiary_.toString());
 }
 
@@ -116,7 +113,6 @@ void PivotBlock::setBlockByJson(ptree const& doc) {
   prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
   dag_block_hash_ = blk_hash_t(doc.get<std::string>("dag_block_hash"));
   period_ = doc.get<uint64_t>("period");
-  timestamp_ = doc.get<uint64_t>("timestamp");
   beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
 }
 
@@ -127,7 +123,6 @@ bool PivotBlock::serialize(stream& strm) const {
   ok &= write(strm, prev_block_hash_);
   ok &= write(strm, dag_block_hash_);
   ok &= write(strm, period_);
-  ok &= write(strm, timestamp_);
   ok &= write(strm, beneficiary_);
   assert(ok);
 
@@ -141,7 +136,6 @@ bool PivotBlock::deserialize(stream& strm) {
   ok &= read(strm, prev_block_hash_);
   ok &= read(strm, dag_block_hash_);
   ok &= read(strm, period_);
-  ok &= read(strm, timestamp_);
   ok &= read(strm, beneficiary_);
   assert(ok);
 
@@ -153,7 +147,6 @@ void PivotBlock::streamRLP(dev::RLPStream& strm) const {
   strm << prev_block_hash_;
   strm << dag_block_hash_;
   strm << period_;
-  strm << timestamp_;
   strm << beneficiary_;
 }
 
@@ -163,7 +156,6 @@ std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock]" << std::endl;
   strm << " prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
-  strm << " time_stamp: " << timestamp_ << std::endl;
   strm << " --> Schedule ..." << std::endl;
   strm << schedule_;
   return strm.str();
@@ -180,7 +172,6 @@ blk_hash_t ScheduleBlock::getPrevBlockHash() const { return prev_block_hash_; }
 
 void ScheduleBlock::setJsonTree(ptree& tree) const {
   tree.put("prev_block_hash", prev_block_hash_.toString());
-  tree.put("timestamp", timestamp_);
 
   tree.put_child("block_order", ptree());
   auto& block_order = tree.get_child("block_order");
@@ -208,7 +199,6 @@ void ScheduleBlock::setJsonTree(ptree& tree) const {
 
 void ScheduleBlock::setBlockByJson(ptree const& doc) {
   prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
-  timestamp_ = doc.get<uint64_t>("timestamp");
   schedule_.blk_order = asVector<blk_hash_t, std::string>(doc, "block_order");
   for (auto const& blk_hash : schedule_.blk_order) {
     std::vector<std::string> block_trx_modes_str =
@@ -225,7 +215,6 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
 
   ok &= write(strm, prev_block_hash_);
-  ok &= write(strm, timestamp_);
   uint32_t block_size = schedule_.blk_order.size();
   uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
   if (block_size != trx_vectors_size) {
@@ -252,7 +241,6 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   bool ok = true;
 
   ok &= read(strm, prev_block_hash_);
-  ok &= read(strm, timestamp_);
   uint32_t block_size;
   uint32_t trx_vectors_size;
   ok &= read(strm, block_size);
@@ -287,7 +275,6 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
 
 void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
   strm << prev_block_hash_;
-  strm << timestamp_;
   for (int i = 0; i < schedule_.blk_order.size(); i++) {
     strm << schedule_.blk_order[i];
   }
@@ -317,6 +304,7 @@ PbftBlock::PbftBlock(std::string const& json) {
     ptree& schedule_block = doc.get_child("schedule_block");
     schedule_block_.setBlockByJson(schedule_block);
   }  // TODO: more block types
+  timestamp_ = doc.get<uint64_t>("timestamp");
   signature_ = sig_t(doc.get<std::string>("signature"));
 }
 
@@ -334,6 +322,7 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.streamRLP(strm);
   }  // TODO: more block types
+  strm << timestamp_;
   strm << signature_;
 }
 
@@ -350,6 +339,7 @@ std::string PbftBlock::getJsonStr() const {
     tree.put_child("schedule_block", ptree());
     schedule_block_.setJsonTree(tree.get_child("schedule_block"));
   }  // TODO: more block types
+  tree.put("timestamp", timestamp_);
   tree.put("signature", signature_.toString());
 
   std::stringstream ostrm;
@@ -377,6 +367,12 @@ void PbftBlock::setScheduleBlock(taraxa::ScheduleBlock const& schedule_block) {
   block_type_ = schedule_block_type;
 }
 
+uint64_t PbftBlock::getTimestamp() const { return timestamp_; }
+
+void PbftBlock::setTimestamp(uint64_t const timestamp) {
+  timestamp_ = timestamp;
+}
+
 void PbftBlock::setSignature(taraxa::sig_t const& signature) {
   signature_ = signature;
 }
@@ -399,6 +395,7 @@ bool PbftBlock::serialize(stream& strm) const {
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.serialize(strm);
   }
+  ok &= write(strm, timestamp_);
   ok &= write(strm, signature_);
   // TODO: serialize other pbft blocks
   assert(ok);
@@ -414,6 +411,7 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
   } else if (block_type_ == schedule_block_type) {
     schedule_block_.deserialize(strm);
   }
+  ok &= read(strm, timestamp_);
   ok &= read(strm, signature_);
   // TODO: serialize other pbft blocks
   assert(ok);

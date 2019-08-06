@@ -78,12 +78,11 @@ class PivotBlock {
   PivotBlock(blk_hash_t const& prev_pivot_hash,
              blk_hash_t const& prev_block_hash,
              blk_hash_t const& dag_block_hash, uint64_t period,
-             uint64_t timestamp, addr_t beneficiary)
+             addr_t beneficiary)
       : prev_pivot_hash_(prev_pivot_hash),
         prev_block_hash_(prev_block_hash),
         dag_block_hash_(dag_block_hash),
         period_(period),
-        timestamp_(timestamp),
         beneficiary_(beneficiary) {}
   ~PivotBlock() {}
 
@@ -91,7 +90,6 @@ class PivotBlock {
   blk_hash_t getPrevBlockHash() const;
   blk_hash_t getDagBlockHash() const;
   uint64_t getPeriod() const;
-  uint64_t getTimestamp() const;
   addr_t getBeneficiary() const;
 
   void setJsonTree(ptree& tree) const;
@@ -110,7 +108,6 @@ class PivotBlock {
          << std::endl;
     strm << "  dag hash: " << pivot_block.dag_block_hash_.hex() << std::endl;
     strm << "  period: " << pivot_block.period_ << std::endl;
-    strm << "  timestamp: " << pivot_block.timestamp_ << std::endl;
     strm << "  beneficiary: " << pivot_block.beneficiary_.hex() << std::endl;
     return strm;
   }
@@ -120,17 +117,14 @@ class PivotBlock {
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_;
   uint64_t period_;
-  uint64_t timestamp_;
   addr_t beneficiary_;
 };
 
 class ScheduleBlock {
  public:
   ScheduleBlock() = default;
-  ScheduleBlock(blk_hash_t const& prev_block_hash, uint64_t const& timestamp,
-                TrxSchedule const& schedule)
+  ScheduleBlock(blk_hash_t const& prev_block_hash, TrxSchedule const& schedule)
       : prev_block_hash_(prev_block_hash),
-        timestamp_(timestamp),
         schedule_(schedule) {}
   ScheduleBlock(taraxa::stream& strm);
   ~ScheduleBlock() {}
@@ -150,7 +144,6 @@ class ScheduleBlock {
 
  private:
   blk_hash_t prev_block_hash_;
-  uint64_t timestamp_;
   TrxSchedule schedule_;
 };
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
@@ -181,12 +174,14 @@ class PbftBlock {
   PbftBlockTypes getBlockType() const;
   PivotBlock getPivotBlock() const;
   ScheduleBlock getScheduleBlock() const;
+  uint64_t getTimestamp() const;
   std::string getJsonStr() const;
 
   void setBlockHash();
   void setBlockType(PbftBlockTypes block_type);
   void setPivotBlock(PivotBlock const& pivot_block);
   void setScheduleBlock(ScheduleBlock const& schedule_block);
+  void setTimestamp(uint64_t const timestamp);
   void setSignature(sig_t const& signature);
 
   void serializeRLP(dev::RLPStream& s) const;
@@ -199,6 +194,7 @@ class PbftBlock {
   PbftBlockTypes block_type_ = pbft_block_none_type;
   PivotBlock pivot_block_;
   ScheduleBlock schedule_block_;
+  uint64_t timestamp_;
   sig_t signature_;
   // TODO: need more pbft block type
 };
