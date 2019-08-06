@@ -326,6 +326,7 @@ void PbftBlock::setBlockHash() {
   block_hash_ = dev::sha3(s.out());
 }
 
+// Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm) const {
   strm << block_type_;
   if (block_type_ == pivot_block_type) {
