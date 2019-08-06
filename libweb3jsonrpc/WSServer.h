@@ -30,6 +30,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 
   // Start the asynchronous operation
   void run();
+  void close();
 
   void on_accept(beast::error_code ec);
   void do_read();
@@ -63,7 +64,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
 
   // Start accepting incoming connections
   void run();
-
+  void stop();
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number);
 
  private:
@@ -80,6 +81,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   net::io_context& ioc_;
   tcp::acceptor acceptor_;
   std::list<std::shared_ptr<WSSession>> sessions;
+  bool stopped_ = false;
 };
 }  // namespace taraxa
 
