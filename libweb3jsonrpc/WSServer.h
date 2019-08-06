@@ -12,8 +12,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "libdevcore/Log.h"
 #include "dag_block.hpp"
+#include "libdevcore/Log.h"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace http = beast::http;            // from <boost/beast/http.hpp>
@@ -37,7 +37,8 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
   void on_write(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
-  void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number);
+  void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
+                       uint64_t const& block_number);
   bool is_closed() { return closed; }
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
@@ -65,7 +66,8 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   // Start accepting incoming connections
   void run();
   void stop();
-  void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const & blk, uint64_t const &block_number);
+  void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
+                       uint64_t const& block_number);
 
  private:
   void do_accept();

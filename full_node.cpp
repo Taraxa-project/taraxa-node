@@ -797,9 +797,10 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
-void FullNode::newOrderedBlock(blk_hash_t const& dag_block_hash, uint64_t const &block_number) {
+void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
+                               uint64_t const &block_number) {
   auto blk = getDagBlock(dag_block_hash);
-  ws_server_->newOrderedBlock(blk, block_number);
+  if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
 }
 
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
