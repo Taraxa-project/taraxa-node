@@ -20,9 +20,10 @@ START_FULL_NODE_SILENT = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.
 
 NODE_PORTS = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786,
               7787, 7788, 7789, 7790, 7791, 7792, 7793, 7794, 7795, 7796]
+BOOT_NODE_PORT = NODE_PORTS[0]
 TOTAL_TARAXA_COINS = 9007199254740991
-TOTAL_TRXS = 50000
-NODE_BAL = 50000
+NUM_TRXS = 100
+INIT_NODE_BAL = 90000
 
 
 def read_account_table(file_name):
@@ -75,7 +76,7 @@ def start_multi_full_nodes(num_nodes):
 def terminate_full_nodes(jobs):
     for j in jobs:
         j.terminate()
-        j.join()
+        # j.join()
 
 
 def all_nodes_connected(num_nodes):
@@ -90,39 +91,84 @@ def all_nodes_connected(num_nodes):
         time.sleep(2)
 
 
+def send_get_boot_node_balance():
+    return taraxa_rpc_get_account_balance(BOOT_NODE_PORT, BOOT_NODE_ADDR)
+
+
+def initialize_coin_allocation(num_nodes, coins):
+    boot_node_coin = send_get_boot_node_balance()
+    print("Boot node balance", boot_node_coin)
+    global INIT_NODE_BAL
+    print("Expected init balance", INIT_NODE_BAL)
+    for i in range(num_nodes):
+        neighbor = NODE_ADDRESS[i+1]
+        taraxa_rpc_send_coins(BOOT_NODE_PORT, neighbor, INIT_NODE_BAL)
+    print("Wait for coin init ...")
+    ok = 1
+    for counter in range(50):
+        time.sleep(1)
+        ok = 1
+        for node in range(num_nodes):  # loop through different nodes
+            if not ok:
+                break
+            for acc in range(num_nodes):  # loop through different accounts
+                account = NODE_ADDRESS[acc]
+                bal = taraxa_rpc_get_account_balance(
+                    NODE_PORTS[node], account)
+                expected_bal = 0
+                if (acc == 0):
+                    expected_bal = TOTAL_TARAXA_COINS - \
+                        INIT_NODE_BAL*(num_nodes)
+                else:
+                    expected_bal = INIT_NODE_BAL
+                if bal != expected_bal:
+                    print("Warning! node", node, "account(", acc, ")",
+                          account, "balance =", bal, "Expected =", expected_bal)
+                    ok = 0
+                    break
+        if ok:
+            break
+    if ok:
+        print("Coin init done ...")
+    else:
+        print("Coin init failed ...")
+    return ok
+
+
 def send_trx_from_node_to_neighbors_testing(num_nodes):
-    global NODE_BAL
-    number_of_trx_created = int(TOTAL_TRXS/num_nodes)
+    global INIT_NODE_BAL
+    number_of_trx_created = int(NUM_TRXS)
     total_transfer = 100 * number_of_trx_created
     print("total_transfer ", total_transfer)
-    for receiver in range(num_nodes):
-        neighbor = NODE_ADDRESS[receiver+1]
-        print("Node", receiver, "create", number_of_trx_created, "trxs to (",
-              receiver+1, ")", neighbor, ",total coins=", total_transfer)
+    for sender in range(num_nodes):
+        receiver = sender + 1
+        neighbor = NODE_ADDRESS[receiver]
+        print("Node", NODE_PORTS[sender], "create", number_of_trx_created, "trxs to (",
+              receiver, ")", neighbor, ",total coins=", total_transfer)
         taraxa_rpc_send_many_trx_to_neighbor(
-            NODE_PORTS[receiver], neighbor, number_of_trx_created)
+            NODE_PORTS[sender], neighbor, number_of_trx_created)
     ok = 1
     print("Wait for coin transfer ...")
-    for i in range(10):
+    for i in range(50):
         time.sleep(num_nodes)
         ok = 1
-        for receiver in range(num_nodes):  # loop through different nodes
+        for node in range(num_nodes):  # loop through different nodes
             if not ok:
                 break
             for acc in range(num_nodes+1):  # loop through different accounts
                 expected_bal = 0
                 if (acc == 0):
-                    continue
-                    #expected_bal = 9007199254740991 - total_transfer
+                    expected_bal = TOTAL_TARAXA_COINS - \
+                        (num_nodes*INIT_NODE_BAL) - total_transfer
                 elif (acc == num_nodes):
-                    expected_bal = total_transfer
+                    expected_bal = INIT_NODE_BAL+total_transfer
                 else:
-                    expected_bal = NODE_BAL
+                    expected_bal = INIT_NODE_BAL
                 account = NODE_ADDRESS[acc]
                 bal = taraxa_rpc_get_account_balance(
-                    NODE_PORTS[receiver], account)
+                    NODE_PORTS[node], account)
                 if bal != expected_bal:
-                    print("Error! node", receiver, "account (", acc, ")",
+                    print("Error! node", node, "account (", acc, ")",
                           account, "balance =", bal, "Expected =", expected_bal)
                     ok = 0
                     break
@@ -137,16 +183,10 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
 
 def balance_check_test(num_nodes):
 
-    time.sleep(5)
+    time.sleep(3)
     all_nodes_connected(num_nodes)
-    coins = NODE_BAL
-    for i in range(num_nodes):
-        # transfer coins from boot node to other address
-        taraxa_rpc_send_coins(NODE_PORTS[0], NODE_ADDRESS[i], coins)
-    time.sleep(20)
+    initialize_coin_allocation(num_nodes, INIT_NODE_BAL)
 
-    for i in range(num_nodes):
-        taraxa_rpc_get_account_balance(NODE_PORTS[i], NODE_ADDRESS[i])
     send_trx_from_node_to_neighbors_testing(num_nodes)
 
 
@@ -156,9 +196,9 @@ def main():
     # delete previous results
     for path in glob.glob("/tmp/taraxa*"):
         shutil.rmtree(path, ignore_errors=True)
-    for path in glob.glob("./logs/node*"):
+    for path in glob.glob("./logs"):
         shutil.rmtree(path, ignore_errors=True)
-    for path in glob.glob("./py_test/conf/conf_*"):
+    for path in glob.glob("./py_test/conf"):
         shutil.rmtree(path, ignore_errors=True)
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
@@ -166,13 +206,14 @@ def main():
     NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(
         "./core_tests/account_table.txt")
 
+    create_taraxa_conf(num_nodes, NODE_SECRET, BOOT_NODE_PK, BOOT_NODE_ADDR)
+
     jobs = start_multi_full_nodes(num_nodes)
 
-    create_taraxa_conf(num_nodes, NODE_SECRET, BOOT_NODE_PK)
     balance_check_test(num_nodes)
 
     terminate_full_nodes(jobs)
-    sys.exit()
+    # sys.exit()
 
 
 if __name__ == "__main__":

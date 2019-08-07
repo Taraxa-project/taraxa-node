@@ -1,9 +1,9 @@
 import json
 import requests
 
-BOOT_NODE_SK = "14ef9fd11e54900b587e29e490acca5ded1b1e1d91dcf431307e66e5ade2d0ce"
-BOOT_NODE_ADDRESS = "036b2a833f806894f6da127634572947736b04a3"
-BOOT_NODE_PK = "f0981293a51c244bdcef2e49d46437a113170a0875c61641bf8e41e50cc4a362aa131cef09d83c9d599e76a27ad61d9a4482e76ff1406967f08de7e960f57c87"
+BOOT_NODE_SK = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+BOOT_NODE_PK = "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a"
+BOOT_NODE_ADDR = "de2b1203d72d3549ee2f733b00b2789414c7cea5"
 
 
 def rpc(node_port, data):
@@ -89,7 +89,7 @@ def taraxa_rpc_send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_crea
     }
     try:
         json_reply = rpc(node_port, request)
-        print("Node", node_port, "send",
-              number_of_trx_created, "trxs to", neighbor)
+        # print("Node", node_port, "send",
+        # number_of_trx_created, "trxs to", neighbor)
     except Exception as e:
         print(e)
