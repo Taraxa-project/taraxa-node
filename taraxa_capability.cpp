@@ -616,8 +616,8 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
     return !_peer.isBlockKnown(block.getHash());
   });
 
-  auto const peersToSendNumber =
-      std::max<std::size_t>(c_minBlockBroadcastPeers, std::sqrt(getPeersCount()));
+  auto const peersToSendNumber = std::max<std::size_t>(
+      c_minBlockBroadcastPeers, std::sqrt(getPeersCount()));
 
   std::vector<NodeID> peersToSend;
   std::vector<NodeID> peersToAnnounce;
