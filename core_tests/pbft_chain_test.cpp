@@ -296,6 +296,7 @@ TEST(PbftChain, get_dag_block_hash) {
   node->start(true);
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
+  // waiting until add DAG genesis into PBFT chain
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (pbft_chain->getPbftChainSize() == 3) {
@@ -306,7 +307,6 @@ TEST(PbftChain, get_dag_block_hash) {
   EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
 
   std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
-  EXPECT_TRUE(dag_genesis_hash.second);
   EXPECT_TRUE(dag_genesis_hash.second);
   EXPECT_EQ(dag_genesis_hash.first,
             node->getConfig().genesis_state.block.getHash());
@@ -319,6 +319,7 @@ TEST(PbftChain, get_dag_block_height) {
   node->start(true);
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
+  // waiting until add DAG genesis into PBFT chain
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
     if (pbft_chain->getPbftChainSize() == 3) {
