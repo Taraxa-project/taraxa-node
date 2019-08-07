@@ -985,7 +985,7 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);
     TrxSchedule sche(*order, blocks_trx_modes);
-    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sche);
+    ScheduleBlock sche_blk(blk_hash_t(100), sche);
     // set period
     node->setDagBlockOrder(anchor, cur_period);
     bool ret = node->executeScheduleBlock(
@@ -1004,7 +1004,7 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);
     TrxSchedule sche(*order, blocks_trx_modes);
-    ScheduleBlock sche_blk(blk_hash_t(100), 12345, sche);
+    ScheduleBlock sche_blk(blk_hash_t(100), sche);
     bool ret = node->executeScheduleBlock(
         sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);

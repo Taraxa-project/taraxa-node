@@ -634,17 +634,15 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
 
     uint64_t propose_pbft_chain_period = pbft_chain_->getPbftChainPeriod() + 1;
-    uint64_t timestamp = std::time(nullptr);
     addr_t beneficiary = full_node->getAddress();
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
-                           propose_pbft_chain_period, timestamp, beneficiary);
+                           propose_pbft_chain_period, beneficiary);
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
   } else if (next_pbft_block_type_ == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
-    uint64_t timestamp = std::time(nullptr);
     // get dag block hash from the last pbft block(pivot) in pbft chain
     blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
     std::pair<PbftBlock, bool> last_pbft_block =
@@ -686,10 +684,14 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     TrxSchedule schedule(*dag_blocks_order, dag_blocks_trx_modes);
 
     // generate pbft schedule block
-    ScheduleBlock schedule_block(last_block_hash, timestamp, schedule);
+    ScheduleBlock schedule_block(last_block_hash, schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
   }  // TODO: More pbft block types
+
+  // setup timestamp for pbft block
+  uint64_t timestamp = std::time(nullptr);
+  pbft_block.setTimestamp(timestamp);
 
   // sign the pbft block
   std::string pbft_block_str = pbft_block.getJsonStr();
