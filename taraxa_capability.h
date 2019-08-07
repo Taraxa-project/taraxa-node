@@ -210,9 +210,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   // Peers
   std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
-  unsigned int  getPeersCount();
+  unsigned int getPeersCount();
   void erasePeer(NodeID const &node_id);
-  void insertPeer(NodeID const &node_id, std::shared_ptr<TaraxaPeer> const &peer);
+  void insertPeer(NodeID const &node_id,
+                  std::shared_ptr<TaraxaPeer> const &peer);
 
  private:
   Host &host_;
