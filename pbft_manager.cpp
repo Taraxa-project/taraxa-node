@@ -114,11 +114,29 @@ void PbftManager::run() {
     auto elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
-    LOG(log_tra_) << "PBFT round is " << pbft_round_;
-    LOG(log_tra_) << "PBFT step is " << pbft_step_;
+    LOG(log_tra_) << "PBFT current round is " << pbft_round_;
+    LOG(log_tra_) << "PBFT current step is " << pbft_step_;
 
     // Get votes
     std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
+
+    // TODO: TEST CODE. Below is for adjust PBFT Lambda, will remove later
+    std::string test_log = "PBFT current round " + std::to_string(pbft_round_) +
+                           " step " + std::to_string(pbft_step_);
+    std::map<uint64_t, size_t> round_votes;
+    for (auto const &v : votes) {
+      if (round_votes.find(v.getRound()) == round_votes.end()) {
+        round_votes[v.getRound()] = 1;
+      } else {
+        round_votes[v.getRound()]++;
+      }
+    }
+    for (auto &rv : round_votes) {
+      test_log += ". In round " + std::to_string(rv.first) + " has votes " +
+                  std::to_string(rv.second);
+    }
+    LOG(log_inf_test_) << test_log;
+    // END TEST CODE
 
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
