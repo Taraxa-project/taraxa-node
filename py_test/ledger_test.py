@@ -9,20 +9,23 @@ import shutil
 import subprocess
 import sys
 import time
+import os
 from create_conf import create_taraxa_conf
 
 # local test
-START_FULL_NODE = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-filename logs/node{}.log --log-channels PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR"
-START_FULL_NODE_SILENT = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 0 --log-filename logs/node{}.log --log-channels PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR"
 
-node_ip = "0.0.0.0"
-nodes_port = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786, 
+START_BOOT_NODE = "./build-d/main --boot_node true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
+START_FULL_NODE = "./build-d/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
+START_FULL_NODE_SILENT = "./build-d/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 0 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
+
+NODE_IP = "127.0.0.1"
+NODE_PORTS = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786, 
               7787, 7788, 7789, 7790, 7791, 7792, 7793, 7794, 7795, 7796]
 TOTAL_TARAXA_COINS = 9007199254740991
 TOTAL_TRXS = 50000
 NODE_BAL = 50000
 BOOT_NODE_SECRET_KEY = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-boot_node_address = "de2b1203d72d3549ee2f733b00b2789414c7cea5"
+BOOT_NODE_ADDRESS = "de2b1203d72d3549ee2f733b00b2789414c7cea5"
 
 def read_account_table(file_name):
     node_secret=[]
@@ -41,15 +44,15 @@ def read_account_table(file_name):
             counter= (counter+1)%4
     return node_secret, node_public, node_address
 
-def rpc(node_ip, node_port, data):
+def rpc(NODE_IP, node_port, data):
     request = None
     try:
-        request = requests.post("http://{}:{}".format(node_ip, node_port), data=json.dumps(data))
+        request = requests.post("http://{}:{}".format(NODE_IP, node_port), data=json.dumps(data))
     except Exception as e:
         print(e)
     return request
 
-def send_get_peer_count(node_ip, node_port):
+def send_get_peer_count(NODE_IP, node_port):
     get_peer_count_data = {
         "jsonrpc": "2.0",
         "id": node_port,
@@ -57,7 +60,7 @@ def send_get_peer_count(node_ip, node_port):
         "params": [{}]
     }
 
-    res = rpc(node_ip, node_port, get_peer_count_data)
+    res = rpc(NODE_IP, node_port, get_peer_count_data)
     if res == None or res.status_code != 200:
         print("Send get_peer_count failed ...")
     else:
@@ -66,11 +69,10 @@ def send_get_peer_count(node_ip, node_port):
     return res.json()["result"]["value"]
 
 def start_full_node(node):
-    if (node == 1):
-        cmd = START_FULL_NODE.format(node, node)
+    if (node == 0):
+        cmd = START_BOOT_NODE.format(node, node, node)
     else:
-        cmd = START_FULL_NODE_SILENT.format(node, node)
-    print cmd
+        cmd = START_FULL_NODE.format(node, node, node)
     subprocess.call(cmd, shell=True)
 
 def start_full_node_process(node):
@@ -80,29 +82,31 @@ def start_full_node_process(node):
 
 def start_multi_full_nodes(num_nodes):
     jobs = []
-    for node in range(1, num_nodes + 1):
+    for node in range(0, num_nodes):
         p = multiprocessing.Process(target=start_full_node, args=(node,))
         jobs.append(p)
         p.start()
         time.sleep(1)
 
-def get_peer_count(num_nodes):
+def all_nodes_connected(num_nodes):
     while (True):
         total_peers = 0
+        ok = 1
         for node in range(num_nodes):
-            peers = send_get_peer_count(node_ip, nodes_port[node])
-            total_peers += int(peers)
-        if (total_peers == (num_nodes - 1) * num_nodes):
+            peers = send_get_peer_count(NODE_IP, NODE_PORTS[node])
+            if (peers<=2):
+                ok = 0
+        if ok:
             return
         time.sleep(2)
 
-def get_account_address(node_ip, node_port):
+def get_account_address(NODE_IP, node_port):
     account_address_data = {
         "action": "get_account_address"
     }
     print account_address_data
 
-    res = rpc(node_ip, node_port, account_address_data)
+    res = rpc(NODE_IP, node_port, account_address_data)
     if res == None or res.status_code != 200 :
         print("Send get_account_address failed ...")
     else:
@@ -110,7 +114,7 @@ def get_account_address(node_ip, node_port):
 
     return res.text
 
-def get_account_balance(node_ip, node_port, account_address):
+def get_account_balance(NODE_IP, node_port, account_address):
     request_data = {
         "jsonrpc": "2.0",
         "id": "0",
@@ -119,8 +123,7 @@ def get_account_balance(node_ip, node_port, account_address):
             "address": account_address,
         }]
     }
-    print request_data
-    res = rpc(node_ip, node_port, request_data)
+    res = rpc(NODE_IP, node_port, request_data)
     if res == None or res.status_code != 200 :
         print("Send get_account_balance failed ...")
     else: 
@@ -148,8 +151,8 @@ def send_coins_trx(nonce, value, receiver, secret_key):
     print trx
     return trx
 
-def send_trx(node_ip, node_port, trx):
-    r = rpc(node_ip, node_port, trx)
+def send_trx(NODE_IP, node_port, trx):
+    r = rpc(NODE_IP, node_port, trx)
     if r == None or r.status_code != 200 :
         print("Send trx failed ...")
     else:
@@ -162,7 +165,7 @@ def send_coins(transfer_ip, transfer_port, receiver, value):
 def send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_created):
     try:
         request = jsonrpc_cmd_create_many_coin_trx(0, neighbor, number_of_trx_created)
-        json_reply = rpc(node_ip, node_port, request)
+        json_reply = rpc(NODE_IP, node_port, request)
         print (json_reply)
     except Exception as e:
         print(e) 
@@ -188,7 +191,7 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
     for receiver in range(num_nodes):
         neighbor = NODE_ADDRESS[receiver+1]
         print("Node", receiver, "create", number_of_trx_created, "trxs to (",receiver+1,")" ,neighbor, ",total coins=", total_transfer)
-        send_many_trx_to_neighbor(nodes_port[receiver], neighbor, number_of_trx_created)
+        send_many_trx_to_neighbor(NODE_PORTS[receiver], neighbor, number_of_trx_created)
     ok = 1
     print("Wait for coin transfer ...")
     for i in range(10):
@@ -207,7 +210,7 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
                 else: 
                     expected_bal = NODE_BAL
                 account = NODE_ADDRESS[acc]
-                bal = get_account_balance(node_ip, nodes_port[receiver], account)
+                bal = get_account_balance(NODE_IP, NODE_PORTS[receiver], account)
                 if bal != expected_bal:
                     print("Error! node", receiver, "account (", acc,")", account, "balance =", bal, "Expected =", expected_bal)
                     ok = 0
@@ -221,38 +224,37 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
     return ok
 
 
-def ten_nodes_start_concurrent_test():
-    num_nodes = 10
+def balance_check_test(num_nodes):
     start_multi_full_nodes(num_nodes)
 
-    time.sleep(3)
-
+    time.sleep(5)
+    all_nodes_connected(num_nodes)
     coins = NODE_BAL
     for i in range (num_nodes):
         # transfer coins from boot node to other address
         if i == 0:
             continue
-        send_coins(node_ip, nodes_port[0], NODE_ADDRESS[i], coins)
+        send_coins(NODE_IP, NODE_PORTS[0], NODE_ADDRESS[i], coins)
     time.sleep(20)
 
     for i in range (num_nodes):
-        get_account_balance(node_ip, nodes_port[i], NODE_ADDRESS[i])
+        get_account_balance(NODE_IP, NODE_PORTS[i], NODE_ADDRESS[i])
     send_trx_from_node_to_neighbors_testing(num_nodes)
 
 def main():
-    #num_nodes = int(sys.argv[1])
+    num_nodes = 15
     for path in glob.glob("/tmp/taraxa*"):
         shutil.rmtree(path, ignore_errors=True)
     for path in glob.glob("./logs/node*"):
         shutil.rmtree(path, ignore_errors=True)
-    for path in glob.glob("./conf/taraxa*"):
+    for path in glob.glob("./py_test/conf/conf_*"):
         shutil.rmtree(path, ignore_errors=True)
+    if not os.path.exists("./logs"):
+        os.makedirs("./logs")
     global NODE_ADDRESS, NODE_PUBLIC, NODE_SECRET
-    NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table("../core_tests/account_table.txt")
-    #print (NODE_ADDRESS)
-    create_taraxa_conf(20, NODE_SECRET[0], NODE_PUBLIC[0])
-    #ten_nodes_start_concurrent_test()
-
+    NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table("./core_tests/account_table.txt")
+    create_taraxa_conf(num_nodes, NODE_SECRET, NODE_PUBLIC[0])
+    balance_check_test(num_nodes)
     sys.exit()
 
 if __name__ == "__main__":

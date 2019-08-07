@@ -2,16 +2,16 @@ import glob
 import json
 import os
 
-CONF_DIR = "conf"
-def create_taraxa_conf (num_conf, secret, boot_node_pk):
+CONF_DIR = "py_test/conf"
+def create_taraxa_conf (num_conf, secrets, boot_node_pk):
   if not os.path.exists(CONF_DIR):
     os.makedirs(CONF_DIR)
   for i in range(num_conf):
     conf = { 
-      "node_secret": secret,
-      "db_path": "tmp/taraxa"+str(i),
+      "node_secret": secrets[i],
+      "db_path": "/tmp/taraxa"+str(i),
       "dag_processing_threads": 1, 
-      "network_address": "0.0.0.0", 
+      "network_address": "127.0.0.1", 
       "network_listen_port": 10002 + i,
       "network_simulated_delay": 0, 
       "network_transaction_interval": 100,
@@ -19,7 +19,7 @@ def create_taraxa_conf (num_conf, secret, boot_node_pk):
       "network_boot_nodes": [
         {
           "id": boot_node_pk,
-          "ip": "0.0.0.0",
+          "ip": "127.0.0.1",
           "port": 10002
         }
       ],
@@ -45,6 +45,7 @@ def create_taraxa_conf (num_conf, secret, boot_node_pk):
           "tips": [],
           "trxs": [],
           "sig": "",
+          "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
           "hash": "0000000000000000000000000000000000000000000000000000000000000000",
           "sender": ""
         },
