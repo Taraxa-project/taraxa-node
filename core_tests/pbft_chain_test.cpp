@@ -36,10 +36,9 @@ TEST(PivotBlock, serialize_deserialize) {
   blk_hash_t prev_res_blk(56);
   blk_hash_t dag_blk(78);
   uint64_t epoch = 1;
-  uint64_t timestamp = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block1(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-                          timestamp, beneficiary);
+                          beneficiary);
 
   std::stringstream ss1, ss2;
   ss1 << pivot_block1;
@@ -60,12 +59,11 @@ TEST(PivotBlock, serialize_deserialize) {
 
 TEST(ScheduleBlock, serialize_deserialize) {
   blk_hash_t prev_pivot(22);
-  uint64_t timestamp = 333333;
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
   TrxSchedule schedule(blks, modes);
-  ScheduleBlock schedule_blk1(prev_pivot, timestamp, schedule);
+  ScheduleBlock schedule_blk1(prev_pivot, schedule);
 
   std::stringstream ss1, ss2;
   ss1 << schedule_blk1;
@@ -99,12 +97,16 @@ TEST(PbftChain, pbft_db_test) {
   blk_hash_t prev_blk_hash(0);
   blk_hash_t dag_blk_hash(78);
   uint64_t pbft_chain_period = 1;
-  uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_hash, prev_blk_hash, dag_blk_hash,
-                         pbft_chain_period, timestamp1, beneficiary);
+                         pbft_chain_period, beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
+  // setup timestamp for pbft block
+  pbft_block1.setTimestamp(std::time(nullptr));
+  // sign the pbft block
+  pbft_block1.setSignature(node->signMessage(pbft_block1.getJsonStr()));
+
   // put into pbft chain and store into DB
   node->setPbftBlock(pbft_block1);
   EXPECT_EQ(node->getPbftChainSize(), 2);
@@ -120,12 +122,16 @@ TEST(PbftChain, pbft_db_test) {
 
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
-  uint64_t timestamp2 = 333333;
   TrxSchedule schedule;
-  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
+  ScheduleBlock schedule_blk(prev_pivot, schedule);
 
   PbftBlock pbft_block3(blk_hash_t(2));
   pbft_block3.setScheduleBlock(schedule_blk);
+  // setup timestamp for pbft block
+  pbft_block3.setTimestamp(std::time(nullptr));
+  // sign the pbft block
+  pbft_block3.setSignature(node->signMessage(pbft_block3.getJsonStr()));
+
   // put into pbft chain and store into DB
   node->setPbftBlock(pbft_block3);
   EXPECT_EQ(node->getPbftChainSize(), 3);
@@ -144,7 +150,7 @@ TEST(PbftChain, pbft_db_test) {
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
 }
 
-TEST(PbftChain, DISABLED_block_broadcast) {
+TEST(PbftChain, block_broadcast) {
   boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf/conf_taraxa1.json")));
@@ -154,12 +160,21 @@ TEST(PbftChain, DISABLED_block_broadcast) {
   boost::asio::io_context context3;
   auto node3(std::make_shared<taraxa::FullNode>(
       context3, std::string("./core_tests/conf/conf_taraxa3.json")));
+
+  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
+
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
   node1->start(true);  // boot_node
   node2->start(false);
   node3->start(false);
+
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
+  pbft_mgr3->stop();
 
   std::unique_ptr<boost::asio::io_context::work> work1(
       new boost::asio::io_context::work(context1));
@@ -195,12 +210,15 @@ TEST(PbftChain, DISABLED_block_broadcast) {
   blk_hash_t prev_res_blk(0);
   blk_hash_t dag_blk(78);
   uint64_t epoch = 1;
-  uint64_t timestamp1 = 123456;
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-                         timestamp1, beneficiary);
+                         beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
+  // setup timestamp for pbft block
+  pbft_block1.setTimestamp(std::time(nullptr));
+  // sign the pbft block
+  pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr()));
 
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftQueueSize(), 1);
@@ -227,12 +245,15 @@ TEST(PbftChain, DISABLED_block_broadcast) {
 
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
-  uint64_t timestamp2 = 333333;
   TrxSchedule schedule;
-  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
+  ScheduleBlock schedule_blk(prev_pivot, schedule);
 
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
+  // setup timestamp for pbft block
+  pbft_block2.setTimestamp(std::time(nullptr));
+  // sign the pbft block
+  pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr()));
 
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftQueueSize(), 2);
