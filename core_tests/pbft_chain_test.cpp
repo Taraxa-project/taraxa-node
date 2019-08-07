@@ -293,39 +293,45 @@ TEST(PbftChain, get_dag_block_hash) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(false);
+  node->start(true);
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  for (int i = 0; i < 100; i++) {
-    std::pair<blk_hash_t, bool> dag_genesis_hash =
-        pbft_chain->getDagBlockHash(0);
-    if (i == 99 || dag_genesis_hash.first) {
-      EXPECT_TRUE(dag_genesis_hash.second);
-      EXPECT_EQ(dag_genesis_hash.first,
-                node->getConfig().genesis_state.block.getHash());
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (pbft_chain->getPbftChainSize() == 3) {
       break;
-    } else
-      taraxa::thisThreadSleepForMilliSeconds(100);
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
   }
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
+
+  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
+  EXPECT_TRUE(dag_genesis_hash.second);
+  EXPECT_TRUE(dag_genesis_hash.second);
+  EXPECT_EQ(dag_genesis_hash.first,
+            node->getConfig().genesis_state.block.getHash());
 }
 
 TEST(PbftChain, get_dag_block_height) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(false);
+  node->start(true);
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  for (int i = 0; i < 100; i++) {
-    std::pair<uint64_t, bool> dag_genesis_height =
-        pbft_chain->getDagBlockHeight(
-            node->getConfig().genesis_state.block.getHash());
-    if (i == 99 || dag_genesis_height.second) {
-      EXPECT_TRUE(dag_genesis_height.second);
-      EXPECT_EQ(dag_genesis_height.first, 0);
-    } else
-      taraxa::thisThreadSleepForMilliSeconds(100);
+  for (int i = 0; i < 300; i++) {
+    // test timeout is 30 seconds
+    if (pbft_chain->getPbftChainSize() == 3) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
   }
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
+
+  std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
+      node->getConfig().genesis_state.block.getHash());
+  EXPECT_TRUE(dag_genesis_height.second);
+  EXPECT_EQ(dag_genesis_height.first, 0);
 }
 
 /*
