@@ -21,6 +21,37 @@ def rpc(node_port, data):
     return json_reply
 
 
+def taraxa_rpc_get_transaction_count(node_port):
+    request = {
+        "jsonrpc": "2.0",
+        "id": node_port,
+        "method": "get_transaction_count",
+        "params": [{}]
+    }
+    try:
+        json_reply = rpc(node_port, request)
+        count = json_reply["result"]["value"]
+        return count
+    except Exception as e:
+        print(e)
+
+
+def taraxa_rpc_get_dag_size(node_port):
+    request = {
+        "jsonrpc": "2.0",
+        "id": node_port,
+        "method": "get_dag_size",
+        "params": [{}]
+    }
+    try:
+        json_reply = rpc(node_port, request)
+        dag_size = json_reply["result"]["value"].split(",")
+        # print ("DAG size:", dag_size[1])
+        return dag_size
+    except Exception as e:
+        print(e)
+
+
 def taraxa_rpc_get_peer_count(node_port):
     request = {
         "jsonrpc": "2.0",
