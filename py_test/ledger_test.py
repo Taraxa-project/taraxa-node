@@ -107,6 +107,40 @@ def send_get_boot_node_balance():
     return taraxa_rpc_get_account_balance(BOOT_NODE_PORT, BOOT_NODE_ADDR)
 
 
+def trx_count_testing(num_nodes):
+    # use first node as answer
+    answer = 0
+    ok = 1
+    for node in range(num_nodes):
+        count = taraxa_rpc_get_transaction_count(NODE_PORTS[node])
+        if (node == 0):
+            answer = count
+            print("Trx count =", count)
+        elif (count != answer):
+            print("Error! node", node, "has only",
+                  count, " transactions, expected:", answer)
+            ok = 0
+        print("Check transaction count ... in node", node, "status =", ok)
+    return ok
+
+
+def dag_size_testing(num_nodes):
+    # use first node as answer
+    answer = 0
+    ok = 1
+    for node in range(num_nodes):
+        sz = taraxa_rpc_get_dag_size(NODE_PORTS[node])
+        if (node == 0):
+            answer = sz
+            print("Dag size =", sz)
+        elif (sz != answer):
+            print("Error! node", node, "has only",
+                  sz, "DAG, expected:", answer)
+            ok = 0
+        print("Check dag size ... in node", node, "status =", ok)
+    return ok
+
+
 def initialize_coin_allocation(num_nodes, coins):
     boot_node_coin = send_get_boot_node_balance()
     print("Boot node balance", boot_node_coin)
@@ -183,6 +217,8 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
                     print("Error! node", node, "account (", acc, ")",
                           account, "balance =", bal, "Expected =", expected_bal)
                     ok = 0
+                    trx_count_testing(num_nodes)
+                    dag_size_testing(num_nodes)
                     break
         if ok:
             break
