@@ -25,18 +25,20 @@ pipeline {
             }
         }
         stage('Unit Tests') {
+            agent {
+              docker {
+                alwaysPull true
+                image "${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
+                reuseNode true
+              }
+            }
             steps {
               build job: "docker-base-image/${BRANCH_NAME}", parameters: [
                   string(name: 'upsteam_project_name', value: env.NAME)
               ], propagate: true, wait: true
-              sh '''
-                  git submodule update --init --recursive
-                  docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
-                    -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
-                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
-                    --target=test \
-                    -f dockerfiles/Dockerfile .
-              '''
+
+                sh 'git submodule update --init --recursive'
+                sh 'make run_test'
             }
         }
         stage('Build Docker Image') {
