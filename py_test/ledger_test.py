@@ -10,6 +10,7 @@ import subprocess
 import sys
 import time
 import os
+import psutil
 from create_conf import create_taraxa_conf
 from taraxa_rpc import *
 # local test
@@ -24,6 +25,21 @@ BOOT_NODE_PORT = NODE_PORTS[0]
 TOTAL_TARAXA_COINS = 9007199254740991
 NUM_TRXS = 100
 INIT_NODE_BAL = 90000
+
+
+def get_arguments():
+    [num_nodes] = sys.argv[1:]
+    return int(num_nodes)
+
+
+def test_fail():
+    print "****** [Test Fail] ******"
+    return 0
+
+
+def test_success():
+    print "****** [Test Success] ******"
+    return 1
 
 
 def read_account_table(file_name):
@@ -64,6 +80,7 @@ def start_full_node_process(node):
 
 
 def start_multi_full_nodes(num_nodes):
+    print "Create ", num_nodes, "nodes"
     jobs = []
     for node in range(0, num_nodes):
         p = multiprocessing.Process(target=start_full_node, args=(node,))
@@ -73,22 +90,17 @@ def start_multi_full_nodes(num_nodes):
     return jobs
 
 
-def terminate_full_nodes(jobs):
-    for j in jobs:
-        j.terminate()
-        # j.join()
-
-
 def all_nodes_connected(num_nodes):
-    while (True):
+    for i in range(10):
         ok = 1
         for node in range(num_nodes):
             peers = taraxa_rpc_get_peer_count(NODE_PORTS[node])
             if (peers == 0):
                 ok = 0
         if ok:
-            return
-        time.sleep(2)
+            return 1
+        time.sleep(1)
+    return 0
 
 
 def send_get_boot_node_balance():
@@ -184,15 +196,35 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
 def balance_check_test(num_nodes):
 
     time.sleep(3)
-    all_nodes_connected(num_nodes)
-    initialize_coin_allocation(num_nodes, INIT_NODE_BAL)
+    ok = all_nodes_connected(num_nodes)
+    if not ok:
+        return 0
+    ok = initialize_coin_allocation(num_nodes, INIT_NODE_BAL)
+    if not ok:
+        return 0
+    ok = send_trx_from_node_to_neighbors_testing(num_nodes)
+    return ok
 
-    send_trx_from_node_to_neighbors_testing(num_nodes)
+
+def killtree(pid, including_parent=True):
+    parent = psutil.Process(pid)
+    for child in parent.children(recursive=True):
+        print "Killing chilld process", child
+        child.kill()
+    if including_parent:
+        print "Kill process", parent
+        parent.kill()
+
+
+def terminate_full_nodes(jobs):
+    pids = []
+    for j in jobs:
+        killtree(j.pid)
 
 
 def main():
 
-    num_nodes = 3
+    num_nodes = get_arguments()
     # delete previous results
     for path in glob.glob("/tmp/taraxa*"):
         shutil.rmtree(path, ignore_errors=True)
@@ -210,10 +242,14 @@ def main():
 
     jobs = start_multi_full_nodes(num_nodes)
 
-    balance_check_test(num_nodes)
+    ok = balance_check_test(num_nodes)
 
     terminate_full_nodes(jobs)
     # sys.exit()
+    if ok:
+        test_success()
+    else:
+        test_fail()
 
 
 if __name__ == "__main__":
