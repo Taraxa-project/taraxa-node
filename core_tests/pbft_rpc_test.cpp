@@ -51,40 +51,6 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 10000);
 }
 
-/* Place votes period 1, 2 and 3 into vote queue.
- * Get vote period 2, will remove period 1 in the queue. Queue size changes
- * to 2.
- */
-TEST_F(PbftVoteTest, DISABLED_pbft_place_and_get_vote_test) {
-  const char* input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-
-  Top top1(5, input1);
-  EXPECT_TRUE(top1.isActive());
-  thisThreadSleepForMilliSeconds(500);
-
-  auto node = top1.getNode();
-
-  node->clearUnverifiedVotesTable();
-
-  try {
-    system("./core_tests/scripts/curl_pbft_place_vote.sh");
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-
-  try {
-    system("./core_tests/scripts/curl_pbft_get_votes.sh");
-  } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
-  }
-
-  node->stop();
-
-  size_t votes_size = node->getUnverifiedVotesSize();
-  EXPECT_EQ(votes_size, 2);
-}
-
 // Add votes round 1, 2 and 3 into unverified vote table
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3
 // votes
