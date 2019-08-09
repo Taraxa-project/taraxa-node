@@ -70,19 +70,27 @@ void PbftManager::start() {
   db_pbftchain_ = full_node->getPbftChainDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_inf_) << "A PBFT executor initiated ..." << std::endl;
+  LOG(log_inf_) << "PBFT executor initiated ...";
+  monitor_stop_ = false;
+  monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
+  LOG(log_inf_test_) << "PBFT monitor vote logs initiated";
 }
 
 void PbftManager::stop() {
   if (stopped_) {
     return;
   }
-  db_votes_ = nullptr;
-  db_pbftchain_ = nullptr;
+  monitor_stop_ = true;
+  monitor_votes_->join();
+  monitor_votes_.reset();
+  LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
   stopped_ = true;
   daemon_->join();
   daemon_.reset();
-  LOG(log_inf_) << "A PBFT executor terminated ..." << std::endl;
+  LOG(log_inf_) << "PBFT executor terminated ...";
+  db_votes_ = nullptr;
+  db_pbftchain_ = nullptr;
+  assert(monitor_votes_ == nullptr);
   assert(daemon_ == nullptr);
 }
 
@@ -108,6 +116,9 @@ void PbftManager::run() {
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round;
   auto next_step_time_ms = 0;
 
+  last_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
@@ -119,24 +130,6 @@ void PbftManager::run() {
 
     // Get votes
     std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
-
-    // TODO: TEST CODE. Below is for adjust PBFT Lambda, will remove later
-    std::string test_log = "PBFT current round " + std::to_string(pbft_round_) +
-                           " step " + std::to_string(pbft_step_);
-    std::map<uint64_t, size_t> round_votes;
-    for (auto const &v : votes) {
-      if (round_votes.find(v.getRound()) == round_votes.end()) {
-        round_votes[v.getRound()] = 1;
-      } else {
-        round_votes[v.getRound()]++;
-      }
-    }
-    for (auto &rv : round_votes) {
-      test_log += ". In round " + std::to_string(rv.first) + " has votes " +
-                  std::to_string(rv.second);
-    }
-    LOG(log_inf_test_) << test_log;
-    // END TEST CODE
 
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
@@ -168,6 +161,9 @@ void PbftManager::run() {
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
       // NOTE: This also sets pbft_step back to 1
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ = 1;
       round_clock_initial_datetime = std::chrono::system_clock::now();
       continue;
@@ -211,6 +207,9 @@ void PbftManager::run() {
       }
       next_step_time_ms = 2 * LAMBDA_ms;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ += 1;
 
     } else if (pbft_step_ == 2) {
@@ -246,7 +245,10 @@ void PbftManager::run() {
 
       next_step_time_ms = 2 * LAMBDA_ms;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
-      pbft_step_ = pbft_step_ + 1;
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
+      pbft_step_ += 1;
 
     } else if (pbft_step_ == 3) {
       // The Certifying Step
@@ -291,6 +293,10 @@ void PbftManager::run() {
       if (should_go_to_step_four) {
         LOG(log_deb_) << "will go to step 4";
         next_step_time_ms = 4 * LAMBDA_ms;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ += 1;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
@@ -318,7 +324,9 @@ void PbftManager::run() {
                      pbft_round_, pbft_step_);
         }
       }
-
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ += 1;
       next_step_time_ms = 4 * LAMBDA_ms;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
@@ -348,6 +356,10 @@ void PbftManager::run() {
 
       if (elapsed_time_in_round_ms > 6 * LAMBDA_ms - POLLING_INTERVAL_ms) {
         next_step_time_ms = 6 * LAMBDA_ms;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ += 1;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
@@ -375,7 +387,9 @@ void PbftManager::run() {
                      pbft_round_, pbft_step_);
         }
       }
-
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ += 1;
 
     } else {
@@ -407,12 +421,20 @@ void PbftManager::run() {
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
                       << pbft_round_ << ", step 1, and resetting clock.";
         // NOTE: This also sets pbft_step back to 1
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ = 1;
         round_clock_initial_datetime = std::chrono::system_clock::now();
         continue;
       } else if (elapsed_time_in_round_ms >
                  (pbft_step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms) {
         next_step_time_ms = (pbft_step_ + 1) * LAMBDA_ms;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ += 1;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
@@ -1029,6 +1051,53 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   }
 
   return true;
+}
+
+void PbftManager::countVotes_() {
+  while (!monitor_stop_) {
+    std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
+
+    size_t last_step_votes = 0;
+    size_t current_step_votes = 0;
+    for (auto const &v : votes) {
+      if (pbft_step_ == 1) {
+        if (v.getRound() == pbft_round_ - 1 && v.getStep() == last_step_) {
+          last_step_votes++;
+        } else if (v.getRound() == pbft_round_ && v.getStep() == pbft_step_) {
+          current_step_votes++;
+        }
+      } else {
+        if (v.getRound() == pbft_round_) {
+          if (v.getStep() == pbft_step_ - 1) {
+            last_step_votes++;
+          } else if (v.getStep() == pbft_step_) {
+            current_step_votes++;
+          }
+        }
+      }
+    }
+
+    auto now = std::chrono::system_clock::now();
+    auto last_step_duration = now - last_step_clock_initial_datetime_;
+    auto elapsed_last_step_time_in_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            last_step_duration)
+            .count();
+
+    auto current_step_duration = now - current_step_clock_initial_datetime_;
+    auto elapsed_current_step_time_in_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            current_step_duration)
+            .count();
+
+    LOG(log_inf_test_) << "Round " << pbft_round_ << " step " << last_step_
+                       << " time " << elapsed_last_step_time_in_ms
+                       << "(ms) has " << last_step_votes << " votes";
+    LOG(log_inf_test_) << "Round " << pbft_round_ << " step " << pbft_step_
+                       << " time " << elapsed_current_step_time_in_ms
+                       << "(ms) has " << current_step_votes << " votes";
+    thisThreadSleepForMilliSeconds(100);
+  }
 }
 
 }  // namespace taraxa

@@ -124,6 +124,15 @@ class PbftManager {
 
   std::string genesis_;
 
+  // TODO: will remove later, TEST CODE
+  void countVotes_();
+  std::shared_ptr<std::thread> monitor_votes_;
+  bool monitor_stop_ = true;
+  size_t last_step_ = 0;
+  std::chrono::system_clock::time_point last_step_clock_initial_datetime_;
+  std::chrono::system_clock::time_point current_step_clock_initial_datetime_;
+  // END TEST CODE
+
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};
   mutable dev::Logger log_err_{
