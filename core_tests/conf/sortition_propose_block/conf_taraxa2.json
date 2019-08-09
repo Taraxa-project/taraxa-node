@@ -16,7 +16,7 @@
   ],
   "network_id": "testnet",
   "rpc_port": 7778,
-  "ws_port": 7788,
+  "ws_port": 8778,
   "pbft_manager": {
     "lambda_ms": 1000
   },

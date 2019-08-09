@@ -1,5 +1,5 @@
-#ifndef WSSERVER_HPP
-#define WSSERVER_HPP
+#ifndef TARAXA_NODE_WSSERVER_HPP
+#define TARAXA_NODE_WSSERVER_HPP
 
 #include <algorithm>
 #include <boost/asio/strand.hpp>
@@ -39,7 +39,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
                        uint64_t const& block_number);
-  bool is_closed() { return closed; }
+  bool is_closed() { return closed_; }
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
   dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
@@ -51,9 +51,9 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
  private:
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
-  int subscription_id = 0;
-  int new_heads_subscription = 0;
-  bool closed = false;
+  int subscription_id_ = 0;
+  int new_heads_subscription_ = 0;
+  bool closed_ = false;
 };
 
 //------------------------------------------------------------------------------

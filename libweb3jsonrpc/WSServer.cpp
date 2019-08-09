@@ -50,7 +50,7 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   // This indicates that the session was closed
   if (ec == websocket::error::closed) {
     LOG(log_tr_) << "WS closed";
-    closed = true;
+    closed_ = true;
     return;
   }
 
@@ -72,11 +72,11 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   auto params = json.get("params", Json::Value(Json::Value(Json::arrayValue)));
   json_response["id"] = id;
   json_response["jsonrpc"] = "2.0";
-  subscription_id++;
+  subscription_id_++;
   if (params.size() == 1 && params[0].asString() == "newHeads") {
-    new_heads_subscription = subscription_id;
+    new_heads_subscription_ = subscription_id_;
   }
-  json_response["result"] = dev::toJS(subscription_id);
+  json_response["result"] = dev::toJS(subscription_id_);
   Json::FastWriter fastWriter;
   std::string response = fastWriter.write(json_response);
   ws_.text(ws_.got_text());
@@ -118,7 +118,7 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
   res["jsonrpc"] = "2.0";
   res["method"] = "eth_subscription";
   params["result"] = dev::toJson(blk, block_number);
-  params["subscription"] = dev::toJS(new_heads_subscription);
+  params["subscription"] = dev::toJS(new_heads_subscription_);
   res["params"] = params;
   Json::FastWriter fastWriter;
   std::string response = fastWriter.write(res);
@@ -130,7 +130,7 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
 }
 
 void WSSession::close() {
-  closed = true;
+  closed_ = true;
   ws_.close("close");
 }
 
