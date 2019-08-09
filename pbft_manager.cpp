@@ -1081,21 +1081,22 @@ void PbftManager::countVotes_() {
     auto last_step_duration = now - last_step_clock_initial_datetime_;
     auto elapsed_last_step_time_in_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(
-            last_step_duration).count();
+            last_step_duration)
+            .count();
 
     auto current_step_duration = now - current_step_clock_initial_datetime_;
     auto elapsed_current_step_time_in_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(
-            current_step_duration).count();
+            current_step_duration)
+            .count();
 
-    LOG(log_inf_test_) << "PBFT round " << pbft_round_
-                       << " last step " << last_step_
-                       << " time " << elapsed_last_step_time_in_ms
+    LOG(log_inf_test_) << "PBFT round " << pbft_round_ << " last step "
+                       << last_step_ << " time " << elapsed_last_step_time_in_ms
                        << " has votes " << last_step_votes;
-    LOG(log_inf_test_) << "PBFT round " << pbft_round_
-                       << " current step " << pbft_step_
-                       << " time " << elapsed_current_step_time_in_ms
-                       << " has votes " << current_step_votes;
+    LOG(log_inf_test_) << "PBFT round " << pbft_round_ << " current step "
+                       << pbft_step_ << " time "
+                       << elapsed_current_step_time_in_ms << " has votes "
+                       << current_step_votes;
     thisThreadSleepForMilliSeconds(100);
   }
 }
