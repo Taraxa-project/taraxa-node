@@ -15,8 +15,8 @@ from create_conf import create_taraxa_conf
 from taraxa_rpc import *
 # local test
 
-START_BOOT_NODE = "./build/main --boot_node true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
-START_FULL_NODE = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
+START_BOOT_NODE = "./build/main --rebuild_network true --boot_node true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
+START_FULL_NODE = "./build/main --rebuild_network true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
 START_FULL_NODE_SILENT = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 0 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
 
 NODE_PORTS = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786,
@@ -263,11 +263,11 @@ def main():
     num_nodes = get_arguments()
     # delete previous results
     for path in glob.glob("/tmp/taraxa*"):
-        shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(path, ignore_errors=False)
     for path in glob.glob("./logs"):
-        shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(path, ignore_errors=False)
     for path in glob.glob("./py_test/conf"):
-        shutil.rmtree(path, ignore_errors=True)
+        shutil.rmtree(path, ignore_errors=False)
     if not os.path.exists("./logs"):
         os.makedirs("./logs")
     global NODE_ADDRESS, NODE_PUBLIC, NODE_SECRET

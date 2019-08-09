@@ -276,6 +276,9 @@ TEST_F(FullNodeTest, full_node_reset) {
   node1->stop();
   node1->reset();
   node1->start(true);  // boot node
+
+  // // TODO: pbft does not support node stop yet, to be fixed ...
+  // node1->getPbftManager()->stop();
   std::cout << "Waiting connection for 100 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(100);
 
@@ -748,6 +751,9 @@ TEST(Top, reconstruct_dag) {
     std::cout << "DB deleted ..." << std::endl;
 
     node->start(false);
+
+    // TODO: pbft does not support node stop yet, to be fixed ...
+    node->getPbftManager()->stop();
     for (int i = 1; i < num_blks; i++) {
       node->insertBlock(g_mock_dag0[i]);
     }
@@ -1560,6 +1566,12 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_NE(node4, nullptr);
   EXPECT_NE(node5, nullptr);
 
+  EXPECT_GT(node1->getPeerCount(), 0);
+  EXPECT_GT(node2->getPeerCount(), 0);
+  EXPECT_GT(node3->getPeerCount(), 0);
+  EXPECT_GT(node4->getPeerCount(), 0);
+  EXPECT_GT(node5->getPeerCount(), 0);
+
   node1->getPbftManager()->stop();
   node2->getPbftManager()->stop();
   node3->getPbftManager()->stop();
@@ -1619,7 +1631,12 @@ TEST_F(TopTest, detect_overlap_transactions) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  for (int i = 0; i < 10; ++i) {
+    taraxa::thisThreadSleepForSeconds(2);
+    if (node1->getTransactionStatusCount() == 10000) break;
+  }
+
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10000);
 
   auto block = node1->getConfig().genesis_state.block;
   block.updateHash();
@@ -1633,25 +1650,56 @@ TEST_F(TopTest, detect_overlap_transactions) {
   std::cout << "Ordered dagblock size: " << order->size() << std::endl;
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
+  auto trx_table = node1->getTransactionStatusTableUnsafe();
+  auto trx_table2 = trx_table;
+  EXPECT_EQ(trx_table.size(), 10000);
   std::unordered_set<trx_hash_t> ordered_trxs;
   uint packed_trxs = 0;
   for (auto const &entry : *overlap_table) {
     auto const &blk = entry.first;
     auto const &overlap_vec = entry.second;
-    auto const &dag_blk = node1->getDagBlock(blk);
-    auto const &trxs = dag_blk->getTrxs();
+    auto dag_blk = node1->getDagBlock(blk);
+    ASSERT_NE(dag_blk, nullptr);
+    auto trxs = dag_blk->getTrxs();
     ASSERT_TRUE(trxs.size() == overlap_vec.size());
     packed_trxs += overlap_vec.size();
 
     for (auto i = 0; i < trxs.size(); i++) {
-      if (!ordered_trxs.count(trxs[i])) {
+      auto trx = trxs[i];
+      if (!ordered_trxs.count(trx)) {
         EXPECT_TRUE(overlap_vec[i]);
-        ordered_trxs.insert(trxs[i]);
+        ordered_trxs.insert(trx);
+        auto trx_status = trx_table[trx];
+        if (trx_status != TransactionStatus::in_block) {
+          std::cout << "Error: " << trx << " status " << asInteger(trx_status)
+                    << std::endl;
+        }
       } else {
         EXPECT_FALSE(overlap_vec[i]);
       }
+      auto it = trx_table2.find(trx);
+      if (it != trx_table2.end()) {
+        trx_table2.erase(it);
+      }
     }
   }
+
+  if (ordered_trxs.size() < 10000) {
+    for (auto const &t : ordered_trxs) {
+      trx_table.erase(t);
+    }
+    std::cout << "Number of unordered_trx " << trx_table.size() << std::endl;
+    for (auto const &t : trx_table) {
+      std::cout << "Trx " << t.first << " unordered_trx, status "
+                << asInteger(t.second) << std::endl;
+    }
+    std::cout << "Number of unpacked_trx " << trx_table2.size() << std::endl;
+    for (auto const &t : trx_table2) {
+      std::cout << "Trx " << t.first << " unpacked_trx, status "
+                << asInteger(t.second) << std::endl;
+    }
+  }
+
   std::cout << "Total packed trxs: " << packed_trxs << std::endl;
   EXPECT_GT(packed_trxs, 10000);
   // fixme: flaky
