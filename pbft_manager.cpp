@@ -1090,13 +1090,12 @@ void PbftManager::countVotes_() {
             current_step_duration)
             .count();
 
-    LOG(log_inf_test_) << "PBFT round " << pbft_round_ << " last step "
-                       << last_step_ << " time " << elapsed_last_step_time_in_ms
-                       << " has votes " << last_step_votes;
-    LOG(log_inf_test_) << "PBFT round " << pbft_round_ << " current step "
-                       << pbft_step_ << " time "
-                       << elapsed_current_step_time_in_ms << " has votes "
-                       << current_step_votes;
+    LOG(log_inf_test_) << "Round " << pbft_round_ << " step " << last_step_
+                       << " time " << elapsed_last_step_time_in_ms
+                       << "(ms) has " << last_step_votes << " votes";
+    LOG(log_inf_test_) << "Round " << pbft_round_ << " step " << pbft_step_
+                       << " time " << elapsed_current_step_time_in_ms
+                       << "(ms) has " << current_step_votes << " votes";
     thisThreadSleepForMilliSeconds(100);
   }
 }
