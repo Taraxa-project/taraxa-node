@@ -39,6 +39,126 @@ auto g_mock_dag0 = samples::createMockDag0();
 auto g_test_account =
     samples::createTestAccountTable("core_tests/account_table.txt");
 
+const char *input1[] = {"./build/main",
+                        "--conf_taraxa",
+                        "./core_tests/conf/conf_taraxa1.json",
+                        "-v",
+                        "0",
+                        "--destroy_db"};
+const char *input2[] = {"./build/main2",
+                        "--conf_taraxa",
+                        "./core_tests/conf/conf_taraxa2.json",
+                        "-v",
+                        "0",
+                        "--destroy_db"};
+const char *input3[] = {"./build/main3",
+                        "--conf_taraxa",
+                        "./core_tests/conf/conf_taraxa3.json",
+                        "-v",
+                        "0",
+                        "--destroy_db"};
+const char *input4[] = {"./build/main4",
+                        "--conf_taraxa",
+                        "./core_tests/conf/conf_taraxa4.json",
+                        "-v",
+                        "0",
+                        "--destroy_db"};
+const char *input5[] = {"./build/main5",
+                        "--conf_taraxa",
+                        "./core_tests/conf/conf_taraxa5.json",
+                        "-v",
+                        "0",
+                        "--destroy_db"};
+
+void send_2_nodes_trxs() {
+  std::string sendtrx1 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5, 
+                                      "number": 6000, 
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
+  std::string sendtrx2 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7, 
+                                      "number": 4000, 
+                                      "nonce": 2 , 
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
+  std::cout << "Sending trxs ..." << std::endl;
+  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+
+  t1.join();
+  t2.join();
+  std::cout << "All trxs sent..." << std::endl;
+}
+
+void send_5_nodes_trxs() {
+  std::string sendtrx1 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5, 
+                                      "number": 2000, 
+                                      "nonce": 1, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
+  std::string sendtrx2 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7, 
+                                      "number": 2000, 
+                                      "nonce": 2,
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778 > /dev/null)";
+  std::string sendtrx3 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
+                                      "delay": 3, 
+                                      "number": 2000, 
+                                      "nonce": 3,
+                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779 > /dev/null)";
+  std::string sendtrx4 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
+                                      "delay": 10, 
+                                      "number": 2000, 
+                                      "nonce": 4,
+                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780 > /dev/null)";
+  std::string sendtrx5 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
+                                      "delay": 2,
+                                      "number": 2000, 
+                                      "nonce": 5,
+                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781 > /dev/null)";
+  std::cout << "Sending trxs ..." << std::endl;
+  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+  std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
+  std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
+  std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
+
+  t1.join();
+  t2.join();
+  t3.join();
+  t4.join();
+  t5.join();
+
+  std::cout << "All trxs sent..." << std::endl;
+}
+
+void send_dumm_trx() {
+  std::string dummy_trx =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+                                      "params": [{ 
+                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                        "value": 0, 
+                                        "receiver": 6000, 
+                                        "nonce": 1, 
+                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
+  std::cout << "Send dummy transaction ..." << std::endl;
+  system(dummy_trx.c_str());
+  taraxa::thisThreadSleepForSeconds(2);
+}
 struct TopTest : public DBUsingTest<> {};
 struct FullNodeTest : public DBUsingTest<> {};
 
@@ -73,27 +193,7 @@ TEST_F(TopTest, DISABLED_top_reset) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   try {
-    std::string sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 6000, 
-                                      "nonce": 1, 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
-    std::string sendtrx2 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 4000, 
-                                      "nonce": 2 , 
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
-    std::cout << "Sending trxs ..." << std::endl;
-    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
-
-    t1.join();
-    t2.join();
-    std::cout << "All trxs sent..." << std::endl;
+    send_2_nodes_trxs();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -147,28 +247,7 @@ TEST_F(TopTest, DISABLED_top_reset) {
   EXPECT_NE(node2, nullptr);
 
   try {
-    std::string sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 6000, 
-                                      "nonce": 1, 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
-    std::string sendtrx2 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 4000, 
-                                      "nonce": 2 , 
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
-    std::cout << "Sending trxs ..." << std::endl;
-    std::cout << "Sending trxs ..." << std::endl;
-    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
-
-    t1.join();
-    t2.join();
-    std::cout << "All trxs sent..." << std::endl;
+    send_2_nodes_trxs();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -305,17 +384,6 @@ TEST_F(FullNodeTest, full_node_reset) {
 
 // fixme: flaky
 TEST_F(TopTest, sync_five_nodes_simple) {
-  const char *input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-  const char *input2[] = {"./build/main2", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
-  const char *input3[] = {"./build/main3", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
-  const char *input4[] = {"./build/main4", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa4.json", "-v", "0"};
-  const char *input5[] = {"./build/main5", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa5.json", "-v", "0"};
-
   // copy main2, main3, main4, main5
   try {
     std::cout << "Copying main2 ..." << std::endl;
@@ -365,6 +433,12 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   EXPECT_NE(node4, nullptr);
   EXPECT_NE(node5, nullptr);
 
+  EXPECT_GT(node1->getPeerCount(), 0);
+  EXPECT_GT(node2->getPeerCount(), 0);
+  EXPECT_GT(node3->getPeerCount(), 0);
+  EXPECT_GT(node4->getPeerCount(), 0);
+  EXPECT_GT(node5->getPeerCount(), 0);
+
   // transfer some coins to your friends ...
   Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
@@ -383,89 +457,14 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   node1->insertTransaction(trx1to4);
   node1->insertTransaction(trx1to5);
 
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  taraxa::thisThreadSleepForSeconds(2);
 
   // send 1000 trxs
   try {
-    std::string sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 6000, 
-                                      "nonce": 1, 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777)";
-    std::string sendtrx2 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 4000, 
-                                      "nonce": 2,
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778)";
-    std::string sendtrx3 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
-                                      "delay": 3, 
-                                      "number": 3000, 
-                                      "nonce": 3,
-                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779)";
-    std::string sendtrx4 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
-                                      "delay": 10, 
-                                      "number": 3000, 
-                                      "nonce": 4,
-                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780)";
-    std::string sendtrx5 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
-                                      "delay": 2,
-                                      "number": 4000, 
-                                      "nonce": 5,
-                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781)";
-    std::cout << "Sending trxs ..." << std::endl;
-    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
-    std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
-    std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
-    std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
-
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-    t5.join();
-    std::cout << "All trxs sent..." << std::endl;
-
+    send_5_nodes_trxs();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
-
-  auto num_peers1 = node1->getPeerCount();
-  auto num_peers2 = node2->getPeerCount();
-  auto num_peers3 = node3->getPeerCount();
-  auto num_peers4 = node4->getPeerCount();
-  auto num_peers5 = node5->getPeerCount();
-
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    if (i % 10 == 0) {
-      std::cout << "Wait for peers syncing ..." << std::endl;
-    }
-    num_peers1 = node1->getPeerCount();
-    num_peers2 = node2->getPeerCount();
-    num_peers3 = node3->getPeerCount();
-    num_peers4 = node4->getPeerCount();
-    num_peers5 = node5->getPeerCount();
-
-    if (num_peers1 == 4 && num_peers2 == 4 && num_peers3 == 4 &&
-        num_peers4 == 4 && num_peers5 == 4)
-      break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-  EXPECT_EQ(num_peers1, 4);
-  EXPECT_EQ(num_peers2, 4);
-  EXPECT_EQ(num_peers3, 4);
-  EXPECT_EQ(num_peers4, 4);
-  EXPECT_EQ(num_peers5, 4);
 
   // check dags
   auto num_vertices1 = node1->getNumVerticesInDag();
@@ -486,11 +485,11 @@ TEST_F(TopTest, sync_five_nodes_simple) {
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 20004 &&
-        node2->getTransactionStatusCount() == 20004 &&
-        node3->getTransactionStatusCount() == 20004 &&
-        node4->getTransactionStatusCount() == 20004 &&
-        node5->getTransactionStatusCount() == 20004)
+        node1->getTransactionStatusCount() == 10004 &&
+        node2->getTransactionStatusCount() == 10004 &&
+        node3->getTransactionStatusCount() == 10004 &&
+        node4->getTransactionStatusCount() == 10004 &&
+        node5->getTransactionStatusCount() == 10004)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -506,11 +505,11 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 20004);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 20004);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 20004);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 20004);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 20004);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10004);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 10004);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 10004);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 10004);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 10004);
 
   EXPECT_GT(node1->getNumProposedBlocks(), 2);
   EXPECT_GT(node2->getNumProposedBlocks(), 2);
@@ -642,7 +641,7 @@ TEST_F(TopTest, create_top_memory_db) {
   {
     const char *inputs[] = {"./build/main", "--conf_taraxa",
                             "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-    Top top(5, inputs);
+    Top top(5, input1);
     taraxa::thisThreadSleepForSeconds(1);
     EXPECT_TRUE(top.isActive());
     top.stop();
@@ -773,13 +772,6 @@ TEST(Top, reconstruct_dag) {
 }
 
 TEST_F(TopTest, sync_two_nodes1) {
-  const char *input1[] = {"./build/main",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
-
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   std::cout << "Top1 created ..." << std::endl;
@@ -797,12 +789,6 @@ TEST_F(TopTest, sync_two_nodes1) {
   top1.start(6, input1);
   taraxa::thisThreadSleepForMilliSeconds(500);
 
-  const char *input2[] = {"./build/main2",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
   Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
@@ -848,13 +834,6 @@ TEST_F(TopTest, sync_two_nodes1) {
 }
 
 TEST_F(TopTest, sync_two_nodes2) {
-  const char *input1[] = {"./build/main",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
-
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   std::cout << "Top1 created ..." << std::endl;
@@ -883,12 +862,6 @@ TEST_F(TopTest, sync_two_nodes2) {
     std::cerr << e.what() << std::endl;
   }
 
-  const char *input2[] = {"./build/main2",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
   Top top2(6, input2);
   EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
@@ -1160,8 +1133,6 @@ TEST_F(FullNodeTest, save_network_to_file) {
 TEST_F(FullNodeTest, receive_send_transaction) {
   boost::asio::io_context context1;
 
-  const char *input1[] = {"./build/main", "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top1(5, input1);
   EXPECT_TRUE(top1.isActive());
 
@@ -1488,36 +1459,6 @@ TEST_F(TopTest, DISABLED_sortition_propose_five_nodes) {
 }
 
 TEST_F(TopTest, detect_overlap_transactions) {
-  const char *input1[] = {"./build/main",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
-  const char *input2[] = {"./build/main2",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
-  const char *input3[] = {"./build/main3",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa3.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
-  const char *input4[] = {"./build/main4",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa4.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
-  const char *input5[] = {"./build/main5",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa5.json",
-                          "-v",
-                          "0",
-                          "--destroy_db"};
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
@@ -1579,64 +1520,19 @@ TEST_F(TopTest, detect_overlap_transactions) {
   node5->getPbftManager()->stop();
 
   try {
-    std::string sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 2000, 
-                                      "nonce": 1, 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777)";
-    std::string sendtrx2 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 2000, 
-                                      "nonce": 2,
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778)";
-    std::string sendtrx3 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
-                                      "delay": 3, 
-                                      "number": 2000, 
-                                      "nonce": 3,
-                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779)";
-    std::string sendtrx4 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
-                                      "delay": 10, 
-                                      "number": 2000, 
-                                      "nonce": 4,
-                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780)";
-    std::string sendtrx5 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
-                                      "delay": 2,
-                                      "number": 2000, 
-                                      "nonce": 5,
-                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781)";
-    std::cout << "Sending trxs ..." << std::endl;
-    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-    std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
-    std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
-    std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
-    std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
-
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-    t5.join();
-
-    std::cout << "All trxs sent..." << std::endl;
+    send_5_nodes_trxs();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+  taraxa::thisThreadSleepForSeconds(2);
+  send_dumm_trx();
+
   for (int i = 0; i < 10; ++i) {
     taraxa::thisThreadSleepForSeconds(2);
-    if (node1->getTransactionStatusCount() == 10000) break;
+    if (node1->getTransactionStatusCount() == 10001) break;
   }
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 10000);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10001);
 
   auto block = node1->getConfig().genesis_state.block;
   block.updateHash();
@@ -1648,13 +1544,18 @@ TEST_F(TopTest, detect_overlap_transactions) {
   std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
   EXPECT_GT(order->size(), 5);
   std::cout << "Ordered dagblock size: " << order->size() << std::endl;
+  auto dag_size = node1->getNumVerticesInDag();
+  if (dag_size.second != order->size() + 1) {
+    node1->drawGraph("debug_dag");
+  }
+  EXPECT_EQ(dag_size.second, order->size() + 1);  // +1 to include genesis
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
   auto trx_table = node1->getTransactionStatusTableUnsafe();
   auto trx_table2 = trx_table;
-  EXPECT_EQ(trx_table.size(), 10000);
   std::unordered_set<trx_hash_t> ordered_trxs;
-  uint packed_trxs = 0;
+  std::unordered_set<trx_hash_t> packed_trxs;
+  uint all_trxs = 0;
   for (auto const &entry : *overlap_table) {
     auto const &blk = entry.first;
     auto const &overlap_vec = entry.second;
@@ -1662,7 +1563,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
     ASSERT_NE(dag_blk, nullptr);
     auto trxs = dag_blk->getTrxs();
     ASSERT_TRUE(trxs.size() == overlap_vec.size());
-    packed_trxs += overlap_vec.size();
+    all_trxs += overlap_vec.size();
 
     for (auto i = 0; i < trxs.size(); i++) {
       auto trx = trxs[i];
@@ -1670,10 +1571,10 @@ TEST_F(TopTest, detect_overlap_transactions) {
         EXPECT_TRUE(overlap_vec[i]);
         ordered_trxs.insert(trx);
         auto trx_status = trx_table[trx];
-        if (trx_status != TransactionStatus::in_block) {
-          std::cout << "Error: " << trx << " status " << asInteger(trx_status)
-                    << std::endl;
-        }
+        EXPECT_EQ(trx_status, TransactionStatus::in_block)
+            << "Error: " << trx << " status " << asInteger(trx_status)
+            << std::endl;
+
       } else {
         EXPECT_FALSE(overlap_vec[i]);
       }
@@ -1681,29 +1582,16 @@ TEST_F(TopTest, detect_overlap_transactions) {
       if (it != trx_table2.end()) {
         trx_table2.erase(it);
       }
+      packed_trxs.insert(trx);
     }
   }
 
-  if (ordered_trxs.size() < 10000) {
-    for (auto const &t : ordered_trxs) {
-      trx_table.erase(t);
-    }
-    std::cout << "Number of unordered_trx " << trx_table.size() << std::endl;
-    for (auto const &t : trx_table) {
-      std::cout << "Trx " << t.first << " unordered_trx, status "
-                << asInteger(t.second) << std::endl;
-    }
-    std::cout << "Number of unpacked_trx " << trx_table2.size() << std::endl;
-    for (auto const &t : trx_table2) {
-      std::cout << "Trx " << t.first << " unpacked_trx, status "
-                << asInteger(t.second) << std::endl;
-    }
-  }
-
-  std::cout << "Total packed trxs: " << packed_trxs << std::endl;
-  EXPECT_GT(packed_trxs, 10000);
-  // fixme: flaky
-  EXPECT_EQ(ordered_trxs.size(), 10000);
+  std::cout << "Total packed (overlapped) trxs: " << all_trxs << std::endl;
+  EXPECT_GT(all_trxs, 10001);
+  ASSERT_EQ(ordered_trxs.size(), 10001)
+      << "Number of unpacked_trx " << trx_table2.size() << std::endl
+      << "Total packed (non-overlapped) trxs " << packed_trxs.size()
+      << std::endl;
 
   // check transaction to dagblock mapping
   for (auto const &t : ordered_trxs) {
