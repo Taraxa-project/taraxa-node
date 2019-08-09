@@ -16,7 +16,7 @@
   ],
   "network_id": "testnet",
   "rpc_port": 7781,
-  "ws_port": 7791,
+  "ws_port": 8771,
   "test_params": {
     "block_proposer": [
       0,
