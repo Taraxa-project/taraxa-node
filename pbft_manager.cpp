@@ -1019,7 +1019,8 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   if (blocks_in_cs.size() == dag_blocks_order->size()) {
     for (auto i = 0; i < blocks_in_cs.size(); i++) {
       if (blocks_in_cs[i] != (*dag_blocks_order)[i]) {
-        LOG(log_err_) << "Block hash: " << blocks_in_cs[i]
+        LOG(log_inf_) << "DAG blocks have not sync yet. In period: "
+                      << pbft_chain_period << " Block hash: " << blocks_in_cs[i]
                       << " in PBFT CS is different with DAG block hash "
                       << (*dag_blocks_order)[i];
         return false;
