@@ -162,6 +162,12 @@ void send_dumm_trx() {
 struct TopTest : public DBUsingTest<> {};
 struct FullNodeTest : public DBUsingTest<> {};
 
+TEST_F(FullNodeTest, construct) {
+  boost::asio::io_context context;
+  auto node(std::make_shared<taraxa::FullNode>(
+      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+}
+
 TEST_F(TopTest, DISABLED_top_reset) {
   const char *input1[] = {"./build/main",
                           "--conf_taraxa",

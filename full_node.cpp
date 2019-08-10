@@ -48,12 +48,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
+      dag_mgr_(std::make_shared<DagManager>(
+          conf_.genesis_state.block.getHash().toString())),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
       trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
-      dag_mgr_(std::make_shared<DagManager>(
-          conf_.genesis_state.block.getHash().toString())),
+
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
           trx_mgr_->getShared())),
