@@ -255,16 +255,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t node_addr_;
   addr_t master_boot_node_address;
 
-  // storage
-  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
-  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
-  std::shared_ptr<StateRegistry::State> state_ = nullptr;
-
   // DAG max level
   unsigned long max_dag_level_ = 0;
 
@@ -290,6 +280,15 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftChain> pbft_chain_;
 
   std::shared_ptr<taraxa::WSServer> ws_server_;
+  // storage
+  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<StateRegistry::State> state_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;

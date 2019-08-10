@@ -37,7 +37,11 @@ class PbftManager {
  public:
   PbftManager(std::string const &genesis);
   PbftManager(std::vector<uint> const &params, std::string const &genesis);
-  ~PbftManager() { stop(); }
+  ~PbftManager() {
+    if (!stopped_) {
+      stop();
+    }
+  }
 
   void setFullNode(std::shared_ptr<FullNode> node);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
