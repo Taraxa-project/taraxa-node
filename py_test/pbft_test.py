@@ -57,7 +57,7 @@ def send_get_peer_count(node_ip, node_port):
 
 def start_full_node(node):
     cmd = START_FULL_NODE.format(node, node)
-    print cmd
+    print (cmd)
     subprocess.call(cmd, shell=True)
 
 def start_full_node_process(node):
@@ -87,7 +87,7 @@ def get_account_address(node_ip, node_port):
     account_address_data = {
         "action": "get_account_address"
     }
-    print account_address_data
+    print (account_address_data)
 
     res = rpc(node_ip, node_port, account_address_data)
     if res == None or res.status_code != 200 :
@@ -103,7 +103,7 @@ def set_account_balance(node_ip, node_port, account_address, account_balance):
         "address": account_address,
         "balance": account_balance
     }
-    print account_balance_data
+    print (account_balance_data)
 
     res = rpc(node_ip, node_port, account_balance_data)
     if res == None or res.status_code != 200 :
@@ -120,7 +120,7 @@ def get_account_balance(node_ip, node_port, account_address):
             "address": account_address,
         }]
     }
-    print request_data
+    print (request_data)
 
     res = rpc(node_ip, node_port, request_data)
     if res == None or res.status_code != 200 :
@@ -136,8 +136,8 @@ def set_nodes_account_balance(nodes_number):
     for node_index in range(nodes_number):
         account_address = get_account_address(node_ip, nodes_port[node_index])
         for node in range(nodes_number):
-            print "set account balance in ", node_ip, " port ", nodes_port[node]
-            set_account_balance(node_ip, nodes_port[node], account_address, TOTAL_TARAXA_COINS/nodes_number)
+            print ("set account balance in ", node_ip, " port ", nodes_port[node])
+            set_account_balance(node_ip, nodes_port[node], account_address, TOTAL_TARAXA_COINS//nodes_number)
 
 def send_coins_trx(nonce, value, receiver, secret_key):
     trx = {
@@ -151,7 +151,7 @@ def send_coins_trx(nonce, value, receiver, secret_key):
             "secret": secret_key,
         }]
     }
-    print trx
+    print (trx)
     return trx
 
 def create_trx(seed, number):
@@ -164,7 +164,7 @@ def create_trx(seed, number):
            "number": n, \
            "seed": sd
            }
-    print trx
+    print (trx)
     return trx
 
 def send_trx(node_ip, node_port, trx):
@@ -178,10 +178,10 @@ def generate_test_trx_for_each_node(nodes_number):
     while (True):
         random.seed()
         for node in range(nodes_number):
-            print "Send create transaction ... to node ", node_ip, " port ", nodes_port[node]
-            #send_trx(get_node_name(receiver), create_trx(receiver, TOTAL_TRXS/nodes_number))
+            print ("Send create transaction ... to node ", node_ip, " port ", nodes_port[node])
+            #send_trx(get_node_name(receiver), create_trx(receiver, TOTAL_TRXS//nodes_number))
             seed = random.randint(0, 1000)
-            print "seed: ", seed
+            print ("seed: ", seed)
             send_trx(node_ip, nodes_port[node], create_trx(seed, TRXS_NUM))
             time.sleep(2)
 
@@ -195,7 +195,7 @@ def five_nodes_start_concurrent_test():
 
     get_peer_count(nodes_number)
 
-    coins = TOTAL_TARAXA_COINS / 4
+    coins = TOTAL_TARAXA_COINS // 4
     send_coins(node_ip, nodes_port[0], node_address2, coins)
     send_coins(node_ip, nodes_port[0], node_address3, coins)
     send_coins(node_ip, nodes_port[0], node_address4, coins)
@@ -216,7 +216,7 @@ def five_nodes_start_concurrent_test():
 
 def start_nodes_one_by_one_test():
     # up to 5 nodes
-    coins = TOTAL_TARAXA_COINS / 4
+    coins = TOTAL_TARAXA_COINS // 4
 
     start_full_node_process(1)
     get_peer_count(1)
