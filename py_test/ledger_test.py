@@ -189,10 +189,10 @@ def initialize_coin_allocation(num_nodes, coins):
     return ok
 
 
-def send_dummy_trx():
-    time.sleep(10)
+def send_dummy_trx(num_nodes):
+    time.sleep(num_nodes*2)
     taraxa_rpc_send_coins(BOOT_NODE_PORT, NODE_ADDRESS[1], 0)
-    time.sleep(5)
+    time.sleep(num_nodes*2)
 
 
 def send_trx_from_node_to_neighbors_testing(num_nodes):
@@ -210,7 +210,7 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
     ok = 1
     start_time = time.time()
     print("Wait for coin transfer ...")
-    send_dummy_trx()
+    send_dummy_trx(num_nodes)
     # send dummy trx
     for i in range(50):
         time.sleep(num_nodes)
@@ -305,6 +305,9 @@ def main():
         test_success()
     else:
         test_fail()
+
+    for path in glob.glob("./py_test/conf"):
+        shutil.rmtree(path, ignore_errors=False)
 
 
 if __name__ == "__main__":

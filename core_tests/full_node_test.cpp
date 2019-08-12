@@ -801,6 +801,14 @@ TEST_F(TopTest, sync_two_nodes1) {
   // wait for top2 initialize
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+
+  EXPECT_GT(node1->getPeerCount(), 0);
+  EXPECT_GT(node2->getPeerCount(), 0);
+
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
@@ -811,10 +819,6 @@ TEST_F(TopTest, sync_two_nodes1) {
     std::cerr << e.what() << std::endl;
   }
 
-  auto node1 = top1.getNode();
-  auto node2 = top2.getNode();
-  EXPECT_NE(node1, nullptr);
-  EXPECT_NE(node2, nullptr);
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
   // add more delay if sync is not done
@@ -877,6 +881,10 @@ TEST_F(TopTest, sync_two_nodes2) {
   auto node2 = top2.getNode();
   EXPECT_NE(node1, nullptr);
   EXPECT_NE(node2, nullptr);
+
+  EXPECT_GT(node1->getPeerCount(), 0);
+  EXPECT_GT(node2->getPeerCount(), 0);
+
   auto vertices1 = node1->getNumVerticesInDag();
   auto vertices2 = node2->getNumVerticesInDag();
   // let node2 sync node1

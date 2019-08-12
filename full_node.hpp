@@ -166,6 +166,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
           trx_overlap_table);
 
+  auto getNumTransactionExecuted() const {
+    return executor_->getNumExecutedTrx();
+  }
+
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
