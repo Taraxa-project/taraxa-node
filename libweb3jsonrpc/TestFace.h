@@ -236,6 +236,10 @@ class TestFace : public ServerInterface<TestFace> {
                                              Json::Value &response) {
     response = this->get_transaction_count(request[0u]);
   }
+  inline virtual void get_executed_trx_countI(const Json::Value &request,
+                                              Json::Value &response) {
+    response = this->get_executed_trx_count(request[0u]);
+  }
   inline virtual void get_dag_sizeI(const Json::Value &request,
                                     Json::Value &response) {
     response = this->get_dag_size(request[0u]);

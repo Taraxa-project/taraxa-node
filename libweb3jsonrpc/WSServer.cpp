@@ -1,8 +1,8 @@
 #include "WSServer.h"
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/writer.h>
+#include <json/json.h>
+#include <json/reader.h>
+#include <json/value.h>
+#include <json/writer.h>
 #include <libweb3jsonrpc/JsonHelper.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
