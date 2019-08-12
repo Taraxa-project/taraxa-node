@@ -28,6 +28,7 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
                                         cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
+  assert(false);
 }
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
                    vec_trx_t trxs) try : pivot_(pivot),
@@ -36,6 +37,7 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
                                          trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
+  assert(false);
 }
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
@@ -51,6 +53,7 @@ DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
     timestamp_ = doc.get<int64_t>("timestamp");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
+    assert(false);
   }
 }
 DagBlock::DagBlock(dev::RLP const &_r) {

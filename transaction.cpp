@@ -34,6 +34,7 @@ Transaction::Transaction(string const &json) {
     chain_id_ = doc.get<int8_t>("chain_id");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
+    assert(false);
   }
 }
 
@@ -341,6 +342,7 @@ void TransactionQueue::verifyQueuedTrxs() {
         }
       }
     } catch (...) {
+      assert(false);
     }
   }
 }
