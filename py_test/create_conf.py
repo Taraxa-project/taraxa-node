@@ -49,7 +49,8 @@ def create_taraxa_conf(num_conf, secrets, boot_node_pk, boot_node_addr):
                     "sig": "",
                     "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
                     "hash": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "sender": ""
+                    "sender": "",
+                    "timestamp": 1234567890
                 },
                 "accounts": {
                     boot_node_addr: {

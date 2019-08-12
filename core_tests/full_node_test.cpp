@@ -1027,6 +1027,7 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
   // node1->setVerbose(true);
   node1->setDebug(true);
   node1->start(true);  // boot node
+  node1->getPbftManager()->stop();  // boot node
 
   // send package
   FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
