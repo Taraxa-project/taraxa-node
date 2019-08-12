@@ -27,6 +27,7 @@ def create_taraxa_conf(num_conf, secrets, boot_node_pk, boot_node_addr):
             ],
             "network_id": "testnet",
             "rpc_port": 7777+i,
+            "ws_port": 8777+i,
             "test_params": {
                 "block_proposer": [
                     0,
