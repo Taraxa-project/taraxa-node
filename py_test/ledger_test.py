@@ -19,12 +19,18 @@ START_BOOT_NODE = "./build/main --rebuild_network true --boot_node true --conf_t
 START_FULL_NODE = "./build/main --rebuild_network true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
 START_FULL_NODE_SILENT = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 0 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
 
-NODE_PORTS = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786,
-              7787, 7788, 7789, 7790, 7791, 7792, 7793, 7794, 7795, 7796]
-BOOT_NODE_PORT = NODE_PORTS[0]
+NODE_PORTS = []
+BOOT_NODE_PORT = 7777
 TOTAL_TARAXA_COINS = 9007199254740991
-NUM_TRXS = 100
+NUM_TRXS = 200
 INIT_NODE_BAL = 90000
+
+
+def get_node_port(num_nodes):
+    ports = []
+    for i in range(num_nodes):
+        ports.append(i+7777)
+    return ports
 
 
 def get_arguments():
@@ -33,12 +39,12 @@ def get_arguments():
 
 
 def test_fail():
-    print "****** [Test Fail] ******"
+    print("****** [Test Fail] ******")
     return 0
 
 
 def test_success():
-    print "****** [Test Success] ******"
+    print("****** [Test Success] ******")
     return 1
 
 
@@ -80,7 +86,7 @@ def start_full_node_process(node):
 
 
 def start_multi_full_nodes(num_nodes):
-    print "Create ", num_nodes, "nodes"
+    print("Create ", num_nodes, "nodes")
     jobs = []
     for node in range(0, num_nodes):
         p = multiprocessing.Process(target=start_full_node, args=(node,))
@@ -181,6 +187,12 @@ def initialize_coin_allocation(num_nodes, coins):
     return ok
 
 
+def send_dummy_trx():
+    time.sleep(10)
+    taraxa_rpc_send_coins(BOOT_NODE_PORT, NODE_ADDRESS[1], 0)
+    time.sleep(5)
+
+
 def send_trx_from_node_to_neighbors_testing(num_nodes):
     global INIT_NODE_BAL
     number_of_trx_created = int(NUM_TRXS)
@@ -195,6 +207,8 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
             NODE_PORTS[sender], neighbor, number_of_trx_created)
     ok = 1
     print("Wait for coin transfer ...")
+    send_dummy_trx()
+    # send dummy trx
     for i in range(50):
         time.sleep(num_nodes)
         ok = 1
@@ -273,7 +287,9 @@ def main():
     global NODE_ADDRESS, NODE_PUBLIC, NODE_SECRET
     NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(
         "./core_tests/account_table.txt")
-
+    global NODE_PORTS
+    NODE_PORTS = get_node_port(num_nodes)
+    print NODE_PORTS
     create_taraxa_conf(num_nodes, NODE_SECRET, BOOT_NODE_PK, BOOT_NODE_ADDR)
 
     jobs = start_multi_full_nodes(num_nodes)
