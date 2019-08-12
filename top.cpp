@@ -93,7 +93,7 @@ void Top::start(int argc, const char* argv[]) {
   }
   // Important!!! Wait for a while and have the child thread initialize
   // everything ... Otherwise node_ will get nullptr
-  taraxa::thisThreadSleepForSeconds(2);
+  taraxa::thisThreadSleepForSeconds(5);
 }
 
 void Top::startRpc() {

@@ -70,19 +70,27 @@ void PbftManager::start() {
   db_pbftchain_ = full_node->getPbftChainDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_inf_) << "A PBFT executor initiated ..." << std::endl;
+  LOG(log_inf_) << "PBFT executor initiated ...";
+  monitor_stop_ = false;
+  monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
+  LOG(log_inf_test_) << "PBFT monitor vote logs initiated";
 }
 
 void PbftManager::stop() {
   if (stopped_) {
     return;
   }
-  db_votes_ = nullptr;
-  db_pbftchain_ = nullptr;
+  monitor_stop_ = true;
+  monitor_votes_->join();
+  monitor_votes_.reset();
+  LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
   stopped_ = true;
   daemon_->join();
   daemon_.reset();
-  LOG(log_inf_) << "A PBFT executor terminated ..." << std::endl;
+  LOG(log_inf_) << "PBFT executor terminated ...";
+  db_votes_ = nullptr;
+  db_pbftchain_ = nullptr;
+  assert(monitor_votes_ == nullptr);
   assert(daemon_ == nullptr);
 }
 
@@ -108,14 +116,17 @@ void PbftManager::run() {
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round;
   auto next_step_time_ms = 0;
 
+  last_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
     auto elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
-    LOG(log_tra_) << "PBFT round is " << pbft_round_;
-    LOG(log_tra_) << "PBFT step is " << pbft_step_;
+    LOG(log_tra_) << "PBFT current round is " << pbft_round_;
+    LOG(log_tra_) << "PBFT current step is " << pbft_step_;
 
     // Get votes
     std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
@@ -150,6 +161,9 @@ void PbftManager::run() {
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
       // NOTE: This also sets pbft_step back to 1
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ = 1;
       round_clock_initial_datetime = std::chrono::system_clock::now();
       continue;
@@ -193,6 +207,9 @@ void PbftManager::run() {
       }
       next_step_time_ms = 2 * LAMBDA_ms;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ += 1;
 
     } else if (pbft_step_ == 2) {
@@ -228,7 +245,10 @@ void PbftManager::run() {
 
       next_step_time_ms = 2 * LAMBDA_ms;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
-      pbft_step_ = pbft_step_ + 1;
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
+      pbft_step_ += 1;
 
     } else if (pbft_step_ == 3) {
       // The Certifying Step
@@ -273,6 +293,10 @@ void PbftManager::run() {
       if (should_go_to_step_four) {
         LOG(log_deb_) << "will go to step 4";
         next_step_time_ms = 4 * LAMBDA_ms;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ += 1;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
@@ -300,7 +324,9 @@ void PbftManager::run() {
                      pbft_round_, pbft_step_);
         }
       }
-
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ += 1;
       next_step_time_ms = 4 * LAMBDA_ms;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
@@ -330,6 +356,10 @@ void PbftManager::run() {
 
       if (elapsed_time_in_round_ms > 6 * LAMBDA_ms - POLLING_INTERVAL_ms) {
         next_step_time_ms = 6 * LAMBDA_ms;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ += 1;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
@@ -357,7 +387,9 @@ void PbftManager::run() {
                      pbft_round_, pbft_step_);
         }
       }
-
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
       pbft_step_ += 1;
 
     } else {
@@ -389,12 +421,20 @@ void PbftManager::run() {
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
                       << pbft_round_ << ", step 1, and resetting clock.";
         // NOTE: This also sets pbft_step back to 1
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ = 1;
         round_clock_initial_datetime = std::chrono::system_clock::now();
         continue;
       } else if (elapsed_time_in_round_ms >
                  (pbft_step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms) {
         next_step_time_ms = (pbft_step_ + 1) * LAMBDA_ms;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        last_step_ = pbft_step_;
         pbft_step_ += 1;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
@@ -634,17 +674,15 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
 
     uint64_t propose_pbft_chain_period = pbft_chain_->getPbftChainPeriod() + 1;
-    uint64_t timestamp = std::time(nullptr);
     addr_t beneficiary = full_node->getAddress();
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
-                           propose_pbft_chain_period, timestamp, beneficiary);
+                           propose_pbft_chain_period, beneficiary);
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
   } else if (next_pbft_block_type_ == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
-    uint64_t timestamp = std::time(nullptr);
     // get dag block hash from the last pbft block(pivot) in pbft chain
     blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
     std::pair<PbftBlock, bool> last_pbft_block =
@@ -686,10 +724,14 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     TrxSchedule schedule(*dag_blocks_order, dag_blocks_trx_modes);
 
     // generate pbft schedule block
-    ScheduleBlock schedule_block(last_block_hash, timestamp, schedule);
+    ScheduleBlock schedule_block(last_block_hash, schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
   }  // TODO: More pbft block types
+
+  // setup timestamp for pbft block
+  uint64_t timestamp = std::time(nullptr);
+  pbft_block.setTimestamp(timestamp);
 
   // sign the pbft block
   std::string pbft_block_str = pbft_block.getJsonStr();
@@ -977,7 +1019,8 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   if (blocks_in_cs.size() == dag_blocks_order->size()) {
     for (auto i = 0; i < blocks_in_cs.size(); i++) {
       if (blocks_in_cs[i] != (*dag_blocks_order)[i]) {
-        LOG(log_err_) << "Block hash: " << blocks_in_cs[i]
+        LOG(log_inf_) << "DAG blocks have not sync yet. In period: "
+                      << pbft_chain_period << " Block hash: " << blocks_in_cs[i]
                       << " in PBFT CS is different with DAG block hash "
                       << (*dag_blocks_order)[i];
         return false;
@@ -1009,6 +1052,53 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   }
 
   return true;
+}
+
+void PbftManager::countVotes_() {
+  while (!monitor_stop_) {
+    std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
+
+    size_t last_step_votes = 0;
+    size_t current_step_votes = 0;
+    for (auto const &v : votes) {
+      if (pbft_step_ == 1) {
+        if (v.getRound() == pbft_round_ - 1 && v.getStep() == last_step_) {
+          last_step_votes++;
+        } else if (v.getRound() == pbft_round_ && v.getStep() == pbft_step_) {
+          current_step_votes++;
+        }
+      } else {
+        if (v.getRound() == pbft_round_) {
+          if (v.getStep() == pbft_step_ - 1) {
+            last_step_votes++;
+          } else if (v.getStep() == pbft_step_) {
+            current_step_votes++;
+          }
+        }
+      }
+    }
+
+    auto now = std::chrono::system_clock::now();
+    auto last_step_duration = now - last_step_clock_initial_datetime_;
+    auto elapsed_last_step_time_in_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            last_step_duration)
+            .count();
+
+    auto current_step_duration = now - current_step_clock_initial_datetime_;
+    auto elapsed_current_step_time_in_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            current_step_duration)
+            .count();
+
+    LOG(log_inf_test_) << "Round " << pbft_round_ << " step " << last_step_
+                       << " time " << elapsed_last_step_time_in_ms
+                       << "(ms) has " << last_step_votes << " votes";
+    LOG(log_inf_test_) << "Round " << pbft_round_ << " step " << pbft_step_
+                       << " time " << elapsed_current_step_time_in_ms
+                       << "(ms) has " << current_step_votes << " votes";
+    thisThreadSleepForMilliSeconds(100);
+  }
 }
 
 }  // namespace taraxa

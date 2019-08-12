@@ -208,6 +208,13 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftBlocks(NodeID const &_id, size_t chainSize,
                       size_t blocksToTransfer);
 
+  // Peers
+  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
+  unsigned int getPeersCount();
+  void erasePeer(NodeID const &node_id);
+  void insertPeer(NodeID const &node_id,
+                  std::shared_ptr<TaraxaPeer> const &peer);
+
  private:
   Host &host_;
   std::unordered_map<NodeID, int> cnt_received_messages_;
@@ -226,6 +233,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::weak_ptr<FullNode> full_node_;
 
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
+  mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;

@@ -1,6 +1,5 @@
 ARG BASE_IMAGE=541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:latest
 FROM $BASE_IMAGE as builder
-#FROM 541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base as builder
 
 ENV APP_PATH /opt/taraxa/taraxa-node
 ENV LD_LIBRARY_PATH /usr/local/lib
@@ -9,10 +8,11 @@ ADD . .
 RUN make main
 RUN make keygen
 
+FROM builder as test
+RUN make run_test
 
+# Copy over only minimal information
 FROM ubuntu:18.10
-
-
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 ENV APP_PATH /opt/taraxa/taraxa-node

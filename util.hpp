@@ -189,6 +189,8 @@ class StatusTable {
     return ret;
   }
 
+  std::unordered_map<K, V> getThreadUnsafeCopy() { return status_; }
+
  private:
   boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;

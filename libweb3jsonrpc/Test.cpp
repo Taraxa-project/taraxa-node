@@ -268,7 +268,6 @@ Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       blk_hash_t prev_blk = blk_hash_t(param1["prev_pivot"].asString());
-      uint64_t timestamp = param1["timestamp"].asUInt64();
       taraxa::sig_t sig = taraxa::sig_t(param1["sig"].asString());
       vec_blk_t blk_order = asVector<blk_hash_t>(param1["blk_order"]);
       std::vector<size_t> trx_sizes;
@@ -290,7 +289,7 @@ Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
       }
 
       TrxSchedule sche(blk_order, vec_trx_modes);
-      ScheduleBlock sche_blk(prev_blk, timestamp, sche);
+      ScheduleBlock sche_blk(prev_blk, sche);
       res = sche_blk.getJsonStr();
     }
   } catch (std::exception &e) {

@@ -355,17 +355,19 @@ TEST(Network, node_pbft_sync) {
   addr_t beneficiary(10);
 
   PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-                         timestamp1, beneficiary);
+                         beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
+  pbft_block1.setTimestamp(timestamp1);
 
   uint64_t timestamp2 = 333333;
   TrxSchedule schedule;
   blk_hash_t prev_pivot(1);
-  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
+  ScheduleBlock schedule_blk(prev_pivot, schedule);
 
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
+  pbft_block2.setTimestamp(timestamp2);
 
   blks.push_back(pbft_block1);
   blks.push_back(pbft_block2);
