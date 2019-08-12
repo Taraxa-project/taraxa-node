@@ -1557,7 +1557,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_EQ(dag_size.second, order->size() + 1);  // +1 to include genesis
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
-  auto trx_table = node1->getTransactionStatusTableUnsafe();
+  auto trx_table = node1->getUnsafeTransactionStatusTable();
   auto trx_table2 = trx_table;
   std::unordered_set<trx_hash_t> ordered_trxs;
   std::unordered_set<trx_hash_t> packed_trxs;

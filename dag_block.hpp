@@ -107,6 +107,7 @@ class DagBlock {
 enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
 
 using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
+using BlockUnsafeStatusTable = BlockStatusTable::UnsafeStatusTable;
 
 /**
  * Thread safe
@@ -127,6 +128,9 @@ class BlockManager {
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
   void clearBlockStatausTable() { blk_status_.clear(); }
+  BlockUnsafeStatusTable getUnsafeBlockStatusTable() const {
+    return blk_status_.getThreadUnsafeCopy();
+  }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;

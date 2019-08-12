@@ -155,6 +155,7 @@ def initialize_coin_allocation(num_nodes, coins):
     for i in range(num_nodes):
         neighbor = NODE_ADDRESS[i+1]
         taraxa_rpc_send_coins(BOOT_NODE_PORT, neighbor, INIT_NODE_BAL)
+    start_time = time.time()
     print("Wait for coin init ...")
     ok = 1
     for counter in range(50):
@@ -184,6 +185,7 @@ def initialize_coin_allocation(num_nodes, coins):
         print("Coin init done ...")
     else:
         print("Coin init failed ...")
+    print("Process time ", time.time() - start_time)
     return ok
 
 
@@ -206,6 +208,7 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
         taraxa_rpc_send_many_trx_to_neighbor(
             NODE_PORTS[sender], neighbor, number_of_trx_created)
     ok = 1
+    start_time = time.time()
     print("Wait for coin transfer ...")
     send_dummy_trx()
     # send dummy trx
@@ -233,13 +236,13 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
                     ok = 0
                     trx_count_testing(num_nodes)
                     dag_size_testing(num_nodes)
-                    break
         if ok:
             break
     if ok:
         print("Coin transfer done ...")
     else:
         print("Coin transfer failed ...")
+    print("Process time ", time.time() - start_time)
     return ok
 
 
