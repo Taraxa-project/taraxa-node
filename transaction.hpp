@@ -45,8 +45,7 @@ enum class TransactionStatus {
  * keep track of transaction state
  */
 using TransactionStatusTable = StatusTable<trx_hash_t, TransactionStatus>;
-using TransactionStatusTableUnsafe =
-    std::unordered_map<trx_hash_t, TransactionStatus>;
+using TransactionUnsafeStatusTable = TransactionStatusTable::UnsafeStatusTable;
 using AccountNonceTable = StatusTable<addr_t, uint>;
 
 /**
@@ -343,7 +342,7 @@ class TransactionManager
   void clearTransactionStatusTable() { trx_status_.clear(); }
 
   // debugging purpose
-  TransactionStatusTableUnsafe getTransactionStatusTableUnsafe() {
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
     return trx_status_.getThreadUnsafeCopy();
   }
 

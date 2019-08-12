@@ -105,7 +105,7 @@ bool Executor::coinTransfer(
                << std::endl;
   LOG(log_nf_) << "New receiver bal: " << receiver << " --> "
                << new_receiver_bal << std::endl;
-
+  num_executed_trx_.fetch_add(1);
   return true;
 }
 

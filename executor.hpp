@@ -40,6 +40,7 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
   // for debug purpose
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
@@ -65,6 +66,7 @@ class Executor {
   bool execute(
       TrxSchedule const& schedule,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
+  uint64_t getNumExecutedTrx() { return num_executed_trx_; }
 
  private:
   bool executeBlkTrxs(
