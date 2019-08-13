@@ -7,6 +7,8 @@
  */
 
 #include "executor.hpp"
+#include "full_node.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 
@@ -64,8 +66,8 @@ bool Executor::executeBlkTrxs(
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  LOG(log_nf_) << "Block number " << num_executed_blk_ << ": " << blk
-               << " executed";
+  LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
+               << num_executed_blk_ << ": " << blk << " executed";
   return true;
 }
 

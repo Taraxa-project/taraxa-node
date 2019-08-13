@@ -226,22 +226,28 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
-  void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
-    ws_server_ = ws_server;
-  }
+  
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
-  std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
-  std::pair<uint64_t, bool> getDagBlockHeight(
-      blk_hash_t const &dag_block_hash) const;
-  uint64_t getDagBlockMaxHeight() const;
+  
   // PBFT RPC
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                     uint64_t period, size_t step);
 
+  // get dag block for rpc
+  std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
+  std::pair<uint64_t, bool> getDagBlockHeight(
+      blk_hash_t const &dag_block_hash) const;
+  uint64_t getDagBlockMaxHeight() const;
+  
+  std::vector<blk_hash_t> getLinearizedDagBlocks() const;
+
+  void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
+    ws_server_ = ws_server;
+  }
  private:
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;

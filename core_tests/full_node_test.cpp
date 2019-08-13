@@ -444,18 +444,26 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   ASSERT_GT(node3->getPeerCount(), 0);
   ASSERT_GT(node4->getPeerCount(), 0);
   ASSERT_GT(node5->getPeerCount(), 0);
+  std::vector<std::shared_ptr<FullNode>> nodes;
+  nodes.emplace_back(node1);
+  nodes.emplace_back(node2);
+  nodes.emplace_back(node3);
+  nodes.emplace_back(node4);
+  nodes.emplace_back(node5);
+
+  auto init_bal = 9000;
 
   // transfer some coins to your friends ...
-  Transaction trx1to2(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to2(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
                       bytes(), g_secret);
-  Transaction trx1to3(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to3(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
                       bytes(), g_secret);
-  Transaction trx1to4(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to4(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
                       bytes(), g_secret);
-  Transaction trx1to5(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to5(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
                       bytes(), g_secret);
   node1->insertTransaction(trx1to2);
@@ -464,7 +472,41 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   node1->insertTransaction(trx1to5);
 
   taraxa::thisThreadSleepForSeconds(5);
-
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for init balance syncing ..." << std::endl;
+    }
+    if (node1->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
+                .first == init_bal &&
+        node1->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
+                .first == init_bal &&
+        node1->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
+                .first == init_bal &&
+        node1->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
+                .first == init_bal)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+  // make sure all accounts init balance are finished
+  for (auto const &node : nodes) {
+    ASSERT_EQ(
+        node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
+            .first,
+        init_bal);
+    ASSERT_EQ(
+        node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
+            .first,
+        init_bal);
+    ASSERT_EQ(
+        node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
+            .first,
+        init_bal);
+    ASSERT_EQ(
+        node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
+            .first,
+        init_bal);
+  }
+  std::cout << "Balance initialized ... " << std::endl;
   // send 1000 trxs
   try {
     send_5_nodes_trxs();
@@ -539,9 +581,16 @@ TEST_F(TopTest, sync_five_nodes_simple) {
       break;
     }
     std::cout << "Executed trx: " << trx_executed << std::endl;
-    taraxa::thisThreadSleepForSeconds(2);
+    taraxa::thisThreadSleepForMilliSeconds(200);
   }
-  EXPECT_EQ(node1->getNumTransactionExecuted(), 10005);
+
+  EXPECT_EQ(node1->getNumTransactionExecuted(), 10005)
+      << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
+      << " \nNum execued in node3 " << node3->getNumTransactionExecuted()
+      << " \nNum execued in node4 " << node4->getNumTransactionExecuted()
+      << " \nNum execued in node5 " << node5->getNumTransactionExecuted()
+      << " \nNum blks: " << node1->getLinearizedDagBlocks().size() << "\n "
+      << node1->getLinearizedDagBlocks();
   EXPECT_EQ(node1->getNumBlockExecuted(), node1->getNumVerticesInDag().first);
 
   top5.kill();
@@ -1660,10 +1709,10 @@ TEST_F(TopTest, detect_overlap_transactions) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
+  logOptions.verbosity = dev::VerbosityInfo;
   // logOptions.includeChannels.push_back("FULLND");
   // logOptions.includeChannels.push_back("DAGMGR");
-  // logOptions.includeChannels.push_back("EXETOR");
+  logOptions.includeChannels.push_back("EXETOR");
   // logOptions.includeChannels.push_back("BLK_PP");
   // logOptions.includeChannels.push_back("PR_MDL");
 

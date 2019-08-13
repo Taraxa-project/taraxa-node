@@ -280,6 +280,7 @@ void FullNode::start(bool boot_node) {
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
                                  db_blks_, db_trxs_, state_registry_);
+  executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
@@ -930,6 +931,17 @@ std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
 
 uint64_t FullNode::getDagBlockMaxHeight() const {
   return pbft_chain_->getDagBlockMaxHeight();
+}
+
+std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
+  std::vector<blk_hash_t> ret;
+  auto max_height = getDagBlockMaxHeight();
+  for (auto i(0); i <= max_height; ++i) {
+    auto blk = getDagBlockHash(i);
+    assert(blk.second);
+    ret.emplace_back(blk.first);
+  }
+  return ret;
 }
 
 }  // namespace taraxa
