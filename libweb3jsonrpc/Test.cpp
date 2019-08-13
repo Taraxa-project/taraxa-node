@@ -496,6 +496,19 @@ Json::Value Test::get_executed_trx_count(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::get_executed_blk_count(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getNumBlockExecuted();
+      res["value"] = Json::UInt64(count);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_dag_size(const Json::Value &param1) {
   Json::Value res;
   try {

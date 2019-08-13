@@ -439,31 +439,31 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   EXPECT_NE(node4, nullptr);
   EXPECT_NE(node5, nullptr);
 
-  EXPECT_GT(node1->getPeerCount(), 0);
-  EXPECT_GT(node2->getPeerCount(), 0);
-  EXPECT_GT(node3->getPeerCount(), 0);
-  EXPECT_GT(node4->getPeerCount(), 0);
-  EXPECT_GT(node5->getPeerCount(), 0);
+  ASSERT_GT(node1->getPeerCount(), 0);
+  ASSERT_GT(node2->getPeerCount(), 0);
+  ASSERT_GT(node3->getPeerCount(), 0);
+  ASSERT_GT(node4->getPeerCount(), 0);
+  ASSERT_GT(node5->getPeerCount(), 0);
 
   // transfer some coins to your friends ...
-  Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to2(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
-                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
-  Transaction trx1to3(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+                      bytes(), g_secret);
+  Transaction trx1to3(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
-                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
-  Transaction trx1to4(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+                      bytes(), g_secret);
+  Transaction trx1to4(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
-                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
-  Transaction trx1to5(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+                      bytes(), g_secret);
+  Transaction trx1to5(0, 9000, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
-                      bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
+                      bytes(), g_secret);
   node1->insertTransaction(trx1to2);
   node1->insertTransaction(trx1to3);
   node1->insertTransaction(trx1to4);
   node1->insertTransaction(trx1to5);
 
-  taraxa::thisThreadSleepForSeconds(2);
+  taraxa::thisThreadSleepForSeconds(5);
 
   // send 1000 trxs
   try {
@@ -500,6 +500,19 @@ TEST_F(TopTest, sync_five_nodes_simple) {
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
+  EXPECT_GT(node1->getNumProposedBlocks(), 2);
+  EXPECT_GT(node2->getNumProposedBlocks(), 2);
+  EXPECT_GT(node3->getNumProposedBlocks(), 2);
+  EXPECT_GT(node4->getNumProposedBlocks(), 2);
+  EXPECT_GT(node5->getNumProposedBlocks(), 2);
+
+  // send dummy trx
+  try {
+    send_dumm_trx();
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+
   num_vertices1 = node1->getNumVerticesInDag();
   num_vertices2 = node2->getNumVerticesInDag();
   num_vertices3 = node3->getNumVerticesInDag();
@@ -511,17 +524,25 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 10004);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 10004);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 10004);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 10004);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 10004);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 10005);
 
-  EXPECT_GT(node1->getNumProposedBlocks(), 2);
-  EXPECT_GT(node2->getNumProposedBlocks(), 2);
-  EXPECT_GT(node3->getNumProposedBlocks(), 2);
-  EXPECT_GT(node4->getNumProposedBlocks(), 2);
-  EXPECT_GT(node5->getNumProposedBlocks(), 2);
+  // wait for trx execution ...
+  taraxa::thisThreadSleepForSeconds(10);
+  auto trx_executed = node1->getNumTransactionExecuted();
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    trx_executed = node1->getNumTransactionExecuted();
+    if (trx_executed >= 10005) {
+      break;
+    }
+    std::cout << "Executed trx: " << trx_executed << std::endl;
+    taraxa::thisThreadSleepForSeconds(2);
+  }
+  EXPECT_EQ(node1->getNumTransactionExecuted(), 10005);
+  EXPECT_EQ(node1->getNumBlockExecuted(), node1->getNumVerticesInDag().first);
 
   top5.kill();
   top4.kill();
@@ -1026,7 +1047,7 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
 
   // node1->setVerbose(true);
   node1->setDebug(true);
-  node1->start(true);  // boot node
+  node1->start(true);               // boot node
   node1->getPbftManager()->stop();  // boot node
 
   // send package

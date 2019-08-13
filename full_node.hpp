@@ -20,11 +20,11 @@
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
+#include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "vote.h"
-#include "libweb3jsonrpc/WSServer.h"
 
 namespace taraxa {
 
@@ -96,7 +96,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       std::unordered_map<trx_hash_t, Transaction> const &transactions);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
   unsigned long getTransactionStatusCount();
-  auto getUnsafeTransactionStatusTable() const{
+  auto getUnsafeTransactionStatusTable() const {
     return trx_mgr_->getUnsafeTransactionStatusTable();
   }
   // Dag related: return childern, siblings, tips before time stamp
@@ -169,7 +169,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getNumTransactionExecuted() const {
     return executor_->getNumExecutedTrx();
   }
-
+  auto getNumBlockExecuted() const { return executor_->getNumExecutedBlk(); }
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
@@ -224,7 +224,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
-  void newOrderedBlock(blk_hash_t const &dag_block_hash, uint64_t const &block_number);
+  void newOrderedBlock(blk_hash_t const &dag_block_hash,
+                       uint64_t const &block_number);
   void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
