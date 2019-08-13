@@ -48,7 +48,7 @@ bool Executor::executeBlkTrxs(
     auto const& trx_hash = trxs_hash[i];
     auto mode = trx_modes[i];
     if (mode == 0) {
-      LOG(log_nf_) << "Transaction " << trx_hash << "in block " << blk
+      LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk
                    << " is overlapped";
       continue;
     }
@@ -64,6 +64,8 @@ bool Executor::executeBlkTrxs(
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
+  LOG(log_nf_) << "Block number " << num_executed_blk_ << ": " << blk
+               << " executed";
   return true;
 }
 
@@ -76,7 +78,7 @@ bool Executor::coinTransfer(
   val_t sender_initial_coin = state.balance(sender);
   val_t receiver_initial_coin = state.balance(receiver);
   if (sender_initial_coin < trx.getValue()) {
-    LOG(log_er_) << "Insufficient fund for transfer ... , sender " << sender
+    LOG(log_dg_) << "Insufficient fund for transfer ... , sender " << sender
                  << " , sender balance: " << sender_initial_coin
                  << " , transfer: " << value << std::endl;
     return false;
@@ -102,9 +104,9 @@ bool Executor::coinTransfer(
     sortition_account_balance_table[receiver] = new_receiver_bal;
   }
 
-  LOG(log_nf_) << "Update sender bal: " << sender << " --> " << new_sender_bal
+  LOG(log_dg_) << "Update sender bal: " << sender << " --> " << new_sender_bal
                << std::endl;
-  LOG(log_nf_) << "New receiver bal: " << receiver << " --> "
+  LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
                << new_receiver_bal << std::endl;
   num_executed_trx_.fetch_add(1);
   return true;

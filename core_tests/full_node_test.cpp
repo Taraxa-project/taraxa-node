@@ -43,31 +43,31 @@ const char *input1[] = {"./build/main",
                         "--conf_taraxa",
                         "./core_tests/conf/conf_taraxa1.json",
                         "-v",
-                        "0",
+                        "4",
                         "--destroy_db"};
 const char *input2[] = {"./build/main2",
                         "--conf_taraxa",
                         "./core_tests/conf/conf_taraxa2.json",
                         "-v",
-                        "0",
+                        "-2",
                         "--destroy_db"};
 const char *input3[] = {"./build/main3",
                         "--conf_taraxa",
                         "./core_tests/conf/conf_taraxa3.json",
                         "-v",
-                        "0",
+                        "-2",
                         "--destroy_db"};
 const char *input4[] = {"./build/main4",
                         "--conf_taraxa",
                         "./core_tests/conf/conf_taraxa4.json",
                         "-v",
-                        "0",
+                        "-2",
                         "--destroy_db"};
 const char *input5[] = {"./build/main5",
                         "--conf_taraxa",
                         "./core_tests/conf/conf_taraxa5.json",
                         "-v",
-                        "0",
+                        "-2",
                         "--destroy_db"};
 
 void send_2_nodes_trxs() {

@@ -44,6 +44,8 @@ class Executor {
   std::atomic<uint64_t> num_executed_blk_ = 0;
 
   // for debug purpose
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "EXETOR")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
