@@ -63,6 +63,7 @@ bool Executor::executeBlkTrxs(
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
+  num_executed_blk_.fetch_add(1);
   return true;
 }
 
