@@ -233,7 +233,7 @@ class TransactionQueue {
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -251,24 +251,24 @@ class TransactionQueue {
 
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
-  boost::shared_mutex shared_mutex_for_queued_trxs_;
+  mutable boost::shared_mutex shared_mutex_for_queued_trxs_;
 
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
-  boost::shared_mutex shared_mutex_for_verified_qu_;
+  mutable boost::shared_mutex shared_mutex_for_verified_qu_;
 
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
-  boost::shared_mutex shared_mutex_for_unverified_qu_;
+  mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
 
   std::vector<std::thread> verifiers_;
 
-  dev::Logger log_er_{
+  mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXQU")};
-  dev::Logger log_wr_{
+  mutable dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXQU")};
-  dev::Logger log_nf_{
+  mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXQU")};
-  dev::Logger log_dg_{
+  mutable dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXQU")};
 };
 
@@ -327,8 +327,8 @@ class TransactionManager
   bool verifyBlockTransactions(DagBlock const &blk,
                                std::vector<Transaction> const &trxs);
 
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
-  unsigned long getTransactionStatusCount();
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+  unsigned long getTransactionStatusCount() const;
   bool isTransactionVerified(trx_hash_t const &hash) {
     // in_block means in db, i.e., already verified
     auto status = trx_status_.get(hash);
@@ -342,7 +342,7 @@ class TransactionManager
   void clearTransactionStatusTable() { trx_status_.clear(); }
 
   // debugging purpose
-  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const{
     return trx_status_.getThreadUnsafeCopy();
   }
 
@@ -355,13 +355,13 @@ class TransactionManager
   TransactionStatusTable trx_status_;
   AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
-  dev::Logger log_er_{
+  mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
-  dev::Logger log_wr_{
+  mutable dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXMGR")};
-  dev::Logger log_nf_{
+  mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXMGR")};
-  dev::Logger log_dg_{
+  mutable dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXMGR")};
 };
 

@@ -94,14 +94,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
       std::unordered_map<trx_hash_t, Transaction> const &transactions);
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
-  unsigned long getTransactionStatusCount();
-  auto getUnsafeTransactionStatusTable() const {
-    return trx_mgr_->getUnsafeTransactionStatusTable();
-  }
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+
   // Dag related: return childern, siblings, tips before time stamp
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
+  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
 
   bool isBlockKnown(blk_hash_t const &hash);
   time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
@@ -166,10 +163,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
           trx_overlap_table);
 
-  auto getNumTransactionExecuted() const {
-    return executor_->getNumExecutedTrx();
-  }
-  auto getNumBlockExecuted() const { return executor_->getNumExecutedBlk(); }
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
@@ -180,13 +173,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool executeScheduleBlock(
       ScheduleBlock const &sche_blk,
       std::unordered_map<addr_t, val_t> &sortition_account_balance_table);
-  // debugger
-  uint64_t getNumReceivedBlocks();
-  uint64_t getNumProposedBlocks();
-  level_t getMaxDagLevel() const;
-  std::pair<uint64_t, uint64_t> getNumVerticesInDag();
-  std::pair<uint64_t, uint64_t> getNumEdgesInDag();
-  void drawGraph(std::string const &dotfile) const;
+
   bool destroyDB();
 
   // get DBs
@@ -204,7 +191,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       bool onlyNew);
 
   // Get max level
-  unsigned long getDagMaxLevel() { return max_dag_level_; }
+  unsigned long getDagMaxLevel() const { return max_dag_level_; }
 
   // PBFT
   bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
@@ -226,12 +213,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
-  
+
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
-  
+
   // PBFT RPC
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -242,12 +229,28 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, bool> getDagBlockHeight(
       blk_hash_t const &dag_block_hash) const;
   uint64_t getDagBlockMaxHeight() const;
-  
-  std::vector<blk_hash_t> getLinearizedDagBlocks() const;
 
+  // For Debug
+  uint64_t getNumReceivedBlocks() const;
+  uint64_t getNumProposedBlocks() const;
+  level_t getMaxDagLevel() const;
+  std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
+  std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
+  void drawGraph(std::string const &dotfile) const;
+  unsigned long getTransactionStatusCount() const;
+  auto getUnsafeTransactionStatusTable() const {
+    return trx_mgr_->getUnsafeTransactionStatusTable();
+  }
+  auto getNumTransactionExecuted() const {
+    return executor_->getNumExecutedTrx();
+  }
+  auto getNumBlockExecuted() const { return executor_->getNumExecutedBlk(); }
+  std::vector<blk_hash_t> getLinearizedDagBlocks() const;
+  std::vector<trx_hash_t> getPackedTrxs() const;
   void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
+
  private:
   // ** NOTE: io_context must be constructed before Network
   boost::asio::io_context &io_context_;

@@ -473,7 +473,8 @@ void FullNode::insertTransaction(Transaction const &trx) {
   trx_mgr_->insertTrx(trx, true);
 }
 
-std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
+    blk_hash_t const &hash) const {
   std::string json = db_blks_->get(hash.toString());
   if (!json.empty()) {
     return std::make_shared<DagBlock>(json);
@@ -481,7 +482,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
   return nullptr;
 }
 
-std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   std::shared_ptr<DagBlock> blk;
   // find if in block queue
   blk = blk_mgr_->getDagBlock(hash);
@@ -496,11 +497,12 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   return blk;
 }
 
-std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
+std::shared_ptr<Transaction> FullNode::getTransaction(
+    trx_hash_t const &hash) const {
   return trx_mgr_->getTransaction(hash);
 }
 
-unsigned long FullNode::getTransactionStatusCount() {
+unsigned long FullNode::getTransactionStatusCount() const {
   return trx_mgr_->getTransactionStatusCount();
 }
 
@@ -676,17 +678,17 @@ std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-uint64_t FullNode::getNumReceivedBlocks() { return received_blocks_; }
+uint64_t FullNode::getNumReceivedBlocks() const{ return received_blocks_; }
 
-uint64_t FullNode::getNumProposedBlocks() {
+uint64_t FullNode::getNumProposedBlocks() const{
   return BlockProposer::getNumProposedBlocks();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() {
+std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() const {
   return dag_mgr_->getNumVerticesInDag();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() {
+std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() const{
   return dag_mgr_->getNumEdgesInDag();
 }
 
@@ -940,6 +942,25 @@ std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
     auto blk = getDagBlockHash(i);
     assert(blk.second);
     ret.emplace_back(blk.first);
+  }
+  return ret;
+}
+
+std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
+  std::unordered_set<trx_hash_t> packed_trxs;
+  auto max_height = getDagBlockMaxHeight();
+  for (auto i(0); i <= max_height; ++i) {
+    auto blk = getDagBlockHash(i);
+    assert(blk.second);
+    auto dag_blk = getDagBlock(blk.first);
+    assert(dag_blk);
+    for (auto const &t : dag_blk->getTrxs()) {
+      packed_trxs.insert(t);
+    }
+  }
+  std::vector<trx_hash_t> ret;
+  for (auto const &t : packed_trxs) {
+    ret.emplace_back(t);
   }
   return ret;
 }
