@@ -444,12 +444,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
           if (!full_node->isKnownPbftBlockInChain(pbft_block.getBlockHash())) {
             // TODO: need check 2t+1 cert votes, then put into chain and store
-            // in
-            //  DB. May send request for cert votes here
+            //  in DB. May send request for cert votes here
             full_node->setPbftBlock(pbft_block);
           }
         }
-        if (blockCount > 0) syncPeerPbft(_nodeID);
+        if (blockCount > 0) {
+          syncPeerPbft(_nodeID);
+        }
         break;
       }
       case TestPacket:

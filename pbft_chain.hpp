@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:06
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-07
+ * @Last Modified time: 2019-08-13
  */
 #ifndef PBFT_CHAIN_HPP
 #define PBFT_CHAIN_HPP
@@ -248,7 +248,7 @@ class PbftChain {
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
   // only for test
-  void cleanPbftQueue() { pbft_queue_.clear(); }
+  void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
   void cleanPbftChain() { PbftChain(); }
 
  private:
@@ -266,8 +266,8 @@ class PbftChain {
   //  move to DB
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::deque<blk_hash_t> pbft_queue_;  // TODO: may not need it
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
+  std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
+  std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;

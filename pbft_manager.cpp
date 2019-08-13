@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-26
+ * @Last Modified time: 2019-08-13
  */
 
 #include "pbft_manager.hpp"
@@ -867,7 +867,7 @@ bool PbftManager::pushPbftBlockIntoChain_(
       uint dag_blocks_inside_pbft_cs =
           pbft_block.first.getScheduleBlock().getSchedule().blk_order.size();
       if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
-        LOG(log_err_) << "Setting DAG block order finalize "
+        LOG(log_err_) << "Setting DAG blocks order finalize "
                       << dag_ordered_blocks_size << " blocks."
                       << " But the PBFT CS block has "
                       << dag_blocks_inside_pbft_cs << " DAG block hash.";

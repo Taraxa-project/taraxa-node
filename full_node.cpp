@@ -850,18 +850,18 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     uint dag_blocks_inside_pbft_cs =
         pbft_block.getScheduleBlock().getSchedule().blk_order.size();
     if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
-      LOG(log_err_) << "Setting DAG block order finalize "
+      LOG(log_er_) << "Setting DAG block order finalize "
                     << dag_ordered_blocks_size << " blocks."
                     << " But the PBFT CS block has "
-                    << dag_blocks_inside_pbft_cs << " DAG block hash.";
+                    << dag_blocks_inside_pbft_cs << " DAG blocks hash.";
       // TODO: need to handle the error condition(should never happen)
     }
 
     // TODO: VM executor will not take sortition_account_balance_table as
-    // reference.
+    //  reference.
     //  But will return a list of modified accounts as pairs<addr_t, val_t>.
     //  Will need update sortition_account_balance_table here
-    // execute schedule block
+    //  execute schedule block
     if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
                               pbft_mgr_->sortition_account_balance_table)) {
       LOG(log_er_) << "Failed to execute schedule block";
