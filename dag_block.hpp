@@ -126,7 +126,7 @@ class BlockManager {
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool isBlockKnown(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
   BlockUnsafeStatusTable getUnsafeBlockStatusTable() const {
     return blk_status_.getThreadUnsafeCopy();

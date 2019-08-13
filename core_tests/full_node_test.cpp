@@ -152,7 +152,8 @@ void send_dumm_trx() {
                                       "params": [{ 
                                         "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                         "value": 0, 
-                                        "receiver": 6000, 
+                                        "gas_price": 1, 
+                                        "gas": 100000,
                                         "nonce": 1, 
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
   std::cout << "Send dummy transaction ..." << std::endl;
@@ -389,7 +390,7 @@ TEST_F(FullNodeTest, full_node_reset) {
 }
 
 // fixme: flaky
-TEST_F(TopTest, sync_five_nodes_simple) {
+TEST_F(TopTest, sync_five_nodes) {
   // copy main2, main3, main4, main5
   try {
     std::cout << "Copying main2 ..." << std::endl;
@@ -451,7 +452,7 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   nodes.emplace_back(node4);
   nodes.emplace_back(node5);
 
-  auto init_bal = 9000;
+  auto init_bal = 300000;
 
   // transfer some coins to your friends ...
   Transaction trx1to2(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
@@ -476,19 +477,35 @@ TEST_F(TopTest, sync_five_nodes_simple) {
     if (i % 10 == 0) {
       std::cout << "Wait for init balance syncing ..." << std::endl;
     }
-    if (node1->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
-                .first == init_bal &&
-        node1->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
-                .first == init_bal &&
-        node1->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
-                .first == init_bal &&
-        node1->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
-                .first == init_bal)
+    bool ok = true;
+    // for each node, check initial balances
+    for (auto const &node : nodes) {
+      if (!((node->getBalance(
+                     addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
+                 .first == 9007199254740991 - init_bal * 4) &&
+            node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
+                    .first == init_bal &&
+            node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
+                    .first == init_bal &&
+            node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
+                    .first == init_bal &&
+            node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
+                    .first == init_bal)) {
+        ok = false;
+      }
+    }
+    if (ok) {
       break;
+    }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
+
   // make sure all accounts init balance are finished
   for (auto const &node : nodes) {
+    ASSERT_EQ(
+        node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
+            .first,
+        9007199254740991 - init_bal * 4);
     ASSERT_EQ(
         node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
             .first,
@@ -548,7 +565,7 @@ TEST_F(TopTest, sync_five_nodes_simple) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
-  // send dummy trx
+  // send dummy trx to make sure all DAGs are ordered
   try {
     send_dumm_trx();
   } catch (std::exception &e) {
@@ -574,16 +591,23 @@ TEST_F(TopTest, sync_five_nodes_simple) {
 
   // wait for trx execution ...
   taraxa::thisThreadSleepForSeconds(10);
-  auto trx_executed = node1->getNumTransactionExecuted();
+  uint64_t trx_executed1, trx_executed2, trx_executed3, trx_executed4,
+      trx_executed5;
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    trx_executed = node1->getNumTransactionExecuted();
-    if (trx_executed >= 10005) {
+    trx_executed1 = node1->getNumTransactionExecuted();
+    trx_executed2 = node2->getNumTransactionExecuted();
+    trx_executed3 = node3->getNumTransactionExecuted();
+    trx_executed4 = node4->getNumTransactionExecuted();
+    trx_executed5 = node5->getNumTransactionExecuted();
+
+    if (trx_executed1 == 10005 && trx_executed2 == 10005 &&
+        trx_executed3 == 10005 && trx_executed4 == 10005 &&
+        trx_executed5 == 10005) {
       break;
     }
-    std::cout << "Executed trx: " << trx_executed << std::endl;
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
-
+  EXPECT_EQ(node1->getPackedTrxs().size(), 10005);
   EXPECT_EQ(node1->getNumTransactionExecuted(), 10005)
       << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
       << " \nNum execued in node3 " << node3->getNumTransactionExecuted()
@@ -593,6 +617,32 @@ TEST_F(TopTest, sync_five_nodes_simple) {
       << node1->getLinearizedDagBlocks();
   EXPECT_EQ(node1->getNumBlockExecuted(), node1->getNumVerticesInDag().first);
 
+  for (auto const &node : nodes) {
+    EXPECT_EQ(
+        node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
+            .first,
+        9007199254740991 - init_bal * 4 - 2000 * 100);
+    EXPECT_EQ(
+        node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
+            .first,
+        init_bal);
+    EXPECT_EQ(
+        node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
+            .first,
+        init_bal);
+    EXPECT_EQ(
+        node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
+            .first,
+        init_bal);
+    EXPECT_EQ(
+        node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
+            .first,
+        init_bal);
+    EXPECT_EQ(
+        node->getBalance(addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9"))
+            .first,
+        2000 * 100);
+  }
   top5.kill();
   top4.kill();
   top3.kill();
