@@ -1,23 +1,37 @@
 #!/usr/bin/python
 
 import glob
-import json
 import multiprocessing
-import random
-import requests
-import shutil
 import subprocess
 import sys
 import time
-import os
+from pathlib import Path
+from shutil import rmtree
+
 import psutil
-from create_conf import create_taraxa_conf
-from taraxa_rpc import *
+
+from taraxa.tests_integration.common.create_conf import create_taraxa_conf
+import taraxa.tests_integration.common.paths as paths
+from taraxa.tests_integration.common.taraxa_rpc import *
+
 # local test
 
-START_BOOT_NODE = "./build/main --rebuild_network true --boot_node true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
-START_FULL_NODE = "./build/main --rebuild_network true --conf_taraxa py_test/conf/conf_taraxa{}.json -v 2 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
-START_FULL_NODE_SILENT = "./build/main --conf_taraxa py_test/conf/conf_taraxa{}.json -v 0 --log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR > ./logs/node{}.out 2>&1"
+this_dir = Path(__file__).parent
+workspace = this_dir.joinpath(f"{Path(__file__).stem}_tmp")
+rmtree(workspace, ignore_errors=True)
+workspace.mkdir(parents=True, exist_ok=True)
+
+START_BOOT_NODE = f"{paths.node_exe} --rebuild_network true --boot_node true " \
+                  f"--conf_taraxa {workspace}/conf_taraxa{{}}.json -v 2 " \
+                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
+                  f"> {workspace}/node{{}}.log 2>&1"
+START_FULL_NODE = f"{paths.node_exe} --rebuild_network true " \
+                  f"--conf_taraxa {workspace}/conf_taraxa{{}}.json -v 2 " \
+                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
+                  f"> {workspace}/node{{}}.log 2>&1"
+START_FULL_NODE_SILENT = f"{paths.node_exe} --conf_taraxa {workspace}/conf_taraxa{{}}.json -v 0 " \
+                         f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
+                         f"> {workspace}/node{{}}.log 2>&1"
 
 NODE_PORTS = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786,
               7787, 7788, 7789, 7790, 7791, 7792, 7793, 7794, 7795, 7796]
@@ -28,17 +42,17 @@ INIT_NODE_BAL = 90000
 
 
 def get_arguments():
-    [num_nodes] = sys.argv[1:]
+    [num_nodes] = sys.argv[1:] or [2]
     return int(num_nodes)
 
 
 def test_fail():
-    print "****** [Test Fail] ******"
+    print("****** [Test Fail] ******")
     return 0
 
 
 def test_success():
-    print "****** [Test Success] ******"
+    print("****** [Test Success] ******")
     return 1
 
 
@@ -59,7 +73,7 @@ def read_account_table(file_name):
                 node_address.append(data)
             else:
                 num_acc += 1
-            counter = (counter+1) % 4
+            counter = (counter + 1) % 4
     print("Number of accounts read:", num_acc)
     return node_secret, node_public, node_address
 
@@ -80,7 +94,7 @@ def start_full_node_process(node):
 
 
 def start_multi_full_nodes(num_nodes):
-    print "Create ", num_nodes, "nodes"
+    print("Create ", num_nodes, "nodes")
     jobs = []
     for node in range(0, num_nodes):
         p = multiprocessing.Process(target=start_full_node, args=(node,))
@@ -147,7 +161,7 @@ def initialize_coin_allocation(num_nodes, coins):
     global INIT_NODE_BAL
     print("Expected init balance", INIT_NODE_BAL)
     for i in range(num_nodes):
-        neighbor = NODE_ADDRESS[i+1]
+        neighbor = NODE_ADDRESS[i + 1]
         taraxa_rpc_send_coins(BOOT_NODE_PORT, neighbor, INIT_NODE_BAL)
     print("Wait for coin init ...")
     ok = 1
@@ -164,7 +178,7 @@ def initialize_coin_allocation(num_nodes, coins):
                 expected_bal = 0
                 if (acc == 0):
                     expected_bal = TOTAL_TARAXA_COINS - \
-                        INIT_NODE_BAL*(num_nodes)
+                                   INIT_NODE_BAL * (num_nodes)
                 else:
                     expected_bal = INIT_NODE_BAL
                 if bal != expected_bal:
@@ -201,13 +215,13 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
         for node in range(num_nodes):  # loop through different nodes
             if not ok:
                 break
-            for acc in range(num_nodes+1):  # loop through different accounts
+            for acc in range(num_nodes + 1):  # loop through different accounts
                 expected_bal = 0
                 if (acc == 0):
                     expected_bal = TOTAL_TARAXA_COINS - \
-                        (num_nodes*INIT_NODE_BAL) - total_transfer
+                                   (num_nodes * INIT_NODE_BAL) - total_transfer
                 elif (acc == num_nodes):
-                    expected_bal = INIT_NODE_BAL+total_transfer
+                    expected_bal = INIT_NODE_BAL + total_transfer
                 else:
                     expected_bal = INIT_NODE_BAL
                 account = NODE_ADDRESS[acc]
@@ -230,7 +244,6 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
 
 
 def balance_check_test(num_nodes):
-
     time.sleep(3)
     ok = all_nodes_connected(num_nodes)
     if not ok:
@@ -245,10 +258,10 @@ def balance_check_test(num_nodes):
 def killtree(pid, including_parent=True):
     parent = psutil.Process(pid)
     for child in parent.children(recursive=True):
-        print "Killing chilld process", child
+        print("Killing chilld process", child)
         child.kill()
     if including_parent:
-        print "Kill process", parent
+        print("Kill process", parent)
         parent.kill()
 
 
@@ -258,23 +271,16 @@ def terminate_full_nodes(jobs):
         killtree(j.pid)
 
 
-def main():
-
+def test_main():
     num_nodes = get_arguments()
     # delete previous results
     for path in glob.glob("/tmp/taraxa*"):
-        shutil.rmtree(path, ignore_errors=False)
-    for path in glob.glob("./logs"):
-        shutil.rmtree(path, ignore_errors=False)
-    for path in glob.glob("./py_test/conf"):
-        shutil.rmtree(path, ignore_errors=False)
-    if not os.path.exists("./logs"):
-        os.makedirs("./logs")
+        rmtree(path, ignore_errors=False)
     global NODE_ADDRESS, NODE_PUBLIC, NODE_SECRET
-    NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(
-        "./core_tests/account_table.txt")
+    NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(f"{paths.core_tests_dir}/account_table.txt")
 
-    create_taraxa_conf(num_nodes, NODE_SECRET, BOOT_NODE_PK, BOOT_NODE_ADDR)
+    create_taraxa_conf(f"{workspace}/conf_taraxa{{}}.json".format,
+                       num_nodes, NODE_SECRET, BOOT_NODE_PK, BOOT_NODE_ADDR)
 
     jobs = start_multi_full_nodes(num_nodes)
 
@@ -289,4 +295,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test_main()

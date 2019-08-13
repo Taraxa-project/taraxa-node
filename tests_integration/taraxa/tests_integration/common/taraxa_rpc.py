@@ -2,20 +2,18 @@ import json
 import requests
 
 BOOT_NODE_SK = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-BOOT_NODE_PK = "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a"
+BOOT_NODE_PK = "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f" \
+               "030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a"
 BOOT_NODE_ADDR = "de2b1203d72d3549ee2f733b00b2789414c7cea5"
 
 
 def rpc(node_port, data):
     node_name = "127.0.0.1"
-    try:
-        reply = requests.post(
-            "http://{}:{}".format(node_name, node_port), data=json.dumps(data))
-        if reply == None or reply.status_code != 200 or "error" in reply.text:
-            print("Send rpc failed ...", reply.text)
-            return
-    except Exception as e:
-        print(e)
+    reply = requests.post(
+        "http://{}:{}".format(node_name, node_port), data=json.dumps(data))
+    if reply is None or reply.status_code != 200 or "error" in reply.text:
+        print("Send rpc failed ...", reply.text)
+        return
     json_reply = json.loads(reply.text)
     # print("JSON REPLY ", json_reply)
     return json_reply
@@ -28,12 +26,9 @@ def taraxa_rpc_get_transaction_count(node_port):
         "method": "get_transaction_count",
         "params": [{}]
     }
-    try:
-        json_reply = rpc(node_port, request)
-        count = json_reply["result"]["value"]
-        return count
-    except Exception as e:
-        print(e)
+    json_reply = rpc(node_port, request)
+    count = json_reply["result"]["value"]
+    return count
 
 
 def taraxa_rpc_get_dag_size(node_port):
@@ -43,13 +38,10 @@ def taraxa_rpc_get_dag_size(node_port):
         "method": "get_dag_size",
         "params": [{}]
     }
-    try:
-        json_reply = rpc(node_port, request)
-        dag_size = json_reply["result"]["value"].split(",")
-        # print ("DAG size:", dag_size[1])
-        return dag_size
-    except Exception as e:
-        print(e)
+    json_reply = rpc(node_port, request)
+    dag_size = json_reply["result"]["value"].split(",")
+    # print(("DAG size:", dag_size[1]))
+    return dag_size
 
 
 def taraxa_rpc_get_peer_count(node_port):
@@ -59,13 +51,10 @@ def taraxa_rpc_get_peer_count(node_port):
         "method": "get_peer_count",
         "params": [{}]
     }
-    try:
-        json_reply = rpc(node_port, request)
-        peer = json_reply["result"]["value"]
-        print("Node ", node_port, "has", peer, "peers")
-        return int(peer)
-    except Exception as e:
-        print(e)
+    json_reply = rpc(node_port, request)
+    peer = json_reply["result"]["value"]
+    print("Node ", node_port, "has", peer, "peers")
+    return int(peer)
 
 
 def taraxa_rpc_get_account_balance(node_port, account_address):
@@ -77,15 +66,12 @@ def taraxa_rpc_get_account_balance(node_port, account_address):
             "address": account_address,
         }]
     }
-    try:
-        json_reply = rpc(node_port, request)
-        result = json_reply["result"]
-        balance = result["value"]
-        found = result["found"]
-        # print("Account: ", address,", Balance: ", balance, "Found: ", found)
-        return int(balance)
-    except Exception as e:
-        print(e)
+    json_reply = rpc(node_port, request)
+    result = json_reply["result"]
+    balance = result["value"]
+    found = result["found"]
+    # print("Account: ", address,", Balance: ", balance, "Found: ", found)
+    return int(balance)
 
 
 def taraxa_rpc_send_coins(node_port, receiver, value):
@@ -100,11 +86,8 @@ def taraxa_rpc_send_coins(node_port, receiver, value):
             "secret": BOOT_NODE_SK,
         }]
     }
-    try:
-        json_reply = rpc(node_port, request)
-        print("Boot node send", value, "coins to", receiver)
-    except Exception as e:
-        print(e)
+    json_reply = rpc(node_port, request)
+    print("Boot node send", value, "coins to", receiver)
 
 
 def taraxa_rpc_send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_created):
@@ -118,9 +101,6 @@ def taraxa_rpc_send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_crea
             "nonce": 0,
             "receiver": neighbor}]
     }
-    try:
-        json_reply = rpc(node_port, request)
-        # print("Node", node_port, "send",
-        # number_of_trx_created, "trxs to", neighbor)
-    except Exception as e:
-        print(e)
+    json_reply = rpc(node_port, request)
+    # print("Node", node_port, "send",
+    # number_of_trx_created, "trxs to", neighbor)

@@ -21,12 +21,13 @@
  */
 
 #include "JsonHelper.h"
-
 #include <libethcore/SealEngine.h>
 //#include <libethereum/Client.h>
 #include <jsonrpccpp/common/exception.h>
+#include <libdevcore/SHA3.h>
 #include <libethcore/CommonJS.h>
 #include <libwebthree/WebThree.h>
+
 using namespace std;
 using namespace dev;
 using namespace eth;
@@ -111,16 +112,17 @@ Json::Value toJson(taraxa::DagBlock const& block,
     // TODO this has to go
     res["timestamp"] = std::to_string(0x54e34e8e + *blk_num * 100);
   }
-  res["author"] = "0x4e65fda2159562a496f9f3522f89122a3088497a";
-  res["miner"] = "0x4e65fda2159562a496f9f3522f89122a3088497a";
+  // TODO What's "author"? This field is not present in the spec
+  // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
+  res["author"] = toJS(block.sender());
+  res["miner"] = toJS(block.sender());
   res["nonce"] = "0x7bb9369dcbaec019";
-  res["sha3Uncles"] = "0x0";
+  res["sha3Uncles"] = toJS(dev::EmptyListSHA3);
   res["difficulty"] = "0x0";
   res["totalDifficulty"] = "0x0";
   res["size"] = toJS(sizeof(block));
   res["uncles"] = Json::Value(Json::arrayValue);
   res["transactions"] = Json::Value(Json::arrayValue);
-
   return res;
 }
 

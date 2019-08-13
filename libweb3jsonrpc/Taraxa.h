@@ -161,13 +161,16 @@ class Taraxa : public dev::rpc::TaraxaFace {
 
   NodePtr tryGetNode();
   static std::optional<taraxa::StateRegistry::Snapshot> getSnapshot(
-      NodePtr const&, BlockNumber const&);
+      NodePtr const&,  //
+      BlockNumber const&);
   static std::shared_ptr<taraxa::StateRegistry::State> getState(
-      NodePtr const&, BlockNumber const&);
-  static Json::Value blockToJson(NodePtr const&,
-                                 taraxa::blk_hash_t const&,  //
-                                 std::optional<taraxa::dag_blk_num_t> const&,
-                                 bool include_trx);
+      NodePtr const&,  //
+      BlockNumber const&);
+  static Json::Value blockToJson(
+      NodePtr const&,
+      taraxa::blk_hash_t const&,                              //
+      std::optional<taraxa::StateRegistry::Snapshot> const&,  //
+      bool include_trx);
 };
 
 }  // namespace rpc

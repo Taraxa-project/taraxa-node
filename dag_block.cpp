@@ -40,17 +40,13 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
-  try {
-    level_ = level_t(doc.get<level_t>("level"));
-    tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
-    trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-    sig_ = sig_t(doc.get<std::string>("sig"));
-    hash_ = blk_hash_t(doc.get<std::string>("hash"));
-    cached_sender_ = addr_t(doc.get<std::string>("sender"));
-    pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
+  level_ = level_t(doc.get<level_t>("level"));
+  tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
+  trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
+  sig_ = sig_t(doc.get<std::string>("sig"));
+  hash_ = blk_hash_t(doc.get<std::string>("hash"));
+  cached_sender_ = addr_t(doc.get<std::string>("sender"));
+  pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
 }
 DagBlock::DagBlock(dev::RLP const &_r) {
   std::vector<::byte> blockBytes;

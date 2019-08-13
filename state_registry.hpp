@@ -110,6 +110,7 @@ class StateRegistry {
                          eth::State::CommitBehaviour::KeepEmptyAccounts);
   State &rebase(State &);
   optional<Snapshot> getSnapshot(dag_blk_num_t const &);
+  optional<Snapshot> getSnapshot(blk_hash_t const &);
   Snapshot getCurrentSnapshot();
   State getCurrentState();
   optional<State> getState(dag_blk_num_t const &);

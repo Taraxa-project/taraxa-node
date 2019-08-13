@@ -150,7 +150,7 @@ Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
                                           bool _includeTransactions) {
   auto node = tryGetNode();
   blk_hash_t hash(_blockHash);
-  auto blk_num_opt = node->getStateRegistry()->getNumber(hash);
+  auto snapshot_opt = node->getStateRegistry()->getSnapshot(hash);
   return blockToJson(node, hash, blk_num_opt, _includeTransactions);
 }
 
@@ -342,12 +342,39 @@ shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
   }
 }
 
-Json::Value Taraxa::blockToJson(NodePtr const& node,
-                                blk_hash_t const& hash,  //
-                                optional<taraxa::dag_blk_num_t> const& num,
-                                bool include_trx) {
+Json::Value Taraxa::blockToJson(
+    NodePtr const& node,
+    blk_hash_t const& hash,                             //
+    optional<StateRegistry::Snapshot> const& snapshot,  //
+    bool include_trx) {
   auto blk = node->getDagBlock(hash);
-  auto blk_js = toJson(*blk, num);
+  Json::Value blk_js;
+  // block->updateHash();
+  static const auto MOCK_BLOCK_GAS_LIMIT =
+      toJS(std::numeric_limits<uint64_t>::max());
+  blk_js["hash"] = toJS(block.getHash());
+  blk_js["parentHash"] = toJS(block.getPivot());
+  blk_js["stateRoot"] = "";
+  blk_js["transactionsRoot"] = "";
+  blk_js["receiptsRoot"] = "";
+  blk_js["number"] = snapshot ? toJS(snapshot->block_number) : JSON_NULL;
+  blk_js["gasUsed"] = "0x0";
+  blk_js["gasLimit"] = MOCK_BLOCK_GAS_LIMIT;
+  blk_js["extraData"] = "";
+  blk_js["logsBloom"] = "";
+  if (blk_num) {
+    // TODO this has to go
+    blk_js["timestamp"] = std::to_string(0x54e34e8e + *blk_num * 100);
+  }
+  blk_js["author"] = toJS(block.sender());
+  blk_js["miner"] = toJS(block.sender());
+  blk_js["nonce"] = "0x7bb9369dcbaec019";
+  blk_js["sha3Uncles"] = toJS(dev::EmptyListSHA3);
+  blk_js["difficulty"] = "0x0";
+  blk_js["totalDifficulty"] = "0x0";
+  blk_js["size"] = toJS(sizeof(block));
+  blk_js["uncles"] = Json::Value(Json::arrayValue);
+  blk_js["transactions"] = Json::Value(Json::arrayValue);
   taraxa::trx_num_t trx_added(0);
   for (auto const& trx_hash : blk->getTrxs()) {
     if (!include_trx) {

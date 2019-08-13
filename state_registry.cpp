@@ -62,6 +62,11 @@ optional<Snapshot> StateRegistry::getSnapshot(dag_blk_num_t const &blk_num) {
   }};
 }
 
+optional<Snapshot> StateRegistry::getSnapshot(blk_hash_t const &blk_hash) {
+  auto const &block_number_opt = getNumber(blk_hash);
+  return block_number_opt ? getSnapshot(*block_number_opt) : nullopt;
+}
+
 Snapshot StateRegistry::getCurrentSnapshot() { return current_snapshot_; }
 
 State StateRegistry::getCurrentState() {

@@ -1,17 +1,11 @@
-import glob
 import json
-import os
-
-CONF_DIR = "py_test/conf"
 
 
-def create_taraxa_conf(num_conf, secrets, boot_node_pk, boot_node_addr):
-    if not os.path.exists(CONF_DIR):
-        os.makedirs(CONF_DIR)
+def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr):
     for i in range(num_conf):
         conf = {
             "node_secret": secrets[i],
-            "db_path": "/tmp/taraxa"+str(i),
+            "db_path": "/tmp/taraxa" + str(i),
             "dag_processing_threads": 1,
             "network_address": "127.0.0.1",
             "network_listen_port": 10002 + i,
@@ -26,7 +20,7 @@ def create_taraxa_conf(num_conf, secrets, boot_node_pk, boot_node_addr):
                 }
             ],
             "network_id": "testnet",
-            "rpc_port": 7777+i,
+            "rpc_port": 7777 + i,
             "test_params": {
                 "block_proposer": [
                     0,
@@ -58,6 +52,5 @@ def create_taraxa_conf(num_conf, secrets, boot_node_pk, boot_node_addr):
                 }
             }
         }
-        f = open(CONF_DIR+"/conf_taraxa"+str(i)+".json", "w")
-        f.write(json.dumps(conf, indent=2))
-        f.close()
+        with open(path_fn(i), "w") as f:
+            f.write(json.dumps(conf, indent=2))
