@@ -78,7 +78,12 @@ Json::Value toJson(p2p::PeerSessionInfo const& _p) {
 Json::Value toJson(::taraxa::Transaction const& _t) {
   Json::Value tr_js;
   tr_js["hash"] = toJS(_t.getHash());
-  tr_js["input"] = toJS(_t.getData());
+  // It seems that it is expected by block explorer for input to be 0x0 if no
+  // input
+  if (_t.getData().size() > 0)
+    tr_js["input"] = toJS(_t.getData());
+  else
+    tr_js["input"] = toJS(0);
   tr_js["to"] = toJS(_t.getReceiver());
   tr_js["from"] = toJS(_t.getSender());
   tr_js["gas"] = toJS(_t.getGas());
@@ -95,7 +100,6 @@ Json::Value toJson(::taraxa::Transaction const& _t) {
 Json::Value toJson(taraxa::DagBlock const& block,
                    optional<taraxa::dag_blk_num_t> const& blk_num) {
   Json::Value res;
-  // block->updateHash();
   static const auto MOCK_BLOCK_GAS_LIMIT =
       toJS(std::numeric_limits<uint64_t>::max());
   res["hash"] = toJS(block.getHash());
@@ -108,14 +112,11 @@ Json::Value toJson(taraxa::DagBlock const& block,
   res["gasLimit"] = MOCK_BLOCK_GAS_LIMIT;
   res["extraData"] = "";
   res["logsBloom"] = "";
-  if (blk_num) {
-    // TODO this has to go
-    res["timestamp"] = std::to_string(0x54e34e8e + *blk_num * 100);
-  }
+  res["timestamp"] = toJS(block.getTimestamp());
   // TODO What's "author"? This field is not present in the spec
   // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
-  res["author"] = toJS(block.sender());
-  res["miner"] = toJS(block.sender());
+  res["author"] = toJS(block.getSender());
+  res["miner"] = toJS(block.getSender());;
   res["nonce"] = "0x7bb9369dcbaec019";
   res["sha3Uncles"] = toJS(dev::EmptyListSHA3);
   res["difficulty"] = "0x0";

@@ -40,13 +40,19 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
-  level_ = level_t(doc.get<level_t>("level"));
-  tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
-  trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-  sig_ = sig_t(doc.get<std::string>("sig"));
-  hash_ = blk_hash_t(doc.get<std::string>("hash"));
-  cached_sender_ = addr_t(doc.get<std::string>("sender"));
-  pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
+  // fixme: error swallowing. remove the try block
+  try {
+    level_ = level_t(doc.get<level_t>("level"));
+    tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
+    trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
+    sig_ = sig_t(doc.get<std::string>("sig"));
+    hash_ = blk_hash_t(doc.get<std::string>("hash"));
+    cached_sender_ = addr_t(doc.get<std::string>("sender"));
+    pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
+    timestamp_ = doc.get<int64_t>("timestamp");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 DagBlock::DagBlock(dev::RLP const &_r) {
   std::vector<::byte> blockBytes;
@@ -88,6 +94,7 @@ std::string DagBlock::getJsonStr() const {
   tree.put("sig", sig_.toString());
   tree.put("hash", hash_.toString());
   tree.put("sender", cached_sender_.toString());
+  tree.put("timestamp", timestamp_);
 
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
@@ -111,6 +118,7 @@ bool DagBlock::serialize(stream &strm) const {
   ok &= write(strm, sig_);
   ok &= write(strm, hash_);
   ok &= write(strm, cached_sender_);
+  ok &= write(strm, timestamp_);
   assert(ok);
   return ok;
 }
@@ -142,12 +150,14 @@ bool DagBlock::deserialize(stream &strm) {
   ok &= read(strm, sig_);
   ok &= read(strm, hash_);
   ok &= read(strm, cached_sender_);
+  ok &= read(strm, timestamp_);
   assert(ok);
   return ok;
 }
 
 void DagBlock::sign(secret_t const &sk) {
   if (!sig_) {
+    timestamp_ = dev::utcTime();
     sig_ = dev::sign(sk, sha3(false));
   }
   sender();
@@ -181,6 +191,7 @@ void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   s.appendList(include_sig ? total + 1 : total);
   s << pivot_;
   s << level_;
+  s << timestamp_;
   for (auto i = 0; i < num_tips; ++i) s << tips_[i];
   for (auto i = 0; i < num_trxs; ++i) s << trxs_[i];
   if (include_sig) {

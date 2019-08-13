@@ -797,6 +797,12 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
+void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
+                               uint64_t const &block_number) {
+  auto blk = getDagBlock(dag_block_hash);
+  if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
+}
+
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
@@ -810,7 +816,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
         getDagBlockOrder(dag_block_hash);
     // update DAG blocks order and DAG blocks table
     for (auto const &dag_blk_hash : *dag_blocks_order) {
-      pbft_chain_->pushDagBlockHash(dag_blk_hash);
+      auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
+      newOrderedBlock(dag_blk_hash, block_number);
     }
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {

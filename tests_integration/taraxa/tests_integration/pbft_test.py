@@ -222,7 +222,7 @@ def five_nodes_start_concurrent_test():
 
     get_peer_count(nodes_number)
 
-    coins = TOTAL_TARAXA_COINS / 4
+    coins = TOTAL_TARAXA_COINS // 4
     send_coins(node_ip, nodes_port[0], node_address2, coins)
     send_coins(node_ip, nodes_port[0], node_address3, coins)
     send_coins(node_ip, nodes_port[0], node_address4, coins)
@@ -244,7 +244,7 @@ def five_nodes_start_concurrent_test():
 
 def start_nodes_one_by_one_test():
     # up to 5 nodes
-    coins = TOTAL_TARAXA_COINS / 4
+    coins = TOTAL_TARAXA_COINS // 4
 
     start_full_node_process(1)
     get_peer_count(1)

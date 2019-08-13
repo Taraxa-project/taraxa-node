@@ -36,7 +36,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.address =
         boost::asio::ip::address::from_string(network.network_address);
     rpc.port = doc.get<uint16_t>("rpc_port");
-
+    rpc.ws_port = doc.get<uint16_t>("ws_port");
     {  // for test experiments
       for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
         test_params.block_proposer.push_back(i);
@@ -57,6 +57,7 @@ RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   try {
     boost::property_tree::ptree doc = loadJsonFile(json_file);
     port = doc.get<uint16_t>("port");
+    ws_port = doc.get<uint16_t>("ws_port");
     address =
         boost::asio::ip::address::from_string(doc.get<std::string>("address"));
   } catch (std::exception &e) {

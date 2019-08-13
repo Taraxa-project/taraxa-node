@@ -71,6 +71,7 @@ class DagBlock {
   void serializeRLP(dev::RLPStream &s);
   blk_hash_t getPivot() const { return pivot_; }
   level_t getLevel() const { return level_; }
+  int64_t getTimestamp() const { return timestamp_; }
   vec_blk_t getTips() const { return tips_; }
   vec_trx_t getTrxs() const { return trxs_; }
   sig_t getSig() const { return sig_; }
@@ -99,6 +100,7 @@ class DagBlock {
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
   blk_hash_t hash_;
+  int64_t timestamp_ = -1;
   mutable addr_t cached_sender_;  // block creater
 };
 

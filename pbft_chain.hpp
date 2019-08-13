@@ -243,7 +243,7 @@ class PbftChain {
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
-  void pushDagBlockHash(blk_hash_t const& dag_block_hash);
+  uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
 

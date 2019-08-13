@@ -9,6 +9,7 @@
 #include <libweb3jsonrpc/IpcServer.h>
 #include <libweb3jsonrpc/ModularServer.h>
 #include <libweb3jsonrpc/Test.h>
+#include "libweb3jsonrpc/WSServer.h"
 #include <boost/process.hpp>
 #include "full_node.hpp"
 #include "libdevcore/Log.h"
@@ -39,6 +40,7 @@ class Top {
   std::shared_ptr<std::thread> th_;
   std::shared_ptr<taraxa::FullNode> node_;
   std::shared_ptr<ModularServer<>> rpc_;
+  std::shared_ptr<taraxa::WSServer> ws_listener_;
   std::condition_variable cond_;
   std::mutex mu_;
   boost::asio::io_context context_;
