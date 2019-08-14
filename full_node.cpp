@@ -780,9 +780,10 @@ bool FullNode::isKnownVote(uint64_t pbft_round,
   return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
-bool FullNode::isKnownPbftBlockInChain(
+bool FullNode::isKnownPbftBlockForSyncing(
     taraxa::blk_hash_t const &pbft_block_hash) const {
-  return pbft_chain_->findPbftBlockInChain(pbft_block_hash);
+  return pbft_chain_->findPbftBlockInChain(pbft_block_hash) ||
+         pbft_chain_->findPbftBlockInVerifiedSet(pbft_block_hash);
 }
 
 bool FullNode::isKnownPbftBlockInQueue(
@@ -794,12 +795,16 @@ void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
 }
 
-size_t FullNode::getPbftChainSize() const {
+uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
 }
 
-size_t FullNode::getPbftQueueSize() const {
-  return pbft_chain_->getPbftQueueSize();
+size_t FullNode::getPbftUnverifiedQueueSize() const {
+  return pbft_chain_->getPbftUnverifiedQueueSize();
+}
+
+size_t FullNode::getPbftVerifiedBlocksSize() const {
+  return pbft_chain_->getPbftVerifiedSetSize();
 }
 
 void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
@@ -900,6 +905,10 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   db_pbftchain_->commit();
 
   return true;
+}
+
+void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
+  pbft_chain_->setVerifiedPbftBlock(pbft_block);
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,

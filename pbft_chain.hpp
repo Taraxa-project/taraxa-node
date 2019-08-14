@@ -209,6 +209,7 @@ class PbftChain {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
     pbft_chain_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
+    pbft_verified_set_.insert(genesis_hash_);
   }
   ~PbftChain() {}
 
@@ -218,7 +219,8 @@ class PbftChain {
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
-  size_t getPbftQueueSize() const;
+  size_t getPbftUnverifiedQueueSize() const;
+  size_t getPbftVerifiedSetSize() const;
   std::pair<PbftBlock, bool> getPbftBlockInChain(
       blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
@@ -235,9 +237,11 @@ class PbftChain {
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
+  void setVerifiedPbftBlock(PbftBlock const &pbft_block);
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
+  bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
 
   void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
@@ -246,6 +250,8 @@ class PbftChain {
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
+
+  bool pbftVerifiedSetEmpty() { return pbft_verified_set_.empty(); }
 
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
@@ -271,6 +277,9 @@ class PbftChain {
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
+  // syncing pbft blocks from peers
+  std::deque<PbftBlock> pbft_verified_queue_;
+  std::unordered_set<blk_hash_t> pbft_verified_set_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_CHAIN")};

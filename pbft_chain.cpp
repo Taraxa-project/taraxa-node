@@ -441,8 +441,12 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
-size_t PbftChain::getPbftQueueSize() const {
+size_t PbftChain::getPbftUnverifiedQueueSize() const {
   return pbft_unverified_queue_.size();
+}
+
+size_t PbftChain::getPbftVerifiedSetSize() const {
+  return pbft_verified_set_.size();
 }
 
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
@@ -481,14 +485,24 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
   next_pbft_block_type_ = next_block_type;
 }
 
+void PbftChain::setVerifiedPbftBlock(PbftBlock const& pbft_block) {
+  pbft_verified_queue_.emplace_back(pbft_block);
+  pbft_verified_set_.insert(pbft_block.getBlockHash());
+}
+
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
   return pbft_chain_map_.find(pbft_block_hash) != pbft_chain_map_.end();
 }
 
 bool PbftChain::findPbftBlockInQueue(
-    const taraxa::blk_hash_t& pbft_block_hash) const {
+    taraxa::blk_hash_t const& pbft_block_hash) const {
   return pbft_unverified_map_.find(pbft_block_hash) != pbft_unverified_map_.end();
+}
+
+bool PbftChain::findPbftBlockInVerifiedSet(
+    taraxa::blk_hash_t const& pbft_block_hash) const {
+  return pbft_verified_set_.find(pbft_block_hash) != pbft_verified_set_.end();
 }
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
