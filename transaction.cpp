@@ -469,7 +469,7 @@ unsigned long TransactionManager::getTransactionStatusCount() const {
 }
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(
-    trx_hash_t const &hash) const{
+    trx_hash_t const &hash) const {
   // Check the status
   std::shared_ptr<Transaction> tr;
   // Loop needed because moving transactions from queue to database is not

@@ -342,7 +342,7 @@ class TransactionManager
   void clearTransactionStatusTable() { trx_status_.clear(); }
 
   // debugging purpose
-  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const{
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const {
     return trx_status_.getThreadUnsafeCopy();
   }
 

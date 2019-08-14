@@ -247,7 +247,8 @@ bool BlockManager::isBlockKnown(blk_hash_t const &hash) {
   return seen_blocks_.count(hash);
 }
 
-std::shared_ptr<DagBlock> BlockManager::getDagBlock(blk_hash_t const &hash) const{
+std::shared_ptr<DagBlock> BlockManager::getDagBlock(
+    blk_hash_t const &hash) const {
   boost::shared_lock<boost::shared_mutex> lock(shared_mutex_);
   std::shared_ptr<DagBlock> ret;
   auto blk = seen_blocks_.find(hash);
