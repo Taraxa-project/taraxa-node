@@ -27,13 +27,17 @@ string Taraxa::taraxa_protocolVersion() {
 
 string Taraxa::taraxa_coinbase() { return toJS(tryGetNode()->getAddress()); }
 
-string Taraxa::taraxa_hashrate() { return toJS("0"); }
+string Taraxa::taraxa_hashrate() { return "0x0"; }
 
 bool Taraxa::taraxa_mining() { return false; }
 
-string Taraxa::taraxa_gasPrice() { return toJS("0"); }
+string Taraxa::taraxa_gasPrice() { return "0x0"; }
 
-Json::Value Taraxa::taraxa_accounts() { return JSON_NULL; }
+Json::Value Taraxa::taraxa_accounts() {
+  Json::Value ret(Json::arrayValue);
+  ret.append(taraxa_coinbase());
+  return ret;
+}
 
 string Taraxa::taraxa_blockNumber() {
   return toJS(getSnapshot(tryGetNode(), BlockNumber::latest)->block_number);
@@ -90,13 +94,13 @@ Json::Value Taraxa::taraxa_getBlockTransactionCountByNumber(
 
 Json::Value Taraxa::taraxa_getUncleCountByBlockHash(string const& _blockHash) {
   auto blk = tryGetNode()->getDagBlock(blk_hash_t(_blockHash));
-  return blk ? toJS(0) : JSON_NULL;
+  return blk ? "0x0" : JSON_NULL;
 }
 
 Json::Value Taraxa::taraxa_getUncleCountByBlockNumber(
     string const& _blockNumber) {
   auto snapshot = getSnapshot(tryGetNode(), BlockNumber::from(_blockNumber));
-  return snapshot ? toJS(0) : JSON_NULL;
+  return snapshot ? "0x0" : JSON_NULL;
 }
 
 string Taraxa::taraxa_getCode(string const& _address,
@@ -120,6 +124,7 @@ string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
   return toJS(trx.getHash());
 }
 
+// TODO not listed at https://github.com/ethereum/wiki/wiki/JSON-RPC
 Json::Value Taraxa::taraxa_signTransaction(Json::Value const& _json) {
   return JSON_NULL;
 }
@@ -141,11 +146,9 @@ string Taraxa::taraxa_call(Json::Value const& _json,
   return "";
 }
 
-string Taraxa::taraxa_estimateGas(Json::Value const& _json) {
-  // Dummy data
-  return "0x0";
-}
+string Taraxa::taraxa_estimateGas(Json::Value const& _json) { return "0x0"; }
 
+// TODO not listed at https://github.com/ethereum/wiki/wiki/JSON-RPC
 bool Taraxa::taraxa_flush() { return false; }
 
 Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
@@ -301,8 +304,9 @@ Json::Value Taraxa::taraxa_getLogsEx(Json::Value const& _json) {
 
 Json::Value Taraxa::taraxa_getWork() { return JSON_NULL; }
 
-Json::Value Taraxa::taraxa_syncing() { return JSON_NULL; }
+Json::Value Taraxa::taraxa_syncing() { return Json::Value(false); }
 
+// TODO not listed at https://github.com/ethereum/wiki/wiki/JSON-RPC
 string Taraxa::taraxa_chainId() { return ""; }
 
 bool Taraxa::taraxa_submitWork(string const& _nonce, string const&,
