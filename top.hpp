@@ -9,11 +9,11 @@
 #include <libweb3jsonrpc/IpcServer.h>
 #include <libweb3jsonrpc/ModularServer.h>
 #include <libweb3jsonrpc/Test.h>
-#include "libweb3jsonrpc/WSServer.h"
 #include <boost/process.hpp>
 #include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/LoggingProgramOptions.h"
+#include "libweb3jsonrpc/WSServer.h"
 
 class Top {
  public:

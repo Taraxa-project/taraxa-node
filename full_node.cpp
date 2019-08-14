@@ -499,6 +499,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
 
 std::shared_ptr<Transaction> FullNode::getTransaction(
     trx_hash_t const &hash) const {
+  assert(trx_mgr_);
   return trx_mgr_->getTransaction(hash);
 }
 
@@ -678,9 +679,9 @@ std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-uint64_t FullNode::getNumReceivedBlocks() const{ return received_blocks_; }
+uint64_t FullNode::getNumReceivedBlocks() const { return received_blocks_; }
 
-uint64_t FullNode::getNumProposedBlocks() const{
+uint64_t FullNode::getNumProposedBlocks() const {
   return BlockProposer::getNumProposedBlocks();
 }
 
@@ -688,7 +689,7 @@ std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() const {
   return dag_mgr_->getNumVerticesInDag();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() const{
+std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() const {
   return dag_mgr_->getNumEdgesInDag();
 }
 
