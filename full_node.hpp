@@ -155,6 +155,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   // get transaction schecules stuff ...
+  // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
     return trx_order_mgr_->getDagBlockFromTransaction(trx);
   }

@@ -1,3 +1,5 @@
+# FOO
+
 ALETH_OBJ=\
     ${OBJECTDIR}/libdevcore/Address.o \
 	${OBJECTDIR}/libdevcore/Base64.o \

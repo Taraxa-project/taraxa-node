@@ -4,7 +4,6 @@
 #include "util_eth.hpp"
 
 namespace taraxa::state_registry {
-using Snapshot = StateRegistry::Snapshot;
 using State = StateRegistry::State;
 using util::eth::calculateGenesisState;
 using util::eth::toSlice;
@@ -49,25 +48,26 @@ State &StateRegistry::rebase(State &state) {
   return state;
 }
 
-optional<Snapshot> StateRegistry::getSnapshot(dag_blk_num_t const &blk_num) {
+optional<StateSnapshot> StateRegistry::getSnapshot(
+    dag_blk_num_t const &blk_num) {
   auto snapshot_str = snapshot_db_->lookup(blkNumKey(blk_num));
   if (snapshot_str.empty()) {
     return nullopt;
   }
   RLP snapshot_rlp(snapshot_str);
   return {{
-      snapshot_rlp[0].toInt<decltype(Snapshot::block_number)>(),
-      snapshot_rlp[1].toHash<decltype(Snapshot::block_hash)>(),
-      snapshot_rlp[2].toHash<decltype(Snapshot::state_root)>(),
+      snapshot_rlp[0].toInt<decltype(StateSnapshot::block_number)>(),
+      snapshot_rlp[1].toHash<decltype(StateSnapshot::block_hash)>(),
+      snapshot_rlp[2].toHash<decltype(StateSnapshot::state_root)>(),
   }};
 }
 
-optional<Snapshot> StateRegistry::getSnapshot(blk_hash_t const &blk_hash) {
+optional<StateSnapshot> StateRegistry::getSnapshot(blk_hash_t const &blk_hash) {
   auto const &block_number_opt = getNumber(blk_hash);
   return block_number_opt ? getSnapshot(*block_number_opt) : nullopt;
 }
 
-Snapshot StateRegistry::getCurrentSnapshot() { return current_snapshot_; }
+StateSnapshot StateRegistry::getCurrentSnapshot() { return current_snapshot_; }
 
 State StateRegistry::getCurrentState() {
   return {this, getCurrentSnapshot(), account_start_nonce_, account_db_};

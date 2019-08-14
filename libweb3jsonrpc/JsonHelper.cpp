@@ -24,7 +24,6 @@
 #include <libethcore/SealEngine.h>
 //#include <libethereum/Client.h>
 #include <jsonrpccpp/common/exception.h>
-#include <libdevcore/SHA3.h>
 #include <libethcore/CommonJS.h>
 #include <libwebthree/WebThree.h>
 
@@ -75,15 +74,16 @@ Json::Value toJson(p2p::PeerSessionInfo const& _p) {
 // taraxa
 // ////////////////////////////////////////////////////////////////////////////////
 
-Json::Value toJson(::taraxa::Transaction const& _t) {
+Json::Value toJson(taraxa::Transaction const& _t,
+                   optional<taraxa::TransactionPosition> const& pos) {
   Json::Value tr_js;
+  if (pos) {
+    tr_js["blockNumber"] = toJS(pos->block_number);
+    tr_js["blockHash"] = toJS(pos->block_hash);
+    tr_js["transactionIndex"] = toJS(pos->transaction_index);
+  }
   tr_js["hash"] = toJS(_t.getHash());
-  // It seems that it is expected by block explorer for input to be 0x0 if no
-  // input
-  if (_t.getData().size() > 0)
-    tr_js["input"] = toJS(_t.getData());
-  else
-    tr_js["input"] = toJS(0);
+  tr_js["input"] = toHexPrefixed(_t.getData());
   tr_js["to"] = toJS(_t.getReceiver());
   tr_js["from"] = toJS(_t.getSender());
   tr_js["gas"] = toJS(_t.getGas());
@@ -97,33 +97,32 @@ Json::Value toJson(::taraxa::Transaction const& _t) {
   return tr_js;
 }
 
-Json::Value toJson(taraxa::DagBlock const& block,
-                   optional<taraxa::dag_blk_num_t> const& blk_num) {
+Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block,
+                   uint64_t block_height) {
   Json::Value res;
   static const auto MOCK_BLOCK_GAS_LIMIT =
       toJS(std::numeric_limits<uint64_t>::max());
-  res["hash"] = toJS(block.getHash());
-  res["parentHash"] = toJS(block.getPivot());
+  res["hash"] = toJS(block->getHash());
+  res["parentHash"] = toJS(block->getPivot());
   res["stateRoot"] = "";
   res["transactionsRoot"] = "";
   res["receiptsRoot"] = "";
-  res["number"] = blk_num ? toJS(*blk_num) : JSON_NULL;
+  res["number"] = toJS(block_height);
   res["gasUsed"] = "0x0";
   res["gasLimit"] = MOCK_BLOCK_GAS_LIMIT;
   res["extraData"] = "";
   res["logsBloom"] = "";
-  res["timestamp"] = toJS(block.getTimestamp());
-  // TODO What's "author"? This field is not present in the spec
-  // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
-  res["author"] = toJS(block.getSender());
-  res["miner"] = toJS(block.getSender());;
+  res["timestamp"] = toJS(block->getTimestamp());
+  res["author"] = toJS(block->getSender());
+  res["miner"] = toJS(block->getSender());
   res["nonce"] = "0x7bb9369dcbaec019";
-  res["sha3Uncles"] = toJS(dev::EmptyListSHA3);
+  res["sha3Uncles"] = "0x0";
   res["difficulty"] = "0x0";
   res["totalDifficulty"] = "0x0";
-  res["size"] = toJS(sizeof(block));
+  res["size"] = toJS(sizeof(*block));
   res["uncles"] = Json::Value(Json::arrayValue);
   res["transactions"] = Json::Value(Json::arrayValue);
+
   return res;
 }
 

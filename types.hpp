@@ -125,6 +125,27 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
+struct StateSnapshot {
+  dag_blk_num_t block_number;
+  blk_hash_t block_hash;
+  root_t state_root;
+
+  bool operator==(StateSnapshot const &s) const {
+    return block_number == s.block_number && block_hash == s.block_hash &&
+           state_root == s.state_root;
+  }
+  bool operator!=(StateSnapshot const &s) const { return !operator==(s); }
+};
+
+struct TransactionPosition {
+  dag_blk_num_t block_number;
+  blk_hash_t block_hash;
+  trx_num_t transaction_index;
+};
+
+inline static const auto MOCK_BLOCK_GAS_LIMIT =
+    std::numeric_limits<val_t>::max();
+
 }  // namespace taraxa
 
 namespace std {

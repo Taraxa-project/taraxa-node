@@ -18,9 +18,8 @@
 namespace taraxa::samples {
 
 inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK = 10000;
-inline const val_t TEST_BLOCK_GAS_LIMIT = Executor::MOCK_BLOCK_GAS_LIMIT;
 inline const val_t TEST_TX_GAS_LIMIT =
-    TEST_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
+    MOCK_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
 
 class TxGenerator {
  public:

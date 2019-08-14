@@ -18,23 +18,11 @@ using namespace dev;
 
 class StateRegistry {
  public:
-  struct Snapshot {
-    dag_blk_num_t block_number;
-    blk_hash_t block_hash;
-    root_t state_root;
-
-    bool operator==(Snapshot const &s) const {
-      return block_number == s.block_number && block_hash == s.block_hash &&
-             state_root == s.state_root;
-    }
-    bool operator!=(Snapshot const &s) const { return !operator==(s); }
-  };
-
   class State : public ThreadSafeState {
     friend class StateRegistry;
 
     StateRegistry *const host_;
-    Snapshot snapshot_;
+    StateSnapshot snapshot_;
 
     State(decltype(host_) &host,
           decltype(snapshot_) const &snapshot,  //
@@ -57,13 +45,13 @@ class StateRegistry {
       return *this;
     }
 
-    Snapshot getSnapshot() {
+    StateSnapshot getSnapshot() {
       unique_lock l(m_);
       return snapshot_;
     }
 
    private:
-    void setSnapshot(Snapshot const &snapshot) {
+    void setSnapshot(StateSnapshot const &snapshot) {
       unique_lock l(m_);
       snapshot_ = snapshot;
     }
@@ -80,7 +68,7 @@ class StateRegistry {
   uint256_t const account_start_nonce_;
   OverlayDB account_db_;
   unique_ptr<db::DatabaseFace> snapshot_db_;
-  atomic<Snapshot> current_snapshot_;
+  atomic<StateSnapshot> current_snapshot_;
   mutex m_;
 
   void init(GenesisState const &);
@@ -92,7 +80,7 @@ class StateRegistry {
       : account_start_nonce_(genesis_state.account_start_nonce),
         account_db_(move(account_db)),
         snapshot_db_(move(snapshot_db)),
-        current_snapshot_(Snapshot()) {
+        current_snapshot_(StateSnapshot()) {
     init(genesis_state);
   }
 
@@ -109,9 +97,9 @@ class StateRegistry {
                      eth::State::CommitBehaviour const & =
                          eth::State::CommitBehaviour::KeepEmptyAccounts);
   State &rebase(State &);
-  optional<Snapshot> getSnapshot(dag_blk_num_t const &);
-  optional<Snapshot> getSnapshot(blk_hash_t const &);
-  Snapshot getCurrentSnapshot();
+  optional<StateSnapshot> getSnapshot(dag_blk_num_t const &);
+  optional<StateSnapshot> getSnapshot(blk_hash_t const &);
+  StateSnapshot getCurrentSnapshot();
   State getCurrentState();
   optional<State> getState(dag_blk_num_t const &);
   optional<dag_blk_num_t> getNumber(blk_hash_t const &);

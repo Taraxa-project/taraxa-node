@@ -26,7 +26,7 @@ namespace taraxa {
 
 using std::string;
 using std::to_string;
-using util_eth::newDB;
+using util::eth::newDB;
 
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;

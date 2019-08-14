@@ -7,6 +7,8 @@
 #include <csignal>
 #include "AccountHolder.h"
 #include "JsonHelper.h"
+#include "libethereum/TransactionReceipt.h"
+#include "rlp_array.hpp"
 
 using namespace std;
 using namespace jsonrpc;
@@ -141,7 +143,7 @@ string Taraxa::taraxa_call(Json::Value const& _json,
 
 string Taraxa::taraxa_estimateGas(Json::Value const& _json) {
   // Dummy data
-  return toJS("0x5208");
+  return "0x0";
 }
 
 bool Taraxa::taraxa_flush() { return false; }
@@ -149,9 +151,11 @@ bool Taraxa::taraxa_flush() { return false; }
 Json::Value Taraxa::taraxa_getBlockByHash(string const& _blockHash,
                                           bool _includeTransactions) {
   auto node = tryGetNode();
-  blk_hash_t hash(_blockHash);
-  auto snapshot_opt = node->getStateRegistry()->getSnapshot(hash);
-  return blockToJson(node, hash, blk_num_opt, _includeTransactions);
+  auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash_t(_blockHash));
+  if (!snapshot) {
+    return JSON_NULL;
+  }
+  return getBlockJson(node, *snapshot, _includeTransactions);
 }
 
 Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
@@ -161,10 +165,7 @@ Json::Value Taraxa::taraxa_getBlockByNumber(string const& _blockNumber,
   if (!snapshot) {
     return JSON_NULL;
   }
-  return blockToJson(node,
-                     snapshot->block_hash,    //
-                     snapshot->block_number,  //
-                     _includeTransactions);
+  return getBlockJson(node, *snapshot, _includeTransactions);
 }
 
 Json::Value Taraxa::taraxa_getTransactionByHash(
@@ -175,47 +176,41 @@ Json::Value Taraxa::taraxa_getTransactionByHash(
   if (!trx) {
     return JSON_NULL;
   }
-  auto trx_js = toJson(*trx);
   auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
   if (blk_hash.isZero()) {
-    return trx_js;
+    return toJson(*trx);
+  }
+  auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash);
+  if (!snapshot) {
+    return toJson(*trx);
   }
   auto const& trxs = node->getDagBlock(blk_hash)->getTrxs();
-  auto blk_num = node->getStateRegistry()->getNumber(blk_hash);
-  if (blk_num) {
-    trx_js["blockNumber"] = toJS(*blk_num);
-  }
-  trx_js["blockHash"] = toJS(blk_hash);
-  trx_js["transactionIndex"] = toJS(*taraxa::find(trxs, trx_hash));
-  return trx_js;
+  return toJson(*trx, {{snapshot->block_number,
+                        snapshot->block_hash,  //
+                        *find(trxs, trx_hash)}});
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
     string const& _blockHash, string const& _transactionIndex) {
   auto node = tryGetNode();
   auto trx_num = to_trx_num(_transactionIndex);
-  blk_hash_t blk_hash(_blockHash);
-  auto blk = node->getDagBlock(blk_hash);
-  if (!blk) {
+  auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash_t(_blockHash));
+  if (!snapshot) {
     return JSON_NULL;
   }
-  auto const& trxs = blk->getTrxs();
+  auto const& trxs = node->getDagBlock(snapshot->block_hash)->getTrxs();
   if (trx_num >= trxs.size()) {
     return JSON_NULL;
   }
   auto trx = node->getTransaction(trxs[trx_num]);
-  auto trx_js = toJson(*trx);
-  auto blk_num = node->getStateRegistry()->getNumber(blk_hash);
-  if (blk_num) {
-    trx_js["blockNumber"] = toJS(*blk_num);
-  }
-  trx_js["blockHash"] = toJS(blk_hash);
-  trx_js["transactionIndex"] = toJS(trx_num);
-  return trx_js;
+  return toJson(*trx, {{snapshot->block_number,
+                        snapshot->block_hash,  //
+                        trx_num}});
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
     string const& _blockNumber, string const& _transactionIndex) {
+  // TODO dedupe code
   auto node = tryGetNode();
   auto trx_num = to_trx_num(_transactionIndex);
   auto snapshot = getSnapshot(node, BlockNumber::from(_blockNumber));
@@ -227,47 +222,37 @@ Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
     return JSON_NULL;
   }
   auto trx = node->getTransaction(trxs[trx_num]);
-  auto trx_js = toJson(*trx);
-  trx_js["blockNumber"] = toJS(snapshot->block_number);
-  trx_js["blockHash"] = toJS(snapshot->block_hash);
-  trx_js["transactionIndex"] = toJS(trx_num);
-  return trx_js;
+  return toJson(*trx, {{snapshot->block_number,
+                        snapshot->block_hash,  //
+                        trx_num}});
 }
 
 Json::Value Taraxa::taraxa_getTransactionReceipt(
     string const& _transactionHash) {
-  if (auto full_node = full_node_.lock()) {
-    Json::Value res;
-    res["transactionHash"] = _transactionHash;
-    auto trx = full_node->getTransaction(taraxa::trx_hash_t(_transactionHash));
-    if (trx) {
-      auto json_trx = toJson(trx);
-      auto blk_hash = full_node->getDagBlockFromTransaction(trx->getHash());
-      if (!blk_hash.isZero()) {
-        auto blk = full_node->getDagBlock(blk_hash);
-        if (blk) {
-          auto height = full_node->getDagBlockHeight(blk->getHash());
-          if (height.second) {
-            for (int i = 0; i < blk->getTrxs().size(); i++) {
-              if (taraxa::trx_hash_t(_transactionHash) == blk->getTrxs()[i]) {
-                res["transactionIndex"] = toJS(i);
-                res["blockNumber"] = toJS(height.first);
-                res["blockHash"] = toJS(blk_hash);
-                res["cumulativeGasUsed"] = toJS(0);
-                res["gasUsed"] = toJS(0);
-                res["contractAddress"] = Json::Value();
-                res["logs"] = Json::Value(Json::arrayValue);
-                res["logsBloom"] = i;
-                res["status"] = toJS(1);
-                return res;
-              }
-            }
-          }
-        }
-      }
-    }
+  auto node = tryGetNode();
+  trx_hash_t trx_hash(_transactionHash);
+  auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
+  if (blk_hash.isZero()) {
+    return JSON_NULL;
   }
-  return JSON_NULL;
+  auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash);
+  if (!snapshot) {
+    return JSON_NULL;
+  }
+  auto trxs = node->getDagBlock(blk_hash)->getTrxs();
+  Json::Value res;
+  res["transactionHash"] = toJS(trx_hash);
+  res["transactionIndex"] = toJS(*find(trxs, trx_hash));
+  res["blockNumber"] = toJS(snapshot->block_number);
+  res["blockHash"] = toJS(blk_hash);
+  res["cumulativeGasUsed"] = "0x0";
+  res["gasUsed"] = "0x0";
+  res["contractAddress"] = JSON_NULL;
+  res["logs"] = Json::Value(Json::arrayValue);
+  static auto const logs_bloom = toJS(LogBloom());
+  res["logsBloom"] = logs_bloom;
+  res["status"] = "0x1";
+  return res;
 }
 
 Json::Value Taraxa::taraxa_getUncleByBlockHashAndIndex(
@@ -345,8 +330,8 @@ Taraxa::NodePtr Taraxa::tryGetNode() {
       jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
-optional<StateRegistry::Snapshot> Taraxa::getSnapshot(NodePtr const& node,
-                                                      BlockNumber const& num) {
+optional<StateSnapshot> Taraxa::getSnapshot(NodePtr const& node,
+                                            BlockNumber const& num) {
   switch (num.kind) {
     case BlockNumber::Kind::earliest:
     case BlockNumber::Kind::specific: {
@@ -373,52 +358,63 @@ shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
   }
 }
 
-Json::Value Taraxa::blockToJson(
-    NodePtr const& node,
-    blk_hash_t const& hash,                             //
-    optional<StateRegistry::Snapshot> const& snapshot,  //
-    bool include_trx) {
-  auto blk = node->getDagBlock(hash);
-  Json::Value blk_js;
-  // block->updateHash();
-  static const auto MOCK_BLOCK_GAS_LIMIT =
-      toJS(std::numeric_limits<uint64_t>::max());
-  blk_js["hash"] = toJS(block.getHash());
-  blk_js["parentHash"] = toJS(block.getPivot());
-  blk_js["stateRoot"] = "";
-  blk_js["transactionsRoot"] = "";
-  blk_js["receiptsRoot"] = "";
-  blk_js["number"] = snapshot ? toJS(snapshot->block_number) : JSON_NULL;
-  blk_js["gasUsed"] = "0x0";
-  blk_js["gasLimit"] = MOCK_BLOCK_GAS_LIMIT;
-  blk_js["extraData"] = "";
-  blk_js["logsBloom"] = "";
-  if (blk_num) {
-    // TODO this has to go
-    blk_js["timestamp"] = std::to_string(0x54e34e8e + *blk_num * 100);
+Json::Value Taraxa::getBlockJson(NodePtr const& node,
+                                 StateSnapshot const& snapshot,  //
+                                 bool include_trx) {
+  auto block = node->getDagBlock(snapshot.block_hash);
+  Json::Value res;
+  res["number"] = toJS(snapshot.block_number);
+  res["hash"] = toJS(snapshot.block_hash);
+  if (snapshot.block_number != 0) {
+    auto const& parent_hash = node->getStateRegistry()
+                                  ->getSnapshot(snapshot.block_number - 1)  //
+                                  ->block_hash;
+    res["parentHash"] = toJS(parent_hash);
+  } else {
+    static auto const zero_hash = toJS(blk_hash_t());
+    res["parentHash"] = zero_hash;
   }
-  blk_js["author"] = toJS(block.sender());
-  blk_js["miner"] = toJS(block.sender());
-  blk_js["nonce"] = "0x7bb9369dcbaec019";
-  blk_js["sha3Uncles"] = toJS(dev::EmptyListSHA3);
-  blk_js["difficulty"] = "0x0";
-  blk_js["totalDifficulty"] = "0x0";
-  blk_js["size"] = toJS(sizeof(block));
-  blk_js["uncles"] = Json::Value(Json::arrayValue);
-  blk_js["transactions"] = Json::Value(Json::arrayValue);
-  taraxa::trx_num_t trx_added(0);
-  for (auto const& trx_hash : blk->getTrxs()) {
+  res["stateRoot"] = toJS(snapshot.state_root);
+  static auto const gas_limit = toJS(MOCK_BLOCK_GAS_LIMIT);
+  res["gasLimit"] = gas_limit;
+  res["gasUsed"] = "0x0";
+  res["extraData"] = "0x0";
+  static auto const logs_bloom = toJS(LogBloom());
+  res["logsBloom"] = logs_bloom;
+  res["timestamp"] = toJS(block->getTimestamp());
+  res["miner"] = toJS(block->getSender());
+  // TODO What's "author"? This field is not present in the spec
+  // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
+  res["author"] = res["miner"];
+  res["nonce"] = "0x7bb9369dcbaec019";
+  res["difficulty"] = "0x0";
+  res["totalDifficulty"] = "0x0";
+  res["uncles"] = Json::Value(Json::arrayValue);
+  static auto const sha3_uncles = toJS(dev::EmptyListSHA3);
+  res["sha3Uncles"] = sha3_uncles;
+  res["transactions"] = Json::Value(Json::arrayValue);
+  RlpArray trx_rlp_array, receitps_rlp_array;
+  auto const& trx_hashes = block->getTrxs();
+  for (trx_num_t i = 0; i < trx_hashes.size(); ++i) {
+    auto const& trx_hash = trx_hashes[i];
+    auto const& trx = node->getTransaction(trx_hash);
+    trx_rlp_array.append([&](auto& rlp_stream) {
+      trx->streamRLP(rlp_stream, true, false);  //
+    });
+    receitps_rlp_array.append([](auto& rlp_stream) {
+      TransactionReceipt(1, 0, {}).streamRLP(rlp_stream);
+    });
     if (!include_trx) {
-      blk_js["transactions"].append(toJS(trx_hash));
+      res["transactions"].append(toJS(trx_hash));
       continue;
     }
-    auto const& trx = node->getTransaction(trx_hash);
-    auto trx_js = toJson(*trx);
-    trx_js["blockHash"] = blk_js["hash"];
-    trx_js["blockNumber"] = blk_js["number"];
-    trx_js["transactionIndex"] = toJS(trx_added);
-    blk_js["transactions"].append(trx_js);
-    ++trx_added;
+    auto const& trx_js = toJson(*trx, {{snapshot.block_number,
+                                        snapshot.block_hash,  //
+                                        i}});
+    res["transactions"].append(trx_js);
   }
-  return blk_js;
+  res["transactionsRoot"] = toJS(trx_rlp_array.trieRoot());
+  res["receiptsRoot"] = toJS(receitps_rlp_array.trieRoot());
+  res["size"] = toJS(sizeof(*block));
+  return res;
 }

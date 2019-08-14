@@ -3,16 +3,17 @@
 
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
-#include <libdevcore/RLP.h>
 #include <boost/filesystem.hpp>
-#include <functional>
+#include <tuple>
 
-namespace taraxa::util_eth {
+namespace taraxa::util::eth::__impl__ {
 using namespace std;
 using namespace dev;
 using namespace dev::db;
 using namespace dev::eth;
 namespace fs = boost::filesystem;
+
+namespace exports {
 
 inline Slice toSlice(h256 const& _h) {
   return Slice(reinterpret_cast<char const*>(_h.data()), _h.size);
@@ -88,19 +89,11 @@ inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
   }
 }
 
-template <typename Pos>
-BytesMap rlpArray(Pos size,
-                  function<void(Pos const&, RLPStream&)> write_element) {
-  BytesMap ret;
-  for (auto i = 0; i < size; ++i) {
-    RlpStream pos_rlp, element_rlp;
-    pos_rlp << i;
-    write_element(i, element_rlp);
-    ret.insert(pos_rlp.out(), element_rlp.out());
-  }
-  return ret;
-}
+}  // namespace exports
+}  // namespace taraxa::util::eth::__impl__
 
-}  // namespace taraxa::util_eth
+namespace taraxa::util::eth {
+using namespace __impl__::exports;
+}
 
 #endif  // TARAXA_NODE_UTIL_ETH_HPP
