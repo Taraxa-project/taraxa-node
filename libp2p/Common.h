@@ -270,11 +270,10 @@ public:
 
     void schedule(unsigned _msInFuture, std::function<void(boost::system::error_code const&)> const& _f) {
         if (m_stopped) return;
-        DEV_GUARDED(x_timers) {
-          auto timer = std::make_shared<ba::deadline_timer>(m_io);
-          timer->expires_from_now(boost::posix_time::milliseconds(_msInFuture));
-          m_timers.insert(timer);
-          timer->async_wait(
+        auto timer = std::make_shared<ba::deadline_timer>(m_io);
+        timer->expires_from_now(boost::posix_time::milliseconds(_msInFuture));
+        DEV_GUARDED(x_timers) m_timers.insert(timer);
+        timer->async_wait(
               [this, _f, timer_wptr = decltype(timer)::weak_type(timer)]  //
               (auto const& err_code) {
                 std::shared_ptr<void> __finally__(nullptr, [&](...) {
@@ -284,7 +283,6 @@ public:
                 });
                 _f(err_code);
               });
-        }
     }
 
     void stop() { m_stopped = true; DEV_GUARDED(x_timers) m_timers.clear(); }
