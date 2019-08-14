@@ -8,8 +8,6 @@ ADD . .
 RUN make main
 RUN make keygen
 
-FROM builder as test
-RUN make run_test
 
 # Copy over only minimal information
 FROM ubuntu:18.10
