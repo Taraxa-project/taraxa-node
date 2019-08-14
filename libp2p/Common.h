@@ -279,7 +279,7 @@ public:
               (auto const& err_code) {
                 std::shared_ptr<void> __finally__(nullptr, [&](...) {
                   if (auto timer_ptr = timer_wptr.lock()) {
-                    m_timers.erase(timer_ptr);
+                     DEV_GUARDED(x_timers) m_timers.erase(timer_ptr);
                   }
                 });
                 _f(err_code);
