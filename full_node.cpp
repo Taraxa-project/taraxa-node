@@ -648,8 +648,8 @@ std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
   std::vector<std::vector<uint>> blocks_trx_modes;
 
   if (!trx_overlap_table) {
-    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
-                  << "transactions schedule";
+    LOG(log_er_) << "Transaction overlap table nullptr, cannot create mock "
+                 << "transactions schedule";
     return blocks_trx_modes;
   }
 
@@ -804,7 +804,7 @@ size_t FullNode::getPbftUnverifiedQueueSize() const {
 }
 
 size_t FullNode::getPbftVerifiedBlocksSize() const {
-  return pbft_chain_->getPbftVerifiedSetSize();
+  return pbft_chain_->pbftVerifiedSetSize();
 }
 
 void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
@@ -839,9 +839,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     std::pair<PbftBlock, bool> last_pivot_block =
         pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
     if (!last_pivot_block.second) {
-      LOG(log_err_) << "Cannot find the last pivot block hash "
-                    << last_pivot_block_hash
-                    << " in pbft chain. Should never happen here!";
+      LOG(log_er_) << "Cannot find the last pivot block hash "
+                   << last_pivot_block_hash
+                   << " in pbft chain. Should never happen here!";
       assert(false);
     }
     blk_hash_t dag_block_hash =
@@ -885,8 +885,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     }
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_deb_) << "Update 2t+1 " << two_t_plus_one << " Threshold "
-                  << sortition_threshold;
+    LOG(log_dg_) << "Update 2t+1 " << two_t_plus_one << " Threshold "
+                 << sortition_threshold;
   }
   // TODO: push other type pbft block into pbft chain
 
@@ -908,7 +908,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
 }
 
 void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
-  pbft_chain_->setVerifiedPbftBlock(pbft_block);
+  pbft_chain_->setVerifiedPbftBlockIntoQueue(pbft_block);
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -923,7 +923,7 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
-  LOG(log_deb_) << "last pbft block hash " << last_pbft_block_hash
+  LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                 << " vote: " << vote.getHash();
 
   return vote;

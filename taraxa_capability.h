@@ -204,8 +204,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftVote(NodeID const &_id, taraxa::Vote const &vote);
   void onNewPbftBlock(taraxa::PbftBlock const &pbft_block);
   void sendPbftBlock(NodeID const &_id, taraxa::PbftBlock const &pbft_block);
-  void requestPbftBlocks(NodeID const &_id, size_t pbft_verified_blocks_size);
-  void sendPbftBlocks(NodeID const &_id, size_t pbft_verified_blocks_size,
+  void requestPbftBlocks(NodeID const &_id, size_t height_to_sync);
+  void sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                       size_t blocks_to_transfer);
 
   // Peers

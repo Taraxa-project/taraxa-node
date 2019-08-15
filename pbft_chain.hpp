@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:06
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-13
+ * @Last Modified time: 2019-08-15
  */
 #ifndef PBFT_CHAIN_HPP
 #define PBFT_CHAIN_HPP
@@ -220,7 +220,6 @@ class PbftChain {
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftUnverifiedQueueSize() const;
-  size_t getPbftVerifiedSetSize() const;
   std::pair<PbftBlock, bool> getPbftBlockInChain(
       blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
@@ -237,7 +236,6 @@ class PbftChain {
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
-  void setVerifiedPbftBlock(PbftBlock const &pbft_block);
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
@@ -251,7 +249,13 @@ class PbftChain {
 
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
-  bool pbftVerifiedSetEmpty() { return pbft_verified_set_.empty(); }
+  size_t pbftVerifiedSetSize() const;
+  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
+  bool pbftVerifiedQueueEmpty() const;
+  PbftBlock pbftVerifiedQueueFront() const;
+  void pbftVerifiedQueuePopFront();
+  void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
+
 
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }

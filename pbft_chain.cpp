@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:32
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-13
+ * @Last Modified time: 2019-08-15
  */
 
 #include "pbft_chain.hpp"
@@ -445,10 +445,6 @@ size_t PbftChain::getPbftUnverifiedQueueSize() const {
   return pbft_unverified_queue_.size();
 }
 
-size_t PbftChain::getPbftVerifiedSetSize() const {
-  return pbft_verified_set_.size();
-}
-
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
     uint64_t dag_block_height) const {
   if (dag_block_height >= dag_blocks_order_.size()) {
@@ -483,11 +479,6 @@ void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
 
 void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
   next_pbft_block_type_ = next_block_type;
-}
-
-void PbftChain::setVerifiedPbftBlock(PbftBlock const& pbft_block) {
-  pbft_verified_queue_.emplace_back(pbft_block);
-  pbft_verified_set_.insert(pbft_block.getBlockHash());
 }
 
 bool PbftChain::findPbftBlockInChain(
@@ -545,9 +536,10 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later
   size_++;
+  pbftVerifiedSetInsert_(pbft_block.getBlockHash());
   if (pbft_block.getBlockType() == pivot_block_type) {
     // PBFT ancher block
-    LOG(log_deb_) << "Push pbft block " << pbft_block_hash
+    LOG(log_inf_) << "Push pbft block " << pbft_block_hash
                   << " with DAG block hash "
                   << pbft_block.getPivotBlock().getDagBlockHash()
                   << " into pbft chain, current pbft chain period " << period_
@@ -555,7 +547,7 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
     setNextPbftBlockType(schedule_block_type);
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     // PBFT concurrent schedule block
-    LOG(log_deb_) << "Push pbft block " << pbft_block_hash
+    LOG(log_inf_) << "Push pbft block " << pbft_block_hash
                   << " into pbft chain, current pbft chain period " << period_
                   << " chain size is " << size_;
     setNextPbftBlockType(pivot_block_type);
@@ -670,6 +662,31 @@ std::string PbftChain::getJsonStr() const {
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   strm << pbft_chain.getGenesisStr();
   return strm;
+}
+
+size_t PbftChain::pbftVerifiedSetSize() const {
+  return pbft_verified_set_.size();
+}
+
+void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
+  pbft_verified_set_.insert(pbft_block_hash);
+}
+
+bool PbftChain::pbftVerifiedQueueEmpty() const {
+  return pbft_verified_queue_.empty();
+}
+
+PbftBlock PbftChain::pbftVerifiedQueueFront() const {
+  return pbft_verified_queue_.front();
+}
+
+void PbftChain::pbftVerifiedQueuePopFront() {
+  pbft_verified_queue_.pop_front();
+}
+
+void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
+  pbft_verified_queue_.emplace_back(pbft_block);
+  pbftVerifiedSetInsert_(pbft_block.getBlockHash());
 }
 
 }  // namespace taraxa
