@@ -285,8 +285,8 @@ public:
         }
         timer->async_wait(
               [_f,
-              weak_this = weak_from_this(),
-              timer_wptr = decltype(timer)::weak_type(timer)]  //
+               weak_this = weak_from_this(),
+               timer_wptr = decltype(timer)::weak_type(timer)]  //
               (auto const& err_code) {
                   std::shared_ptr<void> __finally__(nullptr, [&](...) {
                       auto this_ = weak_this.lock();
