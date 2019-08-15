@@ -366,7 +366,10 @@ TEST_F(FullNodeTest, full_node_reset) {
   // // TODO: pbft does not support node stop yet, to be fixed ...
   // node1->getPbftManager()->stop();
   std::cout << "Waiting connection for 100 milliseconds ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(100);
+  for (auto i = 0; i < 100; i++) {
+    if (node1->getPeerCount() > 0) break;
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
 
   for (auto i = 0; i < blks.size(); ++i) {
     nw2->sendBlock(node1->getNetwork()->getNodeId(), blks[i], true);
@@ -662,7 +665,6 @@ TEST_F(TopTest, DISABLED_sync_five_nodes) {
     std::cerr << e.what() << std::endl;
   }
 }
-
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(

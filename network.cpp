@@ -26,9 +26,12 @@ Network::Network(NetworkConfig const &config, std::string network_file,
     key = dev::KeyPair(sk);
   }
 
+  dev::bytes networkData;
   if (network_file != "") {
     network_file_ = network_file;
-    auto networkData = contents(network_file);
+    networkData = contents(network_file);
+  }
+  if(networkData.size() > 0) {
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode",
         dev::p2p::NetworkConfig(conf_.network_address,
