@@ -1,4 +1,4 @@
--e ../sdk_python
+-e ../sdk_py
 pytest
 web3
 psutil
