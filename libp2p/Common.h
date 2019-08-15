@@ -29,6 +29,7 @@
 #include <set>
 #include <vector>
 #include <unordered_set>
+#include <utility>
 
 // Make sure boost/asio.hpp is included before windows.h.
 #include <boost/asio.hpp>
@@ -262,26 +263,41 @@ public:
     std::atomic<PeerType> peerType{PeerType::Optional};
 };
 
-class DeadlineOps
+class DeadlineOps : public std::enable_shared_from_this<DeadlineOps>
 {
-public:
     DeadlineOps(ba::io_service& _io): m_io(_io), m_stopped(false) {}
+public:
+
+    template<typename... Arg>
+    static auto make_shared(Arg&&... args) {
+        return std::shared_ptr<DeadlineOps>(
+            new DeadlineOps(std::forward<Arg>(args)...));
+    }
+
     ~DeadlineOps() { stop(); }
 
     void schedule(unsigned _msInFuture, std::function<void(boost::system::error_code const&)> const& _f) {
         if (m_stopped) return;
         auto timer = std::make_shared<ba::deadline_timer>(m_io);
         timer->expires_from_now(boost::posix_time::milliseconds(_msInFuture));
-        DEV_GUARDED(x_timers) m_timers.insert(timer);
+        DEV_GUARDED(x_timers) {
+            m_timers.insert(timer);
+        }
         timer->async_wait(
-              [this, _f, timer_wptr = decltype(timer)::weak_type(timer)]  //
+              [_f,
+              weak_this = weak_from_this(),
+              timer_wptr = decltype(timer)::weak_type(timer)]  //
               (auto const& err_code) {
-                std::shared_ptr<void> __finally__(nullptr, [&](...) {
-                  if (auto timer_ptr = timer_wptr.lock()) {
-                     DEV_GUARDED(x_timers) m_timers.erase(timer_ptr);
-                  }
-                });
-                _f(err_code);
+                  std::shared_ptr<void> __finally__(nullptr, [&](...) {
+                      auto this_ = weak_this.lock();
+                      auto timer_ptr = timer_wptr.lock();
+                      if (this_ && timer_ptr) {
+                          DEV_GUARDED(this_->x_timers) {
+                              this_->m_timers.erase(timer_ptr);
+                          }
+                      }
+                  });
+                  _f(err_code);
               });
     }
 

@@ -52,7 +52,7 @@ NodeTable::NodeTable(ba::io_service& _io, KeyPair const& _alias,
                                        (bi::udp::endpoint)m_hostNodeEndpoint)),
       m_requestTimeToLive(DiscoveryDatagram::c_timeToLive),
       m_allowLocalDiscovery(_allowLocalDiscovery),
-      m_timers(_io),
+      m_timers(DeadlineOps::make_shared(_io)),
       m_bootNode(bootNode) {
   if (bootNode) {
     m_bucketSize = 256;
@@ -215,7 +215,7 @@ void NodeTable::doDiscover(NodeID _node, unsigned _round,
     return;
   }
 
-  m_timers.schedule(
+  m_timers->schedule(
       c_reqTimeout.count() * 2,
       [this, _node, _round, _tried](boost::system::error_code const& _ec) {
         if (_ec)
@@ -226,7 +226,7 @@ void NodeTable::doDiscover(NodeID _node, unsigned _round,
               << " " << _ec.message();
 
         if (_ec.value() == boost::asio::error::operation_aborted ||
-            m_timers.isStopped())
+            m_timers->isStopped())
           return;
 
         // error::operation_aborted means that the timer was probably aborted.
@@ -289,9 +289,9 @@ vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID _target) {
 
 void NodeTable::ping(NodeEntry const& _nodeEntry,
                      boost::optional<NodeID> const& _replacementNodeID) {
-  m_timers.schedule(0, [this, _nodeEntry, _replacementNodeID](
+  m_timers->schedule(0, [this, _nodeEntry, _replacementNodeID](
                            boost::system::error_code const& _ec) {
-    if (m_timers.isStopped()) return;
+    if (m_timers->isStopped()) return;
 
     NodeIPEndpoint src;
     src = m_hostNodeEndpoint;
@@ -566,7 +566,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
 }
 
 void NodeTable::doDiscovery() {
-  m_timers.schedule(
+  m_timers->schedule(
       c_bucketRefresh.count(), [this](boost::system::error_code const& _ec) {
         if (_ec)
           // we can't use m_logger here, because captured this might be already
@@ -576,7 +576,7 @@ void NodeTable::doDiscovery() {
               << " " << _ec.message();
 
         if (_ec.value() == boost::asio::error::operation_aborted ||
-            m_timers.isStopped())
+            m_timers->isStopped())
           return;
 
         NodeID randNodeId;
@@ -590,10 +590,10 @@ void NodeTable::doDiscovery() {
 }
 
 void NodeTable::doHandleTimeouts() {
-  m_timers.schedule(
+  m_timers->schedule(
       c_handleTimeoutsIntervalMs, [this](boost::system::error_code const& _ec) {
         if ((_ec && _ec.value() == boost::asio::error::operation_aborted) ||
-            m_timers.isStopped())
+            m_timers->isStopped())
           return;
 
         vector<shared_ptr<NodeEntry>> nodesToActivate;
