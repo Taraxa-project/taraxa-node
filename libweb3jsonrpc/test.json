@@ -161,6 +161,20 @@
     "returns": {}
   },
   {
+    "name": "get_executed_trx_count",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_executed_blk_count",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
     "name": "get_dag_size",
     "params": [
       {}

@@ -34,6 +34,7 @@ Transaction::Transaction(string const &json) {
     chain_id_ = doc.get<int8_t>("chain_id");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
+    assert(false);
   }
 }
 
@@ -341,6 +342,7 @@ void TransactionQueue::verifyQueuedTrxs() {
         }
       }
     } catch (...) {
+      assert(false);
     }
   }
 }
@@ -397,7 +399,7 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
 
 // search from queued_trx_
 std::shared_ptr<Transaction> TransactionQueue::getTransaction(
-    trx_hash_t const &hash) {
+    trx_hash_t const &hash) const {
   {
     sharedLock lock(shared_mutex_for_queued_trxs_);
     auto it = queued_trxs_.find(hash);
@@ -462,12 +464,12 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-unsigned long TransactionManager::getTransactionStatusCount() {
+unsigned long TransactionManager::getTransactionStatusCount() const {
   return trx_status_.size();
 }
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(
-    trx_hash_t const &hash) {
+    trx_hash_t const &hash) const {
   // Check the status
   std::shared_ptr<Transaction> tr;
   // Loop needed because moving transactions from queue to database is not

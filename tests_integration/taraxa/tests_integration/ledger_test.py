@@ -33,12 +33,18 @@ START_FULL_NODE_SILENT = f"{paths.node_exe} --conf_taraxa {workspace}/conf_tarax
                          f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
                          f"> {workspace}/node{{}}.log 2>&1"
 
-NODE_PORTS = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786,
-              7787, 7788, 7789, 7790, 7791, 7792, 7793, 7794, 7795, 7796]
-BOOT_NODE_PORT = NODE_PORTS[0]
+NODE_PORTS = []
+BOOT_NODE_PORT = 7777
 TOTAL_TARAXA_COINS = 9007199254740991
-NUM_TRXS = 100
+NUM_TRXS = 200
 INIT_NODE_BAL = 90000
+
+
+def get_node_port(num_nodes):
+    ports = []
+    for i in range(num_nodes):
+        ports.append(i+7777)
+    return ports
 
 
 def get_arguments():
@@ -163,6 +169,7 @@ def initialize_coin_allocation(num_nodes, coins):
     for i in range(num_nodes):
         neighbor = NODE_ADDRESS[i + 1]
         taraxa_rpc_send_coins(BOOT_NODE_PORT, neighbor, INIT_NODE_BAL)
+    start_time = time.time()
     print("Wait for coin init ...")
     ok = 1
     for counter in range(50):
@@ -192,7 +199,14 @@ def initialize_coin_allocation(num_nodes, coins):
         print("Coin init done ...")
     else:
         print("Coin init failed ...")
+    print("Process time ", time.time() - start_time)
     return ok
+
+
+def send_dummy_trx(num_nodes):
+    time.sleep(num_nodes*2)
+    taraxa_rpc_send_coins(BOOT_NODE_PORT, NODE_ADDRESS[1], 0)
+    time.sleep(num_nodes*2)
 
 
 def send_trx_from_node_to_neighbors_testing(num_nodes):
@@ -208,7 +222,10 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
         taraxa_rpc_send_many_trx_to_neighbor(
             NODE_PORTS[sender], neighbor, number_of_trx_created)
     ok = 1
+    start_time = time.time()
     print("Wait for coin transfer ...")
+    send_dummy_trx(num_nodes)
+    # send dummy trx
     for i in range(50):
         time.sleep(num_nodes)
         ok = 1
@@ -233,13 +250,13 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
                     ok = 0
                     trx_count_testing(num_nodes)
                     dag_size_testing(num_nodes)
-                    break
         if ok:
             break
     if ok:
         print("Coin transfer done ...")
     else:
         print("Coin transfer failed ...")
+    print("Process time ", time.time() - start_time)
     return ok
 
 
@@ -277,8 +294,11 @@ def test_main():
     for path in glob.glob("/tmp/taraxa*"):
         rmtree(path, ignore_errors=False)
     global NODE_ADDRESS, NODE_PUBLIC, NODE_SECRET
-    NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(f"{paths.core_tests_dir}/account_table.txt")
-
+    NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(
+        f"{paths.core_tests_dir}/account_table.txt")
+    global NODE_PORTS
+    NODE_PORTS = get_node_port(num_nodes)
+    print NODE_PORTS
     create_taraxa_conf(f"{workspace}/conf_taraxa{{}}.json".format,
                        num_nodes, NODE_SECRET, BOOT_NODE_PK, BOOT_NODE_ADDR)
 
@@ -292,6 +312,9 @@ def test_main():
         test_success()
     else:
         test_fail()
+
+    for path in glob.glob("./py_test/conf"):
+        shutil.rmtree(path, ignore_errors=False)
 
 
 if __name__ == "__main__":

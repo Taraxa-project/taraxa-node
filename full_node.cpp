@@ -48,12 +48,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
+      dag_mgr_(std::make_shared<DagManager>(
+          conf_.genesis_state.block.getHash().toString())),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
       trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
-      dag_mgr_(std::make_shared<DagManager>(
-          conf_.genesis_state.block.getHash().toString())),
+
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
           trx_mgr_->getShared())),
@@ -279,6 +280,7 @@ void FullNode::start(bool boot_node) {
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
                                  db_blks_, db_trxs_, state_registry_);
+  executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
@@ -471,7 +473,8 @@ void FullNode::insertTransaction(Transaction const &trx) {
   trx_mgr_->insertTrx(trx, true);
 }
 
-std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
+    blk_hash_t const &hash) const {
   std::string json = db_blks_->get(hash.toString());
   if (!json.empty()) {
     return std::make_shared<DagBlock>(json);
@@ -479,7 +482,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
   return nullptr;
 }
 
-std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   std::shared_ptr<DagBlock> blk;
   // find if in block queue
   blk = blk_mgr_->getDagBlock(hash);
@@ -494,11 +497,13 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   return blk;
 }
 
-std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
+std::shared_ptr<Transaction> FullNode::getTransaction(
+    trx_hash_t const &hash) const {
+  assert(trx_mgr_);
   return trx_mgr_->getTransaction(hash);
 }
 
-unsigned long FullNode::getTransactionStatusCount() {
+unsigned long FullNode::getTransactionStatusCount() const {
   return trx_mgr_->getTransactionStatusCount();
 }
 
@@ -674,17 +679,17 @@ std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
   return blocks_trx_modes;
 }
 
-uint64_t FullNode::getNumReceivedBlocks() { return received_blocks_; }
+uint64_t FullNode::getNumReceivedBlocks() const { return received_blocks_; }
 
-uint64_t FullNode::getNumProposedBlocks() {
+uint64_t FullNode::getNumProposedBlocks() const {
   return BlockProposer::getNumProposedBlocks();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() {
+std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() const {
   return dag_mgr_->getNumVerticesInDag();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() {
+std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() const {
   return dag_mgr_->getNumEdgesInDag();
 }
 
@@ -929,6 +934,36 @@ std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
 
 uint64_t FullNode::getDagBlockMaxHeight() const {
   return pbft_chain_->getDagBlockMaxHeight();
+}
+
+std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
+  std::vector<blk_hash_t> ret;
+  auto max_height = getDagBlockMaxHeight();
+  for (auto i(0); i <= max_height; ++i) {
+    auto blk = getDagBlockHash(i);
+    assert(blk.second);
+    ret.emplace_back(blk.first);
+  }
+  return ret;
+}
+
+std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
+  std::unordered_set<trx_hash_t> packed_trxs;
+  auto max_height = getDagBlockMaxHeight();
+  for (auto i(0); i <= max_height; ++i) {
+    auto blk = getDagBlockHash(i);
+    assert(blk.second);
+    auto dag_blk = getDagBlock(blk.first);
+    assert(dag_blk);
+    for (auto const &t : dag_blk->getTrxs()) {
+      packed_trxs.insert(t);
+    }
+  }
+  std::vector<trx_hash_t> ret;
+  for (auto const &t : packed_trxs) {
+    ret.emplace_back(t);
+  }
+  return ret;
 }
 
 }  // namespace taraxa

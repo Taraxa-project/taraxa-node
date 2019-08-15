@@ -289,13 +289,13 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
   vertex_t target = graph_.vertex(to);
 
   if (source == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (from) "
-                    "(computeOrder) "
+    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (from) "
                  << from << "\n";
     return false;
   }
   if (target == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
+    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (to) " << to
+                 << "\n";
     return false;
   }
   ordered_period_vertices.clear();

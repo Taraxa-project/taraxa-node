@@ -47,8 +47,8 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
   EXPECT_EQ(pbft_mgr->LAMBDA_ms, 1000);
-  EXPECT_EQ(pbft_mgr->COMMITTEE_SIZE, 3);
-  EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 10000);
+  EXPECT_EQ(pbft_mgr->COMMITTEE_SIZE, 1);
+  EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 1000000000);
 }
 
 // Add votes round 1, 2 and 3 into unverified vote table

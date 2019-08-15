@@ -19,7 +19,6 @@
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "state_registry.hpp"
-#include "transaction.hpp"
 
 namespace taraxa {
 /**
@@ -28,15 +27,22 @@ namespace taraxa {
  * Cannot call execute() until all trans in this period are processed. This will
  * be a blocking call.
  */
+class FullNode;
 
 class Executor {
  private:
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
+  std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
+  std::atomic<uint64_t> num_executed_blk_ = 0;
+
   // for debug purpose
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "EXETOR")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
@@ -61,6 +67,11 @@ class Executor {
   bool execute(
       TrxSchedule const& schedule,
       std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
+  uint64_t getNumExecutedTrx() { return num_executed_trx_; }
+  uint64_t getNumExecutedBlk() { return num_executed_blk_; }
+  void setFullNode(std::shared_ptr<FullNode> full_node) {
+    full_node_ = full_node;
+  }
 
  private:
   bool executeBlkTrxs(

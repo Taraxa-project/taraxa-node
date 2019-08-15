@@ -19,6 +19,14 @@ pipeline {
                 sh './scripts/validate_format_project_files_cxx.sh'
             }
         }
+        stage('Trigger Base Image Build') {
+            steps {
+              build job: "docker-base-image/${BRANCH_NAME}", parameters: [
+                  string(name: 'upsteam_project_name', value: env.NAME)
+              ], propagate: true, wait: true
+
+            }
+        }
         stage('Docker Registry Login') {
             steps {
                 sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
@@ -33,10 +41,6 @@ pipeline {
               }
             }
             steps {
-              build job: "docker-base-image/${BRANCH_NAME}", parameters: [
-                  string(name: 'upsteam_project_name', value: env.NAME)
-              ], propagate: true, wait: true
-
                 sh 'git submodule update --init --recursive'
                 sh 'make run_test'
             }

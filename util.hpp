@@ -132,8 +132,8 @@ class StatusTable {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  std::pair<V, bool> get(K const &hash) {
+  using UnsafeStatusTable = std::unordered_map<K, V>;
+  std::pair<V, bool> get(K const &hash) const {
     sharedLock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
@@ -142,7 +142,7 @@ class StatusTable {
       return {V(), false};
     }
   }
-  unsigned long size() {
+  unsigned long size() const {
     sharedLock lock(shared_mutex_);
     return status_.size();
   }
@@ -189,10 +189,13 @@ class StatusTable {
     return ret;
   }
 
-  std::unordered_map<K, V> getThreadUnsafeCopy() { return status_; }
+  UnsafeStatusTable getThreadUnsafeCopy() const {
+    sharedLock lock(shared_mutex_);
+    return status_;
+  }
 
  private:
-  boost::shared_mutex shared_mutex_;
+  mutable boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
 };
 

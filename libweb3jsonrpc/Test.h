@@ -49,6 +49,8 @@ class Test : public TestFace {
   virtual Json::Value get_votes(const Json::Value& param1) override;
   virtual Json::Value draw_graph(const Json::Value& param1) override;
   virtual Json::Value get_transaction_count(const Json::Value& param1) override;
+  virtual Json::Value get_executed_trx_count(const Json::Value& param1) override;
+  virtual Json::Value get_executed_blk_count(const Json::Value& param1) override;
   virtual Json::Value get_dag_size(const Json::Value& param1) override;
 
  private:

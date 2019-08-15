@@ -164,13 +164,13 @@ class Dag {
 
  private:
   mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
   mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
   mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
 /**
  * PivotTree is a special DAG, every vertex only has one out-edge,
@@ -193,13 +193,13 @@ class PivotTree : public Dag {
 
  private:
   mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
   mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
   mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
 class DagBuffer;
 /**

@@ -227,8 +227,7 @@ the block
 TEST(p2p, block_propagate) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  int const step = 10;
-  int const nodeCount = 30;
+  int const nodeCount = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
@@ -282,8 +281,8 @@ TEST(p2p, block_propagate) {
   printf("Addnode %d hosts\n", nodeCount);
 
   bool started = true;
-  for (unsigned i = 0; i < 10000; i += step) {
-    this_thread::sleep_for(chrono::milliseconds(step));
+  for (unsigned i = 0; i < 500; i++) {
+    this_thread::sleep_for(chrono::milliseconds(100));
     started = true;
     for (int j = 0; j < nodeCount; j++)
       if (!vHosts[j]->isStarted()) started = false;
@@ -298,8 +297,8 @@ TEST(p2p, block_propagate) {
   // Wait for to give the hosts time to connect to each
   // other.
   bool connected = false;
-  for (unsigned i = 0; i < 50000; i += step) {
-    this_thread::sleep_for(chrono::milliseconds(step));
+  for (unsigned i = 0; i < 500; i++) {
+    this_thread::sleep_for(chrono::milliseconds(100));
     connected = true;
     int counterConnected = 0;
     for (int j = 0; j < nodeCount; j++)
@@ -360,7 +359,7 @@ TEST(p2p, block_propagate) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   LoggingOptions logOptions;
-  logOptions.verbosity = VerbositySilent;
+  logOptions.verbosity = VerbosityError;
   setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

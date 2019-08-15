@@ -20,7 +20,8 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
                 }
             ],
             "network_id": "testnet",
-            "rpc_port": 7777 + i,
+            "rpc_port": 7777+i,
+            "ws_port": 8777+i,
             "test_params": {
                 "block_proposer": [
                     0,
@@ -43,7 +44,8 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
                     "sig": "",
                     "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
                     "hash": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "sender": ""
+                    "sender": "",
+                    "timestamp": 1234567890
                 },
                 "accounts": {
                     boot_node_addr: {

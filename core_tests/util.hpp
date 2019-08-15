@@ -27,12 +27,10 @@ inline auto const all_configs = []() {
 }();
 
 inline void cleanAllTestDB() {
-  cout << "removing database directories:";
+  cout << "Removing database directories" << endl;
   for (auto& cfg : all_configs) {
     remove_all(cfg.db_path);
-    cout << " " << cfg.db_path;
   }
-  cout << endl;
 }
 
 template <typename T = ::testing::Test,
