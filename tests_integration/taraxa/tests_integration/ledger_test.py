@@ -2,6 +2,7 @@
 
 import glob
 import multiprocessing
+import shutil
 import subprocess
 import sys
 import time
@@ -298,7 +299,7 @@ def test_main():
         f"{paths.core_tests_dir}/account_table.txt")
     global NODE_PORTS
     NODE_PORTS = get_node_port(num_nodes)
-    print NODE_PORTS
+    print(NODE_PORTS)
     create_taraxa_conf(f"{workspace}/conf_taraxa{{}}.json".format,
                        num_nodes, NODE_SECRET, BOOT_NODE_PK, BOOT_NODE_ADDR)
 
