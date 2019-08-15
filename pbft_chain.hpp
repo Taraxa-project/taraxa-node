@@ -265,6 +265,13 @@ class PbftChain {
   void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
                                PbftBlock const& pbft_block);
 
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  mutable boost::shared_mutex access_;
+
   blk_hash_t genesis_hash_;
   uint64_t size_;
   uint64_t period_;

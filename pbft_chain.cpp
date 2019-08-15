@@ -665,28 +665,34 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
 }
 
 size_t PbftChain::pbftVerifiedSetSize() const {
+  sharedLock_ lock(access_);
   return pbft_verified_set_.size();
 }
 
 void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
+  uniqueLock_ lock(access_);
   pbft_verified_set_.insert(pbft_block_hash);
 }
 
 bool PbftChain::pbftVerifiedQueueEmpty() const {
+  sharedLock_ lock(access_);
   return pbft_verified_queue_.empty();
 }
 
 PbftBlock PbftChain::pbftVerifiedQueueFront() const {
+  sharedLock_ lock(access_);
   return pbft_verified_queue_.front();
 }
 
 void PbftChain::pbftVerifiedQueuePopFront() {
+  uniqueLock_ lock(access_);
   pbft_verified_queue_.pop_front();
 }
 
 void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
+  uniqueLock_ lock(access_);
   pbft_verified_queue_.emplace_back(pbft_block);
-  pbftVerifiedSetInsert_(pbft_block.getBlockHash());
+  pbft_verified_set_.insert(pbft_block.getBlockHash());
 }
 
 }  // namespace taraxa
