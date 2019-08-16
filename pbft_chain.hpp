@@ -256,7 +256,6 @@ class PbftChain {
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
 
-
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
   void cleanPbftChain() { PbftChain(); }

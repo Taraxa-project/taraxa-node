@@ -33,7 +33,7 @@ string hashSignature(dev::Signature signature) {
 bool sortition(string signature_hash, val_t account_balance, size_t threshold) {
   if (signature_hash.length() != 64) {
     LOG(log_error_) << "signature has string length should be 64, but "
-                  << signature_hash.length() << " given" << std::endl;
+                    << signature_hash.length() << " given" << std::endl;
     return false;
   }
   string signature_hash_decimal = taraxa::hexToDecimal(signature_hash);

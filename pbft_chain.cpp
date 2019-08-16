@@ -488,7 +488,8 @@ bool PbftChain::findPbftBlockInChain(
 
 bool PbftChain::findPbftBlockInQueue(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_unverified_map_.find(pbft_block_hash) != pbft_unverified_map_.end();
+  return pbft_unverified_map_.find(pbft_block_hash) !=
+         pbft_unverified_map_.end();
 }
 
 bool PbftChain::findPbftBlockInVerifiedSet(

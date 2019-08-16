@@ -856,9 +856,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
         pbft_block.getScheduleBlock().getSchedule().blk_order.size();
     if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
       LOG(log_er_) << "Setting DAG block order finalize "
-                    << dag_ordered_blocks_size << " blocks."
-                    << " But the PBFT CS block has "
-                    << dag_blocks_inside_pbft_cs << " DAG blocks hash.";
+                   << dag_ordered_blocks_size << " blocks."
+                   << " But the PBFT CS block has " << dag_blocks_inside_pbft_cs
+                   << " DAG blocks hash.";
       // TODO: need to handle the error condition(should never happen)
     }
 
@@ -924,7 +924,7 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
-                << " vote: " << vote.getHash();
+               << " vote: " << vote.getHash();
 
   return vote;
 }

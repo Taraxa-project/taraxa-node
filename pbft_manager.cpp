@@ -158,8 +158,8 @@ void PbftManager::run() {
           blockWithEnoughVotes_(cert_votes_for_round);
       if (cert_voted_block_hash.second) {
         // put pbft block into chain if have 2t+1 cert votes
-        if (pushPbftBlockIntoChainIfEnoughCertVotes_(pbft_round_ - 1,
-            cert_voted_block_hash.first)) {
+        if (pushPbftBlockIntoChainIfEnoughCertVotes_(
+                pbft_round_ - 1, cert_voted_block_hash.first)) {
           push_block_values_for_round[pbft_round_ - 1] =
               cert_voted_block_hash.first;
         }
@@ -786,8 +786,8 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   return std::make_pair(leader.second, true);
 }
 
-bool PbftManager::pushPbftBlockIntoChainIfEnoughCertVotes_(uint64_t round,
-    taraxa::blk_hash_t const &cert_voted_block_hash) {
+bool PbftManager::pushPbftBlockIntoChainIfEnoughCertVotes_(
+    uint64_t round, taraxa::blk_hash_t const &cert_voted_block_hash) {
   std::vector<Vote> votes = vote_mgr_->getVotes(round);
   size_t count = 0;
   for (auto const &v : votes) {

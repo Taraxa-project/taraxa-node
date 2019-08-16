@@ -400,8 +400,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           size_t my_chain_size = full_node->getPbftChainSize();
           if (my_chain_size > height_to_sync) {
             size_t blocks_to_transfer =
-                std::min(max_blocks_in_packet,
-                         my_chain_size - height_to_sync);
+                std::min(max_blocks_in_packet, my_chain_size - height_to_sync);
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
         }
@@ -443,7 +442,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
           if (!full_node->isKnownPbftBlockForSyncing(
-              pbft_block.getBlockHash())) {
+                  pbft_block.getBlockHash())) {
             // TODO: need check 2t+1 cert votes, then put into chain and store
             //  in DB. May send request for cert votes here
             full_node->setVerifiedPbftBlock(pbft_block);
@@ -758,8 +757,7 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
-  LOG(log_dg_) << "Sending GetPbftBlockPacket with size: "
-               << height_to_sync;
+  LOG(log_dg_) << "Sending GetPbftBlockPacket with size: " << height_to_sync;
   auto peer = getPeer(_id);
   if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
@@ -882,9 +880,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                << height_to_sync << ", will send " << blocks_to_transfer
                << " pbft blocks to " << _id;
   if (auto full_node = full_node_.lock()) {
-    auto blocks =
-        full_node->getPbftChain()->getPbftBlocks(height_to_sync,
-                                                 blocks_to_transfer);
+    auto blocks = full_node->getPbftChain()->getPbftBlocks(height_to_sync,
+                                                           blocks_to_transfer);
     RLPStream s;
     host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                  blocks.size());
