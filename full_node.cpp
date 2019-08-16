@@ -813,6 +813,7 @@ void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
   if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
 }
 
+// Test purpose function
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
@@ -859,7 +860,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
                    << dag_ordered_blocks_size << " blocks."
                    << " But the PBFT CS block has " << dag_blocks_inside_pbft_cs
                    << " DAG blocks hash.";
-      // TODO: need to handle the error condition(should never happen)
+      // Notice: Need check DAG blocks/transactions with The contents in CS
+      // block before using the function.
+      assert(false);
     }
 
     // TODO: VM executor will not take sortition_account_balance_table as
@@ -871,6 +874,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
                               pbft_mgr_->sortition_account_balance_table)) {
       LOG(log_er_) << "Failed to execute schedule block";
       // TODO: If valid transaction failed execute, how to do?
+      // Should never happen
+      assert(false);
     }
     // reset sortition_threshold and TWO_T_PLUS_ONE
     size_t accounts = pbft_mgr_->sortition_account_balance_table.size();
