@@ -10,6 +10,7 @@
 #define UTIL_HPP
 
 #include <execinfo.h>
+#include <json/json.h>
 #include <signal.h>
 #include <boost/asio.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
@@ -19,15 +20,13 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <regex>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
 #include "types.hpp"
 
-#define MASTER_BOOT_NODE_ADDRESS "de2b1203d72d3549ee2f733b00b2789414c7cea5"
-
-#include <json/json.h>
 namespace taraxa {
 
 boost::property_tree::ptree strToJson(const std::string_view &str);
@@ -133,8 +132,8 @@ class StatusTable {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  std::pair<V, bool> get(K const &hash) {
+  using UnsafeStatusTable = std::unordered_map<K, V>;
+  std::pair<V, bool> get(K const &hash) const {
     sharedLock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
@@ -143,7 +142,7 @@ class StatusTable {
       return {V(), false};
     }
   }
-  unsigned long size() {
+  unsigned long size() const {
     sharedLock lock(shared_mutex_);
     return status_.size();
   }
@@ -190,8 +189,13 @@ class StatusTable {
     return ret;
   }
 
+  UnsafeStatusTable getThreadUnsafeCopy() const {
+    sharedLock lock(shared_mutex_);
+    return status_;
+  }
+
  private:
-  boost::shared_mutex shared_mutex_;
+  mutable boost::shared_mutex shared_mutex_;
   std::unordered_map<K, V> status_;
 };
 
@@ -260,12 +264,26 @@ inline std::string toJsonArrayString(const boost::property_tree::ptree &p) {
 
 template <typename T>
 void append(boost::property_tree::ptree &ptree, const T &value) {
-  ptree.push_back(make_pair("", value));
+  ptree.push_back(std::make_pair("", value));
 }
 
 template <typename... TS>
 std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
+}
+
+template <typename Where, typename What, typename Pos = std::size_t>
+std::optional<Pos> find(Where const &where, What const &what) {
+  constexpr auto max_pos = std::numeric_limits<Pos>::max();
+  Pos i(0);
+  for (What const &e : where) {
+    if (what == e) {
+      return i;
+    }
+    assert(i <= max_pos);
+    ++i;
+  }
+  return std::nullopt;
 }
 
 }  // namespace taraxa
@@ -278,6 +296,7 @@ void abortHandler(int sig);
 static inline void printStackTrace();
 class TaraxaStackTrace {
  public:
+  // TODO why constructor???
   TaraxaStackTrace() {
     signal(SIGABRT, abortHandler);
     signal(SIGSEGV, abortHandler);

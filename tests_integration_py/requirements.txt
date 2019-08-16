@@ -1,0 +1,5 @@
+-e ../sdk_py
+pytest
+web3
+psutil
+requests

@@ -3,12 +3,14 @@
  * @Author: Qi Gao
  * @Date: 2019-04-11
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-07-26
  */
 
 #include "vote.h"
 
+#include "full_node.hpp"
 #include "libdevcore/SHA3.h"
+#include "pbft_manager.hpp"
 #include "sortition.h"
 
 #include <boost/property_tree/json_parser.hpp>
@@ -94,6 +96,18 @@ uint64_t Vote::getRound() const { return round_; }
 size_t Vote::getStep() const { return step_; }
 
 // Vote Manager
+void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
+  node_ = node;
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node is not available in Vote Manager";
+    return;
+  }
+  pbft_chain_ = full_node->getPbftChain();
+  pbft_mgr_ = full_node->getPbftManager();
+}
+
 sig_t VoteManager::signVote(secret_t const& node_sk,
                             taraxa::blk_hash_t const& block_hash,
                             taraxa::PbftVoteTypes type, uint64_t round,
@@ -106,7 +120,7 @@ sig_t VoteManager::signVote(secret_t const& node_sk,
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
-                                 taraxa::bal_t& account_balance,
+                                 taraxa::val_t& account_balance,
                                  size_t sortition_threshold) const {
   PbftVoteTypes type = vote.getType();
   uint64_t round = vote.getRound();
@@ -118,7 +132,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   public_t public_key = vote.getPublicKey();
   sig_t vote_signature = vote.getVoteSignature();
   if (!dev::verify(public_key, vote_signature, hash_(vote_message))) {
-    LOG(log_err_) << "Invalid vote signature " << vote_signature
+    LOG(log_war_) << "Invalid vote signature " << vote_signature
                   << " vote hash " << vote.getHash();
     return false;
   }
@@ -129,7 +143,14 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       std::to_string(round) + std::to_string(step);
   sig_t sortition_signature = vote.getSortitionSignature();
   if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
-    LOG(log_err_) << "Invalid sortition signature: " << sortition_signature
+    // 1. PBFT chain has not have the newest PBFT block yet
+    // 2. When new node join, the new node doesn't have the lastest pbft block
+    // to verify the vote.
+    // Return false, will not effect PBFT consensus
+    // if the vote is valid, will count when node has the relative pbft block
+    // if the vote is invalid, will remove when pass the pbft round
+    LOG(log_tra_) << "Haven't have the newest PBFT block to verify the vote "
+                  << "sortition signature: " << sortition_signature
                   << " vote hash " << vote.getHash();
     return false;
   }
@@ -139,38 +160,115 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
       taraxa::hashSignature(sortition_signature);
   if (!taraxa::sortition(sortition_signature_hash, account_balance,
                          sortition_threshold)) {
-    LOG(log_err_) << "Vote sortition failed, sortition signature "
+    LOG(log_war_) << "Vote sortition failed, sortition signature "
                   << sortition_signature;
     return false;
   }
+
   return true;
 }
 
-vote_hash_t VoteManager::hash_(std::string const& str) const {
-  return dev::sha3(str);
+bool VoteManager::isKnownVote(uint64_t pbft_round,
+                              vote_hash_t const& vote_hash) const {
+  sharedLock_ lock(access_);
+
+  std::map<uint64_t, std::vector<Vote>>::const_iterator found =
+      unverified_votes_.find(pbft_round);
+  if (found == unverified_votes_.end()) {
+    return false;
+  }
+  for (Vote const& v : found->second) {
+    if (v.getHash() == vote_hash) {
+      return true;
+    }
+  }
+  return false;
 }
 
-// Vote Queue
-void VoteQueue::clearQueue() { vote_queue_.clear(); }
+void VoteManager::addVote(taraxa::Vote const& vote) {
+  uint64_t pbft_round = vote.getRound();
 
-size_t VoteQueue::getSize() { return vote_queue_.size(); }
+  upgradableLock_ lock(access_);
+  if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
+    upgradeLock_ locked(lock);
+    unverified_votes_[pbft_round].emplace_back(vote);
+  } else {
+    std::vector<Vote> votes{vote};
+    upgradeLock_ locked(lock);
+    unverified_votes_[pbft_round] = votes;
+  }
+}
 
-std::vector<Vote> VoteQueue::getVotes(uint64_t round) {
-  std::vector<Vote> votes;
-  std::deque<Vote>::iterator it = vote_queue_.begin();
+// cleanup votes < pbft_round
+void VoteManager::cleanupVotes(uint64_t pbft_round) {
+  upgradableLock_ lock(access_);
+  std::map<uint64_t, std::vector<Vote>>::iterator it =
+      unverified_votes_.begin();
 
-  while (it != vote_queue_.end()) {
-    if (it->getRound() < round) {
-      it = vote_queue_.erase(it);
-    } else {
-      votes.emplace_back(*it++);
+  upgradeLock_ locked(lock);
+  while (it != unverified_votes_.end() && it->first < pbft_round) {
+    it = unverified_votes_.erase(it);
+  }
+}
+
+void VoteManager::clearUnverifiedVotesTable() {
+  uniqueLock_ lock(access_);
+  unverified_votes_.clear();
+}
+
+uint64_t VoteManager::getUnverifiedVotesSize() const {
+  uint64_t size = 0;
+
+  sharedLock_ lock(access_);
+  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
+    size += it->second.size();
+  }
+
+  return size;
+}
+
+// Return all votes >= pbft_round
+std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
+  cleanupVotes(pbft_round);
+
+  std::vector<Vote> verified_votes;
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Vote Manager full node weak pointer empty";
+    return verified_votes;
+  }
+
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+
+  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  sharedLock_ lock(access_);
+  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
+    for (auto const& v : it->second) {
+      // vote verification
+      addr_t vote_address = dev::toAddress(v.getPublicKey());
+      std::pair<val_t, bool> account_balance =
+          full_node->getBalance(vote_address);
+      if (!account_balance.second) {
+        // New node join, it doesn't have other nodes info.
+        // Wait unit sync PBFT chain with peers, and execute to get states.
+        LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
+                      << v.getHash() << " vote address: " << vote_address;
+        continue;
+      }
+      if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+                         sortition_threshold)) {
+        verified_votes.emplace_back(v);
+      }
     }
   }
 
-  return votes;
+  return verified_votes;
 }
 
-std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
+std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
   using boost::property_tree::ptree;
   ptree ptroot;
   ptree ptvotes;
@@ -195,8 +293,8 @@ std::string VoteQueue::getJsonStr(std::vector<Vote>& votes) {
   return output.str();
 }
 
-void VoteQueue::pushBackVote(taraxa::Vote const& vote) {
-  vote_queue_.emplace_back(vote);
+vote_hash_t VoteManager::hash_(std::string const& str) const {
+  return dev::sha3(str);
 }
 
 }  // namespace taraxa

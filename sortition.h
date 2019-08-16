@@ -9,10 +9,10 @@
 #ifndef SORTITION_H
 #define SORTITION_H
 
+#include <string>
 #include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"
-
-#include <string>
+#include "types.hpp"
 
 // max signature hash 64 hex
 // "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" change to
@@ -32,7 +32,7 @@ using std::string;
 
 string hashSignature(dev::Signature signature);
 
-bool sortition(string signature, uint64_t account_balance, size_t threshold);
+bool sortition(string signature, val_t account_balance, size_t threshold);
 
 string hexToDecimal(string hex);
 

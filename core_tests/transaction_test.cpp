@@ -70,7 +70,9 @@ TEST(Transaction, signer_signature_verify) {
 
 TEST(TransactionQueue, verifiers) {
   TransactionStatusTable status_table;
-  TransactionQueue trx_qu(status_table, 2 /*num verifiers*/);
+  AccountNonceTable accs_table;
+
+  TransactionQueue trx_qu(status_table, accs_table, 2 /*num verifiers*/);
   trx_qu.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
   trx_qu.start();
 
@@ -92,9 +94,9 @@ TEST(TransactionQueue, verifiers) {
 }
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
-  auto db_trxs = SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
-      "/tmp/rocksdb/trx", true);
-  TransactionManager trx_mgr(db_trxs);
+  TransactionManager trx_mgr(
+      SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+          "/tmp/rocksdb/trx", true));
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
   std::thread insertTrx([&trx_mgr]() {
@@ -151,10 +153,9 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
-  auto db_trxs = SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
-      "/tmp/rocksdb/trx", true);
-
-  TransactionManager trx_mgr(db_trxs);
+  TransactionManager trx_mgr(
+      SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+          "/tmp/rocksdb/trx", true));
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

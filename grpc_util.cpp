@@ -13,10 +13,10 @@ void setProtoTransaction(Transaction const& t,
                          ::taraxa_grpc::ProtoTransaction* ret) {
   ret->set_hash(t.getHash().toString());
   ret->set_type(asInteger(t.getType()));
-  ret->set_nonce(std::to_string(t.getNonce()));
-  ret->set_value(std::to_string(t.getValue()));
-  ret->set_gas_price(t.getGasPrice().toString());
-  ret->set_gas(t.getGas().toString());
+  ret->set_nonce(toString(t.getNonce()));
+  ret->set_value(toString(t.getValue()));
+  ret->set_gas_price(toString(t.getGasPrice()));
+  ret->set_gas(toString(t.getGas()));
   ret->set_receiver(t.getReceiver().toString());
   ret->set_sig(t.getSig().toString());
   ret->set_data(bytes2str(t.getData()));

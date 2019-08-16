@@ -18,6 +18,8 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.h"
+#include "state_registry.hpp"
+#include "util_eth.hpp"
 #include "vote.h"
 
 namespace taraxa {
@@ -25,6 +27,7 @@ namespace taraxa {
 using boost::property_tree::ptree;
 using std::string;
 using std::to_string;
+using util::eth::newDB;
 
 void FullNode::setVerbose(bool verbose) {
   verbose_ = verbose;
@@ -46,21 +49,23 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     : io_context_(io_context),
       num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
+      dag_mgr_(std::make_shared<DagManager>(
+          conf_.genesis_state.block.getHash().toString())),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
       trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
-      dag_mgr_(std::make_shared<DagManager>()),
+
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),
           trx_mgr_->getShared())),
-      executor_(std::make_shared<Executor>()),
       vote_mgr_(std::make_shared<VoteManager>()),
-      vote_queue_(std::make_shared<VoteQueue>()),
-      pbft_mgr_(std::make_shared<PbftManager>(conf_.test_params.pbft)),
+      pbft_mgr_(std::make_shared<PbftManager>(
+          conf_.test_params.pbft,
+          conf_.genesis_state.block.getHash().toString())),
       pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
-  initDB(destroy_db);
+
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -70,11 +75,13 @@ FullNode::FullNode(boost::asio::io_context &io_context,
     key = dev::KeyPair(secret);
   }
   if (rebuild_network) {
-    network_ =
-        std::make_shared<Network>(conf_full_node.network, "", key.secret());
+    network_ = std::make_shared<Network>(
+        conf_full_node.network, "", key.secret(),
+        conf_.genesis_state.block.getHash().toString());
   } else {
-    network_ = std::make_shared<Network>(conf_full_node.network,
-                                         conf_.db_path + "/net", key.secret());
+    network_ = std::make_shared<Network>(
+        conf_full_node.network, conf_.db_path + "/net", key.secret(),
+        conf_.genesis_state.block.getHash().toString());
   }
   node_sk_ = key.secret();
   node_pk_ = key.pub();
@@ -85,6 +92,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
+  initDB(destroy_db);
+
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
 } catch (std::exception &e) {
@@ -95,12 +104,6 @@ void FullNode::initDB(bool destroy_db) {
   if (!stopped_) {
     LOG(log_er_) << "Cannot init DB if node started ...";
     return;
-  }
-
-  if (db_accs_ == nullptr) {
-    db_accs_ = SimpleDBFactory::createDelegate<SimpleStateDBDelegate>(
-        conf_.account_db_path(), destroy_db);
-    assert(db_accs_);
   }
   if (db_blks_ == nullptr) {
     db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
@@ -117,13 +120,11 @@ void FullNode::initDB(bool destroy_db) {
         conf_.transactions_db_path(), destroy_db);
     assert(db_trxs_);
   }
-
   if (db_trxs_to_blk_ == nullptr) {
     db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.trxs_to_blk_db_path(), destroy_db);
     assert(db_trxs_to_blk_);
   }
-
   if (db_votes_ == nullptr) {
     db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
         conf_.pbft_votes_db_path(), destroy_db);
@@ -134,28 +135,49 @@ void FullNode::initDB(bool destroy_db) {
         conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
+  if (state_registry_ == nullptr) {
+    // THIS IS THE GENESIS
+    // TODO extract to a function
+    auto const &genesis_block = conf_.genesis_state.block;
+    auto const &genesis_hash = genesis_block.getHash();
+    // store genesis blk to db
+    db_blks_->put(genesis_hash.toString(), genesis_block.getJsonStr());
+    db_blks_->commit();
+    // store pbft chain genesis(HEAD) block to db
+    db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
+                       pbft_chain_->getJsonStr());
+    db_pbftchain_->commit();
+    // TODO add move to a StateRegistry constructor?
+    auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
+    auto acc_db = newDB(conf_.account_db_path(),
+                        genesis_hash,  //
+                        mode);
+    auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
+                             genesis_hash,  //
+                             mode);
+    state_registry_ =
+        make_shared<StateRegistry>(conf_.genesis_state,
+                                   dev::OverlayDB(move(acc_db.db)),  //
+                                   move(snapshot_db.db));
+    state_ =
+        make_shared<StateRegistry::State>(state_registry_->getCurrentState());
+  }
   LOG(log_nf_) << "DB initialized ...";
   db_inited_ = true;
-  DagBlock genesis;
+  bool boot_node_balance_initialized = false;
 
-  // store genesis blk to db
-  db_blks_->put(genesis.getHash().toString(), genesis.getJsonStr());
-  db_blks_->commit();
+  // init master boot node ...
+  for (auto &node : conf_.network.network_boot_nodes) {
+    auto node_public_key = dev::Public(node.id);
 
-  // Initilize DAG genesis at DAG block heigh 0
-  pbft_chain_->pushDagBlockHash(genesis.getHash());
-
-  // store pbft chain genesis(HEAD) block to db
-  db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
-                     pbft_chain_->getJsonStr());
-  db_pbftchain_->commit();
-
-  // Initialize MASTER BOOT NODE to all coins
-  addr_t master_boot_node_address(MASTER_BOOT_NODE_ADDRESS);
-  bal_t total_coins(TARAXA_COINS_DECIMAL);
-  if (!setBalance(master_boot_node_address, total_coins)) {
-    LOG(log_er_) << "Failed to set master boot node account balance";
+    // Assume only first boot node is initialized
+    if (boot_node_balance_initialized == false) {
+      addr_t master_boot_node_address(dev::toAddress(node_public_key));
+      boot_node_balance_initialized = true;
+      setMasterBootNodeAddress(master_boot_node_address);
+    }
   }
+
   // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
@@ -176,6 +198,7 @@ void FullNode::initDB(bool destroy_db) {
       level++;
     }
   }
+
   LOG(log_wr_) << "DB initialized ... ";
 }
 // must call close() before destroyDB
@@ -186,21 +209,23 @@ bool FullNode::destroyDB() {
   }
   // make sure all sub moduled has relased DB, the full_node can release the
   // DB and destroy
-  assert(db_accs_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
   assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(state_registry_.use_count() == 1);
+  assert(state_.use_count() == 1);
 
-  db_accs_ = nullptr;
   db_blks_ = nullptr;
   db_blks_index_ = nullptr;
   db_trxs_ = nullptr;
   db_trxs_to_blk_ = nullptr;
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
+  state_registry_ = nullptr;
+  state_ = nullptr;
   db_inited_ = false;
   thisThreadSleepForMilliSeconds(1000);
   boost::filesystem::path path(conf_.db_path);
@@ -256,12 +281,15 @@ void FullNode::start(bool boot_node) {
   trx_order_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
-  executor_->setFullNode(getShared());
-  executor_->start();
+  vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
-
-  if (boot_node) {
+  executor_ =
+      std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
+                                 db_blks_, db_trxs_, state_registry_);
+  executor_->setFullNode(getShared());
+  i_am_boot_node_ = boot_node;
+  if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
   block_workers_.clear();
@@ -303,13 +331,14 @@ void FullNode::start(bool boot_node) {
     });
   }
   assert(num_block_workers_ == block_workers_.size());
-  assert(db_accs_);
   assert(db_blks_);
   assert(db_blks_index_);
   assert(db_trxs_);
   assert(db_trxs_to_blk_);
   assert(db_votes_);
   assert(db_pbftchain_);
+  assert(state_registry_);
+  assert(state_);
   LOG(log_wr_) << "Node started ... ";
 }
 
@@ -327,7 +356,7 @@ void FullNode::stop() {
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
-  executor_->stop();
+  executor_ = nullptr;
   taraxa_vm_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
@@ -335,7 +364,6 @@ void FullNode::stop() {
   }
   // wait a while to let other modules to stop
   thisThreadSleepForMilliSeconds(100);
-  assert(db_accs_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
@@ -343,6 +371,8 @@ void FullNode::stop() {
 
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(state_registry_.use_count() == 1);
+  assert(state_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
 }
 
@@ -356,7 +386,6 @@ bool FullNode::reset() {
   blk_proposer_ = nullptr;
   executor_ = nullptr;
   vote_mgr_ = nullptr;
-  vote_queue_ = nullptr;
   pbft_mgr_ = nullptr;
   pbft_chain_ = nullptr;
   taraxa_vm_ = nullptr;
@@ -375,32 +404,34 @@ bool FullNode::reset() {
   // PBFT
   assert(vote_mgr_.use_count() == 0);
 
-  assert(vote_queue_.use_count() == 0);
-
   assert(pbft_mgr_.use_count() == 0);
 
   assert(pbft_chain_.use_count() == 0);
 
-  known_votes_.clear();
   max_dag_level_ = 0;
   received_blocks_ = 0;
   received_trxs_ = 0;
 
   // init
-  network_ = std::make_shared<Network>(conf_.network, "", node_sk_);
+  network_ =
+      std::make_shared<Network>(conf_.network, "", node_sk_,
+                                conf_.genesis_state.block.getHash().toString());
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
   trx_mgr_ = std::make_shared<TransactionManager>();
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
-  dag_mgr_ = std::make_shared<DagManager>();
+  dag_mgr_ = std::make_shared<DagManager>(
+      conf_.genesis_state.block.getHash().toString());
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
       trx_mgr_->getShared());
-  executor_ = std::make_shared<Executor>();
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft);
+  pbft_mgr_ = std::make_shared<PbftManager>(
+      conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
   vote_mgr_ = std::make_shared<VoteManager>();
-  vote_queue_ = std::make_shared<VoteQueue>();
   pbft_chain_ = std::make_shared<PbftChain>();
+  executor_ =
+      std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
+                                 db_blks_, db_trxs_, state_registry_);
   LOG(log_wr_) << "Node reset ... ";
   return true;
 }
@@ -451,7 +482,8 @@ void FullNode::insertTransaction(Transaction const &trx) {
   trx_mgr_->insertTrx(trx, true);
 }
 
-std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
+    blk_hash_t const &hash) const {
   std::string json = db_blks_->get(hash.toString());
   if (!json.empty()) {
     return std::make_shared<DagBlock>(json);
@@ -459,7 +491,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(blk_hash_t const &hash) {
   return nullptr;
 }
 
-std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
+std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   std::shared_ptr<DagBlock> blk;
   // find if in block queue
   blk = blk_mgr_->getDagBlock(hash);
@@ -474,11 +506,13 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) {
   return blk;
 }
 
-std::shared_ptr<Transaction> FullNode::getTransaction(trx_hash_t const &hash) {
+std::shared_ptr<Transaction> FullNode::getTransaction(
+    trx_hash_t const &hash) const {
+  assert(trx_mgr_);
   return trx_mgr_->getTransaction(hash);
 }
 
-unsigned long FullNode::getTransactionStatusCount() {
+unsigned long FullNode::getTransactionStatusCount() const {
   return trx_mgr_->getTransactionStatusCount();
 }
 
@@ -606,7 +640,7 @@ blk_hash_t FullNode::getLatestAnchor() const {
 }
 
 std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-FullNode::getTransactionOverlapTable(
+FullNode::computeTransactionOverlapTable(
     std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
   std::vector<std::shared_ptr<DagBlock>> blks;
   for (auto const &b : *ordered_dag_blocks) {
@@ -617,42 +651,54 @@ FullNode::getTransactionOverlapTable(
   return trx_order_mgr_->computeOrderInBlocks(blks);
 }
 
-std::shared_ptr<TrxSchedule> FullNode::createMockTrxSchedule(
-    std::shared_ptr<vec_blk_t> blk_order) {
-  if (!blk_order) {
-    LOG(log_er_) << "Blk order NULL, cannot create mock trx schedule ...";
-    return nullptr;
-  }
-  if (blk_order->empty()) {
-    LOG(log_wr_)
-        << "Blk order is empty ..., create empty mock trx schedule ...";
+std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+        trx_overlap_table) {
+  std::vector<std::vector<uint>> blocks_trx_modes;
+
+  if (!trx_overlap_table) {
+    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
+                  << "transactions schedule";
+    return blocks_trx_modes;
   }
 
-  std::vector<std::vector<uint>> modes;
-  for (auto const &b : *blk_order) {
-    auto blk = getDagBlock(b);
+  for (auto i = 0; i < trx_overlap_table->size(); i++) {
+    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
+    auto blk = getDagBlock(dag_block_hash);
     if (!blk) {
-      LOG(log_er_) << "Cannot create schedule blk, blk missing ... " << b
-                   << std::endl;
-      return nullptr;
+      LOG(log_er_) << "Cannot create schedule block, DAG block missing "
+                   << dag_block_hash;
+      continue;
     }
+
     auto num_trx = blk->getTrxs().size();
-    modes.emplace_back(std::vector<uint>(num_trx, 1));
+    std::vector<uint> block_trx_modes;
+    for (auto j = 0; j < num_trx; j++) {
+      if ((*trx_overlap_table)[i].second[j]) {
+        // trx sequential mode
+        block_trx_modes.emplace_back(1);
+      } else {
+        // trx invalid mode
+        block_trx_modes.emplace_back(0);
+      }
+    }
+    blocks_trx_modes.emplace_back(block_trx_modes);
   }
-  return std::make_shared<TrxSchedule>(*blk_order, modes);
+
+  return blocks_trx_modes;
 }
 
-uint64_t FullNode::getNumReceivedBlocks() { return received_blocks_; }
+uint64_t FullNode::getNumReceivedBlocks() const { return received_blocks_; }
 
-uint64_t FullNode::getNumProposedBlocks() {
+uint64_t FullNode::getNumProposedBlocks() const {
   return BlockProposer::getNumProposedBlocks();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() {
+std::pair<uint64_t, uint64_t> FullNode::getNumVerticesInDag() const {
   return dag_mgr_->getNumVerticesInDag();
 }
 
-std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() {
+std::pair<uint64_t, uint64_t> FullNode::getNumEdgesInDag() const {
   return dag_mgr_->getNumEdgesInDag();
 }
 
@@ -679,34 +725,23 @@ void FullNode::insertBroadcastedTransactions(
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 
-std::pair<bal_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  std::string bal = db_accs_->get(acc.toString());
-  bool ret = false;
-  if (bal.empty()) {
+std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
+  auto const &state = updateAndGetState();
+  auto bal = state->balance(acc);
+  if (bal == 0 && !state->addressInUse(acc)) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
-    bal = "0";
-  } else {
-    LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
-    ret = true;
+    return {0, false};
   }
-  return {std::stoull(bal), ret};
+  LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
+  return {bal, true};
 }
-bal_t FullNode::getMyBalance() const {
+val_t FullNode::getMyBalance() const {
   auto my_bal = getBalance(node_addr_);
   if (!my_bal.second) {
     return 0;
   } else {
     return my_bal.first;
   }
-}
-
-bool FullNode::setBalance(addr_t const &acc, bal_t const &new_bal) {
-  bool ret = true;
-  if (!db_accs_->update(acc.toString(), std::to_string(new_bal))) {
-    LOG(log_wr_) << "Account " << acc.toString() << " update fail ..."
-                 << std::endl;
-  }
-  return ret;
 }
 
 addr_t FullNode::getAddress() const { return node_addr_; }
@@ -721,37 +756,17 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, bal_t> &sortition_account_balance_table) {
+    std::unordered_map<addr_t, val_t> &sortition_account_balance_table) {
   return executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table);
 }
 
-void FullNode::pushVoteIntoQueue(taraxa::Vote const &vote) {
-  vote_queue_->pushBackVote(vote);
+std::vector<Vote> FullNode::getVotes(uint64_t round) {
+  return vote_mgr_->getVotes(round);
 }
 
-std::vector<Vote> FullNode::getVotes(uint64_t period) {
-  return vote_queue_->getVotes(period);
-}
+void FullNode::addVote(taraxa::Vote const &vote) { vote_mgr_->addVote(vote); }
 
-void FullNode::receivedVotePushIntoQueue(taraxa::Vote const &vote) {
-  addr_t vote_address = dev::toAddress(vote.getPublicKey());
-  std::pair<bal_t, bool> account_balance = getBalance(vote_address);
-  if (!account_balance.second) {
-    LOG(log_er_) << "Cannot find the vote account balance: " << vote_address;
-    return;
-  }
-
-  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
-  // TODO: there is bug here, need add back later
-  //  if (vote_mgr_->voteValidation(last_pbft_block_hash, vote,
-  //                                account_balance.first,
-  //                                sortition_threshold))
-  //                                {
-  vote_queue_->pushBackVote(vote);
-  //  }
-}
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
   network_->onNewPbftVote(vote);
@@ -761,16 +776,17 @@ bool FullNode::shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step) {
   return pbft_mgr_->shouldSpeak(type, period, step);
 }
 
-void FullNode::clearVoteQueue() { vote_queue_->clearQueue(); }
-
-size_t FullNode::getVoteQueueSize() { return vote_queue_->getSize(); }
-
-bool FullNode::isKnownVote(vote_hash_t const &vote_hash) const {
-  return known_votes_.count(vote_hash);
+void FullNode::clearUnverifiedVotesTable() {
+  vote_mgr_->clearUnverifiedVotesTable();
 }
 
-void FullNode::setVoteKnown(vote_hash_t const &vote_hash) {
-  known_votes_.insert(vote_hash);
+uint64_t FullNode::getUnverifiedVotesSize() const {
+  return vote_mgr_->getUnverifiedVotesSize();
+}
+
+bool FullNode::isKnownVote(uint64_t pbft_round,
+                           vote_hash_t const &vote_hash) const {
+  return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
 bool FullNode::isKnownPbftBlockInChain(
@@ -795,6 +811,12 @@ size_t FullNode::getPbftQueueSize() const {
   return pbft_chain_->getPbftQueueSize();
 }
 
+void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
+                               uint64_t const &block_number) {
+  auto blk = getDagBlock(dag_block_hash);
+  if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
+}
+
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
@@ -808,7 +830,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
         getDagBlockOrder(dag_block_hash);
     // update DAG blocks order and DAG blocks table
     for (auto const &dag_blk_hash : *dag_blocks_order) {
-      pbft_chain_->pushDagBlockHash(dag_blk_hash);
+      auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
+      newOrderedBlock(dag_blk_hash, block_number);
     }
   } else if (pbft_block.getBlockType() == schedule_block_type) {
     if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
@@ -829,11 +852,23 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
         last_pivot_block.first.getPivotBlock().getDagBlockHash();
     uint64_t current_pbft_chain_period =
         last_pivot_block.first.getPivotBlock().getPeriod();
-    setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    uint dag_ordered_blocks_size =
+        setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    // checking: DAG ordered blocks size in this period should equal to the
+    // DAG blocks inside PBFT CS block
+    uint dag_blocks_inside_pbft_cs =
+        pbft_block.getScheduleBlock().getSchedule().blk_order.size();
+    if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
+      LOG(log_err_) << "Setting DAG block order finalize "
+                    << dag_ordered_blocks_size << " blocks."
+                    << " But the PBFT CS block has "
+                    << dag_blocks_inside_pbft_cs << " DAG block hash.";
+      // TODO: need to handle the error condition(should never happen)
+    }
 
     // TODO: VM executor will not take sortition_account_balance_table as
     // reference.
-    //  But will return a list of modified accounts as pairs<addr_t, bal_t>.
+    //  But will return a list of modified accounts as pairs<addr_t, val_t>.
     //  Will need update sortition_account_balance_table here
     // execute schedule block
     if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
@@ -854,7 +889,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     }
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_deb_) << "Reset 2t+1 " << two_t_plus_one << " Threshold "
+    LOG(log_deb_) << "Update 2t+1 " << two_t_plus_one << " Threshold "
                   << sortition_threshold;
   }
   // TODO: push other type pbft block into pbft chain
@@ -878,18 +913,66 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             uint64_t period, size_t step) {
-  blk_hash_t lask_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   // sortition signature
   sig_t sortition_signature =
-      vote_mgr_->signVote(node_sk_, lask_pbft_block_hash, type, period, step);
+      vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);
   // vote signature
   sig_t vote_signature =
       vote_mgr_->signVote(node_sk_, blockhash, type, period, step);
 
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
+  LOG(log_deb_) << "last pbft block hash " << last_pbft_block_hash
+                << " vote: " << vote.getHash();
+
   return vote;
 }
+
 level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
+
+std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
+    uint64_t dag_block_height) const {
+  return pbft_chain_->getDagBlockHash(dag_block_height);
+}
+
+std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
+    blk_hash_t const &dag_block_hash) const {
+  return pbft_chain_->getDagBlockHeight(dag_block_hash);
+}
+
+uint64_t FullNode::getDagBlockMaxHeight() const {
+  return pbft_chain_->getDagBlockMaxHeight();
+}
+
+std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
+  std::vector<blk_hash_t> ret;
+  auto max_height = getDagBlockMaxHeight();
+  for (auto i(0); i <= max_height; ++i) {
+    auto blk = getDagBlockHash(i);
+    assert(blk.second);
+    ret.emplace_back(blk.first);
+  }
+  return ret;
+}
+
+std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
+  std::unordered_set<trx_hash_t> packed_trxs;
+  auto max_height = getDagBlockMaxHeight();
+  for (auto i(0); i <= max_height; ++i) {
+    auto blk = getDagBlockHash(i);
+    assert(blk.second);
+    auto dag_blk = getDagBlock(blk.first);
+    assert(dag_blk);
+    for (auto const &t : dag_blk->getTrxs()) {
+      packed_trxs.insert(t);
+    }
+  }
+  std::vector<trx_hash_t> ret;
+  for (auto const &t : packed_trxs) {
+    ret.emplace_back(t);
+  }
+  return ret;
+}
 
 }  // namespace taraxa

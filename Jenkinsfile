@@ -9,7 +9,24 @@ pipeline {
         SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
     }
+    options {
+      ansiColor('xterm')
+      disableConcurrentBuilds()
+    }
     stages {
+        stage('Validate C++ formatting') {
+            steps {
+                sh './scripts/validate_format_project_files_cxx.sh'
+            }
+        }
+        stage('Trigger Base Image Build') {
+            steps {
+              build job: "docker-base-image/${BRANCH_NAME}", parameters: [
+                  string(name: 'upsteam_project_name', value: env.NAME)
+              ], propagate: true, wait: true
+
+            }
+        }
         stage('Docker Registry Login') {
             steps {
                 sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
@@ -17,10 +34,11 @@ pipeline {
         }
         stage('Unit Tests') {
             agent {
-                docker {
-                    alwaysPull true
-                    image '${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}'
-                }
+              docker {
+                alwaysPull true
+                image "${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
+                reuseNode true
+              }
             }
             steps {
                 sh 'git submodule update --init --recursive'
@@ -44,25 +62,45 @@ pipeline {
         }
         stage('Smoke Test') {
             steps {
-                sh 'docker network create --driver=bridge \
-                    smoke-test-net-${DOCKER_BRANCH_TAG}'
+                sh '''
+                    if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoke-test-net-${DOCKER_BRANCH_TAG})" ]; then
+                      docker network rm \
+                        smoke-test-net-${DOCKER_BRANCH_TAG} >/dev/null;
+                    fi
+                    docker network create --driver=bridge \
+                      smoke-test-net-${DOCKER_BRANCH_TAG}
+                '''
                 sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
-                sh ''' docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG} byrnedo/alpine-curl -d \"{
-                        \"jsonrpc\": \"2.0\",
-                        \"id\":\"0\",
-                        \"method\": \"insert_stamped_dag_block\",
-                        \"params\":[{
-                        \"pivot\": \"0000000000000000000000000000000000000000000000000000000000000000\",
-                        \"hash\": \"0000000000000000000000000000000000000000000000000000000000000001\",
-                        \"sender\":\"000000000000000000000000000000000000000000000000000000000000000F\",
-                        \"tips\": [], \"stamp\": 43}]}\" \
-                        taraxa-node-smoke-test:7777
+                sh '''
+                    mkdir -p  $PWD/test_build-d/
+                    http_code=$(docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG}  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
+                                       -sS --fail -w '%{http_code}' -o /data/http.out \
+                                       --url taraxa-node-smoke-test:7777 \
+                                       -d '{
+                                            "jsonrpc": "2.0",
+                                            "id":"0",
+                                            "method": "send_coin_transaction",
+                                            "params":[{
+                                            "nonce": 0,
+                                            "value": 0,
+                                            "gas": 0,
+                                            "gas_price": 0,
+                                            "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                                            "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"]
+                                            }')
+                    cat $PWD/test_build-d/http.out || true
+                    if [[ $http_code -eq 200 ]] ; then
+                        exit 0
+                    else
+                        exit $http_code
+                    fi
+
                    '''
             }
             post {
                 always {
                     sh 'docker kill taraxa-node-smoke-test || true'
-                    sh 'docker network rm smoke-test-net-${BRANCH_NAME} || true'
+                    sh 'docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true'
                 }
             }
         }

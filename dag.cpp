@@ -18,13 +18,10 @@
 
 namespace taraxa {
 
-std::string const Dag::GENESIS =
-    "0000000000000000000000000000000000000000000000000000000000000000";
-
-Dag::Dag() : debug_(false), verbose_(false) {
+Dag::Dag(std::string const &genesis) : debug_(false), verbose_(false) {
   vertex_hash pivot = "";
   std::vector<vertex_hash> tips;
-  genesis_ = addVEEs(Dag::GENESIS, pivot, tips);
+  genesis_ = addVEEs(genesis, pivot, tips);
 }
 Dag::~Dag() {}
 void Dag::setVerbose(bool verbose) { verbose_ = verbose; }
@@ -292,13 +289,13 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
   vertex_t target = graph_.vertex(to);
 
   if (source == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (from) "
-                    "(computeOrder) "
+    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (from) "
                  << from << "\n";
     return false;
   }
   if (target == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
+    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (to) " << to
+                 << "\n";
     return false;
   }
   ordered_period_vertices.clear();
@@ -543,12 +540,15 @@ void PivotTree::getGhostPathBeforeTimeStamp(
   }
 }
 
-DagManager::DagManager() try : debug_(false),
-                               verbose_(false),
-                               dag_updated_(false),
-                               inserting_index_counter_(0),
-                               total_dag_(std::make_shared<Dag>()),
-                               pivot_tree_(std::make_shared<PivotTree>()) {
+DagManager::DagManager(std::string const &genesis) try
+    : debug_(false),
+      verbose_(false),
+      dag_updated_(false),
+      inserting_index_counter_(0),
+      total_dag_(std::make_shared<Dag>(genesis)),
+      pivot_tree_(std::make_shared<PivotTree>(genesis)),
+      anchors_({genesis}),
+      genesis_(genesis) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -694,7 +694,7 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   pivot.clear();
   tips.clear();
   pivot_tree_->getGhostPathBeforeTimeStamp(
-      Dag::GENESIS, std::numeric_limits<uint64_t>::max(), pivot_chain);
+      genesis_, std::numeric_limits<uint64_t>::max(), pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->getLeaves(tips);

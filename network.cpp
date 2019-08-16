@@ -10,12 +10,14 @@
 
 namespace taraxa {
 
-Network::Network(NetworkConfig const &config)
-    : Network(config, "", secret_t()) {}
-Network::Network(NetworkConfig const &config, std::string network_file)
-    : Network(config, network_file, secret_t()) {}
+Network::Network(NetworkConfig const &config, std::string const &genesis)
+    : Network(config, "", secret_t(), genesis) {}
 Network::Network(NetworkConfig const &config, std::string network_file,
-                 secret_t const &sk) try : conf_(config) {
+                 std::string const &genesis)
+    : Network(config, network_file, secret_t(), genesis) {}
+Network::Network(NetworkConfig const &config, std::string network_file,
+                 secret_t const &sk, std::string const &genesis) try
+    : conf_(config) {
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {
@@ -38,7 +40,8 @@ Network::Network(NetworkConfig const &config, std::string network_file,
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true));
   }
-  taraxa_capability_ = std::make_shared<TaraxaCapability>(*host_.get(), conf_);
+  taraxa_capability_ =
+      std::make_shared<TaraxaCapability>(*host_.get(), conf_, genesis);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -57,6 +60,9 @@ void Network::setFullNode(std::shared_ptr<FullNode> full_node) {
 }
 
 NetworkConfig Network::getConfig() { return conf_; }
+
+bool Network::isStarted() { return !stopped_; }
+
 void Network::start(bool boot_node) {
   if (!stopped_) {
     return;
@@ -72,6 +78,10 @@ void Network::start(bool boot_node) {
   LOG(log_nf_) << "Started Node id: " << host_->id();
   size_t boot_node_added = 0;
   for (auto &node : conf_.network_boot_nodes) {
+    if (auto full_node = full_node_.lock()) {
+      if (Public(node.id) == full_node->getPublicKey()) continue;
+    }
+
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;
     if (node.ip.empty()) {
       LOG(log_wr_) << "Boot node ip is empty:" << node.ip << ":" << node.port;

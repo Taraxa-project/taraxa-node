@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-01
+ * @Last Modified time: 2019-07-25
  */
 
 #ifndef PBFT_MANAGER_HPP
@@ -32,13 +32,16 @@
 
 namespace taraxa {
 class FullNode;
-class VoteQueue;
 
 class PbftManager {
  public:
-  PbftManager();
-  PbftManager(std::vector<uint> const &params);
-  ~PbftManager() { stop(); }
+  PbftManager(std::string const &genesis);
+  PbftManager(std::vector<uint> const &params, std::string const &genesis);
+  ~PbftManager() {
+    if (!stopped_) {
+      stop();
+    }
+  }
 
   void setFullNode(std::shared_ptr<FullNode> node);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
@@ -61,9 +64,9 @@ class PbftManager {
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
-  std::unordered_map<addr_t, bal_t> sortition_account_balance_table;
+  std::unordered_map<addr_t, val_t> sortition_account_balance_table;
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
-  bal_t COMMITTEE_SIZE;            // TODO: Only for test, need remove later
+  size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
 
  private:
@@ -100,20 +103,39 @@ class PbftManager {
 
   void syncPbftChainFromPeers_();
 
+  bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
+
   bool stopped_ = true;
+  PbftBlockTypes next_pbft_block_type_ = pbft_block_none_type;
+  // Using to check if PBFT CS block has proposed already in one period
+  std::pair<blk_hash_t, bool> proposed_block_hash_ =
+      std::make_pair(NULL_BLOCK_HASH, false);
+
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<std::thread> daemon_;
-  std::shared_ptr<VoteQueue> vote_queue_;
+  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<TaraxaCapability> capability_;
+  // Database
   std::shared_ptr<SimpleDBFace> db_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
-  std::shared_ptr<TaraxaCapability> capability_;
 
   uint64_t pbft_round_ = 1;
   size_t pbft_step_ = 1;
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
+
+  std::string genesis_;
+
+  // TODO: will remove later, TEST CODE
+  void countVotes_();
+  std::shared_ptr<std::thread> monitor_votes_;
+  bool monitor_stop_ = true;
+  size_t last_step_ = 0;
+  std::chrono::system_clock::time_point last_step_clock_initial_datetime_;
+  std::chrono::system_clock::time_point current_step_clock_initial_datetime_;
+  // END TEST CODE
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};
@@ -127,6 +149,9 @@ class PbftManager {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFT_MGR")};
   mutable dev::Logger log_tra_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_MGR")};
+
+  mutable dev::Logger log_inf_test_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
 };
 
 }  // namespace taraxa

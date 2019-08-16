@@ -15,7 +15,7 @@ BUILDDIR := build
 TESTBUILDDIR := test_build
 ifneq ($(DEBUG), 0)
 	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
-	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF 
+	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
 	CPPFLAGS += -Wl,--export-dynamic
 	BUILDDIR := build-d
 	TESTBUILDDIR := test_build-d
@@ -23,6 +23,17 @@ ifneq ($(DEBUG), 0)
 endif
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
 LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server
+# Note: makefile translates `$$?` into `$?`
+LIBATOMIC_NOT_FOUND = $(shell \
+    $(CXX) $(LDFLAGS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
+)
+# Optional linking for libatomic (part of standard library).
+# Some toolchains provide this library,
+# and assume programs using <atomic> would link against it.
+ifeq ($(LIBATOMIC_NOT_FOUND), 0)
+    LIBS += -latomic
+endif
+
 MKDIR := mkdir
 RM := rm -f
 
@@ -63,6 +74,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/grpc_util.o \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/executor.o \
+	${OBJECTDIR}/transaction_order_manager.o \
+	${OBJECTDIR}/state_registry.o \
+	${OBJECTDIR}/genesis_state.o \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_grpc.pb.o \
 	${OBJECTDIR}/taraxa_grpc.grpc.pb.o \
@@ -76,7 +90,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/SimpleStateDBDelegate.o \
 	${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o \
 	${OBJECTDIR}/SimpleOverlayDBDelegate.o
 
@@ -134,7 +147,22 @@ ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
-	
+
+${OBJECTDIR}/transaction_order_manager.o: transaction_order_manager.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_order_manager.o transaction_order_manager.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/state_registry.o: state_registry.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_registry.o state_registry.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/genesis_state.o: genesis_state.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/genesis_state.o genesis_state.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/dag_block.o: dag_block.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -264,11 +292,6 @@ ${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o: SimpleTaraxaRocksDBDelegate.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o SimpleTaraxaRocksDBDelegate.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/SimpleStateDBDelegate.o: SimpleStateDBDelegate.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleStateDBDelegate.o SimpleStateDBDelegate.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -535,7 +558,7 @@ ct:
 
 c: clean
 clean:
-	@echo CLEAN && rm -rf $(BUILDIR) $(TESTBUILDDIR) $(OBJECTDIR)
+	@echo CLEAN && rm -rf $(BUILDDIR) $(TESTBUILDDIR) $(OBJECTDIR)
 
 .PHONY: run_test protoc grpc
 

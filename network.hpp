@@ -35,13 +35,15 @@ namespace taraxa {
 
 class Network {
  public:
-  Network(NetworkConfig const &config);
-  Network(NetworkConfig const &config, std::string networkFile);
+  Network(NetworkConfig const &config, std::string const &genesis);
   Network(NetworkConfig const &config, std::string networkFile,
-          secret_t const &sk);
+          std::string const &genesis);
+  Network(NetworkConfig const &config, std::string networkFile,
+          secret_t const &sk, std::string const &genesis);
   ~Network();
   void start(bool boot_node = false);
   void stop();
+  bool isStarted();
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,

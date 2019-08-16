@@ -17,16 +17,24 @@ Transaction::Transaction(string const &json) {
     boost::property_tree::ptree doc = strToJson(json);
     hash_ = trx_hash_t(doc.get<string>("hash"));
     type_ = toEnum<Transaction::Type>(doc.get<uint8_t>("type"));
-    nonce_ = doc.get<uint64_t>("nonce");
-    value_ = doc.get<uint64_t>("value");
+    nonce_ = val_t(doc.get<string>("nonce"));
+    value_ = val_t(doc.get<string>("value"));
     gas_price_ = val_t(doc.get<string>("gas_price"));
     gas_ = val_t(doc.get<string>("gas"));
     sig_ = sig_t(doc.get<string>("sig"));
     receiver_ = addr_t(doc.get<string>("receiver"));
     string data = doc.get<string>("data");
     data_ = str2bytes(data);
+    if (!sig_.isZero()) {
+      dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+      if (sig_struct.isValid()) {
+        vrs_ = sig_struct;
+      }
+    }
+    chain_id_ = doc.get<int8_t>("chain_id");
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
+    assert(false);
   }
 }
 
@@ -35,6 +43,53 @@ Transaction::Transaction(dev::RLP const &_r) {
   blockBytes = _r.toBytes();
   taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
   deserialize(strm);
+}
+
+Transaction::Transaction(bytes const &_rlp) {
+  dev::RLP const rlp(_rlp);
+  if (!rlp.isList())
+    throw std::invalid_argument("transaction RLP must be a list");
+
+  nonce_ = rlp[0].toInt<dev::u256>();
+  gas_price_ = rlp[1].toInt<dev::u256>();
+  gas_ = rlp[2].toInt<dev::u256>();
+  type_ = rlp[3].isEmpty() ? taraxa::Transaction::Type::Create
+                           : taraxa::Transaction::Type::Call;
+  receiver_ = rlp[3].isEmpty()
+                  ? dev::Address()
+                  : rlp[3].toHash<dev::Address>(dev::RLP::VeryStrict);
+  value_ = rlp[4].toInt<dev::u256>();
+
+  if (!rlp[5].isData())
+    throw std::invalid_argument("transaction data RLP must be an array");
+
+  data_ = rlp[5].toBytes();
+
+  int const v = rlp[6].toInt<int>();
+  h256 const r = rlp[7].toInt<dev::u256>();
+  h256 const s = rlp[8].toInt<dev::u256>();
+
+  if (!r && !s) {
+    chain_id_ = v;
+    sig_ = dev::SignatureStruct{r, s, 0};
+  } else {
+    if (v > 36)
+      chain_id_ = (v - 35) / 2;
+    else if (v == 27 || v == 28)
+      chain_id_ = -4;
+    else
+      throw std::invalid_argument("InvalidSignature()");
+
+    sig_ = dev::SignatureStruct{r, s,
+                                static_cast<::byte>(v - (chain_id_ * 2 + 35))};
+  }
+  dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+  if (sig_struct.isValid()) {
+    vrs_ = sig_struct;
+  }
+
+  if (rlp.itemCount() > 9)
+    throw std::invalid_argument("too many fields in the transaction RLP");
 }
 
 void Transaction::serializeRLP(dev::RLPStream &s) {
@@ -81,6 +136,13 @@ bool Transaction::deserialize(stream &strm) {
   for (auto i = 0; i < byte_size; ++i) {
     ok &= read(strm, data_[i]);
   }
+  if (!sig_.isZero()) {
+    dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+    if (sig_struct.isValid()) {
+      vrs_ = sig_struct;
+    }
+  }
+
   assert(ok);
   return ok;
 }
@@ -88,13 +150,14 @@ string Transaction::getJsonStr() const {
   boost::property_tree::ptree tree;
   tree.put("hash", hash_.toString());
   tree.put("type", asInteger(type_));
-  tree.put("nonce", nonce_);
-  tree.put("value", value_);
-  tree.put("gas_price", gas_price_.toString());
-  tree.put("gas", gas_.toString());
+  tree.put("nonce", nonce_.str());
+  tree.put("value", value_.str());
+  tree.put("gas_price", toString(gas_price_));
+  tree.put("gas", toString(gas_));
   tree.put("sig", sig_.toString());
   tree.put("receiver", receiver_.toString());
   tree.put("data", bytes2str(data_));
+  tree.put("chain_id", chain_id_);
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
@@ -102,6 +165,10 @@ string Transaction::getJsonStr() const {
 void Transaction::sign(secret_t const &sk) {
   if (!sig_) {
     sig_ = dev::sign(sk, sha3(false));
+    dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
+    if (sig_struct.isValid()) {
+      vrs_ = sig_struct;
+    }
   }
   sender();
   updateHash();
@@ -125,24 +192,33 @@ addr_t Transaction::sender() const {
   }
   return cached_sender_;
 }
-void Transaction::streamRLP(dev::RLPStream &s, bool include_sig) const {
+void Transaction::streamRLP(dev::RLPStream &s, bool include_sig,
+                            bool _forEip155hash) const {
   if (type_ == Transaction::Type::Null) return;
-  s.appendList(include_sig ? 7 : 6);
-  s << nonce_ << value_ << gas_price_ << gas_;
+  s.appendList(include_sig || _forEip155hash ? 9 : 6);
+  s << nonce_ << gas_price_ << gas_;
   if (type_ == Transaction::Type::Call) {
     s << receiver_;
   } else {
     s << "";
   }
-  s << data_;
+  s << value_ << data_;
   if (include_sig) {
-    s << sig_;
-  }
+    assert(vrs_);
+    if (hasZeroSig()) {
+      s << chain_id_;
+    } else {
+      int const v_offset = chain_id_ * 2 + 35;
+      s << (vrs_->v + v_offset);
+    }
+    s << vrs_->r << vrs_->s;
+  } else if (_forEip155hash)
+    s << chain_id_ << 0 << 0;
 }
 
 bytes Transaction::rlp(bool include_sig) const {
   dev::RLPStream s;
-  streamRLP(s, include_sig);
+  streamRLP(s, include_sig, chain_id_ > 0 && !include_sig);
   return s.out();
 };
 
@@ -156,7 +232,7 @@ void TransactionQueue::start() {
   verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
-    verifiers_.emplace_back([this]() { verifyTrx(); });
+    verifiers_.emplace_back([this]() { verifyQueuedTrxs(); });
   }
   assert(num_verifiers_ == verifiers_.size());
 }
@@ -217,7 +293,7 @@ bool TransactionQueue::insert(Transaction trx, bool critical) {
   return ret;
 }
 
-void TransactionQueue::verifyTrx() {
+void TransactionQueue::verifyQueuedTrxs() {
   while (!stopped_) {
     // Transaction utrx;
     std::pair<trx_hash_t, listIter> item;
@@ -266,6 +342,7 @@ void TransactionQueue::verifyTrx() {
         }
       }
     } catch (...) {
+      assert(false);
     }
   }
 }
@@ -322,7 +399,7 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
 
 // search from queued_trx_
 std::shared_ptr<Transaction> TransactionQueue::getTransaction(
-    trx_hash_t const &hash) {
+    trx_hash_t const &hash) const {
   {
     sharedLock lock(shared_mutex_for_queued_trxs_);
     auto it = queued_trxs_.find(hash);
@@ -387,12 +464,12 @@ TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
   return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
 }
 
-unsigned long TransactionManager::getTransactionStatusCount() {
+unsigned long TransactionManager::getTransactionStatusCount() const {
   return trx_status_.size();
 }
 
 std::shared_ptr<Transaction> TransactionManager::getTransaction(
-    trx_hash_t const &hash) {
+    trx_hash_t const &hash) const {
   // Check the status
   std::shared_ptr<Transaction> tr;
   // Loop needed because moving transactions from queue to database is not
@@ -411,8 +488,13 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
         if (!json.empty()) {
           tr = std::make_shared<Transaction>(json);
         }
-      } else
+      } else {
+        std::string json = db_trxs_->get(hash.toString());
+        if (!json.empty()) {
+          tr = std::make_shared<Transaction>(json);
+        }
         break;
+      }
     } else
       break;
   }

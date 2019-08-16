@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-11
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-04-23
+ * @Last Modified time: 2019-07-25
  */
 
 #ifndef VOTE_H
@@ -18,6 +18,8 @@
 #include <deque>
 
 namespace taraxa {
+class FullNode;
+class PbftManager;
 
 class Vote {
  public:
@@ -58,13 +60,38 @@ class VoteManager {
   VoteManager() = default;
   ~VoteManager() {}
 
+  void setFullNode(std::shared_ptr<FullNode> node);
+
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
                  PbftVoteTypes type, uint64_t round, size_t step);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
-                      bal_t& account_balance, size_t sortition_threshold) const;
+                      val_t& account_balance, size_t sortition_threshold) const;
+
+  bool isKnownVote(uint64_t pbft_round, vote_hash_t const& vote_hash) const;
+
+  void addVote(taraxa::Vote const& vote);
+  void cleanupVotes(uint64_t pbft_round);
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
+  std::vector<Vote> getVotes(uint64_t pbft_round);
+
+  std::string getJsonStr(std::vector<Vote>& votes);
 
  private:
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
   vote_hash_t hash_(std::string const& str) const;
+
+  std::map<uint64_t, std::vector<Vote>> unverified_votes_;
+
+  mutable boost::shared_mutex access_;
+
+  std::weak_ptr<FullNode> node_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};
@@ -74,23 +101,6 @@ class VoteManager {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTE_MGR")};
   mutable dev::Logger log_inf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE_MGR")};
-};
-
-class VoteQueue {
- public:
-  VoteQueue() = default;
-  ~VoteQueue() {}
-
-  void clearQueue();
-
-  size_t getSize();
-  std::vector<Vote> getVotes(uint64_t round);
-  std::string getJsonStr(std::vector<Vote>& votes);
-
-  void pushBackVote(Vote const& vote);
-
- private:
-  std::deque<Vote> vote_queue_;
 };
 
 }  // namespace taraxa

@@ -33,7 +33,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
       node->insertBlock(std::move(blk));
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -58,7 +58,7 @@ Json::Value Test::insert_stamped_dag_block(const Json::Value &param1) {
       node->setDagBlockTimeStamp(hash, stamp);
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -77,7 +77,7 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -95,7 +95,7 @@ Json::Value Test::get_dag_block_children(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -113,7 +113,7 @@ Json::Value Test::get_dag_block_siblings(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -131,7 +131,7 @@ Json::Value Test::get_dag_block_tips(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -149,7 +149,7 @@ Json::Value Test::get_dag_block_pivot_chain(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -167,7 +167,7 @@ Json::Value Test::get_dag_block_subtree(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -186,7 +186,7 @@ Json::Value Test::get_dag_block_epfriend(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -197,8 +197,8 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
       secret_t sk = secret_t(param1["secret"].asString());
-      bal_t nonce = param1["nonce"].asUInt64();
-      bal_t value = param1["value"].asUInt64();
+      val_t nonce = val_t(param1["nonce"].asString());
+      val_t value = val_t(param1["value"].asString());
       val_t gas_price = val_t(param1["gas_price"].asString());
       val_t gas = val_t(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
@@ -212,7 +212,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       res = trx.getJsonStr();
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -222,16 +222,18 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
-      secret_t sk = secret_t(param1["secret"].asString());
       uint delay = param1["delay"].asUInt();
       uint number = param1["number"].asUInt();
-      uint seed = param1["seed"].asUInt();
+      val_t nonce = val_t(param1["nonce"].asString());
+      addr_t receiver = addr_t(param1["receiver"].asString());
       bytes data;
       // get trx receiving time stamp
       for (auto i = 0; i < number; ++i) {
         auto now = getCurrentTimeMilliSeconds();
-        auto trx = samples::TX_GEN.getWithRandomUniqueSender(
-            0, addr_t((i + 1) * 100), data);
+        val_t value = val_t(100);
+        auto trx = taraxa::Transaction(val_t(i), value, val_t(1000),
+                                       taraxa::samples::TEST_TX_GAS_LIMIT,
+                                       receiver, data, node->getSecretKey());
         LOG(log_time) << "Transaction " << trx.getHash()
                       << " received at: " << now;
         node->insertTransaction(trx);
@@ -240,23 +242,23 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       res = "Number of " + std::to_string(number) + " created";
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::get_num_proposed_blocks(const Json::Value &param1) {
+Json::Value Test::get_num_proposed_blocks() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
       auto num_prop_block = node->getNumProposedBlocks();
-      res = std::to_string(num_prop_block);
+      res["value"] = Json::UInt64(num_prop_block);
       LOG(log_time) << "Number of proposed block " << num_prop_block
                     << std::endl;
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -266,7 +268,6 @@ Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       blk_hash_t prev_blk = blk_hash_t(param1["prev_pivot"].asString());
-      uint64_t timestamp = param1["timestamp"].asUInt64();
       taraxa::sig_t sig = taraxa::sig_t(param1["sig"].asString());
       vec_blk_t blk_order = asVector<blk_hash_t>(param1["blk_order"]);
       std::vector<size_t> trx_sizes;
@@ -288,40 +289,24 @@ Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
       }
 
       TrxSchedule sche(blk_order, vec_trx_modes);
-      ScheduleBlock sche_blk(prev_blk, timestamp, sche);
+      ScheduleBlock sche_blk(prev_blk, sche);
       res = sche_blk.getJsonStr();
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::get_account_address(const Json::Value &param1) {
+Json::Value Test::get_account_address() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
       addr_t addr = node->getAddress();
-      res = addr.toString();
+      res["value"] = addr.toString();
     }
   } catch (std::exception &e) {
-    res = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::set_account_balance(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      addr_t addr = addr_t(param1["address"].asString());
-      bal_t bal = param1["balance"].asUInt64();
-      node->setBalance(addr, bal);
-      res = "Set " + addr.toString() +
-            " balance: " + boost::lexical_cast<std::string>(bal) + "\n";
-    }
-  } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -333,32 +318,33 @@ Json::Value Test::get_account_balance(const Json::Value &param1) {
       addr_t addr = addr_t(param1["address"].asString());
       auto bal = node->getBalance(addr);
       if (!bal.second) {
-        res = "Account " + addr.toString() + " is not available\n";
+        res["found"] = false;
+        res["value"] = 0;
       } else {
-        res = "Get " + addr.toString() +
-              " balance: " + boost::lexical_cast<std::string>(bal.first) + "\n";
+        res["found"] = true;
+        res["value"] = boost::lexical_cast<std::string>(bal.first);
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::get_peer_count(const Json::Value &param1) {
+Json::Value Test::get_peer_count() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
       auto peer = node->getPeerCount();
-      res = std::to_string(peer);
+      res["value"] = Json::UInt64(peer);
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::get_all_peers(const Json::Value &param1) {
+Json::Value Test::get_all_peers() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -368,12 +354,12 @@ Json::Value Test::get_all_peers(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::node_stop(const Json::Value &param1) {
+Json::Value Test::node_stop() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -381,12 +367,12 @@ Json::Value Test::node_stop(const Json::Value &param1) {
       res = "Taraxa node stopped ...\n";
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::node_reset(const Json::Value &param1) {
+Json::Value Test::node_reset() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -394,12 +380,12 @@ Json::Value Test::node_reset(const Json::Value &param1) {
       res = "Taraxa node reset ...\n";
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
 
-Json::Value Test::node_start(const Json::Value &param1) {
+Json::Value Test::node_start() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -407,7 +393,7 @@ Json::Value Test::node_start(const Json::Value &param1) {
       res = "Taraxa node start ...\n";
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -427,7 +413,7 @@ Json::Value Test::should_speak(const Json::Value &param1) {
       }
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -449,7 +435,7 @@ Json::Value Test::place_vote(const Json::Value &param1) {
       res = "Place vote successfully";
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -461,11 +447,11 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t period = param1["period"].asUInt64();
 
       std::vector<Vote> votes = node->getVotes(period);
-      VoteQueue vote_queue;
-      res = vote_queue.getJsonStr(votes);
+      VoteManager vote_mgr;
+      res = vote_mgr.getJsonStr(votes);
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
   }
   return res;
 }
@@ -479,7 +465,60 @@ Json::Value Test::draw_graph(const Json::Value &param1) {
       res = "Dag is drwan as " + filename + " on the server side ...";
     }
   } catch (std::exception &e) {
-    res = e.what();
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_transaction_count(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getTransactionStatusCount();
+      res["value"] = Json::UInt64(count);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_executed_trx_count(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getNumTransactionExecuted();
+      res["value"] = Json::UInt64(count);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_executed_blk_count(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getNumBlockExecuted();
+      res["value"] = Json::UInt64(count);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_dag_size(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getNumVerticesInDag();
+      res["value"] =
+          std::to_string(count.first) + " , " + std::to_string(count.second);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
   }
   return res;
 }

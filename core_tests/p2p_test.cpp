@@ -25,7 +25,6 @@ const unsigned NUM_TRX = 9;
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
-auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
@@ -83,6 +82,8 @@ to each other and that a test packet message can be sent from one host
 to the other using TaraxaCapability
 */
 TEST(p2p, capability_send_test) {
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
@@ -93,9 +94,9 @@ TEST(p2p, capability_send_test) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf);
+  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -145,6 +146,8 @@ to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
 TEST(p2p, capability_send_block) {
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
@@ -155,9 +158,9 @@ TEST(p2p, capability_send_block) {
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS);
   host1.registerCapability(thc1);
-  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf);
+  auto thc2 = make_shared<TaraxaCapability>(host2, network_conf, GENESIS);
   host2.registerCapability(thc2);
   host1.start();
   host2.start();
@@ -190,14 +193,14 @@ TEST(p2p, capability_send_block) {
   EXPECT_GT(host1.peerCount(), 0);
   EXPECT_GT(host2.peerCount(), 0);
 
-  DagBlock blk(blk_hash_t(1111), 0,
-               {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()},
-               sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk(
+      blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
+      {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
+      sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
-  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
-  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
+  transactions[g_signed_trx_samples[1].getHash()] = g_signed_trx_samples[1];
   thc2->onNewTransactions(transactions, true);
   thc2->sendBlock(host1.id(), blk, true);
 
@@ -208,10 +211,10 @@ TEST(p2p, capability_send_block) {
   if (blocks.size()) EXPECT_EQ(blk, blocks.begin()->second);
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
-    EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
-              rtransactions[g_trx_samples[0].getHash()]);
-    EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
-              rtransactions[g_trx_samples[1].getHash()]);
+    EXPECT_EQ(transactions[g_signed_trx_samples[0].getHash()],
+              rtransactions[g_signed_trx_samples[0].getHash()]);
+    EXPECT_EQ(transactions[g_signed_trx_samples[1].getHash()],
+              rtransactions[g_signed_trx_samples[1].getHash()]);
   }
 }
 
@@ -222,8 +225,9 @@ propagated to all other hosts. Test verifies that each node has received
 the block
 */
 TEST(p2p, block_propagate) {
-  int const step = 10;
-  int const nodeCount = 30;
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
+  int const nodeCount = 10;
   const char *const localhost = "127.0.0.1";
   dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
@@ -238,12 +242,12 @@ TEST(p2p, block_propagate) {
   network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
 
-  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf);
+  auto thc1 = make_shared<TaraxaCapability>(host1, network_conf, GENESIS);
   host1.registerCapability(thc1);
   std::vector<std::shared_ptr<TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
     vCapabilities.push_back(
-        make_shared<TaraxaCapability>(*vHosts[i], network_conf));
+        make_shared<TaraxaCapability>(*vHosts[i], network_conf, GENESIS));
     vHosts[i]->registerCapability(vCapabilities[i]);
   }
   host1.start(true);
@@ -277,8 +281,8 @@ TEST(p2p, block_propagate) {
   printf("Addnode %d hosts\n", nodeCount);
 
   bool started = true;
-  for (unsigned i = 0; i < 10000; i += step) {
-    this_thread::sleep_for(chrono::milliseconds(step));
+  for (unsigned i = 0; i < 500; i++) {
+    this_thread::sleep_for(chrono::milliseconds(100));
     started = true;
     for (int j = 0; j < nodeCount; j++)
       if (!vHosts[j]->isStarted()) started = false;
@@ -293,8 +297,8 @@ TEST(p2p, block_propagate) {
   // Wait for to give the hosts time to connect to each
   // other.
   bool connected = false;
-  for (unsigned i = 0; i < 50000; i += step) {
-    this_thread::sleep_for(chrono::milliseconds(step));
+  for (unsigned i = 0; i < 500; i++) {
+    this_thread::sleep_for(chrono::milliseconds(100));
     connected = true;
     int counterConnected = 0;
     for (int j = 0; j < nodeCount; j++)
@@ -309,14 +313,14 @@ TEST(p2p, block_propagate) {
   EXPECT_TRUE(connected);
   EXPECT_GT(host1.peerCount(), 0);
 
-  DagBlock blk(blk_hash_t(1111), 0,
-               {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_trx_samples[0].getHash(), g_trx_samples[1].getHash()},
-               sig_t(7777), blk_hash_t(888), addr_t(999));
+  DagBlock blk(
+      blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
+      {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
+      sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::unordered_map<trx_hash_t, Transaction> transactions;
-  transactions[g_trx_samples[0].getHash()] = g_trx_samples[0];
-  transactions[g_trx_samples[1].getHash()] = g_trx_samples[1];
+  transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
+  transactions[g_signed_trx_samples[1].getHash()] = g_signed_trx_samples[1];
   thc1->onNewTransactions(transactions, true);
   std::vector<Transaction> transactions2;
   thc1->onNewBlockReceived(blk, transactions2);
@@ -341,10 +345,10 @@ TEST(p2p, block_propagate) {
     auto rtransactions = vCapabilities[i]->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
-      EXPECT_EQ(transactions[g_trx_samples[0].getHash()],
-                rtransactions[g_trx_samples[0].getHash()]);
-      EXPECT_EQ(transactions[g_trx_samples[1].getHash()],
-                rtransactions[g_trx_samples[1].getHash()]);
+      EXPECT_EQ(transactions[g_signed_trx_samples[0].getHash()],
+                rtransactions[g_signed_trx_samples[0].getHash()]);
+      EXPECT_EQ(transactions[g_signed_trx_samples[1].getHash()],
+                rtransactions[g_signed_trx_samples[1].getHash()]);
     }
   }
   EXPECT_EQ(blocks1.size(), 1);
@@ -355,7 +359,7 @@ TEST(p2p, block_propagate) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   LoggingOptions logOptions;
-  logOptions.verbosity = VerbositySilent;
+  logOptions.verbosity = VerbosityError;
   setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

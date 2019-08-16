@@ -46,7 +46,8 @@ class DagBlock {
            sig_t signature, blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
-  DagBlock(const string &json);
+  DagBlock(string const &json) : DagBlock(strToJson(json)) {}
+  DagBlock(boost::property_tree::ptree const &);
   DagBlock(dev::RLP const &_r);
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
@@ -70,6 +71,7 @@ class DagBlock {
   void serializeRLP(dev::RLPStream &s);
   blk_hash_t getPivot() const { return pivot_; }
   level_t getLevel() const { return level_; }
+  int64_t getTimestamp() const { return timestamp_; }
   vec_blk_t getTips() const { return tips_; }
   vec_trx_t getTrxs() const { return trxs_; }
   sig_t getSig() const { return sig_; }
@@ -98,12 +100,14 @@ class DagBlock {
   vec_trx_t trxs_;  // transactions
   sig_t sig_;
   blk_hash_t hash_;
+  int64_t timestamp_ = -1;
   mutable addr_t cached_sender_;  // block creater
 };
 
 enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
 
 using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
+using BlockUnsafeStatusTable = BlockStatusTable::UnsafeStatusTable;
 
 /**
  * Thread safe
@@ -122,8 +126,11 @@ class BlockManager {
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool isBlockKnown(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
+  BlockUnsafeStatusTable getUnsafeBlockStatusTable() const {
+    return blk_status_.getThreadUnsafeCopy();
+  }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;

@@ -5,6 +5,8 @@
  * @Last Modified by: Chia-Chun Lin
  * @Last Modified time: 2019-03-20 22:07:47
  */
+#ifndef TARAXA_NODE_EXECUTOR_HPP
+#define TARAXA_NODE_EXECUTOR_HPP
 
 #pragma once
 #include <atomic>
@@ -13,10 +15,10 @@
 #include <memory>
 #include <set>
 #include <thread>
-#include "SimpleStateDBDelegate.h"
+#include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "transaction.hpp"
+#include "state_registry.hpp"
 #include "vm/TaraxaVM.hpp"
 
 namespace taraxa {
@@ -27,85 +29,62 @@ namespace taraxa {
  * be a blocking call.
  */
 class FullNode;
-class DagBlock;
 
 class Executor {
- public:
-  inline static const auto MOCK_BLOCK_GAS_LIMIT =
-      std::numeric_limits<uint64_t>::max();
-
-  using uLock = std::unique_lock<std::mutex>;
-  enum class ExecutorStatus { idle, run_parallel, run_sequential };
-  Executor() {}
-  ~Executor();
-  // fixme: start/stop methods seem to be excessive, and complicate the
-  // lifecycle
-  void start();
-  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
-  void stop();
-  void clear();
-  bool execute(
-      TrxSchedule const& schedule,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
-  bool executeBlkTrxs(
-      blk_hash_t const& blk,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
-  bool coinTransfer(
-      Transaction const& trx,
-      std::unordered_map<addr_t, bal_t>& sortition_account_balance_table);
-
  private:
-  ExecutorStatus status_ = ExecutorStatus::idle;
-  bool stopped_ = true;
-  std::weak_ptr<FullNode> node_;
+  uint64_t pbft_require_sortition_coins_;
+  dev::Logger log_time_;
+  std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
-  std::shared_ptr<SimpleStateDBDelegate> db_accs_ = nullptr;
+  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<vm::TaraxaVM> taraxaVM = nullptr;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
+  std::atomic<uint64_t> num_executed_blk_ = 0;
+
+  // for debug purpose
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "EXETOR")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "EXETOR")};
   dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "EXETOR")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "EXETOR")};
-  std::mutex mu;
-  std::unordered_set<trx_hash_t> txHashes;
-};
+  dev::Logger log_dg_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "EXETOR")};
 
-using TransactionOverlapTable =
-    std::vector<std::pair<blk_hash_t, std::vector<bool>>>;
-enum class TransactionExecStatus { non_ordered, ordered, executed };
-using TransactionExecStatusTable =
-    StatusTable<trx_hash_t, TransactionExecStatus>;
-using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
-
-// TODO: the table need to flush out
-// Compute 1) transaction order and 2) map[transaction --> dagblock]
-class TransactionOrderManager {
  public:
-  TransactionOrderManager() = default;
-  ~TransactionOrderManager();
-  void start();
-  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
-  void stop();
-  void clear() { status_.clear(); }
+  Executor(uint64_t pbft_require_sortition_coins,
+           decltype(log_time_) log_time,  //
+           decltype(db_blks_) db_blks,
+           decltype(db_trxs_) db_trxs,  //
+           decltype(state_registry_) state_registry)
+      : pbft_require_sortition_coins_(pbft_require_sortition_coins),
+        log_time_(std::move(log_time)),
+        db_blks_(std::move(db_blks)),
+        db_trxs_(std::move(db_trxs)),
+        state_registry_(std::move(state_registry)) {}
 
-  std::vector<bool> computeOrderInBlock(DagBlock const& blk);
-  std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
-      std::vector<std::shared_ptr<DagBlock>> const& blks);
-  blk_hash_t getDagBlockFromTransaction(trx_hash_t const& t);
+  bool execute(
+      TrxSchedule const& schedule,
+      std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
+  uint64_t getNumExecutedTrx() { return num_executed_trx_; }
+  uint64_t getNumExecutedBlk() { return num_executed_blk_; }
+  void setFullNode(std::shared_ptr<FullNode> full_node) {
+    full_node_ = full_node;
+  }
 
  private:
-  bool stopped_ = true;
-  std::weak_ptr<FullNode> node_;
-  TransactionExecStatusTable status_;
-  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXODR")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXODR")};
+  bool executeBlkTrxs(
+      StateRegistry::State&, blk_hash_t const& blk,
+      std::vector<uint> const& trx_modes,
+      std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
+  bool coinTransfer(
+      StateRegistry::State&, Transaction const& trx,
+      std::unordered_map<addr_t, val_t>& sortition_account_balance_table);
 };
 
 }  // namespace taraxa
+
+#endif

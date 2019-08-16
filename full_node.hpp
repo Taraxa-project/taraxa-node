@@ -15,13 +15,14 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "SimpleStateDBDelegate.h"
 #include "config.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
+#include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
+#include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "vm/TaraxaVM.hpp"
 #include "vote.h"
@@ -36,10 +37,8 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
-class TransactionOrderManager;
-class Executor;
 class Vote;
-class VoteQueue;
+class VoteManager;
 class PbftManager;
 class NetworkConfig;
 
@@ -73,6 +72,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return trx_mgr_;
   }
 
+  // master boot node
+  addr_t getMasterBootNodeAddress() const { return master_boot_node_address; }
+  void setMasterBootNodeAddress(addr_t const &addr) {
+    master_boot_node_address = addr;
+  }
+
   // network stuff
   size_t getPeerCount() const;
   std::vector<public_t> getAllPeers() const;
@@ -90,12 +95,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
       std::unordered_map<trx_hash_t, Transaction> const &transactions);
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
-  unsigned long getTransactionStatusCount();
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 
   // Dag related: return childern, siblings, tips before time stamp
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash);
-  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash);
+  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
+  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
 
   bool isBlockKnown(blk_hash_t const &hash);
   time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
@@ -149,41 +153,43 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   // get transaction schecules stuff ...
+  // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
     return trx_order_mgr_->getDagBlockFromTransaction(trx);
   }
 
   std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-  getTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
-  std::shared_ptr<TrxSchedule> createMockTrxSchedule(
-      std::shared_ptr<vec_blk_t> blk_order);
+  computeTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
+
+  std::vector<std::vector<uint>> createMockTrxSchedule(
+      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+          trx_overlap_table);
+
   // account stuff
-  std::pair<bal_t, bool> getBalance(addr_t const &acc) const;
-  bal_t getMyBalance() const;
-  bool setBalance(addr_t const &acc, bal_t const &new_bal);
+  std::pair<val_t, bool> getBalance(addr_t const &acc) const;
+  val_t getMyBalance() const;
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
   bool executeScheduleBlock(
       ScheduleBlock const &sche_blk,
-      std::unordered_map<addr_t, bal_t> &sortition_account_balance_table);
-  // debugger
-  uint64_t getNumReceivedBlocks();
-  uint64_t getNumProposedBlocks();
-  level_t getMaxDagLevel() const;
-  std::pair<uint64_t, uint64_t> getNumVerticesInDag();
-  std::pair<uint64_t, uint64_t> getNumEdgesInDag();
-  void drawGraph(std::string const &dotfile) const;
+      std::unordered_map<addr_t, val_t> &sortition_account_balance_table);
+
   bool destroyDB();
 
   // get DBs
-  // fixme: breaks the pattern of declaration-only headers
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
-  auto getAccsDB() const { return db_accs_; }
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
+  }
+  std::shared_ptr<StateRegistry> getStateRegistry() const {
+    return state_registry_;
+  }
+  std::shared_ptr<StateRegistry::State> updateAndGetState() const {
+    state_registry_->rebase(*state_);
+    return state_;
   }
   auto getVM() const { return taraxa_vm_; }
 
@@ -191,18 +197,17 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       bool onlyNew);
 
   // Get max level
-  unsigned long getDagMaxLevel() { return max_dag_level_; }
+  unsigned long getDagMaxLevel() const { return max_dag_level_; }
 
   // PBFT
   bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
-  std::vector<Vote> getVotes(uint64_t period);
-  void receivedVotePushIntoQueue(Vote const &vote);
-  void clearVoteQueue();
-  size_t getVoteQueueSize();
-  bool isKnownVote(vote_hash_t const &vote_hash) const;
-  void setVoteKnown(vote_hash_t const &vote_hash);
+  std::vector<Vote> getVotes(uint64_t round);
+  void addVote(Vote const &vote);
+  void clearUnverifiedVotesTable();
+  uint64_t getUnverifiedVotesSize() const;
+  bool isKnownVote(uint64_t pbft_round, vote_hash_t const &vote_hash) const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
   bool isKnownPbftBlockInChain(blk_hash_t const &pbft_block_hash) const;
@@ -212,15 +217,45 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
   size_t getEpoch() const;
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
+  void newOrderedBlock(blk_hash_t const &dag_block_hash,
+                       uint64_t const &block_number);
+
+  std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<VoteQueue> getVoteQueue() const { return vote_queue_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
+
   // PBFT RPC
-  void pushVoteIntoQueue(Vote const &vote);
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                     uint64_t period, size_t step);
+
+  // get dag block for rpc
+  std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
+  std::pair<uint64_t, bool> getDagBlockHeight(
+      blk_hash_t const &dag_block_hash) const;
+  uint64_t getDagBlockMaxHeight() const;
+
+  // For Debug
+  uint64_t getNumReceivedBlocks() const;
+  uint64_t getNumProposedBlocks() const;
+  level_t getMaxDagLevel() const;
+  std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
+  std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
+  void drawGraph(std::string const &dotfile) const;
+  unsigned long getTransactionStatusCount() const;
+  auto getUnsafeTransactionStatusTable() const {
+    return trx_mgr_->getUnsafeTransactionStatusTable();
+  }
+  auto getNumTransactionExecuted() const {
+    return executor_->getNumExecutedTrx();
+  }
+  auto getNumBlockExecuted() const { return executor_->getNumExecutedBlk(); }
+  std::vector<blk_hash_t> getLinearizedDagBlocks() const;
+  std::vector<trx_hash_t> getPackedTrxs() const;
+  void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
+    ws_server_ = ws_server;
+  }
 
  private:
   // ** NOTE: io_context must be constructed before Network
@@ -233,21 +268,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool verbose_ = false;
   bool debug_ = false;
   uint64_t propose_threshold_ = 512;
+  bool i_am_boot_node_ = false;
   // node secrets
   secret_t node_sk_;
   public_t node_pk_;
   addr_t node_addr_;
-
-  // storage
-  std::shared_ptr<SimpleStateDBDelegate> db_accs_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
-  // vm
-  std::shared_ptr<vm::TaraxaVM> taraxa_vm_ = nullptr;
+  addr_t master_boot_node_address;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;
@@ -264,17 +290,27 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<BlockProposer> blk_proposer_;
 
   // transaction executor
-  std::shared_ptr<Executor> executor_;
+  std::shared_ptr<Executor> executor_ = nullptr;
   //
   std::vector<std::thread> block_workers_;
 
   // PBFT
   std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<VoteQueue> vote_queue_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::unordered_set<vote_hash_t> known_votes_;  // per node itself
 
+  std::shared_ptr<taraxa::WSServer> ws_server_;
+  // storage
+  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<StateRegistry::State> state_ = nullptr;
+  // vm
+  std::shared_ptr<vm::TaraxaVM> taraxa_vm_ = nullptr;
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;

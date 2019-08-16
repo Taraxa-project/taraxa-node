@@ -11,6 +11,7 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include "config.hpp"
+#include "libweb3jsonrpc/Net.h"
 #include "libweb3jsonrpc/RpcServer.h"
 #include "libweb3jsonrpc/Taraxa.h"
 
@@ -92,17 +93,25 @@ void Top::start(int argc, const char* argv[]) {
   }
   // Important!!! Wait for a while and have the child thread initialize
   // everything ... Otherwise node_ will get nullptr
-  taraxa::thisThreadSleepForSeconds(2);
+  taraxa::thisThreadSleepForSeconds(5);
 }
 
 void Top::startRpc() {
-  rpc_ = std::make_shared<
-      ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace> >(
-      new dev::rpc::Test(node_), new dev::rpc::Taraxa(node_));
+  rpc_ =
+      std::make_shared<ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace,
+                                     dev::rpc::NetFace> >(
+          new dev::rpc::Test(node_), new dev::rpc::Taraxa(node_),
+          new dev::rpc::Net(node_));
   auto rpc_server(
       std::make_shared<taraxa::RpcServer>(context_, conf_->rpc, node_));
   rpc_->addConnector(rpc_server);
   rpc_server->StartListening();
+  ws_listener_ = std::make_shared<taraxa::WSServer>(
+      context_,
+      tcp::endpoint{net::ip::make_address(conf_->rpc.address.to_string()),
+                    conf_->rpc.ws_port});
+  node_->setWSServer(ws_listener_);
+  ws_listener_->run();
 }
 
 void Top::start() {
@@ -121,6 +130,7 @@ void Top::kill() {
   if (stopped_) return;
   stop();
   rpc_->StopListening();
+  ws_listener_->stop();
   cond_.notify_all();
 }
 void Top::stop() {

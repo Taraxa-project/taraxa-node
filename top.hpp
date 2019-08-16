@@ -13,6 +13,7 @@
 #include "full_node.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/LoggingProgramOptions.h"
+#include "libweb3jsonrpc/WSServer.h"
 
 class Top {
  public:
@@ -39,6 +40,7 @@ class Top {
   std::shared_ptr<std::thread> th_;
   std::shared_ptr<taraxa::FullNode> node_;
   std::shared_ptr<ModularServer<>> rpc_;
+  std::shared_ptr<taraxa::WSServer> ws_listener_;
   std::condition_variable cond_;
   std::mutex mu_;
   boost::asio::io_context context_;

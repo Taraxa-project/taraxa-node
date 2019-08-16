@@ -5,7 +5,6 @@
 #define TARAXA_NODE_SIMPLEDBFACTORY_H
 
 #include "SimpleOverlayDBDelegate.h"
-#include "SimpleStateDBDelegate.h"
 #include "SimpleTaraxaRocksDBDelegate.h"
 
 class SimpleDBFace;
@@ -16,9 +15,9 @@ class SimpleDBFactory {
   ~SimpleDBFactory() = delete;
 
   template <typename T>
-  static std::shared_ptr<T> createDelegate(const std::string &path,
+  static std::unique_ptr<T> createDelegate(const std::string &path,
                                            bool overwrite) {
-    return std::make_shared<T>(path, overwrite);
+    return std::make_unique<T>(path, overwrite);
   }
 };
 #endif  // TARAXA_NODE_SIMPLEDBFACTORY_H

@@ -7,6 +7,8 @@
  */
 
 #include "config.hpp"
+#include <fstream>
+
 namespace taraxa {
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
     : json_file_name(json_file) {
@@ -34,7 +36,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.address =
         boost::asio::ip::address::from_string(network.network_address);
     rpc.port = doc.get<uint16_t>("rpc_port");
-
+    rpc.ws_port = doc.get<uint16_t>("ws_port");
     {  // for test experiments
       for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
         test_params.block_proposer.push_back(i);
@@ -44,6 +46,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         test_params.pbft.push_back(i);
       }
     }
+    genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
+    genesis_state.block.updateHash();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -53,26 +57,12 @@ RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   try {
     boost::property_tree::ptree doc = loadJsonFile(json_file);
     port = doc.get<uint16_t>("port");
+    ws_port = doc.get<uint16_t>("ws_port");
     address =
         boost::asio::ip::address::from_string(doc.get<std::string>("address"));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
-}
-
-std::ostream &operator<<(std::ostream &strm, TestParamsConfig const &conf) {
-  strm << "[TestNet Config] " << std::endl;
-  strm << "   block_proposer: " << conf.block_proposer << std::endl;
-  strm << "   pbft: " << conf.pbft << std::endl;
-  return strm;
-}
-
-std::ostream &operator<<(std::ostream &strm, RpcConfig const &conf) {
-  strm << "[Rpc Config] " << std::endl;
-  strm << "   json_file_name: " << conf.json_file_name << std::endl;
-  strm << "   port: " << conf.json_file_name << std::endl;
-  strm << "   address: " << conf.address << std::endl;
-  return strm;
 }
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
@@ -82,6 +72,7 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "    node_port: " << conf.port << std::endl;
   return strm;
 }
+
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
@@ -100,16 +91,9 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   }
   return strm;
 }
+
 std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
-  strm << "[FullNode Config] " << std::endl;
-  strm << "  json_file_name: " << conf.json_file_name << std::endl;
-  strm << "  node_secret: " << conf.node_secret << std::endl;
-  strm << "  db_path: " << conf.db_path << std::endl;
-  strm << "  dag_processing_thread: " << conf.dag_processing_threads
-       << std::endl;
-  strm << conf.network;
-  strm << conf.rpc;
-  strm << conf.test_params;
+  strm << std::ifstream(conf.json_file_name).rdbuf() << std::endl;
   return strm;
 }
 }  // namespace taraxa

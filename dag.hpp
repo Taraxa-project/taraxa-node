@@ -85,9 +85,7 @@ class Dag {
 
   using ulock = std::unique_lock<std::mutex>;
 
-  static const std::string GENESIS;
-
-  Dag();
+  Dag(std::string const &genesis);
   ~Dag();
   void setVerbose(bool verbose);
   void setDebug(bool debug);
@@ -166,13 +164,13 @@ class Dag {
 
  private:
   mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
   mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
   mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAG")};
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
 /**
  * PivotTree is a special DAG, every vertex only has one out-edge,
@@ -181,6 +179,7 @@ class Dag {
 
 class PivotTree : public Dag {
  public:
+  PivotTree(std::string const &genesis) : Dag(genesis){};
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_name_map_const_t = Dag::vertex_name_map_const_t;
@@ -194,13 +193,13 @@ class PivotTree : public Dag {
 
  private:
   mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
   mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
   mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "PVT_TR")};
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
 class DagBuffer;
 /**
@@ -214,7 +213,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using ulock = std::unique_lock<std::mutex>;
 
-  DagManager();
+  DagManager(std::string const &genesis);
   virtual ~DagManager();
   void start();
   void stop();
@@ -289,13 +288,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::unordered_set<std::string> recent_added_blks_;
-  std::vector<std::string> anchors_ = {
-      Dag::GENESIS};  // pivots that define periods
+  std::vector<std::string> anchors_;  // pivots that define periods
   // DagBuffer
   std::list<std::shared_ptr<DagBlock>> sb_buffer_;
   std::shared_ptr<boost::thread> sb_buffer_processing_thread_;
   std::mutex sb_bufer_mutex_;
   std::condition_variable sb_buffer_condition;
+  std::string genesis_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   dev::Logger log_wr_{

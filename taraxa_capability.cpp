@@ -6,13 +6,40 @@
 
 using namespace taraxa;
 
+std::shared_ptr<TaraxaPeer> TaraxaCapability::getPeer(NodeID const &node_id) {
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+  auto itPeer = peers_.find(node_id);
+  if (itPeer != peers_.end()) {
+    return itPeer->second;
+  };
+  return nullptr;
+}
+
+unsigned int TaraxaCapability::getPeersCount() {
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+  return peers_.size();
+}
+
+void TaraxaCapability::erasePeer(NodeID const &node_id) {
+  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  peers_.erase(node_id);
+}
+
+void TaraxaCapability::insertPeer(NodeID const &node_id,
+                                  std::shared_ptr<TaraxaPeer> const &peer) {
+  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  peers_.emplace(
+      std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
+}
+
 void TaraxaCapability::syncPeer(NodeID const &_nodeID,
                                 unsigned long level_to_sync) {
   const int number_of_levels_to_sync = 2;
   if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
       LOG(log_nf_) << "Sync Peer:" << _nodeID;
-      peers_[_nodeID]->m_state = Syncing;
+      auto peer = getPeer(_nodeID);
+      if (peer) peer->m_state = Syncing;
       requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
     }
   }
@@ -30,53 +57,57 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
 
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
-    for (auto block : peers_[_nodeID]->m_syncBlocks) {
-      for (auto tip : block.second.first.getTips()) {
-        auto tipKnown = full_node->isBlockKnown(tip);
-        if (!tipKnown && peers_[_nodeID]->m_syncBlocks.find(tip) ==
-                             peers_[_nodeID]->m_syncBlocks.end()) {
-          peers_[_nodeID]->m_lastRequest = tip;
-          LOG(log_nf_) << "Block " << block.second.first.getHash().toString()
-                       << " has a missing tip " << tip.toString();
-          requestBlock(_nodeID, tip, false);
-          return;
+    auto peer = getPeer(_nodeID);
+    if (peer) {
+      for (auto block : peer->m_syncBlocks) {
+        for (auto tip : block.second.first.getTips()) {
+          auto tipKnown = full_node->isBlockKnown(tip);
+          if (!tipKnown &&
+              peer->m_syncBlocks.find(tip) == peer->m_syncBlocks.end()) {
+            peer->m_lastRequest = tip;
+            LOG(log_nf_) << "Block " << block.second.first.getHash().toString()
+                         << " has a missing tip " << tip.toString();
+            requestBlock(_nodeID, tip, false);
+            return;
+          }
         }
       }
-    }
-    for (auto block : peers_[_nodeID]->m_syncBlocks) {
-      if (!full_node->isBlockKnown(block.first)) {
-        LOG(log_nf_) << "Storing block "
-                     << block.second.first.getHash().toString() << " with "
-                     << block.second.second.size() << " transactions";
-        full_node->insertBroadcastedBlockWithTransactions(block.second.first,
-                                                          block.second.second);
-      }
-    }
-    auto start = std::chrono::steady_clock::now();
-    bool blocksAddedToDag = false;
-    // Wait up to 20 seconds for blocks to be verified
-    std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
-    while (!blocksAddedToDag &&
-           std::chrono::duration_cast<std::chrono::seconds>(
-               std::chrono::steady_clock::now() - start)
-                   .count() < 20) {
-      blocksAddedToDag = true;
-      for (auto block : peers_[_nodeID]->m_syncBlocks) {
-        if (verified_blocks_.count(block.first) == 0) {
-          blocksAddedToDag = false;
-          break;
+      for (auto block : peer->m_syncBlocks) {
+        if (!full_node->isBlockKnown(block.first)) {
+          LOG(log_nf_) << "Storing block "
+                       << block.second.first.getHash().toString() << " with "
+                       << block.second.second.size() << " transactions";
+          full_node->insertBroadcastedBlockWithTransactions(
+              block.second.first, block.second.second);
         }
       }
-      if (blocksAddedToDag) break;
-      condition_for_verified_blocks_.wait_for(lck,
-                                              std::chrono::milliseconds(1000));
-    }
-    peers_[_nodeID]->m_syncBlocks.clear();
-    if (!blocksAddedToDag)
-      return;  // This would probably mean that the peer is corrupted as well
+      auto start = std::chrono::steady_clock::now();
+      bool blocksAddedToDag = false;
+      // Wait up to 20 seconds for blocks to be verified
+      std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
+      while (!blocksAddedToDag &&
+             std::chrono::duration_cast<std::chrono::seconds>(
+                 std::chrono::steady_clock::now() - start)
+                     .count() < 20) {
+        blocksAddedToDag = true;
+        for (auto block : peer->m_syncBlocks) {
+          if (verified_blocks_.count(block.first) == 0) {
+            blocksAddedToDag = false;
+            break;
+          }
+        }
 
-    if (peers_[_nodeID]->m_state == Syncing)
-      syncPeer(_nodeID, full_node->getDagMaxLevel() + 1);
+        if (blocksAddedToDag) break;
+        condition_for_verified_blocks_.wait_for(
+            lck, std::chrono::milliseconds(1000));
+      }
+      peer->m_syncBlocks.clear();
+      if (!blocksAddedToDag)
+        return;  // This would probably mean that the peer is corrupted as well
+
+      if (peer->m_state == Syncing)
+        syncPeer(_nodeID, full_node->getDagMaxLevel() + 1);
+    }
   }
 }
 
@@ -85,8 +116,7 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
   cnt_received_messages_[_nodeID] = 0;
   test_sums_[_nodeID] = 0;
 
-  peers_.emplace(
-      std::make_pair(_nodeID, std::make_shared<TaraxaPeer>(_nodeID)));
+  insertPeer(_nodeID, std::make_shared<TaraxaPeer>(_nodeID));
   sendStatus(_nodeID);
 }
 
@@ -124,306 +154,312 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
 bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                                                      unsigned _id,
                                                      RLP const &_r) {
-  peers_[_nodeID]->setAsking(false);
-  peers_[_nodeID]->setLastMessage();
-  switch (_id) {
-    case StatusPacket: {
-      auto const peer_protocol_version = _r[0].toInt<unsigned>();
-      auto const network_id = _r[1].toString();
-      auto const num_vertices = _r[2].toInt();
-      auto const genesis_hash = _r[3].toString();
-      LOG(log_dg_) << "Received status message from " << _nodeID << " "
-                   << peer_protocol_version << network_id << num_vertices
-                   << Dag::GENESIS;
+  auto peer = getPeer(_nodeID);
+  if (peer) {
+    peer->setAsking(false);
+    peer->setLastMessage();
+    switch (_id) {
+      case StatusPacket: {
+        auto const peer_protocol_version = _r[0].toInt<unsigned>();
+        auto const network_id = _r[1].toString();
+        auto const num_vertices = _r[2].toInt();
+        auto const genesis_hash = _r[3].toString();
+        LOG(log_dg_) << "Received status message from " << _nodeID << " "
+                     << peer_protocol_version << network_id << num_vertices
+                     << genesis_;
 
-      if (peer_protocol_version != c_protocolVersion) {
-        LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
-                     << ", host " << _nodeID << " will be disconnected";
-        host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
-      }
-      if (network_id != conf_.network_id) {
-        LOG(log_er_) << "Incorrect network id " << network_id << ", host "
-                     << _nodeID << " will be disconnected";
-        host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
-      }
-      if (genesis_hash != Dag::GENESIS) {
-        LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host "
-                     << _nodeID << " will be disconnected";
-        host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
-      }
-      if (auto full_node = full_node_.lock()) {
-        peers_[_nodeID]->vertices_count_ = num_vertices;
-        if (num_vertices > max_peer_vertices_) {
-          max_peer_vertices_ = num_vertices;
-          peer_syncing_ = _nodeID;
-          syncPeer(_nodeID, full_node->getDagMaxLevel());
-          syncPeerPbft(_nodeID);
+        if (peer_protocol_version != c_protocolVersion) {
+          LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
+                       << ", host " << _nodeID << " will be disconnected";
+          host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
         }
-      }
-      break;
-    }
-    // Means a new block is proposed, full block body and all transaction are
-    // received.
-    case NewBlockPacket: {
-      LOG(log_dg_) << "Received NewBlockPacket";
-      DagBlock block(_r[0]);
-
-      auto transactionsCount = _r.itemCount() - 1;
-      std::vector<Transaction> newTransactions;
-      for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
-           iTransaction++) {
-        Transaction transaction(_r[iTransaction]);
-        newTransactions.push_back(transaction);
-        peers_[_nodeID]->markTransactionAsKnown(transaction.getHash());
-      }
-
-      peers_[_nodeID]->markBlockAsKnown(block.getHash());
-      onNewBlockReceived(block, newTransactions);
-      break;
-    }
-    // Full block and partial transactions are received
-    case BlockPacket: {
-      DagBlock block(_r[0]);
-
-      auto transactionsCount = _r.itemCount() - 1;
-      std::unordered_map<trx_hash_t, Transaction> newTransactions;
-      std::vector<Transaction> vec_new_trxs;
-      for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
-           iTransaction++) {
-        Transaction transaction(_r[iTransaction]);
-        newTransactions[transaction.getHash()] = transaction;
-        vec_new_trxs.emplace_back(transaction);
-        peers_[_nodeID]->markTransactionAsKnown(transaction.getHash());
-      }
-
-      LOG(log_dg_) << "Received BlockPacket " << block.getHash().toString();
-      peers_[_nodeID]->markBlockAsKnown(block.getHash());
-      // Initial syncing
-      if (peers_[_nodeID]->m_lastRequest == block.getHash()) {
-        std::vector<Transaction> vTransactions;
-        for (const auto &t : newTransactions) vTransactions.push_back(t.second);
-        peers_[_nodeID]->m_syncBlocks[block.getHash()] = {block, vTransactions};
-        continueSync(_nodeID);
-      } else if (auto full_node = full_node_.lock()) {
-        LOG(log_nf_) << "Storing blocks " << block.getHash().toString()
-                     << " with transactions " << vec_new_trxs.size();
-        full_node->insertBroadcastedBlockWithTransactions(block, vec_new_trxs);
-      } else {
-        for (const auto &transaction : newTransactions) {
-          if (test_transactions_.find(transaction.first) ==
-              test_transactions_.end()) {
-            test_transactions_[transaction.first] = transaction.second;
-            LOG(log_dg_) << "Received New Transaction "
-                         << transaction.first.toString();
-          } else {
-            LOG(log_dg_) << "Received New Transaction"
-                         << transaction.first.toString()
-                         << "that is already known";
+        if (network_id != conf_.network_id) {
+          LOG(log_er_) << "Incorrect network id " << network_id << ", host "
+                       << _nodeID << " will be disconnected";
+          host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
+        }
+        if (genesis_hash != genesis_) {
+          LOG(log_er_) << "Incorrect genesis hash " << genesis_hash << ", host "
+                       << _nodeID << " will be disconnected";
+          host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
+        }
+        if (auto full_node = full_node_.lock()) {
+          peer->vertices_count_ = num_vertices;
+          if (num_vertices > max_peer_vertices_) {
+            max_peer_vertices_ = num_vertices;
+            peer_syncing_ = _nodeID;
+            syncPeer(_nodeID, full_node->getDagMaxLevel());
+            syncPeerPbft(_nodeID);
           }
         }
-        test_blocks_[block.getHash()] = block;
+        break;
       }
-    } break;
-    case NewBlockHashPacket: {
-      blk_hash_t hash(_r[0]);
-      LOG(log_dg_) << "Received NewBlockHashPacket" << hash.toString();
-      peers_[_nodeID]->markBlockAsKnown(hash);
-      if (auto full_node = full_node_.lock()) {
-        if (!full_node->isBlockKnown(hash) &&
-            block_requestes_set_.count(hash) == 0) {
+      // Means a new block is proposed, full block body and all transaction are
+      // received.
+      case NewBlockPacket: {
+        LOG(log_dg_) << "Received NewBlockPacket";
+        DagBlock block(_r[0]);
+
+        auto transactionsCount = _r.itemCount() - 1;
+        std::vector<Transaction> newTransactions;
+        for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
+             iTransaction++) {
+          Transaction transaction(_r[iTransaction]);
+          newTransactions.push_back(transaction);
+          peer->markTransactionAsKnown(transaction.getHash());
+        }
+
+        peer->markBlockAsKnown(block.getHash());
+        onNewBlockReceived(block, newTransactions);
+        break;
+      }
+      // Full block and partial transactions are received
+      case BlockPacket: {
+        DagBlock block(_r[0]);
+
+        auto transactionsCount = _r.itemCount() - 1;
+        std::unordered_map<trx_hash_t, Transaction> newTransactions;
+        std::vector<Transaction> vec_new_trxs;
+        for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
+             iTransaction++) {
+          Transaction transaction(_r[iTransaction]);
+          newTransactions[transaction.getHash()] = transaction;
+          vec_new_trxs.emplace_back(transaction);
+          peer->markTransactionAsKnown(transaction.getHash());
+        }
+
+        LOG(log_dg_) << "Received BlockPacket " << block.getHash().toString();
+        peer->markBlockAsKnown(block.getHash());
+        // Initial syncing
+        if (peer->m_lastRequest == block.getHash()) {
+          std::vector<Transaction> vTransactions;
+          for (const auto &t : newTransactions)
+            vTransactions.push_back(t.second);
+          peer->m_syncBlocks[block.getHash()] = {block, vTransactions};
+          continueSync(_nodeID);
+        } else if (auto full_node = full_node_.lock()) {
+          LOG(log_nf_) << "Storing blocks " << block.getHash().toString()
+                       << " with transactions " << vec_new_trxs.size();
+          full_node->insertBroadcastedBlockWithTransactions(block,
+                                                            vec_new_trxs);
+        } else {
+          for (const auto &transaction : newTransactions) {
+            if (test_transactions_.find(transaction.first) ==
+                test_transactions_.end()) {
+              test_transactions_[transaction.first] = transaction.second;
+              LOG(log_dg_) << "Received New Transaction "
+                           << transaction.first.toString();
+            } else {
+              LOG(log_dg_) << "Received New Transaction"
+                           << transaction.first.toString()
+                           << "that is already known";
+            }
+          }
+          test_blocks_[block.getHash()] = block;
+        }
+      } break;
+      case NewBlockHashPacket: {
+        blk_hash_t hash(_r[0]);
+        LOG(log_dg_) << "Received NewBlockHashPacket" << hash.toString();
+        peer->markBlockAsKnown(hash);
+        if (auto full_node = full_node_.lock()) {
+          if (!full_node->isBlockKnown(hash) &&
+              block_requestes_set_.count(hash) == 0) {
+            block_requestes_set_.insert(hash);
+            requestBlock(_nodeID, hash, true);
+          }
+        } else if (test_blocks_.find(hash) == test_blocks_.end() &&
+                   block_requestes_set_.count(hash) == 0) {
           block_requestes_set_.insert(hash);
           requestBlock(_nodeID, hash, true);
         }
-      } else if (test_blocks_.find(hash) == test_blocks_.end() &&
-                 block_requestes_set_.count(hash) == 0) {
-        block_requestes_set_.insert(hash);
-        requestBlock(_nodeID, hash, true);
+        break;
       }
-      break;
-    }
-    case GetBlockPacket: {
-      blk_hash_t hash(_r[0]);
-      LOG(log_dg_) << "Received GetBlockPacket" << hash.toString();
-      peers_[_nodeID]->markBlockAsKnown(hash);
-      if (auto full_node = full_node_.lock()) {
-        auto block = full_node->getDagBlock(hash);
-        if (block) {
-          sendBlock(_nodeID, *block, false);
-        } else
-          LOG(log_nf_) << "NO PACKET: " << hash.toString();
+      case GetBlockPacket: {
+        blk_hash_t hash(_r[0]);
+        LOG(log_dg_) << "Received GetBlockPacket" << hash.toString();
+        peer->markBlockAsKnown(hash);
+        if (auto full_node = full_node_.lock()) {
+          auto block = full_node->getDagBlock(hash);
+          if (block) {
+            sendBlock(_nodeID, *block, false);
+          } else
+            LOG(log_nf_) << "NO PACKET: " << hash.toString();
+        }
+        break;
       }
-      break;
-    }
-    case GetNewBlockPacket: {
-      blk_hash_t hash(_r[0]);
-      peers_[_nodeID]->markBlockAsKnown(hash);
-      LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
+      case GetNewBlockPacket: {
+        blk_hash_t hash(_r[0]);
+        peer->markBlockAsKnown(hash);
+        LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
-      if (auto full_node = full_node_.lock()) {
-        auto block = full_node->getDagBlock(hash);
-        if (block) {
-          sendBlock(_nodeID, *block, true);
-        } else
-          LOG(log_nf_) << "NO NEW PACKET: " << hash.toString();
-      } else if (test_blocks_.find(hash) != test_blocks_.end()) {
-        sendBlock(_nodeID, test_blocks_[hash], true);
+        if (auto full_node = full_node_.lock()) {
+          auto block = full_node->getDagBlock(hash);
+          if (block) {
+            sendBlock(_nodeID, *block, true);
+          } else
+            LOG(log_nf_) << "NO NEW PACKET: " << hash.toString();
+        } else if (test_blocks_.find(hash) != test_blocks_.end()) {
+          sendBlock(_nodeID, test_blocks_[hash], true);
+        }
+        break;
       }
-      break;
-    }
-    case GetBlocksLevelPacket: {
-      auto level = _r[0].toInt();
-      auto number_of_levels = _r[1].toInt();
-      LOG(log_dg_) << "Received GetBlocksLevelPacket with level" << level << " "
-                   << number_of_levels;
+      case GetBlocksLevelPacket: {
+        auto level = _r[0].toInt();
+        auto number_of_levels = _r[1].toInt();
+        LOG(log_dg_) << "Received GetBlocksLevelPacket with level" << level
+                     << " " << number_of_levels;
 
-      if (auto full_node = full_node_.lock()) {
-        auto blocks = full_node->getDagBlocksAtLevel(level, number_of_levels);
-        if (blocks.size() > 0) sendBlocks(_nodeID, blocks);
+        if (auto full_node = full_node_.lock()) {
+          auto blocks = full_node->getDagBlocksAtLevel(level, number_of_levels);
+          if (blocks.size() > 0) sendBlocks(_nodeID, blocks);
+        }
+        break;
       }
-      break;
-    }
-    case BlocksPacket: {
-      std::string receivedBlocks;
-      auto itemCount = _r.itemCount();
+      case BlocksPacket: {
+        std::string receivedBlocks;
+        auto itemCount = _r.itemCount();
 
-      int transactionCount = 0;
-      for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
-        DagBlock block(_r[iBlock + transactionCount]);
-        peers_[_nodeID]->markBlockAsKnown(block.getHash());
+        int transactionCount = 0;
+        for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
+          DagBlock block(_r[iBlock + transactionCount]);
+          peer->markBlockAsKnown(block.getHash());
 
-        std::vector<Transaction> newTransactions;
-        for (int i = 0; i < block.getTrxs().size(); i++) {
-          transactionCount++;
-          Transaction transaction(_r[iBlock + transactionCount]);
-          newTransactions.push_back(transaction);
-          peers_[_nodeID]->markTransactionAsKnown(transaction.getHash());
+          std::vector<Transaction> newTransactions;
+          for (int i = 0; i < block.getTrxs().size(); i++) {
+            transactionCount++;
+            Transaction transaction(_r[iBlock + transactionCount]);
+            newTransactions.push_back(transaction);
+            peer->markTransactionAsKnown(transaction.getHash());
+          }
+
+          receivedBlocks += block.getHash().toString() + " ";
+          peer->m_syncBlocks[block.getHash()] = {block, newTransactions};
+          if (iBlock + transactionCount + 1 >= itemCount) break;
+        }
+        if (itemCount > 0) {
+          LOG(log_dg_) << "Received BlocksPacket with " << _r.itemCount()
+                       << "  blocks:" << receivedBlocks.c_str();
+          continueSync(_nodeID);
+        }
+        break;
+      }
+      case TransactionPacket: {
+        std::string receivedTransactions;
+        std::unordered_map<trx_hash_t, Transaction> transactions;
+        auto transactionCount = _r.itemCount();
+        for (auto iTransaction = 0; iTransaction < transactionCount;
+             iTransaction++) {
+          Transaction transaction(_r[iTransaction]);
+          receivedTransactions += transaction.getHash().toString() + " ";
+          peer->markTransactionAsKnown(transaction.getHash());
+          transactions[transaction.getHash()] = transaction;
+        }
+        if (transactionCount > 0) {
+          LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
+                       << " transactions:" << receivedTransactions.c_str();
+          onNewTransactions(transactions, true);
+        }
+        break;
+      }
+      case PbftVotePacket: {
+        LOG(log_dg_) << "In PbftVotePacket";
+
+        std::vector<::byte> pbft_vote_bytes;
+
+        for (auto i = 0; i < _r[0].itemCount(); i++) {
+          pbft_vote_bytes.push_back(_r[0][i].toInt());
+        }
+        taraxa::bufferstream strm(pbft_vote_bytes.data(),
+                                  pbft_vote_bytes.size());
+        Vote vote;
+        vote.deserialize(strm);
+        LOG(log_dg_) << "Received PBFT vote " << vote.getHash();
+
+        peer->markVoteAsKnown(vote.getHash());
+
+        auto full_node = full_node_.lock();
+        if (!full_node) {
+          LOG(log_er_) << "Full node weak pointer empty in PbftVotePacket";
+          return false;
         }
 
-        receivedBlocks += block.getHash().toString() + " ";
-        peers_[_nodeID]->m_syncBlocks[block.getHash()] = {block,
-                                                          newTransactions};
-        if (iBlock + transactionCount + 1 >= itemCount) break;
-      }
-      if (itemCount > 0) {
-        LOG(log_dg_) << "Received BlocksPacket with " << _r.itemCount()
-                     << "  blocks:" << receivedBlocks.c_str();
-        continueSync(_nodeID);
-      }
-      break;
-    }
-    case TransactionPacket: {
-      std::string receivedTransactions;
-      std::unordered_map<trx_hash_t, Transaction> transactions;
-      auto transactionCount = _r.itemCount();
-      for (auto iTransaction = 0; iTransaction < transactionCount;
-           iTransaction++) {
-        Transaction transaction(_r[iTransaction]);
-        receivedTransactions += transaction.getHash().toString() + " ";
-        peers_[_nodeID]->markTransactionAsKnown(transaction.getHash());
-        transactions[transaction.getHash()] = transaction;
-      }
-      if (transactionCount > 0) {
-        LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
-                     << " transactions:" << receivedTransactions.c_str();
-        onNewTransactions(transactions, true);
-      }
-      break;
-    }
-    case PbftVotePacket: {
-      LOG(log_dg_) << "In PbftVotePacket";
-
-      std::vector<::byte> pbft_vote_bytes;
-
-      for (auto i = 0; i < _r[0].itemCount(); i++) {
-        pbft_vote_bytes.push_back(_r[0][i].toInt());
-      }
-      taraxa::bufferstream strm(pbft_vote_bytes.data(), pbft_vote_bytes.size());
-      Vote vote;
-      vote.deserialize(strm);
-      LOG(log_dg_) << "Received PBFT vote " << vote.getHash();
-
-      peers_[_nodeID]->markVoteAsKnown(vote.getHash());
-
-      auto full_node = full_node_.lock();
-      if (!full_node) {
-        LOG(log_er_) << "PbftVote full node weak pointer empty";
-        return false;
-      }
-
-      if (!full_node->isKnownVote(vote.getHash())) {
-        full_node->setVoteKnown(vote.getHash());
-        full_node->receivedVotePushIntoQueue(vote);
-        onNewPbftVote(vote);
-      }
-
-      break;
-    }
-    case GetPbftBlockPacket: {
-      LOG(log_dg_) << "Received GetPbftBlockPacket Block";
-      const unsigned long maxBlocksInPacket = 2;
-      auto full_node = full_node_.lock();
-      if (full_node) {
-        size_t chainSize = _r[0].toInt();
-        size_t myChainSize = full_node->getPbftChainSize();
-        if (myChainSize > chainSize) {
-          int blocksToTransfer =
-              min(maxBlocksInPacket, myChainSize - chainSize);
-          sendPbftBlocks(_nodeID, chainSize, blocksToTransfer);
+        if (!full_node->isKnownVote(vote.getRound(), vote.getHash())) {
+          full_node->addVote(vote);
+          onNewPbftVote(vote);
         }
+
+        break;
       }
-      break;
-    }
-    case NewPbftBlockPacket: {
-      LOG(log_dg_) << "In NewPbftBlockPacket";
-
-      PbftBlock pbft_block(_r[0]);
-      LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
-      peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
-
-      auto full_node = full_node_.lock();
-      if (!full_node) {
-        LOG(log_er_) << "PbftBlock full node weak pointer empty";
-        return false;
+      case GetPbftBlockPacket: {
+        LOG(log_dg_) << "Received GetPbftBlockPacket Block";
+        const unsigned long maxBlocksInPacket = 2;
+        auto full_node = full_node_.lock();
+        if (full_node) {
+          size_t chainSize = _r[0].toInt();
+          size_t myChainSize = full_node->getPbftChainSize();
+          if (myChainSize > chainSize) {
+            int blocksToTransfer =
+                min(maxBlocksInPacket, myChainSize - chainSize);
+            sendPbftBlocks(_nodeID, chainSize, blocksToTransfer);
+          }
+        }
+        break;
       }
-      if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
-        // TODO: need to check block valid, like propose vote(maybe come later),
-        // if get sortition etc
-        full_node->pushPbftBlockIntoQueue(pbft_block);
-        onNewPbftBlock(pbft_block);
-      }
+      case NewPbftBlockPacket: {
+        LOG(log_dg_) << "In NewPbftBlockPacket";
 
-      break;
-    }
-    case PbftBlockPacket: {
-      LOG(log_dg_) << "In PbftBlockPacket";
-
-      auto blockCount = _r.itemCount();
-      for (auto iblock = 0; iblock < blockCount; iblock++) {
-        PbftBlock pbft_block(_r[iblock]);
+        PbftBlock pbft_block(_r[0]);
         LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
-        peers_[_nodeID]->markPbftBlockAsKnown(pbft_block.getBlockHash());
+        peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
 
         auto full_node = full_node_.lock();
         if (!full_node) {
           LOG(log_er_) << "PbftBlock full node weak pointer empty";
           return false;
         }
-        if (!full_node->isKnownPbftBlockInChain(pbft_block.getBlockHash())) {
-          // TODO: need check 2t+1 cert votes, then put into chain and store in
-          // DB. May send request for cert votes here
-          full_node->setPbftBlock(pbft_block);
+        if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
+          // TODO: need to check block valid, like propose vote(maybe come
+          // later),
+          //  if get sortition etc
+          full_node->pushPbftBlockIntoQueue(pbft_block);
+          onNewPbftBlock(pbft_block);
         }
+
+        break;
       }
-      if (blockCount > 0) syncPeerPbft(_nodeID);
-      break;
-    }
-    case TestPacket:
-      LOG(log_dg_) << "Received TestPacket";
-      ++cnt_received_messages_[_nodeID];
-      test_sums_[_nodeID] += _r[0].toInt();
-      BOOST_ASSERT(_id == TestPacket);
-      return (_id == TestPacket);
-  };
+      case PbftBlockPacket: {
+        LOG(log_dg_) << "In PbftBlockPacket";
+
+        auto blockCount = _r.itemCount();
+        for (auto iblock = 0; iblock < blockCount; iblock++) {
+          PbftBlock pbft_block(_r[iblock]);
+          LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
+          peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
+
+          auto full_node = full_node_.lock();
+          if (!full_node) {
+            LOG(log_er_) << "PbftBlock full node weak pointer empty";
+            return false;
+          }
+          if (!full_node->isKnownPbftBlockInChain(pbft_block.getBlockHash())) {
+            // TODO: need check 2t+1 cert votes, then put into chain and store
+            // in
+            //  DB. May send request for cert votes here
+            full_node->setPbftBlock(pbft_block);
+          }
+        }
+        if (blockCount > 0) syncPeerPbft(_nodeID);
+        break;
+      }
+      case TestPacket:
+        LOG(log_dg_) << "Received TestPacket";
+        ++cnt_received_messages_[_nodeID];
+        test_sums_[_nodeID] += _r[0].toInt();
+        BOOST_ASSERT(_id == TestPacket);
+        return (_id == TestPacket);
+    };
+  }
   return true;
 }
 void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
@@ -431,9 +467,10 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   cnt_received_messages_.erase(_nodeID);
   test_sums_.erase(_nodeID);
   // If syncing to the disconnected peer, find another peer to sync with
-  if (peer_syncing_ == _nodeID && peers_.size() > 0) {
+  if (peer_syncing_ == _nodeID && getPeersCount() > 0) {
     NodeID max_vertices_nodeID;
     unsigned long max_vertices_count = 0;
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto const peer : peers_) {
       if (peer.second->vertices_count_ > max_vertices_count) {
         max_vertices_count = peer.second->vertices_count_;
@@ -445,7 +482,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
       syncPeerPbft(max_vertices_nodeID);
     }
   }
-  peers_.erase(_nodeID);
+  erasePeer(_nodeID);
 }
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
@@ -459,17 +496,18 @@ void TaraxaCapability::sendStatus(NodeID const &_id) {
   if (auto full_node = full_node_.lock()) {
     LOG(log_dg_) << "Sending status message to " << _id << " "
                  << c_protocolVersion << conf_.network_id
-                 << full_node->getNumVerticesInDag().first << Dag::GENESIS;
+                 << full_node->getNumVerticesInDag().first << genesis_;
     host_.capabilityHost()->sealAndSend(
         _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
                  << c_protocolVersion << conf_.network_id
-                 << full_node->getNumVerticesInDag().first << Dag::GENESIS);
+                 << full_node->getNumVerticesInDag().first << genesis_);
   }
 }
 
 vector<NodeID> TaraxaCapability::selectPeers(
     std::function<bool(TaraxaPeer const &)> const &_predicate) {
   vector<NodeID> allowed;
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto const &peer : peers_) {
     if (_predicate(*peer.second)) allowed.push_back(peer.first);
   }
@@ -478,6 +516,7 @@ vector<NodeID> TaraxaCapability::selectPeers(
 
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
+  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto const &peer : peers_) {
     peers.push_back(peer.first);
   }
@@ -524,6 +563,7 @@ void TaraxaCapability::onNewTransactions(
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto &peer : peers_) {
       std::vector<Transaction> transactionsToSend;
       for (auto const &transaction : transactions) {
@@ -576,8 +616,8 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
     return !_peer.isBlockKnown(block.getHash());
   });
 
-  auto const peersToSendNumber =
-      std::max<std::size_t>(c_minBlockBroadcastPeers, std::sqrt(peers_.size()));
+  auto const peersToSendNumber = std::max<std::size_t>(
+      c_minBlockBroadcastPeers, std::sqrt(getPeersCount()));
 
   std::vector<NodeID> peersToSend;
   std::vector<NodeID> peersToAnnounce;
@@ -586,10 +626,10 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
 
   for (NodeID const &peerID : peersToSend) {
     RLPStream ts;
-    auto itPeer = peers_.find(peerID);
-    if (itPeer != peers_.end()) {
+    auto peer = getPeer(peerID);
+    if (peer) {
       sendBlock(peerID, block, true);
-      itPeer->second->markBlockAsKnown(block.getHash());
+      peer->markBlockAsKnown(block.getHash());
     }
   }
   if (!peersToSend.empty())
@@ -597,10 +637,10 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
 
   for (NodeID const &peerID : peersToAnnounce) {
     RLPStream ts;
-    auto itPeer = peers_.find(peerID);
-    if (itPeer != peers_.end()) {
+    auto peer = getPeer(peerID);
+    if (peer) {
       sendBlockHash(peerID, block);
-      itPeer->second->markBlockAsKnown(block.getHash());
+      peer->markBlockAsKnown(block.getHash());
     }
   }
   if (!peersToAnnounce.empty())
@@ -657,7 +697,8 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
   vec_trx_t transactionsToSend;
   if (newBlock) {
     for (auto trx : block.getTrxs()) {
-      if (!peers_[_id]->isTransactionKnown(trx))
+      auto peer = getPeer(_id);
+      if (peer && !peer->isTransactionKnown(trx))
         transactionsToSend.push_back(trx);
     }
     host_.capabilityHost()->prep(_id, name(), s, NewBlockPacket,
@@ -704,7 +745,8 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
   else
     host_.capabilityHost()->prep(_id, name(), s, GetBlockPacket, 1);
   s.append(hash);
-  peers_[_id]->setAsking(true);
+  auto peer = getPeer(_id);
+  if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -715,7 +757,8 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << pbftChainSize;
   LOG(log_dg_) << "Sending GetPbftBlockPacket with size: " << pbftChainSize;
-  peers_[_id]->setAsking(true);
+  auto peer = getPeer(_id);
+  if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -729,7 +772,8 @@ void TaraxaCapability::requestBlocksLevel(NodeID const &_id,
   s << number_of_levels;
   LOG(log_dg_) << "Sending GetBlocksLevelPacket of level:" << level << " "
                << number_of_levels;
-  peers_[_id]->setAsking(true);
+  auto peer = getPeer(_id);
+  if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 

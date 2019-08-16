@@ -40,14 +40,14 @@ OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash, Wit
 {
     fs::path path = _basePath.empty() ? db::databasePath() : _basePath;
 
+    path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / //fs::path(toString(c_databaseVersion));
+        fs::path(toString(9 + (23 << 9))); // copied from libethcore/Common.c
     if (db::isDiskDatabase() && _we == WithExisting::Kill)
     {
         clog(VerbosityDebug, "statedb") << "Killing state database (WithExisting::Kill).";
         fs::remove_all(path / fs::path("state"));
     }
 
-    path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) / //fs::path(toString(c_databaseVersion));
-        fs::path(toString(9 + (23 << 9))); // copied from libethcore/Common.c
     if (db::isDiskDatabase())
     {
         fs::create_directories(path);
@@ -289,7 +289,7 @@ bool State::addressHasCode(Address const& _id) const
         return false;
 }
 
-taraxa::bal_t State::balance(Address const &_id) const
+taraxa::val_t State::balance(Address const &_id) const
 {
     if (auto a = account(_id))
         return a->balance();
@@ -323,7 +323,7 @@ void State::setNonce(Address const& _addr, u256 const& _newNonce)
         createAccount(_addr, Account(_newNonce, 0));
 }
 
-void State::addBalance(Address const& _id, taraxa::bal_t const& _amount)
+void State::addBalance(Address const& _id, taraxa::val_t const& _amount)
 {
     if (Account* a = account(_id))
     {
@@ -348,7 +348,7 @@ void State::addBalance(Address const& _id, taraxa::bal_t const& _amount)
         m_changeLog.emplace_back(Change::Balance, _id, _amount);
 }
 
-void State::subBalance(Address const& _addr, taraxa::bal_t const& _value)
+void State::subBalance(Address const& _addr, taraxa::val_t const& _value)
 {
     if (_value == 0)
         return;
@@ -362,10 +362,10 @@ void State::subBalance(Address const& _addr, taraxa::bal_t const& _value)
     addBalance(_addr, 0 - _value);
 }
 
-void State::setBalance(Address const& _addr, taraxa::bal_t const& _value)
+void State::setBalance(Address const& _addr, taraxa::val_t const& _value)
 {
     Account* a = account(_addr);
-    taraxa::bal_t original = a ? a->balance() : 0;
+    taraxa::val_t original = a ? a->balance() : 0;
 
     // Fall back to addBalance().
     addBalance(_addr, _value - original);
@@ -556,7 +556,7 @@ void State::rollback(size_t _savepoint)
             account.setStorageRoot(change.value);
             break;
         case Change::Balance:
-            account.addBalance(0 - (taraxa::bal_t)change.value);
+            account.addBalance(0 - (taraxa::val_t)change.value);
             break;
         case Change::Nonce:
             account.setNonce(change.value);

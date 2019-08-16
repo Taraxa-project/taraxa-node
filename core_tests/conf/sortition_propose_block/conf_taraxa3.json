@@ -1,6 +1,6 @@
 {
   "node_secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
-  "db_path": "/tmp/taraxa3",
+  "db_path": "/tmp/taraxa_sortition_propose_block3",
   "dag_processing_threads": 1,
   "network_address": "127.0.0.1",
   "network_listen_port": 10004,
@@ -16,6 +16,7 @@
   ],
   "network_id": "testnet",
   "rpc_port": 7779,
+  "ws_port": 8779,
   "pbft_manager": {
     "lambda_ms": 1000
   },
@@ -28,8 +29,26 @@
     ],
     "pbft": [
       1000,
-      0,
-      0
+      3,
+      10000
     ]
+  },
+  "genesis_state": {
+    "account_start_nonce": 0,
+    "block": {
+      "level": 0,
+      "tips": [],
+      "trxs": [],
+      "sig": "",
+      "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
+      "sender": "",
+      "timestamp": 1564617600
+    },
+    "accounts": {
+      "de2b1203d72d3549ee2f733b00b2789414c7cea5": {
+        "balance": 9007199254740991
+      }
+    }
   }
 }

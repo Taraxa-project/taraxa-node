@@ -141,8 +141,9 @@ class TaraxaPeer : public boost::noncopyable {
 
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
-  TaraxaCapability(Host &_host, NetworkConfig &_conf)
-      : Worker("taraxa"), host_(_host), conf_(_conf) {
+  TaraxaCapability(Host &_host, NetworkConfig &_conf,
+                   std::string const &genesis)
+      : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -207,6 +208,13 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendPbftBlocks(NodeID const &_id, size_t chainSize,
                       size_t blocksToTransfer);
 
+  // Peers
+  std::shared_ptr<TaraxaPeer> getPeer(NodeID const &node_id);
+  unsigned int getPeersCount();
+  void erasePeer(NodeID const &node_id);
+  void insertPeer(NodeID const &node_id,
+                  std::shared_ptr<TaraxaPeer> const &peer);
+
  private:
   Host &host_;
   std::unordered_map<NodeID, int> cnt_received_messages_;
@@ -225,12 +233,14 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::weak_ptr<FullNode> full_node_;
 
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
+  mutable boost::shared_mutex peers_mutex_;
   NetworkConfig conf_;
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
   unsigned long max_peer_vertices_ = 0;
   NodeID peer_syncing_;
+  std::string genesis_;
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;

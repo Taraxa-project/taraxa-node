@@ -37,7 +37,7 @@ ENV ROCKSDB_VERSION="$rocksdb_version"
 RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
     && unzip v$rocksdb_version.zip -d /tmp \
     && cd /tmp/rocksdb-$rocksdb_version \
-    && make shared_lib -j `nproc` \
+    && make shared_lib PORTABLE=1 -j `nproc` \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
 

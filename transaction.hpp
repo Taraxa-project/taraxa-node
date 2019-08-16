@@ -33,16 +33,20 @@ class FullNode;
 
 enum class TransactionStatus {
   invalid,
-  in_block,  // confirmed state, inside of block created by us or someone else
+  nonce_gap,  // nonce has gap, need to re-verify later
+  in_block,   // confirmed state, inside of block created by us or someone else
   in_queue_unverified,  // not packed yet
   in_queue_verified,    // not packed yet
   unseen
 };
+
 /**
  * simple thread_safe hash
  * keep track of transaction state
  */
 using TransactionStatusTable = StatusTable<trx_hash_t, TransactionStatus>;
+using TransactionUnsafeStatusTable = TransactionStatusTable::UnsafeStatusTable;
+using AccountNonceTable = StatusTable<addr_t, uint>;
 
 /**
  * Note:
@@ -56,16 +60,16 @@ class Transaction {
   Transaction(::taraxa_grpc::ProtoTransaction const &t)
       : hash_(t.hash()),
         type_(toEnum<Type>(t.type())),
-        nonce_(stoull(t.nonce())),
-        value_(stoull(t.value())),
+        nonce_(val_t(t.nonce())),
+        value_(val_t(t.value())),
         gas_price_(t.gas_price()),
         gas_(t.gas()),
         receiver_(t.receiver()),
         sig_(t.sig()),
         data_(str2bytes(t.data())) {}
   // default constructor
-  Transaction(trx_hash_t const &hash, Type type, bal_t const &nonce,
-              bal_t const &value, val_t const &gas_price, val_t const &gas,
+  Transaction(trx_hash_t const &hash, Type type, val_t const &nonce,
+              val_t const &value, val_t const &gas_price, val_t const &gas,
               addr_t const &receiver, sig_t const &sig, bytes const &data) try
       : hash_(hash),
         type_(type),
@@ -81,7 +85,7 @@ class Transaction {
   }
 
   // sign message call
-  Transaction(bal_t const &nonce, bal_t const &value, val_t const &gas_price,
+  Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
               val_t const &gas, addr_t const &receiver, bytes const &data,
               secret_t const &sk) try : type_(Transaction::Type::Call),
                                         nonce_(nonce),
@@ -97,7 +101,7 @@ class Transaction {
   }
 
   // sign contract create
-  Transaction(bal_t const &nonce, bal_t const &value, val_t const &gas_price,
+  Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
               val_t const &gas, bytes const &data, secret_t const &sk) try
       : type_(Transaction::Type::Create),
         nonce_(nonce),
@@ -114,12 +118,16 @@ class Transaction {
   Transaction(Transaction const &trx) = default;
   Transaction(stream &strm);
   Transaction(string const &json);
+  Transaction(bytes const &_rlp);
+  // TODO: Modify, this uses different RLP for transaction sync, we should only
+  // use one RLP format
   Transaction(dev::RLP const &_r);
+  // TODO: Remove and use unique RLP for everything
   void serializeRLP(dev::RLPStream &s);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
-  bal_t getNonce() const { return nonce_; }
-  bal_t getValue() const { return value_; }
+  val_t getNonce() const { return nonce_; }
+  val_t getValue() const { return value_; }
   val_t getGasPrice() const { return gas_price_; }
   val_t getGas() const { return gas_; }
   addr_t getSender() const { return sender(); }
@@ -160,24 +168,29 @@ class Transaction {
     }
   }
   bool verifySig() const;
+  bool hasSig() const { return vrs_.is_initialized(); }
+  bool hasZeroSig() const { return vrs_ && isZeroSig(vrs_->r, vrs_->s); }
+  bool isZeroSig(val_t const &r, val_t const &s) const { return !r && !s; }
+  // Serialises this transaction to an RLPStream.
+  void streamRLP(dev::RLPStream &s, bool include_sig,
+                 bool _forEip155hash = false) const;
 
  protected:
-  // Serialises this transaction to an RLPStream.
-  void streamRLP(dev::RLPStream &s, bool include_sig) const;
   // @returns the RLP serialisation of this transaction.
   bytes rlp(bool include_sig) const;
   // @returns the SHA3 hash of the RLP serialisation of this transaction.
   blk_hash_t sha3(bool include_sig) const;
   trx_hash_t hash_;
   Type type_ = Type::Null;
-  bal_t nonce_ = 0;
-  bal_t value_ = 0;
+  val_t nonce_ = 0;
+  val_t value_ = 0;
   val_t gas_price_;
   val_t gas_;
   addr_t receiver_;
   sig_t sig_;
   bytes data_;
-
+  boost::optional<dev::SignatureStruct> vrs_;
+  int chain_id_ = -4;
   mutable addr_t cached_sender_;  ///< Cached sender, determined from signature.
 };
 
@@ -191,19 +204,18 @@ class Transaction {
 
 class TransactionQueue {
  public:
-  struct SizeLimit {
-    size_t current = 1024;
-    size_t future = 1024;
-  };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
-  TransactionQueue(TransactionStatusTable &status, size_t num_verifiers)
-      : trx_status_(status), num_verifiers_(num_verifiers) {}
-  TransactionQueue(TransactionStatusTable &status, size_t num_verifiers,
+  TransactionQueue(TransactionStatusTable &status,
+                   AccountNonceTable &accs_nonce, size_t num_verifiers)
+      : trx_status_(status),
+        accs_nonce_(accs_nonce),
+        num_verifiers_(num_verifiers) {}
+  TransactionQueue(TransactionStatusTable &status,
+                   AccountNonceTable &accs_nonce, size_t num_verifiers,
                    unsigned current_capacity, unsigned future_capacity)
       : trx_status_(status),
-        num_verifiers_(num_verifiers),
-        current_capacity_(current_capacity),
-        future_capacity_(future_capacity) {}
+        accs_nonce_(accs_nonce),
+        num_verifiers_(num_verifiers) {}
   ~TransactionQueue() {
     if (!stopped_) {
       stop();
@@ -221,7 +233,7 @@ class TransactionQueue {
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -229,35 +241,34 @@ class TransactionQueue {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using listIter = std::list<Transaction>::iterator;
-  void verifyTrx();
+  void verifyQueuedTrxs();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions = true;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
-  unsigned current_capacity_ = 1024;
-  unsigned future_capacity_ = 1024;
+  AccountNonceTable &accs_nonce_;
 
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
-  boost::shared_mutex shared_mutex_for_queued_trxs_;
+  mutable boost::shared_mutex shared_mutex_for_queued_trxs_;
 
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
-  boost::shared_mutex shared_mutex_for_verified_qu_;
+  mutable boost::shared_mutex shared_mutex_for_verified_qu_;
 
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
-  boost::shared_mutex shared_mutex_for_unverified_qu_;
+  mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
 
   std::vector<std::thread> verifiers_;
 
-  dev::Logger log_er_{
+  mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXQU")};
-  dev::Logger log_wr_{
+  mutable dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXQU")};
-  dev::Logger log_nf_{
+  mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXQU")};
-  dev::Logger log_dg_{
+  mutable dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXQU")};
 };
 
@@ -276,11 +287,14 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager()
-      : trx_status_(), trx_qu_(trx_status_, 8 /*num verifiers*/) {}
+      : trx_status_(),
+        accs_nonce_(),
+        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
       : db_trxs_(db_trx),
         trx_status_(),
-        trx_qu_(trx_status_, 8 /*num verifiers*/) {}
+        accs_nonce_(),
+        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -296,8 +310,7 @@ class TransactionManager
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
   bool insertTrx(Transaction trx, bool critical);
-  void setPackedTrxFromBlock(DagBlock const &dag_block);
-  void setPackedTrxFromBlockHash(blk_hash_t blk);
+
   /**
    * The following function will require a lock for verified qu
    */
@@ -314,8 +327,8 @@ class TransactionManager
   bool verifyBlockTransactions(DagBlock const &blk,
                                std::vector<Transaction> const &trxs);
 
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash);
-  unsigned long getTransactionStatusCount();
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+  unsigned long getTransactionStatusCount() const;
   bool isTransactionVerified(trx_hash_t const &hash) {
     // in_block means in db, i.e., already verified
     auto status = trx_status_.get(hash);
@@ -328,6 +341,11 @@ class TransactionManager
       std::vector<Transaction> const &some_trxs);
   void clearTransactionStatusTable() { trx_status_.clear(); }
 
+  // debugging purpose
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const {
+    return trx_status_.getThreadUnsafeCopy();
+  }
+
  private:
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
@@ -335,14 +353,15 @@ class TransactionManager
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   TransactionStatusTable trx_status_;
+  AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
-  dev::Logger log_er_{
+  mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
-  dev::Logger log_wr_{
+  mutable dev::Logger log_wr_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXMGR")};
-  dev::Logger log_nf_{
+  mutable dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXMGR")};
-  dev::Logger log_dg_{
+  mutable dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXMGR")};
 };
 

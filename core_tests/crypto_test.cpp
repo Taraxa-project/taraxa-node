@@ -18,8 +18,10 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <string>
+#include "core_tests/util.hpp"
 
 namespace taraxa {
+using namespace core_tests::util;
 using std::string;
 
 TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
@@ -75,11 +77,10 @@ TEST(EthereumCrypto, sortition_rate) {
   uint64_t total_coins = 9007199254740991;
   uint64_t number_of_players = 100;
   uint64_t account_balance = total_coins / number_of_players;
+  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  cfg.genesis_state.accounts[addr(cfg.node_secret)] = {account_balance};
   boost::asio::io_context context;
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  addr_t account_address = node->getAddress();
-  node->setBalance(account_address, account_balance);
+  auto node(std::make_shared<FullNode>(context, cfg, true));
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;

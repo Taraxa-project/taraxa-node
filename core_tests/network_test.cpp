@@ -43,8 +43,10 @@ Test creates two Network setup and verifies sending block
 between is successfull
 */
 TEST(Network, transfer_block) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
+  std::shared_ptr<Network> nw1(new taraxa::Network(
+      g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(
+      g_conf2.network, g_conf2.genesis_state.block.getHash().toString()));
 
   nw1->start();
   nw2->start();
@@ -81,8 +83,10 @@ Test creates two Network setup and verifies sending transaction
 between is successfull
 */
 TEST(Network, transfer_transaction) {
-  std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
-  std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
+  std::shared_ptr<Network> nw1(new taraxa::Network(
+      g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(
+      g_conf2.network, g_conf2.genesis_state.block.getHash().toString()));
 
   nw1->start(true);
   nw2->start();
@@ -143,9 +147,12 @@ connections even with boot nodes down
 */
 TEST(Network, save_network) {
   {
-    std::shared_ptr<Network> nw1(new taraxa::Network(g_conf1.network));
-    std::shared_ptr<Network> nw2(new taraxa::Network(g_conf2.network));
-    std::shared_ptr<Network> nw3(new taraxa::Network(g_conf3.network));
+    std::shared_ptr<Network> nw1(new taraxa::Network(
+        g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
+    std::shared_ptr<Network> nw2(new taraxa::Network(
+        g_conf2.network, g_conf2.genesis_state.block.getHash().toString()));
+    std::shared_ptr<Network> nw3(new taraxa::Network(
+        g_conf3.network, g_conf3.genesis_state.block.getHash().toString()));
 
     nw1->start(true);
     nw2->start();
@@ -171,9 +178,11 @@ TEST(Network, save_network) {
   }
 
   std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2.network, "/tmp/nw2"));
+      new taraxa::Network(g_conf2.network, "/tmp/nw2",
+                          g_conf2.genesis_state.block.getHash().toString()));
   std::shared_ptr<Network> nw3(
-      new taraxa::Network(g_conf3.network, "/tmp/nw3"));
+      new taraxa::Network(g_conf3.network, "/tmp/nw3",
+                          g_conf2.genesis_state.block.getHash().toString()));
   nw2->start();
   nw3->start();
 
@@ -261,8 +270,8 @@ TEST(Network, node_sync) {
 
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(blk_hash_t(0), 1, {}, {}, sig_t(777), blk_hash_t(1),
-                addr_t(999));
+  DagBlock blk1(node1->getConfig().genesis_state.block.getHash(), 1, {}, {},
+                sig_t(777), blk_hash_t(1), addr_t(999));
 
   DagBlock blk2(blk_hash_t(01), 2, {}, {}, sig_t(777), blk_hash_t(02),
                 addr_t(999));
@@ -346,17 +355,19 @@ TEST(Network, node_pbft_sync) {
   addr_t beneficiary(10);
 
   PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
-                         timestamp1, beneficiary);
+                         beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
+  pbft_block1.setTimestamp(timestamp1);
 
   uint64_t timestamp2 = 333333;
   TrxSchedule schedule;
   blk_hash_t prev_pivot(1);
-  ScheduleBlock schedule_blk(prev_pivot, timestamp2, schedule);
+  ScheduleBlock schedule_blk(prev_pivot, schedule);
 
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
+  pbft_block2.setTimestamp(timestamp2);
 
   blks.push_back(pbft_block1);
   blks.push_back(pbft_block2);
@@ -404,7 +415,7 @@ TEST(Network, node_sync_with_transactions) {
   std::vector<DagBlock> blks;
 
   DagBlock blk1(
-      blk_hash_t(0), 1, {},
+      node1->getConfig().genesis_state.block.getHash(), 1, {},
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
       sig_t(777), blk_hash_t(1), addr_t(999));
   std::vector<Transaction> tr1(
@@ -494,12 +505,12 @@ TEST(Network, node_sync2) {
   std::vector<DagBlock> blks;
 
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
-  DagBlock blk1(blk_hash_t(0), 1, {},
+  DagBlock blk1(node1->getConfig().genesis_state.block.getHash(), 1, {},
                 {transactions[0].getHash(), transactions[1].getHash()},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
 
-  DagBlock blk2(blk_hash_t(0), 1, {},
+  DagBlock blk2(node1->getConfig().genesis_state.block.getHash(), 1, {},
                 {transactions[2].getHash(), transactions[3].getHash()},
                 sig_t(777), blk_hash_t(0xB2), addr_t(999));
   std::vector<Transaction> tr2({transactions[2], transactions[3]});
@@ -666,6 +677,7 @@ intervals on randomly selected nodes It verifies that the blocks created from
 these transactions which get created on random nodes are synced and the
 resulting DAG is the same on all nodes
 */
+// fixme: flaky
 TEST(Network, node_full_sync) {
   const int numberOfNodes = 5;
   boost::asio::io_context context1;
