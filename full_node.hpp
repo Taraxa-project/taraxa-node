@@ -152,6 +152,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   // get transaction schecules stuff ...
+  // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
     return trx_order_mgr_->getDagBlockFromTransaction(trx);
   }
@@ -181,6 +182,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
   std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
+  }
+  std::shared_ptr<StateRegistry> getStateRegistry() const {
+    return state_registry_;
   }
   std::shared_ptr<StateRegistry::State> updateAndGetState() const {
     state_registry_->rebase(*state_);

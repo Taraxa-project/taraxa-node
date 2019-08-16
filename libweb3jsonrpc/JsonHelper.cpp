@@ -21,12 +21,12 @@
  */
 
 #include "JsonHelper.h"
-
 #include <libethcore/SealEngine.h>
 //#include <libethereum/Client.h>
 #include <jsonrpccpp/common/exception.h>
 #include <libethcore/CommonJS.h>
 #include <libwebthree/WebThree.h>
+
 using namespace std;
 using namespace dev;
 using namespace eth;
@@ -74,22 +74,23 @@ Json::Value toJson(p2p::PeerSessionInfo const& _p) {
 // taraxa
 // ////////////////////////////////////////////////////////////////////////////////
 
-Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t) {
+Json::Value toJson(taraxa::Transaction const& _t,
+                   optional<taraxa::TransactionPosition> const& pos) {
   Json::Value tr_js;
-  tr_js["hash"] = toJS(_t->getHash());
-  // It seems that it is expected by block explorer for input to be 0x0 if no
-  // input
-  if (_t->getData().size() > 0)
-    tr_js["input"] = toJS(_t->getData());
-  else
-    tr_js["input"] = toJS(0);
-  tr_js["to"] = toJS(_t->getReceiver());
-  tr_js["from"] = toJS(_t->getSender());
-  tr_js["gas"] = toJS(_t->getGas());
-  tr_js["gasPrice"] = toJS(_t->getGasPrice());
-  tr_js["nonce"] = toJS(_t->getNonce());
-  tr_js["value"] = toJS(_t->getValue());
-  dev::SignatureStruct sig(_t->getSig());
+  if (pos) {
+    tr_js["blockNumber"] = toJS(pos->block_number);
+    tr_js["blockHash"] = toJS(pos->block_hash);
+    tr_js["transactionIndex"] = toJS(pos->transaction_index);
+  }
+  tr_js["hash"] = toJS(_t.getHash());
+  tr_js["input"] = toHexPrefixed(_t.getData());
+  tr_js["to"] = toJS(_t.getReceiver());
+  tr_js["from"] = toJS(_t.getSender());
+  tr_js["gas"] = toJS(_t.getGas());
+  tr_js["gasPrice"] = toJS(_t.getGasPrice());
+  tr_js["nonce"] = toJS(_t.getNonce());
+  tr_js["value"] = toJS(_t.getValue());
+  dev::SignatureStruct sig(_t.getSig());
   tr_js["v"] = toJS(sig.v);
   tr_js["r"] = toJS(sig.r);
   tr_js["s"] = toJS(sig.s);
@@ -113,7 +114,7 @@ Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block,
   res["logsBloom"] = "";
   res["timestamp"] = toJS(block->getTimestamp());
   res["author"] = toJS(block->getSender());
-  res["miner"] = toJS(block->getSender());;
+  res["miner"] = toJS(block->getSender());
   res["nonce"] = "0x7bb9369dcbaec019";
   res["sha3Uncles"] = "0x0";
   res["difficulty"] = "0x0";

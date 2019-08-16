@@ -30,10 +30,6 @@ namespace taraxa {
 class FullNode;
 
 class Executor {
- public:
-  inline static const auto MOCK_BLOCK_GAS_LIMIT =
-      std::numeric_limits<uint64_t>::max();
-
  private:
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;

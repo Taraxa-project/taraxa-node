@@ -26,6 +26,7 @@
 #include <libethcore/Common.h>
 #include <libethereum/TransactionReceipt.h>
 #include <libp2p/Common.h>
+#include <optional>
 #include "../transaction.hpp"
 
 namespace dev {
@@ -33,8 +34,14 @@ namespace dev {
 Json::Value toJson(std::map<h256, std::pair<u256, u256>> const& _storage);
 Json::Value toJson(std::unordered_map<u256, u256> const& _storage);
 Json::Value toJson(Address const& _address);
-Json::Value toJson(std::shared_ptr<::taraxa::Transaction> _t);
-Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block, uint64_t block_height);
+Json::Value toJson(
+    taraxa::Transaction const&,
+    std::optional<taraxa::TransactionPosition> const& = std::nullopt);
+// fixme: DEPRECATED
+Json::Value toJson(std::shared_ptr<::taraxa::DagBlock> block,
+                   uint64_t block_height);
+
+inline auto const JSON_NULL = Json::Value();
 
 namespace p2p {
 

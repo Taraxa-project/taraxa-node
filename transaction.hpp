@@ -171,11 +171,11 @@ class Transaction {
   bool hasSig() const { return vrs_.is_initialized(); }
   bool hasZeroSig() const { return vrs_ && isZeroSig(vrs_->r, vrs_->s); }
   bool isZeroSig(val_t const &r, val_t const &s) const { return !r && !s; }
-
- protected:
   // Serialises this transaction to an RLPStream.
   void streamRLP(dev::RLPStream &s, bool include_sig,
                  bool _forEip155hash = false) const;
+
+ protected:
   // @returns the RLP serialisation of this transaction.
   bytes rlp(bool include_sig) const;
   // @returns the SHA3 hash of the RLP serialisation of this transaction.

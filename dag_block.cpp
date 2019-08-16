@@ -42,6 +42,7 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
 DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
+  // fixme: error swallowing. remove the try block
   try {
     level_ = level_t(doc.get<level_t>("level"));
     tips_ = asVector<blk_hash_t, std::string>(doc, "tips");

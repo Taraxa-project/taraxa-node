@@ -102,6 +102,7 @@ using dag_blk_num_t = uint64_t;
 
 using vec_blk_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
+using trx_num_t = vec_trx_t::size_type;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
@@ -123,6 +124,27 @@ unsigned long getTimePoint2Long(time_point_t tp);
 
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
+
+struct StateSnapshot {
+  dag_blk_num_t block_number;
+  blk_hash_t block_hash;
+  root_t state_root;
+
+  bool operator==(StateSnapshot const &s) const {
+    return block_number == s.block_number && block_hash == s.block_hash &&
+           state_root == s.state_root;
+  }
+  bool operator!=(StateSnapshot const &s) const { return !operator==(s); }
+};
+
+struct TransactionPosition {
+  dag_blk_num_t block_number;
+  blk_hash_t block_hash;
+  trx_num_t transaction_index;
+};
+
+inline static const auto MOCK_BLOCK_GAS_LIMIT =
+    std::numeric_limits<val_t>::max();
 
 }  // namespace taraxa
 
