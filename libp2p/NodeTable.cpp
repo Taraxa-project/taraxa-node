@@ -291,7 +291,7 @@ void NodeTable::ping(NodeEntry const& _nodeEntry,
                      boost::optional<NodeID> const& _replacementNodeID) {
   m_timers->schedule(0, [this, _nodeEntry, _replacementNodeID](
                            boost::system::error_code const& _ec) {
-    if (_ec || m_timers.isStopped()) return;
+    if (_ec || m_timers->isStopped()) return;
 
     NodeIPEndpoint src;
     src = m_hostNodeEndpoint;
