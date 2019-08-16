@@ -344,7 +344,8 @@ void FullNode::stop() {
   dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
   blk_mgr_->stop();
-  network_->stop();
+  // Do not stop network_, o.w. restart node will crash	  network_->stop();
+  // network_->stop();
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
@@ -498,11 +499,16 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
 
 std::shared_ptr<Transaction> FullNode::getTransaction(
     trx_hash_t const &hash) const {
-  assert(trx_mgr_);
+  if (stopped_ || !trx_mgr_) {
+    return nullptr;
+  }
   return trx_mgr_->getTransaction(hash);
 }
 
 unsigned long FullNode::getTransactionStatusCount() const {
+  if (stopped_ || !trx_mgr_) {
+    return 0;
+  }
   return trx_mgr_->getTransactionStatusCount();
 }
 
@@ -699,12 +705,18 @@ void FullNode::drawGraph(std::string const &dotfile) const {
 
 std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
     bool onlyNew) {
+  if (stopped_ || !trx_mgr_) {
+    return std::unordered_map<trx_hash_t, Transaction>();
+  }
   return trx_mgr_->getNewVerifiedTrxSnapShot(onlyNew);
 }
 
 void FullNode::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
     std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+  if (stopped_ || !trx_mgr_) {
+    return;
+  }
   for (auto const &trx : transactions) {
     trx_mgr_->insertTrx(trx.second, false /* critical */);
     LOG(log_time_dg_) << "Transaction " << trx.second.getHash()
