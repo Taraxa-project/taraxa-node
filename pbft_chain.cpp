@@ -690,6 +690,8 @@ void PbftChain::pbftVerifiedQueuePopFront() {
 }
 
 void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
+  LOG(log_inf_) << "get pbft block " << pbft_block.getBlockHash()
+                << " from peer and push into verified queue";
   uniqueLock_ lock(access_);
   pbft_verified_queue_.emplace_back(pbft_block);
   pbft_verified_set_.insert(pbft_block.getBlockHash());

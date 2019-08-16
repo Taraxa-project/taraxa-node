@@ -109,6 +109,10 @@ void PbftManager::run() {
   LOG(log_inf_) << "Initialize 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
                 << sortition_threshold_;
 
+  // Sometimes network doesn't sync pbft chain well, do syncing here hope could
+  // solve pbft chain out of sync issue
+  syncPbftChainFromPeers_();
+
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round;
@@ -172,7 +176,7 @@ void PbftManager::run() {
       continue;
     }
 
-    next_pbft_block_type_ = pbft_chain_->getNextPbftBlockType();
+    PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
     if (pbft_step_ == 1) {
       // Value Proposal
@@ -186,7 +190,7 @@ void PbftManager::run() {
                    (pbft_round_ >= 2 &&
                     nullBlockNextVotedForRound_(votes, pbft_round_ - 1))) {
           // PBFT CS block only be proposed once in one period
-          if (next_pbft_block_type_ != schedule_block_type ||
+          if (next_pbft_block_type != schedule_block_type ||
               !proposed_block_hash_.second) {
             // Propose value...
             proposed_block_hash_ = proposeMyPbftBlock_();
@@ -271,7 +275,7 @@ void PbftManager::run() {
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            (next_pbft_block_type_ != schedule_block_type ||
+            (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           cert_voted_values_for_round[pbft_round_] =
@@ -340,7 +344,7 @@ void PbftManager::run() {
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            (next_pbft_block_type_ != schedule_block_type ||
+            (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
@@ -402,7 +406,7 @@ void PbftManager::run() {
             softVotedBlockForRound_(votes, pbft_round_);
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            (next_pbft_block_type_ != schedule_block_type ||
+            (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
           LOG(log_deb_) << "Next voting "
@@ -646,7 +650,8 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
   PbftBlock pbft_block;
-  if (next_pbft_block_type_ == pivot_block_type) {
+  PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+  if (next_pbft_block_type == pivot_block_type) {
     LOG(log_deb_) << "Into propose anchor block";
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -684,7 +689,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
-  } else if (next_pbft_block_type_ == schedule_block_type) {
+  } else if (next_pbft_block_type == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
     // get dag block hash from the last pbft block(pivot) in pbft chain
     blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -757,7 +762,8 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
   std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_);
-  LOG(log_deb_) << "leader block type should be: " << next_pbft_block_type_;
+  LOG(log_deb_) << "leader block type should be: "
+                << pbft_chain_->getNextPbftBlockType();
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
@@ -842,9 +848,10 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
     return false;
   }
   PbftBlockTypes cert_voted_block_type = cert_voted_block.first.getBlockType();
-  if (next_pbft_block_type_ != cert_voted_block_type) {
+  PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+  if (next_pbft_block_type != cert_voted_block_type) {
     LOG(log_inf_) << "Pbft chain next pbft block type should be "
-                  << next_pbft_block_type_ << " Invalid pbft block type "
+                  << next_pbft_block_type << " Invalid pbft block type "
                   << cert_voted_block.first.getBlockType();
     return false;
   }
@@ -883,7 +890,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
 void PbftManager::syncPbftChainFromPeers_() {
   vector<NodeID> peers = capability_->getAllPeers();
   if (peers.empty()) {
-    LOG(log_err_) << "There is no peers with connection.";
+    LOG(log_inf_) << "There is no peers with connection.";
   } else {
     for (auto &peer : peers) {
       LOG(log_inf_) << "In round " << pbft_round_
@@ -975,6 +982,8 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
 void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
   while (!pbft_chain_->pbftVerifiedQueueEmpty()) {
     PbftBlock pbft_block = pbft_chain_->pbftVerifiedQueueFront();
+    LOG(log_inf_) << "Pick pbft block " << pbft_block.getBlockHash()
+                  << " from verified queue";
     if (!pushPbftBlockIntoChain_(pbft_block)) {
       break;
     }
@@ -988,8 +997,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return false;
   }
-
-  if (next_pbft_block_type_ == pivot_block_type) {
+  PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+  if (next_pbft_block_type == pivot_block_type) {
     if (pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       // reset proposed PBFT block hash to False for next CS block proposal
       proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1011,7 +1020,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
       return true;
     }
-  } else if (next_pbft_block_type_ == schedule_block_type) {
+  } else if (next_pbft_block_type == schedule_block_type) {
     if (comparePbftCSblockWithDAGblocks_(pbft_block)) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
         updatePbftChainDB_(pbft_block);
