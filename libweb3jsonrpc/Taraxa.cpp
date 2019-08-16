@@ -337,11 +337,9 @@ Taraxa::NodePtr Taraxa::tryGetNode() {
 optional<StateSnapshot> Taraxa::getSnapshot(NodePtr const& node,
                                             BlockNumber const& num) {
   switch (num.kind) {
-    case BlockNumber::Kind::earliest:
-    case BlockNumber::Kind::specific: {
-      auto const& state = getState(node, num);
-      return state ? optional(state->getSnapshot()) : nullopt;
-    }
+    case BlockNumber::Kind::latest:
+    case BlockNumber::Kind::pending:
+      return node->getStateRegistry()->getCurrentSnapshot();
     default:
       return node->getStateRegistry()->getSnapshot(*num.block_number);
   }
@@ -353,8 +351,7 @@ shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
     case BlockNumber::Kind::latest:
     case BlockNumber::Kind::pending:
       return node->updateAndGetState();
-    case BlockNumber::Kind::earliest:
-    case BlockNumber::Kind::specific: {
+    default: {
       // TODO cache
       auto state = node->getStateRegistry()->getState(*num.block_number);
       return state ? make_shared<StateRegistry::State>(*state) : nullptr;
