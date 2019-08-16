@@ -7,5 +7,5 @@ google/obj
 obj/
 obj-d/
 .idea/*
+
 dockerfiles/scripts/env_variables\.sh
-cmake-*

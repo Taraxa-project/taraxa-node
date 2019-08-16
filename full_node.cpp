@@ -24,7 +24,6 @@
 
 namespace taraxa {
 
-using boost::property_tree::ptree;
 using std::string;
 using std::to_string;
 using util::eth::newDB;

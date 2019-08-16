@@ -9,4 +9,3 @@ submodules/cryptopp/adhoc.cpp
 submodules/cryptopp/libcryptopp.a
 test_build/
 obj/
-cmake-*/

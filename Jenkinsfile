@@ -42,11 +42,7 @@ pipeline {
             }
             steps {
                 sh 'git submodule update --init --recursive'
-                sh '''
-                    export VERBOSE=1
-                    rm -rf build && mkdir build && cd build && cmake ..\
-                    && cmake --build . --target run_test -j `nproc`
-                '''
+                sh 'make run_test'
             }
         }
         stage('Build Docker Image') {
