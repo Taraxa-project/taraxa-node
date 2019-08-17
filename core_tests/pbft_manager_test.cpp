@@ -33,7 +33,7 @@ auto g_mock_dag0 = samples::createMockDag0();
 struct PbftManagerTest : public DBUsingTest<> {};
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  const char* input[] = {"./build/main", "--conf_taraxa",
+  const char *input[] = {"./build/main", "--conf_taraxa",
                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top(5, input);
   EXPECT_TRUE(top.isActive());
@@ -65,21 +65,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cerr << e.what() << std::endl;
   }
 
-  const char *input1[] = {"./build/main",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa1.json",
-                          "-v",
-                          "0"};
-  const char *input2[] = {"./build/main2",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa2.json",
-                          "-v",
-                          "0"};
-  const char *input3[] = {"./build/main3",
-                          "--conf_taraxa",
-                          "./core_tests/conf/conf_taraxa3.json",
-                          "-v",
-                          "0"};
+  const char *input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+  const char *input2[] = {"./build/main2", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
+  const char *input3[] = {"./build/main3", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
   Top top1(5, input1);
   EXPECT_TRUE(top1.isActive());
   std::cout << "Top1 created ..." << std::endl;
@@ -150,7 +141,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
 }  // namespace taraxa
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
