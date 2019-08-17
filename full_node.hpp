@@ -72,9 +72,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   // master boot node
-  addr_t getMasterBootNodeAddress() const { return master_boot_node_address; }
+  addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
   void setMasterBootNodeAddress(addr_t const &addr) {
-    master_boot_node_address = addr;
+    master_boot_node_address_ = addr;
   }
 
   // network stuff
@@ -272,7 +272,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   secret_t node_sk_;
   public_t node_pk_;
   addr_t node_addr_;
-  addr_t master_boot_node_address;
+  addr_t master_boot_node_address_;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;

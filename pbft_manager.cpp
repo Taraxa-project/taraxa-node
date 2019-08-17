@@ -66,6 +66,14 @@ void PbftManager::start() {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return;
   }
+
+  // PBFT manager need connect to peers before get running
+  if (full_node->getAddress() != full_node->getMasterBootNodeAddress()) {
+    while (full_node->getPeerCount() == 0) {
+      thisThreadSleepForMilliSeconds(10);
+    }
+  }
+
   db_votes_ = full_node->getVotesDB();
   db_pbftchain_ = full_node->getPbftChainDB();
   stopped_ = false;
