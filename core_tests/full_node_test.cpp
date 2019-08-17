@@ -390,7 +390,7 @@ TEST_F(FullNodeTest, full_node_reset) {
 }
 
 // fixme: flaky
-TEST_F(TopTest, sync_five_nodes) {
+TEST_F(TopTest, DISABLED_sync_five_nodes) {
   // copy main2, main3, main4, main5
   try {
     std::cout << "Copying main2 ..." << std::endl;
@@ -1212,7 +1212,7 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
   t.join();
 }
 
-TEST_F(FullNodeTest, save_network_to_file) {
+TEST_F(FullNodeTest, DISABLED_save_network_to_file) {
   {
     boost::asio::io_context context1;
     FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
@@ -1593,7 +1593,7 @@ TEST_F(TopTest, DISABLED_sortition_propose_five_nodes) {
   }
 }
 
-TEST_F(TopTest, detect_overlap_transactions) {
+TEST_F(TopTest, DISABLED_detect_overlap_transactions) {
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
