@@ -1212,7 +1212,7 @@ TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
   t.join();
 }
 
-TEST_F(FullNodeTest, DISABLED_save_network_to_file) {
+TEST_F(FullNodeTest, save_network_to_file) {
   {
     boost::asio::io_context context1;
     FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");

@@ -67,10 +67,14 @@ void PbftManager::start() {
     return;
   }
 
-  // PBFT manager need connect to peers before get running
   if (full_node->getAddress() != full_node->getMasterBootNodeAddress()) {
-    while (full_node->getPeerCount() == 0) {
-      thisThreadSleepForMilliSeconds(10);
+    // PBFT manager need connect to peers before get running
+    for (int i = 0; i < 600; i++) {
+      // timeout is 60 seconds
+      if (full_node->getPeerCount() > 0) {
+        break;
+      }
+      taraxa::thisThreadSleepForMilliSeconds(100);
     }
   }
 
