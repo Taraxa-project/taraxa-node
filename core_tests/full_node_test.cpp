@@ -1308,7 +1308,7 @@ TEST_F(FullNodeTest, DISABLED_sortition_propose_one_node) {
   node1->setDebug(true);
   // destroy db !!
   node1->destroyDB();
-  node1->start(true /*boot_node*/);
+  node1->start(true); // boot node
   auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
       new dev::rpc::Test(node1));
   auto rpc_server(
@@ -1593,7 +1593,7 @@ TEST_F(TopTest, DISABLED_sortition_propose_five_nodes) {
   }
 }
 
-TEST_F(TopTest, DISABLED_detect_overlap_transactions) {
+TEST_F(TopTest, detect_overlap_transactions) {
   try {
     std::cout << "Copying main2 ..." << std::endl;
     system("cp ./build/main ./build/main2");
@@ -1628,7 +1628,6 @@ TEST_F(TopTest, DISABLED_detect_overlap_transactions) {
   std::cout << "Top5 created ..." << std::endl;
 
   std::cout << "Sleep for 1 second ..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node1 = top1.getNode();
   auto node2 = top2.getNode();
@@ -1642,17 +1641,17 @@ TEST_F(TopTest, DISABLED_detect_overlap_transactions) {
   EXPECT_NE(node4, nullptr);
   EXPECT_NE(node5, nullptr);
 
-  EXPECT_GT(node1->getPeerCount(), 0);
-  EXPECT_GT(node2->getPeerCount(), 0);
-  EXPECT_GT(node3->getPeerCount(), 0);
-  EXPECT_GT(node4->getPeerCount(), 0);
-  EXPECT_GT(node5->getPeerCount(), 0);
-
   node1->getPbftManager()->stop();
   node2->getPbftManager()->stop();
   node3->getPbftManager()->stop();
   node4->getPbftManager()->stop();
   node5->getPbftManager()->stop();
+
+  EXPECT_GT(node1->getPeerCount(), 0);
+  EXPECT_GT(node2->getPeerCount(), 0);
+  EXPECT_GT(node3->getPeerCount(), 0);
+  EXPECT_GT(node4->getPeerCount(), 0);
+  EXPECT_GT(node5->getPeerCount(), 0);
 
   try {
     send_5_nodes_trxs();
