@@ -80,7 +80,7 @@ bool Executor::coinTransfer(
   val_t sender_initial_coin = state.balance(sender);
   val_t receiver_initial_coin = state.balance(receiver);
   if (sender_initial_coin < trx.getValue()) {
-    LOG(log_dg_) << "Insufficient fund for transfer ... , sender " << sender
+    LOG(log_nf_) << "Insufficient fund for transfer ... , sender " << sender
                  << " , sender balance: " << sender_initial_coin
                  << " , transfer: " << value << std::endl;
     return false;

@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io
  * @Author: Qi Gao
  * @Date: 2019-04-07
- * @Last Modified by:
- * @Last Modified time:
+ * @Last Modified by: Qi Gao
+ * @Last Modified time: 2019-08-15
  */
 
 #ifndef SORTITION_H
@@ -38,17 +38,17 @@ string hexToDecimal(string hex);
 
 string bigNumberMultiplication(string num1, string num2);
 
-static dev::Logger log_sil_{
+static dev::Logger log_silent_{
     dev::createLogger(dev::Verbosity::VerbositySilent, "SORTI")};
-static dev::Logger log_err_{
+static dev::Logger log_error_{
     dev::createLogger(dev::Verbosity::VerbosityError, "SORTI")};
-static dev::Logger log_war_{
+static dev::Logger log_warning_{
     dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTI")};
-static dev::Logger log_inf_{
+static dev::Logger log_info_{
     dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTI")};
-static dev::Logger log_deb_{
+static dev::Logger log_debug_{
     dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTI")};
-static dev::Logger log_tra_{
+static dev::Logger log_trace_{
     dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTI")};
 
 }  // namespace taraxa

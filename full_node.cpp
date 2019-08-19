@@ -648,8 +648,8 @@ std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
   std::vector<std::vector<uint>> blocks_trx_modes;
 
   if (!trx_overlap_table) {
-    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
-                  << "transactions schedule";
+    LOG(log_er_) << "Transaction overlap table nullptr, cannot create mock "
+                 << "transactions schedule";
     return blocks_trx_modes;
   }
 
@@ -780,9 +780,10 @@ bool FullNode::isKnownVote(uint64_t pbft_round,
   return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
-bool FullNode::isKnownPbftBlockInChain(
+bool FullNode::isKnownPbftBlockForSyncing(
     taraxa::blk_hash_t const &pbft_block_hash) const {
-  return pbft_chain_->findPbftBlockInChain(pbft_block_hash);
+  return pbft_chain_->findPbftBlockInChain(pbft_block_hash) ||
+         pbft_chain_->findPbftBlockInVerifiedSet(pbft_block_hash);
 }
 
 bool FullNode::isKnownPbftBlockInQueue(
@@ -794,12 +795,16 @@ void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
 }
 
-size_t FullNode::getPbftChainSize() const {
+uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
 }
 
-size_t FullNode::getPbftQueueSize() const {
-  return pbft_chain_->getPbftQueueSize();
+size_t FullNode::getPbftUnverifiedQueueSize() const {
+  return pbft_chain_->getPbftUnverifiedQueueSize();
+}
+
+size_t FullNode::getPbftVerifiedBlocksSize() const {
+  return pbft_chain_->pbftVerifiedSetSize();
 }
 
 void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
@@ -808,6 +813,7 @@ void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
   if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
 }
 
+// Test purpose function
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
     if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
@@ -834,9 +840,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     std::pair<PbftBlock, bool> last_pivot_block =
         pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
     if (!last_pivot_block.second) {
-      LOG(log_err_) << "Cannot find the last pivot block hash "
-                    << last_pivot_block_hash
-                    << " in pbft chain. Should never happen here!";
+      LOG(log_er_) << "Cannot find the last pivot block hash "
+                   << last_pivot_block_hash
+                   << " in pbft chain. Should never happen here!";
       assert(false);
     }
     blk_hash_t dag_block_hash =
@@ -850,22 +856,26 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     uint dag_blocks_inside_pbft_cs =
         pbft_block.getScheduleBlock().getSchedule().blk_order.size();
     if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
-      LOG(log_err_) << "Setting DAG block order finalize "
-                    << dag_ordered_blocks_size << " blocks."
-                    << " But the PBFT CS block has "
-                    << dag_blocks_inside_pbft_cs << " DAG block hash.";
-      // TODO: need to handle the error condition(should never happen)
+      LOG(log_er_) << "Setting DAG block order finalize "
+                   << dag_ordered_blocks_size << " blocks."
+                   << " But the PBFT CS block has " << dag_blocks_inside_pbft_cs
+                   << " DAG blocks hash.";
+      // Notice: Need check DAG blocks/transactions with The contents in CS
+      // block before using the function.
+      assert(false);
     }
 
     // TODO: VM executor will not take sortition_account_balance_table as
-    // reference.
+    //  reference.
     //  But will return a list of modified accounts as pairs<addr_t, val_t>.
     //  Will need update sortition_account_balance_table here
-    // execute schedule block
+    //  execute schedule block
     if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
                               pbft_mgr_->sortition_account_balance_table)) {
       LOG(log_er_) << "Failed to execute schedule block";
       // TODO: If valid transaction failed execute, how to do?
+      // Should never happen
+      assert(false);
     }
     // reset sortition_threshold and TWO_T_PLUS_ONE
     size_t accounts = pbft_mgr_->sortition_account_balance_table.size();
@@ -880,8 +890,8 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     }
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_deb_) << "Update 2t+1 " << two_t_plus_one << " Threshold "
-                  << sortition_threshold;
+    LOG(log_dg_) << "Update 2t+1 " << two_t_plus_one << " Threshold "
+                 << sortition_threshold;
   }
   // TODO: push other type pbft block into pbft chain
 
@@ -902,6 +912,10 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   return true;
 }
 
+void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
+  pbft_chain_->setVerifiedPbftBlockIntoQueue(pbft_block);
+}
+
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             uint64_t period, size_t step) {
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -914,8 +928,8 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
-  LOG(log_deb_) << "last pbft block hash " << last_pbft_block_hash
-                << " vote: " << vote.getHash();
+  LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
+               << " vote: " << vote.getHash();
 
   return vote;
 }

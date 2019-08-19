@@ -2,8 +2,8 @@
  * @Copyright: Taraxa.io
  * @Author: Qi Gao
  * @Date: 2019-05-08
- * @Last Modified by:
- * @Last Modified time:
+ * @Last Modified by: Qi Gao
+ * @Last Modified time: 2019-08-16
  */
 
 #include "pbft_manager.hpp"
@@ -15,6 +15,7 @@
 #include "full_node.hpp"
 #include "libdevcore/DBFactory.h"
 #include "network.hpp"
+#include "top.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -32,124 +33,69 @@ auto g_mock_dag0 = samples::createMockDag0();
 struct PbftManagerTest : public DBUsingTest<> {};
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  boost::asio::io_context context;
-  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  cfg.genesis_state.accounts[addr(cfg.node_secret)] = {new_balance};
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  const char *input[] = {"./build/main", "--conf_taraxa",
+                         "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+  Top top(5, input);
+  EXPECT_TRUE(top.isActive());
+  auto node = top.getNode();
+  EXPECT_NE(node, nullptr);
 
-  std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
-
-  node->setDebug(true);
-  node->start(true);  // boot_node
-
-  // stop pbft manager for test
-  pbft_mgr->stop();
-
-  // clean pbft queue and pbft chain
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  pbft_chain->cleanPbftQueue();
-  pbft_chain->cleanPbftChain();
-
-  std::unique_ptr<boost::asio::io_context::work> work(
-      new boost::asio::io_context::work(context));
-
-  boost::thread t([&context]() { context.run(); });
-
-  std::shared_ptr<Network> nw = node->getNetwork();
-
-  // node1 create transactions
-  for (auto const& t : g_trx_signed_samples) {
-    node->insertTransaction(t);
-    taraxa::thisThreadSleepForMilliSeconds(50);
-  }
-  taraxa::thisThreadSleepForMilliSeconds(3000);
-  EXPECT_GT(node->getNumProposedBlocks(), 0);
-
-  // start pbft manager for test
-  pbft_mgr->start();
-
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (pbft_chain->getPbftChainSize() == 2) {
-      // stop pbft manager for test
-      pbft_mgr->stop();
+  // Vote DAG genesis
+  for (int i = 0; i < 600; i++) {
+    // test timeout is 60 seconds
+    if (pbft_chain->getPbftChainSize() == 3) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), 2);
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
 
-  work.reset();
-  node->stop();
-  t.join();
+  top.kill();
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
-  vector<FullNodeConfig> cfgs;
-  for (auto i = 1; i <= 3; ++i) {
-    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
+  // copy main2, main3
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+    std::cout << "Copying main3 ..." << std::endl;
+    system("cp ./build/main ./build/main3");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
   }
-  for (auto& cfg : cfgs) {
-    for (auto& cfg_other : cfgs) {
-      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
-    }
-  }
-  auto node_count = 0;
-  boost::asio::io_context context1;
-  auto node1(std::make_shared<taraxa::FullNode>(context1, cfgs[node_count++]));
-  boost::asio::io_context context2;
-  auto node2(std::make_shared<taraxa::FullNode>(context2, cfgs[node_count++]));
-  boost::asio::io_context context3;
-  auto node3(std::make_shared<taraxa::FullNode>(context3, cfgs[node_count++]));
 
-  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
-  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
+  const char *input1[] = {"./build/main", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
+  const char *input2[] = {"./build/main2", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
+  const char *input3[] = {"./build/main3", "--conf_taraxa",
+                          "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
+  Top top1(5, input1);
+  EXPECT_TRUE(top1.isActive());
+  std::cout << "Top1 created ..." << std::endl;
 
-  node1->setDebug(true);
-  node2->setDebug(true);
-  node3->setDebug(true);
-  node1->start(true);  // boot_node
-  node2->start(false);
-  node3->start(false);
+  Top top2(5, input2);
+  EXPECT_TRUE(top2.isActive());
+  std::cout << "Top2 created ..." << std::endl;
 
-  // stop pbft manager for test
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
-  pbft_mgr3->stop();
+  Top top3(5, input3);
+  EXPECT_TRUE(top3.isActive());
+  std::cout << "Top3 created ..." << std::endl;
 
-  // clean pbft queue and pbft chain
-  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
-  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
-  std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
-  pbft_chain1->cleanPbftQueue();
-  pbft_chain2->cleanPbftQueue();
-  pbft_chain3->cleanPbftQueue();
-  pbft_chain1->cleanPbftChain();
-  pbft_chain2->cleanPbftChain();
-  pbft_chain3->cleanPbftChain();
-
-  std::unique_ptr<boost::asio::io_context::work> work1(
-      new boost::asio::io_context::work(context1));
-  std::unique_ptr<boost::asio::io_context::work> work2(
-      new boost::asio::io_context::work(context2));
-  std::unique_ptr<boost::asio::io_context::work> work3(
-      new boost::asio::io_context::work(context3));
-
-  boost::thread t1([&context1]() { context1.run(); });
-  boost::thread t2([&context2]() { context2.run(); });
-  boost::thread t3([&context3]() { context3.run(); });
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
+  auto node3 = top3.getNode();
+  EXPECT_NE(node1, nullptr);
+  EXPECT_NE(node2, nullptr);
+  EXPECT_NE(node3, nullptr);
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   std::shared_ptr<Network> nw3 = node3->getNetwork();
-
   const int node_peers = 2;
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
+  for (int i = 0; i < 600; i++) {
+    // test timeout is 60 seconds
     if (nw1->getPeerCount() == node_peers &&
         nw2->getPeerCount() == node_peers &&
         nw3->getPeerCount() == node_peers) {
@@ -161,58 +107,49 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   ASSERT_EQ(node_peers, nw2->getPeerCount());
   ASSERT_EQ(node_peers, nw3->getPeerCount());
 
-  // nodes create transactions
-  for (auto const& t : g_trx_signed_samples) {
-    node1->insertTransaction(t);
-    node2->insertTransaction(t);
-    node3->insertTransaction(t);
-    taraxa::thisThreadSleepForMilliSeconds(50);
-  }
-  taraxa::thisThreadSleepForMilliSeconds(3000);
-  EXPECT_GT(node1->getNumProposedBlocks(), 0);
-  EXPECT_GT(node2->getNumProposedBlocks(), 0);
-  EXPECT_GT(node3->getNumProposedBlocks(), 0);
-
-  // start pbft manager for test
-  pbft_mgr1->start();
-  pbft_mgr2->start();
-  pbft_mgr3->start();
-
-  for (int i = 0; i < 300; i++) {
-    // test timeout is 30 seconds
-    if (pbft_chain1->getPbftChainSize() == 2 &&
-        pbft_chain2->getPbftChainSize() == 2 &&
-        pbft_chain3->getPbftChainSize() == 2) {
-      // stop pbft manager for test
-      pbft_mgr1->stop();
-      pbft_mgr2->stop();
-      pbft_mgr3->stop();
+  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
+  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
+  std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
+  const int pbft_chain_size = 3;
+  // Vote DAG genesis
+  for (int i = 0; i < 600; i++) {
+    // test timeout is 60 seconds
+    if (pbft_chain1->getPbftChainSize() == pbft_chain_size &&
+        pbft_chain2->getPbftChainSize() == pbft_chain_size &&
+        pbft_chain3->getPbftChainSize() == pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(pbft_chain1->getPbftChainSize(), 2);
-  EXPECT_EQ(pbft_chain2->getPbftChainSize(), 2);
-  EXPECT_EQ(pbft_chain3->getPbftChainSize(), 2);
+  EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
+  EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);
+  EXPECT_EQ(pbft_chain3->getPbftChainSize(), pbft_chain_size);
 
-  work1.reset();
-  work2.reset();
-  work3.reset();
-  node1->stop();
-  node2->stop();
-  node3->stop();
-  t1.join();
-  t2.join();
-  t3.join();
+  top3.kill();
+  top2.kill();
+  top1.kill();
+  // delete main2, main3
+  try {
+    std::cout << "main3 deleted ..." << std::endl;
+    system("rm -f ./build/main3");
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 }  // namespace taraxa
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
   logOptions.includeChannels.push_back("PBFT_MGR");
+  logOptions.includeChannels.push_back("VOTE_MGR");
+  logOptions.includeChannels.push_back("SORTI");
+  logOptions.includeChannels.push_back("EXETOR");
   logOptions.includeChannels.push_back("BLK_PP");
   logOptions.includeChannels.push_back("FULLND");
   logOptions.includeChannels.push_back("TRXMGR");

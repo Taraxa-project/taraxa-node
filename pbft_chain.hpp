@@ -3,7 +3,7 @@
  * @Author: Chia-Chun Lin
  * @Date: 2019-03-20 22:11:06
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-05-07
+ * @Last Modified time: 2019-08-15
  */
 #ifndef PBFT_CHAIN_HPP
 #define PBFT_CHAIN_HPP
@@ -209,6 +209,7 @@ class PbftChain {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
     pbft_chain_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
+    pbft_verified_set_.insert(genesis_hash_);
   }
   ~PbftChain() {}
 
@@ -218,7 +219,7 @@ class PbftChain {
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
-  size_t getPbftQueueSize() const;
+  size_t getPbftUnverifiedQueueSize() const;
   std::pair<PbftBlock, bool> getPbftBlockInChain(
       blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
@@ -238,6 +239,7 @@ class PbftChain {
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
+  bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
 
   void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
@@ -247,13 +249,27 @@ class PbftChain {
 
   void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
+  size_t pbftVerifiedSetSize() const;
+  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
+  bool pbftVerifiedQueueEmpty() const;
+  PbftBlock pbftVerifiedQueueFront() const;
+  void pbftVerifiedQueuePopFront();
+  void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
+
   // only for test
-  void cleanPbftQueue() { pbft_queue_.clear(); }
+  void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
   void cleanPbftChain() { PbftChain(); }
 
  private:
   void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
                                PbftBlock const& pbft_block);
+
+  using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
+
+  mutable boost::shared_mutex access_;
 
   blk_hash_t genesis_hash_;
   uint64_t size_;
@@ -266,11 +282,14 @@ class PbftChain {
   //  move to DB
   std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::deque<blk_hash_t> pbft_queue_;  // TODO: may not need it
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_queue_map_;
+  std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
+  std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
+  // syncing pbft blocks from peers
+  std::deque<PbftBlock> pbft_verified_queue_;
+  std::unordered_set<blk_hash_t> pbft_verified_set_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_CHAIN")};

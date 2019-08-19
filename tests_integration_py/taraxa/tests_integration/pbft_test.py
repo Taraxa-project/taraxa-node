@@ -22,13 +22,12 @@ import requests
 import taraxa.tests_integration.common.paths as paths
 
 # local test
-
 this_dir = Path(__file__).parent
 workspace = this_dir.joinpath(f"{Path(__file__).stem}_tmp")
 shutil.rmtree(workspace, ignore_errors=True)
 workspace.mkdir(parents=True, exist_ok=True)
 
-START_FULL_NODE = f"{paths.node_exe} --conf_taraxa {paths.core_tests_conf_dir}/conf_taraxa{{}}.json -v 3 " \
+START_FULL_NODE = f"{paths.node_exe} --conf_taraxa {paths.core_tests_conf_dir}/conf_taraxa{{}}.json -v 2 " \
                   f"--log-filename {workspace}/node{{}}.log --log-channels PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR"
 node_ip = "0.0.0.0"
 nodes_port = [7777, 7778, 7779, 7780, 7781, 7782, 7783, 7784, 7785, 7786]
@@ -158,7 +157,7 @@ def set_nodes_account_balance(nodes_number):
         account_address = get_account_address(node_ip, nodes_port[node_index])
         for node in range(nodes_number):
             print("set account balance in ", node_ip, " port ", nodes_port[node])
-            set_account_balance(node_ip, nodes_port[node], account_address, TOTAL_TARAXA_COINS / nodes_number)
+            set_account_balance(node_ip, nodes_port[node], account_address, TOTAL_TARAXA_COINS // nodes_number)
 
 
 def send_coins_trx(nonce, value, receiver, secret_key):
@@ -204,7 +203,7 @@ def generate_test_trx_for_each_node(nodes_number):
         random.seed()
         for node in range(nodes_number):
             print("Send create transaction ... to node ", node_ip, " port ", nodes_port[node])
-            # send_trx(get_node_name(receiver), create_trx(receiver, TOTAL_TRXS/nodes_number))
+            # send_trx(get_node_name(receiver), create_trx(receiver, TOTAL_TRXS//nodes_number))
             seed = random.randint(0, 1000)
             print("seed: ", seed)
             send_trx(node_ip, nodes_port[node], create_trx(seed, TRXS_NUM))

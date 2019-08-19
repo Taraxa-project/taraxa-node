@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-10
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-25
+ * @Last Modified time: 2019-08-15
  */
 
 #ifndef PBFT_MANAGER_HPP
@@ -94,8 +94,8 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_();
 
-  bool pushPbftBlockIntoChain_(uint64_t round,
-                               blk_hash_t const &cert_voted_block_hash);
+  bool pushPbftBlockIntoChainIfEnoughCertVotes_(
+      uint64_t round, blk_hash_t const &cert_voted_block_hash);
 
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
@@ -104,9 +104,13 @@ class PbftManager {
   void syncPbftChainFromPeers_();
 
   bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
+  bool comparePbftCSblockWithDAGblocks_(PbftBlock const &pbft_block_cs);
+
+  void pushVerifiedPbftBlocksIntoChain_();
+
+  bool pushPbftBlockIntoChain_(PbftBlock const &pbft_block);
 
   bool stopped_ = true;
-  PbftBlockTypes next_pbft_block_type_ = pbft_block_none_type;
   // Using to check if PBFT CS block has proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
       std::make_pair(NULL_BLOCK_HASH, false);
@@ -130,6 +134,7 @@ class PbftManager {
 
   // TODO: will remove later, TEST CODE
   void countVotes_();
+
   std::shared_ptr<std::thread> monitor_votes_;
   bool monitor_stop_ = true;
   size_t last_step_ = 0;

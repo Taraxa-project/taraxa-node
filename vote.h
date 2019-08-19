@@ -3,7 +3,7 @@
  * @Author: Qi Gao
  * @Date: 2019-04-11
  * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-25
+ * @Last Modified time: 2019-08-15
  */
 
 #ifndef VOTE_H
@@ -101,6 +101,10 @@ class VoteManager {
       dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTE_MGR")};
   mutable dev::Logger log_inf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE_MGR")};
+  mutable dev::Logger log_deb_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "VOTE_MGR")};
+  mutable dev::Logger log_tra_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "VOTE_MGR")};
 };
 
 }  // namespace taraxa

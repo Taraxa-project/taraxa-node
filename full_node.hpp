@@ -72,9 +72,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   // master boot node
-  addr_t getMasterBootNodeAddress() const { return master_boot_node_address; }
+  addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
   void setMasterBootNodeAddress(addr_t const &addr) {
-    master_boot_node_address = addr;
+    master_boot_node_address_ = addr;
   }
 
   // network stuff
@@ -208,13 +208,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownVote(uint64_t pbft_round, vote_hash_t const &vote_hash) const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  bool isKnownPbftBlockInChain(blk_hash_t const &pbft_block_hash) const;
+  bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
   bool isKnownPbftBlockInQueue(blk_hash_t const &pbft_block_hash) const;
-  size_t getPbftChainSize() const;
-  size_t getPbftQueueSize() const;
+  uint64_t getPbftChainSize() const;
+  size_t getPbftUnverifiedQueueSize() const;
+  size_t getPbftVerifiedBlocksSize() const;
   void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
-  size_t getEpoch() const;
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
+  void setVerifiedPbftBlock(PbftBlock const &pbft_block);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
 
@@ -271,7 +272,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   secret_t node_sk_;
   public_t node_pk_;
   addr_t node_addr_;
-  addr_t master_boot_node_address;
+  addr_t master_boot_node_address_;
 
   // DAG max level
   unsigned long max_dag_level_ = 0;
