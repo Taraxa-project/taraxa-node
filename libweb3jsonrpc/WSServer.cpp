@@ -73,8 +73,13 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   json_response["id"] = id;
   json_response["jsonrpc"] = "2.0";
   subscription_id_++;
-  if (params.size() == 1 && params[0].asString() == "newHeads") {
-    new_heads_subscription_ = subscription_id_;
+  if (params.size() == 1) {
+    if (params[0].asString() == "newHeads") {
+      new_heads_subscription_ = subscription_id_;
+    }
+    else if (params[0].asString() == "newPendingTransactions") {
+      new_transactions_subscription_ = subscription_id_;
+    }
   }
   json_response["result"] = dev::toJS(subscription_id_);
   Json::FastWriter fastWriter;
@@ -119,6 +124,22 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
   res["method"] = "eth_subscription";
   params["result"] = dev::toJson(blk, block_number);
   params["subscription"] = dev::toJS(new_heads_subscription_);
+  res["params"] = params;
+  Json::FastWriter fastWriter;
+  std::string response = fastWriter.write(res);
+  ws_.text(ws_.got_text());
+  LOG(log_tr_) << "WS WRITE " << response.c_str();
+  ws_.async_write(boost::asio::buffer(response),
+                  beast::bind_front_handler(&WSSession::on_write_no_read,
+                                            shared_from_this()));
+}
+
+void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
+  Json::Value res, params;
+  res["jsonrpc"] = "2.0";
+  res["method"] = "eth_subscription";
+  params["result"] = dev::toJS(trx_hash);
+  params["subscription"] = dev::toJS(new_transactions_subscription_);
   res["params"] = params;
   Json::FastWriter fastWriter;
   std::string response = fastWriter.write(res);
@@ -215,5 +236,12 @@ void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
     if (!session->is_closed()) session->newOrderedBlock(blk, block_number);
   }
 }
+
+void WSServer::newPendingTransaction(trx_hash_t const &trx_hash) {
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->newPendingTransaction(trx_hash);
+  }
+}
+  
 
 }  // namespace taraxa

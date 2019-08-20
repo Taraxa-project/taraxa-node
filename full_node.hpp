@@ -218,6 +218,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setVerifiedPbftBlock(PbftBlock const &pbft_block);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
+  void newPendingTransaction(trx_hash_t const &trx_hash);
 
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }

@@ -39,6 +39,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
                        uint64_t const& block_number);
+  void newPendingTransaction(trx_hash_t const &trx_hash);
   bool is_closed() { return closed_; }
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
@@ -53,6 +54,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   beast::flat_buffer buffer_;
   int subscription_id_ = 0;
   int new_heads_subscription_ = 0;
+  int new_transactions_subscription_ = 0;
   bool closed_ = false;
 };
 
@@ -68,6 +70,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   void stop();
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
                        uint64_t const& block_number);
+  void newPendingTransaction(trx_hash_t const &trx_hash);
 
  private:
   void do_accept();

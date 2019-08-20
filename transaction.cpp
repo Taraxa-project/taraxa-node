@@ -561,6 +561,10 @@ bool TransactionManager::insertTrx(Transaction trx, bool critical) {
   bool ret = false;
   if (trx_qu_.insert(trx, critical)) {
     ret = true;
+    auto node = node_.lock();
+    if (node) {
+      node->newPendingTransaction(trx.getHash());
+    }
   }
   return ret;
 }

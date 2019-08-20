@@ -824,6 +824,10 @@ void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
   if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
 }
 
+void FullNode::newPendingTransaction(trx_hash_t const &trx_hash) {
+  if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
+}
+
 // Test purpose function
 bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
   if (pbft_block.getBlockType() == pivot_block_type) {
