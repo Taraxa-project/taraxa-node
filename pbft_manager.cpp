@@ -123,7 +123,7 @@ void PbftManager::run() {
 
   // Sometimes network doesn't sync pbft chain well, do syncing here hope could
   // solve pbft chain out of sync issue
-  syncPbftChainFromPeers_();
+  syncPbftChainFromPeers();
 
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
@@ -160,7 +160,7 @@ void PbftManager::run() {
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_inf_)
             << "pbft chain behind, need broadcast request for missing blocks";
-        syncPbftChainFromPeers_();
+        syncPbftChainFromPeers();
       }
       pbft_round_ = consensus_pbft_round;
       std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRound_(
@@ -304,7 +304,7 @@ void PbftManager::run() {
           } else {
             // Get partition, need send request to get missing pbft blocks from
             // peers
-            syncPbftChainFromPeers_();
+            syncPbftChainFromPeers();
           }
         }
       }
@@ -820,7 +820,7 @@ bool PbftManager::pushPbftBlockIntoChainIfEnoughCertVotes_(
 
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
     // Get partition, need send request to get missing pbft blocks from peers
-    syncPbftChainFromPeers_();
+    syncPbftChainFromPeers();
     return false;
   }
   std::pair<PbftBlock, bool> pbft_block =
@@ -899,7 +899,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   return true;
 }
 
-void PbftManager::syncPbftChainFromPeers_() {
+void PbftManager::syncPbftChainFromPeers() {
   vector<NodeID> peers = capability_->getAllPeers();
   if (peers.empty()) {
     LOG(log_inf_) << "There is no peers with connection.";

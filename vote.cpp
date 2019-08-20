@@ -233,6 +233,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   cleanupVotes(pbft_round);
 
   std::vector<Vote> verified_votes;
+  bool sync_peers_pbft_chain = false;
 
   auto full_node = node_.lock();
   if (!full_node) {
@@ -256,6 +257,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
         // Wait unit sync PBFT chain with peers, and execute to get states.
         LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
                       << v.getHash() << " vote address: " << vote_address;
+        sync_peers_pbft_chain = true;
         continue;
       }
       if (voteValidation(last_pbft_block_hash, v, account_balance.first,
@@ -265,6 +267,11 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
     }
   }
 
+  // TODO: Temporary fix for node out of sync with peers, since there is no
+  //  malicious votes for testnet1.0
+  if (sync_peers_pbft_chain) {
+    full_node->getPbftManager()->syncPbftChainFromPeers();
+  }
   return verified_votes;
 }
 
