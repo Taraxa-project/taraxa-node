@@ -74,6 +74,7 @@ class VoteManager {
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
   std::vector<Vote> getVotes(uint64_t pbft_round);
+  std::vector<Vote> getVotes(uint64_t pbft_round, bool& sync_peers_pbft_chain);
 
   std::string getJsonStr(std::vector<Vote>& votes);
 

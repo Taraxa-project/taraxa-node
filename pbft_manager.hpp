@@ -58,8 +58,6 @@ class PbftManager {
     TWO_T_PLUS_ONE = two_t_plus_one;
   }
 
-  void syncPbftChainFromPeers();
-
   // only for test
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
@@ -102,6 +100,8 @@ class PbftManager {
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
+
+  void syncPbftChainFromPeers_();
 
   bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
   bool comparePbftCSblockWithDAGblocks_(PbftBlock const &pbft_block_cs);
