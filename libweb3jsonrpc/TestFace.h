@@ -131,6 +131,16 @@ class TestFace : public ServerInterface<TestFace> {
                            NULL),
         &TestFace::get_transaction_countI);
     this->bindAndAddMethod(
+        jsonrpc::Procedure("get_executed_blk_count",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_OBJECT, NULL),
+        &TestFace::get_executed_blk_countI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("get_executed_trx_count",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_OBJECT, NULL),
+        &TestFace::get_executed_trx_countI);
+    this->bindAndAddMethod(
         jsonrpc::Procedure("get_dag_size", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
                            NULL),
