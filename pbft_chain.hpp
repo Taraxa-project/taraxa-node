@@ -201,7 +201,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
-  PbftChain()
+  PbftChain(blk_hash_t const& dag_genesis)
       : genesis_hash_(blk_hash_t(0)),
         size_(1),
         period_(0),
@@ -258,7 +258,6 @@ class PbftChain {
 
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
-  void cleanPbftChain() { PbftChain(); }
 
  private:
   void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
