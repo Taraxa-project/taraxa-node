@@ -201,14 +201,14 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
-  PbftChain(blk_hash_t const& dag_genesis)
+  PbftChain()
       : genesis_hash_(blk_hash_t(0)),
         size_(1),
         period_(0),
         next_pbft_block_type_(pivot_block_type) {
     last_pbft_block_hash_ = genesis_hash_;
-    last_pbft_pivot_hash_ = dag_genesis;
-    pbft_chain_map_[blk_hash_t(dag_genesis)] = PbftBlock(dag_genesis);
+    last_pbft_pivot_hash_ = genesis_hash_;
+    pbft_chain_map_[genesis_hash_] = PbftBlock(genesis_hash_);
     pbft_verified_set_.insert(genesis_hash_);
   }
   ~PbftChain() {}
@@ -258,6 +258,7 @@ class PbftChain {
 
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
+  void cleanPbftChain() { PbftChain(); }
 
  private:
   void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,

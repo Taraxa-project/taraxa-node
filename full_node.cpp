@@ -62,8 +62,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_mgr_(std::make_shared<PbftManager>(
           conf_.test_params.pbft,
           conf_.genesis_state.block.getHash().toString())),
-      pbft_chain_(
-          std::make_shared<PbftChain>(conf_.genesis_state.block.getHash())) {
+      pbft_chain_(std::make_shared<PbftChain>()) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -151,7 +150,6 @@ void FullNode::initDB(bool destroy_db) {
     // Initialize DAG genesis at DAG block heigh 0
     pbft_chain_->pushDagBlockHash(genesis_hash);
     // store pbft chain genesis(HEAD) block to db
-
     db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                        pbft_chain_->getJsonStr());
     db_pbftchain_->commit();
@@ -428,8 +426,7 @@ bool FullNode::reset() {
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
   vote_mgr_ = std::make_shared<VoteManager>();
-  pbft_chain_ =
-      std::make_shared<PbftChain>(conf_.genesis_state.block.getHash());
+  pbft_chain_ = std::make_shared<PbftChain>();
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
                                  db_blks_, db_trxs_, state_registry_);

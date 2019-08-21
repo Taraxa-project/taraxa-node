@@ -130,7 +130,7 @@ class PbftManager {
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
 
-  std::string genesis_;
+  std::string dag_genesis_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();
