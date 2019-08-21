@@ -1310,7 +1310,7 @@ TEST_F(FullNodeTest, DISABLED_sortition_propose_one_node) {
   node1->setDebug(true);
   // destroy db !!
   node1->destroyDB();
-  node1->start(true); // boot node
+  node1->start(true);  // boot node
   auto rpc = std::make_shared<ModularServer<dev::rpc::TestFace>>(
       new dev::rpc::Test(node1));
   auto rpc_server(

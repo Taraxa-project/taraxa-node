@@ -268,6 +268,48 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   return verified_votes;
 }
 
+// Return all votes >= pbft_round
+std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
+                                        bool& sync_peers_pbft_chain) {
+  cleanupVotes(pbft_round);
+
+  std::vector<Vote> verified_votes;
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Vote Manager full node weak pointer empty";
+    return verified_votes;
+  }
+
+  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+
+  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  sharedLock_ lock(access_);
+  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
+    for (auto const& v : it->second) {
+      // vote verification
+      addr_t vote_address = dev::toAddress(v.getPublicKey());
+      std::pair<val_t, bool> account_balance =
+          full_node->getBalance(vote_address);
+      if (!account_balance.second) {
+        // New node join, it doesn't have other nodes info.
+        // Wait unit sync PBFT chain with peers, and execute to get states.
+        LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
+                      << v.getHash() << " vote address: " << vote_address;
+        sync_peers_pbft_chain = true;
+        continue;
+      }
+      if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+                         sortition_threshold)) {
+        verified_votes.emplace_back(v);
+      }
+    }
+  }
+
+  return verified_votes;
+}
+
 std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
   using boost::property_tree::ptree;
   ptree ptroot;
