@@ -109,7 +109,7 @@ TEST(PbftChain, pbft_db_test) {
 
   // put into pbft chain and store into DB
   node->setPbftBlock(pbft_block1);
-  EXPECT_EQ(node->getPbftChainSize(), 2);
+  EXPECT_EQ(node->getPbftChainSize(), 1);
 
   std::string pbft_block_from_db =
       db_pbftchain->get(pbft_block1.getBlockHash().toString());
@@ -223,7 +223,7 @@ TEST(PbftChain, block_broadcast) {
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftUnverifiedQueueSize(), 1);
   node1->setPbftBlock(pbft_block1);  // Test pbft chain
-  EXPECT_EQ(node1->getPbftChainSize(), 2);
+  EXPECT_EQ(node1->getPbftChainSize(), 1);
 
   nw1->onNewPbftBlock(pbft_block1);
 
@@ -239,9 +239,9 @@ TEST(PbftChain, block_broadcast) {
   EXPECT_EQ(node2->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
   node2->setPbftBlock(pbft_block1);  // Test pbft chain
-  EXPECT_EQ(node2->getPbftChainSize(), 2);
+  EXPECT_EQ(node2->getPbftChainSize(), 1);
   node3->setPbftBlock(pbft_block1);  // Test pbft chain
-  EXPECT_EQ(node3->getPbftChainSize(), 2);
+  EXPECT_EQ(node3->getPbftChainSize(), 1);
 
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
@@ -258,7 +258,7 @@ TEST(PbftChain, block_broadcast) {
   node1->pushPbftBlockIntoQueue(pbft_block1);
   EXPECT_EQ(node1->getPbftUnverifiedQueueSize(), 2);
   node1->setPbftBlock(pbft_block2);  // Test pbft chain
-  EXPECT_EQ(node1->getPbftChainSize(), 3);
+  EXPECT_EQ(node1->getPbftChainSize(), 1);
 
   nw1->onNewPbftBlock(pbft_block2);
 
@@ -274,9 +274,9 @@ TEST(PbftChain, block_broadcast) {
   EXPECT_EQ(node2->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
   EXPECT_EQ(node3->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
   node2->setPbftBlock(pbft_block2);  // Test pbft chain
-  EXPECT_EQ(node2->getPbftChainSize(), 3);
+  EXPECT_EQ(node2->getPbftChainSize(), 1);
   node3->setPbftBlock(pbft_block2);  // Test pbft chain
-  EXPECT_EQ(node3->getPbftChainSize(), 3);
+  EXPECT_EQ(node3->getPbftChainSize(), 1);
 
   work1.reset();
   work2.reset();
@@ -304,7 +304,7 @@ TEST(PbftChain, get_dag_block_hash) {
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), 1);
 
   std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
   EXPECT_TRUE(dag_genesis_hash.second);
@@ -327,7 +327,7 @@ TEST(PbftChain, get_dag_block_height) {
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), 1);
 
   std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
       node->getConfig().genesis_state.block.getHash());

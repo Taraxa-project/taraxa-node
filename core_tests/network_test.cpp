@@ -387,13 +387,13 @@ TEST(Network, node_pbft_sync) {
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 20; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if (node2->getPbftChainSize() == 3) break;
+    if (node2->getPbftChainSize() == 1) break;
   }
   node1->stop();
   node2->stop();
 
-  EXPECT_EQ(node1->getPbftChainSize(), 3);
-  EXPECT_EQ(node2->getPbftChainSize(), 3);
+  EXPECT_EQ(node1->getPbftChainSize(), 1);
+  EXPECT_EQ(node2->getPbftChainSize(), 1);
 }
 
 /*
