@@ -62,7 +62,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_mgr_(std::make_shared<PbftManager>(
           conf_.test_params.pbft,
           conf_.genesis_state.block.getHash().toString())),
-      pbft_chain_(std::make_shared<PbftChain>()) {
+      pbft_chain_(
+          std::make_shared<PbftChain>(conf_.genesis_state.block.getHash())) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -427,7 +428,8 @@ bool FullNode::reset() {
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
   vote_mgr_ = std::make_shared<VoteManager>();
-  pbft_chain_ = std::make_shared<PbftChain>();
+  pbft_chain_ =
+      std::make_shared<PbftChain>(conf_.genesis_state.block.getHash());
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
                                  db_blks_, db_trxs_, state_registry_);

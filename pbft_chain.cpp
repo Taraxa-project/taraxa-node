@@ -572,6 +572,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
       pbft_chain_last_blk.first.getBlockHash()) {
     return false;
   }
+
   period_++;
   pushPbftBlock(pbft_block);
   last_pbft_pivot_hash_ = pbft_block.getBlockHash();
