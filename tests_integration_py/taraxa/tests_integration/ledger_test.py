@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from shutil import rmtree
 
+import pytest
 import psutil
 
 from taraxa.tests_integration.common.create_conf import create_taraxa_conf
@@ -101,7 +102,7 @@ def start_full_node_process(node):
 
 
 def start_multi_full_nodes(num_nodes):
-    print("Create ", num_nodes, "nodes")
+    print("Create", num_nodes, "nodes")
     jobs = []
     for node in range(0, num_nodes):
         p = multiprocessing.Process(target=start_full_node, args=(node,))
@@ -186,7 +187,7 @@ def initialize_coin_allocation(num_nodes, coins):
                 expected_bal = 0
                 if (acc == 0):
                     expected_bal = TOTAL_TARAXA_COINS - \
-                                   INIT_NODE_BAL * (num_nodes)
+                        INIT_NODE_BAL * (num_nodes)
                 else:
                     expected_bal = INIT_NODE_BAL
                 if bal != expected_bal:
@@ -237,7 +238,7 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
                 expected_bal = 0
                 if (acc == 0):
                     expected_bal = TOTAL_TARAXA_COINS - \
-                                   (num_nodes * INIT_NODE_BAL) - total_transfer
+                        (num_nodes * INIT_NODE_BAL) - total_transfer
                 elif (acc == num_nodes):
                     expected_bal = INIT_NODE_BAL + total_transfer
                 else:
@@ -289,8 +290,9 @@ def terminate_full_nodes(jobs):
         killtree(j.pid)
 
 
-def test_main():
-    num_nodes = get_arguments()
+@pytest.mark.parametrize("num_nodes", [3])
+def test_main(num_nodes):
+    # num_nodes = get_arguments()
     # delete previous results
     for path in glob.glob("/tmp/taraxa*"):
         rmtree(path, ignore_errors=False)
@@ -316,6 +318,7 @@ def test_main():
 
     for path in glob.glob("./py_test/conf"):
         shutil.rmtree(path, ignore_errors=False)
+    assert ok == 1
 
 
 if __name__ == "__main__":
