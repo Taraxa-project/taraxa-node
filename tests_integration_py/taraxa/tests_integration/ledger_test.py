@@ -290,7 +290,7 @@ def terminate_full_nodes(jobs):
         killtree(j.pid)
 
 
-@pytest.mark.parametrize("num_nodes", [3])
+@pytest.mark.parametrize("num_nodes", [5])
 def test_main(num_nodes):
     # num_nodes = get_arguments()
     # delete previous results
