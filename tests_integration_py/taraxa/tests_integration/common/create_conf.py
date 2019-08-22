@@ -41,11 +41,11 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
                     "level": 0,
                     "tips": [],
                     "trxs": [],
-                    "sig": "",
+                    "sig": "b7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
+                    "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
+                    "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
                     "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "sender": "",
-                    "timestamp": 1234567890
+                    "timestamp": 1564617600
                 },
                 "accounts": {
                     boot_node_addr: {
