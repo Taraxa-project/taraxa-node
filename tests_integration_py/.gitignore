@@ -3,3 +3,4 @@ venv
 *logs*
 *.log
 *tmp*
+__pycache__
