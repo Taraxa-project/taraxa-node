@@ -338,62 +338,61 @@ TEST(Network, node_pbft_sync) {
 
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
-
   node1->setDebug(true);
   node1->start(true);
 
-  // Allow node to start up
-  taraxa::thisThreadSleepForMilliSeconds(1000);
-
-  std::vector<PbftBlock> blks;
-
   blk_hash_t prev_pivot_blk(0);
-  blk_hash_t prev_res_blk(0);
-  blk_hash_t dag_blk(78);
-  uint64_t epoch = 1;
-  uint64_t timestamp1 = 123456;
-  addr_t beneficiary(10);
-
-  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+  blk_hash_t prev_block_blk(0);
+  blk_hash_t dag_blk(123456789);
+  uint64_t period = 1;
+  addr_t beneficiary(987654321);
+  PivotBlock pivot_block(prev_pivot_blk, prev_block_blk, dag_blk, period,
                          beneficiary);
+
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
-  pbft_block1.setTimestamp(timestamp1);
+  uint64_t timestamp = std::time(nullptr);
+  pbft_block1.setTimestamp(timestamp);
+  std::string pbft_block_str = pbft_block1.getJsonStr();
+  sig_t signature = node1->signMessage(pbft_block_str);
+  pbft_block1.setSignature(signature);
 
-  uint64_t timestamp2 = 333333;
+  node1->setPbftBlock(pbft_block1);
+  size_t node1_pbft_chain_size = node1->getPbftChainSize();
+  ASSERT_EQ(node1_pbft_chain_size, 2);
+
   TrxSchedule schedule;
   blk_hash_t prev_pivot(1);
   ScheduleBlock schedule_blk(prev_pivot, schedule);
 
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
-  pbft_block2.setTimestamp(timestamp2);
+  timestamp = std::time(nullptr);
+  pbft_block2.setTimestamp(timestamp);
+  pbft_block_str = pbft_block2.getJsonStr();
+  signature = node1->signMessage(pbft_block_str);
+  pbft_block1.setSignature(signature);
 
-  blks.push_back(pbft_block1);
-  blks.push_back(pbft_block2);
-
-  for (auto i = 0; i < blks.size(); ++i) {
-    node1->setPbftBlock(blks[i]);
-  }
-
-  taraxa::thisThreadSleepForMilliSeconds(1000);
+  node1->setPbftBlock(pbft_block2);
+  node1_pbft_chain_size = node1->getPbftChainSize();
+  ASSERT_EQ(node1_pbft_chain_size, 3);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
-
   node2->setDebug(true);
-  node2->start(false /*boot_node*/);
+  node2->start(false);  //boot node
 
-  std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 20; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(1000);
-    if (node2->getPbftChainSize() == 1) break;
+  std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
+  for (int i = 0; i < 1200; i++) {
+    if (node2->getPbftChainSize() == 3) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
   }
   node1->stop();
   node2->stop();
 
-  EXPECT_EQ(node1->getPbftChainSize(), 1);
-  EXPECT_EQ(node2->getPbftChainSize(), 1);
+  EXPECT_EQ(node2->getPbftChainSize(), 3);
 }
 
 /*
