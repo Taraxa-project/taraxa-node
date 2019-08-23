@@ -46,13 +46,14 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
 }
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
-  if (peer_syncing_ == _nodeID) {
+  //Removing this to test theory that this is the source of PBFT sync issue...
+  //if (peer_syncing_ == _nodeID) {
     if (auto full_node = full_node_.lock()) {
       LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
       size_t height_to_sync = full_node->getPbftVerifiedBlocksSize();
       requestPbftBlocks(_nodeID, height_to_sync);
     }
-  }
+  //}
 }
 
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
