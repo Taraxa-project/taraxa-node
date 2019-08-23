@@ -293,12 +293,60 @@ TEST(PbftChain, get_dag_block_hash) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->setDebug(true);
+  node->start(true);  // boot_node
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
   ASSERT_TRUE(dag_genesis_hash.second);
   ASSERT_EQ(dag_genesis_hash.first,
             node->getConfig().genesis_state.block.getHash());
+
+  // create a transaction
+  auto nonce = val_t(0);
+  auto coins_value = val_t(100);
+  auto gas_price = val_t(2);
+  auto gas = val_t(1);
+  auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
+  auto data = bytes();
+  auto g_secret = dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+  Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
+                                               gas, receiver, data, g_secret);
+  node->insertTransaction(trx_master_boot_node_to_receiver);
+
+  for (int i = 0; i < 100; i++) {
+    // test timeout is 10 seconds
+    if (node->getNumProposedBlocks() == 1) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node->getNumProposedBlocks(), 1);
+
+  // Vote DAG block
+  for (int i = 0; i < 600; i++) {
+    // test timeout is 60 seconds
+    if (pbft_chain->getPbftChainSize() == 3) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
+
+  vector<blk_hash_t> dag_blocks_hash = node->getLinearizedDagBlocks();
+  EXPECT_EQ(dag_blocks_hash.size(), 2);
+
+  auto dag_max_height = node->getDagBlockMaxHeight();
+  ASSERT_EQ(dag_max_height, 1);
+
+  dag_genesis_hash = pbft_chain->getDagBlockHash(1);
+  ASSERT_TRUE(dag_genesis_hash.second);
+  std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
+      dag_genesis_hash.first);
+  ASSERT_TRUE(dag_genesis_height.second);
+  ASSERT_EQ(dag_genesis_height.first, 1);
 }
 
 TEST(PbftChain, get_dag_block_height) {
