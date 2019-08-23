@@ -1,5 +1,6 @@
 -e ../sdk_py
 pytest
+pytest-repeat
 web3
 psutil
 requests

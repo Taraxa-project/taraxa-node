@@ -104,3 +104,43 @@ def taraxa_rpc_send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_crea
     json_reply = rpc(node_port, request)
     # print("Node", node_port, "send",
     # number_of_trx_created, "trxs to", neighbor)
+
+
+def taraxa_rpc_get_executed_trx_count(node_port):
+    request = {
+        "jsonrpc": "2.0",
+        "id": node_port,
+        "method": "get_executed_trx_count",
+        "params": [{}]
+    }
+    json_reply = rpc(node_port, request)
+    result = json_reply["result"]
+    count = result["value"]
+    return int(count)
+
+
+def taraxa_rpc_get_executed_blk_count(node_port):
+    request = {
+        "jsonrpc": "2.0",
+        "id": node_port,
+        "method": "get_executed_blk_count",
+        "params": [{}]
+    }
+    json_reply = rpc(node_port, request)
+    result = json_reply["result"]
+    count = result["value"]
+    return int(count)
+
+# Below are taraxa rpc
+
+
+def taraxa_rpc_blockNumber(node_port):
+    request = {
+        "jsonrpc": "2.0",
+        "id": node_port,
+        "method": "taraxa_blockNumber",
+        "params": []
+    }
+    json_reply = rpc(node_port, request)
+    block_num = json_reply["result"]
+    return int(block_num, 0)
