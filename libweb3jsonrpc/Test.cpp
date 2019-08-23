@@ -231,7 +231,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       for (auto i = 0; i < number; ++i) {
         auto now = getCurrentTimeMilliSeconds();
         val_t value = val_t(100);
-        auto trx = taraxa::Transaction(val_t(i), value, val_t(1000),
+        auto trx = taraxa::Transaction(val_t(i)+nonce, value, val_t(1000),
                                        taraxa::samples::TEST_TX_GAS_LIMIT,
                                        receiver, data, node->getSecretKey());
         LOG(log_time) << "Transaction " << trx.getHash()
