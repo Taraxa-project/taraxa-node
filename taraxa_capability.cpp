@@ -35,25 +35,20 @@ void TaraxaCapability::insertPeer(NodeID const &node_id,
 void TaraxaCapability::syncPeer(NodeID const &_nodeID,
                                 unsigned long level_to_sync) {
   const int number_of_levels_to_sync = 2;
-  if (peer_syncing_ == _nodeID) {
-    if (auto full_node = full_node_.lock()) {
-      LOG(log_nf_) << "Sync Peer:" << _nodeID;
-      auto peer = getPeer(_nodeID);
-      if (peer) peer->m_state = Syncing;
-      requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
-    }
+  if (auto full_node = full_node_.lock()) {
+    LOG(log_nf_) << "Sync Peer:" << _nodeID;
+    auto peer = getPeer(_nodeID);
+    if (peer) peer->m_state = Syncing;
+    requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
   }
 }
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
-  //Removing this to test theory that this is the source of PBFT sync issue...
-  //if (peer_syncing_ == _nodeID) {
-    if (auto full_node = full_node_.lock()) {
-      LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
-      size_t height_to_sync = full_node->getPbftVerifiedBlocksSize();
-      requestPbftBlocks(_nodeID, height_to_sync);
-    }
-  //}
+  if (auto full_node = full_node_.lock()) {
+    LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
+    size_t height_to_sync = full_node->getPbftVerifiedBlocksSize();
+    requestPbftBlocks(_nodeID, height_to_sync);
+  }
 }
 
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
@@ -106,10 +101,12 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
       if (!blocksAddedToDag)
         return;  // This would probably mean that the peer is corrupted as well
 
-      if (peer->m_state == Syncing)
+      if (peer->m_state == Syncing && peer_syncing_ == _nodeID) {
         syncPeer(_nodeID, full_node->getDagMaxLevel() + 1);
+      }
     }
   }
+}
 }
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
@@ -195,8 +192,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         break;
       }
-      // Means a new block is proposed, full block body and all transaction are
-      // received.
+      // Means a new block is proposed, full block body and all transaction
+      // are received.
       case NewBlockPacket: {
         LOG(log_dg_) << "Received NewBlockPacket";
         DagBlock block(_r[0]);
@@ -420,7 +417,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           return false;
         }
         if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
-          // TODO: need to check block validation, like proposed vote(maybe come
+          // TODO: need to check block validation, like proposed vote(maybe
+          // come
           //  later), if get sortition etc
           full_node->pushPbftBlockIntoQueue(pbft_block);
           onNewPbftBlock(pbft_block);
@@ -444,7 +442,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
           if (!full_node->isKnownPbftBlockForSyncing(
                   pbft_block.getBlockHash())) {
-            // TODO: need check 2t+1 cert votes, then put into chain and store
+            // TODO: need check 2t+1 cert votes, then put into chain and
+            // store
             //  in DB. May send request for cert votes here
             full_node->setVerifiedPbftBlock(pbft_block);
           }
@@ -480,6 +479,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
       }
     }
     if (auto full_node = full_node_.lock()) {
+      peer_syncing_ = max_vertices_nodeID;
       syncPeer(max_vertices_nodeID, full_node->getDagMaxLevel());
       syncPeerPbft(max_vertices_nodeID);
     }
@@ -816,7 +816,8 @@ void TaraxaCapability::doBackgroundWork() {
                    << peer.first;
       host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
     }
-    // Disconnect any node that did not send any message for over 120 seconds
+    // Disconnect any node that did not send any message for over 120
+    // seconds
     if (now - peer.second->lastMessageTime() > 120) {
       LOG(log_nf_) << "Host disconnected, no message in 120 seconds"
                    << peer.first;
