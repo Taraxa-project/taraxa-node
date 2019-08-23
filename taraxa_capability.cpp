@@ -662,9 +662,11 @@ void TaraxaCapability::sendBlocks(
       for (auto trx : block->getTrxs()) {
         auto t = full_node->getTransaction(trx);
         if (!t) {
-          LOG(log_er_) << "Transacation " << trx << " is not available. SendBlocks canceled";
+          LOG(log_er_) << "Transacation " << trx
+                       << " is not available. SendBlocks canceled";
           // TODO: This can happen on stopping the node because network is not
-          // stopped since network does not support restart, better solution needed
+          // stopped since network does not support restart, better solution
+          // needed
           return;
         }
         transactions.push_back(*t);
