@@ -454,7 +454,8 @@ TEST_F(TopTest, DISABLED_sync_five_nodes) {
   nodes.emplace_back(node3);
   nodes.emplace_back(node4);
   nodes.emplace_back(node5);
-
+  
+  EXPECT_EQ(node1->getDagBlockMaxHeight(), 0); // genesis block
   auto init_bal = 300000;
 
   // transfer some coins to your friends ...
@@ -610,16 +611,19 @@ TEST_F(TopTest, DISABLED_sync_five_nodes) {
     }
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
-  EXPECT_EQ(node1->getPackedTrxs().size(), 10005);
-  EXPECT_EQ(node1->getNumTransactionExecuted(), 10005)
+  for (auto const &node: nodes){
+    EXPECT_EQ(node->getPackedTrxs().size(), 10005);  
+    EXPECT_EQ(node->getNumBlockExecuted(), node->getNumVerticesInDag().first);
+    EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
+      << " \nNum execued in node1 " << node1->getNumTransactionExecuted()
       << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
       << " \nNum execued in node3 " << node3->getNumTransactionExecuted()
       << " \nNum execued in node4 " << node4->getNumTransactionExecuted()
       << " \nNum execued in node5 " << node5->getNumTransactionExecuted()
-      << " \nNum blks: " << node1->getLinearizedDagBlocks().size() << "\n "
-      << node1->getLinearizedDagBlocks();
-  EXPECT_EQ(node1->getNumBlockExecuted(), node1->getNumVerticesInDag().first);
-
+      << " \nNum blks: " << node->getLinearizedDagBlocks().size() << "\n "
+      << node->getLinearizedDagBlocks();
+  }
+  
   for (auto const &node : nodes) {
     EXPECT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))

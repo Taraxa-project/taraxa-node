@@ -546,6 +546,88 @@ TEST(DagManager, receive_block_in_order) {
   EXPECT_EQ(mgr->getBufferSize(), 0);
 }
 
+// Use the example on Conflux paper, insert block in different order and make sure block order are the same
+TEST(DagManager, compute_epoch_2) {
+  const std::string GENESIS =
+      "0000000000000000000000000000000000000000000000000000000000000000";
+  auto mgr = std::make_shared<DagManager>(GENESIS);
+  mgr->start();
+  DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
+                addr_t(1));
+  DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
+                blk_hash_t(2), addr_t(1));
+  DagBlock blkC(blk_hash_t(1), 0, {blk_hash_t(2)}, {}, sig_t(1), blk_hash_t(3),
+                addr_t(1));
+  DagBlock blkD(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
+  DagBlock blkE(blk_hash_t(3), 0, {blk_hash_t(4), blk_hash_t(6)}, {}, sig_t(1),
+                blk_hash_t(5), addr_t(1));
+  DagBlock blkF(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
+  DagBlock blkG(blk_hash_t(1), 0, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(7),
+                addr_t(1));
+  DagBlock blkH(blk_hash_t(5), 0, {blk_hash_t(7), blk_hash_t(9)}, {}, sig_t(1),
+                blk_hash_t(8), addr_t(1));
+  DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
+                addr_t(1));
+  DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
+  DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  mgr->addDagBlock(blkA);
+  mgr->addDagBlock(blkC);
+  mgr->addDagBlock(blkB);
+  mgr->addDagBlock(blkF);
+  mgr->addDagBlock(blkE);
+  mgr->addDagBlock(blkD);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+  mgr->addDagBlock(blkH);
+  mgr->addDagBlock(blkI);
+  mgr->addDagBlock(blkG);
+  mgr->addDagBlock(blkJ);
+  mgr->addDagBlock(blkK);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+
+  vec_blk_t orders;
+  uint64_t period;
+  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
+  EXPECT_EQ(orders.size(), 1);
+  EXPECT_EQ(period, 2);
+  // repeat, should not change
+  period = mgr->getDagBlockOrder(blkA.getHash(), orders);
+  EXPECT_EQ(orders.size(), 1);
+  EXPECT_EQ(period, 2);
+
+  mgr->setDagBlockPeriod(blkA.getHash(), period);
+
+  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
+  EXPECT_EQ(orders.size(), 2);
+  EXPECT_EQ(period, 3);
+  // repeat, should not change
+  period = mgr->getDagBlockOrder(blkC.getHash(), orders);
+  EXPECT_EQ(orders.size(), 2);
+  EXPECT_EQ(period, 3);
+
+  mgr->setDagBlockPeriod(blkC.getHash(), period);
+
+  period = mgr->getDagBlockOrder(blkE.getHash(), orders);
+  EXPECT_EQ(orders.size(), 3);
+  EXPECT_EQ(period, 4);
+  mgr->setDagBlockPeriod(blkE.getHash(), period);
+
+  period = mgr->getDagBlockOrder(blkH.getHash(), orders);
+  EXPECT_EQ(orders.size(), 4);
+  EXPECT_EQ(period, 5);
+  mgr->setDagBlockPeriod(blkH.getHash(), period);
+
+  if (orders.size() == 4) {
+    EXPECT_EQ(orders[0], blk_hash_t(10));
+    EXPECT_EQ(orders[1], blk_hash_t(9));
+    EXPECT_EQ(orders[2], blk_hash_t(7));
+    EXPECT_EQ(orders[3], blk_hash_t(8));
+  }
+  period = mgr->getDagBlockOrder(blkK.getHash(), orders);
+  EXPECT_EQ(orders.size(), 1);
+  EXPECT_EQ(period, 6);
+  mgr->setDagBlockPeriod(blkK.getHash(), period);
+}
+
 TEST(DagManager, receive_block_out_of_order) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
