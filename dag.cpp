@@ -335,7 +335,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
 
   // Step2: compute topological order of epfriend
   std::unordered_set<vertex_t> visited;
-  std::stack<std::pair<bool, vertex_t>> dfs;
+  std::stack<std::pair<vertex_t, bool>> dfs;
   vertex_adj_iter_t adj_s, adj_e;
 
   for (auto const &vp : epfriend) {
@@ -343,18 +343,19 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
     if (visited.count(v)) {
       continue;
     }
-    dfs.push({false, v});
+    dfs.push({v, false});
     visited.insert(v);
     while (!dfs.empty()) {
       auto cur = dfs.top();
       dfs.pop();
-      if (cur.first) {
-        ordered_period_vertices.emplace_back(name_map[cur.second]);
+      if (cur.second) {
+        ordered_period_vertices.emplace_back(name_map[cur.first]);
         continue;
       }
-      dfs.push({true, cur.second});
-      // iterate through neighbots
-      for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.second, graph_);
+      dfs.push({cur.first, true});
+      std::vector<std::pair<blk_hash_t, vertex_t>> neighbors;
+      // iterate through neighbors
+      for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.first, graph_);
            adj_s != adj_e; adj_s++) {
         if (epfriend.find(blk_hash_t(name_map[*adj_s])) ==
             epfriend.end()) {  // not in this epoch
@@ -363,8 +364,13 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
         if (visited.count(*adj_s)) {
           continue;
         }
-        dfs.push({false, *adj_s});
+        neighbors.emplace_back(std::make_pair(name_map[*adj_s], *adj_s));
         visited.insert(*adj_s);
+      }
+      // make sure iterated nodes have deterministic order
+      std::sort(neighbors.begin(), neighbors.end());
+      for (auto const & n: neighbors){
+        dfs.push({n.second, false});
       }
     }
   }

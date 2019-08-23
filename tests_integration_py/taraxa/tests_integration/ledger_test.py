@@ -39,7 +39,7 @@ NODE_PORTS = []
 BOOT_NODE_PORT = 7777
 TOTAL_TARAXA_COINS = 9007199254740991
 NUM_TRXS = 200
-INIT_NODE_BAL = 90000
+INIT_NODE_BAL = 70000
 
 
 def get_node_port(num_nodes):
@@ -54,12 +54,12 @@ def get_arguments():
     return int(num_nodes)
 
 
-def test_fail():
+def this_test_fail():
     print("****** [Test Fail] ******")
     return 0
 
 
-def test_success():
+def this_test_success():
     print("****** [Test Success] ******")
     return 1
 
@@ -122,6 +122,7 @@ def all_nodes_connected(num_nodes):
         if ok:
             return 1
         time.sleep(1)
+        print("------- check peers again ------")
     return 0
 
 
@@ -143,6 +144,53 @@ def trx_count_testing(num_nodes):
                   count, " transactions, expected:", answer)
             ok = 0
         print("Check transaction count ... in node", node, "status =", ok)
+    return ok
+
+
+def executed_trx_count_testing(num_nodes):
+    # use first node as answer
+    answer = 0
+    ok = 1
+    for node in range(num_nodes):
+        count = taraxa_rpc_get_executed_trx_count(NODE_PORTS[node])
+        if (node == 0):
+            answer = count
+            print("Executed trx count =", count)
+        elif (count != answer):
+            print("Error! node", node, "has only",
+                  count, " transactions executed, expected:", answer)
+            ok = 0
+    return ok
+
+
+def executed_blk_count_testing(num_nodes):
+    # use first node as answer
+    answer = 0
+    ok = 1
+    for node in range(num_nodes):
+        count = taraxa_rpc_get_executed_blk_count(NODE_PORTS[node])
+        if (node == 0):
+            answer = count
+            print("Executed blk count =", count)
+        elif (count != answer):
+            print("Error! node", node, "has only",
+                  count, " blks executed, expected:", answer)
+            ok = 0
+    return ok
+
+
+def block_number_testing(num_nodes):
+    # use first node as answer
+    answer = 0
+    ok = 1
+    for node in range(num_nodes):
+        block_num = taraxa_rpc_blockNumber(NODE_PORTS[node])
+        if (node == 0):
+            answer = block_num
+        elif (block_num != answer):
+            print("Error! node", node, "blockNumber is ",
+                  block_num, ", expected:", answer)
+            ok = 0
     return ok
 
 
@@ -175,11 +223,11 @@ def initialize_coin_allocation(num_nodes, coins):
     print("Wait for coin init ...")
     ok = 1
     for counter in range(50):
-        time.sleep(1)
+        time.sleep(3)
         ok = 1
         for node in range(num_nodes):  # loop through different nodes
-            if not ok:
-                break
+            # if not ok:
+            #     break
             for acc in range(num_nodes):  # loop through different accounts
                 account = NODE_ADDRESS[acc]
                 bal = taraxa_rpc_get_account_balance(
@@ -232,8 +280,8 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
         time.sleep(num_nodes)
         ok = 1
         for node in range(num_nodes):  # loop through different nodes
-            if not ok:
-                break
+            # if not ok:
+            #     break
             for acc in range(num_nodes + 1):  # loop through different accounts
                 expected_bal = 0
                 if (acc == 0):
@@ -250,10 +298,15 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
                     print("Error! node", node, "account (", acc, ")",
                           account, "balance =", bal, "Expected =", expected_bal)
                     ok = 0
-                    trx_count_testing(num_nodes)
-                    dag_size_testing(num_nodes)
+
         if ok:
             break
+        block_number_testing(num_nodes)
+        trx_count_testing(num_nodes)
+        dag_size_testing(num_nodes)
+        executed_trx_count_testing(num_nodes)
+        executed_blk_count_testing(num_nodes)
+
     if ok:
         print("Coin transfer done ...")
     else:
@@ -310,11 +363,10 @@ def test_main(num_nodes):
     ok = balance_check_test(num_nodes)
 
     terminate_full_nodes(jobs)
-    # sys.exit()
     if ok:
-        test_success()
+        this_test_success()
     else:
-        test_fail()
+        this_test_fail()
 
     for path in glob.glob("./py_test/conf"):
         shutil.rmtree(path, ignore_errors=False)
