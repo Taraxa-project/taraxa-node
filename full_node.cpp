@@ -138,10 +138,17 @@ void FullNode::initDB(bool destroy_db) {
     // THIS IS THE GENESIS
     // TODO extract to a function
     auto const &genesis_block = conf_.genesis_state.block;
+
+    if (!genesis_block.verifySig()) {
+      LOG(log_er_) << "Genesis block is invalid";
+      assert(false);
+    }
     auto const &genesis_hash = genesis_block.getHash();
     // store genesis blk to db
     db_blks_->put(genesis_hash.toString(), genesis_block.getJsonStr());
     db_blks_->commit();
+    // Initialize DAG genesis at DAG block heigh 0
+    pbft_chain_->pushDagBlockHash(genesis_hash);
     // store pbft chain genesis(HEAD) block to db
     db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
                        pbft_chain_->getJsonStr());

@@ -20,14 +20,14 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager(std::string const &genesis) : genesis_(genesis) {}
+PbftManager::PbftManager(std::string const &genesis) : dag_genesis_(genesis) {}
 PbftManager::PbftManager(std::vector<uint> const &params,
                          std::string const &genesis)
     // TODO: for debug, need remove later
     : LAMBDA_ms(params[0]),
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
-      genesis_(genesis) {}
+      dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   node_ = node;
@@ -659,10 +659,15 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
     // choose the last DAG block as PBFT pivot block in this period
     std::vector<std::string> ghost;
-    full_node->getGhostPath(genesis_, ghost);
+    full_node->getGhostPath(dag_genesis_, ghost);
     blk_hash_t dag_block_hash(ghost.back());
+    if (dag_block_hash.toString() == dag_genesis_) {
+      LOG(log_deb_) << "No new DAG blocks generated. DAG only has genesis "
+                    << dag_block_hash << " PBFT propose NULL_BLOCK_HASH";
+      return std::make_pair(NULL_BLOCK_HASH, true);
+    }
     // compare with last dag block hash. If they are same, which means no new
-    // dag blocks generated since last round In that case PBFT proposer should
+    // dag blocks generated since last round. In that case PBFT proposer should
     // propose NULL BLOCK HASH as their value and not produce a new block. In
     // practice this should never happen
     std::pair<PbftBlock, bool> last_round_pbft_anchor_block =

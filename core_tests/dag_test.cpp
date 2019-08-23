@@ -465,32 +465,32 @@ TEST(DagManager, compute_epoch) {
   uint64_t period;
   period = mgr->getDagBlockOrder(blkA.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 1);
+  EXPECT_EQ(period, 2);
   // repeat, should not change
   period = mgr->getDagBlockOrder(blkA.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 1);
+  EXPECT_EQ(period, 2);
 
   mgr->setDagBlockPeriod(blkA.getHash(), period);
 
   period = mgr->getDagBlockOrder(blkC.getHash(), orders);
   EXPECT_EQ(orders.size(), 2);
-  EXPECT_EQ(period, 2);
+  EXPECT_EQ(period, 3);
   // repeat, should not change
   period = mgr->getDagBlockOrder(blkC.getHash(), orders);
   EXPECT_EQ(orders.size(), 2);
-  EXPECT_EQ(period, 2);
+  EXPECT_EQ(period, 3);
 
   mgr->setDagBlockPeriod(blkC.getHash(), period);
 
   period = mgr->getDagBlockOrder(blkE.getHash(), orders);
   EXPECT_EQ(orders.size(), 3);
-  EXPECT_EQ(period, 3);
+  EXPECT_EQ(period, 4);
   mgr->setDagBlockPeriod(blkE.getHash(), period);
 
   period = mgr->getDagBlockOrder(blkH.getHash(), orders);
   EXPECT_EQ(orders.size(), 4);
-  EXPECT_EQ(period, 4);
+  EXPECT_EQ(period, 5);
   mgr->setDagBlockPeriod(blkH.getHash(), period);
 
   if (orders.size() == 4) {
@@ -501,7 +501,7 @@ TEST(DagManager, compute_epoch) {
   }
   period = mgr->getDagBlockOrder(blkK.getHash(), orders);
   EXPECT_EQ(orders.size(), 1);
-  EXPECT_EQ(period, 5);
+  EXPECT_EQ(period, 6);
   mgr->setDagBlockPeriod(blkK.getHash(), period);
 }
 

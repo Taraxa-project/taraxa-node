@@ -688,7 +688,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   uint64_t period;
   std::shared_ptr<vec_blk_t> order;
   std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
-  EXPECT_EQ(period, 1);
+  EXPECT_EQ(period, 2);
   EXPECT_EQ(order->size(), 6);
 
   if (order->size() == 6) {
@@ -710,7 +710,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
-  EXPECT_EQ(period, 2);
+  EXPECT_EQ(period, 3);
   if (order->size() == 7) {
     EXPECT_EQ((*order)[0], blk_hash_t(11));
     EXPECT_EQ((*order)[1], blk_hash_t(10));
@@ -732,7 +732,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
-  EXPECT_EQ(period, 3);
+  EXPECT_EQ(period, 4);
   if (order->size() == 5) {
     EXPECT_EQ((*order)[0], blk_hash_t(17));
     EXPECT_EQ((*order)[1], blk_hash_t(16));

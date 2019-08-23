@@ -549,6 +549,8 @@ DagManager::DagManager(std::string const &genesis) try
       pivot_tree_(std::make_shared<PivotTree>(genesis)),
       anchors_({genesis}),
       genesis_(genesis) {
+  // insert genesis as the first anchor
+  anchors_.emplace_back(genesis);
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -778,6 +780,13 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 
   std::vector<std::string> blk_orders;
   auto prev = anchors_.back();
+
+  if (blk_hash_t(prev) == anchor) {
+    LOG(log_wr_) << "Create period from " << blk_hash_t(prev) << " to "
+                 << anchor << " not ok " << std::endl;
+    return anchors_.size() - 1;
+  }
+
   auto new_period = anchors_.size();
 
   auto ok =

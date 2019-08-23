@@ -208,7 +208,7 @@ class PbftChain {
         next_pbft_block_type_(pivot_block_type) {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
-    pbft_chain_map_[genesis_hash_] = PbftBlock(blk_hash_t(0));
+    pbft_chain_map_[genesis_hash_] = PbftBlock(genesis_hash_);
     pbft_verified_set_.insert(genesis_hash_);
   }
   ~PbftChain() {}
