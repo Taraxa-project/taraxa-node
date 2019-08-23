@@ -60,7 +60,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   }
   EXPECT_EQ(node->getNumProposedBlocks(), 1);
 
-
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   // Vote DAG block
   for (int i = 0; i < 600; i++) {
@@ -117,7 +116,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   EXPECT_NE(node2, nullptr);
   EXPECT_NE(node3, nullptr);
 
-  std::vector<std::shared_ptr<taraxa::FullNode>> nodes { node1, node2, node3 };
+  std::vector<std::shared_ptr<taraxa::FullNode>> nodes{node1, node2, node3};
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
@@ -147,10 +146,10 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   auto gas_price = val_t(2);
   auto gas = val_t(1);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(nonce, coins_value2, gas_price,
-                                            gas, node2_addr, data, g_secret);
-  Transaction trx_master_boot_node_to_node3(nonce, coins_value3, gas_price,
-                                            gas, node3_addr, data, g_secret);
+  Transaction trx_master_boot_node_to_node2(nonce, coins_value2, gas_price, gas,
+                                            node2_addr, data, g_secret);
+  Transaction trx_master_boot_node_to_node3(nonce, coins_value3, gas_price, gas,
+                                            node3_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
   node1->insertTransaction(trx_master_boot_node_to_node3);
 

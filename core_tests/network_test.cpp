@@ -380,7 +380,7 @@ TEST(Network, node_pbft_sync) {
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
   node2->setDebug(true);
-  node2->start(false);  //boot node
+  node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
   for (int i = 0; i < 1200; i++) {
