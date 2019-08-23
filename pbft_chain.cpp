@@ -469,8 +469,8 @@ std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
 }
 
 uint64_t PbftChain::getDagBlockMaxHeight() const {
-  if (dag_blocks_map_.size() > 0) return dag_blocks_map_.size() - 1;
-  return 0;
+  assert(dag_blocks_map_.size());
+  return dag_blocks_map_.size() - 1;
 }
 
 void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {

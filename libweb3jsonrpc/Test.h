@@ -55,6 +55,7 @@ class Test : public TestFace {
 
  private:
   std::weak_ptr<taraxa::FullNode> full_node_;
+  std::future<void> trx_creater_;
 };
 
 }  // namespace rpc
