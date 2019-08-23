@@ -119,6 +119,7 @@ void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
 
 bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
                                                  unsigned _id, RLP const &_r) {
+  if (stopped_) return true;
   if (conf_.network_simulated_delay == 0) {
     return interpretCapabilityPacketImpl(_nodeID, _id, _r);
   }
@@ -478,9 +479,11 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
       }
     }
     if (auto full_node = full_node_.lock()) {
-      peer_syncing_ = max_vertices_nodeID;
-      syncPeer(max_vertices_nodeID, full_node->getDagMaxLevel());
-      syncPeerPbft(max_vertices_nodeID);
+      if (!stopped_) {
+        peer_syncing_ = max_vertices_nodeID;
+        syncPeer(max_vertices_nodeID, full_node->getDagMaxLevel());
+        syncPeerPbft(max_vertices_nodeID);
+      }
     }
   }
   erasePeer(_nodeID);
@@ -659,9 +662,11 @@ void TaraxaCapability::sendBlocks(
       for (auto trx : block->getTrxs()) {
         auto t = full_node->getTransaction(trx);
         if (!t) {
-          LOG(log_er_) << "Transacation " << trx << " is not available";
+          LOG(log_er_) << "Transacation " << trx << " is not available. SendBlocks canceled";
+          // TODO: This can happen on stopping the node because network is not
+          // stopped since network does not support restart, better solution needed
+          return;
         }
-        assert(t);
         transactions.push_back(*t);
         totalTransactionsCount++;
       }
