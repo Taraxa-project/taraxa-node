@@ -25,14 +25,14 @@ workspace.mkdir(parents=True, exist_ok=True)
 
 START_BOOT_NODE = f"{paths.node_exe} --rebuild_network true --boot_node true " \
                   f"--conf_taraxa {workspace}/conf_taraxa{{}}.json -v 2 " \
-                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
+                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR " \
                   f"> {workspace}/node{{}}.log 2>&1"
 START_FULL_NODE = f"{paths.node_exe} --rebuild_network true " \
                   f"--conf_taraxa {workspace}/conf_taraxa{{}}.json -v 2 " \
-                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
+                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR" \
                   f"> {workspace}/node{{}}.log 2>&1"
 START_FULL_NODE_SILENT = f"{paths.node_exe} --conf_taraxa {workspace}/conf_taraxa{{}}.json -v 0 " \
-                         f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR " \
+                         f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR" \
                          f"> {workspace}/node{{}}.log 2>&1"
 
 NODE_PORTS = []
@@ -139,10 +139,11 @@ def trx_count_testing(num_nodes):
         if (node == 0):
             answer = count
             print("Trx count =", count)
-        elif (count != answer):
-            print("Error! node", node, "has only",
-                  count, " transactions, expected:", answer)
-            ok = 0
+        else:
+            if (count != answer):
+                print("Error! node", node, "has only", count,
+                      " transactions, expected:", answer)
+                ok = 0
         print("Check transaction count ... in node", node, "status =", ok)
     return ok
 
@@ -202,7 +203,7 @@ def dag_size_testing(num_nodes):
         sz = taraxa_rpc_get_dag_size(NODE_PORTS[node])
         if (node == 0):
             answer = sz
-            print("Dag size =", sz)
+            print("Boot node DAG size =", sz)
         elif (sz != answer):
             print("Error! node", node, "has only",
                   sz, "DAG, expected:", answer)
@@ -245,6 +246,7 @@ def initialize_coin_allocation(num_nodes, coins):
                     break
         if ok:
             break
+        print("------- check init balance again ------")
     if ok:
         print("Coin init done ...")
     else:
@@ -306,6 +308,7 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
         dag_size_testing(num_nodes)
         executed_trx_count_testing(num_nodes)
         executed_blk_count_testing(num_nodes)
+        print("------- check balance again ------")
 
     if ok:
         print("Coin transfer done ...")
@@ -343,7 +346,7 @@ def terminate_full_nodes(jobs):
         killtree(j.pid)
 
 
-@pytest.mark.parametrize("num_nodes", [5])
+@pytest.mark.parametrize("num_nodes", [20])
 def test_main(num_nodes):
     # num_nodes = get_arguments()
     # delete previous results
