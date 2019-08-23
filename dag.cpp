@@ -369,7 +369,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
       }
       // make sure iterated nodes have deterministic order
       std::sort(neighbors.begin(), neighbors.end());
-      for (auto const & n: neighbors){
+      for (auto const &n : neighbors) {
         dfs.push({n.second, false});
       }
     }
