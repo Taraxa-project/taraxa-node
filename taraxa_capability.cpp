@@ -107,7 +107,6 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     }
   }
 }
-}
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
   LOG(log_nf_) << "Node " << _nodeID << " connected";
