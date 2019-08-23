@@ -157,6 +157,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void onStarting() override;
   void onStopping() override {
+    stopped_ = true;
     if (conf_.network_simulated_delay > 0) io_service_.stop();
   }
 
@@ -244,6 +245,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
+  bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
