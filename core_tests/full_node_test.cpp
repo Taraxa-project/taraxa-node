@@ -692,7 +692,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   uint64_t period;
   std::shared_ptr<vec_blk_t> order;
   std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
-  EXPECT_EQ(period, 2);
+  EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
 
   if (order->size() == 6) {
@@ -714,7 +714,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
-  EXPECT_EQ(period, 3);
+  EXPECT_EQ(period, 2);
   if (order->size() == 7) {
     EXPECT_EQ((*order)[0], blk_hash_t(11));
     EXPECT_EQ((*order)[1], blk_hash_t(10));
@@ -736,7 +736,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   node->getLatestPivotAndTips(pivot, tips);
   std::tie(period, order) = node->getDagBlockOrder(blk_hash_t(pivot));
-  EXPECT_EQ(period, 4);
+  EXPECT_EQ(period, 3);
   if (order->size() == 5) {
     EXPECT_EQ((*order)[0], blk_hash_t(17));
     EXPECT_EQ((*order)[1], blk_hash_t(16));
@@ -1078,20 +1078,18 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
   taraxa::thisThreadSleepForMilliSeconds(3000);
 
   EXPECT_GT(node->getNumProposedBlocks(), 0);
-  cfg.genesis_state.block.updateHash();
 
   // The test will form a single chain
   std::vector<std::string> ghost;
   node->getGhostPath(cfg.genesis_state.block.getHash().toString(), ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
-  EXPECT_GT(ghost.size(), 1);
+  ASSERT_GT(ghost.size(), 1);
   uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
-
-  // create a period for every 2 pivots
-  for (int i = 0; i < ghost.size(); i += 2) {
+  // create a period for every 2 pivots, skip genesis
+  for (int i = 1; i < ghost.size(); i += 2) {
     auto anchor = blk_hash_t(ghost[i]);
     std::tie(cur_period, order) = node->getDagBlockOrder(anchor);
     // call twice should not change states
@@ -1113,7 +1111,7 @@ TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
   // pickup the last period when dag (chain) size is odd number
-  if (ghost.size() % 2 == 0) {
+  if (ghost.size() % 2 == 1) {
     std::tie(cur_period, order) =
         node->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
@@ -1767,7 +1765,7 @@ int main(int argc, char **argv) {
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");
   // logOptions.includeChannels.push_back("DAGMGR");
-  logOptions.includeChannels.push_back("EXETOR");
+  // logOptions.includeChannels.push_back("EXETOR");
   // logOptions.includeChannels.push_back("BLK_PP");
   // logOptions.includeChannels.push_back("PR_MDL");
 
