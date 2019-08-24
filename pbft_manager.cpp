@@ -136,7 +136,7 @@ void PbftManager::run() {
     bool sync_peers_pbft_chain = false;
     std::vector<Vote> votes =
         vote_mgr_->getVotes(pbft_round_ - 1, sync_peers_pbft_chain);
-    LOG(log_deb_) << "There are " << votes.size() << " votes since round "
+    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
     if (sync_peers_pbft_chain) {
       syncPbftChainFromPeers_();
@@ -579,7 +579,7 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
                       << " votes";
         return std::make_pair(blockhash_pair.first, true);
       } else {
-        LOG(log_deb_) << "Don't have enough votes. block hash "
+        LOG(log_tra_) << "Don't have enough votes. block hash "
                       << blockhash_pair.first << " vote type " << vote_type
                       << " in round " << vote_round << " has "
                       << blockhash_pair.second << " votes";
