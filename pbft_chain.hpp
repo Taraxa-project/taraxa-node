@@ -209,7 +209,6 @@ class PbftChain {
     last_pbft_block_hash_ = genesis_hash_;
     last_pbft_pivot_hash_ = genesis_hash_;
     pbft_chain_map_[genesis_hash_] = PbftBlock(genesis_hash_);
-    // dag_blocks_map_[genesis_hash_] = 0;
     pbft_verified_set_.insert(genesis_hash_);
   }
   ~PbftChain() {}
