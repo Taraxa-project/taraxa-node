@@ -393,7 +393,7 @@ TEST_F(FullNodeTest, full_node_reset) {
 }
 
 // fixme: flaky
-TEST_F(TopTest, DISABLED_sync_five_nodes) {
+TEST_F(TopTest, sync_five_nodes) {
   // copy main2, main3, main4, main5
   try {
     std::cout << "Copying main2 ..." << std::endl;
@@ -611,9 +611,18 @@ TEST_F(TopTest, DISABLED_sync_five_nodes) {
     }
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
+
+  // if (node1->getNumBlockExecuted() != node->getNumVerticesInDag().first-1){
+  //   auto dags = node1->getLinearizedDagBlocks();
+  //   for (auto i(0); i<dags.size(); ++i){
+  //     auto d = dags[i];
+  //     std::cout<< i <<" "<<d<< " trx: "<< node1->getDagBlock(d)->getTrxs().size()<<std::endl;
+  //   }
+  // }
+
   for (auto const &node: nodes){
     EXPECT_EQ(node->getPackedTrxs().size(), 10005);  
-    EXPECT_EQ(node->getNumBlockExecuted(), node->getNumVerticesInDag().first);
+    EXPECT_EQ(node->getNumBlockExecuted(), node->getNumVerticesInDag().first-1); // genesis block won't be executed
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
       << " \nNum execued in node1 " << node1->getNumTransactionExecuted()
       << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
@@ -1662,31 +1671,90 @@ TEST_F(TopTest, detect_overlap_transactions) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
-  taraxa::thisThreadSleepForSeconds(2);
-  send_dumm_trx();
+  // check dags
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
+
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    if (i % 10 == 0) {
+      std::cout << "Wait for vertices syncing ..." << std::endl;
+    }
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
+    num_vertices3 = node3->getNumVerticesInDag();
+    num_vertices4 = node4->getNumVerticesInDag();
+    num_vertices5 = node5->getNumVerticesInDag();
+
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
+        node1->getTransactionStatusCount() == 10000 &&
+        node2->getTransactionStatusCount() == 10000 &&
+        node3->getTransactionStatusCount() == 10000 &&
+        node4->getTransactionStatusCount() == 10000 &&
+        node5->getTransactionStatusCount() == 10000)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+
+  EXPECT_GT(node1->getNumProposedBlocks(), 2);
+  EXPECT_GT(node2->getNumProposedBlocks(), 2);
+  EXPECT_GT(node3->getNumProposedBlocks(), 2);
+  EXPECT_GT(node4->getNumProposedBlocks(), 2);
+  EXPECT_GT(node5->getNumProposedBlocks(), 2);
+
+  // send dummy trx to make sure all DAGs are ordered
+  try {
+    send_dumm_trx();
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
 
   for (int i = 0; i < 10; ++i) {
     taraxa::thisThreadSleepForSeconds(2);
     if (node1->getTransactionStatusCount() == 10001) break;
   }
 
+
+  num_vertices1 = node1->getNumVerticesInDag();
+  num_vertices2 = node2->getNumVerticesInDag();
+  num_vertices3 = node3->getNumVerticesInDag();
+  num_vertices4 = node4->getNumVerticesInDag();
+  num_vertices5 = node5->getNumVerticesInDag();
+
+  EXPECT_EQ(num_vertices1, num_vertices2);
+  EXPECT_EQ(num_vertices2, num_vertices3);
+  EXPECT_EQ(num_vertices3, num_vertices4);
+  EXPECT_EQ(num_vertices4, num_vertices5);
+
   EXPECT_EQ(node1->getTransactionStatusCount(), 10001);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 10001);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 10001);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 10001);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 10001);
 
   auto block = node1->getConfig().genesis_state.block;
-  block.updateHash();
   std::vector<std::string> ghost;
   node1->getGhostPath(block.getHash().toString(), ghost);
+  ASSERT_GT(ghost.size(), 1);
   uint64_t period = 0, cur_period, cur_period2;
   std::shared_ptr<vec_blk_t> order;
   auto anchor = blk_hash_t(ghost.back());
   std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
+  ASSERT_TRUE(order);
   EXPECT_GT(order->size(), 5);
   std::cout << "Ordered dagblock size: " << order->size() << std::endl;
+  
   auto dag_size = node1->getNumVerticesInDag();
-  if (dag_size.second != order->size() + 1) {
+  if (dag_size.second != order->size()+1) {
     node1->drawGraph("debug_dag");
+    for (auto i(0); i<order->size(); ++i){
+      std::cout<<i<<" "<< (*order)[i]<<std::endl;
+    }
   }
-  EXPECT_EQ(dag_size.second, order->size() + 1);  // +1 to include genesis
+  EXPECT_EQ(dag_size.second, order->size()+1);  // +1 to include genesis
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
   auto trx_table = node1->getUnsafeTransactionStatusTable();
