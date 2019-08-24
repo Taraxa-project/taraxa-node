@@ -1025,7 +1025,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       std::shared_ptr<vec_blk_t> dag_blocks_order;
       std::tie(current_period, dag_blocks_order) =
           full_node->getDagBlockOrder(dag_block_hash);
-
       // update DAG blocks order and DAG blocks table
       for (auto const &dag_blk_hash : *dag_blocks_order) {
         auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
