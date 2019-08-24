@@ -454,8 +454,8 @@ TEST_F(TopTest, sync_five_nodes) {
   nodes.emplace_back(node3);
   nodes.emplace_back(node4);
   nodes.emplace_back(node5);
-  
-  EXPECT_EQ(node1->getDagBlockMaxHeight(), 0); // genesis block
+
+  EXPECT_EQ(node1->getDagBlockMaxHeight(), 0);  // genesis block
   auto init_bal = 300000;
 
   // transfer some coins to your friends ...
@@ -616,23 +616,26 @@ TEST_F(TopTest, sync_five_nodes) {
   //   auto dags = node1->getLinearizedDagBlocks();
   //   for (auto i(0); i<dags.size(); ++i){
   //     auto d = dags[i];
-  //     std::cout<< i <<" "<<d<< " trx: "<< node1->getDagBlock(d)->getTrxs().size()<<std::endl;
+  //     std::cout<< i <<" "<<d<< " trx: "<<
+  //     node1->getDagBlock(d)->getTrxs().size()<<std::endl;
   //   }
   // }
 
-  for (auto const &node: nodes){
-    EXPECT_EQ(node->getPackedTrxs().size(), 10005);  
-    EXPECT_EQ(node->getNumBlockExecuted(), node->getNumVerticesInDag().first-1); // genesis block won't be executed
+  for (auto const &node : nodes) {
+    EXPECT_EQ(node->getPackedTrxs().size(), 10005);
+    EXPECT_EQ(node->getNumBlockExecuted(),
+              node->getNumVerticesInDag().first -
+                  1);  // genesis block won't be executed
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
-      << " \nNum execued in node1 " << node1->getNumTransactionExecuted()
-      << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
-      << " \nNum execued in node3 " << node3->getNumTransactionExecuted()
-      << " \nNum execued in node4 " << node4->getNumTransactionExecuted()
-      << " \nNum execued in node5 " << node5->getNumTransactionExecuted()
-      << " \nNum blks: " << node->getLinearizedDagBlocks().size() << "\n "
-      << node->getLinearizedDagBlocks();
+        << " \nNum execued in node1 " << node1->getNumTransactionExecuted()
+        << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
+        << " \nNum execued in node3 " << node3->getNumTransactionExecuted()
+        << " \nNum execued in node4 " << node4->getNumTransactionExecuted()
+        << " \nNum execued in node5 " << node5->getNumTransactionExecuted()
+        << " \nNum blks: " << node->getLinearizedDagBlocks().size() << "\n "
+        << node->getLinearizedDagBlocks();
   }
-  
+
   for (auto const &node : nodes) {
     EXPECT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
@@ -1717,7 +1720,6 @@ TEST_F(TopTest, detect_overlap_transactions) {
     if (node1->getTransactionStatusCount() == 10001) break;
   }
 
-
   num_vertices1 = node1->getNumVerticesInDag();
   num_vertices2 = node2->getNumVerticesInDag();
   num_vertices3 = node3->getNumVerticesInDag();
@@ -1746,15 +1748,15 @@ TEST_F(TopTest, detect_overlap_transactions) {
   ASSERT_TRUE(order);
   EXPECT_GT(order->size(), 5);
   std::cout << "Ordered dagblock size: " << order->size() << std::endl;
-  
+
   auto dag_size = node1->getNumVerticesInDag();
-  if (dag_size.second != order->size()+1) {
+  if (dag_size.second != order->size() + 1) {
     node1->drawGraph("debug_dag");
-    for (auto i(0); i<order->size(); ++i){
-      std::cout<<i<<" "<< (*order)[i]<<std::endl;
+    for (auto i(0); i < order->size(); ++i) {
+      std::cout << i << " " << (*order)[i] << std::endl;
     }
   }
-  EXPECT_EQ(dag_size.second, order->size()+1);  // +1 to include genesis
+  EXPECT_EQ(dag_size.second, order->size() + 1);  // +1 to include genesis
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
   auto trx_table = node1->getUnsafeTransactionStatusTable();

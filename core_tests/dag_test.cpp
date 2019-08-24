@@ -546,7 +546,8 @@ TEST(DagManager, receive_block_in_order) {
   EXPECT_EQ(mgr->getBufferSize(), 0);
 }
 
-// Use the example on Conflux paper, insert block in different order and make sure block order are the same
+// Use the example on Conflux paper, insert block in different order and make
+// sure block order are the same
 TEST(DagManager, compute_epoch_2) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";

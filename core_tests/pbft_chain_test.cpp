@@ -343,8 +343,8 @@ TEST(PbftChain, get_dag_block_hash) {
 
   dag_genesis_hash = pbft_chain->getDagBlockHash(1);
   ASSERT_TRUE(dag_genesis_hash.second);
-  std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
-      dag_genesis_hash.first);
+  std::pair<uint64_t, bool> dag_genesis_height =
+      pbft_chain->getDagBlockHeight(dag_genesis_hash.first);
   ASSERT_TRUE(dag_genesis_height.second);
   ASSERT_EQ(dag_genesis_height.first, 1);
 }

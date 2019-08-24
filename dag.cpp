@@ -670,7 +670,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
   // sync pivot tree's time stamp with total_dag_ timestamp
   auto stamp = total_dag_->getVertexTimeStamp(hash);
   pivot_tree_->setVertexTimeStamp(hash, stamp);
-  LOG(log_nf_)<<"Insert block to DAG : "<< hash;
+  LOG(log_nf_) << "Insert block to DAG : " << hash;
 }
 
 void DagManager::consume() {
@@ -788,8 +788,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   auto prev = anchors_.back();
 
   if (blk_hash_t(prev) == anchor) {
-    LOG(log_wr_) << "Query period from " << blk_hash_t(prev) << " to "
-                 << anchor << " not ok " << std::endl;
+    LOG(log_wr_) << "Query period from " << blk_hash_t(prev) << " to " << anchor
+                 << " not ok " << std::endl;
     return anchors_.size() - 1;
   }
 
@@ -815,9 +815,9 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
-    LOG(log_er_) << "Inserting period (" << period <<") anchor "<< anchor
+    LOG(log_er_) << "Inserting period (" << period << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
-                 << anchors_.size() - 1 << ") "<<anchors_.back();
+                 << anchors_.size() - 1 << ") " << anchors_.back();
     return 0;
   }
   auto prev = anchors_.back();
