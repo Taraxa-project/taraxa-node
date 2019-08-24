@@ -607,6 +607,12 @@ void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
+  if (dag_blocks_map_.find(dag_block_hash) != dag_blocks_map_.end()) {
+    // The DAG block already exist
+    LOG(log_err_) << "Duplicate DAG block " << dag_block_hash
+                  << " in pbft CS block";
+    return dag_blocks_map_[dag_block_hash];
+  }
   // push DAG block hash into array. DAG genesis at index 0
   dag_blocks_order_.emplace_back(dag_block_hash);
 
