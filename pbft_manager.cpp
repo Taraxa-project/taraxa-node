@@ -1027,7 +1027,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
       updatePbftChainDB_(pbft_block);
       LOG(log_inf_) << "Successful push pbft anchor block "
-                    << pbft_block.getBlockHash() << " into chain!";
+                    << pbft_block.getBlockHash() << " into chain! in round "
+                    << pbft_round_;
       // get dag blocks order
       blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
       uint64_t current_period;
@@ -1047,7 +1048,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
         updatePbftChainDB_(pbft_block);
         LOG(log_inf_) << "Successful push pbft schedule block "
-                      << pbft_block.getBlockHash() << " into chain!";
+                      << pbft_block.getBlockHash() << " into chain! in round "
+                      << pbft_round_;
 
         // set DAG blocks period
         blk_hash_t last_pivot_block_hash = pbft_chain_->getLastPbftPivotHash();
