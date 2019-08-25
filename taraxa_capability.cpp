@@ -471,11 +471,13 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   if (peer_syncing_ == _nodeID && getPeersCount() > 0) {
     NodeID max_vertices_nodeID;
     unsigned long max_vertices_count = 0;
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto const peer : peers_) {
-      if (peer.second->vertices_count_ > max_vertices_count) {
-        max_vertices_count = peer.second->vertices_count_;
-        max_vertices_nodeID = peer.first;
+    {
+      boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+      for (auto const peer : peers_) {
+        if (peer.second->vertices_count_ > max_vertices_count) {
+          max_vertices_count = peer.second->vertices_count_;
+          max_vertices_nodeID = peer.first;
+        }
       }
     }
     if (auto full_node = full_node_.lock()) {
@@ -567,17 +569,22 @@ void TaraxaCapability::onNewTransactions(
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
-    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-    for (auto &peer : peers_) {
-      std::vector<Transaction> transactionsToSend;
-      for (auto const &transaction : transactions) {
-        if (!peer.second->isTransactionKnown(transaction.first)) {
-          peer.second->markTransactionAsKnown(transaction.first);
-          transactionsToSend.push_back(transaction.second);
+    std::map<NodeID, std::vector<Transaction>> transactionsToSend;
+    {
+      boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+      for (auto &peer : peers_) {
+        for (auto const &transaction : transactions) {
+          if (!peer.second->isTransactionKnown(transaction.first)) {
+            peer.second->markTransactionAsKnown(transaction.first);
+            transactionsToSend[peer.first].push_back(transaction.second);
+          }
         }
       }
-      if (transactionsToSend.size() > 0)
-        sendTransactions(peer.first, transactionsToSend);
+    }
+    for (auto &t : transactionsToSend) {
+      if (t.second.size() > 0) {
+        sendTransactions(t.first, t.second);
+      }
     }
   }
 }
