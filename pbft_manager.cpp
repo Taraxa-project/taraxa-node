@@ -158,15 +158,22 @@ void PbftManager::run() {
       std::vector<Vote> cert_votes_for_round = getVotesOfTypeFromVotesForRound_(
           cert_vote_type, votes, pbft_round_ - 1,
           std::make_pair(NULL_BLOCK_HASH, false));
+      // TODO: debug remove later
+      LOG(log_deb_) << "Get cert votes for round " << pbft_round_ - 1;
       std::pair<blk_hash_t, bool> cert_voted_block_hash =
           blockWithEnoughVotes_(cert_votes_for_round);
+      // TODO: debug remove later
+      LOG(log_deb_) << "Calculate cert votes for pbft block";
       if (cert_voted_block_hash.second) {
         // put pbft block into chain if have 2t+1 cert votes
         if (pushPbftBlockIntoChainIfEnoughCertVotes_(
-                pbft_round_ - 1, cert_voted_block_hash.first)) {
+                votes, pbft_round_ - 1, cert_voted_block_hash.first)) {
           push_block_values_for_round[pbft_round_ - 1] =
               cert_voted_block_hash.first;
         }
+        // TODO: debug remove later
+        LOG(log_deb_) << "The cert voted pbft block is "
+                      << cert_voted_block_hash.first;
       }
 
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
@@ -232,7 +239,8 @@ void PbftManager::run() {
             (pbft_round_ >= 2 &&
              nullBlockNextVotedForRound_(votes, pbft_round_ - 1))) {
           // Identity leader
-          std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_();
+          std::pair<blk_hash_t, bool> leader_block =
+              identifyLeaderBlock_(votes);
           if (leader_block.second) {
             LOG(log_deb_) << "Identify leader block " << leader_block.first
                           << " for round " << pbft_round_
@@ -774,10 +782,11 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   return std::make_pair(pbft_block_hash, true);
 }
 
-std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
-  std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_);
+std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
+    std::vector<Vote> &votes) {
   LOG(log_deb_) << "leader block type should be: "
-                << pbft_chain_->getNextPbftBlockType();
+                << pbft_chain_->getNextPbftBlockType() << " in round "
+                << pbft_round_;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
@@ -801,8 +810,8 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_() {
 }
 
 bool PbftManager::pushPbftBlockIntoChainIfEnoughCertVotes_(
-    uint64_t round, taraxa::blk_hash_t const &cert_voted_block_hash) {
-  std::vector<Vote> votes = vote_mgr_->getVotes(round);
+    std::vector<Vote> &votes, uint64_t round,
+    taraxa::blk_hash_t const &cert_voted_block_hash) {
   size_t count = 0;
   for (auto const &v : votes) {
     if (v.getBlockHash() == cert_voted_block_hash &&

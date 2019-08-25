@@ -92,10 +92,11 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> &votes);
 
   bool pushPbftBlockIntoChainIfEnoughCertVotes_(
-      uint64_t round, blk_hash_t const &cert_voted_block_hash);
+      std::vector<Vote> &votes, uint64_t round,
+      blk_hash_t const &cert_voted_block_hash);
 
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 

@@ -612,12 +612,13 @@ TEST_F(TopTest, sync_five_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(200);
   }
 
-  if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first-1){
+  if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first - 1) {
     auto dags = node1->getLinearizedDagBlocks();
-    for (auto i(0); i<dags.size(); ++i){
+    for (auto i(0); i < dags.size(); ++i) {
       auto d = dags[i];
-      std::cout<< i <<" "<<d<< " trx: "<<
-      node1->getDagBlock(d)->getTrxs().size()<<std::endl;
+      std::cout << i << " " << d
+                << " trx: " << node1->getDagBlock(d)->getTrxs().size()
+                << std::endl;
     }
     node1->drawGraph("debug_dag");
   }
@@ -893,7 +894,7 @@ TEST(Top, reconstruct_dag) {
     std::cout << "Reset Node ..." << std::endl;
     node->reset();
     std::cout << "Node reset ..." << std::endl;
-  
+
     node->start(false);
 
     // TODO: pbft does not support node stop yet, to be fixed ...
@@ -1064,14 +1065,14 @@ TEST_F(FullNodeTest, genesis_balance) {
   EXPECT_FALSE(res.second);
 }
 
-TEST_F(TopTest, DISABLED_single_node_run_two_transactions){
+TEST_F(TopTest, DISABLED_single_node_run_two_transactions) {
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   thisThreadSleepForMilliSeconds(500);
   std::cout << "Top1 created ..." << std::endl;
   auto node1 = top1.getNode();
   EXPECT_NE(node1, nullptr);
-  
+
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
                                       "params": ["0xf86b048502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598701c6bf52634000801ba0464fc8c4a0cc2d8ffb6423f74d35069847f7758f3e8f271d2c1bb6b12f10173ea0159b3ae2116ed22162be2a64218800a18136ae0597aa2849e7ccffdf3d8692e0"
@@ -1082,23 +1083,23 @@ TEST_F(TopTest, DISABLED_single_node_run_two_transactions){
                                       "params": ["0xf86b038502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf59871550f7dca70000801ba0b2bd37b00d39a41a0f190ba6236266f0fb2261bacc0b10d573f04716ef80f60ca004104c36380cfed5004222e7443c222b45fa54ee01c2c0388f8491c2341dbb04"
                                       ]}' 0.0.0.0:7777)";
 
-  std::cout<<"Send first trx ..."<<std::endl;
+  std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
   thisThreadSleepForSeconds(3);
   EXPECT_EQ(node1->getTransactionStatusCount(), 1);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 2);
-  std::cout<<"First trx received ..."<<std::endl;
+  std::cout << "First trx received ..." << std::endl;
 
   auto trx_executed1 = node1->getNumTransactionExecuted();
 
-  for (auto i(0); i< SYNC_TIMEOUT; ++i){
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 1) break;
     thisThreadSleepForMilliSeconds(100);
   }
   EXPECT_EQ(trx_executed1, 1);
-  std::cout<<"First trx executed ..."<<std::endl;
-  std::cout<<"Send second trx ..."<<std::endl;
+  std::cout << "First trx executed ..." << std::endl;
+  std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
   thisThreadSleepForSeconds(3);
   EXPECT_EQ(node1->getTransactionStatusCount(), 2);
@@ -1106,15 +1107,13 @@ TEST_F(TopTest, DISABLED_single_node_run_two_transactions){
 
   trx_executed1 = node1->getNumTransactionExecuted();
 
-  for (auto i(0); i< SYNC_TIMEOUT; ++i){
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 2) break;
     thisThreadSleepForMilliSeconds(100);
   }
   EXPECT_EQ(trx_executed1, 2);
-
 }
-
 
 TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
   val_t initbal(100000000);  // disable pbft sortition
