@@ -27,6 +27,7 @@ PbftManager::PbftManager(std::vector<uint> const &params,
     : LAMBDA_ms(params[0]),
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
+      EXECUTE_TRXS_DELAY_ms(params[3]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
@@ -144,6 +145,10 @@ void PbftManager::run() {
 
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
+    // TODO: debug remove later
+    LOG(log_deb_) << "Record clock in pbft round " << pbft_round_;
+    now = std::chrono::system_clock::now();
+
     // Check if we are synced to the right step ...
     size_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
     if (consensus_pbft_round != pbft_round_) {
@@ -180,7 +185,24 @@ void PbftManager::run() {
                     << ", step 1, and resetting clock.";
       // NOTE: This also sets pbft_step back to 1
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      // current_step_clock_initial_datetime_ =
+      // std::chrono::system_clock::now();
+      // TODO: debug remove later
+      duration = std::chrono::system_clock::now() - now;
+      auto execute_trxs_in_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+              .count();
+      LOG(log_deb_) << "Execute transactions spend " << execute_trxs_in_ms
+                    << " ms. in round " << pbft_round_;
+      if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
+        LOG(log_err_) << "Execute transactions spend " << execute_trxs_in_ms
+                      << " ms, that longer than delay time "
+                      << EXECUTE_TRXS_DELAY_ms << " ms";
+        assert(false);
+      }
+      current_step_clock_initial_datetime_ =
+          now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
+      // END debug
       last_step_ = pbft_step_;
       pbft_step_ = 1;
       round_clock_initial_datetime = std::chrono::system_clock::now();

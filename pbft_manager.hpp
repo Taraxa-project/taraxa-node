@@ -68,6 +68,7 @@ class PbftManager {
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
+  uint64_t EXECUTE_TRXS_DELAY_ms;  // TODO: Only for test, need remove later
 
  private:
   size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
