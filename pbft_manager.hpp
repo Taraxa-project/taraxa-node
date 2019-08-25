@@ -68,6 +68,7 @@ class PbftManager {
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
+  uint64_t EXECUTE_TRXS_DELAY_ms;  // TODO: Only for test, need remove later
 
  private:
   size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
@@ -92,10 +93,11 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> &votes);
 
   bool pushPbftBlockIntoChainIfEnoughCertVotes_(
-      uint64_t round, blk_hash_t const &cert_voted_block_hash);
+      std::vector<Vote> &votes, uint64_t round,
+      blk_hash_t const &cert_voted_block_hash);
 
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
