@@ -188,7 +188,8 @@ void PbftManager::run() {
       // std::chrono::system_clock::now();
       // TODO: debug remove later
       if (next_pbft_block_type == pivot_block_type) {
-        // the last pbft block type is concurrent schedule, need add execution delay time
+        // the last pbft block type is concurrent schedule, need add execution
+        // delay time
         duration = std::chrono::system_clock::now() - now;
         auto execute_trxs_in_ms =
             std::chrono::duration_cast<std::chrono::milliseconds>(duration)
@@ -464,9 +465,10 @@ void PbftManager::run() {
         pbft_round_ += 1;
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
                       << pbft_round_ << ", step 1, and resetting clock.";
-        // I added this as a way of seeing if we were even getting votes during testnet -Justin
+        // I added this as a way of seeing if we were even getting votes during
+        // testnet -Justin
         LOG(log_deb_) << "There are " << votes.size() << " votes since round "
-                  << pbft_round_ - 2;
+                      << pbft_round_ - 2;
         // NOTE: This also sets pbft_step back to 1
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
