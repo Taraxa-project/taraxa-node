@@ -146,7 +146,6 @@ void PbftManager::run() {
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
     // TODO: debug remove later
-    LOG(log_deb_) << "Record clock in pbft round " << pbft_round_;
     now = std::chrono::system_clock::now();
 
     // Check if we are synced to the right step ...
