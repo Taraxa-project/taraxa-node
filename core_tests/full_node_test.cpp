@@ -1065,7 +1065,7 @@ TEST_F(FullNodeTest, genesis_balance) {
   EXPECT_FALSE(res.second);
 }
 
-TEST_F(TopTest, DISABLED_single_node_run_two_transactions) {
+TEST_F(TopTest, single_node_run_two_transactions) {
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   thisThreadSleepForMilliSeconds(500);
@@ -1075,12 +1075,69 @@ TEST_F(TopTest, DISABLED_single_node_run_two_transactions) {
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
-                                      "params": ["0xf86b048502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598701c6bf52634000801ba0464fc8c4a0cc2d8ffb6423f74d35069847f7758f3e8f271d2c1bb6b12f10173ea0159b3ae2116ed22162be2a64218800a18136ae0597aa2849e7ccffdf3d8692e0"
+                                      "params": ["0xf862138082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf5983989680801ba08a6f6b34c067e2db003dcb04c38f97d69aaa442475f26e6882b71ae8afe0878ea038bd3ac75c80062b122d65a6dcf026e26a04d3e9cee61ee4fcf894f60496caa1"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
-                                      "params": ["0xf86b038502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf59871550f7dca70000801ba0b2bd37b00d39a41a0f190ba6236266f0fb2261bacc0b10d573f04716ef80f60ca004104c36380cfed5004222e7443c222b45fa54ee01c2c0388f8491c2341dbb04"
+                                      "params": ["0xf868148502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba00bf2c8c99789851f306294f6624e47defcf43ecb5f6f86de17682d4b18f7709da02809733a34683e1c2af45e2ae48a4213f663cd2ae25e9d85b53e4aee6cca7b47"
+                                      ]}' 0.0.0.0:7777)";
+
+  std::cout << "Send first trx ..." << std::endl;
+  system(send_raw_trx1.c_str());
+  thisThreadSleepForSeconds(3);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 1);
+  EXPECT_EQ(node1->getNumVerticesInDag().first, 2);
+  std::cout << "First trx received ..." << std::endl;
+
+  auto trx_executed1 = node1->getNumTransactionExecuted();
+
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+    trx_executed1 = node1->getNumTransactionExecuted();
+    if (trx_executed1 == 1) break;
+    thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(trx_executed1, 1);
+  std::cout << "First trx executed ..." << std::endl;
+  std::cout << "Send second trx ..." << std::endl;
+  system(send_raw_trx2.c_str());
+  thisThreadSleepForSeconds(3);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 2);
+  EXPECT_EQ(node1->getNumVerticesInDag().first, 3);
+
+  trx_executed1 = node1->getNumTransactionExecuted();
+
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+    trx_executed1 = node1->getNumTransactionExecuted();
+    if (trx_executed1 == 2) break;
+    thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(trx_executed1, 2);
+}
+
+TEST_F(TopTest, two_nodes_run_two_transactions) {
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  thisThreadSleepForMilliSeconds(500);
+  std::cout << "Top1 created ..." << std::endl;
+  auto node1 = top1.getNode();
+  EXPECT_NE(node1, nullptr);
+
+  Top top2(6, input2);
+  EXPECT_TRUE(top2.isActive());
+  thisThreadSleepForMilliSeconds(500);
+  std::cout << "Top2 created ..." << std::endl;
+  auto node2 = top2.getNode();
+  EXPECT_NE(node2, nullptr);
+
+  std::string send_raw_trx1 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
+                                      "params": ["0xf86b188502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b08711c37937e08000801ba0641f1cebdbe2e8d6d3a73538113690d562cccf6f98baae87e446aa18aa2153eea02629f04fffa048db1fb510703a5ac02e2619e8d6a6dbe02d4bfeb40b4d4b7116"
+                                      ]}' 0.0.0.0:7777)";
+
+  std::string send_raw_trx2 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
+                                      "params": ["0xf86b1a8502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca0dcfb525d5bcd21d3078595fd6b407ae6dbffa097d6fbe5a04bc63f32f186528aa03d7ba8fa4fabfce854ca355f714718c4f13f3b16f061c32ce98d607a3dbb2345"
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
