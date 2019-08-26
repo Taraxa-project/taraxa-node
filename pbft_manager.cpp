@@ -145,9 +145,6 @@ void PbftManager::run() {
 
     blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
 
-    // TODO: debug remove later
-    now = std::chrono::system_clock::now();
-
     // Check if we are synced to the right step ...
     size_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
     if (consensus_pbft_round != pbft_round_) {
@@ -191,11 +188,11 @@ void PbftManager::run() {
       auto execute_trxs_in_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(duration)
               .count();
-      LOG(log_deb_) << "Execute transactions spend " << execute_trxs_in_ms
+      LOG(log_deb_) << "Pushing CS block and Executor spent " << execute_trxs_in_ms
                     << " ms. in round " << pbft_round_;
       if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
-        LOG(log_err_) << "Execute transactions spend " << execute_trxs_in_ms
-                      << " ms, that longer than delay time "
+        LOG(log_err_) << "Pushing CS block and Executor spent " << execute_trxs_in_ms
+                      << " ms, this exceeds allowed delay time "
                       << EXECUTE_TRXS_DELAY_ms << " ms";
         assert(false);
       }
@@ -460,6 +457,9 @@ void PbftManager::run() {
         pbft_round_ += 1;
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
                       << pbft_round_ << ", step 1, and resetting clock.";
+        // I added this as a way of seeing if we were even getting votes during testnet -Justin
+        LOG(log_deb_) << "There are " << votes.size() << " votes since round "
+                  << pbft_round_ - 2;
         // NOTE: This also sets pbft_step back to 1
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
