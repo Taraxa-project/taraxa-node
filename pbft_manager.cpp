@@ -182,10 +182,7 @@ void PbftManager::run() {
 
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
-      // NOTE: This also sets pbft_step back to 1
-      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-      // current_step_clock_initial_datetime_ =
-      // std::chrono::system_clock::now();
+      round_clock_initial_datetime = std::chrono::system_clock::now();
       // TODO: debug remove later
       if (next_pbft_block_type == pivot_block_type) {
         // the last pbft block type is concurrent schedule, need add execution
@@ -203,15 +200,15 @@ void PbftManager::run() {
                         << EXECUTE_TRXS_DELAY_ms << " ms";
           assert(false);
         }
-        current_step_clock_initial_datetime_ =
+        round_clock_initial_datetime =
             now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
-      } else {
-        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       }
       // END debug
+      // NOTE: This also sets pbft_step back to 1
       last_step_ = pbft_step_;
       pbft_step_ = 1;
-      round_clock_initial_datetime = std::chrono::system_clock::now();
+      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       continue;
     }
 
