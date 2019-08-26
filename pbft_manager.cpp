@@ -121,6 +121,7 @@ void PbftManager::run() {
   last_step_clock_initial_datetime_ = std::chrono::system_clock::now();
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 
+  PbftBlockTypes next_pbft_block_type;
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
@@ -132,6 +133,7 @@ void PbftManager::run() {
 
     // push verified pbft blocks into chain syncing from peers
     pushVerifiedPbftBlocksIntoChain_();
+    next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
     // Get votes
     bool sync_peers_pbft_chain = false;
@@ -171,6 +173,7 @@ void PbftManager::run() {
                 votes, pbft_round_ - 1, cert_voted_block_hash.first)) {
           push_block_values_for_round[pbft_round_ - 1] =
               cert_voted_block_hash.first;
+          next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
         }
         // TODO: debug remove later
         LOG(log_deb_) << "The cert voted pbft block is "
@@ -184,28 +187,32 @@ void PbftManager::run() {
       // current_step_clock_initial_datetime_ =
       // std::chrono::system_clock::now();
       // TODO: debug remove later
-      duration = std::chrono::system_clock::now() - now;
-      auto execute_trxs_in_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(duration)
-              .count();
-      LOG(log_deb_) << "Pushing CS block and Executor spent " << execute_trxs_in_ms
-                    << " ms. in round " << pbft_round_;
-      if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
-        LOG(log_err_) << "Pushing CS block and Executor spent " << execute_trxs_in_ms
-                      << " ms, this exceeds allowed delay time "
-                      << EXECUTE_TRXS_DELAY_ms << " ms";
-        assert(false);
+      if (next_pbft_block_type == pivot_block_type) {
+        // the last pbft block type is concurrent schedule, need add execution delay time
+        duration = std::chrono::system_clock::now() - now;
+        auto execute_trxs_in_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                .count();
+        LOG(log_deb_) << "Pushing CS block and Executor spent "
+                      << execute_trxs_in_ms << " ms. in round " << pbft_round_;
+        if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
+          LOG(log_err_) << "Pushing CS block and Executor spent "
+                        << execute_trxs_in_ms
+                        << " ms, this exceeds allowed delay time "
+                        << EXECUTE_TRXS_DELAY_ms << " ms";
+          assert(false);
+        }
+        current_step_clock_initial_datetime_ =
+            now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
+      } else {
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       }
-      current_step_clock_initial_datetime_ =
-          now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
       // END debug
       last_step_ = pbft_step_;
       pbft_step_ = 1;
       round_clock_initial_datetime = std::chrono::system_clock::now();
       continue;
     }
-
-    PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
     if (pbft_step_ == 1) {
       // Value Proposal
