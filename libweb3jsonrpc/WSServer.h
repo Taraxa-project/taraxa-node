@@ -64,6 +64,11 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 class WSServer : public std::enable_shared_from_this<WSServer> {
  public:
   WSServer(net::io_context& ioc, tcp::endpoint endpoint);
+  ~WSServer() {
+    if (!stopped_) {
+      stop();
+    }
+  }
 
   // Start accepting incoming connections
   void run();

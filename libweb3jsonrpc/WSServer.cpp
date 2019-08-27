@@ -30,7 +30,7 @@ void WSSession::run() {
 
 void WSSession::on_accept(beast::error_code ec) {
   if (ec) {
-    LOG(log_er_) << ec << " accept";
+    if (!closed_) LOG(log_er_) << ec << " accept";
     return;
   }
 
@@ -76,8 +76,7 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   if (params.size() == 1) {
     if (params[0].asString() == "newHeads") {
       new_heads_subscription_ = subscription_id_;
-    }
-    else if (params[0].asString() == "newPendingTransactions") {
+    } else if (params[0].asString() == "newPendingTransactions") {
       new_transactions_subscription_ = subscription_id_;
     }
   }
@@ -95,7 +94,7 @@ void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
   boost::ignore_unused(bytes_transferred);
 
   if (ec) {
-    LOG(log_er_) << ec << " write";
+    if (!closed_) LOG(log_er_) << ec << " write";
     return;
   }
   // Clear the buffer
@@ -110,7 +109,7 @@ void WSSession::on_write_no_read(beast::error_code ec,
   boost::ignore_unused(bytes_transferred);
 
   if (ec) {
-    LOG(log_er_) << ec << " write";
+    if (!closed_) LOG(log_er_) << ec << " write";
     return;
   }
   // Clear the buffer
@@ -162,28 +161,28 @@ WSServer::WSServer(net::io_context &ioc, tcp::endpoint endpoint)
   // Open the acceptor
   acceptor_.open(endpoint.protocol(), ec);
   if (ec) {
-    LOG(log_er_) << ec << " open";
+    if (!stopped_) LOG(log_er_) << ec << " open";
     return;
   }
 
   // Allow address reuse
   acceptor_.set_option(net::socket_base::reuse_address(true), ec);
   if (ec) {
-    LOG(log_er_) << ec << " set_option";
+    if (!stopped_) LOG(log_er_) << ec << " set_option";
     return;
   }
 
   // Bind to the server address
   acceptor_.bind(endpoint, ec);
   if (ec) {
-    LOG(log_er_) << ec << " bind";
+    if (!stopped_) LOG(log_er_) << ec << " bind";
     return;
   }
 
   // Start listening for connections
   acceptor_.listen(net::socket_base::max_listen_connections, ec);
   if (ec) {
-    LOG(log_er_) << ec << " listen";
+    if (!stopped_) LOG(log_er_) << ec << " listen";
     return;
   }
   LOG(log_si_) << "Taraxa WS started at port: " << endpoint << std::endl;
@@ -210,7 +209,7 @@ void WSServer::do_accept() {
 
 void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (ec) {
-    LOG(log_er_) << ec << " accept";
+    if (!stopped_) LOG(log_er_) << ec << " accept";
   } else {
     // Remove any close sessions
     auto session = sessions.begin();
@@ -242,6 +241,5 @@ void WSServer::newPendingTransaction(trx_hash_t const &trx_hash) {
     if (!session->is_closed()) session->newPendingTransaction(trx_hash);
   }
 }
-  
 
 }  // namespace taraxa
