@@ -1115,7 +1115,7 @@ TEST_F(TopTest, single_node_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 2);
 }
 
-TEST_F(TopTest, DISABLED_two_nodes_run_two_transactions) {
+TEST_F(TopTest, two_nodes_run_two_transactions) {
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   thisThreadSleepForMilliSeconds(500);

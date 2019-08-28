@@ -186,7 +186,10 @@ bool VoteManager::isKnownVote(uint64_t pbft_round,
 }
 
 void VoteManager::addVote(taraxa::Vote const& vote) {
-  LOG(log_deb_) << "Add vote " << vote.getHash();
+  LOG(log_deb_) << "Add vote " << vote.getHash() << ", block hash "
+                << vote.getBlockHash() << ", vote type " << vote.getType()
+                << ", in round " << vote.getRound() << ", for step "
+                << vote.getStep();
   uint64_t pbft_round = vote.getRound();
 
   upgradableLock_ lock(access_);
