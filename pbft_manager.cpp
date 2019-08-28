@@ -183,27 +183,23 @@ void PbftManager::run() {
 
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
-      round_clock_initial_datetime = std::chrono::system_clock::now();
+      // round_clock_initial_datetime = std::chrono::system_clock::now();
       // TODO: debug remove later
-      if (next_pbft_block_type == pivot_block_type) {
-        // the last pbft block type is concurrent schedule, need add execution
-        // delay time
-        duration = std::chrono::system_clock::now() - now;
-        auto execute_trxs_in_ms =
-            std::chrono::duration_cast<std::chrono::milliseconds>(duration)
-                .count();
-        LOG(log_deb_) << "Pushing CS block and Executor spent "
-                      << execute_trxs_in_ms << " ms. in round " << pbft_round_;
-        if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
-          LOG(log_err_) << "Pushing CS block and Executor spent "
-                        << execute_trxs_in_ms
-                        << " ms, this exceeds allowed delay time "
-                        << EXECUTE_TRXS_DELAY_ms << " ms";
-          assert(false);
-        }
-        round_clock_initial_datetime =
-            now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
+      duration = std::chrono::system_clock::now() - now;
+      auto execute_trxs_in_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+              .count();
+      LOG(log_deb_) << "Pushing PBFT block and Execution spent "
+                    << execute_trxs_in_ms << " ms. in round " << pbft_round_;
+      if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
+        LOG(log_err_) << "Pushing CS block and Executor spent "
+                      << execute_trxs_in_ms
+                      << " ms, this exceeds allowed delay time "
+                      << EXECUTE_TRXS_DELAY_ms << " ms";
+        assert(false);
       }
+      round_clock_initial_datetime =
+          now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
       // END debug
       // NOTE: This also sets pbft_step back to 1
       last_step_ = pbft_step_;
