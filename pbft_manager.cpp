@@ -1078,6 +1078,7 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
     if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
       // pushed already from PBFT unverified queue
       pbft_chain_->pbftVerifiedQueuePopFront();
+      continue;
     }
     if (!pushPbftBlockIntoChain_(pbft_block)) {
       break;
