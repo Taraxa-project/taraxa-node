@@ -363,7 +363,8 @@ void PbftManager::run() {
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-        } else if (own_starting_value_for_round != NULL_BLOCK_HASH) {
+        } else if (own_starting_value_for_round != NULL_BLOCK_HASH ||
+                   pbft_round_ == 1) {
           LOG(log_deb_) << "Next voting nodes own starting value "
                         << own_starting_value_for_round << " for round "
                         << pbft_round_;
@@ -427,7 +428,8 @@ void PbftManager::run() {
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-        } else if (own_starting_value_for_round != NULL_BLOCK_HASH) {
+        } else if (own_starting_value_for_round != NULL_BLOCK_HASH ||
+                   pbft_round_ == 1) {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
                         << pbft_round_;
           placeVote_(own_starting_value_for_round, next_vote_type,
