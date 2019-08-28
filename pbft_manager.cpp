@@ -1079,7 +1079,11 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
   while (!pbft_chain_->pbftVerifiedQueueEmpty()) {
     PbftBlock pbft_block = pbft_chain_->pbftVerifiedQueueFront();
     LOG(log_inf_) << "Pick pbft block " << pbft_block.getBlockHash()
-                  << " from verified queue";
+                  << " from verified queue in round " << pbft_round_;
+    if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
+      // pushed already from PBFT unverified queue
+      pbft_chain_->pbftVerifiedQueuePopFront();
+    }
     if (!pushPbftBlockIntoChain_(pbft_block)) {
       break;
     }
