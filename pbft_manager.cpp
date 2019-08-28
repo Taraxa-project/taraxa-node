@@ -308,7 +308,8 @@ void PbftManager::run() {
       bool should_go_to_step_four = false;
 
       if (elapsed_time_in_round_ms > 4 * LAMBDA_ms - POLLING_INTERVAL_ms) {
-        LOG(log_deb_) << "Reached step 3 late, will go to step 4";
+        LOG(log_deb_) << "Step 3 expired, will go to step 4 in round "
+                      << pbft_round_;
         should_go_to_step_four = true;
       } else {
         LOG(log_tra_) << "In step 3";
@@ -368,15 +369,20 @@ void PbftManager::run() {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           voted_null_block_for_round = true;
-        } else if (!voted_value_for_round &&
-                   (own_starting_value_for_round != NULL_BLOCK_HASH ||
-                    pbft_round_ == 1)) {
+        } else if ((!voted_value_for_round &&
+                    own_starting_value_for_round != NULL_BLOCK_HASH) ||
+                   (!voted_null_block_for_round &&
+                    own_starting_value_for_round == NULL_BLOCK_HASH)) {
           LOG(log_deb_) << "Next voting nodes own starting value "
                         << own_starting_value_for_round << " for round "
                         << pbft_round_;
           placeVote_(own_starting_value_for_round, next_vote_type,
                      pbft_round_, pbft_step_);
-          voted_value_for_round = true;
+          if (!voted_value_for_round) {
+            voted_value_for_round = true;
+          } else if (!voted_null_block_for_round) {
+            voted_null_block_for_round = true;
+          }
         }
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -444,14 +450,19 @@ void PbftManager::run() {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           voted_null_block_for_round = true;
-        } else if (!voted_value_for_round &&
-                   (own_starting_value_for_round != NULL_BLOCK_HASH ||
-                    pbft_round_ == 1)) {
+        } else if ((!voted_value_for_round &&
+                    own_starting_value_for_round != NULL_BLOCK_HASH) ||
+                   (!voted_null_block_for_round &&
+                    own_starting_value_for_round == NULL_BLOCK_HASH)) {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
                         << pbft_round_;
           placeVote_(own_starting_value_for_round, next_vote_type,
                      pbft_round_, pbft_step_);
-          voted_value_for_round = true;
+          if (!voted_value_for_round) {
+            voted_value_for_round = true;
+          } else if (!voted_null_block_for_round) {
+            voted_null_block_for_round = true;
+          }
         }
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
