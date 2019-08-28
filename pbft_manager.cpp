@@ -363,8 +363,7 @@ void PbftManager::run() {
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
           voted_value_for_round = true;
-        } else if (!voted_null_block_for_round &&
-                   pbft_round_ >= 2 &&
+        } else if (!voted_null_block_for_round && pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
@@ -376,8 +375,8 @@ void PbftManager::run() {
           LOG(log_deb_) << "Next voting nodes own starting value "
                         << own_starting_value_for_round << " for round "
                         << pbft_round_;
-          placeVote_(own_starting_value_for_round, next_vote_type,
-                     pbft_round_, pbft_step_);
+          placeVote_(own_starting_value_for_round, next_vote_type, pbft_round_,
+                     pbft_step_);
           if (!voted_value_for_round) {
             voted_value_for_round = true;
           } else if (!voted_null_block_for_round) {
@@ -396,8 +395,7 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        if (!voted_value_for_round &&
-            soft_voted_block_for_this_round.second &&
+        if (!voted_value_for_round && soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
@@ -409,8 +407,7 @@ void PbftManager::run() {
                      pbft_round_, pbft_step_);
           voted_value_for_round = true;
         }
-        if (!voted_null_block_for_round &&
-            pbft_round_ >= 2 &&
+        if (!voted_null_block_for_round && pbft_round_ >= 2 &&
             nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
@@ -444,8 +441,7 @@ void PbftManager::run() {
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
           voted_value_for_round = true;
-        } else if (!voted_null_block_for_round &&
-                   pbft_round_ >= 2 &&
+        } else if (!voted_null_block_for_round && pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
@@ -456,8 +452,8 @@ void PbftManager::run() {
                     own_starting_value_for_round == NULL_BLOCK_HASH)) {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
                         << pbft_round_;
-          placeVote_(own_starting_value_for_round, next_vote_type,
-                     pbft_round_, pbft_step_);
+          placeVote_(own_starting_value_for_round, next_vote_type, pbft_round_,
+                     pbft_step_);
           if (!voted_value_for_round) {
             voted_value_for_round = true;
           } else if (!voted_null_block_for_round) {
@@ -475,8 +471,7 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        if (!voted_value_for_round &&
-            soft_voted_block_for_this_round.second &&
+        if (!voted_value_for_round && soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
@@ -488,8 +483,7 @@ void PbftManager::run() {
                      pbft_round_, pbft_step_);
           voted_value_for_round = true;
         }
-        if (!voted_null_block_for_round &&
-            pbft_round_ >= 2 &&
+        if (!voted_null_block_for_round && pbft_round_ >= 2 &&
             nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
