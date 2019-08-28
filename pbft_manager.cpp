@@ -641,7 +641,8 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
       if (!vote_type_and_round_is_consistent) {
         LOG(log_err_) << "Vote types and rounds were not internally"
                          " consistent!";
-        return std::make_pair(NULL_BLOCK_HASH, false);
+        assert(false);
+        // return std::make_pair(NULL_BLOCK_HASH, false);
       }
     }
 
