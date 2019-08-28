@@ -122,6 +122,7 @@ void PbftManager::run() {
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 
   PbftBlockTypes next_pbft_block_type;
+  blk_hash_t own_starting_value_for_round = NULL_BLOCK_HASH;
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
@@ -145,12 +146,12 @@ void PbftManager::run() {
       syncPbftChainFromPeers_();
     }
 
-    blk_hash_t nodes_own_starting_value_for_round = NULL_BLOCK_HASH;
-
     // Check if we are synced to the right step ...
     size_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
-    if (consensus_pbft_round != pbft_round_) {
+    if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
+      // reset starting value to NULL_BLOCK_HASH
+      own_starting_value_for_round = NULL_BLOCK_HASH;
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_inf_)
@@ -218,8 +219,8 @@ void PbftManager::run() {
         if (pbft_round_ == 1) {
           LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
                         << NULL_BLOCK_HASH << " for round 1 by protocol";
-          placeVote_(NULL_BLOCK_HASH, propose_vote_type, pbft_round_,
-                     pbft_step_);
+          placeVote_(own_starting_value_for_round, propose_vote_type,
+                     pbft_round_, pbft_step_);
         } else if (push_block_values_for_round.count(pbft_round_ - 1) ||
                    (pbft_round_ >= 2 &&
                     nullBlockNextVotedForRound_(votes, pbft_round_ - 1))) {
@@ -230,6 +231,7 @@ void PbftManager::run() {
             proposed_block_hash_ = proposeMyPbftBlock_();
           }
           if (proposed_block_hash_.second) {
+            own_starting_value_for_round = proposed_block_hash_.first;
             placeVote_(proposed_block_hash_.first, propose_vote_type,
                        pbft_round_, pbft_step_);
           }
@@ -268,6 +270,9 @@ void PbftManager::run() {
             LOG(log_deb_) << "Identify leader block " << leader_block.first
                           << " for round " << pbft_round_
                           << " and soft vote the value";
+            if (own_starting_value_for_round == NULL_BLOCK_HASH) {
+              own_starting_value_for_round = leader_block.first;
+            }
             placeVote_(leader_block.first, soft_vote_type, pbft_round_,
                        pbft_step_);
           }
@@ -299,7 +304,7 @@ void PbftManager::run() {
         LOG(log_err_) << "PBFT Reached step 3 too quickly?";
       }
 
-      bool should_go_to_step_four = false;  // TODO: may not need
+      bool should_go_to_step_four = false;
 
       if (elapsed_time_in_round_ms > 4 * LAMBDA_ms - POLLING_INTERVAL_ms) {
         LOG(log_deb_) << "Reached step 3 late, will go to step 4";
@@ -358,11 +363,11 @@ void PbftManager::run() {
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-        } else {
+        } else if (own_starting_value_for_round != NULL_BLOCK_HASH) {
           LOG(log_deb_) << "Next voting nodes own starting value "
-                        << nodes_own_starting_value_for_round << " for round "
+                        << own_starting_value_for_round << " for round "
                         << pbft_round_;
-          placeVote_(nodes_own_starting_value_for_round, next_vote_type,
+          placeVote_(own_starting_value_for_round, next_vote_type,
                      pbft_round_, pbft_step_);
         }
       }
@@ -422,10 +427,10 @@ void PbftManager::run() {
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-        } else {
+        } else if (own_starting_value_for_round != NULL_BLOCK_HASH) {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
                         << pbft_round_;
-          placeVote_(nodes_own_starting_value_for_round, next_vote_type,
+          placeVote_(own_starting_value_for_round, next_vote_type,
                      pbft_round_, pbft_step_);
         }
       }
@@ -462,6 +467,8 @@ void PbftManager::run() {
         pbft_round_ += 1;
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
                       << pbft_round_ << ", step 1, and resetting clock.";
+        // reset starting value to NULL_BLOCK_HASH
+        own_starting_value_for_round = NULL_BLOCK_HASH;
         // I added this as a way of seeing if we were even getting votes during
         // testnet -Justin
         LOG(log_deb_) << "There are " << votes.size() << " votes since round "
