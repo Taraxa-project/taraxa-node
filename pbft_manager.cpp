@@ -123,6 +123,8 @@ void PbftManager::run() {
 
   PbftBlockTypes next_pbft_block_type;
   blk_hash_t own_starting_value_for_round = NULL_BLOCK_HASH;
+  bool voted_value_for_round = false;
+  bool voted_null_block_for_round = false;
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
@@ -152,6 +154,9 @@ void PbftManager::run() {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
+      // reset vote variables
+      voted_value_for_round = false;
+      voted_null_block_for_round = false;
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_inf_)
@@ -348,24 +353,30 @@ void PbftManager::run() {
 
     } else if (pbft_step_ == 4) {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        if (cert_voted_values_for_round.find(pbft_round_) !=
-            cert_voted_values_for_round.end()) {
+        if (!voted_value_for_round &&
+            cert_voted_values_for_round.find(pbft_round_) !=
+                cert_voted_values_for_round.end()) {
           LOG(log_deb_) << "Next voting value "
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
-        } else if (pbft_round_ >= 2 &&
+          voted_value_for_round = true;
+        } else if (!voted_null_block_for_round &&
+                   pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-        } else if (own_starting_value_for_round != NULL_BLOCK_HASH ||
-                   pbft_round_ == 1) {
+          voted_null_block_for_round = true;
+        } else if (!voted_value_for_round &&
+                   (own_starting_value_for_round != NULL_BLOCK_HASH ||
+                    pbft_round_ == 1)) {
           LOG(log_deb_) << "Next voting nodes own starting value "
                         << own_starting_value_for_round << " for round "
                         << pbft_round_;
           placeVote_(own_starting_value_for_round, next_vote_type,
                      pbft_round_, pbft_step_);
+          voted_value_for_round = true;
         }
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -379,7 +390,8 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        if (soft_voted_block_for_this_round.second &&
+        if (!voted_value_for_round &&
+            soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
@@ -389,12 +401,16 @@ void PbftManager::run() {
                         << " for round " << pbft_round_;
           placeVote_(soft_voted_block_for_this_round.first, next_vote_type,
                      pbft_round_, pbft_step_);
-        } else if (pbft_round_ >= 2 &&
-                   nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
-                   (cert_voted_values_for_round.find(pbft_round_) ==
-                    cert_voted_values_for_round.end())) {
+          voted_value_for_round = true;
+        }
+        if (!voted_null_block_for_round &&
+            pbft_round_ >= 2 &&
+            nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
+            (cert_voted_values_for_round.find(pbft_round_) ==
+             cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
+          voted_null_block_for_round = true;
         }
       }
 
@@ -413,23 +429,29 @@ void PbftManager::run() {
     } else if (pbft_step_ % 2 == 0) {
       // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        if (cert_voted_values_for_round.find(pbft_round_) !=
-            cert_voted_values_for_round.end()) {
+        if (!voted_value_for_round &&
+            cert_voted_values_for_round.find(pbft_round_) !=
+                cert_voted_values_for_round.end()) {
           LOG(log_deb_) << "Next voting value "
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
-        } else if (pbft_round_ >= 2 &&
+          voted_value_for_round = true;
+        } else if (!voted_null_block_for_round &&
+                   pbft_round_ >= 2 &&
                    nullBlockNextVotedForRound_(votes, pbft_round_ - 1)) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-        } else if (own_starting_value_for_round != NULL_BLOCK_HASH ||
-                   pbft_round_ == 1) {
+          voted_null_block_for_round = true;
+        } else if (!voted_value_for_round &&
+                   (own_starting_value_for_round != NULL_BLOCK_HASH ||
+                    pbft_round_ == 1)) {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
                         << pbft_round_;
           placeVote_(own_starting_value_for_round, next_vote_type,
                      pbft_round_, pbft_step_);
+          voted_value_for_round = true;
         }
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -442,7 +464,8 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        if (soft_voted_block_for_this_round.second &&
+        if (!voted_value_for_round &&
+            soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
@@ -452,12 +475,16 @@ void PbftManager::run() {
                         << " for round " << pbft_round_;
           placeVote_(soft_voted_block_for_this_round.first, next_vote_type,
                      pbft_round_, pbft_step_);
-        } else if (pbft_round_ >= 2 &&
-                   nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
-                   (cert_voted_values_for_round.find(pbft_round_) ==
-                    cert_voted_values_for_round.end())) {
+          voted_value_for_round = true;
+        }
+        if (!voted_null_block_for_round &&
+            pbft_round_ >= 2 &&
+            nullBlockNextVotedForRound_(votes, pbft_round_ - 1) &&
+            (cert_voted_values_for_round.find(pbft_round_) ==
+             cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for this round";
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
+          voted_null_block_for_round = true;
         }
       }
 
@@ -467,6 +494,9 @@ void PbftManager::run() {
                       << pbft_round_ << ", step 1, and resetting clock.";
         // reset starting value to NULL_BLOCK_HASH
         own_starting_value_for_round = NULL_BLOCK_HASH;
+        // reset vote variables
+        voted_value_for_round = false;
+        voted_null_block_for_round = false;
         // I added this as a way of seeing if we were even getting votes during
         // testnet -Justin
         LOG(log_deb_) << "There are " << votes.size() << " votes since round "
