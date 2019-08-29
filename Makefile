@@ -8,21 +8,29 @@ ifneq ($(OS), Darwin) #Mac
 	LOG_LIB = -lboost_log
 endif
 DEBUG = 0
+PERF = 0
 CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
 CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF 
+LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server 
 OBJECTDIR := obj
 BUILDDIR := build
 TESTBUILDDIR := test_build
+
+# note lprofiler seems not work in Darwin
+ifneq ($(PERF), 0)
+ 		CPPFLAGS += -fno-omit-frame-pointer 
+  	LIBS += -lprofiler
+endif
+
 ifneq ($(DEBUG), 0)
 	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
 	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
-	CPPFLAGS += -Wl,--export-dynamic -fno-omit-frame-pointer 
+	CPPFLAGS += -Wl,--export-dynamic 
 	BUILDDIR := build-d
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
 LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server -lprofiler
 # Note: makefile translates `$$?` into `$?`
 LIBATOMIC_NOT_FOUND = $(shell \
     $(CXX) $(LDFLAGS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
@@ -111,9 +119,11 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/crypto_test.o \
 	${OBJECTDIR}/state_unit_tests.o \
 	${OBJECTDIR}/pbft_rpc_test.o \
-	${OBJECTDIR}/pbft_manager_test.o \
-	${OBJECTDIR}/performance_test.o
+	${OBJECTDIR}/pbft_manager_test.o 
 
+ifeq ($(PERF), 1)
+	MAINOBJECTFILES += ${OBJECTDIR}/performance_test.o
+endif
 
 ${OBJECTDIR}/taraxa_grpc.pb.o: grpc/proto/taraxa_grpc.pb.cc
 	${MKDIR} -p ${OBJECTDIR}
@@ -541,7 +551,12 @@ protoc_taraxa_grpc:
 
 keygen: $(BUILDDIR)/keygen
 
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/state_unit_tests $(TESTBUILDDIR)/pbft_rpc_test $(TESTBUILDDIR)/pbft_manager_test $(TESTBUILDDIR)/performance_test
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/grpc_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/state_unit_tests $(TESTBUILDDIR)/pbft_rpc_test $(TESTBUILDDIR)/pbft_manager_test 
+
+perf_test: $(TESTBUILDDIR)/performance_test
+
+run_perf_test: perf_test
+	./$(TESTBUILDDIR)/performance_test
 
 run_test: test main
 	./$(TESTBUILDDIR)/crypto_test
