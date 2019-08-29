@@ -95,6 +95,31 @@ uint64_t Vote::getRound() const { return round_; }
 
 size_t Vote::getStep() const { return step_; }
 
+bool Vote::verifyVoteSignature() {
+  if (vote_signature_verified_) {
+    return true;
+  }
+  std::string const vote_message =
+      blockhash_.toString() + std::to_string(type_) + std::to_string(round_) +
+      std::to_string(step_);
+  vote_signature_verified_ =
+      dev::verify(node_pk_, vote_signatue_, dev::sha3(vote_message));
+  return vote_signature_verified_;
+}
+
+bool Vote::verifySortitionSignature(std::string sortition_message) {
+  if (last_sortition_message != sortition_message) {
+    sortition_signature_verified_ = false;
+  }
+  if (sortition_signature_verified_) {
+    return true;
+  }
+  last_sortition_message = sortition_message;
+  sortition_signature_verified_ =
+      dev::verify(node_pk_, sortition_signature_, dev::sha3(sortition_message));
+  return sortition_signature_verified_;
+}
+
 // Vote Manager
 void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
   node_ = node;
@@ -119,20 +144,15 @@ sig_t VoteManager::signVote(secret_t const& node_sk,
 }
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
-                                 taraxa::Vote const& vote,
+                                 taraxa::Vote& vote,
                                  taraxa::val_t& account_balance,
                                  size_t sortition_threshold) const {
   PbftVoteTypes type = vote.getType();
   uint64_t round = vote.getRound();
   size_t step = vote.getStep();
   // verify vote signature
-  std::string const vote_message = vote.getBlockHash().toString() +
-                                   std::to_string(type) +
-                                   std::to_string(round) + std::to_string(step);
-  public_t public_key = vote.getPublicKey();
-  sig_t vote_signature = vote.getVoteSignature();
-  if (!dev::verify(public_key, vote_signature, hash_(vote_message))) {
-    LOG(log_war_) << "Invalid vote signature " << vote_signature
+  if (!vote.verifyVoteSignature()) {
+    LOG(log_war_) << "Invalid vote signature " << vote.getVoteSignature()
                   << " vote hash " << vote.getHash();
     return false;
   }
@@ -141,8 +161,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   std::string const sortition_message =
       last_pbft_block_hash.toString() + std::to_string(type) +
       std::to_string(round) + std::to_string(step);
-  sig_t sortition_signature = vote.getSortitionSignature();
-  if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
+  if (!vote.verifySortitionSignature(sortition_message)) {
     // 1. PBFT chain has not have the newest PBFT block yet
     // 2. When new node join, the new node doesn't have the lastest pbft block
     // to verify the vote.
@@ -150,18 +169,18 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     // if the vote is valid, will count when node has the relative pbft block
     // if the vote is invalid, will remove when pass the pbft round
     LOG(log_tra_) << "Haven't have the newest PBFT block to verify the vote "
-                  << "sortition signature: " << sortition_signature
+                  << "sortition signature: " << vote.getSortitionSignature()
                   << " vote hash " << vote.getHash();
     return false;
   }
 
   // verify sortition
   std::string sortition_signature_hash =
-      taraxa::hashSignature(sortition_signature);
+      taraxa::hashSignature(vote.getSortitionSignature());
   if (!taraxa::sortition(sortition_signature_hash, account_balance,
                          sortition_threshold)) {
     LOG(log_war_) << "Vote sortition failed, sortition signature "
-                  << sortition_signature;
+                  << vote.getSortitionSignature();
     return false;
   }
 
@@ -247,10 +266,10 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
-  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  std::map<uint64_t, std::vector<Vote>>::iterator it;
   sharedLock_ lock(access_);
   for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
-    for (auto const& v : it->second) {
+    for (auto& v : it->second) {
       // vote verification
       addr_t vote_address = dev::toAddress(v.getPublicKey());
       std::pair<val_t, bool> account_balance =
@@ -288,10 +307,10 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
-  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  std::map<uint64_t, std::vector<Vote>>::iterator it;
   sharedLock_ lock(access_);
   for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
-    for (auto const& v : it->second) {
+    for (auto& v : it->second) {
       // vote verification
       addr_t vote_address = dev::toAddress(v.getPublicKey());
       std::pair<val_t, bool> account_balance =

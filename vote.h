@@ -42,6 +42,9 @@ class Vote {
   uint64_t getRound() const;
   size_t getStep() const;
 
+  bool verifyVoteSignature();
+  bool verifySortitionSignature(std::string sortition_message);
+
  private:
   void streamRLP_(dev::RLPStream& strm) const;
 
@@ -53,6 +56,9 @@ class Vote {
   PbftVoteTypes type_;
   uint64_t round_;
   size_t step_;
+  bool vote_signature_verified_ = false;
+  std::string last_sortition_message;
+  bool sortition_signature_verified_ = false;
 };
 
 class VoteManager {
@@ -64,7 +70,7 @@ class VoteManager {
 
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
                  PbftVoteTypes type, uint64_t round, size_t step);
-  bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
+  bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote& vote,
                       val_t& account_balance, size_t sortition_threshold) const;
 
   bool isKnownVote(uint64_t pbft_round, vote_hash_t const& vote_hash) const;
