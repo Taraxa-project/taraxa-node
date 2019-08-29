@@ -232,7 +232,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
-// Return all votes >= pbft_round
+// Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   cleanupVotes(pbft_round);
 
@@ -272,7 +272,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   return verified_votes;
 }
 
-// Return all votes >= pbft_round
+// Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                                         bool& sync_peers_pbft_chain) {
   cleanupVotes(pbft_round);
@@ -337,6 +337,20 @@ std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
   boost::property_tree::write_json(output, ptroot);
 
   return output.str();
+}
+
+// Return all votes in map unverified_votes_
+std::vector<Vote> VoteManager::getAllVotes() {
+  std::vector<Vote> votes;
+
+  sharedLock_ lock(access_);
+  for (auto const& round_votes : unverified_votes_) {
+    for (auto const& v : round_votes.second) {
+      votes.emplace_back(v);
+    }
+  }
+
+  return votes;
 }
 
 vote_hash_t VoteManager::hash_(std::string const& str) const {
