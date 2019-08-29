@@ -28,6 +28,7 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
       EXECUTE_TRXS_DELAY_ms(params[3]),
+      RUN_COUNT_VOTES(params[4]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
@@ -73,26 +74,30 @@ void PbftManager::start() {
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
   LOG(log_inf_) << "PBFT executor initiated ...";
-  monitor_stop_ = false;
-  monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
-  LOG(log_inf_test_) << "PBFT monitor vote logs initiated";
+  if (RUN_COUNT_VOTES) {
+    monitor_stop_ = false;
+    monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
+    LOG(log_inf_test_) << "PBFT monitor vote logs initiated";
+  }
 }
 
 void PbftManager::stop() {
   if (stopped_) {
     return;
   }
-  monitor_stop_ = true;
-  monitor_votes_->join();
-  monitor_votes_.reset();
-  LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
+  if (RUN_COUNT_VOTES) {
+    monitor_stop_ = true;
+    monitor_votes_->join();
+    monitor_votes_.reset();
+    LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
+    assert(monitor_votes_ == nullptr);
+  }
   stopped_ = true;
   daemon_->join();
   daemon_.reset();
   LOG(log_inf_) << "PBFT executor terminated ...";
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
-  assert(monitor_votes_ == nullptr);
   assert(daemon_ == nullptr);
 }
 
@@ -1173,7 +1178,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
 void PbftManager::countVotes_() {
   while (!monitor_stop_) {
-    std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1);
+    std::vector<Vote> votes = vote_mgr_->getAllVotes();
 
     size_t last_step_votes = 0;
     size_t current_step_votes = 0;
