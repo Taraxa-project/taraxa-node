@@ -16,21 +16,6 @@ OBJECTDIR := obj
 BUILDDIR := build
 TESTBUILDDIR := test_build
 
-# note lprofiler seems not work in Darwin
-ifneq ($(PERF), 0)
- 		CPPFLAGS += -fno-omit-frame-pointer 
-  	LIBS += -lprofiler
-endif
-
-ifneq ($(DEBUG), 0)
-	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
-	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
-	CPPFLAGS += -Wl,--export-dynamic 
-	BUILDDIR := build-d
-	TESTBUILDDIR := test_build-d
-	OBJECTDIR := obj-d
-endif
-LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
 # Note: makefile translates `$$?` into `$?`
 LIBATOMIC_NOT_FOUND = $(shell \
     $(CXX) $(LDFLAGS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
@@ -42,6 +27,21 @@ ifeq ($(LIBATOMIC_NOT_FOUND), 0)
     LIBS += -latomic
 endif
 
+# Note: gperftools seems not work in Darwin
+ifneq ($(PERF), 0)
+ 	CPPFLAGS += -fno-omit-frame-pointer 
+		LIBS += -lprofiler -ltcmalloc
+endif
+
+ifneq ($(DEBUG), 0)
+	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
+	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
+	CPPFLAGS += -Wl,--export-dynamic 
+	BUILDDIR := build-d
+	TESTBUILDDIR := test_build-d
+	OBJECTDIR := obj-d
+endif
+LDFLAGS := -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
 MKDIR := mkdir
 RM := rm -f
 
