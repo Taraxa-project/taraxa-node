@@ -33,7 +33,8 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
                     2000,
                     1,
                     1000000000,
-                    6000
+                    6000,
+                    0
                 ]
             },
             "genesis_state": {
