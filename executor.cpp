@@ -44,14 +44,16 @@ bool Executor::executeBlkTrxs(
   DagBlock dag_block(blk_json);
 
   auto trxs_hash = dag_block.getTrxs();
+  auto num_trxs = trxs_hash.size();
   // sequential execute transaction
-
+  int num_overlapped_trx = 0;
   for (auto i(0); i < trxs_hash.size(); ++i) {
     auto const& trx_hash = trxs_hash[i];
     auto mode = trx_modes[i];
     if (mode == 0) {
       LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk
                    << " is overlapped";
+      num_overlapped_trx++;
       continue;
     }
     LOG(log_time_) << "Transaction " << trx_hash
@@ -67,7 +69,10 @@ bool Executor::executeBlkTrxs(
   }
   num_executed_blk_.fetch_add(1);
   LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
-               << num_executed_blk_ << ": " << blk << " executed";
+               << num_executed_blk_ << ": " << blk
+               << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
+               << " / " << num_trxs;
+  ;
   return true;
 }
 
