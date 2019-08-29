@@ -78,6 +78,9 @@ class VoteManager {
 
   std::string getJsonStr(std::vector<Vote>& votes);
 
+  // TODO: TEST functions, will remove later
+  std::vector<Vote> getAllVotes();
+
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
