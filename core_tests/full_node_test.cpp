@@ -984,6 +984,7 @@ TEST_F(TopTest, sync_two_nodes1) {
   }
 }
 
+// Node 1 up and generate blocks, node 2 sync later
 TEST_F(TopTest, sync_two_nodes2) {
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
@@ -1050,6 +1051,99 @@ TEST_F(TopTest, sync_two_nodes2) {
   }
 }
 
+// Simulate node2 created blks/trx but, later crashed, and be able to re-sync to
+// node1
+TEST_F(TopTest, sync_two_nodes3) {
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  std::cout << "Top1 created ..." << std::endl;
+
+  thisThreadSleepForMilliSeconds(500);
+
+  // copy main2
+  try {
+    std::cout << "Copying main2 ..." << std::endl;
+    system("cp ./build/main ./build/main2");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+  top1.stop();
+  top1.start(6, input1);
+  auto node1 = top1.getNode();
+  taraxa::thisThreadSleepForMilliSeconds(500);
+  {
+    Top top2(6, input2);
+    EXPECT_TRUE(top2.isActive());
+    std::cout << "Top2 created ..." << std::endl;
+    // wait for top2 initialize
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+
+    auto node2 = top2.getNode();
+    EXPECT_NE(node1, nullptr);
+    EXPECT_NE(node2, nullptr);
+
+    EXPECT_GT(node1->getPeerCount(), 0);
+    EXPECT_GT(node2->getPeerCount(), 0);
+
+    // send 1000 trxs to node 2
+    try {
+      std::cout << "Sending 1000 trxs ..." << std::endl;
+      sendTrx(1000, 7778);
+      std::cout << "1000 trxs sent ..." << std::endl;
+
+    } catch (std::exception &e) {
+      std::cerr << e.what() << std::endl;
+    }
+
+    auto vertices1 = node1->getNumVerticesInDag();
+    auto vertices2 = node2->getNumVerticesInDag();
+    // add more delay if sync is not done
+    for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+      if (vertices1 == vertices2 && vertices1.first > 3) break;
+      taraxa::thisThreadSleepForMilliSeconds(500);
+      vertices1 = node1->getNumVerticesInDag();
+      vertices2 = node2->getNumVerticesInDag();
+    }
+    EXPECT_GT(vertices1.first, 3);
+    EXPECT_GT(vertices1.second, 3);
+    EXPECT_EQ(vertices1, vertices2);
+    top2.reset();
+    top2.kill();
+  }
+
+  {
+    Top top2(6, input2);
+    EXPECT_TRUE(top2.isActive());
+    std::cout << "Top2 re-created ..." << std::endl;
+    // wait for top2 initialize
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+
+    auto node2 = top2.getNode();
+    EXPECT_NE(node2, nullptr);
+
+    EXPECT_GT(node2->getPeerCount(), 0);
+    auto vertices1 = node1->getNumVerticesInDag();
+    auto vertices2 = node2->getNumVerticesInDag();
+    // add more delay if sync is not done
+    for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+      if (vertices1 == vertices2 && vertices1.first > 3) break;
+      taraxa::thisThreadSleepForMilliSeconds(500);
+      vertices1 = node1->getNumVerticesInDag();
+      vertices2 = node2->getNumVerticesInDag();
+    }
+    EXPECT_EQ(vertices1, vertices2);
+    top2.kill();
+  }
+
+  top1.kill();
+  // delete main2
+  try {
+    std::cout << "main2 deleted ..." << std::endl;
+    system("rm -f ./build/main2");
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+}
 TEST_F(FullNodeTest, genesis_balance) {
   addr_t addr1(100);
   val_t bal1(1000);

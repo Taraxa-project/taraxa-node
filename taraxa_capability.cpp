@@ -162,9 +162,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         auto const network_id = _r[1].toString();
         auto const num_vertices = _r[2].toInt();
         auto const genesis_hash = _r[3].toString();
-        LOG(log_dg_) << "Received status message from " << _nodeID << " "
-                     << peer_protocol_version << network_id << num_vertices
-                     << genesis_;
+        LOG(log_dg_) << "Received status message from " << _nodeID
+                     << " ,version: " << peer_protocol_version
+                     << ",network id: " << network_id
+                     << " ,num vertices: " << num_vertices
+                     << " ,genesis: " << genesis_;
 
         if (peer_protocol_version != c_protocolVersion) {
           LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
@@ -181,10 +183,18 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                        << _nodeID << " will be disconnected";
           host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
         }
+        if (num_vertices == 1) {
+          LOG(log_dg_)
+              << "Peer " << _nodeID
+              << " might crashed and get cleaned..., clean cached for it "
+                 "for re-syncing";
+          peer->cleanEverything();
+        }
         if (auto full_node = full_node_.lock()) {
           peer->vertices_count_ = num_vertices;
           if (num_vertices > max_peer_vertices_) {
             max_peer_vertices_ = num_vertices;
+            // sync with the peer that has longest dag
             peer_syncing_ = _nodeID;
             syncPeer(_nodeID, full_node->getDagMaxLevel());
             syncPeerPbft(_nodeID);

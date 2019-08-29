@@ -97,6 +97,12 @@ class TaraxaPeer : public boost::noncopyable {
     boost::unique_lock lck(mtx_for_known_pbft_blocks_);
     known_pbft_blocks_.clear();
   }
+  void cleanEverything() {
+    clearKnownBlocks();
+    clearKnownTransactions();
+    clearKnownVotes();
+    cleanKnownPbftBlocks();
+  }
 
   time_t lastAsk() const { return last_ask_; }
   time_t lastMessageTime() const { return last_message_time_; }
