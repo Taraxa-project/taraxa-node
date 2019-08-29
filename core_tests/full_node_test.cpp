@@ -1259,7 +1259,7 @@ TEST_F(TopTest, two_nodes_run_two_transactions) {
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 2) break;
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(trx_executed1, 2);
 }
