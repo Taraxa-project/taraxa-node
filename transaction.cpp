@@ -32,17 +32,11 @@ Transaction::Transaction(string const &json) {
       }
     }
     chain_id_ = doc.get<int8_t>("chain_id");
+    cached_sender_ = addr_t(doc.get<string>("sender"));
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
     assert(false);
   }
-}
-
-Transaction::Transaction(dev::RLP const &_r) {
-  std::vector<::byte> blockBytes;
-  blockBytes = _r.toBytes();
-  taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
-  deserialize(strm);
 }
 
 Transaction::Transaction(bytes const &_rlp) {
@@ -90,15 +84,7 @@ Transaction::Transaction(bytes const &_rlp) {
 
   if (rlp.itemCount() > 9)
     throw std::invalid_argument("too many fields in the transaction RLP");
-}
-
-void Transaction::serializeRLP(dev::RLPStream &s) {
-  std::vector<uint8_t> bytes;
-  {
-    vectorstream strm(bytes);
-    serialize(strm);
-  }
-  s.append(bytes);
+  updateHash();
 }
 
 bool Transaction::serialize(stream &strm) const {
@@ -158,6 +144,7 @@ string Transaction::getJsonStr() const {
   tree.put("receiver", receiver_.toString());
   tree.put("data", bytes2str(data_));
   tree.put("chain_id", chain_id_);
+  tree.put("sender", cached_sender_.toString());
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
@@ -211,7 +198,7 @@ void Transaction::streamRLP(dev::RLPStream &s, bool include_sig,
       int const v_offset = chain_id_ * 2 + 35;
       s << (vrs_->v + v_offset);
     }
-    s << vrs_->r << vrs_->s;
+    s << (dev::u256)vrs_->r << (dev::u256)vrs_->s;
   } else if (_forEip155hash)
     s << chain_id_ << 0 << 0;
 }

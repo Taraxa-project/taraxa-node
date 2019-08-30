@@ -90,38 +90,10 @@ TEST(Network, transfer_transaction) {
 
   nw1->start(true);
   nw2->start();
-  Transaction trx1(trx_hash_t(1),            // hash
-                   Transaction::Type::Call,  // type
-                   2,                        // nonce
-                   3,                        // value
-                   val_t(4),                 // gas_price
-                   val_t(5),                 // gas
-                   addr_t(1000),             // receiver
-                   sig_t(),                  // sig
-                   str2bytes("00FEDCBA9876543210000000"));
-  Transaction trx2(trx_hash_t(2),            // hash
-                   Transaction::Type::Call,  // type
-                   2,                        // nonce
-                   3,                        // value
-                   val_t(4),                 // gas_price
-                   val_t(5),                 // gas
-                   addr_t(1000),             // receiver
-                   sig_t(),                  // sig
-                   str2bytes("00FEDCBA9876543210000000"));
-  Transaction trx3(trx_hash_t(3),            // hash
-                   Transaction::Type::Call,  // type
-                   2,                        // nonce
-                   3,                        // value
-                   val_t(4),                 // gas_price
-                   val_t(5),                 // gas
-                   addr_t(1000),             // receiver
-                   sig_t(),                  // sig
-                   str2bytes("00FEDCBA9876543210000000"));
-
   std::vector<Transaction> transactions;
-  transactions.push_back(trx1);
-  transactions.push_back(trx2);
-  transactions.push_back(trx3);
+  transactions.push_back(g_signed_trx_samples[0]);
+  transactions.push_back(g_signed_trx_samples[1]);
+  transactions.push_back(g_signed_trx_samples[2]);
 
   taraxa::thisThreadSleepForSeconds(1);
 
