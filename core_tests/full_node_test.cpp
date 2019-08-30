@@ -17,6 +17,7 @@
 #include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
 #include "libweb3jsonrpc/RpcServer.h"
+#include "libweb3jsonrpc/Taraxa.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
@@ -1207,21 +1208,26 @@ TEST_F(TopTest, single_node_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 2);
 }
 
-TEST_F(TopTest, DISABLED_two_nodes_run_two_transactions) {
-  Top top1(6, input1);
-  EXPECT_TRUE(top1.isActive());
-  thisThreadSleepForMilliSeconds(500);
-  std::cout << "Top1 created ..." << std::endl;
-  auto node1 = top1.getNode();
-  EXPECT_NE(node1, nullptr);
-
-  Top top2(6, input2);
-  EXPECT_TRUE(top2.isActive());
-  thisThreadSleepForMilliSeconds(500);
-  std::cout << "Top2 created ..." << std::endl;
-  auto node2 = top2.getNode();
-  EXPECT_NE(node2, nullptr);
-
+TEST_F(TopTest, two_nodes_run_two_transactions) {
+  boost::asio::io_context context1;
+  FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
+  conf1.node_secret = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
+  auto node1(std::make_shared<taraxa::FullNode>(context1, conf1));
+  boost::asio::io_context context2;
+  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
+  conf2.node_secret = "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e";
+  auto node2(std::make_shared<taraxa::FullNode>(context2, conf2));
+  node1->start(true);
+  node2->start(false);
+  auto rpc = std::make_shared<ModularServer<dev::rpc::TaraxaFace>>(
+      new dev::rpc::Taraxa(node1));
+  auto rpc_server(
+      std::make_shared<taraxa::RpcServer>(context1, conf1.rpc, node1));
+  rpc->addConnector(rpc_server);
+  rpc_server->StartListening();
+  boost::thread t([&context1]() { context1.run(); });
+  thisThreadSleepForSeconds(1);
+  
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
                                       "params": ["0xf86b188502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b08711c37937e08000801ba0641f1cebdbe2e8d6d3a73538113690d562cccf6f98baae87e446aa18aa2153eea02629f04fffa048db1fb510703a5ac02e2619e8d6a6dbe02d4bfeb40b4d4b7116"
@@ -1259,9 +1265,12 @@ TEST_F(TopTest, DISABLED_two_nodes_run_two_transactions) {
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 2) break;
-    thisThreadSleepForMilliSeconds(500);
+    thisThreadSleepForMilliSeconds(1000);
   }
   EXPECT_EQ(trx_executed1, 2);
+  rpc_server->StopListening();
+  node1->stop();
+  node2->stop();
 }
 
 TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
