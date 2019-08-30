@@ -255,3 +255,20 @@ $ docker pull <account id>.dkr.ecr.<aws region>.amazonaws.com/taraxa-node-base
 ```
 
 > Log into the registry is required.
+
+## CPU Profiling 
+Currently, use https://github.com/gperftools/gperftools to run CPU profiling. It works in Linux environment but **NOT** in latest MacOs (Mojave). 
+
+For example, install in Ubuntu:
+```sudo apt-get install google-perftools libgoogle-perftools-dev```
+
+Build with `PERF=1`, for example: `make run_test PERF=1`
+
+To do profiling in a docker, do: 
+```
+docker build -t taraxa-node:builder -f dockerfiles/Dockerfile --target builder .
+```
+Login to docker: 
+```
+docker run -it <image> /bin/bash
+```
