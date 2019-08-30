@@ -165,6 +165,8 @@ bool Transaction::verifySig() const {
   if (!sig_) return false;
   auto msg = sha3(false);
   auto pk = dev::recover(sig_, msg);
+  // offload send() computation to verifier
+  sender();
   return dev::verify(pk, sig_, msg);
 }
 addr_t Transaction::sender() const {
