@@ -195,14 +195,15 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       // Means a new block is proposed, full block body and all transaction
       // are received.
       case NewBlockPacket: {
-        LOG(log_dg_) << "Received NewBlockPacket";
         DagBlock block(_r[0]);
 
         auto transactionsCount = _r.itemCount() - 1;
+        LOG(log_dg_) << "Received NewBlockPacket " << transactionsCount;
+
         std::vector<Transaction> newTransactions;
         for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
              iTransaction++) {
-          Transaction transaction(_r[iTransaction]);
+          Transaction transaction(_r[iTransaction].data().toBytes());
           newTransactions.push_back(transaction);
           peer->markTransactionAsKnown(transaction.getHash());
         }
@@ -220,7 +221,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         std::vector<Transaction> vec_new_trxs;
         for (auto iTransaction = 1; iTransaction < transactionsCount + 1;
              iTransaction++) {
-          Transaction transaction(_r[iTransaction]);
+          Transaction transaction(_r[iTransaction].data().toBytes());
           newTransactions[transaction.getHash()] = transaction;
           vec_new_trxs.emplace_back(transaction);
           peer->markTransactionAsKnown(transaction.getHash());
@@ -326,7 +327,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           std::vector<Transaction> newTransactions;
           for (int i = 0; i < block.getTrxs().size(); i++) {
             transactionCount++;
-            Transaction transaction(_r[iBlock + transactionCount]);
+            Transaction transaction(
+                _r[iBlock + transactionCount].data().toBytes());
             newTransactions.push_back(transaction);
             peer->markTransactionAsKnown(transaction.getHash());
           }
@@ -348,7 +350,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         auto transactionCount = _r.itemCount();
         for (auto iTransaction = 0; iTransaction < transactionCount;
              iTransaction++) {
-          Transaction transaction(_r[iTransaction]);
+          Transaction transaction(_r[iTransaction].data().toBytes());
           receivedTransactions += transaction.getHash().toString() + " ";
           peer->markTransactionAsKnown(transaction.getHash());
           transactions[transaction.getHash()] = transaction;
@@ -669,8 +671,10 @@ void TaraxaCapability::sendBlocks(
       for (auto trx : block->getTrxs()) {
         auto t = full_node->getTransaction(trx);
         if (!t) {
-          LOG(log_er_) << "Transacation " << trx
-                       << " is not available. SendBlocks canceled";
+          if (!stopped_) {
+            LOG(log_er_) << "Transacation " << trx
+                         << " is not available. SendBlocks canceled";
+          }
           // TODO: This can happen on stopping the node because network is not
           // stopped since network does not support restart, better solution
           // needed
@@ -686,9 +690,12 @@ void TaraxaCapability::sendBlocks(
                                blocks.size() + totalTransactionsCount);
   for (auto &block : blocks) {
     block->serializeRLP(s);
+    taraxa::bytes trx_bytes;
     for (auto &trx : blockTransactions[block->getHash()]) {
-      trx.serializeRLP(s);
+      auto b = trx.rlp(true);
+      trx_bytes.insert(trx_bytes.end(), std::begin(b), std::end(b));
     }
+    s.appendRaw(trx_bytes, blockTransactions[block->getHash()].size());
   }
   host_.capabilityHost()->sealAndSend(_id, s);
 }
@@ -699,9 +706,12 @@ void TaraxaCapability::sendTransactions(
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, TransactionPacket,
                                transactions.size());
+  taraxa::bytes trx_bytes;
   for (auto transaction : transactions) {
-    transaction.serializeRLP(s);
+    auto b = transaction.rlp(true);
+    trx_bytes.insert(trx_bytes.end(), std::begin(b), std::end(b));
   }
+  s.appendRaw(trx_bytes, transactions.size());
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
@@ -725,6 +735,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
   }
   block.serializeRLP(s);
 
+  taraxa::bytes trx_bytes;
   for (auto trx : transactionsToSend) {
     std::shared_ptr<Transaction> transaction;
     if (auto full_node = full_node_.lock()) {
@@ -735,8 +746,10 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions
-    transaction->serializeRLP(s);
+    auto b = transaction->rlp(true);
+    trx_bytes.insert(trx_bytes.end(), std::begin(b), std::end(b));
   }
+  s.appendRaw(trx_bytes, transactionsToSend.size());
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 

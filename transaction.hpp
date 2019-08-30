@@ -119,11 +119,6 @@ class Transaction {
   Transaction(stream &strm);
   Transaction(string const &json);
   Transaction(bytes const &_rlp);
-  // TODO: Modify, this uses different RLP for transaction sync, we should only
-  // use one RLP format
-  Transaction(dev::RLP const &_r);
-  // TODO: Remove and use unique RLP for everything
-  void serializeRLP(dev::RLPStream &s);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
   val_t getNonce() const { return nonce_; }
@@ -174,10 +169,10 @@ class Transaction {
   // Serialises this transaction to an RLPStream.
   void streamRLP(dev::RLPStream &s, bool include_sig,
                  bool _forEip155hash = false) const;
-
- protected:
   // @returns the RLP serialisation of this transaction.
   bytes rlp(bool include_sig) const;
+  
+ protected:
   // @returns the SHA3 hash of the RLP serialisation of this transaction.
   blk_hash_t sha3(bool include_sig) const;
   trx_hash_t hash_;
