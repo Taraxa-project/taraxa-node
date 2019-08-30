@@ -3,6 +3,7 @@
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
 #include "../pbft_manager.hpp"
+#include "../network.hpp"
 #include "core_tests/create_samples.hpp"
 #include "types.hpp"
 
@@ -353,6 +354,19 @@ Json::Value Test::get_peer_count() {
   return res;
 }
 
+Json::Value Test::get_node_count() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto peer = node->getNetwork()->getNodeCount();
+      res["value"] = Json::UInt64(peer);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_all_peers() {
   Json::Value res;
   try {
@@ -360,6 +374,21 @@ Json::Value Test::get_all_peers() {
       auto peers = node->getAllPeers();
       for (auto const &peer : peers) {
         res = res.asString() + peer.toString() + "\n";
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_all_nodes() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto nodes = node->getNetwork()->getAllNodes();
+      for (auto const &n : nodes) {
+        res = res.asString() + n.id.toString() + " " + n.endpoint.address().to_string() + ":" + std::to_string(n.endpoint.tcpPort()) + "\n";
       }
     }
   } catch (std::exception &e) {

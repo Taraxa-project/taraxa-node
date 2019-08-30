@@ -40,7 +40,9 @@ class Test : public TestFace {
   virtual Json::Value get_account_address() override;
   virtual Json::Value get_account_balance(const Json::Value& param1) override;
   virtual Json::Value get_peer_count() override;
+  virtual Json::Value get_node_count() override;
   virtual Json::Value get_all_peers() override;
+  virtual Json::Value get_all_nodes() override;
   virtual Json::Value node_stop() override;
   virtual Json::Value node_reset() override;
   virtual Json::Value node_start() override;

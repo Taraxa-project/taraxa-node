@@ -133,6 +133,8 @@ public:
     
     int getNodeCount() {return m_nodeTable->nodes().size();}
 
+    std::list<NodeEntry> getNodes() {return m_nodeTable->snapshot();}
+
     /// Default hosts for current version of client.
     static std::unordered_map<Public, std::string> pocHosts();
 
