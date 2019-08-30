@@ -58,6 +58,10 @@ class Network {
   void setFullNode(std::shared_ptr<FullNode> full_node);
   void saveNetwork(std::string fileName);
   int getPeerCount() { return host_->peerCount(); }
+  int getNodeCount() { return host_->getNodeCount(); }
+  std::list<NodeEntry> getAllNodes() const {
+    return host_->getNodes();
+  }
   std::vector<NodeID> getAllPeers() const {
     return taraxa_capability_->getAllPeers();
   }

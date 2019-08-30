@@ -101,12 +101,22 @@
     "returns": {}
   },
   {
+    "name": "get_node_count",
+    "params": [],
+    "returns": {}
+  },
+  {
     "name": "get_peer_count",
     "params": [],
     "returns": {}
   },
   {
     "name": "get_all_peers",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_all_nodes",
     "params": [],
     "returns": {}
   },
