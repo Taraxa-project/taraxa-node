@@ -171,7 +171,7 @@ class Transaction {
                  bool _forEip155hash = false) const;
   // @returns the RLP serialisation of this transaction.
   bytes rlp(bool include_sig) const;
-  
+
  protected:
   // @returns the SHA3 hash of the RLP serialisation of this transaction.
   blk_hash_t sha3(bool include_sig) const;
