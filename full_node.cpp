@@ -445,13 +445,17 @@ void FullNode::insertBroadcastedBlockWithTransactions(
   blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions),
                                 false /*critical*/);
   LOG(log_time_) << "Store ncblock " << blk.getHash()
-                 << " at: " << getCurrentTimeMilliSeconds() << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
+                 << " at: " << getCurrentTimeMilliSeconds()
+                 << " ,trxs: " << blk.getTrxs().size()
+                 << " , tips: " << blk.getTips().size();
 }
 
 void FullNode::insertBlock(DagBlock const &blk) {
   blk_mgr_->pushUnverifiedBlock(std::move(blk), true /*critical*/);
   LOG(log_time_) << "Store cblock " << blk.getHash()
-                 << " at: " << getCurrentTimeMilliSeconds() << " ,trxs: " << blk.getTrxs().size() << " , tips: " << blk.getTips().size();
+                 << " at: " << getCurrentTimeMilliSeconds()
+                 << " ,trxs: " << blk.getTrxs().size()
+                 << " , tips: " << blk.getTips().size();
 }
 
 void FullNode::insertBlockAndSign(DagBlock const &blk) {
@@ -461,7 +465,8 @@ void FullNode::insertBlockAndSign(DagBlock const &blk) {
   auto now = getCurrentTimeMilliSeconds();
 
   LOG(log_time_) << "Propose block " << sign_block.getHash() << " at: " << now
-                 << " ,trxs: " << sign_block.getTrxs() << " , tips: " << sign_block.getTips().size();
+                 << " ,trxs: " << sign_block.getTrxs()
+                 << " , tips: " << sign_block.getTips().size();
 
   insertBlock(sign_block);
 }

@@ -28,7 +28,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
       EXECUTE_TRXS_DELAY_ms(params[3]),
-      RUN_COUNT_VOTES(params[4]),
+      DAG_BLOCKS_SIZE(params[4]),
+      RUN_COUNT_VOTES(params[5]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
@@ -748,7 +749,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     // choose the last DAG block as PBFT pivot block in this period
     std::vector<std::string> ghost;
     full_node->getGhostPath(dag_genesis_, ghost);
-    blk_hash_t dag_block_hash(ghost.back());
+    blk_hash_t dag_block_hash;
+    if (ghost.size() <= DAG_BLOCKS_SIZE) {
+      dag_block_hash = blk_hash_t(ghost.back());
+    } else {
+      dag_block_hash = blk_hash_t(ghost[DAG_BLOCKS_SIZE - 1]);
+    }
     if (dag_block_hash.toString() == dag_genesis_) {
       LOG(log_deb_) << "No new DAG blocks generated. DAG only has genesis "
                     << dag_block_hash << " PBFT propose NULL_BLOCK_HASH";
