@@ -419,3 +419,38 @@ Json::Value Taraxa::getBlockJson(NodePtr const& node,
   res["size"] = toJS(sizeof(*block));
   return res;
 }
+
+Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
+                                          bool _includeTransactions) {
+  auto node = tryGetNode();
+  auto block = node->getDagBlock(blk_hash_t(_blockHash));
+  if(block) {
+    auto block_json = block->getJson();
+    if(_includeTransactions) {
+      block_json["transactions"] = Json::Value(Json::arrayValue);
+      for(auto const &t : block->getTrxs()) {
+        block_json["transactions"].append(node->getTransaction(t)->getJson());
+      }
+    }
+    return block_json;
+  }
+  return JSON_NULL;
+}
+
+Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
+                                            bool _includeTransactions) {
+  auto node = tryGetNode();
+  auto blocks = node->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
+  auto res = Json::Value(Json::arrayValue);
+  for(auto const &b : blocks) {
+    auto block_json = b->getJson();
+    if(_includeTransactions) {
+      block_json["transactions"] = Json::Value(Json::arrayValue);
+      for(auto const &t : b->getTrxs()) {
+        block_json["transactions"].append(node->getTransaction(t)->getJson());
+      }
+    }
+    res.append(block_json);
+  }
+  return res;
+}

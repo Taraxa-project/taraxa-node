@@ -323,6 +323,7 @@ void FullNode::start(bool boot_node) {
                                    blocks + "," + blk.getHash().hex());
           }
           db_blks_index_->commit();
+          if (ws_server_) ws_server_->newDagBlock(blk);
         }
         network_->onNewBlockVerified(blk);
         LOG(log_time_) << "Broadcast block " << blk.getHash()

@@ -66,7 +66,11 @@ namespace dev {
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_syncing", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,  NULL), &dev::rpc::TaraxaFace::taraxa_syncingI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_estimateGas", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",jsonrpc::JSON_OBJECT, NULL), &dev::rpc::TaraxaFace::taraxa_estimateGasI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_chainId", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_chainIdI);
-                
+                    
+                    //These are taraxa only methods, no ethereum methods
+                    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getDagBlockByHash", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_BOOLEAN, NULL), &dev::rpc::TaraxaFace::taraxa_getDagBlockByHashI);
+                    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getDagBlockByLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_BOOLEAN, NULL), &dev::rpc::TaraxaFace::taraxa_getDagBlockByLevelI);
+                    
                     //This section only points "eth_" methods to "taraxa_" implementation to support ethereum clients
                     this->bindAndAddMethod(jsonrpc::Procedure("eth_protocolVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_protocolVersionI);
                     this->bindAndAddMethod(jsonrpc::Procedure("eth_hashrate", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_hashrateI);
@@ -344,6 +348,14 @@ namespace dev {
                     (void)request;
                     response = this->taraxa_chainId();
                 }
+                inline virtual void taraxa_getDagBlockByHashI(const Json::Value &request, Json::Value &response)
+                {
+                    response = this->taraxa_getDagBlockByHash(request[0u].asString(), request[1u].asBool());
+                }
+                inline virtual void taraxa_getDagBlockByLevelI(const Json::Value &request, Json::Value &response)
+                {
+                    response = this->taraxa_getDagBlockByLevel(request[0u].asString(), request[1u].asBool());
+                }
                 virtual std::string taraxa_protocolVersion() = 0;
                 virtual std::string taraxa_hashrate() = 0;
                 virtual std::string taraxa_coinbase() = 0;
@@ -396,6 +408,8 @@ namespace dev {
                 virtual Json::Value taraxa_syncing() = 0;
                 virtual std::string taraxa_estimateGas(const Json::Value& param1) = 0;
                 virtual std::string taraxa_chainId() = 0;
+                virtual Json::Value taraxa_getDagBlockByHash(const std::string& param1, bool param2) = 0;
+                virtual Json::Value taraxa_getDagBlockByLevel(const std::string& param1, bool param2) = 0;
         };
 
     }

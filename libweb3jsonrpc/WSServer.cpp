@@ -78,6 +78,8 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
       new_heads_subscription_ = subscription_id_;
     } else if (params[0].asString() == "newPendingTransactions") {
       new_transactions_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newDagBlocks") {
+      new_dag_blocks_subscription_ = subscription_id_;
     }
   }
   json_response["result"] = dev::toJS(subscription_id_);
@@ -118,19 +120,39 @@ void WSSession::on_write_no_read(beast::error_code ec,
 
 void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
                                 uint64_t const &block_number) {
-  Json::Value res, params;
-  res["jsonrpc"] = "2.0";
-  res["method"] = "eth_subscription";
-  params["result"] = dev::toJson(blk, block_number);
-  params["subscription"] = dev::toJS(new_heads_subscription_);
-  res["params"] = params;
-  Json::FastWriter fastWriter;
-  std::string response = fastWriter.write(res);
-  ws_.text(ws_.got_text());
-  LOG(log_tr_) << "WS WRITE " << response.c_str();
-  ws_.async_write(boost::asio::buffer(response),
-                  beast::bind_front_handler(&WSSession::on_write_no_read,
-                                            shared_from_this()));
+  if (new_heads_subscription_ != 0) {
+    Json::Value res, params;
+    res["jsonrpc"] = "2.0";
+    res["method"] = "eth_subscription";
+    params["result"] = dev::toJson(blk, block_number);
+    params["subscription"] = dev::toJS(new_heads_subscription_);
+    res["params"] = params;
+    Json::FastWriter fastWriter;
+    std::string response = fastWriter.write(res);
+    ws_.text(ws_.got_text());
+    LOG(log_tr_) << "WS WRITE " << response.c_str();
+    ws_.async_write(boost::asio::buffer(response),
+                    beast::bind_front_handler(&WSSession::on_write_no_read,
+                                              shared_from_this()));
+  }
+}
+
+void WSSession::newDagBlock(DagBlock const &blk) {
+  if (new_dag_blocks_subscription_) {
+    Json::Value res, params;
+    res["jsonrpc"] = "2.0";
+    res["method"] = "eth_subscription";
+    params["result"] = blk.getJson();
+    params["subscription"] = dev::toJS(new_dag_blocks_subscription_);
+    res["params"] = params;
+    Json::FastWriter fastWriter;
+    std::string response = fastWriter.write(res);
+    ws_.text(ws_.got_text());
+    LOG(log_tr_) << "WS WRITE " << response.c_str();
+    ws_.async_write(boost::asio::buffer(response),
+                    beast::bind_front_handler(&WSSession::on_write_no_read,
+                                              shared_from_this()));
+  }
 }
 
 void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
@@ -227,6 +249,12 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
 
   // Accept another connection
   if (!stopped_) do_accept();
+}
+
+void WSServer::newDagBlock(DagBlock const &blk) {
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->newDagBlock(blk);
+  }
 }
 
 void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,

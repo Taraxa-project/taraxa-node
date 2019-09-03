@@ -152,7 +152,11 @@ class Taraxa : public dev::rpc::TaraxaFace {
   }
   virtual Json::Value taraxa_syncing() override;
   virtual std::string taraxa_chainId() override;
-
+  virtual Json::Value taraxa_getDagBlockByHash(std::string const& _blockHash,
+                                            bool _includeTransactions) override;
+  virtual Json::Value taraxa_getDagBlockByLevel(
+      std::string const& _blockLevel, bool _includeTransactions) override;
+  
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;
 
