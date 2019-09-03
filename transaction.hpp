@@ -147,6 +147,7 @@ class Transaction {
   bool serialize(stream &strm) const;
   bool deserialize(stream &strm);
   string getJsonStr() const;
+  Json::Value getJson() const;
   bool operator==(Transaction const &other) const {
     return this->sha3(true) == other.sha3(true);
   }

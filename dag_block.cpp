@@ -11,6 +11,7 @@
 #include <utility>
 #include "dag.hpp"
 #include "full_node.hpp"
+#include "libdevcore/CommonJS.h"
 #include "libdevcore/Log.h"
 
 namespace taraxa {
@@ -74,6 +75,25 @@ void DagBlock::serializeRLP(dev::RLPStream &s) {
 bool DagBlock::isValid() const {
   return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() &&
            cached_sender_.isZero());
+}
+
+Json::Value DagBlock::getJson() const {
+  Json::Value res;
+  res["pivot"] = dev::toJS(pivot_);
+  res["level"] = dev::toJS(level_);
+  res["tips"] = Json::Value(Json::arrayValue);
+  for (auto const &t : tips_) {
+    res["tips"].append(dev::toJS(t));
+  }
+  res["transactions"] = Json::Value(Json::arrayValue);
+  for (auto const &t : trxs_) {
+    res["transactions"].append(dev::toJS(t));
+  }
+  res["sig"] = dev::toJS(sig_);
+  res["hash"] = dev::toJS(hash_);
+  res["sender"] = dev::toJS(cached_sender_);
+  res["timestamp"] = dev::toJS(timestamp_);
+  return res;
 }
 
 std::string DagBlock::getJsonStr() const {

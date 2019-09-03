@@ -21,6 +21,7 @@
 #include <string>
 #include <thread>
 #include "libdevcore/Log.h"
+#include "libdevcore/CommonJS.h"
 #include "transaction.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -77,6 +78,7 @@ class DagBlock {
   sig_t getSig() const { return sig_; }
   blk_hash_t getHash() const { return hash_; }
   addr_t getSender() const { return sender(); }
+  Json::Value getJson() const;
   std::string getJsonStr() const;
   bool isValid() const;
   bool serialize(stream &strm) const;

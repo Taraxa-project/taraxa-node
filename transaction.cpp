@@ -132,6 +132,23 @@ bool Transaction::deserialize(stream &strm) {
   assert(ok);
   return ok;
 }
+
+Json::Value Transaction::getJson() const {
+  Json::Value res;
+  res["hash"] = dev::toJS(hash_);
+  res["type"] = dev::toJS((uint8_t)type_);
+  res["nonce"] = dev::toJS(nonce_);
+  res["value"] = dev::toJS(value_);
+  res["gas_price"] = dev::toJS(gas_price_);
+  res["gas"] = dev::toJS(gas_);
+  res["sig"] = dev::toJS(sig_);
+  res["receiver"] = dev::toJS(receiver_);
+  res["data"] = dev::toJS(data_);
+  res["chain_id"] = dev::toJS(chain_id_);
+  res["sender"] = dev::toJS(cached_sender_);
+  return res;
+}
+
 string Transaction::getJsonStr() const {
   boost::property_tree::ptree tree;
   tree.put("hash", hash_.toString());
