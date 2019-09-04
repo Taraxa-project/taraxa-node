@@ -83,6 +83,9 @@ class PbftManager {
   std::vector<Vote> getVotesOfTypeFromVotesForRound_(
       PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
       std::pair<blk_hash_t, bool> blockhash);
+  std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(
+      PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
+      size_t step, std::pair<blk_hash_t, bool> blockhash);
 
   std::pair<blk_hash_t, bool> nextVotedBlockForRound_(std::vector<Vote> &votes,
                                                       uint64_t round);
