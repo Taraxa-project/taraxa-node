@@ -7,49 +7,7 @@
     "returns": {}
   },
   {
-    "name": "insert_stamped_dag_block",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
     "name": "get_dag_block",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
-    "name": "get_dag_block_children",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
-    "name": "get_dag_block_siblings",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
-    "name": "get_dag_block_tips",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
-    "name": "get_dag_block_pivot_chain",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
-    "name": "get_dag_block_subtree",
     "params": [
       {}
     ],

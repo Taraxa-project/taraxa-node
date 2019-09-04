@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-12-14 10:59:17
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-16 15:25:17
- */
-
 #include "dag.hpp"
 #include <algorithm>
 #include <fstream>
@@ -18,14 +10,12 @@
 
 namespace taraxa {
 
-Dag::Dag(std::string const &genesis) : debug_(false), verbose_(false) {
+Dag::Dag(std::string const &genesis) {
   vertex_hash pivot = "";
   std::vector<vertex_hash> tips;
   genesis_ = addVEEs(genesis, pivot, tips);
 }
 Dag::~Dag() {}
-void Dag::setVerbose(bool verbose) { verbose_ = verbose; }
-void Dag::setDebug(bool debug) { debug_ = debug; }
 
 uint64_t Dag::getNumVertices() const {
   ulock lock(mutex_);
@@ -61,11 +51,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   vertex_t ret = add_vertex(new_vertex, graph_);
   vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
   name_map[ret] = new_vertex;
-  vertex_time_stamp_map_t stamp_map = boost::get(boost::vertex_index1, graph_);
-  stamp_map[ret] = getTimePoint2Long(now);
-  vertex_period_map_t epc_map = boost::get(boost::vertex_index2, graph_);
+  vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
   epc_map[ret] = 0;  // means not finalized
-  // std::cout<<"Created vertex "<< new_vertex<< " at "<< getTimePoint2Long(now)
   // <<std::endl;
   edge_t edge;
   bool res = true;
@@ -98,7 +85,7 @@ void Dag::drawGraph(std::string filename) const {
   ulock lock(mutex_);
   std::ofstream outfile(filename.c_str());
   auto name_map = boost::get(boost::vertex_name, graph_);
-  auto ep_map = boost::get(boost::vertex_index2, graph_);
+  auto ep_map = boost::get(boost::vertex_index1, graph_);
 
   boost::write_graphviz(outfile, graph_, make_label_writer(name_map));
   std::cout << "Dot file " << filename << " generated!" << std::endl;
@@ -140,112 +127,6 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
     }
   }
   assert(leaves.size());
-}
-
-void Dag::getChildrenBeforeTimeStamp(vertex_hash const &vertex,
-                                     time_stamp_t stamp,
-                                     std::vector<vertex_hash> &children) const {
-  ulock lock(mutex_);
-  vertex_t current = graph_.vertex(vertex);
-  if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (getChildrenBeforeTimeStamp) "
-                 << vertex << "\n";
-    return;
-  }
-  children.clear();
-
-  vertex_time_stamp_map_const_t time_map =
-      boost::get(boost::vertex_index1, graph_);
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-  vertex_adj_iter_t s, e;
-  for (std::tie(s, e) = adjacenct_vertices(current, graph_); s != e; s++) {
-    if (time_map[*s] < stamp) {
-      children.push_back(name_map[*s]);
-    }
-  }
-}
-
-void Dag::getSubtreeBeforeTimeStamp(vertex_hash const &vertex,
-                                    time_stamp_t stamp,
-                                    std::vector<vertex_hash> &subtree) const {
-  ulock lock(mutex_);
-  vertex_t current = graph_.vertex(vertex);
-  if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (getSubtreeBeforeTimeStamp) "
-                 << vertex << "\n";
-    return;
-  }
-  subtree.clear();
-  std::deque<vertex_t> q;
-  std::set<vertex_t> visited;
-  visited.insert(current);
-  q.push_back(current);
-  vertex_time_stamp_map_const_t time_map =
-      boost::get(boost::vertex_index1, graph_);
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-  vertex_adj_iter_t s, e;
-
-  while (!q.empty()) {
-    current = q.front();
-    q.pop_front();
-    for (std::tie(s, e) = adjacenct_vertices(current, graph_); s != e; s++) {
-      if (visited.count(*s)) {
-        continue;
-      }
-      if (time_map[*s] >= stamp) {
-        continue;
-      }
-      visited.insert(*s);
-      q.push_back(*s);
-      subtree.push_back(name_map[*s]);
-    }
-  }
-}
-
-void Dag::getLeavesBeforeTimeStamp(vertex_hash const &vertex,
-                                   time_stamp_t stamp,
-                                   std::vector<vertex_hash> &tips) const {
-  ulock lock(mutex_);
-  vertex_t current = graph_.vertex(vertex);
-  if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (getLeavesBeforeTimeStamp) "
-                 << vertex << "\n";
-    return;
-  }
-  tips.clear();
-  vertex_time_stamp_map_const_t time_map =
-      boost::get(boost::vertex_index1, graph_);
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
-  vertex_adj_iter_t s, e;
-  std::unordered_set<vertex_t> visited;
-  std::queue<vertex_t> qu;
-  visited.insert(current);
-  qu.emplace(current);
-  while (!qu.empty()) {
-    vertex_t c = qu.front();
-    qu.pop();
-    size_t valid_children = 0;
-    for (std::tie(s, e) = adjacenct_vertices(c, graph_); s != e; s++) {
-      if (time_map[*s] < stamp) {
-        valid_children++;
-      }
-
-      if (visited.count(*s)) {
-        continue;
-      }
-
-      visited.insert(*s);
-
-      // old children, still need to explore children
-      if (time_map[*s] < stamp) {
-        qu.push(*s);
-      }
-    }
-    // time sense leaf
-    if (valid_children == 0 && time_map[c] < stamp) {
-      tips.push_back(name_map[c]);
-    }
-  }
 }
 
 void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
@@ -302,7 +183,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
 
   vertex_iter_t s, e;
   vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
-  vertex_period_map_t ep_map = boost::get(boost::vertex_index2, graph_);
+  vertex_period_map_t ep_map = boost::get(boost::vertex_index1, graph_);
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
   epfriend[blk_hash_t(name_map[target])] = target;
 
@@ -378,31 +259,6 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
   return true;
 }
 
-time_stamp_t Dag::getVertexTimeStamp(vertex_hash const &vertex) const {
-  ulock lock(mutex_);
-  vertex_t current = graph_.vertex(vertex);
-  if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (getVertexTimeStamp) "
-                 << vertex << "\n";
-    return 0;
-  }
-  vertex_time_stamp_map_const_t time_map =
-      boost::get(boost::vertex_index1, graph_);
-  return time_map[current];
-}
-
-void Dag::setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp) {
-  ulock lock(mutex_);
-  vertex_t current = graph_.vertex(vertex);
-  if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (setVertexTimeStamp) "
-                 << vertex << " to set timestamp\n";
-    return;
-  }
-  vertex_time_stamp_map_t time_map = boost::get(boost::vertex_index1, graph_);
-  assert(stamp >= 0);
-  time_map[current] = stamp;
-}
 void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
   ulock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
@@ -411,22 +267,8 @@ void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
                  << " to set epoch\n";
     return;
   }
-  vertex_period_map_t ep = boost::get(boost::vertex_index2, graph_);
+  vertex_period_map_t ep = boost::get(boost::vertex_index1, graph_);
   ep[current] = period;
-}
-
-size_t Dag::outDegreeBeforeTimeStamp(vertex_t vertex,
-                                     time_stamp_t stamp) const {
-  size_t deg = 0;
-  vertex_time_stamp_map_const_t time_map =
-      boost::get(boost::vertex_index1, graph_);
-  vertex_adj_iter_t s, e;
-  for (std::tie(s, e) = adjacenct_vertices(vertex, graph_); s != e; s++) {
-    if (time_map[*s] < stamp) {
-      deg++;
-    }
-  }
-  return deg;
 }
 
 // dfs
@@ -453,12 +295,6 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
   return false;
 }
 
-void PivotTree::getGhostPath(vertex_hash const &vertex,
-                             std::vector<vertex_hash> &pivot_chain) const {
-  return getGhostPathBeforeTimeStamp(
-      vertex, std::numeric_limits<uint64_t>::max(), pivot_chain);
-}
-
 /**
  * Iterative version
  * Steps rounds
@@ -467,24 +303,18 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
  * 3. collect path
  */
 
-void PivotTree::getGhostPathBeforeTimeStamp(
-    vertex_hash const &vertex, time_stamp_t stamp,
-    std::vector<vertex_hash> &pivot_chain) const {
+void PivotTree::getGhostPath(vertex_hash const &vertex,
+                             std::vector<vertex_hash> &pivot_chain) const {
   ulock lock(mutex_);
   std::vector<vertex_t> post_order;
   vertex_t root = graph_.vertex(vertex);
 
   if (root == graph_.null_vertex()) {
-    LOG(log_nf_) << "Warning! cannot find vertex (getGhostPathBeforeTimeStamp) "
-                 << vertex << std::endl;
+    LOG(log_nf_) << "Warning! cannot find vertex (getGhostPath) " << vertex
+                 << std::endl;
     return;
   }
   pivot_chain.clear();
-  vertex_time_stamp_map_const_t time_map =
-      boost::get(boost::vertex_index1, graph_);
-  if (time_map[root] >= stamp) {
-    return;
-  }
 
   // first step: post order traversal
   std::stack<vertex_t> st;
@@ -495,11 +325,8 @@ void PivotTree::getGhostPathBeforeTimeStamp(
     cur = st.top();
     st.pop();
     post_order.emplace_back(cur);
-    // visit only smaller time stamp
     for (std::tie(s, e) = adjacenct_vertices(cur, graph_); s != e; s++) {
-      if (time_map[*s] < stamp) {
-        st.emplace(*s);
-      }
+      st.emplace(*s);
     }
   }
   std::reverse(post_order.begin(), post_order.end());
@@ -547,9 +374,7 @@ void PivotTree::getGhostPathBeforeTimeStamp(
 }
 
 DagManager::DagManager(std::string const &genesis) try
-    : debug_(false),
-      verbose_(false),
-      dag_updated_(false),
+    : dag_updated_(false),
       inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>(genesis)),
       pivot_tree_(std::make_shared<PivotTree>(genesis)),
@@ -573,9 +398,6 @@ std::shared_ptr<DagManager> DagManager::getShared() {
     return nullptr;
   }
 }
-
-void DagManager::setDebug(bool debug) { debug_ = debug; }
-void DagManager::setVerbose(bool verbose) { verbose_ = verbose; }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
   ulock lock(mutex_);
@@ -667,9 +489,6 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  // sync pivot tree's time stamp with total_dag_ timestamp
-  auto stamp = total_dag_->getVertexTimeStamp(hash);
-  pivot_tree_->setVertexTimeStamp(hash, stamp);
   LOG(log_nf_) << "Insert block to DAG : " << hash;
 }
 
@@ -700,8 +519,7 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
-  pivot_tree_->getGhostPathBeforeTimeStamp(
-      genesis_, std::numeric_limits<uint64_t>::max(), pivot_chain);
+  pivot_tree_->getGhostPath(genesis_, pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->getLeaves(tips);
@@ -718,40 +536,10 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
 void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
   total_dag_->getLeaves(leaves);
 }
-
 void DagManager::getGhostPath(std::string const &source,
                               std::vector<std::string> &ghost) const {
   pivot_tree_->getGhostPath(source, ghost);
 }
-
-std::vector<std::string> DagManager::getPivotChildrenBeforeTimeStamp(
-    std::string const &vertex, time_stamp_t stamp) const {
-  std::vector<std::string> ret;
-  pivot_tree_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
-  return ret;
-}
-
-std::vector<std::string> DagManager::getTotalChildrenBeforeTimeStamp(
-    std::string const &vertex, time_stamp_t stamp) const {
-  std::vector<std::string> ret;
-  total_dag_->getChildrenBeforeTimeStamp(vertex, stamp, ret);
-  return ret;
-}
-
-std::vector<std::string> DagManager::getPivotSubtreeBeforeTimeStamp(
-    std::string const &vertex, time_stamp_t stamp) const {
-  std::vector<std::string> ret;
-  pivot_tree_->getSubtreeBeforeTimeStamp(vertex, stamp, ret);
-  return ret;
-}
-
-std::vector<std::string> DagManager::getTotalLeavesBeforeTimeStamp(
-    std::string const &vertex, time_stamp_t stamp) const {
-  std::vector<std::string> ret;
-  total_dag_->getLeavesBeforeTimeStamp(vertex, stamp, ret);
-  return ret;
-}
-
 std::vector<std::string> DagManager::getEpFriendBetweenPivots(
     std::string const &from, std::string const &to) {
   std::vector<std::string> epfriend;
@@ -760,21 +548,11 @@ std::vector<std::string> DagManager::getEpFriendBetweenPivots(
   return epfriend;
 }
 
-std::vector<std::string> DagManager::getPivotChainBeforeTimeStamp(
-    std::string const &vertex, time_stamp_t stamp) const {
+std::vector<std::string> DagManager::getPivotChain(
+    std::string const &vertex) const {
   std::vector<std::string> ret;
-  pivot_tree_->getGhostPathBeforeTimeStamp(vertex, stamp, ret);
+  pivot_tree_->getGhostPath(vertex, ret);
   return ret;
-}
-
-time_stamp_t DagManager::getDagBlockTimeStamp(std::string const &vertex) {
-  return total_dag_->getVertexTimeStamp(vertex);
-}
-
-void DagManager::setDagBlockTimeStamp(std::string const &vertex,
-                                      time_stamp_t stamp) {
-  total_dag_->setVertexTimeStamp(vertex, stamp);
-  pivot_tree_->setVertexTimeStamp(vertex, stamp);
 }
 
 uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,

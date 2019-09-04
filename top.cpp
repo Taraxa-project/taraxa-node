@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-04-19 12:56:28
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:05:26
- */
-
 #include "top.hpp"
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
@@ -35,7 +27,6 @@ void Top::start(int argc, const char* argv[]) {
       boost::program_options::options_description main_options(
           "GENERIC OPTIONS:");
       main_options.add_options()("help", "Print this help message and exit")(
-          "verbose", "Print more info")(
           "conf_taraxa",
           boost::program_options::value<std::string>(&conf_taraxa),
           "Configure file for taraxa node [required]")(
@@ -63,9 +54,6 @@ void Top::start(int argc, const char* argv[]) {
         std::cout << allowed_options << std::endl;
         stopped_ = true;
       }
-      if (option_vars.count("verbose") > 0) {
-        stopped_ = true;
-      }
       if (!option_vars.count("conf_taraxa")) {
         std::cout << "Please specify full node configuration file "
                      "[--conf_taraxa]..."
@@ -79,7 +67,6 @@ void Top::start(int argc, const char* argv[]) {
         conf_ = std::make_shared<taraxa::FullNodeConfig>(conf_taraxa);
         node_ = std::make_shared<taraxa::FullNode>(context_, *conf_, destroy_db,
                                                    rebuild_network);
-        node_->setVerbose(verbose);
         node_->start(boot_node_);
         startRpc();
         context_.run();

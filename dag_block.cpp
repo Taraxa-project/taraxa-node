@@ -1,10 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-10-31 16:26:04
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-16 13:10:10
- */
 #include "dag_block.hpp"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>

@@ -18,40 +18,10 @@ class TestFace : public ServerInterface<TestFace> {
                            NULL),
         &TestFace::insert_dag_blockI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("insert_stamped_dag_block",
-                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                           "param1", jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::insert_stamped_dag_blockI);
-    this->bindAndAddMethod(
         jsonrpc::Procedure("get_dag_block", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
                            NULL),
         &TestFace::get_dag_blockI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_block_children",
-                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                           "param1", jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::get_dag_block_childrenI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_block_siblings",
-                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                           "param1", jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::get_dag_block_siblingsI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_block_tips", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
-        &TestFace::get_dag_block_tipsI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_block_pivot_chain",
-                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
-                           "param1", jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::get_dag_block_pivot_chainI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_dag_block_subtree", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
-                           NULL),
-        &TestFace::get_dag_block_subtreeI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_dag_block_epfriend",
                            jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
@@ -158,33 +128,9 @@ class TestFace : public ServerInterface<TestFace> {
                                         Json::Value &response) {
     response = this->insert_dag_block(request[0u]);
   }
-  inline virtual void insert_stamped_dag_blockI(const Json::Value &request,
-                                                Json::Value &response) {
-    response = this->insert_stamped_dag_block(request[0u]);
-  }
   inline virtual void get_dag_blockI(const Json::Value &request,
                                      Json::Value &response) {
     response = this->get_dag_block(request[0u]);
-  }
-  inline virtual void get_dag_block_childrenI(const Json::Value &request,
-                                              Json::Value &response) {
-    response = this->get_dag_block_children(request[0u]);
-  }
-  inline virtual void get_dag_block_siblingsI(const Json::Value &request,
-                                              Json::Value &response) {
-    response = this->get_dag_block_siblings(request[0u]);
-  }
-  inline virtual void get_dag_block_tipsI(const Json::Value &request,
-                                          Json::Value &response) {
-    response = this->get_dag_block_tips(request[0u]);
-  }
-  inline virtual void get_dag_block_pivot_chainI(const Json::Value &request,
-                                                 Json::Value &response) {
-    response = this->get_dag_block_pivot_chain(request[0u]);
-  }
-  inline virtual void get_dag_block_subtreeI(const Json::Value &request,
-                                             Json::Value &response) {
-    response = this->get_dag_block_subtree(request[0u]);
   }
   inline virtual void get_dag_block_epfriendI(const Json::Value &request,
                                               Json::Value &response) {
@@ -275,13 +221,7 @@ class TestFace : public ServerInterface<TestFace> {
     response = this->get_dag_size(request[0u]);
   }
   virtual Json::Value insert_dag_block(const Json::Value &param1) = 0;
-  virtual Json::Value insert_stamped_dag_block(const Json::Value &param1) = 0;
   virtual Json::Value get_dag_block(const Json::Value &param1) = 0;
-  virtual Json::Value get_dag_block_children(const Json::Value &param1) = 0;
-  virtual Json::Value get_dag_block_siblings(const Json::Value &param1) = 0;
-  virtual Json::Value get_dag_block_tips(const Json::Value &param1) = 0;
-  virtual Json::Value get_dag_block_pivot_chain(const Json::Value &param1) = 0;
-  virtual Json::Value get_dag_block_subtree(const Json::Value &param1) = 0;
   virtual Json::Value get_dag_block_epfriend(const Json::Value &param1) = 0;
   virtual Json::Value send_coin_transaction(const Json::Value &param1) = 0;
   virtual Json::Value create_test_coin_transactions(

@@ -1,11 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-04-19 12:56:25
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-22 14:54:34
- */
-
+#ifndef TARAXA_NODE_TOP_HPP
+#define TARAXA_NODE_TOP_HPP
 #include <libweb3jsonrpc/IpcServer.h>
 #include <libweb3jsonrpc/ModularServer.h>
 #include <libweb3jsonrpc/Test.h>
@@ -46,3 +40,4 @@ class Top {
   boost::asio::io_context context_;
   std::shared_ptr<taraxa::FullNodeConfig> conf_;
 };
+#endif

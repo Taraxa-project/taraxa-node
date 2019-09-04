@@ -61,7 +61,7 @@ GOOGLE_APIS_FLAG := `pkg-config --cflags protobuf grpc++ --libs protobuf grpc++`
 main: $(BUILDDIR)/main
 	@echo MAIN
 
-all: $(DEPENDENCIES) main
+all:  $(DEPENDENCIES) main
 
 include p2p.inc
 

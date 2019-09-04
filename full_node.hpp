@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-11-02 14:19:58
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-15 16:13:09
- */
-
-#ifndef FULL_NODE_HPP
-#define FULL_NODE_HPP
+#ifndef TARAXA_NODE_FULL_NODE_HPP
+#define TARAXA_NODE_FULL_NODE_HPP
 
 #include <boost/asio.hpp>
 #include <iostream>
@@ -55,7 +47,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       stop();
     }
   }
-  void setVerbose(bool verbose);
   void setDebug(bool debug);
   void start(bool boot_node);
   void stop();
@@ -96,31 +87,17 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       std::unordered_map<trx_hash_t, Transaction> const &transactions);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
 
-  // Dag related: return childern, siblings, tips before time stamp
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
 
   bool isBlockKnown(blk_hash_t const &hash);
-  time_stamp_t getDagBlockTimeStamp(blk_hash_t const &hash);
-  void setDagBlockTimeStamp(blk_hash_t const &hash, time_stamp_t stamp);
-  std::vector<std::string> getDagBlockChildren(blk_hash_t const &blk,
-                                               time_stamp_t stamp);
-  std::vector<std::string> getTotalDagBlockChildren(blk_hash_t const &blk,
-                                                    time_stamp_t stamp);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       unsigned long level, int number_of_levels);
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
   void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
-  std::vector<std::string> getDagBlockSubtree(blk_hash_t const &blk,
-                                              time_stamp_t stamp);
-  std::vector<std::string> getDagBlockSiblings(blk_hash_t const &blk,
-                                               time_stamp_t stamp);
-  std::vector<std::string> getDagBlockTips(blk_hash_t const &blk,
-                                           time_stamp_t stamp);
-  std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk,
-                                                 time_stamp_t stamp);
+  std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk);
   // Note: returned block hashes does not have order
   // Epoch friends : dag blocks in the same epoch/period
   std::vector<std::string> getDagBlockEpFriend(blk_hash_t const &from,
@@ -265,7 +242,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool db_inited_ = false;
   // configuration
   FullNodeConfig conf_;
-  bool verbose_ = false;
   bool debug_ = false;
   uint64_t propose_threshold_ = 512;
   bool i_am_boot_node_ = false;

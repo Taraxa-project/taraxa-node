@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-12-14 13:23:51
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-22 13:39:27
- */
-
 #ifndef TARAXA_NODE_DAG_HPP
 #define TARAXA_NODE_DAG_HPP
 
@@ -44,10 +36,9 @@ class Dag {
  public:
   // properties
   using vertex_hash = std::string;
-  using vertex_property_t = boost::property<
-      boost::vertex_name_t, std::string,
-      boost::property<boost::vertex_index1_t, time_stamp_t,
-                      boost::property<boost::vertex_index2_t, uint64_t>>>;
+  using vertex_property_t =
+      boost::property<boost::vertex_name_t, std::string,
+                      boost::property<boost::vertex_index1_t, uint64_t>>;
   using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 
   // graph def
@@ -68,15 +59,10 @@ class Dag {
   using vertex_name_map_t =
       boost::property_map<graph_t, boost::vertex_name_t>::type;
 
-  using vertex_time_stamp_map_const_t =
-      boost::property_map<graph_t, boost::vertex_index1_t>::const_type;
-  using vertex_time_stamp_map_t =
-      boost::property_map<graph_t, boost::vertex_index1_t>::type;
-
   using vertex_period_map_const_t =
-      boost::property_map<graph_t, boost::vertex_index2_t>::const_type;
+      boost::property_map<graph_t, boost::vertex_index1_t>::const_type;
   using vertex_period_map_t =
-      boost::property_map<graph_t, boost::vertex_index2_t>::type;
+      boost::property_map<graph_t, boost::vertex_index1_t>::type;
 
   using edge_index_map_const_t =
       boost::property_map<graph_t, boost::edge_index_t>::const_type;
@@ -87,8 +73,6 @@ class Dag {
 
   Dag(std::string const &genesis);
   ~Dag();
-  void setVerbose(bool verbose);
-  void setDebug(bool debug);
   static vertex_hash getGenesis();
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
@@ -98,18 +82,8 @@ class Dag {
   bool addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                std::vector<vertex_hash> const &tips);
 
-  // timestamp unrelated
   void getLeaves(std::vector<vertex_hash> &tips) const;
   void drawGraph(vertex_hash filename) const;
-
-  // Time stamp related
-  void getChildrenBeforeTimeStamp(vertex_hash const &vertex, time_stamp_t stamp,
-                                  std::vector<vertex_hash> &children) const;
-  // Computational heavy
-  void getSubtreeBeforeTimeStamp(vertex_hash const &vertex, time_stamp_t stamp,
-                                 std::vector<vertex_hash> &subtree) const;
-  void getLeavesBeforeTimeStamp(vertex_hash const &veretx, time_stamp_t stamp,
-                                std::vector<vertex_hash> &tips) const;
 
   // Note, the function will not delete recent_added_blks when marking
   // ith_number
@@ -119,11 +93,10 @@ class Dag {
                         &recent_added_blks,  // iterater only from new blocks
                     std::vector<vertex_hash> &ordered_period_vertices);
   // warning! slow, iterate through all vertices ...
-  void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
+  void getEpFriendVertices(vertex_hash const &from,
+                           vertex_hash const &to,  // ???
                            std::vector<vertex_hash> &epfriend) const;
 
-  time_stamp_t getVertexTimeStamp(vertex_hash const &vertex) const;
-  void setVertexTimeStamp(vertex_hash const &vertex, time_stamp_t stamp);
   void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
   // for graphviz
   template <class Property>
@@ -153,11 +126,8 @@ class Dag {
   bool reachable(vertex_t const &from, vertex_t const &to) const;
 
   void collectLeafVertices(std::vector<vertex_t> &leaves) const;
-  // time sense degree
-  size_t outDegreeBeforeTimeStamp(vertex_t vertex, time_stamp_t stamp) const;
 
   bool debug_;
-  bool verbose_;
   graph_t graph_;
   vertex_t genesis_;  // root node
   mutable std::mutex mutex_;
@@ -172,6 +142,7 @@ class Dag {
   mutable dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
+
 /**
  * PivotTree is a special DAG, every vertex only has one out-edge,
  * therefore, there is no convergent tree
@@ -183,10 +154,6 @@ class PivotTree : public Dag {
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_name_map_const_t = Dag::vertex_name_map_const_t;
-
-  void getGhostPathBeforeTimeStamp(vertex_hash const &vertex,
-                                   time_stamp_t stamp,
-                                   std::vector<vertex_hash> &pivot_chain) const;
 
   void getGhostPath(vertex_hash const &vertex,
                     std::vector<vertex_hash> &pivot_chain) const;
@@ -235,37 +202,17 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void getGhostPath(std::string const &source,
                     std::vector<std::string> &ghost) const;
 
-  // debug functions
-  // BeforeTimeStamp does NOT include the time of timestamp
-
   // ----- Total graph
-  // can return self as tips
-  std::vector<std::string> getTotalLeavesBeforeTimeStamp(
-      std::string const &vertex, time_stamp_t stamp) const;
   std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
                                                     std::string const &to);
   void drawTotalGraph(std::string const &str) const;
-  std::vector<std::string> getTotalChildrenBeforeTimeStamp(
-      std::string const &vertex, time_stamp_t stamp) const;
 
   // ----- Pivot graph
-  std::vector<std::string> getPivotChildrenBeforeTimeStamp(
-      std::string const &vertex, time_stamp_t stamp) const;
-  // can return self as subtree
-  std::vector<std::string> getPivotSubtreeBeforeTimeStamp(
-      std::string const &vertex, time_stamp_t stamp) const;
   // can return self as pivot chain
-  std::vector<std::string> getPivotChainBeforeTimeStamp(
-      std::string const &vertex, time_stamp_t stamp) const;
+  std::vector<std::string> getPivotChain(std::string const &vertex) const;
   void drawPivotGraph(std::string const &str) const;
-
-  time_stamp_t getDagBlockTimeStamp(std::string const &vertex);
-  void setDagBlockTimeStamp(std::string const &vertex, time_stamp_t stamp);
-
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  void setDebug(bool debug);
-  void setVerbose(bool verbose);
   size_t getBufferSize() const;
   level_t getMaxLevel() const { return max_level_; }
   uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
@@ -279,7 +226,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   unsigned getBlockInsertingIndex();  // add to block to different array
   void countFreshBlocks();
   bool debug_;
-  bool verbose_;
   bool dag_updated_;
   bool stopped_ = true;
   level_t max_level_ = 0;

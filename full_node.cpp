@@ -1,10 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-11-01 15:43:56
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-16 12:54:43
- */
 #include "full_node.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -27,13 +20,6 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 using util::eth::newDB;
-
-void FullNode::setVerbose(bool verbose) {
-  verbose_ = verbose;
-  dag_mgr_->setVerbose(verbose);
-  // TODO: setup logs for DB
-  // db_blks_->setVerbose(verbose);
-}
 
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
@@ -525,29 +511,6 @@ unsigned long FullNode::getTransactionStatusCount() const {
   return trx_mgr_->getTransactionStatusCount();
 }
 
-time_stamp_t FullNode::getDagBlockTimeStamp(blk_hash_t const &hash) {
-  return dag_mgr_->getDagBlockTimeStamp(hash.toString());
-}
-
-void FullNode::setDagBlockTimeStamp(blk_hash_t const &hash,
-                                    time_stamp_t stamp) {
-  dag_mgr_->setDagBlockTimeStamp(hash.toString(), stamp);
-}
-
-std::vector<std::string> FullNode::getDagBlockChildren(blk_hash_t const &hash,
-                                                       time_stamp_t stamp) {
-  std::vector<std::string> children =
-      dag_mgr_->getPivotChildrenBeforeTimeStamp(hash.toString(), stamp);
-  return children;
-}
-
-std::vector<std::string> FullNode::getTotalDagBlockChildren(
-    blk_hash_t const &hash, time_stamp_t stamp) {
-  std::vector<std::string> children =
-      dag_mgr_->getTotalChildrenBeforeTimeStamp(hash.toString(), stamp);
-  return children;
-}
-
 std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
     unsigned long level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
@@ -585,25 +548,10 @@ void FullNode::getGhostPath(std::string const &source,
   dag_mgr_->getGhostPath(source, ghost);
 }
 
-// Recursive call to children
-std::vector<std::string> FullNode::getDagBlockSubtree(blk_hash_t const &hash,
-                                                      time_stamp_t stamp) {
-  std::vector<std::string> subtree =
-      dag_mgr_->getPivotSubtreeBeforeTimeStamp(hash.toString(), stamp);
-  return subtree;
-}
-
-std::vector<std::string> FullNode::getDagBlockTips(blk_hash_t const &hash,
-                                                   time_stamp_t stamp) {
-  std::vector<std::string> tips =
-      dag_mgr_->getTotalLeavesBeforeTimeStamp(hash.toString(), stamp);
-  return tips;
-}
-
-std::vector<std::string> FullNode::getDagBlockPivotChain(blk_hash_t const &hash,
-                                                         time_stamp_t stamp) {
+std::vector<std::string> FullNode::getDagBlockPivotChain(
+    blk_hash_t const &hash) {
   std::vector<std::string> pivot_chain =
-      dag_mgr_->getPivotChainBeforeTimeStamp(hash.toString(), stamp);
+      dag_mgr_->getPivotChain(hash.toString());
   return pivot_chain;
 }
 
@@ -612,21 +560,6 @@ std::vector<std::string> FullNode::getDagBlockEpFriend(blk_hash_t const &from,
   std::vector<std::string> epfriend =
       dag_mgr_->getEpFriendBetweenPivots(from.toString(), to.toString());
   return epfriend;
-}
-
-std::vector<std::string> FullNode::getDagBlockSiblings(blk_hash_t const &hash,
-                                                       time_stamp_t stamp) {
-  auto blk = getDagBlock(hash);
-  std::vector<std::string> parents;
-  parents.emplace_back(blk->getPivot().toString());
-
-  std::vector<std::string> siblings;
-  for (auto const &parent : parents) {
-    std::vector<std::string> children;
-    children = dag_mgr_->getPivotChildrenBeforeTimeStamp(parent, stamp);
-    siblings.insert(siblings.end(), children.begin(), children.end());
-  }
-  return siblings;
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
