@@ -13,6 +13,7 @@
 #include <thread>
 #include <vector>
 #include "dag_block.hpp"
+#include "pbft_chain.hpp"
 #include "libdevcore/Log.h"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
@@ -40,6 +41,8 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
                        uint64_t const& block_number);
   void newDagBlock(DagBlock const& blk);
+  void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
+  void newScheduleBlockExecuted(ScheduleBlock const &sche_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
   dev::Logger log_si_{
@@ -57,6 +60,8 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   int new_heads_subscription_ = 0;
   int new_dag_blocks_subscription_ = 0;
   int new_transactions_subscription_ = 0;
+  int new_dag_block_finalized_subscription_ = 0;
+  int new_schedule_block_executed_subscription_ = 0;
   bool closed_ = false;
 };
 
@@ -78,6 +83,8 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
                        uint64_t const& block_number);
   void newDagBlock(DagBlock const& blk);
+  void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
+  void newScheduleBlockExecuted(ScheduleBlock const &sche_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
  private:
