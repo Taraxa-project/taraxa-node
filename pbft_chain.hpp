@@ -130,6 +130,7 @@ class ScheduleBlock {
   void streamRLP(dev::RLPStream& strm) const;
 
   std::string getJsonStr() const;
+  Json::Value getJson() const;
   TrxSchedule getSchedule() const;
   blk_hash_t getPrevBlockHash() const;
 

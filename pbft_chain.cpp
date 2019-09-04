@@ -152,6 +152,26 @@ void PivotBlock::streamRLP(dev::RLPStream& strm) const {
 
 ScheduleBlock::ScheduleBlock(taraxa::stream& strm) { deserialize(strm); }
 
+Json::Value ScheduleBlock::getJson() const {
+  Json::Value res;
+  res["prev_block_hash"] = dev::toJS(prev_block_hash_);
+  Json::Value block_order = Json::Value(Json::arrayValue);
+  for (auto const& b : this->schedule_.blk_order) {
+    block_order.append(dev::toJS(b));
+  }
+  res["block_order"] = block_order;
+  Json::Value trx_modes = Json::Value(Json::arrayValue);
+  for (auto const& m1 : this->schedule_.vec_trx_modes) {
+    Json::Value trx_modes_row = Json::Value(Json::arrayValue);
+    for (auto const& m2 : m1) {
+      trx_modes_row.append(dev::toJS(m2));
+    }
+      trx_modes.append(dev::toJS(trx_modes_row));
+  }
+  res["trx_modes"] = trx_modes;
+  return res;
+}
+
 std::string ScheduleBlock::getJsonStr() const {
   std::stringstream strm;
   strm << "[ScheduleBlock]" << std::endl;

@@ -73,13 +73,17 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   json_response["id"] = id;
   json_response["jsonrpc"] = "2.0";
   subscription_id_++;
-  if (params.size() == 1) {
+  if (params.size() > 0) {
     if (params[0].asString() == "newHeads") {
       new_heads_subscription_ = subscription_id_;
     } else if (params[0].asString() == "newPendingTransactions") {
       new_transactions_subscription_ = subscription_id_;
     } else if (params[0].asString() == "newDagBlocks") {
       new_dag_blocks_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newDagBlocksFinalized") {
+      new_dag_block_finalized_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newScheduleBlocks") {
+      new_schedule_block_executed_subscription_ = subscription_id_;
     }
   }
   json_response["result"] = dev::toJS(subscription_id_);
@@ -155,20 +159,61 @@ void WSSession::newDagBlock(DagBlock const &blk) {
   }
 }
 
+void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
+  if (new_dag_block_finalized_subscription_) {
+    Json::Value res, params, result;
+    res["jsonrpc"] = "2.0";
+    res["method"] = "eth_subscription";
+    result["block"] = dev::toJS(blk);
+    result["period"] = dev::toJS(period);
+    params["result"] = result;
+    params["subscription"] = dev::toJS(new_dag_block_finalized_subscription_);
+    res["params"] = params;
+    Json::FastWriter fastWriter;
+    std::string response = fastWriter.write(res);
+    ws_.text(ws_.got_text());
+    LOG(log_tr_) << "WS WRITE " << response.c_str();
+    ws_.async_write(boost::asio::buffer(response),
+                    beast::bind_front_handler(&WSSession::on_write_no_read,
+                                              shared_from_this()));
+  }
+}
+
+void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk) {
+  if (new_schedule_block_executed_subscription_) {
+    Json::Value res, params;
+    res["jsonrpc"] = "2.0";
+    res["method"] = "eth_subscription";
+    params["result"] = sche_blk.getJson();
+    params["subscription"] =
+        dev::toJS(new_schedule_block_executed_subscription_);
+    res["params"] = params;
+    Json::FastWriter fastWriter;
+    std::string response = fastWriter.write(res);
+    ws_.text(ws_.got_text());
+    LOG(log_tr_) << "WS WRITE " << response.c_str();
+    ws_.async_write(boost::asio::buffer(response),
+                    beast::bind_front_handler(&WSSession::on_write_no_read,
+                                              shared_from_this()));
+  }
+}
+
 void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
-  Json::Value res, params;
-  res["jsonrpc"] = "2.0";
-  res["method"] = "eth_subscription";
-  params["result"] = dev::toJS(trx_hash);
-  params["subscription"] = dev::toJS(new_transactions_subscription_);
-  res["params"] = params;
-  Json::FastWriter fastWriter;
-  std::string response = fastWriter.write(res);
-  ws_.text(ws_.got_text());
-  LOG(log_tr_) << "WS WRITE " << response.c_str();
-  ws_.async_write(boost::asio::buffer(response),
-                  beast::bind_front_handler(&WSSession::on_write_no_read,
-                                            shared_from_this()));
+  if (new_transactions_subscription_) {
+    Json::Value res, params;
+    res["jsonrpc"] = "2.0";
+    res["method"] = "eth_subscription";
+    params["result"] = dev::toJS(trx_hash);
+    params["subscription"] = dev::toJS(new_transactions_subscription_);
+    res["params"] = params;
+    Json::FastWriter fastWriter;
+    std::string response = fastWriter.write(res);
+    ws_.text(ws_.got_text());
+    LOG(log_tr_) << "WS WRITE " << response.c_str();
+    ws_.async_write(boost::asio::buffer(response),
+                    beast::bind_front_handler(&WSSession::on_write_no_read,
+                                              shared_from_this()));
+  }
 }
 
 void WSSession::close() {
@@ -254,6 +299,18 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
 void WSServer::newDagBlock(DagBlock const &blk) {
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newDagBlock(blk);
+  }
+}
+
+void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->newDagBlockFinalized(blk, period);
+  }
+}
+
+void WSServer::newScheduleBlockExecuted(ScheduleBlock const &sche_blk) {
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->newScheduleBlockExecuted(sche_blk);
   }
 }
 
