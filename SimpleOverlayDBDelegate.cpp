@@ -33,6 +33,29 @@ std::string SimpleOverlayDBDelegate::get(const std::string &key) {
   }
   return odb_->lookup(hashKey);
 }
+bool SimpleOverlayDBDelegate::put(const h256 &key, const dev::bytes &value) {
+  upgradableLock lock(shared_mutex_);
+  if (odb_->exists(key)) {
+    return false;
+  }
+  upgradeLock locked(lock);
+  odb_->insert(key, &value);
+  return true;
+}
+bool SimpleOverlayDBDelegate::update(const h256 &key, const dev::bytes &value) {
+  boost::unique_lock lock(shared_mutex_);
+  odb_->insert(key, &value);
+  return true;
+}
+dev::bytes SimpleOverlayDBDelegate::get(const h256 &key) {
+  sharedLock lock(shared_mutex_);
+  if (!odb_->exists(key)) {
+    return dev::bytes();
+  }
+  auto value = odb_->lookup(key);
+  dev::bytesConstRef bytes_ref(value);
+  return bytes_ref.toBytes();
+}
 void SimpleOverlayDBDelegate::commit() {
   boost::unique_lock lock(shared_mutex_);
   odb_->commit();

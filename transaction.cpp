@@ -14,25 +14,33 @@ Transaction::Transaction(stream &strm) { deserialize(strm); }
 
 Transaction::Transaction(string const &json) {
   try {
-    boost::property_tree::ptree doc = strToJson(json);
-    hash_ = trx_hash_t(doc.get<string>("hash"));
-    type_ = toEnum<Transaction::Type>(doc.get<uint8_t>("type"));
-    nonce_ = val_t(doc.get<string>("nonce"));
-    value_ = val_t(doc.get<string>("value"));
-    gas_price_ = val_t(doc.get<string>("gas_price"));
-    gas_ = val_t(doc.get<string>("gas"));
-    sig_ = sig_t(doc.get<string>("sig"));
-    receiver_ = addr_t(doc.get<string>("receiver"));
-    string data = doc.get<string>("data");
-    data_ = str2bytes(data);
+    Json::Value root;
+    Json::Reader reader;
+    bool parsing_successful = reader.parse(json, root);
+    if (!parsing_successful) {
+      std::cerr << "Parsing Json Transaction failed" << json << std::endl;
+      assert(false);
+    }
+
+    hash_ = trx_hash_t(root["hash"].asString());
+    type_ = toEnum<Transaction::Type>(root["type"].asUInt());
+    nonce_ = val_t(root["nonce"].asString());
+    value_ = val_t(root["value"].asString());
+    gas_price_ = val_t(root["gas_price"].asString());
+    gas_ = val_t(root["gas"].asString());
+    sig_ = sig_t(root["sig"].asString());
+    receiver_ = addr_t(root["receiver"].asString());
+    string data = root["data"].asString();
+    data_ = dev::jsToBytes(data);
     if (!sig_.isZero()) {
       dev::SignatureStruct sig_struct = *(dev::SignatureStruct const *)&sig_;
       if (sig_struct.isValid()) {
         vrs_ = sig_struct;
       }
     }
-    chain_id_ = doc.get<int8_t>("chain_id");
-    cached_sender_ = addr_t(doc.get<string>("sender"));
+    chain_id_ = root["chain_id"].asInt();
+    ;
+    cached_sender_ = addr_t(root["hash"].asString());
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
     assert(false);
@@ -136,7 +144,7 @@ bool Transaction::deserialize(stream &strm) {
 Json::Value Transaction::getJson() const {
   Json::Value res;
   res["hash"] = dev::toJS(hash_);
-  res["type"] = dev::toJS((uint8_t)type_);
+  res["type"] = (uint)type_;
   res["nonce"] = dev::toJS(nonce_);
   res["value"] = dev::toJS(value_);
   res["gas_price"] = dev::toJS(gas_price_);
@@ -144,28 +152,16 @@ Json::Value Transaction::getJson() const {
   res["sig"] = dev::toJS(sig_);
   res["receiver"] = dev::toJS(receiver_);
   res["data"] = dev::toJS(data_);
-  res["chain_id"] = dev::toJS(chain_id_);
+  res["chain_id"] = chain_id_;
   res["sender"] = dev::toJS(cached_sender_);
   return res;
 }
 
 string Transaction::getJsonStr() const {
-  boost::property_tree::ptree tree;
-  tree.put("hash", hash_.toString());
-  tree.put("type", asInteger(type_));
-  tree.put("nonce", nonce_.str());
-  tree.put("value", value_.str());
-  tree.put("gas_price", toString(gas_price_));
-  tree.put("gas", toString(gas_));
-  tree.put("sig", sig_.toString());
-  tree.put("receiver", receiver_.toString());
-  tree.put("data", bytes2str(data_));
-  tree.put("chain_id", chain_id_);
-  tree.put("sender", cached_sender_.toString());
-  std::stringstream ostrm;
-  boost::property_tree::write_json(ostrm, tree);
-  return ostrm.str();
+  Json::StreamWriterBuilder builder;
+  return Json::writeString(builder, getJson());
 }
+
 void Transaction::sign(secret_t const &sk) {
   if (!sig_) {
     sig_ = dev::sign(sk, sha3(false));
@@ -490,14 +486,14 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
         LOG(log_er_) << "Why do you query unverified trx??";
         assert(1);
       } else if (status.first == TransactionStatus::in_block) {
-        std::string json = db_trxs_->get(hash.toString());
-        if (!json.empty()) {
-          tr = std::make_shared<Transaction>(json);
+        auto trx_bytes = db_trxs_->get(hash);
+        if (trx_bytes.size() > 0) {
+          tr = std::make_shared<Transaction>(trx_bytes);
         }
       } else {
-        std::string json = db_trxs_->get(hash.toString());
-        if (!json.empty()) {
-          tr = std::make_shared<Transaction>(json);
+        auto trx_bytes = db_trxs_->get(hash);
+        if (trx_bytes.size() > 0) {
+          tr = std::make_shared<Transaction>(trx_bytes);
         }
         break;
       }
@@ -518,7 +514,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // syncing purpose)
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
-      db_trxs_->put(trx.getHash().toString(), trx.getJsonStr());
+      db_trxs_->put(trx.getHash(), trx.rlp(trx.hasSig()));
       trx_status_.update(trx.getHash(), TransactionStatus::in_block);
     }
     db_trxs_->commit();
@@ -536,7 +532,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       auto removed_trx =
           trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
       for (auto const &trx : removed_trx) {
-        db_trxs_->put(trx.first.toString(), trx.second.getJsonStr());
+        db_trxs_->put(trx.first, trx.second.rlp(trx.second.hasSig()));
         trx_status_.update(trx.first, TransactionStatus::in_block);
       }
       db_trxs_->commit();
@@ -596,7 +592,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     Transaction const &trx = i.second;
 
     // Skip if transaction is already in existing block
-    if (!db_trxs_->put(hash.toString(), trx.getJsonStr())) {
+    if (!db_trxs_->put(hash, trx.rlp(trx.hasSig()))) {
       continue;
     }
     changed = true;

@@ -19,6 +19,10 @@ class SimpleTaraxaRocksDBDelegate : public SimpleDBFace {
   void commit() override;
   SimpleTaraxaRocksDBDelegate(const std::string &path, bool overwrite);
 
+  bool put(const h256 &key, const dev::bytes &value) { assert(false); }
+  bool update(const h256 &key, const dev::bytes &value)  { assert(false); }
+  dev::bytes get(const h256 &key) { assert(false); }
+
  private:
   std::shared_ptr<taraxa::RocksDb> taraxa_rocks_db = nullptr;
 };
