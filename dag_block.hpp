@@ -20,8 +20,8 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include "libdevcore/Log.h"
 #include "libdevcore/CommonJS.h"
+#include "libdevcore/Log.h"
 #include "transaction.hpp"
 #include "types.hpp"
 #include "util.hpp"

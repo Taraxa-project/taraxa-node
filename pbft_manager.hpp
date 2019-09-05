@@ -74,17 +74,18 @@ class PbftManager {
 
  private:
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
-                                   uint64_t local_round);
+                                     uint64_t local_round);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
 
-  bool nullBlockNextVotedForRoundAndStep_(
-      std::vector<Vote> &votes, uint64_t round);
+  bool nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
+                                          uint64_t round);
 
   std::map<size_t, std::vector<Vote>, std::greater<size_t>>
   getVotesOfTypeFromVotesForRoundByStep_(PbftVoteTypes vote_type,
-      std::vector<Vote> &votes, uint64_t round,
-      std::pair<blk_hash_t, bool> blockhash);
+                                         std::vector<Vote> &votes,
+                                         uint64_t round,
+                                         std::pair<blk_hash_t, bool> blockhash);
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(
       PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
       size_t step, std::pair<blk_hash_t, bool> blockhash);

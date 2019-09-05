@@ -155,7 +155,8 @@ void PbftManager::run() {
     }
 
     // Check if we are synced to the right step ...
-    uint64_t consensus_pbft_round = roundDeterminedFromVotes_(votes, pbft_round_);
+    uint64_t consensus_pbft_round =
+        roundDeterminedFromVotes_(votes, pbft_round_);
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
       // reset starting value to NULL_BLOCK_HASH
@@ -168,8 +169,9 @@ void PbftManager::run() {
       }
       pbft_round_ = consensus_pbft_round;
       std::vector<Vote> cert_votes_for_round =
-          getVotesOfTypeFromVotesForRoundAndStep_(cert_vote_type, votes,
-              pbft_round_ - 1, 3, std::make_pair(NULL_BLOCK_HASH, false));
+          getVotesOfTypeFromVotesForRoundAndStep_(
+              cert_vote_type, votes, pbft_round_ - 1, 3,
+              std::make_pair(NULL_BLOCK_HASH, false));
       // TODO: debug remove later
       LOG(log_deb_) << "Get cert votes for round " << pbft_round_ - 1;
       std::pair<blk_hash_t, bool> cert_voted_block_hash =
@@ -226,9 +228,8 @@ void PbftManager::run() {
           placeVote_(own_starting_value_for_round, propose_vote_type,
                      pbft_round_, pbft_step_);
         } else if (push_block_values_for_round.count(pbft_round_ - 1) ||
-                   (pbft_round_ >= 2 &&
-                    nullBlockNextVotedForRoundAndStep_(votes,
-                                                       pbft_round_ - 1))) {
+                   (pbft_round_ >= 2 && nullBlockNextVotedForRoundAndStep_(
+                                            votes, pbft_round_ - 1))) {
           // PBFT CS block only be proposed once in one period
           if (next_pbft_block_type != schedule_block_type ||
               !proposed_block_hash_.second) {
@@ -359,7 +360,7 @@ void PbftManager::run() {
     } else if (pbft_step_ == 4) {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
-              cert_voted_values_for_round.end()) {
+            cert_voted_values_for_round.end()) {
           LOG(log_deb_) << "Next voting value "
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
@@ -388,8 +389,7 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        if (!next_voted_soft_value &&
-            soft_voted_block_for_this_round.second &&
+        if (!next_voted_soft_value && soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
@@ -430,7 +430,7 @@ void PbftManager::run() {
       // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
-              cert_voted_values_for_round.end()) {
+            cert_voted_values_for_round.end()) {
           LOG(log_deb_) << "Next voting value "
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
@@ -457,8 +457,7 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        if (!next_voted_soft_value &&
-            soft_voted_block_for_this_round.second &&
+        if (!next_voted_soft_value && soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
@@ -566,22 +565,22 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
  * and set determine that round p should be the current round...
  */
 uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
-                                              uint64_t local_round) {
+                                                uint64_t local_round) {
   // TODO: local_round may be able to change to pbft_round_, and remove
   //  local_round tally next votes by round and step
   //  <<vote_round, vote_step>, count>, <round, step> store in reverse order
   // <<vote_round, vote_step>, count>
   std::map<std::pair<uint64_t, size_t>, size_t,
            std::greater<std::pair<size_t, size_t>>>
-          next_votes_tally_by_round_step;
+      next_votes_tally_by_round_step;
 
   for (Vote &v : votes) {
     if (v.getType() != next_vote_type) {
       continue;
     }
 
-    std::pair<uint64_t, size_t> round_step = std::make_pair(v.getRound(),
-                                                          v.getStep());
+    std::pair<uint64_t, size_t> round_step =
+        std::make_pair(v.getRound(), v.getStep());
     if (round_step.first >= local_round) {
       if (next_votes_tally_by_round_step.find(round_step) !=
           next_votes_tally_by_round_step.end()) {
@@ -595,9 +594,9 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
   for (auto &rs_votes : next_votes_tally_by_round_step) {
     if (rs_votes.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round_step =
-          getVotesOfTypeFromVotesForRoundAndStep_(next_vote_type, votes,
-              rs_votes.first.first, rs_votes.first.second,
-              std::make_pair(NULL_BLOCK_HASH, false));
+          getVotesOfTypeFromVotesForRoundAndStep_(
+              next_vote_type, votes, rs_votes.first.first,
+              rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
         return rs_votes.first.first + 1;
       }
@@ -660,14 +659,15 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
 }
 
 bool PbftManager::nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
-                                              uint64_t round) {
+                                                     uint64_t round) {
   blk_hash_t blockhash = NULL_BLOCK_HASH;
   std::pair<blk_hash_t, bool> blockhash_pair = std::make_pair(blockhash, true);
   std::map<size_t, std::vector<Vote>, std::greater<size_t>>
-    null_block_votes_in_round_by_step = getVotesOfTypeFromVotesForRoundByStep_(
-        next_vote_type, votes, round, blockhash_pair);
+      null_block_votes_in_round_by_step =
+          getVotesOfTypeFromVotesForRoundByStep_(next_vote_type, votes, round,
+                                                 blockhash_pair);
 
-  for (auto const& sv : null_block_votes_in_round_by_step) {
+  for (auto const &sv : null_block_votes_in_round_by_step) {
     if (sv.second.size() >= TWO_T_PLUS_ONE) {
       return true;
     }
@@ -681,14 +681,14 @@ PbftManager::getVotesOfTypeFromVotesForRoundByStep_(
     std::pair<blk_hash_t, bool> blockhash) {
   //<vote_step, votes> reverse order
   std::map<size_t, std::vector<Vote>, std::greater<size_t>>
-    requested_votes_by_step;
+      requested_votes_by_step;
 
   for (Vote &v : votes) {
     if (v.getType() == vote_type && v.getRound() == round &&
         (blockhash.second == false || blockhash.first == v.getBlockHash())) {
       size_t step = v.getStep();
       if (requested_votes_by_step.find(step) == requested_votes_by_step.end()) {
-        requested_votes_by_step[step] = { v };
+        requested_votes_by_step[step] = {v};
       } else {
         requested_votes_by_step[step].emplace_back(v);
       }
@@ -704,8 +704,7 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(
   std::vector<Vote> votes_of_requested_type;
 
   for (Vote &v : votes) {
-    if (v.getType() == vote_type &&
-        v.getRound() == round &&
+    if (v.getType() == vote_type && v.getRound() == round &&
         v.getStep() == step &&
         (blockhash.second == false || blockhash.first == v.getBlockHash())) {
       votes_of_requested_type.emplace_back(v);
@@ -724,7 +723,7 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForRoundAndStep_(
 
   std::pair<blk_hash_t, bool> next_vote_block_hash =
       std::make_pair(NULL_BLOCK_HASH, false);
-  for (auto& sv : next_votes_in_round_by_step) {
+  for (auto &sv : next_votes_in_round_by_step) {
     next_vote_block_hash = blockWithEnoughVotes_(sv.second);
     if (next_vote_block_hash.second) {
       return next_vote_block_hash;
@@ -754,7 +753,8 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(
     std::vector<taraxa::Vote> &votes, uint64_t round) {
   std::vector<Vote> soft_votes_for_round =
-      getVotesOfTypeFromVotesForRoundAndStep_(soft_vote_type, votes, round, 2,
+      getVotesOfTypeFromVotesForRoundAndStep_(
+          soft_vote_type, votes, round, 2,
           std::make_pair(NULL_BLOCK_HASH, false));
 
   return blockWithEnoughVotes_(soft_votes_for_round);
