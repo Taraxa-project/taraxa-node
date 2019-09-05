@@ -31,6 +31,7 @@ class Top {
  private:
   bool stopped_ = true;
   bool boot_node_ = false;
+  std::queue<boost::exception_ptr> exceptions_;
   std::shared_ptr<std::thread> th_;
   std::shared_ptr<taraxa::FullNode> node_;
   std::shared_ptr<ModularServer<>> rpc_;
