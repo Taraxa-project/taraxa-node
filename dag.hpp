@@ -69,7 +69,10 @@ class Dag {
   using edge_index_map_t =
       boost::property_map<graph_t, boost::edge_index_t>::type;
 
-  using ulock = std::unique_lock<std::mutex>;
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   Dag(std::string const &genesis);
   ~Dag();
@@ -130,7 +133,7 @@ class Dag {
   bool debug_;
   graph_t graph_;
   vertex_t genesis_;  // root node
-  mutable std::mutex mutex_;
+  mutable boost::shared_mutex mutex_;
 
  private:
   mutable dev::Logger log_er_{
@@ -178,7 +181,11 @@ class DagBuffer;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using ulock = std::unique_lock<std::mutex>;
+  using stdLock = std::unique_lock<std::mutex>;
+  using uLock = boost::unique_lock<boost::shared_mutex>;
+  using sharedLock = boost::shared_lock<boost::shared_mutex>;
+  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
+  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   DagManager(std::string const &genesis);
   virtual ~DagManager();
@@ -229,7 +236,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool dag_updated_;
   bool stopped_ = true;
   level_t max_level_ = 0;
-  mutable std::mutex mutex_;
+  mutable boost::shared_mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
@@ -238,7 +245,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // DagBuffer
   std::list<std::shared_ptr<DagBlock>> sb_buffer_;
   std::shared_ptr<boost::thread> sb_buffer_processing_thread_;
-  std::mutex sb_bufer_mutex_;
+  mutable std::mutex sb_bufer_mutex_;
   std::condition_variable sb_buffer_condition;
   std::string genesis_;
   dev::Logger log_er_{

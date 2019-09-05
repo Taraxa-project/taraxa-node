@@ -18,21 +18,21 @@ Dag::Dag(std::string const &genesis) {
 Dag::~Dag() {}
 
 uint64_t Dag::getNumVertices() const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   return boost::num_vertices(graph_);
 }
 uint64_t Dag::getNumEdges() const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   return boost::num_edges(graph_);
 }
 
 bool Dag::hasVertex(vertex_hash const &v) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   return graph_.vertex(v) != graph_.null_vertex();
 }
 
 void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
   std::vector<vertex_t> leaves;
   collectLeafVertices(leaves);
@@ -43,7 +43,7 @@ void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
 
 bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                   std::vector<vertex_hash> const &tips) {
-  ulock lock(mutex_);
+  uLock lock(mutex_);
   assert(!new_vertex.empty());
 
   // add vertex
@@ -82,7 +82,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
 }
 
 void Dag::drawGraph(std::string filename) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   std::ofstream outfile(filename.c_str());
   auto name_map = boost::get(boost::vertex_name, graph_);
   auto ep_map = boost::get(boost::vertex_index1, graph_);
@@ -131,7 +131,7 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
 
 void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
                               std::vector<vertex_hash> &epfriend) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
 
   vertex_t source = graph_.vertex(from);
   vertex_t target = graph_.vertex(to);
@@ -164,7 +164,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
                        vertex_hash const &to, uint64_t ith_peroid,
                        std::unordered_set<vertex_hash> &recent_added_blks,
                        std::vector<vertex_hash> &ordered_period_vertices) {
-  ulock lock(mutex_);
+  uLock lock(mutex_);
 
   vertex_t source = graph_.vertex(from);
   vertex_t target = graph_.vertex(to);
@@ -260,7 +260,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
 }
 
 void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
-  ulock lock(mutex_);
+  uLock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
     LOG(log_wr_) << "Warning! cannot find vertex (setVertexPeriod) " << vertex
@@ -305,7 +305,7 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
 
 void PivotTree::getGhostPath(vertex_hash const &vertex,
                              std::vector<vertex_hash> &pivot_chain) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   std::vector<vertex_t> post_order;
   vertex_t root = graph_.vertex(vertex);
 
@@ -400,26 +400,26 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   return {total_dag_->getNumVertices(), pivot_tree_->getNumVertices()};
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   return {total_dag_->getNumEdges(), pivot_tree_->getNumEdges()};
 }
 size_t DagManager::getBufferSize() const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   return sb_buffer_.size();
 }
 
 void DagManager::drawTotalGraph(std::string const &str) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   total_dag_->drawGraph(str);
 }
 
 void DagManager::drawPivotGraph(std::string const &str) const {
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   pivot_tree_->drawGraph(str);
 }
 
@@ -439,13 +439,13 @@ void DagManager::addDagBlock(DagBlock const &blk) {
   if (!addDagBlockInternal(blk)) {
     addToDagBuffer(blk);
   } else {
-    ulock lock(sb_bufer_mutex_);
+    stdLock lock(sb_bufer_mutex_);
     sb_buffer_condition.notify_one();
   }
 }
 
 bool DagManager::addDagBlockInternal(DagBlock const &blk) {
-  ulock lock(mutex_);
+  uLock lock(mutex_);
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
   auto p = blk.getPivot();
@@ -480,7 +480,7 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
 }
 
 void DagManager::addToDagBuffer(DagBlock const &blk) {
-  ulock lock(sb_bufer_mutex_);
+  stdLock lock(sb_bufer_mutex_);
   sb_buffer_.push_back(std::make_shared<DagBlock>(blk));
   sb_buffer_condition.notify_one();
 }
@@ -493,7 +493,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
 }
 
 void DagManager::consume() {
-  ulock lock(sb_bufer_mutex_);
+  stdLock lock(sb_bufer_mutex_);
   while (!stopped_) {
     bool blockAdded = false;
     auto iter = sb_buffer_.begin();
@@ -515,7 +515,7 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
                                        std::vector<std::string> &tips) const {
   bool ret = false;
   // make sure the state of dag is the same when collection pivot and tips
-  ulock lock(mutex_);
+  sharedLock lock(mutex_);
   std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
