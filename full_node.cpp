@@ -639,7 +639,7 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
 // receive pbft-povit-blk, update periods
 uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
   auto res = dag_mgr_->setDagBlockPeriod(anchor, period);
-  if(ws_server_) ws_server_->newDagBlockFinalized(anchor, period);
+  if (ws_server_) ws_server_->newDagBlockFinalized(anchor, period);
   return res;
 }
 
@@ -775,8 +775,8 @@ bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
     std::unordered_map<addr_t, val_t> &sortition_account_balance_table) {
   auto res = executor_->execute(sche_blk.getSchedule(),
-                            sortition_account_balance_table);
-  if(ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
+                                sortition_account_balance_table);
+  if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
   return res;
 }
 

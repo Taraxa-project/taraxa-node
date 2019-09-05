@@ -166,7 +166,7 @@ Json::Value ScheduleBlock::getJson() const {
     for (auto const& m2 : m1) {
       trx_modes_row.append(dev::toJS(m2));
     }
-      trx_modes.append(dev::toJS(trx_modes_row));
+    trx_modes.append(dev::toJS(trx_modes_row));
   }
   res["trx_modes"] = trx_modes;
   return res;
