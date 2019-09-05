@@ -73,22 +73,24 @@ class PbftManager {
   bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
 
  private:
-  size_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
+  uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
                                    uint64_t local_round);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
 
-  bool nullBlockNextVotedForRound_(std::vector<Vote> &votes, uint64_t round);
+  bool nullBlockNextVotedForRoundAndStep_(
+      std::vector<Vote> &votes, uint64_t round);
 
-  std::vector<Vote> getVotesOfTypeFromVotesForRound_(
-      PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
+  std::map<size_t, std::vector<Vote>, std::greater<size_t>>
+  getVotesOfTypeFromVotesForRoundByStep_(PbftVoteTypes vote_type,
+      std::vector<Vote> &votes, uint64_t round,
       std::pair<blk_hash_t, bool> blockhash);
   std::vector<Vote> getVotesOfTypeFromVotesForRoundAndStep_(
       PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
       size_t step, std::pair<blk_hash_t, bool> blockhash);
 
-  std::pair<blk_hash_t, bool> nextVotedBlockForRound_(std::vector<Vote> &votes,
-                                                      uint64_t round);
+  std::pair<blk_hash_t, bool> nextVotedBlockForRoundAndStep_(
+      std::vector<Vote> &votes, uint64_t round);
 
   void placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type,
                   uint64_t round, size_t step);
