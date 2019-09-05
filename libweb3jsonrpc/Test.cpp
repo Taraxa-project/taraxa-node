@@ -2,8 +2,8 @@
 #include <jsonrpccpp/common/errors.h>
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
-#include "../pbft_manager.hpp"
 #include "../network.hpp"
+#include "../pbft_manager.hpp"
 #include "core_tests/create_samples.hpp"
 #include "types.hpp"
 
@@ -15,9 +15,9 @@ using namespace jsonrpc;
 using namespace taraxa;
 
 Test::Test(std::shared_ptr<taraxa::FullNode> &_full_node)
-    : full_node_(_full_node) { 
-      trx_creater_ = std::async(std::launch::async, []{
-    }); }
+    : full_node_(_full_node) {
+  trx_creater_ = std::async(std::launch::async, [] {});
+}
 
 Json::Value Test::insert_dag_block(const Json::Value &param1) {
   Json::Value res;
@@ -41,31 +41,6 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::insert_stamped_dag_block(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t pivot = blk_hash_t(param1["pivot"].asString());
-      vec_blk_t tips = asVector<blk_hash_t>(param1["tips"]);
-      taraxa::sig_t signature = taraxa::sig_t(
-          "777777777777777777777777777777777777777777777777777777777777777777"
-          "777777777777777777777777777777777777777777777777777777777777777");
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      addr_t sender = addr_t(param1["sender"].asString());
-      time_stamp_t stamp = param1["stamp"].asUInt64();
-
-      DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
-      res =
-          blk.getJsonStr() + ("\n Block stamped at: " + std::to_string(stamp));
-      node->insertBlock(std::move(blk));
-      node->setDagBlockTimeStamp(hash, stamp);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::get_dag_block(const Json::Value &param1) {
   Json::Value res;
   try {
@@ -75,98 +50,7 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
       if (!blk) {
         res = "Block not available \n";
       } else {
-        time_stamp_t stamp = node->getDagBlockTimeStamp(hash);
-        res = blk->getJsonStr() + "\ntime_stamp: " + std::to_string(stamp);
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_block_children(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      time_stamp_t stamp = param1["stamp"].asUInt64();
-      std::vector<std::string> children;
-      children = node->getDagBlockChildren(hash, stamp);
-      for (auto const &child : children) {
-        res = res.asString() + (child + '\n');
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_block_siblings(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      time_stamp_t stamp = param1["stamp"].asUInt64();
-      std::vector<std::string> siblings;
-      siblings = node->getDagBlockSiblings(hash, stamp);
-      for (auto const &sibling : siblings) {
-        res = res.asString() + (sibling + '\n');
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_block_tips(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      time_stamp_t stamp = param1["stamp"].asUInt64();
-      std::vector<std::string> tips;
-      tips = node->getDagBlockTips(hash, stamp);
-      for (auto const &tip : tips) {
-        res = res.asString() + (tip + '\n');
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_block_pivot_chain(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      time_stamp_t stamp = param1["stamp"].asUInt64();
-      std::vector<std::string> pivot_chain;
-      pivot_chain = node->getDagBlockPivotChain(hash, stamp);
-      for (auto const &pivot : pivot_chain) {
-        res = res.asString() + (pivot + '\n');
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_block_subtree(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      time_stamp_t stamp = param1["stamp"].asUInt64();
-      std::vector<std::string> subtree;
-      subtree = node->getDagBlockSubtree(hash, stamp);
-      for (auto const &v : subtree) {
-        res = res.asString() + (v + '\n');
+        res = node->getDagBlock(hash)->getJsonStr();
       }
     }
   } catch (std::exception &e) {
@@ -229,26 +113,30 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       uint number = param1["number"].asUInt();
       val_t nonce = val_t(param1["nonce"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
-      if (trx_creater_.wait_for(std::chrono::seconds(0))!= std::future_status::ready){
+      if (trx_creater_.wait_for(std::chrono::seconds(0)) !=
+          std::future_status::ready) {
         res = "Busy in creating transactions ... please try later ...";
       } else {
-        trx_creater_ = std::async(std::launch::async, [this, node, &log_time, delay, number, nonce, receiver](){
-        // get trx receiving time stamp
-        bytes data;
-        for (auto i = 0; i < number; ++i) {
-          auto now = getCurrentTimeMilliSeconds();
-          val_t value = val_t(100);
-          auto trx = taraxa::Transaction(val_t(i)+nonce, value, val_t(1000),
-                                       taraxa::samples::TEST_TX_GAS_LIMIT,
-                                       receiver, data, node->getSecretKey());
-          LOG(log_time) << "Transaction " << trx.getHash()
-                      << " received at: " << now;
-          node->insertTransaction(trx);
-          thisThreadSleepForMicroSeconds(delay);
-        }
-      });
-      
-      res = "Creating " + std::to_string(number) + " transactions ...";
+        trx_creater_ = std::async(
+            std::launch::async,
+            [this, node, &log_time, delay, number, nonce, receiver]() {
+              // get trx receiving time stamp
+              bytes data;
+              for (auto i = 0; i < number; ++i) {
+                auto now = getCurrentTimeMilliSeconds();
+                val_t value = val_t(100);
+                auto trx =
+                    taraxa::Transaction(val_t(i) + nonce, value, val_t(1000),
+                                        taraxa::samples::TEST_TX_GAS_LIMIT,
+                                        receiver, data, node->getSecretKey());
+                LOG(log_time) << "Transaction " << trx.getHash()
+                              << " received at: " << now;
+                node->insertTransaction(trx);
+                thisThreadSleepForMicroSeconds(delay);
+              }
+            });
+
+        res = "Creating " + std::to_string(number) + " transactions ...";
       }
     }
   } catch (std::exception &e) {
@@ -388,7 +276,9 @@ Json::Value Test::get_all_nodes() {
     if (auto node = full_node_.lock()) {
       auto nodes = node->getNetwork()->getAllNodes();
       for (auto const &n : nodes) {
-        res = res.asString() + n.id.toString() + " " + n.endpoint.address().to_string() + ":" + std::to_string(n.endpoint.tcpPort()) + "\n";
+        res = res.asString() + n.id.toString() + " " +
+              n.endpoint.address().to_string() + ":" +
+              std::to_string(n.endpoint.tcpPort()) + "\n";
       }
     }
   } catch (std::exception &e) {

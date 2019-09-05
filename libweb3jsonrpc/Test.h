@@ -18,17 +18,7 @@ class Test : public TestFace {
   }
 
   virtual Json::Value insert_dag_block(const Json::Value& param1) override;
-  virtual Json::Value insert_stamped_dag_block(
-      const Json::Value& param1) override;
   virtual Json::Value get_dag_block(const Json::Value& param1) override;
-  virtual Json::Value get_dag_block_children(
-      const Json::Value& param1) override;
-  virtual Json::Value get_dag_block_siblings(
-      const Json::Value& param1) override;
-  virtual Json::Value get_dag_block_tips(const Json::Value& param1) override;
-  virtual Json::Value get_dag_block_pivot_chain(
-      const Json::Value& param1) override;
-  virtual Json::Value get_dag_block_subtree(const Json::Value& param1) override;
   virtual Json::Value get_dag_block_epfriend(
       const Json::Value& param1) override;
   virtual Json::Value send_coin_transaction(const Json::Value& param1) override;
@@ -51,8 +41,10 @@ class Test : public TestFace {
   virtual Json::Value get_votes(const Json::Value& param1) override;
   virtual Json::Value draw_graph(const Json::Value& param1) override;
   virtual Json::Value get_transaction_count(const Json::Value& param1) override;
-  virtual Json::Value get_executed_trx_count(const Json::Value& param1) override;
-  virtual Json::Value get_executed_blk_count(const Json::Value& param1) override;
+  virtual Json::Value get_executed_trx_count(
+      const Json::Value& param1) override;
+  virtual Json::Value get_executed_blk_count(
+      const Json::Value& param1) override;
   virtual Json::Value get_dag_size(const Json::Value& param1) override;
 
  private:

@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-10-31 16:26:37
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-16 13:09:42
- */
-
-#ifndef DAG_BLOCKS_HPP
-#define DAG_BLOCKS_HPP
+#ifndef TARAXA_NODE_DAG_BLOCKS_HPP
+#define TARAXA_NODE_DAG_BLOCKS_HPP
 
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
