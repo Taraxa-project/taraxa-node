@@ -37,7 +37,7 @@ void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
   std::vector<vertex_t> leaves;
   collectLeafVertices(leaves);
   for (auto const &leaf : leaves) {
-    tips.push_back(name_map[leaf]);
+    tips.emplace_back(name_map[leaf]);
   }
 }
 
@@ -123,7 +123,7 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
   for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
     // if out-degree zero, leaf node
     if (boost::out_degree(*s, graph_) == 0) {
-      leaves.push_back(*s);
+      leaves.emplace_back(*s);
     }
   }
   assert(leaves.size());
@@ -160,23 +160,17 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   }
 }
 // only iterate only through non finalized blocks
-bool Dag::computeOrder(bool finialized, vertex_hash const &from,
-                       vertex_hash const &to, uint64_t ith_peroid,
+bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
+                       uint64_t ith_peroid,
                        std::unordered_set<vertex_hash> &recent_added_blks,
                        std::vector<vertex_hash> &ordered_period_vertices) {
   uLock lock(mutex_);
 
-  vertex_t source = graph_.vertex(from);
-  vertex_t target = graph_.vertex(to);
+  vertex_t target = graph_.vertex(anchor);
 
-  if (source == graph_.null_vertex()) {
-    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (from) "
-                 << from << "\n";
-    return false;
-  }
   if (target == graph_.null_vertex()) {
-    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (to) " << to
-                 << "\n";
+    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (anchor) "
+                 << anchor << "\n";
     return false;
   }
   ordered_period_vertices.clear();
@@ -187,7 +181,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
   epfriend[blk_hash_t(name_map[target])] = target;
 
-  // Step 1: collect all epoch blks between from and to blks
+  // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
 
   auto iter = recent_added_blks.begin();
@@ -201,7 +195,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &from,
       assert(0);
       return false;
     }
-    if (!reachable(v, source) && reachable(v, target)) {
+    if (reachable(v, target)) {
       if (finialized) {
         ep_map[v] = ith_peroid;
         iter = recent_added_blks.erase(iter);
@@ -574,12 +568,11 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   auto new_period = anchors_.size();
 
   auto ok =
-      total_dag_->computeOrder(false /* finalized */, prev, anchor.toString(),
+      total_dag_->computeOrder(false /* finalized */, anchor.toString(),
                                new_period, recent_added_blks_, blk_orders);
   if (!ok) {
-    LOG(log_er_) << "Create period " << new_period << " from "
-                 << blk_hash_t(prev) << " to " << anchor << " failed "
-                 << std::endl;
+    LOG(log_er_) << "Create period " << new_period << " anchor: " << anchor
+                 << " failed " << std::endl;
     return 0;
   }
 
@@ -601,9 +594,8 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   auto prev = anchors_.back();
   std::vector<std::string> blk_orders;
 
-  auto ok =
-      total_dag_->computeOrder(true /* finalized */, prev, anchor.toString(),
-                               period, recent_added_blks_, blk_orders);
+  auto ok = total_dag_->computeOrder(true /* finalized */, anchor.toString(),
+                                     period, recent_added_blks_, blk_orders);
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {

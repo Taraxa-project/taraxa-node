@@ -90,8 +90,8 @@ class Dag {
 
   // Note, the function will not delete recent_added_blks when marking
   // ith_number
-  bool computeOrder(bool finialized, vertex_hash const &from,
-                    vertex_hash const &to, uint64_t ith_peroid,
+  bool computeOrder(bool finialized, 
+                    vertex_hash const &anchor, uint64_t ith_peroid,
                     std::unordered_set<vertex_hash>
                         &recent_added_blks,  // iterater only from new blocks
                     std::vector<vertex_hash> &ordered_period_vertices);

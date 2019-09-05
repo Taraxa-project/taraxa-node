@@ -157,14 +157,13 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vA);
 
   {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, GENESIS, vA, 1, recent_added_blks,
+    graph.computeOrder(false /*finialized */, vA, 1, recent_added_blks,
                        epfriend);
 
     EXPECT_EQ(epfriend.size(), 1);  // vA
     EXPECT_EQ(recent_added_blks.size(), 1);
   }
-  graph.computeOrder(true /*finialized */, GENESIS, vA, 1, recent_added_blks,
-                     epfriend);
+  graph.computeOrder(true /*finialized */, vA, 1, recent_added_blks, epfriend);
 
   EXPECT_EQ(epfriend.size(), 1);  // vA
   EXPECT_EQ(recent_added_blks.size(), 0);
@@ -175,14 +174,13 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vC);
 
   {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, vA, vC, 2, recent_added_blks,
+    graph.computeOrder(false /*finialized */, vC, 2, recent_added_blks,
                        epfriend);
     EXPECT_EQ(epfriend.size(), 2);  // vB, vC
     EXPECT_EQ(recent_added_blks.size(), 2);
   }
 
-  graph.computeOrder(true /*finialized */, vA, vC, 2, recent_added_blks,
-                     epfriend);
+  graph.computeOrder(true /*finialized */, vC, 2, recent_added_blks, epfriend);
   EXPECT_EQ(epfriend.size(), 2);  // vB, vC
   EXPECT_EQ(recent_added_blks.size(), 0);
 
@@ -191,8 +189,7 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vD);
   recent_added_blks.insert(vE);
   recent_added_blks.insert(vF);
-  graph.computeOrder(true /*finialized */, vC, vE, 3, recent_added_blks,
-                     epfriend);
+  graph.computeOrder(true /*finialized */, vE, 3, recent_added_blks, epfriend);
   EXPECT_EQ(epfriend.size(), 3);  // vD, vF, vE
   EXPECT_EQ(recent_added_blks.size(), 0);
 
@@ -201,8 +198,7 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vH);
   recent_added_blks.insert(vI);
   recent_added_blks.insert(vJ);
-  graph.computeOrder(true /*finialized */, vE, vH, 4, recent_added_blks,
-                     epfriend);
+  graph.computeOrder(true /*finialized */, vH, 4, recent_added_blks, epfriend);
   EXPECT_EQ(epfriend.size(), 4);  // vG, vJ, vI, vH
   EXPECT_EQ(recent_added_blks.size(), 0);
 
