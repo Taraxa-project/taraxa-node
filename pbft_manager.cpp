@@ -772,9 +772,28 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_deb_) << "Into propose anchor block";
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
-    // choose the last DAG block as PBFT pivot block in this period
+    std::pair<PbftBlock, bool> last_period_pbft_pivot_block =
+        pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
+    if (!last_period_pbft_pivot_block.second) {
+      // Should not happen
+      LOG(log_err_)
+          << "Can not find the last round pbft pivot block with block hash: "
+          << prev_pivot_hash;
+      assert(false);
+    }
+    std::string last_period_dag_anchor_block_hash;
+    if (last_period_pbft_pivot_block.first.getBlockHash() ==
+        pbft_chain_->getGenesisHash()) {
+      // First PBFT pivot block
+      last_period_dag_anchor_block_hash = dag_genesis_;
+    } else {
+      last_period_dag_anchor_block_hash =
+          last_period_pbft_pivot_block.first.getPivotBlock()
+              .getDagBlockHash()
+              .toString();
+    }
     std::vector<std::string> ghost;
-    full_node->getGhostPath(dag_genesis_, ghost);
+    full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
     blk_hash_t dag_block_hash;
     if (ghost.size() <= DAG_BLOCKS_SIZE) {
       dag_block_hash = blk_hash_t(ghost.back());
@@ -790,20 +809,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     // dag blocks generated since last round. In that case PBFT proposer should
     // propose NULL BLOCK HASH as their value and not produce a new block. In
     // practice this should never happen
-    std::pair<PbftBlock, bool> last_round_pbft_anchor_block =
-        pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
-    if (!last_round_pbft_anchor_block.second) {
-      // Should not happen
-      LOG(log_err_)
-          << "Can not find the last round pbft pivot block with block hash: "
-          << prev_pivot_hash;
-      assert(false);
-    }
-    blk_hash_t last_round_dag_anchor_block_hash =
-        last_round_pbft_anchor_block.first.getPivotBlock().getDagBlockHash();
-    if (dag_block_hash == last_round_dag_anchor_block_hash) {
+    if (dag_block_hash.toString() == last_period_dag_anchor_block_hash) {
       LOG(log_deb_)
-          << "Last round DAG anchor block hash " << dag_block_hash
+          << "Last period DAG anchor block hash " << dag_block_hash
           << " No new DAG blocks generated, PBFT propose NULL_BLOCK_HASH";
       return std::make_pair(NULL_BLOCK_HASH, true);
     }
