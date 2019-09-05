@@ -95,7 +95,7 @@ TEST(TransactionQueue, verifiers) {
 
 TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   TransactionManager trx_mgr(
-      SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
           "/tmp/rocksdb/trx", true));
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
@@ -154,7 +154,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table;
   TransactionManager trx_mgr(
-      SimpleDBFactory::createDelegate<SimpleTaraxaRocksDBDelegate>(
+      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
           "/tmp/rocksdb/trx", true));
   trx_mgr.start();
 

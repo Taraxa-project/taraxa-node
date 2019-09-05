@@ -28,6 +28,11 @@ class SimpleDBFace {
   virtual bool update(const std::string &key, const std::string &value) = 0;
   // @return if key not exist, return "".
   virtual std::string get(const std::string &key) = 0;
+  // @return if key exist, return false without updating value.
+  virtual bool put(const h256 &key, const dev::bytes &value) = 0;
+  virtual bool update(const h256 &key, const dev::bytes &value) = 0;
+  // @return if key not exist, return null.
+  virtual dev::bytes get(const h256 &key) = 0;
   virtual void commit() = 0;
   virtual ~SimpleDBFace() = default;
 

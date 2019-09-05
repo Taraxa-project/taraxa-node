@@ -58,7 +58,7 @@ bool Executor::executeBlkTrxs(
     }
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
-    Transaction trx(db_trxs_->get(trx_hash.toString()));
+    Transaction trx(db_trxs_->get(trx_hash));
     if (!trx.getHash()) {
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
