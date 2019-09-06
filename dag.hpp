@@ -36,14 +36,15 @@ class Dag {
  public:
   // properties
   using vertex_hash = std::string;
-  using vertex_property_t =
-      boost::property<boost::vertex_name_t, std::string,
-                      boost::property<boost::vertex_index1_t, uint64_t>>;
+  using vertex_property_t = boost::property<
+      boost::vertex_name_t, std::string,
+      boost::property<boost::vertex_index_t, void *,
+                      boost::property<boost::vertex_index1_t, uint64_t>>>;
   using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 
   // graph def
   using adj_list_t =
-      boost::adjacency_list<boost::setS, boost::vecS, boost::directedS,
+      boost::adjacency_list<boost::setS, boost::setS, boost::directedS,
                             vertex_property_t, edge_property_t>;
   using graph_t =
       boost::labeled_graph<adj_list_t, std::string, boost::hash_mapS>;
@@ -96,11 +97,11 @@ class Dag {
                         &recent_added_blks,  // iterater only from new blocks
                     std::vector<vertex_hash> &ordered_period_vertices);
   // warning! slow, iterate through all vertices ...
-  void getEpFriendVertices(vertex_hash const &from,
-                           vertex_hash const &to,  // ???
+  void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
                            std::vector<vertex_hash> &epfriend) const;
+  // deleter
+  void deletePeriod(uint64_t period);
 
-  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
   // for graphviz
   template <class Property>
   class label_writer {
@@ -120,18 +121,25 @@ class Dag {
 
   // vertex API
   vertex_t addVertex(std::string const &v);
+  // will delete all edges associate with the vertex
+  void delVertex(std::string const &v);
 
   // edge API
   edge_t addEdge(std::string const &v1, std::string const &v2);
   edge_t addEdge(vertex_t v1, vertex_t v2);
+
+  // properties
+
+  uint64_t getVertexPeriod(vertex_hash const &vertex) const;
+  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
 
   // traverser API
   bool reachable(vertex_t const &from, vertex_t const &to) const;
 
   void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 
-  bool debug_;
   graph_t graph_;
+  std::unordered_map<uint64_t, std::unordered_set<vertex_hash>> periods_;
   vertex_t genesis_;  // root node
   mutable boost::shared_mutex mutex_;
 
