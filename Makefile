@@ -67,10 +67,8 @@ include p2p.inc
 
 
 OBJECTFILES= \
-	${OBJECTDIR}/rocks_db.o \
 	${OBJECTDIR}/dag_block.o \
 	${OBJECTDIR}/util.o \
-	${OBJECTDIR}/udp_buffer.o \
 	${OBJECTDIR}/network.o \
 	${OBJECTDIR}/full_node.o \
 	${OBJECTDIR}/types.o \
@@ -98,8 +96,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o \
-	${OBJECTDIR}/SimpleOverlayDBDelegate.o
+	${OBJECTDIR}/simple_overlaydb_delegate.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -145,11 +142,6 @@ ${OBJECTDIR}/top.o: top.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/top.o top.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/rocks_db.o: rocks_db.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/rocks_db.o rocks_db.cpp $(CPPFLAGS)
-
 ${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -184,12 +176,7 @@ ${OBJECTDIR}/util.o: util.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/util.o util.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/udp_buffer.o: udp_buffer.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/udp_buffer.o udp_buffer.cpp $(CPPFLAGS)
-	
+
 ${OBJECTDIR}/network.o: network.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -295,15 +282,10 @@ ${OBJECTDIR}/vote.o: vote.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/SimpleOverlayDBDelegate.o: SimpleOverlayDBDelegate.cpp
+${OBJECTDIR}/simple_overlaydb_delegate.o: simple_overlaydb_delegate.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleOverlayDBDelegate.o SimpleOverlayDBDelegate.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o: SimpleTaraxaRocksDBDelegate.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/SimpleTaraxaRocksDBDelegate.o SimpleTaraxaRocksDBDelegate.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/simple_overlaydb_delegate.o simple_overlaydb_delegate.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}

@@ -1,12 +1,8 @@
-//
-// Created by JC on 2019-04-28.
-//
+#ifndef TARAXA_NODE_SIMPLE_OVERLAYDB_DELEGATE_HPP
+#define TARAXA_NODE_SIMPLE_OVERLAYDB_DELEGATE_HPP
 
-#ifndef TARAXA_NODE_SIMPLEOVERLAYDBDELEGATE_H
-#define TARAXA_NODE_SIMPLEOVERLAYDBDELEGATE_H
-
-#include "SimpleDBFace.h"
 #include "libdevcore/OverlayDB.h"
+#include "simple_db_face.hpp"
 
 class SimpleOverlayDBDelegate : public SimpleDBFace {
  public:
@@ -24,4 +20,4 @@ class SimpleOverlayDBDelegate : public SimpleDBFace {
 
   std::shared_ptr<dev::OverlayDB> odb_ = nullptr;
 };
-#endif  // TARAXA_NODE_SIMPLEOVERLAYDBDELEGATE_H
+#endif  // TARAXA_NODE_SIMPLE_OVERLAYDB_DELEGATE_HPP

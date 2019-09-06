@@ -4,12 +4,12 @@
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
-#include "SimpleDBFactory.h"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
+#include "simple_db_factory.hpp"
 #include "sortition.h"
 #include "state_registry.hpp"
 #include "util_eth.hpp"

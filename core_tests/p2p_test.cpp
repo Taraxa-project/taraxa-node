@@ -13,7 +13,7 @@
 #include "create_samples.hpp"
 #include "libp2p/Host.h"
 #include "network.hpp"
-#include "taraxa_capability.h"
+#include "taraxa_capability.hpp"
 
 using namespace std;
 using namespace dev;

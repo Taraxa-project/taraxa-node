@@ -12,11 +12,11 @@
 #include <string>
 #include <thread>
 
-#include "SimpleDBFace.h"
 #include "config.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "taraxa_capability.h"
+#include "simple_db_face.hpp"
+#include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.h"
 
