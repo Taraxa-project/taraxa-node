@@ -13,7 +13,8 @@ namespace taraxa {
 Dag::Dag(std::string const &genesis) {
   vertex_hash pivot = "";
   std::vector<vertex_hash> tips;
-  genesis_ = addVEEs(genesis, pivot, tips);
+  // add genesis block
+  addVEEs(genesis, pivot, tips);
 }
 Dag::~Dag() {}
 
@@ -61,7 +62,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   // *** important
   // Add a new block, edges are pointing from pivot to new_veretx
   if (!pivot.empty()) {
-    std::tie(edge, res) = add_edge_by_label(pivot, new_vertex, graph_);
+    std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
     if (!res) {
       LOG(log_wr_) << "Warning! creating pivot edge \n"
                    << pivot << "\n-->\n"
@@ -70,7 +71,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   }
   bool res2 = true;
   for (auto const &e : tips) {
-    std::tie(edge, res2) = add_edge_by_label(e, new_vertex, graph_);
+    std::tie(edge, res2) = boost::add_edge_by_label(e, new_vertex, graph_);
     if (!res2) {
       LOG(log_wr_) << "Warning! creating tip edge \n"
                    << e << "\n-->\n"
@@ -99,6 +100,16 @@ Dag::vertex_t Dag::addVertex(vertex_hash const &hash) {
   name_map[ret] = hash;
   return ret;
 }
+
+void Dag::delVertex(vertex_hash const &hash) {
+  vertex_t to_be_removed = graph_.vertex(hash);
+  if (to_be_removed == graph_.null_vertex()) {
+    return;
+  }
+  clear_vertex_by_label(hash, graph_);
+  remove_vertex(hash, graph_);
+}
+
 Dag::edge_t Dag::addEdge(Dag::vertex_t v1, Dag::vertex_t v2) {
   auto ret = add_edge(v1, v2, graph_);
   assert(ret.second);
@@ -161,7 +172,7 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
 }
 // only iterate only through non finalized blocks
 bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
-                       uint64_t ith_peroid,
+                       uint64_t ith_period,
                        std::unordered_set<vertex_hash> &recent_added_blks,
                        std::vector<vertex_hash> &ordered_period_vertices) {
   uLock lock(mutex_);
@@ -197,7 +208,9 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
     }
     if (reachable(v, target)) {
       if (finialized) {
-        ep_map[v] = ith_peroid;
+        ep_map[v] = ith_period;
+        // update periods table
+        periods_[ith_period].insert(name_map[v]);
         iter = recent_added_blks.erase(iter);
       } else {
         iter++;
@@ -254,15 +267,40 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
 }
 
 void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
-  uLock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (setVertexPeriod) " << vertex
-                 << " to set epoch\n";
+    LOG(log_wr_) << "Cannot find vertex (setVertexPeriod) " << vertex
+                 << " to set period\n";
     return;
   }
-  vertex_period_map_t ep = boost::get(boost::vertex_index1, graph_);
+  auto ep = boost::get(boost::vertex_index1, graph_);
   ep[current] = period;
+}
+
+uint64_t Dag::getVertexPeriod(vertex_hash const &vertex) const {
+  vertex_t current = graph_.vertex(vertex);
+  if (current == graph_.null_vertex()) {
+    LOG(log_wr_) << "Cannot find vertex (getVertexPeriod) " << vertex
+                 << " to get period\n";
+    return 0;
+  }
+  auto ep = boost::get(boost::vertex_index1, graph_);
+  return ep[current];
+}
+
+void Dag::deletePeriod(uint64_t period) {
+  if (period == 0) {
+    return;
+  }
+  if (periods_.count(period) == 0) {
+    LOG(log_wr_) << "Period " << period << " is empty ...";
+    return;
+  }
+  auto vertices = periods_[period];
+  for (auto const &v : vertices) {
+    delVertex(v);
+    periods_.erase(period);
+  }
 }
 
 // dfs

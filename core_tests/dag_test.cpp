@@ -116,7 +116,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
 }
 
 // Use the example on Conflux paper
-TEST(Dag, dag_traverse3_get_epfriend) {
+TEST(Dag, dag_traverse3_get_ordered_blks) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
@@ -146,11 +146,11 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   graph.addVEEs(vH, vE, {vG, vI});
   graph.addVEEs(vK, vI, empty);
 
-  std::vector<std::string> epfriend;
+  std::vector<std::string> ordered_blks;
   std::unordered_set<std::string> recent_added_blks;
   // read only
-  graph.getEpFriendVertices(vE, vH, epfriend);
-  EXPECT_EQ(epfriend.size(), 4);
+  graph.getEpFriendVertices(vE, vH, ordered_blks);
+  EXPECT_EQ(ordered_blks.size(), 4);
 
   // ------------------ epoch A ------------------
 
@@ -158,14 +158,15 @@ TEST(Dag, dag_traverse3_get_epfriend) {
 
   {  // get only, do not finalize
     graph.computeOrder(false /*finialized */, vA, 1, recent_added_blks,
-                       epfriend);
+                       ordered_blks);
 
-    EXPECT_EQ(epfriend.size(), 1);  // vA
+    EXPECT_EQ(ordered_blks.size(), 1);  // vA
     EXPECT_EQ(recent_added_blks.size(), 1);
   }
-  graph.computeOrder(true /*finialized */, vA, 1, recent_added_blks, epfriend);
+  graph.computeOrder(true /*finialized */, vA, 1, recent_added_blks,
+                     ordered_blks);
 
-  EXPECT_EQ(epfriend.size(), 1);  // vA
+  EXPECT_EQ(ordered_blks.size(), 1);  // vA
   EXPECT_EQ(recent_added_blks.size(), 0);
 
   // ------------------ epoch C ------------------
@@ -175,13 +176,14 @@ TEST(Dag, dag_traverse3_get_epfriend) {
 
   {  // get only, do not finalize
     graph.computeOrder(false /*finialized */, vC, 2, recent_added_blks,
-                       epfriend);
-    EXPECT_EQ(epfriend.size(), 2);  // vB, vC
+                       ordered_blks);
+    EXPECT_EQ(ordered_blks.size(), 2);  // vB, vC
     EXPECT_EQ(recent_added_blks.size(), 2);
   }
 
-  graph.computeOrder(true /*finialized */, vC, 2, recent_added_blks, epfriend);
-  EXPECT_EQ(epfriend.size(), 2);  // vB, vC
+  graph.computeOrder(true /*finialized */, vC, 2, recent_added_blks,
+                     ordered_blks);
+  EXPECT_EQ(ordered_blks.size(), 2);  // vB, vC
   EXPECT_EQ(recent_added_blks.size(), 0);
 
   // ------------------ epoch E ------------------
@@ -189,8 +191,9 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vD);
   recent_added_blks.insert(vE);
   recent_added_blks.insert(vF);
-  graph.computeOrder(true /*finialized */, vE, 3, recent_added_blks, epfriend);
-  EXPECT_EQ(epfriend.size(), 3);  // vD, vF, vE
+  graph.computeOrder(true /*finialized */, vE, 3, recent_added_blks,
+                     ordered_blks);
+  EXPECT_EQ(ordered_blks.size(), 3);  // vD, vF, vE
   EXPECT_EQ(recent_added_blks.size(), 0);
 
   // ------------------ epoch H ------------------
@@ -198,16 +201,37 @@ TEST(Dag, dag_traverse3_get_epfriend) {
   recent_added_blks.insert(vH);
   recent_added_blks.insert(vI);
   recent_added_blks.insert(vJ);
-  graph.computeOrder(true /*finialized */, vH, 4, recent_added_blks, epfriend);
-  EXPECT_EQ(epfriend.size(), 4);  // vG, vJ, vI, vH
+  graph.computeOrder(true /*finialized */, vH, 4, recent_added_blks,
+                     ordered_blks);
+  EXPECT_EQ(ordered_blks.size(), 4);  // vG, vJ, vI, vH
   EXPECT_EQ(recent_added_blks.size(), 0);
 
-  if (epfriend.size() == 4) {
-    EXPECT_EQ(epfriend[0], vJ);
-    EXPECT_EQ(epfriend[1], vI);
-    EXPECT_EQ(epfriend[2], vG);
-    EXPECT_EQ(epfriend[3], vH);
+  if (ordered_blks.size() == 4) {
+    EXPECT_EQ(ordered_blks[0], vJ);
+    EXPECT_EQ(ordered_blks[1], vI);
+    EXPECT_EQ(ordered_blks[2], vG);
+    EXPECT_EQ(ordered_blks[3], vH);
   }
+
+  // ------------------ epoch H ------------------
+  recent_added_blks.insert(vK);
+  graph.computeOrder(true /*finialized */, vK, 5, recent_added_blks,
+                     ordered_blks);
+  EXPECT_EQ(ordered_blks.size(), 1);  // vK
+  EXPECT_EQ(recent_added_blks.size(), 0);
+  EXPECT_EQ(graph.getNumVertices(), 12);
+
+  graph.deletePeriod(0);  // should be no op
+  graph.deletePeriod(1);
+  EXPECT_EQ(graph.getNumVertices(), 11);
+  graph.deletePeriod(2);
+  EXPECT_EQ(graph.getNumVertices(), 9);
+  graph.deletePeriod(4);
+  EXPECT_EQ(graph.getNumVertices(), 5);
+  graph.deletePeriod(3);
+  EXPECT_EQ(graph.getNumVertices(), 2);
+  graph.deletePeriod(5);  // should be no op
+  EXPECT_EQ(graph.getNumVertices(), 1);
 }
 TEST(PivotTree, genesis_get_pivot) {
   const std::string GENESIS =
