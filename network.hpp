@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-12-11 16:03:02
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:31:50
- */
-
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 #include <libdevcore/Log.h>
