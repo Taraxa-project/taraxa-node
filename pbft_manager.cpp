@@ -131,6 +131,12 @@ void PbftManager::run() {
   blk_hash_t own_starting_value_for_round = NULL_BLOCK_HASH;
   bool next_voted_soft_value = false;
   bool next_voted_null_block_hash = false;
+  
+  bool have_executed_this_round = false;
+  bool should_have_cert_voted_in_this_round = false;
+
+  float STEP_4_DELAY = 2 * LAMBDA_ms;
+
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
@@ -168,55 +174,82 @@ void PbftManager::run() {
         syncPbftChainFromPeers_();
       }
       pbft_round_ = consensus_pbft_round;
-      std::vector<Vote> cert_votes_for_round =
-          getVotesOfTypeFromVotesForRoundAndStep_(
-              cert_vote_type, votes, pbft_round_ - 1, 3,
-              std::make_pair(NULL_BLOCK_HASH, false));
-      // TODO: debug remove later
-      LOG(log_deb_) << "Get cert votes for round " << pbft_round_ - 1;
-      std::pair<blk_hash_t, bool> cert_voted_block_hash =
-          blockWithEnoughVotes_(cert_votes_for_round);
-      // TODO: debug remove later
-      LOG(log_deb_) << "Calculate cert votes for pbft block";
-      if (cert_voted_block_hash.second) {
-        // put pbft block into chain if have 2t+1 cert votes
-        if (pushPbftBlockIntoChainIfEnoughCertVotes_(
-                votes, pbft_round_ - 1, cert_voted_block_hash.first)) {
-          push_block_values_for_round[pbft_round_ - 1] =
-              cert_voted_block_hash.first;
-          next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
-        }
-        // TODO: debug remove later
-        LOG(log_deb_) << "The cert voted pbft block is "
-                      << cert_voted_block_hash.first;
-      }
-
+      
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
-      // round_clock_initial_datetime = std::chrono::system_clock::now();
-      // TODO: debug remove later
-      duration = std::chrono::system_clock::now() - now;
-      auto execute_trxs_in_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(duration)
-              .count();
-      LOG(log_deb_) << "Pushing PBFT block and Execution spent "
-                    << execute_trxs_in_ms << " ms. in round " << pbft_round_;
-      if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
-        LOG(log_err_) << "Pushing CS block and Executor spent "
-                      << execute_trxs_in_ms
-                      << " ms, this exceeds allowed delay time "
-                      << EXECUTE_TRXS_DELAY_ms << " ms";
-        assert(false);
-      }
+
+    }
+
+    if (pbft_round_ != pbft_round_last_) {
+
+      // NOTE: This also sets pbft_step back to 1
       round_clock_initial_datetime =
           now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
-      // END debug
-      // NOTE: This also sets pbft_step back to 1
+
+      have_executed_this_round = false;
+      should_have_cert_voted_in_this_round = false;
+
       last_step_ = pbft_step_;
       pbft_step_ = 1;
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      pbft_round_last_ = pbft_round_;
       continue;
+    }
+
+    //CHECK IF WE HAVE RECEIVED 2t+ 1 CERT VOTES FOR A BLOCK 
+    //IN OUR CURRENT ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
+    if (pbft_step_ == 3 || pbft_step_ == 4) {
+      std::vector<Vote> cert_votes_for_round =
+          getVotesOfTypeFromVotesForRoundAndStep_(
+              cert_vote_type, votes, pbft_round_, 3,
+              std::make_pair(NULL_BLOCK_HASH, false));
+      // TODO: debug remove later
+      LOG(log_tra_) << "Get cert votes for round " << pbft_round_ << " step " << pbft_step_;
+      std::pair<blk_hash_t, bool> cert_voted_block_hash =
+          blockWithEnoughVotes_(cert_votes_for_round);
+      // TODO: debug remove later
+      LOG(log_tra_) << "Calculate cert votes for pbft block";
+      if (cert_voted_block_hash.second) {
+        // put pbft block into chain if have 2t+1 cert votes
+        if (pushPbftBlockIntoChainIfEnoughCertVotes_(
+                votes, pbft_round_, cert_voted_block_hash.first)) {
+          push_block_values_for_round[pbft_round_] =
+              cert_voted_block_hash.first;
+          next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+        
+          have_executed_this_round = true;
+          
+          // TODO: debug remove later
+          LOG(log_deb_) << "The cert voted pbft block is "
+                        << cert_voted_block_hash.first;
+        
+          thisThreadSleepForMilliSeconds(5129);
+
+
+          duration = std::chrono::system_clock::now() - now;
+          auto execute_trxs_in_ms =
+              std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                  .count();
+          
+          LOG(log_deb_) << "Pushing PBFT block and Execution spent "
+                        << execute_trxs_in_ms << " ms. in round " << pbft_round_;
+          /*if (execute_trxs_in_ms > EXECUTE_TRXS_DELAY_ms) {
+            LOG(log_err_) << "Pushing CS block and Executor spent "
+                          << execute_trxs_in_ms
+                          << " ms, this exceeds allowed delay time "
+                          << EXECUTE_TRXS_DELAY_ms << " ms";
+            assert(false);
+          }*/
+          continue;
+        }
+
+      }
+    }
+
+    // We skip step 4 due to having missed it while executing....
+    if (have_executed_this_round == true && elapsed_time_in_round_ms > 4 * LAMBDA_ms + STEP_4_DELAY && pbft_step_ == 3) {
+      pbft_step_ = 5;
     }
 
     if (pbft_step_ == 1) {
@@ -312,11 +345,11 @@ void PbftManager::run() {
 
       bool should_go_to_step_four = false;
 
-      if (elapsed_time_in_round_ms > 4 * LAMBDA_ms - POLLING_INTERVAL_ms) {
+      if (elapsed_time_in_round_ms > 4 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms) {
         LOG(log_deb_) << "Step 3 expired, will go to step 4 in round "
                       << pbft_round_;
         should_go_to_step_four = true;
-      } else {
+      } else if (should_have_cert_voted_in_this_round == false) {
         LOG(log_tra_) << "In step 3";
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
@@ -328,7 +361,14 @@ void PbftManager::run() {
           if (checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
             cert_voted_values_for_round[pbft_round_] =
                 soft_voted_block_for_this_round.first;
-            should_go_to_step_four = true;
+            
+            //NEED TO KEEP POLLING TO SEE IF WE HAVE 2t+1 cert votes...
+            //should_go_to_step_four = true;
+            
+            // Here we would cert vote if we can speak....
+
+            should_have_cert_voted_in_this_round = true;
+            
             if (shouldSpeak(cert_vote_type, pbft_round_, pbft_step_)) {
               LOG(log_deb_)
                   << "Cert voting " << soft_voted_block_for_this_round.first
@@ -346,7 +386,7 @@ void PbftManager::run() {
 
       if (should_go_to_step_four) {
         LOG(log_deb_) << "will go to step 4";
-        next_step_time_ms = 4 * LAMBDA_ms;
+        next_step_time_ms = 4 * LAMBDA_ms + STEP_4_DELAY;
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
@@ -358,6 +398,11 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 4) {
+
+      //bool cert_vote_backoff_time_has_expired = ( now - time_of_cert_voting > 2 * LAMBDA_ms);
+      //bool ok_to_next_vote = (have_executed_this_round == true || should_have_cert_voted_in_this_round == false || cert_vote_backoff_time_has_expired == true);
+    
+
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
             cert_voted_values_for_round.end()) {
@@ -382,10 +427,25 @@ void PbftManager::run() {
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       last_step_ = pbft_step_;
       pbft_step_ += 1;
-      next_step_time_ms = 4 * LAMBDA_ms;
+      next_step_time_ms = 4 * LAMBDA_ms + STEP_4_DELAY;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 5) {
+      
+      //bool cert_vote_backoff_time_has_expired = ( now - time_of_cert_voting > 2 * LAMBDA_ms);
+      //bool ok_to_next_vote = (have_executed_this_round == true || should_have_cert_voted_in_this_round == false || cert_vote_backoff_time_has_expired == true);
+      
+      if (elapsed_time_in_round_ms > 6 * LAMBDA_ms + STEP_4_DELAY) {
+        // Should not happen, add log here for safety checking
+        if (have_executed_this_round == true) {
+          LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step 5 late due to execution";  
+        } else {
+          LOG(log_err_) << "PBFT Reached round " << pbft_round_ << " step 5 late without executing";
+        }
+        pbft_step_ = 7;
+        continue;
+      }
+
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
@@ -412,8 +472,8 @@ void PbftManager::run() {
         }
       }
 
-      if (elapsed_time_in_round_ms > 6 * LAMBDA_ms - POLLING_INTERVAL_ms) {
-        next_step_time_ms = 6 * LAMBDA_ms;
+      if (elapsed_time_in_round_ms > 6 * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms) {
+        next_step_time_ms = 6 * LAMBDA_ms + STEP_4_DELAY;
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
@@ -428,6 +488,9 @@ void PbftManager::run() {
 
     } else if (pbft_step_ % 2 == 0) {
       // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
+      //bool cert_vote_backoff_time_has_expired = ( now - time_of_cert_voting > 2 * LAMBDA_ms);
+      //bool ok_to_next_vote = (have_executed_this_round == true || should_have_cert_voted_in_this_round == false || cert_vote_backoff_time_has_expired == true);
+
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
             cert_voted_values_for_round.end()) {
@@ -454,6 +517,18 @@ void PbftManager::run() {
 
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
+      
+      if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY) {
+        // Should not happen, add log here for safety checking
+        if (have_executed_this_round == true) {
+          LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step " << pbft_step_ << " late due to execution";  
+        } else {
+          LOG(log_err_) << "PBFT Reached round " << pbft_round_ << " step " << pbft_step_ << " late without executing";
+        }
+        pbft_step_ += 2;
+        continue;
+      }
+
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
@@ -500,8 +575,8 @@ void PbftManager::run() {
         round_clock_initial_datetime = std::chrono::system_clock::now();
         continue;
       } else if (elapsed_time_in_round_ms >
-                 (pbft_step_ + 1) * LAMBDA_ms - POLLING_INTERVAL_ms) {
-        next_step_time_ms = (pbft_step_ + 1) * LAMBDA_ms;
+                 (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms) {
+        next_step_time_ms = (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY;
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
@@ -925,6 +1000,8 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
 bool PbftManager::pushPbftBlockIntoChainIfEnoughCertVotes_(
     std::vector<Vote> &votes, uint64_t round,
     taraxa::blk_hash_t const &cert_voted_block_hash) {
+  
+  /*
   size_t count = 0;
   for (auto const &v : votes) {
     if (v.getBlockHash() == cert_voted_block_hash &&
@@ -941,6 +1018,7 @@ bool PbftManager::pushPbftBlockIntoChainIfEnoughCertVotes_(
                   << " cert votes. But only have " << count;
     return false;
   }
+  */
 
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
     // Get partition, need send request to get missing pbft blocks from peers

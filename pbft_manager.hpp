@@ -135,6 +135,7 @@ class PbftManager {
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
 
   uint64_t pbft_round_ = 1;
+  uint64_t pbft_round_last_ = 1;
   size_t pbft_step_ = 1;
 
   size_t sortition_threshold_;
