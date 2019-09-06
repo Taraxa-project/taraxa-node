@@ -13,7 +13,6 @@
 #include <vector>
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
-#include "proto/taraxa_grpc.grpc.pb.h"
 #include "simple_db_face.hpp"
 #include "util.hpp"
 
@@ -49,16 +48,6 @@ class Transaction {
  public:
   enum class Type : uint8_t { Null, Create, Call };
   Transaction() = default;
-  Transaction(::taraxa_grpc::ProtoTransaction const &t)
-      : hash_(t.hash()),
-        type_(toEnum<Type>(t.type())),
-        nonce_(val_t(t.nonce())),
-        value_(val_t(t.value())),
-        gas_price_(t.gas_price()),
-        gas_(t.gas()),
-        receiver_(t.receiver()),
-        sig_(t.sig()),
-        data_(str2bytes(t.data())) {}
   // default constructor
   Transaction(trx_hash_t const &hash, Type type, val_t const &nonce,
               val_t const &value, val_t const &gas_price, val_t const &gas,
