@@ -27,9 +27,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
     : LAMBDA_ms(params[0]),
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
-      EXECUTE_TRXS_DELAY_ms(params[3]),
-      DAG_BLOCKS_SIZE(params[4]),
-      RUN_COUNT_VOTES(params[5]),
+      DAG_BLOCKS_SIZE(params[3]),
+      RUN_COUNT_VOTES(params[4]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
@@ -134,7 +133,7 @@ void PbftManager::run() {
 
   bool have_executed_this_round = false;
   bool should_have_cert_voted_in_this_round = false;
-  STEP_4_DELAY = 2 * LAMBDA_ms;
+  u_long STEP_4_DELAY = 2 * LAMBDA_ms;
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
@@ -178,8 +177,7 @@ void PbftManager::run() {
 
     if (pbft_round_ != pbft_round_last_) {
       // NOTE: This also sets pbft_step back to 1
-      round_clock_initial_datetime =
-          now + std::chrono::milliseconds(EXECUTE_TRXS_DELAY_ms);
+      round_clock_initial_datetime = now;
 
       have_executed_this_round = false;
       should_have_cert_voted_in_this_round = false;
@@ -212,9 +210,7 @@ void PbftManager::run() {
           push_block_values_for_round[pbft_round_] =
               cert_voted_block_hash.first;
           next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
-
           have_executed_this_round = true;
-
           // TODO: debug remove later
           LOG(log_deb_) << "The cert voted pbft block is "
                         << cert_voted_block_hash.first;
