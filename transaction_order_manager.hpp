@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:01:11
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 22:07:47
- */
-
 #ifndef TARAXA_NODE_TRANSACTION_ORDER_MANAGER_HPP
 #define TARAXA_NODE_TRANSACTION_ORDER_MANAGER_HPP
 
@@ -16,9 +8,9 @@
 #include <memory>
 #include <set>
 #include <thread>
-#include "SimpleDBFace.h"
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
+#include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
 

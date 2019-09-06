@@ -1,16 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: JC
- * @Date: 2019-04-26
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-15 15:22:32
- */
-
-//
-// Created by JC on 2019-04-26.
-//
-#ifndef TARAXA_NODE_SIMPLEDBFACE_H
-#define TARAXA_NODE_SIMPLEDBFACE_H
+#ifndef TARAXA_NODE_SIMPLE_DB_FACE_HPP
+#define TARAXA_NODE_SIMPLE_DB_FACE_HPP
 #include <boost/thread.hpp>
 #include "libethereum/State.h"
 
@@ -39,4 +28,4 @@ class SimpleDBFace {
  protected:
   boost::shared_mutex shared_mutex_;
 };
-#endif  // TARAXA_NODE_TEST_H
+#endif  // TARAXA_NODE_SIMPLE_DB_FACE_HPP

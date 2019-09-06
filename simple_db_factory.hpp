@@ -1,11 +1,7 @@
-//
-// Created by JC on 2019-04-27.
-//
-#ifndef TARAXA_NODE_SIMPLEDBFACTORY_H
-#define TARAXA_NODE_SIMPLEDBFACTORY_H
+#ifndef TARAXA_NODE_SIMPLE_DB_FACTORY_HPP
+#define TARAXA_NODE_SIMPLE_DB_FACTORY_HPP
 
-#include "SimpleOverlayDBDelegate.h"
-#include "SimpleTaraxaRocksDBDelegate.h"
+#include "simple_overlaydb_delegate.hpp"
 
 class SimpleDBFace;
 
@@ -20,4 +16,4 @@ class SimpleDBFactory {
     return std::make_unique<T>(path, overwrite);
   }
 };
-#endif  // TARAXA_NODE_SIMPLEDBFACTORY_H
+#endif  // TARAXA_NODE_SIMPLE_DB_FACTORY_HPP

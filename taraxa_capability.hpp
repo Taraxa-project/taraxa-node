@@ -1,5 +1,5 @@
-#ifndef TARAXA_CAPABILITY_HPP
-#define TARAXA_CAPABILITY_HPP
+#ifndef TARAXA_NODE_TARAXA_CAPABILITY_HPP
+#define TARAXA_NODE_TARAXA_CAPABILITY_HPP
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>

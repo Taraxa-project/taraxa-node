@@ -1,18 +1,10 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-02-27 15:39:04
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 19:15:44
- */
-
 #include <gtest/gtest.h>
 #include <memory>
 #include <thread>
 #include <vector>
-#include "SimpleDBFactory.h"
 #include "create_samples.hpp"
 #include "grpc_server.hpp"
+#include "simple_db_factory.hpp"
 
 namespace taraxa {
 const unsigned NUM_TRX = 40;

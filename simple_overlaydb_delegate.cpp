@@ -1,12 +1,4 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: JC
- * @Date: 2019-05-15 15:15:02
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-15 15:49:08
- */
-
-#include "SimpleOverlayDBDelegate.h"
+#include "simple_overlaydb_delegate.hpp"
 
 bool SimpleOverlayDBDelegate::put(const std::string &key,
                                   const std::string &value) {

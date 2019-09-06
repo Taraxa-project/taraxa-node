@@ -1,4 +1,4 @@
-#include "taraxa_capability.h"
+#include "taraxa_capability.hpp"
 #include "dag.hpp"
 #include "network.hpp"
 #include "pbft_chain.hpp"

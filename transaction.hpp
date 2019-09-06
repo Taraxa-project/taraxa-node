@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-02-27 12:27:18
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-15 15:52:30
- */
-
 #ifndef TRANSACTION_HPP
 #define TRANSACTION_HPP
 #include <libdevcore/RLP.h>
@@ -19,10 +11,10 @@
 #include <queue>
 #include <thread>
 #include <vector>
-#include "SimpleDBFace.h"
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "proto/taraxa_grpc.grpc.pb.h"
+#include "simple_db_face.hpp"
 #include "util.hpp"
 
 namespace taraxa {
