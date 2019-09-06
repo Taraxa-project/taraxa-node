@@ -135,7 +135,7 @@ void PbftManager::run() {
   bool have_executed_this_round = false;
   bool should_have_cert_voted_in_this_round = false;
 
-  float STEP_4_DELAY = 2 * LAMBDA_ms;
+  STEP_4_DELAY = 2 * LAMBDA_ms;
 
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
@@ -224,9 +224,6 @@ void PbftManager::run() {
           LOG(log_deb_) << "The cert voted pbft block is "
                         << cert_voted_block_hash.first;
         
-          thisThreadSleepForMilliSeconds(5129);
-
-
           duration = std::chrono::system_clock::now() - now;
           auto execute_trxs_in_ms =
               std::chrono::duration_cast<std::chrono::milliseconds>(duration)

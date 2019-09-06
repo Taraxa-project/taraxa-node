@@ -72,6 +72,9 @@ class PbftManager {
   size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
   bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
 
+  u_long STEP_4_DELAY;
+
+
  private:
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
                                      uint64_t local_round);
