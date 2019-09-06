@@ -1,5 +1,4 @@
 #include "transaction.hpp"
-#include <grpcpp/server_builder.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <string>
@@ -8,7 +7,6 @@
 
 namespace taraxa {
 
-using namespace taraxa_grpc;
 
 Transaction::Transaction(stream &strm) { deserialize(strm); }
 

@@ -3,7 +3,6 @@
 #include <thread>
 #include <vector>
 #include "create_samples.hpp"
-#include "grpc_server.hpp"
 #include "simple_db_factory.hpp"
 
 namespace taraxa {
