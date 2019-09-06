@@ -33,7 +33,7 @@ git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
 cryptopp, libff, ethash, secp256k1, boost, rocksdb, rapidjson, gtest, leveldb
 ```
 
-**On a Macintosh** Installing boost, rocksdb, rapidjson, leveldb, grpc ... using brew:
+**On a Macintosh** Installing boost, rocksdb, rapidjson, leveldb ... using brew:
 ```
 brew install boost
 brew install rocksdb
@@ -45,7 +45,6 @@ brew install leveldb
 brew install libscrypt
 brew install automake
 brew install libtool
-brew install grpc
 brew install pkg-config
 brew install jsoncpp
 brew install libjson-rpc-cpp
@@ -92,21 +91,6 @@ make pdemo
 ```
 
 Google how to install other libs for your system.
-
-## Protobuf and gRPC and google_apis 
-The project uses gRPC. 
-
-If proto file changed, need to rebuid using: 
-
-`make protoc_taraxa_grpc`
-
-(Not needed, can skip for now) For google API, the C++ library for googleapis is unavailable. 
-Therefore, googleapis header and source files are included in `google` directory.
-To Build googleapis static libs:
-```
-cd google
-make
-```
 
 # Run taraxa-node tests:
 Tests are under core_tests/
