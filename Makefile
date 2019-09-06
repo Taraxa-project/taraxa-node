@@ -69,7 +69,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/network.o \
 	${OBJECTDIR}/full_node.o \
 	${OBJECTDIR}/types.o \
-	${OBJECTDIR}/visitor.o \
 	${OBJECTDIR}/dag.o \
 	${OBJECTDIR}/block_proposer.o \
 	${OBJECTDIR}/transaction.o \
@@ -172,11 +171,6 @@ ${OBJECTDIR}/types.o: types.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/types.o types.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/visitor.o: visitor.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/visitor.o visitor.cpp $(CPPFLAGS)
 	
 ${OBJECTDIR}/dag.o: dag.cpp
 	${MKDIR} -p ${OBJECTDIR}

@@ -11,7 +11,6 @@
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
-#include "visitor.hpp"
 
 using namespace std;
 using namespace dev;

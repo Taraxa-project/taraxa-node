@@ -6,7 +6,6 @@
 #include "transaction.hpp"
 #include "util.hpp"
 #include "vote.h"
-#include "wallet.hpp"
 
 namespace taraxa {
 

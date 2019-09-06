@@ -6,7 +6,6 @@
 #include "full_node.hpp"
 #include "libp2p/Host.h"
 #include "taraxa_capability.hpp"
-#include "visitor.hpp"
 
 namespace taraxa {
 
