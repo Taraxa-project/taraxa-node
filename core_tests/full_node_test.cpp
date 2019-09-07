@@ -148,6 +148,7 @@ void send_5_nodes_trxs() {
 }
 
 void send_dumm_trx() {
+  taraxa::thisThreadSleepForSeconds(5);
   std::string dummy_trx =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
                                       "params": [{ 
