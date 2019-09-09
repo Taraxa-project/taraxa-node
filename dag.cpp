@@ -50,6 +50,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   // add vertex
   auto now(std::chrono::system_clock::now());
   vertex_t ret = add_vertex(new_vertex, graph_);
+  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
+  index_map[ret] = new_vertex;
   vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
   name_map[ret] = new_vertex;
   vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
@@ -64,7 +66,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   if (!pivot.empty()) {
     std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
     if (!res) {
-      LOG(log_wr_) << "Warning! creating pivot edge \n"
+      LOG(log_wr_) << "Creating pivot edge \n"
                    << pivot << "\n-->\n"
                    << new_vertex << " \nunsuccessful!" << std::endl;
     }
@@ -73,7 +75,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   for (auto const &e : tips) {
     std::tie(edge, res2) = boost::add_edge_by_label(e, new_vertex, graph_);
     if (!res2) {
-      LOG(log_wr_) << "Warning! creating tip edge \n"
+      LOG(log_wr_) << "Creating tip edge \n"
                    << e << "\n-->\n"
                    << new_vertex << " \nunsuccessful!" << std::endl;
     }
@@ -85,10 +87,11 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
 void Dag::drawGraph(std::string filename) const {
   sharedLock lock(mutex_);
   std::ofstream outfile(filename.c_str());
+  auto index_map = boost::get(boost::vertex_index, graph_);
   auto name_map = boost::get(boost::vertex_name, graph_);
   auto ep_map = boost::get(boost::vertex_index1, graph_);
 
-  boost::write_graphviz(outfile, graph_, make_label_writer(name_map));
+  boost::write_graphviz(outfile, graph_, label_writer(index_map));
   std::cout << "Dot file " << filename << " generated!" << std::endl;
   std::cout << "Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"
             << std::endl;
@@ -148,12 +151,12 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   vertex_t target = graph_.vertex(to);
 
   if (source == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (from) (getEpFriendVertices) "
-                 << from << "\n";
+    LOG(log_wr_) << "Cannot find vertex (from) (getEpFriendVertices) " << from
+                 << "\n";
     return;
   }
   if (target == graph_.null_vertex()) {
-    LOG(log_wr_) << "Warning! cannot find vertex (to) " << to << "\n";
+    LOG(log_wr_) << "Cannot find vertex (to) " << to << "\n";
     return;
   }
   epfriend.clear();
@@ -180,8 +183,8 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   vertex_t target = graph_.vertex(anchor);
 
   if (target == graph_.null_vertex()) {
-    LOG(log_er_) << "Warning! Dag::ComputeOrder cannot find vertex (anchor) "
-                 << anchor << "\n";
+    LOG(log_wr_) << "Dag::ComputeOrder cannot find vertex (anchor) " << anchor
+                 << "\n";
     return false;
   }
   ordered_period_vertices.clear();
@@ -342,8 +345,7 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
   vertex_t root = graph_.vertex(vertex);
 
   if (root == graph_.null_vertex()) {
-    LOG(log_nf_) << "Warning! cannot find vertex (getGhostPath) " << vertex
-                 << std::endl;
+    LOG(log_wr_) << "Cannot find vertex (getGhostPath) " << vertex << std::endl;
     return;
   }
   pivot_chain.clear();

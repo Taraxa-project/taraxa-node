@@ -38,13 +38,13 @@ class Dag {
   using vertex_hash = std::string;
   using vertex_property_t = boost::property<
       boost::vertex_name_t, std::string,
-      boost::property<boost::vertex_index_t, void *,
+      boost::property<boost::vertex_index_t, std::string,
                       boost::property<boost::vertex_index1_t, uint64_t>>>;
   using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 
   // graph def
   using adj_list_t =
-      boost::adjacency_list<boost::setS, boost::setS, boost::directedS,
+      boost::adjacency_list<boost::setS, boost::hash_setS, boost::directedS,
                             vertex_property_t, edge_property_t>;
   using graph_t =
       boost::labeled_graph<adj_list_t, std::string, boost::hash_mapS>;
@@ -55,6 +55,11 @@ class Dag {
   using vertex_adj_iter_t = boost::graph_traits<graph_t>::adjacency_iterator;
 
   // property_map
+  using vertex_index_map_const_t =
+      boost::property_map<graph_t, boost::vertex_index_t>::const_type;
+  using vertex_index_map_t =
+      boost::property_map<graph_t, boost::vertex_index_t>::type;
+
   using vertex_name_map_const_t =
       boost::property_map<graph_t, boost::vertex_name_t>::const_type;
   using vertex_name_map_t =
@@ -101,20 +106,6 @@ class Dag {
                            std::vector<vertex_hash> &epfriend) const;
   // deleter
   void deletePeriod(uint64_t period);
-
-  // for graphviz
-  template <class Property>
-  class label_writer {
-   public:
-    label_writer(Property property1) : property1(property1) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << property1[v].substr(0, 6) << "\"]";
-    }
-
-   private:
-    Property property1;
-  };
 
  protected:
   // Note: private functions does not lock
@@ -266,6 +257,21 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "DAGMGR")};
   dev::Logger log_tr_{
       dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
+};
+
+// for graphviz
+template <class Property>
+class label_writer {
+ public:
+  label_writer(Property property1) : property1(property1) {}
+  template <class VertexOrEdge>
+  void operator()(std::ostream &out, const VertexOrEdge &v) const {
+    out << "[label=\"" << property1[v].substr(0, 6) << " ~ "
+        << property1[v].substr(58) << "\"]";
+  }
+
+ private:
+  Property property1;
 };
 
 }  // namespace taraxa
