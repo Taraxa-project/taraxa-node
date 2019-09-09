@@ -34,11 +34,11 @@ bool Dag::hasVertex(vertex_hash const &v) const {
 
 void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
   sharedLock lock(mutex_);
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+  vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
   std::vector<vertex_t> leaves;
   collectLeafVertices(leaves);
   for (auto const &leaf : leaves) {
-    tips.emplace_back(name_map[leaf]);
+    tips.emplace_back(index_map[leaf]);
   }
 }
 
@@ -52,8 +52,6 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   vertex_t ret = add_vertex(new_vertex, graph_);
   vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
   index_map[ret] = new_vertex;
-  vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
-  name_map[ret] = new_vertex;
   vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
   epc_map[ret] = 0;  // means not finalized
   // <<std::endl;
@@ -88,10 +86,9 @@ void Dag::drawGraph(std::string filename) const {
   sharedLock lock(mutex_);
   std::ofstream outfile(filename.c_str());
   auto index_map = boost::get(boost::vertex_index, graph_);
-  auto name_map = boost::get(boost::vertex_name, graph_);
   auto ep_map = boost::get(boost::vertex_index1, graph_);
 
-  boost::write_graphviz(outfile, graph_, label_writer(index_map));
+  boost::write_graphviz(outfile, graph_, label_writer(index_map, ep_map));
   std::cout << "Dot file " << filename << " generated!" << std::endl;
   std::cout << "Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"
             << std::endl;
@@ -99,8 +96,8 @@ void Dag::drawGraph(std::string filename) const {
 
 Dag::vertex_t Dag::addVertex(vertex_hash const &hash) {
   vertex_t ret = add_vertex(hash, graph_);
-  vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
-  name_map[ret] = hash;
+  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
+  index_map[ret] = hash;
   return ret;
 }
 
@@ -161,7 +158,7 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   }
   epfriend.clear();
   vertex_iter_t s, e;
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+  vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
 
   // iterator all vertex
   for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
@@ -169,7 +166,7 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
       continue;
     }
     if (!reachable(*s, source) && reachable(*s, target)) {
-      epfriend.emplace_back(name_map[*s]);
+      epfriend.emplace_back(index_map[*s]);
     }
   }
 }
@@ -190,10 +187,10 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   ordered_period_vertices.clear();
 
   vertex_iter_t s, e;
-  vertex_name_map_t name_map = boost::get(boost::vertex_name, graph_);
+  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
   vertex_period_map_t ep_map = boost::get(boost::vertex_index1, graph_);
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
-  epfriend[blk_hash_t(name_map[target])] = target;
+  epfriend[blk_hash_t(index_map[target])] = target;
 
   // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
@@ -203,7 +200,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
     auto v = graph_.vertex(*iter);
     if (ep_map[v] > 0) {
       iter++;
-      LOG(log_er_) << "The vertex " << name_map[v]
+      LOG(log_er_) << "The vertex " << index_map[v]
                    << " has been included in other period " << ep_map[v]
                    << std::endl;
       assert(0);
@@ -213,12 +210,12 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
       if (finialized) {
         ep_map[v] = ith_period;
         // update periods table
-        periods_[ith_period].insert(name_map[v]);
+        periods_[ith_period].insert(index_map[v]);
         iter = recent_added_blks.erase(iter);
       } else {
         iter++;
       }
-      epfriend[blk_hash_t(name_map[v])] = v;
+      epfriend[blk_hash_t(index_map[v])] = v;
     } else {
       iter++;
     }
@@ -240,7 +237,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
       auto cur = dfs.top();
       dfs.pop();
       if (cur.second) {
-        ordered_period_vertices.emplace_back(name_map[cur.first]);
+        ordered_period_vertices.emplace_back(index_map[cur.first]);
         continue;
       }
       dfs.push({cur.first, true});
@@ -248,14 +245,14 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
       // iterate through neighbors
       for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.first, graph_);
            adj_s != adj_e; adj_s++) {
-        if (epfriend.find(blk_hash_t(name_map[*adj_s])) ==
+        if (epfriend.find(blk_hash_t(index_map[*adj_s])) ==
             epfriend.end()) {  // not in this epoch
           continue;
         }
         if (visited.count(*adj_s)) {
           continue;
         }
-        neighbors.emplace_back(std::make_pair(name_map[*adj_s], *adj_s));
+        neighbors.emplace_back(std::make_pair(index_map[*adj_s], *adj_s));
         visited.insert(*adj_s);
       }
       // make sure iterated nodes have deterministic order
@@ -378,11 +375,11 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
     weight_map[n] = total_w + 1;
   }
 
-  vertex_name_map_const_t name_map = boost::get(boost::vertex_name, graph_);
+  vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
 
   // third step: collect path
   while (1) {
-    pivot_chain.emplace_back(name_map[root]);
+    pivot_chain.emplace_back(index_map[root]);
     size_t heavist = 0;
     vertex_t next;
 
@@ -394,7 +391,7 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
         heavist = w;
         next = *s;
       } else if (w == heavist) {
-        if (name_map[*s] < name_map[next]) {
+        if (index_map[*s] < index_map[next]) {
           heavist = w;
           next = *s;
         }
