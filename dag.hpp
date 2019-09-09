@@ -224,9 +224,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
-  void countFreshBlocks();
-  bool debug_;
-  bool dag_updated_;
   bool stopped_ = true;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;

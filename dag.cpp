@@ -405,8 +405,7 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
 }
 
 DagManager::DagManager(std::string const &genesis) try
-    : dag_updated_(false),
-      inserting_index_counter_(0),
+    : inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>(genesis)),
       pivot_tree_(std::make_shared<PivotTree>(genesis)),
       anchors_({genesis}),
