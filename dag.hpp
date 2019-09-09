@@ -36,10 +36,9 @@ class Dag {
  public:
   // properties
   using vertex_hash = std::string;
-  using vertex_property_t = boost::property<
-      boost::vertex_name_t, std::string,
+  using vertex_property_t =
       boost::property<boost::vertex_index_t, std::string,
-                      boost::property<boost::vertex_index1_t, uint64_t>>>;
+                      boost::property<boost::vertex_index1_t, uint64_t>>;
   using edge_property_t = boost::property<boost::edge_index_t, uint64_t>;
 
   // graph def
@@ -59,11 +58,6 @@ class Dag {
       boost::property_map<graph_t, boost::vertex_index_t>::const_type;
   using vertex_index_map_t =
       boost::property_map<graph_t, boost::vertex_index_t>::type;
-
-  using vertex_name_map_const_t =
-      boost::property_map<graph_t, boost::vertex_name_t>::const_type;
-  using vertex_name_map_t =
-      boost::property_map<graph_t, boost::vertex_name_t>::type;
 
   using vertex_period_map_const_t =
       boost::property_map<graph_t, boost::vertex_index1_t>::const_type;
@@ -155,7 +149,7 @@ class PivotTree : public Dag {
   PivotTree(std::string const &genesis) : Dag(genesis){};
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
-  using vertex_name_map_const_t = Dag::vertex_name_map_const_t;
+  using vertex_index_map_const_t = Dag::vertex_index_map_const_t;
 
   void getGhostPath(vertex_hash const &vertex,
                     std::vector<vertex_hash> &pivot_chain) const;
@@ -260,18 +254,20 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 };
 
 // for graphviz
-template <class Property>
+template <class Property1, class Property2>
 class label_writer {
  public:
-  label_writer(Property property1) : property1(property1) {}
+  label_writer(Property1 name, Property2 period) : name(name), period(period) {}
   template <class VertexOrEdge>
   void operator()(std::ostream &out, const VertexOrEdge &v) const {
-    out << "[label=\"" << property1[v].substr(0, 6) << " ~ "
-        << property1[v].substr(58) << "\"]";
+    out << "[label=\"" << name[v].substr(0, 6) << "..." << name[v].substr(58)
+        << " (" << period[v] << ") "
+        << "\"]";
   }
 
  private:
-  Property property1;
+  Property1 name;
+  Property2 period;
 };
 
 }  // namespace taraxa
