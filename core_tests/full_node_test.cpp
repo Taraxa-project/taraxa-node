@@ -21,6 +21,7 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "sortition.h"
 #include "string"
 #include "top.hpp"
 
@@ -458,7 +459,7 @@ TEST_F(TopTest, sync_five_nodes) {
   nodes.emplace_back(node5);
 
   EXPECT_EQ(node1->getDagBlockMaxHeight(), 0);  // genesis block
-  auto init_bal = 300000;
+  uint64_t init_bal = TARAXA_COINS_DECIMAL / 5;
 
   // transfer some coins to your friends ...
   Transaction trx1to2(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
@@ -488,7 +489,7 @@ TEST_F(TopTest, sync_five_nodes) {
     for (auto const &node : nodes) {
       if (!((node->getBalance(
                      addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
-                 .first == 9007199254740991 - init_bal * 4) &&
+                 .first == TARAXA_COINS_DECIMAL - init_bal * 4) &&
             node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
                     .first == init_bal &&
             node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
@@ -511,7 +512,7 @@ TEST_F(TopTest, sync_five_nodes) {
     ASSERT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
             .first,
-        9007199254740991 - init_bal * 4);
+        TARAXA_COINS_DECIMAL - init_bal * 4);
     ASSERT_EQ(
         node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
             .first,
@@ -611,7 +612,7 @@ TEST_F(TopTest, sync_five_nodes) {
         trx_executed5 == 10005) {
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(200);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
   if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first - 1) {
@@ -644,7 +645,7 @@ TEST_F(TopTest, sync_five_nodes) {
     EXPECT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
             .first,
-        9007199254740991 - init_bal * 4 - 2000 * 100);
+        TARAXA_COINS_DECIMAL - init_bal * 4 - 2000 * 100);
     EXPECT_EQ(
         node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
             .first,
@@ -685,6 +686,7 @@ TEST_F(TopTest, sync_five_nodes) {
     std::cerr << e.what() << std::endl;
   }
 }
+
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
@@ -1168,13 +1170,15 @@ TEST_F(TopTest, single_node_run_two_transactions) {
   EXPECT_NE(node1, nullptr);
 
   std::string send_raw_trx1 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
-                                      "params": ["0xf862138082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf5983989680801ba08a6f6b34c067e2db003dcb04c38f97d69aaa442475f26e6882b71ae8afe0878ea038bd3ac75c80062b122d65a6dcf026e26a04d3e9cee61ee4fcf894f60496caa1"
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
+"taraxa_sendRawTransaction", "params":
+["0xf862138082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf5983989680801ba08a6f6b34c067e2db003dcb04c38f97d69aaa442475f26e6882b71ae8afe0878ea038bd3ac75c80062b122d65a6dcf026e26a04d3e9cee61ee4fcf894f60496caa1"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
-                                      "params": ["0xf868148502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba00bf2c8c99789851f306294f6624e47defcf43ecb5f6f86de17682d4b18f7709da02809733a34683e1c2af45e2ae48a4213f663cd2ae25e9d85b53e4aee6cca7b47"
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
+"taraxa_sendRawTransaction", "params":
+["0xf868148502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba00bf2c8c99789851f306294f6624e47defcf43ecb5f6f86de17682d4b18f7709da02809733a34683e1c2af45e2ae48a4213f663cd2ae25e9d85b53e4aee6cca7b47"
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1232,13 +1236,15 @@ TEST_F(TopTest, two_nodes_run_two_transactions) {
   thisThreadSleepForSeconds(1);
 
   std::string send_raw_trx1 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
-                                      "params": ["0xf86b188502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b08711c37937e08000801ba0641f1cebdbe2e8d6d3a73538113690d562cccf6f98baae87e446aa18aa2153eea02629f04fffa048db1fb510703a5ac02e2619e8d6a6dbe02d4bfeb40b4d4b7116"
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
+"taraxa_sendRawTransaction", "params":
+["0xf86b188502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b08711c37937e08000801ba0641f1cebdbe2e8d6d3a73538113690d562cccf6f98baae87e446aa18aa2153eea02629f04fffa048db1fb510703a5ac02e2619e8d6a6dbe02d4bfeb40b4d4b7116"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "taraxa_sendRawTransaction",
-                                      "params": ["0xf86b1a8502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca0dcfb525d5bcd21d3078595fd6b407ae6dbffa097d6fbe5a04bc63f32f186528aa03d7ba8fa4fabfce854ca355f714718c4f13f3b16f061c32ce98d607a3dbb2345"
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
+"taraxa_sendRawTransaction", "params":
+["0xf86b1a8502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca0dcfb525d5bcd21d3078595fd6b407ae6dbffa097d6fbe5a04bc63f32f186528aa03d7ba8fa4fabfce854ca355f714718c4f13f3b16f061c32ce98d607a3dbb2345"
                                       ]}' 0.0.0.0:7777)";
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1675,40 +1681,45 @@ TEST_F(TopTest, DISABLED_sortition_propose_five_nodes) {
   // send 1000 trxs
   try {
     std::string sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 6000, 
-                                      "nonce": 1, 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777)";
-    std::string sendtrx2 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 4000, 
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
+"create_test_coin_transactions", "params": [{ "secret":
+"3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd", "delay": 5,
+                                      "number": 6000,
+                                      "nonce": 1,
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"
+}]}' 0.0.0.0:7777)";
+    std::string sendtrx2 = R"(curl -m 10 -s -d '{"jsonrpc":
+"2.0", "id": "0", "method": "create_test_coin_transactions", "params": [{
+"secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
+                                      "delay": 7,
+                                      "number": 4000,
                                       "nonce": 2,
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778)";
-    std::string sendtrx3 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
-                                      "delay": 3, 
-                                      "number": 3000, 
+                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"
+}]}' 0.0.0.0:7778)";
+    std::string sendtrx3 = R"(curl -m 10 -s -d '{"jsonrpc":
+"2.0", "id": "0", "method": "create_test_coin_transactions", "params": [{
+"secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
+                                      "delay": 3,
+                                      "number": 3000,
                                       "nonce": 3,
-                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779)";
-    std::string sendtrx4 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
-                                      "delay": 10, 
-                                      "number": 3000, 
+                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"
+}]}' 0.0.0.0:7779)";
+    std::string sendtrx4 = R"(curl -m 10 -s -d '{"jsonrpc":
+"2.0", "id": "0", "method": "create_test_coin_transactions", "params": [{
+"secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
+                                      "delay": 10,
+                                      "number": 3000,
                                       "nonce": 4,
-                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780)";
-    std::string sendtrx5 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
+                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858"
+}]}' 0.0.0.0:7780)";
+    std::string sendtrx5 = R"(curl -m 10 -s -d '{"jsonrpc":
+"2.0", "id": "0", "method": "create_test_coin_transactions", "params": [{
+"secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
                                       "delay": 2,
-                                      "number": 4000, 
+                                      "number": 4000,
                                       "nonce": 5,
-                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781)";
+                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9"
+}]}' 0.0.0.0:7781)";
     std::cout << "Sending trxs ..." << std::endl;
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
     std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -2046,12 +2057,14 @@ TEST_F(TopTest, detect_overlap_transactions) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
+  logOptions.verbosity = dev::VerbosityInfo;
   // logOptions.includeChannels.push_back("FULLND");
   // logOptions.includeChannels.push_back("DAGMGR");
   // logOptions.includeChannels.push_back("EXETOR");
   // logOptions.includeChannels.push_back("BLK_PP");
   // logOptions.includeChannels.push_back("PR_MDL");
+  // logOptions.includeChannels.push_back("PBFT_MGR");
+  // logOptions.includeChannels.push_back("PBFT_CHAIN");
 
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
