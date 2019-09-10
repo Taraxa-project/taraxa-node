@@ -39,9 +39,9 @@ class DagBlock {
            sig_t signature, blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(stream &strm);
-  DagBlock(string const &json) : DagBlock(strToJson(json)) {}
-  DagBlock(boost::property_tree::ptree const &);
-  DagBlock(dev::RLP const &_r);
+  DagBlock(boost::property_tree::ptree const &doc);
+  DagBlock(string const &json);
+  DagBlock(dev::bytes const &_rlp);
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
     str << "	level		= " << u.level_ << std::endl;
@@ -61,7 +61,6 @@ class DagBlock {
     return this->sha3(true) == other.sha3(true);
   }
 
-  void serializeRLP(dev::RLPStream &s);
   blk_hash_t getPivot() const { return pivot_; }
   level_t getLevel() const { return level_; }
   int64_t getTimestamp() const { return timestamp_; }
@@ -83,10 +82,10 @@ class DagBlock {
     }
   }
   bool verifySig() const;
+  bytes rlp(bool include_sig) const;
 
  private:
   void streamRLP(dev::RLPStream &s, bool include_sig) const;
-  bytes rlp(bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
   blk_hash_t pivot_;
   level_t level_ = 0;

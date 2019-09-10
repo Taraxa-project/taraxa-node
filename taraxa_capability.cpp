@@ -195,7 +195,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       // Means a new block is proposed, full block body and all transaction
       // are received.
       case NewBlockPacket: {
-        DagBlock block(_r[0]);
+        DagBlock block(_r[0].data().toBytes());
 
         auto transactionsCount = _r.itemCount() - 1;
         LOG(log_dg_) << "Received NewBlockPacket " << transactionsCount;
@@ -214,7 +214,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       // Full block and partial transactions are received
       case BlockPacket: {
-        DagBlock block(_r[0]);
+        DagBlock block(_r[0].data().toBytes());
 
         auto transactionsCount = _r.itemCount() - 1;
         std::unordered_map<trx_hash_t, Transaction> newTransactions;
@@ -321,7 +321,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
         int transactionCount = 0;
         for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
-          DagBlock block(_r[iBlock + transactionCount]);
+          DagBlock block(_r[iBlock + transactionCount].data().toBytes());
           peer->markBlockAsKnown(block.getHash());
 
           std::vector<Transaction> newTransactions;
@@ -689,7 +689,7 @@ void TaraxaCapability::sendBlocks(
   host_.capabilityHost()->prep(_id, name(), s, BlocksPacket,
                                blocks.size() + totalTransactionsCount);
   for (auto &block : blocks) {
-    block->serializeRLP(s);
+    s.appendRaw(block->rlp(true));
     taraxa::bytes trx_bytes;
     for (auto &trx : blockTransactions[block->getHash()]) {
       auto b = trx.rlp(true);
@@ -733,7 +733,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
                                  1 + block.getTrxs().size());
     transactionsToSend = block.getTrxs();
   }
-  block.serializeRLP(s);
+  s.appendRaw(block.rlp(true));
 
   taraxa::bytes trx_bytes;
   for (auto trx : transactionsToSend) {
