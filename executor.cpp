@@ -36,12 +36,12 @@ bool Executor::executeBlkTrxs(
     StateRegistry::State& state, blk_hash_t const& blk,
     std::vector<uint> const& trx_modes,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
-  std::string blk_json = db_blks_->get(blk.toString());
-  if (blk_json.empty()) {
+  auto blk_bytes = db_blks_->get(blk);
+  if (blk_bytes.size() == 0) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
-  DagBlock dag_block(blk_json);
+  DagBlock dag_block(blk_bytes);
 
   auto trxs_hash = dag_block.getTrxs();
   auto num_trxs = trxs_hash.size();

@@ -35,36 +35,59 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
 }
 
 DagBlock::DagBlock(stream &strm) { deserialize(strm); }
-DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
-  // fixme: error swallowing. remove the try block
-  try {
-    level_ = level_t(doc.get<level_t>("level"));
-    tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
-    trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-    sig_ = sig_t(doc.get<std::string>("sig"));
-    hash_ = blk_hash_t(doc.get<std::string>("hash"));
-    cached_sender_ = addr_t(doc.get<std::string>("sender"));
-    pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
-    timestamp_ = doc.get<int64_t>("timestamp");
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
+
+DagBlock::DagBlock(string const &json) {
+  Json::Value doc;
+  Json::Reader reader;
+  bool parsing_successful = reader.parse(json, doc);
+  if (!parsing_successful) {
+    std::cerr << "Parsing Json Transaction failed" << json << std::endl;
     assert(false);
   }
+  level_ = level_t(doc["level"].asUInt64());
+  tips_ = asVector<blk_hash_t>(doc["tips"]);
+  trxs_ = asVector<trx_hash_t>(doc["trxs"]);
+  sig_ = sig_t(doc["sig"].asString());
+  hash_ = blk_hash_t(doc["hash"].asString());
+  cached_sender_ = addr_t(doc["sender"].asString());
+  pivot_ = blk_hash_t(doc["pivot"].asString());
+  timestamp_ = doc["timestamp"].asInt64();
 }
-DagBlock::DagBlock(dev::RLP const &_r) {
-  std::vector<::byte> blockBytes;
-  blockBytes = _r.toBytes();
-  taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
-  deserialize(strm);
+
+DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
+  level_ = level_t(doc.get<level_t>("level"));
+  tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
+  trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
+  sig_ = sig_t(doc.get<std::string>("sig"));
+  hash_ = blk_hash_t(doc.get<std::string>("hash"));
+  cached_sender_ = addr_t(doc.get<std::string>("sender"));
+  pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
+  timestamp_ = doc.get<int64_t>("timestamp");
 }
-void DagBlock::serializeRLP(dev::RLPStream &s) {
-  std::vector<uint8_t> bytes;
-  {
-    vectorstream strm(bytes);
-    serialize(strm);
+
+DagBlock::DagBlock(bytes const &_rlp) {
+  dev::RLP const rlp(_rlp);
+  if (!rlp.isList())
+    throw std::invalid_argument("transaction RLP must be a list");
+
+  hash_ = rlp[0].toHash<blk_hash_t>();
+  pivot_ = rlp[1].toHash<blk_hash_t>();
+  level_ = rlp[2].toInt<level_t>();
+  timestamp_ = rlp[3].toInt<int64_t>();
+  uint64_t num_tips = rlp[4].toInt<uint64_t>();
+  for (auto i = 0; i < num_tips; ++i) {
+    auto tip = rlp[5 + i].toHash<blk_hash_t>();
+    tips_.push_back(tip);
   }
-  s.append(bytes);
+  uint64_t num_trxs = rlp[5 + num_tips].toInt<uint64_t>();
+  for (auto i = 0; i < num_trxs; ++i) {
+    auto trx = rlp[6 + num_tips + i].toHash<trx_hash_t>();
+    trxs_.push_back(trx);
+  }
+  if (rlp.itemCount() > 6 + num_tips + num_trxs)
+    sig_ = rlp[6 + num_tips + num_trxs].toHash<sig_t>();
 }
+
 bool DagBlock::isValid() const {
   return !(pivot_.isZero() && hash_.isZero() && sig_.isZero() &&
            cached_sender_.isZero());
@@ -90,31 +113,8 @@ Json::Value DagBlock::getJson() const {
 }
 
 std::string DagBlock::getJsonStr() const {
-  using boost::property_tree::ptree;
-
-  ptree tree;
-  tree.put("pivot", pivot_.toString());
-  tree.put("level", std::to_string(level_));
-  tree.put_child("tips", ptree());
-  auto &tips_array = tree.get_child("tips");
-  for (auto const &t : tips_) {
-    tips_array.push_back(std::make_pair("", ptree(t.toString().c_str())));
-  }
-
-  tree.put_child("trxs", ptree());
-  auto &trxs_array = tree.get_child("trxs");
-  for (auto const &t : trxs_) {
-    trxs_array.push_back(std::make_pair("", ptree(t.toString().c_str())));
-  }
-
-  tree.put("sig", sig_.toString());
-  tree.put("hash", hash_.toString());
-  tree.put("sender", cached_sender_.toString());
-  tree.put("timestamp", timestamp_);
-
-  std::stringstream ostrm;
-  boost::property_tree::write_json(ostrm, tree);
-  return ostrm.str();
+  Json::StreamWriterBuilder builder;
+  return Json::writeString(builder, getJson());
 }
 
 bool DagBlock::serialize(stream &strm) const {
@@ -203,12 +203,15 @@ addr_t DagBlock::sender() const {
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   auto num_tips = tips_.size();
   auto num_trxs = trxs_.size();
-  auto total = 2 + num_tips + num_trxs;
+  auto total = num_tips + num_trxs + 6;
   s.appendList(include_sig ? total + 1 : total);
+  s << hash_;
   s << pivot_;
   s << level_;
   s << timestamp_;
+  s << num_tips;
   for (auto i = 0; i < num_tips; ++i) s << tips_[i];
+  s << num_trxs;
   for (auto i = 0; i < num_trxs; ++i) s << trxs_[i];
   if (include_sig) {
     s << sig_;

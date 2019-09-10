@@ -131,7 +131,7 @@ void FullNode::initDB(bool destroy_db) {
     }
     auto const &genesis_hash = genesis_block.getHash();
     // store genesis blk to db
-    db_blks_->put(genesis_hash.toString(), genesis_block.getJsonStr());
+    db_blks_->put(genesis_hash, genesis_block.rlp(true));
     db_blks_->commit();
     // Initialize DAG genesis at DAG block heigh 0
     pbft_chain_->pushDagBlockHash(genesis_hash);
@@ -180,9 +180,9 @@ void FullNode::initDB(bool destroy_db) {
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
-        auto block_json = db_blks_->get(block);
-        if (block_json != "") {
-          auto blk = DagBlock(block_json);
+        auto block_bytes = db_blks_->get(blk_hash_t(block));
+        if (block_bytes.size() > 0) {
+          auto blk = DagBlock(block_bytes);
           dag_mgr_->addDagBlock(blk);
           max_dag_level_ = level;
         }
@@ -295,7 +295,8 @@ void FullNode::start(bool boot_node) {
 
         dag_mgr_->addDagBlock(blk);
         {
-          db_blks_->put(blk.getHash().toString(), blk.getJsonStr());
+          auto block_bytes = blk.rlp(true);
+          db_blks_->put(blk.getHash(), block_bytes);
           db_blks_->commit();
           auto level = blk.getLevel();
           h256 level_key(level);
@@ -474,9 +475,9 @@ void FullNode::insertTransaction(Transaction const &trx) {
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
     blk_hash_t const &hash) const {
-  std::string json = db_blks_->get(hash.toString());
-  if (!json.empty()) {
-    return std::make_shared<DagBlock>(json);
+  auto blk_bytes = db_blks_->get(hash);
+  if (blk_bytes.size() > 0) {
+    return std::make_shared<DagBlock>(blk_bytes);
   }
   return nullptr;
 }
@@ -487,9 +488,9 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   blk = blk_mgr_->getDagBlock(hash);
   // not in queue, search db
   if (!blk) {
-    std::string json = db_blks_->get(hash.toString());
-    if (!json.empty()) {
-      blk = std::make_shared<DagBlock>(json);
+    auto blk_bytes = db_blks_->get(hash);
+    if (blk_bytes.size() > 0) {
+      blk = std::make_shared<DagBlock>(blk_bytes);
     }
   }
 
@@ -523,9 +524,9 @@ std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
     vector<string> blocks;
     boost::split(blocks, entry, boost::is_any_of(","));
     for (auto const &block : blocks) {
-      auto block_json = db_blks_->get(block);
-      if (block_json != "") {
-        res.push_back(std::make_shared<DagBlock>(block_json));
+      auto block_bytes = db_blks_->get(blk_hash_t(block));
+      if (block_bytes.size() > 0) {
+        res.push_back(std::make_shared<DagBlock>(block_bytes));
       }
     }
   }
