@@ -410,7 +410,7 @@ void PbftManager::run() {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_
                         << " step 5 late due to execution";
         } else {
-          LOG(log_err_) << "PBFT Reached round " << pbft_round_
+          LOG(log_deb_) << "PBFT Reached round " << pbft_round_
                         << " step 5 late without executing";
         }
         pbft_step_ = 7;
