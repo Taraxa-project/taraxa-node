@@ -113,15 +113,19 @@ string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
   auto node = tryGetNode();
   taraxa::Transaction trx(trx_hash_t("0x1"),
                           taraxa::Transaction::Type::Call,  //
-                          val_t(1),
+                          val_t(std::stoul(_json["nonce"].asString(), 0, 16)),
                           val_t(std::stoul(_json["value"].asString(), 0, 16)),
                           val_t((_json["gas_price"].asString())),
                           val_t(_json["gas"].asString()),  //
                           addr_t(_json["to"].asString()),
                           taraxa::sig_t(),  //
                           str2bytes(_json["data"].asString()));
-  node->insertTransaction(trx);
-  return toJS(trx.getHash());
+  if(node->getAddress() == addr_t(_json["from"].asString())) {
+    trx.sign(node->getSecretKey());
+    node->insertTransaction(trx);
+    return toJS(trx.getHash());
+  }
+  return toJS(trx_hash_t());
 }
 
 // TODO not listed at https://github.com/ethereum/wiki/wiki/JSON-RPC
