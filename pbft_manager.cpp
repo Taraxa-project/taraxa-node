@@ -581,6 +581,14 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_tra_) << "Don't have enough coins to vote";
     return false;
   }
+  // only active players are able to vote
+  uint64_t last_period = pbft_chain_->getPbftChainPeriod();
+  if (sortition_account_balance_table[account_address].second <
+      (last_period - SKIP_PERIODS)) {
+    LOG(log_tra_) << "Nonatctive player since period "
+                  << last_period - SKIP_PERIODS;
+    return false;
+  }
   std::pair<val_t, bool> account_balance =
       full_node->getBalance(account_address);
   if (!account_balance.second) {
