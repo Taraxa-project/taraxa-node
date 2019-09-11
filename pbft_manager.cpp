@@ -55,7 +55,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
         << master_boot_node_account_balance.first;
   }
   sortition_account_balance_table[master_boot_node_address] =
-      master_boot_node_account_balance.first;
+      std::make_pair(master_boot_node_account_balance.first, 0);
 }
 
 void PbftManager::start() {
@@ -110,11 +110,7 @@ void PbftManager::stop() {
  */
 void PbftManager::run() {
   // Initilize TWO_T_PLUS_ONE and sortition_threshold
-  size_t accounts = sortition_account_balance_table.size();
-  TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
-  sortition_threshold_ = accounts;
-  LOG(log_inf_) << "Initialize 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
-                << sortition_threshold_;
+  updateTwoTPlusOneAndThreshold_();
 
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
@@ -492,7 +488,7 @@ void PbftManager::run() {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step "
                         << pbft_step_ << " late due to execution";
         } else {
-          LOG(log_err_) << "PBFT Reached round " << pbft_round_ << " step "
+          LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step "
                         << pbft_step_ << " late without executing";
         }
         pbft_step_ += 2;
@@ -1219,22 +1215,15 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         //  reference. But will return a list of modified accounts as
         //  pairs<addr_t, val_t>.
         //  Will need update sortition_account_balance_table here
+        uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
         if (!full_node->executeScheduleBlock(pbft_block.getScheduleBlock(),
-                                             sortition_account_balance_table)) {
+                                             sortition_account_balance_table,
+                                             pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
 
         // reset sortition_threshold and TWO_T_PLUS_ONE
-        size_t accounts = sortition_account_balance_table.size();
-        if (COMMITTEE_SIZE <= accounts) {
-          TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
-          sortition_threshold_ = COMMITTEE_SIZE;
-        } else {
-          TWO_T_PLUS_ONE = accounts * 2 / 3 + 1;
-          sortition_threshold_ = accounts;
-        }
-        LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE << " Threshold "
-                      << sortition_threshold_;
+        updateTwoTPlusOneAndThreshold_();
 
         return true;
       }
@@ -1242,6 +1231,26 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
   }  // TODO: more pbft block type
 
   return false;
+}
+
+void PbftManager::updateTwoTPlusOneAndThreshold_() {
+  uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
+  size_t active_players = 0;
+  for (auto const& account : sortition_account_balance_table) {
+    if (account.second.second >= (last_pbft_period - SKIP_PERIODS)) {
+      active_players++;
+    }
+  }
+  if (COMMITTEE_SIZE <= active_players) {
+    TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
+  } else {
+    TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
+  }
+  sortition_threshold_ = sortition_account_balance_table.size();
+  LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE
+                << ", Threshold(total accounts): " << sortition_threshold_
+                << ", active players " << active_players << " since period "
+                << last_pbft_period - SKIP_PERIODS;
 }
 
 void PbftManager::countVotes_() {

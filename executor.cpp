@@ -14,7 +14,9 @@ namespace taraxa {
 
 bool Executor::execute(
     TrxSchedule const& sche,
-    std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
+    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+        sortition_account_balance_table,
+    uint64_t period) {
   if (sche.blk_order.empty()) {
     return true;
   }
@@ -24,7 +26,7 @@ bool Executor::execute(
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
     if (!executeBlkTrxs(state, blk, trx_modes,
-                        sortition_account_balance_table)) {
+                        sortition_account_balance_table, period)) {
       return false;
     }
   }
@@ -35,9 +37,17 @@ bool Executor::execute(
 bool Executor::executeBlkTrxs(
     StateRegistry::State& state, blk_hash_t const& blk,
     std::vector<uint> const& trx_modes,
+<<<<<<< HEAD
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   auto blk_bytes = db_blks_->get(blk);
   if (blk_bytes.size() == 0) {
+=======
+    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+        sortition_account_balance_table,
+    uint64_t period) {
+  std::string blk_json = db_blks_->get(blk.toString());
+  if (blk_json.empty()) {
+>>>>>>> Add last period seen transations in PBFT account balance table, checking players send transactions every period
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
@@ -67,7 +77,7 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
-    if (!coinTransfer(state, trx, sortition_account_balance_table)){
+    if (!coinTransfer(state, trx, sortition_account_balance_table, period)){
       continue;
     }
     LOG(log_time_) << "Transaction " << trx_hash
@@ -85,8 +95,10 @@ bool Executor::executeBlkTrxs(
 
 bool Executor::coinTransfer(
     StateRegistry::State& state, Transaction const& trx,
-    std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
-  auto hash =trx.getHash();
+    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+        sortition_account_balance_table,
+    uint64_t period) {
+  auto hash = trx.getHash();
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   val_t value = trx.getValue();
@@ -111,21 +123,29 @@ bool Executor::coinTransfer(
   val_t new_receiver_bal = receiver_initial_coin + value;
   state.setBalance(sender, new_sender_bal);
   state.setBalance(receiver, new_receiver_bal);
-  // Update account balance table. Will remove in VM since vm return a list of
-  // modified balance accounts
+  // Update PBFT account balance table. Will remove in VM since vm return a list
+  // of modified balance accounts
   if (new_sender_bal >= pbft_require_sortition_coins_) {
-    sortition_account_balance_table[sender] = new_sender_bal;
+    sortition_account_balance_table[sender] =
+        std::make_pair(new_sender_bal, period);
   } else if (sortition_account_balance_table.find(sender) !=
              sortition_account_balance_table.end()) {
     sortition_account_balance_table.erase(sender);
   }
   if (new_receiver_bal >= pbft_require_sortition_coins_) {
-    sortition_account_balance_table[receiver] = new_receiver_bal;
+    if (sortition_account_balance_table.find(receiver) !=
+        sortition_account_balance_table.end()) {
+      sortition_account_balance_table[receiver].first = new_receiver_bal;
+    } else {
+      sortition_account_balance_table[receiver] =
+          std::make_pair(new_receiver_bal, 0);
+    }
   }
 
-  LOG(log_dg_) << "Update sender bal: " << sender << " --> " << new_sender_bal;
+  LOG(log_dg_) << "Update sender bal: " << sender << " --> " << new_sender_bal
+               << " in period " << period;
   LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
-               << new_receiver_bal;
+               << new_receiver_bal << " in period " << period;
   num_executed_trx_.fetch_add(1);
   executed_trx_.insert(hash, true);
   return true;
