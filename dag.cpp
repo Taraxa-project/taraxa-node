@@ -55,6 +55,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
   epc_map[ret] = 0;  // means not finalized
   // <<std::endl;
+  edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
+
   edge_t edge;
   bool res = true;
 
@@ -63,6 +65,7 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   // Add a new block, edges are pointing from pivot to new_veretx
   if (!pivot.empty()) {
     std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
+    weight_map[edge] = 1;
     if (!res) {
       LOG(log_wr_) << "Creating pivot edge \n"
                    << pivot << "\n-->\n"
@@ -72,6 +75,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   bool res2 = true;
   for (auto const &e : tips) {
     std::tie(edge, res2) = boost::add_edge_by_label(e, new_vertex, graph_);
+    weight_map[edge] = 0;
+
     if (!res2) {
       LOG(log_wr_) << "Creating tip edge \n"
                    << e << "\n-->\n"
@@ -87,8 +92,9 @@ void Dag::drawGraph(std::string filename) const {
   std::ofstream outfile(filename.c_str());
   auto index_map = boost::get(boost::vertex_index, graph_);
   auto ep_map = boost::get(boost::vertex_index1, graph_);
+  auto weight_map = boost::get(boost::edge_index, graph_);
 
-  boost::write_graphviz(outfile, graph_, label_writer(index_map, ep_map));
+  boost::write_graphviz(outfile, graph_, vertex_label_writer(index_map, ep_map), edge_label_writer(weight_map));
   std::cout << "Dot file " << filename << " generated!" << std::endl;
   std::cout << "Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"
             << std::endl;
@@ -305,6 +311,7 @@ std::vector<Dag::vertex_hash> Dag::deletePeriod(uint64_t period) {
   }
   auto vertices = periods_[period];
   upgradeLock ll(lock);
+  //TODO: make sure property table are pruned as well
   for (auto const &v : vertices) {
     clear_vertex_by_label(v, graph_);
     remove_vertex(v, graph_);
