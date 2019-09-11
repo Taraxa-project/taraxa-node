@@ -875,10 +875,11 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     }
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one << ", Threshold: "
-                 << sortition_threshold << ", valid voting players "
-                 << players_size << ", active players " << active_players
-                 << " since period " << since_period;
+    LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one
+                 << ", Threshold: " << sortition_threshold
+                 << ", valid voting players " << players_size
+                 << ", active players " << active_players << " since period "
+                 << since_period;
   }
   // TODO: push other type pbft block into pbft chain
 
