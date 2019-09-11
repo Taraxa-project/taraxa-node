@@ -13,7 +13,7 @@
 namespace taraxa {
 
 bool Executor::execute(
-    TrxSchedule const& sche,
+    TrxSchedule const& sche,y
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   if (sche.blk_order.empty()) {
     return true;
@@ -104,7 +104,7 @@ bool Executor::coinTransfer(
     return false;
   }
   if (executed_trx_.get(hash).second){
-    LOG(log_er_) << "The transaction has been executed ..." << hash;
+    LOG(log_wr_) << "The transaction has been executed ..." << hash;
     return false;
   }
   val_t new_sender_bal = sender_initial_coin - value;
