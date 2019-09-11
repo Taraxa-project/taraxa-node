@@ -13,7 +13,7 @@
 namespace taraxa {
 
 bool Executor::execute(
-    TrxSchedule const& sche,y
+    TrxSchedule const& sche,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   if (sche.blk_order.empty()) {
     return true;
