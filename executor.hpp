@@ -19,6 +19,7 @@
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "state_registry.hpp"
+#include "util.hpp"
 
 namespace taraxa {
 /**
@@ -39,6 +40,11 @@ class Executor {
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
+  using TrxExecutionTable = StatusTable<trx_hash_t, bool>;
+  using BlkExecutionTable = StatusTable<blk_hash_t, bool>;
+
+  TrxExecutionTable executed_trx_;
+  BlkExecutionTable executed_blk_;
 
   // for debug purpose
   dev::Logger log_si_{

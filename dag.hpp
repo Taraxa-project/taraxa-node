@@ -98,8 +98,14 @@ class Dag {
   // warning! slow, iterate through all vertices ...
   void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
                            std::vector<vertex_hash> &epfriend) const;
+
   // deleter
-  void deletePeriod(uint64_t period);
+  std::vector<Dag::vertex_hash> deletePeriod(uint64_t period);
+  void delVertex(std::string const &v);
+
+// properties
+  uint64_t getVertexPeriod(vertex_hash const &vertex) const;
+  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
 
  protected:
   // Note: private functions does not lock
@@ -107,16 +113,12 @@ class Dag {
   // vertex API
   vertex_t addVertex(std::string const &v);
   // will delete all edges associate with the vertex
-  void delVertex(std::string const &v);
 
   // edge API
   edge_t addEdge(std::string const &v1, std::string const &v2);
   edge_t addEdge(vertex_t v1, vertex_t v2);
 
-  // properties
-
-  uint64_t getVertexPeriod(vertex_hash const &vertex) const;
-  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
+  
 
   // traverser API
   bool reachable(vertex_t const &from, vertex_t const &to) const;
@@ -201,7 +203,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   void getGhostPath(std::string const &source,
                     std::vector<std::string> &ghost) const;
-
+  void deletePeriod(uint64_t period);
   // ----- Total graph
   std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
                                                     std::string const &to);
@@ -219,6 +221,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::string getLatestAnchor() const { return anchors_.back(); }
 
  private:
+  size_t num_cached_period_in_dag = 10;
   bool addDagBlockInternal(DagBlock const &blk);
   void addToDagBuffer(DagBlock const &blk);
   void addToDag(std::string const &hash, std::string const &pivot,

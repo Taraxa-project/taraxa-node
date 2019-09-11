@@ -102,10 +102,13 @@ Dag::vertex_t Dag::addVertex(vertex_hash const &hash) {
 }
 
 void Dag::delVertex(vertex_hash const &hash) {
+  upgradableLock lock(mutex_);
   vertex_t to_be_removed = graph_.vertex(hash);
   if (to_be_removed == graph_.null_vertex()) {
     return;
   }
+
+  upgradeLock ll(lock);
   clear_vertex_by_label(hash, graph_);
   remove_vertex(hash, graph_);
 }
@@ -267,6 +270,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
 }
 
 void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
+  uLock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
     LOG(log_wr_) << "Cannot find vertex (setVertexPeriod) " << vertex
@@ -278,6 +282,7 @@ void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
 }
 
 uint64_t Dag::getVertexPeriod(vertex_hash const &vertex) const {
+  sharedLock lock(mutex_);
   vertex_t current = graph_.vertex(vertex);
   if (current == graph_.null_vertex()) {
     LOG(log_wr_) << "Cannot find vertex (getVertexPeriod) " << vertex
@@ -288,19 +293,25 @@ uint64_t Dag::getVertexPeriod(vertex_hash const &vertex) const {
   return ep[current];
 }
 
-void Dag::deletePeriod(uint64_t period) {
+std::vector<Dag::vertex_hash> Dag::deletePeriod(uint64_t period) {
+  std::vector<vertex_hash> ret;
   if (period == 0) {
-    return;
+    return ret;
   }
+  upgradableLock lock(mutex_);
   if (periods_.count(period) == 0) {
     LOG(log_wr_) << "Period " << period << " is empty ...";
-    return;
+    return ret;
   }
   auto vertices = periods_[period];
+  upgradeLock ll(lock);
   for (auto const &v : vertices) {
-    delVertex(v);
+    clear_vertex_by_label(v, graph_);
+    remove_vertex(v, graph_);
     periods_.erase(period);
+    ret.emplace_back(v);
   }
+  return ret;
 }
 
 // dfs
@@ -549,7 +560,8 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
-  pivot_tree_->getGhostPath(genesis_, pivot_chain);
+  auto last_pivot=anchors_.back();
+  pivot_tree_->getGhostPath(last_pivot, pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->getLeaves(tips);
@@ -640,6 +652,23 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
     return 0;
   }
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
+
+  // update period in pivot_tree
+  for (auto const & b: blk_orders){
+    pivot_tree_->setVertexPeriod(b, period);
+  }
+
+  // clear up old DAG
+  if (period > num_cached_period_in_dag) {
+    total_dag_->deletePeriod(period - num_cached_period_in_dag);
+  }
+
   return blk_orders.size();
+}
+void DagManager::deletePeriod(uint64_t period) {
+  auto deleted_vertices = total_dag_->deletePeriod(period);
+  for (auto const &t : deleted_vertices) {
+    pivot_tree_->delVertex(t);
+  }
 }
 }  // namespace taraxa
