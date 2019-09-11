@@ -648,6 +648,9 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
               next_vote_type, votes, rs_votes.first.first,
               rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
+        LOG(log_deb_) << "Determined from votes in round "
+                      << rs_votes.first.first << " in step "
+                      << rs_votes.first.second;
         return rs_votes.first.first + 1;
       }
     }
