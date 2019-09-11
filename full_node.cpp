@@ -850,6 +850,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     // reset sortition_threshold and TWO_T_PLUS_ONE
     size_t two_t_plus_one;
     size_t sortition_threshold;
+    size_t players_size = pbft_mgr_->sortition_account_balance_table.size();
     size_t active_players = 0;
     for (auto const &account : pbft_mgr_->sortition_account_balance_table) {
       if (account.second.second >= (pbft_period - pbft_mgr_->SKIP_PERIODS)) {
@@ -858,14 +859,17 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     }
     if (pbft_mgr_->COMMITTEE_SIZE <= active_players) {
       two_t_plus_one = pbft_mgr_->COMMITTEE_SIZE * 2 / 3 + 1;
+      // rount up
+      sortition_threshold =
+          (players_size * pbft_mgr_->COMMITTEE_SIZE - 1) / active_players + 1;
     } else {
       two_t_plus_one = active_players * 2 / 3 + 1;
+      sortition_threshold = players_size;
     }
-    sortition_threshold = pbft_mgr_->sortition_account_balance_table.size();
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one
-                 << ", Threshold(total accounts): " << sortition_threshold
+    LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one << ", Threshold: "
+                 << sortition_threshold << ", total players " << players_size
                  << ", active players " << active_players << " since period "
                  << pbft_period - pbft_mgr_->SKIP_PERIODS;
   }

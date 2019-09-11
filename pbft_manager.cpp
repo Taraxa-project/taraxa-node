@@ -1235,6 +1235,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
+  size_t players_size = sortition_account_balance_table.size();
   size_t active_players = 0;
   for (auto const &account : sortition_account_balance_table) {
     if (account.second.second >= (last_pbft_period - SKIP_PERIODS)) {
@@ -1243,14 +1244,17 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   }
   if (COMMITTEE_SIZE <= active_players) {
     TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
+    // round up
+    sortition_threshold_ =
+        (players_size * COMMITTEE_SIZE - 1) / active_players + 1;
   } else {
     TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
+    sortition_threshold_ = players_size;
   }
-  sortition_threshold_ = sortition_account_balance_table.size();
   LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE
-                << ", Threshold(total accounts): " << sortition_threshold_
-                << ", active players " << active_players << " since period "
-                << last_pbft_period - SKIP_PERIODS;
+                << ", Threshold: " << sortition_threshold_ << ", total players "
+                << players_size << ", active players " << active_players
+                << " since period " << last_pbft_period - SKIP_PERIODS;
 }
 
 void PbftManager::countVotes_() {
