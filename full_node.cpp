@@ -707,12 +707,11 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-        sortition_account_balance_table,
+    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>
+        &sortition_account_balance_table,
     uint64_t period) {
   auto res = executor_->execute(sche_blk.getSchedule(),
-                                sortition_account_balance_table,
-                                period);
+                                sortition_account_balance_table, period);
   if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
   return res;
 }
@@ -852,7 +851,7 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     size_t two_t_plus_one;
     size_t sortition_threshold;
     size_t active_players = 0;
-    for (auto const& account : pbft_mgr_->sortition_account_balance_table) {
+    for (auto const &account : pbft_mgr_->sortition_account_balance_table) {
       if (account.second.second >= (pbft_period - pbft_mgr_->SKIP_PERIODS)) {
         active_players++;
       }
@@ -866,9 +865,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
     LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one
-                  << ", Threshold(total accounts): " << sortition_threshold
-                  << ", active players " << active_players << " since period "
-                  << pbft_period - pbft_mgr_->SKIP_PERIODS;
+                 << ", Threshold(total accounts): " << sortition_threshold
+                 << ", active players " << active_players << " since period "
+                 << pbft_period - pbft_mgr_->SKIP_PERIODS;
   }
   // TODO: push other type pbft block into pbft chain
 

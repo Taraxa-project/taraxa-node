@@ -72,7 +72,7 @@ class PbftManager {
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
   bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
-  uint64_t SKIP_PERIODS=0;
+  uint64_t SKIP_PERIODS = 0;
 
  private:
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,

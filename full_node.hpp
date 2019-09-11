@@ -150,8 +150,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // pbft stuff
   bool executeScheduleBlock(
       ScheduleBlock const &sche_blk,
-      std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-          sortition_account_balance_table,
+      std::unordered_map<addr_t, std::pair<val_t, uint64_t>>
+          &sortition_account_balance_table,
       uint64_t period);
 
   bool destroyDB();

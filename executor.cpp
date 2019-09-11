@@ -12,11 +12,10 @@
 
 namespace taraxa {
 
-bool Executor::execute(
-    TrxSchedule const& sche,
-    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-        sortition_account_balance_table,
-    uint64_t period) {
+bool Executor::execute(TrxSchedule const& sche,
+                       std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+                           sortition_account_balance_table,
+                       uint64_t period) {
   if (sche.blk_order.empty()) {
     return true;
   }
@@ -25,8 +24,8 @@ bool Executor::execute(
   for (auto i(0); i < sche.blk_order.size(); ++i) {
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
-    if (!executeBlkTrxs(state, blk, trx_modes,
-                        sortition_account_balance_table, period)) {
+    if (!executeBlkTrxs(state, blk, trx_modes, sortition_account_balance_table,
+                        period)) {
       return false;
     }
   }

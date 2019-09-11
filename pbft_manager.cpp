@@ -1236,7 +1236,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
   size_t active_players = 0;
-  for (auto const& account : sortition_account_balance_table) {
+  for (auto const &account : sortition_account_balance_table) {
     if (account.second.second >= (last_pbft_period - SKIP_PERIODS)) {
       active_players++;
     }

@@ -70,11 +70,10 @@ class Executor {
         db_trxs_(std::move(db_trxs)),
         state_registry_(std::move(state_registry)) {}
 
-  bool execute(
-      TrxSchedule const& schedule,
-      std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-          sortition_account_balance_table,
-      uint64_t period);
+  bool execute(TrxSchedule const& schedule,
+               std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+                   sortition_account_balance_table,
+               uint64_t period);
   uint64_t getNumExecutedTrx() { return num_executed_trx_; }
   uint64_t getNumExecutedBlk() { return num_executed_blk_; }
   void setFullNode(std::shared_ptr<FullNode> full_node) {
@@ -82,17 +81,15 @@ class Executor {
   }
 
  private:
-  bool executeBlkTrxs(
-      StateRegistry::State&, blk_hash_t const& blk,
-      std::vector<uint> const& trx_modes,
-      std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-          sortition_account_balance_table,
-      uint64_t period);
-  bool coinTransfer(
-      StateRegistry::State&, Transaction const& trx,
-      std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-          sortition_account_balance_table,
-      uint64_t period);
+  bool executeBlkTrxs(StateRegistry::State&, blk_hash_t const& blk,
+                      std::vector<uint> const& trx_modes,
+                      std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+                          sortition_account_balance_table,
+                      uint64_t period);
+  bool coinTransfer(StateRegistry::State&, Transaction const& trx,
+                    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+                        sortition_account_balance_table,
+                    uint64_t period);
 };
 
 }  // namespace taraxa
