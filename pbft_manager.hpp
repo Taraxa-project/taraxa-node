@@ -64,15 +64,19 @@ class PbftManager {
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
+  // TODO: Maybe don't need account balance in the table
   // <account_addr, <account_balance, last_period_seen_trxs>>
-  std::unordered_map<addr_t, std::pair<val_t, uint64_t>>
+  // last_period_seen_trxs = -1 means never seen trxs
+  std::unordered_map<addr_t, std::pair<val_t, int64_t>>
       sortition_account_balance_table;
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
   bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
-  uint64_t SKIP_PERIODS = 0;
+  // When PBFT pivot block finalized, period = period + 1,
+  // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
+  uint64_t SKIP_PERIODS = 1;
 
  private:
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,

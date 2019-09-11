@@ -583,10 +583,14 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   }
   // only active players are able to vote
   uint64_t last_period = pbft_chain_->getPbftChainPeriod();
-  if (sortition_account_balance_table[account_address].second <
-      (last_period - SKIP_PERIODS)) {
-    LOG(log_tra_) << "Nonatctive player since period "
-                  << last_period - SKIP_PERIODS;
+  int64_t since_period;
+  if (last_period < SKIP_PERIODS) {
+    since_period = 0;
+  } else {
+    since_period = last_period - SKIP_PERIODS;
+  }
+  if (sortition_account_balance_table[account_address].second < since_period) {
+    LOG(log_tra_) << "Non-active player since period " << since_period;
     return false;
   }
   std::pair<val_t, bool> account_balance =
@@ -1247,9 +1251,15 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
   size_t players_size = sortition_account_balance_table.size();
+  int64_t since_period;
+  if (last_pbft_period < SKIP_PERIODS) {
+    since_period = 0;
+  } else {
+    since_period = last_pbft_period - SKIP_PERIODS;
+  }
   size_t active_players = 0;
   for (auto const &account : sortition_account_balance_table) {
-    if (account.second.second >= (last_pbft_period - SKIP_PERIODS)) {
+    if (account.second.second >= since_period) {
       active_players++;
     }
   }
@@ -1262,10 +1272,10 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
     TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
     sortition_threshold_ = players_size;
   }
-  LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE
-                << ", Threshold: " << sortition_threshold_ << ", total players "
+  LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
+                << sortition_threshold_ << ", valid voting players "
                 << players_size << ", active players " << active_players
-                << " since period " << last_pbft_period - SKIP_PERIODS;
+                << " since period " << since_period;
 }
 
 void PbftManager::countVotes_() {

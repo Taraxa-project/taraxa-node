@@ -13,7 +13,7 @@
 namespace taraxa {
 
 bool Executor::execute(TrxSchedule const& sche,
-                       std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+                       std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
                            sortition_account_balance_table,
                        uint64_t period) {
   if (sche.blk_order.empty()) {
@@ -37,11 +37,15 @@ bool Executor::executeBlkTrxs(
     StateRegistry::State& state, blk_hash_t const& blk,
     std::vector<uint> const& trx_modes,
 <<<<<<< HEAD
+<<<<<<< HEAD
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
   auto blk_bytes = db_blks_->get(blk);
   if (blk_bytes.size() == 0) {
 =======
     std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+=======
+    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
+>>>>>>> Fix integer overflow
         sortition_account_balance_table,
     uint64_t period) {
   std::string blk_json = db_blks_->get(blk.toString());
@@ -94,7 +98,7 @@ bool Executor::executeBlkTrxs(
 
 bool Executor::coinTransfer(
     StateRegistry::State& state, Transaction const& trx,
-    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
+    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
         sortition_account_balance_table,
     uint64_t period) {
   auto hash = trx.getHash();
@@ -137,7 +141,7 @@ bool Executor::coinTransfer(
       sortition_account_balance_table[receiver].first = new_receiver_bal;
     } else {
       sortition_account_balance_table[receiver] =
-          std::make_pair(new_receiver_bal, 0);
+          std::make_pair(new_receiver_bal, -1);
     }
   }
 

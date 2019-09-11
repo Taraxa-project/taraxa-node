@@ -707,7 +707,7 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>
+    std::unordered_map<addr_t, std::pair<val_t, int64_t>>
         &sortition_account_balance_table,
     uint64_t period) {
   auto res = executor_->execute(sche_blk.getSchedule(),
@@ -851,9 +851,16 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     size_t two_t_plus_one;
     size_t sortition_threshold;
     size_t players_size = pbft_mgr_->sortition_account_balance_table.size();
+    int64_t since_period;
+    if (pbft_period < pbft_mgr_->SKIP_PERIODS) {
+      since_period = 0;
+    } else {
+      since_period = pbft_period - pbft_mgr_->SKIP_PERIODS;
+    }
     size_t active_players = 0;
     for (auto const &account : pbft_mgr_->sortition_account_balance_table) {
-      if (account.second.second >= (pbft_period - pbft_mgr_->SKIP_PERIODS)) {
+      // integer overflow
+      if (account.second.second >= since_period) {
         active_players++;
       }
     }
@@ -869,9 +876,9 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
     LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one << ", Threshold: "
-                 << sortition_threshold << ", total players " << players_size
-                 << ", active players " << active_players << " since period "
-                 << pbft_period - pbft_mgr_->SKIP_PERIODS;
+                 << sortition_threshold << ", valid voting players "
+                 << players_size << ", active players " << active_players
+                 << " since period " << since_period;
   }
   // TODO: push other type pbft block into pbft chain
 
