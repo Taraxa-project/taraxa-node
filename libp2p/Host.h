@@ -117,7 +117,8 @@ public:
     Host(
         std::string const& _clientVersion,
         NetworkConfig const& _n = NetworkConfig{},
-        bytesConstRef _restoreNetwork = bytesConstRef()
+        bytesConstRef _restoreNetwork = bytesConstRef(),
+        bool encrypt = true
     );
 
     /// Alternative constructor that allows providing the node key directly
@@ -125,7 +126,8 @@ public:
     Host(
         std::string const& _clientVersion,
         KeyPair const& _alias,
-        NetworkConfig const& _n = NetworkConfig{}
+        NetworkConfig const& _n = NetworkConfig{},
+        bool encrypt = true
     );
 
     /// Will block on network process events.
@@ -364,6 +366,7 @@ private:
     std::chrono::steady_clock::time_point m_lastPing;						///< Time we sent the last ping to all peers.
     bool m_accepting = false;
     bool m_BootNode = false;
+    bool m_encrypt = true;
 
     ReputationManager m_repMan;
 

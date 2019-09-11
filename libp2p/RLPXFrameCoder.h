@@ -94,7 +94,7 @@ public:
 	void writeFrame(uint16_t _protocolType, uint16_t _seqId, uint32_t _totalSize, bytesConstRef _payload, bytes& o_bytes);
 	
 	/// Legacy. Encrypt _packet as ill-defined legacy RLPx frame.
-	void writeSingleFramePacket(bytesConstRef _packet, bytes& o_bytes);
+	void writeSingleFramePacket(bytesConstRef _packet, bytes& o_bytes, bool encrypted = true);
 
 	/// Authenticate and decrypt header in-place.
 	bool authAndDecryptHeader(bytesRef io_cipherWithMac);
