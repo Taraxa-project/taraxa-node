@@ -616,6 +616,9 @@ TEST_F(TopTest, sync_five_nodes) {
   }
 
   if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first - 1) {
+    std::cout<<"Number of block executed = "<< node1->getNumBlockExecuted();
+    auto num_vertices = node1->getNumVerticesInDag();
+    std::cout<<"Number of vertices in Dag = "<<  num_vertices.first<< " , "<<num_vertices.second<<std::endl;
     auto dags = node1->getLinearizedDagBlocks();
     for (auto i(0); i < dags.size(); ++i) {
       auto d = dags[i];
@@ -625,20 +628,19 @@ TEST_F(TopTest, sync_five_nodes) {
     }
     node1->drawGraph("debug_dag");
   }
-
+  auto i = 1;
   for (auto const &node : nodes) {
-    EXPECT_EQ(node->getPackedTrxs().size(), 10005);
+    EXPECT_EQ(node->getPackedTrxs().size(), 10005) << "Failed in node "<< i<< std::endl; 
     EXPECT_EQ(node->getNumBlockExecuted(),
               node->getNumVerticesInDag().first -
-                  1);  // genesis block won't be executed
+                  1)<< "Failed in node "<< i<< std::endl;  // genesis block won't be executed
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
-        << " \nNum execued in node1 " << node1->getNumTransactionExecuted()
-        << " \nNum execued in node2 " << node2->getNumTransactionExecuted()
-        << " \nNum execued in node3 " << node3->getNumTransactionExecuted()
-        << " \nNum execued in node4 " << node4->getNumTransactionExecuted()
-        << " \nNum execued in node5 " << node5->getNumTransactionExecuted()
-        << " \nNum blks: " << node->getLinearizedDagBlocks().size() << "\n "
-        << node->getLinearizedDagBlocks();
+        << " \nNum execued in node " << i
+        << " is : " << node->getNumTransactionExecuted()
+        << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
+        << " \nNum executed blks: " << node->getNumBlockExecuted()
+        << " \nNum vertices in DAG: " << node->getNumVerticesInDag().first
+        << " " << node->getNumVerticesInDag().second << "\n";
   }
 
   for (auto const &node : nodes) {

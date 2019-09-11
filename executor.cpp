@@ -41,6 +41,10 @@ bool Executor::executeBlkTrxs(
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
+  if (executed_blk_.get(blk).second==true){
+    LOG(log_er_) << "Block "<<blk<<" has been executed ...";
+    return false;
+  }
   DagBlock dag_block(blk_bytes);
 
   auto trxs_hash = dag_block.getTrxs();
@@ -63,11 +67,14 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
-    coinTransfer(state, trx, sortition_account_balance_table);
+    if (!coinTransfer(state, trx, sortition_account_balance_table)){
+      continue;
+    }
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
+  executed_blk_.insert(blk, true);
   LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
                << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
@@ -79,6 +86,7 @@ bool Executor::executeBlkTrxs(
 bool Executor::coinTransfer(
     StateRegistry::State& state, Transaction const& trx,
     std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
+  auto hash =trx.getHash();
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
   val_t value = trx.getValue();
@@ -87,12 +95,16 @@ bool Executor::coinTransfer(
   if (sender_initial_coin < trx.getValue()) {
     LOG(log_nf_) << "Insufficient fund for transfer ... , sender " << sender
                  << " , sender balance: " << sender_initial_coin
-                 << " , transfer: " << value << std::endl;
+                 << " , transfer: " << value;
     return false;
   }
   if (receiver_initial_coin >
       std::numeric_limits<uint64_t>::max() - trx.getValue()) {
-    LOG(log_er_) << "Error! Fund can overflow ..." << std::endl;
+    LOG(log_er_) << "Fund can overflow ...";
+    return false;
+  }
+  if (executed_trx_.get(hash).second){
+    LOG(log_er_) << "The transaction has been executed ..." << hash;
     return false;
   }
   val_t new_sender_bal = sender_initial_coin - value;
@@ -111,11 +123,11 @@ bool Executor::coinTransfer(
     sortition_account_balance_table[receiver] = new_receiver_bal;
   }
 
-  LOG(log_dg_) << "Update sender bal: " << sender << " --> " << new_sender_bal
-               << std::endl;
+  LOG(log_dg_) << "Update sender bal: " << sender << " --> " << new_sender_bal;
   LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
-               << new_receiver_bal << std::endl;
+               << new_receiver_bal;
   num_executed_trx_.fetch_add(1);
+  executed_trx_.insert(hash, true);
   return true;
 }
 
