@@ -268,7 +268,7 @@ TEST(DagManager, compute_epoch) {
   DagBlock blkI(blk_hash_t(10), 0, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(9),
                 addr_t(1));
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
-  DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  DagBlock blkK(blk_hash_t(8), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   mgr->addDagBlock(blkA);
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
@@ -449,6 +449,18 @@ TEST(DagManager, compute_epoch_2) {
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
   mgr->setDagBlockPeriod(blkK.getHash(), period);
+
+  mgr->deletePeriod(0);  // should be no op
+  mgr->deletePeriod(1);
+  EXPECT_EQ(mgr->getNumVerticesInDag(), std::make_pair(11ull, 11ull));
+  mgr->deletePeriod(2);
+  EXPECT_EQ(mgr->getNumVerticesInDag(), std::make_pair(9ull, 9ull));
+  mgr->deletePeriod(4);
+  EXPECT_EQ(mgr->getNumVerticesInDag(), std::make_pair(5ull, 5ull));
+  mgr->deletePeriod(3);
+  EXPECT_EQ(mgr->getNumVerticesInDag(), std::make_pair(2ull, 2ull));
+  mgr->deletePeriod(5);  
+  EXPECT_EQ(mgr->getNumVerticesInDag(), std::make_pair(1ull, 1ull));
 }
 
 TEST(DagManager, receive_block_out_of_order) {

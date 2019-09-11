@@ -255,19 +255,35 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
 // for graphviz
 template <class Property1, class Property2>
-class label_writer {
+class vertex_label_writer {
  public:
-  label_writer(Property1 name, Property2 period) : name(name), period(period) {}
-  template <class VertexOrEdge>
-  void operator()(std::ostream &out, const VertexOrEdge &v) const {
+  vertex_label_writer(Property1 name, Property2 period) : name(name), period(period) {}
+  template <class Vertex>
+  void operator()(std::ostream &out, const Vertex &v) const {
     out << "[label=\"" << name[v].substr(0, 6) << "..." << name[v].substr(58)
         << " (" << period[v] << ") "
         << "\"]";
   }
-
  private:
   Property1 name;
   Property2 period;
+};
+
+template <class Property>
+class edge_label_writer {
+ public:
+  edge_label_writer(Property weight) : weight(weight){}
+  template <class Edge>
+  void operator()(std::ostream &out, const Edge &e) const {
+    if (weight[e]==0){
+        out<<"[style=\"dashed\" dir=\"back\"]";
+    } else {
+        out<<"[dir=\"back\"]";
+    }
+
+  }
+ private:
+  Property weight;
 };
 
 }  // namespace taraxa
