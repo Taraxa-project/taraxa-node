@@ -457,20 +457,19 @@ TEST(DagManager, compute_epoch_2) {
 
   mgr->deletePeriod(2);
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 9);
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 9);  
-  
+  EXPECT_EQ(mgr->getNumVerticesInDag().second, 9);
+
   mgr->deletePeriod(4);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 5);  
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 5);  
+  EXPECT_EQ(mgr->getNumVerticesInDag().first, 5);
+  EXPECT_EQ(mgr->getNumVerticesInDag().second, 5);
 
   mgr->deletePeriod(3);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 2); 
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 2); 
+  EXPECT_EQ(mgr->getNumVerticesInDag().first, 2);
+  EXPECT_EQ(mgr->getNumVerticesInDag().second, 2);
 
-  mgr->deletePeriod(5);  
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 1);  
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 1);  
-
+  mgr->deletePeriod(5);
+  EXPECT_EQ(mgr->getNumVerticesInDag().first, 1);
+  EXPECT_EQ(mgr->getNumVerticesInDag().second, 1);
 }
 
 TEST(DagManager, receive_block_out_of_order) {

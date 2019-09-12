@@ -94,7 +94,8 @@ void Dag::drawGraph(std::string filename) const {
   auto ep_map = boost::get(boost::vertex_index1, graph_);
   auto weight_map = boost::get(boost::edge_index, graph_);
 
-  boost::write_graphviz(outfile, graph_, vertex_label_writer(index_map, ep_map), edge_label_writer(weight_map));
+  boost::write_graphviz(outfile, graph_, vertex_label_writer(index_map, ep_map),
+                        edge_label_writer(weight_map));
   std::cout << "Dot file " << filename << " generated!" << std::endl;
   std::cout << "Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"
             << std::endl;
@@ -311,7 +312,7 @@ std::vector<Dag::vertex_hash> Dag::deletePeriod(uint64_t period) {
   }
   auto vertices = periods_[period];
   upgradeLock ll(lock);
-  //TODO: make sure property table are pruned as well
+  // TODO: make sure property table are pruned as well
   for (auto const &v : vertices) {
     clear_vertex_by_label(v, graph_);
     remove_vertex(v, graph_);
@@ -567,7 +568,7 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
-  auto last_pivot=anchors_.back();
+  auto last_pivot = anchors_.back();
   pivot_tree_->getGhostPath(last_pivot, pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
@@ -661,7 +662,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
 
   // update period in pivot_tree
-  for (auto const & b: blk_orders){
+  for (auto const &b : blk_orders) {
     pivot_tree_->setVertexPeriod(b, period);
   }
 

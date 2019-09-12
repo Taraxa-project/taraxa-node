@@ -707,9 +707,11 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, val_t> &sortition_account_balance_table) {
+    std::unordered_map<addr_t, std::pair<val_t, int64_t>>
+        &sortition_account_balance_table,
+    uint64_t period) {
   auto res = executor_->execute(sche_blk.getSchedule(),
-                                sortition_account_balance_table);
+                                sortition_account_balance_table, period);
   if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
   return res;
 }
@@ -836,28 +838,48 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     //  But will return a list of modified accounts as pairs<addr_t, val_t>.
     //  Will need update sortition_account_balance_table here
     //  execute schedule block
+    uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
     if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
-                              pbft_mgr_->sortition_account_balance_table)) {
+                              pbft_mgr_->sortition_account_balance_table,
+                              pbft_period)) {
       LOG(log_er_) << "Failed to execute schedule block";
       // TODO: If valid transaction failed execute, how to do?
       // Should never happen
       assert(false);
     }
     // reset sortition_threshold and TWO_T_PLUS_ONE
-    size_t accounts = pbft_mgr_->sortition_account_balance_table.size();
     size_t two_t_plus_one;
     size_t sortition_threshold;
-    if (pbft_mgr_->COMMITTEE_SIZE <= accounts) {
-      two_t_plus_one = pbft_mgr_->COMMITTEE_SIZE * 2 / 3 + 1;
-      sortition_threshold = pbft_mgr_->COMMITTEE_SIZE;
+    size_t players_size = pbft_mgr_->sortition_account_balance_table.size();
+    int64_t since_period;
+    if (pbft_period < pbft_mgr_->SKIP_PERIODS) {
+      since_period = 0;
     } else {
-      two_t_plus_one = accounts * 2 / 3 + 1;
-      sortition_threshold = accounts;
+      since_period = pbft_period - pbft_mgr_->SKIP_PERIODS;
+    }
+    size_t active_players = 0;
+    for (auto const &account : pbft_mgr_->sortition_account_balance_table) {
+      // integer overflow
+      if (account.second.second >= since_period) {
+        active_players++;
+      }
+    }
+    if (pbft_mgr_->COMMITTEE_SIZE <= active_players) {
+      two_t_plus_one = pbft_mgr_->COMMITTEE_SIZE * 2 / 3 + 1;
+      // rount up
+      sortition_threshold =
+          (players_size * pbft_mgr_->COMMITTEE_SIZE - 1) / active_players + 1;
+    } else {
+      two_t_plus_one = active_players * 2 / 3 + 1;
+      sortition_threshold = players_size;
     }
     pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
     pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_dg_) << "Update 2t+1 " << two_t_plus_one << " Threshold "
-                 << sortition_threshold;
+    LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one
+                 << ", Threshold: " << sortition_threshold
+                 << ", valid voting players " << players_size
+                 << ", active players " << active_players << " since period "
+                 << since_period;
   }
   // TODO: push other type pbft block into pbft chain
 
