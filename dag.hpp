@@ -103,7 +103,7 @@ class Dag {
   std::vector<Dag::vertex_hash> deletePeriod(uint64_t period);
   void delVertex(std::string const &v);
 
-// properties
+  // properties
   uint64_t getVertexPeriod(vertex_hash const &vertex) const;
   void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
 
@@ -117,8 +117,6 @@ class Dag {
   // edge API
   edge_t addEdge(std::string const &v1, std::string const &v2);
   edge_t addEdge(vertex_t v1, vertex_t v2);
-
-  
 
   // traverser API
   bool reachable(vertex_t const &from, vertex_t const &to) const;
@@ -257,13 +255,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 template <class Property1, class Property2>
 class vertex_label_writer {
  public:
-  vertex_label_writer(Property1 name, Property2 period) : name(name), period(period) {}
+  vertex_label_writer(Property1 name, Property2 period)
+      : name(name), period(period) {}
   template <class Vertex>
   void operator()(std::ostream &out, const Vertex &v) const {
     out << "[label=\"" << name[v].substr(0, 6) << "..." << name[v].substr(58)
         << " (" << period[v] << ") "
         << "\"]";
   }
+
  private:
   Property1 name;
   Property2 period;
@@ -272,16 +272,16 @@ class vertex_label_writer {
 template <class Property>
 class edge_label_writer {
  public:
-  edge_label_writer(Property weight) : weight(weight){}
+  edge_label_writer(Property weight) : weight(weight) {}
   template <class Edge>
   void operator()(std::ostream &out, const Edge &e) const {
-    if (weight[e]==0){
-        out<<"[style=\"dashed\" dir=\"back\"]";
+    if (weight[e] == 0) {
+      out << "[style=\"dashed\" dir=\"back\"]";
     } else {
-        out<<"[dir=\"back\"]";
+      out << "[dir=\"back\"]";
     }
-
   }
+
  private:
   Property weight;
 };

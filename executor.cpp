@@ -36,26 +36,17 @@ bool Executor::execute(TrxSchedule const& sche,
 bool Executor::executeBlkTrxs(
     StateRegistry::State& state, blk_hash_t const& blk,
     std::vector<uint> const& trx_modes,
-<<<<<<< HEAD
-<<<<<<< HEAD
-    std::unordered_map<addr_t, val_t>& sortition_account_balance_table) {
-  auto blk_bytes = db_blks_->get(blk);
-  if (blk_bytes.size() == 0) {
-=======
-    std::unordered_map<addr_t, std::pair<val_t, uint64_t>>&
-=======
     std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
->>>>>>> Fix integer overflow
         sortition_account_balance_table,
     uint64_t period) {
   std::string blk_json = db_blks_->get(blk.toString());
-  if (blk_json.empty()) {
->>>>>>> Add last period seen transations in PBFT account balance table, checking players send transactions every period
+  auto blk_bytes = db_blks_->get(blk);
+  if (blk_bytes.size() == 0) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
-  if (executed_blk_.get(blk).second==true){
-    LOG(log_er_) << "Block "<<blk<<" has been executed ...";
+  if (executed_blk_.get(blk).second == true) {
+    LOG(log_er_) << "Block " << blk << " has been executed ...";
     return false;
   }
   DagBlock dag_block(blk_bytes);
@@ -80,7 +71,7 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
-    if (!coinTransfer(state, trx, sortition_account_balance_table, period)){
+    if (!coinTransfer(state, trx, sortition_account_balance_table, period)) {
       continue;
     }
     LOG(log_time_) << "Transaction " << trx_hash
@@ -118,7 +109,7 @@ bool Executor::coinTransfer(
     LOG(log_er_) << "Fund can overflow ...";
     return false;
   }
-  if (executed_trx_.get(hash).second){
+  if (executed_trx_.get(hash).second) {
     LOG(log_wr_) << "The transaction has been executed ..." << hash;
     return false;
   }

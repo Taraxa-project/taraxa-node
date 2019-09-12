@@ -616,9 +616,10 @@ TEST_F(TopTest, sync_five_nodes) {
   }
 
   if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first - 1) {
-    std::cout<<"Number of block executed = "<< node1->getNumBlockExecuted();
+    std::cout << "Number of block executed = " << node1->getNumBlockExecuted();
     auto num_vertices = node1->getNumVerticesInDag();
-    std::cout<<"Number of vertices in Dag = "<<  num_vertices.first<< " , "<<num_vertices.second<<std::endl;
+    std::cout << "Number of vertices in Dag = " << num_vertices.first << " , "
+              << num_vertices.second << std::endl;
     auto dags = node1->getLinearizedDagBlocks();
     for (auto i(0); i < dags.size(); ++i) {
       auto d = dags[i];
@@ -630,10 +631,12 @@ TEST_F(TopTest, sync_five_nodes) {
   }
   auto i = 1;
   for (auto const &node : nodes) {
-    EXPECT_EQ(node->getPackedTrxs().size(), 10005) << "Failed in node "<< i<< std::endl; 
+    EXPECT_EQ(node->getPackedTrxs().size(), 10005)
+        << "Failed in node " << i << std::endl;
     EXPECT_EQ(node->getNumBlockExecuted(),
-              node->getNumVerticesInDag().first -
-                  1)<< "Failed in node "<< i<< std::endl;  // genesis block won't be executed
+              node->getNumVerticesInDag().first - 1)
+        << "Failed in node " << i
+        << std::endl;  // genesis block won't be executed
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
         << " \nNum execued in node " << i
         << " is : " << node->getNumTransactionExecuted()
