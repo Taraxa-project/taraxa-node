@@ -40,9 +40,8 @@ class Executor {
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using TrxExecutionTable = StatusTable<trx_hash_t, bool>;
-  using BlkExecutionTable = StatusTable<blk_hash_t, bool>;
-
+  using TrxExecutionTable = StatusTable<trx_hash_t, blk_hash_t>;
+  using BlkExecutionTable = StatusTable<blk_hash_t, int>;
   TrxExecutionTable executed_trx_;
   BlkExecutionTable executed_blk_;
 
@@ -81,15 +80,15 @@ class Executor {
   }
 
  private:
-  bool executeBlkTrxs(StateRegistry::State&, blk_hash_t const& blk,
-                      std::vector<uint> const& trx_modes,
-                      std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                          sortition_account_balance_table,
-                      uint64_t period);
-  bool coinTransfer(StateRegistry::State&, Transaction const& trx,
-                    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                        sortition_account_balance_table,
-                    uint64_t period);
+  bool executeBlkTrxs(
+      StateRegistry::State&, blk_hash_t const& blk,
+      std::vector<uint> const& trx_modes,
+      std::unordered_map<addr_t, std::pair<val_t, int64_t>>& sortition_account_balance_table,
+      uint64_t period);
+  bool coinTransfer(
+      StateRegistry::State&, Transaction const& trx,
+      std::unordered_map<addr_t, std::pair<val_t, int64_t>>& sortition_account_balance_table,
+      uint64_t period, DagBlock const& dag_block);
 };
 
 }  // namespace taraxa

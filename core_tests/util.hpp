@@ -43,7 +43,8 @@ struct DBUsingTest : public T {
 
   void TearDown() override {
     T::TearDown();
-    cleanAllTestDB();
+    // we might need DB for debugging
+    // cleanAllTestDB();
   }
 };
 
