@@ -201,13 +201,25 @@ void RLPXFrameCoder::writeFrame(RLPStream const& _header, bytesConstRef _payload
 	egressDigest().ref().copyTo(macRef);
 }
 
-void RLPXFrameCoder::writeSingleFramePacket(bytesConstRef _packet, bytes& o_bytes)
+void RLPXFrameCoder::writeSingleFramePacket(bytesConstRef _packet, bytes& o_bytes, bool encrypted)
 {
-	RLPStream header;
 	uint32_t len = (uint32_t)_packet.size();
-	header.appendRaw(bytes({::byte((len >> 16) & 0xff), ::byte((len >> 8) & 0xff), ::byte(len & 0xff)}));
-	header.appendRaw(bytes({0xc2,0x80,0x80}));
-	writeFrame(header, _packet, o_bytes);
+  if(encrypted) {
+    RLPStream header;
+    header.appendRaw(bytes({::byte((len >> 16) & 0xff), ::byte((len >> 8) & 0xff), ::byte(len & 0xff)}));
+    header.appendRaw(bytes({0xc2,0x80,0x80}));
+    writeFrame(header, _packet, o_bytes);
+  }
+  else {
+    ::bytes bytes_to_send;
+    bytes_to_send.reserve(3 + len);
+    bytes_to_send.push_back(::byte((len >> 16) & 0xff));
+	  bytes_to_send.push_back(::byte((len >> 8) & 0xff));
+	  bytes_to_send.push_back(::byte(len & 0xff));
+    auto packet_bytes = _packet.toBytes();
+	  bytes_to_send.insert(bytes_to_send.end(), packet_bytes.begin(), packet_bytes.end());
+    o_bytes.swap(bytes_to_send);
+  }
 }
 
 bool RLPXFrameCoder::authAndDecryptHeader(bytesRef io)

@@ -111,21 +111,25 @@ string Taraxa::taraxa_getCode(string const& _address,
 
 string Taraxa::taraxa_sendTransaction(Json::Value const& _json) {
   auto node = tryGetNode();
-  taraxa::Transaction trx(trx_hash_t("0x1"),
-                          taraxa::Transaction::Type::Call,  //
-                          val_t(std::stoul(_json["nonce"].asString(), 0, 16)),
-                          val_t(std::stoul(_json["value"].asString(), 0, 16)),
-                          val_t((_json["gas_price"].asString())),
-                          val_t(_json["gas"].asString()),  //
-                          addr_t(_json["to"].asString()),
-                          taraxa::sig_t(),  //
-                          str2bytes(_json["data"].asString()));
-  if(node->getAddress() == addr_t(_json["from"].asString())) {
-    trx.sign(node->getSecretKey());
-    node->insertTransaction(trx);
-    return toJS(trx.getHash());
+  try {
+    taraxa::Transaction trx(trx_hash_t("0x1"),
+                            taraxa::Transaction::Type::Call,  //
+                            val_t(std::stoul(_json["nonce"].asString(), 0, 16)),
+                            val_t(std::stoul(_json["value"].asString(), 0, 16)),
+                            val_t((_json["gas_price"].asString())),
+                            val_t(_json["gas"].asString()),  //
+                            addr_t(_json["to"].asString()),
+                            taraxa::sig_t(),  //
+                            str2bytes(_json["data"].asString()));
+    if (node->getAddress() == addr_t(_json["from"].asString())) {
+      trx.sign(node->getSecretKey());
+      node->insertTransaction(trx);
+      return toJS(trx.getHash());
+    }
+    return toJS(trx_hash_t());
+  } catch (Exception const&) {
+    throw JsonRpcException("sendTransaction invalid format");
   }
-  return toJS(trx_hash_t());
 }
 
 // TODO not listed at https://github.com/ethereum/wiki/wiki/JSON-RPC
@@ -425,14 +429,14 @@ Json::Value Taraxa::getBlockJson(NodePtr const& node,
 }
 
 Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
-                                          bool _includeTransactions) {
+                                             bool _includeTransactions) {
   auto node = tryGetNode();
   auto block = node->getDagBlock(blk_hash_t(_blockHash));
-  if(block) {
+  if (block) {
     auto block_json = block->getJson();
-    if(_includeTransactions) {
+    if (_includeTransactions) {
       block_json["transactions"] = Json::Value(Json::arrayValue);
-      for(auto const &t : block->getTrxs()) {
+      for (auto const& t : block->getTrxs()) {
         block_json["transactions"].append(node->getTransaction(t)->getJson());
       }
     }
@@ -442,15 +446,15 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
 }
 
 Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
-                                            bool _includeTransactions) {
+                                              bool _includeTransactions) {
   auto node = tryGetNode();
   auto blocks = node->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
   auto res = Json::Value(Json::arrayValue);
-  for(auto const &b : blocks) {
+  for (auto const& b : blocks) {
     auto block_json = b->getJson();
-    if(_includeTransactions) {
+    if (_includeTransactions) {
       block_json["transactions"] = Json::Value(Json::arrayValue);
-      for(auto const &t : b->getTrxs()) {
+      for (auto const& t : b->getTrxs()) {
         block_json["transactions"].append(node->getTransaction(t)->getJson());
       }
     }
