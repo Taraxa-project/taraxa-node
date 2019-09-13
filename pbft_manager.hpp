@@ -23,7 +23,7 @@
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define LAMBDA_ms 1000           // milliseconds
 #define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 19
+#define MAX_STEPS 100
 #define COMMITTEE_SIZE 3  // TODO: The value for local test, need to change
 #define VALID_SORTITION_COINS 10000  // TODO: the value may change later
 #undef LAMBDA_ms                     // TODO: undef for test, need remove later
