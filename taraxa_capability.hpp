@@ -142,7 +142,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, NetworkConfig &_conf,
                    std::string const &genesis, bool const &performance_log)
-      : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis), performance_log_(performance_log) {
+      : Worker("taraxa"),
+        host_(_host),
+        conf_(_conf),
+        genesis_(genesis),
+        performance_log_(performance_log) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -175,7 +179,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                           std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock block);
   void onNewTransactions(
-      std::unordered_map<trx_hash_t, Transaction> const &transactions,
+      std::unordered_map<trx_hash_t,
+                         std::pair<Transaction, taraxa::bytes>> const
+          &transactions,
       bool fromNetwork);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
@@ -191,7 +197,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void requestBlocksLevel(NodeID const &_id, unsigned long level,
                           int number_of_levels);
   void sendTransactions(NodeID const &_id,
-                        std::vector<Transaction> const &transactions);
+                        std::vector<taraxa::bytes> const &transactions);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
@@ -256,7 +262,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
   dev::Logger log_perf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "NETPER")};
-  
 };
 }  // namespace taraxa
 #endif

@@ -41,10 +41,12 @@ class Network {
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
                  bool newBlock);
   void sendTransactions(NodeID const &_id,
-                        std::vector<Transaction> const &transactions);
+                        std::vector<taraxa::bytes> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);
   void onNewTransactions(
-      std::unordered_map<trx_hash_t, Transaction> const &transactions);
+      std::unordered_map<trx_hash_t,
+                         std::pair<Transaction, taraxa::bytes>> const
+          &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);
