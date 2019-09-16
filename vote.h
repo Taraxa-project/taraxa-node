@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-11
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-
-#ifndef VOTE_H
-#define VOTE_H
+#ifndef TARAXA_NODE_VOTE_H
+#define TARAXA_NODE_VOTE_H
 
 #include "libdevcore/Log.h"
 #include "libdevcrypto/Common.h"

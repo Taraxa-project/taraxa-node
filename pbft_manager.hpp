@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-10
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-
-#ifndef PBFT_MANAGER_HPP
-#define PBFT_MANAGER_HPP
+#ifndef TARAXA_NODE_PBFT_MANAGER_HPP
+#define TARAXA_NODE_PBFT_MANAGER_HPP
 
 #include <string>
 #include <thread>

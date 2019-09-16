@@ -1,10 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:11:46
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 22:11:46
- */
 #include "transaction_order_manager.hpp"
 #include "full_node.hpp"
 
@@ -39,7 +32,7 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
     TransactionExecStatusTable& status_for_proposing_blocks) {
   auto trxs = blk.getTrxs();
   std::vector<bool> res;
-  
+
   for (auto const& t : trxs) {
     if (status_.get(t).second == false &&
         status_for_proposing_blocks.get(t).second == false) {

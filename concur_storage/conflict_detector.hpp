@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-02-08 15:04:04
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 16:59:41
- */
-
-#ifndef CONFLICT_DETECTOR_HPP
-#define CONFLICT_DETECTOR_HPP
+#ifndef TARAXA_NODE_CONCUR_STORAGE_CONFLICT_DETECTOR_HPP
+#define TARAXA_NODE_CONCUR_STORAGE_CONFLICT_DETECTOR_HPP
 
 #include "concur_hash.hpp"
 

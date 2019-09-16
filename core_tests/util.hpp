@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_CORE_TESTS_UTIL_HPP_
-#define TARAXA_NODE_CORE_TESTS_UTIL_HPP_
+#ifndef TARAXA_NODE_CORE_TESTS_UTIL_HPP
+#define TARAXA_NODE_CORE_TESTS_UTIL_HPP
 
 #include <gtest/gtest.h>
 #include <libdevcrypto/Common.h>

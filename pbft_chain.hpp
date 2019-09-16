@@ -1,12 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:11:06
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-#ifndef PBFT_CHAIN_HPP
-#define PBFT_CHAIN_HPP
+#ifndef TARAXA_NODE_PBFT_CHAIN_HPP
+#define TARAXA_NODE_PBFT_CHAIN_HPP
 
 #include <libdevcore/Common.h>
 #include <libdevcore/Log.h>

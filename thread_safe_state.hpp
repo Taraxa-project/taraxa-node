@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE__THREAD_SAFE_STATE_HPP_
-#define TARAXA_NODE__THREAD_SAFE_STATE_HPP_
+#ifndef TARAXA_NODE_THREAD_SAFE_STATE_HPP_
+#define TARAXA_NODE_THREAD_SAFE_STATE_HPP_
 
 #include <libethereum/State.h>
 #include <mutex>

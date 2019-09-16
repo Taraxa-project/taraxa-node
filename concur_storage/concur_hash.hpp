@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-02-07 14:20:33
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-11 17:29:29
- */
-
-#ifndef CONCUR_HASH_HPP
-#define CONCUR_HASH_HPP
+#ifndef TARAXA_NODE_CONCUR_STORAGE_CONCUR_HASH_HPP
+#define TARAXA_NODE_CONCUR_STORAGE_CONCUR_HASH_HPP
 #include <atomic>
 #include <list>
 #include <mutex>

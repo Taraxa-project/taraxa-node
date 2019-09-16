@@ -1,15 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-05-08
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-16
- */
-
 #include "pbft_manager.hpp"
-
 #include <gtest/gtest.h>
-
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "full_node.hpp"

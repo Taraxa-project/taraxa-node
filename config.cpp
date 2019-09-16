@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-04-23 16:26:39
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 17:29:14
- */
-
 #include "config.hpp"
 #include <fstream>
 
