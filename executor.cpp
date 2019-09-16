@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:11:46
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 22:11:46
- */
-
 #include "executor.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
@@ -84,7 +76,7 @@ bool Executor::executeBlkTrxs(
   }
   num_executed_blk_.fetch_add(1);
   executed_blk_.insert(blk, true);
-  LOG(log_si_) << full_node_.lock()->getAddress() << ": Block number "
+  LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
                << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                << " / " << num_trxs;
@@ -120,7 +112,7 @@ bool Executor::coinTransfer(
                  << hash << " has been executed in blk "
                  << executed_trx_.get(hash).first
                  << " current blk: " << dag_block.getHash();
-    
+
     return false;
   }
   val_t new_sender_bal = sender_initial_coin - value;

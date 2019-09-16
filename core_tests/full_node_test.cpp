@@ -1,10 +1,4 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-18 12:56:45
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:24:45
- */
+
 #include "full_node.hpp"
 #include <gtest/gtest.h>
 #include <atomic>
@@ -600,7 +594,8 @@ TEST_F(TopTest, sync_five_nodes) {
   taraxa::thisThreadSleepForSeconds(10);
   uint64_t trx_executed1, trx_executed2, trx_executed3, trx_executed4,
       trx_executed5;
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  auto TIMEOUT = SYNC_TIMEOUT * 10;
+  for (auto i = 0; i < TIMEOUT; i++) {
     trx_executed1 = node1->getNumTransactionExecuted();
     trx_executed2 = node2->getNumTransactionExecuted();
     trx_executed3 = node3->getNumTransactionExecuted();
@@ -613,53 +608,71 @@ TEST_F(TopTest, sync_five_nodes) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
+    if (i == TIMEOUT - 1) {
+      // last wait
+      std::cout << "Warning! Syncing maybe failed ..." << std::endl;
+    }
   }
 
-  // if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first - 1 ||
-  //     node1->getNumTransactionExecuted() != 10005 || node1->getPackedTrxs().size()!=10005) {
-    std::cout << "Node 1: Number of trx packed = " << node1->getPackedTrxs().size()<<std::endl;
-    std::cout << "Node 1: Number of trx executed = " << node1->getNumTransactionExecuted()<<std::endl;
-
-    std::cout << "Node 1: Number of block executed = " << node1->getNumBlockExecuted()<<std::endl;
-    auto num_vertices = node1->getNumVerticesInDag();
-    std::cout << "Node 1: Number of vertices in Dag = " << num_vertices.first << " , "
-              << num_vertices.second << std::endl;
-    auto dags = node1->getLinearizedDagBlocks();
-    for (auto i(0); i < dags.size(); ++i) {
-      auto d = dags[i];
-      std::cout << i << " " << d
-                << " trx: " << node1->getDagBlock(d)->getTrxs().size()
-                << std::endl;
-    }
-    node1->drawGraph("debug_dag");
-  // }
-
-  auto i = 1;
+  auto k = 0;
   for (auto const &node : nodes) {
-    EXPECT_EQ(node->getPackedTrxs().size(), 10005)
-        << "Failed in node " << i << std::endl;
-    // diff should be larger than 0 but smaller than number of nodes
-    // genesis block won't be executed
+    k++;
     auto vertices_diff =
         node->getNumVerticesInDag().first - 1 - node->getNumBlockExecuted();
-    EXPECT_LT(vertices_diff, 5)
-        << "Failed in node " << i
-        << " Number of vertices: " << node->getNumVerticesInDag().first
-        << " Number of executed blks: " << node->getNumBlockExecuted()
-        << std::endl;
-    EXPECT_GE(vertices_diff, 0)
-        << "Failed in node " << i
-        << " Number of vertices: " << node->getNumVerticesInDag().first
-        << " Number of executed blks: " << node->getNumBlockExecuted()
-        << std::endl;
+    if (vertices_diff >= 5 || vertices_diff < 0 ||
+        node->getNumTransactionExecuted() != 10005 ||
+        node->getPackedTrxs().size() != 10005) {
+      std::cout << "Node " << k
+                << " :Number of trx packed = " << node->getPackedTrxs().size()
+                << std::endl;
+      std::cout << "Node " << k << " :Number of trx executed = "
+                << node->getNumTransactionExecuted() << std::endl;
+
+      std::cout << "Node " << k << " :Number of block executed = "
+                << node->getNumBlockExecuted() << std::endl;
+      auto num_vertices = node->getNumVerticesInDag();
+      std::cout << "Node " << k
+                << " :Number of vertices in Dag = " << num_vertices.first
+                << " , " << num_vertices.second << std::endl;
+      auto dags = node->getLinearizedDagBlocks();
+      for (auto i(0); i < dags.size(); ++i) {
+        auto d = dags[i];
+        std::cout << i << " " << d
+                  << " trx: " << node1->getDagBlock(d)->getTrxs().size()
+                  << std::endl;
+      }
+      std::string filename = "debug_dag_" + std::to_string(k);
+      node->drawGraph(filename);
+    }
+  }
+
+  k = 0;
+  for (auto const &node : nodes) {
+    k++;
 
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
-        << " \nNum execued in node " << i
+        << " \nNum execued in node " << k << " node " << node
         << " is : " << node->getNumTransactionExecuted()
         << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
         << " \nNum executed blks: " << node->getNumBlockExecuted()
         << " \nNum vertices in DAG: " << node->getNumVerticesInDag().first
         << " " << node->getNumVerticesInDag().second << "\n";
+
+    auto vertices_diff =
+        node->getNumVerticesInDag().first - 1 - node->getNumBlockExecuted();
+
+    // diff should be larger than 0 but smaller than number of nodes
+    // genesis block won't be executed
+    EXPECT_LT(vertices_diff, 5)
+        << "Failed in node " << k << "node " << node
+        << " Number of vertices: " << node->getNumVerticesInDag().first
+        << " Number of executed blks: " << node->getNumBlockExecuted()
+        << std::endl;
+    EXPECT_GE(vertices_diff, 0)
+        << "Failed in node " << k << "node " << node
+        << " Number of vertices: " << node->getNumVerticesInDag().first
+        << " Number of executed blks: " << node->getNumBlockExecuted()
+        << std::endl;
   }
 
   for (auto const &node : nodes) {

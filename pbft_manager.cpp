@@ -881,6 +881,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
 
+    // propose pbft block
+    LOG(log_sil_) << full_node->getAddress()
+                  << " Propose pivot block in period "
+                  << propose_pbft_chain_period << " round " << pbft_round_
+                  << " step " << pbft_step_ << " pivot: " << dag_block_hash;
+
   } else if (next_pbft_block_type == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
     // get dag block hash from the last pbft block(pivot) in pbft chain
@@ -927,6 +933,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     ScheduleBlock schedule_block(last_block_hash, schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
+
+    // propose pbft block
+    LOG(log_sil_) << full_node->getAddress() << " Propose cs block in period "
+                  << pbft_chain_period << " round " << pbft_round_ << " step "
+                  << pbft_step_ << " pivot: " << dag_block_hash;
+
   }  // TODO: More pbft block types
 
   // setup timestamp for pbft block
@@ -1190,9 +1202,15 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
       uint64_t current_period;
       std::shared_ptr<vec_blk_t> dag_blocks_order;
-      std::tie(current_period, dag_blocks_order) = 
+      std::tie(current_period, dag_blocks_order) =
           full_node->getDagBlockOrder(dag_block_hash);
-      LOG(log_sil_) << "Create block orders in period "<< current_period<<" "<<*dag_blocks_order;
+
+      // propose pbft block
+      LOG(log_sil_) << full_node->getAddress()
+                    << " Finalize pivot block in period " << current_period
+                    << " round " << pbft_round_ << " step " << pbft_step_
+                    << " pivot: " << dag_block_hash;
+
       // update DAG blocks order and DAG blocks table
       for (auto const &dag_blk_hash : *dag_blocks_order) {
         auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
@@ -1223,10 +1241,16 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
             last_pivot_block.first.getPivotBlock().getDagBlockHash();
         uint64_t current_pbft_chain_period =
             last_pivot_block.first.getPivotBlock().getPeriod();
-        LOG(log_sil_) << "Set DAG block order based on schedule for period "<<current_pbft_chain_period<<" anchor "<<dag_block_hash;
 
         uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
             dag_block_hash, current_pbft_chain_period);
+
+        // propose pbft block
+        LOG(log_sil_) << full_node->getAddress()
+                      << " Finalize cs block in period "
+                      << current_pbft_chain_period << " round " << pbft_round_
+                      << " step " << pbft_step_
+                      << " anchor: " << dag_block_hash;
 
         // execute schedule block
         // TODO: VM executor will not take sortition_account_balance_table as
@@ -1234,7 +1258,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         //  pairs<addr_t, val_t>.
         //  Will need update sortition_account_balance_table here
         uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-        LOG(log_sil_) << "Executing schedule block for period "<< pbft_period;
         if (!full_node->executeScheduleBlock(pbft_block.getScheduleBlock(),
                                              sortition_account_balance_table,
                                              pbft_period)) {
@@ -1246,8 +1269,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
         return true;
       }
-    } else {
-      LOG(log_err_)<<"comparePbftCSblockWithDAGblocks fail";
     }
   }  // TODO: more pbft block type
 
