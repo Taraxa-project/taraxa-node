@@ -141,8 +141,8 @@ class TaraxaPeer : public boost::noncopyable {
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, NetworkConfig &_conf,
-                   std::string const &genesis)
-      : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis) {
+                   std::string const &genesis, bool const &performance_log)
+      : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis), performance_log_(performance_log) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -198,6 +198,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
+  std::string packetToPacketName(byte const &packet);
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -241,6 +242,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   unsigned long max_peer_vertices_ = 0;
   NodeID peer_syncing_;
   std::string genesis_;
+  bool performance_log_;
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
@@ -252,6 +254,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TARCAP")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
+  dev::Logger log_perf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "NETPER")};
+  
 };
 }  // namespace taraxa
 #endif

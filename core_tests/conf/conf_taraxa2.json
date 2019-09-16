@@ -6,6 +6,8 @@
   "network_listen_port": 10003,
   "network_simulated_delay": 0,
   "network_transaction_interval": 100,
+  "network_encrypted" : 1,
+  "network_performance_log" : 0,
   "network_bandwidth": 40,
   "network_boot_nodes": [
     {

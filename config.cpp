@@ -18,6 +18,9 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     network.network_transaction_interval =
         doc.get<uint16_t>("network_transaction_interval");
     network.network_bandwidth = doc.get<uint16_t>("network_bandwidth");
+    network.network_encrypted = doc.get<uint16_t>("network_encrypted") != 0;
+    network.network_performance_log =
+        doc.get<uint16_t>("network_performance_log") != 0;
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
