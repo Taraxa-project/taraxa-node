@@ -677,7 +677,7 @@ TEST(Network, node_full_sync) {
   int counter = 0;
   std::vector<Transaction> ts;
   for (auto i = 0; i < NUM_TRX2; ++i) {
-    ts.push_back(samples::TX_GEN.getWithRandomUniqueSender();
+    ts.push_back(samples::TX_GEN.getWithRandomUniqueSender());
   }
   for (auto i = 0; i < NUM_TRX2; ++i) {
     std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
