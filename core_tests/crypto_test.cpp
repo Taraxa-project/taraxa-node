@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-05
- * @Last Modified by:
- * @Last Modified time:
- */
-
 #include "sortition.h"
 
 #include "full_node.hpp"

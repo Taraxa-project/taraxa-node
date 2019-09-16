@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-24 11:30:32
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 15:47:40
- */
-
-#ifndef BLOCK_PROPOSER_HPP
-#define BLOCK_PROPOSER_HPP
+#ifndef TARAXA_NODE_BLOCK_PROPOSER_HPP
+#define TARAXA_NODE_BLOCK_PROPOSER_HPP
 #include <libdevcore/Log.h>
 #include <random>
 #include <thread>

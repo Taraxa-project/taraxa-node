@@ -1,10 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-24 16:56:41
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-05-16 12:28:12
- */
 #include "block_proposer.hpp"
 #include <cmath>
 #include "dag.hpp"

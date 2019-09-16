@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-11-28 16:05:18
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:22:52
- */
-
-#ifndef RPC_HPP
-#define RPC_HPP
+#ifndef TARAXA_NODE_LIBWEB3JSONRPC_RPC_HPP
+#define TARAXA_NODE_LIBWEB3JSONRPC_RPC_HPP
 #include <jsonrpccpp/server/abstractserverconnector.h>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
@@ -33,8 +25,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
 
   virtual bool StartListening() override;
   virtual bool StopListening() override;
-  virtual bool SendResponse(const std::string &response,
-                            void *addInfo = NULL) ;
+  virtual bool SendResponse(const std::string &response, void *addInfo = NULL);
   void waitForAccept();
   boost::asio::io_context &getIoContext() { return io_context_; }
   std::shared_ptr<RpcServer> getShared();

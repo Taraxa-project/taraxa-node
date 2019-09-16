@@ -1,10 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:01:11
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 22:07:47
- */
 #ifndef TARAXA_NODE_EXECUTOR_HPP
 #define TARAXA_NODE_EXECUTOR_HPP
 
@@ -40,11 +33,6 @@ class Executor {
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using TrxExecutionTable = StatusTable<trx_hash_t, bool>;
-  using BlkExecutionTable = StatusTable<blk_hash_t, bool>;
-
-  TrxExecutionTable executed_trx_;
-  BlkExecutionTable executed_blk_;
 
   // for debug purpose
   dev::Logger log_si_{
@@ -89,7 +77,7 @@ class Executor {
   bool coinTransfer(StateRegistry::State&, Transaction const& trx,
                     std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
                         sortition_account_balance_table,
-                    uint64_t period);
+                    uint64_t period, DagBlock const& dag_block);
 };
 
 }  // namespace taraxa

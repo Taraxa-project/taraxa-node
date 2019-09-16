@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:11:46
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 22:11:46
- */
-
 #include "executor.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
@@ -21,6 +13,7 @@ bool Executor::execute(TrxSchedule const& sche,
   }
   // TODO this state instance is reusable
   auto state = state_registry_->getCurrentState();
+
   for (auto i(0); i < sche.blk_order.size(); ++i) {
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
@@ -45,16 +38,14 @@ bool Executor::executeBlkTrxs(
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
-  if (executed_blk_.get(blk).second == true) {
-    LOG(log_er_) << "Block " << blk << " has been executed ...";
-    return false;
-  }
+
   DagBlock dag_block(blk_bytes);
 
   auto trxs_hash = dag_block.getTrxs();
   auto num_trxs = trxs_hash.size();
   // sequential execute transaction
   int num_overlapped_trx = 0;
+
   for (auto i(0); i < trxs_hash.size(); ++i) {
     auto const& trx_hash = trxs_hash[i];
     auto mode = trx_modes[i];
@@ -71,14 +62,14 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
-    if (!coinTransfer(state, trx, sortition_account_balance_table, period)) {
+    if (!coinTransfer(state, trx, sortition_account_balance_table, period,
+                      dag_block)) {
       continue;
     }
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  executed_blk_.insert(blk, true);
   LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
                << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
@@ -91,7 +82,7 @@ bool Executor::coinTransfer(
     StateRegistry::State& state, Transaction const& trx,
     std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
         sortition_account_balance_table,
-    uint64_t period) {
+    uint64_t period, DagBlock const& dag_block) {
   auto hash = trx.getHash();
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
@@ -109,10 +100,7 @@ bool Executor::coinTransfer(
     LOG(log_er_) << "Fund can overflow ...";
     return false;
   }
-  if (executed_trx_.get(hash).second) {
-    LOG(log_wr_) << "The transaction has been executed ..." << hash;
-    return false;
-  }
+
   val_t new_sender_bal = sender_initial_coin - value;
   val_t new_receiver_bal = receiver_initial_coin + value;
   state.setBalance(sender, new_sender_bal);
@@ -141,7 +129,6 @@ bool Executor::coinTransfer(
   LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
                << new_receiver_bal << " in period " << period;
   num_executed_trx_.fetch_add(1);
-  executed_trx_.insert(hash, true);
   return true;
 }
 

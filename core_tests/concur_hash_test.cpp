@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-02-07 15:25:43
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-12 14:08:36
- */
-
 #include "concur_hash.hpp"
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>

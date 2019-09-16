@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-15 11:38:38
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-05 14:00:33
- */
-
 #include "types.hpp"
 namespace taraxa {
 

@@ -1,17 +1,9 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-09
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-26
- */
-#include "pbft_manager.hpp"
-
 #include "full_node.hpp"
 #include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "network.hpp"
+#include "pbft_manager.hpp"
 #include "top.hpp"
 
 #include <gtest/gtest.h>

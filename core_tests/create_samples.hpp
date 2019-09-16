@@ -1,12 +1,4 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 14:03:45
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-20 16:19:10
- */
-
-#ifndef CREATE_SAMPLES_HPP
+#ifndef TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
 #define CREATE_SAMPLES_HPP
 #include <executor.hpp>
 #include <fstream>

@@ -710,8 +710,10 @@ bool FullNode::executeScheduleBlock(
     std::unordered_map<addr_t, std::pair<val_t, int64_t>>
         &sortition_account_balance_table,
     uint64_t period) {
-  auto res = executor_->execute(sche_blk.getSchedule(),
-                                sortition_account_balance_table, period);
+  // update transaction overlap table first
+  auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
+  res |= executor_->execute(sche_blk.getSchedule(),
+                            sortition_account_balance_table, period);
   if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
   return res;
 }
