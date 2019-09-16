@@ -168,45 +168,38 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   return true;
 }
 
-bool VoteManager::isKnownVote(uint64_t pbft_round,
-                              vote_hash_t const& vote_hash) const {
-  sharedLock_ lock(access_);
+bool VoteManager::addVote(taraxa::Vote const& vote) {
+  uint64_t pbft_round = vote.getRound();
+  auto hash = vote.getHash();
 
-  std::map<uint64_t, std::vector<Vote>>::const_iterator found =
-      unverified_votes_.find(pbft_round);
-  if (found == unverified_votes_.end()) {
-    return false;
-  }
-  for (Vote const& v : found->second) {
-    if (v.getHash() == vote_hash) {
-      return true;
+  {
+    upgradableLock_ lock(access_);
+    std::map<uint64_t, std::map<vote_hash_t, Vote>>::const_iterator
+        found_round = unverified_votes_.find(pbft_round);
+    if (found_round != unverified_votes_.end()) {
+      std::map<vote_hash_t, Vote>::const_iterator found_vote =
+          found_round->second.find(hash);
+      if (found_vote != found_round->second.end()) {
+        return false;
+      }
+      upgradeLock_ locked(lock);
+      unverified_votes_[pbft_round][hash] = vote;
+    } else {
+      std::map<vote_hash_t, Vote> votes{std::make_pair(hash, vote)};
+      upgradeLock_ locked(lock);
+      unverified_votes_[pbft_round] = votes;
     }
   }
-  return false;
-}
-
-void VoteManager::addVote(taraxa::Vote const& vote) {
-  LOG(log_deb_) << "Add vote " << vote.getHash() << ", block hash "
-                << vote.getBlockHash() << ", vote type " << vote.getType()
-                << ", in round " << vote.getRound() << ", for step "
-                << vote.getStep();
-  uint64_t pbft_round = vote.getRound();
-
-  upgradableLock_ lock(access_);
-  if (unverified_votes_.find(pbft_round) != unverified_votes_.end()) {
-    upgradeLock_ locked(lock);
-    unverified_votes_[pbft_round].emplace_back(vote);
-  } else {
-    std::vector<Vote> votes{vote};
-    upgradeLock_ locked(lock);
-    unverified_votes_[pbft_round] = votes;
-  }
+  LOG(log_deb_) << "Add vote " << hash << ", block hash " << vote.getBlockHash()
+                << ", vote type " << vote.getType() << ", in round "
+                << pbft_round << ", for step " << vote.getStep();
+  return true;
 }
 
 // cleanup votes < pbft_round
 void VoteManager::cleanupVotes(uint64_t pbft_round) {
   upgradableLock_ lock(access_);
-  std::map<uint64_t, std::vector<Vote>>::iterator it =
+  std::map<uint64_t, std::map<vote_hash_t, Vote>>::iterator it =
       unverified_votes_.begin();
 
   upgradeLock_ locked(lock);
@@ -224,7 +217,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   uint64_t size = 0;
 
   sharedLock_ lock(access_);
-  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
+  std::map<uint64_t, std::map<vote_hash_t, Vote>>::const_iterator it;
   for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
     size += it->second.size();
   }
@@ -248,29 +241,27 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
   std::map<uint64_t, std::vector<Vote>>::const_iterator it;
-  sharedLock_ lock(access_);
-  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
-    for (auto const& v : it->second) {
-      // vote verification
-      addr_t vote_address = dev::toAddress(v.getPublicKey());
-      std::pair<val_t, bool> account_balance =
-          full_node->getBalance(vote_address);
-      if (!account_balance.second) {
-        // New node join, it doesn't have other nodes info.
-        // Wait unit sync PBFT chain with peers, and execute to get states.
-        LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
-                      << v.getHash() << " vote address: " << vote_address;
-        continue;
-      }
-      if (voteValidation(last_pbft_block_hash, v, account_balance.first,
-                         sortition_threshold)) {
-        verified_votes.emplace_back(v);
-      }
+  auto votes_to_verify = getAllVotes();
+  for (auto const& v : votes_to_verify) {
+    // vote verification
+    addr_t vote_address = dev::toAddress(v.getPublicKey());
+    std::pair<val_t, bool> account_balance =
+        full_node->getBalance(vote_address);
+    if (!account_balance.second) {
+      // New node join, it doesn't have other nodes info.
+      // Wait unit sync PBFT chain with peers, and execute to get states.
+      LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
+                    << v.getHash() << " vote address: " << vote_address;
+      continue;
+    }
+    if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+                       sortition_threshold)) {
+      verified_votes.emplace_back(v);
     }
   }
 
   return verified_votes;
-}
+}  // namespace taraxa
 
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
@@ -289,28 +280,25 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
   std::map<uint64_t, std::vector<Vote>>::const_iterator it;
-  sharedLock_ lock(access_);
-  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
-    for (auto const& v : it->second) {
-      // vote verification
-      addr_t vote_address = dev::toAddress(v.getPublicKey());
-      std::pair<val_t, bool> account_balance =
-          full_node->getBalance(vote_address);
-      if (!account_balance.second) {
-        // New node join, it doesn't have other nodes info.
-        // Wait unit sync PBFT chain with peers, and execute to get states.
-        LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
-                      << v.getHash() << " vote address: " << vote_address;
-        sync_peers_pbft_chain = true;
-        continue;
-      }
-      if (voteValidation(last_pbft_block_hash, v, account_balance.first,
-                         sortition_threshold)) {
-        verified_votes.emplace_back(v);
-      }
+  auto votes_to_verify = getAllVotes();
+  for (auto const& v : votes_to_verify) {
+    // vote verification
+    addr_t vote_address = dev::toAddress(v.getPublicKey());
+    std::pair<val_t, bool> account_balance =
+        full_node->getBalance(vote_address);
+    if (!account_balance.second) {
+      // New node join, it doesn't have other nodes info.
+      // Wait unit sync PBFT chain with peers, and execute to get states.
+      LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
+                    << v.getHash() << " vote address: " << vote_address;
+      sync_peers_pbft_chain = true;
+      continue;
+    }
+    if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+                       sortition_threshold)) {
+      verified_votes.emplace_back(v);
     }
   }
-
   return verified_votes;
 }
 
@@ -346,7 +334,7 @@ std::vector<Vote> VoteManager::getAllVotes() {
   sharedLock_ lock(access_);
   for (auto const& round_votes : unverified_votes_) {
     for (auto const& v : round_votes.second) {
-      votes.emplace_back(v);
+      votes.emplace_back(v.second);
     }
   }
 

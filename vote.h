@@ -67,9 +67,7 @@ class VoteManager {
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
                       val_t& account_balance, size_t sortition_threshold) const;
 
-  bool isKnownVote(uint64_t pbft_round, vote_hash_t const& vote_hash) const;
-
-  void addVote(taraxa::Vote const& vote);
+  bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
@@ -89,7 +87,7 @@ class VoteManager {
 
   vote_hash_t hash_(std::string const& str) const;
 
-  std::map<uint64_t, std::vector<Vote>> unverified_votes_;
+  std::map<uint64_t, std::map<vote_hash_t, Vote>> unverified_votes_;
 
   mutable boost::shared_mutex access_;
 
