@@ -720,7 +720,7 @@ std::vector<Vote> FullNode::getVotes(uint64_t round) {
   return vote_mgr_->getVotes(round);
 }
 
-void FullNode::addVote(taraxa::Vote const &vote) { vote_mgr_->addVote(vote); }
+bool FullNode::addVote(taraxa::Vote const &vote) { return vote_mgr_->addVote(vote); }
 
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
@@ -737,11 +737,6 @@ void FullNode::clearUnverifiedVotesTable() {
 
 uint64_t FullNode::getUnverifiedVotesSize() const {
   return vote_mgr_->getUnverifiedVotesSize();
-}
-
-bool FullNode::isKnownVote(uint64_t pbft_round,
-                           vote_hash_t const &vote_hash) const {
-  return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
 bool FullNode::isKnownPbftBlockForSyncing(
