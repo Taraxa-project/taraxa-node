@@ -40,10 +40,6 @@ class Executor {
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using TrxExecutionTable = StatusTable<trx_hash_t, blk_hash_t>;
-  using BlkExecutionTable = StatusTable<blk_hash_t, int>;
-  TrxExecutionTable executed_trx_;
-  BlkExecutionTable executed_blk_;
 
   // for debug purpose
   dev::Logger log_si_{

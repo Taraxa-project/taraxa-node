@@ -38,10 +38,7 @@ bool Executor::executeBlkTrxs(
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
-  if (executed_blk_.get(blk).second == true) {
-    LOG(log_er_) << "Block " << blk << " has been executed ...";
-    return false;
-  }
+
   DagBlock dag_block(blk_bytes);
 
   auto trxs_hash = dag_block.getTrxs();
@@ -69,13 +66,10 @@ bool Executor::executeBlkTrxs(
                       dag_block)) {
       continue;
     }
-    executed_trx_.insert(trx_hash, blk);
-
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  executed_blk_.insert(blk, true);
   LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
                << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
@@ -106,15 +100,7 @@ bool Executor::coinTransfer(
     LOG(log_er_) << "Fund can overflow ...";
     return false;
   }
-  if (executed_trx_.get(hash).second) {
-    auto other_blk = executed_trx_.get(hash).first;
-    LOG(log_er_) << full_node_.lock()->getAddress() << " The transaction "
-                 << hash << " has been executed in blk "
-                 << executed_trx_.get(hash).first
-                 << " current blk: " << dag_block.getHash();
 
-    return false;
-  }
   val_t new_sender_bal = sender_initial_coin - value;
   val_t new_receiver_bal = receiver_initial_coin + value;
   state.setBalance(sender, new_sender_bal);
