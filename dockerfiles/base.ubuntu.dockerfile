@@ -35,9 +35,11 @@ RUN git clone https://github.com/google/googletest /tmp/gtest \
   && cd /tmp/gtest && mkdir build && cd build && cmake .. && make && make install
 
 FROM gtest-layer as rocksdb-layer
-RUN wget https://github.com/facebook/rocksdb/archive/v5.14.3.zip \
-    && unzip v5.14.3.zip -d /tmp \
-    && cd /tmp/rocksdb-5.14.3 \
+ARG rocksdb_version=5.18.3
+ENV ROCKSDB_VERSION="$rocksdb_version"
+RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
+    && unzip v$rocksdb_version.zip -d /tmp \
+    && cd /tmp/rocksdb-$rocksdb_version \
     && make shared_lib PORTABLE=1 \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
@@ -77,8 +79,16 @@ RUN cd /tmp/grpc \
   && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' -j `nproc` \
   && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install
 
-FROM grpc-layer as release
+FROM grpc-layer as go-layer
+ARG go_version=1.13
+RUN wget -qO- --show-progress --progress=bar:force \
+    https://dl.google.com/go/go$go_version.linux-amd64.tar.gz |
+    tar xvz -C /usr/local
+ENV GOROOT=/usr/local/go
+ENV GOPATH=$HOME/.go
+ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
+FROM go-layer as release
 # Clean up image
 WORKDIR /app
 RUN cd / && rm -rf /tmp/*

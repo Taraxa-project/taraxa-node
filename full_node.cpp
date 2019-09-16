@@ -12,6 +12,7 @@
 #include "simple_db_factory.hpp"
 #include "sortition.h"
 #include "state_registry.hpp"
+#include "trx_engine/trx_engine.hpp"
 #include "util_eth.hpp"
 #include "vote.h"
 
@@ -147,10 +148,9 @@ void FullNode::initDB(bool destroy_db) {
     auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
                              genesis_hash,  //
                              mode);
-    state_registry_ =
-        make_shared<StateRegistry>(conf_.genesis_state,
-                                   dev::OverlayDB(move(acc_db.db)),  //
-                                   move(snapshot_db.db));
+    state_registry_ = make_shared<StateRegistry>(conf_.genesis_state,
+                                                 move(acc_db.db),  //
+                                                 move(snapshot_db.db));
     state_ =
         make_shared<StateRegistry::State>(state_registry_->getCurrentState());
   }

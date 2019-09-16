@@ -24,3 +24,6 @@
 [submodule "submodules/prometheus-cpp"]
 	path = submodules/prometheus-cpp
 	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "submodules/taraxa-evm"]
+	path = submodules/taraxa-evm
+	url = https://github.com/Taraxa-project/taraxa-evm.git

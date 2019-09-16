@@ -11,7 +11,10 @@ DEBUG = 0
 PERF = 0
 CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
 CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF 
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server 
+LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server trx_engine/trx_engine.a
+ifeq ($(OS), Darwin)
+	LIBS += -framework CoreFoundation -framework Security
+endif
 OBJECTDIR := obj
 BUILDDIR := build
 TESTBUILDDIR := test_build
@@ -87,7 +90,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/simple_overlaydb_delegate.o
+	${OBJECTDIR}/simple_overlaydb_delegate.o \
+	${OBJECTDIR}/trx_engine/types.o \
+	${OBJECTDIR}/trx_engine/trx_engine.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -106,7 +111,7 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/crypto_test.o \
 	${OBJECTDIR}/state_unit_tests.o \
 	${OBJECTDIR}/pbft_rpc_test.o \
-	${OBJECTDIR}/pbft_manager_test.o 
+	${OBJECTDIR}/pbft_manager_test.o
 
 ifeq ($(PERF), 1)
 	MAINOBJECTFILES += ${OBJECTDIR}/performance_test.o
@@ -247,6 +252,18 @@ ${OBJECTDIR}/simple_overlaydb_delegate.o: simple_overlaydb_delegate.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/simple_overlaydb_delegate.o simple_overlaydb_delegate.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/trx_engine/types.o: trx_engine/types.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/trx_engine
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trx_engine/types.o trx_engine/types.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/trx_engine/trx_engine.o: trx_engine/trx_engine.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/trx_engine
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trx_engine/trx_engine.o trx_engine/trx_engine.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -366,7 +383,12 @@ DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	core_tests/create_samples.hpp \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a \
+	trx_engine/trx_engine.a
+
+trx_engine/trx_engine.a:
+	@echo Building Go trx engine static C library
+	cd submodules/taraxa-evm; go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ../../trx_engine/trx_engine.a
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
@@ -393,7 +415,7 @@ submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a s
 	@echo Attempting to compile libprometheus, if it fails try compiling it manually. See https://github.com/jupp0r/prometheus-cpp
 	cd submodules/prometheus-cpp; git submodule update --init 3rdparty/civetweb/; mkdir -p _build; cd _build; cmake .. -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF; make -j 4; mkdir -p deploy; make DESTDIR=`pwd`/deploy install
 
-$(BUILDDIR)/main: $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES) $(OBJECTDIR)/main.o
+$(BUILDDIR)/main: $(DEPENDENCIES) $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS)
 
@@ -486,7 +508,7 @@ perf_test: $(TESTBUILDDIR)/performance_test
 run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
-run_test: test main
+run_test: main test
 	./$(TESTBUILDDIR)/crypto_test
 	./$(TESTBUILDDIR)/pbft_rpc_test
 	./$(TESTBUILDDIR)/memorydb_test

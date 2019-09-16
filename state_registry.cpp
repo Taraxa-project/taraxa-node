@@ -1,6 +1,7 @@
 #include "state_registry.hpp"
 #include <iostream>
 #include <string>
+#include <unordered_set>
 #include "util_eth.hpp"
 
 namespace taraxa::state_registry {
@@ -18,7 +19,7 @@ void StateRegistry::init(GenesisState const &genesis_state) {
   if (current_block_num.empty()) {
     auto genesis_root = calculateGenesisState(account_db_, genesis_accs_eth);
     account_db_.commit();
-    append(genesis_root, {genesis_hash}, true);
+    append({{genesis_hash, genesis_root}}, true);
     return;
   }
   auto genesis_snapshot = *getSnapshot(0);
@@ -27,17 +28,6 @@ void StateRegistry::init(GenesisState const &genesis_state) {
   assert(genesis_snapshot.state_root == genesis_root);
   assert(genesis_snapshot.block_hash == genesis_hash);
   current_snapshot_ = *getSnapshot(stoull(current_block_num));
-}
-
-void StateRegistry::commitAndPush(
-    State &state,  //
-    vector<blk_hash_t> const &blks,
-    eth::State::CommitBehaviour const &commit_behaviour) {
-  assert(state.host_ == this);
-  unique_lock l(m_);
-  assert(state.getSnapshot() == getCurrentSnapshot());
-  append(state.commitAndPush(commit_behaviour), blks);
-  state.setSnapshot(current_snapshot_);
 }
 
 State &StateRegistry::rebase(State &state) {
@@ -89,12 +79,15 @@ optional<dag_blk_num_t> StateRegistry::getNumber(blk_hash_t const &blk_hash) {
   return blk_num_str.empty() ? nullopt : optional(stoull(blk_num_str));
 }
 
-void StateRegistry::append(root_t const &state_root,
-                           vector<blk_hash_t> const &blk_hashes, bool init) {
-  assert(!blk_hashes.empty());
+void StateRegistry::append(vector<pair<blk_hash_t, root_t>> const &blk_to_root,
+                           bool init) {
+  assert(!blk_to_root.empty());
+  unique_lock l(m_);
   auto batch = snapshot_db_->createWriteBatch();
+  unordered_set<blk_hash_t> blk_processed;
   auto blk_num = init ? 0 : getCurrentSnapshot().block_number + 1;
-  for (auto &blk_hash : blk_hashes) {
+  for (auto &[blk_hash, state_root] : blk_to_root) {
+    assert(blk_processed.insert(blk_hash).second);
     auto blk_hash_key = blkHashKey(blk_hash);
     // Oleh say: The assert checks double commit a block
     // TODO: Since the assetion breaks some unit tests, comment out and leave to
@@ -109,7 +102,8 @@ void StateRegistry::append(root_t const &state_root,
   --blk_num;
   batch->insert(CURRENT_BLOCK_NUMBER_KEY, to_string(blk_num));
   snapshot_db_->commit(move(batch));
-  current_snapshot_ = {blk_num, blk_hashes.back(), state_root};
+  auto &[last_blk, last_root] = blk_to_root.back();
+  current_snapshot_ = {blk_num, last_blk, last_root};
 }
 
 }  // namespace taraxa::state_registry

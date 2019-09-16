@@ -19,6 +19,7 @@
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "state_registry.hpp"
+#include "trx_engine/trx_engine.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -38,10 +39,12 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  trx_engine::TrxEngine trx_engine_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   using TrxExecutionTable = StatusTable<trx_hash_t, bool>;
   using BlkExecutionTable = StatusTable<blk_hash_t, bool>;
+  using BalanceTable = std::unordered_map<addr_t, std::pair<val_t, int64_t>>;
 
   TrxExecutionTable executed_trx_;
   BlkExecutionTable executed_blk_;
@@ -68,28 +71,16 @@ class Executor {
         log_time_(std::move(log_time)),
         db_blks_(std::move(db_blks)),
         db_trxs_(std::move(db_trxs)),
-        state_registry_(std::move(state_registry)) {}
+        state_registry_(std::move(state_registry)),
+        trx_engine_({state_registry_->getAccountDbRaw(), noop()}) {}
 
   bool execute(TrxSchedule const& schedule,
-               std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                   sortition_account_balance_table,
-               uint64_t period);
+               BalanceTable& sortition_account_balance_table, uint64_t period);
   uint64_t getNumExecutedTrx() { return num_executed_trx_; }
   uint64_t getNumExecutedBlk() { return num_executed_blk_; }
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
-
- private:
-  bool executeBlkTrxs(StateRegistry::State&, blk_hash_t const& blk,
-                      std::vector<uint> const& trx_modes,
-                      std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                          sortition_account_balance_table,
-                      uint64_t period);
-  bool coinTransfer(StateRegistry::State&, Transaction const& trx,
-                    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                        sortition_account_balance_table,
-                    uint64_t period);
 };
 
 }  // namespace taraxa
