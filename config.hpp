@@ -33,6 +33,8 @@ struct NetworkConfig {
   uint16_t network_bandwidth;
   uint16_t network_transaction_interval;
   std::string network_id;
+  bool network_encrypted;
+  bool network_performance_log;
 };
 
 // Parameter Tuning purpose
