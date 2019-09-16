@@ -381,14 +381,16 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case TransactionPacket: {
         std::string receivedTransactions;
-        std::unordered_map<trx_hash_t, Transaction> transactions;
+        std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+            transactions;
         auto transactionCount = _r.itemCount();
         for (auto iTransaction = 0; iTransaction < transactionCount;
              iTransaction++) {
           Transaction transaction(_r[iTransaction].data().toBytes());
           receivedTransactions += transaction.getHash().toString() + " ";
           peer->markTransactionAsKnown(transaction.getHash());
-          transactions[transaction.getHash()] = transaction;
+          transactions[transaction.getHash()] =
+              std::make_pair(transaction, transaction.rlp(true));
         }
         if (transactionCount > 0) {
           LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
@@ -583,7 +585,8 @@ TaraxaCapability::randomPartitionPeers(std::vector<NodeID> const &_peers,
 }
 
 void TaraxaCapability::onNewTransactions(
-    std::unordered_map<trx_hash_t, Transaction> const &transactions,
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const
+        &transactions,
     bool fromNetwork) {
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
@@ -593,7 +596,7 @@ void TaraxaCapability::onNewTransactions(
       for (auto const &transaction : transactions) {
         if (test_transactions_.find(transaction.first) ==
             test_transactions_.end()) {
-          test_transactions_[transaction.first] = transaction.second;
+          test_transactions_[transaction.first] = transaction.second.first;
           LOG(log_dg_) << "Received New Transaction "
                        << transaction.first.toString();
         } else {
@@ -605,14 +608,14 @@ void TaraxaCapability::onNewTransactions(
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
-    std::map<NodeID, std::vector<Transaction>> transactionsToSend;
+    std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
     {
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         for (auto const &transaction : transactions) {
           if (!peer.second->isTransactionKnown(transaction.first)) {
             peer.second->markTransactionAsKnown(transaction.first);
-            transactionsToSend[peer.first].push_back(transaction.second);
+            transactionsToSend[peer.first].push_back(transaction.second.second);
           }
         }
       }
@@ -735,15 +738,15 @@ void TaraxaCapability::sendBlocks(
 }
 
 void TaraxaCapability::sendTransactions(
-    NodeID const &_id, std::vector<Transaction> const &transactions) {
+    NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
   LOG(log_dg_) << "sendTransactions" << transactions.size() << " to " << _id;
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, TransactionPacket,
                                transactions.size());
   taraxa::bytes trx_bytes;
   for (auto transaction : transactions) {
-    auto b = transaction.rlp(true);
-    trx_bytes.insert(trx_bytes.end(), std::begin(b), std::end(b));
+    trx_bytes.insert(trx_bytes.end(), std::begin(transaction),
+                     std::end(transaction));
   }
   s.appendRaw(trx_bytes, transactions.size());
   host_.capabilityHost()->sealAndSend(_id, s);
@@ -865,7 +868,7 @@ void TaraxaCapability::setFullNode(std::shared_ptr<FullNode> full_node) {
 
 void TaraxaCapability::doBackgroundWork() {
   if (auto full_node = full_node_.lock()) {
-    onNewTransactions(full_node->getNewVerifiedTrxSnapShot(true), false);
+    onNewTransactions(full_node->getNewVerifiedTrxSnapShotSerialized(), false);
   }
   for (auto const &peer : peers_) {
     time_t now =

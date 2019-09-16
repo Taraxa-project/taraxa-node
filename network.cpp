@@ -124,7 +124,7 @@ void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
 }
 
 void Network::sendTransactions(NodeID const &id,
-                               std::vector<Transaction> const &transactions) {
+                               std::vector<taraxa::bytes> const &transactions) {
   taraxa_capability_->sendTransactions(id, transactions);
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
@@ -135,7 +135,7 @@ void Network::onNewBlockVerified(DagBlock const &blk) {
 }
 
 void Network::onNewTransactions(
-    std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const &transactions) {
   taraxa_capability_->onNewTransactions(transactions, true);
   LOG(log_dg_) << "On new transactions" << transactions.size();
 }

@@ -64,7 +64,7 @@ string Taraxa::taraxa_getStorageRoot(string const& _address,
 
 Json::Value Taraxa::taraxa_pendingTransactions() {
   Json::Value ret(Json::arrayValue);
-  for (auto const& [_, trx] : tryGetNode()->getNewVerifiedTrxSnapShot(false)) {
+  for (auto const& [_, trx] : tryGetNode()->getNewVerifiedTrxSnapShot()) {
     ret.append(toJson(trx));
   }
   return ret;

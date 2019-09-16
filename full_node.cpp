@@ -467,8 +467,9 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
 
 void FullNode::insertTransaction(Transaction const &trx) {
   if (conf_.network.network_transaction_interval == 0) {
-    std::unordered_map<trx_hash_t, Transaction> map_trx;
-    map_trx[trx.getHash()] = trx;
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+        map_trx;
+    map_trx[trx.getHash()] = std::make_pair(trx, trx.rlp(true));
     network_->onNewTransactions(map_trx);
   }
   trx_mgr_->insertTrx(trx, true);
@@ -653,23 +654,33 @@ void FullNode::drawGraph(std::string const &dotfile) const {
   dag_mgr_->drawTotalGraph("total." + dotfile);
 }
 
-std::unordered_map<trx_hash_t, Transaction> FullNode::getNewVerifiedTrxSnapShot(
-    bool onlyNew) {
+std::unordered_map<trx_hash_t, Transaction>
+FullNode::getNewVerifiedTrxSnapShot() {
   if (stopped_ || !trx_mgr_) {
     return std::unordered_map<trx_hash_t, Transaction>();
   }
-  return trx_mgr_->getNewVerifiedTrxSnapShot(onlyNew);
+  return trx_mgr_->getNewVerifiedTrxSnapShot();
+}
+
+std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+FullNode::getNewVerifiedTrxSnapShotSerialized() {
+  if (stopped_ || !trx_mgr_) {
+    return std::unordered_map<trx_hash_t,
+                              std::pair<Transaction, taraxa::bytes>>();
+  }
+  return trx_mgr_->getNewVerifiedTrxSnapShotSerialized();
 }
 
 void FullNode::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
-    std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const
+        &transactions) {
   if (stopped_ || !trx_mgr_) {
     return;
   }
   for (auto const &trx : transactions) {
-    trx_mgr_->insertTrx(trx.second, false /* critical */);
-    LOG(log_time_dg_) << "Transaction " << trx.second.getHash()
+    trx_mgr_->insertTrx(trx.second.first, false /* critical */);
+    LOG(log_time_dg_) << "Transaction " << trx.second.first.getHash()
                       << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
 }
