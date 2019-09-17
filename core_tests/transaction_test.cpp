@@ -70,13 +70,13 @@ TEST(TransactionQueue, verifiers) {
   // insert trx
   std::thread t([&trx_qu]() {
     for (auto const& t : g_trx_samples) {
-      trx_qu.insert(t, true);
+      trx_qu.insert(t, t.rlp(false), true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : g_trx_samples) {
-    trx_qu.insert(t, false);
+    trx_qu.insert(t, t.rlp(false), false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
