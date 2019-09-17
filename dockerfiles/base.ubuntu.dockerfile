@@ -82,8 +82,8 @@ RUN cd /tmp/grpc \
 FROM grpc-layer as go-layer
 ARG go_version=1.13
 RUN wget -qO- --show-progress --progress=bar:force \
-    https://dl.google.com/go/go$go_version.linux-amd64.tar.gz |
-    tar xvz -C /usr/local
+    https://dl.google.com/go/go$go_version.linux-amd64.tar.gz \
+    | tar xvz -C /usr/local
 ENV GOROOT=/usr/local/go
 ENV GOPATH=$HOME/.go
 ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
