@@ -222,7 +222,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::string getLatestAnchor() const { return anchors_.back(); }
 
  private:
-  size_t num_cached_period_in_dag = 10;
+  size_t num_cached_period_in_dag = 1000;
   bool addDagBlockInternal(DagBlock const &blk);
   void addToDagBuffer(DagBlock const &blk);
   void addToDag(std::string const &hash, std::string const &pivot,
