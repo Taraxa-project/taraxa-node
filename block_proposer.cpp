@@ -236,7 +236,7 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
   uint64_t beta = (full_node->getBlockProposeThresholdBeta());        // 10 bits
   auto my_bal = full_node->getMyBalance();  //  0 ~ 2^53 - 1
   if (my_bal == 0) {
-    LOG(log_dg_) << "Cannot win ticket, " << full_node->getAddress()
+    LOG(log_dg_) << "Cannot win ticket, " << getFullNodeAddress()
                  << " balance is 0 ...";
     return false;
   }
@@ -264,6 +264,15 @@ void BlockProposer::proposeBlock(DagBlock const& blk) {
   full_node_.lock()->insertBlockAndSign(blk);
   LOG(log_nf_) << "Propose block :" << blk;
   BlockProposer::num_proposed_blocks.fetch_add(1);
+}
+
+addr_t BlockProposer::getFullNodeAddress() const {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    return full_node->getAddress();
+  } else {
+    return addr_t();
+  }
 }
 
 }  // namespace taraxa

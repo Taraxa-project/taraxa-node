@@ -675,6 +675,15 @@ TEST_F(TopTest, sync_five_nodes) {
         << std::endl;
   }
 
+  auto dags = node1->getLinearizedDagBlocks();
+  for (auto i(0); i < dags.size(); ++i) {
+    auto d = dags[i];
+    for (auto const &t : node1->getDagBlock(d)->getTrxs()) {
+      auto blk = node1->getDagBlockFromTransaction(t);
+      EXPECT_FALSE(blk.isZero());
+    }
+  }
+
   for (auto const &node : nodes) {
     EXPECT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
@@ -1974,9 +1983,14 @@ TEST_F(TopTest, detect_overlap_transactions) {
     std::cerr << e.what() << std::endl;
   }
 
-  for (int i = 0; i < 10; ++i) {
-    taraxa::thisThreadSleepForSeconds(2);
-    if (node1->getTransactionStatusCount() == 10001) break;
+  for (int i = 0; i < SYNC_TIMEOUT; ++i) {
+    if (node1->getTransactionStatusCount() == 10001 &&
+        node2->getTransactionStatusCount() == 10001 &&
+        node3->getTransactionStatusCount() == 10001 &&
+        node4->getTransactionStatusCount() == 10001 &&
+        node5->getTransactionStatusCount() == 10001)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
   num_vertices1 = node1->getNumVerticesInDag();
@@ -2059,12 +2073,6 @@ TEST_F(TopTest, detect_overlap_transactions) {
       << "Number of unpacked_trx " << trx_table2.size() << std::endl
       << "Total packed (non-overlapped) trxs " << packed_trxs.size()
       << std::endl;
-
-  // check transaction to dagblock mapping
-  for (auto const &t : ordered_trxs) {
-    auto blk = node1->getDagBlockFromTransaction(t);
-    EXPECT_FALSE(blk.isZero());
-  }
 
   top5.kill();
   top4.kill();

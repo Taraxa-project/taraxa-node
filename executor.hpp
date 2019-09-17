@@ -78,6 +78,7 @@ class Executor {
                     std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
                         sortition_account_balance_table,
                     uint64_t period, DagBlock const& dag_block);
+  addr_t getFullNodeAddress() const;
 };
 
 }  // namespace taraxa

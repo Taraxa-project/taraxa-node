@@ -71,6 +71,7 @@ class PbftManager {
   uint64_t SKIP_PERIODS = 1;
 
  private:
+  addr_t getFullNodeAddress_() const;
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
                                      uint64_t local_round);
 

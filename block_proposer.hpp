@@ -142,7 +142,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
     std::vector<uint> params;
   };
   bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
-
+  addr_t getFullNodeAddress() const;
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;
   Conf conf_;

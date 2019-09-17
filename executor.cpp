@@ -70,8 +70,8 @@ bool Executor::executeBlkTrxs(
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
-               << num_executed_blk_ << ": " << blk
+  LOG(log_nf_) << getFullNodeAddress() << ": Block number " << num_executed_blk_
+               << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                << " / " << num_trxs;
   ;
@@ -130,6 +130,15 @@ bool Executor::coinTransfer(
                << new_receiver_bal << " in period " << period;
   num_executed_trx_.fetch_add(1);
   return true;
+}
+
+addr_t Executor::getFullNodeAddress() const {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    return full_node->getAddress();
+  } else {
+    return addr_t();
+  }
 }
 
 }  // namespace taraxa

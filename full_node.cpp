@@ -258,6 +258,7 @@ void FullNode::start(bool boot_node) {
   // order depend, be careful when changing the order
   network_->setFullNode(getShared());
   network_->start(boot_node);
+  dag_mgr_->setFullNode(getShared());
   dag_mgr_->start();
   blk_mgr_->setFullNode(getShared());
   blk_mgr_->start();
@@ -722,7 +723,9 @@ std::vector<Vote> FullNode::getVotes(uint64_t round) {
   return vote_mgr_->getVotes(round);
 }
 
-bool FullNode::addVote(taraxa::Vote const &vote) { return vote_mgr_->addVote(vote); }
+bool FullNode::addVote(taraxa::Vote const &vote) {
+  return vote_mgr_->addVote(vote);
+}
 
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
