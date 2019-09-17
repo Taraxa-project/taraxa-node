@@ -51,6 +51,7 @@ struct FullNodeConfig {
   RpcConfig rpc;
   TestParamsConfig test_params;
   GenesisState genesis_state;
+  bool use_basic_executor;
 
   auto account_db_path() { return db_path + "/acc"; }
   auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }

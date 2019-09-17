@@ -100,6 +100,10 @@ class StateRegistry {
     append(blk_to_root, false);
   }
 
+  void commitAndPush(State &,
+                     vector<blk_hash_t> const &,  //
+                     eth::State::CommitBehaviour const & =
+                         eth::State::CommitBehaviour::KeepEmptyAccounts);
   State &rebase(State &);
   optional<StateSnapshot> getSnapshot(dag_blk_num_t const &);
   optional<StateSnapshot> getSnapshot(blk_hash_t const &);

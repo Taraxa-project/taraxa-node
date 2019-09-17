@@ -271,9 +271,12 @@ void FullNode::start(bool boot_node) {
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
-  executor_ =
-      std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
-                                 db_blks_, db_trxs_, state_registry_);
+  executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
+                                         log_time_,  //
+                                         db_blks_,
+                                         db_trxs_,         //
+                                         state_registry_,  //
+                                         conf_.use_basic_executor);
   executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
@@ -416,9 +419,7 @@ bool FullNode::reset() {
       conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
   vote_mgr_ = std::make_shared<VoteManager>();
   pbft_chain_ = std::make_shared<PbftChain>();
-  executor_ =
-      std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
-                                 db_blks_, db_trxs_, state_registry_);
+  executor_ = nullptr;
   LOG(log_wr_) << "Node reset ... ";
   return true;
 }

@@ -20,10 +20,16 @@ inline const auto DEFAULT_WRITER = StreamWriterBuilder().newStreamWriter();
 inline tuple<Value, bool, JSONCPP_STRING> fromStringNothrow(
     string_view const& str) {
   Value ret;
-  JSONCPP_STRING err;
-  auto success =
-      DEFAULT_READER->parse(str.data(), str.data() + str.size(), &ret, &err);
-  return {move(ret), success, move(err)};
+  Reader reader;
+  bool success = reader.parse(str.data(), str.data() + str.size(), ret);
+  return {move(ret), success, "could not parse the json"};
+  // TODO
+  //  Value ret;
+  //  JSONCPP_STRING err;
+  //  auto success =
+  //      DEFAULT_READER->parse(str.data(), str.data() + str.size(), &ret,
+  //      &err);
+  //  return {move(ret), success, move(err)};
 }
 
 inline Value fromString(string_view const& str) {
@@ -35,9 +41,11 @@ inline Value fromString(string_view const& str) {
 }
 
 inline string toString(Value const& json) {
-  stringstream ss;
-  DEFAULT_WRITER->write(json, &ss);
-  return ss.str();
+  return json.toStyledString();
+  // TODO
+  //  stringstream ss;
+  //  DEFAULT_WRITER->write(json, &ss);
+  //  return ss.str();
 }
 
 }  // namespace taraxa::util_json

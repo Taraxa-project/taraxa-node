@@ -30,6 +30,21 @@ void StateRegistry::init(GenesisState const &genesis_state) {
   current_snapshot_ = *getSnapshot(stoull(current_block_num));
 }
 
+void StateRegistry::commitAndPush(
+    State &state,  //
+    vector<blk_hash_t> const &blks,
+    eth::State::CommitBehaviour const &commit_behaviour) {
+  assert(state.host_ == this);
+  assert(state.getSnapshot() == getCurrentSnapshot());
+  auto const &root = state.commitAndPush(commit_behaviour);
+  vector<pair<blk_hash_t, root_t>> blk_to_root;
+  for (auto const &blk : blks) {
+    blk_to_root.push_back({blk, root});
+  }
+  append(blk_to_root);
+  state.setSnapshot(current_snapshot_);
+}
+
 State &StateRegistry::rebase(State &state) {
   assert(state.host_ == this);
   if (state.getSnapshot() != getCurrentSnapshot()) {
