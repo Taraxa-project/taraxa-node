@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include "full_node.hpp"
 
 namespace taraxa {
 
@@ -627,8 +628,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
       total_dag_->computeOrder(false /* finalized */, anchor.toString(),
                                new_period, recent_added_blks_, blk_orders);
   if (!ok) {
-    LOG(log_er_) << "Create period " << new_period << " anchor: " << anchor
-                 << " failed " << std::endl;
+    LOG(log_er_) << getFullNodeAddress() << " Create period " << new_period
+                 << " anchor: " << anchor << " failed " << std::endl;
     return 0;
   }
 
@@ -642,7 +643,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
-    LOG(log_er_) << "Inserting period (" << period << ") anchor " << anchor
+    LOG(log_er_) << getFullNodeAddress() << "Inserting period (" << period
+                 << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
                  << anchors_.size() - 1 << ") " << anchors_.back();
     return 0;
@@ -655,8 +657,9 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {
-    LOG(log_er_) << "Create epoch " << period << " from " << blk_hash_t(prev)
-                 << " to " << anchor << " failed ";
+    LOG(log_er_) << getFullNodeAddress() << "Create epoch " << period
+                 << " from " << blk_hash_t(prev) << " to " << anchor
+                 << " failed ";
     return 0;
   }
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
@@ -679,4 +682,14 @@ void DagManager::deletePeriod(uint64_t period) {
     pivot_tree_->delVertex(t);
   }
 }
+
+addr_t DagManager::getFullNodeAddress() const {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    return full_node->getAddress();
+  } else {
+    return addr_t();
+  }
+}
+
 }  // namespace taraxa

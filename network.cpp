@@ -40,7 +40,8 @@ Network::Network(NetworkConfig const &config, std::string network_file,
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode", key,
         dev::p2p::NetworkConfig(conf_.network_address,
-                                conf_.network_listen_port, false, true), false);
+                                conf_.network_listen_port, false, true),
+        false);
   }
   taraxa_capability_ =
       std::make_shared<TaraxaCapability>(*host_.get(), conf_, genesis);

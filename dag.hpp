@@ -13,6 +13,7 @@
 #include <boost/graph/properties.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/thread.hpp>
+#include <chrono>
 #include <condition_variable>
 #include <iostream>
 #include <iterator>
@@ -23,8 +24,6 @@
 #include "libdevcore/Log.h"
 #include "types.hpp"
 #include "util.hpp"
-
-#include <chrono>
 
 namespace taraxa {
 
@@ -172,6 +171,8 @@ class DagBuffer;
 
 // TODO: probably share property map for total_dag_ and pivot_tree_
 
+class FullNode;
+
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using stdLock = std::unique_lock<std::mutex>;
@@ -185,7 +186,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void start();
   void stop();
   std::shared_ptr<DagManager> getShared();
-
+  void setFullNode(std::shared_ptr<FullNode> full_node) {
+    full_node_ = full_node;
+  }
   void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
   void consume();
 
@@ -219,13 +222,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::string getLatestAnchor() const { return anchors_.back(); }
 
  private:
-  size_t num_cached_period_in_dag = 10;
+  size_t num_cached_period_in_dag = 1000;
   bool addDagBlockInternal(DagBlock const &blk);
   void addToDagBuffer(DagBlock const &blk);
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
+  addr_t getFullNodeAddress() const;
   bool stopped_ = true;
+  std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
