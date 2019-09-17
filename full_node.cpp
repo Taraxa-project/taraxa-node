@@ -472,7 +472,7 @@ void FullNode::insertTransaction(Transaction const &trx) {
     map_trx[trx.getHash()] = std::make_pair(trx, trx.rlp(true));
     network_->onNewTransactions(map_trx);
   }
-  trx_mgr_->insertTrx(trx, true);
+  trx_mgr_->insertTrx(trx, trx.rlp(true), true);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
@@ -499,7 +499,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   return blk;
 }
 
-std::shared_ptr<Transaction> FullNode::getTransaction(
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>> FullNode::getTransaction(
     trx_hash_t const &hash) const {
   if (stopped_ || !trx_mgr_) {
     return nullptr;
@@ -679,7 +679,8 @@ void FullNode::insertBroadcastedTransactions(
     return;
   }
   for (auto const &trx : transactions) {
-    trx_mgr_->insertTrx(trx.second.first, false /* critical */);
+    trx_mgr_->insertTrx(trx.second.first, trx.second.second,
+                        false /* critical */);
     LOG(log_time_dg_) << "Transaction " << trx.second.first.getHash()
                       << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }

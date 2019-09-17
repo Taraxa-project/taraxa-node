@@ -390,7 +390,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           receivedTransactions += transaction.getHash().toString() + " ";
           peer->markTransactionAsKnown(transaction.getHash());
           transactions[transaction.getHash()] =
-              std::make_pair(transaction, transaction.rlp(true));
+              std::make_pair(transaction, _r[iTransaction].data().toBytes());
         }
         if (transactionCount > 0) {
           LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
@@ -700,11 +700,11 @@ void TaraxaCapability::onNewBlockVerified(DagBlock block) {
 void TaraxaCapability::sendBlocks(
     NodeID const &_id, std::vector<std::shared_ptr<DagBlock>> blocks) {
   RLPStream s;
-  std::map<blk_hash_t, std::vector<Transaction>> blockTransactions;
+  std::map<blk_hash_t, std::vector<taraxa::bytes>> blockTransactions;
   int totalTransactionsCount = 0;
   if (auto full_node = full_node_.lock()) {
     for (auto &block : blocks) {
-      std::vector<Transaction> transactions;
+      std::vector<taraxa::bytes> transactions;
       for (auto trx : block->getTrxs()) {
         auto t = full_node->getTransaction(trx);
         if (!t) {
@@ -717,7 +717,7 @@ void TaraxaCapability::sendBlocks(
           // needed
           return;
         }
-        transactions.push_back(*t);
+        transactions.push_back(t->second);
         totalTransactionsCount++;
       }
       blockTransactions[block->getHash()] = transactions;
@@ -729,8 +729,7 @@ void TaraxaCapability::sendBlocks(
     s.appendRaw(block->rlp(true));
     taraxa::bytes trx_bytes;
     for (auto &trx : blockTransactions[block->getHash()]) {
-      auto b = trx.rlp(true);
-      trx_bytes.insert(trx_bytes.end(), std::begin(b), std::end(b));
+      trx_bytes.insert(trx_bytes.end(), std::begin(trx), std::end(trx));
     }
     s.appendRaw(trx_bytes, blockTransactions[block->getHash()].size());
   }
@@ -774,17 +773,16 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
 
   taraxa::bytes trx_bytes;
   for (auto trx : transactionsToSend) {
-    std::shared_ptr<Transaction> transaction;
+    std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
     if (auto full_node = full_node_.lock()) {
       transaction = full_node->getTransaction(trx);
     } else {
       assert(test_transactions_.find(trx) != test_transactions_.end());
-      transaction = std::make_shared<Transaction>(test_transactions_[trx]);
+      transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(test_transactions_[trx], test_transactions_[trx].rlp(true));
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions
-    auto b = transaction->rlp(true);
-    trx_bytes.insert(trx_bytes.end(), std::begin(b), std::end(b));
+    trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
   }
   s.appendRaw(trx_bytes, transactionsToSend.size());
   host_.capabilityHost()->sealAndSend(_id, s);

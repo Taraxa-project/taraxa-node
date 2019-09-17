@@ -92,7 +92,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   trx_mgr.start();
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t, true);
+      trx_mgr.insertTrx(t, t.rlp(false), true);
     }
   });
   std::thread insertBlk([&trx_mgr]() {
@@ -111,7 +111,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   // trying to insert same trans when proposing
   std::thread insertTrx2([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t, false);
+      trx_mgr.insertTrx(t, t.rlp(false), false);
     }
   });
   std::cout << "Start block proposing ..." << std::endl;
@@ -129,7 +129,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
   // trying to insert same trans when proposing
   std::thread insertTrx3([&trx_mgr]() {
     for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t, true);
+      trx_mgr.insertTrx(t, t.rlp(false), true);
     }
   });
 
@@ -151,7 +151,7 @@ TEST(TransactionManager, prepare_signed_trx_for_propose) {
 
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : g_signed_trx_samples) {
-      trx_mgr.insertTrx(t, false);
+      trx_mgr.insertTrx(t, t.rlp(true), false);
     }
   });
 
