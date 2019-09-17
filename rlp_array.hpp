@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE__RLP_ARRAY_HPP_
-#define TARAXA_NODE__RLP_ARRAY_HPP_
+#ifndef TARAXA_NODE_RLP_ARRAY_HPP_
+#define TARAXA_NODE_RLP_ARRAY_HPP_
 
 #include <libdevcore/RLP.h>
 #include <libdevcore/TrieHash.h>

@@ -575,7 +575,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_err_) << "Full node unavailable";
     return false;
   }
-  addr_t account_address = full_node->getAddress();
+  addr_t account_address = getFullNodeAddress_();
   if (sortition_account_balance_table.find(account_address) ==
       sortition_account_balance_table.end()) {
     LOG(log_tra_) << "Don't have enough coins to vote";
@@ -874,12 +874,17 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
 
     uint64_t propose_pbft_chain_period = pbft_chain_->getPbftChainPeriod() + 1;
-    addr_t beneficiary = full_node->getAddress();
+    addr_t beneficiary = getFullNodeAddress_();
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
                            propose_pbft_chain_period, beneficiary);
     // set pbft block as pivot
     pbft_block.setPivotBlock(pivot_block);
+
+    // propose pbft block
+    LOG(log_sil_) << getFullNodeAddress_() << " Propose pivot block in period "
+                  << propose_pbft_chain_period << " round " << pbft_round_
+                  << " step " << pbft_step_ << " pivot: " << dag_block_hash;
 
   } else if (next_pbft_block_type == schedule_block_type) {
     LOG(log_deb_) << "Into propose schedule block";
@@ -927,6 +932,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     ScheduleBlock schedule_block(last_block_hash, schedule);
     // set pbft block as schedule
     pbft_block.setScheduleBlock(schedule_block);
+
+    // propose pbft block
+    LOG(log_sil_) << getFullNodeAddress_() << " Propose cs block in period "
+                  << pbft_chain_period << " round " << pbft_round_ << " step "
+                  << pbft_step_ << " pivot: " << dag_block_hash;
+
   }  // TODO: More pbft block types
 
   // setup timestamp for pbft block
@@ -1192,6 +1203,13 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       std::shared_ptr<vec_blk_t> dag_blocks_order;
       std::tie(current_period, dag_blocks_order) =
           full_node->getDagBlockOrder(dag_block_hash);
+
+      // propose pbft block
+      LOG(log_sil_) << getFullNodeAddress_()
+                    << " Finalize pivot block in period " << current_period
+                    << " round " << pbft_round_ << " step " << pbft_step_
+                    << " pivot: " << dag_block_hash;
+
       // update DAG blocks order and DAG blocks table
       for (auto const &dag_blk_hash : *dag_blocks_order) {
         auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
@@ -1222,8 +1240,16 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
             last_pivot_block.first.getPivotBlock().getDagBlockHash();
         uint64_t current_pbft_chain_period =
             last_pivot_block.first.getPivotBlock().getPeriod();
+
         uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
             dag_block_hash, current_pbft_chain_period);
+
+        // propose pbft block
+        LOG(log_sil_) << getFullNodeAddress_()
+                      << " Finalize cs block in period "
+                      << current_pbft_chain_period << " round " << pbft_round_
+                      << " step " << pbft_step_
+                      << " anchor: " << dag_block_hash;
 
         // execute schedule block
         // TODO: VM executor will not take sortition_account_balance_table as
@@ -1325,4 +1351,12 @@ void PbftManager::countVotes_() {
   }
 }
 
+addr_t PbftManager::getFullNodeAddress_() const {
+  auto full_node = node_.lock();
+  if (full_node) {
+    return full_node->getAddress();
+  } else {
+    return addr_t();
+  }
+}
 }  // namespace taraxa

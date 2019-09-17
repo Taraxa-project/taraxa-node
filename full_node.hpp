@@ -181,10 +181,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   std::vector<Vote> getVotes(uint64_t round);
-  void addVote(Vote const &vote);
+  bool addVote(Vote const &vote);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
-  bool isKnownVote(uint64_t pbft_round, vote_hash_t const &vote_hash) const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
   bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;

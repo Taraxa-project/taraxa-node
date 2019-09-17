@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-11-29 15:26:50
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-05 12:09:56
- */
-
-#ifndef UTIL_HPP
-#define UTIL_HPP
+#ifndef TARAXA_NODE_UTIL_HPP
+#define TARAXA_NODE_UTIL_HPP
 
 #include <execinfo.h>
 #include <json/json.h>

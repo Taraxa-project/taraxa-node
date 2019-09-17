@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-02-08 15:04:16
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-02-12 12:44:04
- */
-
 #include "conflict_detector.hpp"
 namespace taraxa {
 

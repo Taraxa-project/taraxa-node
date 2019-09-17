@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-03-20 22:11:32
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
 

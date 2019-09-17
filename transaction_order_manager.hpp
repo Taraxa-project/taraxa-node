@@ -10,6 +10,7 @@
 #include <thread>
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
+#include "pbft_chain.hpp"
 #include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -36,16 +37,20 @@ class TransactionOrderManager {
   void stop();
   void clear() { status_.clear(); }
 
-  std::vector<bool> computeOrderInBlock(DagBlock const& blk);
+  std::vector<bool> computeOrderInBlock(
+      DagBlock const& blk,
+      TransactionExecStatusTable& status_for_proposing_blocks);
   std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
       std::vector<std::shared_ptr<DagBlock>> const& blks);
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const& t);
+  bool updateOrderedTrx(TrxSchedule const& sche);
 
  private:
   bool stopped_ = true;
   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
   dev::Logger log_wr_{

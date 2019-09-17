@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_GENESISSTATE_HPP
-#define TARAXA_NODE_GENESISSTATE_HPP
+#ifndef TARAXA_NODE_GENESIS_STATE_HPP
+#define TARAXA_NODE_GENESIS_STATE_HPP
 
 #include <unordered_map>
 #include "boost/property_tree/ptree.hpp"

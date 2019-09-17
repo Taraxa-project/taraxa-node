@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-10
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-
-#ifndef PBFT_MANAGER_HPP
-#define PBFT_MANAGER_HPP
+#ifndef TARAXA_NODE_PBFT_MANAGER_HPP
+#define TARAXA_NODE_PBFT_MANAGER_HPP
 
 #include <string>
 #include <thread>
@@ -79,6 +71,7 @@ class PbftManager {
   uint64_t SKIP_PERIODS = 1;
 
  private:
+  addr_t getFullNodeAddress_() const;
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
                                      uint64_t local_round);
 

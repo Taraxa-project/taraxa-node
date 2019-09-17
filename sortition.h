@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-07
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-
-#ifndef SORTITION_H
-#define SORTITION_H
+#ifndef TARAXA_NODE_SORTITION_H
+#define TARAXA_NODE_SORTITION_H
 
 #include <string>
 #include "libdevcore/Log.h"

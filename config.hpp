@@ -1,13 +1,5 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-04-23 15:42:37
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 16:40:21
- */
-
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef TARAXA_NODE_CONFIG_HPP
+#define TARAXA_NODE_CONFIG_HPP
 #include <string>
 #include "genesis_state.hpp"
 #include "types.hpp"

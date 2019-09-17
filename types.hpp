@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-12-14 15:47:31
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-08 17:06:06
- */
-
 #ifndef TARAXA_NODE_TYPES_HPP
 #define TARAXA_NODE_TYPES_HPP
 #include <boost/asio.hpp>

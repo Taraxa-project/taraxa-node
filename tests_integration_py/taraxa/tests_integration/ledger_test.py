@@ -25,21 +25,20 @@ workspace.mkdir(parents=True, exist_ok=True)
 
 START_BOOT_NODE = f"{paths.node_exe} --rebuild_network true --boot_node true " \
                   f"--conf_taraxa {workspace}/conf_taraxa{{}}.json -v 2 " \
-                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR " \
+                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR TRXODR" \
                   f"> {workspace}/node{{}}.log 2>&1"
 START_FULL_NODE = f"{paths.node_exe} --rebuild_network true " \
                   f"--conf_taraxa {workspace}/conf_taraxa{{}}.json -v 2 " \
-                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR" \
+                  f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR TRXODR" \
                   f"> {workspace}/node{{}}.log 2>&1"
 START_FULL_NODE_SILENT = f"{paths.node_exe} --conf_taraxa {workspace}/conf_taraxa{{}}.json -v 0 " \
-                         f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR" \
+                         f"--log-channels FULLND PBFT_CHAIN PBFT_MGR VOTE_MGR SORTI EXETOR DAGMGR TRXODR" \
                          f"> {workspace}/node{{}}.log 2>&1"
-
 NODE_PORTS = []
 BOOT_NODE_PORT = 7777
 TOTAL_TARAXA_COINS = 9007199254740991
-NUM_TRXS = 200
-INIT_NODE_BAL = 70000
+NUM_TRXS = 2000
+INIT_NODE_BAL = 700000
 
 
 def get_node_port(num_nodes):
@@ -346,7 +345,7 @@ def terminate_full_nodes(jobs):
         killtree(j.pid)
 
 
-@pytest.mark.parametrize("num_nodes", [20])
+@pytest.mark.parametrize("num_nodes", [5])
 def test_main(num_nodes):
     # num_nodes = get_arguments()
     # delete previous results

@@ -1,10 +1,4 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-18 12:56:45
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:24:45
- */
+
 #include "full_node.hpp"
 #include <gtest/gtest.h>
 #include <atomic>
@@ -149,7 +143,7 @@ void send_5_nodes_trxs() {
 }
 
 void send_dumm_trx() {
-  taraxa::thisThreadSleepForSeconds(5);
+  taraxa::thisThreadSleepForSeconds(40);
   std::string dummy_trx =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
                                       "params": [{ 
@@ -600,7 +594,8 @@ TEST_F(TopTest, sync_five_nodes) {
   taraxa::thisThreadSleepForSeconds(10);
   uint64_t trx_executed1, trx_executed2, trx_executed3, trx_executed4,
       trx_executed5;
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  auto TIMEOUT = SYNC_TIMEOUT * 10;
+  for (auto i = 0; i < TIMEOUT; i++) {
     trx_executed1 = node1->getNumTransactionExecuted();
     trx_executed2 = node2->getNumTransactionExecuted();
     trx_executed3 = node3->getNumTransactionExecuted();
@@ -613,37 +608,80 @@ TEST_F(TopTest, sync_five_nodes) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
+    if (i == TIMEOUT - 1) {
+      // last wait
+      std::cout << "Warning! Syncing maybe failed ..." << std::endl;
+    }
   }
 
-  if (node1->getNumBlockExecuted() != node1->getNumVerticesInDag().first - 1) {
-    std::cout << "Number of block executed = " << node1->getNumBlockExecuted();
-    auto num_vertices = node1->getNumVerticesInDag();
-    std::cout << "Number of vertices in Dag = " << num_vertices.first << " , "
-              << num_vertices.second << std::endl;
-    auto dags = node1->getLinearizedDagBlocks();
-    for (auto i(0); i < dags.size(); ++i) {
-      auto d = dags[i];
-      std::cout << i << " " << d
-                << " trx: " << node1->getDagBlock(d)->getTrxs().size()
-                << std::endl;
-    }
-    node1->drawGraph("debug_dag");
-  }
-  auto i = 1;
+  auto k = 0;
   for (auto const &node : nodes) {
-    EXPECT_EQ(node->getPackedTrxs().size(), 10005)
-        << "Failed in node " << i << std::endl;
-    EXPECT_EQ(node->getNumBlockExecuted(),
-              node->getNumVerticesInDag().first - 1)
-        << "Failed in node " << i
-        << std::endl;  // genesis block won't be executed
+    k++;
+    auto vertices_diff =
+        node->getNumVerticesInDag().first - 1 - node->getNumBlockExecuted();
+    if (vertices_diff >= 5 || vertices_diff < 0 ||
+        node->getNumTransactionExecuted() != 10005 ||
+        node->getPackedTrxs().size() != 10005) {
+      std::cout << "Node " << k
+                << " :Number of trx packed = " << node->getPackedTrxs().size()
+                << std::endl;
+      std::cout << "Node " << k << " :Number of trx executed = "
+                << node->getNumTransactionExecuted() << std::endl;
+
+      std::cout << "Node " << k << " :Number of block executed = "
+                << node->getNumBlockExecuted() << std::endl;
+      auto num_vertices = node->getNumVerticesInDag();
+      std::cout << "Node " << k
+                << " :Number of vertices in Dag = " << num_vertices.first
+                << " , " << num_vertices.second << std::endl;
+      auto dags = node->getLinearizedDagBlocks();
+      for (auto i(0); i < dags.size(); ++i) {
+        auto d = dags[i];
+        std::cout << i << " " << d
+                  << " trx: " << node1->getDagBlock(d)->getTrxs().size()
+                  << std::endl;
+      }
+      std::string filename = "debug_dag_" + std::to_string(k);
+      node->drawGraph(filename);
+    }
+  }
+
+  k = 0;
+  for (auto const &node : nodes) {
+    k++;
+
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
-        << " \nNum execued in node " << i
+        << " \nNum execued in node " << k << " node " << node
         << " is : " << node->getNumTransactionExecuted()
         << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
         << " \nNum executed blks: " << node->getNumBlockExecuted()
         << " \nNum vertices in DAG: " << node->getNumVerticesInDag().first
         << " " << node->getNumVerticesInDag().second << "\n";
+
+    auto vertices_diff =
+        node->getNumVerticesInDag().first - 1 - node->getNumBlockExecuted();
+
+    // diff should be larger than 0 but smaller than number of nodes
+    // genesis block won't be executed
+    EXPECT_LT(vertices_diff, 5)
+        << "Failed in node " << k << "node " << node
+        << " Number of vertices: " << node->getNumVerticesInDag().first
+        << " Number of executed blks: " << node->getNumBlockExecuted()
+        << std::endl;
+    EXPECT_GE(vertices_diff, 0)
+        << "Failed in node " << k << "node " << node
+        << " Number of vertices: " << node->getNumVerticesInDag().first
+        << " Number of executed blks: " << node->getNumBlockExecuted()
+        << std::endl;
+  }
+
+  auto dags = node1->getLinearizedDagBlocks();
+  for (auto i(0); i < dags.size(); ++i) {
+    auto d = dags[i];
+    for (auto const &t : node1->getDagBlock(d)->getTrxs()) {
+      auto blk = node1->getDagBlockFromTransaction(t);
+      EXPECT_FALSE(blk.isZero());
+    }
   }
 
   for (auto const &node : nodes) {
@@ -1945,9 +1983,14 @@ TEST_F(TopTest, detect_overlap_transactions) {
     std::cerr << e.what() << std::endl;
   }
 
-  for (int i = 0; i < 10; ++i) {
-    taraxa::thisThreadSleepForSeconds(2);
-    if (node1->getTransactionStatusCount() == 10001) break;
+  for (int i = 0; i < SYNC_TIMEOUT; ++i) {
+    if (node1->getTransactionStatusCount() == 10001 &&
+        node2->getTransactionStatusCount() == 10001 &&
+        node3->getTransactionStatusCount() == 10001 &&
+        node4->getTransactionStatusCount() == 10001 &&
+        node5->getTransactionStatusCount() == 10001)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
   num_vertices1 = node1->getNumVerticesInDag();
@@ -2030,12 +2073,6 @@ TEST_F(TopTest, detect_overlap_transactions) {
       << "Number of unpacked_trx " << trx_table2.size() << std::endl
       << "Total packed (non-overlapped) trxs " << packed_trxs.size()
       << std::endl;
-
-  // check transaction to dagblock mapping
-  for (auto const &t : ordered_trxs) {
-    auto blk = node1->getDagBlockFromTransaction(t);
-    EXPECT_FALSE(blk.isZero());
-  }
 
   top5.kill();
   top4.kill();

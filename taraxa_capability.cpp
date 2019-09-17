@@ -384,8 +384,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           return false;
         }
 
-        if (!full_node->isKnownVote(vote.getRound(), vote.getHash())) {
-          full_node->addVote(vote);
+        if (full_node->addVote(vote)) {
           onNewPbftVote(vote);
         }
 

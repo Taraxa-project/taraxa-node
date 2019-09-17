@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-14 12:41:38
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-03-15 21:24:27
- */
-
 #include "dag_block.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
@@ -229,8 +221,9 @@ TEST(TransactionOrderManager, overlap) {
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
   TransactionOrderManager detector;
-  auto overlap1 = detector.computeOrderInBlock(blk1);
-  auto overlap2 = detector.computeOrderInBlock(blk2);
+  TransactionExecStatusTable table;
+  auto overlap1 = detector.computeOrderInBlock(blk1, table);
+  auto overlap2 = detector.computeOrderInBlock(blk2, table);
   EXPECT_TRUE(overlap1[0]);
   EXPECT_TRUE(overlap1[1]);
   EXPECT_TRUE(overlap1[2]);

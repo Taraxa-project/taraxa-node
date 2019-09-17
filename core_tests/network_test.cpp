@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2019-01-28 11:12:22
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:31:04
- */
-
 #include "network.hpp"
 #include <gtest/gtest.h>
 #include <atomic>

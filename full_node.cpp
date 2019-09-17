@@ -258,6 +258,7 @@ void FullNode::start(bool boot_node) {
   // order depend, be careful when changing the order
   network_->setFullNode(getShared());
   network_->start(boot_node);
+  dag_mgr_->setFullNode(getShared());
   dag_mgr_->start();
   blk_mgr_->setFullNode(getShared());
   blk_mgr_->start();
@@ -710,8 +711,10 @@ bool FullNode::executeScheduleBlock(
     std::unordered_map<addr_t, std::pair<val_t, int64_t>>
         &sortition_account_balance_table,
     uint64_t period) {
-  auto res = executor_->execute(sche_blk.getSchedule(),
-                                sortition_account_balance_table, period);
+  // update transaction overlap table first
+  auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
+  res |= executor_->execute(sche_blk.getSchedule(),
+                            sortition_account_balance_table, period);
   if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
   return res;
 }
@@ -720,7 +723,9 @@ std::vector<Vote> FullNode::getVotes(uint64_t round) {
   return vote_mgr_->getVotes(round);
 }
 
-void FullNode::addVote(taraxa::Vote const &vote) { vote_mgr_->addVote(vote); }
+bool FullNode::addVote(taraxa::Vote const &vote) {
+  return vote_mgr_->addVote(vote);
+}
 
 void FullNode::broadcastVote(Vote const &vote) {
   // come from RPC
@@ -737,11 +742,6 @@ void FullNode::clearUnverifiedVotesTable() {
 
 uint64_t FullNode::getUnverifiedVotesSize() const {
   return vote_mgr_->getUnverifiedVotesSize();
-}
-
-bool FullNode::isKnownVote(uint64_t pbft_round,
-                           vote_hash_t const &vote_hash) const {
-  return vote_mgr_->isKnownVote(pbft_round, vote_hash);
 }
 
 bool FullNode::isKnownPbftBlockForSyncing(
