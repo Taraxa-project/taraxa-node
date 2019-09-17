@@ -626,7 +626,7 @@ TEST(Network, node_transaction_sync) {
   for (auto const& t : g_signed_trx_samples) {
     EXPECT_TRUE(node2->getTransaction(t.getHash()) != nullptr);
     if (node2->getTransaction(t.getHash()) != nullptr) {
-      EXPECT_EQ(t, *node2->getTransaction(t.getHash()));
+      EXPECT_EQ(t, node2->getTransaction(t.getHash())->first);
     }
   }
 

@@ -87,7 +87,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       std::unordered_map<trx_hash_t,
                          std::pair<Transaction, taraxa::bytes>> const
           &transactions);
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
+      trx_hash_t const &hash) const;
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
