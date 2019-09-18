@@ -39,7 +39,8 @@ using TransactionStatusTable =
     ExpirationCacheMap<trx_hash_t, TransactionStatus>;
 using TransactionUnsafeStatusTable =
     std::unordered_map<trx_hash_t, TransactionStatus>;
-using AccountNonceTable = StatusTable<addr_t, uint>;
+using AccountNonceTable = StatusTable<addr_t, val_t>;
+
 
 /**
  * Note:
@@ -125,6 +126,8 @@ class Transaction {
     strm << "  sig: " << trans.sig_ << std::endl;
     strm << "  receiver: " << trans.receiver_ << std::endl;
     strm << "  data: " << bytes2str(trans.data_) << std::endl;
+    strm << "  sender: " << trans.sender() << std::endl;
+
     return strm;
   }
   bool serialize(stream &strm) const;
@@ -216,6 +219,9 @@ class TransactionQueue {
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
       trx_hash_t const &hash) const;
+  void setFullNode(std::shared_ptr<FullNode> full_node) {
+    full_node_ = full_node;
+  }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -224,12 +230,14 @@ class TransactionQueue {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using listIter = std::list<std::pair<Transaction, taraxa::bytes>>::iterator;
   void verifyQueuedTrxs();
+  addr_t getFullNodeAddress() const;
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions_ = true;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
   AccountNonceTable &accs_nonce_;
+  std::weak_ptr<FullNode> full_node_;
 
   std::list<std::pair<Transaction, taraxa::bytes>> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
@@ -244,6 +252,8 @@ class TransactionQueue {
 
   std::vector<std::thread> verifiers_;
 
+  mutable dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "TRXQU")};
   mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXQU")};
   mutable dev::Logger log_wr_{
@@ -290,7 +300,10 @@ class TransactionManager
   }
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
+  void setFullNode(std::shared_ptr<FullNode> full_node) {
+    full_node_ = full_node;
+    trx_qu_.setFullNode(full_node);
+  }
   bool insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
                  bool critical);
 
@@ -332,14 +345,18 @@ class TransactionManager
   }
 
  private:
+  addr_t getFullNodeAddress() const;
+
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
-  std::weak_ptr<FullNode> node_;
+  std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   TransactionStatusTable trx_status_;
   AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
+  mutable dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};
   mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
   mutable dev::Logger log_wr_{

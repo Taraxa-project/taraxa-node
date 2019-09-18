@@ -70,16 +70,16 @@ void send_2_nodes_trxs() {
   std::string sendtrx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 6000, 
-                                      "nonce": 1, 
+                                      "delay": 500, 
+                                      "number": 600, 
+                                      "nonce": 0, 
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
   std::string sendtrx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 4000, 
-                                      "nonce": 2 , 
+                                      "delay": 700, 
+                                      "number": 400, 
+                                      "nonce": 0 , 
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
   std::cout << "Sending trxs ..." << std::endl;
   std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
@@ -999,26 +999,36 @@ TEST_F(TopTest, sync_two_nodes1) {
 
   // send 1000 trxs
   try {
-    std::cout << "Sending 1000 trxs ..." << std::endl;
-    sendTrx(1000, 7777);
-    std::cout << "1000 trxs sent ..." << std::endl;
-
+    send_2_nodes_trxs();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
-  auto vertices1 = node1->getNumVerticesInDag();
-  auto vertices2 = node2->getNumVerticesInDag();
+  auto num_trx1 = node1->getTransactionStatusCount();
+  auto num_trx2 = node2->getTransactionStatusCount();
   // add more delay if sync is not done
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    if (vertices1 == vertices2 && vertices1.first > 3) break;
+    if (num_trx1 == 1000 && num_trx2 == 1000) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
-    vertices1 = node1->getNumVerticesInDag();
-    vertices2 = node2->getNumVerticesInDag();
+    num_trx1 = node1->getTransactionStatusCount();
+    num_trx2 = node2->getTransactionStatusCount();
   }
-  EXPECT_GT(vertices1.first, 3);
-  EXPECT_GT(vertices1.second, 3);
-  EXPECT_EQ(vertices1, vertices2);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 1000);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 1000);
+
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    if (num_vertices1.first > 3 && num_vertices2.first > 3 &&
+        num_vertices1 == num_vertices2)
+      break;
+    taraxa::thisThreadSleepForMilliSeconds(500);
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
+  }
+  EXPECT_GT(num_vertices1.first, 3);
+  EXPECT_GT(num_vertices2.second, 3);
+  EXPECT_EQ(num_vertices1, num_vertices2);
 
   top2.kill();
   top1.kill();

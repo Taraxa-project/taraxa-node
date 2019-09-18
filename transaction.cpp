@@ -309,19 +309,35 @@ void TransactionQueue::verifyQueuedTrxs() {
           queued_trxs_.erase(hash);
         }
         LOG(log_wr_) << "Trx: " << hash << "invalid. " << std::endl;
-
-      } else {
-        // push to verified qu
-        LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
-        bool ret = trx_status_.update(trx.getHash(),
-                                      TransactionStatus::in_queue_verified,
-                                      TransactionStatus::in_queue_unverified);
-        if (ret) {
-          uLock lock(shared_mutex_for_verified_qu_);
-          verified_trxs_[hash] = item.second;
-          new_verified_transactions_ = true;
-        }
+        continue;
       }
+
+      auto trx_hash = trx.getHash();
+      auto trx_sender = trx.getSender();
+      auto trx_nonce = trx.getNonce();
+      auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
+      auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
+      if (trx_nonce - prev_nonce > 1) {
+        LOG(log_er_) << getFullNodeAddress() << " Verifying trx ... find a gap in sender "
+                     << trx_sender << " prev nonce: " << prev_nonce
+                     << " current nonce " << trx_nonce << " trx: " << trx_hash;
+      }
+      accs_nonce_.update(trx_sender, new_nonce);
+      LOG(log_si_) << getFullNodeAddress() << " Verifying trx ... update sender "
+                   << trx_sender << " nonce " << new_nonce << " in trx "
+                   << trx_hash;
+
+      // push to verified qu
+      LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
+      bool ret = trx_status_.update(trx.getHash(),
+                                    TransactionStatus::in_queue_verified,
+                                    TransactionStatus::in_queue_unverified);
+      if (ret) {
+        uLock lock(shared_mutex_for_verified_qu_);
+        verified_trxs_[hash] = item.second;
+        new_verified_transactions_ = true;
+      }
+
     } catch (...) {
       assert(false);
     }
@@ -434,14 +450,23 @@ unsigned long TransactionQueue::getVerifiedTrxCount() {
   return verified_trxs_.size();
 }
 
+addr_t TransactionQueue::getFullNodeAddress() const {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    return full_node->getAddress();
+  } else {
+    return addr_t();
+  }
+}
+
 void TransactionManager::start() {
   if (!stopped_) return;
-  if (!node_.lock()) {
+  if (!full_node_.lock()) {
     LOG(log_wr_) << "FullNode is not set ...";
     assert(db_trxs_);
   } else {
     assert(!db_trxs_);
-    db_trxs_ = node_.lock()->getTrxsDB();
+    db_trxs_ = full_node_.lock()->getTrxsDB();
   }
   trx_qu_.start();
 
@@ -521,8 +546,25 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // syncing purpose)
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
-      db_trxs_->update(trx.getHash(), trx.rlp(trx.hasSig()));
-      trx_status_.update(trx.getHash(), TransactionStatus::in_block);
+
+      auto trx_hash = trx.getHash();
+      auto trx_sender = trx.getSender();
+      auto trx_nonce = trx.getNonce();
+
+      db_trxs_->update(trx_hash, trx.rlp(trx.hasSig()));
+      trx_status_.update(trx_hash, TransactionStatus::in_block);
+      auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
+      auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
+      if (trx_nonce - prev_nonce > 1) {
+        LOG(log_wr_) << getFullNodeAddress()
+                     << " Verifying block ... find a gap in sender "
+                     << trx_sender << " prev nonce: " << prev_nonce
+                     << " current nonce " << trx_nonce << " trx: " << trx_hash;
+      }
+      accs_nonce_.update(trx_sender, new_nonce);
+      LOG(log_si_) << getFullNodeAddress()
+                   << " Verifying block ... update sender " << trx_sender
+                   << " nonce " << new_nonce;
     }
     db_trxs_->commit();
   }
@@ -596,7 +638,7 @@ bool TransactionManager::insertTrx(Transaction const &trx,
     } else if (status.first == TransactionStatus::invalid) {
       LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
                    << std::endl;
-    }
+
   }
   return ret;
 }
@@ -664,6 +706,15 @@ bool TransactionManager::verifyBlockTransactions(
     return false;
   }
   return true;
+}
+
+addr_t TransactionManager::getFullNodeAddress() const {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    return full_node->getAddress();
+  } else {
+    return addr_t();
+  }
 }
 
 }  // namespace taraxa
