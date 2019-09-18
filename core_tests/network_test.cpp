@@ -714,7 +714,7 @@ TEST(Network, node_full_sync) {
   //   ".txt");
 
   EXPECT_GT(node1->getNumVerticesInDag().first, 0);
-  EXPECT_GT(10, node1->getNewVerifiedTrxSnapShot().size());
+  EXPECT_GT(10, node1->getVerifiedTrxSnapShot().size());
   for (int i = 0; i < numberOfNodes; i++) {
     EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,

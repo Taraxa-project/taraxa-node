@@ -655,11 +655,11 @@ void FullNode::drawGraph(std::string const &dotfile) const {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-FullNode::getNewVerifiedTrxSnapShot() {
+FullNode::getVerifiedTrxSnapShot() {
   if (stopped_ || !trx_mgr_) {
     return std::unordered_map<trx_hash_t, Transaction>();
   }
-  return trx_mgr_->getNewVerifiedTrxSnapShot();
+  return trx_mgr_->getVerifiedTrxSnapShot();
 }
 
 std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>

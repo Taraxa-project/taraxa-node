@@ -173,7 +173,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return state_;
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
   getNewVerifiedTrxSnapShotSerialized();
 

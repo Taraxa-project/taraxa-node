@@ -205,7 +205,7 @@ class TransactionQueue {
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
   getNewVerifiedTrxSnapShotSerialized();
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
@@ -224,7 +224,7 @@ class TransactionQueue {
   void verifyQueuedTrxs();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
-  bool new_verified_transactions = true;
+  bool new_verified_transactions_ = true;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
   AccountNonceTable &accs_nonce_;
@@ -301,7 +301,7 @@ class TransactionManager
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
   getNewVerifiedTrxSnapShotSerialized();
 
