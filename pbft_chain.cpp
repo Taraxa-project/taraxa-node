@@ -522,7 +522,7 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_chain_map_.find(pbft_block_hash) != pbft_chain_map_.end();
+  return db_pbftchain_->get(pbft_block_hash.toString()) != "";
 }
 
 bool PbftChain::findPbftBlockInQueue(
@@ -538,10 +538,11 @@ bool PbftChain::findPbftBlockInVerifiedSet(
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t& pbft_block_hash) {
-  if (findPbftBlockInChain(pbft_block_hash)) {
-    return std::make_pair(pbft_chain_map_[pbft_block_hash], true);
+  std::string pbft_block_str = db_pbftchain_->get(pbft_block_hash.toString());
+  if (pbft_block_str.empty()) {
+    return std::make_pair(PbftBlock(), false);
   }
-  return std::make_pair(PbftBlock(), false);
+  return std::make_pair(PbftBlock(pbft_block_str), true);
 }
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
@@ -552,26 +553,25 @@ std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
   return std::make_pair(PbftBlock(), false);
 }
 
-std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(
+std::vector<PbftBlock> PbftChain::getPbftBlocks(
     size_t height, size_t count) const {
-  std::vector<std::shared_ptr<PbftBlock>> result;
+  std::vector<PbftBlock> result;
   for (auto i = height; i < height + count; i++) {
-    result.push_back(std::make_shared<PbftBlock>(
-        pbft_chain_map_.at(pbft_blocks_index_[i - 1])));
+    std::string pbft_block_str =
+        db_pbftchain_->get(pbft_blocks_index_[i - 1].toString());
+    result.push_back(PbftBlock(pbft_block_str));
   }
   return result;
 }
 
-void PbftChain::insertPbftBlockInChain_(
-    taraxa::blk_hash_t const& pbft_block_hash,
-    taraxa::PbftBlock const& pbft_block) {
-  pbft_chain_map_[pbft_block_hash] = pbft_block;
+void PbftChain::insertPbftBlockIndex_(
+    taraxa::blk_hash_t const& pbft_block_hash) {
   pbft_blocks_index_.push_back(pbft_block_hash);
 }
 
 void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  insertPbftBlockInChain_(pbft_block_hash, pbft_block);
+  insertPbftBlockIndex_(pbft_block_hash);
   setLastPbftBlockHash(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later

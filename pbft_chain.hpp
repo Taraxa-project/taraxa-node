@@ -214,8 +214,7 @@ class PbftChain {
       blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
       blk_hash_t const& pbft_block_hash);
-  std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
-                                                        size_t count) const;
+  std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
   std::string getGenesisStr() const;
   std::string getJsonStr() const;
   dev::Logger& getLoggerErr() { return log_err_; }
@@ -250,8 +249,7 @@ class PbftChain {
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
 
  private:
-  void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
-                               PbftBlock const& pbft_block);
+  void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
@@ -272,7 +270,6 @@ class PbftChain {
 
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
