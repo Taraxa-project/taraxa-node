@@ -36,7 +36,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
+    assert(false);
   }
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();

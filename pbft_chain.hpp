@@ -198,8 +198,10 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
-  PbftChain();
+  PbftChain(std::string const &dag_genesis_hash);
   ~PbftChain() {}
+
+  void setFullNode(std::shared_ptr<FullNode> full_node);
 
   uint64_t getPbftChainSize() const;
   uint64_t getPbftChainPeriod() const;
@@ -246,7 +248,6 @@ class PbftChain {
 
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
-  void cleanPbftChain() { PbftChain(); }
 
  private:
   void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
@@ -266,12 +267,12 @@ class PbftChain {
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
 
-  std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<SimpleDBFace> db_pbftchain_;
+  std::weak_ptr<FullNode> node_;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
 
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
-//  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
+  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;

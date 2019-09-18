@@ -47,8 +47,7 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       vote_mgr_(std::make_shared<VoteManager>()),
       pbft_mgr_(std::make_shared<PbftManager>(
           conf_.test_params.pbft,
-          conf_.genesis_state.block.getHash().toString())),
-      pbft_chain_(std::make_shared<PbftChain>()) {
+          conf_.genesis_state.block.getHash().toString())) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -133,12 +132,6 @@ void FullNode::initDB(bool destroy_db) {
     // store genesis blk to db
     db_blks_->put(genesis_hash, genesis_block.rlp(true));
     db_blks_->commit();
-    // Initialize DAG genesis at DAG block heigh 0
-    pbft_chain_->pushDagBlockHash(genesis_hash);
-    // store pbft chain genesis(HEAD) block to db
-    db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
-                       pbft_chain_->getJsonStr());
-    db_pbftchain_->commit();
     // TODO add move to a StateRegistry constructor?
     auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
     auto acc_db = newDB(conf_.account_db_path(),
@@ -268,6 +261,9 @@ void FullNode::start(bool boot_node) {
   trx_order_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
+  pbft_chain_ = std::make_shared<PbftChain>(
+      conf_.genesis_state.block.getHash().toString());
+  pbft_chain_->setFullNode(getShared());
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
@@ -345,6 +341,7 @@ void FullNode::stop() {
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
+  pbft_chain_ = nullptr;
   executor_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
@@ -372,10 +369,10 @@ bool FullNode::reset() {
   trx_mgr_ = nullptr;
   trx_order_mgr_ = nullptr;
   blk_proposer_ = nullptr;
-  executor_ = nullptr;
   vote_mgr_ = nullptr;
   pbft_mgr_ = nullptr;
   pbft_chain_ = nullptr;
+  executor_ = nullptr;
 
   assert(network_.use_count() == 0);
   // dag
@@ -386,14 +383,14 @@ bool FullNode::reset() {
   assert(trx_order_mgr_.use_count() == 0);
   // block proposer (multi processing)
   assert(blk_proposer_.use_count() == 0);
-  // transaction executor
-  assert(executor_.use_count() == 0);
   // PBFT
   assert(vote_mgr_.use_count() == 0);
 
   assert(pbft_mgr_.use_count() == 0);
 
   assert(pbft_chain_.use_count() == 0);
+  // transaction executor
+  assert(executor_.use_count() == 0);
 
   max_dag_level_ = 0;
   received_blocks_ = 0;
@@ -412,10 +409,11 @@ bool FullNode::reset() {
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
       trx_mgr_->getShared());
+  pbft_chain_ = std::make_shared<PbftChain>(
+      conf_.genesis_state.block.getHash().toString());
+  vote_mgr_ = std::make_shared<VoteManager>();
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
-  vote_mgr_ = std::make_shared<VoteManager>();
-  pbft_chain_ = std::make_shared<PbftChain>();
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
                                  db_blks_, db_trxs_, state_registry_);

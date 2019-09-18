@@ -435,13 +435,31 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
-PbftChain::PbftChain() : genesis_hash_(blk_hash_t(0)),
-                         size_(1),
-                         period_(0),
-                         next_pbft_block_type_(pivot_block_type) {
-  last_pbft_block_hash_ = genesis_hash_;
-  last_pbft_pivot_hash_ = genesis_hash_;
+PbftChain::PbftChain(std::string const &dag_genesis_hash)
+    : genesis_hash_(blk_hash_t(0)),
+      size_(1),
+      period_(0),
+      next_pbft_block_type_(pivot_block_type),
+      last_pbft_block_hash_(genesis_hash_),
+      last_pbft_pivot_hash_(genesis_hash_) {
+  // Initialize DAG genesis at DAG block heigh 0
+  pushDagBlockHash(blk_hash_t(dag_genesis_hash));
+  // put PBFT genesis into verified set
   pbft_verified_set_.insert(genesis_hash_);
+}
+
+void PbftChain::setFullNode(std::shared_ptr<FullNode> node) {
+  node_ = node;
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable";
+    assert(false);
+  }
+  // setup pbftchain DB point
+  db_pbftchain_ = full_node->getPbftChainDB();
+  // store PBFT chain genesis(HEAD) block to db
+  db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
+  db_pbftchain_->commit();
 }
 
 uint64_t PbftChain::getPbftChainSize() const { return size_; }

@@ -263,6 +263,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Network> network_;
   // dag
   std::shared_ptr<DagManager> dag_mgr_;
+
   // ledger
   std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
