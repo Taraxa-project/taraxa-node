@@ -435,6 +435,15 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
+PbftChain::PbftChain() : genesis_hash_(blk_hash_t(0)),
+                         size_(1),
+                         period_(0),
+                         next_pbft_block_type_(pivot_block_type) {
+  last_pbft_block_hash_ = genesis_hash_;
+  last_pbft_pivot_hash_ = genesis_hash_;
+  pbft_verified_set_.insert(genesis_hash_);
+}
+
 uint64_t PbftChain::getPbftChainSize() const { return size_; }
 
 uint64_t PbftChain::getPbftChainPeriod() const { return period_; }

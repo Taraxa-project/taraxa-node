@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -61,6 +62,8 @@ struct TrxSchedule {
   }
 };
 std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche);
+
+class FullNode;
 
 class PivotBlock {
  public:
@@ -195,16 +198,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
-  PbftChain()
-      : genesis_hash_(blk_hash_t(0)),
-        size_(1),
-        period_(0),
-        next_pbft_block_type_(pivot_block_type) {
-    last_pbft_block_hash_ = genesis_hash_;
-    last_pbft_pivot_hash_ = genesis_hash_;
-    pbft_chain_map_[genesis_hash_] = PbftBlock(genesis_hash_);
-    pbft_verified_set_.insert(genesis_hash_);
-  }
+  PbftChain();
   ~PbftChain() {}
 
   uint64_t getPbftChainSize() const;
@@ -272,9 +266,12 @@ class PbftChain {
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
 
+  std::weak_ptr<FullNode> full_node_;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_;
+
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
+//  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
