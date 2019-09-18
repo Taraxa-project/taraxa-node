@@ -652,8 +652,7 @@ void FullNode::drawGraph(std::string const &dotfile) const {
   dag_mgr_->drawTotalGraph("total." + dotfile);
 }
 
-std::unordered_map<trx_hash_t, Transaction>
-FullNode::getVerifiedTrxSnapShot() {
+std::unordered_map<trx_hash_t, Transaction> FullNode::getVerifiedTrxSnapShot() {
   if (stopped_ || !trx_mgr_) {
     return std::unordered_map<trx_hash_t, Transaction>();
   }

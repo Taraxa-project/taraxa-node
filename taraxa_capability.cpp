@@ -778,11 +778,13 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
       transaction = full_node->getTransaction(trx);
     } else {
       assert(test_transactions_.find(trx) != test_transactions_.end());
-      transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(test_transactions_[trx], test_transactions_[trx].rlp(true));
+      transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+          test_transactions_[trx], test_transactions_[trx].rlp(true));
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions
-    trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
+    trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second),
+                     std::end(transaction->second));
   }
   s.appendRaw(trx_bytes, transactionsToSend.size());
   host_.capabilityHost()->sealAndSend(_id, s);

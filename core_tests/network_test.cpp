@@ -47,9 +47,12 @@ TEST(Network, transfer_block) {
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
-  transactions[g_signed_trx_samples[0].getHash()] = std::make_pair(g_signed_trx_samples[0], g_signed_trx_samples[0].rlp(true));
-  transactions[g_signed_trx_samples[1].getHash()] = std::make_pair(g_signed_trx_samples[1], g_signed_trx_samples[1].rlp(true));
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+      transactions;
+  transactions[g_signed_trx_samples[0].getHash()] = std::make_pair(
+      g_signed_trx_samples[0], g_signed_trx_samples[0].rlp(true));
+  transactions[g_signed_trx_samples[1].getHash()] = std::make_pair(
+      g_signed_trx_samples[1], g_signed_trx_samples[1].rlp(true));
   nw2->onNewTransactions(transactions);
 
   taraxa::thisThreadSleepForSeconds(1);
@@ -605,7 +608,8 @@ TEST(Network, node_transaction_sync) {
   node1->setDebug(true);
   node1->start(true);
 
-  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+      transactions;
   for (auto const& t : g_signed_trx_samples) {
     transactions[t.getHash()] = std::make_pair(t, t.rlp(true));
   }
@@ -680,7 +684,8 @@ TEST(Network, node_full_sync) {
     ts.push_back(samples::TX_GEN.getWithRandomUniqueSender());
   }
   for (auto i = 0; i < NUM_TRX2; ++i) {
-    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+        transactions;
     transactions[ts[i].getHash()] = std::make_pair(ts[i], ts[i].rlp(true));
     nodes[distNodes(rng)]->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));

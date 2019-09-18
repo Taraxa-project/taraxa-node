@@ -656,15 +656,15 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
         if (rs_votes.first.first + 1 > round_determined) {
           LOG(log_deb_) << "Found sufficient next votes in round "
-                      << rs_votes.first.first << ", step "
-                      << rs_votes.first.second;
+                        << rs_votes.first.first << ", step "
+                        << rs_votes.first.second;
           round_determined = rs_votes.first.first + 1;
         } else {
           LOG(log_deb_) << "Also found sufficient next votes in round "
-                      << rs_votes.first.first << ", step "
-                      << rs_votes.first.second;
+                        << rs_votes.first.first << ", step "
+                        << rs_votes.first.second;
         }
-        //return rs_votes.first.first + 1;
+        // return rs_votes.first.first + 1;
       }
     }
   }

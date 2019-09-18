@@ -435,7 +435,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
-PbftChain::PbftChain(std::string const &dag_genesis_hash)
+PbftChain::PbftChain(std::string const& dag_genesis_hash)
     : genesis_hash_(blk_hash_t(0)),
       size_(1),
       period_(0),
@@ -553,8 +553,8 @@ std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
   return std::make_pair(PbftBlock(), false);
 }
 
-std::vector<PbftBlock> PbftChain::getPbftBlocks(
-    size_t height, size_t count) const {
+std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
+                                                size_t count) const {
   std::vector<PbftBlock> result;
   for (auto i = height; i < height + count; i++) {
     std::string pbft_block_str =

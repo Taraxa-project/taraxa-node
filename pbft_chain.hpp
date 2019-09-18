@@ -198,7 +198,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
-  PbftChain(std::string const &dag_genesis_hash);
+  PbftChain(std::string const& dag_genesis_hash);
   ~PbftChain() {}
 
   void setFullNode(std::shared_ptr<FullNode> full_node);
