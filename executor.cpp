@@ -57,10 +57,8 @@ bool Executor::execute_main(TrxSchedule const& schedule,
         LOG(log_wr_) << "The transaction has been executed ..." << trx_hash;
         continue;
       }
-      sortition_account_balance_table[trx.getSender()] = {
-          pbft_require_sortition_coins_ + 10, period};
       auto const& receiver = trx.getReceiver();
-      trx_to_execute.push_back(trx_engine::Transaction{
+      trx_to_execute.push_back({
           receiver.isZero() ? std::nullopt : std::optional(receiver),
           trx.getSender(),
           // TODO unint64 is correct
@@ -97,8 +95,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
         auto const new_sender_bal = current_state.balance(sender);
         auto const new_receiver_bal = current_state.balance(receiver);
         if (new_sender_bal >= pbft_require_sortition_coins_) {
-          sortition_account_balance_table[sender] =
-              std::make_pair(new_sender_bal, period);
+          sortition_account_balance_table[sender] = {new_sender_bal, period};
         } else if (sortition_account_balance_table.find(sender) !=
                    sortition_account_balance_table.end()) {
           sortition_account_balance_table.erase(sender);
@@ -108,8 +105,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
               sortition_account_balance_table.end()) {
             sortition_account_balance_table[receiver].first = new_receiver_bal;
           } else {
-            sortition_account_balance_table[receiver] =
-                std::make_pair(new_receiver_bal, -1);
+            sortition_account_balance_table[receiver] = {new_receiver_bal, -1};
           }
         }
         num_executed_trx_.fetch_add(1);
