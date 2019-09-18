@@ -12,7 +12,6 @@
 #include "simple_db_factory.hpp"
 #include "sortition.h"
 #include "state_registry.hpp"
-#include "trx_engine/trx_engine.hpp"
 #include "util_eth.hpp"
 #include "vote.h"
 
