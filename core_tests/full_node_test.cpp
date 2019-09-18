@@ -1151,7 +1151,6 @@ TEST_F(TopTest, sync_two_nodes3) {
     EXPECT_GT(vertices1.first, 3);
     EXPECT_GT(vertices1.second, 3);
     EXPECT_EQ(vertices1, vertices2);
-    top2.reset();
     top2.kill();
   }
 
