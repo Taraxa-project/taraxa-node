@@ -340,7 +340,7 @@ void TransactionQueue::verifyQueuedTrxs() {
         if (ret) {
           uLock lock(shared_mutex_for_verified_qu_);
           verified_trxs_[hash] = item.second;
-          new_verified_transactions = true;
+          new_verified_transactions_ = true;
         }
       }
     } catch (...) {
@@ -385,7 +385,7 @@ TransactionQueue::removeBlockTransactionsFromQueue(
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::getNewVerifiedTrxSnapShot() {
+TransactionQueue::getVerifiedTrxSnapShot() {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
   sharedLock lock(shared_mutex_for_verified_qu_);
   for (auto const &trx : verified_trxs_) {
@@ -400,8 +400,8 @@ std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
 TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
   std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
       verified_trxs;
-  if (new_verified_transactions) {
-    new_verified_transactions = false;
+  if (new_verified_transactions_) {
+    new_verified_transactions_ = false;
     sharedLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
       verified_trxs[trx.first] =
@@ -477,8 +477,8 @@ void TransactionManager::stop() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionManager::getNewVerifiedTrxSnapShot() {
-  return trx_qu_.getNewVerifiedTrxSnapShot();
+TransactionManager::getVerifiedTrxSnapShot() {
+  return trx_qu_.getVerifiedTrxSnapShot();
 }
 
 std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
