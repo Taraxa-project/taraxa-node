@@ -47,9 +47,9 @@ TEST(Network, transfer_block) {
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  std::unordered_map<trx_hash_t, Transaction> transactions;
-  transactions[g_signed_trx_samples[0].getHash()] = g_signed_trx_samples[0];
-  transactions[g_signed_trx_samples[1].getHash()] = g_signed_trx_samples[1];
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
+  transactions[g_signed_trx_samples[0].getHash()] = std::make_pair(g_signed_trx_samples[0], g_signed_trx_samples[0].rlp(true));
+  transactions[g_signed_trx_samples[1].getHash()] = std::make_pair(g_signed_trx_samples[1], g_signed_trx_samples[1].rlp(true));
   nw2->onNewTransactions(transactions);
 
   taraxa::thisThreadSleepForSeconds(1);
@@ -82,10 +82,10 @@ TEST(Network, transfer_transaction) {
 
   nw1->start(true);
   nw2->start();
-  std::vector<Transaction> transactions;
-  transactions.push_back(g_signed_trx_samples[0]);
-  transactions.push_back(g_signed_trx_samples[1]);
-  transactions.push_back(g_signed_trx_samples[2]);
+  std::vector<taraxa::bytes> transactions;
+  transactions.push_back(g_signed_trx_samples[0].rlp(true));
+  transactions.push_back(g_signed_trx_samples[1].rlp(true));
+  transactions.push_back(g_signed_trx_samples[2].rlp(true));
 
   taraxa::thisThreadSleepForSeconds(1);
 
@@ -605,9 +605,9 @@ TEST(Network, node_transaction_sync) {
   node1->setDebug(true);
   node1->start(true);
 
-  std::unordered_map<trx_hash_t, Transaction> transactions;
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
   for (auto const& t : g_signed_trx_samples) {
-    transactions[t.getHash()] = t;
+    transactions[t.getHash()] = std::make_pair(t, t.rlp(true));
   }
 
   node1->insertBroadcastedTransactions(transactions);
@@ -626,7 +626,7 @@ TEST(Network, node_transaction_sync) {
   for (auto const& t : g_signed_trx_samples) {
     EXPECT_TRUE(node2->getTransaction(t.getHash()) != nullptr);
     if (node2->getTransaction(t.getHash()) != nullptr) {
-      EXPECT_EQ(t, *node2->getTransaction(t.getHash()));
+      EXPECT_EQ(t, node2->getTransaction(t.getHash())->first);
     }
   }
 
@@ -675,10 +675,13 @@ TEST(Network, node_full_sync) {
       0, numberOfNodes - 1);  // distribution in range [1, 2000]
 
   int counter = 0;
+  std::vector<Transaction> ts;
   for (auto i = 0; i < NUM_TRX2; ++i) {
-    auto t = samples::TX_GEN.getWithRandomUniqueSender();
-    std::unordered_map<trx_hash_t, Transaction> transactions;
-    transactions[t.getHash()] = t;
+    ts.push_back(samples::TX_GEN.getWithRandomUniqueSender());
+  }
+  for (auto i = 0; i < NUM_TRX2; ++i) {
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> transactions;
+    transactions[ts[i].getHash()] = std::make_pair(ts[i], ts[i].rlp(true));
     nodes[distNodes(rng)]->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
@@ -711,7 +714,7 @@ TEST(Network, node_full_sync) {
   //   ".txt");
 
   EXPECT_GT(node1->getNumVerticesInDag().first, 0);
-  EXPECT_GT(10, node1->getNewVerifiedTrxSnapShot(false).size());
+  EXPECT_GT(10, node1->getVerifiedTrxSnapShot().size());
   for (int i = 0; i < numberOfNodes; i++) {
     EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,

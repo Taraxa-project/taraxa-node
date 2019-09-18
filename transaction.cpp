@@ -245,17 +245,20 @@ void TransactionQueue::stop() {
   }
 }
 
-bool TransactionQueue::insert(Transaction trx, bool critical) {
+bool TransactionQueue::insert(Transaction const &trx,
+                              taraxa::bytes const &trx_serialized,
+                              bool critical) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
   bool ret = false;
-  std::list<Transaction>::iterator iter;
+  listIter iter;
   if (status.second == false) {  // never seen before
     ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
     if (ret) {
       {
         uLock lock(shared_mutex_for_queued_trxs_);
-        iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+        iter = trx_buffer_.insert(trx_buffer_.end(),
+                                  std::make_pair(trx, trx_serialized));
         assert(iter != trx_buffer_.end());
         queued_trxs_[trx.getHash()] = iter;
       }
@@ -310,7 +313,7 @@ void TransactionQueue::verifyQueuedTrxs() {
     }
     try {
       trx_hash_t hash = item.first;
-      Transaction &trx = *(item.second);
+      Transaction &trx = item.second->first;
       // verify and put the transaction to verified queue
       bool valid = false;
       if (mode_ == VerifyMode::skip_verify_sig) {
@@ -337,7 +340,7 @@ void TransactionQueue::verifyQueuedTrxs() {
         if (ret) {
           uLock lock(shared_mutex_for_verified_qu_);
           verified_trxs_[hash] = item.second;
-          new_verified_transactions = true;
+          new_verified_transactions_ = true;
         }
       }
     } catch (...) {
@@ -358,7 +361,7 @@ TransactionQueue::removeBlockTransactionsFromQueue(
         upgradableLock lock(shared_mutex_for_verified_qu_);
         auto vrf_trx = verified_trxs_.find(trx);
         if (vrf_trx != verified_trxs_.end()) {
-          result[vrf_trx->first] = *(vrf_trx->second);
+          result[vrf_trx->first] = vrf_trx->second->first;
           removed_trx.emplace_back(trx);
           {
             upgradeLock locked(lock);
@@ -382,13 +385,27 @@ TransactionQueue::removeBlockTransactionsFromQueue(
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
+TransactionQueue::getVerifiedTrxSnapShot() {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
-  if (new_verified_transactions || !onlyNew) {
-    if (onlyNew) new_verified_transactions = false;
+  sharedLock lock(shared_mutex_for_verified_qu_);
+  for (auto const &trx : verified_trxs_) {
+    verified_trxs[trx.first] = trx.second->first;
+  }
+  LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
+               << std::endl;
+  return verified_trxs;
+}
+
+std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+      verified_trxs;
+  if (new_verified_transactions_) {
+    new_verified_transactions_ = false;
     sharedLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
-      verified_trxs[trx.first] = *(trx.second);
+      verified_trxs[trx.first] =
+          std::make_pair(trx.second->first, trx.second->second);
     }
     LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
@@ -397,13 +414,14 @@ TransactionQueue::getNewVerifiedTrxSnapShot(bool onlyNew) {
 }
 
 // search from queued_trx_
-std::shared_ptr<Transaction> TransactionQueue::getTransaction(
-    trx_hash_t const &hash) const {
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
+TransactionQueue::getTransaction(trx_hash_t const &hash) const {
   {
     sharedLock lock(shared_mutex_for_queued_trxs_);
     auto it = queued_trxs_.find(hash);
     if (it != queued_trxs_.end()) {
-      return std::make_shared<Transaction>(*(it->second));
+      return std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+          *(it->second));
     }
   }
   return nullptr;
@@ -415,7 +433,7 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   {
     uLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
-      res[trx.first] = *(trx.second);
+      res[trx.first] = trx.second->first;
     }
     verified_trxs_.clear();
   }
@@ -459,18 +477,23 @@ void TransactionManager::stop() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionManager::getNewVerifiedTrxSnapShot(bool onlyNew) {
-  return trx_qu_.getNewVerifiedTrxSnapShot(onlyNew);
+TransactionManager::getVerifiedTrxSnapShot() {
+  return trx_qu_.getVerifiedTrxSnapShot();
+}
+
+std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
+  return trx_qu_.getNewVerifiedTrxSnapShotSerialized();
 }
 
 unsigned long TransactionManager::getTransactionStatusCount() const {
   return trx_status_.size();
 }
 
-std::shared_ptr<Transaction> TransactionManager::getTransaction(
-    trx_hash_t const &hash) const {
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
+TransactionManager::getTransaction(trx_hash_t const &hash) const {
   // Check the status
-  std::shared_ptr<Transaction> tr;
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> tr;
   // Loop needed because moving transactions from queue to database is not
   // secure Probably a better fix is to have transactions saved to the
   // database first and only then removed from the queue
@@ -485,12 +508,14 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(
       } else if (status.first == TransactionStatus::in_block) {
         auto trx_bytes = db_trxs_->get(hash);
         if (trx_bytes.size() > 0) {
-          tr = std::make_shared<Transaction>(trx_bytes);
+          tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+              trx_bytes, trx_bytes);
         }
       } else {
         auto trx_bytes = db_trxs_->get(hash);
         if (trx_bytes.size() > 0) {
-          tr = std::make_shared<Transaction>(trx_bytes);
+          tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+              trx_bytes, trx_bytes);
         }
         break;
       }
@@ -556,9 +581,11 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   return all_transactions_saved;
 }
 
-bool TransactionManager::insertTrx(Transaction trx, bool critical) {
+bool TransactionManager::insertTrx(Transaction const &trx,
+                                   taraxa::bytes const &trx_serialized,
+                                   bool critical) {
   bool ret = false;
-  if (trx_qu_.insert(trx, critical)) {
+  if (trx_qu_.insert(trx, trx_serialized, critical)) {
     ret = true;
     auto node = node_.lock();
     if (node) {

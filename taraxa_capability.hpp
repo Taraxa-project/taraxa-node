@@ -39,62 +39,79 @@ enum SubprotocolPacketType : ::byte {
 
 enum PeerState { Idle = 0, Syncing };
 
+template <class Key>
+class ExpirationCache {
+ public:
+  ExpirationCache(uint32_t max_size, uint32_t delete_step)
+      : max_size_(max_size), delete_step_(delete_step) {}
+
+  void insert(Key const &key) {
+    boost::unique_lock lck(mtx_);
+    cache_.insert(key);
+    expiration_.push_back(key);
+    if (cache_.size() > max_size_) {
+      for (auto i = 0; i < delete_step_; i++) {
+        cache_.erase(expiration_.front());
+        expiration_.pop_front();
+      }
+    }
+  }
+
+  std::size_t count(Key const &key) const {
+    boost::shared_lock lck(mtx_);
+    return cache_.count(key);
+  }
+
+ private:
+  std::unordered_set<Key> cache_;
+  std::deque<Key> expiration_;
+  uint32_t max_size_;
+  uint32_t delete_step_;
+  mutable boost::shared_mutex mtx_;
+};
+
 class TaraxaPeer : public boost::noncopyable {
  public:
-  TaraxaPeer() {}
-  TaraxaPeer(NodeID id) : m_id(id), m_state(Idle) { setLastMessage(); }
+  TaraxaPeer()
+      : known_blocks_(10000, 1000),
+        known_pbft_blocks_(10000, 1000),
+        known_votes_(10000, 1000),
+        known_transactions_(100000, 10000) {}
+  TaraxaPeer(NodeID id)
+      : m_id(id),
+        m_state(Idle),
+        known_blocks_(10000, 1000),
+        known_pbft_blocks_(10000, 1000),
+        known_votes_(10000, 1000),
+        known_transactions_(100000, 10000) {
+    setLastMessage();
+  }
 
   bool isBlockKnown(blk_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_blocks_);
     return known_blocks_.count(_hash);
   }
   void markBlockAsKnown(blk_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_blocks_);
     known_blocks_.insert(_hash);
-  }
-  void clearKnownBlocks() {
-    boost::unique_lock lck(mtx_for_known_blocks_);
-    known_blocks_.clear();
   }
 
   bool isTransactionKnown(trx_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_transactions_);
     return known_transactions_.count(_hash);
   }
   void markTransactionAsKnown(trx_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_transactions_);
     known_transactions_.insert(_hash);
-  }
-  void clearKnownTransactions() {
-    boost::unique_lock lck(mtx_for_known_transactions_);
-    known_transactions_.clear();
   }
 
   // PBFT
   bool isVoteKnown(vote_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_votes_);
     return known_votes_.count(_hash);
   }
-  void markVoteAsKnown(vote_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_votes_);
-    known_votes_.insert(_hash);
-  }
-  void clearKnownVotes() {
-    boost::unique_lock lck(mtx_for_known_votes_);
-    known_votes_.clear();
-  }
+  void markVoteAsKnown(vote_hash_t const &_hash) { known_votes_.insert(_hash); }
 
   bool isPbftBlockKnown(blk_hash_t const &_hash) const {
-    boost::shared_lock lck(mtx_for_known_pbft_blocks_);
     return known_pbft_blocks_.count(_hash);
   }
   void markPbftBlockAsKnown(blk_hash_t const &_hash) {
-    boost::unique_lock lck(mtx_for_known_pbft_blocks_);
     known_pbft_blocks_.insert(_hash);
-  }
-  void cleanKnownPbftBlocks() {
-    boost::unique_lock lck(mtx_for_known_pbft_blocks_);
-    known_pbft_blocks_.clear();
   }
 
   time_t lastAsk() const { return last_ask_; }
@@ -119,15 +136,11 @@ class TaraxaPeer : public boost::noncopyable {
   unsigned long vertices_count_ = 0;
 
  private:
-  mutable boost::shared_mutex mtx_for_known_blocks_;
-  mutable boost::shared_mutex mtx_for_known_transactions_;
-  mutable boost::shared_mutex mtx_for_known_votes_;
-  mutable boost::shared_mutex mtx_for_known_pbft_blocks_;
-  std::set<blk_hash_t> known_blocks_;
-  std::set<trx_hash_t> known_transactions_;
+  ExpirationCache<blk_hash_t> known_blocks_;
+  ExpirationCache<trx_hash_t> known_transactions_;
   // PBFT
-  std::set<vote_hash_t> known_votes_;  // for peers
-  std::set<blk_hash_t> known_pbft_blocks_;
+  ExpirationCache<vote_hash_t> known_votes_;  // for peers
+  ExpirationCache<blk_hash_t> known_pbft_blocks_;
 
   NodeID m_id;
 
@@ -141,8 +154,12 @@ class TaraxaPeer : public boost::noncopyable {
 class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, NetworkConfig &_conf,
-                   std::string const &genesis)
-      : Worker("taraxa"), host_(_host), conf_(_conf), genesis_(genesis) {
+                   std::string const &genesis, bool const &performance_log)
+      : Worker("taraxa"),
+        host_(_host),
+        conf_(_conf),
+        genesis_(genesis),
+        performance_log_(performance_log) {
     std::random_device seed;
     urng_ = std::mt19937_64(seed());
     delay_rng_ = std::mt19937(seed());
@@ -175,7 +192,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                           std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock block);
   void onNewTransactions(
-      std::unordered_map<trx_hash_t, Transaction> const &transactions,
+      std::unordered_map<trx_hash_t,
+                         std::pair<Transaction, taraxa::bytes>> const
+          &transactions,
       bool fromNetwork);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
@@ -191,13 +210,14 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void requestBlocksLevel(NodeID const &_id, unsigned long level,
                           int number_of_levels);
   void sendTransactions(NodeID const &_id,
-                        std::vector<Transaction> const &transactions);
+                        std::vector<taraxa::bytes> const &transactions);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
+  std::string packetToPacketName(byte const &packet);
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -241,6 +261,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   unsigned long max_peer_vertices_ = 0;
   NodeID peer_syncing_;
   std::string genesis_;
+  bool performance_log_;
   mutable std::mt19937_64
       urng_;  // Mersenne Twister psuedo-random number generator
   std::mt19937 delay_rng_;
@@ -252,6 +273,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TARCAP")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
+  dev::Logger log_perf_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "NETPER")};
 };
 }  // namespace taraxa
 #endif

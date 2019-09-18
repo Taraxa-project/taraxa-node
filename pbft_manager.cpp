@@ -625,7 +625,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
   //  <<vote_round, vote_step>, count>, <round, step> store in reverse order
   // <<vote_round, vote_step>, count>
   std::map<std::pair<uint64_t, size_t>, size_t,
-           std::greater<std::pair<size_t, size_t>>>
+           std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
 
   for (Vote &v : votes) {
@@ -645,6 +645,8 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
     }
   }
 
+  uint64_t round_determined = local_round;
+
   for (auto &rs_votes : next_votes_tally_by_round_step) {
     if (rs_votes.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round_step =
@@ -652,15 +654,22 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
               next_vote_type, votes, rs_votes.first.first,
               rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
-        LOG(log_deb_) << "Determined from votes in round "
-                      << rs_votes.first.first << " in step "
+        if (rs_votes.first.first + 1 > round_determined) {
+          LOG(log_deb_) << "Found sufficient next votes in round "
+                      << rs_votes.first.first << ", step "
                       << rs_votes.first.second;
-        return rs_votes.first.first + 1;
+          round_determined = rs_votes.first.first + 1;
+        } else {
+          LOG(log_deb_) << "Also found sufficient next votes in round "
+                      << rs_votes.first.first << ", step "
+                      << rs_votes.first.second;
+        }
+        //return rs_votes.first.first + 1;
       }
     }
   }
 
-  return local_round;
+  return round_determined;
 }
 
 // Assumption is that all votes are in the same round and of same type...

@@ -64,7 +64,7 @@ string Taraxa::taraxa_getStorageRoot(string const& _address,
 
 Json::Value Taraxa::taraxa_pendingTransactions() {
   Json::Value ret(Json::arrayValue);
-  for (auto const& [_, trx] : tryGetNode()->getNewVerifiedTrxSnapShot(false)) {
+  for (auto const& [_, trx] : tryGetNode()->getVerifiedTrxSnapShot()) {
     ret.append(toJson(trx));
   }
   return ret;
@@ -189,16 +189,16 @@ Json::Value Taraxa::taraxa_getTransactionByHash(
   }
   auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
   if (blk_hash.isZero()) {
-    return toJson(*trx);
+    return toJson(trx->first);
   }
   auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash);
   if (!snapshot) {
-    return toJson(*trx);
+    return toJson(trx->first);
   }
   auto const& trxs = node->getDagBlock(blk_hash)->getTrxs();
-  return toJson(*trx, {{snapshot->block_number,
-                        snapshot->block_hash,  //
-                        *find(trxs, trx_hash)}});
+  return toJson(trx->first, {{snapshot->block_number,
+                              snapshot->block_hash,  //
+                              *find(trxs, trx_hash)}});
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
@@ -214,9 +214,9 @@ Json::Value Taraxa::taraxa_getTransactionByBlockHashAndIndex(
     return JSON_NULL;
   }
   auto trx = node->getTransaction(trxs[trx_num]);
-  return toJson(*trx, {{snapshot->block_number,
-                        snapshot->block_hash,  //
-                        trx_num}});
+  return toJson(trx->first, {{snapshot->block_number,
+                              snapshot->block_hash,  //
+                              trx_num}});
 }
 
 Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
@@ -233,9 +233,9 @@ Json::Value Taraxa::taraxa_getTransactionByBlockNumberAndIndex(
     return JSON_NULL;
   }
   auto trx = node->getTransaction(trxs[trx_num]);
-  return toJson(*trx, {{snapshot->block_number,
-                        snapshot->block_hash,  //
-                        trx_num}});
+  return toJson(trx->first, {{snapshot->block_number,
+                              snapshot->block_hash,  //
+                              trx_num}});
 }
 
 Json::Value Taraxa::taraxa_getTransactionReceipt(
@@ -408,7 +408,7 @@ Json::Value Taraxa::getBlockJson(NodePtr const& node,
     auto const& trx_hash = trx_hashes[i];
     auto const& trx = node->getTransaction(trx_hash);
     trx_rlp_array.append([&](auto& rlp_stream) {
-      trx->streamRLP(rlp_stream, true, false);  //
+      trx->second;  //
     });
     receitps_rlp_array.append([](auto& rlp_stream) {
       TransactionReceipt(1, 0, {}).streamRLP(rlp_stream);
@@ -417,9 +417,9 @@ Json::Value Taraxa::getBlockJson(NodePtr const& node,
       res["transactions"].append(toJS(trx_hash));
       continue;
     }
-    auto const& trx_js = toJson(*trx, {{snapshot.block_number,
-                                        snapshot.block_hash,  //
-                                        i}});
+    auto const& trx_js = toJson(trx->first, {{snapshot.block_number,
+                                              snapshot.block_hash,  //
+                                              i}});
     res["transactions"].append(trx_js);
   }
   res["transactionsRoot"] = toJS(trx_rlp_array.trieRoot());
@@ -437,7 +437,8 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
     if (_includeTransactions) {
       block_json["transactions"] = Json::Value(Json::arrayValue);
       for (auto const& t : block->getTrxs()) {
-        block_json["transactions"].append(node->getTransaction(t)->getJson());
+        block_json["transactions"].append(
+            node->getTransaction(t)->first.getJson());
       }
     }
     return block_json;
@@ -455,7 +456,8 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
     if (_includeTransactions) {
       block_json["transactions"] = Json::Value(Json::arrayValue);
       for (auto const& t : b->getTrxs()) {
-        block_json["transactions"].append(node->getTransaction(t)->getJson());
+        block_json["transactions"].append(
+            node->getTransaction(t)->first.getJson());
       }
     }
     res.append(block_json);

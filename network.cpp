@@ -35,16 +35,16 @@ Network::Network(NetworkConfig const &config, std::string network_file,
         "TaraxaNode",
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true),
-        dev::bytesConstRef(&networkData), false);
+        dev::bytesConstRef(&networkData), conf_.network_encrypted);
   } else {
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode", key,
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true),
-        false);
+        conf_.network_encrypted);
   }
-  taraxa_capability_ =
-      std::make_shared<TaraxaCapability>(*host_.get(), conf_, genesis);
+  taraxa_capability_ = std::make_shared<TaraxaCapability>(
+      *host_.get(), conf_, genesis, conf_.network_performance_log);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -124,7 +124,7 @@ void Network::sendBlock(NodeID const &id, DagBlock const &blk, bool newBlock) {
 }
 
 void Network::sendTransactions(NodeID const &id,
-                               std::vector<Transaction> const &transactions) {
+                               std::vector<taraxa::bytes> const &transactions) {
   taraxa_capability_->sendTransactions(id, transactions);
   LOG(log_dg_) << "Sent transactions:" << transactions.size();
 }
@@ -135,7 +135,7 @@ void Network::onNewBlockVerified(DagBlock const &blk) {
 }
 
 void Network::onNewTransactions(
-    std::unordered_map<trx_hash_t, Transaction> const &transactions) {
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const &transactions) {
   taraxa_capability_->onNewTransactions(transactions, true);
   LOG(log_dg_) << "On new transactions" << transactions.size();
 }

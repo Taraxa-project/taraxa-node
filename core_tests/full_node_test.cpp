@@ -1151,7 +1151,6 @@ TEST_F(TopTest, sync_two_nodes3) {
     EXPECT_GT(vertices1.first, 3);
     EXPECT_GT(vertices1.second, 3);
     EXPECT_EQ(vertices1, vertices2);
-    top2.reset();
     top2.kill();
   }
 
@@ -2023,13 +2022,27 @@ TEST_F(TopTest, detect_overlap_transactions) {
   std::cout << "Ordered dagblock size: " << order->size() << std::endl;
 
   auto dag_size = node1->getNumVerticesInDag();
-  if (dag_size.second != order->size() + 1) {
+
+  // can have multiple dummy blocks
+  auto vertices_diff = node1->getNumVerticesInDag().first - 1 - order->size();
+  if (vertices_diff < 0 || vertices_diff >= 5) {
     node1->drawGraph("debug_dag");
     for (auto i(0); i < order->size(); ++i) {
-      std::cout << i << " " << (*order)[i] << std::endl;
+      auto blk = (*order)[i];
+      std::cout << i << " " << blk << " "
+                << " trx: " << node1->getDagBlock(blk)->getTrxs().size();
     }
   }
-  EXPECT_EQ(dag_size.second, order->size() + 1);  // +1 to include genesis
+
+  // diff should be larger than 0 but smaller than number of nodes
+  // genesis block won't be executed
+  EXPECT_LT(vertices_diff, 5)
+      << " Number of vertices: " << node1->getNumVerticesInDag().first
+      << " Number of ordered blks: " << order->size() << std::endl;
+  EXPECT_GE(vertices_diff, 0)
+      << " Number of vertices: " << node1->getNumVerticesInDag().first
+      << " Number of ordered blks: " << order->size() << std::endl;
+
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
   auto trx_table = node1->getUnsafeTransactionStatusTable();

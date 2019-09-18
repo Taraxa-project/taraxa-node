@@ -200,33 +200,36 @@ class TransactionQueue {
   }
   void start();
   void stop();
-  bool insert(Transaction trx, bool critical);
+  bool insert(Transaction const &trx, taraxa::bytes const &trx_serialized,
+              bool critical);
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
-      bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+  getNewVerifiedTrxSnapShotSerialized();
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
+      trx_hash_t const &hash) const;
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-  using listIter = std::list<Transaction>::iterator;
+  using listIter = std::list<std::pair<Transaction, taraxa::bytes>>::iterator;
   void verifyQueuedTrxs();
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
-  bool new_verified_transactions = true;
+  bool new_verified_transactions_ = true;
   size_t num_verifiers_ = 2;
   TransactionStatusTable &trx_status_;
   AccountNonceTable &accs_nonce_;
 
-  std::list<Transaction> trx_buffer_;
+  std::list<std::pair<Transaction, taraxa::bytes>> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
   mutable boost::shared_mutex shared_mutex_for_queued_trxs_;
 
@@ -286,7 +289,8 @@ class TransactionManager
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
-  bool insertTrx(Transaction trx, bool critical);
+  bool insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
+                 bool critical);
 
   /**
    * The following function will require a lock for verified qu
@@ -297,14 +301,16 @@ class TransactionManager
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
   }
 
-  std::unordered_map<trx_hash_t, Transaction> getNewVerifiedTrxSnapShot(
-      bool onlyNew);
+  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+  getNewVerifiedTrxSnapShotSerialized();
 
   // Verify transactions in broadcasted blocks
   bool verifyBlockTransactions(DagBlock const &blk,
                                std::vector<Transaction> const &trxs);
 
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
+      trx_hash_t const &hash) const;
   unsigned long getTransactionStatusCount() const;
   bool isTransactionVerified(trx_hash_t const &hash) {
     // in_block means in db, i.e., already verified
