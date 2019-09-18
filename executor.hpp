@@ -36,12 +36,7 @@ class Executor {
   bool use_basic_executor;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using TrxExecutionTable = StatusTable<trx_hash_t, bool>;
-  using BlkExecutionTable = StatusTable<blk_hash_t, bool>;
   using BalanceTable = std::unordered_map<addr_t, std::pair<val_t, int64_t>>;
-
-  TrxExecutionTable executed_trx_;
-  BlkExecutionTable executed_blk_;
 
   // for debug purpose
   dev::Logger log_si_{

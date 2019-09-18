@@ -26,10 +26,6 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
     }
-    if (executed_blk_.get(blk_hash).second == true) {
-      LOG(log_er_) << "Block " << blk_hash << " has been executed ...";
-      return false;
-    }
     DagBlock dag_block(blk_bytes);
     auto trx_modes = schedule.vec_trx_modes[blk_i];
     auto trxs_hashes = dag_block.getTrxs();
@@ -51,10 +47,6 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       Transaction trx(db_trxs_->get(trx_hash));
       if (!trx.getHash()) {
         LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
-        continue;
-      }
-      if (executed_trx_.get(trx_hash).second) {
-        LOG(log_wr_) << "The transaction has been executed ..." << trx_hash;
         continue;
       }
       auto const& receiver = trx.getReceiver();
@@ -92,8 +84,8 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       for (auto const& trx : trx_to_execute) {
         auto const& sender = trx.from;
         auto const& receiver = *(trx.to);
-        auto const new_sender_bal = current_state.balance(sender);
-        auto const new_receiver_bal = current_state.balance(receiver);
+        auto const& new_sender_bal = current_state.balance(sender);
+        auto const& new_receiver_bal = current_state.balance(receiver);
         if (new_sender_bal >= pbft_require_sortition_coins_) {
           sortition_account_balance_table[sender] = {new_sender_bal, period};
         } else if (sortition_account_balance_table.find(sender) !=
@@ -109,14 +101,12 @@ bool Executor::execute_main(TrxSchedule const& schedule,
           }
         }
         num_executed_trx_.fetch_add(1);
-        executed_trx_.insert(trx.hash, true);
         LOG(log_time_) << "Transaction " << trx.hash
                        << " executed at: " << getCurrentTimeMilliSeconds();
       }
     }
     num_executed_blk_.fetch_add(1);
-    executed_blk_.insert(blk_hash, true);
-    LOG(log_nf_) << full_node_.lock()->getAddress() << ": Block number "
+    LOG(log_nf_) << getFullNodeAddress() << ": Block number "
                  << num_executed_blk_ << ": " << blk_hash
                  << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                  << " / " << num_trxs;
