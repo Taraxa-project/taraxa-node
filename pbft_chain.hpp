@@ -201,7 +201,7 @@ class PbftChain {
   PbftChain(std::string const& dag_genesis_hash);
   ~PbftChain() {}
 
-  void setFullNode(std::shared_ptr<FullNode> full_node);
+  void setFullNode(std::shared_ptr<FullNode> node);
   void releaseDB() { db_pbftchain_ = nullptr; }
 
   uint64_t getPbftChainSize() const;
