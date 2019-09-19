@@ -458,6 +458,7 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
   }
   // setup pbftchain DB point
   db_pbftchain_ = full_node->getPbftChainDB();
+  assert(db_pbftchain_);
   // store PBFT chain genesis(HEAD) block to db
   db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
   db_pbftchain_->commit();
@@ -523,6 +524,7 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
+  assert(db_pbftchain_);
   return db_pbftchain_->get(pbft_block_hash.toString()) != "";
 }
 

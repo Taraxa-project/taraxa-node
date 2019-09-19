@@ -251,6 +251,7 @@ void FullNode::start(bool boot_node) {
   }
   stopped_ = false;
   // order depend, be careful when changing the order
+  pbft_chain_->setFullNode(getShared());
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->setFullNode(getShared());
@@ -263,7 +264,6 @@ void FullNode::start(bool boot_node) {
   trx_order_mgr_->start();
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
-  pbft_chain_->setFullNode(getShared());
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
