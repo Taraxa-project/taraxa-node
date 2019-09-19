@@ -229,7 +229,8 @@ class PbftChain {
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
 
-  void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
+  bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
+  bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
