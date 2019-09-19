@@ -44,8 +44,7 @@ class Network {
                         std::vector<taraxa::bytes> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);
   void onNewTransactions(
-      std::unordered_map<trx_hash_t,
-                         std::pair<Transaction, taraxa::bytes>> const
+      std::vector<std::pair<Transaction, taraxa::bytes>> const
           &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing

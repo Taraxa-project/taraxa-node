@@ -381,16 +381,15 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case TransactionPacket: {
         std::string receivedTransactions;
-        std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
-            transactions;
+        std::vector<std::pair<Transaction, taraxa::bytes>> transactions;
         auto transactionCount = _r.itemCount();
         for (auto iTransaction = 0; iTransaction < transactionCount;
              iTransaction++) {
           Transaction transaction(_r[iTransaction].data().toBytes());
           receivedTransactions += transaction.getHash().toString() + " ";
           peer->markTransactionAsKnown(transaction.getHash());
-          transactions[transaction.getHash()] =
-              std::make_pair(transaction, _r[iTransaction].data().toBytes());
+          transactions.emplace_back(
+              std::make_pair(transaction, _r[iTransaction].data().toBytes()));
         }
         if (transactionCount > 0) {
           LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
@@ -582,8 +581,7 @@ TaraxaCapability::randomPartitionPeers(std::vector<NodeID> const &_peers,
 }
 
 void TaraxaCapability::onNewTransactions(
-    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const
-        &transactions,
+    std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions,
     bool fromNetwork) {
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
@@ -591,14 +589,12 @@ void TaraxaCapability::onNewTransactions(
       full_node->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
-        if (test_transactions_.find(transaction.first) ==
-            test_transactions_.end()) {
-          test_transactions_[transaction.first] = transaction.second.first;
-          LOG(log_dg_) << "Received New Transaction "
-                       << transaction.first.toString();
+        auto trx_hash = transaction.first.getHash();
+        if (test_transactions_.find(trx_hash) == test_transactions_.end()) {
+          test_transactions_[trx_hash] = transaction.first;
+          LOG(log_dg_) << "Received New Transaction " << trx_hash;
         } else {
-          LOG(log_dg_) << "Received New Transaction"
-                       << transaction.first.toString()
+          LOG(log_dg_) << "Received New Transaction" << trx_hash
                        << "that is already known";
         }
       }
@@ -610,9 +606,11 @@ void TaraxaCapability::onNewTransactions(
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         for (auto const &transaction : transactions) {
-          if (!peer.second->isTransactionKnown(transaction.first)) {
-            peer.second->markTransactionAsKnown(transaction.first);
-            transactionsToSend[peer.first].push_back(transaction.second.second);
+          auto trx_hash = transaction.first.getHash();
+
+          if (!peer.second->isTransactionKnown(trx_hash)) {
+            peer.second->markTransactionAsKnown(trx_hash);
+            transactionsToSend[peer.first].push_back(transaction.second);
           }
         }
       }
@@ -775,11 +773,13 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
       transaction = full_node->getTransaction(trx);
     } else {
       assert(test_transactions_.find(trx) != test_transactions_.end());
-      transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(test_transactions_[trx], test_transactions_[trx].rlp(true));
+      transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+          test_transactions_[trx], test_transactions_[trx].rlp(true));
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions
-    trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second), std::end(transaction->second));
+    trx_bytes.insert(trx_bytes.end(), std::begin(transaction->second),
+                     std::end(transaction->second));
   }
   s.appendRaw(trx_bytes, transactionsToSend.size());
   host_.capabilityHost()->sealAndSend(_id, s);

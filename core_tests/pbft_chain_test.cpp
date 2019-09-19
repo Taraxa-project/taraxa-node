@@ -332,8 +332,8 @@ TEST(PbftChain, get_dag_block_hash) {
                                                gas, receiver, data, g_secret);
   node->insertTransaction(trx_master_boot_node_to_receiver);
 
-  for (int i = 0; i < 100; i++) {
-    // test timeout is 10 seconds
+  for (int i = 0; i < 1000; i++) {
+    // test timeout is 100 seconds
     if (node->getNumProposedBlocks() == 1) {
       break;
     }
@@ -383,10 +383,10 @@ int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
-  logOptions.includeChannels.push_back("PBFT_CHAIN");
-  logOptions.includeChannels.push_back("PBFT_MGR");
-  logOptions.includeChannels.push_back("NETWORK");
-  logOptions.includeChannels.push_back("TARCAP");
+  // logOptions.includeChannels.push_back("PBFT_CHAIN");
+  // logOptions.includeChannels.push_back("PBFT_MGR");
+  // logOptions.includeChannels.push_back("NETWORK");
+  // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage
