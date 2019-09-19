@@ -456,7 +456,7 @@ void PbftChain::setFullNode(std::shared_ptr<FullNode> node) {
     assert(false);
   }
   // setup pbftchain DB point
-  db_pbftchain_ = std::move(full_node->getPbftChainDB());
+  db_pbftchain_ = full_node->getPbftChainDB();
   // store PBFT chain genesis(HEAD) block to db
   db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
   db_pbftchain_->commit();
