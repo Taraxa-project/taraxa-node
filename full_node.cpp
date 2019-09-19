@@ -341,6 +341,7 @@ void FullNode::stop() {
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
+  pbft_chain_->releaseDB();
   pbft_chain_ = nullptr;
   executor_ = nullptr;
 

@@ -202,6 +202,7 @@ class PbftChain {
   ~PbftChain() {}
 
   void setFullNode(std::shared_ptr<FullNode> full_node);
+  void releaseDB() { db_pbftchain_ = nullptr; }
 
   uint64_t getPbftChainSize() const;
   uint64_t getPbftChainPeriod() const;
