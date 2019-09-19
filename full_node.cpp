@@ -814,18 +814,12 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     // set Dag blocks period
     blk_hash_t last_pivot_block_hash =
         pbft_block.getScheduleBlock().getPrevBlockHash();
-    std::pair<PbftBlock, bool> last_pivot_block =
+    PbftBlock last_pivot_block =
         pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
-    if (!last_pivot_block.second) {
-      LOG(log_er_) << "Cannot find the last pivot block hash "
-                   << last_pivot_block_hash
-                   << " in pbft chain. Should never happen here!";
-      assert(false);
-    }
     blk_hash_t dag_block_hash =
-        last_pivot_block.first.getPivotBlock().getDagBlockHash();
+        last_pivot_block.getPivotBlock().getDagBlockHash();
     uint64_t current_pbft_chain_period =
-        last_pivot_block.first.getPivotBlock().getPeriod();
+        last_pivot_block.getPivotBlock().getPeriod();
     uint dag_ordered_blocks_size =
         setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
     // checking: DAG ordered blocks size in this period should equal to the

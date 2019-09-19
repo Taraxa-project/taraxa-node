@@ -210,8 +210,7 @@ class PbftChain {
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftUnverifiedQueueSize() const;
-  std::pair<PbftBlock, bool> getPbftBlockInChain(
-      blk_hash_t const& pbft_block_hash);
+  PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
       blk_hash_t const& pbft_block_hash);
   std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;

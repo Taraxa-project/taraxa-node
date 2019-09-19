@@ -838,26 +838,18 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_deb_) << "Into propose anchor block";
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
-    std::pair<PbftBlock, bool> last_period_pbft_pivot_block =
-        pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
-    if (!last_period_pbft_pivot_block.second) {
-      // Should not happen
-      LOG(log_err_)
-          << "Can not find the last round pbft pivot block with block hash: "
-          << prev_pivot_hash;
-      assert(false);
-    }
     std::string last_period_dag_anchor_block_hash;
-    if (last_period_pbft_pivot_block.first.getBlockHash() ==
-        pbft_chain_->getGenesisHash()) {
+    if (prev_block_hash) {
+      PbftBlock last_period_pbft_pivot_block =
+          pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
+      last_period_dag_anchor_block_hash =
+          last_period_pbft_pivot_block.getPivotBlock().getDagBlockHash()
+            .toString();
+    } else {
       // First PBFT pivot block
       last_period_dag_anchor_block_hash = dag_genesis_;
-    } else {
-      last_period_dag_anchor_block_hash =
-          last_period_pbft_pivot_block.first.getPivotBlock()
-              .getDagBlockHash()
-              .toString();
     }
+
     std::vector<std::string> ghost;
     full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
     blk_hash_t dag_block_hash;
@@ -899,16 +891,10 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_deb_) << "Into propose schedule block";
     // get dag block hash from the last pbft block(pivot) in pbft chain
     blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
-    std::pair<PbftBlock, bool> last_pbft_block =
+    PbftBlock last_pbft_block =
         pbft_chain_->getPbftBlockInChain(last_block_hash);
-    if (!last_pbft_block.second) {
-      // Should not happen
-      LOG(log_err_) << "Can not find last pbft block with block hash: "
-                    << last_block_hash;
-      assert(false);
-    }
     blk_hash_t dag_block_hash =
-        last_pbft_block.first.getPivotBlock().getDagBlockHash();
+        last_pbft_block.getPivotBlock().getDagBlockHash();
 
     // get dag blocks order
     uint64_t pbft_chain_period;
@@ -1113,16 +1099,9 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
     PbftBlock const &pbft_block_cs) {
   // get dag block hash from the last pbft pivot block in pbft chain
   blk_hash_t last_block_hash = pbft_chain_->getLastPbftPivotHash();
-  std::pair<PbftBlock, bool> last_pbft_block =
-      pbft_chain_->getPbftBlockInChain(last_block_hash);
-  if (!last_pbft_block.second) {
-    // Should not happen
-    LOG(log_err_) << "Can not find last pbft block with block hash: "
-                  << last_block_hash;
-    assert(false);
-  }
+  PbftBlock last_pbft_block = pbft_chain_->getPbftBlockInChain(last_block_hash);
   blk_hash_t dag_block_hash =
-      last_pbft_block.first.getPivotBlock().getDagBlockHash();
+      last_pbft_block.getPivotBlock().getDagBlockHash();
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
@@ -1237,18 +1216,12 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
         // set DAG blocks period
         blk_hash_t last_pivot_block_hash = pbft_chain_->getLastPbftPivotHash();
-        std::pair<PbftBlock, bool> last_pivot_block =
+        PbftBlock last_pivot_block =
             pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
-        if (!last_pivot_block.second) {
-          LOG(log_err_) << "Cannot find the last pivot block hash "
-                        << last_pivot_block_hash
-                        << " in pbft chain. Should never happen here!";
-          assert(false);
-        }
         blk_hash_t dag_block_hash =
-            last_pivot_block.first.getPivotBlock().getDagBlockHash();
+            last_pivot_block.getPivotBlock().getDagBlockHash();
         uint64_t current_pbft_chain_period =
-            last_pivot_block.first.getPivotBlock().getPeriod();
+            last_pivot_block.getPivotBlock().getPeriod();
 
         uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
             dag_block_hash, current_pbft_chain_period);
