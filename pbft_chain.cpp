@@ -448,8 +448,9 @@ PbftChain::PbftChain(std::string const &dag_genesis_hash)
   pbft_verified_set_.insert(genesis_hash_);
 }
 
-void PbftChain::setFullNode(std::shared_ptr<FullNode> node) {
+void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
   node_ = node;
+
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable";
