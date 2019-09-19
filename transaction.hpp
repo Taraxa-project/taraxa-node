@@ -211,7 +211,7 @@ class TransactionQueue {
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+  std::vector<std::pair<Transaction, taraxa::bytes>>
   getNewVerifiedTrxSnapShotSerialized();
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
       vec_trx_t const &all_block_trxs);
@@ -317,7 +317,7 @@ class TransactionManager
   }
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+  std::vector<std::pair<Transaction, taraxa::bytes>>
   getNewVerifiedTrxSnapShotSerialized();
 
   // Verify transactions in broadcasted blocks
@@ -346,7 +346,8 @@ class TransactionManager
 
  private:
   addr_t getFullNodeAddress() const;
-
+  vec_trx_t sortTransctionsAndGetHashVector(
+      std::vector<Transaction> &vec_trxs) const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;

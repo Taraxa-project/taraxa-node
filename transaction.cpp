@@ -392,16 +392,15 @@ TransactionQueue::getVerifiedTrxSnapShot() {
   return verified_trxs;
 }
 
-std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+std::vector<std::pair<Transaction, taraxa::bytes>>
 TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
-  std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
-      verified_trxs;
+  std::vector<std::pair<Transaction, taraxa::bytes>> verified_trxs;
   if (new_verified_transactions_) {
     new_verified_transactions_ = false;
     sharedLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
-      verified_trxs[trx.first] =
-          std::make_pair(trx.second->first, trx.second->second);
+      verified_trxs.emplace_back(
+          std::make_pair(trx.second->first, trx.second->second));
     }
     LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
@@ -486,9 +485,17 @@ TransactionManager::getVerifiedTrxSnapShot() {
   return trx_qu_.getVerifiedTrxSnapShot();
 }
 
-std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>>
+std::vector<std::pair<Transaction, taraxa::bytes>>
 TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
-  return trx_qu_.getNewVerifiedTrxSnapShotSerialized();
+  auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShotSerialized();
+  std::vector<Transaction> vec_trxs;
+  for (auto const &t : verified_trxs) vec_trxs.emplace_back(t.first);
+  sortTransctionsAndGetHashVector(vec_trxs);
+  std::vector<std::pair<Transaction, taraxa::bytes>> ret;
+  for (auto const &t : vec_trxs) {
+    ret.emplace_back(std::make_pair(t, t.rlp(true)));
+  }
+  return ret;
 }
 
 unsigned long TransactionManager::getTransactionStatusCount() const {
@@ -681,22 +688,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   }
 
   // sort trx based on sender and nonce
-  std::sort(vec_trxs.begin(), vec_trxs.end(),
-            [](Transaction const &t1, Transaction const &t2) {
-              if (t1.getSender() < t2.getSender())
-                return true;
-              else if (t1.getSender() == t2.getSender()) {
-                return t1.getNonce() < t2.getNonce();
-              } else {
-                return false;
-              }
-            });
-
-  for (auto const &t : vec_trxs) {
-    LOG(log_si_) << getFullNodeAddress() << " Trx: " << t.getHash()
-                 << " Sender " << t.getSender() << " Nonce " << t.getNonce();
-    to_be_packed_trx.emplace_back(t.getHash());
-  }
+  to_be_packed_trx = sortTransctionsAndGetHashVector(vec_trxs);
 
   if (changed) {
     db_trxs_->commit();
@@ -727,6 +719,27 @@ bool TransactionManager::verifyBlockTransactions(
     return false;
   }
   return true;
+}
+vec_trx_t TransactionManager::sortTransctionsAndGetHashVector(
+    std::vector<Transaction> &vec_trxs) const {
+  vec_trx_t vec_hash;
+
+  if (vec_trxs.empty()) return vec_hash;
+  // sort trx based on sender and nonce
+  std::sort(vec_trxs.begin(), vec_trxs.end(),
+            [](Transaction const &t1, Transaction const &t2) {
+              if (t1.getSender() < t2.getSender())
+                return true;
+              else if (t1.getSender() == t2.getSender()) {
+                return t1.getNonce() < t2.getNonce();
+              } else {
+                return false;
+              }
+            });
+  for (auto const &t : vec_trxs) {
+    vec_hash.emplace_back(t.getHash());
+  }
+  return vec_hash;
 }
 
 addr_t TransactionManager::getFullNodeAddress() const {
