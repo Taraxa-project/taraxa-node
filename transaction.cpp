@@ -318,14 +318,15 @@ void TransactionQueue::verifyQueuedTrxs() {
       auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
       auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
       if (trx_nonce - prev_nonce > 1) {
-        LOG(log_er_) << getFullNodeAddress() << " Verifying trx ... find a gap in sender "
-                     << trx_sender << " prev nonce: " << prev_nonce
-                     << " current nonce " << trx_nonce << " trx: " << trx_hash;
+        LOG(log_er_) << getFullNodeAddress()
+                     << " Verifying trx ... find a gap in sender " << trx_sender
+                     << " prev nonce: " << prev_nonce << " current nonce "
+                     << trx_nonce << " trx: " << trx_hash;
       }
       accs_nonce_.update(trx_sender, new_nonce);
-      LOG(log_si_) << getFullNodeAddress() << " Verifying trx ... update sender "
-                   << trx_sender << " nonce " << new_nonce << " in trx "
-                   << trx_hash;
+      LOG(log_si_) << getFullNodeAddress()
+                   << " Verifying trx ... update sender " << trx_sender
+                   << " nonce " << new_nonce << " in trx " << trx_hash;
 
       // push to verified qu
       LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
@@ -656,7 +657,7 @@ bool TransactionManager::insertTrx(Transaction const &trx,
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   to_be_packed_trx.clear();
-
+  std::vector<Transaction> vec_trxs;
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
   bool changed = false;
   for (auto const &i : verified_trx) {
@@ -675,8 +676,28 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
     // update transaction_status
     trx_status_.update(hash, TransactionStatus::in_block);
-    to_be_packed_trx.emplace_back(i.first);
+    vec_trxs.emplace_back(trx);
+    // to_be_packed_trx.emplace_back(i.first);
   }
+
+  // sort trx based on sender and nonce
+  std::sort(vec_trxs.begin(), vec_trxs.end(),
+            [](Transaction const &t1, Transaction const &t2) {
+              if (t1.getSender() < t2.getSender())
+                return true;
+              else if (t1.getSender() == t2.getSender()) {
+                return t1.getNonce() < t2.getNonce();
+              } else {
+                return false;
+              }
+            });
+
+  for (auto const &t : vec_trxs) {
+    LOG(log_si_) << getFullNodeAddress() << " Trx: " << t.getHash()
+                 << " Sender " << t.getSender() << " Nonce " << t.getNonce();
+    to_be_packed_trx.emplace_back(t.getHash());
+  }
+
   if (changed) {
     db_trxs_->commit();
   }
