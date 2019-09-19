@@ -70,7 +70,6 @@ void PbftManager::start() {
   }
 
   db_votes_ = full_node->getVotesDB();
-  db_pbftchain_ = full_node->getPbftChainDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
   LOG(log_inf_) << "PBFT executor initiated ...";
@@ -97,7 +96,6 @@ void PbftManager::stop() {
   daemon_.reset();
   LOG(log_inf_) << "PBFT executor terminated ...";
   db_votes_ = nullptr;
-  db_pbftchain_ = nullptr;
   assert(daemon_ == nullptr);
 }
 
@@ -1004,23 +1002,6 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
   return pushPbftBlockIntoChain_(pbft_block.first);
 }
 
-bool PbftManager::updatePbftChainDB_(PbftBlock const &pbft_block) {
-  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
-                          pbft_block.getJsonStr())) {
-    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
-                  << " into DB";
-    return false;
-  }
-  if (!db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
-                             pbft_chain_->getJsonStr())) {
-    LOG(log_err_) << "Failed update pbft genesis in DB";
-    return false;
-  }
-  db_pbftchain_->commit();
-
-  return true;
-}
-
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   std::pair<PbftBlock, bool> cert_voted_block =
       pbft_chain_->getPbftBlockInQueue(block_hash);
@@ -1181,7 +1162,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     if (pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       // reset proposed PBFT block hash to False for next CS block proposal
       proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
-      updatePbftChainDB_(pbft_block);
       LOG(log_inf_) << "Successful push pbft anchor block "
                     << pbft_block.getBlockHash() << " into chain! in round "
                     << pbft_round_;
@@ -1209,7 +1189,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
   } else if (next_pbft_block_type == schedule_block_type) {
     if (comparePbftCSblockWithDAGblocks_(pbft_block)) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
-        updatePbftChainDB_(pbft_block);
         LOG(log_inf_) << "Successful push pbft schedule block "
                       << pbft_block.getBlockHash() << " into chain! in round "
                       << pbft_round_;

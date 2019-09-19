@@ -456,7 +456,7 @@ void PbftChain::setFullNode(std::shared_ptr<FullNode> node) {
     assert(false);
   }
   // setup pbftchain DB point
-  db_pbftchain_ = full_node->getPbftChainDB();
+  db_pbftchain_ = std::move(full_node->getPbftChainDB());
   // store PBFT chain genesis(HEAD) block to db
   db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
   db_pbftchain_->commit();
@@ -571,7 +571,26 @@ void PbftChain::insertPbftBlockIndex_(
   pbft_blocks_index_.push_back(pbft_block_hash);
 }
 
-void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
+bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
+  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                          pbft_block.getJsonStr())) {
+    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
+                  << " into DB";
+    return false;
+  }
+  if (!db_pbftchain_->update(genesis_hash_.toString(), getJsonStr())) {
+    LOG(log_err_) << "Failed update pbft genesis in DB";
+    return false;
+  }
+  db_pbftchain_->commit();
+
+  return true;
+}
+
+bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
+  if (!pushPbftBlockIntoChain(pbft_block)) {
+    return false;
+  }
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   insertPbftBlockIndex_(pbft_block_hash);
   setLastPbftBlockHash(pbft_block_hash);
@@ -594,6 +613,7 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
                   << " chain size is " << size_;
     setNextPbftBlockType(pivot_block_type);
   }
+  return true;
 }
 
 bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
@@ -616,7 +636,9 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
     }
   }
   period_++;
-  pushPbftBlock(pbft_block);
+  if (!pushPbftBlock(pbft_block)) {
+    return false;
+  }
   last_pbft_pivot_hash_ = pbft_block.getBlockHash();
   return true;
 }
