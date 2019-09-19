@@ -342,6 +342,9 @@ void FullNode::stop() {
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
   pbft_chain_->releaseDB();
+  // Network(taraxa_capability) still running, will use pbft_chain_
+  // After comment out network_->stop() above, could comment out here also
+  // pbft_chain_ = nullptr;
   executor_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
