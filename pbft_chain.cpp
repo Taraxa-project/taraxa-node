@@ -536,19 +536,15 @@ bool PbftChain::findPbftBlockInVerifiedSet(
   return pbft_verified_set_.find(pbft_block_hash) != pbft_verified_set_.end();
 }
 
-std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
+PbftBlock PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t& pbft_block_hash) {
-  if (!pbft_block_hash) {
-    // First PBFT block, call from PBFT manager
-    return std::make_pair(PbftBlock(), true);
-  }
   std::string pbft_block_str = db_pbftchain_->get(pbft_block_hash.toString());
   if (pbft_block_str.empty()) {
     LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
                   << " in DB";
-    return std::make_pair(PbftBlock(), false);
+    assert(false);
   }
-  return std::make_pair(PbftBlock(pbft_block_str), true);
+  return PbftBlock(pbft_block_str);
 }
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
@@ -607,15 +603,17 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   if (next_pbft_block_type_ != pivot_block_type) {
     return false;
   }
-  std::pair<PbftBlock, bool> pbft_chain_last_blk =
-      getPbftBlockInChain(last_pbft_block_hash_);
-  if (!pbft_chain_last_blk.second) {
-    LOG(log_err_) << "Cannot find the last pbft block in pbft chain";
-    return false;
-  }
-  if (pbft_block.getPivotBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.first.getBlockHash()) {
-    return false;
+  if (!last_pbft_block_hash_) {
+    // The first PBFT Pivot Block
+    if (pbft_block.getPivotBlock().getPrevBlockHash() != genesis_hash_) {
+      return false;
+    }
+  } else {
+    PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
+    if (pbft_block.getPivotBlock().getPrevBlockHash() !=
+        pbft_chain_last_blk.getBlockHash()) {
+      return false;
+    }
   }
   period_++;
   pushPbftBlock(pbft_block);
@@ -630,14 +628,9 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   if (next_pbft_block_type_ != schedule_block_type) {
     return false;
   }
-  std::pair<PbftBlock, bool> pbft_chain_last_blk =
-      getPbftBlockInChain(last_pbft_block_hash_);
-  if (!pbft_chain_last_blk.second) {
-    LOG(log_err_) << "Cannot find the last pbft block in pbft chain";
-    return false;
-  }
+  PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
   if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.first.getBlockHash()) {
+      pbft_chain_last_blk.getBlockHash()) {
     return false;
   }
   pushPbftBlock(pbft_block);
