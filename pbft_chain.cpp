@@ -538,8 +538,14 @@ bool PbftChain::findPbftBlockInVerifiedSet(
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t& pbft_block_hash) {
+  if (!pbft_block_hash) {
+    // First PBFT block, call from PBFT manager
+    return std::make_pair(PbftBlock(), true);
+  }
   std::string pbft_block_str = db_pbftchain_->get(pbft_block_hash.toString());
   if (pbft_block_str.empty()) {
+    LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
+                  << " in DB";
     return std::make_pair(PbftBlock(), false);
   }
   return std::make_pair(PbftBlock(pbft_block_str), true);
