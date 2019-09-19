@@ -843,8 +843,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       PbftBlock last_period_pbft_pivot_block =
           pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
       last_period_dag_anchor_block_hash =
-          last_period_pbft_pivot_block.getPivotBlock().getDagBlockHash()
-            .toString();
+          last_period_pbft_pivot_block.getPivotBlock()
+              .getDagBlockHash()
+              .toString();
     } else {
       // First PBFT pivot block
       last_period_dag_anchor_block_hash = dag_genesis_;
@@ -1100,8 +1101,7 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   // get dag block hash from the last pbft pivot block in pbft chain
   blk_hash_t last_block_hash = pbft_chain_->getLastPbftPivotHash();
   PbftBlock last_pbft_block = pbft_chain_->getPbftBlockInChain(last_block_hash);
-  blk_hash_t dag_block_hash =
-      last_pbft_block.getPivotBlock().getDagBlockHash();
+  blk_hash_t dag_block_hash = last_pbft_block.getPivotBlock().getDagBlockHash();
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
