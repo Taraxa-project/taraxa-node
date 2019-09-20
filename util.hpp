@@ -338,7 +338,7 @@ class ExpirationCacheMap {
     boost::unique_lock lck(mtx_);
     auto it = cache_.find(key);
     if (it != cache_.end()) return false;
-    it->second = value;
+    cache_[key] = value;
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
       for (auto i = 0; i < delete_step_; i++) {
