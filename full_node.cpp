@@ -48,7 +48,8 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_mgr_(std::make_shared<PbftManager>(
           conf_.test_params.pbft,
           conf_.genesis_state.block.getHash().toString())),
-      pbft_chain_(std::make_shared<PbftChain>()) {
+      pbft_chain_(std::make_shared<PbftChain>(
+          conf_.genesis_state.block.getHash().toString())) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
 
   auto key = dev::KeyPair::create();
@@ -133,12 +134,6 @@ void FullNode::initDB(bool destroy_db) {
     // store genesis blk to db
     db_blks_->put(genesis_hash, genesis_block.rlp(true));
     db_blks_->commit();
-    // Initialize DAG genesis at DAG block heigh 0
-    pbft_chain_->pushDagBlockHash(genesis_hash);
-    // store pbft chain genesis(HEAD) block to db
-    db_pbftchain_->put(pbft_chain_->getGenesisHash().toString(),
-                       pbft_chain_->getJsonStr());
-    db_pbftchain_->commit();
     // TODO add move to a StateRegistry constructor?
     auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
     auto acc_db = newDB(conf_.account_db_path(),
@@ -256,6 +251,9 @@ void FullNode::start(bool boot_node) {
   }
   stopped_ = false;
   // order depend, be careful when changing the order
+  // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
+  // be nullptr
+  pbft_chain_->setFullNode(getShared());
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->setFullNode(getShared());
@@ -345,6 +343,10 @@ void FullNode::stop() {
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
+  pbft_chain_->releaseDB();
+  // Network(taraxa_capability) still running, will use pbft_chain_
+  // After comment out network_->stop() above, could comment out here also
+  // pbft_chain_ = nullptr;
   executor_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
@@ -415,7 +417,8 @@ bool FullNode::reset() {
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
   vote_mgr_ = std::make_shared<VoteManager>();
-  pbft_chain_ = std::make_shared<PbftChain>();
+  pbft_chain_ = std::make_shared<PbftChain>(
+      conf_.genesis_state.block.getHash().toString());
   executor_ =
       std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS, log_time_,
                                  db_blks_, db_trxs_, state_registry_);
@@ -817,18 +820,12 @@ bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
     // set Dag blocks period
     blk_hash_t last_pivot_block_hash =
         pbft_block.getScheduleBlock().getPrevBlockHash();
-    std::pair<PbftBlock, bool> last_pivot_block =
+    PbftBlock last_pivot_block =
         pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
-    if (!last_pivot_block.second) {
-      LOG(log_er_) << "Cannot find the last pivot block hash "
-                   << last_pivot_block_hash
-                   << " in pbft chain. Should never happen here!";
-      assert(false);
-    }
     blk_hash_t dag_block_hash =
-        last_pivot_block.first.getPivotBlock().getDagBlockHash();
+        last_pivot_block.getPivotBlock().getDagBlockHash();
     uint64_t current_pbft_chain_period =
-        last_pivot_block.first.getPivotBlock().getPeriod();
+        last_pivot_block.getPivotBlock().getPeriod();
     uint dag_ordered_blocks_size =
         setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
     // checking: DAG ordered blocks size in this period should equal to the

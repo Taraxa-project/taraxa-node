@@ -435,6 +435,35 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
+PbftChain::PbftChain(std::string const &dag_genesis_hash)
+    : genesis_hash_(blk_hash_t(0)),
+      size_(1),
+      period_(0),
+      next_pbft_block_type_(pivot_block_type),
+      last_pbft_block_hash_(genesis_hash_),
+      last_pbft_pivot_hash_(genesis_hash_) {
+  // Initialize DAG genesis at DAG block heigh 0
+  pushDagBlockHash(blk_hash_t(dag_genesis_hash));
+  // put PBFT genesis into verified set
+  pbft_verified_set_.insert(genesis_hash_);
+}
+
+void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
+  node_ = node;
+
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable";
+    assert(false);
+  }
+  // setup pbftchain DB point
+  db_pbftchain_ = full_node->getPbftChainDB();
+  assert(db_pbftchain_);
+  // store PBFT chain genesis(HEAD) block to db
+  db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
+  db_pbftchain_->commit();
+}
+
 uint64_t PbftChain::getPbftChainSize() const { return size_; }
 
 uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
@@ -495,7 +524,8 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_chain_map_.find(pbft_block_hash) != pbft_chain_map_.end();
+  assert(db_pbftchain_);
+  return db_pbftchain_->get(pbft_block_hash.toString()) != "";
 }
 
 bool PbftChain::findPbftBlockInQueue(
@@ -509,12 +539,15 @@ bool PbftChain::findPbftBlockInVerifiedSet(
   return pbft_verified_set_.find(pbft_block_hash) != pbft_verified_set_.end();
 }
 
-std::pair<PbftBlock, bool> PbftChain::getPbftBlockInChain(
+PbftBlock PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t& pbft_block_hash) {
-  if (findPbftBlockInChain(pbft_block_hash)) {
-    return std::make_pair(pbft_chain_map_[pbft_block_hash], true);
+  std::string pbft_block_str = db_pbftchain_->get(pbft_block_hash.toString());
+  if (pbft_block_str.empty()) {
+    LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
+                  << " in DB";
+    assert(false);
   }
-  return std::make_pair(PbftBlock(), false);
+  return PbftBlock(pbft_block_str);
 }
 
 std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
@@ -525,26 +558,44 @@ std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
   return std::make_pair(PbftBlock(), false);
 }
 
-std::vector<std::shared_ptr<PbftBlock>> PbftChain::getPbftBlocks(
+std::vector<PbftBlock> PbftChain::getPbftBlocks(
     size_t height, size_t count) const {
-  std::vector<std::shared_ptr<PbftBlock>> result;
+  std::vector<PbftBlock> result;
   for (auto i = height; i < height + count; i++) {
-    result.push_back(std::make_shared<PbftBlock>(
-        pbft_chain_map_.at(pbft_blocks_index_[i - 1])));
+    std::string pbft_block_str =
+        db_pbftchain_->get(pbft_blocks_index_[i - 1].toString());
+    result.push_back(PbftBlock(pbft_block_str));
   }
   return result;
 }
 
-void PbftChain::insertPbftBlockInChain_(
-    taraxa::blk_hash_t const& pbft_block_hash,
-    taraxa::PbftBlock const& pbft_block) {
-  pbft_chain_map_[pbft_block_hash] = pbft_block;
+void PbftChain::insertPbftBlockIndex_(
+    taraxa::blk_hash_t const& pbft_block_hash) {
   pbft_blocks_index_.push_back(pbft_block_hash);
 }
 
-void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
+bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
+  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
+                          pbft_block.getJsonStr())) {
+    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
+                  << " into DB";
+    return false;
+  }
+  if (!db_pbftchain_->update(genesis_hash_.toString(), getJsonStr())) {
+    LOG(log_err_) << "Failed update pbft genesis in DB";
+    return false;
+  }
+  db_pbftchain_->commit();
+
+  return true;
+}
+
+bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
+  if (!pushPbftBlockIntoChain(pbft_block)) {
+    return false;
+  }
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  insertPbftBlockInChain_(pbft_block_hash, pbft_block);
+  insertPbftBlockIndex_(pbft_block_hash);
   setLastPbftBlockHash(pbft_block_hash);
   // TODO: only support pbft pivot and schedule block type so far
   // may need add pbft result block type later
@@ -565,6 +616,7 @@ void PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
                   << " chain size is " << size_;
     setNextPbftBlockType(pivot_block_type);
   }
+  return true;
 }
 
 bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
@@ -574,18 +626,22 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   if (next_pbft_block_type_ != pivot_block_type) {
     return false;
   }
-  std::pair<PbftBlock, bool> pbft_chain_last_blk =
-      getPbftBlockInChain(last_pbft_block_hash_);
-  if (!pbft_chain_last_blk.second) {
-    LOG(log_err_) << "Cannot find the last pbft block in pbft chain";
-    return false;
-  }
-  if (pbft_block.getPivotBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.first.getBlockHash()) {
-    return false;
+  if (!last_pbft_block_hash_) {
+    // The first PBFT Pivot Block
+    if (pbft_block.getPivotBlock().getPrevBlockHash() != genesis_hash_) {
+      return false;
+    }
+  } else {
+    PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
+    if (pbft_block.getPivotBlock().getPrevBlockHash() !=
+        pbft_chain_last_blk.getBlockHash()) {
+      return false;
+    }
   }
   period_++;
-  pushPbftBlock(pbft_block);
+  if (!pushPbftBlock(pbft_block)) {
+    return false;
+  }
   last_pbft_pivot_hash_ = pbft_block.getBlockHash();
   return true;
 }
@@ -597,14 +653,9 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   if (next_pbft_block_type_ != schedule_block_type) {
     return false;
   }
-  std::pair<PbftBlock, bool> pbft_chain_last_blk =
-      getPbftBlockInChain(last_pbft_block_hash_);
-  if (!pbft_chain_last_blk.second) {
-    LOG(log_err_) << "Cannot find the last pbft block in pbft chain";
-    return false;
-  }
+  PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
   if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.first.getBlockHash()) {
+      pbft_chain_last_blk.getBlockHash()) {
     return false;
   }
   pushPbftBlock(pbft_block);

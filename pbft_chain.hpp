@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -61,6 +62,8 @@ struct TrxSchedule {
   }
 };
 std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche);
+
+class FullNode;
 
 class PivotBlock {
  public:
@@ -195,17 +198,11 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 class PbftChain {
  public:
-  PbftChain()
-      : genesis_hash_(blk_hash_t(0)),
-        size_(1),
-        period_(0),
-        next_pbft_block_type_(pivot_block_type) {
-    last_pbft_block_hash_ = genesis_hash_;
-    last_pbft_pivot_hash_ = genesis_hash_;
-    pbft_chain_map_[genesis_hash_] = PbftBlock(genesis_hash_);
-    pbft_verified_set_.insert(genesis_hash_);
-  }
+  PbftChain(std::string const &dag_genesis_hash);
   ~PbftChain() {}
+
+  void setFullNode(std::shared_ptr<FullNode> node);
+  void releaseDB() { db_pbftchain_ = nullptr; }
 
   uint64_t getPbftChainSize() const;
   uint64_t getPbftChainPeriod() const;
@@ -214,12 +211,10 @@ class PbftChain {
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
   size_t getPbftUnverifiedQueueSize() const;
-  std::pair<PbftBlock, bool> getPbftBlockInChain(
-      blk_hash_t const& pbft_block_hash);
+  PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
       blk_hash_t const& pbft_block_hash);
-  std::vector<std::shared_ptr<PbftBlock>> getPbftBlocks(size_t height,
-                                                        size_t count) const;
+  std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
   std::string getGenesisStr() const;
   std::string getJsonStr() const;
   dev::Logger& getLoggerErr() { return log_err_; }
@@ -235,7 +230,8 @@ class PbftChain {
   bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
 
-  void pushPbftBlock(taraxa::PbftBlock const& pbft_block);
+  bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
+  bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
@@ -252,11 +248,9 @@ class PbftChain {
 
   // only for test
   void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
-  void cleanPbftChain() { PbftChain(); }
 
  private:
-  void insertPbftBlockInChain_(blk_hash_t const& pbft_block_hash,
-                               PbftBlock const& pbft_block);
+  void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
@@ -272,9 +266,11 @@ class PbftChain {
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
 
+  std::weak_ptr<FullNode> node_;
+  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_chain_map_;
   std::vector<blk_hash_t> pbft_blocks_index_;
   std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;

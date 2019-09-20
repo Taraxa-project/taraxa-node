@@ -74,7 +74,7 @@ TEST(ScheduleBlock, serialize_deserialize) {
   EXPECT_EQ(ss1.str(), ss2.str());
 }
 
-TEST(PbftChain, pbft_db_test) {
+TEST(PbftChain, DISABLED_pbft_db_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));

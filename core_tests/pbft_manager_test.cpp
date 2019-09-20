@@ -219,11 +219,10 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
   // PBFT second CS block
   blk_hash_t pbft_second_cs_block_hash = pbft_chain1->getLastPbftBlockHash();
-  std::pair<PbftBlock, bool> pbft_second_cs_block =
+  PbftBlock pbft_second_cs_block =
       pbft_chain1->getPbftBlockInChain(pbft_second_cs_block_hash);
-  ASSERT_TRUE(pbft_second_cs_block.second);
   vec_blk_t dag_blocks_in_cs =
-      pbft_second_cs_block.first.getScheduleBlock().getSchedule().blk_order;
+      pbft_second_cs_block.getScheduleBlock().getSchedule().blk_order;
   EXPECT_EQ(dag_blocks_in_cs.size(), 1);
   for (auto &dag_block_hash : dag_blocks_in_cs) {
     ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
@@ -231,18 +230,16 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   }
   // PBFT second pivot block
   blk_hash_t pbft_second_pivot_block_hash =
-      pbft_second_cs_block.first.getScheduleBlock().getPrevBlockHash();
-  std::pair<PbftBlock, bool> pbft_second_pivot_block =
+      pbft_second_cs_block.getScheduleBlock().getPrevBlockHash();
+  PbftBlock pbft_second_pivot_block =
       pbft_chain1->getPbftBlockInChain(pbft_second_pivot_block_hash);
-  ASSERT_TRUE(pbft_second_pivot_block.second);
   // PBFT first CS block
   blk_hash_t pbft_first_cs_block_hash =
-      pbft_second_pivot_block.first.getPivotBlock().getPrevBlockHash();
-  std::pair<PbftBlock, bool> pbft_first_cs_block =
+      pbft_second_pivot_block.getPivotBlock().getPrevBlockHash();
+  PbftBlock pbft_first_cs_block =
       pbft_chain1->getPbftBlockInChain(pbft_first_cs_block_hash);
-  ASSERT_TRUE(pbft_first_cs_block.second);
   dag_blocks_in_cs =
-      pbft_first_cs_block.first.getScheduleBlock().getSchedule().blk_order;
+      pbft_first_cs_block.getScheduleBlock().getSchedule().blk_order;
   EXPECT_EQ(dag_blocks_in_cs.size(), 1);
   ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_in_cs[0]));
 
