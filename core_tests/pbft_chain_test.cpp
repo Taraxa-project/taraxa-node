@@ -212,8 +212,8 @@ TEST(PbftChain, block_broadcast) {
   // sign the pbft block
   pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr()));
 
-  node1->pushPbftBlockIntoQueue(pbft_block1);
-  EXPECT_EQ(node1->getPbftUnverifiedQueueSize(), 1);
+  node1->pushPbftUnverifiedBlock(pbft_block1);
+  EXPECT_EQ(node1->getPbftUnverifiedBlocksSize(), 1);
   node1->setPbftBlock(pbft_block1);  // Test pbft chain
   ASSERT_EQ(node1->getPbftChainSize(), 2);
 
@@ -222,14 +222,14 @@ TEST(PbftChain, block_broadcast) {
   int current_pbft_queue_size = 1;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (node2->getPbftUnverifiedQueueSize() == current_pbft_queue_size &&
-        node3->getPbftUnverifiedQueueSize() == current_pbft_queue_size) {
+    if (node2->getPbftUnverifiedBlocksSize() == current_pbft_queue_size &&
+        node3->getPbftUnverifiedBlocksSize() == current_pbft_queue_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
-  EXPECT_EQ(node3->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
+  EXPECT_EQ(node2->getPbftUnverifiedBlocksSize(), current_pbft_queue_size);
+  EXPECT_EQ(node3->getPbftUnverifiedBlocksSize(), current_pbft_queue_size);
   node2->setPbftBlock(pbft_block1);  // Test pbft chain
   ASSERT_EQ(node2->getPbftChainSize(), 2);
   node3->setPbftBlock(pbft_block1);  // Test pbft chain
@@ -247,8 +247,8 @@ TEST(PbftChain, block_broadcast) {
   // sign the pbft block
   pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr()));
 
-  node1->pushPbftBlockIntoQueue(pbft_block2);
-  EXPECT_EQ(node1->getPbftUnverifiedQueueSize(), 2);
+  node1->pushPbftUnverifiedBlock(pbft_block2);
+  EXPECT_EQ(node1->getPbftUnverifiedBlocksSize(), 2);
   node1->setPbftBlock(pbft_block2);  // Test pbft chain
   ASSERT_EQ(node1->getPbftChainSize(), 3);
 
@@ -257,14 +257,14 @@ TEST(PbftChain, block_broadcast) {
   current_pbft_queue_size = 2;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (node2->getPbftUnverifiedQueueSize() == current_pbft_queue_size &&
-        node3->getPbftUnverifiedQueueSize() == current_pbft_queue_size) {
+    if (node2->getPbftUnverifiedBlocksSize() == current_pbft_queue_size &&
+        node3->getPbftUnverifiedBlocksSize() == current_pbft_queue_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
-  EXPECT_EQ(node3->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
+  EXPECT_EQ(node2->getPbftUnverifiedBlocksSize(), current_pbft_queue_size);
+  EXPECT_EQ(node3->getPbftUnverifiedBlocksSize(), current_pbft_queue_size);
   node2->setPbftBlock(pbft_block2);  // Test pbft chain
   ASSERT_EQ(node2->getPbftChainSize(), 3);
   node3->setPbftBlock(pbft_block2);  // Test pbft chain
