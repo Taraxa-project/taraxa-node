@@ -141,19 +141,8 @@ void PbftManager::run() {
     pushVerifiedPbftBlocksIntoChain_();
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
-    // Get votes
-    bool sync_peers_pbft_chain = false;
-    std::vector<Vote> votes =
-        vote_mgr_->getVotes(pbft_round_ - 1, sync_peers_pbft_chain);
-    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
-                  << pbft_round_ - 1;
-    if (sync_peers_pbft_chain) {
-      syncPbftChainFromPeers_();
-    }
-
     // Check if we are synced to the right step ...
-    uint64_t consensus_pbft_round =
-        roundDeterminedFromVotes_(votes, pbft_round_);
+    uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
       // reset starting value to NULL_BLOCK_HASH
@@ -182,6 +171,16 @@ void PbftManager::run() {
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
       continue;
+    }
+
+    // Get votes
+    bool sync_peers_pbft_chain = false;
+    std::vector<Vote> votes =
+        vote_mgr_->getVotes(pbft_round_ - 1, sync_peers_pbft_chain);
+    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
+                  << pbft_round_ - 1;
+    if (sync_peers_pbft_chain) {
+      syncPbftChainFromPeers_();
     }
 
     // CHECK IF WE HAVE RECEIVED 2t+ 1 CERT VOTES FOR A BLOCK
@@ -613,19 +612,16 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   return true;
 }
 
-/* Find the latest round, p-1, for which there is a quorum of next-votes
- * and set determine that round p should be the current round...
+/* There is a quorum of next-votes and set determine that round p should be the
+ * current round...
  */
-uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
-                                                uint64_t local_round) {
-  // TODO: local_round may be able to change to pbft_round_, and remove
-  //  local_round tally next votes by round and step
-  //  <<vote_round, vote_step>, count>, <round, step> store in reverse order
-  // <<vote_round, vote_step>, count>
+uint64_t PbftManager::roundDeterminedFromVotes_() {
+  // <<vote_round, vote_step>, count>, <round, step> store in reverse order
   std::map<std::pair<uint64_t, size_t>, size_t,
            std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
 
+  std::vector<Vote> votes = vote_mgr_->getAllVotes();
   for (Vote &v : votes) {
     if (v.getType() != next_vote_type) {
       continue;
@@ -633,7 +629,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
 
     std::pair<uint64_t, size_t> round_step =
         std::make_pair(v.getRound(), v.getStep());
-    if (round_step.first >= local_round) {
+    if (round_step.first >= pbft_round_) {
       if (next_votes_tally_by_round_step.find(round_step) !=
           next_votes_tally_by_round_step.end()) {
         next_votes_tally_by_round_step[round_step] += 1;
@@ -643,8 +639,6 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
     }
   }
 
-  uint64_t round_determined = local_round;
-
   for (auto &rs_votes : next_votes_tally_by_round_step) {
     if (rs_votes.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round_step =
@@ -652,22 +646,14 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
               next_vote_type, votes, rs_votes.first.first,
               rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
-        if (rs_votes.first.first + 1 > round_determined) {
-          LOG(log_deb_) << "Found sufficient next votes in round "
+        LOG(log_deb_) << "Found sufficient next votes in round "
                       << rs_votes.first.first << ", step "
                       << rs_votes.first.second;
-          round_determined = rs_votes.first.first + 1;
-        } else {
-          LOG(log_deb_) << "Also found sufficient next votes in round "
-                      << rs_votes.first.first << ", step "
-                      << rs_votes.first.second;
-        }
-        //return rs_votes.first.first + 1;
+        return rs_votes.first.first + 1;
       }
     }
   }
-
-  return round_determined;
+  return pbft_round_;
 }
 
 // Assumption is that all votes are in the same round and of same type...
