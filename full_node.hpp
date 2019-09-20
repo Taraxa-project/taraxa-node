@@ -193,9 +193,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
   bool isKnownPbftBlockInQueue(blk_hash_t const &pbft_block_hash) const;
   uint64_t getPbftChainSize() const;
-  size_t getPbftUnverifiedQueueSize() const;
+  size_t getPbftUnverifiedBlocksSize() const;
   size_t getPbftVerifiedBlocksSize() const;
-  void pushPbftBlockIntoQueue(PbftBlock const &pbft_block);
+  void pushPbftUnverifiedBlock(PbftBlock const &pbft_block);
   bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
   void setVerifiedPbftBlock(PbftBlock const &pbft_block);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,

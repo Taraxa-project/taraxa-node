@@ -458,7 +458,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           // TODO: need to check block validation, like proposed vote(maybe
           // come
           //  later), if get sortition etc
-          full_node->pushPbftBlockIntoQueue(pbft_block);
+          full_node->pushPbftUnverifiedBlock(pbft_block);
           onNewPbftBlock(pbft_block);
         }
 

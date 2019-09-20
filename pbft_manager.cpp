@@ -930,8 +930,8 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   pbft_block.setSignature(signature);
   pbft_block.setBlockHash();
 
-  // push pbft block into pbft queue
-  pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
+  // push pbft block
+  pbft_chain_->pushPbftUnverifiedBlock(pbft_block);
   // broadcast pbft block
   std::shared_ptr<Network> network = full_node->getNetwork();
   network->onNewPbftBlock(pbft_block);

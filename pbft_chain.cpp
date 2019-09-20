@@ -482,8 +482,8 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
-size_t PbftChain::getPbftUnverifiedQueueSize() const {
-  return pbft_unverified_queue_.size();
+size_t PbftChain::getPbftUnverifiedBlocksSize() const {
+  return pbft_unverified_map_.size();
 }
 
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
@@ -662,11 +662,11 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   return true;
 }
 
-void PbftChain::pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block) {
-  pbft_unverified_queue_.emplace_back(pbft_block.getBlockHash());
+void PbftChain::pushPbftUnverifiedBlock(taraxa::PbftBlock const& pbft_block) {
   pbft_unverified_map_[pbft_block.getBlockHash()] = pbft_block;
-  LOG(log_deb_) << "Push block " << pbft_block.getBlockHash() << " into queue."
-                << "Pbft queue size: " << pbft_unverified_queue_.size();
+  LOG(log_deb_) << "Push unverified block " << pbft_block.getBlockHash()
+                << ". Pbft unverified blocks size: "
+                << pbft_unverified_map_.size();
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
@@ -687,18 +687,18 @@ uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   return dag_block_height;
 }
 
-void PbftChain::removePbftBlockInQueue(taraxa::blk_hash_t const& block_hash) {
-  std::deque<blk_hash_t>::iterator it = pbft_unverified_queue_.begin();
-  while (it != pbft_unverified_queue_.end()) {
-    if (*it == block_hash) {
-      it = pbft_unverified_queue_.erase(it);
-      break;
-    }
-    it++;
-  }
-
-  pbft_unverified_map_.erase(block_hash);
-}
+//void PbftChain::removePbftBlockInQueue(taraxa::blk_hash_t const& block_hash) {
+//  std::deque<blk_hash_t>::iterator it = pbft_unverified_queue_.begin();
+//  while (it != pbft_unverified_queue_.end()) {
+//    if (*it == block_hash) {
+//      it = pbft_unverified_queue_.erase(it);
+//      break;
+//    }
+//    it++;
+//  }
+//
+//  pbft_unverified_map_.erase(block_hash);
+//}
 
 std::string PbftChain::getGenesisStr() const {
   std::stringstream strm;

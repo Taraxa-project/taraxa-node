@@ -210,7 +210,7 @@ class PbftChain {
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
-  size_t getPbftUnverifiedQueueSize() const;
+  size_t getPbftUnverifiedBlocksSize() const;
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getPbftBlockInQueue(
       blk_hash_t const& pbft_block_hash);
@@ -234,10 +234,10 @@ class PbftChain {
   bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
-  void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
+  void pushPbftUnverifiedBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
-  void removePbftBlockInQueue(blk_hash_t const& block_hash);
+//  void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
   size_t pbftVerifiedSetSize() const;
   void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
@@ -245,9 +245,6 @@ class PbftChain {
   PbftBlock pbftVerifiedQueueFront() const;
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
-
-  // only for test
-  void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
 
  private:
   void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
@@ -272,7 +269,6 @@ class PbftChain {
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
   std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
