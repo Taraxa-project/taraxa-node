@@ -35,8 +35,10 @@ enum class TransactionStatus {
  * simple thread_safe hash
  * keep track of transaction state
  */
-using TransactionStatusTable = StatusTable<trx_hash_t, TransactionStatus>;
-using TransactionUnsafeStatusTable = TransactionStatusTable::UnsafeStatusTable;
+using TransactionStatusTable =
+    ExpirationCacheMap<trx_hash_t, TransactionStatus>;
+using TransactionUnsafeStatusTable =
+    std::unordered_map<trx_hash_t, TransactionStatus>;
 using AccountNonceTable = StatusTable<addr_t, uint>;
 
 /**
@@ -267,12 +269,12 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager()
-      : trx_status_(),
+      : trx_status_(1000000, 1000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
       : db_trxs_(db_trx),
-        trx_status_(),
+        trx_status_(1000000, 1000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   std::shared_ptr<TransactionManager> getShared() {
@@ -325,8 +327,8 @@ class TransactionManager
   void clearTransactionStatusTable() { trx_status_.clear(); }
 
   // debugging purpose
-  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const {
-    return trx_status_.getThreadUnsafeCopy();
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
+    return trx_status_.getRawMap();
   }
 
  private:
