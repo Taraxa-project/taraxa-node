@@ -261,7 +261,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   }
 
   return verified_votes;
-}  // namespace taraxa
+}
 
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,

@@ -72,8 +72,8 @@ class PbftManager {
 
  private:
   addr_t getFullNodeAddress_() const;
-  uint64_t roundDeterminedFromVotes_(std::vector<Vote> &votes,
-                                     uint64_t local_round);
+
+  uint64_t roundDeterminedFromVotes_();
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
 
