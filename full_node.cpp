@@ -251,6 +251,8 @@ void FullNode::start(bool boot_node) {
   }
   stopped_ = false;
   // order depend, be careful when changing the order
+  // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
+  // be nullptr
   pbft_chain_->setFullNode(getShared());
   network_->setFullNode(getShared());
   network_->start(boot_node);
