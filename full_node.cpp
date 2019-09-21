@@ -470,8 +470,7 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
 
 void FullNode::insertTransaction(Transaction const &trx) {
   if (conf_.network.network_transaction_interval == 0) {
-    std::vector<std::pair<Transaction, taraxa::bytes>>
-        map_trx;
+    std::vector<std::pair<Transaction, taraxa::bytes>> map_trx;
     map_trx.emplace_back(std::make_pair(trx, trx.rlp(true)));
     network_->onNewTransactions(map_trx);
   }
@@ -674,14 +673,12 @@ FullNode::getNewVerifiedTrxSnapShotSerialized() {
 
 void FullNode::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
-    std::vector<std::pair<Transaction, taraxa::bytes>> const
-        &transactions) {
+    std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions) {
   if (stopped_ || !trx_mgr_) {
     return;
   }
   for (auto const &trx : transactions) {
-    trx_mgr_->insertTrx(trx.first, trx.second,
-                        false /* critical */);
+    trx_mgr_->insertTrx(trx.first, trx.second, false /* critical */);
     LOG(log_time_dg_) << "Transaction " << trx.first.getHash()
                       << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }

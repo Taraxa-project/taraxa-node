@@ -265,8 +265,7 @@ TEST(Network, delayed_node_sync3) {
     for (int i = 0; i < num_nodes; i++) {
       totalTrx += nodes[i]->getVerifiedTrxSnapShot().size();
       if (i % 10 == 0)
-        printf("%d %lu\n", i,
-               nodes[i]->getVerifiedTrxSnapShot().size());
+        printf("%d %lu\n", i, nodes[i]->getVerifiedTrxSnapShot().size());
     }
     printf("Total: %d\n", totalTrx);
     taraxa::thisThreadSleepForMilliSeconds(500);

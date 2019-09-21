@@ -41,7 +41,6 @@ using TransactionUnsafeStatusTable =
     std::unordered_map<trx_hash_t, TransactionStatus>;
 using AccountNonceTable = StatusTable<addr_t, val_t>;
 
-
 /**
  * Note:
  * Need to sign first then sender() and hash() is available
@@ -234,7 +233,7 @@ class TransactionQueue {
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions_ = true;
-  size_t num_verifiers_ = 2;
+  size_t num_verifiers_ = 1;
   TransactionStatusTable &trx_status_;
   AccountNonceTable &accs_nonce_;
   std::weak_ptr<FullNode> full_node_;

@@ -456,18 +456,18 @@ TEST_F(TopTest, sync_five_nodes) {
   uint64_t init_bal = TARAXA_COINS_DECIMAL / 5;
 
   // transfer some coins to your friends ...
-  Transaction trx1to2(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-                      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
-                      bytes(), g_secret);
-  Transaction trx1to3(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-                      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
-                      bytes(), g_secret);
-  Transaction trx1to4(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-                      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
-                      bytes(), g_secret);
-  Transaction trx1to5(0, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-                      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
-                      bytes(), g_secret);
+  Transaction trx1to2(
+      0 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
+      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"), bytes(), g_secret);
+  Transaction trx1to3(
+      1 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
+      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"), bytes(), g_secret);
+  Transaction trx1to4(
+      2 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
+      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"), bytes(), g_secret);
+  Transaction trx1to5(
+      3 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
+      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"), bytes(), g_secret);
   node1->insertTransaction(trx1to2);
   node1->insertTransaction(trx1to3);
   node1->insertTransaction(trx1to4);
@@ -673,6 +673,7 @@ TEST_F(TopTest, sync_five_nodes) {
         << " Number of vertices: " << node->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getNumBlockExecuted()
         << std::endl;
+    EXPECT_EQ(node->getPackedTrxs().size(), 10005);
   }
 
   auto dags = node1->getLinearizedDagBlocks();
@@ -1714,13 +1715,13 @@ TEST_F(TopTest, DISABLED_sortition_propose_five_nodes) {
   Transaction trx1to2(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
                       bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
-  Transaction trx1to3(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to3(1, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
                       bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
-  Transaction trx1to4(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to4(2, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
                       bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
-  Transaction trx1to5(0, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
+  Transaction trx1to5(3, 0, val_t(0), samples::TEST_TX_GAS_LIMIT,
                       addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
                       bytes(), samples::TX_GEN.getRandomUniqueSenderSecret());
   node1->insertTransaction(trx1to2);
