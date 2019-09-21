@@ -421,7 +421,7 @@ $(BUILDDIR)/main: $(DEPENDENCIES) $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/
 
 $(BUILDDIR)/keygen: $(ALETH_OBJ) $(DEPENDENCIES) $(OBJECTDIR)/util_cmd/keygen.o
 	${MKDIR} -p ${BUILDDIR}
-	$(CXX) -std=c++17 $(ALETH_OBJ) $(OBJECTDIR)/util_cmd/keygen.o -o $(BUILDDIR)/keygen $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(ALETH_OBJ) $(OBJECTDIR)/util.o $(OBJECTDIR)/util_cmd/keygen.o -o $(BUILDDIR)/keygen $(LDFLAGS) $(LIBS)
 
 $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
