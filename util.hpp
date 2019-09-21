@@ -414,4 +414,8 @@ class ExpirationCacheMap {
   uint32_t delete_step_;
   mutable boost::shared_mutex mtx_;
 };
+
+//Temporary hack for measuring db performance, remove later
+bool getSetDbPerf(bool set);
+
 #endif
