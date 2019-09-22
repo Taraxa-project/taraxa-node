@@ -11,6 +11,7 @@
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
+#include "util.hpp"
 
 using namespace std;
 using namespace dev;
@@ -38,37 +39,6 @@ enum SubprotocolPacketType : ::byte {
 };
 
 enum PeerState { Idle = 0, Syncing };
-
-template <class Key>
-class ExpirationCache {
- public:
-  ExpirationCache(uint32_t max_size, uint32_t delete_step)
-      : max_size_(max_size), delete_step_(delete_step) {}
-
-  void insert(Key const &key) {
-    boost::unique_lock lck(mtx_);
-    cache_.insert(key);
-    expiration_.push_back(key);
-    if (cache_.size() > max_size_) {
-      for (auto i = 0; i < delete_step_; i++) {
-        cache_.erase(expiration_.front());
-        expiration_.pop_front();
-      }
-    }
-  }
-
-  std::size_t count(Key const &key) const {
-    boost::shared_lock lck(mtx_);
-    return cache_.count(key);
-  }
-
- private:
-  std::unordered_set<Key> cache_;
-  std::deque<Key> expiration_;
-  uint32_t max_size_;
-  uint32_t delete_step_;
-  mutable boost::shared_mutex mtx_;
-};
 
 class TaraxaPeer : public boost::noncopyable {
  public:

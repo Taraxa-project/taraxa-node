@@ -60,7 +60,7 @@ TEST(Transaction, signer_signature_verify) {
 }
 
 TEST(TransactionQueue, verifiers) {
-  TransactionStatusTable status_table;
+  TransactionStatusTable status_table(100000, 1000);
   AccountNonceTable accs_table;
 
   TransactionQueue trx_qu(status_table, accs_table, 2 /*num verifiers*/);
@@ -143,7 +143,7 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
 }
 
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
-  TransactionStatusTable status_table;
+  TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(
       SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
           "/tmp/rocksdb/trx", true));

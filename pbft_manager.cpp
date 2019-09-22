@@ -36,7 +36,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
+    assert(false);
   }
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
@@ -70,7 +70,6 @@ void PbftManager::start() {
   }
 
   db_votes_ = full_node->getVotesDB();
-  db_pbftchain_ = full_node->getPbftChainDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
   LOG(log_inf_) << "PBFT executor initiated ...";
@@ -97,7 +96,6 @@ void PbftManager::stop() {
   daemon_.reset();
   LOG(log_inf_) << "PBFT executor terminated ...";
   db_votes_ = nullptr;
-  db_pbftchain_ = nullptr;
   assert(daemon_ == nullptr);
 }
 
@@ -143,19 +141,8 @@ void PbftManager::run() {
     pushVerifiedPbftBlocksIntoChain_();
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
-    // Get votes
-    bool sync_peers_pbft_chain = false;
-    std::vector<Vote> votes =
-        vote_mgr_->getVotes(pbft_round_ - 1, sync_peers_pbft_chain);
-    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
-                  << pbft_round_ - 1;
-    if (sync_peers_pbft_chain) {
-      syncPbftChainFromPeers_();
-    }
-
     // Check if we are synced to the right step ...
-    uint64_t consensus_pbft_round =
-        roundDeterminedFromVotes_(votes, pbft_round_);
+    uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
       // reset starting value to NULL_BLOCK_HASH
@@ -184,6 +171,16 @@ void PbftManager::run() {
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
       continue;
+    }
+
+    // Get votes
+    bool sync_peers_pbft_chain = false;
+    std::vector<Vote> votes =
+        vote_mgr_->getVotes(pbft_round_ - 1, sync_peers_pbft_chain);
+    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
+                  << pbft_round_ - 1;
+    if (sync_peers_pbft_chain) {
+      syncPbftChainFromPeers_();
     }
 
     // CHECK IF WE HAVE RECEIVED 2t+ 1 CERT VOTES FOR A BLOCK
@@ -615,19 +612,16 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   return true;
 }
 
-/* Find the latest round, p-1, for which there is a quorum of next-votes
- * and set determine that round p should be the current round...
+/* There is a quorum of next-votes and set determine that round p should be the
+ * current round...
  */
-uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
-                                                uint64_t local_round) {
-  // TODO: local_round may be able to change to pbft_round_, and remove
-  //  local_round tally next votes by round and step
-  //  <<vote_round, vote_step>, count>, <round, step> store in reverse order
-  // <<vote_round, vote_step>, count>
+uint64_t PbftManager::roundDeterminedFromVotes_() {
+  // <<vote_round, vote_step>, count>, <round, step> store in reverse order
   std::map<std::pair<uint64_t, size_t>, size_t,
            std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
 
+  std::vector<Vote> votes = vote_mgr_->getAllVotes();
   for (Vote &v : votes) {
     if (v.getType() != next_vote_type) {
       continue;
@@ -635,7 +629,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
 
     std::pair<uint64_t, size_t> round_step =
         std::make_pair(v.getRound(), v.getStep());
-    if (round_step.first >= local_round) {
+    if (round_step.first >= pbft_round_) {
       if (next_votes_tally_by_round_step.find(round_step) !=
           next_votes_tally_by_round_step.end()) {
         next_votes_tally_by_round_step[round_step] += 1;
@@ -645,8 +639,6 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
     }
   }
 
-  uint64_t round_determined = local_round;
-
   for (auto &rs_votes : next_votes_tally_by_round_step) {
     if (rs_votes.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round_step =
@@ -654,22 +646,14 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> &votes,
               next_vote_type, votes, rs_votes.first.first,
               rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
-        if (rs_votes.first.first + 1 > round_determined) {
-          LOG(log_deb_) << "Found sufficient next votes in round "
+        LOG(log_deb_) << "Found sufficient next votes in round "
                       << rs_votes.first.first << ", step "
                       << rs_votes.first.second;
-          round_determined = rs_votes.first.first + 1;
-        } else {
-          LOG(log_deb_) << "Also found sufficient next votes in round "
-                      << rs_votes.first.first << ", step "
-                      << rs_votes.first.second;
-        }
-        //return rs_votes.first.first + 1;
+        return rs_votes.first.first + 1;
       }
     }
   }
-
-  return round_determined;
+  return pbft_round_;
 }
 
 // Assumption is that all votes are in the same round and of same type...
@@ -838,26 +822,19 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_deb_) << "Into propose anchor block";
     blk_hash_t prev_pivot_hash = pbft_chain_->getLastPbftPivotHash();
     blk_hash_t prev_block_hash = pbft_chain_->getLastPbftBlockHash();
-    std::pair<PbftBlock, bool> last_period_pbft_pivot_block =
-        pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
-    if (!last_period_pbft_pivot_block.second) {
-      // Should not happen
-      LOG(log_err_)
-          << "Can not find the last round pbft pivot block with block hash: "
-          << prev_pivot_hash;
-      assert(false);
-    }
     std::string last_period_dag_anchor_block_hash;
-    if (last_period_pbft_pivot_block.first.getBlockHash() ==
-        pbft_chain_->getGenesisHash()) {
-      // First PBFT pivot block
-      last_period_dag_anchor_block_hash = dag_genesis_;
-    } else {
+    if (prev_block_hash) {
+      PbftBlock last_period_pbft_pivot_block =
+          pbft_chain_->getPbftBlockInChain(prev_pivot_hash);
       last_period_dag_anchor_block_hash =
-          last_period_pbft_pivot_block.first.getPivotBlock()
+          last_period_pbft_pivot_block.getPivotBlock()
               .getDagBlockHash()
               .toString();
+    } else {
+      // First PBFT pivot block
+      last_period_dag_anchor_block_hash = dag_genesis_;
     }
+
     std::vector<std::string> ghost;
     full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
     blk_hash_t dag_block_hash;
@@ -899,16 +876,10 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_deb_) << "Into propose schedule block";
     // get dag block hash from the last pbft block(pivot) in pbft chain
     blk_hash_t last_block_hash = pbft_chain_->getLastPbftBlockHash();
-    std::pair<PbftBlock, bool> last_pbft_block =
+    PbftBlock last_pbft_block =
         pbft_chain_->getPbftBlockInChain(last_block_hash);
-    if (!last_pbft_block.second) {
-      // Should not happen
-      LOG(log_err_) << "Can not find last pbft block with block hash: "
-                    << last_block_hash;
-      assert(false);
-    }
     blk_hash_t dag_block_hash =
-        last_pbft_block.first.getPivotBlock().getDagBlockHash();
+        last_pbft_block.getPivotBlock().getDagBlockHash();
 
     // get dag blocks order
     uint64_t pbft_chain_period;
@@ -1017,23 +988,6 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
   return pushPbftBlockIntoChain_(pbft_block.first);
 }
 
-bool PbftManager::updatePbftChainDB_(PbftBlock const &pbft_block) {
-  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
-                          pbft_block.getJsonStr())) {
-    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
-                  << " into DB";
-    return false;
-  }
-  if (!db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
-                             pbft_chain_->getJsonStr())) {
-    LOG(log_err_) << "Failed update pbft genesis in DB";
-    return false;
-  }
-  db_pbftchain_->commit();
-
-  return true;
-}
-
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   std::pair<PbftBlock, bool> cert_voted_block =
       pbft_chain_->getPbftBlockInQueue(block_hash);
@@ -1113,16 +1067,8 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
     PbftBlock const &pbft_block_cs) {
   // get dag block hash from the last pbft pivot block in pbft chain
   blk_hash_t last_block_hash = pbft_chain_->getLastPbftPivotHash();
-  std::pair<PbftBlock, bool> last_pbft_block =
-      pbft_chain_->getPbftBlockInChain(last_block_hash);
-  if (!last_pbft_block.second) {
-    // Should not happen
-    LOG(log_err_) << "Can not find last pbft block with block hash: "
-                  << last_block_hash;
-    assert(false);
-  }
-  blk_hash_t dag_block_hash =
-      last_pbft_block.first.getPivotBlock().getDagBlockHash();
+  PbftBlock last_pbft_block = pbft_chain_->getPbftBlockInChain(last_block_hash);
+  blk_hash_t dag_block_hash = last_pbft_block.getPivotBlock().getDagBlockHash();
   auto full_node = node_.lock();
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
@@ -1202,7 +1148,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     if (pbft_chain_->pushPbftPivotBlock(pbft_block)) {
       // reset proposed PBFT block hash to False for next CS block proposal
       proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
-      updatePbftChainDB_(pbft_block);
       LOG(log_inf_) << "Successful push pbft anchor block "
                     << pbft_block.getBlockHash() << " into chain! in round "
                     << pbft_round_;
@@ -1230,25 +1175,18 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
   } else if (next_pbft_block_type == schedule_block_type) {
     if (comparePbftCSblockWithDAGblocks_(pbft_block)) {
       if (pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
-        updatePbftChainDB_(pbft_block);
         LOG(log_inf_) << "Successful push pbft schedule block "
                       << pbft_block.getBlockHash() << " into chain! in round "
                       << pbft_round_;
 
         // set DAG blocks period
         blk_hash_t last_pivot_block_hash = pbft_chain_->getLastPbftPivotHash();
-        std::pair<PbftBlock, bool> last_pivot_block =
+        PbftBlock last_pivot_block =
             pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
-        if (!last_pivot_block.second) {
-          LOG(log_err_) << "Cannot find the last pivot block hash "
-                        << last_pivot_block_hash
-                        << " in pbft chain. Should never happen here!";
-          assert(false);
-        }
         blk_hash_t dag_block_hash =
-            last_pivot_block.first.getPivotBlock().getDagBlockHash();
+            last_pivot_block.getPivotBlock().getDagBlockHash();
         uint64_t current_pbft_chain_period =
-            last_pivot_block.first.getPivotBlock().getPeriod();
+            last_pivot_block.getPivotBlock().getPeriod();
 
         uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
             dag_block_hash, current_pbft_chain_period);
