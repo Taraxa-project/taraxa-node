@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_TARAXAVM_HPP
-#define TARAXA_NODE_TARAXAVM_HPP
+#ifndef TARAXA_NODE_TRX_ENGINE_TRX_ENGINE_HPP_
+#define TARAXA_NODE_TRX_ENGINE_TRX_ENGINE_HPP_
 
 extern "C" {
 #include "trx_engine.h"
@@ -24,4 +24,4 @@ class TrxEngine {
 
 }  // namespace taraxa::trx_engine
 
-#endif  // TARAXA_NODE_TARAXAVM_HPP
+#endif

@@ -7,7 +7,7 @@ namespace taraxa {
 bool Executor::execute(TrxSchedule const& schedule,
                        BalanceTable& sortition_account_balance_table,
                        uint64_t period) {
-  if (this->use_basic_executor) {
+  if (this->use_basic_executor_) {
     return execute_basic(schedule, sortition_account_balance_table, period);
   }
   return execute_main(schedule, sortition_account_balance_table, period);

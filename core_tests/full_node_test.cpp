@@ -24,7 +24,7 @@ using namespace core_tests::util;
 using samples::sendTrx;
 
 const unsigned NUM_TRX = 200;
-const unsigned SYNC_TIMEOUT = 200;
+const unsigned SYNC_TIMEOUT = 2000;
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);

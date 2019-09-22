@@ -33,7 +33,7 @@ class Executor {
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   trx_engine::TrxEngine trx_engine_;
-  bool use_basic_executor;
+  bool use_basic_executor_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   using BalanceTable = std::unordered_map<addr_t, std::pair<val_t, int64_t>>;
@@ -63,7 +63,7 @@ class Executor {
         db_trxs_(std::move(db_trxs)),
         state_registry_(std::move(state_registry)),
         trx_engine_({state_registry_->getAccountDbRaw(), noop()}),
-        use_basic_executor(use_basic_executor) {}
+        use_basic_executor_(use_basic_executor) {}
 
   bool execute(TrxSchedule const& schedule,
                BalanceTable& sortition_account_balance_table, uint64_t period);

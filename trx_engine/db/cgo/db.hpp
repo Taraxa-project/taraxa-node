@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_CGO_DB_HPP
-#define TARAXA_NODE_CGO_DB_HPP
+#ifndef TARAXA_NODE_TRX_ENGINE_DB_CGO_DB_HPP_
+#define TARAXA_NODE_TRX_ENGINE_DB_CGO_DB_HPP_
 
 extern "C" {
 #include "taraxa/trx_engine/db/cgo/index.h"
@@ -108,4 +108,4 @@ class AlethDatabaseAdapter : public virtual DatabaseAdapter {
 
 }  // namespace taraxa::trx_engine::db::cgo
 
-#endif  // TARAXA_NODE_CGO_DB_HPP
+#endif
