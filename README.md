@@ -26,6 +26,7 @@ Please run your code format with `.clang-format` checking.
 ```
 git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
 ```
+**The compilation requires Go 1.11+ and a C++17-compatible compiler**
 
 ## Library dependency:
 
