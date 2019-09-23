@@ -66,6 +66,7 @@ class StateRegistry {
 
  private:
   uint256_t const account_start_nonce_;
+  db::DatabaseFace *account_db_raw_;
   OverlayDB account_db_;
   unique_ptr<db::DatabaseFace> snapshot_db_;
   atomic<StateSnapshot> current_snapshot_;
@@ -75,10 +76,11 @@ class StateRegistry {
 
  public:
   StateRegistry(GenesisState const &genesis_state,
-                decltype(account_db_) account_db,  //
-                decltype(snapshot_db_) snapshot_db)
+                unique_ptr<db::DatabaseFace> account_db,  //
+                unique_ptr<db::DatabaseFace> snapshot_db)
       : account_start_nonce_(genesis_state.account_start_nonce),
-        account_db_(move(account_db)),
+        account_db_raw_(account_db.get()),
+        account_db_(OverlayDB(move(account_db))),
         snapshot_db_(move(snapshot_db)),
         current_snapshot_(StateSnapshot()) {
     init(genesis_state);
@@ -90,6 +92,12 @@ class StateRegistry {
 
   static string blkHashKey(blk_hash_t const &x) {
     return BLOCK_HASH_KEY_PREFIX + x.hex();
+  }
+
+  auto getAccountDbRaw() { return account_db_raw_; }
+
+  void append(vector<pair<blk_hash_t, root_t>> const &blk_to_root) {
+    append(blk_to_root, false);
   }
 
   void commitAndPush(State &,
@@ -105,7 +113,7 @@ class StateRegistry {
   optional<dag_blk_num_t> getNumber(blk_hash_t const &);
 
  private:
-  void append(root_t const &, vector<blk_hash_t> const &, bool init = false);
+  void append(vector<pair<blk_hash_t, root_t>> const &blk_to_root, bool init);
 };
 
 }  // namespace taraxa::state_registry

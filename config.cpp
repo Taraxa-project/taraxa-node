@@ -42,6 +42,9 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       }
     }
     genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
+    if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {
+      use_basic_executor = *v;
+    }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
