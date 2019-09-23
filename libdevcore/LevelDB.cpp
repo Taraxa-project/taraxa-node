@@ -120,14 +120,13 @@ LevelDB::LevelDB(boost::filesystem::path const& _path, leveldb::ReadOptions _rea
   : m_db(nullptr), m_readOptions(std::move(_readOptions)), m_writeOptions(std::move(_writeOptions)), path_(_path.c_str()),
   io_service_(), timer_(io_service_)
 {
-    perf_ = getSetDbPerf(false);
       if(perf_) {
       thread_ = std::thread([this]() {
         io_service_.run();
       });
+      timer_.expires_from_now(boost::posix_time::seconds(20));
+      timer_.async_wait(boost::bind(&LevelDB::writePerformanceLog, this));
     }
-    timer_.expires_from_now(boost::posix_time::seconds(20));
-    timer_.async_wait(boost::bind(&LevelDB::writePerformanceLog, this));
     auto db = static_cast<leveldb::DB*>(nullptr);
     auto const status = leveldb::DB::Open(_dbOptions, _path.string(), &db);
     checkStatus(status, _path);
