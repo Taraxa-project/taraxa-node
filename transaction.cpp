@@ -536,7 +536,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // syncing purpose)
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
-      db_trxs_->put(trx.getHash(), trx.rlp(trx.hasSig()));
+      db_trxs_->update(trx.getHash(), trx.rlp(trx.hasSig()));
       trx_status_.update(trx.getHash(), TransactionStatus::in_block);
     }
     db_trxs_->commit();
@@ -554,7 +554,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       auto removed_trx =
           trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
       for (auto const &trx : removed_trx) {
-        db_trxs_->put(trx.first, trx.second.rlp(trx.second.hasSig()));
+        db_trxs_->update(trx.first, trx.second.rlp(trx.second.hasSig()));
         trx_status_.update(trx.first, TransactionStatus::in_block);
       }
       db_trxs_->commit();

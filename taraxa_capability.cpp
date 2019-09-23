@@ -314,7 +314,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(log_dg_) << "Received GetBlockPacket" << hash.toString();
         peer->markBlockAsKnown(hash);
         if (auto full_node = full_node_.lock()) {
-          auto block = full_node->getDagBlock(hash);
+          auto block = full_node->getDagBlockFromDb(hash);
           if (block) {
             sendBlock(_nodeID, *block, false);
           } else
@@ -328,7 +328,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(log_dg_) << "Received GetNewBlockPacket" << hash.toString();
 
         if (auto full_node = full_node_.lock()) {
-          auto block = full_node->getDagBlock(hash);
+          auto block = full_node->getDagBlockFromDb(hash);
           if (block) {
             sendBlock(_nodeID, *block, true);
           } else

@@ -201,10 +201,3 @@ static inline void printStackTrace() {
   free(symbollist);
 }
 
-//Temporary hack for measuring db performance, remove later
-bool getSetDbPerf(bool set) {
-  static bool dbperf = false;
-  if(set)
-     dbperf = true;
-  return dbperf;
-}

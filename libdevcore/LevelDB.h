@@ -60,6 +60,8 @@ public:
 
     void forEach(std::function<bool(Slice, Slice)> _f) const override;
 
+    static void setPerf(bool perf) { perf_ = perf; }
+
 private:
     std::unique_ptr<leveldb::DB> m_db;
     leveldb::ReadOptions const m_readOptions;
@@ -67,7 +69,7 @@ private:
     std::string path_;
 
     //Temporary to measure performance, remove later
-    bool perf_;
+    inline static bool perf_ = false;
     mutable uint64_t perf_read_time_ = 0;
     mutable uint64_t perf_read_count_ = 0;
     mutable uint64_t perf_write_time_ = 0;

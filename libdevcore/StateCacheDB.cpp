@@ -76,6 +76,17 @@ bool StateCacheDB::exists(h256 const& _h) const
     return false;
 }
 
+bool StateCacheDB::existsAux(h256 const& _h) const
+{
+#if DEV_GUARDED_DB
+    ReadGuard l(x_this);
+#endif
+    auto it = m_aux.find(_h);
+    if (it != m_aux.end() && (!m_enforceRefs || it->second.second > 0))
+        return true;
+    return false;
+}
+
 void StateCacheDB::insert(h256 const& _h, bytesConstRef _v)
 {
 #if DEV_GUARDED_DB
