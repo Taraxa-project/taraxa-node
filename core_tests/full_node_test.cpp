@@ -1097,7 +1097,7 @@ TEST_F(TopTest, sync_two_nodes2) {
   }
 }
 
-TEST_F(TopTest, sync_two_nodes3) {
+TEST_F(TopTest, DISABLED_sync_two_nodes3) {
   Top top1(6, input1);
   EXPECT_TRUE(top1.isActive());
   std::cout << "Top1 created ..." << std::endl;
