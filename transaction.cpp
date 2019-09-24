@@ -246,7 +246,6 @@ void TransactionQueue::stop() {
 }
 
 bool TransactionQueue::insert(Transaction const &trx,
-                              taraxa::bytes const &trx_serialized,
                               bool critical) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
@@ -258,8 +257,7 @@ bool TransactionQueue::insert(Transaction const &trx,
     if (ret) {
       {
         uLock lock(shared_mutex_for_queued_trxs_);
-        iter = trx_buffer_.insert(trx_buffer_.end(),
-                                  std::make_pair(trx, trx_serialized));
+        iter = trx_buffer_.insert(trx_buffer_.end(), trx);
         assert(iter != trx_buffer_.end());
         queued_trxs_[trx.getHash()] = iter;
       }
@@ -301,7 +299,7 @@ void TransactionQueue::verifyQueuedTrxs() {
     }
     try {
       trx_hash_t hash = item.first;
-      Transaction &trx = item.second->first;
+      Transaction &trx = *(item.second);
       // verify and put the transaction to verified queue
       bool valid = false;
       if (mode_ == VerifyMode::skip_verify_sig) {
@@ -368,7 +366,7 @@ TransactionQueue::removeBlockTransactionsFromQueue(
         upgradableLock lock(shared_mutex_for_verified_qu_);
         auto vrf_trx = verified_trxs_.find(trx);
         if (vrf_trx != verified_trxs_.end()) {
-          result[vrf_trx->first] = vrf_trx->second->first;
+          result[vrf_trx->first] = *(vrf_trx->second);
           removed_trx.emplace_back(trx);
           {
             upgradeLock locked(lock);
@@ -396,22 +394,22 @@ TransactionQueue::getVerifiedTrxSnapShot() {
   std::unordered_map<trx_hash_t, Transaction> verified_trxs;
   sharedLock lock(shared_mutex_for_verified_qu_);
   for (auto const &trx : verified_trxs_) {
-    verified_trxs[trx.first] = trx.second->first;
+    verified_trxs[trx.first] = *(trx.second);
   }
   LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                << std::endl;
   return verified_trxs;
 }
 
-std::vector<std::pair<Transaction, taraxa::bytes>>
+std::vector<Transaction>
 TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
-  std::vector<std::pair<Transaction, taraxa::bytes>> verified_trxs;
+  std::vector<Transaction> verified_trxs;
   if (new_verified_transactions_) {
     new_verified_transactions_ = false;
     sharedLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
       verified_trxs.emplace_back(
-          std::make_pair(trx.second->first, trx.second->second));
+          *(trx.second));
     }
     LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
@@ -420,14 +418,13 @@ TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
 }
 
 // search from queued_trx_
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
+std::shared_ptr<Transaction>
 TransactionQueue::getTransaction(trx_hash_t const &hash) const {
   {
     sharedLock lock(shared_mutex_for_queued_trxs_);
     auto it = queued_trxs_.find(hash);
     if (it != queued_trxs_.end()) {
-      return std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-          *(it->second));
+      return std::make_shared<Transaction>(*(it->second));
     }
   }
   return nullptr;
@@ -439,7 +436,7 @@ TransactionQueue::moveVerifiedTrxSnapShot() {
   {
     uLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
-      res[trx.first] = trx.second->first;
+      res[trx.first] = *(trx.second);
     }
     verified_trxs_.clear();
   }
@@ -500,11 +497,12 @@ std::vector<std::pair<Transaction, taraxa::bytes>>
 TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShotSerialized();
   std::vector<Transaction> vec_trxs;
-  for (auto const &t : verified_trxs) vec_trxs.emplace_back(t.first);
+  for (auto const &t : verified_trxs) vec_trxs.emplace_back(t);
   sortTransctionsAndGetHashVector(vec_trxs);
   std::vector<std::pair<Transaction, taraxa::bytes>> ret;
   for (auto const &t : vec_trxs) {
-    ret.emplace_back(std::make_pair(t, t.rlp(true)));
+    auto [trx_rlp, exist] = rlp_cache_.get(t.getHash());
+    ret.emplace_back(std::make_pair(t, exist? trx_rlp: t.rlp(true)));
   }
   return ret;
 }
@@ -524,7 +522,9 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
     auto status = trx_status_.get(hash);
     if (status.second) {
       if (status.first == TransactionStatus::in_queue_verified) {
-        tr = trx_qu_.getTransaction(hash);
+        auto t = trx_qu_.getTransaction(hash);
+        auto [trx_rlp, exist] = rlp_cache_.get(t->getHash());
+        tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(std::make_pair(*t, exist? trx_rlp: t->rlp(true)));
       } else if (status.first == TransactionStatus::in_queue_unverified) {
         LOG(log_er_) << "Why do you query unverified trx??";
         assert(1);
@@ -667,10 +667,11 @@ bool TransactionManager::insertTrx(Transaction const &trx,
     if (db_trxs_->exists(hash)) {
       LOG(log_nf_) << "Trx: " << hash << "skip, seen in db " << std::endl;
     } else {
-      if (trx_qu_.insert(trx, trx_serialized, critical)) {
+      if (trx_qu_.insert(trx, critical)) {
         ret = true;
-        auto node = node_.lock();
+        auto node = full_node_.lock();
         if (node) {
+          rlp_cache_.insert(trx.getHash(), trx_serialized);
           node->newPendingTransaction(trx.getHash());
         }
       }
@@ -687,7 +688,7 @@ bool TransactionManager::insertTrx(Transaction const &trx,
     } else if (status.first == TransactionStatus::invalid) {
       LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
                    << std::endl;
-
+    }
   }
   return ret;
 }

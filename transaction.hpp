@@ -37,6 +37,7 @@ enum class TransactionStatus {
  */
 using TransactionStatusTable =
     ExpirationCacheMap<trx_hash_t, TransactionStatus>;
+using TransactionRLPTable = ExpirationCacheMap<trx_hash_t, taraxa::bytes>;
 using TransactionUnsafeStatusTable =
     std::unordered_map<trx_hash_t, TransactionStatus>;
 using AccountNonceTable = StatusTable<addr_t, val_t>;
@@ -204,19 +205,19 @@ class TransactionQueue {
   }
   void start();
   void stop();
-  bool insert(Transaction const &trx, taraxa::bytes const &trx_serialized,
+  bool insert(Transaction const &trx,
               bool critical);
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::vector<std::pair<Transaction, taraxa::bytes>>
+  std::vector<Transaction>
   getNewVerifiedTrxSnapShotSerialized();
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
-  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
+  std::shared_ptr<Transaction> getTransaction(
       trx_hash_t const &hash) const;
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
@@ -227,7 +228,7 @@ class TransactionQueue {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-  using listIter = std::list<std::pair<Transaction, taraxa::bytes>>::iterator;
+  using listIter = std::list<Transaction>::iterator;
   void verifyQueuedTrxs();
   addr_t getFullNodeAddress() const;
   bool stopped_ = true;
@@ -238,7 +239,7 @@ class TransactionQueue {
   AccountNonceTable &accs_nonce_;
   std::weak_ptr<FullNode> full_node_;
 
-  std::list<std::pair<Transaction, taraxa::bytes>> trx_buffer_;
+  std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx
   mutable boost::shared_mutex shared_mutex_for_queued_trxs_;
 
@@ -279,11 +280,13 @@ class TransactionManager
 
   TransactionManager()
       : trx_status_(1000000, 1000),
+        rlp_cache_(100000, 10000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   TransactionManager(std::shared_ptr<SimpleDBFace> db_trx)
       : db_trxs_(db_trx),
         trx_status_(1000000, 1000),
+        rlp_cache_(100000, 10000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
   std::shared_ptr<TransactionManager> getShared() {
@@ -353,6 +356,7 @@ class TransactionManager
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   TransactionStatusTable trx_status_;
+  TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
   mutable dev::Logger log_si_{
