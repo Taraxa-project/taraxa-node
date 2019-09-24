@@ -6,6 +6,15 @@
 #include "full_node.hpp"
 
 namespace taraxa {
+auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
+  if (t1.getSender() < t2.getSender())
+    return true;
+  else if (t1.getSender() == t2.getSender()) {
+    return t1.getNonce() < t2.getNonce();
+  } else {
+    return false;
+  }
+};
 
 Transaction::Transaction(stream &strm) { deserialize(strm); }
 
@@ -245,8 +254,7 @@ void TransactionQueue::stop() {
   }
 }
 
-bool TransactionQueue::insert(Transaction const &trx,
-                              bool critical) {
+bool TransactionQueue::insert(Transaction const &trx, bool critical) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
   bool ret = false;
@@ -408,8 +416,7 @@ TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
     new_verified_transactions_ = false;
     sharedLock lock(shared_mutex_for_verified_qu_);
     for (auto const &trx : verified_trxs_) {
-      verified_trxs.emplace_back(
-          *(trx.second));
+      verified_trxs.emplace_back(*(trx.second));
     }
     LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
                  << std::endl;
@@ -418,8 +425,8 @@ TransactionQueue::getNewVerifiedTrxSnapShotSerialized() {
 }
 
 // search from queued_trx_
-std::shared_ptr<Transaction>
-TransactionQueue::getTransaction(trx_hash_t const &hash) const {
+std::shared_ptr<Transaction> TransactionQueue::getTransaction(
+    trx_hash_t const &hash) const {
   {
     sharedLock lock(shared_mutex_for_queued_trxs_);
     auto it = queued_trxs_.find(hash);
@@ -502,7 +509,7 @@ TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   std::vector<std::pair<Transaction, taraxa::bytes>> ret;
   for (auto const &t : vec_trxs) {
     auto [trx_rlp, exist] = rlp_cache_.get(t.getHash());
-    ret.emplace_back(std::make_pair(t, exist? trx_rlp: t.rlp(true)));
+    ret.emplace_back(std::make_pair(t, exist ? trx_rlp : t.rlp(true)));
   }
   return ret;
 }
@@ -524,7 +531,8 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
       if (status.first == TransactionStatus::in_queue_verified) {
         auto t = trx_qu_.getTransaction(hash);
         auto [trx_rlp, exist] = rlp_cache_.get(t->getHash());
-        tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(std::make_pair(*t, exist? trx_rlp: t->rlp(true)));
+        tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+            std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
       } else if (status.first == TransactionStatus::in_queue_unverified) {
         LOG(log_er_) << "Why do you query unverified trx??";
         assert(1);
@@ -565,7 +573,6 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // syncing purpose)
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
-
       auto trx_hash = trx.getHash();
       auto trx_sender = trx.getSender();
       auto trx_nonce = trx.getNonce();
@@ -741,15 +748,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     to_be_packed_trx.emplace_back(verified_trx.begin()->first);
   } else {
     // sort verified trx
-    list_trxs.sort([](Transaction const &t1, Transaction const &t2) {
-      if (t1.getSender() < t2.getSender())
-        return true;
-      else if (t1.getSender() == t2.getSender()) {
-        return t1.getNonce() < t2.getNonce();
-      } else {
-        return false;
-      }
-    });
+    list_trxs.sort(trxComp);
     auto iter = list_trxs.begin();
     iter++;
     // filter out nonce gaps (drop transctions that have gap)
@@ -759,7 +758,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
       auto curr_nonce = iter->getNonce();
       auto [curr_sender_prev_nonce, exist] = accs_nonce_.get(curr_sender);
       if (exist && curr_sender_prev_nonce >= curr_nonce) {
-        LOG(log_er_) << getFullNodeAddress() << "Remove trx " << iter->getHash()
+        LOG(log_nf_) << getFullNodeAddress() << "Remove trx " << iter->getHash()
                      << "Sender " << curr_sender << " Nonce " << curr_nonce
                      << " too old, because prev sender nonce on file is "
                      << curr_sender_prev_nonce;
@@ -771,7 +770,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
       if (curr_sender == prev_sender) {
         auto prev_nonce = prev_iter->getNonce();
         if (curr_nonce != (prev_nonce + 1)) {
-          LOG(log_er_) << getFullNodeAddress() << "Remove trx "
+          LOG(log_nf_) << getFullNodeAddress() << "Remove trx "
                        << iter->getHash() << "Sender " << curr_sender
                        << " Nonce " << curr_nonce << " because prev nonce is "
                        << prev_nonce << " nonce table is "
@@ -821,16 +820,7 @@ vec_trx_t TransactionManager::sortTransctionsAndGetHashVector(
 
   if (vec_trxs.empty()) return vec_hash;
   // sort trx based on sender and nonce
-  std::sort(vec_trxs.begin(), vec_trxs.end(),
-            [](Transaction const &t1, Transaction const &t2) {
-              if (t1.getSender() < t2.getSender())
-                return true;
-              else if (t1.getSender() == t2.getSender()) {
-                return t1.getNonce() < t2.getNonce();
-              } else {
-                return false;
-              }
-            });
+  std::sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
   for (auto const &t : vec_trxs) {
     vec_hash.emplace_back(t.getHash());
   }

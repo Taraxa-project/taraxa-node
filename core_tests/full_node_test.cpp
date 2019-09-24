@@ -1415,11 +1415,15 @@ TEST_F(FullNodeTest, DISABLED_execute_chain_pbft_transactions) {
 
   node->stop();
   auto coin_distributed = 0;
+  auto i = 0;
   for (auto const &t : g_trx_signed_samples) {
+    auto rec = t.getReceiver();
     auto res = node->getBalance(t.getReceiver());
-    EXPECT_TRUE(res.second);
+    EXPECT_TRUE(res.second)
+        << "Transaction (" << i << ") failed, receiver =" << rec << std::endl;
     EXPECT_EQ(res.first, t.getValue());
     coin_distributed += res.first;
+    ++i;
   }
   // TODO because of the nonce rule, testing distributing coins
   // from single account requires more thought
@@ -2123,7 +2127,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
+  logOptions.verbosity = dev::VerbosityTrace;
   // logOptions.includeChannels.push_back("FULLND");
   // logOptions.includeChannels.push_back("DAGMGR");
   // logOptions.includeChannels.push_back("EXETOR");
