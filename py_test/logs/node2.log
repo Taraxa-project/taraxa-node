@@ -1,0 +1,251 @@
+INFO  [35m09-18 00:33:20[0m [34m    [0m PBFT_MGR PBFT executor initiated ...
+INFO  [35m09-18 00:33:20[0m [34m    [0m PBFT_MGR Update 2t+1 1, Threshold 1, valid voting players 1, active players 1 since period 0
+DEBUG [35m09-18 00:33:22[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#2de34002…[0m, block hash [96m#00000000…[0m, vote type 1, in round 2, for step 2
+DEBUG [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR Step 3 expired, will go to step 4 in round 1
+DEBUG [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR will go to step 4
+DEBUG [35m09-18 00:33:26[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#424c086c…[0m, block hash [96m#00000000…[0m, vote type 3, in round 2, for step 4
+DEBUG [35m09-18 00:33:26[0m [34mp2p [0m PBFT_CHAIN [34m7b1fcf0e…|TaraxaNode[0m Push block [96m#35eda094…[0m into queue.Pbft queue size: 1
+DEBUG [35m09-18 00:33:26[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#412f68d5…[0m, block hash [96m#35eda094…[0m, vote type 0, in round 3, for step 1
+DEBUG [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 3 in round 2 has 1 votes
+DEBUG [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 2, step 4
+INFO  [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR From votes determined round 3
+INFO  [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR pbft chain behind, need broadcast request for missing blocks
+INFO  [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR In round 1 sync pbft chain with node [36m##7b1fcf0e…[0m Send request to ask missing pbft blocks in chain
+DEBUG [35m09-18 00:33:26[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 3, step 1, and resetting clock.
+DEBUG [35m09-18 00:33:28[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#975b86b0…[0m, block hash [96m#35eda094…[0m, vote type 1, in round 3, for step 2
+DEBUG [35m09-18 00:33:28[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#79afbb69…[0m, block hash [96m#35eda094…[0m, vote type 2, in round 3, for step 3
+DEBUG [35m09-18 00:33:28[0m [34m    [0m PBFT_MGR find block hash [96m#35eda094…[0m vote type 2 in round 3 has 1 votes
+INFO  [35m09-18 00:33:28[0m [34m    [0m PBFT_CHAIN Push pbft block [96m#35eda094…[0m with DAG block hash [96m#5ec0eae9…[0m into pbft chain, current pbft chain period 1 chain size is 2
+INFO  [35m09-18 00:33:28[0m [34m    [0m PBFT_MGR Successful push pbft anchor block [96m#35eda094…[0m into chain! in round 3
+      [35m09-18 00:33:28[0m [34m    [0m PBFT_MGR [91m@973ecb1c…[0m Finalize pivot block in period 1 round 3 step 3 pivot: [96m#5ec0eae9…[0m
+DEBUG [35m09-18 00:33:28[0m [34m    [0m PBFT_MGR The cert voted pbft block is [96m#35eda094…[0m
+DEBUG [35m09-18 00:33:28[0m [34m    [0m PBFT_MGR Pushing PBFT block and Execution spent 2 ms. in round 3
+DEBUG [35m09-18 00:33:32[0m [34m    [0m PBFT_MGR Step 3 expired, will go to step 4 in round 3
+DEBUG [35m09-18 00:33:32[0m [34m    [0m PBFT_MGR will go to step 4
+DEBUG [35m09-18 00:33:32[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#b864a661…[0m, block hash [96m#35eda094…[0m, vote type 3, in round 3, for step 4
+DEBUG [35m09-18 00:33:32[0m [34mp2p [0m PBFT_CHAIN [34m7b1fcf0e…|TaraxaNode[0m Push block [96m#b9f9f74a…[0m into queue.Pbft queue size: 2
+DEBUG [35m09-18 00:33:32[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#b47e2db7…[0m, block hash [96m#b9f9f74a…[0m, vote type 0, in round 4, for step 1
+DEBUG [35m09-18 00:33:32[0m [34m    [0m PBFT_MGR find block hash [96m#35eda094…[0m vote type 3 in round 3 has 1 votes
+DEBUG [35m09-18 00:33:32[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 3, step 4
+INFO  [35m09-18 00:33:32[0m [34m    [0m PBFT_MGR From votes determined round 4
+DEBUG [35m09-18 00:33:32[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 4, step 1, and resetting clock.
+DEBUG [35m09-18 00:33:34[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#f78309b7…[0m, block hash [96m#b9f9f74a…[0m, vote type 1, in round 4, for step 2
+DEBUG [35m09-18 00:33:34[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#f2138af4…[0m, block hash [96m#b9f9f74a…[0m, vote type 2, in round 4, for step 3
+DEBUG [35m09-18 00:33:34[0m [34m    [0m PBFT_MGR find block hash [96m#b9f9f74a…[0m vote type 2 in round 4 has 1 votes
+INFO  [35m09-18 00:33:34[0m [34m    [0m PBFT_CHAIN Push pbft block [96m#b9f9f74a…[0m into pbft chain, current pbft chain period 1 chain size is 3
+INFO  [35m09-18 00:33:34[0m [34m    [0m PBFT_MGR Successful push pbft schedule block [96m#b9f9f74a…[0m into chain! in round 4
+      [35m09-18 00:33:34[0m [34m    [0m PBFT_MGR [91m@973ecb1c…[0m Finalize cs block in period 1 round 4 step 3 anchor: [96m#5ec0eae9…[0m
+DEBUG [35m09-18 00:33:34[0m [34m    [0m EXETOR Update sender bal: [91m@de2b1203…[0m --> 6755399441055744 in period 1
+DEBUG [35m09-18 00:33:34[0m [34m    [0m EXETOR New receiver bal: [91m@973ecb1c…[0m --> 2251799813685247 in period 1
+INFO  [35m09-18 00:33:34[0m [34m    [0m EXETOR [91m@973ecb1c…[0m: Block number 1: [96m#5ec0eae9…[0m executed, Efficiency: 1 / 1
+INFO  [35m09-18 00:33:34[0m [34m    [0m PBFT_MGR Update 2t+1 1, Threshold 2, valid voting players 2, active players 1 since period 0
+DEBUG [35m09-18 00:33:34[0m [34m    [0m PBFT_MGR The cert voted pbft block is [96m#b9f9f74a…[0m
+DEBUG [35m09-18 00:33:34[0m [34m    [0m PBFT_MGR Pushing PBFT block and Execution spent 4 ms. in round 4
+DEBUG [35m09-18 00:33:38[0m [34m    [0m PBFT_MGR Step 3 expired, will go to step 4 in round 4
+DEBUG [35m09-18 00:33:38[0m [34m    [0m PBFT_MGR will go to step 4
+DEBUG [35m09-18 00:33:38[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#c335312a…[0m, block hash [96m#b9f9f74a…[0m, vote type 3, in round 4, for step 4
+DEBUG [35m09-18 00:33:38[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#d652a1ca…[0m, block hash [96m#00000000…[0m, vote type 0, in round 5, for step 1
+DEBUG [35m09-18 00:33:38[0m [34m    [0m PBFT_MGR find block hash [96m#b9f9f74a…[0m vote type 3 in round 4 has 1 votes
+DEBUG [35m09-18 00:33:38[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 4, step 4
+INFO  [35m09-18 00:33:38[0m [34m    [0m PBFT_MGR From votes determined round 5
+DEBUG [35m09-18 00:33:38[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 5, step 1, and resetting clock.
+DEBUG [35m09-18 00:33:40[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#e234e61b…[0m, block hash [96m#00000000…[0m, vote type 1, in round 5, for step 2
+DEBUG [35m09-18 00:33:40[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:40[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:40[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:40[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:40[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:41[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:42[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:43[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR Step 3 expired, will go to step 4 in round 5
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR will go to step 4
+DEBUG [35m09-18 00:33:44[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#1b0d1bdd…[0m, block hash [96m#00000000…[0m, vote type 3, in round 5, for step 4
+DEBUG [35m09-18 00:33:44[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#1eda0ad9…[0m, block hash [96m#00000000…[0m, vote type 0, in round 6, for step 1
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 3 in round 5 has 1 votes
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 5, step 4
+INFO  [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR From votes determined round 6
+DEBUG [35m09-18 00:33:44[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 6, step 1, and resetting clock.
+DEBUG [35m09-18 00:33:46[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#2c8c8553…[0m, block hash [96m#00000000…[0m, vote type 1, in round 6, for step 2
+DEBUG [35m09-18 00:33:46[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:46[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:46[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:46[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:46[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:47[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:48[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:49[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#dc57ba6f…[0m, block hash [96m#00000000…[0m, vote type 3, in round 6, for step 4
+DEBUG [35m09-18 00:33:50[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#6f0998d7…[0m, block hash [96m#00000000…[0m, vote type 0, in round 7, for step 1
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 3 in round 6 has 1 votes
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 6, step 4
+INFO  [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR From votes determined round 7
+DEBUG [35m09-18 00:33:50[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 7, step 1, and resetting clock.
+DEBUG [35m09-18 00:33:52[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#609a547f…[0m, block hash [96m#00000000…[0m, vote type 1, in round 7, for step 2
+DEBUG [35m09-18 00:33:52[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:52[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:52[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:52[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:52[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:53[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:54[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:55[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR Step 3 expired, will go to step 4 in round 7
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR will go to step 4
+DEBUG [35m09-18 00:33:56[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#6cfee7b9…[0m, block hash [96m#00000000…[0m, vote type 3, in round 7, for step 4
+DEBUG [35m09-18 00:33:56[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#ec56e609…[0m, block hash [96m#00000000…[0m, vote type 0, in round 8, for step 1
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 3 in round 7 has 1 votes
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 7, step 4
+INFO  [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR From votes determined round 8
+DEBUG [35m09-18 00:33:56[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 8, step 1, and resetting clock.
+DEBUG [35m09-18 00:33:58[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#f1a2024d…[0m, block hash [96m#00000000…[0m, vote type 1, in round 8, for step 2
+DEBUG [35m09-18 00:33:58[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:58[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:58[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:58[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:58[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:33:59[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:00[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:01[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 1 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR Step 3 expired, will go to step 4 in round 8
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR will go to step 4
+DEBUG [35m09-18 00:34:02[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#898eba78…[0m, block hash [96m#00000000…[0m, vote type 3, in round 8, for step 4
+DEBUG [35m09-18 00:34:02[0m [34mp2p [0m PBFT_CHAIN [34m930dc3ea…|TaraxaNode[0m Push block [96m#28482a00…[0m into queue.Pbft queue size: 3
+DEBUG [35m09-18 00:34:02[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#51462ae7…[0m, block hash [96m#28482a00…[0m, vote type 0, in round 9, for step 1
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR find block hash [96m#00000000…[0m vote type 3 in round 8 has 1 votes
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR Found sufficient next votes in round 8, step 4
+INFO  [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR From votes determined round 9
+DEBUG [35m09-18 00:34:02[0m [34m    [0m PBFT_MGR Advancing clock to pbft round 9, step 1, and resetting clock.
+DEBUG [35m09-18 00:34:04[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#95a541d1…[0m, block hash [96m#28482a00…[0m, vote type 1, in round 9, for step 2
+DEBUG [35m09-18 00:34:04[0m [34mp2p [0m VOTE_MGR [34m7b1fcf0e…|TaraxaNode[0m Add vote [96m#fd94d4e9…[0m, block hash [96m#28482a00…[0m, vote type 2, in round 9, for step 3
+DEBUG [35m09-18 00:34:04[0m [34m    [0m PBFT_MGR find block hash [96m#28482a00…[0m vote type 2 in round 9 has 1 votes
+INFO  [35m09-18 00:34:04[0m [34m    [0m PBFT_CHAIN Push pbft block [96m#28482a00…[0m with DAG block hash [96m#1e8337b6…[0m into pbft chain, current pbft chain period 2 chain size is 4
+INFO  [35m09-18 00:34:04[0m [34m    [0m PBFT_MGR Successful push pbft anchor block [96m#28482a00…[0m into chain! in round 9
+      [35m09-18 00:34:04[0m [34m    [0m PBFT_MGR [91m@973ecb1c…[0m Finalize pivot block in period 2 round 9 step 3 pivot: [96m#1e8337b6…[0m
+DEBUG [35m09-18 00:34:04[0m [34m    [0m PBFT_MGR The cert voted pbft block is [96m#28482a00…[0m
+DEBUG [35m09-18 00:34:04[0m [34m    [0m PBFT_MGR Pushing PBFT block and Execution spent 1 ms. in round 9
