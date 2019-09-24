@@ -12,6 +12,7 @@ class SimpleOverlayDBDelegate : public SimpleDBFace {
   bool put(const h256 &key, const dev::bytes &value) override;
   bool update(const h256 &key, const dev::bytes &value) override;
   dev::bytes get(const h256 &key) override;
+  bool exists(const h256 &key) override;
   void commit() override;
   SimpleOverlayDBDelegate(const std::string &path, bool overwrite);
 

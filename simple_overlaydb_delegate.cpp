@@ -41,6 +41,10 @@ dev::bytes SimpleOverlayDBDelegate::get(const h256 &key) {
   auto value = odb_->lookupAux(key);
   return value;
 }
+bool SimpleOverlayDBDelegate::exists(const h256 &key) {
+  sharedLock lock(shared_mutex_);
+  return odb_->existsAux(key);
+}
 void SimpleOverlayDBDelegate::commit() {
   boost::unique_lock lock(shared_mutex_);
   odb_->commit();

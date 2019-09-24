@@ -22,6 +22,7 @@ class SimpleDBFace {
   virtual bool update(const h256 &key, const dev::bytes &value) = 0;
   // @return if key not exist, return null.
   virtual dev::bytes get(const h256 &key) = 0;
+  virtual bool exists(const h256 &key) = 0;
   virtual void commit() = 0;
   virtual ~SimpleDBFace() = default;
 
