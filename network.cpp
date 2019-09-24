@@ -35,13 +35,15 @@ Network::Network(NetworkConfig const &config, std::string network_file,
         "TaraxaNode",
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true),
-        dev::bytesConstRef(&networkData), conf_.network_encrypted);
+        dev::bytesConstRef(&networkData), conf_.network_encrypted,
+        conf_.network_ideal_peer_count, conf_.network_max_peer_count);
   } else {
     host_ = std::make_shared<dev::p2p::Host>(
         "TaraxaNode", key,
         dev::p2p::NetworkConfig(conf_.network_address,
                                 conf_.network_listen_port, false, true),
-        conf_.network_encrypted);
+        conf_.network_encrypted, conf_.network_ideal_peer_count,
+        conf_.network_max_peer_count);
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
       *host_.get(), conf_, genesis, conf_.network_performance_log);
@@ -135,7 +137,8 @@ void Network::onNewBlockVerified(DagBlock const &blk) {
 }
 
 void Network::onNewTransactions(
-    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const &transactions) {
+    std::unordered_map<trx_hash_t, std::pair<Transaction, taraxa::bytes>> const
+        &transactions) {
   taraxa_capability_->onNewTransactions(transactions, true);
   LOG(log_dg_) << "On new transactions" << transactions.size();
 }

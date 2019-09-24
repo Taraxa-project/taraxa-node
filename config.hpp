@@ -31,6 +31,8 @@ struct NetworkConfig {
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay;
   uint16_t network_bandwidth;
+  uint16_t network_ideal_peer_count;
+  uint16_t network_max_peer_count;
   uint16_t network_transaction_interval;
   std::string network_id;
   bool network_encrypted;
