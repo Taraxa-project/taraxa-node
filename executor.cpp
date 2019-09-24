@@ -100,6 +100,10 @@ bool Executor::execute_main(TrxSchedule const& schedule,
             sortition_account_balance_table[receiver] = {new_receiver_bal, -1};
           }
         }
+        LOG(log_dg_) << "Update sender bal: " << sender << " --> "
+                     << new_sender_bal << " in period " << period;
+        LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
+                     << new_receiver_bal << " in period " << period;
         num_executed_trx_.fetch_add(1);
         LOG(log_time_) << "Transaction " << trx.hash
                        << " executed at: " << getCurrentTimeMilliSeconds();

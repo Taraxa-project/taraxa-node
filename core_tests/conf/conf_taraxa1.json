@@ -9,8 +9,8 @@
   "network_encrypted": 1,
   "network_performance_log": 0,
   "network_bandwidth": 40,
-  "network_ideal_peer_count" : 10,
-  "network_max_peer_count" : 50,
+  "network_ideal_peer_count": 10,
+  "network_max_peer_count": 50,
   "network_boot_nodes": [
     {
       "ip": "127.0.0.1",
@@ -53,5 +53,6 @@
         "balance": 9007199254740991
       }
     }
-  }
+  },
+  "use_basic_executor": 0
 }
