@@ -118,7 +118,9 @@ public:
         std::string const& _clientVersion,
         NetworkConfig const& _n = NetworkConfig{},
         bytesConstRef _restoreNetwork = bytesConstRef(),
-        bool encrypt = true
+        bool encrypt = true,
+        uint16_t ideal_peers = 11,
+        uint16_t max_peers = 77
     );
 
     /// Alternative constructor that allows providing the node key directly
@@ -127,7 +129,9 @@ public:
         std::string const& _clientVersion,
         KeyPair const& _alias,
         NetworkConfig const& _n = NetworkConfig{},
-        bool encrypt = true
+        bool encrypt = true,
+        uint16_t ideal_peers = 11,
+        uint16_t max_peers = 77
     );
 
     /// Will block on network process events.
@@ -182,8 +186,8 @@ public:
     /// Set ideal number of peers.
     void setIdealPeerCount(unsigned _n) { m_idealPeerCount = _n; }
 
-    /// Set multipier for max accepted connections.
-    void setPeerStretch(unsigned _n) { m_stretchPeers = _n; }
+    /// Set max accepted connections.
+    void setPeerMax(unsigned _n) { m_maxPeerCount = _n; }
     
     /// Get peer information.
     PeerSessionInfos peerSessionInfo() const;
@@ -260,7 +264,7 @@ protected:
 private:
     enum PeerSlotType { Egress, Ingress };
     
-    unsigned peerSlots(PeerSlotType _type) { return _type == Egress ? m_idealPeerCount : m_idealPeerCount * m_stretchPeers; }
+    unsigned peerSlots(PeerSlotType _type) { return _type == Egress ? m_idealPeerCount : m_maxPeerCount; }
     
     bool havePeerSession(NodeID const& _id) { return !!peerSession(_id); }
 
@@ -354,7 +358,7 @@ private:
     Mutex x_connecting;													///< Mutex for m_connecting.
 
     unsigned m_idealPeerCount = 11;										///< Ideal number of peers to be connected to.
-    unsigned m_stretchPeers = 7;										///< Accepted connection multiplier (max peers = ideal*stretch).
+    unsigned m_maxPeerCount = 77;										///< Max peers to be connected to.
 
     /// Each of the capabilities we support.
     std::map<CapDesc, std::shared_ptr<CapabilityFace>> m_capabilities;
