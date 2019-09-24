@@ -931,7 +931,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   pbft_block.setBlockHash();
 
   // push pbft block
-  pbft_chain_->pushPbftUnverifiedBlock(pbft_block);
+  pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
   std::shared_ptr<Network> network = full_node->getNetwork();
   network->onNewPbftBlock(pbft_block);
@@ -978,7 +978,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
     return false;
   }
   std::pair<PbftBlock, bool> pbft_block =
-      pbft_chain_->getPbftBlockInQueue(cert_voted_block_hash);
+      pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
   if (!pbft_block.second) {
     LOG(log_err_) << "Can not find the cert vote block hash "
                   << cert_voted_block_hash << " in pbft queue";
@@ -990,7 +990,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
 
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   std::pair<PbftBlock, bool> cert_voted_block =
-      pbft_chain_->getPbftBlockInQueue(block_hash);
+      pbft_chain_->getUnverifiedPbftBlock(block_hash);
   if (!cert_voted_block.second) {
     LOG(log_inf_) << "Cannot find the pbft block hash in queue, block hash "
                   << block_hash;
@@ -1053,7 +1053,7 @@ void PbftManager::syncPbftChainFromPeers_() {
 bool PbftManager::comparePbftCSblockWithDAGblocks_(
     blk_hash_t const &cs_block_hash) {
   std::pair<PbftBlock, bool> cs_block =
-      pbft_chain_->getPbftBlockInQueue(cs_block_hash);
+      pbft_chain_->getUnverifiedPbftBlock(cs_block_hash);
   if (!cs_block.second) {
     LOG(log_inf_) << "Have not got the PBFT CS block yet. block hash: "
                   << cs_block_hash;

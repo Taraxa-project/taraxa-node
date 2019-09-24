@@ -210,9 +210,8 @@ class PbftChain {
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
-  size_t getPbftUnverifiedBlocksSize() const;
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
-  std::pair<PbftBlock, bool> getPbftBlockInQueue(
+  std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
       blk_hash_t const& pbft_block_hash);
   std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
   std::string getGenesisStr() const;
@@ -227,14 +226,14 @@ class PbftChain {
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
-  bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
+  bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
 
   bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
   bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
-  void pushPbftUnverifiedBlock(taraxa::PbftBlock const& pbft_block);
+  void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
 //  void removePbftBlockInQueue(blk_hash_t const& block_hash);
@@ -269,10 +268,15 @@ class PbftChain {
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
+//  std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
+
+  // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
+  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
+  std::unordered_map<blk_hash_t, PbftBlock> unverified_blocks_;
+
   // syncing pbft blocks from peers
   std::deque<PbftBlock> pbft_verified_queue_;
   std::unordered_set<blk_hash_t> pbft_verified_set_;

@@ -482,10 +482,6 @@ PbftBlockTypes PbftChain::getNextPbftBlockType() const {
   return next_pbft_block_type_;
 }
 
-size_t PbftChain::getPbftUnverifiedBlocksSize() const {
-  return pbft_unverified_map_.size();
-}
-
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
     uint64_t dag_block_height) const {
   if (dag_block_height >= dag_blocks_order_.size()) {
@@ -528,10 +524,9 @@ bool PbftChain::findPbftBlockInChain(
   return db_pbftchain_->get(pbft_block_hash.toString()) != "";
 }
 
-bool PbftChain::findPbftBlockInQueue(
+bool PbftChain::findUnverifiedPbftBlock(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_unverified_map_.find(pbft_block_hash) !=
-         pbft_unverified_map_.end();
+  return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
 }
 
 bool PbftChain::findPbftBlockInVerifiedSet(
@@ -550,10 +545,10 @@ PbftBlock PbftChain::getPbftBlockInChain(
   return PbftBlock(pbft_block_str);
 }
 
-std::pair<PbftBlock, bool> PbftChain::getPbftBlockInQueue(
+std::pair<PbftBlock, bool> PbftChain::getUnverifiedPbftBlock(
     const taraxa::blk_hash_t& pbft_block_hash) {
-  if (findPbftBlockInQueue(pbft_block_hash)) {
-    return std::make_pair(pbft_unverified_map_[pbft_block_hash], true);
+  if (findUnverifiedPbftBlock(pbft_block_hash)) {
+    return std::make_pair(unverified_blocks_[pbft_block_hash], true);
   }
   return std::make_pair(PbftBlock(), false);
 }
@@ -662,11 +657,11 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   return true;
 }
 
-void PbftChain::pushPbftUnverifiedBlock(taraxa::PbftBlock const& pbft_block) {
-  pbft_unverified_map_[pbft_block.getBlockHash()] = pbft_block;
+void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
+  unverified_blocks_[pbft_block.getBlockHash()] = pbft_block;
   LOG(log_deb_) << "Push unverified block " << pbft_block.getBlockHash()
                 << ". Pbft unverified blocks size: "
-                << pbft_unverified_map_.size();
+                << unverified_blocks_.size();
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {

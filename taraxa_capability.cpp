@@ -454,14 +454,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           LOG(log_er_) << "PbftBlock full node weak pointer empty";
           return false;
         }
-        if (!full_node->isKnownPbftBlockInQueue(pbft_block.getBlockHash())) {
+        if (!full_node->isKnownUnverifiedPbftBlock(pbft_block.getBlockHash())) {
           // TODO: need to check block validation, like proposed vote(maybe
-          // come
-          //  later), if get sortition etc
-          full_node->pushPbftUnverifiedBlock(pbft_block);
+          //  come later), if get sortition etc
+          full_node->pushUnverifiedPbftBlock(pbft_block);
           onNewPbftBlock(pbft_block);
         }
-
         break;
       }
       case PbftBlockPacket: {
@@ -481,8 +479,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (!full_node->isKnownPbftBlockForSyncing(
                   pbft_block.getBlockHash())) {
             // TODO: need check 2t+1 cert votes, then put into chain and
-            // store
-            //  in DB. May send request for cert votes here
+            //  store in DB. May send request for cert votes here
             full_node->setVerifiedPbftBlock(pbft_block);
           }
         }

@@ -78,7 +78,7 @@ class VoteManager {
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   vote_hash_t hash_(std::string const& str) const;
-
+  // <pbft_round, <vote_hash, vote>>
   std::map<uint64_t, std::map<vote_hash_t, Vote>> unverified_votes_;
 
   mutable boost::shared_mutex access_;
