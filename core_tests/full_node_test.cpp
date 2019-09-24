@@ -2127,7 +2127,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityTrace;
+  logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");
   // logOptions.includeChannels.push_back("DAGMGR");
   // logOptions.includeChannels.push_back("EXETOR");
