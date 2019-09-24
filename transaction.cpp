@@ -249,48 +249,27 @@ bool TransactionQueue::insert(Transaction const &trx,
                               taraxa::bytes const &trx_serialized,
                               bool critical) {
   trx_hash_t hash = trx.getHash();
-  auto status = trx_status_.get(hash);
   bool ret = false;
   listIter iter;
-  if (status.second == false) {  // never seen before
-    ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
-    if (ret) {
-      {
-        uLock lock(shared_mutex_for_queued_trxs_);
-        iter = trx_buffer_.insert(trx_buffer_.end(),
-                                  std::make_pair(trx, trx_serialized));
-        assert(iter != trx_buffer_.end());
-        queued_trxs_[trx.getHash()] = iter;
-      }
-      {
-        uLock lock(shared_mutex_for_unverified_qu_);
-        if (critical) {
-          unverified_hash_qu_.emplace_front(std::make_pair(hash, iter));
-        } else {
-          unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
-        }
-      }
-      cond_for_unverified_qu_.notify_one();
-      LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
-    } else {
-      // If ret is false status was just changed by another thread so ask for it
-      // again
-      status = trx_status_.get(hash);
+  ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
+  if (ret) {
+    {
+      uLock lock(shared_mutex_for_queued_trxs_);
+      iter = trx_buffer_.insert(trx_buffer_.end(),
+                                std::make_pair(trx, trx_serialized));
+      assert(iter != trx_buffer_.end());
+      queued_trxs_[trx.getHash()] = iter;
     }
-  }
-  if (status.second == true) {
-    if (status.first == TransactionStatus::in_queue_unverified) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (unverified). "
-                   << std::endl;
-    } else if (status.first == TransactionStatus::in_queue_verified) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (verified). "
-                   << std::endl;
-    } else if (status.first == TransactionStatus::in_block) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
-    } else if (status.first == TransactionStatus::invalid) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
-                   << std::endl;
+    {
+      uLock lock(shared_mutex_for_unverified_qu_);
+      if (critical) {
+        unverified_hash_qu_.emplace_front(std::make_pair(hash, iter));
+      } else {
+        unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
+      }
     }
+    cond_for_unverified_qu_.notify_one();
+    LOG(log_nf_) << "Trx: " << hash << " inserted. " << std::endl;
   }
   return ret;
 }
@@ -519,8 +498,14 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
         }
         break;
       }
-    } else
-      break;
+    } else {
+      // TransactionStatus might have expired, check the db
+      auto trx_bytes = db_trxs_->get(hash);
+      if (trx_bytes.size() > 0) {
+        tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes,
+                                                                     trx_bytes);
+      }
+    }
   }
   return tr;
 }
@@ -585,11 +570,32 @@ bool TransactionManager::insertTrx(Transaction const &trx,
                                    taraxa::bytes const &trx_serialized,
                                    bool critical) {
   bool ret = false;
-  if (trx_qu_.insert(trx, trx_serialized, critical)) {
-    ret = true;
-    auto node = node_.lock();
-    if (node) {
-      node->newPendingTransaction(trx.getHash());
+  auto hash = trx.getHash();
+  auto status = trx_status_.get(hash);
+  if (status.second == false) {  // never seen before
+    if (db_trxs_->exists(hash)) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in db " << std::endl;
+    } else {
+      if (trx_qu_.insert(trx, trx_serialized, critical)) {
+        ret = true;
+        auto node = node_.lock();
+        if (node) {
+          node->newPendingTransaction(trx.getHash());
+        }
+      }
+    }
+  } else {
+    if (status.first == TransactionStatus::in_queue_unverified) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (unverified). "
+                   << std::endl;
+    } else if (status.first == TransactionStatus::in_queue_verified) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (verified). "
+                   << std::endl;
+    } else if (status.first == TransactionStatus::in_block) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
+    } else if (status.first == TransactionStatus::invalid) {
+      LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
+                   << std::endl;
     }
   }
   return ret;
