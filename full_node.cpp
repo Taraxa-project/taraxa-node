@@ -93,17 +93,17 @@ void FullNode::initDB(bool destroy_db) {
   }
   if (db_blks_ == nullptr) {
     db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.block_db_path(), destroy_db);
+        conf_.block_db_path(), destroy_db, 10000);
     assert(db_blks_);
   }
   if (db_blks_index_ == nullptr) {
     db_blks_index_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.block_index_db_path(), destroy_db);
+        conf_.block_index_db_path(), destroy_db, 10000);
     assert(db_blks_index_);
   }
   if (db_trxs_ == nullptr) {
     db_trxs_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.transactions_db_path(), destroy_db);
+        conf_.transactions_db_path(), destroy_db, 100000);
     assert(db_trxs_);
   }
   if (db_trxs_to_blk_ == nullptr) {
