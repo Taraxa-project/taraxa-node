@@ -464,6 +464,33 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
   db_pbftchain_->commit();
 }
 
+void PbftChain::cleanupUnverifiedPbftBlocks(
+    taraxa::PbftBlock const& pbft_block) {
+  blk_hash_t prev_block_hash;
+  if (pbft_block.getBlockType() == pivot_block_type) {
+    prev_block_hash = pbft_block.getPivotBlock().getPrevBlockHash();
+  } else if (pbft_block.getBlockType() == schedule_block_type) {
+    prev_block_hash = pbft_block.getScheduleBlock().getPrevBlockHash();
+  } else {
+    LOG(log_err_) << "Unknown PBFT block type " << pbft_block.getBlockType();
+    assert(false);
+  }
+  if (unverified_blocks_map_.find(prev_block_hash) ==
+      unverified_blocks_map_.end()) {
+    LOG(log_err_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
+    assert(false);
+  }
+  // cleanup PBFT blocks in unverified_blocks_ table
+  upgradableLock_ lock(unverified_access_);
+  for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
+    upgradeLock_ locked(lock);
+    unverified_blocks_.erase(block_hash);
+  }
+  // cleanup PBFT blocks hash in unverified_blocks_map_ table
+  upgradeLock_ locked(lock);
+  unverified_blocks_map_.erase(prev_block_hash);
+}
+
 uint64_t PbftChain::getPbftChainSize() const { return size_; }
 
 uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
@@ -564,11 +591,6 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
   return result;
 }
 
-void PbftChain::insertPbftBlockIndex_(
-    taraxa::blk_hash_t const& pbft_block_hash) {
-  pbft_blocks_index_.push_back(pbft_block_hash);
-}
-
 bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
   if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
                           pbft_block.getJsonStr())) {
@@ -658,10 +680,33 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
-  unverified_blocks_[pbft_block.getBlockHash()] = pbft_block;
-  LOG(log_deb_) << "Push unverified block " << pbft_block.getBlockHash()
+  blk_hash_t block_hash = pbft_block.getBlockHash();
+  blk_hash_t prev_block_hash;
+  if (pbft_block.getBlockType() == pivot_block_type) {
+    prev_block_hash = pbft_block.getPivotBlock().getPrevBlockHash();
+  } else if (pbft_block.getBlockType() == schedule_block_type) {
+    prev_block_hash = pbft_block.getScheduleBlock().getPrevBlockHash();
+  } else {
+    LOG(log_err_) << "Unknown PBFT block type " << pbft_block.getBlockType();
+    assert(false);
+  }
+  if (prev_block_hash != last_pbft_block_hash_) {
+    if (findPbftBlockInChain(block_hash)) {
+      // The block comes from slow node, drop
+      return;
+    } else {
+      // TODO: The block comes from fast node that should insert.
+      //  Or comes from malicious node, need check
+    }
+  }
+  // Store in unverified_blocks_map_ for cleaning later
+  insertUnverifiedPbftBlockIntoParentMap_(prev_block_hash, block_hash);
+  // Store in unverified_blocks_ table
+  LOG(log_deb_) << "Push unverified block " << block_hash
                 << ". Pbft unverified blocks size: "
                 << unverified_blocks_.size();
+  uniqueLock_ lock(unverified_access_);
+  unverified_blocks_[pbft_block.getBlockHash()] = pbft_block;
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
@@ -681,19 +726,6 @@ uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   dag_blocks_map_[dag_block_hash] = dag_block_height;
   return dag_block_height;
 }
-
-//void PbftChain::removePbftBlockInQueue(taraxa::blk_hash_t const& block_hash) {
-//  std::deque<blk_hash_t>::iterator it = pbft_unverified_queue_.begin();
-//  while (it != pbft_unverified_queue_.end()) {
-//    if (*it == block_hash) {
-//      it = pbft_unverified_queue_.erase(it);
-//      break;
-//    }
-//    it++;
-//  }
-//
-//  pbft_unverified_map_.erase(block_hash);
-//}
 
 std::string PbftChain::getGenesisStr() const {
   std::stringstream strm;
@@ -731,36 +763,53 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
 }
 
 size_t PbftChain::pbftVerifiedSetSize() const {
-  sharedLock_ lock(access_);
+  sharedLock_ lock(verified_access_);
   return pbft_verified_set_.size();
 }
 
 void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
-  uniqueLock_ lock(access_);
+  uniqueLock_ lock(verified_access_);
   pbft_verified_set_.insert(pbft_block_hash);
 }
 
 bool PbftChain::pbftVerifiedQueueEmpty() const {
-  sharedLock_ lock(access_);
+  sharedLock_ lock(verified_access_);
   return pbft_verified_queue_.empty();
 }
 
 PbftBlock PbftChain::pbftVerifiedQueueFront() const {
-  sharedLock_ lock(access_);
+  sharedLock_ lock(verified_access_);
   return pbft_verified_queue_.front();
 }
 
 void PbftChain::pbftVerifiedQueuePopFront() {
-  uniqueLock_ lock(access_);
+  uniqueLock_ lock(verified_access_);
   pbft_verified_queue_.pop_front();
 }
 
 void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
   LOG(log_inf_) << "get pbft block " << pbft_block.getBlockHash()
                 << " from peer and push into verified queue";
-  uniqueLock_ lock(access_);
+  uniqueLock_ lock(verified_access_);
   pbft_verified_queue_.emplace_back(pbft_block);
   pbft_verified_set_.insert(pbft_block.getBlockHash());
+}
+
+void PbftChain::insertPbftBlockIndex_(
+    taraxa::blk_hash_t const& pbft_block_hash) {
+  pbft_blocks_index_.push_back(pbft_block_hash);
+}
+
+void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
+    blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash) {
+  if (unverified_blocks_map_.find(prev_block_hash) ==
+      unverified_blocks_map_.end()) {
+    uniqueLock_ lock(unverified_access_);
+    unverified_blocks_map_[prev_block_hash] = { block_hash };
+  } else {
+    uniqueLock_ lock(unverified_access_);
+    unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
+  }
 }
 
 }  // namespace taraxa

@@ -204,6 +204,8 @@ class PbftChain {
   void setFullNode(std::shared_ptr<FullNode> node);
   void releaseDB() { db_pbftchain_ = nullptr; }
 
+  void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
+
   uint64_t getPbftChainSize() const;
   uint64_t getPbftChainPeriod() const;
   blk_hash_t getGenesisHash() const;
@@ -236,8 +238,6 @@ class PbftChain {
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
-//  void removePbftBlockInQueue(blk_hash_t const& block_hash);
-
   size_t pbftVerifiedSetSize() const;
   void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
   bool pbftVerifiedQueueEmpty() const;
@@ -247,13 +247,16 @@ class PbftChain {
 
  private:
   void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
+  void insertUnverifiedPbftBlockIntoParentMap_(
+      blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  mutable boost::shared_mutex access_;
+  mutable boost::shared_mutex verified_access_;
+  mutable boost::shared_mutex unverified_access_;
 
   blk_hash_t genesis_hash_;
   uint64_t size_;
@@ -268,7 +271,6 @@ class PbftChain {
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
   std::vector<blk_hash_t> pbft_blocks_index_;
-//  std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;

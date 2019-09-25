@@ -984,8 +984,13 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
                   << cert_voted_block_hash << " in pbft queue";
     return false;
   }
-
-  return pushPbftBlockIntoChain_(pbft_block.first);
+  if (!pushPbftBlockIntoChain_(pbft_block.first)) {
+    // Push PBFT block from unverified blocks table
+    return false;
+  }
+  // cleanup PBFT unverified blocks table
+  pbft_chain_->cleanupUnverifiedPbftBlocks(pbft_block.first);
+  return true;
 }
 
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
@@ -1158,11 +1163,12 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       std::tie(current_period, dag_blocks_order) =
           full_node->getDagBlockOrder(dag_block_hash);
 
-      // propose pbft block
+      // Finalize pbft pivot block
       LOG(log_sil_) << getFullNodeAddress_()
-                    << " Finalize pivot block in period " << current_period
-                    << " round " << pbft_round_ << " step " << pbft_step_
-                    << " pivot: " << dag_block_hash;
+                    << " Finalize pivot block in period "
+                    << pbft_chain_->getPbftChainPeriod() << " round "
+                    << pbft_round_ << " step " << pbft_step_ << " pivot: "
+                    << dag_block_hash;
 
       // update DAG blocks order and DAG blocks table
       for (auto const &dag_blk_hash : *dag_blocks_order) {
@@ -1191,12 +1197,12 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
             dag_block_hash, current_pbft_chain_period);
 
-        // propose pbft block
+        // Finalize pbft concurent schedule block
         LOG(log_sil_) << getFullNodeAddress_()
                       << " Finalize cs block in period "
                       << current_pbft_chain_period << " round " << pbft_round_
-                      << " step " << pbft_step_
-                      << " anchor: " << dag_block_hash;
+                      << " step " << pbft_step_ << " anchor: "
+                      << dag_block_hash;
 
         // execute schedule block
         // TODO: VM executor will not take sortition_account_balance_table as
