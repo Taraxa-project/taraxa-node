@@ -3,6 +3,7 @@
 
 #include "libdevcore/OverlayDB.h"
 #include "simple_db_face.hpp"
+#include "util.hpp"
 
 class SimpleOverlayDBDelegate : public SimpleDBFace {
  public:
@@ -14,11 +15,17 @@ class SimpleOverlayDBDelegate : public SimpleDBFace {
   dev::bytes get(const h256 &key) override;
   bool exists(const h256 &key) override;
   void commit() override;
-  SimpleOverlayDBDelegate(const std::string &path, bool overwrite);
+  SimpleOverlayDBDelegate(const std::string &path, bool overwrite,
+                          uint32_t binary_cache_size = 1000,
+                          uint32_t string_cache_size = 1000);
 
  private:
   static h256 stringToHashKey(const std::string &s) { return h256(s); }
 
   std::shared_ptr<dev::OverlayDB> odb_ = nullptr;
+  ExpirationCacheMap<std::string, std::string> string_cache_;
+  ExpirationCacheMap<h256, dev::bytes> binary_cache_;
+  uint32_t binary_cache_size_;
+  uint32_t string_cache_size_;
 };
 #endif  // TARAXA_NODE_SIMPLE_OVERLAYDB_DELEGATE_HPP
