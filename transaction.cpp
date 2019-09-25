@@ -524,38 +524,28 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
   // Loop needed because moving transactions from queue to database is not
   // secure Probably a better fix is to have transactions saved to the
   // database first and only then removed from the queue
+  uint counter = 0;
   while (tr == nullptr) {
-    auto status = trx_status_.get(hash);
-    if (status.second) {
-      if (status.first == TransactionStatus::in_queue_verified) {
-        auto t = trx_qu_.getTransaction(hash);
-        auto [trx_rlp, exist] = rlp_cache_.get(t->getHash());
-        tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-            std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
-      } else if (status.first == TransactionStatus::in_queue_unverified) {
-        LOG(log_er_) << "Why do you query unverified trx??";
-        assert(1);
-      } else if (status.first == TransactionStatus::in_block) {
-        auto trx_bytes = db_trxs_->get(hash);
-        if (trx_bytes.size() > 0) {
-          tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-              trx_bytes, trx_bytes);
-        }
-      } else {
-        auto trx_bytes = db_trxs_->get(hash);
-        if (trx_bytes.size() > 0) {
-          tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-              trx_bytes, trx_bytes);
-        }
-        break;
+    auto t = trx_qu_.getTransaction(hash);
+    if (t) {  // find in queue
+      auto [trx_rlp, exist] = rlp_cache_.get(t->getHash());
+      if (!exist) {
+        LOG(log_dg_) << "Cannot find rlp in cache ";
       }
-    } else {
-      // TransactionStatus might have expired, check the db
+      tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+          std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
+    } else {  // search from db
       auto trx_bytes = db_trxs_->get(hash);
       if (trx_bytes.size() > 0) {
         tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes,
                                                                      trx_bytes);
+        break;
       }
+    }
+    thisThreadSleepForMilliSeconds(1);
+    counter++;
+    if (counter % 10000 == 0) {
+      LOG(log_wr_) << "Keep waiting transaction " << hash;
     }
   }
   return tr;
