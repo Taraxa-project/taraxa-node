@@ -475,13 +475,13 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
     LOG(log_err_) << "Unknown PBFT block type " << pbft_block.getBlockType();
     assert(false);
   }
+  upgradableLock_ lock(unverified_access_);
   if (unverified_blocks_map_.find(prev_block_hash) ==
       unverified_blocks_map_.end()) {
     LOG(log_err_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
     assert(false);
   }
   // cleanup PBFT blocks in unverified_blocks_ table
-  upgradableLock_ lock(unverified_access_);
   for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
     upgradeLock_ locked(lock);
     unverified_blocks_.erase(block_hash);
@@ -553,6 +553,7 @@ bool PbftChain::findPbftBlockInChain(
 
 bool PbftChain::findUnverifiedPbftBlock(
     taraxa::blk_hash_t const& pbft_block_hash) const {
+  sharedLock_ lock(unverified_access_);
   return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
 }
 
@@ -575,6 +576,7 @@ PbftBlock PbftChain::getPbftBlockInChain(
 std::pair<PbftBlock, bool> PbftChain::getUnverifiedPbftBlock(
     const taraxa::blk_hash_t& pbft_block_hash) {
   if (findUnverifiedPbftBlock(pbft_block_hash)) {
+    sharedLock_ lock(unverified_access_);
     return std::make_pair(unverified_blocks_[pbft_block_hash], true);
   }
   return std::make_pair(PbftBlock(), false);
@@ -802,12 +804,13 @@ void PbftChain::insertPbftBlockIndex_(
 
 void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
     blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash) {
+  upgradableLock_ lock(unverified_access_);
   if (unverified_blocks_map_.find(prev_block_hash) ==
       unverified_blocks_map_.end()) {
-    uniqueLock_ lock(unverified_access_);
+    upgradeLock_ locked(lock);
     unverified_blocks_map_[prev_block_hash] = {block_hash};
   } else {
-    uniqueLock_ lock(unverified_access_);
+    upgradeLock_ locked(lock);
     unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
   }
 }
