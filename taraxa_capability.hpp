@@ -161,9 +161,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onNewBlockReceived(DagBlock block,
                           std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock block);
-  void onNewTransactions(
-      std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions,
-      bool fromNetwork);
+  void onNewTransactions(std::vector<taraxa::bytes> const &transactions,
+                         bool fromNetwork);
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
   vector<NodeID> getAllPeers() const;

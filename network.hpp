@@ -43,8 +43,7 @@ class Network {
   void sendTransactions(NodeID const &_id,
                         std::vector<taraxa::bytes> const &transactions);
   void onNewBlockVerified(DagBlock const &blk);
-  void onNewTransactions(
-      std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions);
+  void onNewTransactions(std::vector<taraxa::bytes> const &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);

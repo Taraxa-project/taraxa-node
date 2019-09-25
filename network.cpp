@@ -137,7 +137,7 @@ void Network::onNewBlockVerified(DagBlock const &blk) {
 }
 
 void Network::onNewTransactions(
-  std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions) {
+  std::vector<taraxa::bytes> const &transactions) {
   taraxa_capability_->onNewTransactions(transactions, true);
   LOG(log_dg_) << "On new transactions" << transactions.size();
 }
