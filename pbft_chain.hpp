@@ -204,15 +204,16 @@ class PbftChain {
   void setFullNode(std::shared_ptr<FullNode> node);
   void releaseDB() { db_pbftchain_ = nullptr; }
 
+  void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
+
   uint64_t getPbftChainSize() const;
   uint64_t getPbftChainPeriod() const;
   blk_hash_t getGenesisHash() const;
   blk_hash_t getLastPbftBlockHash() const;
   blk_hash_t getLastPbftPivotHash() const;
   PbftBlockTypes getNextPbftBlockType() const;
-  size_t getPbftUnverifiedQueueSize() const;
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
-  std::pair<PbftBlock, bool> getPbftBlockInQueue(
+  std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
       blk_hash_t const& pbft_block_hash);
   std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
   std::string getGenesisStr() const;
@@ -227,17 +228,15 @@ class PbftChain {
   void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
-  bool findPbftBlockInQueue(blk_hash_t const& pbft_block_hash) const;
+  bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
 
   bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
   bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
   bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
-  void pushPbftBlockIntoQueue(taraxa::PbftBlock const& pbft_block);
+  void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
-
-  void removePbftBlockInQueue(blk_hash_t const& block_hash);
 
   size_t pbftVerifiedSetSize() const;
   void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
@@ -246,18 +245,18 @@ class PbftChain {
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
 
-  // only for test
-  void cleanPbftQueue() { pbft_unverified_queue_.clear(); }
-
  private:
   void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
+  void insertUnverifiedPbftBlockIntoParentMap_(
+      blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;
   using sharedLock_ = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  mutable boost::shared_mutex access_;
+  mutable boost::shared_mutex verified_access_;
+  mutable boost::shared_mutex unverified_access_;
 
   blk_hash_t genesis_hash_;
   uint64_t size_;
@@ -272,11 +271,15 @@ class PbftChain {
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::deque<blk_hash_t> pbft_unverified_queue_;  // TODO: may not need it
-  std::unordered_map<blk_hash_t, PbftBlock> pbft_unverified_map_;
   std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
   // map<dag_block_hash, block_number> DAG genesis is block height 0
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
+
+  // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
+  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>
+      unverified_blocks_map_;
+  std::unordered_map<blk_hash_t, PbftBlock> unverified_blocks_;
+
   // syncing pbft blocks from peers
   std::deque<PbftBlock> pbft_verified_queue_;
   std::unordered_set<blk_hash_t> pbft_verified_set_;

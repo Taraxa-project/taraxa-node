@@ -765,21 +765,17 @@ bool FullNode::isKnownPbftBlockForSyncing(
          pbft_chain_->findPbftBlockInVerifiedSet(pbft_block_hash);
 }
 
-bool FullNode::isKnownPbftBlockInQueue(
+bool FullNode::isKnownUnverifiedPbftBlock(
     taraxa::blk_hash_t const &pbft_block_hash) const {
-  return pbft_chain_->findPbftBlockInQueue(pbft_block_hash);
+  return pbft_chain_->findUnverifiedPbftBlock(pbft_block_hash);
 }
 
-void FullNode::pushPbftBlockIntoQueue(taraxa::PbftBlock const &pbft_block) {
-  pbft_chain_->pushPbftBlockIntoQueue(pbft_block);
+void FullNode::pushUnverifiedPbftBlock(taraxa::PbftBlock const &pbft_block) {
+  pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
 }
 
 uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
-}
-
-size_t FullNode::getPbftUnverifiedQueueSize() const {
-  return pbft_chain_->getPbftUnverifiedQueueSize();
 }
 
 size_t FullNode::getPbftVerifiedBlocksSize() const {

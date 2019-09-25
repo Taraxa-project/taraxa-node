@@ -157,6 +157,10 @@ TEST(PbftChain, block_broadcast) {
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
 
+  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
+  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
+  std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
+
   node1->setDebug(true);
   node2->setDebug(true);
   node3->setDebug(true);
@@ -212,24 +216,34 @@ TEST(PbftChain, block_broadcast) {
   // sign the pbft block
   pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr()));
 
-  node1->pushPbftBlockIntoQueue(pbft_block1);
-  EXPECT_EQ(node1->getPbftUnverifiedQueueSize(), 1);
+  node1->pushUnverifiedPbftBlock(pbft_block1);
+  std::pair<PbftBlock, bool> block1_from_node1 =
+      pbft_chain1->getUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_TRUE(block1_from_node1.second);
+  EXPECT_EQ(block1_from_node1.first.getJsonStr(), pbft_block1.getJsonStr());
   node1->setPbftBlock(pbft_block1);  // Test pbft chain
   ASSERT_EQ(node1->getPbftChainSize(), 2);
 
   nw1->onNewPbftBlock(pbft_block1);
 
-  int current_pbft_queue_size = 1;
+  std::pair<PbftBlock, bool> block1_from_node2;
+  std::pair<PbftBlock, bool> block1_from_node3;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (node2->getPbftUnverifiedQueueSize() == current_pbft_queue_size &&
-        node3->getPbftUnverifiedQueueSize() == current_pbft_queue_size) {
+    block1_from_node2 =
+        pbft_chain2->getUnverifiedPbftBlock(pbft_block1.getBlockHash());
+    block1_from_node3 =
+        pbft_chain3->getUnverifiedPbftBlock(pbft_block1.getBlockHash());
+    if (block1_from_node2.second && block1_from_node3.second) {
+      // Both node2 and node3 get the pbft_block1
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
-  EXPECT_EQ(node3->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
+  ASSERT_TRUE(block1_from_node2.second);
+  ASSERT_TRUE(block1_from_node3.second);
+  EXPECT_EQ(block1_from_node2.first.getJsonStr(), pbft_block1.getJsonStr());
+  EXPECT_EQ(block1_from_node3.first.getJsonStr(), pbft_block1.getJsonStr());
   node2->setPbftBlock(pbft_block1);  // Test pbft chain
   ASSERT_EQ(node2->getPbftChainSize(), 2);
   node3->setPbftBlock(pbft_block1);  // Test pbft chain
@@ -247,24 +261,34 @@ TEST(PbftChain, block_broadcast) {
   // sign the pbft block
   pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr()));
 
-  node1->pushPbftBlockIntoQueue(pbft_block2);
-  EXPECT_EQ(node1->getPbftUnverifiedQueueSize(), 2);
+  node1->pushUnverifiedPbftBlock(pbft_block2);
+  std::pair<PbftBlock, bool> block2_from_node1 =
+      pbft_chain1->getUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_TRUE(block2_from_node1.second);
+  EXPECT_EQ(block2_from_node1.first.getJsonStr(), pbft_block2.getJsonStr());
   node1->setPbftBlock(pbft_block2);  // Test pbft chain
   ASSERT_EQ(node1->getPbftChainSize(), 3);
 
   nw1->onNewPbftBlock(pbft_block2);
 
-  current_pbft_queue_size = 2;
+  std::pair<PbftBlock, bool> block2_from_node2;
+  std::pair<PbftBlock, bool> block2_from_node3;
   for (int i = 0; i < 300; i++) {
     // test timeout is 30 seconds
-    if (node2->getPbftUnverifiedQueueSize() == current_pbft_queue_size &&
-        node3->getPbftUnverifiedQueueSize() == current_pbft_queue_size) {
+    block2_from_node2 =
+        pbft_chain2->getUnverifiedPbftBlock(pbft_block2.getBlockHash());
+    block2_from_node3 =
+        pbft_chain3->getUnverifiedPbftBlock(pbft_block2.getBlockHash());
+    if (block2_from_node2.second && block2_from_node3.second) {
+      // Both node2 and node3 get pbft_block2
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
-  EXPECT_EQ(node3->getPbftUnverifiedQueueSize(), current_pbft_queue_size);
+  ASSERT_TRUE(block2_from_node2.second);
+  ASSERT_TRUE(block2_from_node3.second);
+  EXPECT_EQ(block2_from_node2.first.getJsonStr(), pbft_block2.getJsonStr());
+  EXPECT_EQ(block2_from_node3.first.getJsonStr(), pbft_block2.getJsonStr());
   node2->setPbftBlock(pbft_block2);  // Test pbft chain
   ASSERT_EQ(node2->getPbftChainSize(), 3);
   node3->setPbftBlock(pbft_block2);  // Test pbft chain
