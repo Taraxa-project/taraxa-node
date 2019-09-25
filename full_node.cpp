@@ -340,7 +340,7 @@ void FullNode::stop() {
   dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
   blk_mgr_->stop();
-  // Do not stop network_, o.w. restart node will crash	  network_->stop();
+  // Do not stop network_, o.w. restart node will crash	network_->stop();
   // network_->stop();
   trx_mgr_->stop();
   trx_order_mgr_->stop();

@@ -205,20 +205,17 @@ class TransactionQueue {
   }
   void start();
   void stop();
-  bool insert(Transaction const &trx,
-              bool critical);
+  bool insert(Transaction const &trx, bool critical);
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::vector<Transaction>
-  getNewVerifiedTrxSnapShotSerialized();
+  std::vector<Transaction> getNewVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
-  std::shared_ptr<Transaction> getTransaction(
-      trx_hash_t const &hash) const;
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
@@ -348,8 +345,8 @@ class TransactionManager
 
  private:
   addr_t getFullNodeAddress() const;
-  vec_trx_t sortTransctionsAndGetHashVector(
-      std::vector<Transaction> &vec_trxs) const;
+  // vec_trx_t sortTransctionsAndGetHashVector(
+  // std::vector<Transaction> &vec_trxs) const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
