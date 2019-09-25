@@ -408,7 +408,7 @@ Json::Value Taraxa::getBlockJson(NodePtr const& node,
     auto const& trx_hash = trx_hashes[i];
     auto const& trx = node->getTransaction(trx_hash);
     trx_rlp_array.append([&](auto& rlp_stream) {
-      trx->second;  //
+      trx->first.streamRLP(rlp_stream);  //
     });
     receitps_rlp_array.append([](auto& rlp_stream) {
       TransactionReceipt(1, 0, {}).streamRLP(rlp_stream);

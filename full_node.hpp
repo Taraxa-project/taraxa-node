@@ -84,7 +84,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void insertTransaction(Transaction const &trx);
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
-      std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions);
+      std::vector<taraxa::bytes> const &transactions);
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
       trx_hash_t const &hash) const;
 
@@ -172,8 +172,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::vector<std::pair<Transaction, taraxa::bytes>>
-  getNewVerifiedTrxSnapShotSerialized();
+  std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
   // Get max level
   unsigned long getDagMaxLevel() const { return max_dag_level_; }

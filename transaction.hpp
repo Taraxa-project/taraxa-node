@@ -154,7 +154,7 @@ class Transaction {
   bool hasZeroSig() const { return vrs_ && isZeroSig(vrs_->r, vrs_->s); }
   bool isZeroSig(val_t const &r, val_t const &s) const { return !r && !s; }
   // Serialises this transaction to an RLPStream.
-  void streamRLP(dev::RLPStream &s, bool include_sig,
+  void streamRLP(dev::RLPStream &s, bool include_sig = true,
                  bool _forEip155hash = false) const;
   // @returns the RLP serialisation of this transaction.
   bytes rlp(bool include_sig) const;
@@ -316,8 +316,7 @@ class TransactionManager
   }
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::vector<std::pair<Transaction, taraxa::bytes>>
-  getNewVerifiedTrxSnapShotSerialized();
+  std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
   // Verify transactions in broadcasted blocks
   bool verifyBlockTransactions(DagBlock const &blk,

@@ -381,15 +381,14 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case TransactionPacket: {
         std::string receivedTransactions;
-        std::vector<std::pair<Transaction, taraxa::bytes>> transactions;
+        std::vector<taraxa::bytes> transactions;
         auto transactionCount = _r.itemCount();
         for (auto iTransaction = 0; iTransaction < transactionCount;
              iTransaction++) {
           Transaction transaction(_r[iTransaction].data().toBytes());
           receivedTransactions += transaction.getHash().toString() + " ";
           peer->markTransactionAsKnown(transaction.getHash());
-          transactions.emplace_back(
-              std::make_pair(transaction, _r[iTransaction].data().toBytes()));
+          transactions.emplace_back(_r[iTransaction].data().toBytes());
         }
         if (transactionCount > 0) {
           LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
@@ -581,17 +580,17 @@ TaraxaCapability::randomPartitionPeers(std::vector<NodeID> const &_peers,
 }
 
 void TaraxaCapability::onNewTransactions(
-    std::vector<std::pair<Transaction, taraxa::bytes>> const &transactions,
-    bool fromNetwork) {
+    std::vector<taraxa::bytes> const &transactions, bool fromNetwork) {
   if (fromNetwork) {
     if (auto full_node = full_node_.lock()) {
       LOG(log_nf_) << "Storing " << transactions.size() << " transactions";
       full_node->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
-        auto trx_hash = transaction.first.getHash();
+        Transaction trx(transaction);
+        auto trx_hash = trx.getHash();
         if (test_transactions_.find(trx_hash) == test_transactions_.end()) {
-          test_transactions_[trx_hash] = transaction.first;
+          test_transactions_[trx_hash] = trx;
           LOG(log_dg_) << "Received New Transaction " << trx_hash;
         } else {
           LOG(log_dg_) << "Received New Transaction" << trx_hash
@@ -606,11 +605,11 @@ void TaraxaCapability::onNewTransactions(
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         for (auto const &transaction : transactions) {
-          auto trx_hash = transaction.first.getHash();
-
+          Transaction trx(transaction);
+          auto trx_hash = trx.getHash();
           if (!peer.second->isTransactionKnown(trx_hash)) {
             peer.second->markTransactionAsKnown(trx_hash);
-            transactionsToSend[peer.first].push_back(transaction.second);
+            transactionsToSend[peer.first].push_back(transaction);
           }
         }
       }

@@ -498,16 +498,17 @@ TransactionManager::getVerifiedTrxSnapShot() {
   return trx_qu_.getVerifiedTrxSnapShot();
 }
 
-std::vector<std::pair<Transaction, taraxa::bytes>>
+std::vector<taraxa::bytes>
 TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
   std::vector<Transaction> vec_trxs;
   for (auto const &t : verified_trxs) vec_trxs.emplace_back(t);
   sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
-  std::vector<std::pair<Transaction, taraxa::bytes>> ret;
+  std::vector<taraxa::bytes> ret;
   for (auto const &t : vec_trxs) {
     auto [trx_rlp, exist] = rlp_cache_.get(t.getHash());
-    ret.emplace_back(std::make_pair(t, exist ? trx_rlp : t.rlp(true)));
+    // if cached miss, compute on the fly
+    ret.emplace_back(exist ? trx_rlp : t.rlp(true));
   }
   return ret;
 }
@@ -687,9 +688,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
     auto [rlp, exist1] = rlp_cache_.get(hash);
-    assert(exist1);
     // Skip if transaction is already in existing block
-    if (!db_trxs_->put(hash, rlp)) {
+    if (!db_trxs_->put(hash, exist1 ? rlp : trx.rlp(true))) {
       continue;
     }
     changed = true;
