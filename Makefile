@@ -1,4 +1,4 @@
-$(shell git submodule update --recursive --init)
+$(shell git submodule update --recursive --init &> /dev/null)
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
 CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
