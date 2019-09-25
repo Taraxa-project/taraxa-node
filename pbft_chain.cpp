@@ -482,12 +482,11 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
     assert(false);
   }
   // cleanup PBFT blocks in unverified_blocks_ table
+  upgradeLock_ locked(lock);
   for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
-    upgradeLock_ locked(lock);
     unverified_blocks_.erase(block_hash);
   }
   // cleanup PBFT blocks hash in unverified_blocks_map_ table
-  upgradeLock_ locked(lock);
   unverified_blocks_map_.erase(prev_block_hash);
 }
 
