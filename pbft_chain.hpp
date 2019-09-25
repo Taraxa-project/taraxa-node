@@ -276,7 +276,8 @@ class PbftChain {
   std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
-  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
+  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>
+      unverified_blocks_map_;
   std::unordered_map<blk_hash_t, PbftBlock> unverified_blocks_;
 
   // syncing pbft blocks from peers

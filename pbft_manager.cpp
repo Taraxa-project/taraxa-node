@@ -1167,8 +1167,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       LOG(log_sil_) << getFullNodeAddress_()
                     << " Finalize pivot block in period "
                     << pbft_chain_->getPbftChainPeriod() << " round "
-                    << pbft_round_ << " step " << pbft_step_ << " pivot: "
-                    << dag_block_hash;
+                    << pbft_round_ << " step " << pbft_step_
+                    << " pivot: " << dag_block_hash;
 
       // update DAG blocks order and DAG blocks table
       for (auto const &dag_blk_hash : *dag_blocks_order) {
@@ -1201,8 +1201,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         LOG(log_sil_) << getFullNodeAddress_()
                       << " Finalize cs block in period "
                       << current_pbft_chain_period << " round " << pbft_round_
-                      << " step " << pbft_step_ << " anchor: "
-                      << dag_block_hash;
+                      << " step " << pbft_step_
+                      << " anchor: " << dag_block_hash;
 
         // execute schedule block
         // TODO: VM executor will not take sortition_account_balance_table as

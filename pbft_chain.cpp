@@ -805,7 +805,7 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
   if (unverified_blocks_map_.find(prev_block_hash) ==
       unverified_blocks_map_.end()) {
     uniqueLock_ lock(unverified_access_);
-    unverified_blocks_map_[prev_block_hash] = { block_hash };
+    unverified_blocks_map_[prev_block_hash] = {block_hash};
   } else {
     uniqueLock_ lock(unverified_access_);
     unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
