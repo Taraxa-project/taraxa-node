@@ -1324,7 +1324,7 @@ TEST_F(TopTest, two_nodes_run_two_transactions) {
   node2->stop();
 }
 
-TEST_F(FullNodeTest, execute_chain_pbft_transactions) {
+TEST_F(FullNodeTest, DISABLED_execute_chain_pbft_transactions) {
   val_t initbal(100000000);  // disable pbft sortition
   std::vector<Transaction> transactions;
   for (auto i = 0; i < NUM_TRX; ++i) {
