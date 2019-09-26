@@ -181,7 +181,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
-  std::vector<Vote> getVotes(uint64_t round);
+  std::vector<Vote> getAllVotes();
   bool addVote(Vote const &vote);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;

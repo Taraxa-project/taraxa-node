@@ -12,6 +12,8 @@
 #include "types.hpp"
 #include "vote.h"
 
+// total TARAXA COINS (2^53 -1) "1fffffffffffff"
+#define TARAXA_COINS_DECIMAL 9007199254740991
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define LAMBDA_ms 1000           // milliseconds
 #define POLLING_INTERVAL_ms 100  // milliseconds...
@@ -71,8 +73,6 @@ class PbftManager {
   uint64_t SKIP_PERIODS = 1;
 
  private:
-  addr_t getFullNodeAddress_() const;
-
   uint64_t roundDeterminedFromVotes_();
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
