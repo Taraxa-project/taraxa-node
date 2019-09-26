@@ -28,8 +28,8 @@ TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
   bool verify = dev::verify(key_pair.pub(), signature, dev::sha3(message));
   EXPECT_EQ(verify, true);
 
-  string sign_hash = taraxa::hashSignature(signature);
-  EXPECT_EQ(sign_hash.length(), 64);
+  string credential = taraxa::hashSignature(signature);
+  EXPECT_EQ(credential.length(), 64);
 }
 
 TEST(EthereumCrypto, hex_to_decimal_test) {
@@ -56,69 +56,66 @@ TEST(EthereumCrypto, big_number_multiplication_test) {
 }
 
 TEST(EthereumCrypto, sortition_test) {
-  string signature_hash =
+  string credential =
       "0000000000000000000000000000000000000000000000000000000000000001";
-  uint64_t account_balance = 1000;
-  size_t sortition_threshold = 1;
-  bool sortition =
-      taraxa::sortition(signature_hash, account_balance, sortition_threshold);
+  size_t valid_sortition_players = 10;
+  size_t sortition_threshold = 10;
+  bool sortition = taraxa::sortition(credential, valid_sortition_players,
+                                     sortition_threshold);
   EXPECT_EQ(sortition, true);
 }
 
 TEST(EthereumCrypto, sortition_rate) {
-  uint64_t total_coins = 9007199254740991;
-  uint64_t number_of_players = 100;
-  uint64_t account_balance = total_coins / number_of_players;
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  cfg.genesis_state.accounts[addr(cfg.node_secret)] = {account_balance};
   boost::asio::io_context context;
   auto node(std::make_shared<FullNode>(context, cfg, true));
+
+  size_t valid_sortition_players = 100;
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;
   int sortition_threshold;
-  if (node->getPbftManager()->COMMITTEE_SIZE <= number_of_players) {
+  if (node->getPbftManager()->COMMITTEE_SIZE <= valid_sortition_players) {
     sortition_threshold = node->getPbftManager()->COMMITTEE_SIZE;
   } else {
-    sortition_threshold = number_of_players;
+    sortition_threshold = valid_sortition_players;
   }
   // Test for one player sign round messages to get sortition
   for (int i = 0; i < round; i++) {
     message += std::to_string(i);
     sig_t signature = node->signMessage(message);
-    vote_hash_t sig_hash = dev::sha3(signature);
-    bool win =
-        sortition(sig_hash.toString(), account_balance, sortition_threshold);
+    sig_hash_t credential = dev::sha3(signature);
+    bool win = sortition(credential.toString(), valid_sortition_players,
+                         sortition_threshold);
     if (win) {
       count++;
     }
   }
-  // depend on sortition THRESHOLD, sortition rate: THRESHOLD /
-  // number_of_players count should be close to sortition rate * round
-  EXPECT_GT(count, 0);
+  // depend on sortition THRESHOLD
+  // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
+  EXPECT_EQ(count, round);
 
   count = 0;
   round = 10;
   // Test for number of players sign message to get sortition,
-  // Each player sign round messages, sortition rate for one player: THRESHOLD /
-  // number_of_players * round
-  for (int i = 0; i < number_of_players; i++) {
+  // Each player sign round messages, sortition rate for one player:
+  // THRESHOLD / PLAYERS = 100%
+  for (int i = 0; i < valid_sortition_players; i++) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
       message += std::to_string(j);
       sig_t signature = dev::sign(key_pair.secret(), dev::sha3(message));
-      vote_hash_t sig_hash = dev::sha3(signature);
-      bool win =
-          sortition(sig_hash.toString(), account_balance, sortition_threshold);
+      sig_hash_t credential = dev::sha3(signature);
+      bool win = sortition(credential.toString(), valid_sortition_players,
+                           sortition_threshold);
       if (win) {
         count++;
       }
     }
   }
-  // depend on sortition THRESHOLD, sortition rate for all players: THRESHOLD /
-  // number_of_players * round * number_of_players count should be close to
-  // sortition rate
-  EXPECT_GT(count, 0);
+  // depend on sortition THRESHOLD, sortition rate for all players:
+  // THRESHOLD / VALID PLAYERS = 100%
+  EXPECT_EQ(count, valid_sortition_players * round);
 }
 
 }  // namespace taraxa
