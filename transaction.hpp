@@ -31,12 +31,34 @@ enum class TransactionStatus {
   unseen
 };
 
+class TransactionStatusTable
+    : public ExpirationCacheMap<trx_hash_t, TransactionStatus> {
+  public:
+  TransactionStatusTable(uint32_t max_size, uint32_t delete_step)
+      : ExpirationCacheMap(max_size, delete_step) {}
+
+  void eraseOldest() override {
+    for (auto i = 0; i < delete_step_; i++) {
+      auto status_hash = expiration_.front();
+      auto status = cache_[status_hash];
+      expiration_.pop_front();
+      // Skip delete if transaction in queue or in nonce_gap and put in at back
+      // of the queue
+      if (status == TransactionStatus::nonce_gap ||
+          status == TransactionStatus::in_queue_unverified ||
+          status == TransactionStatus::in_queue_verified) {
+        expiration_.push_back(status_hash);
+      } else {
+        cache_.erase(expiration_.front());
+      }
+    }
+  }
+};
+
 /**
  * simple thread_safe hash
  * keep track of transaction state
  */
-using TransactionStatusTable =
-    ExpirationCacheMap<trx_hash_t, TransactionStatus>;
 using TransactionRLPTable = ExpirationCacheMap<trx_hash_t, taraxa::bytes>;
 using TransactionUnsafeStatusTable =
     std::unordered_map<trx_hash_t, TransactionStatus>;
