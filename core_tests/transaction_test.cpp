@@ -180,7 +180,7 @@ TEST(TransactionManager, prepare_signed_trx_for_propose) {
 int main(int argc, char* argv[]) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityError;
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

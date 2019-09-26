@@ -140,13 +140,10 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start,
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
-    std::stringstream strm;
-    strm << std::setw(64) << std::setfill('0');
-    strm << std::to_string(i);
-    std::string hash = strm.str();
+    blk_hash_t hash(i);
     Transaction trx(trx_hash_t(hash),         // hash
                     Transaction::Type::Call,  // type
-                    2,                        // nonce
+                    i,                        // nonce
                     3,                        // value
                     val_t(4),                 // gas_price
                     val_t(5),                 // gas
@@ -164,10 +161,7 @@ inline std::vector<Transaction> createSignedTrxSamples(unsigned start,
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
-    std::stringstream strm;
-    strm << std::setw(64) << std::setfill('0');
-    strm << std::to_string(i);
-    std::string hash = strm.str();
+    blk_hash_t hash(i);
     Transaction trx(i,               // nonce
                     i * 100,         // value
                     val_t(0),        // gas_price
@@ -190,33 +184,14 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start,
   std::vector<DagBlock> blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
-    std::string pivot, hash;
-
+    blk_hash_t pivot(i);
+    blk_hash_t hash(i + 1);
     vec_trx_t trxs;
-    {
-      std::stringstream strm;
-      strm << std::setw(64) << std::setfill('0');
-      strm << std::to_string(i);
-      pivot = strm.str();
+    for (auto i = 0; i < trx_len; ++i, trx++) {
+      trxs.emplace_back(trx_hash_t(trx));
     }
-    {
-      std::stringstream strm;
-      strm << std::setw(64) << std::setfill('0');
-      strm << std::to_string(i + 1);
-      hash = strm.str();
-    }
-    // create overlapped trxs
-    {
-      for (auto i = 0; i < trx_len; ++i, trx++) {
-        std::stringstream strm;
-        strm << std::setw(64) << std::setfill('0');
-        strm << std::to_string(trx);
-        std::string trx = strm.str();
-        trxs.emplace_back(trx_hash_t(trx));
-      }
-      for (auto i = 0; i < trx_overlap; ++i) {
-        trx--;
-      }
+    for (auto i = 0; i < trx_overlap; ++i) {
+      trx--;
     }
 
     DagBlock blk(blk_hash_t(pivot),                              // pivot
@@ -240,30 +215,17 @@ createMockDagBlkSamplesWithSignedTransactions(
   std::vector<std::pair<DagBlock, std::vector<Transaction>>> blks;
   unsigned trx = trx_start;
   for (auto i = pivot_start; i < blk_num; ++i) {
-    std::string pivot, hash;
     auto full_trx =
         createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
     vec_trx_t trxs;
     for (auto t : full_trx) trxs.push_back(t.getHash());
-    {
-      std::stringstream strm;
-      strm << std::setw(64) << std::setfill('0');
-      strm << std::to_string(i);
-      pivot = strm.str();
-    }
-    {
-      std::stringstream strm;
-      strm << std::setw(64) << std::setfill('0');
-      strm << std::to_string(i + 1);
-      hash = strm.str();
-    }
 
-    DagBlock blk(blk_hash_t(pivot),  // pivot
+    DagBlock blk(blk_hash_t(i),      // pivot
                  0,                  // level
                  {},                 // tips
                  trxs,               // trxs
                  sig_t(7777),        // sig
-                 blk_hash_t(hash),   // hash
+                 blk_hash_t(i + 1),  // hash
                  addr_t(12345));     // sender
 
     blks.emplace_back(std::make_pair(blk, full_trx));
