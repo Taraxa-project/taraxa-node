@@ -728,9 +728,7 @@ bool FullNode::executeScheduleBlock(
   return res;
 }
 
-std::vector<Vote> FullNode::getAllVotes() {
-  return vote_mgr_->getAllVotes();
-}
+std::vector<Vote> FullNode::getAllVotes() { return vote_mgr_->getAllVotes(); }
 
 bool FullNode::addVote(taraxa::Vote const &vote) {
   return vote_mgr_->addVote(vote);

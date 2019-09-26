@@ -33,7 +33,7 @@ enum class TransactionStatus {
 
 class TransactionStatusTable
     : public ExpirationCacheMap<trx_hash_t, TransactionStatus> {
-  public:
+ public:
   TransactionStatusTable(uint32_t max_size, uint32_t delete_step)
       : ExpirationCacheMap(max_size, delete_step) {}
 

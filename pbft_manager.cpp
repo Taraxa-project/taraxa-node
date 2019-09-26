@@ -175,8 +175,9 @@ void PbftManager::run() {
 
     // Get votes
     bool sync_peers_pbft_chain = false;
-    std::vector<Vote> votes = vote_mgr_->getVotes(pbft_round_ - 1,
-        sortition_account_balance_table.size(), sync_peers_pbft_chain);
+    std::vector<Vote> votes = vote_mgr_->getVotes(
+        pbft_round_ - 1, sortition_account_balance_table.size(),
+        sync_peers_pbft_chain);
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
     if (sync_peers_pbft_chain) {
