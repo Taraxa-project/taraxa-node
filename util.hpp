@@ -343,12 +343,16 @@ class ExpirationCacheMap {
     cache_[key] = value;
     expiration_.push_back(key);
     if (cache_.size() > max_size_) {
-      for (auto i = 0; i < delete_step_; i++) {
-        cache_.erase(expiration_.front());
-        expiration_.pop_front();
-      }
+      eraseOldest();
     }
     return true;
+  }
+
+  virtual void eraseOldest() {
+    for (auto i = 0; i < delete_step_; i++) {
+      cache_.erase(expiration_.front());
+      expiration_.pop_front();
+    }
   }
 
   std::size_t count(Key const &key) const {
@@ -405,7 +409,7 @@ class ExpirationCacheMap {
     return false;
   }
 
- private:
+ protected:
   std::unordered_map<Key, Value> cache_;
   std::deque<Key> expiration_;
   uint32_t max_size_;
