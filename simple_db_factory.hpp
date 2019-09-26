@@ -15,7 +15,8 @@ class SimpleDBFactory {
                                            bool overwrite,
                                            uint32_t binary_cache_size = 100,
                                            uint32_t string_cache_size = 100) {
-    return std::make_unique<T>(path, overwrite, binary_cache_size, string_cache_size);
+    return std::make_unique<T>(path, overwrite, binary_cache_size,
+                               string_cache_size);
   }
 };
 #endif  // TARAXA_NODE_SIMPLE_DB_FACTORY_HPP

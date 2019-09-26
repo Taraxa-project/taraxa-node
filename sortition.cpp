@@ -9,6 +9,7 @@
 #include "sortition.h"
 
 #include "libdevcore/SHA3.h"
+#include "pbft_manager.hpp"
 
 #include <boost/multiprecision/cpp_int.hpp>
 #include <deque>
@@ -42,11 +43,19 @@ bool sortition(string signature_hash, val_t account_balance, size_t threshold) {
     return false;
   }
 
+  // TODO: should remove, or move to pbft manager
+  uint64_t max_coins;
+  PbftManager pbft_manager;
+  if (pbft_manager.SORTITION_COINS_MAX) {
+    max_coins = pbft_manager.SORTITION_COINS_MAX;
+  } else {
+    max_coins = TARAXA_COINS_DECIMAL;
+  }
+
   string sum_left;
   string sum_right;
-
-  sum_left =
-      taraxa::bigNumberMultiplication(signature_hash_decimal, TARAXA_COINS);
+  sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal,
+                                             std::to_string(max_coins));
   if (sum_left.empty()) {
     LOG(log_error_) << "Failed multiplication of signature hash * total coins";
     return false;

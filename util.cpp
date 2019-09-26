@@ -200,4 +200,3 @@ static inline void printStackTrace() {
   }
   free(symbollist);
 }
-

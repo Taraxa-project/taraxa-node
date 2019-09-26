@@ -19,12 +19,15 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     network.network_transaction_interval =
         doc.get<uint16_t>("network_transaction_interval");
     network.network_bandwidth = doc.get<uint16_t>("network_bandwidth");
-    network.network_ideal_peer_count = doc.get<uint16_t>("network_ideal_peer_count");
-    network.network_max_peer_count = doc.get<uint16_t>("network_max_peer_count");
+    network.network_ideal_peer_count =
+        doc.get<uint16_t>("network_ideal_peer_count");
+    network.network_max_peer_count =
+        doc.get<uint16_t>("network_max_peer_count");
     network.network_encrypted = doc.get<uint16_t>("network_encrypted") != 0;
     network.network_performance_log =
         doc.get<uint16_t>("network_performance_log") & 1;
-    if (doc.get<uint16_t>("network_performance_log") & 2) dev::db::LevelDB::setPerf(true);
+    if (doc.get<uint16_t>("network_performance_log") & 2)
+      dev::db::LevelDB::setPerf(true);
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");
@@ -84,8 +87,10 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_transaction_interval: "
        << conf.network_transaction_interval << std::endl;
   strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;
-  strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count << std::endl;
-  strm << "  network_max_peer_count: " << conf.network_max_peer_count << std::endl;
+  strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count
+       << std::endl;
+  strm << "  network_max_peer_count: " << conf.network_max_peer_count
+       << std::endl;
   strm << "  network_id: " << conf.network_id << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
