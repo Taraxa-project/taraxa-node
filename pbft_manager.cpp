@@ -29,7 +29,6 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       VALID_SORTITION_COINS(params[2]),
       DAG_BLOCKS_SIZE(params[3]),
       RUN_COUNT_VOTES(params[4]),
-      SORTITION_COINS_MAX(params[5]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
