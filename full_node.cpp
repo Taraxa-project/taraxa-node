@@ -487,19 +487,6 @@ void FullNode::insertBlock(DagBlock const &blk) {
                  << " , tips: " << blk.getTips().size();
 }
 
-void FullNode::insertBlockAndSign(DagBlock const &blk) {
-  DagBlock sign_block(blk);
-  sign_block.sign(node_sk_);
-
-  auto now = getCurrentTimeMilliSeconds();
-
-  LOG(log_time_) << "Propose block " << sign_block.getHash() << " at: " << now
-                 << " ,trxs: " << sign_block.getTrxs()
-                 << " , tips: " << sign_block.getTips().size();
-
-  insertBlock(sign_block);
-}
-
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   auto known = blk_mgr_->isBlockKnown(hash);
   if (!known) return getDagBlock(hash) != nullptr;

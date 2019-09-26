@@ -260,9 +260,21 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
   }
   return ret;
 }  // namespace taraxa
-void BlockProposer::proposeBlock(DagBlock const& blk) {
-  full_node_.lock()->insertBlockAndSign(blk);
-  LOG(log_nf_) << "Propose block :" << blk;
+void BlockProposer::proposeBlock(DagBlock& blk) {
+  auto full_node = full_node_.lock();
+  assert(full_node);
+
+  blk.sign(full_node->getSecretKey());
+  full_node_.lock()->insertBlock(blk);
+
+  auto& log_time = full_node->getTimeLogger();
+  auto now = getCurrentTimeMilliSeconds();
+
+  LOG(log_time) << "Propose block " << blk.getHash() << " at: " << now
+                << " ,trxs: " << blk.getTrxs()
+                << " , tips: " << blk.getTips().size();
+  LOG(log_si_) << getFullNodeAddress() << "Propose block :" << blk.getHash()
+               << " , number of trx (" << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 

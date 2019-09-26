@@ -121,7 +121,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
-  void proposeBlock(DagBlock const& blk);
+  void proposeBlock(DagBlock& blk);
   bool getShardedTrxs(vec_trx_t& sharded_trx) {
     return getShardedTrxs(total_trx_shards_, my_trx_shard_, sharded_trx);
   }
@@ -153,6 +153,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "BLK_PP")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "BLK_PP")};
   dev::Logger log_wr_{

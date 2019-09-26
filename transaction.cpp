@@ -328,21 +328,22 @@ void TransactionQueue::verifyQueuedTrxs() {
         continue;
       }
 
-      auto trx_hash = trx.getHash();
-      auto trx_sender = trx.getSender();
-      auto trx_nonce = trx.getNonce();
-      auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
-      auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
-      if (trx_nonce - prev_nonce > 1) {
-        LOG(log_nf_) << getFullNodeAddress()
-                     << " Verifying trx ... find a gap in sender " << trx_sender
-                     << " prev nonce: " << prev_nonce << " current nonce "
-                     << trx_nonce << " trx: " << trx_hash;
-      }
-      LOG(log_dg_) << getFullNodeAddress()
-                   << " Verifying trx ... update sender " << trx_sender
-                   << " nonce " << new_nonce << " in trx " << trx_hash;
-      accs_nonce_.update(trx_sender, new_nonce);
+      // auto trx_hash = trx.getHash();
+      // auto trx_sender = trx.getSender();
+      // auto trx_nonce = trx.getNonce();
+      // auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
+      // auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
+      // if (trx_nonce - prev_nonce > 1) {
+      //   LOG(log_nf_) << getFullNodeAddress()
+      //                << " Verifying trx ... find a gap in sender " <<
+      //                trx_sender
+      //                << " prev nonce: " << prev_nonce << " current nonce "
+      //                << trx_nonce << " trx: " << trx_hash;
+      // }
+      // LOG(log_dg_) << getFullNodeAddress()
+      //              << " Verifying trx ... update sender " << trx_sender
+      //              << " nonce " << new_nonce << " in trx " << trx_hash;
+      // accs_nonce_.update(trx_sender, new_nonce);
 
       // push to verified qu
       // LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
@@ -695,6 +696,16 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   if (changed) {
     db_trxs_->commit();
   }
+
+  // check requeued trx
+  if (!trx_requeued_.empty()) {
+    LOG(log_si_) << "Number of repacked trx " << trx_requeued_.size();
+  }
+  while (!trx_requeued_.empty()) {
+    list_trxs.push_back(trx_requeued_.front());
+    trx_requeued_.pop();
+  }
+
   if (verified_trx.size() == 0) {
     return;
   } else if (verified_trx.size() == 1) {
@@ -702,6 +713,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
   } else {
     // sort trx based on sender and nonce
     list_trxs.sort(trxComp);
+    auto orig_size = list_trxs.size();
     auto iter = list_trxs.begin();
     iter++;
     // filter out nonce gaps (drop transctions that have gap)
@@ -709,17 +721,19 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
       auto prev_iter = std::prev(iter);
       auto curr_sender = iter->getSender();
       auto curr_nonce = iter->getNonce();
+
       auto [curr_sender_prev_nonce, exist] = accs_nonce_.get(curr_sender);
       if (exist && curr_sender_prev_nonce >= curr_nonce) {
-        LOG(log_nf_) << getFullNodeAddress() << "Remove trx " << iter->getHash()
+        LOG(log_dg_) << getFullNodeAddress() << "Remove trx " << iter->getHash()
                      << "Sender " << curr_sender << " Nonce " << curr_nonce
                      << " too old, because prev sender nonce on file is "
                      << curr_sender_prev_nonce;
-        // iter = list_trxs.erase(iter);
-        // continue;
+        iter = list_trxs.erase(iter);
+        continue;
       }
 
       auto prev_sender = prev_iter->getSender();
+
       if (curr_sender == prev_sender) {
         auto prev_nonce = prev_iter->getNonce();
         if (curr_nonce != (prev_nonce + 1)) {
@@ -728,14 +742,21 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
                        << " Nonce " << curr_nonce << " because prev nonce is "
                        << prev_nonce << " nonce table is "
                        << accs_nonce_.get(curr_sender).first;
-          // iter = list_trxs.erase(iter);
-          // continue;
+          trx_requeued_.push(*iter);
+          iter = list_trxs.erase(iter);
+          continue;
         }
       }
       iter++;
     }
+    auto pruned_size = list_trxs.size();
+    if (orig_size != pruned_size) {
+      LOG(log_si_) << getFullNodeAddress() << "Shorten trx pack from "
+                   << orig_size << " to " << pruned_size;
+    }
 
     for (auto const &t : list_trxs) {
+      accs_nonce_.update(t.getSender(), t.getNonce());
       to_be_packed_trx.emplace_back(t.getHash());
     }
   }

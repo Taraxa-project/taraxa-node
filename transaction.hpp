@@ -253,7 +253,7 @@ class TransactionQueue {
   bool stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions_ = true;
-  size_t num_verifiers_ = 1;
+  size_t num_verifiers_ = 4;
   TransactionStatusTable &trx_status_;
   AccountNonceTable &accs_nonce_;
   std::weak_ptr<FullNode> full_node_;
@@ -376,6 +376,7 @@ class TransactionManager
   TransactionStatusTable trx_status_;
   TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;
+  std::queue<Transaction> trx_requeued_;
   TransactionQueue trx_qu_;
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};

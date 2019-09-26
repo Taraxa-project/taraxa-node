@@ -74,7 +74,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // Insert a block in persistent storage and build in dag
   void insertBlock(DagBlock const &blk);
-  void insertBlockAndSign(DagBlock const &blk);
 
   // Only used in initial syncs when blocks are received with full list of
   // transactions
