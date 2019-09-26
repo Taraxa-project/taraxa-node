@@ -1,8 +1,10 @@
 #include "executor.hpp"
+#include <stdexcept>
 #include "full_node.hpp"
 #include "transaction.hpp"
 
 namespace taraxa {
+using namespace std;
 
 bool Executor::execute(TrxSchedule const& schedule,
                        BalanceTable& sortition_account_balance_table,
@@ -19,6 +21,8 @@ bool Executor::execute_main(TrxSchedule const& schedule,
   if (schedule.blk_order.empty()) {
     return true;
   }
+  trx_log_ << "Period " << period << endl;
+  trx_log_.flush();
   for (auto blk_i(0); blk_i < schedule.blk_order.size(); ++blk_i) {
     auto blk_hash = schedule.blk_order[blk_i];
     auto blk_bytes = db_blks_->get(blk_hash);
@@ -26,8 +30,10 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
     }
+    trx_log_ << "Block " << blk_hash << endl;
+    trx_log_.flush();
     DagBlock dag_block(blk_bytes);
-    auto trx_modes = schedule.vec_trx_modes[blk_i];
+    auto const& trx_modes = schedule.vec_trx_modes[blk_i];
     auto trxs_hashes = dag_block.getTrxs();
     auto num_trxs = trxs_hashes.size();
     int num_overlapped_trx(0);
@@ -35,8 +41,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
     std::vector<trx_engine::Transaction> trx_to_execute;
     for (auto trx_i(0); trx_i < num_trxs; ++trx_i) {
       auto const& trx_hash = trxs_hashes[trx_i];
-      auto mode = trx_modes[trx_i];
-      if (mode == 0) {
+      if (trx_modes[trx_i] == 0) {
         LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk_hash
                      << " is overlapped";
         num_overlapped_trx++;
@@ -49,6 +54,8 @@ bool Executor::execute_main(TrxSchedule const& schedule,
         LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
         continue;
       }
+      trx_log_ << trx_hash << endl;
+      trx_log_.flush();
       auto const& receiver = trx.getReceiver();
       trx_to_execute.push_back({
           receiver.isZero() ? std::nullopt : std::optional(receiver),
@@ -123,6 +130,8 @@ bool Executor::execute_basic(
     std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
         sortition_account_balance_table,
     uint64_t period) {
+  trx_log_ << "Period " << period << endl;
+  trx_log_.flush();
   if (sche.blk_order.empty()) {
     return true;
   }
@@ -131,6 +140,8 @@ bool Executor::execute_basic(
 
   for (auto i(0); i < sche.blk_order.size(); ++i) {
     auto blk = sche.blk_order[i];
+    trx_log_ << "Block " << blk << endl;
+    trx_log_.flush();
     auto trx_modes = sche.vec_trx_modes[i];
     if (!executeBlkTrxs(state, blk, trx_modes, sortition_account_balance_table,
                         period)) {
@@ -177,6 +188,8 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
+    trx_log_ << trx_hash << endl;
+    trx_log_.flush();
     if (!coinTransfer(state, trx, sortition_account_balance_table, period,
                       dag_block)) {
       continue;
@@ -205,6 +218,7 @@ bool Executor::coinTransfer(
   val_t sender_initial_coin = state.balance(sender);
   val_t receiver_initial_coin = state.balance(receiver);
   if (sender_initial_coin < trx.getValue()) {
+    throw std::runtime_error("insufficient balance");
     LOG(log_nf_) << "Insufficient fund for transfer ... , sender " << sender
                  << " , sender balance: " << sender_initial_coin
                  << " , transfer: " << value;
@@ -212,6 +226,7 @@ bool Executor::coinTransfer(
   }
   if (receiver_initial_coin >
       std::numeric_limits<uint64_t>::max() - trx.getValue()) {
+    throw std::runtime_error(" balance overflow");
     LOG(log_er_) << "Fund can overflow ...";
     return false;
   }

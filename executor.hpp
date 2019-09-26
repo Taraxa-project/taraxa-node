@@ -4,6 +4,7 @@
 #pragma once
 #include <atomic>
 #include <condition_variable>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <set>
@@ -13,6 +14,9 @@
 #include "pbft_chain.hpp"
 #include "state_registry.hpp"
 #include "trx_engine/trx_engine.hpp"
+#include "util.hpp"
+
+#include "iostream"
 #include "util.hpp"
 
 namespace taraxa {
@@ -37,6 +41,7 @@ class Executor {
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   using BalanceTable = std::unordered_map<addr_t, std::pair<val_t, int64_t>>;
+  std::ofstream trx_log_;
 
   // for debug purpose
   dev::Logger log_si_{
@@ -65,6 +70,8 @@ class Executor {
         trx_engine_({state_registry_->getAccountDbRaw(), noop()}),
         use_basic_executor_(use_basic_executor) {}
 
+  ~Executor() { trx_log_.close(); }
+
   bool execute(TrxSchedule const& schedule,
                BalanceTable& sortition_account_balance_table, uint64_t period);
 
@@ -72,6 +79,8 @@ class Executor {
   uint64_t getNumExecutedBlk() { return num_executed_blk_; }
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
+    trx_log_.open(fmt("trx_log_%s.txt", getFullNodeAddress()).data(),
+                  std::fstream::out | std::fstream::app);
   }
 
  private:
