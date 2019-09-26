@@ -52,7 +52,8 @@ class PbftManager {
     TWO_T_PLUS_ONE = two_t_plus_one;
   }
 
-  // only for test
+  // TODO: only for test
+  void setPbftThreshold(size_t const threshold) { sortition_threshold_ = threshold; }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
