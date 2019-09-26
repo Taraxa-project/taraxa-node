@@ -3,9 +3,9 @@
 
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
+#include <libethcore/Exceptions.h>
 #include <libethereum/Account.h>
 #include <libethereum/SecureTrieDB.h>
-#include <libethcore/Exceptions.h>
 #include <boost/filesystem.hpp>
 #include <tuple>
 

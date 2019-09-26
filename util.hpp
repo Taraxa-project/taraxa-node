@@ -278,9 +278,7 @@ std::optional<Pos> find(Where const &where, What const &what) {
   return std::nullopt;
 }
 
-inline auto noop() {
-  return [](auto...) -> auto {};
-}
+inline auto noop() { return [](auto...) -> auto {}; }
 
 }  // namespace taraxa
 
