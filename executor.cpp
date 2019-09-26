@@ -12,7 +12,7 @@ bool Executor::execute(TrxSchedule const& schedule,
   if (this->use_basic_executor_) {
     return execute_basic(schedule, sortition_account_balance_table, period);
   }
-  return execute_main(schedule, sortition_account_balance_table, period);
+  return execute_basic(schedule, sortition_account_balance_table, period);
 }
 
 bool Executor::execute_main(TrxSchedule const& schedule,
