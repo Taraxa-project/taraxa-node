@@ -80,8 +80,8 @@ TEST_F(VoteManagerTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setPbftThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes = vote_mgr->getVotes(pbft_round,
-                                               valid_sortition_players);
+  std::vector<Vote> votes =
+      vote_mgr->getVotes(pbft_round, valid_sortition_players);
   EXPECT_EQ(votes.size(), 4);
   for (Vote const& v : votes) {
     EXPECT_GT(v.getRound(), 1);
