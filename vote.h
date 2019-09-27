@@ -57,14 +57,17 @@ class VoteManager {
   sig_t signVote(secret_t const& node_sk, blk_hash_t const& block_hash,
                  PbftVoteTypes type, uint64_t round, size_t step);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
-                      val_t& account_balance, size_t sortition_threshold) const;
+                      size_t valid_sortition_players,
+                      size_t sortition_threshold) const;
 
   bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
-  std::vector<Vote> getVotes(uint64_t pbft_round);
-  std::vector<Vote> getVotes(uint64_t pbft_round, bool& sync_peers_pbft_chain);
+  std::vector<Vote> getVotes(uint64_t pbft_round,
+                             size_t valid_sortiton_players);
+  std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
+                             bool& sync_peers_pbft_chain);
 
   std::string getJsonStr(std::vector<Vote>& votes);
 

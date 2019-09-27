@@ -372,11 +372,12 @@ Json::Value Test::get_votes(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      uint64_t period = param1["period"].asUInt64();
-
-      std::vector<Vote> votes = node->getVotes(period);
-      VoteManager vote_mgr;
-      res = vote_mgr.getJsonStr(votes);
+      uint64_t pbft_round = param1["period"].asUInt64();
+      std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
+      std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
+      std::vector<Vote> votes = vote_mgr->getVotes(pbft_round,
+          pbft_mgr->sortition_account_balance_table.size());
+      res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

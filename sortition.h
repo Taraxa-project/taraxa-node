@@ -15,16 +15,12 @@
   "9935"
 #define SIGNATURE_HASH_SIZE_MAX 78
 
-// total TARAXA COINS (2^53 -1) "1fffffffffffff"
-#define TARAXA_COINS "9007199254740991"
-#define TARAXA_COINS_DECIMAL 9007199254740991
-
 namespace taraxa {
 using std::string;
 
 string hashSignature(dev::Signature signature);
 
-bool sortition(string signature, val_t account_balance, size_t threshold);
+bool sortition(string credential, size_t valid_players, size_t threshold);
 
 string hexToDecimal(string hex);
 

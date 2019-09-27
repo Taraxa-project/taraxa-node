@@ -29,7 +29,6 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       VALID_SORTITION_COINS(params[2]),
       DAG_BLOCKS_SIZE(params[3]),
       RUN_COUNT_VOTES(params[4]),
-      SORTITION_COINS_MAX(params[5]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
@@ -148,6 +147,9 @@ void PbftManager::run() {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
+      // reset next voted value since start a new round
+      next_voted_soft_value = false;
+      next_voted_null_block_hash = false;
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_inf_)
@@ -176,8 +178,9 @@ void PbftManager::run() {
 
     // Get votes
     bool sync_peers_pbft_chain = false;
-    std::vector<Vote> votes =
-        vote_mgr_->getVotes(pbft_round_ - 1, sync_peers_pbft_chain);
+    std::vector<Vote> votes = vote_mgr_->getVotes(
+        pbft_round_ - 1, sortition_account_balance_table.size(),
+        sync_peers_pbft_chain);
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
     if (sync_peers_pbft_chain) {
@@ -523,7 +526,7 @@ void PbftManager::run() {
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for this round";
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-          next_voted_null_block_hash = false;
+          next_voted_null_block_hash = true;
         }
       }
 
@@ -582,7 +585,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_err_) << "Full node unavailable";
     return false;
   }
-  addr_t account_address = getFullNodeAddress_();
+  addr_t account_address = full_node->getAddress();
   if (sortition_account_balance_table.find(account_address) ==
       sortition_account_balance_table.end()) {
     LOG(log_tra_) << "Don't have enough coins to vote";
@@ -612,9 +615,10 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
                         std::to_string(round) + std::to_string(step);
 
   dev::Signature sortition_signature = full_node->signMessage(message);
-  string sortition_signature_hash = taraxa::hashSignature(sortition_signature);
+  string sortition_credential = taraxa::hashSignature(sortition_signature);
 
-  if (!taraxa::sortition(sortition_signature_hash, account_balance.first,
+  if (!taraxa::sortition(sortition_credential,
+                         sortition_account_balance_table.size(),
                          sortition_threshold_)) {
     LOG(log_tra_) << "Don't get sortition";
     return false;
@@ -870,7 +874,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
 
     uint64_t propose_pbft_chain_period = pbft_chain_->getPbftChainPeriod() + 1;
-    addr_t beneficiary = getFullNodeAddress_();
+    addr_t beneficiary = full_node->getAddress();
     // generate pivot block
     PivotBlock pivot_block(prev_pivot_hash, prev_block_hash, dag_block_hash,
                            propose_pbft_chain_period, beneficiary);
@@ -878,7 +882,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     pbft_block.setPivotBlock(pivot_block);
 
     // propose pbft block
-    LOG(log_sil_) << getFullNodeAddress_() << " Propose pivot block in period "
+    LOG(log_sil_) << beneficiary << " Propose pivot block in period "
                   << propose_pbft_chain_period << " round " << pbft_round_
                   << " step " << pbft_step_ << " pivot: " << dag_block_hash;
 
@@ -924,7 +928,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     pbft_block.setScheduleBlock(schedule_block);
 
     // propose pbft block
-    LOG(log_sil_) << getFullNodeAddress_() << " Propose cs block in period "
+    LOG(log_sil_) << full_node->getAddress() << " Propose cs block in period "
                   << pbft_chain_period << " round " << pbft_round_ << " step "
                   << pbft_step_ << " pivot: " << dag_block_hash;
 
@@ -1174,7 +1178,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
           full_node->getDagBlockOrder(dag_block_hash);
 
       // Finalize pbft pivot block
-      LOG(log_sil_) << getFullNodeAddress_()
+      LOG(log_sil_) << full_node->getAddress()
                     << " Finalize pivot block in period "
                     << pbft_chain_->getPbftChainPeriod() << " round "
                     << pbft_round_ << " step " << pbft_step_
@@ -1208,7 +1212,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
             dag_block_hash, current_pbft_chain_period);
 
         // Finalize pbft concurent schedule block
-        LOG(log_sil_) << getFullNodeAddress_()
+        LOG(log_sil_) << full_node->getAddress()
                       << " Finalize cs block in period "
                       << current_pbft_chain_period << " round " << pbft_round_
                       << " step " << pbft_step_
@@ -1314,12 +1318,4 @@ void PbftManager::countVotes_() {
   }
 }
 
-addr_t PbftManager::getFullNodeAddress_() const {
-  auto full_node = node_.lock();
-  if (full_node) {
-    return full_node->getAddress();
-  } else {
-    return addr_t();
-  }
-}
 }  // namespace taraxa

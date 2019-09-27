@@ -12,6 +12,8 @@
 #include "types.hpp"
 #include "vote.h"
 
+// total TARAXA COINS (2^53 -1) "1fffffffffffff"
+#define TARAXA_COINS_DECIMAL 9007199254740991
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define LAMBDA_ms 1000           // milliseconds
 #define POLLING_INTERVAL_ms 100  // milliseconds...
@@ -27,7 +29,6 @@ class FullNode;
 
 class PbftManager {
  public:
-  PbftManager() {}
   PbftManager(std::string const &genesis);
   PbftManager(std::vector<uint> const &params, std::string const &genesis);
   ~PbftManager() {
@@ -51,7 +52,10 @@ class PbftManager {
     TWO_T_PLUS_ONE = two_t_plus_one;
   }
 
-  // only for test
+  // TODO: only for test
+  void setPbftThreshold(size_t const threshold) {
+    sortition_threshold_ = threshold;
+  }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
@@ -62,19 +66,16 @@ class PbftManager {
   // last_period_seen_trxs = -1 means never seen trxs
   std::unordered_map<addr_t, std::pair<val_t, int64_t>>
       sortition_account_balance_table;
-  u_long LAMBDA_ms;                  // TODO: Only for test, need remove later
-  size_t COMMITTEE_SIZE;             // TODO: Only for test, need remove later
-  uint64_t VALID_SORTITION_COINS;    // TODO: Only for test, need remove later
-  size_t DAG_BLOCKS_SIZE;            // TODO: Only for test, need remove later
-  bool RUN_COUNT_VOTES;              // TODO: Only for test, need remove later
-  uint64_t SORTITION_COINS_MAX = 0;  // TODO: Only for test, need remove later
+  u_long LAMBDA_ms;                // TODO: Only for test, need remove later
+  size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
+  uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
+  size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
+  bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
   // When PBFT pivot block finalized, period = period + 1,
   // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
   uint64_t SKIP_PERIODS = 1;
 
  private:
-  addr_t getFullNodeAddress_() const;
-
   uint64_t roundDeterminedFromVotes_();
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);

@@ -120,7 +120,7 @@ sig_t VoteManager::signVote(secret_t const& node_sk,
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
-                                 taraxa::val_t& account_balance,
+                                 size_t valid_sortition_players,
                                  size_t sortition_threshold) const {
   PbftVoteTypes type = vote.getType();
   uint64_t round = vote.getRound();
@@ -158,7 +158,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   // verify sortition
   std::string sortition_signature_hash =
       taraxa::hashSignature(sortition_signature);
-  if (!taraxa::sortition(sortition_signature_hash, account_balance,
+  if (!taraxa::sortition(sortition_signature_hash, valid_sortition_players,
                          sortition_threshold)) {
     LOG(log_war_) << "Vote sortition failed, sortition signature "
                   << sortition_signature;
@@ -226,7 +226,8 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
 }
 
 // Return all verified votes >= pbft_round
-std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
+std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
+                                        size_t valid_sortition_players) {
   cleanupVotes(pbft_round);
 
   std::vector<Vote> verified_votes;
@@ -244,6 +245,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
+    // TODO: or search in PBFT sortition_account_balance_table?
     addr_t vote_address = dev::toAddress(v.getPublicKey());
     std::pair<val_t, bool> account_balance =
         full_node->getBalance(vote_address);
@@ -254,7 +256,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
                     << v.getHash() << " vote address: " << vote_address;
       continue;
     }
-    if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+    if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
     }
@@ -265,6 +267,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round) {
 
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
+                                        size_t valid_sortition_players,
                                         bool& sync_peers_pbft_chain) {
   cleanupVotes(pbft_round);
 
@@ -283,6 +286,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
+    // TODO: or search in PBFT sortition_account_balance_table?
     addr_t vote_address = dev::toAddress(v.getPublicKey());
     std::pair<val_t, bool> account_balance =
         full_node->getBalance(vote_address);
@@ -294,7 +298,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       sync_peers_pbft_chain = true;
       continue;
     }
-    if (voteValidation(last_pbft_block_hash, v, account_balance.first,
+    if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
     }

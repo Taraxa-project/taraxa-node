@@ -9,7 +9,6 @@
 #include "sortition.h"
 
 #include "libdevcore/SHA3.h"
-#include "pbft_manager.hpp"
 
 #include <boost/multiprecision/cpp_int.hpp>
 #include <deque>
@@ -28,45 +27,35 @@ string hashSignature(dev::Signature signature) {
 
 /*
  * Sortition return true:
- * HASH(signature()) / SIGNATURE_HASH_MAX < account balance / TARAXA_COINS *
- * sortition_threshold otherwise return false
+ * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
+ * otherwise return false
  */
-bool sortition(string signature_hash, val_t account_balance, size_t threshold) {
-  if (signature_hash.length() != 64) {
-    LOG(log_error_) << "signature has string length should be 64, but "
-                    << signature_hash.length() << " given" << std::endl;
+bool sortition(string credential, size_t valid_players, size_t threshold) {
+  if (credential.length() != 64) {
+    LOG(log_error_) << "Credential string length should be 64, but "
+                    << credential.length() << " given";
     return false;
   }
-  string signature_hash_decimal = taraxa::hexToDecimal(signature_hash);
-  if (signature_hash_decimal.empty()) {
-    LOG(log_error_) << "Cannot convert singature hash from hex to decimal";
+  string credential_decimal = taraxa::hexToDecimal(credential);
+  if (credential_decimal.empty()) {
+    LOG(log_error_) << "Cannot convert credential from hex to decimal";
     return false;
-  }
-
-  // TODO: should remove, or move to pbft manager
-  uint64_t max_coins;
-  PbftManager pbft_manager;
-  if (pbft_manager.SORTITION_COINS_MAX) {
-    max_coins = pbft_manager.SORTITION_COINS_MAX;
-  } else {
-    max_coins = TARAXA_COINS_DECIMAL;
   }
 
   string sum_left;
   string sum_right;
-  sum_left = taraxa::bigNumberMultiplication(signature_hash_decimal,
-                                             std::to_string(max_coins));
+  sum_left = taraxa::bigNumberMultiplication(credential_decimal,
+                                             std::to_string(valid_players));
   if (sum_left.empty()) {
-    LOG(log_error_) << "Failed multiplication of signature hash * total coins";
+    LOG(log_error_) << "Failed multiplication of "
+                    << "credential * total number of valid sortition players";
     return false;
   }
-  val_t sum = account_balance * threshold;
-  sum_right =
-      taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX, toString(sum));
+  sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX,
+                                              std::to_string(valid_players));
   if (sum_right.empty()) {
     LOG(log_error_)
-        << "Failed multiplication of "
-        << "max signature hash * account balance * sortition threshold";
+        << "Failed multiplication of max signature hash * sortition threshold";
     return false;
   }
 
@@ -75,7 +64,7 @@ bool sortition(string signature_hash, val_t account_balance, size_t threshold) {
   } else if (sum_left.length() > sum_right.length()) {
     return false;
   } else {
-    return sum_left < sum_right;
+    return sum_left <= sum_right;
   }
 }
 
