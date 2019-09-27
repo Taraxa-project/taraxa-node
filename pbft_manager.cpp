@@ -165,8 +165,15 @@ void PbftManager::run() {
       // NOTE: This also sets pbft_step back to 1
       round_clock_initial_datetime = now;
 
+      // reset starting value to NULL_BLOCK_HASH
+      own_starting_value_for_round = NULL_BLOCK_HASH;
+
       have_executed_this_round = false;
       should_have_cert_voted_in_this_round = false;
+
+      // reset next voted value since start a new round
+      next_voted_null_block_hash = false;
+      next_voted_soft_value = false; 
 
       last_step_ = pbft_step_;
       pbft_step_ = 1;
@@ -524,13 +531,19 @@ void PbftManager::run() {
             nullBlockNextVotedForRoundAndStep_(votes, pbft_round_ - 1) &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
-          LOG(log_deb_) << "Next voting NULL BLOCK for this round";
+          LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
+          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
+          next_voted_null_block_hash = true;
+        }
+        if (!next_voted_soft_value && !next_voted_null_block_hash && pbft_step_ >= MAX_STEPS) {
+          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS for for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
       }
 
       if (pbft_step_ >= MAX_STEPS) {
+        /*
         pbft_round_ += 1;
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
                       << pbft_round_ << ", step 1, and resetting clock.";
@@ -549,6 +562,7 @@ void PbftManager::run() {
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
         round_clock_initial_datetime = std::chrono::system_clock::now();
+        */
         continue;
       } else if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms +
                                                 STEP_4_DELAY -
