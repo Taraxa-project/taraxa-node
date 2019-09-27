@@ -307,7 +307,7 @@ void TransactionQueue::verifyQueuedTrxs() {
     }
     try {
       trx_hash_t hash = item.first;
-      Transaction &trx = *(item.second);
+      Transaction trx = *(item.second);
       // verify and put the transaction to verified queue
       bool valid = false;
       if (mode_ == VerifyMode::skip_verify_sig) {
@@ -323,37 +323,19 @@ void TransactionQueue::verifyQueuedTrxs() {
           trx_buffer_.erase(queued_trxs_[hash]);
           queued_trxs_.erase(hash);
         }
-        LOG(log_wr_) << getFullNodeAddress() << "Trx: " << hash << "invalid. "
+        LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash << "invalid. "
                      << std::endl;
         continue;
       }
-
-      // auto trx_hash = trx.getHash();
-      // auto trx_sender = trx.getSender();
-      // auto trx_nonce = trx.getNonce();
-      // auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
-      // auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
-      // if (trx_nonce - prev_nonce > 1) {
-      //   LOG(log_nf_) << getFullNodeAddress()
-      //                << " Verifying trx ... find a gap in sender " <<
-      //                trx_sender
-      //                << " prev nonce: " << prev_nonce << " current nonce "
-      //                << trx_nonce << " trx: " << trx_hash;
-      // }
-      // LOG(log_dg_) << getFullNodeAddress()
-      //              << " Verifying trx ... update sender " << trx_sender
-      //              << " nonce " << new_nonce << " in trx " << trx_hash;
-      // accs_nonce_.update(trx_sender, new_nonce);
-
-      // push to verified qu
-      // LOG(log_nf_) << "Trx: " << hash << " verified OK." << std::endl;
       bool ret = trx_status_.update(trx.getHash(),
                                     TransactionStatus::in_queue_verified,
                                     TransactionStatus::in_queue_unverified);
       if (ret) {
-        uLock lock(shared_mutex_for_verified_qu_);
-        verified_trxs_[hash] = item.second;
-        new_verified_transactions_ = true;
+        {
+          uLock lock(shared_mutex_for_verified_qu_);
+          verified_trxs_[hash] = item.second;
+          new_verified_transactions_ = true;
+        }
       }
 
     } catch (...) {
@@ -417,8 +399,7 @@ std::vector<Transaction> TransactionQueue::getNewVerifiedTrxSnapShot() {
     for (auto const &trx : verified_trxs_) {
       verified_trxs.emplace_back(*(trx.second));
     }
-    LOG(log_dg_) << "Get: " << verified_trxs.size() << " verified trx out. "
-                 << std::endl;
+      LOG(log_dg_) << "Get: " << verified_trxs.size() << "verified trx out for gossiping "<< std::endl;
   }
   return verified_trxs;
 }
@@ -564,20 +545,21 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
       auto trx_hash = trx.getHash();
-      auto trx_sender = trx.getSender();
-      auto trx_nonce = trx.getNonce();
+      // auto trx_sender = trx.getSender();
+      // auto trx_nonce = trx.getNonce();
 
       db_trxs_->update(trx_hash, trx.rlp(trx.hasSig()));
       trx_status_.update(trx_hash, TransactionStatus::in_block);
-      auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
-      auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
-      if (trx_nonce - prev_nonce > 1) {
-        LOG(log_nf_) << getFullNodeAddress()
-                     << " Verifying block ... find a gap in sender "
-                     << trx_sender << " prev nonce: " << prev_nonce
-                     << " current nonce " << trx_nonce << " trx: " << trx_hash;
-      }
-      accs_nonce_.update(trx_sender, new_nonce);
+      // auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
+      // auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
+      // if (trx_nonce - prev_nonce > 1) {
+      //   LOG(log_dg_) << getFullNodeAddress()
+      //                << " Verifying block ... find a gap in sender "
+      //                << trx_sender << " prev nonce: " << prev_nonce
+      //                << " current nonce " << trx_nonce << " trx: " <<
+      //                trx_hash;
+      // }
+      // accs_nonce_.update(trx_sender, new_nonce);
     }
     db_trxs_->commit();
   }
@@ -717,6 +699,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     auto iter = list_trxs.begin();
     iter++;
     // filter out nonce gaps (drop transctions that have gap)
+    int outdated_trx = 0;
+    int gapped_trx = 0;
     while (iter != list_trxs.end()) {
       auto prev_iter = std::prev(iter);
       auto curr_sender = iter->getSender();
@@ -724,11 +708,12 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
 
       auto [curr_sender_prev_nonce, exist] = accs_nonce_.get(curr_sender);
       if (exist && curr_sender_prev_nonce >= curr_nonce) {
-        LOG(log_dg_) << getFullNodeAddress() << "Remove trx " << iter->getHash()
+        LOG(log_dg_) << getFullNodeAddress() << " Remove trx " << iter->getHash()
                      << "Sender " << curr_sender << " Nonce " << curr_nonce
                      << " too old, because prev sender nonce on file is "
                      << curr_sender_prev_nonce;
         iter = list_trxs.erase(iter);
+        outdated_trx++;
         continue;
       }
 
@@ -737,13 +722,14 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
       if (curr_sender == prev_sender) {
         auto prev_nonce = prev_iter->getNonce();
         if (curr_nonce != (prev_nonce + 1)) {
-          LOG(log_nf_) << getFullNodeAddress() << "Remove trx "
+          LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
                        << iter->getHash() << "Sender " << curr_sender
-                       << " Nonce " << curr_nonce << " because prev nonce is "
+                       << " Nonce " << curr_nonce << " because prev nonce is"
                        << prev_nonce << " nonce table is "
                        << accs_nonce_.get(curr_sender).first;
           trx_requeued_.push(*iter);
           iter = list_trxs.erase(iter);
+          gapped_trx++;
           continue;
         }
       }
@@ -751,12 +737,13 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     }
     auto pruned_size = list_trxs.size();
     if (orig_size != pruned_size) {
-      LOG(log_si_) << getFullNodeAddress() << "Shorten trx pack from "
-                   << orig_size << " to " << pruned_size;
+      LOG(log_si_) << getFullNodeAddress() << " Shorten trx pack from "
+                   << orig_size << " to " << pruned_size << " outdated "
+                   << outdated_trx << " gapped " << gapped_trx;
     }
 
     for (auto const &t : list_trxs) {
-      accs_nonce_.update(t.getSender(), t.getNonce());
+      // accs_nonce_.update(t.getSender(), t.getNonce());
       to_be_packed_trx.emplace_back(t.getHash());
     }
   }
@@ -787,7 +774,24 @@ bool TransactionManager::verifyBlockTransactions(
   }
   return true;
 }
-
+void TransactionManager::updateNonce(DagBlock const &blk) {
+  for (auto const &t : blk.getTrxs()) {
+    auto trx = getTransaction(t);
+    assert(trx);
+    auto trx_sender = trx->first.getSender();
+    auto trx_hash = trx->first.getHash();
+    auto [prev_nonce, exist] = accs_nonce_.get(trx_sender);
+    auto trx_nonce = trx->first.getNonce();
+    auto new_nonce = trx_nonce > prev_nonce ? trx_nonce : prev_nonce;
+    if (trx_nonce - prev_nonce > 1) {
+      LOG(log_dg_) << getFullNodeAddress()
+                   << " Verifying block ... find a gap in sender " << trx_sender
+                   << " prev nonce: " << prev_nonce << " current nonce "
+                   << trx_nonce << " trx: " << trx_hash;
+    }
+    accs_nonce_.update(trx_sender, new_nonce);
+  }
+}
 addr_t TransactionManager::getFullNodeAddress() const {
   auto full_node = full_node_.lock();
   if (full_node) {

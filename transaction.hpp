@@ -264,7 +264,6 @@ class TransactionQueue {
 
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
   mutable boost::shared_mutex shared_mutex_for_verified_qu_;
-
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
@@ -363,6 +362,7 @@ class TransactionManager
   TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
     return trx_status_.getRawMap();
   }
+  void updateNonce(DagBlock const &blk);
 
  private:
   addr_t getFullNodeAddress() const;

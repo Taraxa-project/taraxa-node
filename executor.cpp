@@ -125,7 +125,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       }
     }
     num_executed_blk_.fetch_add(1);
-    LOG(log_si_) << getFullNodeAddress() << ": Block number "
+    LOG(log_si_) << getFullNodeAddress() << " : Block number "
                  << num_executed_blk_ << ": " << blk_hash
                  << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                  << " / " << num_trxs;
@@ -199,8 +199,8 @@ bool Executor::executeBlkTrxs(
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  LOG(log_si_) << getFullNodeAddress() << ": Block number " << num_executed_blk_
-               << ": " << blk
+  LOG(log_si_) << getFullNodeAddress() << " : Block number "
+               << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                << " / " << num_trxs;
   return true;

@@ -322,6 +322,7 @@ void FullNode::start(bool boot_node) {
             auto block_bytes = blk.rlp(true);
             db_blks_->put(blk.getHash(), block_bytes);
             db_blks_->commit();
+            trx_mgr_->updateNonce(blk);
             auto level = blk.getLevel();
             h256 level_key(level);
             std::string blocks = db_blks_index_->get(level_key.toString());

@@ -601,7 +601,7 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
-    LOG(log_er_) << getFullNodeAddress() << "Inserting period (" << period
+    LOG(log_er_) << getFullNodeAddress() << " Inserting period (" << period
                  << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
                  << anchors_.size() - 1 << ") " << anchors_.back();
@@ -615,7 +615,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {
-    LOG(log_er_) << getFullNodeAddress() << "Create epoch " << period
+    LOG(log_er_) << getFullNodeAddress() << " Create epoch " << period
                  << " from " << blk_hash_t(prev) << " to " << anchor
                  << " failed ";
     return 0;
