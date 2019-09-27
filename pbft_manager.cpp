@@ -326,15 +326,23 @@ void PbftManager::run() {
                       << pbft_round_;
         should_go_to_step_four = true;
       } else if (should_have_cert_voted_in_this_round == false) {
-        LOG(log_tra_) << "In step 3";
+        LOG(log_deb_) << "In step 3";
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
+        
+        LOG(log_deb_) << "Finished softVotedBlockForRound_";
+             
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
+          
+          LOG(log_deb_) << "Finished comparePbftCSblockWithDAGblocks_";
+
           if (checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
+            LOG(log_deb_) << "checkPbftBlockValid_ returned true";
+
             cert_voted_values_for_round[pbft_round_] =
                 soft_voted_block_for_this_round.first;
 
@@ -351,6 +359,7 @@ void PbftManager::run() {
           } else {
             // Get partition, need send request to get missing pbft blocks from
             // peers
+            LOG(log_deb_) << "Calling syncPbftChainFromPeers_";
             syncPbftChainFromPeers_();
           }
         }
