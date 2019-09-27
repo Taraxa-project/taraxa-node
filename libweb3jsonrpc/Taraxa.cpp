@@ -43,6 +43,16 @@ string Taraxa::taraxa_blockNumber() {
   return toJS(getSnapshot(tryGetNode(), BlockNumber::latest)->block_number);
 }
 
+string Taraxa::taraxa_dagBlockLevel() {
+  auto node = tryGetNode();
+  return toJS(node->getMaxDagLevel());
+}
+
+string Taraxa::taraxa_dagBlockPeriod() {
+  auto node = tryGetNode();
+  return toJS(node->getLatestPeriod());
+}
+
 string Taraxa::taraxa_getBalance(string const& _address,
                                  string const& _blockNumber) {
   auto state = getState(tryGetNode(), BlockNumber::from(_blockNumber));
@@ -441,6 +451,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
             node->getTransaction(t)->first.getJson());
       }
     }
+    //node->getperi
     return block_json;
   }
   return JSON_NULL;

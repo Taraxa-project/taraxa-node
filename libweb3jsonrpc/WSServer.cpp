@@ -179,12 +179,14 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk) {
+void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk, uint32_t block_number) {
   if (new_schedule_block_executed_subscription_) {
-    Json::Value res, params;
+    Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = sche_blk.getJson();
+    result["schedule_block"] = sche_blk.getJson();
+    result["block_number"] = block_number;
+    params["result"] = result;
     params["subscription"] =
         dev::toJS(new_schedule_block_executed_subscription_);
     res["params"] = params;
@@ -308,9 +310,9 @@ void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSServer::newScheduleBlockExecuted(ScheduleBlock const &sche_blk) {
+void WSServer::newScheduleBlockExecuted(ScheduleBlock const &sche_blk, uint32_t block_number) {
   for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newScheduleBlockExecuted(sche_blk);
+    if (!session->is_closed()) session->newScheduleBlockExecuted(sche_blk, block_number);
   }
 }
 

@@ -15,14 +15,20 @@ namespace dev {
 namespace rpc {
 
 inline taraxa::dag_blk_num_t to_blk_num(std::string const& str) {
-  assert(str.find("0x") == 0);
+  if ((str.find("0x") != 0))
+    BOOST_THROW_EXCEPTION(
+        jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS));
   return stoull(str, 0, 16);
 }
 
 inline taraxa::trx_num_t to_trx_num(std::string const& str) {
-  assert(str.find("0x") == 0);
+  if ((str.find("0x") != 0))
+    BOOST_THROW_EXCEPTION(
+        jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS));
   auto const& num = stoull(str, 0, 16);
-  assert(num <= std::numeric_limits<taraxa::trx_num_t>::max());
+  if (num > std::numeric_limits<taraxa::trx_num_t>::max())
+    BOOST_THROW_EXCEPTION(
+        jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS));
   return taraxa::trx_num_t(num);
 }
 
@@ -152,11 +158,13 @@ class Taraxa : public dev::rpc::TaraxaFace {
   }
   virtual Json::Value taraxa_syncing() override;
   virtual std::string taraxa_chainId() override;
-  virtual Json::Value taraxa_getDagBlockByHash(std::string const& _blockHash,
-                                            bool _includeTransactions) override;
+  virtual Json::Value taraxa_getDagBlockByHash(
+      std::string const& _blockHash, bool _includeTransactions) override;
   virtual Json::Value taraxa_getDagBlockByLevel(
       std::string const& _blockLevel, bool _includeTransactions) override;
-  
+  virtual std::string taraxa_dagBlockLevel() override;
+  virtual std::string taraxa_dagBlockPeriod() override;
+
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;
 
