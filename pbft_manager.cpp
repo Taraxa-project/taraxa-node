@@ -56,6 +56,8 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   }
   sortition_account_balance_table[master_boot_node_address] =
       std::make_pair(master_boot_node_account_balance.first, 0);
+  new_sortition_account_balance_table[master_boot_node_address] =
+      std::make_pair(master_boot_node_account_balance.first, 0);
 }
 
 void PbftManager::start() {
@@ -150,10 +152,12 @@ void PbftManager::run() {
       // reset next voted value since start a new round
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
-      if (executed_cs_block) {
+      if (executed_cs_block_) {
+        // update sortition account balance table
+        updateSortitionAccountBalanceTable_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
-        executed_cs_block = false;
+        executed_cs_block_ = false;
       }
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
@@ -1243,12 +1247,12 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         //  pairs<addr_t, val_t>.
         //  Will need update sortition_account_balance_table here
         uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-        if (!full_node->executeScheduleBlock(pbft_block.getScheduleBlock(),
-                                             sortition_account_balance_table,
-                                             pbft_period)) {
+        if (!full_node->executeScheduleBlock(
+                pbft_block.getScheduleBlock(),
+                new_sortition_account_balance_table, pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
-        executed_cs_block = true;
+        executed_cs_block_ = true;
         return true;
       }
     }
@@ -1285,6 +1289,13 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << sortition_threshold_ << ", valid voting players "
                 << players_size << ", active players " << active_players
                 << " since period " << since_period;
+}
+
+void PbftManager::updateSortitionAccountBalanceTable_() {
+  sortition_account_balance_table.clear();
+  for (auto const &account : new_sortition_account_balance_table) {
+    sortition_account_balance_table[account.first] = account.second;
+  }
 }
 
 void PbftManager::countVotes_() {

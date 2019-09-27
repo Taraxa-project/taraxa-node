@@ -66,6 +66,9 @@ class PbftManager {
   // last_period_seen_trxs = -1 means never seen trxs
   std::unordered_map<addr_t, std::pair<val_t, int64_t>>
       sortition_account_balance_table;
+  // TODO: temp using, need remove later
+  std::unordered_map<addr_t, std::pair<val_t, int64_t>>
+      new_sortition_account_balance_table;
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
@@ -123,6 +126,8 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
+  void updateSortitionAccountBalanceTable_();
+
   bool stopped_ = true;
   // Using to check if PBFT CS block has proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
@@ -140,7 +145,7 @@ class PbftManager {
   uint64_t pbft_round_ = 1;
   uint64_t pbft_round_last_ = 1;
   size_t pbft_step_ = 1;
-  bool executed_cs_block = false;
+  bool executed_cs_block_ = false;
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
