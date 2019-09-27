@@ -97,35 +97,35 @@ void send_5_nodes_trxs() {
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 5, 
                                       "number": 2000, 
-                                      "nonce": 1, 
+                                      "nonce": 4, 
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
   std::string sendtrx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 7, 
                                       "number": 2000, 
-                                      "nonce": 2,
+                                      "nonce": 0,
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778 > /dev/null)";
   std::string sendtrx3 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
                                       "delay": 3, 
                                       "number": 2000, 
-                                      "nonce": 3,
+                                      "nonce": 0,
                                       "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779 > /dev/null)";
   std::string sendtrx4 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
                                       "delay": 10, 
                                       "number": 2000, 
-                                      "nonce": 4,
+                                      "nonce": 0,
                                       "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780 > /dev/null)";
   std::string sendtrx5 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
                                       "delay": 2,
                                       "number": 2000, 
-                                      "nonce": 5,
+                                      "nonce": 0,
                                       "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781 > /dev/null)";
   std::cout << "Sending trxs ..." << std::endl;
   std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
@@ -143,7 +143,7 @@ void send_5_nodes_trxs() {
   std::cout << "All trxs sent..." << std::endl;
 }
 
-void send_dumm_trx() {
+void send_dummy_trx() {
   taraxa::thisThreadSleepForSeconds(40);
   std::string dummy_trx =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
@@ -152,7 +152,7 @@ void send_dumm_trx() {
                                         "value": 0, 
                                         "gas_price": 1, 
                                         "gas": 100000,
-                                        "nonce": 1, 
+                                        "nonce": 2004, 
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
@@ -569,7 +569,7 @@ TEST_F(TopTest, sync_five_nodes) {
 
   // send dummy trx to make sure all DAGs are ordered
   try {
-    send_dumm_trx();
+    send_dummy_trx();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -611,23 +611,53 @@ TEST_F(TopTest, sync_five_nodes) {
     auto trx_packed5 = node5->getPackedTrxs().size();
 
     if (trx_packed1 < trx_executed1) {
-      std::cout << "Warning! " << trx_packed1 << " packed transactions is less than " << trx_executed1 << " executed transactions in node 1";
+      std::cout << "Warning! " << trx_packed1
+                << " packed transactions is less than " << trx_executed1
+                << " executed transactions in node 1";
     }
 
     if (trx_executed1 == 10005 && trx_executed2 == 10005 &&
         trx_executed3 == 10005 && trx_executed4 == 10005 &&
         trx_executed5 == 10005) {
-
       if (trx_packed1 == 10005 && trx_packed2 == 10005 &&
           trx_packed3 == 10005 && trx_packed4 == 10005 &&
           trx_packed5 == 10005) {
         break;
       } else {
-        std::cout << "Warning! See all nodes with 10005 executed transactions, but not all nodes yet see 10005 packed transactions!!!";
+        std::cout << "Warning! See all nodes with 10005 executed transactions, "
+                     "but not all nodes yet see 10005 packed transactions!!!";
       }
     }
-    
+
     taraxa::thisThreadSleepForMilliSeconds(500);
+    if (i % 100 == 0) {
+      std::cout << " Wait for syncing ... " << i << "/" << TIMEOUT << std::endl;
+      if (trx_executed1 != 10005) {
+        std::cout << " Node 1: executed blk= " << node1->getNumBlockExecuted()
+                  << " executed trx = " << trx_executed1 << "/10005"
+                  << std::endl;
+      }
+      if (trx_executed2 != 10005) {
+        std::cout << " Node 2: executed blk= " << node2->getNumBlockExecuted()
+                  << " executed trx = " << trx_executed2 << "/10005"
+                  << std::endl;
+      }
+      if (trx_executed3 != 10005) {
+        std::cout << " Node 3: executed blk= " << node3->getNumBlockExecuted()
+                  << " executed trx = " << trx_executed3 << "/10005"
+                  << std::endl;
+      }
+      if (trx_executed4 != 10005) {
+        std::cout << " Node 4: executed blk= " << node4->getNumBlockExecuted()
+                  << " executed trx = " << trx_executed4 << "/10005"
+                  << std::endl;
+      }
+      if (trx_executed5 != 10005) {
+        std::cout << " Node 5: executed blk= " << node5->getNumBlockExecuted()
+                  << " executed trx = " << trx_executed5 << "/10005"
+                  << std::endl;
+      }
+    }
     if (i == TIMEOUT - 1) {
       // last wait
       std::cout << "Warning! Syncing maybe failed ..." << std::endl;
@@ -2011,7 +2041,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
 
   // send dummy trx to make sure all DAGs are ordered
   try {
-    send_dumm_trx();
+    send_dummy_trx();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
