@@ -150,6 +150,11 @@ void PbftManager::run() {
       // reset next voted value since start a new round
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
+      if (executed_cs_block) {
+        // reset sortition_threshold and TWO_T_PLUS_ONE
+        updateTwoTPlusOneAndThreshold_();
+        executed_cs_block = false;
+      }
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_inf_)
@@ -1243,10 +1248,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
                                              pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
-
-        // reset sortition_threshold and TWO_T_PLUS_ONE
-        updateTwoTPlusOneAndThreshold_();
-
+        executed_cs_block = true;
         return true;
       }
     }

@@ -140,6 +140,7 @@ class PbftManager {
   uint64_t pbft_round_ = 1;
   uint64_t pbft_round_last_ = 1;
   size_t pbft_step_ = 1;
+  bool executed_cs_block = false;
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
