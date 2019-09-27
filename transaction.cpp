@@ -685,7 +685,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx) {
     changed = true;
 
     auto [status, exist2] = trx_status_.get(hash);
-    assert(exist2);
+    //assert(exist2);  //NO LONGER VALID DUE TO OUR TRUNCATION OF THE TABLE
     LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
     // update transaction_status
     trx_status_.update(hash, TransactionStatus::in_block);
