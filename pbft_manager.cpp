@@ -147,6 +147,9 @@ void PbftManager::run() {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
+      // reset next voted value since start a new round
+      next_voted_soft_value = false;
+      next_voted_null_block_hash = false;
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
         LOG(log_inf_)
@@ -514,7 +517,7 @@ void PbftManager::run() {
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for this round";
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-          next_voted_null_block_hash = false;
+          next_voted_null_block_hash = true;
         }
       }
 
