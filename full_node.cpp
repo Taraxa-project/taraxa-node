@@ -721,7 +721,12 @@ bool FullNode::executeScheduleBlock(
   auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
   res |= executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table, period);
-  if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk);
+  uint64_t block_number = 0;
+  if (sche_blk.getSchedule().blk_order.size() > 0)
+    block_number =
+        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().blk_order[0])
+            .second;
+  if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk, block_number);
   return res;
 }
 
