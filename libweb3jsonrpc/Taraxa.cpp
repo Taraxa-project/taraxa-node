@@ -69,6 +69,16 @@ string Taraxa::taraxa_dagBlockPeriod() {
   }
 }
 
+string Taraxa::taraxa_dagBlockLevel() {
+  auto node = tryGetNode();
+  return toJS(node->getMaxDagLevel());
+}
+
+string Taraxa::taraxa_dagBlockPeriod() {
+  auto node = tryGetNode();
+  return toJS(node->getLatestPeriod());
+}
+
 string Taraxa::taraxa_getBalance(string const& _address,
                                  string const& _blockNumber) {
   try {
