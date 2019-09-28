@@ -174,9 +174,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
-  // Get max level
-  unsigned long getDagMaxLevel() const { return max_dag_level_; }
-
   // PBFT
   bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
@@ -251,9 +248,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   public_t node_pk_;
   addr_t node_addr_;
   addr_t master_boot_node_address_;
-
-  // DAG max level
-  unsigned long max_dag_level_ = 0;
 
   // network
   std::shared_ptr<Network> network_;

@@ -102,7 +102,7 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
         return;  // This would probably mean that the peer is corrupted as well
 
       if (peer->m_state == Syncing && peer_syncing_ == _nodeID) {
-        syncPeer(_nodeID, full_node->getDagMaxLevel() + 1);
+        syncPeer(_nodeID, full_node->getMaxDagLevel() + 1);
       }
     }
   }
@@ -221,7 +221,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (num_vertices > max_peer_vertices_) {
             max_peer_vertices_ = num_vertices;
             peer_syncing_ = _nodeID;
-            syncPeer(_nodeID, full_node->getDagMaxLevel());
+            syncPeer(_nodeID, full_node->getMaxDagLevel());
             syncPeerPbft(_nodeID);
           }
         }
@@ -516,7 +516,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
     if (auto full_node = full_node_.lock()) {
       if (!stopped_) {
         peer_syncing_ = max_vertices_nodeID;
-        syncPeer(max_vertices_nodeID, full_node->getDagMaxLevel());
+        syncPeer(max_vertices_nodeID, full_node->getMaxDagLevel());
         syncPeerPbft(max_vertices_nodeID);
       }
     }

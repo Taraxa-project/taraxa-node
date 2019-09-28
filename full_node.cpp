@@ -178,7 +178,6 @@ void FullNode::initDB(bool destroy_db) {
         if (block_bytes.size() > 0) {
           auto blk = DagBlock(block_bytes);
           dag_mgr_->addDagBlock(blk);
-          max_dag_level_ = level;
         }
       }
       level++;
@@ -302,7 +301,6 @@ void FullNode::start(bool boot_node) {
           auto level = blk.getLevel();
           h256 level_key(level);
           std::string blocks = db_blks_index_->get(level_key.toString());
-          if (level > max_dag_level_) max_dag_level_ = level;
           if (blocks == "") {
             db_blks_index_->put(level_key.toString(), blk.getHash().toString());
           } else {
@@ -399,7 +397,6 @@ bool FullNode::reset() {
 
   assert(pbft_chain_.use_count() == 0);
 
-  max_dag_level_ = 0;
   received_blocks_ = 0;
   received_trxs_ = 0;
 
