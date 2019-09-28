@@ -241,7 +241,7 @@ void PbftManager::run() {
 
     // We skip step 4 due to having missed it while executing....
     if (have_executed_this_round == true &&
-        elapsed_time_in_round_ms > 4 * LAMBDA_ms + STEP_4_DELAY &&
+        elapsed_time_in_round_ms > 4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
         pbft_step_ == 3) {
       pbft_step_ = 5;
     }
@@ -425,7 +425,7 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 5) {
-      if (elapsed_time_in_round_ms > 6 * LAMBDA_ms + STEP_4_DELAY) {
+      if (elapsed_time_in_round_ms > 6 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
         // Should not happen, add log here for safety checking
         if (have_executed_this_round == true) {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_
@@ -507,7 +507,7 @@ void PbftManager::run() {
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
       if (elapsed_time_in_round_ms >
-          (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY) {
+          (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
         // Should not happen, add log here for safety checking
         if (have_executed_this_round == true) {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step "
