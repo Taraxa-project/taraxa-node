@@ -182,7 +182,7 @@ void PbftManager::run() {
 
       // reset next voted value since start a new round
       next_voted_null_block_hash = false;
-      next_voted_soft_value = false; 
+      next_voted_soft_value = false;
 
       last_step_ = pbft_step_;
       pbft_step_ = 1;
@@ -348,15 +348,14 @@ void PbftManager::run() {
         LOG(log_tra_) << "In step 3";
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        
+
         LOG(log_tra_) << "Finished softVotedBlockForRound_";
-             
+
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
-          
           LOG(log_tra_) << "Finished comparePbftCSblockWithDAGblocks_";
 
           if (checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
@@ -544,8 +543,11 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
-        if (!next_voted_soft_value && !next_voted_null_block_hash && pbft_step_ >= MAX_STEPS) {
-          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS for for round " << pbft_round_;
+        if (!next_voted_soft_value && !next_voted_null_block_hash &&
+            pbft_step_ >= MAX_STEPS) {
+          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS "
+                           "for for round "
+                        << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
@@ -1211,8 +1213,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
                       << pbft_round_;
         // get dag blocks order
         blk_hash_t last_pivot_block_hash = pbft_chain_->getLastPbftPivotHash();
-        PbftBlock last_pivot_block = pbft_chain_->getPbftBlockInChain(
-            last_pivot_block_hash);
+        PbftBlock last_pivot_block =
+            pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
         blk_hash_t dag_block_hash =
             last_pivot_block.getPivotBlock().getDagBlockHash();
         uint64_t current_period;
