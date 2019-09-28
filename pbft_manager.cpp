@@ -56,6 +56,8 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
   }
   sortition_account_balance_table[master_boot_node_address] =
       std::make_pair(master_boot_node_account_balance.first, 0);
+  new_sortition_account_balance_table[master_boot_node_address] =
+      std::make_pair(master_boot_node_account_balance.first, 0);
 }
 
 void PbftManager::start() {
@@ -150,10 +152,12 @@ void PbftManager::run() {
       // reset next voted value since start a new round
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
-      if (executed_cs_block) {
+      if (executed_cs_block_) {
+        // update sortition account balance table
+        updateSortitionAccountBalanceTable_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
-        executed_cs_block = false;
+        executed_cs_block_ = false;
       }
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > pbft_round_ + 1) {
@@ -178,7 +182,7 @@ void PbftManager::run() {
 
       // reset next voted value since start a new round
       next_voted_null_block_hash = false;
-      next_voted_soft_value = false; 
+      next_voted_soft_value = false;
 
       last_step_ = pbft_step_;
       pbft_step_ = 1;
@@ -344,15 +348,14 @@ void PbftManager::run() {
         LOG(log_tra_) << "In step 3";
         std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
             softVotedBlockForRound_(votes, pbft_round_);
-        
+
         LOG(log_tra_) << "Finished softVotedBlockForRound_";
-             
+
         if (soft_voted_block_for_this_round.second &&
             soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
             (next_pbft_block_type != schedule_block_type ||
              comparePbftCSblockWithDAGblocks_(
                  soft_voted_block_for_this_round.first))) {
-          
           LOG(log_tra_) << "Finished comparePbftCSblockWithDAGblocks_";
 
           if (checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
@@ -540,8 +543,11 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
-        if (!next_voted_soft_value && !next_voted_null_block_hash && pbft_step_ >= MAX_STEPS) {
-          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS for for round " << pbft_round_;
+        if (!next_voted_soft_value && !next_voted_null_block_hash &&
+            pbft_step_ >= MAX_STEPS) {
+          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS "
+                           "for for round "
+                        << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
@@ -1185,31 +1191,19 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
   PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
   if (next_pbft_block_type == pivot_block_type) {
     if (pbft_chain_->pushPbftPivotBlock(pbft_block)) {
+      // NOTICE: DAG may not have the dag block yet. This's OK since will do
+      // checking in CS block later.
       // reset proposed PBFT block hash to False for next CS block proposal
       proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
       LOG(log_inf_) << "Successful push pbft anchor block "
                     << pbft_block.getBlockHash() << " into chain! in round "
                     << pbft_round_;
-      // get dag blocks order
-      blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
-      uint64_t current_period;
-      std::shared_ptr<vec_blk_t> dag_blocks_order;
-      std::tie(current_period, dag_blocks_order) =
-          full_node->getDagBlockOrder(dag_block_hash);
-
       // Finalize pbft pivot block
       LOG(log_sil_) << full_node->getAddress()
                     << " Finalize pivot block in period "
                     << pbft_chain_->getPbftChainPeriod() << " round "
-                    << pbft_round_ << " step " << pbft_step_
-                    << " pivot: " << dag_block_hash;
-
-      // update DAG blocks order and DAG blocks table
-      for (auto const &dag_blk_hash : *dag_blocks_order) {
-        auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
-        full_node->newOrderedBlock(dag_blk_hash, block_number);
-      }
-
+                    << pbft_round_ << " step " << pbft_step_ << " pivot: "
+                    << pbft_block.getPivotBlock().getDagBlockHash();
       return true;
     }
   } else if (next_pbft_block_type == schedule_block_type) {
@@ -1218,38 +1212,44 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         LOG(log_inf_) << "Successful push pbft schedule block "
                       << pbft_block.getBlockHash() << " into chain! in round "
                       << pbft_round_;
-
-        // set DAG blocks period
+        // get dag blocks order
         blk_hash_t last_pivot_block_hash = pbft_chain_->getLastPbftPivotHash();
         PbftBlock last_pivot_block =
             pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
         blk_hash_t dag_block_hash =
             last_pivot_block.getPivotBlock().getDagBlockHash();
+        uint64_t current_period;
+        std::shared_ptr<vec_blk_t> dag_blocks_order;
+        std::tie(current_period, dag_blocks_order) =
+            full_node->getDagBlockOrder(dag_block_hash);
+        // update DAG blocks order and DAG blocks table
+        for (auto const &dag_blk_hash : *dag_blocks_order) {
+          auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
+          full_node->newOrderedBlock(dag_blk_hash, block_number);
+        }
+        // set DAG blocks period
         uint64_t current_pbft_chain_period =
             last_pivot_block.getPivotBlock().getPeriod();
-
         uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
             dag_block_hash, current_pbft_chain_period);
-
         // Finalize pbft concurent schedule block
         LOG(log_sil_) << full_node->getAddress()
                       << " Finalize cs block in period "
                       << current_pbft_chain_period << " round " << pbft_round_
                       << " step " << pbft_step_
                       << " anchor: " << dag_block_hash;
-
         // execute schedule block
         // TODO: VM executor will not take sortition_account_balance_table as
         //  reference. But will return a list of modified accounts as
         //  pairs<addr_t, val_t>.
         //  Will need update sortition_account_balance_table here
         uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-        if (!full_node->executeScheduleBlock(pbft_block.getScheduleBlock(),
-                                             sortition_account_balance_table,
-                                             pbft_period)) {
+        if (!full_node->executeScheduleBlock(
+                pbft_block.getScheduleBlock(),
+                new_sortition_account_balance_table, pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
-        executed_cs_block = true;
+        executed_cs_block_ = true;
         return true;
       }
     }
@@ -1286,6 +1286,13 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << sortition_threshold_ << ", valid voting players "
                 << players_size << ", active players " << active_players
                 << " since period " << since_period;
+}
+
+void PbftManager::updateSortitionAccountBalanceTable_() {
+  sortition_account_balance_table.clear();
+  for (auto const &account : new_sortition_account_balance_table) {
+    sortition_account_balance_table[account.first] = account.second;
+  }
 }
 
 void PbftManager::countVotes_() {
