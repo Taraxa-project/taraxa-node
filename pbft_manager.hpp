@@ -147,6 +147,8 @@ class PbftManager {
   size_t pbft_step_ = 1;
   bool executed_cs_block_ = false;
 
+  uint64_t last_period_should_speak_ = 0;
+
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
 

@@ -174,6 +174,8 @@ void PbftManager::run() {
       // NOTE: This also sets pbft_step back to 1
       round_clock_initial_datetime = now;
 
+      last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+  
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
 
@@ -243,6 +245,8 @@ void PbftManager::run() {
     if (have_executed_this_round == true &&
         elapsed_time_in_round_ms > 4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
         pbft_step_ == 3) {
+      LOG(log_deb_) << "Skipping step 4 due to execution, will go to step 5 in round "
+                      << pbft_round_;
       pbft_step_ = 5;
     }
 
@@ -618,7 +622,8 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   // only active players are able to vote
-  uint64_t last_period = pbft_chain_->getPbftChainPeriod();
+  uint64_t last_period = last_period_should_speak_;
+  //pbft_chain_->getPbftChainPeriod();
   int64_t since_period;
   if (last_period < SKIP_PERIODS) {
     since_period = 0;
