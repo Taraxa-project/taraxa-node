@@ -153,6 +153,9 @@ void PbftManager::run() {
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
       if (executed_cs_block_) {
+        
+        last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+  
         // update sortition account balance table
         updateSortitionAccountBalanceTable_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
@@ -174,8 +177,7 @@ void PbftManager::run() {
       // NOTE: This also sets pbft_step back to 1
       round_clock_initial_datetime = now;
 
-      last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
-  
+      
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
 
