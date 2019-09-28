@@ -547,7 +547,7 @@ void PbftManager::run() {
         }
       }
 
-      if (pbft_step_ >= MAX_STEPS) {
+      //if (pbft_step_ >= MAX_STEPS) {
         /*
         pbft_round_ += 1;
         LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
@@ -568,8 +568,9 @@ void PbftManager::run() {
         next_voted_null_block_hash = false;
         round_clock_initial_datetime = std::chrono::system_clock::now();
         */
-        continue;
-      } else if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms +
+      //  continue;
+      //} else 
+      if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms +
                                                 STEP_4_DELAY -
                                                 POLLING_INTERVAL_ms) {
         next_step_time_ms = (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY;
