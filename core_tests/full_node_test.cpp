@@ -18,13 +18,14 @@
 #include "sortition.h"
 #include "string"
 #include "top.hpp"
+#include "util.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using samples::sendTrx;
 
 const unsigned NUM_TRX = 200;
-const unsigned SYNC_TIMEOUT = 2000;
+const unsigned SYNC_TIMEOUT = 400;
 auto g_secret = dev::Secret(
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     dev::Secret::ConstructFromStringType::FromHex);
@@ -2120,6 +2121,42 @@ TEST_F(TopTest, detect_overlap_transactions) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+}
+
+TEST_F(TopTest, transfer_to_self) {
+  Top top1(6, input1);
+  EXPECT_TRUE(top1.isActive());
+  thisThreadSleepForMilliSeconds(500);
+  std::cout << "Top1 created ..." << std::endl;
+  auto node1 = top1.getNode();
+  EXPECT_NE(node1, nullptr);
+  std::cout << "Send first trx ..." << std::endl;
+  auto node_addr = node1->getAddress();
+  auto initial_bal = node1->getBalance(node_addr);
+  auto trx_count(100);
+  EXPECT_TRUE(initial_bal.second);
+  system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
+  "method": "create_test_coin_transactions",
+  "params": [{
+    "secret":"3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    "delay": 5,
+    "number": %s,
+    "nonce": 1,
+    "receiver": "%s"}]}' 0.0.0.0:7777)",
+             trx_count, node_addr)
+             .data());
+  thisThreadSleepForSeconds(5);
+  EXPECT_EQ(node1->getTransactionStatusCount(), trx_count);
+  auto trx_executed1 = node1->getNumTransactionExecuted();
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+    trx_executed1 = node1->getNumTransactionExecuted();
+    if (trx_executed1 == trx_count) break;
+    thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(trx_executed1, trx_count);
+  auto const bal = node1->getBalance(node_addr);
+  EXPECT_TRUE(bal.second);
+  EXPECT_EQ(bal.first, initial_bal.first);
 }
 
 }  // namespace taraxa

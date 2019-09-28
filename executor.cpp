@@ -199,27 +199,30 @@ bool Executor::coinTransfer(
         sortition_account_balance_table,
     uint64_t period, DagBlock const& dag_block) {
   auto hash = trx.getHash();
+  val_t value = trx.getValue();
   addr_t sender = trx.getSender();
   addr_t receiver = trx.getReceiver();
-  val_t value = trx.getValue();
   val_t sender_initial_coin = state.balance(sender);
   val_t receiver_initial_coin = state.balance(receiver);
-  if (sender_initial_coin < trx.getValue()) {
-    LOG(log_nf_) << "Insufficient fund for transfer ... , sender " << sender
-                 << " , sender balance: " << sender_initial_coin
-                 << " , transfer: " << value;
-    return false;
+  val_t new_sender_bal = sender_initial_coin;
+  val_t new_receiver_bal = receiver_initial_coin;
+  if (sender != receiver || value == 0) {
+    if (sender_initial_coin < trx.getValue()) {
+      LOG(log_nf_) << "Insufficient fund for transfer ... , sender " << sender
+                   << " , sender balance: " << sender_initial_coin
+                   << " , transfer: " << value;
+      return false;
+    }
+    if (receiver_initial_coin >
+        std::numeric_limits<val_t>::max() - value) {
+      LOG(log_er_) << "Fund can overflow ...";
+      return false;
+    }
+    new_sender_bal = sender_initial_coin - value;
+    new_receiver_bal = receiver_initial_coin + value;
+    state.setBalance(sender, new_sender_bal);
+    state.setBalance(receiver, new_receiver_bal);
   }
-  if (receiver_initial_coin >
-      std::numeric_limits<uint64_t>::max() - trx.getValue()) {
-    LOG(log_er_) << "Fund can overflow ...";
-    return false;
-  }
-
-  val_t new_sender_bal = sender_initial_coin - value;
-  val_t new_receiver_bal = receiver_initial_coin + value;
-  state.setBalance(sender, new_sender_bal);
-  state.setBalance(receiver, new_receiver_bal);
   // Update PBFT account balance table. Will remove in VM since vm return a list
   // of modified balance accounts
   if (new_sender_bal >= pbft_require_sortition_coins_) {
