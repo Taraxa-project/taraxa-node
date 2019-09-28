@@ -557,6 +557,12 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
+
+        if (pbft_step_ > MAX_STEPS) {
+          LOG(log_inf_)
+            << "Suspect pbft chain behind, inaccurate 2t+1, need to broadcast request for missing blocks";
+          syncPbftChainFromPeers_();
+        }
       }
 
       //if (pbft_step_ >= MAX_STEPS) {
