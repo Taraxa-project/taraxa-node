@@ -70,13 +70,21 @@ string Taraxa::taraxa_dagBlockPeriod() {
 }
 
 string Taraxa::taraxa_dagBlockLevel() {
-  auto node = tryGetNode();
-  return toJS(node->getMaxDagLevel());
+  try {
+    auto node = tryGetNode();
+    return toJS(node->getMaxDagLevel());
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
 }
 
 string Taraxa::taraxa_dagBlockPeriod() {
-  auto node = tryGetNode();
-  return toJS(node->getLatestPeriod());
+  try {
+    auto node = tryGetNode();
+    return toJS(node->getLatestPeriod());
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
 }
 
 string Taraxa::taraxa_getBalance(string const& _address,
