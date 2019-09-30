@@ -539,7 +539,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
       auto period = node->getDagBlockOrder(blk_hash_t(block->getHash()));
       block_json["period"] = toJS(period.first);
       auto snapshot =
-        node->getStateRegistry()->getSnapshot(blk_hash_t(block->getHash()));
+          node->getStateRegistry()->getSnapshot(blk_hash_t(block->getHash()));
       if (snapshot.has_value()) {
         block_json["number"] = toJS(snapshot->block_number);
       } else {
@@ -573,7 +573,7 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
       auto period = node->getDagBlockOrder(blk_hash_t(b->getHash()));
       block_json["period"] = toJS(period.first);
       auto snapshot =
-        node->getStateRegistry()->getSnapshot(blk_hash_t(b->getHash()));
+          node->getStateRegistry()->getSnapshot(blk_hash_t(b->getHash()));
       if (snapshot.has_value()) {
         block_json["number"] = toJS(snapshot->block_number);
       } else {
