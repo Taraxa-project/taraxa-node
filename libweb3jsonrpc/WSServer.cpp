@@ -294,7 +294,6 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
         session++;
       }
     }
-    boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
     // Create the session and run it
     sessions.push_back(std::make_shared<WSSession>(std::move(socket)));
     sessions.back()->run();
