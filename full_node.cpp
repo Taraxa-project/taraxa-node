@@ -725,8 +725,9 @@ bool FullNode::executeScheduleBlock(
   if (sche_blk.getSchedule().blk_order.size() > 0)
     block_number =
         pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().blk_order[0])
-            .second;
-  if (ws_server_) ws_server_->newScheduleBlockExecuted(sche_blk, block_number);
+            .first;
+  if (ws_server_)
+    ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
   return res;
 }
 

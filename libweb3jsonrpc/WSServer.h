@@ -13,8 +13,8 @@
 #include <thread>
 #include <vector>
 #include "dag_block.hpp"
-#include "pbft_chain.hpp"
 #include "libdevcore/Log.h"
+#include "pbft_chain.hpp"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace http = beast::http;            // from <boost/beast/http.hpp>
@@ -42,7 +42,8 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
                        uint64_t const& block_number);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newScheduleBlockExecuted(ScheduleBlock const &sche_blk, uint32_t block_number);
+  void newScheduleBlockExecuted(ScheduleBlock const& sche_blk,
+                                uint32_t block_number, uint32_t period);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
   dev::Logger log_si_{
@@ -84,7 +85,8 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
                        uint64_t const& block_number);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newScheduleBlockExecuted(ScheduleBlock const &sche_blk, uint32_t block_number);
+  void newScheduleBlockExecuted(ScheduleBlock const& sche_blk,
+                                uint32_t block_number, uint32_t period);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
  private:
@@ -102,6 +104,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   tcp::acceptor acceptor_;
   std::list<std::shared_ptr<WSSession>> sessions;
   bool stopped_ = false;
+  boost::shared_mutex sessions_mtx_;
 };
 }  // namespace taraxa
 
