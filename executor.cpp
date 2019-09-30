@@ -3,6 +3,7 @@
 #include "transaction.hpp"
 
 namespace taraxa {
+using namespace trx_engine;
 
 bool Executor::execute(TrxSchedule const& schedule,
                        BalanceTable& sortition_account_balance_table,
@@ -65,23 +66,35 @@ bool Executor::execute_main(TrxSchedule const& schedule,
     }
     if (!trx_to_execute.empty()) {
       auto const& snapshot = state_registry_->getCurrentSnapshot();
-      auto result = trx_engine_.transitionState({
-          snapshot.state_root,
-          trx_engine::Block{
-              snapshot.block_number + 1,
-              dag_block.getSender(),
-              dag_block.getTimestamp(),
-              0,
-              // TODO unint64 is correct
-              uint64_t(MOCK_BLOCK_GAS_LIMIT),
-              blk_hash,
-              trx_to_execute,
-          },
-      });
-      trx_engine_.commitToDisk(result.stateRoot);
+      StateTransitionResult result;
+      try {
+        result = trx_engine_.transitionState({
+            snapshot.state_root,
+            trx_engine::Block{
+                snapshot.block_number + 1,
+                dag_block.getSender(),
+                dag_block.getTimestamp(),
+                0,
+                // TODO unint64 is correct
+                uint64_t(MOCK_BLOCK_GAS_LIMIT),
+                blk_hash,
+                trx_to_execute,
+            },
+        });
+        trx_engine_.commitToDisk(result.stateRoot);
+      } catch (TrxEngine::Exception const& e) {
+        // TODO better error handling
+        LOG(log_er_) << e.what() << std::endl;
+      }
       state_registry_->append({{blk_hash, result.stateRoot}});
       auto current_state = state_registry_->getCurrentState();
-      for (auto const& trx : trx_to_execute) {
+      for (auto i(0); i < trx_to_execute.size(); ++i) {
+        auto const& trx = trx_to_execute[i];
+        auto const& receipt = result.receipts[i];
+        if (!receipt.error.empty()) {
+          LOG(log_er_) << "Trx " << trx.hash << " failed: " << receipt.error
+                       << std::endl;
+        }
         auto const& sender = trx.from;
         auto const& receiver = *(trx.to);
         auto const& new_sender_bal = current_state.balance(sender);
@@ -177,10 +190,9 @@ bool Executor::executeBlkTrxs(
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
-    if (!coinTransfer(state, trx, sortition_account_balance_table, period,
-                      dag_block)) {
-      continue;
-    }
+    coinTransfer(state, trx, sortition_account_balance_table, period,
+                 dag_block);
+    num_executed_trx_.fetch_add(1);
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
@@ -189,7 +201,6 @@ bool Executor::executeBlkTrxs(
                << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                << " / " << num_trxs;
-  ;
   return true;
 }
 
@@ -206,23 +217,24 @@ bool Executor::coinTransfer(
   val_t receiver_initial_coin = state.balance(receiver);
   val_t new_sender_bal = sender_initial_coin;
   val_t new_receiver_bal = receiver_initial_coin;
-  if (sender != receiver || value == 0) {
+  if (sender != receiver) {
     if (sender_initial_coin < trx.getValue()) {
       LOG(log_nf_) << "Insufficient fund for transfer ... , sender " << sender
                    << " , sender balance: " << sender_initial_coin
                    << " , transfer: " << value;
       return false;
     }
-    if (receiver_initial_coin >
-        std::numeric_limits<val_t>::max() - value) {
+    if (receiver_initial_coin > std::numeric_limits<val_t>::max() - value) {
       LOG(log_er_) << "Fund can overflow ...";
       return false;
     }
     new_sender_bal = sender_initial_coin - value;
     new_receiver_bal = receiver_initial_coin + value;
-    state.setBalance(sender, new_sender_bal);
     state.setBalance(receiver, new_receiver_bal);
   }
+  // if sender == receiver and trx.value == 0, we should still call setBalance
+  // to create an empty account
+  state.setBalance(sender, new_sender_bal);
   // Update PBFT account balance table. Will remove in VM since vm return a list
   // of modified balance accounts
   if (new_sender_bal >= pbft_require_sortition_coins_) {
@@ -246,7 +258,6 @@ bool Executor::coinTransfer(
                << " in period " << period;
   LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
                << new_receiver_bal << " in period " << period;
-  num_executed_trx_.fetch_add(1);
   return true;
 }
 

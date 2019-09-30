@@ -6,6 +6,7 @@ extern "C" {
 }
 #include <json/value.h>
 #include <libdevcore/db.h>
+#include <stdexcept>
 #include <string>
 #include "types.hpp"
 
@@ -15,10 +16,25 @@ class TrxEngine {
   std::string go_address_;
 
  public:
+  class Exception : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+  };
+
+  class CreationException : public Exception {
+    using Exception::Exception;
+  };
   explicit TrxEngine(std::shared_ptr<dev::db::DatabaseFace> db);
+
   ~TrxEngine();
 
+  class TransitionStateException : public Exception {
+    using Exception::Exception;
+  };
   StateTransitionResult transitionState(StateTransitionRequest const& req);
+
+  class CommitToDiskException : public Exception {
+    using Exception::Exception;
+  };
   void commitToDisk(taraxa::root_t const& state_root);
 };
 
