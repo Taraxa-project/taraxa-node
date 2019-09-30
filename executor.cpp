@@ -85,6 +85,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       } catch (TrxEngine::Exception const& e) {
         // TODO better error handling
         LOG(log_er_) << e.what() << std::endl;
+        return false;
       }
       state_registry_->append({{blk_hash, result.stateRoot}});
       auto current_state = state_registry_->getCurrentState();
