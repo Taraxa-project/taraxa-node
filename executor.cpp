@@ -3,7 +3,8 @@
 #include "transaction.hpp"
 
 namespace taraxa {
-using namespace trx_engine;
+using trx_engine::StateTransitionResult;
+using trx_engine::TrxEngine;
 
 bool Executor::execute(TrxSchedule const& schedule,
                        BalanceTable& sortition_account_balance_table,
