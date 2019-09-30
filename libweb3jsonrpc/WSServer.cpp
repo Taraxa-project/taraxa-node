@@ -179,13 +179,16 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk, uint32_t block_number) {
+void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk,
+                                         uint32_t block_number,
+                                         uint32_t period) {
   if (new_schedule_block_executed_subscription_) {
     Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
     result["schedule_block"] = sche_blk.getJson();
-    result["block_number"] = block_number;
+    result["number"] = dev::toJS(block_number);
+    result["period"] = dev::toJS(period);
     params["result"] = result;
     params["subscription"] =
         dev::toJS(new_schedule_block_executed_subscription_);
@@ -263,6 +266,7 @@ void WSServer::run() { do_accept(); }
 void WSServer::stop() {
   stopped_ = true;
   acceptor_.close();
+  boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->close();
   }
@@ -280,6 +284,7 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (ec) {
     if (!stopped_) LOG(log_er_) << ec << " accept";
   } else {
+    boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
     // Remove any close sessions
     auto session = sessions.begin();
     while (session != sessions.end()) {
@@ -289,6 +294,7 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
         session++;
       }
     }
+    boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
     // Create the session and run it
     sessions.push_back(std::make_shared<WSSession>(std::move(socket)));
     sessions.back()->run();
@@ -299,31 +305,39 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
 }
 
 void WSServer::newDagBlock(DagBlock const &blk) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newDagBlock(blk);
   }
 }
 
 void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newDagBlockFinalized(blk, period);
   }
 }
 
-void WSServer::newScheduleBlockExecuted(ScheduleBlock const &sche_blk, uint32_t block_number) {
+void WSServer::newScheduleBlockExecuted(ScheduleBlock const &sche_blk,
+                                        uint32_t block_number,
+                                        uint32_t period) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newScheduleBlockExecuted(sche_blk, block_number);
+    if (!session->is_closed())
+      session->newScheduleBlockExecuted(sche_blk, block_number, period);
   }
 }
 
 void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
                                uint64_t const &block_number) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newOrderedBlock(blk, block_number);
   }
 }
 
 void WSServer::newPendingTransaction(trx_hash_t const &trx_hash) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newPendingTransaction(trx_hash);
   }
