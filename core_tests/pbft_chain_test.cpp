@@ -78,7 +78,7 @@ TEST(PbftChain, pbft_db_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
-  node->start(true); // boot node
+  node->start(true);  // boot node
 
   std::shared_ptr<SimpleDBFace> db_pbftchain = node->getPbftChainDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();

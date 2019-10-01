@@ -213,8 +213,7 @@ bool Executor::coinTransfer(
                    << " , transfer: " << value;
       return false;
     }
-    if (receiver_initial_coin >
-        std::numeric_limits<val_t>::max() - value) {
+    if (receiver_initial_coin > std::numeric_limits<val_t>::max() - value) {
       LOG(log_er_) << "Fund can overflow ...";
       return false;
     }

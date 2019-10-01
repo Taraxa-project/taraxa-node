@@ -153,9 +153,7 @@ void PbftManager::run() {
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
       if (executed_cs_block_) {
-        
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
-  
         // update sortition account balance table
         updateSortitionAccountBalanceTable_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
@@ -177,7 +175,6 @@ void PbftManager::run() {
       // NOTE: This also sets pbft_step back to 1
       round_clock_initial_datetime = now;
 
-      
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
 
@@ -245,10 +242,12 @@ void PbftManager::run() {
 
     // We skip step 4 due to having missed it while executing....
     if (have_executed_this_round == true &&
-        elapsed_time_in_round_ms > 4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
+        elapsed_time_in_round_ms >
+            4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
         pbft_step_ == 3) {
-      LOG(log_deb_) << "Skipping step 4 due to execution, will go to step 5 in round "
-                      << pbft_round_;
+      LOG(log_deb_)
+          << "Skipping step 4 due to execution, will go to step 5 in round "
+          << pbft_round_;
       pbft_step_ = 5;
     }
 
@@ -431,7 +430,8 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
     } else if (pbft_step_ == 5) {
-      if (elapsed_time_in_round_ms > 6 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
+      if (elapsed_time_in_round_ms >
+          6 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
         // Should not happen, add log here for safety checking
         if (have_executed_this_round == true) {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_
@@ -512,8 +512,9 @@ void PbftManager::run() {
 
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
-      if (elapsed_time_in_round_ms >
-          (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
+      if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms +
+                                         STEP_4_DELAY +
+                                         2 * POLLING_INTERVAL_ms) {
         // Should not happen, add log here for safety checking
         if (have_executed_this_round == true) {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step "
@@ -559,38 +560,37 @@ void PbftManager::run() {
         }
 
         if (pbft_step_ > MAX_STEPS) {
-          LOG(log_inf_)
-            << "Suspect pbft chain behind, inaccurate 2t+1, need to broadcast request for missing blocks";
+          LOG(log_inf_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
+                           "to broadcast request for missing blocks";
           syncPbftChainFromPeers_();
         }
       }
 
-      //if (pbft_step_ >= MAX_STEPS) {
-        /*
-        pbft_round_ += 1;
-        LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
-                      << pbft_round_ << ", step 1, and resetting clock.";
-        // reset starting value to NULL_BLOCK_HASH
-        own_starting_value_for_round = NULL_BLOCK_HASH;
-        // I added this as a way of seeing if we were even getting votes during
-        // testnet -Justin
-        LOG(log_deb_) << "There are " << votes.size() << " votes since round "
-                      << pbft_round_ - 2;
-        // NOTE: This also sets pbft_step back to 1
-        last_step_clock_initial_datetime_ =
-            current_step_clock_initial_datetime_;
-        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-        last_step_ = pbft_step_;
-        pbft_step_ = 1;
-        next_voted_soft_value = false;
-        next_voted_null_block_hash = false;
-        round_clock_initial_datetime = std::chrono::system_clock::now();
-        */
+      // if (pbft_step_ >= MAX_STEPS) {
+      /*
+      pbft_round_ += 1;
+      LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
+                    << pbft_round_ << ", step 1, and resetting clock.";
+      // reset starting value to NULL_BLOCK_HASH
+      own_starting_value_for_round = NULL_BLOCK_HASH;
+      // I added this as a way of seeing if we were even getting votes during
+      // testnet -Justin
+      LOG(log_deb_) << "There are " << votes.size() << " votes since round "
+                    << pbft_round_ - 2;
+      // NOTE: This also sets pbft_step back to 1
+      last_step_clock_initial_datetime_ =
+          current_step_clock_initial_datetime_;
+      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      last_step_ = pbft_step_;
+      pbft_step_ = 1;
+      next_voted_soft_value = false;
+      next_voted_null_block_hash = false;
+      round_clock_initial_datetime = std::chrono::system_clock::now();
+      */
       //  continue;
-      //} else 
-      if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms +
-                                                STEP_4_DELAY -
-                                                POLLING_INTERVAL_ms) {
+      //} else
+      if (elapsed_time_in_round_ms >
+          (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms) {
         next_step_time_ms = (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY;
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
@@ -631,7 +631,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   }
   // only active players are able to vote
   uint64_t last_period = last_period_should_speak_;
-  //pbft_chain_->getPbftChainPeriod();
+  // pbft_chain_->getPbftChainPeriod();
   int64_t since_period;
   if (last_period < SKIP_PERIODS) {
     since_period = 0;
