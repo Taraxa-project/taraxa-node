@@ -74,10 +74,12 @@ TEST(ScheduleBlock, serialize_deserialize) {
   EXPECT_EQ(ss1.str(), ss2.str());
 }
 
-TEST(PbftChain, DISABLED_pbft_db_test) {
+TEST(PbftChain, pbft_db_test) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->start(true);  // boot node
+
   std::shared_ptr<SimpleDBFace> db_pbftchain = node->getPbftChainDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::string pbft_genesis_from_db =
@@ -100,7 +102,8 @@ TEST(PbftChain, DISABLED_pbft_db_test) {
   pbft_block1.setSignature(node->signMessage(pbft_block1.getJsonStr()));
 
   // put into pbft chain and store into DB
-  node->setPbftBlock(pbft_block1);
+  bool push_block = pbft_chain->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
   EXPECT_EQ(node->getPbftChainSize(), 2);
 
   std::string pbft_block_from_db =
@@ -125,7 +128,8 @@ TEST(PbftChain, DISABLED_pbft_db_test) {
   pbft_block3.setSignature(node->signMessage(pbft_block3.getJsonStr()));
 
   // put into pbft chain and store into DB
-  node->setPbftBlock(pbft_block3);
+  push_block = pbft_chain->pushPbftScheduleBlock(pbft_block3);
+  EXPECT_TRUE(push_block);
   EXPECT_EQ(node->getPbftChainSize(), 3);
 
   pbft_block_from_db = db_pbftchain->get(pbft_block3.getBlockHash().toString());
@@ -140,6 +144,9 @@ TEST(PbftChain, DISABLED_pbft_db_test) {
   pbft_genesis_from_db =
       db_pbftchain->get(pbft_chain->getGenesisHash().toString());
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
+
+  db_pbftchain = nullptr;
+  node->stop();
 }
 
 TEST(PbftChain, block_broadcast) {
@@ -383,7 +390,7 @@ int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("PBFT_CHAIN");
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
   // logOptions.includeChannels.push_back("PBFT_MGR");
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
