@@ -1028,8 +1028,8 @@ TEST_F(TopTest, sync_two_nodes1) {
     num_vertices1 = node1->getNumVerticesInDag();
     num_vertices2 = node2->getNumVerticesInDag();
   }
-  EXPECT_GT(num_vertices1.first, 3);
-  EXPECT_GT(num_vertices2.second, 3);
+  EXPECT_GE(num_vertices1.first, 3);
+  EXPECT_GE(num_vertices2.second, 3);
   EXPECT_EQ(num_vertices1, num_vertices2);
 
   top2.kill();
@@ -1094,10 +1094,9 @@ TEST_F(TopTest, sync_two_nodes2) {
     vertices1 = node1->getNumVerticesInDag();
     vertices2 = node2->getNumVerticesInDag();
   }
-  EXPECT_GT(vertices1.first, 3);
-  EXPECT_GT(vertices1.second, 3);
+  EXPECT_GE(vertices1.first, 3);
+  EXPECT_GE(vertices1.second, 3);
   EXPECT_EQ(vertices1, vertices2);
-  EXPECT_GT(vertices1.first, 2);
   top2.kill();
   top1.kill();
   // delete main2
@@ -1160,8 +1159,8 @@ TEST_F(TopTest, DISABLED_sync_two_nodes3) {
       vertices1 = node1->getNumVerticesInDag();
       vertices2 = node2->getNumVerticesInDag();
     }
-    EXPECT_GT(vertices1.first, 3);
-    EXPECT_GT(vertices1.second, 3);
+    EXPECT_GE(vertices1.first, 3);
+    EXPECT_GE(vertices1.second, 3);
     EXPECT_EQ(vertices1, vertices2);
     top2.kill();
   }
