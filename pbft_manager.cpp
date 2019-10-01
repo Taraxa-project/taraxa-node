@@ -143,6 +143,66 @@ void PbftManager::run() {
     pushVerifiedPbftBlocksIntoChain_();
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
+    // Get votes
+    bool sync_peers_pbft_chain = false;
+    std::vector<Vote> votes = vote_mgr_->getVotes(
+        pbft_round_ - 1, sortition_account_balance_table.size(),
+        sync_peers_pbft_chain);
+    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
+                  << pbft_round_ - 1;
+    if (sync_peers_pbft_chain) {
+      syncPbftChainFromPeers_();
+    }
+
+    // CHECK IF WE HAVE RECEIVED 2t+ 1 CERT VOTES FOR A BLOCK
+    // IN OUR CURRENT ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
+    if (pbft_step_ == 3 || pbft_step_ == 4) {
+      std::vector<Vote> cert_votes_for_round =
+          getVotesOfTypeFromVotesForRoundAndStep_(
+              cert_vote_type, votes, pbft_round_, 3,
+              std::make_pair(NULL_BLOCK_HASH, false));
+      // TODO: debug remove later
+      LOG(log_tra_) << "Get cert votes for round " << pbft_round_ << " step "
+                    << pbft_step_;
+      std::pair<blk_hash_t, bool> cert_voted_block_hash =
+          blockWithEnoughVotes_(cert_votes_for_round);
+      // TODO: debug remove later
+      LOG(log_tra_) << "Calculate cert votes for pbft block";
+      if (cert_voted_block_hash.second) {
+        LOG(log_deb_) << "PBFT block " << cert_voted_block_hash.first
+                      << " has enough certed votes";
+        // put pbft block into chain
+        if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first)) {
+          push_block_values_for_round[pbft_round_] =
+              cert_voted_block_hash.first;
+          next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+          have_executed_this_round = true;
+          // TODO: debug remove later
+          LOG(log_deb_) << "The cert voted pbft block is "
+                        << cert_voted_block_hash.first;
+          duration = std::chrono::system_clock::now() - now;
+          auto execute_trxs_in_ms =
+              std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                  .count();
+          LOG(log_deb_) << "Pushing PBFT block and Execution spent "
+                        << execute_trxs_in_ms << " ms. in round "
+                        << pbft_round_;
+          continue;
+        }
+      }
+    }
+
+    // We skip step 4 due to having missed it while executing....
+    if (have_executed_this_round == true &&
+        elapsed_time_in_round_ms >
+        4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
+        pbft_step_ == 3) {
+      LOG(log_deb_)
+          << "Skipping step 4 due to execution, will go to step 5 in round "
+          << pbft_round_;
+      pbft_step_ = 5;
+    }
+
     // Check if we are synced to the right step ...
     uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
     if (consensus_pbft_round > pbft_round_) {
@@ -191,64 +251,6 @@ void PbftManager::run() {
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
       continue;
-    }
-
-    // Get votes
-    bool sync_peers_pbft_chain = false;
-    std::vector<Vote> votes = vote_mgr_->getVotes(
-        pbft_round_ - 1, sortition_account_balance_table.size(),
-        sync_peers_pbft_chain);
-    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
-                  << pbft_round_ - 1;
-    if (sync_peers_pbft_chain) {
-      syncPbftChainFromPeers_();
-    }
-
-    // CHECK IF WE HAVE RECEIVED 2t+ 1 CERT VOTES FOR A BLOCK
-    // IN OUR CURRENT ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
-    if (pbft_step_ == 3 || pbft_step_ == 4) {
-      std::vector<Vote> cert_votes_for_round =
-          getVotesOfTypeFromVotesForRoundAndStep_(
-              cert_vote_type, votes, pbft_round_, 3,
-              std::make_pair(NULL_BLOCK_HASH, false));
-      // TODO: debug remove later
-      LOG(log_tra_) << "Get cert votes for round " << pbft_round_ << " step "
-                    << pbft_step_;
-      std::pair<blk_hash_t, bool> cert_voted_block_hash =
-          blockWithEnoughVotes_(cert_votes_for_round);
-      // TODO: debug remove later
-      LOG(log_tra_) << "Calculate cert votes for pbft block";
-      if (cert_voted_block_hash.second) {
-        // put pbft block into chain
-        if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first)) {
-          push_block_values_for_round[pbft_round_] =
-              cert_voted_block_hash.first;
-          next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
-          have_executed_this_round = true;
-          // TODO: debug remove later
-          LOG(log_deb_) << "The cert voted pbft block is "
-                        << cert_voted_block_hash.first;
-          duration = std::chrono::system_clock::now() - now;
-          auto execute_trxs_in_ms =
-              std::chrono::duration_cast<std::chrono::milliseconds>(duration)
-                  .count();
-          LOG(log_deb_) << "Pushing PBFT block and Execution spent "
-                        << execute_trxs_in_ms << " ms. in round "
-                        << pbft_round_;
-          continue;
-        }
-      }
-    }
-
-    // We skip step 4 due to having missed it while executing....
-    if (have_executed_this_round == true &&
-        elapsed_time_in_round_ms >
-            4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
-        pbft_step_ == 3) {
-      LOG(log_deb_)
-          << "Skipping step 4 due to execution, will go to step 5 in round "
-          << pbft_round_;
-      pbft_step_ = 5;
     }
 
     if (pbft_step_ == 1) {
@@ -1050,7 +1052,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   std::pair<PbftBlock, bool> cert_voted_block =
       pbft_chain_->getUnverifiedPbftBlock(block_hash);
   if (!cert_voted_block.second) {
-    LOG(log_inf_) << "Cannot find the pbft block hash in queue, block hash "
+    LOG(log_inf_) << "Cannot find the unverified pbft block, block hash "
                   << block_hash;
     return false;
   }
@@ -1059,7 +1061,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   if (next_pbft_block_type != cert_voted_block_type) {
     LOG(log_inf_) << "Pbft chain next pbft block type should be "
                   << next_pbft_block_type << " Invalid pbft block type "
-                  << cert_voted_block.first.getBlockType();
+                  << cert_voted_block_type;
     return false;
   }
   if (cert_voted_block_type == pivot_block_type) {
