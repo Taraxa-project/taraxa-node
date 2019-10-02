@@ -212,9 +212,9 @@ TEST(PbftChain, block_broadcast) {
   blk_hash_t prev_pivot_blk(0);
   blk_hash_t prev_res_blk(0);
   blk_hash_t dag_blk(78);
-  uint64_t epoch = 1;
+  uint64_t period = 1;
   addr_t beneficiary(10);
-  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, period,
                          beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);

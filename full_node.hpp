@@ -189,7 +189,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint64_t getPbftChainSize() const;
   size_t getPbftVerifiedBlocksSize() const;
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
-  bool setPbftBlock(PbftBlock const &pbft_block);  // Test purpose
   void setVerifiedPbftBlock(PbftBlock const &pbft_block);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
