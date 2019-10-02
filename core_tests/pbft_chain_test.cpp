@@ -228,8 +228,15 @@ TEST(PbftChain, block_broadcast) {
       pbft_chain1->getUnverifiedPbftBlock(pbft_block1.getBlockHash());
   ASSERT_TRUE(block1_from_node1.second);
   EXPECT_EQ(block1_from_node1.first.getJsonStr(), pbft_block1.getJsonStr());
-  node1->setPbftBlock(pbft_block1);  // Test pbft chain
-  ASSERT_EQ(node1->getPbftChainSize(), 2);
+  // node1 put block1 into pbft chain and store into DB
+  bool push_block = pbft_chain1->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node1->getPbftChainSize(), 2);
+  // node1 cleanup block1 in PBFT unverified blocks table
+  pbft_chain1->cleanupUnverifiedPbftBlocks(pbft_block1);
+  bool find_erased_block =
+      pbft_chain1->findUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   nw1->onNewPbftBlock(pbft_block1);
 
@@ -251,16 +258,29 @@ TEST(PbftChain, block_broadcast) {
   ASSERT_TRUE(block1_from_node3.second);
   EXPECT_EQ(block1_from_node2.first.getJsonStr(), pbft_block1.getJsonStr());
   EXPECT_EQ(block1_from_node3.first.getJsonStr(), pbft_block1.getJsonStr());
-  node2->setPbftBlock(pbft_block1);  // Test pbft chain
-  ASSERT_EQ(node2->getPbftChainSize(), 2);
-  node3->setPbftBlock(pbft_block1);  // Test pbft chain
-  ASSERT_EQ(node3->getPbftChainSize(), 2);
+  // node2 put block1 into pbft chain and store into DB
+  push_block = pbft_chain2->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node2->getPbftChainSize(), 2);
+  // node2 cleanup block1 in PBFT unverified blocks table
+  pbft_chain2->cleanupUnverifiedPbftBlocks(pbft_block1);
+  find_erased_block =
+      pbft_chain2->findUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
+  // node3 put block1 into pbft chain and store into DB
+  push_block = pbft_chain3->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node3->getPbftChainSize(), 2);
+  // node3 cleanup block1 in PBFT unverified blocks table
+  pbft_chain3->cleanupUnverifiedPbftBlocks(pbft_block1);
+  find_erased_block =
+      pbft_chain3->findUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
   TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
-
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
   // setup timestamp for pbft block
@@ -273,8 +293,15 @@ TEST(PbftChain, block_broadcast) {
       pbft_chain1->getUnverifiedPbftBlock(pbft_block2.getBlockHash());
   ASSERT_TRUE(block2_from_node1.second);
   EXPECT_EQ(block2_from_node1.first.getJsonStr(), pbft_block2.getJsonStr());
-  node1->setPbftBlock(pbft_block2);  // Test pbft chain
-  ASSERT_EQ(node1->getPbftChainSize(), 3);
+  // node1 put block2 into pbft chain and store into DB
+  push_block = pbft_chain1->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node1->getPbftChainSize(), 3);
+  // node1 cleanup block2 in PBFT unverified blocks table
+  pbft_chain1->cleanupUnverifiedPbftBlocks(pbft_block2);
+  find_erased_block =
+      pbft_chain1->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   nw1->onNewPbftBlock(pbft_block2);
 
@@ -296,10 +323,24 @@ TEST(PbftChain, block_broadcast) {
   ASSERT_TRUE(block2_from_node3.second);
   EXPECT_EQ(block2_from_node2.first.getJsonStr(), pbft_block2.getJsonStr());
   EXPECT_EQ(block2_from_node3.first.getJsonStr(), pbft_block2.getJsonStr());
-  node2->setPbftBlock(pbft_block2);  // Test pbft chain
-  ASSERT_EQ(node2->getPbftChainSize(), 3);
-  node3->setPbftBlock(pbft_block2);  // Test pbft chain
-  ASSERT_EQ(node3->getPbftChainSize(), 3);
+  // node2 put block2 into pbft chain and store into DB
+  push_block = pbft_chain2->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node2->getPbftChainSize(), 3);
+  // node2 cleanup block2 in PBFT unverified blocks table
+  pbft_chain2->cleanupUnverifiedPbftBlocks(pbft_block2);
+  find_erased_block =
+      pbft_chain2->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
+  // node3 put block2 into pbft chain and store into DB
+  push_block = pbft_chain3->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node3->getPbftChainSize(), 3);
+  // node3 cleanup block2 in PBFT unverified blocks table
+  pbft_chain3->cleanupUnverifiedPbftBlocks(pbft_block2);
+  find_erased_block =
+      pbft_chain3->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   work1.reset();
   work2.reset();

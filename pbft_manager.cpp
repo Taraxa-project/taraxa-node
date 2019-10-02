@@ -195,7 +195,7 @@ void PbftManager::run() {
     // We skip step 4 due to having missed it while executing....
     if (have_executed_this_round == true &&
         elapsed_time_in_round_ms >
-        4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
+            4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
         pbft_step_ == 3) {
       LOG(log_deb_)
           << "Skipping step 4 due to execution, will go to step 5 in round "
