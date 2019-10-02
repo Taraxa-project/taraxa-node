@@ -6,7 +6,6 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
 ADD . .
 RUN make -j 4 main
-RUN make keygen
 
 
 # Copy over only minimal information
@@ -18,11 +17,10 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 
 RUN mkdir -p ${APP_PATH}/config
 WORKDIR ${APP_PATH}
-COPY --from=builder ${APP_PATH}/build/* ./bin/
+COPY --from=builder ${APP_PATH}/build/main .
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
 COPY ./core_tests/conf/*.json ./default_config/
-COPY ./scripts/docker-entrypoint.sh ./
 
-ENTRYPOINT [ "./docker-entrypoint.sh", "bin", "main" ]
+ENTRYPOINT [ "./main" ]
 CMD ["--conf_taraxa", "./default_config/conf_taraxa1.json"]
