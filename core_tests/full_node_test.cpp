@@ -2159,6 +2159,37 @@ TEST_F(TopTest, transfer_to_self) {
   EXPECT_EQ(bal.first, initial_bal.first);
 }
 
+TEST_F(TopTest, transaction_failure_does_not_cause_block_failure) {
+  // TODO move to another file
+  using namespace std;
+  for (auto i(0); i < 2; ++i) {
+    boost::asio::io_context io_ctx;
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    conf.use_basic_executor = i % 2 == 0;
+    auto node = make_shared<FullNode>(io_ctx, conf);
+    node->setDebug(true);
+    node->start(true);
+    thisThreadSleepForMilliSeconds(500);
+    vector<Transaction> transactions;
+    transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
+                              bytes(), node->getSecretKey());
+    // This must cause out of balance error
+    transactions.emplace_back(0, node->getMyBalance() + 100, 0,
+                              samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
+                              node->getSecretKey());
+    for (auto const &trx : transactions) {
+      node->insertTransaction(trx);
+    }
+    auto trx_executed = node->getNumTransactionExecuted();
+    for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+      if (trx_executed == transactions.size()) break;
+      thisThreadSleepForMilliSeconds(100);
+      trx_executed = node->getNumTransactionExecuted();
+    }
+    EXPECT_EQ(trx_executed, transactions.size());
+  }
+}
+
 }  // namespace taraxa
 
 int main(int argc, char **argv) {

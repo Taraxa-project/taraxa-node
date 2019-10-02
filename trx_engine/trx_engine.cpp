@@ -5,11 +5,13 @@
 #include <utility>
 #include "db/cgo/db.hpp"
 #include "util.hpp"
+#include "util/once_out_of_scope.hpp"
 #include "util_json.hpp"
 
 namespace taraxa::trx_engine {
 using namespace std;
 using namespace dev;
+using util::once_out_of_scope::OnceOutOfScope;
 
 // TODO less copy-paste
 
@@ -20,12 +22,11 @@ TrxEngine::TrxEngine(std::shared_ptr<dev::db::DatabaseFace> db) {
   char* cgo_retval = taraxa_cgo_env_Call(nullptr,
                                          cgo_str("NewTaraxaTrxEngine"),  //
                                          cgo_str(util_json::toString(args)));
+  OnceOutOfScope _([&] { taraxa_cgo_free(cgo_retval); });
   const auto& result_json = util_json::fromString(string_view(cgo_retval));
-  taraxa_cgo_free(cgo_retval);
   go_address_ = result_json[0].asString();
-  auto const& err = result_json[1];
-  if (!err.isNull()) {
-    throw runtime_error(err.asString());
+  if (auto const& err = result_json[1]; !err.isNull()) {
+    throw CreationException(err.asString());
   }
 }
 
@@ -38,12 +39,11 @@ StateTransitionResult TrxEngine::transitionState(
   char* cgo_retval = taraxa_cgo_env_Call(cgo_str(go_address_),
                                          cgo_str("TransitionState"),  //
                                          cgo_str(util_json::toString(args)));
+  OnceOutOfScope _([&] { taraxa_cgo_free(cgo_retval); });
   const auto& result_json = util_json::fromString(string(cgo_retval));
-  taraxa_cgo_free(cgo_retval);
   auto const& result = result_json[0];
-  auto const& err = result_json[1];
-  if (!err.isNull()) {
-    throw runtime_error(err.asString());
+  if (auto const& err = result_json[1]; !err.isNull()) {
+    throw TransitionStateException(err.asString());
   }
   StateTransitionResult ret;
   ret.fromJson(result);
@@ -56,11 +56,10 @@ void TrxEngine::commitToDisk(taraxa::root_t const& state_root) {
   char* cgo_retval = taraxa_cgo_env_Call(cgo_str(go_address_),
                                          cgo_str("CommitToDisk"),  //
                                          cgo_str(util_json::toString(args)));
+  OnceOutOfScope _([&] { taraxa_cgo_free(cgo_retval); });
   auto const& result_json = util_json::fromString(string_view(cgo_retval));
-  taraxa_cgo_free(cgo_retval);
-  auto const& err = result_json[0];
-  if (!err.isNull()) {
-    throw runtime_error(err.asString());
+  if (auto const& err = result_json[0]; !err.isNull()) {
+    throw CommitToDiskException(err.asString());
   }
 }
 

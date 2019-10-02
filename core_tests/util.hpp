@@ -9,11 +9,10 @@
 #include "config.hpp"
 #include "genesis_state.hpp"
 
-namespace taraxa::core_tests::_util {
+namespace taraxa::core_tests::util {
 using namespace std;
 using namespace dev;
 using namespace boost::filesystem;
-namespace exports {
 
 inline path const config_dir = "./core_tests/conf";
 inline auto const all_configs = []() {
@@ -48,14 +47,12 @@ struct DBUsingTest : public T {
   }
 };
 
-inline auto addr(string const& secret) {
-  return KeyPair(Secret(secret)).address();
+inline auto addr(Secret const& secret = Secret::random()) {
+  return KeyPair(secret).address();
 }
-};  // namespace exports
-}  // namespace taraxa::core_tests::_util
 
-namespace taraxa::core_tests::util {
-using namespace _util::exports;
-}  // namespace taraxa::core_tests::util
+inline auto addr(string const& secret_str) { return addr(Secret(secret_str)); }
+
+};  // namespace taraxa::core_tests::util
 
 #endif  // TARAXA_NODE_CORE_TESTS_UTIL_HPP_
