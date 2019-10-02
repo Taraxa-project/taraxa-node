@@ -154,8 +154,8 @@ void PbftManager::run() {
       syncPbftChainFromPeers_();
     }
 
-    // CHECK IF WE HAVE RECEIVED 2t+ 1 CERT VOTES FOR A BLOCK
-    // IN OUR CURRENT ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
+    // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
+    // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
     if (pbft_step_ == 3 || pbft_step_ == 4) {
       std::vector<Vote> cert_votes_for_round =
           getVotesOfTypeFromVotesForRoundAndStep_(
@@ -166,8 +166,6 @@ void PbftManager::run() {
                     << pbft_step_;
       std::pair<blk_hash_t, bool> cert_voted_block_hash =
           blockWithEnoughVotes_(cert_votes_for_round);
-      // TODO: debug remove later
-      LOG(log_tra_) << "Calculate cert votes for pbft block";
       if (cert_voted_block_hash.second) {
         LOG(log_deb_) << "PBFT block " << cert_voted_block_hash.first
                       << " has enough certed votes";
@@ -191,7 +189,6 @@ void PbftManager::run() {
         }
       }
     }
-
     // We skip step 4 due to having missed it while executing....
     if (have_executed_this_round == true &&
         elapsed_time_in_round_ms >
@@ -207,11 +204,25 @@ void PbftManager::run() {
     uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
+      // p2p connection syncing should cover this situation, sync here for safe
+      if (consensus_pbft_round > pbft_round_ + 1) {
+        LOG(log_inf_)
+            << "pbft chain behind, need broadcast request for missing blocks";
+        syncPbftChainFromPeers_();
+      }
+      pbft_round_ = consensus_pbft_round;
+    }
+
+    if (pbft_round_ != pbft_round_last_) {
+      round_clock_initial_datetime = now;
+
+      have_executed_this_round = false;
+      should_have_cert_voted_in_this_round = false;
       // reset starting value to NULL_BLOCK_HASH
       own_starting_value_for_round = NULL_BLOCK_HASH;
       // reset next voted value since start a new round
-      next_voted_soft_value = false;
       next_voted_null_block_hash = false;
+      next_voted_soft_value = false;
       if (executed_cs_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
         // update sortition account balance table
@@ -220,36 +231,14 @@ void PbftManager::run() {
         updateTwoTPlusOneAndThreshold_();
         executed_cs_block_ = false;
       }
-      // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > pbft_round_ + 1) {
-        LOG(log_inf_)
-            << "pbft chain behind, need broadcast request for missing blocks";
-        syncPbftChainFromPeers_();
-      }
-      pbft_round_ = consensus_pbft_round;
-      LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
-                    << ", step 1, and resetting clock.";
-    }
-
-    if (pbft_round_ != pbft_round_last_) {
       // NOTE: This also sets pbft_step back to 1
-      round_clock_initial_datetime = now;
-
-      // reset starting value to NULL_BLOCK_HASH
-      own_starting_value_for_round = NULL_BLOCK_HASH;
-
-      have_executed_this_round = false;
-      should_have_cert_voted_in_this_round = false;
-
-      // reset next voted value since start a new round
-      next_voted_null_block_hash = false;
-      next_voted_soft_value = false;
-
       last_step_ = pbft_step_;
       pbft_step_ = 1;
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
+      LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
+                    << ", step 1, and resetting clock.";
       continue;
     }
 
