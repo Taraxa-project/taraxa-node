@@ -303,8 +303,9 @@ TEST(Network, node_pbft_sync) {
   auto node1(std::make_shared<taraxa::FullNode>(
       context1, std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->setDebug(true);
-  node1->start(true);
+  node1->start(true);  // boot node
 
+  // generate pbft pivot block sample
   blk_hash_t prev_pivot_blk(0);
   blk_hash_t prev_block_blk(0);
   blk_hash_t dag_blk(123456789);
@@ -312,7 +313,6 @@ TEST(Network, node_pbft_sync) {
   addr_t beneficiary(987654321);
   PivotBlock pivot_block(prev_pivot_blk, prev_block_blk, dag_blk, period,
                          beneficiary);
-
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
   uint64_t timestamp = std::time(nullptr);
@@ -321,25 +321,27 @@ TEST(Network, node_pbft_sync) {
   sig_t signature = node1->signMessage(pbft_block_str);
   pbft_block1.setSignature(signature);
 
-  node1->setPbftBlock(pbft_block1);
-  size_t node1_pbft_chain_size = node1->getPbftChainSize();
-  ASSERT_EQ(node1_pbft_chain_size, 2);
+  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
+  // node1 put block1 into pbft chain and store into DB
+  bool push_block = pbft_chain1->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node1->getPbftChainSize(), 2);
 
-  TrxSchedule schedule;
+  // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
+  TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
-
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
   timestamp = std::time(nullptr);
   pbft_block2.setTimestamp(timestamp);
   pbft_block_str = pbft_block2.getJsonStr();
   signature = node1->signMessage(pbft_block_str);
-  pbft_block1.setSignature(signature);
-
-  node1->setPbftBlock(pbft_block2);
-  node1_pbft_chain_size = node1->getPbftChainSize();
-  ASSERT_EQ(node1_pbft_chain_size, 3);
+  pbft_block2.setSignature(signature);
+  // node1 put block2 into pbft chain and store into DB
+  push_block = pbft_chain1->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node1->getPbftChainSize(), 3);
 
   auto node2 = std::make_shared<taraxa::FullNode>(
       context2, std::string("./core_tests/conf/conf_taraxa2.json"), true);
@@ -355,7 +357,6 @@ TEST(Network, node_pbft_sync) {
   }
   node1->stop();
   node2->stop();
-
   EXPECT_EQ(node2->getPbftChainSize(), 3);
 }
 
