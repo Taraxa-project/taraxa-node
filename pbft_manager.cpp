@@ -212,7 +212,6 @@ void PbftManager::run() {
       }
       pbft_round_ = consensus_pbft_round;
     }
-
     if (pbft_round_ != pbft_round_last_) {
       round_clock_initial_datetime = now;
 
@@ -544,12 +543,11 @@ void PbftManager::run() {
         if (!next_voted_soft_value && !next_voted_null_block_hash &&
             pbft_step_ >= MAX_STEPS) {
           LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS "
-                           "for for round "
+                           "for round "
                         << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
-
         if (pbft_step_ > MAX_STEPS) {
           LOG(log_inf_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                            "to broadcast request for missing blocks";
@@ -1086,6 +1084,11 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
 }
 
 void PbftManager::syncPbftChainFromPeers_() {
+  if (!pbft_chain_->pbftVerifiedQueueEmpty()) {
+    LOG(log_deb_) << "DAG has not synced yet. PBFT chain skips syncing";
+    return;
+  }
+
   vector<NodeID> peers = capability_->getAllPeers();
   if (peers.empty()) {
     LOG(log_inf_) << "There is no peers with connection.";
