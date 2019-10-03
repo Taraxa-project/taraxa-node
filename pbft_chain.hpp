@@ -202,7 +202,7 @@ class PbftChain {
   ~PbftChain() {}
 
   void setFullNode(std::shared_ptr<FullNode> node);
-  void releaseDB() { db_pbftchain_ = nullptr; }
+  void releaseDB();
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
@@ -265,15 +265,21 @@ class PbftChain {
   blk_hash_t last_pbft_block_hash_;
   blk_hash_t last_pbft_pivot_hash_;
 
+  blk_hash_t dag_genesis_hash_;
+  uint64_t max_dag_blocks_height_ = 0;
+
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  // Start DAG genesis at index 1
+  // key : DAG block height, value : DAG block hash
+  std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
+  // Start DAG genesis at block height 1
+  // key : DAG block hash, value : DAG block height
+  std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
 
   // TODO: Need to think of how to shrink these info(by using LRU cache?), or
   //  move to DB
   std::vector<blk_hash_t> pbft_blocks_index_;
-  std::vector<blk_hash_t> dag_blocks_order_;  // DAG genesis at index 0
-  // map<dag_block_hash, block_number> DAG genesis is block height 0
-  std::unordered_map<blk_hash_t, uint64_t> dag_blocks_map_;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>

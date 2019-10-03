@@ -121,6 +121,18 @@ void FullNode::initDB(bool destroy_db) {
         conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
+  if (db_dag_blocks_order_ == nullptr) {
+    db_dag_blocks_order_ =
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+            conf_.dag_blocks_order_path(), destroy_db);
+    assert(db_dag_blocks_order_);
+  }
+  if (db_dag_blocks_height_ == nullptr) {
+    db_dag_blocks_height_ =
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+            conf_.dag_blocks_height_path(), destroy_db);
+    assert(db_dag_blocks_height_);
+  }
   if (state_registry_ == nullptr) {
     // THIS IS THE GENESIS
     // TODO extract to a function
@@ -200,6 +212,8 @@ bool FullNode::destroyDB() {
   assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(db_dag_blocks_order_.use_count() == 1);
+  assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
 
@@ -209,6 +223,8 @@ bool FullNode::destroyDB() {
   db_trxs_to_blk_ = nullptr;
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
+  db_dag_blocks_order_ = nullptr;
+  db_dag_blocks_height_ = nullptr;
   state_registry_ = nullptr;
   state_ = nullptr;
   db_inited_ = false;
@@ -324,6 +340,8 @@ void FullNode::start(bool boot_node) {
   assert(db_trxs_to_blk_);
   assert(db_votes_);
   assert(db_pbftchain_);
+  assert(db_dag_blocks_order_);
+  assert(db_dag_blocks_height_);
   assert(state_registry_);
   assert(state_);
   LOG(log_wr_) << "Node started ... ";
@@ -361,6 +379,8 @@ void FullNode::stop() {
 
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(db_dag_blocks_order_.use_count() == 1);
+  assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
