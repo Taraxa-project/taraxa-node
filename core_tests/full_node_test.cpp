@@ -453,7 +453,7 @@ TEST_F(TopTest, sync_five_nodes) {
   nodes.emplace_back(node4);
   nodes.emplace_back(node5);
 
-  EXPECT_EQ(node1->getDagBlockMaxHeight(), 0);  // genesis block
+  EXPECT_EQ(node1->getDagBlockMaxHeight(), 1);  // genesis block
   uint64_t init_bal = TARAXA_COINS_DECIMAL / 5;
 
   // transfer some coins to your friends ...
