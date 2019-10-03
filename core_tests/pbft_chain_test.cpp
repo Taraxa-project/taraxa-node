@@ -361,7 +361,7 @@ TEST(PbftChain, get_dag_block_hash) {
   node->start(true);  // boot_node
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
+  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(1);
   ASSERT_TRUE(dag_genesis_hash.second);
   ASSERT_EQ(dag_genesis_hash.first,
             node->getConfig().genesis_state.block.getHash());
@@ -403,26 +403,29 @@ TEST(PbftChain, get_dag_block_hash) {
   EXPECT_EQ(dag_blocks_hash.size(), 2);
 
   auto dag_max_height = node->getDagBlockMaxHeight();
-  ASSERT_EQ(dag_max_height, 1);
+  ASSERT_EQ(dag_max_height, 2);
 
-  dag_genesis_hash = pbft_chain->getDagBlockHash(1);
-  ASSERT_TRUE(dag_genesis_hash.second);
-  std::pair<uint64_t, bool> dag_genesis_height =
-      pbft_chain->getDagBlockHeight(dag_genesis_hash.first);
-  ASSERT_TRUE(dag_genesis_height.second);
-  ASSERT_EQ(dag_genesis_height.first, 1);
+  std::pair<blk_hash_t, bool> last_dag_block_hash =
+      pbft_chain->getDagBlockHash(2);
+  ASSERT_TRUE(last_dag_block_hash.second);
+  std::pair<uint64_t, bool> last_dag_block_height =
+      pbft_chain->getDagBlockHeight(last_dag_block_hash.first);
+  ASSERT_TRUE(last_dag_block_height.second);
+  ASSERT_EQ(last_dag_block_height.first, 2);
 }
 
 TEST(PbftChain, get_dag_block_height) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->setDebug(true);
+  node->start(true);  // boot_node
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
       node->getConfig().genesis_state.block.getHash());
   ASSERT_TRUE(dag_genesis_height.second);
-  ASSERT_EQ(dag_genesis_height.first, 0);
+  ASSERT_EQ(dag_genesis_height.first, 1);
 }
 
 }  // namespace taraxa
