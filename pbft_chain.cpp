@@ -738,13 +738,16 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
-  std::string dag_block_heigh_str =
+  std::string dag_block_height_str =
       db_dag_blocks_height_->get(dag_block_hash.toString());
-  if (!dag_block_heigh_str.empty()) {
+  if (!dag_block_height_str.empty()) {
     // The DAG block already exist
-    LOG(log_err_) << "Duplicate DAG block " << dag_block_hash
-                  << " in PBFT CS block";
-    assert(false);
+    LOG(log_inf_) << "Duplicate DAG block " << dag_block_hash
+                  << " in DAG blocks height DB already";
+    uint64_t dag_block_height;
+    std::istringstream iss(dag_block_height_str);
+    iss >> dag_block_height;
+    return dag_block_height;
   }
   // push DAG block hash into DAG blocks order DB. DAG genesis at index 1
   max_dag_blocks_height_++;
