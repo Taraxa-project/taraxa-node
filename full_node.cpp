@@ -848,7 +848,7 @@ uint64_t FullNode::getDagBlockMaxHeight() const {
 std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
   std::vector<blk_hash_t> ret;
   auto max_height = getDagBlockMaxHeight();
-  for (auto i(0); i <= max_height; ++i) {
+  for (auto i(1); i <= max_height; ++i) {
     auto blk = getDagBlockHash(i);
     assert(blk.second);
     ret.emplace_back(blk.first);
@@ -859,7 +859,7 @@ std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
 std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   std::unordered_set<trx_hash_t> packed_trxs;
   auto max_height = getDagBlockMaxHeight();
-  for (auto i(0); i <= max_height; ++i) {
+  for (auto i(1); i <= max_height; ++i) {
     auto blk = getDagBlockHash(i);
     assert(blk.second);
     auto dag_blk = getDagBlock(blk.first);
