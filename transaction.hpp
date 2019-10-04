@@ -330,7 +330,7 @@ class TransactionManager
   /**
    * The following function will require a lock for verified qu
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx);
+  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier);
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
@@ -362,12 +362,10 @@ class TransactionManager
   TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
     return trx_status_.getRawMap();
   }
-  void updateNonce(DagBlock const &blk);
+  void updateNonce(DagBlock const &blk, DagFrontier const &frontier);
 
  private:
   addr_t getFullNodeAddress() const;
-  // vec_trx_t sortTransctionsAndGetHashVector(
-  // std::vector<Transaction> &vec_trxs) const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   bool stopped_ = true;
@@ -378,6 +376,9 @@ class TransactionManager
   AccountNonceTable accs_nonce_;
   std::queue<Transaction> trx_requeued_;
   TransactionQueue trx_qu_;
+  DagFrontier dag_frontier_;  // Dag boundary seen up to now
+
+  mutable std::mutex mu_for_nonce_table_;
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};
   mutable dev::Logger log_er_{
@@ -389,7 +390,6 @@ class TransactionManager
   mutable dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXMGR")};
 };
-
 }  // namespace taraxa
 
 #endif

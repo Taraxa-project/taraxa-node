@@ -6,6 +6,7 @@
 #include <vector>
 #include "boost/thread.hpp"
 #include "config.hpp"
+#include "dag_block.hpp"
 
 namespace taraxa {
 
@@ -41,6 +42,8 @@ class RandomPropose : public ProposeModelFace {
  private:
   std::uniform_int_distribution<std::mt19937::result_type> distribution_;
   static std::mt19937 generator;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
   dev::Logger log_wr_{
@@ -122,8 +125,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void stop();
   std::shared_ptr<BlockProposer> getShared();
   void proposeBlock(DagBlock& blk);
-  bool getShardedTrxs(vec_trx_t& sharded_trx) {
-    return getShardedTrxs(total_trx_shards_, my_trx_shard_, sharded_trx);
+  bool getShardedTrxs(vec_trx_t& sharded_trx, DagFrontier& frontier) {
+    return getShardedTrxs(total_trx_shards_, frontier, my_trx_shard_,
+                          sharded_trx);
   }
   bool getLatestPivotAndTips(std::string& pivot,
                              std::vector<std::string>& tips);
@@ -141,7 +145,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
     uint shard;
     std::vector<uint> params;
   };
-  bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
+  bool getShardedTrxs(uint total_shard, DagFrontier& frontier, uint my_shard,
+                      vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
   static std::atomic<uint64_t> num_proposed_blocks;
   bool stopped_ = true;

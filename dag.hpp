@@ -225,6 +225,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
   addr_t getFullNodeAddress() const;
+  std::pair<std::string, std::vector<std::string>> getFrontier()
+      const;  // return pivot and tips
   bool stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
@@ -235,6 +237,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::unordered_set<std::string> recent_added_blks_;
   std::vector<std::string> anchors_;  // pivots that define periods
   std::string genesis_;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   dev::Logger log_wr_{

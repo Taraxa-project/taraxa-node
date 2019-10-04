@@ -860,6 +860,10 @@ std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
   }
   return ret;
 }
+void FullNode::updateNonceTable(DagBlock const &blk,
+                                DagFrontier const &frontier) {
+  trx_mgr_->updateNonce(blk, frontier);
+}
 
 std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   std::unordered_set<trx_hash_t> packed_trxs;
@@ -878,6 +882,9 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
     ret.emplace_back(t);
   }
   return ret;
+}
+TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
+  return trx_mgr_->getUnsafeTransactionStatusTable();
 }
 
 }  // namespace taraxa

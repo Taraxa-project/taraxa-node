@@ -14,7 +14,6 @@
 #include <thread>
 #include "libdevcore/CommonJS.h"
 #include "libdevcore/Log.h"
-#include "transaction.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -101,6 +100,18 @@ enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
 
 using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
 using BlockUnsafeStatusTable = BlockStatusTable::UnsafeStatusTable;
+
+struct DagFrontier {
+  DagFrontier() = default;
+  DagFrontier(blk_hash_t const &pivot, vec_blk_t const &tips)
+      : pivot(pivot), tips(tips) {}
+  void clear() {
+    pivot.clear();
+    tips.clear();
+  }
+  blk_hash_t pivot;
+  vec_blk_t tips;
+};
 
 /**
  * Thread safe

@@ -482,31 +482,48 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
   auto p = blk.getPivot();
-  if (total_dag_->hasVertex(hash)) {
-    LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
-    return true;
-  }
+  {
+    uLock lock(mutex_);
 
-  std::string pivot = blk.getPivot().toString();
-  if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
-                 << std::endl;
-    return false;
-  }
+    if (total_dag_->hasVertex(hash)) {
+      LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
+      return true;
+    }
 
-  std::vector<std::string> tips;
-  for (auto const &t : blk.getTips()) {
-    std::string tip = t.toString();
-    if (!total_dag_->hasVertex(tip)) {
-      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
+    std::string pivot = blk.getPivot().toString();
+    if (!total_dag_->hasVertex(pivot)) {
+      LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
                    << std::endl;
       return false;
     }
-    tips.push_back(tip);
+
+    std::vector<std::string> tips;
+    for (auto const &t : blk.getTips()) {
+      std::string tip = t.toString();
+      if (!total_dag_->hasVertex(tip)) {
+        LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
+                     << std::endl;
+        return false;
+      }
+      tips.push_back(tip);
+    }
+
+    addToDag(hash, pivot, tips);
+    // update nonce here
+    auto full_node = full_node_.lock();
+    assert(full_node);
+    DagFrontier frontier;
+    auto [p, ts] = getFrontier();
+    frontier.pivot = blk_hash_t(p);
+    for (auto const &t : ts) {
+      frontier.tips.emplace_back(blk_hash_t(t));
+    }
+    full_node->updateNonceTable(blk, frontier);
+    LOG(log_si_) << getFullNodeAddress() << " Update nonce table of blk "
+                 << blk.getHash() << " pivot = " << frontier.pivot
+                 << " tips: " << frontier.tips;
   }
 
-  addToDag(hash, pivot, tips);
-  LOG(log_dg_) << "Block " << h << " added to DAG";
   max_level_ = std::max(max_level_, blk.getLevel());
   recent_added_blks_.insert(hash);
   return true;
@@ -516,7 +533,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  LOG(log_nf_) << "Insert block to DAG : " << hash;
+  LOG(log_si_) << getFullNodeAddress() << " Insert block to DAG : " << hash;
 }
 
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
@@ -527,6 +544,17 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
+  std::tie(pivot, tips) = getFrontier();
+
+  return !pivot.empty();
+}
+
+std::pair<std::string, std::vector<std::string>> DagManager::getFrontier()
+    const {
+  std::string pivot;
+  std::vector<std::string> tips;
+  std::vector<std::string> pivot_chain;
+
   auto last_pivot = anchors_.back();
   pivot_tree_->getGhostPath(last_pivot, pivot_chain);
   if (!pivot_chain.empty()) {
@@ -537,9 +565,8 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
         std::remove_if(tips.begin(), tips.end(),
                        [pivot](std::string const &s) { return s == pivot; });
     tips.erase(end, tips.end());
-    ret = true;
   }
-  return ret;
+  return {pivot, tips};
 }
 
 void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {

@@ -14,6 +14,7 @@
 #include "libdevcrypto/Common.h"
 #include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
+#include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "vote.h"
@@ -89,7 +90,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
-
+  void updateNonceTable(DagBlock const & dagblk, DagFrontier const & frontier);
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       unsigned long level, int number_of_levels);
@@ -225,9 +226,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;
   unsigned long getTransactionStatusCount() const;
-  auto getUnsafeTransactionStatusTable() const {
-    return trx_mgr_->getUnsafeTransactionStatusTable();
-  }
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
     return executor_->getNumExecutedTrx();
   }
