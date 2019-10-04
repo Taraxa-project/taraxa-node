@@ -84,65 +84,6 @@ TEST(TransactionQueue, verifiers) {
   EXPECT_EQ(verified_trxs.size(), g_trx_samples.size());
 }
 
-TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
-  TransactionManager trx_mgr(
-      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-          "/tmp/rocksdb/trx", true));
-  trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
-  trx_mgr.start();
-  std::thread insertTrx([&trx_mgr]() {
-    for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(false), true);
-    }
-  });
-  std::thread insertBlk([&trx_mgr]() {
-    std::vector<Transaction> transactions;
-    transactions.push_back(g_trx_samples[0]);
-    for (auto const& b : g_blk_samples) {
-      trx_mgr.saveBlockTransactionAndDeduplicate(b.getTrxs(), transactions);
-    }
-  });
-  thisThreadSleepForSeconds(1);
-
-  insertTrx.join();
-  insertBlk.join();
-  vec_trx_t total_packed_trxs, packed_trxs;
-
-  // trying to insert same trans when proposing
-  std::thread insertTrx2([&trx_mgr]() {
-    for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(false), false);
-    }
-  });
-  std::cout << "Start block proposing ..." << std::endl;
-  std::thread wakeup([&trx_mgr]() {
-    thisThreadSleepForSeconds(2);
-    trx_mgr.stop();
-  });
-  do {
-    DagFrontier frontier;
-    trx_mgr.packTrxs(packed_trxs, frontier);
-    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
-                             packed_trxs.end());
-    thisThreadSleepForMicroSeconds(100);
-  } while (!packed_trxs.empty());
-
-  // trying to insert same trans when proposing
-  std::thread insertTrx3([&trx_mgr]() {
-    for (auto const& t : g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(false), true);
-    }
-  });
-
-  wakeup.join();
-  insertTrx2.join();
-  insertTrx3.join();
-  EXPECT_LT(total_packed_trxs.size(), NUM_TRX);
-  EXPECT_GE(total_packed_trxs.size(),
-            NUM_TRX - NUM_BLK * (BLK_TRX_LEN - BLK_TRX_OVERLAP) - 1)
-      << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
-}
-
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(
