@@ -120,7 +120,8 @@ TEST(TransactionManager, prepare_unsigned_trx_for_propose) {
     trx_mgr.stop();
   });
   do {
-    trx_mgr.packTrxs(packed_trxs);
+    DagFrontier frontier;
+    trx_mgr.packTrxs(packed_trxs, frontier);
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
                              packed_trxs.end());
     thisThreadSleepForMicroSeconds(100);
@@ -165,7 +166,8 @@ TEST(TransactionManager, prepare_signed_trx_for_propose) {
     trx_mgr.stop();
   });
   do {
-    trx_mgr.packTrxs(packed_trxs);
+    DagFrontier frontier;
+    trx_mgr.packTrxs(packed_trxs, frontier);
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(),
                              packed_trxs.end());
     thisThreadSleepForMicroSeconds(100);

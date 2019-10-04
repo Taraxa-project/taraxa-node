@@ -96,35 +96,35 @@ void send_5_nodes_trxs() {
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 5, 
-                                      "number": 200, 
+                                      "number": 2000, 
                                       "nonce": 4, 
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
   std::string sendtrx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 7, 
-                                      "number": 200, 
+                                      "number": 2000, 
                                       "nonce": 0,
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778 > /dev/null)";
   std::string sendtrx3 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
                                       "delay": 3, 
-                                      "number": 200, 
+                                      "number": 2000, 
                                       "nonce": 0,
                                       "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779 > /dev/null)";
   std::string sendtrx4 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
                                       "delay": 10, 
-                                      "number": 200, 
+                                      "number": 2000, 
                                       "nonce": 0,
                                       "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780 > /dev/null)";
   std::string sendtrx5 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
                                       "delay": 2,
-                                      "number": 200, 
+                                      "number": 2000, 
                                       "nonce": 0,
                                       "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781 > /dev/null)";
   std::cout << "Sending trxs ..." << std::endl;
@@ -552,11 +552,11 @@ TEST_F(TopTest, sync_five_nodes) {
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 1004 &&
-        node2->getTransactionStatusCount() == 1004 &&
-        node3->getTransactionStatusCount() == 1004 &&
-        node4->getTransactionStatusCount() == 1004 &&
-        node5->getTransactionStatusCount() == 1004)
+        node1->getTransactionStatusCount() == 10004 &&
+        node2->getTransactionStatusCount() == 10004 &&
+        node3->getTransactionStatusCount() == 10004 &&
+        node4->getTransactionStatusCount() == 10004 &&
+        node5->getTransactionStatusCount() == 10004)
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -585,11 +585,11 @@ TEST_F(TopTest, sync_five_nodes) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 1005);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 1005);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 1005);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 1005);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 1005);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 10005);
 
   // wait for trx execution ...
   taraxa::thisThreadSleepForSeconds(10);
@@ -632,29 +632,29 @@ TEST_F(TopTest, sync_five_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(500);
     if (i % 100 == 0) {
       std::cout << " Wait for syncing ... " << i << "/" << TIMEOUT << std::endl;
-      if (trx_executed1 != 1005) {
+      if (trx_executed1 != 10005) {
         std::cout << " Node 1: executed blk= " << node1->getNumBlockExecuted()
-                  << " executed trx = " << trx_executed1 << "/1005"
+                  << " executed trx = " << trx_executed1 << "/10005"
                   << std::endl;
       }
-      if (trx_executed2 != 1005) {
+      if (trx_executed2 != 10005) {
         std::cout << " Node 2: executed blk= " << node2->getNumBlockExecuted()
-                  << " executed trx = " << trx_executed2 << "/1005"
+                  << " executed trx = " << trx_executed2 << "/10005"
                   << std::endl;
       }
-      if (trx_executed3 != 1005) {
+      if (trx_executed3 != 10005) {
         std::cout << " Node 3: executed blk= " << node3->getNumBlockExecuted()
-                  << " executed trx = " << trx_executed3 << "/1005"
+                  << " executed trx = " << trx_executed3 << "/10005"
                   << std::endl;
       }
-      if (trx_executed4 != 1005) {
+      if (trx_executed4 != 10005) {
         std::cout << " Node 4: executed blk= " << node4->getNumBlockExecuted()
-                  << " executed trx = " << trx_executed4 << "/1005"
+                  << " executed trx = " << trx_executed4 << "/10005"
                   << std::endl;
       }
-      if (trx_executed5 != 1005) {
+      if (trx_executed5 != 10005) {
         std::cout << " Node 5: executed blk= " << node5->getNumBlockExecuted()
-                  << " executed trx = " << trx_executed5 << "/1005"
+                  << " executed trx = " << trx_executed5 << "/10005"
                   << std::endl;
       }
     }
@@ -700,7 +700,7 @@ TEST_F(TopTest, sync_five_nodes) {
   for (auto const &node : nodes) {
     k++;
 
-    EXPECT_EQ(node->getNumTransactionExecuted(), 1005)
+    EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
         << " \nNum execued in node " << k << " node " << node
         << " is : " << node->getNumTransactionExecuted()
         << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
@@ -723,7 +723,7 @@ TEST_F(TopTest, sync_five_nodes) {
         << " Number of vertices: " << node->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getNumBlockExecuted()
         << std::endl;
-    EXPECT_EQ(node->getPackedTrxs().size(), 1005);
+    EXPECT_EQ(node->getPackedTrxs().size(), 10005);
   }
 
   auto dags = node1->getLinearizedDagBlocks();
