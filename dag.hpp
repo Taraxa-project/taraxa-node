@@ -189,9 +189,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
-  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
-  void consume();
-
+  bool addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
   // assuming a period is confirmed, will finialize, return size of blocks in
@@ -216,15 +215,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void drawPivotGraph(std::string const &str) const;
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  size_t getBufferSize() const;
   level_t getMaxLevel() const { return max_level_; }
   uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
   std::string getLatestAnchor() const { return anchors_.back(); }
 
  private:
   size_t num_cached_period_in_dag = 1000;
-  bool addDagBlockInternal(DagBlock const &blk);
-  void addToDagBuffer(DagBlock const &blk);
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
@@ -238,11 +234,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::unordered_set<std::string> recent_added_blks_;
   std::vector<std::string> anchors_;  // pivots that define periods
-  // DagBuffer
-  std::list<std::shared_ptr<DagBlock>> sb_buffer_;
-  std::shared_ptr<boost::thread> sb_buffer_processing_thread_;
-  mutable std::mutex sb_bufer_mutex_;
-  std::condition_variable sb_buffer_condition;
   std::string genesis_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};

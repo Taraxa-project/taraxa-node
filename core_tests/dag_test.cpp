@@ -364,8 +364,6 @@ TEST(DagManager, receive_block_in_order) {
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
   // pivot edges
   EXPECT_EQ(mgr->getNumEdgesInDag().second, 3);
-
-  EXPECT_EQ(mgr->getBufferSize(), 0);
 }
 
 // Use the example on Conflux paper, insert block in different order and make
@@ -502,7 +500,6 @@ TEST(DagManager, receive_block_out_of_order) {
   mgr->stop();
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
-  EXPECT_EQ(mgr->getBufferSize(), 0);
 }
 
 TEST(DagManager, get_latest_pivot_tips) {

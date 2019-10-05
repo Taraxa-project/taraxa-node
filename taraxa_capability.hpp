@@ -35,10 +35,9 @@ enum SubprotocolPacketType : ::byte {
   NewPbftBlockPacket,
   GetPbftBlockPacket,
   PbftBlockPacket,
+  SyncedPacket,
   PacketCount
 };
-
-enum PeerState { Idle = 0, Syncing };
 
 class TaraxaPeer : public boost::noncopyable {
  public:
@@ -49,7 +48,6 @@ class TaraxaPeer : public boost::noncopyable {
         known_transactions_(100000, 10000) {}
   TaraxaPeer(NodeID id)
       : m_id(id),
-        m_state(Idle),
         known_blocks_(10000, 1000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000),
@@ -102,8 +100,8 @@ class TaraxaPeer : public boost::noncopyable {
   std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
       m_syncBlocks;
   blk_hash_t m_lastRequest;
-  PeerState m_state;
-  unsigned long vertices_count_ = 0;
+  bool syncing_ = false;
+  uint64_t level_ = 0;
 
  private:
   ExpirationCache<blk_hash_t> known_blocks_;
@@ -170,6 +168,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       std::vector<NodeID> const &_peers, std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
+  void sendSyncedMessage();
   void sendBlocks(NodeID const &_id,
                   std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
@@ -202,6 +201,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void insertPeer(NodeID const &node_id,
                   std::shared_ptr<TaraxaPeer> const &peer);
 
+  bool syncing_ = false;
+
  private:
   Host &host_;
   std::unordered_map<NodeID, int> cnt_received_messages_;
@@ -225,7 +226,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
-  unsigned long max_peer_vertices_ = 0;
+  unsigned long max_peer_level_ = 0;
   NodeID peer_syncing_;
   std::string genesis_;
   bool performance_log_;
