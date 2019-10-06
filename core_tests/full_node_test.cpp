@@ -292,7 +292,7 @@ TEST_F(TopTest, DISABLED_top_reset) {
   }
 }
 
-TEST_F(FullNodeTest, full_node_reset) {
+TEST_F(FullNodeTest, DISABLED_full_node_reset) {
   boost::asio::io_context context1;
   boost::asio::io_context context2;
 
@@ -1430,7 +1430,7 @@ TEST_F(FullNodeTest, DISABLED_execute_chain_pbft_transactions) {
   //  EXPECT_EQ(state->balance(acc1), initbal - coin_distributed);
 }
 
-TEST_F(FullNodeTest, send_and_receive_out_order_messages) {
+TEST_F(FullNodeTest, DISABLED_send_and_receive_out_order_messages) {
   boost::asio::io_context context1;
   boost::asio::io_context context2;
 

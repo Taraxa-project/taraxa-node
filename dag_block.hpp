@@ -115,6 +115,7 @@ class BlockManager {
                            std::vector<Transaction> const &transactions,
                            bool critical);  // add to unverified queue
   DagBlock popVerifiedBlock();              // get one verified block and pop
+  void pushVerifiedBlock(DagBlock const &blk);
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
@@ -150,8 +151,10 @@ class BlockManager {
   boost::condition_variable_any cond_for_unverified_qu_;
   boost::condition_variable_any cond_for_verified_qu_;
 
-  std::deque<std::pair<DagBlock, std::vector<Transaction> > > unverified_qu_;
-  std::deque<std::pair<DagBlock, std::vector<Transaction> > > verified_qu_;
+  std::map<uint64_t,
+           std::deque<std::pair<DagBlock, std::vector<Transaction> > > >
+      unverified_qu_;
+  std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "BLKQU")};
   dev::Logger log_wr_{

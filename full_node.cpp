@@ -181,42 +181,47 @@ void FullNode::initDB(bool destroy_db) {
     unsigned long level = 1;
     while (true) {
       h256 level_key(level);
-      printf("LEVEL %lu %s ",level, level_key.toString().c_str());
+      printf("LEVEL %lu %s ", level, level_key.toString().c_str());
       string entry = db_blks_index_->get(level_key.toString());
       if (entry.empty()) break;
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
-      printf("No %lu %s  ",blocks.size(), entry.c_str());
+      printf("No %lu %s  ", blocks.size(), entry.c_str());
       for (auto const &block : blocks) {
         auto block_bytes = db_blks_->get(blk_hash_t(block));
         if (block_bytes.size() > 0) {
           auto blk = DagBlock(block_bytes);
           assert(blk.getLevel() == level);
-          if(blk.getHash().toString() == "66b5c2cc0ac5b730cdaecf171c011de42339a193af190f22f5c504f1f0c09766") {
-            printf("66b5c2cc0ac5b730cdaecf171c011de42339a193af190f22f5c504f1f0c09766 %s tips: ", blk.getJsonStr().c_str());
-            for(auto tip : blk.getTips()) {
+          if (blk.getHash().toString() ==
+              "66b5c2cc0ac5b730cdaecf171c011de42339a193af190f22f5c504f1f0c0976"
+              "6") {
+            printf(
+                "66b5c2cc0ac5b730cdaecf171c011de42339a193af190f22f5c504f1f0c097"
+                "66 %s tips: ",
+                blk.getJsonStr().c_str());
+            for (auto tip : blk.getTips()) {
               printf("%s ", tip.toString().c_str());
               auto blktip_bytes = db_blks_->get(tip);
-              if(blktip_bytes.size() == 0)
+              if (blktip_bytes.size() == 0)
                 printf("No tip block");
-              else 
+              else
                 printf("%lu", blktip_bytes.size());
               printf("BEFORE");
               auto blktip = DagBlock(blktip_bytes);
               printf("AFTER");
-              printf("%s %lu", blktip.getHash().toString().c_str(), blktip.getLevel());
+              printf("%s %lu", blktip.getHash().toString().c_str(),
+                     blktip.getLevel());
             }
             printf("\n");
           }
-          printf("%s %s ", blk_hash_t(block).toString().c_str(), blk.getHash().toString().c_str());
-          if(blk.getLevel() != level)
-            printf("ERROR %lu",blk.getLevel());
+          printf("%s %s ", blk_hash_t(block).toString().c_str(),
+                 blk.getHash().toString().c_str());
+          if (blk.getLevel() != level) printf("ERROR %lu", blk.getLevel());
           dag_mgr_->addDagBlock(blk);
-        }
-        else {
+        } else {
           printf("ERROR - No block");
         }
-        printf("\n");      
+        printf("\n");
       }
       level++;
     }
@@ -335,7 +340,7 @@ void FullNode::start(bool boot_node) {
           }
         }
 
-        if(dag_mgr_->addDagBlock(blk)) {
+        if (dag_mgr_->addDagBlock(blk)) {
           {
             auto block_bytes = blk.rlp(true);
             db_blks_->put(blk.getHash(), block_bytes);
@@ -344,18 +349,28 @@ void FullNode::start(bool boot_node) {
             h256 level_key(level);
             std::string blocks = db_blks_index_->get(level_key.toString());
             if (blocks == "") {
-              db_blks_index_->put(level_key.toString(), blk.getHash().toString());
+              db_blks_index_->put(level_key.toString(),
+                                  blk.getHash().toString());
             } else {
               auto newblocks = blocks + "," + blk.getHash().toString();
               db_blks_index_->update(level_key.toString(),
-                                    blocks + "," + blk.getHash().hex());
+                                     blocks + "," + blk.getHash().hex());
             }
             db_blks_index_->commit();
             if (ws_server_) ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
           LOG(log_time_) << "Broadcast block " << blk.getHash()
-                        << " at: " << getCurrentTimeMilliSeconds();
+                         << " at: " << getCurrentTimeMilliSeconds();
+        } else {
+          // Networking makes sure that dag block that reaches queue already had
+          // its pivot and tips processed This should happen in a very rare case
+          // where in some race condition older block is verfified faster then
+          // new block but should resolve quickly, return block to queue
+          LOG(log_warning_)
+              << "Block could not be added to DAG " << blk.getHash();
+          received_blocks_--;
+          blk_mgr_->pushVerifiedBlock(blk);
         }
       }
     });
