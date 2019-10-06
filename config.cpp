@@ -5,68 +5,65 @@
 namespace taraxa {
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
     : json_file_name(json_file) {
-  try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    node_secret = doc.get<std::string>("node_secret");
-    db_path = doc.get<std::string>("db_path");
-    dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
+  boost::property_tree::ptree doc = loadJsonFile(json_file);
+  node_secret = doc.get<std::string>("node_secret");
+  db_path = doc.get<std::string>("db_path");
+  dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
 
-    network.network_address = doc.get<std::string>("network_address");
-    network.network_id = doc.get<std::string>("network_id");
-    network.network_listen_port = doc.get<uint16_t>("network_listen_port");
-    network.network_simulated_delay =
-        doc.get<uint16_t>("network_simulated_delay");
-    network.network_transaction_interval =
-        doc.get<uint16_t>("network_transaction_interval");
-    network.network_bandwidth = doc.get<uint16_t>("network_bandwidth");
-    network.network_ideal_peer_count =
-        doc.get<uint16_t>("network_ideal_peer_count");
-    network.network_max_peer_count =
-        doc.get<uint16_t>("network_max_peer_count");
-    network.network_encrypted = doc.get<uint16_t>("network_encrypted") != 0;
-    network.network_performance_log =
-        doc.get<uint16_t>("network_performance_log") & 1;
-    if (doc.get<uint16_t>("network_performance_log") & 2)
+  network.network_address = doc.get<std::string>("network_address");
+  network.network_id = doc.get<std::string>("network_id");
+  network.network_listen_port = doc.get<uint16_t>("network_listen_port");
+  network.network_simulated_delay =
+      doc.get<uint16_t>("network_simulated_delay");
+  network.network_transaction_interval =
+      doc.get<uint16_t>("network_transaction_interval");
+  network.network_bandwidth = doc.get<uint16_t>("network_bandwidth");
+  if (auto o = doc.get_optional<uint16_t>("network_ideal_peer_count"); o) {
+    network.network_ideal_peer_count = *o;
+  }
+  if (auto o = doc.get_optional<uint16_t>("network_max_peer_count"); o) {
+    network.network_max_peer_count = *o;
+  }
+  if (auto o = doc.get_optional<uint16_t>("network_encrypted"); o) {
+    network.network_encrypted = *o != 0;
+  }
+  if (auto o = doc.get_optional<uint16_t>("network_performance_log"); o) {
+    network.network_performance_log = *o & 1;
+    if (*o & 2) {
       dev::db::LevelDB::setPerf(true);
-    for (auto &item : doc.get_child("network_boot_nodes")) {
-      NodeConfig node;
-      node.id = item.second.get<std::string>("id");
-      node.ip = item.second.get<std::string>("ip");
-      node.port = item.second.get<uint16_t>("port");
-      network.network_boot_nodes.push_back(node);
     }
-    rpc.address =
-        boost::asio::ip::address::from_string(network.network_address);
-    rpc.port = doc.get<uint16_t>("rpc_port");
-    rpc.ws_port = doc.get<uint16_t>("ws_port");
-    {  // for test experiments
-      for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
-        test_params.block_proposer.push_back(i);
-      }
+  }
+  for (auto &item : doc.get_child("network_boot_nodes")) {
+    NodeConfig node;
+    node.id = item.second.get<std::string>("id");
+    node.ip = item.second.get<std::string>("ip");
+    node.port = item.second.get<uint16_t>("port");
+    network.network_boot_nodes.push_back(node);
+  }
+  rpc.address = boost::asio::ip::address::from_string(network.network_address);
+  rpc.port = doc.get<uint16_t>("rpc_port");
+  rpc.ws_port = doc.get<uint16_t>("ws_port");
+  {  // for test experiments
+    for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
+      test_params.block_proposer.push_back(i);
+    }
 
-      for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
-        test_params.pbft.push_back(i);
-      }
+    for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
+      test_params.pbft.push_back(i);
     }
-    genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
-    if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {
-      use_basic_executor = *v;
-    }
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
+  }
+  genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
+  if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {
+    use_basic_executor = *v;
   }
 }
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
-  try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    port = doc.get<uint16_t>("port");
-    ws_port = doc.get<uint16_t>("ws_port");
-    address =
-        boost::asio::ip::address::from_string(doc.get<std::string>("address"));
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
+  boost::property_tree::ptree doc = loadJsonFile(json_file);
+  port = doc.get<uint16_t>("port");
+  ws_port = doc.get<uint16_t>("ws_port");
+  address =
+      boost::asio::ip::address::from_string(doc.get<std::string>("address"));
 }
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
