@@ -561,11 +561,12 @@ void PbftManager::run() {
           next_voted_null_block_hash = true;
         }
 
-        if (pbft_step_ > MAX_STEPS) {
-          LOG(log_inf_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
-                           "to broadcast request for missing blocks";
-          syncPbftChainFromPeers_();
-        }
+      }
+
+      if (pbft_step_ > MAX_STEPS) {
+        LOG(log_inf_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
+                         "to broadcast request for missing blocks";
+        syncPbftChainFromPeers_();
       }
 
       // if (pbft_step_ >= MAX_STEPS) {
@@ -1181,7 +1182,9 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
 }
 
 void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
+  bool queue_was_full = false;
   while (!pbft_chain_->pbftVerifiedQueueEmpty()) {
+    queue_was_full = true;
     PbftBlock pbft_block = pbft_chain_->pbftVerifiedQueueFront();
     LOG(log_inf_) << "Pick pbft block " << pbft_block.getBlockHash()
                   << " from verified queue in round " << pbft_round_;
@@ -1195,6 +1198,12 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
     }
     pbft_chain_->pbftVerifiedQueuePopFront();
   }
+
+  if (queue_was_full == true && pbft_chain_->pbftVerifiedQueueEmpty()) {
+    LOG(log_inf_) << "PBFT block verified queue is newly empty.  Will check if need to sync in round " << pbft_round_;
+    syncPbftChainFromPeers_();
+  }
+
 }
 
 bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
