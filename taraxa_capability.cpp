@@ -34,12 +34,11 @@ void TaraxaCapability::insertPeer(NodeID const &node_id,
 
 void TaraxaCapability::syncPeer(NodeID const &_nodeID,
                                 unsigned long level_to_sync) {
-  const int number_of_levels_to_sync = 1;
   if (auto full_node = full_node_.lock()) {
     LOG(log_nf_) << "Sync Peer:" << _nodeID;
     auto peer = getPeer(_nodeID);
     if (level_to_sync == 0) level_to_sync = 1;
-    requestBlocksLevel(_nodeID, level_to_sync, number_of_levels_to_sync);
+    requestBlocksLevel(_nodeID, level_to_sync, conf_.network_sync_level_size);
   }
 }
 

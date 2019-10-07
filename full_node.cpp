@@ -181,47 +181,16 @@ void FullNode::initDB(bool destroy_db) {
     unsigned long level = 1;
     while (true) {
       h256 level_key(level);
-      printf("LEVEL %lu %s ", level, level_key.toString().c_str());
       string entry = db_blks_index_->get(level_key.toString());
       if (entry.empty()) break;
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
-      printf("No %lu %s  ", blocks.size(), entry.c_str());
       for (auto const &block : blocks) {
         auto block_bytes = db_blks_->get(blk_hash_t(block));
         if (block_bytes.size() > 0) {
           auto blk = DagBlock(block_bytes);
-          assert(blk.getLevel() == level);
-          if (blk.getHash().toString() ==
-              "66b5c2cc0ac5b730cdaecf171c011de42339a193af190f22f5c504f1f0c0976"
-              "6") {
-            printf(
-                "66b5c2cc0ac5b730cdaecf171c011de42339a193af190f22f5c504f1f0c097"
-                "66 %s tips: ",
-                blk.getJsonStr().c_str());
-            for (auto tip : blk.getTips()) {
-              printf("%s ", tip.toString().c_str());
-              auto blktip_bytes = db_blks_->get(tip);
-              if (blktip_bytes.size() == 0)
-                printf("No tip block");
-              else
-                printf("%lu", blktip_bytes.size());
-              printf("BEFORE");
-              auto blktip = DagBlock(blktip_bytes);
-              printf("AFTER");
-              printf("%s %lu", blktip.getHash().toString().c_str(),
-                     blktip.getLevel());
-            }
-            printf("\n");
-          }
-          printf("%s %s ", blk_hash_t(block).toString().c_str(),
-                 blk.getHash().toString().c_str());
-          if (blk.getLevel() != level) printf("ERROR %lu", blk.getLevel());
           dag_mgr_->addDagBlock(blk);
-        } else {
-          printf("ERROR - No block");
         }
-        printf("\n");
       }
       level++;
     }
