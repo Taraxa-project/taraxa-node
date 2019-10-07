@@ -97,7 +97,7 @@ class TaraxaPeer : public boost::noncopyable {
         std::chrono::system_clock::to_time_t(chrono::system_clock::now());
   }
 
-  std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>
+  std::map<uint64_t, std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>>
       m_syncBlocks;
   blk_hash_t m_lastRequest;
   bool syncing_ = false;

@@ -75,23 +75,27 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
     auto peer = getPeer(_nodeID);
     int max_level = 0;
     if (peer) {
-      for (auto block : peer->m_syncBlocks) {
-        if (block.second.first.getLevel() > max_level)
-          max_level = block.second.first.getLevel();
-        auto status = checkTipsandPivot(block.second.first);
-        if (!status.first) {
-          peer->m_lastRequest = status.second;
-          requestBlock(_nodeID, status.second, false);
-          return;
+      for (auto block_level = peer->m_syncBlocks.begin();
+           block_level != peer->m_syncBlocks.end();) {
+        for (auto block : block_level->second) {
+          if (block.second.first.getLevel() > max_level)
+            max_level = block.second.first.getLevel();
+          auto status = checkTipsandPivot(block.second.first);
+          if (!status.first) {
+            peer->m_lastRequest = status.second;
+            requestBlock(_nodeID, status.second, false);
+            return;
+          }
         }
-      }
 
-      for (auto block : peer->m_syncBlocks) {
-        LOG(log_nf_) << "Storing block "
-                     << block.second.first.getHash().toString() << " with "
-                     << block.second.second.size() << " transactions";
-        full_node->insertBroadcastedBlockWithTransactions(block.second.first,
-                                                          block.second.second);
+        for (auto block : block_level->second) {
+          LOG(log_nf_) << "Storing block "
+                       << block.second.first.getHash().toString() << " with "
+                       << block.second.second.size() << " transactions";
+          full_node->insertBroadcastedBlockWithTransactions(
+              block.second.first, block.second.second);
+        }
+        peer->m_syncBlocks.erase(block_level++);
       }
       peer->m_syncBlocks.clear();
       if (syncing_ && peer_syncing_ == _nodeID) {
@@ -272,7 +276,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           std::vector<Transaction> vTransactions;
           for (const auto &t : newTransactions)
             vTransactions.push_back(t.second);
-          peer->m_syncBlocks[block.getHash()] = {block, vTransactions};
+          peer->m_syncBlocks[block.getLevel()][block.getHash()] = {
+              block, vTransactions};
           continueSync(_nodeID);
         } else if (auto full_node = full_node_.lock()) {
           auto status = checkTipsandPivot(block);
@@ -377,7 +382,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
 
           receivedBlocks += block.getHash().toString() + " ";
-          peer->m_syncBlocks[block.getHash()] = {block, newTransactions};
+          peer->m_syncBlocks[block.getLevel()][block.getHash()] = {
+              block, newTransactions};
           if (iBlock + transactionCount + 1 >= itemCount) break;
         }
         if (itemCount > 0) {
