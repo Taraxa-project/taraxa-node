@@ -293,12 +293,14 @@ void BlockManager::pushUnverifiedBlock(
     if (critical) {
       blk_status_.insert(blk.getHash(), BlockStatus::proposed);
 
-      unverified_qu_.emplace_front(std::make_pair(blk, transactions));
+      unverified_qu_[blk.getLevel()].emplace_front(
+          std::make_pair(blk, transactions));
       LOG(log_dg_) << "Insert unverified block from front: " << blk.getHash()
                    << std::endl;
     } else {
       blk_status_.insert(blk.getHash(), BlockStatus::broadcasted);
-      unverified_qu_.emplace_back(std::make_pair(blk, transactions));
+      unverified_qu_[blk.getLevel()].emplace_back(
+          std::make_pair(blk, transactions));
       LOG(log_dg_) << "Insert unverified block from back: " << blk.getHash()
                    << std::endl;
     }
@@ -317,10 +319,17 @@ DagBlock BlockManager::popVerifiedBlock() {
   }
   if (stopped_) return DagBlock();
 
-  auto blk = verified_qu_.front().first;
+  auto blk = verified_qu_.begin()->second.front();
+  verified_qu_.begin()->second.pop_front();
+  if (verified_qu_.begin()->second.empty())
+    verified_qu_.erase(verified_qu_.begin());
 
-  verified_qu_.pop_front();
   return blk;
+}
+
+void BlockManager::pushVerifiedBlock(DagBlock const &blk) {
+  uLock lock(shared_mutex_for_verified_qu_);
+  verified_qu_[blk.getLevel()].emplace_back(blk);
 }
 
 void BlockManager::verifyBlock() {
@@ -333,8 +342,10 @@ void BlockManager::verifyBlock() {
         cond_for_unverified_qu_.wait(lock);
       }
       if (stopped_) return;
-      blk = unverified_qu_.front();
-      unverified_qu_.pop_front();
+      blk = unverified_qu_.begin()->second.front();
+      unverified_qu_.begin()->second.pop_front();
+      if (unverified_qu_.begin()->second.empty())
+        unverified_qu_.erase(unverified_qu_.begin());
     }
     auto status = blk_status_.get(blk.first.getHash()).first;
     // Verifying transaction ...
@@ -355,9 +366,9 @@ void BlockManager::verifyBlock() {
     {
       uLock lock(shared_mutex_for_verified_qu_);
       if (status == BlockStatus::proposed) {
-        verified_qu_.emplace_front(blk);
+        verified_qu_[blk.first.getLevel()].emplace_front(blk.first);
       } else if (status == BlockStatus::broadcasted) {
-        verified_qu_.emplace_back(blk);
+        verified_qu_[blk.first.getLevel()].emplace_back(blk.first);
       }
     }
     blk_status_.update(blk.first.getHash(), BlockStatus::verified);

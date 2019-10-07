@@ -8,13 +8,11 @@ using namespace std;
 using namespace dev;
 
 void EthTransactionReceipt::fromJson(Json::Value const& json) {
-  auto const& root_json = json["root"];
-  if (!root_json.isNull()) {
-    root.emplace(jsToBytes(root_json.asString()));
+  if (auto const& element = json["root"]; !element.isNull()) {
+    root.emplace(jsToBytes(element.asString()));
   }
-  auto const& status_json = json["status"];
-  if (!status_json.isNull()) {
-    status.emplace(jsToInt(status_json.asString()));
+  if (auto const& element = json["status"]; !element.isNull()) {
+    status.emplace(jsToInt(element.asString()));
   }
   cumulativeGasUsed = jsToU256(json["cumulativeGasUsed"].asString());
   logsBloom = eth::LogBloom(json["logsBloom"].asString());
@@ -44,7 +42,9 @@ void LogEntry::fromJson(Json::Value const& json) {
 void TaraxaTransactionReceipt::fromJson(Json::Value const& json) {
   returnValue = jsToBytes(json["returnValue"].asString());
   ethereumReceipt.fromJson(json["ethereumReceipt"]);
-  contractError = json["contractError"].asString();
+  if (auto const& element = json["error"]; !element.isNull()) {
+    error = element.asString();
+  }
 }
 
 void StateTransitionResult::fromJson(Json::Value const& json) {
@@ -60,7 +60,7 @@ void StateTransitionResult::fromJson(Json::Value const& json) {
     allLogs.push_back(logEntry);
   }
   {
-    auto& obj = json["updatedBalances"];
+    auto const& obj = json["updatedBalances"];
     for (auto i = obj.begin(), end = obj.end(); i != end; ++i) {
       auto const& key = i.key().asString();
       auto const& value = (*i).asString();

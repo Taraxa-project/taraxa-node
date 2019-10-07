@@ -121,6 +121,18 @@ void FullNode::initDB(bool destroy_db) {
         conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
+  if (db_dag_blocks_order_ == nullptr) {
+    db_dag_blocks_order_ =
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+            conf_.dag_blocks_order_path(), destroy_db);
+    assert(db_dag_blocks_order_);
+  }
+  if (db_dag_blocks_height_ == nullptr) {
+    db_dag_blocks_height_ =
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+            conf_.dag_blocks_height_path(), destroy_db);
+    assert(db_dag_blocks_height_);
+  }
   if (state_registry_ == nullptr) {
     // THIS IS THE GENESIS
     // TODO extract to a function
@@ -200,6 +212,8 @@ bool FullNode::destroyDB() {
   assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(db_dag_blocks_order_.use_count() == 1);
+  assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
 
@@ -209,6 +223,8 @@ bool FullNode::destroyDB() {
   db_trxs_to_blk_ = nullptr;
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
+  db_dag_blocks_order_ = nullptr;
+  db_dag_blocks_height_ = nullptr;
   state_registry_ = nullptr;
   state_ = nullptr;
   db_inited_ = false;
@@ -293,27 +309,38 @@ void FullNode::start(bool boot_node) {
           }
         }
 
-        dag_mgr_->addDagBlock(blk);
-        {
-          auto block_bytes = blk.rlp(true);
-          db_blks_->put(blk.getHash(), block_bytes);
-          db_blks_->commit();
-          auto level = blk.getLevel();
-          h256 level_key(level);
-          std::string blocks = db_blks_index_->get(level_key.toString());
-          if (blocks == "") {
-            db_blks_index_->put(level_key.toString(), blk.getHash().toString());
-          } else {
-            auto newblocks = blocks + "," + blk.getHash().toString();
-            db_blks_index_->update(level_key.toString(),
-                                   blocks + "," + blk.getHash().hex());
+        if (dag_mgr_->addDagBlock(blk)) {
+          {
+            auto block_bytes = blk.rlp(true);
+            db_blks_->put(blk.getHash(), block_bytes);
+            db_blks_->commit();
+            auto level = blk.getLevel();
+            h256 level_key(level);
+            std::string blocks = db_blks_index_->get(level_key.toString());
+            if (blocks == "") {
+              db_blks_index_->put(level_key.toString(),
+                                  blk.getHash().toString());
+            } else {
+              auto newblocks = blocks + "," + blk.getHash().toString();
+              db_blks_index_->update(level_key.toString(),
+                                     blocks + "," + blk.getHash().hex());
+            }
+            db_blks_index_->commit();
+            if (ws_server_) ws_server_->newDagBlock(blk);
           }
-          db_blks_index_->commit();
-          if (ws_server_) ws_server_->newDagBlock(blk);
+          network_->onNewBlockVerified(blk);
+          LOG(log_time_) << "Broadcast block " << blk.getHash()
+                         << " at: " << getCurrentTimeMilliSeconds();
+        } else {
+          // Networking makes sure that dag block that reaches queue already had
+          // its pivot and tips processed This should happen in a very rare case
+          // where in some race condition older block is verfified faster then
+          // new block but should resolve quickly, return block to queue
+          LOG(log_warning_)
+              << "Block could not be added to DAG " << blk.getHash();
+          received_blocks_--;
+          blk_mgr_->pushVerifiedBlock(blk);
         }
-        network_->onNewBlockVerified(blk);
-        LOG(log_time_) << "Broadcast block " << blk.getHash()
-                       << " at: " << getCurrentTimeMilliSeconds();
       }
     });
   }
@@ -324,6 +351,8 @@ void FullNode::start(bool boot_node) {
   assert(db_trxs_to_blk_);
   assert(db_votes_);
   assert(db_pbftchain_);
+  assert(db_dag_blocks_order_);
+  assert(db_dag_blocks_height_);
   assert(state_registry_);
   assert(state_);
   LOG(log_wr_) << "Node started ... ";
@@ -361,6 +390,8 @@ void FullNode::stop() {
 
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(db_dag_blocks_order_.use_count() == 1);
+  assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
@@ -787,119 +818,6 @@ void FullNode::newPendingTransaction(trx_hash_t const &trx_hash) {
   if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
 }
 
-// Test purpose function
-bool FullNode::setPbftBlock(taraxa::PbftBlock const &pbft_block) {
-  if (pbft_block.getBlockType() == pivot_block_type) {
-    if (!pbft_chain_->pushPbftPivotBlock(pbft_block)) {
-      return false;
-    }
-    // get dag blocks order
-    blk_hash_t dag_block_hash = pbft_block.getPivotBlock().getDagBlockHash();
-    uint64_t current_period;
-    std::shared_ptr<vec_blk_t> dag_blocks_order;
-    std::tie(current_period, dag_blocks_order) =
-        getDagBlockOrder(dag_block_hash);
-    // update DAG blocks order and DAG blocks table
-    for (auto const &dag_blk_hash : *dag_blocks_order) {
-      auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
-      newOrderedBlock(dag_blk_hash, block_number);
-    }
-  } else if (pbft_block.getBlockType() == schedule_block_type) {
-    if (!pbft_chain_->pushPbftScheduleBlock(pbft_block)) {
-      return false;
-    }
-    // set Dag blocks period
-    blk_hash_t last_pivot_block_hash =
-        pbft_block.getScheduleBlock().getPrevBlockHash();
-    PbftBlock last_pivot_block =
-        pbft_chain_->getPbftBlockInChain(last_pivot_block_hash);
-    blk_hash_t dag_block_hash =
-        last_pivot_block.getPivotBlock().getDagBlockHash();
-    uint64_t current_pbft_chain_period =
-        last_pivot_block.getPivotBlock().getPeriod();
-    uint dag_ordered_blocks_size =
-        setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
-    // checking: DAG ordered blocks size in this period should equal to the
-    // DAG blocks inside PBFT CS block
-    uint dag_blocks_inside_pbft_cs =
-        pbft_block.getScheduleBlock().getSchedule().blk_order.size();
-    if (dag_ordered_blocks_size != dag_blocks_inside_pbft_cs) {
-      LOG(log_er_) << "Setting DAG block order finalize "
-                   << dag_ordered_blocks_size << " blocks."
-                   << " But the PBFT CS block has " << dag_blocks_inside_pbft_cs
-                   << " DAG blocks hash.";
-      // Notice: Need check DAG blocks/transactions with The contents in CS
-      // block before using the function.
-      assert(false);
-    }
-
-    // TODO: VM executor will not take sortition_account_balance_table as
-    //  reference.
-    //  But will return a list of modified accounts as pairs<addr_t, val_t>.
-    //  Will need update sortition_account_balance_table here
-    //  execute schedule block
-    uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-    if (!executeScheduleBlock(pbft_block.getScheduleBlock(),
-                              pbft_mgr_->sortition_account_balance_table,
-                              pbft_period)) {
-      LOG(log_er_) << "Failed to execute schedule block";
-      // TODO: If valid transaction failed execute, how to do?
-      // Should never happen
-      assert(false);
-    }
-    // reset sortition_threshold and TWO_T_PLUS_ONE
-    size_t two_t_plus_one;
-    size_t sortition_threshold;
-    size_t players_size = pbft_mgr_->sortition_account_balance_table.size();
-    int64_t since_period;
-    if (pbft_period < pbft_mgr_->SKIP_PERIODS) {
-      since_period = 0;
-    } else {
-      since_period = pbft_period - pbft_mgr_->SKIP_PERIODS;
-    }
-    size_t active_players = 0;
-    for (auto const &account : pbft_mgr_->sortition_account_balance_table) {
-      // integer overflow
-      if (account.second.second >= since_period) {
-        active_players++;
-      }
-    }
-    if (pbft_mgr_->COMMITTEE_SIZE <= active_players) {
-      two_t_plus_one = pbft_mgr_->COMMITTEE_SIZE * 2 / 3 + 1;
-      // rount up
-      sortition_threshold =
-          (players_size * pbft_mgr_->COMMITTEE_SIZE - 1) / active_players + 1;
-    } else {
-      two_t_plus_one = active_players * 2 / 3 + 1;
-      sortition_threshold = players_size;
-    }
-    pbft_mgr_->setTwoTPlusOne(two_t_plus_one);
-    pbft_mgr_->setSortitionThreshold(sortition_threshold);
-    LOG(log_nf_) << "Update 2t+1 " << two_t_plus_one
-                 << ", Threshold: " << sortition_threshold
-                 << ", valid voting players " << players_size
-                 << ", active players " << active_players << " since period "
-                 << since_period;
-  }
-  // TODO: push other type pbft block into pbft chain
-
-  // store pbft block into DB
-  if (!db_pbftchain_->put(pbft_block.getBlockHash().toString(),
-                          pbft_block.getJsonStr())) {
-    LOG(log_er_) << "Failed put pbft block: " << pbft_block.getBlockHash()
-                 << " into DB";
-    return false;
-  }
-  if (!db_pbftchain_->update(pbft_chain_->getGenesisHash().toString(),
-                             pbft_chain_->getJsonStr())) {
-    LOG(log_er_) << "Failed update pbft genesis in DB";
-    return false;
-  }
-  db_pbftchain_->commit();
-
-  return true;
-}
-
 void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
   pbft_chain_->setVerifiedPbftBlockIntoQueue(pbft_block);
 }
@@ -941,7 +859,7 @@ uint64_t FullNode::getDagBlockMaxHeight() const {
 std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
   std::vector<blk_hash_t> ret;
   auto max_height = getDagBlockMaxHeight();
-  for (auto i(0); i <= max_height; ++i) {
+  for (auto i(1); i <= max_height; ++i) {
     auto blk = getDagBlockHash(i);
     assert(blk.second);
     ret.emplace_back(blk.first);
@@ -952,7 +870,7 @@ std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
 std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   std::unordered_set<trx_hash_t> packed_trxs;
   auto max_height = getDagBlockMaxHeight();
-  for (auto i(0); i <= max_height; ++i) {
+  for (auto i(1); i <= max_height; ++i) {
     auto blk = getDagBlockHash(i);
     assert(blk.second);
     auto dag_blk = getDagBlock(blk.first);

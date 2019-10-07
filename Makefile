@@ -1,7 +1,7 @@
 $(shell git submodule update --recursive --init &> /dev/null)
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I concur_storage -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
+CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -103,14 +103,8 @@ MAINOBJECTFILES= \
 	${OBJECTDIR}/dag_block_test.o \
 	${OBJECTDIR}/full_node_test.o \
 	${OBJECTDIR}/pbft_chain_test.o \
-	${OBJECTDIR}/concur_hash_test.o \
 	${OBJECTDIR}/transaction_test.o \
-	${OBJECTDIR}/memorydb_test.o \
-	${OBJECTDIR}/overlaydb_test.o \
-	${OBJECTDIR}/statecachedb_test.o \
-	${OBJECTDIR}/trie_test.o \
 	${OBJECTDIR}/crypto_test.o \
-	${OBJECTDIR}/state_unit_tests.o \
 	${OBJECTDIR}/pbft_rpc_test.o \
 	${OBJECTDIR}/pbft_manager_test.o
 
@@ -187,16 +181,6 @@ ${OBJECTDIR}/block_proposer.o: block_proposer.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/block_proposer.o block_proposer.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/concur_hash.o: concur_storage/concur_hash.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/concur_hash.o concur_storage/concur_hash.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/conflict_detector.o: concur_storage/conflict_detector.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/conflict_detector.o concur_storage/conflict_detector.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/transaction.o: transaction.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -280,11 +264,6 @@ ${OBJECTDIR}/network_test.o: core_tests/network_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/network_test.o core_tests/network_test.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/long_network_test.o: core_tests/long_network_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/long_network_test.o core_tests/long_network_test.cpp $(CPPFLAGS)
-
 ${OBJECTDIR}/dag_block_test.o: core_tests/dag_block_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -294,11 +273,6 @@ ${OBJECTDIR}/full_node_test.o: core_tests/full_node_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/full_node_test.o core_tests/full_node_test.cpp $(CPPFLAGS)	
-
-${OBJECTDIR}/concur_hash_test.o: core_tests/concur_hash_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/concur_hash_test.o core_tests/concur_hash_test.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/p2p_test.o: core_tests/p2p_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -315,41 +289,10 @@ ${OBJECTDIR}/pbft_chain_test.o: core_tests/pbft_chain_test.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain_test.o core_tests/pbft_chain_test.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/memorydb_test.o: core_tests/memorydb_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/memorydb_test.o core_tests/memorydb_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/overlaydb_test.o: core_tests/overlaydb_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/overlaydb_test.o core_tests/overlaydb_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/statecachedb_test.o: core_tests/statecachedb_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/statecachedb_test.o core_tests/statecachedb_test.cpp $(CPPFLAGS)
-
-# required for trie_test
-${OBJECTDIR}/mem_trie.o: crypto_tests/MemTrie.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/mem_trie.o crypto_tests/MemTrie.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/trie_test.o: crypto_tests/trie_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trie_test.o crypto_tests/trie_test.cpp $(CPPFLAGS)
-
 ${OBJECTDIR}/crypto_test.o: core_tests/crypto_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/crypto_test.o core_tests/crypto_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/state_unit_tests.o: core_tests/state_unit_tests.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_unit_tests.o core_tests/state_unit_tests.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/pbft_rpc_test.o: core_tests/pbft_rpc_test.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -370,12 +313,6 @@ ${OBJECTDIR}/prometheus_demo.o: prometheus_demo.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/prometheus_demo.o prometheus_demo.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/util_cmd/keygen.o: util_cmd/keygen.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/util_cmd
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/util_cmd/keygen.o util_cmd/keygen.cpp $(CPPFLAGS)
 
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
@@ -420,21 +357,13 @@ $(BUILDDIR)/main: $(DEPENDENCIES) $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/
 	${MKDIR} -p ${BUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS)
 
-$(BUILDDIR)/keygen: $(ALETH_OBJ) $(DEPENDENCIES) $(OBJECTDIR)/util_cmd/keygen.o
-	${MKDIR} -p ${BUILDDIR}
-	$(CXX) -std=c++17 $(ALETH_OBJ) $(OBJECTDIR)/util_cmd/keygen.o -o $(BUILDDIR)/keygen $(LDFLAGS) $(LIBS)
-
 $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) 
 
 $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) 
-
-$(TESTBUILDDIR)/long_network_test: $(OBJECTDIR)/long_network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/long_network_test.o -o $(TESTBUILDDIR)/long_network_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS)
 
 $(TESTBUILDDIR)/dag_block_test: $(OBJECTDIR)/dag_block_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
@@ -444,10 +373,6 @@ $(TESTBUILDDIR)/full_node_test: $(OBJECTDIR)/full_node_test.o $(OBJECTFILES) $(P
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) 
 
-$(TESTBUILDDIR)/concur_hash_test: $(OBJECTDIR)/concur_hash_test.o ${OBJECTDIR}/concur_hash.o ${OBJECTDIR}/conflict_detector.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/concur_hash_test.o ${OBJECTDIR}/concur_hash.o ${OBJECTDIR}/conflict_detector.o -o $(TESTBUILDDIR)/concur_hash_test  $(LDFLAGS) $(LIBS) 
-
 $(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) 
@@ -456,22 +381,6 @@ $(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(OBJECTFILES)
 	${MKDIR} -p ${TESTBUILDDIR}	
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) 
 
-$(TESTBUILDDIR)/memorydb_test: $(OBJECTDIR)/memorydb_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/memorydb_test.o -o $(TESTBUILDDIR)/memorydb_test  $(LDFLAGS) $(LIBS)
-
-$(TESTBUILDDIR)/overlaydb_test: $(OBJECTDIR)/overlaydb_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/overlaydb_test.o -o $(TESTBUILDDIR)/overlaydb_test  $(LDFLAGS) $(LIBS)
-
-$(TESTBUILDDIR)/statecachedb_test: $(OBJECTDIR)/statecachedb_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/statecachedb_test.o -o $(TESTBUILDDIR)/statecachedb_test  $(LDFLAGS) $(LIBS)
-
-$(TESTBUILDDIR)/trie_test: $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o  $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/trie_test.o $(OBJECTDIR)/mem_trie.o -o $(TESTBUILDDIR)/trie_test  $(LDFLAGS) $(LIBS)
-
 $(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS)
@@ -479,10 +388,6 @@ $(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(OBJECTFILES) $(P2POBJE
 $(TESTBUILDDIR)/pbft_chain_test: $(OBJECTDIR)/pbft_chain_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS)
-$(TESTBUILDDIR)/state_unit_tests: $(OBJECTDIR)/state_unit_tests.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/state_unit_tests.o -o $(TESTBUILDDIR)/state_unit_tests  $(LDFLAGS) $(LIBS)
-
 
 $(TESTBUILDDIR)/pbft_rpc_test: $(OBJECTDIR)/pbft_rpc_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
@@ -500,9 +405,7 @@ $(TESTBUILDDIR)/prometheus_demo: $(OBJECTDIR)/prometheus_demo.o $(OBJECTFILES) $
 	${MKDIR} -p ${TESTBUILDDIR}
 	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS)
 
-keygen: $(BUILDDIR)/keygen
-
-test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/concur_hash_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/memorydb_test $(TESTBUILDDIR)/overlaydb_test $(TESTBUILDDIR)/statecachedb_test $(TESTBUILDDIR)/trie_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/state_unit_tests $(TESTBUILDDIR)/pbft_rpc_test $(TESTBUILDDIR)/pbft_manager_test 
+test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/pbft_rpc_test $(TESTBUILDDIR)/pbft_manager_test
 
 perf_test: $(TESTBUILDDIR)/performance_test
 
@@ -512,19 +415,13 @@ run_perf_test: perf_test
 run_test: main test
 	./$(TESTBUILDDIR)/crypto_test
 	./$(TESTBUILDDIR)/pbft_rpc_test
-	./$(TESTBUILDDIR)/memorydb_test
-	./$(TESTBUILDDIR)/overlaydb_test
-	./$(TESTBUILDDIR)/statecachedb_test
 	./$(TESTBUILDDIR)/transaction_test
 	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/concur_hash_test
 	./$(TESTBUILDDIR)/dag_block_test
 	./$(TESTBUILDDIR)/full_node_test
 	./$(TESTBUILDDIR)/p2p_test
 	./$(TESTBUILDDIR)/network_test
-	./$(TESTBUILDDIR)/trie_test
 	./$(TESTBUILDDIR)/pbft_chain_test
-	./$(TESTBUILDDIR)/state_unit_tests
 	./$(TESTBUILDDIR)/pbft_manager_test
 
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main

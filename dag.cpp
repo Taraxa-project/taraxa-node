@@ -458,10 +458,6 @@ std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
   sharedLock lock(mutex_);
   return {total_dag_->getNumEdges(), pivot_tree_->getNumEdges()};
 }
-size_t DagManager::getBufferSize() const {
-  sharedLock lock(mutex_);
-  return sb_buffer_.size();
-}
 
 void DagManager::drawTotalGraph(std::string const &str) const {
   sharedLock lock(mutex_);
@@ -476,25 +472,12 @@ void DagManager::drawPivotGraph(std::string const &str) const {
 void DagManager::start() {
   if (!stopped_) return;
   stopped_ = false;
-  sb_buffer_processing_thread_ =
-      std::make_shared<boost::thread>(boost::thread([this]() { consume(); }));
 }
 void DagManager::stop() {
   if (stopped_) return;
   stopped_ = true;
-  sb_buffer_condition.notify_all();
-  sb_buffer_processing_thread_->join();
 }
-void DagManager::addDagBlock(DagBlock const &blk) {
-  if (!addDagBlockInternal(blk)) {
-    addToDagBuffer(blk);
-  } else {
-    stdLock lock(sb_bufer_mutex_);
-    sb_buffer_condition.notify_one();
-  }
-}
-
-bool DagManager::addDagBlockInternal(DagBlock const &blk) {
+bool DagManager::addDagBlock(DagBlock const &blk) {
   uLock lock(mutex_);
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
@@ -529,12 +512,6 @@ bool DagManager::addDagBlockInternal(DagBlock const &blk) {
   return true;
 }
 
-void DagManager::addToDagBuffer(DagBlock const &blk) {
-  stdLock lock(sb_bufer_mutex_);
-  sb_buffer_.push_back(std::make_shared<DagBlock>(blk));
-  sb_buffer_condition.notify_one();
-}
-
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);
@@ -542,25 +519,6 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
   LOG(log_nf_) << "Insert block to DAG : " << hash;
 }
 
-void DagManager::consume() {
-  stdLock lock(sb_bufer_mutex_);
-  while (!stopped_) {
-    bool blockAdded = false;
-    auto iter = sb_buffer_.begin();
-    while (iter != sb_buffer_.end()) {
-      if (stopped_) break;
-      if (addDagBlockInternal(**iter)) {
-        blockAdded = true;
-        iter = sb_buffer_.erase(iter++);
-      } else {
-        ++iter;
-      }
-    }
-    if (!blockAdded) {
-      sb_buffer_condition.wait(lock);
-    }
-  }
-}
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
                                        std::vector<std::string> &tips) const {
   bool ret = false;

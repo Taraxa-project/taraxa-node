@@ -212,9 +212,9 @@ TEST(PbftChain, block_broadcast) {
   blk_hash_t prev_pivot_blk(0);
   blk_hash_t prev_res_blk(0);
   blk_hash_t dag_blk(78);
-  uint64_t epoch = 1;
+  uint64_t period = 1;
   addr_t beneficiary(10);
-  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, epoch,
+  PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, period,
                          beneficiary);
   PbftBlock pbft_block1(blk_hash_t(1));
   pbft_block1.setPivotBlock(pivot_block);
@@ -228,8 +228,15 @@ TEST(PbftChain, block_broadcast) {
       pbft_chain1->getUnverifiedPbftBlock(pbft_block1.getBlockHash());
   ASSERT_TRUE(block1_from_node1.second);
   EXPECT_EQ(block1_from_node1.first.getJsonStr(), pbft_block1.getJsonStr());
-  node1->setPbftBlock(pbft_block1);  // Test pbft chain
-  ASSERT_EQ(node1->getPbftChainSize(), 2);
+  // node1 put block1 into pbft chain and store into DB
+  bool push_block = pbft_chain1->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node1->getPbftChainSize(), 2);
+  // node1 cleanup block1 in PBFT unverified blocks table
+  pbft_chain1->cleanupUnverifiedPbftBlocks(pbft_block1);
+  bool find_erased_block =
+      pbft_chain1->findUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   nw1->onNewPbftBlock(pbft_block1);
 
@@ -251,16 +258,29 @@ TEST(PbftChain, block_broadcast) {
   ASSERT_TRUE(block1_from_node3.second);
   EXPECT_EQ(block1_from_node2.first.getJsonStr(), pbft_block1.getJsonStr());
   EXPECT_EQ(block1_from_node3.first.getJsonStr(), pbft_block1.getJsonStr());
-  node2->setPbftBlock(pbft_block1);  // Test pbft chain
-  ASSERT_EQ(node2->getPbftChainSize(), 2);
-  node3->setPbftBlock(pbft_block1);  // Test pbft chain
-  ASSERT_EQ(node3->getPbftChainSize(), 2);
+  // node2 put block1 into pbft chain and store into DB
+  push_block = pbft_chain2->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node2->getPbftChainSize(), 2);
+  // node2 cleanup block1 in PBFT unverified blocks table
+  pbft_chain2->cleanupUnverifiedPbftBlocks(pbft_block1);
+  find_erased_block =
+      pbft_chain2->findUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
+  // node3 put block1 into pbft chain and store into DB
+  push_block = pbft_chain3->pushPbftPivotBlock(pbft_block1);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node3->getPbftChainSize(), 2);
+  // node3 cleanup block1 in PBFT unverified blocks table
+  pbft_chain3->cleanupUnverifiedPbftBlocks(pbft_block1);
+  find_erased_block =
+      pbft_chain3->findUnverifiedPbftBlock(pbft_block1.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   // generate pbft schedule block sample
   blk_hash_t prev_pivot(1);
   TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
-
   PbftBlock pbft_block2(blk_hash_t(2));
   pbft_block2.setScheduleBlock(schedule_blk);
   // setup timestamp for pbft block
@@ -273,8 +293,15 @@ TEST(PbftChain, block_broadcast) {
       pbft_chain1->getUnverifiedPbftBlock(pbft_block2.getBlockHash());
   ASSERT_TRUE(block2_from_node1.second);
   EXPECT_EQ(block2_from_node1.first.getJsonStr(), pbft_block2.getJsonStr());
-  node1->setPbftBlock(pbft_block2);  // Test pbft chain
-  ASSERT_EQ(node1->getPbftChainSize(), 3);
+  // node1 put block2 into pbft chain and store into DB
+  push_block = pbft_chain1->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node1->getPbftChainSize(), 3);
+  // node1 cleanup block2 in PBFT unverified blocks table
+  pbft_chain1->cleanupUnverifiedPbftBlocks(pbft_block2);
+  find_erased_block =
+      pbft_chain1->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   nw1->onNewPbftBlock(pbft_block2);
 
@@ -296,10 +323,24 @@ TEST(PbftChain, block_broadcast) {
   ASSERT_TRUE(block2_from_node3.second);
   EXPECT_EQ(block2_from_node2.first.getJsonStr(), pbft_block2.getJsonStr());
   EXPECT_EQ(block2_from_node3.first.getJsonStr(), pbft_block2.getJsonStr());
-  node2->setPbftBlock(pbft_block2);  // Test pbft chain
-  ASSERT_EQ(node2->getPbftChainSize(), 3);
-  node3->setPbftBlock(pbft_block2);  // Test pbft chain
-  ASSERT_EQ(node3->getPbftChainSize(), 3);
+  // node2 put block2 into pbft chain and store into DB
+  push_block = pbft_chain2->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node2->getPbftChainSize(), 3);
+  // node2 cleanup block2 in PBFT unverified blocks table
+  pbft_chain2->cleanupUnverifiedPbftBlocks(pbft_block2);
+  find_erased_block =
+      pbft_chain2->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
+  // node3 put block2 into pbft chain and store into DB
+  push_block = pbft_chain3->pushPbftScheduleBlock(pbft_block2);
+  EXPECT_TRUE(push_block);
+  EXPECT_EQ(node3->getPbftChainSize(), 3);
+  // node3 cleanup block2 in PBFT unverified blocks table
+  pbft_chain3->cleanupUnverifiedPbftBlocks(pbft_block2);
+  find_erased_block =
+      pbft_chain3->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
+  ASSERT_FALSE(find_erased_block);
 
   work1.reset();
   work2.reset();
@@ -320,7 +361,7 @@ TEST(PbftChain, get_dag_block_hash) {
   node->start(true);  // boot_node
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(0);
+  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(1);
   ASSERT_TRUE(dag_genesis_hash.second);
   ASSERT_EQ(dag_genesis_hash.first,
             node->getConfig().genesis_state.block.getHash());
@@ -362,26 +403,29 @@ TEST(PbftChain, get_dag_block_hash) {
   EXPECT_EQ(dag_blocks_hash.size(), 2);
 
   auto dag_max_height = node->getDagBlockMaxHeight();
-  ASSERT_EQ(dag_max_height, 1);
+  ASSERT_EQ(dag_max_height, 2);
 
-  dag_genesis_hash = pbft_chain->getDagBlockHash(1);
-  ASSERT_TRUE(dag_genesis_hash.second);
-  std::pair<uint64_t, bool> dag_genesis_height =
-      pbft_chain->getDagBlockHeight(dag_genesis_hash.first);
-  ASSERT_TRUE(dag_genesis_height.second);
-  ASSERT_EQ(dag_genesis_height.first, 1);
+  std::pair<blk_hash_t, bool> last_dag_block_hash =
+      pbft_chain->getDagBlockHash(2);
+  ASSERT_TRUE(last_dag_block_hash.second);
+  std::pair<uint64_t, bool> last_dag_block_height =
+      pbft_chain->getDagBlockHeight(last_dag_block_hash.first);
+  ASSERT_TRUE(last_dag_block_height.second);
+  ASSERT_EQ(last_dag_block_height.first, 2);
 }
 
 TEST(PbftChain, get_dag_block_height) {
   boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  node->setDebug(true);
+  node->start(true);  // boot_node
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
       node->getConfig().genesis_state.block.getHash());
   ASSERT_TRUE(dag_genesis_height.second);
-  ASSERT_EQ(dag_genesis_height.first, 0);
+  ASSERT_EQ(dag_genesis_height.first, 1);
 }
 
 }  // namespace taraxa

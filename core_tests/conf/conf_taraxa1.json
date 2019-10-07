@@ -11,6 +11,7 @@
   "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
+  "network_sync_level_size": 1,
   "network_boot_nodes": [
     {
       "ip": "127.0.0.1",

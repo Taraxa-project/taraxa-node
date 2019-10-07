@@ -37,7 +37,7 @@ struct EthTransactionReceipt {
 struct TaraxaTransactionReceipt {
   dev::bytes returnValue;
   EthTransactionReceipt ethereumReceipt;
-  std::string contractError;
+  std::string error;
 
   void fromJson(Json::Value const&);
 };
