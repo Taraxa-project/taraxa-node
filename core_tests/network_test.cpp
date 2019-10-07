@@ -703,20 +703,38 @@ TEST(Network, node_full_sync) {
     }
     if (finished) break;
   }
-  // printf("End result: Vertices %lu Edges: %lu \n",
-  // node1->getNumVerticesInDag().first, node1->getNumEdgesInDag().first);
+
+  contexts.push_back(std::make_shared<boost::asio::io_context>());
+  FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa2.json"));
+  config.db_path += std::to_string(numberOfNodes + 1);
+  config.network.network_listen_port += numberOfNodes + 1;
+  config.node_secret = "";
+  nodes.push_back(
+      std::make_shared<taraxa::FullNode>(*contexts[numberOfNodes], config, true));
+  nodes[numberOfNodes]->start(false /*boot_node*/);
+  taraxa::thisThreadSleepForMilliSeconds(50);
+
+  std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
+  for (int i = 0; i < 24; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(5000);
+    bool finished = true;
+    for (int j = 0; j < numberOfNodes + 1; j++) {
+      if (nodes[j]->getNumVerticesInDag().first !=
+          node1->getNumVerticesInDag().first) {
+        finished = false;
+        break;
+      }
+    }
+    if (finished) break;
+  }
+
 
   node1->stop();
-  for (int i = 0; i < numberOfNodes; i++) nodes[i]->stop();
-
-  // node1->drawGraph("node1.txt");
-  // for (int i = 0; i < numberOfNodes; i++)
-  //   nodes[i]->drawGraph(std::string("node") + std::to_string(i + 2) +
-  //   ".txt");
+  for (int i = 0; i < numberOfNodes + 1; i++) nodes[i]->stop();
 
   EXPECT_GT(node1->getNumVerticesInDag().first, 0);
   EXPECT_GT(10, node1->getVerifiedTrxSnapShot().size());
-  for (int i = 0; i < numberOfNodes; i++) {
+  for (int i = 0; i < numberOfNodes + 1; i++) {
     EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
               node1->getNumVerticesInDag().first);

@@ -273,13 +273,13 @@ TEST(DagManager, compute_epoch) {
   mgr->addDagBlock(blkB);
   mgr->addDagBlock(blkC);
   mgr->addDagBlock(blkD);
-  mgr->addDagBlock(blkE);
-  taraxa::thisThreadSleepForMilliSeconds(100);
   mgr->addDagBlock(blkF);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+  mgr->addDagBlock(blkE);
   mgr->addDagBlock(blkG);
-  mgr->addDagBlock(blkH);
-  mgr->addDagBlock(blkI);
   mgr->addDagBlock(blkJ);
+  mgr->addDagBlock(blkI);
+  mgr->addDagBlock(blkH);
   mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
@@ -364,8 +364,6 @@ TEST(DagManager, receive_block_in_order) {
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
   // pivot edges
   EXPECT_EQ(mgr->getNumEdgesInDag().second, 3);
-
-  EXPECT_EQ(mgr->getBufferSize(), 0);
 }
 
 // Use the example on Conflux paper, insert block in different order and make
@@ -394,16 +392,16 @@ TEST(DagManager, compute_epoch_2) {
   DagBlock blkJ(blk_hash_t(6), 0, {}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkK(blk_hash_t(9), 0, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   mgr->addDagBlock(blkA);
-  mgr->addDagBlock(blkC);
   mgr->addDagBlock(blkB);
-  mgr->addDagBlock(blkF);
-  mgr->addDagBlock(blkE);
+  mgr->addDagBlock(blkC);
   mgr->addDagBlock(blkD);
-  taraxa::thisThreadSleepForMilliSeconds(100);
-  mgr->addDagBlock(blkH);
-  mgr->addDagBlock(blkI);
-  mgr->addDagBlock(blkG);
+  mgr->addDagBlock(blkF);
   mgr->addDagBlock(blkJ);
+  mgr->addDagBlock(blkE);
+  taraxa::thisThreadSleepForMilliSeconds(100);
+  mgr->addDagBlock(blkG);
+  mgr->addDagBlock(blkI);
+  mgr->addDagBlock(blkH);
   mgr->addDagBlock(blkK);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
@@ -472,39 +470,6 @@ TEST(DagManager, compute_epoch_2) {
   EXPECT_EQ(mgr->getNumVerticesInDag().second, 1);
 }
 
-TEST(DagManager, receive_block_out_of_order) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS);
-  mgr->start();
-
-  // mgr.setVerbose(true);
-  DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
-                addr_t(15));
-  DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2),
-                addr_t(15));
-  DagBlock blk3(blk_hash_t(0), 0, {blk_hash_t(1), blk_hash_t(2)}, {},
-                sig_t(777), blk_hash_t(3), addr_t(15));
-
-  mgr->addDagBlock(blk3);
-  mgr->addDagBlock(blk2);
-  mgr->addDagBlock(blk1);
-  taraxa::thisThreadSleepForMicroSeconds(500);
-
-  std::string pivot;
-  std::vector<std::string> tips;
-  std::vector<Dag::vertex_t> criticals;
-  mgr->getLatestPivotAndTips(pivot, tips);
-
-  EXPECT_EQ(pivot,
-            "0000000000000000000000000000000000000000000000000000000000000002");
-  EXPECT_EQ(tips.size(), 1);
-  mgr->stop();
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
-  EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
-  EXPECT_EQ(mgr->getBufferSize(), 0);
-}
-
 TEST(DagManager, get_latest_pivot_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
@@ -519,12 +484,12 @@ TEST(DagManager, get_latest_pivot_tips) {
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6),
                 addr_t(15));
+  mgr->addDagBlock(blk1);
+  mgr->addDagBlock(blk2);
   mgr->addDagBlock(blk3);
-  mgr->addDagBlock(blk6);
   mgr->addDagBlock(blk4);
   mgr->addDagBlock(blk5);
-  mgr->addDagBlock(blk2);
-  mgr->addDagBlock(blk1);
+  mgr->addDagBlock(blk6);
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   std::string pivot;
