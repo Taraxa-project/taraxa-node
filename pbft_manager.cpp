@@ -644,8 +644,8 @@ void PbftManager::run() {
     elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto time_to_sleep_for_ms = next_step_time_ms - elapsed_time_in_round_ms;
-    LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms;
     if (time_to_sleep_for_ms > 0) {
+      LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms << " in round " << pbft_round_ << ", step " << pbft_step_;
       thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
     }
   }
