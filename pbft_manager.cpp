@@ -81,6 +81,17 @@ void PbftManager::start() {
                 << ", the last of DAG blocks is " << ghost.back();
 
   db_votes_ = full_node->getVotesDB();
+  
+  // Reset round and step...
+  if (pbft_round_ != 1) {
+    LOG(log_err_) << "PBFT round was equal to " << pbft_round_ << " at start()";
+    pbft_round_ = 1;
+  }
+  if (pbft_step_ != 1) {
+    LOG(log_err_) << "PBFT step was equal to " << pbft_step_ << " at start()";
+    pbft_step_ = 1;
+  }
+
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
   LOG(log_inf_) << "PBFT executor initiated ...";
@@ -123,16 +134,6 @@ void PbftManager::run() {
 
   // Initilize TWO_T_PLUS_ONE and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
-
-  // Reset round and step...
-  if (pbft_round_ != 1) {
-    LOG(log_err_) << "PBFT round was equal to " << pbft_round_ << " at start of PBFT MGR run";  
-    pbft_round_ = 1;
-  }
-  if (pbft_step_ != 1) {
-    LOG(log_err_) << "PBFT step was equal to " << pbft_step_ << " at start of PBFT MGR run";  
-    pbft_step_ = 1;
-  }
   
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
