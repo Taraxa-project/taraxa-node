@@ -6,12 +6,14 @@
 #include <string>
 #include "dag_block.hpp"
 #include "transaction.hpp"
+#include "util/constants.hpp"
 
 namespace taraxa::samples {
 
-inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK = 10000;
+inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK =
+    core_tests::util::constants::TEST_MAX_TRANSACTIONS_IN_BLOCK;
 inline const val_t TEST_TX_GAS_LIMIT =
-    MOCK_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
+    core_tests::util::constants::TEST_TX_GAS_LIMIT;
 
 class TxGenerator {
  public:

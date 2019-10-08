@@ -81,7 +81,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void insertBroadcastedBlockWithTransactions(
       DagBlock const &blk, std::vector<Transaction> const &transactions);
   // Insert new transaction, critical
-  void insertTransaction(Transaction const &trx);
+  bool insertTransaction(Transaction const &trx);
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
       std::vector<taraxa::bytes> const &transactions);

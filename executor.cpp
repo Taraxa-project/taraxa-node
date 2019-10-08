@@ -1,4 +1,5 @@
 #include "executor.hpp"
+#include <stdexcept>
 #include "full_node.hpp"
 #include "transaction.hpp"
 
@@ -214,6 +215,19 @@ bool Executor::coinTransfer(
   auto hash = trx.getHash();
   val_t value = trx.getValue();
   addr_t sender = trx.getSender();
+  {
+    auto nonce = state.getNonce(sender);
+    if (nonce != trx.getNonce()) {
+      // TODO use the logging framework
+      std::cout << fmt("Invalid nonce. account: %s, trx: %s, expected nonce: "
+                       "%s, actual "
+                       "nonce: %s",
+                       sender, hash, trx.getNonce(), nonce)
+                << std::endl;
+      return false;
+    }
+    state.setNonce(sender, nonce + 1);
+  }
   addr_t receiver = trx.getReceiver();
   val_t sender_initial_coin = state.balance(sender);
   val_t receiver_initial_coin = state.balance(receiver);

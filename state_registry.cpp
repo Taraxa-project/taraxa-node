@@ -55,6 +55,9 @@ State &StateRegistry::rebase(State &state) {
 
 optional<StateSnapshot> StateRegistry::getSnapshot(
     dag_blk_num_t const &blk_num) {
+  if (auto s = current_snapshot_.load(); s.block_number == blk_num) {
+    return s;
+  }
   auto snapshot_str = snapshot_db_->lookup(blkNumKey(blk_num));
   if (snapshot_str.empty()) {
     return nullopt;
@@ -68,6 +71,9 @@ optional<StateSnapshot> StateRegistry::getSnapshot(
 }
 
 optional<StateSnapshot> StateRegistry::getSnapshot(blk_hash_t const &blk_hash) {
+  if (auto s = current_snapshot_.load(); s.block_hash == blk_hash) {
+    return s;
+  }
   auto const &block_number_opt = getNumber(blk_hash);
   return block_number_opt ? getSnapshot(*block_number_opt) : nullopt;
 }
