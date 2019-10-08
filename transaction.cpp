@@ -679,7 +679,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   // check requeued trx
   if (!trx_requeued_.empty()) {
-    LOG(log_si_) << getFullNodeAddress() << " Number of repacked trx "
+    LOG(log_dg_) << getFullNodeAddress() << " Number of repacked trx "
                  << trx_requeued_.size();
   }
   while (!trx_requeued_.empty()) {
@@ -778,7 +778,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     }
     auto pruned_size = list_trxs.size();
     if (orig_size != pruned_size) {
-      LOG(log_si_) << getFullNodeAddress() << " Shorten trx pack from "
+      LOG(log_dg_) << getFullNodeAddress() << " Shorten trx pack from "
                    << orig_size << " to " << pruned_size << " outdated "
                    << outdated_trx << " gapped " << gapped_trx;
     }
@@ -822,23 +822,24 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                << " tips: " << frontier.tips;
 
   auto full_node = full_node_.lock();
-  assert(full_node);
-  std::vector<std::string> ghost;
-  full_node->getGhostPath(ghost);
-  for (auto const &g : ghost) {
-    blk_hash_t gg(g);
-    if (gg == frontier.pivot) break;
-    for (auto i = 0; i < frontier.tips.size(); ++i) {
-      if (gg == frontier.tips[i]) {
-        std::swap(frontier.pivot, frontier.tips[i]);
-        break;
+  if (full_node) {
+    std::vector<std::string> ghost;
+    full_node->getGhostPath(ghost);
+    for (auto const &g : ghost) {
+      blk_hash_t gg(g);
+      if (gg == frontier.pivot) break;
+      for (auto i = 0; i < frontier.tips.size(); ++i) {
+        if (gg == frontier.tips[i]) {
+          std::swap(frontier.pivot, frontier.tips[i]);
+          break;
+        }
       }
     }
-  }
-  if (frontier.pivot != dag_frontier_.pivot) {
-    LOG(log_si_) << getFullNodeAddress()
-                 << " UPDATE frontier with pivot: " << frontier.pivot
-                 << " tips: " << frontier.tips;
+    if (frontier.pivot != dag_frontier_.pivot) {
+      LOG(log_si_) << getFullNodeAddress()
+                   << " UPDATE frontier with pivot: " << frontier.pivot
+                   << " tips: " << frontier.tips;
+    }
   }
 }
 

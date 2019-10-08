@@ -578,6 +578,11 @@ TEST_F(TopTest, sync_five_nodes) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
+  ASSERT_EQ(node1->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node2->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node3->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
   // send dummy trx to make sure all DAGs are ordered
   try {
     send_dummy_trx();
@@ -711,7 +716,7 @@ TEST_F(TopTest, sync_five_nodes) {
     k++;
 
     EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
-        << " \nNum execued in node " << k << " node " << node
+        << " \nNum executed in node " << k << " node " << node
         << " is : " << node->getNumTransactionExecuted()
         << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
         << " \nNum executed blks: " << node->getNumBlockExecuted()
