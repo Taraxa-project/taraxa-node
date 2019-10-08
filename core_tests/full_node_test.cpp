@@ -479,6 +479,7 @@ TEST_F(TopTest, sync_five_nodes) {
     if (i % 10 == 0) {
       std::cout << "Wait for init balance syncing ..." << std::endl;
     }
+
     bool ok = true;
     // for each node, check initial balances
     for (auto const &node : nodes) {
@@ -499,7 +500,7 @@ TEST_F(TopTest, sync_five_nodes) {
     if (ok) {
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(500);
+    taraxa::thisThreadSleepForMilliSeconds(200);
   }
 
   // make sure all accounts init balance are finished
@@ -543,6 +544,16 @@ TEST_F(TopTest, sync_five_nodes) {
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
       std::cout << "Wait for vertices syncing ..." << std::endl;
+      std::cout << " Node 1: Dag size = " << node1->getNumVerticesInDag().first
+                << std::endl
+                << " Node 2: Dag size = " << node2->getNumVerticesInDag().first
+                << std::endl
+                << " Node 3: Dag size = " << node3->getNumVerticesInDag().first
+                << std::endl
+                << " Node 4: Dag size = " << node4->getNumVerticesInDag().first
+                << std::endl
+                << " Node 5: Dag size = " << node5->getNumVerticesInDag().first
+                << std::endl;
     }
     num_vertices1 = node1->getNumVerticesInDag();
     num_vertices2 = node2->getNumVerticesInDag();

@@ -322,7 +322,6 @@ void FullNode::start(bool boot_node) {
             auto block_bytes = blk.rlp(true);
             db_blks_->put(blk.getHash(), block_bytes);
             db_blks_->commit();
-            trx_mgr_->updateNonce(blk);
             auto level = blk.getLevel();
             h256 level_key(level);
             std::string blocks = db_blks_index_->get(level_key.toString());
@@ -345,8 +344,7 @@ void FullNode::start(bool boot_node) {
           // its pivot and tips processed This should happen in a very rare case
           // where in some race condition older block is verfified faster then
           // new block but should resolve quickly, return block to queue
-          LOG(log_warning_)
-              << "Block could not be added to DAG " << blk.getHash();
+          LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash();
           received_blocks_--;
           blk_mgr_->pushVerifiedBlock(blk);
         }

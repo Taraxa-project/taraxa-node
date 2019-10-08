@@ -478,53 +478,49 @@ void DagManager::stop() {
   stopped_ = true;
 }
 bool DagManager::addDagBlock(DagBlock const &blk) {
-  uLock lock(mutex_);
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
   auto p = blk.getPivot();
-  {
-    uLock lock(mutex_);
+  DagFrontier frontier;
+  uLock lock(mutex_);
 
-    if (total_dag_->hasVertex(hash)) {
-      LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
-      return true;
-    }
+  if (total_dag_->hasVertex(hash)) {
+    LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
+    return true;
+  }
 
-    std::string pivot = blk.getPivot().toString();
-    if (!total_dag_->hasVertex(pivot)) {
-      LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
+  std::string pivot = blk.getPivot().toString();
+  if (!total_dag_->hasVertex(pivot)) {
+    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
+                 << std::endl;
+    return false;
+  }
+
+  std::vector<std::string> tips;
+  for (auto const &t : blk.getTips()) {
+    std::string tip = t.toString();
+    if (!total_dag_->hasVertex(tip)) {
+      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
                    << std::endl;
       return false;
     }
+    tips.push_back(tip);
+  }
 
-    std::vector<std::string> tips;
-    for (auto const &t : blk.getTips()) {
-      std::string tip = t.toString();
-      if (!total_dag_->hasVertex(tip)) {
-        LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
-                     << std::endl;
-        return false;
-      }
-      tips.push_back(tip);
-    }
+  addToDag(hash, pivot, tips);
+  auto full_node = full_node_.lock();
 
-    addToDag(hash, pivot, tips);
-    // update nonce here
-    auto full_node = full_node_.lock();
-    // full_node could be null in test
-    if (full_node) {
-      DagFrontier frontier;
-      auto [p, ts] = getFrontier();
-      frontier.pivot = blk_hash_t(p);
-      for (auto const &t : ts) {
-        frontier.tips.emplace_back(blk_hash_t(t));
-      }
-      full_node->updateNonceTable(blk, frontier);
-      LOG(log_si_) << getFullNodeAddress() << " Update nonce table of blk "
-                   << blk.getHash() << "anchor " << anchors_.back()
-                   << " pivot = " << frontier.pivot
-                   << " tips: " << frontier.tips;
+  // full_node could be null in test
+  if (full_node) {
+    auto [p, ts] = getFrontier();
+    frontier.pivot = blk_hash_t(p);
+    for (auto const &t : ts) {
+      frontier.tips.emplace_back(blk_hash_t(t));
     }
+    full_node->updateNonceTable(blk, frontier);
+    LOG(log_si_) << getFullNodeAddress() << " Update nonce table of blk "
+                 << blk.getHash() << "anchor " << anchors_.back()
+                 << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
   }
 
   max_level_ = std::max(max_level_, blk.getLevel());

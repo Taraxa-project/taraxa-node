@@ -814,10 +814,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
       nonce_range << "Sender " << sender << " : " << begin_nonce[sender]
                   << " -> " << end_nonce[sender] << " | ";
     }
-    LOG(log_si_) << getFullNodeAddress()
-                 << "Pack Trx Nonces: " << nonce_range.str()
-                 << " *** pivot = " << frontier.pivot
-                 << " tips = " << frontier.tips;
   }
   frontier = dag_frontier_;
   LOG(log_si_) << getFullNodeAddress()
