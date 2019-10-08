@@ -83,7 +83,7 @@ void PbftManager::start() {
   db_votes_ = full_node->getVotesDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_sil_) << "PBFT executor initiated ...";
+  LOG(log_inf_) << "PBFT executor initiated ...";
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = false;
     monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
@@ -105,7 +105,7 @@ void PbftManager::stop() {
   stopped_ = true;
   daemon_->join();
   daemon_.reset();
-  LOG(log_sil_) << "PBFT executor terminated ...";
+  LOG(log_inf_) << "PBFT executor terminated ...";
   db_votes_ = nullptr;
   assert(daemon_ == nullptr);
 }
@@ -119,7 +119,7 @@ void PbftManager::stop() {
  */
 void PbftManager::run() {
   
-  LOG(log_sil_) << "PBFT executor running ...";
+  LOG(log_inf_) << "PBFT executor running ...";
 
   // Initilize TWO_T_PLUS_ONE and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
