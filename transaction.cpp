@@ -739,7 +739,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                            << iter->getHash() << " Sender " << curr_sender
                            << " Nonce " << curr_nonce
                            << " cannot be packed, no nonce 0 seen ";
+              trx_requeued_.push(*iter);
               iter = list_trxs.erase(iter);
+              gapped_trx++;
               continue;
             }
           } else {
@@ -749,7 +751,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                            << " Nonce " << curr_nonce
                            << " cannot be packed, no previous nonce available "
                            << curr_sender_prev_nonce;
+              trx_requeued_.push(*iter);
               iter = list_trxs.erase(iter);
+              gapped_trx++;
               continue;
             }
           }
@@ -866,7 +870,7 @@ void TransactionManager::updateNonce(DagBlock const &blk,
   }
 
   dag_frontier_ = frontier;
-  LOG(log_si_) << getFullNodeAddress() << " Update nonce of block "
+  LOG(log_dg_) << getFullNodeAddress() << " Update nonce of block "
                << blk.getHash() << " frontier: " << frontier.pivot
                << " tips: " << frontier.tips
                << " dag_frontier: " << dag_frontier_.pivot

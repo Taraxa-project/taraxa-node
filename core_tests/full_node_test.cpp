@@ -585,12 +585,13 @@ TEST_F(TopTest, sync_five_nodes) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node1->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node2->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node3->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node4->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node5->getTransactionStatusCount(), 10005);
 
+  std::cout << "All transactions received ..." << std::endl;
   // wait for trx execution ...
   taraxa::thisThreadSleepForSeconds(10);
   uint64_t trx_executed1, trx_executed2, trx_executed3, trx_executed4,
@@ -628,32 +629,30 @@ TEST_F(TopTest, sync_five_nodes) {
                      "but not all nodes yet see 10005 packed transactions!!!";
       }
     }
-
     taraxa::thisThreadSleepForMilliSeconds(500);
     if (i % 100 == 0) {
-      std::cout << " Wait for syncing ... " << i << "/" << TIMEOUT << std::endl;
-      if (trx_executed1 != 10005) {
-        std::cout << " Node 1: executed blk= " << node1->getNumBlockExecuted()
-                  << " executed trx = " << trx_executed1 << "/10005"
-                  << std::endl;
-      }
+                  << " Dag size: " << node1->getNumVerticesInDag().first
       if (trx_executed2 != 10005) {
         std::cout << " Node 2: executed blk= " << node2->getNumBlockExecuted()
+                  << " Dag size: " << node2->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed2 << "/10005"
                   << std::endl;
       }
       if (trx_executed3 != 10005) {
         std::cout << " Node 3: executed blk= " << node3->getNumBlockExecuted()
+                  << " Dag size: " << node3->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed3 << "/10005"
                   << std::endl;
       }
       if (trx_executed4 != 10005) {
         std::cout << " Node 4: executed blk= " << node4->getNumBlockExecuted()
+                  << " Dag size: " << node4->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed4 << "/10005"
                   << std::endl;
       }
       if (trx_executed5 != 10005) {
         std::cout << " Node 5: executed blk= " << node5->getNumBlockExecuted()
+                  << " Dag size: " << node5->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed5 << "/10005"
                   << std::endl;
       }

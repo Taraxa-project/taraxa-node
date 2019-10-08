@@ -511,17 +511,20 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
     addToDag(hash, pivot, tips);
     // update nonce here
     auto full_node = full_node_.lock();
-    assert(full_node);
-    DagFrontier frontier;
-    auto [p, ts] = getFrontier();
-    frontier.pivot = blk_hash_t(p);
-    for (auto const &t : ts) {
-      frontier.tips.emplace_back(blk_hash_t(t));
+    // full_node could be null in test
+    if (full_node) {
+      DagFrontier frontier;
+      auto [p, ts] = getFrontier();
+      frontier.pivot = blk_hash_t(p);
+      for (auto const &t : ts) {
+        frontier.tips.emplace_back(blk_hash_t(t));
+      }
+      full_node->updateNonceTable(blk, frontier);
+      LOG(log_si_) << getFullNodeAddress() << " Update nonce table of blk "
+                   << blk.getHash() << "anchor " << anchors_.back()
+                   << " pivot = " << frontier.pivot
+                   << " tips: " << frontier.tips;
     }
-    full_node->updateNonceTable(blk, frontier);
-    LOG(log_si_) << getFullNodeAddress() << " Update nonce table of blk "
-                 << blk.getHash() << " pivot = " << frontier.pivot
-                 << " tips: " << frontier.tips;
   }
 
   max_level_ = std::max(max_level_, blk.getLevel());
@@ -533,7 +536,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  LOG(log_si_) << getFullNodeAddress() << " Insert block to DAG : " << hash;
+  LOG(log_dg_) << getFullNodeAddress() << " Insert block to DAG : " << hash;
 }
 
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
@@ -600,6 +603,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   std::vector<std::string> blk_orders;
   assert(anchors_.size());
   auto prev = anchors_.back();
+
+  // TODO: need to use the same pivot/tips that are stored in nonce map
 
   if (blk_hash_t(prev) == anchor) {
     LOG(log_wr_) << "Query period from " << blk_hash_t(prev) << " to " << anchor
