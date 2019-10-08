@@ -65,16 +65,25 @@ void PbftManager::start() {
     return;
   }
   auto full_node = node_.lock();
-
   if (!full_node) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return;
   }
 
+  std::vector<std::string> ghost;
+  full_node->getGhostPath(dag_genesis_, ghost);
+  while (ghost.empty()) {
+    LOG(log_deb_)
+      << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
+    thisThreadSleepForMilliSeconds(100);
+  }
+  LOG(log_deb_) << "PBFT start at GHOST size " << ghost.size()
+                << ", the last of DAG blocks is " << ghost.back();
+
   db_votes_ = full_node->getVotesDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_inf_) << "PBFT executor initiated ...";
+  LOG(log_inf_) << "PBFT manager initiated ...";
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = false;
     monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
@@ -880,6 +889,11 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     std::vector<std::string> ghost;
     full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
     blk_hash_t dag_block_hash;
+    if (ghost.empty()) {
+      LOG(log_deb_) << "GHOST is empty. No new DAG blocks generated, PBFT "
+                       "propose NULL_BLOCK_HASH";
+      return std::make_pair(NULL_BLOCK_HASH, true);
+    }
     if (ghost.size() <= DAG_BLOCKS_SIZE) {
       dag_block_hash = blk_hash_t(ghost.back());
     } else {
