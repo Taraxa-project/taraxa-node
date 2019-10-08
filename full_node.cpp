@@ -576,6 +576,10 @@ void FullNode::getGhostPath(std::string const &source,
   dag_mgr_->getGhostPath(source, ghost);
 }
 
+void FullNode::getGhostPath(std::vector<std::string> &ghost) {
+  dag_mgr_->getGhostPath(ghost);
+}
+
 std::vector<std::string> FullNode::getDagBlockPivotChain(
     blk_hash_t const &hash) {
   std::vector<std::string> pivot_chain =

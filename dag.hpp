@@ -190,7 +190,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     full_node_ = full_node;
   }
   bool addDagBlock(DagBlock const &blk);  // insert to buffer if fail
-  
+
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
   // assuming a period is confirmed, will finialize, return size of blocks in
@@ -203,6 +203,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   void getGhostPath(std::string const &source,
                     std::vector<std::string> &ghost) const;
+  void getGhostPath(std::vector<std::string> &ghost) const; // get ghost path from last anchor
   void deletePeriod(uint64_t period);
   // ----- Total graph
   std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,

@@ -816,9 +816,30 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     }
   }
   frontier = dag_frontier_;
+
   LOG(log_si_) << getFullNodeAddress()
                << " Get frontier with pivot: " << frontier.pivot
                << " tips: " << frontier.tips;
+
+  auto full_node = full_node_.lock();
+  assert(full_node);
+  std::vector<std::string> ghost;
+  full_node->getGhostPath(ghost);
+  for (auto const &g : ghost) {
+    blk_hash_t gg(g);
+    if (gg == frontier.pivot) break;
+    for (auto i = 0; i < frontier.tips.size(); ++i) {
+      if (gg == frontier.tips[i]) {
+        std::swap(frontier.pivot, frontier.tips[i]);
+        break;
+      }
+    }
+  }
+  if (frontier.pivot != dag_frontier_.pivot) {
+    LOG(log_si_) << getFullNodeAddress()
+                 << " UPDATE frontier with pivot: " << frontier.pivot
+                 << " tips: " << frontier.tips;
+  }
 }
 
 bool TransactionManager::verifyBlockTransactions(

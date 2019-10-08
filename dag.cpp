@@ -575,6 +575,12 @@ void DagManager::getGhostPath(std::string const &source,
                               std::vector<std::string> &ghost) const {
   pivot_tree_->getGhostPath(source, ghost);
 }
+
+void DagManager::getGhostPath(std::vector<std::string> &ghost) const {
+  auto last_pivot = anchors_.back();
+  ghost.clear();
+  pivot_tree_->getGhostPath(last_pivot, ghost);
+}
 std::vector<std::string> DagManager::getEpFriendBetweenPivots(
     std::string const &from, std::string const &to) {
   std::vector<std::string> epfriend;

@@ -98,6 +98,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
   void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
+  void getGhostPath(std::vector<std::string> &ghost);
+
   std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk);
   // Note: returned block hashes does not have order
   // Epoch friends : dag blocks in the same epoch/period
