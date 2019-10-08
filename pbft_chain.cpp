@@ -443,8 +443,6 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash)
       last_pbft_block_hash_(genesis_hash_),
       last_pbft_pivot_hash_(genesis_hash_),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {
-  // put PBFT genesis into verified set
-  pbft_verified_set_.insert(genesis_hash_);
 }
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
@@ -818,11 +816,6 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
-void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_set_.insert(pbft_block_hash);
-}
-
 bool PbftChain::pbftVerifiedQueueEmpty() const {
   sharedLock_ lock(verified_access_);
   return pbft_verified_queue_.empty();
@@ -834,6 +827,7 @@ PbftBlock PbftChain::pbftVerifiedQueueFront() const {
 }
 
 void PbftChain::pbftVerifiedQueuePopFront() {
+  pbftVerifiedSetErase_();
   uniqueLock_ lock(verified_access_);
   pbft_verified_queue_.pop_front();
 }
@@ -844,6 +838,17 @@ void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
   uniqueLock_ lock(verified_access_);
   pbft_verified_queue_.emplace_back(pbft_block);
   pbft_verified_set_.insert(pbft_block.getBlockHash());
+}
+
+void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
+  uniqueLock_ lock(verified_access_);
+  pbft_verified_set_.insert(pbft_block_hash);
+}
+
+void PbftChain::pbftVerifiedSetErase_() {
+  PbftBlock pbft_block = pbftVerifiedQueueFront();
+  uniqueLock_ lock(verified_access_);
+  pbft_verified_set_.erase(pbft_block.getBlockHash());
 }
 
 void PbftChain::insertPbftBlockIndex_(

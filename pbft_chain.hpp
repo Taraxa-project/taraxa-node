@@ -238,13 +238,14 @@ class PbftChain {
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
-  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
   bool pbftVerifiedQueueEmpty() const;
   PbftBlock pbftVerifiedQueueFront() const;
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
 
  private:
+  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
+  void pbftVerifiedSetErase_();
   void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
   void insertUnverifiedPbftBlockIntoParentMap_(
       blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
@@ -277,9 +278,6 @@ class PbftChain {
   // Start DAG genesis at block height 1
   // key : DAG block hash, value : DAG block height
   std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
-
-  // TODO: Need to think of how to shrink these info(by using LRU cache?), or
-  //  move to DB
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>
