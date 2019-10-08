@@ -73,13 +73,13 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     auto peer = getPeer(_nodeID);
-    int max_level = 0;
+    int max_block_level_received = 0;
     if (peer) {
       for (auto block_level = peer->m_syncBlocks.begin();
            block_level != peer->m_syncBlocks.end();) {
         for (auto block : block_level->second) {
-          if (block.second.first.getLevel() > max_level)
-            max_level = block.second.first.getLevel();
+          if (block.second.first.getLevel() > max_block_level_received)
+            max_block_level_received = block.second.first.getLevel();
           auto status = checkTipsandPivot(block.second.first);
           if (!status.first) {
             peer->m_lastRequest = status.second;
@@ -99,7 +99,19 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
       }
       peer->m_syncBlocks.clear();
       if (syncing_ && peer_syncing_ == _nodeID) {
-        syncPeer(_nodeID, max_level + 1);
+        uint64_t max_level = full_node->getMaxDagLevel();
+        while (max_block_level_received >
+               max_level + (10 * conf_.network_sync_level_size)) {
+          LOG(log_er_) << "Syncing blocks faster then processing"
+                       << max_block_level_received << " " << max_level;
+          thisThreadSleepForSeconds(1);
+          max_level = full_node->getMaxDagLevel();
+        }
+        if (max_block_level_received < max_level) {
+          syncPeer(_nodeID, max_level + 1);
+        } else {
+          syncPeer(_nodeID, max_block_level_received + 1);
+        }
       }
     }
   }
@@ -522,6 +534,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 }
 
 void TaraxaCapability::restartSyncing() {
+  if (syncing_) return;
   LOG(log_nf_) << "Restarting syncing";
   NodeID max_level_nodeID;
   unsigned long max_level = 0;
