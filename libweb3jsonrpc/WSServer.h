@@ -6,6 +6,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <cstdlib>
+#include <deque>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -55,6 +56,9 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   dev::Logger log_tr_{dev::createLogger(dev::Verbosity::VerbosityTrace, "RPC")};
 
  private:
+  void writeImpl(const std::string& message);
+  void write(const std::string& message);
+  std::deque<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
   int subscription_id_ = 0;
