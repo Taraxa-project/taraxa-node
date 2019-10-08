@@ -153,8 +153,29 @@ void PbftManager::run() {
     LOG(log_tra_) << "PBFT current step is " << pbft_step_;
 
     // push verified pbft blocks into chain syncing from peers
+    auto chain_size_before_pushing_verified_blocks = pbft_chain_->getPbftChainSize();
     pushVerifiedPbftBlocksIntoChain_();
+    auto chain_size_after_pushing_verified_blocks = pbft_chain_->getPbftChainSize();
+
+    // update next pbft block type accordingly...
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+
+    if (chain_size_after_pushing_verified_blocks > chain_size_before_pushing_verified_blocks) {
+      //We shold update sortition and account balance table here...
+      
+      if (executed_cs_block_) {
+        last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+        // update sortition account balance table
+        updateSortitionAccountBalanceTable_();
+        // reset sortition_threshold and TWO_T_PLUS_ONE
+        updateTwoTPlusOneAndThreshold_();
+        executed_cs_block_ = false;
+      }
+      
+      LOG(log_deb_) << "Updating sortition account balance table, committee size, and threshold due to verified block push. PBFT round remains " << pbft_round_
+                    << ", likely this is behind.";
+    }
+
 
     // Get votes
     bool sync_peers_pbft_chain = false;
