@@ -74,7 +74,7 @@ void PbftManager::start() {
   db_votes_ = full_node->getVotesDB();
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_inf_) << "PBFT executor initiated ...";
+  LOG(log_sil_) << "PBFT executor initiated ...";
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = false;
     monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
@@ -96,7 +96,7 @@ void PbftManager::stop() {
   stopped_ = true;
   daemon_->join();
   daemon_.reset();
-  LOG(log_inf_) << "PBFT executor terminated ...";
+  LOG(log_sil_) << "PBFT executor terminated ...";
   db_votes_ = nullptr;
   assert(daemon_ == nullptr);
 }
@@ -109,9 +109,22 @@ void PbftManager::stop() {
  * users from which have received valid round p credentials
  */
 void PbftManager::run() {
+  
+  LOG(log_sil_) << "PBFT executor running ...";
+
   // Initilize TWO_T_PLUS_ONE and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
 
+  // Reset round and step...
+  if (pbft_round_ != 1) {
+    LOG(log_err_) << "PBFT round was equal to " << pbft_round_ << " at start of PBFT MGR run";  
+    pbft_round_ = 1;
+  }
+  if (pbft_step_ != 1) {
+    LOG(log_err_) << "PBFT step was equal to " << pbft_step_ << " at start of PBFT MGR run";  
+    pbft_step_ = 1;
+  }
+  
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round;
