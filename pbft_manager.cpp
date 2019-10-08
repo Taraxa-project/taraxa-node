@@ -595,7 +595,7 @@ void PbftManager::run() {
       }
 
       if (pbft_step_ > MAX_STEPS) {
-        LOG(log_inf_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
+        LOG(log_err_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                          "to broadcast request for missing blocks";
         syncPbftChainFromPeers_();
       }
