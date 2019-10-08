@@ -121,6 +121,11 @@ void FullNode::initDB(bool destroy_db) {
         conf_.pbft_chain_db_path(), destroy_db);
     assert(db_pbftchain_);
   }
+  if (db_pbft_blocks_order_ == nullptr) {
+    db_pbft_blocks_order_ =
+        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+            conf_.pbft_blocks_order_db_path(), destroy_db);
+  }
   if (db_dag_blocks_order_ == nullptr) {
     db_dag_blocks_order_ =
         SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
@@ -212,6 +217,7 @@ bool FullNode::destroyDB() {
   assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(db_pbft_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
@@ -223,6 +229,7 @@ bool FullNode::destroyDB() {
   db_trxs_to_blk_ = nullptr;
   db_votes_ = nullptr;
   db_pbftchain_ = nullptr;
+  db_pbft_blocks_order_ = nullptr;
   db_dag_blocks_order_ = nullptr;
   db_dag_blocks_height_ = nullptr;
   state_registry_ = nullptr;
@@ -340,6 +347,7 @@ void FullNode::start(bool boot_node) {
   assert(db_trxs_to_blk_);
   assert(db_votes_);
   assert(db_pbftchain_);
+  assert(db_pbft_blocks_order_);
   assert(db_dag_blocks_order_);
   assert(db_dag_blocks_height_);
   assert(state_registry_);
@@ -379,6 +387,7 @@ void FullNode::stop() {
 
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
+  assert(db_pbft_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
@@ -791,10 +800,6 @@ void FullNode::pushUnverifiedPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
-}
-
-size_t FullNode::getPbftVerifiedBlocksSize() const {
-  return pbft_chain_->pbftVerifiedSetSize();
 }
 
 void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,

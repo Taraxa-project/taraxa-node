@@ -46,7 +46,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
-    size_t height_to_sync = full_node->getPbftVerifiedBlocksSize();
+    size_t height_to_sync = full_node->getPbftChainSize() + 1;
     requestPbftBlocks(_nodeID, height_to_sync);
   }
 }
@@ -432,9 +432,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
           size_t my_chain_size = full_node->getPbftChainSize();
-          if (my_chain_size > height_to_sync) {
+          if (my_chain_size >= height_to_sync) {
             size_t blocks_to_transfer =
-                std::min(max_blocks_in_packet, my_chain_size - height_to_sync);
+                std::min(max_blocks_in_packet,
+                         my_chain_size - (height_to_sync - 1));
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
         }
