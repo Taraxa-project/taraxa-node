@@ -81,9 +81,20 @@ void PbftManager::start() {
                 << ", the last of DAG blocks is " << ghost.back();
 
   db_votes_ = full_node->getVotesDB();
+  
+  // Reset round and step...
+  if (pbft_round_ != 1) {
+    LOG(log_err_) << "PBFT round was equal to " << pbft_round_ << " at start()";
+    pbft_round_ = 1;
+  }
+  if (pbft_step_ != 1) {
+    LOG(log_err_) << "PBFT step was equal to " << pbft_step_ << " at start()";
+    pbft_step_ = 1;
+  }
+
   stopped_ = false;
   daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_inf_) << "PBFT manager initiated ...";
+  LOG(log_inf_) << "PBFT executor initiated ...";
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = false;
     monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
@@ -118,9 +129,12 @@ void PbftManager::stop() {
  * users from which have received valid round p credentials
  */
 void PbftManager::run() {
+  
+  LOG(log_inf_) << "PBFT executor running ...";
+
   // Initilize TWO_T_PLUS_ONE and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
-
+  
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round;
@@ -149,8 +163,29 @@ void PbftManager::run() {
     LOG(log_tra_) << "PBFT current step is " << pbft_step_;
 
     // push verified pbft blocks into chain syncing from peers
+    auto chain_size_before_pushing_verified_blocks = pbft_chain_->getPbftChainSize();
     pushVerifiedPbftBlocksIntoChain_();
+    auto chain_size_after_pushing_verified_blocks = pbft_chain_->getPbftChainSize();
+
+    // update next pbft block type accordingly...
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
+
+    if (chain_size_after_pushing_verified_blocks > chain_size_before_pushing_verified_blocks) {
+      //We shold update sortition and account balance table here...
+      
+      if (executed_cs_block_) {
+        last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+        // update sortition account balance table
+        updateSortitionAccountBalanceTable_();
+        // reset sortition_threshold and TWO_T_PLUS_ONE
+        updateTwoTPlusOneAndThreshold_();
+        executed_cs_block_ = false;
+      }
+      
+      LOG(log_deb_) << "Updating sortition account balance table, committee size, and threshold due to verified block push. PBFT round remains " << pbft_round_
+                    << ", likely this is behind.";
+    }
+
 
     // Get votes
     bool sync_peers_pbft_chain = false;
@@ -338,7 +373,7 @@ void PbftManager::run() {
       // The Certifying Step
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
         // Should not happen, add log here for safety checking
-        LOG(log_err_) << "PBFT Reached step 3 too quickly?";
+        LOG(log_err_) << "PBFT Reached step 3 too quickly after only " << elapsed_time_in_round_ms << " (ms) in round " << pbft_round_;
       }
 
       bool should_go_to_step_four = false;
@@ -560,7 +595,7 @@ void PbftManager::run() {
       }
 
       if (pbft_step_ > MAX_STEPS) {
-        LOG(log_inf_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
+        LOG(log_err_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                          "to broadcast request for missing blocks";
         syncPbftChainFromPeers_();
       }
@@ -609,8 +644,8 @@ void PbftManager::run() {
     elapsed_time_in_round_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto time_to_sleep_for_ms = next_step_time_ms - elapsed_time_in_round_ms;
-    LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms;
     if (time_to_sleep_for_ms > 0) {
+      LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms << " in round " << pbft_round_ << ", step " << pbft_step_;
       thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
     }
   }
