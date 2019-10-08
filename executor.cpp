@@ -218,12 +218,11 @@ bool Executor::coinTransfer(
   {
     auto nonce = state.getNonce(sender);
     if (nonce != trx.getNonce()) {
-      // TODO use the logging framework
-      std::cout << fmt("Invalid nonce. account: %s, trx: %s, expected nonce: "
-                       "%s, actual "
-                       "nonce: %s",
-                       sender, hash, trx.getNonce(), nonce)
-                << std::endl;
+      LOG(log_nf_) << fmt(
+          "Invalid nonce. account: %s, trx: %s, expected nonce: "
+          "%s, actual "
+          "nonce: %s",
+          sender, hash, trx.getNonce(), nonce);
       return false;
     }
     state.setNonce(sender, nonce + 1);
