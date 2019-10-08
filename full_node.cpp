@@ -785,8 +785,8 @@ uint64_t FullNode::getUnverifiedVotesSize() const {
 
 bool FullNode::isKnownPbftBlockForSyncing(
     taraxa::blk_hash_t const &pbft_block_hash) const {
-  return  pbft_chain_->findPbftBlockInVerifiedSet(pbft_block_hash) ||
-          pbft_chain_->findPbftBlockInChain(pbft_block_hash);
+  return pbft_chain_->findPbftBlockInVerifiedSet(pbft_block_hash) ||
+         pbft_chain_->findPbftBlockInChain(pbft_block_hash);
 }
 
 bool FullNode::isKnownUnverifiedPbftBlock(

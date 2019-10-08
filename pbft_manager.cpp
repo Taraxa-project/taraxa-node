@@ -74,7 +74,7 @@ void PbftManager::start() {
   full_node->getGhostPath(dag_genesis_, ghost);
   while (ghost.empty()) {
     LOG(log_deb_)
-      << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
+        << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
     thisThreadSleepForMilliSeconds(100);
   }
   LOG(log_deb_) << "PBFT start at GHOST size " << ghost.size()

@@ -442,8 +442,7 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash)
       next_pbft_block_type_(pivot_block_type),
       last_pbft_block_hash_(genesis_hash_),
       last_pbft_pivot_hash_(genesis_hash_),
-      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {
-}
+      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
   node_ = node;
