@@ -1,6 +1,8 @@
 #ifndef TARAXA_NODE_SIMPLE_DB_FACE_HPP
 #define TARAXA_NODE_SIMPLE_DB_FACE_HPP
+
 #include <boost/thread.hpp>
+#include <functional>
 #include "libethereum/State.h"
 
 using h256 = dev::h256;
@@ -24,6 +26,7 @@ class SimpleDBFace {
   virtual dev::bytes get(const h256 &key) = 0;
   virtual bool exists(const h256 &key) = 0;
   virtual void commit() = 0;
+  virtual void forEach(std::function<bool(std::string, std::string)> f) = 0;
   virtual ~SimpleDBFace() = default;
 
  protected:

@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_UTIL_ETH_HPP
-#define TARAXA_NODE_UTIL_ETH_HPP
+#ifndef TARAXA_NODE_UTIL_ETH_HPP_
+#define TARAXA_NODE_UTIL_ETH_HPP_
 
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
@@ -9,14 +9,12 @@
 #include <boost/filesystem.hpp>
 #include <tuple>
 
-namespace taraxa::util::eth::__impl__ {
+namespace taraxa::util::eth {
 using namespace std;
 using namespace dev;
 using namespace dev::db;
 using namespace dev::eth;
 namespace fs = boost::filesystem;
-
-namespace exports {
 
 inline Slice toSlice(h256 const& _h) {
   return Slice(reinterpret_cast<char const*>(_h.data()), _h.size);
@@ -92,11 +90,6 @@ inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
   }
 }
 
-}  // namespace exports
-}  // namespace taraxa::util::eth::__impl__
+}  // namespace taraxa::util::eth
 
-namespace taraxa::util::eth {
-using namespace __impl__::exports;
-}
-
-#endif  // TARAXA_NODE_UTIL_ETH_HPP
+#endif  // TARAXA_NODE_UTIL_ETH_HPP_
