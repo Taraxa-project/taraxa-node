@@ -132,9 +132,12 @@ void PbftManager::run() {
   
   LOG(log_inf_) << "PBFT executor running ...";
 
-  // Initilize TWO_T_PLUS_ONE and sortition_threshold
+  // Initialize TWO_T_PLUS_ONE and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
   
+  // Initialize last block hash (PBFT genesis block in beginning)
+  pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+
   auto round_clock_initial_datetime = std::chrono::system_clock::now();
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round;
@@ -182,6 +185,10 @@ void PbftManager::run() {
         executed_cs_block_ = false;
       }
       
+      // Attempt to get onto  current pbft chain  last
+      // block  hash...
+      pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+
       LOG(log_deb_) << "Updating sortition account balance table, committee size, and threshold due to verified block push. PBFT round remains " << pbft_round_
                     << ", likely this is behind.";
     }
@@ -254,6 +261,10 @@ void PbftManager::run() {
             << "pbft chain behind, need broadcast request for missing blocks";
         syncPbftChainFromPeers_();
       }
+      
+      // Update pbft chain last block hash at start of new round...
+      pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+
       pbft_round_ = consensus_pbft_round;
     }
     if (pbft_round_ != pbft_round_last_) {
@@ -280,6 +291,7 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
+      
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
       continue;
@@ -683,8 +695,8 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
 
-  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  std::string message = last_pbft_block_hash.toString() + std::to_string(type) +
+  //blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  std::string message = pbft_chain_last_block_hash_.toString() + std::to_string(type) +
                         std::to_string(round) + std::to_string(step);
 
   dev::Signature sortition_signature = full_node->signMessage(message);
@@ -878,7 +890,7 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
     return;
   }
 
-  Vote vote = full_node->generateVote(blockhash, vote_type, round, step);
+  Vote vote = full_node->generateVote(blockhash, vote_type, round, step, pbft_chain_last_block_hash_);
   vote_mgr_->addVote(vote);
   LOG(log_deb_) << "vote block hash: " << blockhash
                 << " vote type: " << vote_type << " round: " << round

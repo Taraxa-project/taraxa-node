@@ -44,6 +44,8 @@ class PbftManager {
   void run();
   bool isActive() { return daemon_ != nullptr; }
 
+  blk_hash_t getLastPbftBlockHashAtStartOfRound() const { return pbft_chain_last_block_hash_; }
+
   size_t getSortitionThreshold() const { return sortition_threshold_; }
   void setSortitionThreshold(size_t const sortition_threshold) {
     sortition_threshold_ = sortition_threshold;
@@ -141,6 +143,8 @@ class PbftManager {
   // Database
   std::shared_ptr<SimpleDBFace> db_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
+
+  blk_hash_t pbft_chain_last_block_hash_;
 
   uint64_t pbft_round_ = 1;
   uint64_t pbft_round_last_ = 1;
