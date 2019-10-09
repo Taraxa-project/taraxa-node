@@ -210,7 +210,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT RPC
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                    uint64_t period, size_t step);
+                    uint64_t period, size_t step, blk_hash_t const &last_pbft_block_hash);
 
   // get dag block for rpc
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;

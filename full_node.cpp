@@ -828,8 +828,8 @@ void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                            uint64_t period, size_t step) {
-  blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+                            uint64_t period, size_t step, blk_hash_t const &last_pbft_block_hash) {
+  
   // sortition signature
   sig_t sortition_signature =
       vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);
