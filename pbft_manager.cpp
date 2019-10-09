@@ -409,8 +409,10 @@ void PbftManager::run() {
                  soft_voted_block_for_this_round.first))) {
           LOG(log_tra_) << "Finished comparePbftCSblockWithDAGblocks_";
 
-          if (checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
-            LOG(log_tra_) << "checkPbftBlockValid_ returned true";
+          // NOTE: If we have already executed this round
+          //       then block won't be found in unverified queue...
+          if (have_executed_this_round == true || checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
+            LOG(log_tra_) << "have_executed_this_round == true || checkPbftBlockValid_ returned true";
 
             cert_voted_values_for_round[pbft_round_] =
                 soft_voted_block_for_this_round.first;
