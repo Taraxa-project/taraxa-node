@@ -784,7 +784,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     }
 
     for (auto const &t : list_trxs) {
-      // accs_nonce_.update(t.getSender(), t.getNonce());
       to_be_packed_trx.emplace_back(t.getHash());
     }
 
@@ -817,7 +816,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     LOG(log_si_) << getFullNodeAddress() << nonce_range.str();
   }
   frontier = dag_frontier_;
-
   LOG(log_si_) << getFullNodeAddress()
                << " Get frontier with pivot: " << frontier.pivot
                << " tips: " << frontier.tips;
@@ -838,8 +836,17 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     }
     if (frontier.pivot != dag_frontier_.pivot) {
       LOG(log_si_) << getFullNodeAddress()
-                   << " UPDATE frontier with pivot: " << frontier.pivot
+                   << " Swap frontier with pivot: " << frontier.pivot
                    << " tips: " << frontier.tips;
+      string pp;
+      std::vector<std::string> tt;
+      full_node->getLatestPivotAndTips(pp, tt);
+      vec_blk_t vtt;
+      for (auto const &t : tt) {
+        vtt.emplace_back(blk_hash_t(t));
+      }
+      LOG(log_si_) << getFullNodeAddress() << "latest pivot: " << blk_hash_t(pp)
+                   << " tips: " << vtt;
     }
   }
 }
