@@ -202,8 +202,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     peer->setLastMessage();
     switch (_id) {
       case SyncedPacket: {
+        LOG(log_dg_) << "Received synced message from " << _nodeID;
         peer->syncing_ = false;
       }
+      break;
       case StatusPacket: {
         auto const peer_protocol_version = _r[0].toInt<unsigned>();
         auto const network_id = _r[1].toString();
@@ -371,7 +373,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
         if (auto full_node = full_node_.lock()) {
           auto blocks = full_node->getDagBlocksAtLevel(level, number_of_levels);
-          if (blocks.size() > 0) sendBlocks(_nodeID, blocks);
+          sendBlocks(_nodeID, blocks);
         }
         break;
       }
