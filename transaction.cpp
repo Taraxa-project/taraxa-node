@@ -814,6 +814,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
       nonce_range << "Sender " << sender << " : " << begin_nonce[sender]
                   << " -> " << end_nonce[sender] << " | ";
     }
+    LOG(log_si_) << getFullNodeAddress() << nonce_range.str();
   }
   frontier = dag_frontier_;
 
