@@ -15,7 +15,7 @@ class SimpleOverlayDBDelegate : public SimpleDBFace {
   dev::bytes get(const h256 &key) override;
   bool exists(const h256 &key) override;
   void commit() override;
-  void forEach(std::function<bool(std::string, std::string)> f) override {
+  void forEach(foreach_fn const &f) override {
     raw_db_->forEach([&](auto const &k, auto const &v) {
       return f(k.toString(), v.toString());
     });
