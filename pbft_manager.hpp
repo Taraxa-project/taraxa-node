@@ -115,6 +115,8 @@ class PbftManager {
 
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
+  bool checkPbftBlockInUnverifiedQueue_(blk_hash_t const &block_hash) const;
+
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
   void syncPbftChainFromPeers_();
@@ -151,6 +153,9 @@ class PbftManager {
   size_t pbft_step_ = 1;
   bool executed_cs_block_ = false;
 
+  uint64_t pbft_round_last_requested_sync_ = 1;
+  size_t pbft_step_last_requested_sync_ = 1;
+  
   uint64_t last_period_should_speak_ = 0;
 
   size_t sortition_threshold_;
