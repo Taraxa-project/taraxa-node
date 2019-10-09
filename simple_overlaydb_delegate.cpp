@@ -1,4 +1,13 @@
 #include "simple_overlaydb_delegate.hpp"
+#include <memory>
+#include <utility>
+#include "util/eth.hpp"
+
+using dev::OverlayDB;
+using dev::WithExisting;
+using std::make_shared;
+using std::move;
+using taraxa::util::eth::newDB;
 
 bool SimpleOverlayDBDelegate::put(const std::string &key,
                                   const std::string &value) {
@@ -74,11 +83,13 @@ SimpleOverlayDBDelegate::SimpleOverlayDBDelegate(const std::string &path,
                                                  bool overwrite,
                                                  uint32_t binary_cache_size,
                                                  uint32_t string_cache_size)
-    : odb_(std::make_shared<dev::OverlayDB>(dev::OverlayDB(
-          dev::eth::State::openDB(path, TEMP_GENESIS_HASH,
-                                  overwrite ? dev::WithExisting::Kill
-                                            : dev::WithExisting::Trust)))),
-      binary_cache_size_(binary_cache_size),
+    : binary_cache_size_(binary_cache_size),
       string_cache_size_(string_cache_size),
       binary_cache_(binary_cache_size, binary_cache_size / 100),
-      string_cache_(string_cache_size, string_cache_size / 100) {}
+      string_cache_(string_cache_size, string_cache_size / 100) {
+  auto db_and_meta =
+      newDB(path, TEMP_GENESIS_HASH,
+            overwrite ? WithExisting::Kill : WithExisting::Trust);
+  raw_db_ = db_and_meta.db.get();
+  odb_ = make_shared<OverlayDB>(move(db_and_meta.db));
+}

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_set>
-#include "util_eth.hpp"
+#include "util/eth.hpp"
 
 namespace taraxa::state_registry {
 using State = StateRegistry::State;

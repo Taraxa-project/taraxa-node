@@ -12,7 +12,7 @@
 #include "simple_db_factory.hpp"
 #include "sortition.h"
 #include "state_registry.hpp"
-#include "util_eth.hpp"
+#include "util/eth.hpp"
 #include "vote.h"
 
 namespace taraxa {

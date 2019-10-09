@@ -7,7 +7,7 @@ extern "C" {
 #include <libdevcore/Log.h>
 #include <libdevcore/db.h>
 #include <cstring>
-#include "util_eth.hpp"
+#include "util/eth.hpp"
 
 namespace taraxa::trx_engine::db::cgo {
 using namespace dev;
