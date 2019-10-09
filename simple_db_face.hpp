@@ -10,6 +10,8 @@ const h256 TEMP_GENESIS_HASH = h256{}; /* genesisHash, put h256{} for now */
 
 class SimpleDBFace {
  public:
+  using foreach_fn =
+      std::function<bool(std::string const &, std::string const &)>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
@@ -26,7 +28,7 @@ class SimpleDBFace {
   virtual dev::bytes get(const h256 &key) = 0;
   virtual bool exists(const h256 &key) = 0;
   virtual void commit() = 0;
-  virtual void forEach(std::function<bool(std::string, std::string)> f) = 0;
+  virtual void forEach(foreach_fn const &f) = 0;
   virtual ~SimpleDBFace() = default;
 
  protected:
