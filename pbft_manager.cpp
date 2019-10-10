@@ -208,7 +208,9 @@ void PbftManager::run() {
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
     if (sync_peers_pbft_chain) {
-      LOG(log_sil_) << "Vote validation triggered pbft chain sync";
+      if (pbft_chain_->pbftVerifiedQueueEmpty()) {
+        LOG(log_sil_) << "Vote validation triggered pbft chain sync";
+      }
       syncPbftChainFromPeers_();
     }
 
