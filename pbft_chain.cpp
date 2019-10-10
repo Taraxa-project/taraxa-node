@@ -736,6 +736,10 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
     assert(false);
   }
   if (prev_block_hash != last_pbft_block_hash_) {
+    
+    //Adding this to check that db is available when call it here
+    //because findPbftBlockInChain has this assert...
+    assert(db_pbftchain_);
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
       return;
