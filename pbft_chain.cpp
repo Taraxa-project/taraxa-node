@@ -572,6 +572,12 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
+  
+  if (!db_pbftchain_) {
+    LOG(log_err_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
+    return false;
+  }
+  
   assert(db_pbftchain_);
   return db_pbftchain_->get(pbft_block_hash.toString()) != "";
 }
@@ -744,9 +750,6 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
   }
   if (prev_block_hash != last_pbft_block_hash_) {
     
-    //Adding this to check that db is available when call it here
-    //because findPbftBlockInChain has this assert...
-    assert(db_pbftchain_);
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
       return;
