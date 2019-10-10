@@ -822,32 +822,25 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   auto full_node = full_node_.lock();
   if (full_node) {
-    std::vector<std::string> ghost;
-    full_node->getGhostPath(ghost);
-    for (auto const &g : ghost) {
-      blk_hash_t gg(g);
-      if (gg == frontier.pivot) break;
-      for (auto i = 0; i < frontier.tips.size(); ++i) {
-        if (gg == frontier.tips[i]) {
-          std::swap(frontier.pivot, frontier.tips[i]);
-          break;
-        }
-      }
+    string pp;
+    std::vector<std::string> tt;
+    full_node->getLatestPivotAndTips(pp, tt);
+    vec_blk_t vtt;
+    blk_hash_t vpp(pp);
+    for (auto const &t : tt) {
+      vtt.emplace_back(blk_hash_t(t));
     }
-    if (frontier.pivot != dag_frontier_.pivot) {
-      LOG(log_si_) << getFullNodeAddress()
-                   << " Swap frontier with pivot: " << frontier.pivot
-                   << " tips: " << frontier.tips;
-      string pp;
-      std::vector<std::string> tt;
-      full_node->getLatestPivotAndTips(pp, tt);
-      vec_blk_t vtt;
-      for (auto const &t : tt) {
-        vtt.emplace_back(blk_hash_t(t));
-      }
-      LOG(log_si_) << getFullNodeAddress() << "latest pivot: " << blk_hash_t(pp)
+    if (vpp != frontier.pivot) {
+      LOG(log_si_) << getFullNodeAddress() << "latest pivot: " << vpp
                    << " tips: " << vtt;
     }
+    frontier.pivot = vpp;
+    frontier.tips = vtt;
+  }
+  if (frontier.pivot != dag_frontier_.pivot) {
+    LOG(log_si_) << getFullNodeAddress()
+                 << " Swap frontier with pivot: " << frontier.pivot
+                 << " tips: " << frontier.tips;
   }
 }
 
