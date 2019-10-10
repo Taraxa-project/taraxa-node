@@ -274,6 +274,7 @@ void FullNode::start(bool boot_node) {
   // order depend, be careful when changing the order
   // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
   // be nullptr
+  pbft_chain_->setFullNode(getShared());
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->setFullNode(getShared());
@@ -289,7 +290,7 @@ void FullNode::start(bool boot_node) {
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
-  pbft_chain_->setFullNode(getShared());
+  
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_blks_,
@@ -376,14 +377,14 @@ void FullNode::stop() {
   blk_proposer_->stop();
   blk_mgr_->stop();
   // Do not stop network_, o.w. restart node will crash	network_->stop();
-  //network_->stop();
+  // network_->stop();
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
   pbft_chain_->releaseDB();
   // Network(taraxa_capability) still running, will use pbft_chain_
   // After comment out network_->stop() above, could comment out here also
-  //pbft_chain_ = nullptr;
+  // pbft_chain_ = nullptr;
   executor_ = nullptr;
 
   for (auto i = 0; i < num_block_workers_; ++i) {
