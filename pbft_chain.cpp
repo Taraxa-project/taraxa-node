@@ -572,6 +572,12 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
+  
+  if (!db_pbftchain_) {
+    LOG(log_err_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
+    return false;
+  }
+  
   assert(db_pbftchain_);
   return db_pbftchain_->get(pbft_block_hash.toString()) != "";
 }
@@ -725,6 +731,13 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
+  
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable";
+    assert(false);
+  }
+
   blk_hash_t block_hash = pbft_block.getBlockHash();
   blk_hash_t prev_block_hash;
   if (pbft_block.getBlockType() == pivot_block_type) {
@@ -736,6 +749,7 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
     assert(false);
   }
   if (prev_block_hash != last_pbft_block_hash_) {
+    
     if (findPbftBlockInChain(block_hash)) {
       // The block comes from slow node, drop
       return;
