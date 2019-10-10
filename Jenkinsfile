@@ -45,8 +45,7 @@ pipeline {
               }
             }
             steps {
-                sh 'git submodule update --init --recursive'
-                sh 'make -j 4 run_test'
+                sh 'make DEBUG=1 -j 4 run_test'
             }
         }
         stage('Build Docker Image') {
