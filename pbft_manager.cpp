@@ -1308,7 +1308,7 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
   while (!pbft_chain_->pbftVerifiedQueueEmpty()) {
     queue_was_full = true;
     PbftBlock pbft_block = pbft_chain_->pbftVerifiedQueueFront();
-    LOG(log_inf_) << "Pick pbft block " << pbft_block.getBlockHash()
+    LOG(log_sil_) << "Pick pbft block " << pbft_block.getBlockHash()
                   << " from verified queue in round " << pbft_round_;
     if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
       // pushed already from PBFT unverified queue
