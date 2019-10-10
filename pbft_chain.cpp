@@ -725,6 +725,13 @@ bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
+  
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable";
+    assert(false);
+  }
+
   blk_hash_t block_hash = pbft_block.getBlockHash();
   blk_hash_t prev_block_hash;
   if (pbft_block.getBlockType() == pivot_block_type) {

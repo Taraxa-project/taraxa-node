@@ -274,7 +274,6 @@ void FullNode::start(bool boot_node) {
   // order depend, be careful when changing the order
   // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
   // be nullptr
-  pbft_chain_->setFullNode(getShared());
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->setFullNode(getShared());
@@ -288,6 +287,7 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   vote_mgr_->setFullNode(getShared());
+  pbft_chain_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
