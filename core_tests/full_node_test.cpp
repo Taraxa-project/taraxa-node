@@ -595,6 +595,7 @@ TEST_F(TopTest, sync_five_nodes) {
   taraxa::thisThreadSleepForSeconds(10);
   uint64_t trx_executed1, trx_executed2, trx_executed3, trx_executed4,
       trx_executed5;
+
   auto TIMEOUT = SYNC_TIMEOUT * 10;
   for (auto i = 0; i < TIMEOUT; i++) {
     trx_executed1 = node1->getNumTransactionExecuted();
@@ -603,11 +604,29 @@ TEST_F(TopTest, sync_five_nodes) {
     trx_executed4 = node4->getNumTransactionExecuted();
     trx_executed5 = node5->getNumTransactionExecuted();
 
+    auto trx_packed1 = node1->getPackedTrxs().size();
+    auto trx_packed2 = node2->getPackedTrxs().size();
+    auto trx_packed3 = node3->getPackedTrxs().size();
+    auto trx_packed4 = node4->getPackedTrxs().size();
+    auto trx_packed5 = node5->getPackedTrxs().size();
+
+    if (trx_packed1 < trx_executed1) {
+      std::cout << "Warning! " << trx_packed1 << " packed transactions is less than " << trx_executed1 << " executed transactions in node 1";
+    }
+
     if (trx_executed1 == 10005 && trx_executed2 == 10005 &&
         trx_executed3 == 10005 && trx_executed4 == 10005 &&
         trx_executed5 == 10005) {
-      break;
+
+      if (trx_packed1 == 10005 && trx_packed2 == 10005 &&
+          trx_packed3 == 10005 && trx_packed4 == 10005 &&
+          trx_packed5 == 10005) {
+        break;
+      } else {
+        std::cout << "Warning! See all nodes with 10005 executed transactions, but not all nodes yet see 10005 packed transactions!!!";
+      }
     }
+    
     taraxa::thisThreadSleepForMilliSeconds(500);
     if (i == TIMEOUT - 1) {
       // last wait
