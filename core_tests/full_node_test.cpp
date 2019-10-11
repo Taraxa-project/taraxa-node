@@ -715,7 +715,12 @@ TEST_F(TopTest, sync_five_nodes) {
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
     if (i % 100 == 0) {
+      if (trx_executed1 != 10005) {
+        std::cout << " Node 1: executed blk= " << node2->getNumBlockExecuted()
                   << " Dag size: " << node1->getNumVerticesInDag().first
+                  << " executed trx = " << trx_executed2 << "/10005"
+                  << std::endl;
+      }
       if (trx_executed2 != 10005) {
         std::cout << " Node 2: executed blk= " << node2->getNumBlockExecuted()
                   << " Dag size: " << node2->getNumVerticesInDag().first
