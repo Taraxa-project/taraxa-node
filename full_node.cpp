@@ -888,5 +888,6 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
+std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {return dag_mgr_->getUnOrderedDagBlks();}
 
 }  // namespace taraxa

@@ -242,7 +242,7 @@ bool Executor::coinTransfer(
                      << " nonce has gap, prev nonce " << prev_nonce
                      << " curr nonce " << nonce << " Receiver: " << receiver
                      << " value " << value;
-        return false;
+        // return false;
       }
     } else {
       if (nonce != 0) {
@@ -250,7 +250,7 @@ bool Executor::coinTransfer(
                      << " nonce has gap, prev nonce unavailable1! (expectt 0)"
                      << " curr nonce " << nonce << " Receiver: " << receiver
                      << " value " << value;
-        return false;
+        // return false;
       }
     }
     accs_nonce_.update(sender, nonce);

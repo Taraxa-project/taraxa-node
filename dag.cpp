@@ -518,7 +518,7 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
       frontier.tips.emplace_back(blk_hash_t(t));
     }
     full_node->updateNonceTable(blk, frontier);
-    LOG(log_si_) << getFullNodeAddress() << " Update nonce table of blk "
+    LOG(log_dg_) << getFullNodeAddress() << " Update nonce table of blk "
                  << blk.getHash() << "anchor " << anchors_.back()
                  << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
   }

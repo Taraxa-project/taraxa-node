@@ -219,7 +219,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   level_t getMaxLevel() const { return max_level_; }
   uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
   std::string getLatestAnchor() const { return anchors_.back(); }
-
+  std::unordered_set<std::string> getUnOrderedDagBlks() const {return recent_added_blks_;}
  private:
   size_t num_cached_period_in_dag = 1000;
   void addToDag(std::string const &hash, std::string const &pivot,

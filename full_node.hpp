@@ -130,7 +130,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
-
+  std::unordered_set<std::string> getUnOrderedDagBlks() const; 
   // get transaction schecules stuff ...
   // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {

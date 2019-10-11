@@ -35,6 +35,7 @@ auto g_trx_signed_samples =
 auto g_mock_dag0 = samples::createMockDag0();
 auto g_test_account =
     samples::createTestAccountTable("core_tests/account_table.txt");
+uint64_t g_init_bal = TARAXA_COINS_DECIMAL / 5;
 
 const char *input1[] = {"./build/main",
                         "--conf_taraxa",
@@ -91,14 +92,81 @@ void send_2_nodes_trxs() {
   std::cout << "All trxs sent..." << std::endl;
 }
 
-void send_5_nodes_trxs() {
-  std::string sendtrx1 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+void init_5_nodes_coin() {
+  std::string node1to2 = fmt(
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+                                      "params": [{ 
+                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                        "value": %s, 
+                                        "gas_price": 1, 
+                                        "gas": 100000,
+                                        "nonce": 0, 
+                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)",
+      g_init_bal);
+  std::string node1to3 = fmt(
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+                                      "params": [{ 
+                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                        "value": %s, 
+                                        "gas_price": 1, 
+                                        "gas": 100000,
+                                        "nonce": 1, 
+                                        "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7777 > /dev/null)",
+      g_init_bal);
+
+  std::string node1to4 = fmt(
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+                                      "params": [{ 
+                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                        "value": %s, 
+                                        "gas_price": 1, 
+                                        "gas": 100000,
+                                        "nonce": 2, 
+                                        "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"}]}' 0.0.0.0:7777 > /dev/null)",
+      g_init_bal);
+
+  std::string node1to5 = fmt(
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+                                      "params": [{ 
+                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                        "value": %s, 
+                                        "gas_price": 1, 
+                                        "gas": 100000,
+                                        "nonce": 3, 
+                                        "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858"}]}' 0.0.0.0:7777 > /dev/null)",
+      g_init_bal);
+  std::cout << "Init 5 node coins ..." << std::endl;
+
+  std::thread t1([node1to2]() { system(node1to2.data()); });
+  std::thread t2([node1to3]() { system(node1to3.data()); });
+  std::thread t3([node1to4]() { system(node1to4.data()); });
+  std::thread t4([node1to5]() { system(node1to5.data()); });
+  t1.join();
+  t2.join();
+  t3.join();
+  t4.join();
+}
+
+void send_5_nodes_trxs(bool coin_distributed) {
+  std::string sendtrx1;
+  if (!coin_distributed) {
+    sendtrx1 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 5, 
+                                      "number": 2000, 
+                                      "nonce": 0, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
+  } else {
+    // nonce start from 4
+    sendtrx1 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 5, 
                                       "number": 2000, 
                                       "nonce": 4, 
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
+  }
   std::string sendtrx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
@@ -143,10 +211,25 @@ void send_5_nodes_trxs() {
   std::cout << "All trxs sent..." << std::endl;
 }
 
-void send_dummy_trx() {
+void send_dummy_trx(bool coin_distributed) {
+  std::cout << "Wait for 40 seconds before sent dummy transaction ..."
+            << std::endl;
+
   taraxa::thisThreadSleepForSeconds(40);
-  std::string dummy_trx =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+  std::string dummy_trx;
+  if (!coin_distributed) {
+    dummy_trx =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+                                      "params": [{ 
+                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                        "value": 0, 
+                                        "gas_price": 1, 
+                                        "gas": 100000,
+                                        "nonce": 2000, 
+                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
+  } else {
+    dummy_trx =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
                                       "params": [{ 
                                         "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                         "value": 0, 
@@ -154,6 +237,7 @@ void send_dummy_trx() {
                                         "gas": 100000,
                                         "nonce": 2004, 
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
+  }
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
   taraxa::thisThreadSleepForSeconds(2);
@@ -454,25 +538,9 @@ TEST_F(TopTest, sync_five_nodes) {
   nodes.emplace_back(node5);
 
   EXPECT_EQ(node1->getDagBlockMaxHeight(), 1);  // genesis block
-  uint64_t init_bal = TARAXA_COINS_DECIMAL / 5;
 
   // transfer some coins to your friends ...
-  Transaction trx1to2(
-      0 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"), bytes(), g_secret);
-  Transaction trx1to3(
-      1 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"), bytes(), g_secret);
-  Transaction trx1to4(
-      2 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"), bytes(), g_secret);
-  Transaction trx1to5(
-      3 /* nonce */, init_bal, val_t(0), samples::TEST_TX_GAS_LIMIT,
-      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"), bytes(), g_secret);
-  node1->insertTransaction(trx1to2);
-  node1->insertTransaction(trx1to3);
-  node1->insertTransaction(trx1to4);
-  node1->insertTransaction(trx1to5);
+  init_5_nodes_coin();
 
   taraxa::thisThreadSleepForSeconds(5);
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
@@ -485,15 +553,15 @@ TEST_F(TopTest, sync_five_nodes) {
     for (auto const &node : nodes) {
       if (!((node->getBalance(
                      addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
-                 .first == TARAXA_COINS_DECIMAL - init_bal * 4) &&
+                 .first == TARAXA_COINS_DECIMAL - g_init_bal * 4) &&
             node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
-                    .first == init_bal &&
+                    .first == g_init_bal &&
             node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
-                    .first == init_bal &&
+                    .first == g_init_bal &&
             node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
-                    .first == init_bal &&
+                    .first == g_init_bal &&
             node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
-                    .first == init_bal)) {
+                    .first == g_init_bal)) {
         ok = false;
       }
     }
@@ -508,28 +576,28 @@ TEST_F(TopTest, sync_five_nodes) {
     ASSERT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
             .first,
-        TARAXA_COINS_DECIMAL - init_bal * 4);
+        TARAXA_COINS_DECIMAL - g_init_bal * 4);
     ASSERT_EQ(
         node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
             .first,
-        init_bal);
+        g_init_bal);
     ASSERT_EQ(
         node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
             .first,
-        init_bal);
+        g_init_bal);
     ASSERT_EQ(
         node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
             .first,
-        init_bal);
+        g_init_bal);
     ASSERT_EQ(
         node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
             .first,
-        init_bal);
+        g_init_bal);
   }
   std::cout << "Balance initialized ... " << std::endl;
   // send 1000 trxs
   try {
-    send_5_nodes_trxs();
+    send_5_nodes_trxs(true);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -585,7 +653,7 @@ TEST_F(TopTest, sync_five_nodes) {
   ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
   // send dummy trx to make sure all DAGs are ordered
   try {
-    send_dummy_trx();
+    send_dummy_trx(true);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -754,23 +822,23 @@ TEST_F(TopTest, sync_five_nodes) {
     EXPECT_EQ(
         node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
             .first,
-        TARAXA_COINS_DECIMAL - init_bal * 4 - 2000 * 100);
+        TARAXA_COINS_DECIMAL - g_init_bal * 4 - 2000 * 100);
     EXPECT_EQ(
         node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
             .first,
-        init_bal);
+        g_init_bal);
     EXPECT_EQ(
         node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
             .first,
-        init_bal);
+        g_init_bal);
     EXPECT_EQ(
         node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
             .first,
-        init_bal);
+        g_init_bal);
     EXPECT_EQ(
         node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
             .first,
-        init_bal);
+        g_init_bal);
     EXPECT_EQ(
         node->getBalance(addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9"))
             .first,
@@ -2016,7 +2084,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_GT(node5->getPeerCount(), 0);
 
   try {
-    send_5_nodes_trxs();
+    send_5_nodes_trxs(false);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -2028,24 +2096,54 @@ TEST_F(TopTest, detect_overlap_transactions) {
   auto num_vertices5 = node5->getNumVerticesInDag();
 
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    if (i % 10 == 0) {
-      std::cout << "Wait for vertices syncing ..." << std::endl;
-    }
     num_vertices1 = node1->getNumVerticesInDag();
     num_vertices2 = node2->getNumVerticesInDag();
     num_vertices3 = node3->getNumVerticesInDag();
     num_vertices4 = node4->getNumVerticesInDag();
     num_vertices5 = node5->getNumVerticesInDag();
 
-    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
-        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 10000 &&
-        node2->getTransactionStatusCount() == 10000 &&
-        node3->getTransactionStatusCount() == 10000 &&
-        node4->getTransactionStatusCount() == 10000 &&
-        node5->getTransactionStatusCount() == 10000)
-      break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
+    auto trx_table = node1->getUnsafeTransactionStatusTable();
+    int packed_trx = 0;
+
+    if (trx_table.size() == 10000) {
+      for (auto const &t : trx_table) {
+        if (t.second == TransactionStatus::in_block) {
+          packed_trx++;
+        }
+      }
+
+      if (packed_trx == 10000 && num_vertices1 == num_vertices2 &&
+          num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 &&
+          num_vertices4 == num_vertices5 &&
+          node1->getTransactionStatusCount() == 10000 &&
+          node2->getTransactionStatusCount() == 10000 &&
+          node3->getTransactionStatusCount() == 10000 &&
+          node4->getTransactionStatusCount() == 10000 &&
+          node5->getTransactionStatusCount() == 10000) {
+        break;
+      }
+      if (i % 10 == 0) {
+        std::cout << "Wait for vertices syncing ... packed trx " << packed_trx
+                  << std::endl;
+        std::cout << "Node 1 trx received: "
+                  << node1->getTransactionStatusCount()
+                  << " Dag size: " << num_vertices1 << std::endl;
+        std::cout << "Node 2 trx received: "
+                  << node2->getTransactionStatusCount()
+                  << " Dag size: " << num_vertices2 << std::endl;
+        std::cout << "Node 3 trx received: "
+                  << node3->getTransactionStatusCount()
+                  << " Dag size: " << num_vertices3 << std::endl;
+        std::cout << "Node 4 trx received: "
+                  << node4->getTransactionStatusCount()
+                  << " Dag size: " << num_vertices4 << std::endl;
+        std::cout << "Node 5 trx received: "
+                  << node5->getTransactionStatusCount()
+                  << " Dag size: " << num_vertices5 << std::endl;
+      }
+    }
+
+    taraxa::thisThreadSleepForMilliSeconds(200);
   }
 
   EXPECT_GT(node1->getNumProposedBlocks(), 2);
@@ -2054,21 +2152,48 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
+  ASSERT_EQ(node1->getTransactionStatusCount(), 10000);
+  ASSERT_EQ(node2->getTransactionStatusCount(), 10000);
+  ASSERT_EQ(node3->getTransactionStatusCount(), 10000);
+  ASSERT_EQ(node4->getTransactionStatusCount(), 10000);
+  ASSERT_EQ(node5->getTransactionStatusCount(), 10000);
+
   // send dummy trx to make sure all DAGs are ordered
   try {
-    send_dummy_trx();
+    send_dummy_trx(false);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
   for (int i = 0; i < SYNC_TIMEOUT; ++i) {
+    num_vertices1 = node1->getNumVerticesInDag();
+    num_vertices2 = node2->getNumVerticesInDag();
+    num_vertices3 = node3->getNumVerticesInDag();
+    num_vertices4 = node4->getNumVerticesInDag();
+    num_vertices5 = node5->getNumVerticesInDag();
+    if (i % 10 == 0) {
+      std::cout << "Wait for dummy trx syncing ..." << std::endl;
+      std::cout << "Node 1 trx received: " << node1->getTransactionStatusCount()
+                << " Dag size: " << num_vertices1 << std::endl;
+      std::cout << "Node 2 trx received: " << node2->getTransactionStatusCount()
+                << " Dag size: " << num_vertices2 << std::endl;
+      std::cout << "Node 3 trx received: " << node3->getTransactionStatusCount()
+                << " Dag size: " << num_vertices3 << std::endl;
+      std::cout << "Node 4 trx received: " << node4->getTransactionStatusCount()
+                << " Dag size: " << num_vertices4 << std::endl;
+      std::cout << "Node 5 trx received: " << node5->getTransactionStatusCount()
+                << " Dag size: " << num_vertices5 << std::endl;
+    }
+
     if (node1->getTransactionStatusCount() == 10001 &&
         node2->getTransactionStatusCount() == 10001 &&
         node3->getTransactionStatusCount() == 10001 &&
         node4->getTransactionStatusCount() == 10001 &&
-        node5->getTransactionStatusCount() == 10001)
+        node5->getTransactionStatusCount() == 10001 &&
+        num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5)
       break;
-    taraxa::thisThreadSleepForMilliSeconds(500);
+    taraxa::thisThreadSleepForMilliSeconds(200);
   }
 
   num_vertices1 = node1->getNumVerticesInDag();
@@ -2092,7 +2217,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
   std::vector<std::string> ghost;
   node1->getGhostPath(block.getHash().toString(), ghost);
   ASSERT_GT(ghost.size(), 1);
-  uint64_t period = 0, cur_period, cur_period2;
+  uint64_t period = 0, cur_period;
   std::shared_ptr<vec_blk_t> order;
   auto anchor = blk_hash_t(ghost.back());
   std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
@@ -2109,7 +2234,8 @@ TEST_F(TopTest, detect_overlap_transactions) {
     for (auto i(0); i < order->size(); ++i) {
       auto blk = (*order)[i];
       std::cout << i << " " << blk << " "
-                << " trx: " << node1->getDagBlock(blk)->getTrxs().size();
+                << " trx: " << node1->getDagBlock(blk)->getTrxs().size()
+                << std::endl;
     }
   }
 
@@ -2158,6 +2284,13 @@ TEST_F(TopTest, detect_overlap_transactions) {
       packed_trxs.insert(trx);
     }
   }
+  for (auto const &t : trx_table2) {
+    auto trx = node1->getTransaction(t.first);
+    assert(trx);
+    std::cout << "Unpacked trx: " << (*trx).first.getHash()
+              << " sender: " << (*trx).first.getSender()
+              << " nonce: " << (*trx).first.getNonce() << std::endl;
+  }
 
   std::cout << "Total packed (overlapped) trxs: " << all_trxs << std::endl;
   EXPECT_GT(all_trxs, 10001);
@@ -2204,7 +2337,7 @@ TEST_F(TopTest, transfer_to_self) {
     "secret":"3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
     "delay": 5,
     "number": %s,
-    "nonce": 1,
+    "nonce": 0,
     "receiver": "%s"}]}' 0.0.0.0:7777)",
              trx_count, node_addr)
              .data());
