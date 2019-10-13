@@ -72,18 +72,6 @@ class TestFace : public ServerInterface<TestFace> {
                            jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_all_nodesI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("node_stop", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::node_stopI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("node_reset", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::node_resetI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("node_start", jsonrpc::PARAMS_BY_POSITION,
-                           jsonrpc::JSON_OBJECT, NULL),
-        &TestFace::node_startI);
-    this->bindAndAddMethod(
         jsonrpc::Procedure("should_speak", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
                            NULL),
@@ -176,18 +164,6 @@ class TestFace : public ServerInterface<TestFace> {
                                      Json::Value &response) {
     response = this->get_all_nodes();
   }
-  inline virtual void node_stopI(const Json::Value &request,
-                                 Json::Value &response) {
-    response = this->node_stop();
-  }
-  inline virtual void node_resetI(const Json::Value &request,
-                                  Json::Value &response) {
-    response = this->node_reset();
-  }
-  inline virtual void node_startI(const Json::Value &request,
-                                  Json::Value &response) {
-    response = this->node_start();
-  }
   inline virtual void should_speakI(const Json::Value &request,
                                     Json::Value &response) {
     response = this->should_speak(request[0u]);
@@ -234,9 +210,6 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_node_count() = 0;
   virtual Json::Value get_all_peers() = 0;
   virtual Json::Value get_all_nodes() = 0;
-  virtual Json::Value node_stop() = 0;
-  virtual Json::Value node_reset() = 0;
-  virtual Json::Value node_start() = 0;
   virtual Json::Value should_speak(const Json::Value &param1) = 0;
   virtual Json::Value place_vote(const Json::Value &param1) = 0;
   virtual Json::Value get_votes(const Json::Value &param1) = 0;

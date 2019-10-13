@@ -23,16 +23,13 @@ using util::eth::newDB;
 
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
-FullNode::FullNode(boost::asio::io_context &io_context,
-                   std::string const &conf_full_node_file, bool destroy_db,
+FullNode::FullNode(std::string const &conf_full_node_file, bool destroy_db,
                    bool rebuild_network)
-    : FullNode(io_context, FullNodeConfig(conf_full_node_file), destroy_db,
+    : FullNode(FullNodeConfig(conf_full_node_file), destroy_db,
                rebuild_network) {}
-FullNode::FullNode(boost::asio::io_context &io_context,
-                   FullNodeConfig const &conf_full_node, bool destroy_db,
-                   bool rebuild_network) try
-    : io_context_(io_context),
-      num_block_workers_(conf_full_node.dag_processing_threads),
+FullNode::FullNode(FullNodeConfig const &conf_full_node, bool destroy_db,
+                   bool rebuild_network)
+    : num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
       dag_mgr_(std::make_shared<DagManager>(
           conf_.genesis_state.block.getHash().toString())),
@@ -51,7 +48,6 @@ FullNode::FullNode(boost::asio::io_context &io_context,
       pbft_chain_(std::make_shared<PbftChain>(
           conf_.genesis_state.block.getHash().toString())) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
-
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -72,107 +68,61 @@ FullNode::FullNode(boost::asio::io_context &io_context,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
-
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
-  initDB(destroy_db);
-
-  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
-
-} catch (std::exception &e) {
-  std::cerr << e.what() << std::endl;
-  throw e;
-}
-void FullNode::initDB(bool destroy_db) {
-  if (!stopped_) {
-    LOG(log_er_) << "Cannot init DB if node started ...";
-    return;
+  db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+      conf_.block_db_path(), destroy_db, 10000);
+  db_blks_index_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+      conf_.block_index_db_path(), destroy_db, 10000);
+  db_trxs_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+      conf_.transactions_db_path(), destroy_db, 100000);
+  db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+      conf_.trxs_to_blk_db_path(), destroy_db);
+  db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+      conf_.pbft_votes_db_path(), destroy_db);
+  db_pbftchain_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+      conf_.pbft_chain_db_path(), destroy_db);
+  db_pbft_blocks_order_ =
+      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+          conf_.pbft_blocks_order_db_path(), destroy_db);
+  db_dag_blocks_order_ =
+      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+          conf_.dag_blocks_order_path(), destroy_db);
+  db_dag_blocks_height_ =
+      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+          conf_.dag_blocks_height_path(), destroy_db);
+  // THIS IS THE GENESIS
+  // TODO extract to a function
+  auto const &genesis_block = conf_.genesis_state.block;
+  if (!genesis_block.verifySig()) {
+    LOG(log_er_) << "Genesis block is invalid";
+    assert(false);
   }
-  if (db_blks_ == nullptr) {
-    db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.block_db_path(), destroy_db, 10000);
-    assert(db_blks_);
-  }
-  if (db_blks_index_ == nullptr) {
-    db_blks_index_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.block_index_db_path(), destroy_db, 10000);
-    assert(db_blks_index_);
-  }
-  if (db_trxs_ == nullptr) {
-    db_trxs_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.transactions_db_path(), destroy_db, 100000);
-    assert(db_trxs_);
-  }
-  if (db_trxs_to_blk_ == nullptr) {
-    db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.trxs_to_blk_db_path(), destroy_db);
-    assert(db_trxs_to_blk_);
-  }
-  if (db_votes_ == nullptr) {
-    db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.pbft_votes_db_path(), destroy_db);
-    assert(db_votes_);
-  }
-  if (db_pbftchain_ == nullptr) {
-    db_pbftchain_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-        conf_.pbft_chain_db_path(), destroy_db);
-    assert(db_pbftchain_);
-  }
-  if (db_pbft_blocks_order_ == nullptr) {
-    db_pbft_blocks_order_ =
-        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-            conf_.pbft_blocks_order_db_path(), destroy_db);
-  }
-  if (db_dag_blocks_order_ == nullptr) {
-    db_dag_blocks_order_ =
-        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-            conf_.dag_blocks_order_path(), destroy_db);
-    assert(db_dag_blocks_order_);
-  }
-  if (db_dag_blocks_height_ == nullptr) {
-    db_dag_blocks_height_ =
-        SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-            conf_.dag_blocks_height_path(), destroy_db);
-    assert(db_dag_blocks_height_);
-  }
-  if (state_registry_ == nullptr) {
-    // THIS IS THE GENESIS
-    // TODO extract to a function
-    auto const &genesis_block = conf_.genesis_state.block;
-
-    if (!genesis_block.verifySig()) {
-      LOG(log_er_) << "Genesis block is invalid";
-      assert(false);
-    }
-    auto const &genesis_hash = genesis_block.getHash();
-    // store genesis blk to db
-    db_blks_->put(genesis_hash, genesis_block.rlp(true));
-    db_blks_->commit();
-    // TODO add move to a StateRegistry constructor?
-    auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
-    auto acc_db = newDB(conf_.account_db_path(),
-                        genesis_hash,  //
-                        mode);
-    auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
-                             genesis_hash,  //
-                             mode);
-    state_registry_ = make_shared<StateRegistry>(conf_.genesis_state,
-                                                 move(acc_db.db),  //
-                                                 move(snapshot_db.db));
-    state_ =
-        make_shared<StateRegistry::State>(state_registry_->getCurrentState());
-  }
+  auto const &genesis_hash = genesis_block.getHash();
+  // store genesis blk to db
+  db_blks_->put(genesis_hash, genesis_block.rlp(true));
+  db_blks_->commit();
+  // TODO add move to a StateRegistry constructor?
+  auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
+  auto acc_db = newDB(conf_.account_db_path(),
+                      genesis_hash,  //
+                      mode);
+  auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
+                           genesis_hash,  //
+                           mode);
+  state_registry_ = make_shared<StateRegistry>(conf_.genesis_state,
+                                               move(acc_db.db),  //
+                                               move(snapshot_db.db));
+  state_ =
+      make_shared<StateRegistry::State>(state_registry_->getCurrentState());
   LOG(log_nf_) << "DB initialized ...";
-  db_inited_ = true;
   bool boot_node_balance_initialized = false;
-
   // init master boot node ...
   for (auto &node : conf_.network.network_boot_nodes) {
     auto node_public_key = dev::Public(node.id);
-
     // Assume only first boot node is initialized
     if (boot_node_balance_initialized == false) {
       addr_t master_boot_node_address(dev::toAddress(node_public_key));
@@ -180,7 +130,6 @@ void FullNode::initDB(bool destroy_db) {
       setMasterBootNodeAddress(master_boot_node_address);
     }
   }
-
   // Reconstruct DAG
   if (!destroy_db) {
     unsigned long level = 1;
@@ -200,77 +149,16 @@ void FullNode::initDB(bool destroy_db) {
       level++;
     }
   }
-
   LOG(log_wr_) << "DB initialized ... ";
+  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
-// must call close() before destroyDB
-bool FullNode::destroyDB() {
-  if (!stopped_) {
-    LOG(log_wr_) << "Cannot destroyDb if node is running ...";
-    return false;
-  }
-  // make sure all sub moduled has relased DB, the full_node can release the
-  // DB and destroy
-  assert(db_blks_.use_count() == 1);
-  assert(db_blks_index_.use_count() == 1);
-  assert(db_trxs_.use_count() == 1);
-  assert(db_trxs_to_blk_.use_count() == 1);
-  assert(db_votes_.use_count() == 1);
-  assert(db_pbftchain_.use_count() == 1);
-  assert(db_pbft_blocks_order_.use_count() == 1);
-  assert(db_dag_blocks_order_.use_count() == 1);
-  assert(db_dag_blocks_height_.use_count() == 1);
-  assert(state_registry_.use_count() == 1);
-  assert(state_.use_count() == 1);
 
-  db_blks_ = nullptr;
-  db_blks_index_ = nullptr;
-  db_trxs_ = nullptr;
-  db_trxs_to_blk_ = nullptr;
-  db_votes_ = nullptr;
-  db_pbftchain_ = nullptr;
-  db_pbft_blocks_order_ = nullptr;
-  db_dag_blocks_order_ = nullptr;
-  db_dag_blocks_height_ = nullptr;
-  state_registry_ = nullptr;
-  state_ = nullptr;
-  db_inited_ = false;
-  thisThreadSleepForMilliSeconds(1000);
-  boost::filesystem::path path(conf_.db_path);
-  if (path.size() == 0) {
-    throw std::invalid_argument("Error, invalid db path: " + conf_.db_path);
-    return false;
-  }
-  if (boost::filesystem::exists(path)) {
-    LOG(log_wr_) << "Delete db directory: " << path;
-    if (!boost::filesystem::remove_all(path)) {
-      throw std::invalid_argument("Error, cannot delete db path: " +
-                                  conf_.db_path);
-      return false;
-    }
-  }
-  LOG(log_wr_) << "DB destroyed ... ";
-
-  return true;
-}
-std::shared_ptr<FullNode> FullNode::getShared() {
-  try {
-    return shared_from_this();
-  } catch (std::bad_weak_ptr &e) {
-    std::cerr << "FullNode: " << e.what() << std::endl;
-    return nullptr;
-  }
-}
-boost::asio::io_context &FullNode::getIoContext() { return io_context_; }
+std::shared_ptr<FullNode> FullNode::getShared() { return shared_from_this(); }
 
 void FullNode::start(bool boot_node) {
-  if (!stopped_) {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  if (!db_inited_) {
-    initDB(false);
-  }
-  stopped_ = false;
   // order depend, be careful when changing the order
   // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
   // be nullptr
@@ -278,7 +166,6 @@ void FullNode::start(bool boot_node) {
   network_->setFullNode(getShared());
   network_->start(boot_node);
   dag_mgr_->setFullNode(getShared());
-  dag_mgr_->start();
   blk_mgr_->setFullNode(getShared());
   blk_mgr_->start();
   trx_mgr_->setFullNode(getShared());
@@ -290,7 +177,6 @@ void FullNode::start(bool boot_node) {
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
-  
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_blks_,
@@ -302,7 +188,6 @@ void FullNode::start(bool boot_node) {
   if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
-  block_workers_.clear();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
@@ -352,28 +237,13 @@ void FullNode::start(bool boot_node) {
       }
     });
   }
-  assert(num_block_workers_ == block_workers_.size());
-  assert(db_blks_);
-  assert(db_blks_index_);
-  assert(db_trxs_);
-  assert(db_trxs_to_blk_);
-  assert(db_votes_);
-  assert(db_pbftchain_);
-  assert(db_pbft_blocks_order_);
-  assert(db_dag_blocks_order_);
-  assert(db_dag_blocks_height_);
-  assert(state_registry_);
-  assert(state_);
   LOG(log_wr_) << "Node started ... ";
 }
 
-void FullNode::stop() {
-  if (stopped_) {
+FullNode::~FullNode() {
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  stopped_ = true;
-
-  dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
   blk_mgr_->stop();
   // Do not stop network_, o.w. restart node will crash	network_->stop();
@@ -386,17 +256,15 @@ void FullNode::stop() {
   // After comment out network_->stop() above, could comment out here also
   // pbft_chain_ = nullptr;
   executor_ = nullptr;
-
-  for (auto i = 0; i < num_block_workers_; ++i) {
-    block_workers_[i].join();
+  for (auto &t : block_workers_) {
+    t.join();
   }
-  // wait a while to let other modules to stop
+  // wait a while to let other modules to stop fixme
   thisThreadSleepForMilliSeconds(100);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
   assert(db_trxs_to_blk_.use_count() == 1);
-
   assert(db_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
   assert(db_pbft_blocks_order_.use_count() == 1);
@@ -405,63 +273,6 @@ void FullNode::stop() {
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_wr_) << "Node stopped ... ";
-}
-
-bool FullNode::reset() {
-  destroyDB();
-  network_ = nullptr;
-  dag_mgr_ = nullptr;
-  blk_mgr_ = nullptr;
-  trx_mgr_ = nullptr;
-  trx_order_mgr_ = nullptr;
-  blk_proposer_ = nullptr;
-  executor_ = nullptr;
-  vote_mgr_ = nullptr;
-  pbft_mgr_ = nullptr;
-  pbft_chain_ = nullptr;
-
-  assert(network_.use_count() == 0);
-  // dag
-  assert(dag_mgr_.use_count() == 0);
-  // ledger
-  assert(blk_mgr_.use_count() == 0);
-  assert(trx_mgr_.use_count() == 0);
-  assert(trx_order_mgr_.use_count() == 0);
-  // block proposer (multi processing)
-  assert(blk_proposer_.use_count() == 0);
-  // transaction executor
-  assert(executor_.use_count() == 0);
-  // PBFT
-  assert(vote_mgr_.use_count() == 0);
-
-  assert(pbft_mgr_.use_count() == 0);
-
-  assert(pbft_chain_.use_count() == 0);
-
-  received_blocks_ = 0;
-  received_trxs_ = 0;
-
-  // init
-  network_ =
-      std::make_shared<Network>(conf_.network, "", node_sk_,
-                                conf_.genesis_state.block.getHash().toString());
-  blk_mgr_ =
-      std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
-  trx_mgr_ = std::make_shared<TransactionManager>();
-  trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
-  dag_mgr_ = std::make_shared<DagManager>(
-      conf_.genesis_state.block.getHash().toString());
-  blk_proposer_ = std::make_shared<BlockProposer>(
-      conf_.test_params.block_proposer, dag_mgr_->getShared(),
-      trx_mgr_->getShared());
-  pbft_mgr_ = std::make_shared<PbftManager>(
-      conf_.test_params.pbft, conf_.genesis_state.block.getHash().toString());
-  vote_mgr_ = std::make_shared<VoteManager>();
-  pbft_chain_ = std::make_shared<PbftChain>(
-      conf_.genesis_state.block.getHash().toString());
-  executor_ = nullptr;
-  LOG(log_wr_) << "Node reset ... ";
-  return true;
 }
 
 size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }
@@ -829,8 +640,8 @@ void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                            uint64_t period, size_t step, blk_hash_t const &last_pbft_block_hash) {
-  
+                            uint64_t period, size_t step,
+                            blk_hash_t const &last_pbft_block_hash) {
   // sortition signature
   sig_t sortition_signature =
       vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);

@@ -3,28 +3,22 @@
 
 namespace taraxa {
 
-TransactionOrderManager::~TransactionOrderManager() {
-  if (!stopped_) {
-    stop();
-  }
-}
+TransactionOrderManager::~TransactionOrderManager() { stop(); }
+
 void TransactionOrderManager::start() {
-  if (!stopped_) {
-    return;
-  }
-  if (!node_.lock()) {
-    LOG(log_er_) << "FullNode is not set ..." << std::endl;
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
   db_trxs_to_blk_ = node_.lock()->getTrxsToBlkDB();
   db_blks_ = node_.lock()->getBlksDB();
-  stopped_ = false;
 }
+
 void TransactionOrderManager::stop() {
-  if (stopped_) return;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   db_trxs_to_blk_ = nullptr;
   db_blks_ = nullptr;
-  stopped_ = true;
 }
 
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(

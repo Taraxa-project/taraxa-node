@@ -109,14 +109,10 @@ std::shared_ptr<BlockProposer> BlockProposer::getShared() {
 }
 
 void BlockProposer::start() {
-  if (!stopped_) return;
-  if (full_node_.expired()) {
-    LOG(log_er_) << "FullNode is not set ..." << std::endl;
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
-  stopped_ = false;
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
   propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey());
@@ -126,9 +122,11 @@ void BlockProposer::start() {
     }
   });
 }
+
 void BlockProposer::stop() {
-  if (stopped_) return;
-  stopped_ = true;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   proposer_worker_->join();
 }
 

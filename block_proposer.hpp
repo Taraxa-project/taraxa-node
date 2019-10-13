@@ -1,6 +1,8 @@
 #ifndef TARAXA_NODE_BLOCK_PROPOSER_HPP
 #define TARAXA_NODE_BLOCK_PROPOSER_HPP
+
 #include <libdevcore/Log.h>
+#include <atomic>
 #include <random>
 #include <thread>
 #include <vector>
@@ -114,9 +116,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
 
     // setup shards
   }
-  ~BlockProposer() {
-    if (!stopped_) stop();
-  }
+
+  ~BlockProposer() { stop(); }
+
   void setFullNode(std::shared_ptr<FullNode> full_node);
   void start();
   void stop();
@@ -143,8 +145,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   };
   bool getShardedTrxs(uint total_shard, uint my_shard, vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
+
   static std::atomic<uint64_t> num_proposed_blocks;
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   Conf conf_;
   uint total_trx_shards_;
   uint my_trx_shard_;

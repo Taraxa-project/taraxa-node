@@ -444,14 +444,8 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash)
       last_pbft_pivot_hash_(genesis_hash_),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
-void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
-  node_ = node;
-
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable";
-    assert(false);
-  }
+void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
+  node_ = full_node;
   // setup pbftchain DB pointer
   db_pbftchain_ = full_node->getPbftChainDB();
   assert(db_pbftchain_);

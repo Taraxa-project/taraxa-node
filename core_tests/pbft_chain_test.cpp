@@ -75,9 +75,8 @@ TEST(ScheduleBlock, serialize_deserialize) {
 }
 
 TEST(PbftChain, pbft_db_test) {
-  boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+      std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
 
   std::shared_ptr<SimpleDBFace> db_pbftchain = node->getPbftChainDB();
@@ -146,19 +145,15 @@ TEST(PbftChain, pbft_db_test) {
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
 
   db_pbftchain = nullptr;
-  node->stop();
 }
 
 TEST(PbftChain, block_broadcast) {
-  boost::asio::io_context context1;
   auto node1(std::make_shared<taraxa::FullNode>(
-      context1, std::string("./core_tests/conf/conf_taraxa1.json")));
-  boost::asio::io_context context2;
+      std::string("./core_tests/conf/conf_taraxa1.json")));
   auto node2(std::make_shared<taraxa::FullNode>(
-      context2, std::string("./core_tests/conf/conf_taraxa2.json")));
-  boost::asio::io_context context3;
+      std::string("./core_tests/conf/conf_taraxa2.json")));
   auto node3(std::make_shared<taraxa::FullNode>(
-      context3, std::string("./core_tests/conf/conf_taraxa3.json")));
+      std::string("./core_tests/conf/conf_taraxa3.json")));
 
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
@@ -178,17 +173,6 @@ TEST(PbftChain, block_broadcast) {
   pbft_mgr1->stop();
   pbft_mgr2->stop();
   pbft_mgr3->stop();
-
-  std::unique_ptr<boost::asio::io_context::work> work1(
-      new boost::asio::io_context::work(context1));
-  std::unique_ptr<boost::asio::io_context::work> work2(
-      new boost::asio::io_context::work(context2));
-  std::unique_ptr<boost::asio::io_context::work> work3(
-      new boost::asio::io_context::work(context3));
-
-  boost::thread t1([&context1]() { context1.run(); });
-  boost::thread t2([&context2]() { context2.run(); });
-  boost::thread t3([&context3]() { context3.run(); });
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
@@ -341,22 +325,11 @@ TEST(PbftChain, block_broadcast) {
   find_erased_block =
       pbft_chain3->findUnverifiedPbftBlock(pbft_block2.getBlockHash());
   ASSERT_FALSE(find_erased_block);
-
-  work1.reset();
-  work2.reset();
-  work3.reset();
-  node1->stop();
-  node2->stop();
-  node3->stop();
-  t1.join();
-  t2.join();
-  t3.join();
 }
 
 TEST(PbftChain, get_dag_block_hash) {
-  boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+      std::string("./core_tests/conf/conf_taraxa1.json")));
   node->setDebug(true);
   node->start(true);  // boot_node
 
@@ -415,9 +388,8 @@ TEST(PbftChain, get_dag_block_hash) {
 }
 
 TEST(PbftChain, get_dag_block_height) {
-  boost::asio::io_context context;
   auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+      std::string("./core_tests/conf/conf_taraxa1.json")));
   node->setDebug(true);
   node->start(true);  // boot_node
 

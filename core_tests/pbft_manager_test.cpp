@@ -26,9 +26,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   const char *input[] = {"./build/main", "--conf_taraxa",
                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top(5, input);
-  EXPECT_TRUE(top.isActive());
   auto node = top.getNode();
-  EXPECT_NE(node, nullptr);
 
   // create a transaction
   auto nonce = val_t(0);
@@ -66,45 +64,27 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
             9007199254740991 - 100);
 
   EXPECT_EQ(node->getBalance(receiver).first, 100);
-
-  top.kill();
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  // copy main2, main3
-  try {
-    std::cout << "Copying main2 ..." << std::endl;
-    system("cp ./build/main ./build/main2");
-    std::cout << "Copying main3 ..." << std::endl;
-    system("cp ./build/main ./build/main3");
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-
   const char *input1[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-  const char *input2[] = {"./build/main2", "--conf_taraxa",
+  const char *input2[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa2.json", "-v", "0"};
-  const char *input3[] = {"./build/main3", "--conf_taraxa",
+  const char *input3[] = {"./build/main", "--conf_taraxa",
                           "./core_tests/conf/conf_taraxa3.json", "-v", "0"};
   Top top1(5, input1);
-  EXPECT_TRUE(top1.isActive());
   std::cout << "Top1 created ..." << std::endl;
 
   Top top2(5, input2);
-  EXPECT_TRUE(top2.isActive());
   std::cout << "Top2 created ..." << std::endl;
 
   Top top3(5, input3);
-  EXPECT_TRUE(top3.isActive());
   std::cout << "Top3 created ..." << std::endl;
 
   auto node1 = top1.getNode();
   auto node2 = top2.getNode();
   auto node3 = top3.getNode();
-  EXPECT_NE(node1, nullptr);
-  EXPECT_NE(node2, nullptr);
-  EXPECT_NE(node3, nullptr);
 
   std::vector<std::shared_ptr<taraxa::FullNode>> nodes{node1, node2, node3};
 
@@ -242,19 +222,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       pbft_first_cs_block.getScheduleBlock().getSchedule().blk_order;
   EXPECT_EQ(dag_blocks_in_cs.size(), 1);
   ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_in_cs[0]));
-
-  top3.kill();
-  top2.kill();
-  top1.kill();
-  // delete main2, main3
-  try {
-    std::cout << "main3 deleted ..." << std::endl;
-    system("rm -f ./build/main3");
-    std::cout << "main2 deleted ..." << std::endl;
-    system("rm -f ./build/main2");
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
 }
 
 }  // namespace taraxa

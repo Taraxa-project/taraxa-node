@@ -1,9 +1,11 @@
 #ifndef TARAXA_NODE_TRANSACTION_HPP
 #define TARAXA_NODE_TRANSACTION_HPP
+
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+#include <atomic>
 #include <boost/thread/condition_variable.hpp>
 #include <condition_variable>
 #include <iostream>
@@ -220,11 +222,9 @@ class TransactionQueue {
       : trx_status_(status),
         accs_nonce_(accs_nonce),
         num_verifiers_(num_verifiers) {}
-  ~TransactionQueue() {
-    if (!stopped_) {
-      stop();
-    }
-  }
+
+  ~TransactionQueue() { stop(); }
+
   void start();
   void stop();
   bool insert(Transaction const &trx, bool critical);
@@ -250,7 +250,7 @@ class TransactionQueue {
   using listIter = std::list<Transaction>::iterator;
   void verifyQueuedTrxs();
   addr_t getFullNodeAddress() const;
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions_ = true;
   size_t num_verifiers_ = 1;
@@ -316,9 +316,9 @@ class TransactionManager
       return nullptr;
     }
   }
-  virtual ~TransactionManager() {
-    if (!stopped_) stop();
-  }
+
+  virtual ~TransactionManager() { stop(); }
+
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> full_node) {
@@ -370,7 +370,7 @@ class TransactionManager
   // std::vector<Transaction> &vec_trxs) const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
   TransactionStatusTable trx_status_;

@@ -17,6 +17,7 @@
 #include "transaction.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include <atomic>
 
 namespace taraxa {
 using std::string;
@@ -133,7 +134,7 @@ class BlockManager {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   void verifyBlock();
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
 
