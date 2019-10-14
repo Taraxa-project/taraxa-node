@@ -414,15 +414,16 @@ run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
 run_test: main test
-	./$(TESTBUILDDIR)/crypto_test
-	./$(TESTBUILDDIR)/pbft_rpc_test
-	./$(TESTBUILDDIR)/transaction_test
-	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/dag_block_test
-	./$(TESTBUILDDIR)/full_node_test
-	./$(TESTBUILDDIR)/p2p_test
-	./$(TESTBUILDDIR)/network_test
-	./$(TESTBUILDDIR)/pbft_chain_test
+	./scripts/run_commands_long_circuit.sh \
+	./$(TESTBUILDDIR)/crypto_test \
+	./$(TESTBUILDDIR)/pbft_rpc_test \
+	./$(TESTBUILDDIR)/transaction_test \
+	./$(TESTBUILDDIR)/dag_test \
+	./$(TESTBUILDDIR)/dag_block_test \
+	./$(TESTBUILDDIR)/full_node_test \
+	./$(TESTBUILDDIR)/p2p_test \
+	./$(TESTBUILDDIR)/network_test \
+	./$(TESTBUILDDIR)/pbft_chain_test \
 	./$(TESTBUILDDIR)/pbft_manager_test
 
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main
