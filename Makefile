@@ -414,16 +414,28 @@ run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
 run_test: main test
-	./$(TESTBUILDDIR)/crypto_test
-	./$(TESTBUILDDIR)/pbft_rpc_test
-	./$(TESTBUILDDIR)/transaction_test
-	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/dag_block_test
-	./$(TESTBUILDDIR)/full_node_test
-	./$(TESTBUILDDIR)/p2p_test
-	./$(TESTBUILDDIR)/network_test
-	./$(TESTBUILDDIR)/pbft_chain_test
-	./$(TESTBUILDDIR)/pbft_manager_test
+	exit_code_sum=0;\
+	./$(TESTBUILDDIR)/crypto_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/pbft_rpc_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/transaction_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/dag_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/dag_block_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/full_node_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/p2p_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/network_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/pbft_chain_test;\
+	(( exit_code_sum += $$? ));\
+	./$(TESTBUILDDIR)/pbft_manager_test;\
+	(( exit_code_sum += $$? ));\
+	test $$exit_code_sum -eq 0
 
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main
 	./$(TESTBUILDDIR)/prometheus_demo $(PUSHGATEWAY_IP) $(PUSHGATEWAY_PORT) $(PUSHGATEWAY_NAME)
