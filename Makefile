@@ -413,8 +413,7 @@ perf_test: $(TESTBUILDDIR)/performance_test
 run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
-TESTBUILDDIR=build
-run_test:
+run_test: main test
 	exit_code_sum=0;\
 	./$(TESTBUILDDIR)/crypto_test;\
 	(( exit_code_sum += $$? ));\
