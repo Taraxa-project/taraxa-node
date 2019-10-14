@@ -37,6 +37,8 @@ class Executor {
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   using BalanceTable = std::unordered_map<addr_t, std::pair<val_t, int64_t>>;
+  using AccountNonceTable = StatusTable<addr_t, val_t>;
+  AccountNonceTable accs_nonce_;
 
   // for debug purpose
   dev::Logger log_si_{

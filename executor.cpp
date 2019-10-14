@@ -125,7 +125,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       }
     }
     num_executed_blk_.fetch_add(1);
-    LOG(log_nf_) << getFullNodeAddress() << ": Block number "
+    LOG(log_si_) << getFullNodeAddress() << " : Block number "
                  << num_executed_blk_ << ": " << blk_hash
                  << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                  << " / " << num_trxs;
@@ -199,8 +199,8 @@ bool Executor::executeBlkTrxs(
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  LOG(log_nf_) << getFullNodeAddress() << ": Block number " << num_executed_blk_
-               << ": " << blk
+  LOG(log_si_) << getFullNodeAddress() << " : Block number "
+               << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
                << " / " << num_trxs;
   return true;
@@ -233,6 +233,27 @@ bool Executor::coinTransfer(
     new_sender_bal = sender_initial_coin - value;
     new_receiver_bal = receiver_initial_coin + value;
     state.setBalance(receiver, new_receiver_bal);
+
+    val_t nonce = trx.getNonce();
+    auto [prev_nonce, exist] = accs_nonce_.get(sender);
+    if (exist) {
+      if (prev_nonce + 1 != nonce) {
+        LOG(log_er_) << "Trx: " << hash << " Sender " << sender
+                     << " nonce has gap, prev nonce " << prev_nonce
+                     << " curr nonce " << nonce << " Receiver: " << receiver
+                     << " value " << value;
+        // return false;
+      }
+    } else {
+      if (nonce != 0) {
+        LOG(log_er_) << "Trx: " << hash << " Sender " << sender
+                     << " nonce has gap, prev nonce unavailable1! (expectt 0)"
+                     << " curr nonce " << nonce << " Receiver: " << receiver
+                     << " value " << value;
+        // return false;
+      }
+    }
+    accs_nonce_.update(sender, nonce);
   }
   // if sender == receiver and trx.value == 0, we should still call setBalance
   // to create an empty account

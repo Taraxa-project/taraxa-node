@@ -38,7 +38,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   auto node(std::make_shared<taraxa::FullNode>(
       context, std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
-  EXPECT_EQ(pbft_mgr->LAMBDA_ms, 1000);
+  EXPECT_EQ(pbft_mgr->LAMBDA_ms, 2000);
   EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 1000000000);
 }
 

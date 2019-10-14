@@ -344,8 +344,7 @@ void FullNode::start(bool boot_node) {
           // its pivot and tips processed This should happen in a very rare case
           // where in some race condition older block is verfified faster then
           // new block but should resolve quickly, return block to queue
-          LOG(log_warning_)
-              << "Block could not be added to DAG " << blk.getHash();
+          LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash();
           received_blocks_--;
           blk_mgr_->pushVerifiedBlock(blk);
         }
@@ -487,19 +486,6 @@ void FullNode::insertBlock(DagBlock const &blk) {
                  << " , tips: " << blk.getTips().size();
 }
 
-void FullNode::insertBlockAndSign(DagBlock const &blk) {
-  DagBlock sign_block(blk);
-  sign_block.sign(node_sk_);
-
-  auto now = getCurrentTimeMilliSeconds();
-
-  LOG(log_time_) << "Propose block " << sign_block.getHash() << " at: " << now
-                 << " ,trxs: " << sign_block.getTrxs()
-                 << " , tips: " << sign_block.getTips().size();
-
-  insertBlock(sign_block);
-}
-
 bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   auto known = blk_mgr_->isBlockKnown(hash);
   if (!known) return getDagBlock(hash) != nullptr;
@@ -588,6 +574,10 @@ void FullNode::getLatestPivotAndTips(std::string &pivot,
 void FullNode::getGhostPath(std::string const &source,
                             std::vector<std::string> &ghost) {
   dag_mgr_->getGhostPath(source, ghost);
+}
+
+void FullNode::getGhostPath(std::vector<std::string> &ghost) {
+  dag_mgr_->getGhostPath(ghost);
 }
 
 std::vector<std::string> FullNode::getDagBlockPivotChain(
@@ -872,6 +862,10 @@ std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
   }
   return ret;
 }
+void FullNode::updateNonceTable(DagBlock const &blk,
+                                DagFrontier const &frontier) {
+  trx_mgr_->updateNonce(blk, frontier);
+}
 
 std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   std::unordered_set<trx_hash_t> packed_trxs;
@@ -891,5 +885,9 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   }
   return ret;
 }
+TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
+  return trx_mgr_->getUnsafeTransactionStatusTable();
+}
+std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {return dag_mgr_->getUnOrderedDagBlks();}
 
 }  // namespace taraxa
