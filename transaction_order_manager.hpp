@@ -2,6 +2,7 @@
 #define TARAXA_NODE_TRANSACTION_ORDER_MANAGER_HPP
 
 #pragma once
+
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
@@ -14,6 +15,7 @@
 #include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include <atomic>
 
 namespace taraxa {
 
@@ -46,7 +48,7 @@ class TransactionOrderManager {
   bool updateOrderedTrx(TrxSchedule const& sche);
 
  private:
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;

@@ -1,5 +1,6 @@
 #ifndef TARAXA_NODE_LIBWEB3JSONRPC_RPC_HPP
 #define TARAXA_NODE_LIBWEB3JSONRPC_RPC_HPP
+
 #include <jsonrpccpp/server/abstractserverconnector.h>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
@@ -10,16 +11,15 @@
 
 namespace taraxa {
 
-class FullNode;
 class RpcConnection;
 class RpcHandler;
 
 class RpcServer : public std::enable_shared_from_this<RpcServer>,
                   public jsonrpc::AbstractServerConnector {
  public:
-  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
-            std::shared_ptr<FullNode> node);
+  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc);
   virtual ~RpcServer() {
+  // TODO
     if (!stopped_) StopListening();
   }
 
@@ -37,7 +37,6 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
   RpcConfig conf_;
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  std::shared_ptr<FullNode> node_;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
   dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
@@ -58,7 +57,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
 
 class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
  public:
-  RpcConnection(std::shared_ptr<RpcServer> rpc, std::shared_ptr<FullNode> node);
+  RpcConnection(std::shared_ptr<RpcServer> rpc);
   virtual ~RpcConnection() = default;
   virtual void read();
   virtual void write_response(std::string const &msg);
@@ -68,7 +67,6 @@ class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
 
  private:
   std::shared_ptr<RpcServer> rpc_;
-  std::shared_ptr<FullNode> node_;
   boost::asio::ip::tcp::socket socket_;
   boost::beast::flat_buffer buffer_;
   boost::beast::http::request<boost::beast::http::string_body> request_;

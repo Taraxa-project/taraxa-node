@@ -20,6 +20,8 @@
 #include "transaction.hpp"
 #include "util.hpp"
 #include "vote.h"
+#include <atomic>
+
 namespace taraxa {
 
 /**
@@ -76,7 +78,7 @@ class Network {
   std::shared_ptr<TaraxaCapability> taraxa_capability_;
 
   NetworkConfig conf_;
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   std::string network_file_;
 
   std::weak_ptr<FullNode> full_node_;

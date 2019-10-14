@@ -33,9 +33,6 @@ class Test : public TestFace {
   virtual Json::Value get_node_count() override;
   virtual Json::Value get_all_peers() override;
   virtual Json::Value get_all_nodes() override;
-  virtual Json::Value node_stop() override;
-  virtual Json::Value node_reset() override;
-  virtual Json::Value node_start() override;
   virtual Json::Value should_speak(const Json::Value& param1) override;
   virtual Json::Value place_vote(const Json::Value& param1) override;
   virtual Json::Value get_votes(const Json::Value& param1) override;

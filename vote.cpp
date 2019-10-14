@@ -96,14 +96,8 @@ uint64_t Vote::getRound() const { return round_; }
 size_t Vote::getStep() const { return step_; }
 
 // Vote Manager
-void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> node) {
-  node_ = node;
-
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node is not available in Vote Manager";
-    return;
-  }
+void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
+  node_ = full_node;
   pbft_chain_ = full_node->getPbftChain();
   pbft_mgr_ = full_node->getPbftManager();
 }

@@ -235,8 +235,9 @@ blk_hash_t Transaction::sha3(bool include_sig) const {
 }
 
 void TransactionQueue::start() {
-  if (!stopped_) return;
-  stopped_ = false;
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
@@ -246,8 +247,9 @@ void TransactionQueue::start() {
 }
 
 void TransactionQueue::stop() {
-  if (stopped_) return;
-  stopped_ = true;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   cond_for_unverified_qu_.notify_all();
   for (auto &t : verifiers_) {
     t.join();
@@ -473,7 +475,9 @@ addr_t TransactionQueue::getFullNodeAddress() const {
 }
 
 void TransactionManager::start() {
-  if (!stopped_) return;
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   if (!full_node_.lock()) {
     LOG(log_wr_) << "FullNode is not set ...";
     assert(db_trxs_);
@@ -482,15 +486,14 @@ void TransactionManager::start() {
     db_trxs_ = full_node_.lock()->getTrxsDB();
   }
   trx_qu_.start();
-
-  stopped_ = false;
 }
 
 void TransactionManager::stop() {
-  if (stopped_) return;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   db_trxs_ = nullptr;
   trx_qu_.stop();
-  stopped_ = true;
 }
 
 std::unordered_map<trx_hash_t, Transaction>

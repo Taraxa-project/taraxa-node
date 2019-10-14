@@ -275,6 +275,7 @@ WSServer::WSServer(net::io_context &ioc, tcp::endpoint endpoint)
 void WSServer::run() { do_accept(); }
 
 void WSServer::stop() {
+  // TODO
   stopped_ = true;
   acceptor_.close();
   boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);

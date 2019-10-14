@@ -182,15 +182,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   DagManager(std::string const &genesis);
-  virtual ~DagManager();
-  void start();
-  void stop();
+  virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
   bool addDagBlock(DagBlock const &blk);  // insert to buffer if fail
-  
+
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
   // assuming a period is confirmed, will finialize, return size of blocks in
@@ -225,7 +223,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
   addr_t getFullNodeAddress() const;
-  bool stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;

@@ -34,7 +34,7 @@ TEST_F(PerfTest, execute_transactions) {
       samples::createSignedTrxSamples(0, NUM_TRX, dev::Secret(cfg.node_secret));
 
   boost::asio::io_context context;
-  auto node(std::make_shared<taraxa::FullNode>(context, cfg));
+  auto node(taraxa::FullNode::make(context, cfg));
 
   node->start(true);  // boot node
   auto res = node->getBalance(acc1);

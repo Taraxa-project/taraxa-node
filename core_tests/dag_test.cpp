@@ -250,7 +250,6 @@ TEST(DagManager, compute_epoch) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
-  mgr->start();
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -331,7 +330,6 @@ TEST(DagManager, receive_block_in_order) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
-  mgr->start();
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
                 addr_t(15));
@@ -358,7 +356,6 @@ TEST(DagManager, receive_block_in_order) {
   EXPECT_EQ(pivot,
             "0000000000000000000000000000000000000000000000000000000000000002");
   EXPECT_EQ(tips.size(), 1);
-  mgr->stop();
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 4);
   // total edges
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 5);
@@ -372,7 +369,6 @@ TEST(DagManager, compute_epoch_2) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
-  mgr->start();
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -474,7 +470,6 @@ TEST(DagManager, get_latest_pivot_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
-  mgr->start();
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
@@ -502,7 +497,6 @@ TEST(DagManager, get_latest_pivot_tips) {
   EXPECT_EQ(tips.size(), 1);
   EXPECT_EQ(tips[0],
             "0000000000000000000000000000000000000000000000000000000000000006");
-  mgr->stop();
 }
 
 }  // namespace taraxa

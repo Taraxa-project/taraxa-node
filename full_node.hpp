@@ -1,11 +1,13 @@
 #ifndef TARAXA_NODE_FULL_NODE_HPP
 #define TARAXA_NODE_FULL_NODE_HPP
 
+#include <atomic>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
 #include "config.hpp"
 #include "executor.hpp"
@@ -16,7 +18,10 @@
 #include "pbft_chain.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
+#include "util/owning_shared_ptr.hpp"
 #include "vote.h"
+
+class Top;
 
 namespace taraxa {
 
@@ -34,24 +39,24 @@ class PbftManager;
 class NetworkConfig;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
- public:
-  explicit FullNode(boost::asio::io_context &io_context,
-                    std::string const &conf_full_node_file,
+  friend class Top;
+
+  explicit FullNode(std::string const &conf_full_node_file,
                     bool destroy_db = false, bool rebuild_network = false);
-  explicit FullNode(boost::asio::io_context &io_context,
-                    FullNodeConfig const &conf_full_node,
+  explicit FullNode(FullNodeConfig const &conf_full_node,
                     bool destroy_db = false, bool rebuild_network = false);
 
-  virtual ~FullNode() {
-    if (!stopped_) {
-      stop();
-    }
+ public:
+  using owning_ptr_t = util::owning_shared_ptr::owning_shared_ptr<FullNode>;
+  template <typename... Arg>
+  static owning_ptr_t make(Arg &&... args) {
+    return new FullNode(std::forward<Arg>(args)...);
   }
+
+  virtual ~FullNode();
   void setDebug(bool debug);
+  // TODO erase db files in place of former "reset()"???
   void start(bool boot_node);
-  void stop();
-  bool reset();  // clean db, reset everything ... can be called only stopped
-  void initDB(bool destroy_db);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
   boost::asio::io_context &getIoContext();
@@ -155,8 +160,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
           &sortition_account_balance_table,
       uint64_t period);
 
-  bool destroyDB();
-
   // get DBs
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
@@ -210,7 +213,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT RPC
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                    uint64_t period, size_t step, blk_hash_t const &last_pbft_block_hash);
+                    uint64_t period, size_t step,
+                    blk_hash_t const &last_pbft_block_hash);
 
   // get dag block for rpc
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
@@ -240,11 +244,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
  private:
-  // ** NOTE: io_context must be constructed before Network
-  boost::asio::io_context &io_context_;
   size_t num_block_workers_ = 2;
-  bool stopped_ = true;
-  bool db_inited_ = false;
+  // fixme (here and everywhere else): non-volatile
+  std::atomic<bool> stopped_ = true;
   // configuration
   FullNodeConfig conf_;
   bool debug_ = false;

@@ -79,21 +79,6 @@
     "returns": {}
   },
   {
-    "name": "node_stop",
-    "params": [],
-    "returns": {}
-  },
-  {
-    "name": "node_reset",
-    "params": [],
-    "returns": {}
-  },
-  {
-    "name": "node_start",
-    "params": [],
-    "returns": {}
-  },
-  {
     "name": "should_speak",
     "params": [
       {}

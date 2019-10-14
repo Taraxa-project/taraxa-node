@@ -434,12 +434,6 @@ DagManager::DagManager(std::string const &genesis) try
   std::cerr << e.what() << std::endl;
 }
 
-DagManager::~DagManager() {
-  if (!stopped_) {
-    stop();
-  }
-}
-
 std::shared_ptr<DagManager> DagManager::getShared() {
   try {
     return shared_from_this();
@@ -469,14 +463,6 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
-void DagManager::start() {
-  if (!stopped_) return;
-  stopped_ = false;
-}
-void DagManager::stop() {
-  if (stopped_) return;
-  stopped_ = true;
-}
 bool DagManager::addDagBlock(DagBlock const &blk) {
   uLock lock(mutex_);
   auto hash = blk.getHash().toString();

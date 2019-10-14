@@ -9,9 +9,8 @@
 
 namespace taraxa {
 
-RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
-                     std::shared_ptr<FullNode> node)
-    : conf_(conf_rpc), io_context_(io), acceptor_(io), node_(node) {
+RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc)
+    : conf_(conf_rpc), io_context_(io), acceptor_(io) {
   LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port << std::endl;
 }
 std::shared_ptr<RpcServer> RpcServer::getShared() {
@@ -48,7 +47,7 @@ bool RpcServer::StartListening() {
 
 void RpcServer::waitForAccept() {
   std::shared_ptr<RpcConnection> connection(
-      std::make_shared<RpcConnection>(getShared(), node_));
+      std::make_shared<RpcConnection>(getShared()));
   acceptor_.async_accept(
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
@@ -87,9 +86,8 @@ std::shared_ptr<RpcConnection> RpcConnection::getShared() {
   }
 }
 
-RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc,
-                             std::shared_ptr<FullNode> node)
-    : rpc_(rpc), node_(node), socket_(rpc->getIoContext()) {
+RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc)
+    : rpc_(rpc), socket_(rpc->getIoContext()) {
   responded_.clear();
 }
 

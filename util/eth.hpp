@@ -57,21 +57,16 @@ inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
                        WithExisting _we, DatabaseKind kind = databaseKind()) {
   auto isDiskDB = isDiskDatabase(kind);
   auto path = _basePath.empty() ? db::databasePath() : _basePath;
-  path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) /
-          fs::path(toString(9 + (23 << 9)));  // copied from libethcore/Common.c
+  path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4)));
   if (isDiskDB && _we == WithExisting::Kill) {
-    clog(VerbosityDebug, "statedb")
-        << "Killing state database (WithExisting::Kill).";
-    fs::remove_all(path / fs::path("state"));
+    fs::remove_all(path);
   }
   if (isDiskDB) {
     fs::create_directories(path);
     DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
   }
-  path = path / fs::path("state");
   try {
     auto db = DBFactory::create(kind, path);
-    clog(VerbosityTrace, "statedb") << "Opened state DB.";
     return {move(db), kind, path};
   } catch (boost::exception const& ex) {
     cwarn << boost::diagnostic_information(ex) << '\n';
@@ -82,9 +77,7 @@ inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
                "some up and then re-run. Bailing.";
       BOOST_THROW_EXCEPTION(NotEnoughAvailableSpace());
     } else {
-      cwarn << "Database " << (path)
-            << "already open. You appear to have another instance of ethereum"
-               "running. Bailing.";
+      cwarn << "Database " << (path) << "already open. Bailing.";
       BOOST_THROW_EXCEPTION(DatabaseAlreadyOpen());
     }
   }
