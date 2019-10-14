@@ -51,7 +51,11 @@ endif
 ifneq ($(DEBUG), 0)
 	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
 	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
-	CPPFLAGS += -Wl,--export-dynamic 
+	ifeq ($(OS),Dawrin)
+		CPPFLAGS += -Wl,--export-dynamic 
+	else 
+		CPPFLAGS += -rdynamic
+	endif
 	BUILDDIR := build-d
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
