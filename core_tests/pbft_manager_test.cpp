@@ -130,12 +130,11 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   auto node3_addr = addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e");
 
   // create a transaction transfer coins from node1 to node2
-  auto nonce = val_t(0);
   auto coins_value2 = val_t(100);
   auto gas_price = val_t(2);
   auto gas = val_t(1);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(nonce, coins_value2, gas_price, gas,
+  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, gas,
                                             node2_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
@@ -149,7 +148,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 1);
+    EXPECT_GE(nodes[i]->getNumProposedBlocks(), 1);
   }
 
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
@@ -178,7 +177,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
-  Transaction trx_master_boot_node_to_node3(nonce, coins_value3, gas_price, gas,
+  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, gas,
                                             node3_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node3);
 
@@ -192,7 +191,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 2);
+    EXPECT_GE(nodes[i]->getNumProposedBlocks(), 2);
   }
 
   pbft_chain_size = 5;
@@ -215,7 +214,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 1000);
   }
-
   std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
   // PBFT second CS block
   blk_hash_t pbft_second_cs_block_hash = pbft_chain1->getLastPbftBlockHash();
@@ -223,7 +221,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       pbft_chain1->getPbftBlockInChain(pbft_second_cs_block_hash);
   vec_blk_t dag_blocks_in_cs =
       pbft_second_cs_block.getScheduleBlock().getSchedule().blk_order;
-  EXPECT_EQ(dag_blocks_in_cs.size(), 1);
+  // due to change of trx packing change, a trx can be packed in multiple blocks
+  EXPECT_GE(dag_blocks_in_cs.size(), 1);
   for (auto &dag_block_hash : dag_blocks_in_cs) {
     ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
     unique_dag_block_hash_set.insert(dag_block_hash);
