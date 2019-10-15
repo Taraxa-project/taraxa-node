@@ -64,11 +64,13 @@ TEST_F(VoteManagerTest, add_cleanup_get_votes) {
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
       blk_hash_t blockhash(1);
-      blk_hash_t pbft_blockhash = pbft_mgr->getLastPbftBlockHashAtStartOfRound();
+      blk_hash_t pbft_blockhash =
+          pbft_mgr->getLastPbftBlockHashAtStartOfRound();
       PbftVoteTypes type = propose_vote_type;
       uint64_t round = i;
       size_t step = j;
-      Vote vote = node->generateVote(blockhash, type, round, step, pbft_blockhash);
+      Vote vote =
+          node->generateVote(blockhash, type, round, step, pbft_blockhash);
       node->addVote(vote);
     }
   }
@@ -157,7 +159,8 @@ TEST_F(NetworkTest, transfer_vote) {
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  Vote vote = node2->generateVote(blockhash, type, period, step, pbft_blockhash);
+  Vote vote =
+      node2->generateVote(blockhash, type, period, step, pbft_blockhash);
 
   node1->clearUnverifiedVotesTable();
   node2->clearUnverifiedVotesTable();
@@ -226,9 +229,9 @@ TEST_F(NetworkTest, vote_broadcast) {
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  ASSERT_EQ(node_peers, nw1->getPeerCount());
-  ASSERT_EQ(node_peers, nw2->getPeerCount());
-  ASSERT_EQ(node_peers, nw3->getPeerCount());
+  ASSERT_GT(nw1->getPeerCount(), 0);
+  ASSERT_GT(nw2->getPeerCount(), 0);
+  ASSERT_GT(nw3->getPeerCount(), 0);
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
@@ -244,7 +247,8 @@ TEST_F(NetworkTest, vote_broadcast) {
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  Vote vote = node1->generateVote(blockhash, type, period, step, pbft_blockhash);
+  Vote vote =
+      node1->generateVote(blockhash, type, period, step, pbft_blockhash);
 
   node1->clearUnverifiedVotesTable();
   node2->clearUnverifiedVotesTable();
