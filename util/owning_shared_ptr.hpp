@@ -43,10 +43,12 @@ struct owning_shared_ptr : public shared_ptr<T> {
       return;
     }
     weak_t w_ptr = *this;
-    this->reset();
-    while (!w_ptr.expired()) {
-    }
+    while (this->use_count() != 1)
+      ;
     deleter_(ptr);
+    this->reset();
+    while (!w_ptr.expired())
+      ;
   }
 
   template <typename... Args>

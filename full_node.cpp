@@ -258,10 +258,10 @@ FullNode::~FullNode() {
   // Network(taraxa_capability) still running, will use pbft_chain_
   // After comment out network_->stop() above, could comment out here also
   // pbft_chain_ = nullptr;
-  executor_ = nullptr;
   for (auto &t : block_workers_) {
     t.join();
   }
+  executor_ = nullptr;
   // wait a while to let other modules to stop fixme
   thisThreadSleepForMilliSeconds(100);
   assert(db_blks_.use_count() == 1);
