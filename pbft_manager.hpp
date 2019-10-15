@@ -44,7 +44,9 @@ class PbftManager {
   void run();
   bool isActive() { return daemon_ != nullptr; }
 
-  blk_hash_t getLastPbftBlockHashAtStartOfRound() const { return pbft_chain_last_block_hash_; }
+  blk_hash_t getLastPbftBlockHashAtStartOfRound() const {
+    return pbft_chain_last_block_hash_;
+  }
 
   size_t getSortitionThreshold() const { return sortition_threshold_; }
   void setSortitionThreshold(size_t const sortition_threshold) {
@@ -138,7 +140,7 @@ class PbftManager {
       std::make_pair(NULL_BLOCK_HASH, false);
 
   std::weak_ptr<FullNode> node_;
-  std::shared_ptr<std::thread> daemon_;
+  std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<TaraxaCapability> capability_;
@@ -155,7 +157,7 @@ class PbftManager {
 
   uint64_t pbft_round_last_requested_sync_ = 1;
   size_t pbft_step_last_requested_sync_ = 1;
-  
+
   uint64_t last_period_should_speak_ = 0;
 
   size_t sortition_threshold_;

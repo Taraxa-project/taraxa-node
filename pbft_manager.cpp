@@ -97,8 +97,8 @@ void PbftManager::start() {
   pbft_step_last_requested_sync_ = 0;
 
   stopped_ = false;
-  daemon_ = std::make_shared<std::thread>([this]() { run(); });
-  LOG(log_inf_) << "PBFT executor initiated ...";
+  daemon_ = std::make_unique<std::thread>([this]() { run(); });
+  LOG(log_sil_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = false;
     monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
@@ -120,7 +120,7 @@ void PbftManager::stop() {
   stopped_ = true;
   daemon_->join();
   daemon_.reset();
-  LOG(log_inf_) << "PBFT executor terminated ...";
+  LOG(log_sil_) << "PBFT daemon terminated ...";
   db_votes_ = nullptr;
   assert(daemon_ == nullptr);
 }
