@@ -164,10 +164,6 @@ bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
 bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard,
                                    vec_trx_t& sharded_trxs) {
   auto full_node = full_node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "FullNode expired ..." << std::endl;
-    return false;
-  }
   auto& log_time = full_node->getTimeLogger();
   vec_trx_t to_be_packed_trx;
   auto trx_mgr = trx_mgr_.lock();

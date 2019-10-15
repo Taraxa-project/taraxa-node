@@ -503,8 +503,21 @@ TEST(DagManager, get_latest_pivot_tips) {
 
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityWarning;
+dev::LoggingOptions logOptions;
+  logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("SORTI");
+  logOptions.includeChannels.push_back("TRXMGR");
+  logOptions.includeChannels.push_back("TRXQU");
+  logOptions.includeChannels.push_back("NETWORK");
+  logOptions.includeChannels.push_back("TARCAP");
+  logOptions.includeChannels.push_back("VOTE_MGR");
+  logOptions.includeChannels.push_back("FULLND");
+  logOptions.includeChannels.push_back("DAGMGR");
+  logOptions.includeChannels.push_back("EXETOR");
+  logOptions.includeChannels.push_back("BLK_PP");
+  logOptions.includeChannels.push_back("PR_MDL");
+  logOptions.includeChannels.push_back("PBFT_MGR");
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

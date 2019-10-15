@@ -135,8 +135,6 @@ TEST_F(NetworkTest, transfer_vote) {
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
 
   // generate vote
   blk_hash_t blockhash(1);
@@ -151,6 +149,10 @@ TEST_F(NetworkTest, transfer_vote) {
   node2->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
+
+  // fixme stopping before asserts
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
 
   size_t vote_queue_size = node1->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size, 1);
@@ -201,9 +203,6 @@ TEST_F(NetworkTest, vote_broadcast) {
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr3 = node3->getPbftManager();
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
-  pbft_mgr3->stop();
 
   // generate vote
   blk_hash_t blockhash(1);
@@ -220,6 +219,10 @@ TEST_F(NetworkTest, vote_broadcast) {
 
   nw1->onNewPbftVote(vote);
 
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
+  pbft_mgr3->stop();
+
   size_t vote_queue_size1 = node1->getUnverifiedVotesSize();
   size_t vote_queue_size2 = node2->getUnverifiedVotesSize();
   size_t vote_queue_size3 = node3->getUnverifiedVotesSize();
@@ -233,10 +236,20 @@ TEST_F(NetworkTest, vote_broadcast) {
 int main(int argc, char** argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbositySilent;
+  logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("SORTI");
+  logOptions.includeChannels.push_back("TRXMGR");
+  logOptions.includeChannels.push_back("TRXQU");
   logOptions.includeChannels.push_back("NETWORK");
   logOptions.includeChannels.push_back("TARCAP");
   logOptions.includeChannels.push_back("VOTE_MGR");
+  logOptions.includeChannels.push_back("FULLND");
+  logOptions.includeChannels.push_back("DAGMGR");
+  logOptions.includeChannels.push_back("EXETOR");
+  logOptions.includeChannels.push_back("BLK_PP");
+  logOptions.includeChannels.push_back("PR_MDL");
+  logOptions.includeChannels.push_back("PBFT_MGR");
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage

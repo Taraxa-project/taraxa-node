@@ -165,7 +165,7 @@ class PbftManager {
   void countVotes_();
 
   std::shared_ptr<std::thread> monitor_votes_;
-  bool monitor_stop_ = true;
+  std::atomic<bool> monitor_stop_ = true;
   size_t last_step_ = 0;
   std::chrono::system_clock::time_point last_step_clock_initial_datetime_;
   std::chrono::system_clock::time_point current_step_clock_initial_datetime_;

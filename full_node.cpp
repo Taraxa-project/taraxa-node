@@ -240,7 +240,7 @@ void FullNode::start(bool boot_node) {
       }
     });
   }
-  LOG(log_wr_) << "Node started ... ";
+  LOG(log_nf_) << "Node started ... ";
 }
 
 FullNode::~FullNode() {
@@ -275,7 +275,7 @@ FullNode::~FullNode() {
   assert(db_dag_blocks_height_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
-  LOG(log_wr_) << "Node stopped ... ";
+  LOG(log_nf_) << "Node stopped ... ";
 }
 
 size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }

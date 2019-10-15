@@ -31,13 +31,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       RUN_COUNT_VOTES(params[4]),
       dag_genesis_(genesis) {}
 
-void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
-  node_ = node;
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    assert(false);
-  }
+void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
+  node_ = full_node;
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
@@ -107,15 +102,11 @@ void PbftManager::stop() {
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = true;
     monitor_votes_->join();
-    monitor_votes_.reset();
     LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
-    assert(monitor_votes_ == nullptr);
   }
   daemon_->join();
-  daemon_.reset();
   LOG(log_inf_) << "PBFT executor terminated ...";
   db_votes_ = nullptr;
-  assert(daemon_ == nullptr);
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -943,11 +934,6 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
                              PbftVoteTypes vote_type, uint64_t round,
                              size_t step) {
   auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
-  }
-
   Vote vote = full_node->generateVote(blockhash, vote_type, round, step,
                                       pbft_chain_last_block_hash_);
   vote_mgr_->addVote(vote);
