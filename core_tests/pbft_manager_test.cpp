@@ -109,7 +109,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   std::shared_ptr<Network> nw3 = node3->getNetwork();
   const int node_peers = 2;
   bool checkpoint_passed = false;
-  for (auto i = 0; i < 600; i++) {
+  const int timeout_val = 600;
+  for (auto i = 0; i < timeout_val; i++) {
     // test timeout is 60 seconds
     if (nw1->getPeerCount() == node_peers &&
         nw2->getPeerCount() == node_peers &&
@@ -120,6 +121,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   if (checkpoint_passed == false) {
+    std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
     ASSERT_EQ(node_peers, nw1->getPeerCount());
     ASSERT_EQ(node_peers, nw2->getPeerCount());
     ASSERT_EQ(node_peers, nw3->getPeerCount());  
