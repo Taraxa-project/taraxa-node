@@ -274,8 +274,7 @@ WSServer::WSServer(net::io_context &ioc, tcp::endpoint endpoint)
 // Start accepting incoming connections
 void WSServer::run() { do_accept(); }
 
-void WSServer::stop() {
-  // TODO
+WSServer::~WSServer() {
   stopped_ = true;
   acceptor_.close();
   boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);

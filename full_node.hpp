@@ -19,7 +19,7 @@
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
-#include "util/owning_shared_ptr.hpp"
+#include "util/process_container.hpp"
 #include "vote.h"
 
 class Top;
@@ -46,17 +46,19 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                     bool destroy_db = false, bool rebuild_network = false);
   explicit FullNode(FullNodeConfig const &conf_full_node,
                     bool destroy_db = false, bool rebuild_network = false);
+  void stop();
 
  public:
-  using owning_ptr_t = util::owning_shared_ptr::owning_shared_ptr<FullNode>;
+  using container = util::process_container::process_container<FullNode>;
+  friend container;
+
   template <typename... Arg>
-  static owning_ptr_t make(Arg &&... args) {
+  static container make(Arg &&... args) {
     return new FullNode(std::forward<Arg>(args)...);
   }
 
-  virtual ~FullNode();
+  //  virtual ~FullNode() = default;
   void setDebug(bool debug);
-  // TODO erase db files in place of former "reset()"???
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
@@ -95,7 +97,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
-  void updateNonceTable(DagBlock const & dagblk, DagFrontier const & frontier);
+  void updateNonceTable(DagBlock const &dagblk, DagFrontier const &frontier);
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       unsigned long level, int number_of_levels);
@@ -135,7 +137,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
-  std::unordered_set<std::string> getUnOrderedDagBlks() const; 
+  std::unordered_set<std::string> getUnOrderedDagBlks() const;
   // get transaction schecules stuff ...
   // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {

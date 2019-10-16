@@ -8,6 +8,7 @@
 #include <string>
 #include "config.hpp"
 #include "libdevcore/Log.h"
+#include <atomic>
 
 namespace taraxa {
 
@@ -18,10 +19,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
                   public jsonrpc::AbstractServerConnector {
  public:
   RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc);
-  virtual ~RpcServer() {
-  // TODO
-    if (!stopped_) StopListening();
-  }
+  virtual ~RpcServer() { StopListening(); }
 
   virtual bool StartListening() override;
   virtual bool StopListening() override;
@@ -33,7 +31,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
   friend RpcHandler;
 
  private:
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   RpcConfig conf_;
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;

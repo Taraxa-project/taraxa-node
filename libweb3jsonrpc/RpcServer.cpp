@@ -24,10 +24,9 @@ std::shared_ptr<RpcServer> RpcServer::getShared() {
 }
 
 bool RpcServer::StartListening() {
-  if (!stopped_) {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
-  stopped_ = false;
   boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
   acceptor_.open(ep.protocol());
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -66,8 +65,9 @@ void RpcServer::waitForAccept() {
 }
 
 bool RpcServer::StopListening() {
-  if (stopped_) return true;
-  stopped_ = true;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return true;
+  }
   acceptor_.close();
   LOG(log_tr_) << "StopListening: ";
   return true;

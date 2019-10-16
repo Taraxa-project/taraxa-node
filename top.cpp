@@ -42,15 +42,15 @@ Top::Top(int argc, const char* argv[]) {
   dev::setupLogging(loggingOptions);
   if (option_vars.count("help")) {
     std::cout << allowed_options << std::endl;
-    // TODO
-    assert(false);
+    // TODO this should be handled by the caller
+    return;
   }
   if (!option_vars.count("conf_taraxa")) {
     std::cout << "Please specify full node configuration file "
                  "[--conf_taraxa]..."
               << std::endl;
-    // TODO
-    assert(false);
+    // TODO this should be handled by the caller
+    return;
   }
   node_ = taraxa::FullNode::make(conf_taraxa,
                                  destroy_db,  //
@@ -59,7 +59,6 @@ Top::Top(int argc, const char* argv[]) {
   auto rpc_init_done = make_shared<condition_variable>();
   rpc_thread_ = thread([this, rpc_init_done] {
     try {
-      rpc_io_context_.post([&] { rpc_init_done->notify_one(); });
       auto const& node_config = node_->getConfig();
       auto rpc_server = make_shared<taraxa::RpcServer>(rpc_io_context_,  //
                                                        node_config.rpc);
@@ -76,6 +75,7 @@ Top::Top(int argc, const char* argv[]) {
           });
       node_->setWSServer(ws_listener);
       ws_listener->run();
+      rpc_init_done->notify_one();
       rpc_io_context_.run();
     } catch (...) {
       rpc_init_done->notify_one();
@@ -91,7 +91,11 @@ Top::Top(int argc, const char* argv[]) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 }
 
-void Top::join() { rpc_thread_.join(); }
+void Top::join() {
+  if (node_) {
+    rpc_thread_.join();
+  }
+}
 
 Top::~Top() {
   rpc_io_context_.stop();

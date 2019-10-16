@@ -140,19 +140,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
                                             node2_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
-//  for (auto i = 0; i < 100; i++) {
-//    // test timeout is 10 seconds
-//    if (node1->getNumProposedBlocks() == 1 &&
-//        node2->getNumProposedBlocks() == 1 &&
-//        node3->getNumProposedBlocks() == 1) {
-//      break;
-//    }
-//    taraxa::thisThreadSleepForMilliSeconds(100);
-//  }
-//  for (auto i = 0; i < nodes.size(); i++) {
-//    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 1);
-//  }
-
   std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
 
   checkpoint_passed = false;
@@ -180,17 +167,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   int pbft_chain_size = 3;
 
-  // Vote DAG block
-//  for (auto i = 0; i < 600; i++) {
-//    // test timeout is 60 seconds
-//    if (pbft_chain1->getPbftChainSize() == pbft_chain_size &&
-//        pbft_chain2->getPbftChainSize() == pbft_chain_size &&
-//        pbft_chain3->getPbftChainSize() == pbft_chain_size) {
-//      break;
-//    }
-//    taraxa::thisThreadSleepForMilliSeconds(100);
-//  }
-
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain3->getPbftChainSize(), pbft_chain_size);
@@ -207,19 +183,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, gas,
                                             node3_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node3);
-
-//  for (auto i = 0; i < 100; i++) {
-//    // test timeout is 10 seconds
-//    if (node1->getNumProposedBlocks() == 2 &&
-//        node2->getNumProposedBlocks() == 2 &&
-//        node3->getNumProposedBlocks() == 2) {
-//      break;
-//    }
-//    taraxa::thisThreadSleepForMilliSeconds(100);
-//  }
-//  for (auto i = 0; i < nodes.size(); i++) {
-//    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 2);
-//  }
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
 

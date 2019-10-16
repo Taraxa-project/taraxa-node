@@ -242,27 +242,21 @@ void FullNode::start(bool boot_node) {
   LOG(log_nf_) << "Node started ... ";
 }
 
-FullNode::~FullNode() {
+void FullNode::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  network_->stop();
   blk_proposer_->stop();
   blk_mgr_->stop();
-  // Do not stop network_, o.w. restart node will crash	network_->stop();
-  // network_->stop();
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
   pbft_chain_->releaseDB();
-  // Network(taraxa_capability) still running, will use pbft_chain_
-  // After comment out network_->stop() above, could comment out here also
-  // pbft_chain_ = nullptr;
   for (auto &t : block_workers_) {
     t.join();
   }
   executor_ = nullptr;
-  // wait a while to let other modules to stop fixme
-  thisThreadSleepForMilliSeconds(100);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
@@ -702,6 +696,8 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
-std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {return dag_mgr_->getUnOrderedDagBlks();}
+std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {
+  return dag_mgr_->getUnOrderedDagBlks();
+}
 
 }  // namespace taraxa
