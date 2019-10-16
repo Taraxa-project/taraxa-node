@@ -61,7 +61,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
     
-  checkpoint_passed = false;
+  bool checkpoint_passed = false;
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
     if (node->getNumTransactionExecuted() == 1) {
