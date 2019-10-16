@@ -226,8 +226,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   addr_t getFullNodeAddress() const;
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
-  std::pair<std::string, std::vector<std::string>> getFrontier()
-      const;  // return pivot and tips
   std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
