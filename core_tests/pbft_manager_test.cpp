@@ -305,11 +305,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
+  logOptions.verbosity = dev::VerbosityTrace;
   logOptions.includeChannels.push_back("SORTI");
   logOptions.includeChannels.push_back("TRXMGR");
   logOptions.includeChannels.push_back("TRXQU");
   logOptions.includeChannels.push_back("NETWORK");
+  logOptions.includeChannels.push_back("net");
   logOptions.includeChannels.push_back("TARCAP");
   logOptions.includeChannels.push_back("VOTE_MGR");
   logOptions.includeChannels.push_back("FULLND");
