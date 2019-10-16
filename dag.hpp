@@ -201,6 +201,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   void getGhostPath(std::string const &source,
                     std::vector<std::string> &ghost) const;
+  void getGhostPath(std::vector<std::string> &ghost) const; // get ghost path from last anchor
   void deletePeriod(uint64_t period);
   // ----- Total graph
   std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
@@ -216,13 +217,17 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   level_t getMaxLevel() const { return max_level_; }
   uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
   std::string getLatestAnchor() const { return anchors_.back(); }
-
+  std::unordered_set<std::string> getUnOrderedDagBlks() const {return recent_added_blks_;}
  private:
   size_t num_cached_period_in_dag = 1000;
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
   addr_t getFullNodeAddress() const;
+  std::pair<std::string, std::vector<std::string>> getFrontier()
+      const;  // return pivot and tips
+  std::pair<std::string, std::vector<std::string>> getFrontier()
+      const;  // return pivot and tips
   std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
@@ -232,6 +237,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::unordered_set<std::string> recent_added_blks_;
   std::vector<std::string> anchors_;  // pivots that define periods
   std::string genesis_;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   dev::Logger log_wr_{

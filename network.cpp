@@ -69,10 +69,6 @@ void Network::start(bool boot_node) {
     return;
   }
   assert(!host_->isStarted());
-  host_->start(boot_node);
-  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":"
-               << conf_.network_listen_port << std::endl;
-  LOG(log_nf_) << "Started Node id: " << host_->id();
   size_t boot_node_added = 0;
   for (auto &node : conf_.network_boot_nodes) {
     if (auto full_node = full_node_.lock()) {
@@ -88,7 +84,7 @@ void Network::start(bool boot_node) {
       LOG(log_wr_) << "Boot node port invalid: " << node.port;
       continue;
     }
-    host_->addNode(
+    host_->addBootNode(
         dev::Public(node.id),
         dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
                                  node.port, node.port));
@@ -96,6 +92,10 @@ void Network::start(bool boot_node) {
   }
   LOG(log_nf_) << " Number of boot node added: " << boot_node_added
                << std::endl;
+  host_->start(boot_node);
+  LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":"
+               << conf_.network_listen_port << std::endl;
+  LOG(log_nf_) << "Started Node id: " << host_->id();
 }
 
 void Network::stop() {

@@ -654,7 +654,7 @@ void PbftManager::run() {
       }
 
       if (pbft_step_ > MAX_STEPS) {
-        LOG(log_err_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
+        LOG(log_war_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                          "to broadcast request for missing blocks";
         syncPbftChainFromPeers_();
       }
@@ -1005,6 +1005,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       LOG(log_deb_)
           << "Last period DAG anchor block hash " << dag_block_hash
           << " No new DAG blocks generated, PBFT propose NULL_BLOCK_HASH";
+      LOG(log_deb_) << "Ghost: " << ghost;
       return std::make_pair(NULL_BLOCK_HASH, true);
     }
 
@@ -1330,7 +1331,7 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
   }
 
   if (queue_was_full == true && pbft_chain_->pbftVerifiedQueueEmpty()) {
-    LOG(log_sil_) << "PBFT block verified queue is newly empty.  Will check if "
+    LOG(log_inf_) << "PBFT block verified queue is newly empty.  Will check if "
                      "need to sync in round "
                   << pbft_round_;
     syncPbftChainFromPeers_();

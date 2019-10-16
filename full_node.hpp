@@ -16,6 +16,7 @@
 #include "libdevcrypto/Common.h"
 #include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
+#include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "util/owning_shared_ptr.hpp"
@@ -79,7 +80,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // Insert a block in persistent storage and build in dag
   void insertBlock(DagBlock const &blk);
-  void insertBlockAndSign(DagBlock const &blk);
 
   // Only used in initial syncs when blocks are received with full list of
   // transactions
@@ -95,7 +95,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
-
+  void updateNonceTable(DagBlock const & dagblk, DagFrontier const & frontier);
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       unsigned long level, int number_of_levels);
@@ -103,6 +103,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
   void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
+  void getGhostPath(std::vector<std::string> &ghost);
+
   std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk);
   // Note: returned block hashes does not have order
   // Epoch friends : dag blocks in the same epoch/period
@@ -133,7 +135,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
-
+  std::unordered_set<std::string> getUnOrderedDagBlks() const; 
   // get transaction schecules stuff ...
   // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
@@ -230,9 +232,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;
   unsigned long getTransactionStatusCount() const;
-  auto getUnsafeTransactionStatusTable() const {
-    return trx_mgr_->getUnsafeTransactionStatusTable();
-  }
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
     return executor_->getNumExecutedTrx();
   }

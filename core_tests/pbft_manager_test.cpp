@@ -60,12 +60,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
-    
+
   bool checkpoint_passed = false;
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
     if (node->getNumTransactionExecuted() == 1) {
-      
+
       checkpoint_passed = true;
       break;
     }
@@ -124,47 +124,44 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Timeout reached after " << timeout_val << " seconds..." << std::endl;
     ASSERT_EQ(node_peers, nw1->getPeerCount());
     ASSERT_EQ(node_peers, nw2->getPeerCount());
-    ASSERT_EQ(node_peers, nw3->getPeerCount());  
+    ASSERT_EQ(node_peers, nw3->getPeerCount());
   }
-  
+
   auto node1_addr = addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5");
   auto node2_addr = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto node3_addr = addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e");
 
   // create a transaction transfer coins from node1 to node2
-  auto nonce = val_t(0);
   auto coins_value2 = val_t(100);
   auto gas_price = val_t(2);
   auto gas = val_t(1);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(nonce, coins_value2, gas_price, gas,
+  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, gas,
                                             node2_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
-  /*
-  for (auto i = 0; i < 100; i++) {
-    // test timeout is 10 seconds
-    if (node1->getNumProposedBlocks() == 1 &&
-        node2->getNumProposedBlocks() == 1 &&
-        node3->getNumProposedBlocks() == 1) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 1);
-  }
-  */
+//  for (auto i = 0; i < 100; i++) {
+//    // test timeout is 10 seconds
+//    if (node1->getNumProposedBlocks() == 1 &&
+//        node2->getNumProposedBlocks() == 1 &&
+//        node3->getNumProposedBlocks() == 1) {
+//      break;
+//    }
+//    taraxa::thisThreadSleepForMilliSeconds(100);
+//  }
+//  for (auto i = 0; i < nodes.size(); i++) {
+//    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 1);
+//  }
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
-    
+
   checkpoint_passed = false;
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
     if (node1->getNumTransactionExecuted() == 1 &&
         node2->getNumTransactionExecuted() == 1 &&
         node3->getNumTransactionExecuted() == 1) {
-      
+
       checkpoint_passed = true;
       break;
     }
@@ -173,28 +170,26 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   if (checkpoint_passed == false) {
     ASSERT_EQ(node1->getNumTransactionExecuted(), 1);
     ASSERT_EQ(node2->getNumTransactionExecuted(), 1);
-    ASSERT_EQ(node3->getNumTransactionExecuted(), 1);  
+    ASSERT_EQ(node3->getNumTransactionExecuted(), 1);
   }
 
 
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
-  
+
   int pbft_chain_size = 3;
-  
-  /*
+
   // Vote DAG block
-  for (auto i = 0; i < 600; i++) {
-    // test timeout is 60 seconds
-    if (pbft_chain1->getPbftChainSize() == pbft_chain_size &&
-        pbft_chain2->getPbftChainSize() == pbft_chain_size &&
-        pbft_chain3->getPbftChainSize() == pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  */
+//  for (auto i = 0; i < 600; i++) {
+//    // test timeout is 60 seconds
+//    if (pbft_chain1->getPbftChainSize() == pbft_chain_size &&
+//        pbft_chain2->getPbftChainSize() == pbft_chain_size &&
+//        pbft_chain3->getPbftChainSize() == pbft_chain_size) {
+//      break;
+//    }
+//    taraxa::thisThreadSleepForMilliSeconds(100);
+//  }
 
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);
@@ -209,35 +204,32 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
-  Transaction trx_master_boot_node_to_node3(nonce, coins_value3, gas_price, gas,
+  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, gas,
                                             node3_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node3);
 
-  /*
-  for (auto i = 0; i < 100; i++) {
-    // test timeout is 10 seconds
-    if (node1->getNumProposedBlocks() == 2 &&
-        node2->getNumProposedBlocks() == 2 &&
-        node3->getNumProposedBlocks() == 2) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  for (auto i = 0; i < nodes.size(); i++) {
-    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 2);
-  }
-  */
+//  for (auto i = 0; i < 100; i++) {
+//    // test timeout is 10 seconds
+//    if (node1->getNumProposedBlocks() == 2 &&
+//        node2->getNumProposedBlocks() == 2 &&
+//        node3->getNumProposedBlocks() == 2) {
+//      break;
+//    }
+//    taraxa::thisThreadSleepForMilliSeconds(100);
+//  }
+//  for (auto i = 0; i < nodes.size(); i++) {
+//    EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 2);
+//  }
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
-  
+
   checkpoint_passed = false;
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
     if (node1->getNumTransactionExecuted() == 2 &&
         node2->getNumTransactionExecuted() == 2 &&
         node3->getNumTransactionExecuted() == 2) {
-      
+
       checkpoint_passed = true;
       break;
     }
@@ -246,7 +238,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   if (checkpoint_passed == false) {
     ASSERT_EQ(node1->getNumTransactionExecuted(), 1);
     ASSERT_EQ(node2->getNumTransactionExecuted(), 1);
-    ASSERT_EQ(node3->getNumTransactionExecuted(), 1);  
+    ASSERT_EQ(node3->getNumTransactionExecuted(), 1);
   }
 
 
@@ -271,7 +263,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 1000);
   }
-
   std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
   // PBFT second CS block
   blk_hash_t pbft_second_cs_block_hash = pbft_chain1->getLastPbftBlockHash();
@@ -279,7 +270,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       pbft_chain1->getPbftBlockInChain(pbft_second_cs_block_hash);
   vec_blk_t dag_blocks_in_cs =
       pbft_second_cs_block.getScheduleBlock().getSchedule().blk_order;
-  EXPECT_EQ(dag_blocks_in_cs.size(), 1);
+  // due to change of trx packing change, a trx can be packed in multiple blocks
+  EXPECT_GE(dag_blocks_in_cs.size(), 1);
   for (auto &dag_block_hash : dag_blocks_in_cs) {
     ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
     unique_dag_block_hash_set.insert(dag_block_hash);
@@ -305,21 +297,17 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityTrace;
-  logOptions.includeChannels.push_back("SORTI");
-  logOptions.includeChannels.push_back("TRXMGR");
-  logOptions.includeChannels.push_back("TRXQU");
-  logOptions.includeChannels.push_back("NETWORK");
-  logOptions.includeChannels.push_back("net");
-  logOptions.includeChannels.push_back("TARCAP");
+  logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
+  logOptions.includeChannels.push_back("PBFT_MGR");
   logOptions.includeChannels.push_back("VOTE_MGR");
-  logOptions.includeChannels.push_back("FULLND");
-  logOptions.includeChannels.push_back("DAGMGR");
+  logOptions.includeChannels.push_back("SORTI");
   logOptions.includeChannels.push_back("EXETOR");
   logOptions.includeChannels.push_back("BLK_PP");
-  logOptions.includeChannels.push_back("PR_MDL");
-  logOptions.includeChannels.push_back("PBFT_MGR");
-  logOptions.includeChannels.push_back("PBFT_CHAIN");
+  logOptions.includeChannels.push_back("FULLND");
+  logOptions.includeChannels.push_back("TRXMGR");
+  logOptions.includeChannels.push_back("TRXQU");
+  logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage

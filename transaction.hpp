@@ -253,7 +253,7 @@ class TransactionQueue {
   std::atomic<bool> stopped_ = true;
   VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions_ = true;
-  size_t num_verifiers_ = 1;
+  size_t num_verifiers_ = 4;
   TransactionStatusTable &trx_status_;
   AccountNonceTable &accs_nonce_;
   std::weak_ptr<FullNode> full_node_;
@@ -264,7 +264,6 @@ class TransactionQueue {
 
   std::unordered_map<trx_hash_t, listIter> verified_trxs_;
   mutable boost::shared_mutex shared_mutex_for_verified_qu_;
-
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
@@ -331,7 +330,7 @@ class TransactionManager
   /**
    * The following function will require a lock for verified qu
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx);
+  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier);
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
@@ -363,11 +362,10 @@ class TransactionManager
   TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
     return trx_status_.getRawMap();
   }
+  void updateNonce(DagBlock const &blk, DagFrontier const &frontier);
 
  private:
   addr_t getFullNodeAddress() const;
-  // vec_trx_t sortTransctionsAndGetHashVector(
-  // std::vector<Transaction> &vec_trxs) const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
@@ -376,7 +374,11 @@ class TransactionManager
   TransactionStatusTable trx_status_;
   TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;
+  std::queue<Transaction> trx_requeued_;
   TransactionQueue trx_qu_;
+  DagFrontier dag_frontier_;  // Dag boundary seen up to now
+
+  mutable std::mutex mu_for_nonce_table_;
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};
   mutable dev::Logger log_er_{
@@ -388,7 +390,6 @@ class TransactionManager
   mutable dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXMGR")};
 };
-
 }  // namespace taraxa
 
 #endif

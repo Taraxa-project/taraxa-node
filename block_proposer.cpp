@@ -32,24 +32,17 @@ bool RandomPropose::propose() {
   std::string pivot;
   std::vector<std::string> tips;
   vec_trx_t sharded_trxs;
+  DagFrontier frontier;
 
-  bool ok = proposer->getShardedTrxs(sharded_trxs);
+  bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
     return false;
   }
-  ok = proposer->getLatestPivotAndTips(pivot, tips);
-  if (!ok) {
-    return false;
-  }
+  assert(!frontier.pivot.isZero());
+  auto propose_level =
+      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
-  vec_blk_t tip_hashes;
-  for (auto const& t : tips) {
-    tip_hashes.emplace_back(blk_hash_t(t));
-  }
-  auto pivot_hash = blk_hash_t(pivot);
-  auto propose_level = proposer->getProposeLevel(pivot_hash, tip_hashes) + 1;
-
-  DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
+  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
 
   proposer_.lock()->proposeBlock(blk);
   return true;
@@ -63,6 +56,8 @@ bool SortitionPropose::propose() {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
   }
+
+  // TODO: this part is broken now ...
   std::string pivot;
   std::vector<std::string> tips;
 
@@ -87,12 +82,13 @@ bool SortitionPropose::propose() {
   bool win = proposer->winProposeSortition(propose_level, threshold_);
   if (win) {
     vec_trx_t sharded_trxs;
-    ok = proposer->getShardedTrxs(sharded_trxs);
+    DagFrontier frontier;
+    ok = proposer->getShardedTrxs(sharded_trxs, frontier);
     if (!ok) {
       LOG(log_dg_) << "Cannot get transactions ... ";
       return false;
     }
-    DagBlock blk(pivot_hash, propose_level, tip_hashes, sharded_trxs);
+    DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
     proposer_.lock()->proposeBlock(blk);
     ret = true;
   }
@@ -161,8 +157,8 @@ bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
   return ok;
 }
 
-bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard,
-                                   vec_trx_t& sharded_trxs) {
+bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
+                                   uint my_shard, vec_trx_t& sharded_trxs) {
   auto full_node = full_node_.lock();
   auto& log_time = full_node->getTimeLogger();
   vec_trx_t to_be_packed_trx;
@@ -171,7 +167,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, uint my_shard,
     LOG(log_er_) << "TransactionManager expired ..." << std::endl;
     return false;
   }
-  trx_mgr->packTrxs(to_be_packed_trx);
+  trx_mgr->packTrxs(to_be_packed_trx, frontier);
   if (to_be_packed_trx.empty()) {
     LOG(log_dg_) << "Skip block proposer, zero unpacked transactions ..."
                  << std::endl;
@@ -254,9 +250,22 @@ bool BlockProposer::winProposeSortition(level_t propose_level,
   }
   return ret;
 }  // namespace taraxa
-void BlockProposer::proposeBlock(DagBlock const& blk) {
-  full_node_.lock()->insertBlockAndSign(blk);
-  LOG(log_nf_) << "Propose block :" << blk;
+void BlockProposer::proposeBlock(DagBlock& blk) {
+  auto full_node = full_node_.lock();
+  assert(full_node);
+
+  blk.sign(full_node->getSecretKey());
+  full_node_.lock()->insertBlock(blk);
+
+  auto& log_time = full_node->getTimeLogger();
+  auto now = getCurrentTimeMilliSeconds();
+
+  LOG(log_time) << "Propose block " << blk.getHash() << " at: " << now
+                << " ,trxs: " << blk.getTrxs()
+                << " , tips: " << blk.getTips().size();
+  LOG(log_si_) << getFullNodeAddress() << " Propose block :" << blk.getHash()
+               << " pivot: " << blk.getPivot() << " , number of trx ("
+               << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 
