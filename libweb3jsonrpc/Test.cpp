@@ -96,7 +96,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       LOG(log_time) << "Transaction " << trx.getHash()
                     << " received at: " << now;
       node->insertTransaction(trx);
-      res = trx.getJsonStr();
+      res = toHex(trx.rlp(true));
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -375,8 +375,8 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t pbft_round = param1["period"].asUInt64();
       std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
-      std::vector<Vote> votes = vote_mgr->getVotes(pbft_round,
-          pbft_mgr->sortition_account_balance_table.size());
+      std::vector<Vote> votes = vote_mgr->getVotes(
+          pbft_round, pbft_mgr->sortition_account_balance_table.size());
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {

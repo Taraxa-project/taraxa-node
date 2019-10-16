@@ -204,8 +204,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       case SyncedPacket: {
         LOG(log_dg_) << "Received synced message from " << _nodeID;
         peer->syncing_ = false;
-      }
-      break;
+      } break;
       case StatusPacket: {
         auto const peer_protocol_version = _r[0].toInt<unsigned>();
         auto const network_id = _r[1].toString();
@@ -1005,8 +1004,9 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                << height_to_sync << ", will send " << blocks_to_transfer
                << " pbft blocks to " << _id;
   if (auto full_node = full_node_.lock()) {
-    auto blocks = full_node->getPbftChain()->getPbftBlocks(height_to_sync,
-                                                           blocks_to_transfer);
+    auto pbftchain = full_node->getPbftChain();
+    assert(pbftchain);
+    auto blocks = pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
     RLPStream s;
     host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                  blocks.size());
