@@ -92,19 +92,23 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   std::shared_ptr<Network> nw3 = node3->getNetwork();
   const int node_peers = 2;
+  bool checkpoint_passed = false;
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
     if (nw1->getPeerCount() == node_peers &&
         nw2->getPeerCount() == node_peers &&
         nw3->getPeerCount() == node_peers) {
+      checkpoint_passed = true;
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  ASSERT_EQ(node_peers, nw1->getPeerCount());
-  ASSERT_EQ(node_peers, nw2->getPeerCount());
-  ASSERT_EQ(node_peers, nw3->getPeerCount());
-
+  if (checkpoint_passed == false) {
+    ASSERT_EQ(node_peers, nw1->getPeerCount());
+    ASSERT_EQ(node_peers, nw2->getPeerCount());
+    ASSERT_EQ(node_peers, nw3->getPeerCount());  
+  }
+  
   auto node1_addr = addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5");
   auto node2_addr = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto node3_addr = addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e");
@@ -119,6 +123,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
                                             node2_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
+  /*
   for (auto i = 0; i < 100; i++) {
     // test timeout is 10 seconds
     if (node1->getNumProposedBlocks() == 1 &&
@@ -131,11 +136,36 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 1);
   }
+  */
+
+  std::cout << "Checking all nodes see transaction from node 1 to node 2..." << std::endl;
+    
+  checkpoint_passed = false;
+  for (auto i = 0; i < 600; i++) {
+    // test timeout is 60 seconds
+    if (node1->getNumTransactionExecuted() == 1 &&
+        node2->getNumTransactionExecuted() == 1 &&
+        node3->getNumTransactionExecuted() == 1) {
+      
+      checkpoint_passed = true;
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  if (checkpoint_passed == false) {
+    ASSERT_EQ(node1->getNumTransactionExecuted(), 1);
+    ASSERT_EQ(node2->getNumTransactionExecuted(), 1);
+    ASSERT_EQ(node3->getNumTransactionExecuted(), 1);  
+  }
+
 
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
+  
   int pbft_chain_size = 3;
+  
+  /*
   // Vote DAG block
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
@@ -146,11 +176,14 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
+  */
+
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain3->getPbftChainSize(), pbft_chain_size);
 
   for (auto i = 0; i < nodes.size(); i++) {
+    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getBalance(node1_addr).first, 9007199254740991 - 100);
     EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 0);
@@ -162,6 +195,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
                                             node3_addr, data, g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node3);
 
+  /*
   for (auto i = 0; i < 100; i++) {
     // test timeout is 10 seconds
     if (node1->getNumProposedBlocks() == 2 &&
@@ -172,8 +206,31 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   for (auto i = 0; i < nodes.size(); i++) {
+    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getNumProposedBlocks(), 2);
   }
+  */
+
+  std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
+  
+  checkpoint_passed = false;
+  for (auto i = 0; i < 600; i++) {
+    // test timeout is 60 seconds
+    if (node1->getNumTransactionExecuted() == 2 &&
+        node2->getNumTransactionExecuted() == 2 &&
+        node3->getNumTransactionExecuted() == 2) {
+      
+      checkpoint_passed = true;
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  if (checkpoint_passed == false) {
+    ASSERT_EQ(node1->getNumTransactionExecuted(), 1);
+    ASSERT_EQ(node2->getNumTransactionExecuted(), 1);
+    ASSERT_EQ(node3->getNumTransactionExecuted(), 1);  
+  }
+
 
   pbft_chain_size = 5;
   // Vote DAG block
@@ -191,6 +248,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   EXPECT_EQ(pbft_chain3->getPbftChainSize(), pbft_chain_size);
 
   for (auto i = 0; i < nodes.size(); i++) {
+    std::cout << "Checking account balances on node " << i << " ..." << std::endl;
     EXPECT_EQ(nodes[i]->getBalance(node1_addr).first, 9007199254740991 - 1100);
     EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 1000);
