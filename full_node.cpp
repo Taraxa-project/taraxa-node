@@ -290,7 +290,7 @@ void FullNode::start(bool boot_node) {
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
-  
+
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_blks_,
@@ -375,8 +375,7 @@ void FullNode::stop() {
   dag_mgr_->stop();  // dag_mgr_ stopped, notify blk_proposer ...
   blk_proposer_->stop();
   blk_mgr_->stop();
-  // Do not stop network_, o.w. restart node will crash	network_->stop();
-  // network_->stop();
+  network_->stop();
   trx_mgr_->stop();
   trx_order_mgr_->stop();
   pbft_mgr_->stop();
@@ -819,8 +818,8 @@ void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                            uint64_t period, size_t step, blk_hash_t const &last_pbft_block_hash) {
-  
+                            uint64_t period, size_t step,
+                            blk_hash_t const &last_pbft_block_hash) {
   // sortition signature
   sig_t sortition_signature =
       vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);
@@ -888,6 +887,8 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
-std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {return dag_mgr_->getUnOrderedDagBlks();}
+std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {
+  return dag_mgr_->getUnOrderedDagBlks();
+}
 
 }  // namespace taraxa
