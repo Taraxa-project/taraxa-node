@@ -136,7 +136,7 @@ class PbftManager {
       std::make_pair(NULL_BLOCK_HASH, false);
 
   std::weak_ptr<FullNode> node_;
-  std::shared_ptr<std::thread> daemon_;
+  std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<TaraxaCapability> capability_;
