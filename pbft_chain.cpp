@@ -858,7 +858,7 @@ void PbftChain::pbftVerifiedSetErase_() {
 void PbftChain::insertPbftBlockIndex_(
     taraxa::blk_hash_t const& pbft_block_hash) {
   db_pbft_blocks_order_->put(std::to_string(size_), pbft_block_hash.toString());
-  db_pbftchain_->commit();
+  db_pbft_blocks_order_->commit();
 }
 
 void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
