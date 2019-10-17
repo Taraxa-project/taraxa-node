@@ -2,10 +2,12 @@
 #define TARAXA_NODE_WSSERVER_HPP
 
 #include <algorithm>
+#include <atomic>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <cstdlib>
+#include <deque>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -55,6 +57,9 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   dev::Logger log_tr_{dev::createLogger(dev::Verbosity::VerbosityTrace, "RPC")};
 
  private:
+  void writeImpl(const std::string& message);
+  void write(const std::string& message);
+  std::deque<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
   int subscription_id_ = 0;
@@ -63,7 +68,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   int new_transactions_subscription_ = 0;
   int new_dag_block_finalized_subscription_ = 0;
   int new_schedule_block_executed_subscription_ = 0;
-  bool closed_ = false;
+  std::atomic<bool> closed_ = false;
 };
 
 //------------------------------------------------------------------------------
@@ -72,15 +77,10 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 class WSServer : public std::enable_shared_from_this<WSServer> {
  public:
   WSServer(net::io_context& ioc, tcp::endpoint endpoint);
-  ~WSServer() {
-    if (!stopped_) {
-      stop();
-    }
-  }
+  ~WSServer();
 
   // Start accepting incoming connections
   void run();
-  void stop();
   void newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const& blk,
                        uint64_t const& block_number);
   void newDagBlock(DagBlock const& blk);
@@ -103,7 +103,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   net::io_context& ioc_;
   tcp::acceptor acceptor_;
   std::list<std::shared_ptr<WSSession>> sessions;
-  bool stopped_ = false;
+  std::atomic<bool> stopped_ = false;
   boost::shared_mutex sessions_mtx_;
 };
 }  // namespace taraxa

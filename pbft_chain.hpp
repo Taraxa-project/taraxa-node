@@ -199,7 +199,6 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 class PbftChain {
  public:
   PbftChain(std::string const& dag_genesis_hash);
-  ~PbftChain() {}
 
   void setFullNode(std::shared_ptr<FullNode> node);
   void releaseDB();
@@ -238,14 +237,14 @@ class PbftChain {
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
-  size_t pbftVerifiedSetSize() const;
-  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
   bool pbftVerifiedQueueEmpty() const;
   PbftBlock pbftVerifiedQueueFront() const;
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
 
  private:
+  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
+  void pbftVerifiedSetErase_();
   void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
   void insertUnverifiedPbftBlockIntoParentMap_(
       blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
@@ -270,16 +269,14 @@ class PbftChain {
 
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  // key : block height(start at 1), value : block hash
+  std::shared_ptr<SimpleDBFace> db_pbft_blocks_order_ = nullptr;
   // Start DAG genesis at index 1
   // key : DAG block height, value : DAG block hash
   std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
   // Start DAG genesis at block height 1
   // key : DAG block hash, value : DAG block height
   std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
-
-  // TODO: Need to think of how to shrink these info(by using LRU cache?), or
-  //  move to DB
-  std::vector<blk_hash_t> pbft_blocks_index_;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>

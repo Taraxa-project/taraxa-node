@@ -1,4 +1,15 @@
-$(shell git submodule update --recursive --init &> /dev/null)
+DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
+	submodules/ethash/build/lib/ethash/libethash.a \
+	submodules/libff/build/libff/libff.a \
+	submodules/secp256k1/.libs/libsecp256k1.a \
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
+	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a \
+	trx_engine/trx_engine.a
+ifneq (,$(shell git submodule update --recursive --init))
+    $(info Cleaning up built dependencies cause the submodules changed: $(DEPENDENCIES))
+    $(shell rm -rf $(DEPENDENCIES))
+endif
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
 CPPFLAGS := -I submodules -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
@@ -40,7 +51,11 @@ endif
 ifneq ($(DEBUG), 0)
 	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
 	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
-	CPPFLAGS += -Wl,--export-dynamic 
+	ifeq ($(OS),Dawrin)
+		CPPFLAGS += -Wl,--export-dynamic 
+	else 
+		CPPFLAGS += -rdynamic
+	endif
 	BUILDDIR := build-d
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
@@ -314,16 +329,6 @@ ${OBJECTDIR}/prometheus_demo.o: prometheus_demo.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/prometheus_demo.o prometheus_demo.cpp $(CPPFLAGS)
 
-DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
-	submodules/ethash/build/lib/ethash/libethash.a \
-	submodules/libff/build/libff/libff.a \
-	submodules/secp256k1/.libs/libsecp256k1.a \
-	core_tests/create_samples.hpp \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a \
-	trx_engine/trx_engine.a
-
 trx_engine/trx_engine.a:
 	@echo Building Go trx engine static C library
 	cd submodules/taraxa-evm; go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ../../trx_engine/trx_engine.a
@@ -355,55 +360,55 @@ submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a s
 
 $(BUILDDIR)/main: $(DEPENDENCIES) $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/dag_block_test: $(OBJECTDIR)/dag_block_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_block_test.o -o $(TESTBUILDDIR)/dag_block_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_block_test.o -o $(TESTBUILDDIR)/dag_block_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/full_node_test: $(OBJECTDIR)/full_node_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/pbft_chain_test: $(OBJECTDIR)/pbft_chain_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/pbft_rpc_test: $(OBJECTDIR)/pbft_rpc_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_rpc_test.o -o $(TESTBUILDDIR)/pbft_rpc_test  $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_rpc_test.o -o $(TESTBUILDDIR)/pbft_rpc_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/pbft_manager_test: $(OBJECTDIR)/pbft_manager_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_manager_test.o -o $(TESTBUILDDIR)/pbft_manager_test  $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_manager_test.o -o $(TESTBUILDDIR)/pbft_manager_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/performance_test: $(OBJECTDIR)/performance_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/performance_test.o -o $(TESTBUILDDIR)/performance_test  $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/performance_test.o -o $(TESTBUILDDIR)/performance_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/prometheus_demo: $(OBJECTDIR)/prometheus_demo.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 test: $(TESTBUILDDIR)/full_node_test $(TESTBUILDDIR)/dag_block_test $(TESTBUILDDIR)/network_test $(TESTBUILDDIR)/dag_test $(TESTBUILDDIR)/transaction_test $(TESTBUILDDIR)/p2p_test $(TESTBUILDDIR)/crypto_test $(TESTBUILDDIR)/pbft_chain_test $(TESTBUILDDIR)/pbft_rpc_test $(TESTBUILDDIR)/pbft_manager_test
 
@@ -413,15 +418,16 @@ run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
 run_test: main test
-	./$(TESTBUILDDIR)/crypto_test
-	./$(TESTBUILDDIR)/pbft_rpc_test
-	./$(TESTBUILDDIR)/transaction_test
-	./$(TESTBUILDDIR)/dag_test
-	./$(TESTBUILDDIR)/dag_block_test
-	./$(TESTBUILDDIR)/full_node_test
-	./$(TESTBUILDDIR)/p2p_test
-	./$(TESTBUILDDIR)/network_test
-	./$(TESTBUILDDIR)/pbft_chain_test
+	./scripts/run_commands_long_circuit.sh \
+	./$(TESTBUILDDIR)/crypto_test \
+	./$(TESTBUILDDIR)/pbft_rpc_test \
+	./$(TESTBUILDDIR)/transaction_test \
+	./$(TESTBUILDDIR)/dag_test \
+	./$(TESTBUILDDIR)/dag_block_test \
+	./$(TESTBUILDDIR)/full_node_test \
+	./$(TESTBUILDDIR)/p2p_test \
+	./$(TESTBUILDDIR)/network_test \
+	./$(TESTBUILDDIR)/pbft_chain_test \
 	./$(TESTBUILDDIR)/pbft_manager_test
 
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main

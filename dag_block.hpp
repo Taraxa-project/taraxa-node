@@ -14,9 +14,9 @@
 #include <thread>
 #include "libdevcore/CommonJS.h"
 #include "libdevcore/Log.h"
-#include "transaction.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include <atomic>
 
 namespace taraxa {
 using std::string;
@@ -102,6 +102,18 @@ enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
 using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
 using BlockUnsafeStatusTable = BlockStatusTable::UnsafeStatusTable;
 
+struct DagFrontier {
+  DagFrontier() = default;
+  DagFrontier(blk_hash_t const &pivot, vec_blk_t const &tips)
+      : pivot(pivot), tips(tips) {}
+  void clear() {
+    pivot.clear();
+    tips.clear();
+  }
+  blk_hash_t pivot;
+  vec_blk_t tips;
+};
+
 /**
  * Thread safe
  */
@@ -133,7 +145,7 @@ class BlockManager {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   void verifyBlock();
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
 

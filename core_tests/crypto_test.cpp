@@ -67,8 +67,7 @@ TEST(EthereumCrypto, sortition_test) {
 
 TEST(EthereumCrypto, sortition_rate) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  boost::asio::io_context context;
-  auto node(std::make_shared<FullNode>(context, cfg, true));
+  auto node(FullNode::make(cfg, true));
 
   size_t valid_sortition_players = 100;
   string message = "This is a test message.";

@@ -120,6 +120,12 @@ void WSSession::on_write_no_read(beast::error_code ec,
   }
   // Clear the buffer
   buffer_.consume(buffer_.size());
+
+  if (queue_messages_.size() > 0) {
+    std::string message = queue_messages_.front();
+    queue_messages_.pop_front();
+    write(message);
+  }
 }
 
 void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
@@ -141,6 +147,23 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
   }
 }
 
+void WSSession::write(const std::string &message) {
+  ws_.text(ws_.got_text());
+  LOG(log_tr_) << "WS WRITE " << message.c_str();
+  ws_.async_write(boost::asio::buffer(message),
+                  beast::bind_front_handler(&WSSession::on_write_no_read,
+                                            shared_from_this()));
+}
+
+void WSSession::writeImpl(const std::string &message) {
+  if (queue_messages_.size() > 0) {
+    // outstanding async_write
+    queue_messages_.push_back(message);
+    return;
+  }
+  write(message);
+}
+
 void WSSession::newDagBlock(DagBlock const &blk) {
   if (new_dag_blocks_subscription_) {
     Json::Value res, params;
@@ -151,11 +174,8 @@ void WSSession::newDagBlock(DagBlock const &blk) {
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.text(ws_.got_text());
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-    ws_.async_write(boost::asio::buffer(response),
-                    beast::bind_front_handler(&WSSession::on_write_no_read,
-                                              shared_from_this()));
+    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
+                            std::allocator<void>());
   }
 }
 
@@ -171,11 +191,8 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.text(ws_.got_text());
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-    ws_.async_write(boost::asio::buffer(response),
-                    beast::bind_front_handler(&WSSession::on_write_no_read,
-                                              shared_from_this()));
+    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
+                            std::allocator<void>());
   }
 }
 
@@ -195,11 +212,8 @@ void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk,
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.text(ws_.got_text());
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-    ws_.async_write(boost::asio::buffer(response),
-                    beast::bind_front_handler(&WSSession::on_write_no_read,
-                                              shared_from_this()));
+    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
+                            std::allocator<void>());
   }
 }
 
@@ -213,11 +227,8 @@ void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.text(ws_.got_text());
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-    ws_.async_write(boost::asio::buffer(response),
-                    beast::bind_front_handler(&WSSession::on_write_no_read,
-                                              shared_from_this()));
+    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
+                            std::allocator<void>());
   }
 }
 
@@ -263,7 +274,7 @@ WSServer::WSServer(net::io_context &ioc, tcp::endpoint endpoint)
 // Start accepting incoming connections
 void WSServer::run() { do_accept(); }
 
-void WSServer::stop() {
+WSServer::~WSServer() {
   stopped_ = true;
   acceptor_.close();
   boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);

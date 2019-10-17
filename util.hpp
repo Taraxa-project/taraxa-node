@@ -80,6 +80,11 @@ std::ostream &operator<<(std::ostream &strm, std::vector<T> const &vec) {
   }
   return strm;
 }
+template <typename U, typename V>
+std::ostream &operator<<(std::ostream &strm, std::pair<U, V> const &pair) {
+  strm << "[ " << pair.first << " , " << pair.second << "]";
+  return strm;
+}
 
 using stream = std::basic_streambuf<uint8_t>;
 using bufferstream = boost::iostreams::stream_buffer<

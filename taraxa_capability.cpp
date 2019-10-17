@@ -45,7 +45,7 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
-    size_t height_to_sync = full_node->getPbftVerifiedBlocksSize();
+    size_t height_to_sync = full_node->getPbftChainSize() + 1;
     requestPbftBlocks(_nodeID, height_to_sync);
   }
 }
@@ -73,13 +73,13 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
 void TaraxaCapability::continueSync(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     auto peer = getPeer(_nodeID);
-    int max_level = 0;
+    int max_block_level_received = 0;
     if (peer) {
       for (auto block_level = peer->m_syncBlocks.begin();
            block_level != peer->m_syncBlocks.end();) {
         for (auto block : block_level->second) {
-          if (block.second.first.getLevel() > max_level)
-            max_level = block.second.first.getLevel();
+          if (block.second.first.getLevel() > max_block_level_received)
+            max_block_level_received = block.second.first.getLevel();
           auto status = checkTipsandPivot(block.second.first);
           if (!status.first) {
             peer->m_lastRequest = status.second;
@@ -99,7 +99,19 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
       }
       peer->m_syncBlocks.clear();
       if (syncing_ && peer_syncing_ == _nodeID) {
-        syncPeer(_nodeID, max_level + 1);
+        uint64_t max_level = full_node->getMaxDagLevel();
+        while (max_block_level_received >
+               max_level + (10 * conf_.network_sync_level_size)) {
+          LOG(log_er_) << "Syncing blocks faster then processing"
+                       << max_block_level_received << " " << max_level;
+          thisThreadSleepForSeconds(1);
+          max_level = full_node->getMaxDagLevel();
+        }
+        if (max_block_level_received < max_level) {
+          syncPeer(_nodeID, max_level + 1);
+        } else {
+          syncPeer(_nodeID, max_block_level_received + 1);
+        }
       }
     }
   }
@@ -190,8 +202,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     peer->setLastMessage();
     switch (_id) {
       case SyncedPacket: {
+        LOG(log_dg_) << "Received synced message from " << _nodeID;
         peer->syncing_ = false;
-      }
+      } break;
       case StatusPacket: {
         auto const peer_protocol_version = _r[0].toInt<unsigned>();
         auto const network_id = _r[1].toString();
@@ -359,7 +372,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
         if (auto full_node = full_node_.lock()) {
           auto blocks = full_node->getDagBlocksAtLevel(level, number_of_levels);
-          if (blocks.size() > 0) sendBlocks(_nodeID, blocks);
+          sendBlocks(_nodeID, blocks);
         }
         break;
       }
@@ -456,9 +469,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
           size_t my_chain_size = full_node->getPbftChainSize();
-          if (my_chain_size > height_to_sync) {
-            size_t blocks_to_transfer =
-                std::min(max_blocks_in_packet, my_chain_size - height_to_sync);
+          if (my_chain_size >= height_to_sync) {
+            size_t blocks_to_transfer = std::min(
+                max_blocks_in_packet, my_chain_size - (height_to_sync - 1));
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
         }
@@ -522,6 +535,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 }
 
 void TaraxaCapability::restartSyncing() {
+  if (syncing_) return;
   LOG(log_nf_) << "Restarting syncing";
   NodeID max_level_nodeID;
   unsigned long max_level = 0;
@@ -990,8 +1004,9 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                << height_to_sync << ", will send " << blocks_to_transfer
                << " pbft blocks to " << _id;
   if (auto full_node = full_node_.lock()) {
-    auto blocks = full_node->getPbftChain()->getPbftBlocks(height_to_sync,
-                                                           blocks_to_transfer);
+    auto pbftchain = full_node->getPbftChain();
+    assert(pbftchain);
+    auto blocks = pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
     RLPStream s;
     host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                  blocks.size());

@@ -1,11 +1,13 @@
 #ifndef TARAXA_NODE_FULL_NODE_HPP
 #define TARAXA_NODE_FULL_NODE_HPP
 
+#include <atomic>
 #include <boost/asio.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
 #include "config.hpp"
 #include "executor.hpp"
@@ -14,9 +16,13 @@
 #include "libdevcrypto/Common.h"
 #include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
+#include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
+#include "util/process_container.hpp"
 #include "vote.h"
+
+class Top;
 
 namespace taraxa {
 
@@ -34,24 +40,26 @@ class PbftManager;
 class NetworkConfig;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
- public:
-  explicit FullNode(boost::asio::io_context &io_context,
-                    std::string const &conf_full_node_file,
-                    bool destroy_db = false, bool rebuild_network = false);
-  explicit FullNode(boost::asio::io_context &io_context,
-                    FullNodeConfig const &conf_full_node,
-                    bool destroy_db = false, bool rebuild_network = false);
+  friend class Top;
 
-  virtual ~FullNode() {
-    if (!stopped_) {
-      stop();
-    }
+  explicit FullNode(std::string const &conf_full_node_file,
+                    bool destroy_db = false, bool rebuild_network = false);
+  explicit FullNode(FullNodeConfig const &conf_full_node,
+                    bool destroy_db = false, bool rebuild_network = false);
+  void stop();
+
+ public:
+  using container = util::process_container::process_container<FullNode>;
+  friend container;
+
+  template <typename... Arg>
+  static container make(Arg &&... args) {
+    return new FullNode(std::forward<Arg>(args)...);
   }
+
+  //  virtual ~FullNode() = default;
   void setDebug(bool debug);
   void start(bool boot_node);
-  void stop();
-  bool reset();  // clean db, reset everything ... can be called only stopped
-  void initDB(bool destroy_db);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
   boost::asio::io_context &getIoContext();
@@ -74,7 +82,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // Insert a block in persistent storage and build in dag
   void insertBlock(DagBlock const &blk);
-  void insertBlockAndSign(DagBlock const &blk);
 
   // Only used in initial syncs when blocks are received with full list of
   // transactions
@@ -90,7 +97,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
-
+  void updateNonceTable(DagBlock const &dagblk, DagFrontier const &frontier);
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       unsigned long level, int number_of_levels);
@@ -98,6 +105,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
   void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
+  void getGhostPath(std::vector<std::string> &ghost);
+
   std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk);
   // Note: returned block hashes does not have order
   // Epoch friends : dag blocks in the same epoch/period
@@ -128,7 +137,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     propose_threshold_ = threshold;
     LOG(log_wr_) << "Set propose threshold beta to " << threshold;
   }
-
+  std::unordered_set<std::string> getUnOrderedDagBlks() const;
   // get transaction schecules stuff ...
   // fixme: return optional
   blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
@@ -154,8 +163,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       std::unordered_map<addr_t, std::pair<val_t, int64_t>>
           &sortition_account_balance_table,
       uint64_t period);
-
-  bool destroyDB();
 
   // get DBs
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
@@ -187,7 +194,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
   bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
   uint64_t getPbftChainSize() const;
-  size_t getPbftVerifiedBlocksSize() const;
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
   void setVerifiedPbftBlock(PbftBlock const &pbft_block);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
@@ -198,6 +204,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
+  std::shared_ptr<SimpleDBFace> getPbftBlocksOrderDB() const {
+    return db_pbft_blocks_order_;
+  }
   std::shared_ptr<SimpleDBFace> getDagBlocksOrderDB() const {
     return db_dag_blocks_order_;
   }
@@ -208,7 +217,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT RPC
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                    uint64_t period, size_t step);
+                    uint64_t period, size_t step,
+                    blk_hash_t const &last_pbft_block_hash);
 
   // get dag block for rpc
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
@@ -224,9 +234,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;
   unsigned long getTransactionStatusCount() const;
-  auto getUnsafeTransactionStatusTable() const {
-    return trx_mgr_->getUnsafeTransactionStatusTable();
-  }
+  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
     return executor_->getNumExecutedTrx();
   }
@@ -238,11 +246,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
 
  private:
-  // ** NOTE: io_context must be constructed before Network
-  boost::asio::io_context &io_context_;
   size_t num_block_workers_ = 2;
-  bool stopped_ = true;
-  bool db_inited_ = false;
+  // fixme (here and everywhere else): non-volatile
+  std::atomic<bool> stopped_ = true;
   // configuration
   FullNodeConfig conf_;
   bool debug_ = false;
@@ -287,6 +293,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // PBFT DB
   std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_pbft_blocks_order_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
 

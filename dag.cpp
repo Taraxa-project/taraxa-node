@@ -434,12 +434,6 @@ DagManager::DagManager(std::string const &genesis) try
   std::cerr << e.what() << std::endl;
 }
 
-DagManager::~DagManager() {
-  if (!stopped_) {
-    stop();
-  }
-}
-
 std::shared_ptr<DagManager> DagManager::getShared() {
   try {
     return shared_from_this();
@@ -469,19 +463,13 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
-void DagManager::start() {
-  if (!stopped_) return;
-  stopped_ = false;
-}
-void DagManager::stop() {
-  if (stopped_) return;
-  stopped_ = true;
-}
 bool DagManager::addDagBlock(DagBlock const &blk) {
-  uLock lock(mutex_);
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
   auto p = blk.getPivot();
+  DagFrontier frontier;
+  uLock lock(mutex_);
+
   if (total_dag_->hasVertex(hash)) {
     LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
     return true;
@@ -506,7 +494,21 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
   }
 
   addToDag(hash, pivot, tips);
-  LOG(log_dg_) << "Block " << h << " added to DAG";
+  auto full_node = full_node_.lock();
+
+  // full_node could be null in test
+  if (full_node) {
+    auto [p, ts] = getFrontier();
+    frontier.pivot = blk_hash_t(p);
+    for (auto const &t : ts) {
+      frontier.tips.emplace_back(blk_hash_t(t));
+    }
+    full_node->updateNonceTable(blk, frontier);
+    LOG(log_dg_) << getFullNodeAddress() << " Update nonce table of blk "
+                 << blk.getHash() << "anchor " << anchors_.back()
+                 << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
+  }
+
   max_level_ = std::max(max_level_, blk.getLevel());
   recent_added_blks_.insert(hash);
   return true;
@@ -516,7 +518,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  LOG(log_nf_) << "Insert block to DAG : " << hash;
+  LOG(log_dg_) << getFullNodeAddress() << " Insert block to DAG : " << hash;
 }
 
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
@@ -527,6 +529,17 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
   std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
+  std::tie(pivot, tips) = getFrontier();
+
+  return !pivot.empty();
+}
+
+std::pair<std::string, std::vector<std::string>> DagManager::getFrontier()
+    const {
+  std::string pivot;
+  std::vector<std::string> tips;
+  std::vector<std::string> pivot_chain;
+
   auto last_pivot = anchors_.back();
   pivot_tree_->getGhostPath(last_pivot, pivot_chain);
   if (!pivot_chain.empty()) {
@@ -537,9 +550,8 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
         std::remove_if(tips.begin(), tips.end(),
                        [pivot](std::string const &s) { return s == pivot; });
     tips.erase(end, tips.end());
-    ret = true;
   }
-  return ret;
+  return {pivot, tips};
 }
 
 void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
@@ -548,6 +560,12 @@ void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
 void DagManager::getGhostPath(std::string const &source,
                               std::vector<std::string> &ghost) const {
   pivot_tree_->getGhostPath(source, ghost);
+}
+
+void DagManager::getGhostPath(std::vector<std::string> &ghost) const {
+  auto last_pivot = anchors_.back();
+  ghost.clear();
+  pivot_tree_->getGhostPath(last_pivot, ghost);
 }
 std::vector<std::string> DagManager::getEpFriendBetweenPivots(
     std::string const &from, std::string const &to) {
@@ -573,6 +591,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   std::vector<std::string> blk_orders;
   assert(anchors_.size());
   auto prev = anchors_.back();
+
+  // TODO: need to use the same pivot/tips that are stored in nonce map
 
   if (blk_hash_t(prev) == anchor) {
     LOG(log_wr_) << "Query period from " << blk_hash_t(prev) << " to " << anchor
@@ -601,7 +621,7 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.size()) {
-    LOG(log_er_) << getFullNodeAddress() << "Inserting period (" << period
+    LOG(log_er_) << getFullNodeAddress() << " Inserting period (" << period
                  << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
                  << anchors_.size() - 1 << ") " << anchors_.back();
@@ -615,7 +635,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {
-    LOG(log_er_) << getFullNodeAddress() << "Create epoch " << period
+    LOG(log_er_) << getFullNodeAddress() << " Create epoch " << period
                  << " from " << blk_hash_t(prev) << " to " << anchor
                  << " failed ";
     return 0;
