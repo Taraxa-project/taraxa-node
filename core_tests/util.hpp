@@ -36,14 +36,8 @@ template <typename T = ::testing::Test,
           typename = enable_if_t<is_base_of<::testing::Test, T>::value>>
 struct DBUsingTest : public T {
   void SetUp() override {
-    T::SetUp();
     cleanAllTestDB();
-  }
-
-  void TearDown() override {
-    T::TearDown();
-    // we might need DB for debugging
-    // cleanAllTestDB();
+    T::SetUp();
   }
 };
 

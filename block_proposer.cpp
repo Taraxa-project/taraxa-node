@@ -105,14 +105,10 @@ std::shared_ptr<BlockProposer> BlockProposer::getShared() {
 }
 
 void BlockProposer::start() {
-  if (!stopped_) return;
-  if (full_node_.expired()) {
-    LOG(log_er_) << "FullNode is not set ..." << std::endl;
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
-  stopped_ = false;
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
   propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey());
@@ -122,9 +118,11 @@ void BlockProposer::start() {
     }
   });
 }
+
 void BlockProposer::stop() {
-  if (stopped_) return;
-  stopped_ = true;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   proposer_worker_->join();
 }
 
@@ -162,10 +160,6 @@ bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
 bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
                                    uint my_shard, vec_trx_t& sharded_trxs) {
   auto full_node = full_node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "FullNode expired ..." << std::endl;
-    return false;
-  }
   auto& log_time = full_node->getTimeLogger();
   vec_trx_t to_be_packed_trx;
   auto trx_mgr = trx_mgr_.lock();

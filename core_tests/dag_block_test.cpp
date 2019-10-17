@@ -185,9 +185,7 @@ TEST(DagBlock, sign_verify) {
 }
 
 TEST(BlockManager, push_and_pop) {
-  boost::asio::io_context context;
-  auto node(std::make_shared<taraxa::FullNode>(
-      context, std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node(taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa1.json")));
   BlockManager blk_qu(1024, 2);
   blk_qu.setFullNode(node->getShared());
   blk_qu.start();

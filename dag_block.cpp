@@ -230,28 +230,25 @@ blk_hash_t DagBlock::sha3(bool include_sig) const {
 
 BlockManager::BlockManager(size_t capacity, unsigned num_verifiers)
     : capacity_(capacity), num_verifiers_(num_verifiers) {}
-BlockManager::~BlockManager() {
-  if (!stopped_) {
-    stop();
-  }
-}
+
+BlockManager::~BlockManager() { stop(); }
+
 void BlockManager::start() {
-  if (!stopped_) return;
-  LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
-  if (!node_.lock()) {
-    LOG(log_er_) << "FullNode is not set ...";
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
   trx_mgr_ = node_.lock()->getTransactionManager();
-  stopped_ = false;
   verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });
   }
 }
+
 void BlockManager::stop() {
-  if (stopped_) return;
-  { stopped_ = true; }
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
+  }
   cond_for_unverified_qu_.notify_all();
   cond_for_verified_qu_.notify_all();
   for (auto &t : verifiers_) {

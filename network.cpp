@@ -53,11 +53,7 @@ Network::Network(NetworkConfig const &config, std::string network_file,
   throw e;
 }
 
-Network::~Network() {
-  if (!stopped_) {
-    stop();
-  }
-}
+Network::~Network() { stop(); }
 
 void Network::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
@@ -69,14 +65,10 @@ NetworkConfig Network::getConfig() { return conf_; }
 bool Network::isStarted() { return !stopped_; }
 
 void Network::start(bool boot_node) {
-  if (!stopped_) {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  stopped_ = false;
-
-  if (host_->isStarted()) {
-    return;
-  }
+  assert(!host_->isStarted());
   size_t boot_node_added = 0;
   for (auto &node : conf_.network_boot_nodes) {
     if (auto full_node = full_node_.lock()) {
@@ -107,10 +99,9 @@ void Network::start(bool boot_node) {
 }
 
 void Network::stop() {
-  if (stopped_) {
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  stopped_ = true;
   host_->stop();
   if (network_file_ != "") saveNetwork(network_file_);
 }

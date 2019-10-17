@@ -287,45 +287,6 @@ Json::Value Test::get_all_nodes() {
   return res;
 }
 
-Json::Value Test::node_stop() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      node->stop();
-      res = "Taraxa node stopped ...\n";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::node_reset() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      node->reset();
-      res = "Taraxa node reset ...\n";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::node_start() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      node->start(false /*destroy_db*/);
-      res = "Taraxa node start ...\n";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::should_speak(const Json::Value &param1) {
   Json::Value res;
   try {

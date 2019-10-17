@@ -31,13 +31,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       RUN_COUNT_VOTES(params[4]),
       dag_genesis_(genesis) {}
 
-void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
-  node_ = node;
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    assert(false);
-  }
+void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
+  node_ = full_node;
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
@@ -61,15 +56,10 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> node) {
 }
 
 void PbftManager::start() {
-  if (!stopped_) {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
   auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
-  }
-
   std::vector<std::string> ghost;
   full_node->getGhostPath(dag_genesis_, ghost);
   while (ghost.empty()) {
@@ -96,7 +86,6 @@ void PbftManager::start() {
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
 
-  stopped_ = false;
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_sil_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
@@ -107,22 +96,17 @@ void PbftManager::start() {
 }
 
 void PbftManager::stop() {
-  if (stopped_) {
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = true;
     monitor_votes_->join();
-    monitor_votes_.reset();
     LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
-    assert(monitor_votes_ == nullptr);
   }
-  stopped_ = true;
   daemon_->join();
-  daemon_.reset();
   LOG(log_sil_) << "PBFT daemon terminated ...";
   db_votes_ = nullptr;
-  assert(daemon_ == nullptr);
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -950,11 +934,6 @@ void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
                              PbftVoteTypes vote_type, uint64_t round,
                              size_t step) {
   auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
-  }
-
   Vote vote = full_node->generateVote(blockhash, vote_type, round, step,
                                       pbft_chain_last_block_hash_);
   vote_mgr_->addVote(vote);

@@ -9,9 +9,8 @@
 
 namespace taraxa {
 
-RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
-                     std::shared_ptr<FullNode> node)
-    : conf_(conf_rpc), io_context_(io), acceptor_(io), node_(node) {
+RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc)
+    : conf_(conf_rpc), io_context_(io), acceptor_(io) {
   LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port << std::endl;
 }
 std::shared_ptr<RpcServer> RpcServer::getShared() {
@@ -25,10 +24,9 @@ std::shared_ptr<RpcServer> RpcServer::getShared() {
 }
 
 bool RpcServer::StartListening() {
-  if (!stopped_) {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
-  stopped_ = false;
   boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
   acceptor_.open(ep.protocol());
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -48,7 +46,7 @@ bool RpcServer::StartListening() {
 
 void RpcServer::waitForAccept() {
   std::shared_ptr<RpcConnection> connection(
-      std::make_shared<RpcConnection>(getShared(), node_));
+      std::make_shared<RpcConnection>(getShared()));
   acceptor_.async_accept(
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
@@ -67,8 +65,9 @@ void RpcServer::waitForAccept() {
 }
 
 bool RpcServer::StopListening() {
-  if (stopped_) return true;
-  stopped_ = true;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return true;
+  }
   acceptor_.close();
   LOG(log_tr_) << "StopListening: ";
   return true;
@@ -87,9 +86,8 @@ std::shared_ptr<RpcConnection> RpcConnection::getShared() {
   }
 }
 
-RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc,
-                             std::shared_ptr<FullNode> node)
-    : rpc_(rpc), node_(node), socket_(rpc->getIoContext()) {
+RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc)
+    : rpc_(rpc), socket_(rpc->getIoContext()) {
   responded_.clear();
 }
 

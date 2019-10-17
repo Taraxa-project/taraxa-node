@@ -11,6 +11,7 @@
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.h"
+#include <atomic>
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991
@@ -31,18 +32,13 @@ class PbftManager {
  public:
   PbftManager(std::string const &genesis);
   PbftManager(std::vector<uint> const &params, std::string const &genesis);
-  ~PbftManager() {
-    if (!stopped_) {
-      stop();
-    }
-  }
+  ~PbftManager() { stop(); }
 
   void setFullNode(std::shared_ptr<FullNode> node);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();
   void stop();
   void run();
-  bool isActive() { return daemon_ != nullptr; }
 
   blk_hash_t getLastPbftBlockHashAtStartOfRound() const {
     return pbft_chain_last_block_hash_;
@@ -134,7 +130,7 @@ class PbftManager {
 
   void updateSortitionAccountBalanceTable_();
 
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   // Using to check if PBFT CS block has proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
       std::make_pair(NULL_BLOCK_HASH, false);
@@ -169,7 +165,7 @@ class PbftManager {
   void countVotes_();
 
   std::shared_ptr<std::thread> monitor_votes_;
-  bool monitor_stop_ = true;
+  std::atomic<bool> monitor_stop_ = true;
   size_t last_step_ = 0;
   std::chrono::system_clock::time_point last_step_clock_initial_datetime_;
   std::chrono::system_clock::time_point current_step_clock_initial_datetime_;

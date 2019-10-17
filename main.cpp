@@ -3,8 +3,6 @@
 int main(int argc, const char* argv[]) {
   TaraxaStackTrace st;
   Top top(argc, argv);
-  if (top.isActive()) {
-    top.run();
-  }
+  top.join();
   std::cout << "Taraxa Node exited ..." << std::endl;
 }

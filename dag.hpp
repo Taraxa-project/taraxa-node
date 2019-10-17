@@ -182,9 +182,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   DagManager(std::string const &genesis);
-  virtual ~DagManager();
-  void start();
-  void stop();
+  virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
@@ -228,7 +226,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   addr_t getFullNodeAddress() const;
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
-  bool stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
