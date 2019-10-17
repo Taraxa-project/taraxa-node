@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 
+#include <atomic>
 #include "config.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
@@ -11,7 +12,6 @@
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.h"
-#include <atomic>
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991

@@ -201,7 +201,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   void getGhostPath(std::string const &source,
                     std::vector<std::string> &ghost) const;
-  void getGhostPath(std::vector<std::string> &ghost) const; // get ghost path from last anchor
+  void getGhostPath(std::vector<std::string> &ghost)
+      const;  // get ghost path from last anchor
   void deletePeriod(uint64_t period);
   // ----- Total graph
   std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
@@ -217,7 +218,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   level_t getMaxLevel() const { return max_level_; }
   uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
   std::string getLatestAnchor() const { return anchors_.back(); }
-  std::unordered_set<std::string> getUnOrderedDagBlks() const {return recent_added_blks_;}
+  std::unordered_set<std::string> getUnOrderedDagBlks() const {
+    return recent_added_blks_;
+  }
+
  private:
   size_t num_cached_period_in_dag = 1000;
   void addToDag(std::string const &hash, std::string const &pivot,

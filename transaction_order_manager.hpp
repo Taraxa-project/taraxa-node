@@ -15,7 +15,6 @@
 #include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
-#include <atomic>
 
 namespace taraxa {
 
