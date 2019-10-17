@@ -5,6 +5,7 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+#include <atomic>
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <condition_variable>
@@ -16,7 +17,6 @@
 #include "libdevcore/Log.h"
 #include "types.hpp"
 #include "util.hpp"
-#include <atomic>
 
 namespace taraxa {
 using std::string;
