@@ -1322,12 +1322,25 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
     if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
       // pushed already from PBFT unverified queue
       pbft_chain_->pbftVerifiedQueuePopFront();
+      LOG(log_deb_) << "PBFT block " << pbft_block.getBlockHash()
+                    << " already present in chain.";
+      LOG(log_deb_) << "PBFT verified queue still contains "
+                    << pbft_chain_->pbftVerifiedQueueSize()
+                    << " verified blocks that could not be pushed.";
       continue;
     }
     if (!pushPbftBlockIntoChain_(pbft_block)) {
+      LOG(log_deb_) << "PBFT chain unable to push verified block "
+                    << pbft_block.getBlockHash();
+      LOG(log_deb_) << "PBFT verified queue still contains "
+                    << pbft_chain_->pbftVerifiedQueueSize()
+                    << " verified blocks that could not be pushed.";
       break;
     }
     pbft_chain_->pbftVerifiedQueuePopFront();
+    LOG(log_deb_) << "PBFT verified queue still contains "
+                  << pbft_chain_->pbftVerifiedQueueSize()
+                  << " verified blocks that could not be pushed.";
   }
 
   if (queue_was_full == true && pbft_chain_->pbftVerifiedQueueEmpty()) {
