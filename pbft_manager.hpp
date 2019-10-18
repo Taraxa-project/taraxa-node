@@ -154,6 +154,8 @@ class PbftManager {
   uint64_t pbft_round_last_requested_sync_ = 1;
   size_t pbft_step_last_requested_sync_ = 1;
 
+  size_t pbft_chain_last_observed_verified_queue_size_ = 0;
+
   uint64_t last_period_should_speak_ = 0;
 
   size_t sortition_threshold_;
