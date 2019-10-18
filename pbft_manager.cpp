@@ -234,15 +234,17 @@ void PbftManager::run() {
               s.append(v.rlp());
             }
             auto ss = s.out();
-            RLP rlps(ss);
-            std::vector<Vote> reconstruct;
-            auto num_votes = rlps.itemCount();
-            for (auto i = 0; i < num_votes; ++i) {
-              auto rev = Vote(rlps[i].toBytes());
-              LOG(log_sil_) << rev;
-              reconstruct.push_back(rev);
-            }
-            LOG(log_sil_) << "Reconstruct " << num_votes << " votes ... ";
+            db_cert_votes_->put(cert_voted_block_hash.first, ss);
+            db_cert_votes_->commit();
+            // RLP rlps(ss);
+            // std::vector<Vote> reconstruct;
+            // auto num_votes = rlps.itemCount();
+            // for (auto i = 0; i < num_votes; ++i) {
+            //   auto rev = Vote(rlps[i].toBytes());
+            //   LOG(log_sil_) << rev;
+            //   reconstruct.push_back(rev);
+            // }
+            // LOG(log_sil_) << "Reconstruct " << num_votes << " votes ... ";
 
             // TODO: debug remove later
             LOG(log_deb_) << "The cert voted pbft block is "

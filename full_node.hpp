@@ -202,7 +202,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_votes_; }
+  std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_cert_votes_; }
   std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
   std::shared_ptr<SimpleDBFace> getPbftBlocksOrderDB() const {
     return db_pbft_blocks_order_;
@@ -291,12 +291,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<StateRegistry::State> state_ = nullptr;
   // PBFT DB
-  std::shared_ptr<SimpleDBFace> db_votes_ = nullptr;
+  std::shared_ptr<SimpleDBFace> db_cert_votes_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_pbft_blocks_order_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
-
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
