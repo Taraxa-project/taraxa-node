@@ -823,6 +823,11 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
+size_t PbftChain::pbftVerifiedQueueSize() const {
+  sharedLock_ lock(verified_access_);
+  return pbft_verified_queue_.size();
+}
+
 bool PbftChain::pbftVerifiedQueueEmpty() const {
   sharedLock_ lock(verified_access_);
   return pbft_verified_queue_.empty();
