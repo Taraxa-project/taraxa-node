@@ -683,25 +683,37 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
 
 bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   if (pbft_block.getBlockType() != pivot_block_type) {
+    LOG(log_err_) << "pushPbftPivotBlock() found pbft block type not equal "
+                     "pivot block type";
     return false;
   }
   if (next_pbft_block_type_ != pivot_block_type) {
+    LOG(log_err_) << "pushPbftPivotBlock() found next_pbft_block_type_ not "
+                     "equal pivot block type";
     return false;
   }
   if (!last_pbft_block_hash_) {
     // The first PBFT Pivot Block
     if (pbft_block.getPivotBlock().getPrevBlockHash() != genesis_hash_) {
+      LOG(log_err_)
+          << "pushPbftPivotBlock() found getPivotBlock().getPrevBlockHash() "
+             "not equal genesis hash";
       return false;
     }
   } else {
     PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
     if (pbft_block.getPivotBlock().getPrevBlockHash() !=
         pbft_chain_last_blk.getBlockHash()) {
+      LOG(log_err_)
+          << "pushPbftPivotBlock() found getPivotBlock().getPrevBlockHash() "
+             "not equal pbft_chain_last_blk.getBlockHash()";
       return false;
     }
   }
   period_++;
   if (!pushPbftBlock(pbft_block)) {
+    LOG(log_err_)
+        << "pushPbftPivotBlock() found pushPbftBlock() returned false";
     return false;
   }
   last_pbft_pivot_hash_ = pbft_block.getBlockHash();
@@ -710,17 +722,26 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
 
 bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
   if (pbft_block.getBlockType() != schedule_block_type) {
+    LOG(log_err_) << "pushPbftScheduleBlock() found pbft block type not equal "
+                     "schedule block type";
     return false;
   }
   if (next_pbft_block_type_ != schedule_block_type) {
+    LOG(log_err_) << "pushPbftScheduleBlock() found next_pbft_block_type_ not "
+                     "equal schedule block type";
     return false;
   }
   PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
   if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
       pbft_chain_last_blk.getBlockHash()) {
+    LOG(log_err_) << "pushPbftScheduleBlock() found "
+                     "getScheduleBlock().getPrevBlockHash() not equal "
+                     "pbft_chain_last_blk.getBlockHash()";
     return false;
   }
   if (!pushPbftBlock(pbft_block)) {
+    LOG(log_err_)
+        << "pushPbftScheduleBlock() found pushPbftBlock() returned false";
     return false;
   }
   return true;

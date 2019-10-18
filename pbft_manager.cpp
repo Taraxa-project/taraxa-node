@@ -1314,6 +1314,9 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
 
 void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
   bool queue_was_full = false;
+
+  size_t pbft_chain_verified_queue_size;
+
   while (!pbft_chain_->pbftVerifiedQueueEmpty()) {
     queue_was_full = true;
     PbftBlock pbft_block = pbft_chain_->pbftVerifiedQueueFront();
@@ -1322,25 +1325,47 @@ void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
     if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
       // pushed already from PBFT unverified queue
       pbft_chain_->pbftVerifiedQueuePopFront();
-      LOG(log_deb_) << "PBFT block " << pbft_block.getBlockHash()
-                    << " already present in chain.";
-      LOG(log_deb_) << "PBFT verified queue still contains "
-                    << pbft_chain_->pbftVerifiedQueueSize()
-                    << " verified blocks that could not be pushed.";
+
+      pbft_chain_verified_queue_size = pbft_chain_->pbftVerifiedQueueSize();
+      if (pbft_chain_last_observed_verified_queue_size_ !=
+          pbft_chain_verified_queue_size) {
+        LOG(log_deb_) << "PBFT block " << pbft_block.getBlockHash()
+                      << " already present in chain.";
+        LOG(log_deb_) << "PBFT verified queue still contains "
+                      << pbft_chain_verified_queue_size
+                      << " verified blocks that could not be pushed.";
+      }
+      pbft_chain_last_observed_verified_queue_size_ =
+          pbft_chain_verified_queue_size;
+
       continue;
     }
     if (!pushPbftBlockIntoChain_(pbft_block)) {
-      LOG(log_deb_) << "PBFT chain unable to push verified block "
-                    << pbft_block.getBlockHash();
-      LOG(log_deb_) << "PBFT verified queue still contains "
-                    << pbft_chain_->pbftVerifiedQueueSize()
-                    << " verified blocks that could not be pushed.";
+      pbft_chain_verified_queue_size = pbft_chain_->pbftVerifiedQueueSize();
+      if (pbft_chain_last_observed_verified_queue_size_ !=
+          pbft_chain_verified_queue_size) {
+        LOG(log_deb_) << "PBFT chain unable to push verified block "
+                      << pbft_block.getBlockHash();
+        LOG(log_deb_) << "PBFT verified queue still contains "
+                      << pbft_chain_verified_queue_size
+                      << " verified blocks that could not be pushed.";
+      }
+      pbft_chain_last_observed_verified_queue_size_ =
+          pbft_chain_verified_queue_size;
+
       break;
     }
     pbft_chain_->pbftVerifiedQueuePopFront();
-    LOG(log_deb_) << "PBFT verified queue still contains "
-                  << pbft_chain_->pbftVerifiedQueueSize()
-                  << " verified blocks that could not be pushed.";
+
+    pbft_chain_verified_queue_size = pbft_chain_->pbftVerifiedQueueSize();
+    if (pbft_chain_last_observed_verified_queue_size_ !=
+        pbft_chain_verified_queue_size) {
+      LOG(log_deb_) << "PBFT verified queue still contains "
+                    << pbft_chain_verified_queue_size
+                    << " verified blocks that could not be pushed.";
+    }
+    pbft_chain_last_observed_verified_queue_size_ =
+        pbft_chain_verified_queue_size;
   }
 
   if (queue_was_full == true && pbft_chain_->pbftVerifiedQueueEmpty()) {
