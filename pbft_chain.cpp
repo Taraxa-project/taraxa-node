@@ -635,6 +635,10 @@ bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
                   << " into DB";
     return false;
   }
+  db_pbftchain_->commit();
+  // To protect PBFT syncing from peers happening in the same time
+  // PBFT chain DB commit first for block, and size_ increase later
+  size_++;
   if (!db_pbftchain_->update(genesis_hash_.toString(), getJsonStr())) {
     LOG(log_err_) << "Failed update pbft genesis in DB";
     return false;
@@ -645,9 +649,7 @@ bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
 }
 
 bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
-  size_++;
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  insertPbftBlockIndex_(pbft_block_hash);
   setLastPbftBlockHash(pbft_block_hash);
   pbftVerifiedSetInsert_(pbft_block.getBlockHash());
   // TODO: only support pbft pivot and schedule block type so far
@@ -662,6 +664,7 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
     assert(false);
     // return false;
   }
+  insertPbftBlockIndex_(pbft_block_hash);
   if (pbft_block.getBlockType() == pivot_block_type) {
     // PBFT ancher block
     LOG(log_inf_) << "Push pbft block " << pbft_block_hash
