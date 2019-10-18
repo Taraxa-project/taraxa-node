@@ -104,11 +104,8 @@ TEST(VoteTest, reconstruct_votes) {
   uint64_t round(999);
   size_t step(2);
   Vote vote1(pk, sortition_sig, vote_sig, blk_hash, type, round, step);
-  std::cout << vote1 << std::endl;
   auto rlp = vote1.rlp();
   Vote vote2(rlp);
-  std::cout << vote2 << std::endl;
-
   EXPECT_EQ(vote1, vote2);
 }
 

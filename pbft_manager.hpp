@@ -141,7 +141,7 @@ class PbftManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<TaraxaCapability> capability_;
   // Database
-  std::shared_ptr<SimpleDBFace> db_votes_;
+  std::shared_ptr<SimpleDBFace> db_cert_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
 
   blk_hash_t pbft_chain_last_block_hash_;
