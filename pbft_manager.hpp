@@ -146,13 +146,13 @@ class PbftManager {
 
   blk_hash_t pbft_chain_last_block_hash_;
 
-  uint64_t pbft_round_ = 1;
-  uint64_t pbft_round_last_ = 1;
-  size_t pbft_step_ = 1;
+  uint64_t pbft_round_;
+  uint64_t pbft_round_last_;
+  size_t pbft_step_;
   bool executed_cs_block_ = false;
 
-  uint64_t pbft_round_last_requested_sync_ = 1;
-  size_t pbft_step_last_requested_sync_ = 1;
+  uint64_t pbft_round_last_requested_sync_;
+  size_t pbft_step_last_requested_sync_;
 
   size_t pbft_chain_last_observed_verified_queue_size_ = 0;
 
