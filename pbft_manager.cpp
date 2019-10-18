@@ -73,18 +73,15 @@ void PbftManager::start() {
   db_votes_ = full_node->getVotesDB();
 
   // Reset round and step...
-  if (pbft_round_ != 1) {
-    LOG(log_err_) << "PBFT round was equal to " << pbft_round_ << " at start()";
-    pbft_round_ = 1;
-  }
-  if (pbft_step_ != 1) {
-    LOG(log_err_) << "PBFT step was equal to " << pbft_step_ << " at start()";
-    pbft_step_ = 1;
-  }
+  pbft_round_last_ = 1;
+  pbft_round_ = 1;
+  pbft_step_ = 1;
 
   // Reset last sync request point...
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
+
+  // Setup sortition table according to status DB
 
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_sil_) << "PBFT daemon initiated ...";
@@ -1289,6 +1286,20 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
                   << pbft_chain_period
                   << " PBFT CS blocks size: " << blocks_in_cs.size()
                   << " DAG blocks size: " << dag_blocks_order->size();
+    // For debug
+    if (dag_blocks_order->size() > blocks_in_cs.size()) {
+      LOG(log_err_) << "Print DAG blocks order:";
+      for (auto const &block : *dag_blocks_order) {
+        LOG(log_err_) << "block: " << block;
+      }
+      LOG(log_err_) << "Print DAG blocks in CS order:";
+      for (auto const &block : blocks_in_cs) {
+        LOG(log_err_) << "block: " << block;
+      }
+      std::string filename = "debug_dag_graph";
+      full_node->drawGraph(filename);
+      assert(false);
+    }
     return false;
   }
   // compare number of transactions in CS with DAG blocks
