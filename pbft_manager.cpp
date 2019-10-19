@@ -1298,7 +1298,7 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       }
       std::string filename = "debug_dag_graph";
       full_node->drawGraph(filename);
-      assert(false);
+      //assert(false);
     }
     return false;
   }
