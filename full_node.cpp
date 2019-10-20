@@ -406,12 +406,14 @@ std::vector<std::string> FullNode::getDagBlockEpFriend(blk_hash_t const &from,
 // return {period, block order}, for pbft-pivot-blk proposing
 std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
     blk_hash_t const &anchor) {
+  LOG(log_dg_) << "getDagBlockOrder called with anchor " << anchor;
   vec_blk_t orders;
   auto period = dag_mgr_->getDagBlockOrder(anchor, orders);
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
 // receive pbft-povit-blk, update periods
 uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
+  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor << " and period " << period; 
   auto res = dag_mgr_->setDagBlockPeriod(anchor, period);
   if (ws_server_) ws_server_->newDagBlockFinalized(anchor, period);
   return res;
