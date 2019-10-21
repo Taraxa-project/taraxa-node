@@ -348,7 +348,8 @@ Unlike the previous tests, this DAG contains blocks with transactions
 and verifies that the sync containing transactions is successful
 */
 TEST(Network, node_sync_with_transactions) {
-  auto node1(taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -399,7 +400,8 @@ TEST(Network, node_sync_with_transactions) {
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  auto node2 = taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa2.json"), true);
+  auto node2 = taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -430,7 +432,8 @@ DAG on the other end is the same
 TEST(Network, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
-  auto node1(taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -530,7 +533,8 @@ TEST(Network, node_sync2) {
 
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
-  auto node2(taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa2.json"), true));
+  auto node2(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa2.json"), true));
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -558,7 +562,8 @@ Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
 TEST(Network, node_transaction_sync) {
-  auto node1(taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -572,7 +577,8 @@ TEST(Network, node_transaction_sync) {
 
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  auto node2 = taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa2.json"), true);
+  auto node2 = taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
   node2->setDebug(true);
   node2->start(false /*boot_node*/);
@@ -597,7 +603,8 @@ resulting DAG is the same on all nodes
 // fixme: flaky
 TEST(Network, node_full_sync) {
   const int numberOfNodes = 5;
-  auto node1(taraxa::FullNode::make(std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
   node1->setDebug(true);
   node1->start(true /*boot_node*/);
@@ -608,8 +615,7 @@ TEST(Network, node_full_sync) {
     config.db_path += std::to_string(i + 1);
     config.network.network_listen_port += i + 1;
     config.node_secret = "";
-    nodes.push_back(
-        taraxa::FullNode::make(config, true));
+    nodes.push_back(taraxa::FullNode::make(config, true));
     nodes[i]->start(false /*boot_node*/);
     taraxa::thisThreadSleepForMilliSeconds(50);
   }

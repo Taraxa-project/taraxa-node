@@ -7,6 +7,7 @@
 #include <libp2p/Common.h>
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
+#include <atomic>
 #include <boost/thread.hpp>
 #include <condition_variable>
 #include <iostream>
@@ -20,7 +21,6 @@
 #include "transaction.hpp"
 #include "util.hpp"
 #include "vote.h"
-#include <atomic>
 
 namespace taraxa {
 

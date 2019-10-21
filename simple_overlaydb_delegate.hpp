@@ -26,7 +26,7 @@ class SimpleOverlayDBDelegate : public SimpleDBFace {
                           uint32_t string_cache_size = 1000);
 
  private:
-  static h256 stringToHashKey(const std::string &s) { return h256(s); }
+  static h256 stringToHashKey(const std::string &s) { return h256(s, h256::FromHex, h256::AlignLeft); }
 
   dev::db::DatabaseFace *raw_db_ = nullptr;
   std::shared_ptr<dev::OverlayDB> odb_ = nullptr;

@@ -1006,7 +1006,12 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
   if (auto full_node = full_node_.lock()) {
     auto pbftchain = full_node->getPbftChain();
     assert(pbftchain);
-    auto blocks = pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
+    std::vector<PbftBlock> blocks =
+        pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
+    // Protect PBFT chain DB processing happening in the same time
+    if (blocks.empty()) {
+      return;
+    }
     RLPStream s;
     host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                  blocks.size());

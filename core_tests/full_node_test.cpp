@@ -154,26 +154,15 @@ void init_5_nodes_coin() {
   t4.join();
 }
 
-void send_5_nodes_trxs(bool coin_distributed) {
-  std::string sendtrx1;
-  if (!coin_distributed) {
-    sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5, 
-                                      "number": 2000, 
-                                      "nonce": 0,
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
-  } else {
-    // nonce start from 4
-    sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+void send_5_nodes_trxs() {
+  // Note: after init_5_nodes_coin, boot node nonce start from 4
+  std::string sendtrx1 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                       "delay": 5,
                                       "number": 2000,
                                       "nonce": 4,
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
-  }
   std::string sendtrx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
@@ -216,27 +205,16 @@ void send_5_nodes_trxs(bool coin_distributed) {
   t5.join();
 
   std::cout << "All trxs sent..." << std::endl;
-}
+}  // namespace taraxa
 
-void send_dummy_trx(bool coin_distributed) {
+void send_dummy_trx() {
   std::cout << "Wait for 40 seconds before sent dummy transaction ..."
             << std::endl;
 
   taraxa::thisThreadSleepForSeconds(40);
-  std::string dummy_trx;
-  if (!coin_distributed) {
-    dummy_trx =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
-                                      "params": [{ 
-                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                        "value": 0, 
-                                        "gas_price": 1, 
-                                        "gas": 100000,
-                                        "nonce": 2000,
-                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
-  } else {
-    dummy_trx =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
+
+  std::string dummy_trx =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
                                       "params": [{
                                         "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                         "value": 0,
@@ -244,7 +222,7 @@ void send_dummy_trx(bool coin_distributed) {
                                         "gas": 100000,
                                         "nonce": 2004,
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)";
-  }
+
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
   taraxa::thisThreadSleepForSeconds(2);
@@ -1071,7 +1049,9 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_GT(node5->getPeerCount(), 0);
 
   try {
-    send_5_nodes_trxs(false);
+    init_5_nodes_coin();
+    thisThreadSleepForSeconds(5);
+    send_5_nodes_trxs();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1092,21 +1072,21 @@ TEST_F(TopTest, detect_overlap_transactions) {
     auto trx_table = node1->getUnsafeTransactionStatusTable();
     int packed_trx = 0;
 
-    if (trx_table.size() == 10000) {
+    if (trx_table.size() == 10004) {
       for (auto const &t : trx_table) {
         if (t.second == TransactionStatus::in_block) {
           packed_trx++;
         }
       }
 
-      if (packed_trx == 10000 && num_vertices1 == num_vertices2 &&
+      if (packed_trx == 10004 && num_vertices1 == num_vertices2 &&
           num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 &&
           num_vertices4 == num_vertices5 &&
-          node1->getTransactionStatusCount() == 10000 &&
-          node2->getTransactionStatusCount() == 10000 &&
-          node3->getTransactionStatusCount() == 10000 &&
-          node4->getTransactionStatusCount() == 10000 &&
-          node5->getTransactionStatusCount() == 10000) {
+          node1->getTransactionStatusCount() == 10004 &&
+          node2->getTransactionStatusCount() == 10004 &&
+          node3->getTransactionStatusCount() == 10004 &&
+          node4->getTransactionStatusCount() == 10004 &&
+          node5->getTransactionStatusCount() == 10004) {
         break;
       }
       if (i % 10 == 0) {
@@ -1139,15 +1119,15 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), 10000);
-  ASSERT_EQ(node2->getTransactionStatusCount(), 10000);
-  ASSERT_EQ(node3->getTransactionStatusCount(), 10000);
-  ASSERT_EQ(node4->getTransactionStatusCount(), 10000);
-  ASSERT_EQ(node5->getTransactionStatusCount(), 10000);
+  ASSERT_EQ(node1->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node2->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node3->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
 
   // send dummy trx to make sure all DAGs are ordered
   try {
-    send_dummy_trx(false);
+    send_dummy_trx();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1172,11 +1152,11 @@ TEST_F(TopTest, detect_overlap_transactions) {
                 << " Dag size: " << num_vertices5 << std::endl;
     }
 
-    if (node1->getTransactionStatusCount() == 10001 &&
-        node2->getTransactionStatusCount() == 10001 &&
-        node3->getTransactionStatusCount() == 10001 &&
-        node4->getTransactionStatusCount() == 10001 &&
-        node5->getTransactionStatusCount() == 10001 &&
+    if (node1->getTransactionStatusCount() == 10005 &&
+        node2->getTransactionStatusCount() == 10005 &&
+        node3->getTransactionStatusCount() == 10005 &&
+        node4->getTransactionStatusCount() == 10005 &&
+        node5->getTransactionStatusCount() == 10005 &&
         num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5)
       break;
@@ -1194,11 +1174,11 @@ TEST_F(TopTest, detect_overlap_transactions) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 10001);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 10001);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 10001);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 10001);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 10001);
+  EXPECT_EQ(node1->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node2->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node3->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node4->getTransactionStatusCount(), 10005);
+  EXPECT_EQ(node5->getTransactionStatusCount(), 10005);
 
   auto block = node1->getConfig().genesis_state.block;
   std::vector<std::string> ghost;
@@ -1280,8 +1260,8 @@ TEST_F(TopTest, detect_overlap_transactions) {
   }
 
   std::cout << "Total packed (overlapped) trxs: " << all_trxs << std::endl;
-  EXPECT_GT(all_trxs, 10001);
-  ASSERT_EQ(ordered_trxs.size(), 10001)
+  EXPECT_GT(all_trxs, 10005);
+  ASSERT_EQ(ordered_trxs.size(), 10005)
       << "Number of unpacked_trx " << trx_table2.size() << std::endl
       << "Total packed (non-overlapped) trxs " << packed_trxs.size()
       << std::endl;
