@@ -74,23 +74,24 @@ def taraxa_rpc_get_account_balance(node_port, account_address):
     return int(balance)
 
 
-def taraxa_rpc_send_coins(node_port, receiver, value):
+def taraxa_rpc_send_coins(sk, node_port, receiver, value, nonce_table):
     request = {
         "jsonrpc": "2.0",
         "id": "1",
         "method": "send_coin_transaction",
         "params": [{
-            "nonce": 0,
+            "nonce": nonce_table[sk],
             "value": value,
             "receiver": receiver,
-            "secret": BOOT_NODE_SK,
+            "secret": sk,
         }]
     }
+    nonce_table[sk] += 1
     json_reply = rpc(node_port, request)
-    print("Boot node send", value, "coins to", receiver)
+    print("Boot node send", value, "coins to", receiver, request)
 
 
-def taraxa_rpc_send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_created):
+def taraxa_rpc_send_many_trx_to_neighbor(sk, node_port, neighbor, number_of_trx_created, nonce_table):
     request = {
         "jsonrpc": "2.0",
         "id": 0,
@@ -98,12 +99,13 @@ def taraxa_rpc_send_many_trx_to_neighbor(node_port, neighbor, number_of_trx_crea
         "params": [{
             "delay": 1,
             "number": int(number_of_trx_created),
-            "nonce": 0,
+            "nonce": nonce_table[sk],
             "receiver": neighbor}]
     }
     json_reply = rpc(node_port, request)
-    # print("Node", node_port, "send",
-    # number_of_trx_created, "trxs to", neighbor)
+    nonce_table[sk] += int(number_of_trx_created)
+    print("Node", node_port, "send",
+          number_of_trx_created, "trxs to", neighbor, "ending nonce ", nonce_table[sk])
 
 
 def taraxa_rpc_get_executed_trx_count(node_port):

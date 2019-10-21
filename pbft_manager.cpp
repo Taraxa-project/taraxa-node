@@ -230,7 +230,7 @@ void PbftManager::run() {
             RLPStream s;
             s.appendList(cert_votes_for_round.size());
             for (auto const &v : cert_votes_for_round) {
-              LOG(log_sil_) << v;
+              // LOG(log_sil_) << v;
               s.append(v.rlp());
             }
             auto ss = s.out();

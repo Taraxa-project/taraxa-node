@@ -11,7 +11,12 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
             "network_listen_port": 10002 + i,
             "network_simulated_delay": 0,
             "network_transaction_interval": 100,
+            "network_encrypted": 1,
+            "network_performance_log": 0,
             "network_bandwidth": 40,
+            "network_ideal_peer_count": 10,
+            "network_max_peer_count": 50,
+            "network_sync_level_size": 1,
             "network_boot_nodes": [
                 {
                     "id": boot_node_pk,
@@ -31,7 +36,7 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
                 ],
                 "pbft": [
                     2000,
-                    3,
+                    1,
                     1000000000,
                     100,
                     0
@@ -54,7 +59,8 @@ def create_taraxa_conf(path_fn, num_conf, secrets, boot_node_pk, boot_node_addr)
                         "balance": 9007199254740991
                     }
                 }
-            }
+            },
+            "use_basic_executor": 1
         }
         with open(path_fn(i), "w") as f:
             f.write(json.dumps(conf, indent=2))
