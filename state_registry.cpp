@@ -22,13 +22,17 @@ void StateRegistry::init(GenesisState const &genesis_state) {
     append({{genesis_hash, genesis_root}}, true);
     return;
   }
-  auto genesis_snapshot = *getSnapshot(0);
+  auto genesis_snapshot = *getSnapshotFromDB(0);
   StateCacheDB tmp_mem_db;
   auto genesis_root = calculateGenesisState(tmp_mem_db, genesis_accs_eth);
   assert(genesis_snapshot.state_root == genesis_root);
   assert(genesis_snapshot.block_hash == genesis_hash);
-  current_snapshot_ = *getSnapshot(stoull(current_block_num));
-}
+  if (auto blk_num = stoull(current_block_num); blk_num != 0) {
+    current_snapshot_ = *getSnapshot(blk_num);
+  } else {
+    current_snapshot_ = genesis_snapshot;
+  }
+};
 
 void StateRegistry::commitAndPush(
     State &state,  //
@@ -58,16 +62,7 @@ optional<StateSnapshot> StateRegistry::getSnapshot(
   if (auto s = current_snapshot_.load(); s.block_number == blk_num) {
     return s;
   }
-  auto snapshot_str = snapshot_db_->lookup(blkNumKey(blk_num));
-  if (snapshot_str.empty()) {
-    return nullopt;
-  }
-  RLP snapshot_rlp(snapshot_str);
-  return {{
-      snapshot_rlp[0].toInt<decltype(StateSnapshot::block_number)>(),
-      snapshot_rlp[1].toHash<decltype(StateSnapshot::block_hash)>(),
-      snapshot_rlp[2].toHash<decltype(StateSnapshot::state_root)>(),
-  }};
+  return getSnapshotFromDB(blk_num);
 }
 
 optional<StateSnapshot> StateRegistry::getSnapshot(blk_hash_t const &blk_hash) {
@@ -98,6 +93,20 @@ optional<State> StateRegistry::getState(dag_blk_num_t const &blk_num) {
 optional<dag_blk_num_t> StateRegistry::getNumber(blk_hash_t const &blk_hash) {
   auto blk_num_str = snapshot_db_->lookup(blkHashKey(blk_hash));
   return blk_num_str.empty() ? nullopt : optional(stoull(blk_num_str));
+}
+
+optional<StateSnapshot> StateRegistry::getSnapshotFromDB(
+    dag_blk_num_t const &blk_num) {
+  auto snapshot_str = snapshot_db_->lookup(blkNumKey(blk_num));
+  if (snapshot_str.empty()) {
+    return nullopt;
+  }
+  RLP snapshot_rlp(snapshot_str);
+  return {{
+      snapshot_rlp[0].toInt<decltype(StateSnapshot::block_number)>(),
+      snapshot_rlp[1].toHash<decltype(StateSnapshot::block_hash)>(),
+      snapshot_rlp[2].toHash<decltype(StateSnapshot::state_root)>(),
+  }};
 }
 
 void StateRegistry::append(vector<pair<blk_hash_t, root_t>> const &blk_to_root,

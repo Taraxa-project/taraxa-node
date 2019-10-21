@@ -113,6 +113,7 @@ class StateRegistry {
   optional<dag_blk_num_t> getNumber(blk_hash_t const &);
 
  private:
+  optional<StateSnapshot> getSnapshotFromDB(dag_blk_num_t const &);
   void append(vector<pair<blk_hash_t, root_t>> const &blk_to_root, bool init);
 };
 
