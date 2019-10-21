@@ -15,6 +15,7 @@ using namespace std;
 using namespace std::chrono;
 using wait::wait;
 using wait::WaitOptions;
+using wait::WaitOptions_DEFAULT;
 
 struct TransactionClient {
   struct Options {
@@ -39,7 +40,7 @@ struct TransactionClient {
   TransactionClient(secret_t const& secret, decltype(node_) const& node,
                     Options const& opts =
                         {
-                            {30, nanoseconds(1000 * 1000 * 1000 * 1)},
+                            WaitOptions_DEFAULT,
                         })
       : key_pair_(secret), node_(node), opts_(opts) {}
 
@@ -80,9 +81,6 @@ struct TransactionClient {
           return false;
         },
         opts_.pollingUntilExecutedConfig);
-    if (!success) {
-      assert(false);
-    }
     return ctx;
   }
 };

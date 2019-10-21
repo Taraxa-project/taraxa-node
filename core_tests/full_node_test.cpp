@@ -267,7 +267,7 @@ TEST_F(TopTest, sync_five_nodes) {
   class context {
     decltype(nodes) const &nodes_;
     vector<TransactionClient> trx_clients;
-    uint64_t issued_trx_count;
+    uint64_t issued_trx_count = 0;
     unordered_map<addr_t, val_t> expected_balances;
     shared_mutex m;
 

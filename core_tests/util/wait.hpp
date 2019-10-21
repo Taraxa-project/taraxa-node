@@ -15,11 +15,14 @@ struct WaitOptions {
   nanoseconds backoff;
 };
 
+inline const WaitOptions WaitOptions_DEFAULT = {
+    60 * 2,
+    nanoseconds(1000 * 1000 * 1000 * 1),
+};
+
 template <typename Condition>
-bool wait(Condition const& condition, WaitOptions const& opts = {
-                                          60 * 3,
-                                          nanoseconds(1000 * 1000 * 1000 * 2),
-                                      }) {
+bool wait(Condition const& condition,
+          WaitOptions const& opts = WaitOptions_DEFAULT) {
   for (uint i(0); i < opts.attempts; ++i) {
     if (condition()) {
       return true;
