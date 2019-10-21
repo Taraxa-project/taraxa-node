@@ -19,7 +19,7 @@ using wait::WaitOptions_DEFAULT;
 
 struct TransactionClient {
   struct Options {
-    WaitOptions pollingUntilExecutedConfig;
+    WaitOptions waitUntilExecutedOpts;
   };
   enum class TransactionStage {
     created,
@@ -80,7 +80,7 @@ struct TransactionClient {
           }
           return false;
         },
-        opts_.pollingUntilExecutedConfig);
+        opts_.waitUntilExecutedOpts);
     return ctx;
   }
 };

@@ -227,11 +227,10 @@ void send_dummy_trx() {
   system(dummy_trx.c_str());
   taraxa::thisThreadSleepForSeconds(2);
 }
-struct TopTest : public DBUsingTest<> {};
-struct FullNodeTest : public DBUsingTest<> {};
+struct FullNodeTest : public DBUsingTest {};
 
 // fixme: flaky
-TEST_F(TopTest, sync_five_nodes) {
+TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
   Top top1(5, input1);
   std::cout << "Top1 created ..." << std::endl;
@@ -630,7 +629,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   EXPECT_EQ(num_blks_set, 5);
 }
 
-TEST(Top, destroy_db) {
+TEST_F(FullNodeTest, destroy_db) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -668,7 +667,7 @@ TEST(Top, destroy_db) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST(Top, reconstruct_dag) {
+TEST_F(FullNodeTest, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
@@ -734,7 +733,7 @@ TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST_F(TopTest, sync_two_nodes1) {
+TEST_F(FullNodeTest, sync_two_nodes1) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
 
@@ -781,7 +780,7 @@ TEST_F(TopTest, sync_two_nodes1) {
   EXPECT_EQ(num_vertices1, num_vertices2);
 }
 
-TEST_F(TopTest, sync_two_nodes2) {
+TEST_F(FullNodeTest, sync_two_nodes2) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
   // send 1000 trxs
@@ -832,7 +831,7 @@ TEST_F(FullNodeTest, genesis_balance) {
 }
 
 // disabled for now, need to create two trx with nonce 0!
-TEST_F(TopTest, single_node_run_two_transactions) {
+TEST_F(FullNodeTest, single_node_run_two_transactions) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
   auto node1 = top1.getNode();
@@ -882,7 +881,7 @@ TEST_F(TopTest, single_node_run_two_transactions) {
 }
 
 // disabled for now, need to create two trx with nonce 0!
-TEST_F(TopTest, two_nodes_run_two_transactions) {
+TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
   conf1.node_secret =
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
@@ -1012,7 +1011,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   EXPECT_GT(node1->getNumProposedBlocks(), 0);
 }
 
-TEST_F(TopTest, detect_overlap_transactions) {
+TEST_F(FullNodeTest, detect_overlap_transactions) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
 
@@ -1267,7 +1266,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
       << std::endl;
 }
 
-TEST_F(TopTest, transfer_to_self) {
+TEST_F(FullNodeTest, transfer_to_self) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
   auto node1 = top1.getNode();
@@ -1300,7 +1299,8 @@ TEST_F(TopTest, transfer_to_self) {
   EXPECT_EQ(bal.first, initial_bal.first);
 }
 
-TEST_F(TopTest, DISABLED_transaction_failure_does_not_cause_block_failure) {
+TEST_F(FullNodeTest,
+       DISABLED_transaction_failure_does_not_cause_block_failure) {
   // TODO move to another file
   using namespace std;
   for (auto i(0); i < 2; ++i) {
