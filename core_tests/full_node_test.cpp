@@ -227,7 +227,7 @@ void send_dummy_trx() {
   system(dummy_trx.c_str());
   taraxa::thisThreadSleepForSeconds(2);
 }
-struct FullNodeTest : public DBUsingTest {};
+struct FullNodeTest : public DBUsingTest<> {};
 
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
