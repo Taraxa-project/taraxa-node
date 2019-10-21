@@ -7,19 +7,18 @@
 #include "constants.hpp"
 #include "full_node.hpp"
 #include "types.hpp"
+#include "wait.hpp"
 
 namespace taraxa::core_tests::util::transaction_client {
 using namespace dev;
 using namespace std;
 using namespace std::chrono;
+using wait::wait;
+using wait::WaitOptions;
 
 struct TransactionClient {
-  struct PollingConfig {
-    uint attempts;
-    nanoseconds backoff;
-  };
   struct Options {
-    PollingConfig pollingUntilExecutedConfig;
+    WaitOptions pollingUntilExecutedConfig;
   };
   enum class TransactionStage {
     created,
@@ -63,20 +62,26 @@ struct TransactionClient {
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     auto lastSeenBlkNum = initial_state.getSnapshot().block_number;
-    for (uint i(0); i < opts_.pollingUntilExecutedConfig.attempts; ++i) {
-      this_thread::sleep_for(opts_.pollingUntilExecutedConfig.backoff);
-      auto curr_block_num = state_registry->getCurrentSnapshot().block_number;
-      while (lastSeenBlkNum < curr_block_num) {
-        ++lastSeenBlkNum;
-        auto snapshot = state_registry->getSnapshot(lastSeenBlkNum);
-        auto blk = node_->getDagBlock(snapshot->block_hash);
-        for (auto const& hash : blk->getTrxs()) {
-          if (trx_hash == hash) {
-            ctx.stage = TransactionStage::executed;
-            return ctx;
+    auto success = wait(
+        [&] {
+          auto curr_block_num =
+              state_registry->getCurrentSnapshot().block_number;
+          while (lastSeenBlkNum < curr_block_num) {
+            ++lastSeenBlkNum;
+            auto snapshot = state_registry->getSnapshot(lastSeenBlkNum);
+            auto blk = node_->getDagBlock(snapshot->block_hash);
+            for (auto const& hash : blk->getTrxs()) {
+              if (trx_hash == hash) {
+                ctx.stage = TransactionStage::executed;
+                return true;
+              }
+            }
           }
-        }
-      }
+          return false;
+        },
+        opts_.pollingUntilExecutedConfig);
+    if (!success) {
+      assert(false);
     }
     return ctx;
   }
