@@ -860,8 +860,6 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
     }
 
     for (auto const &blockhash_pair : tally_by_blockhash) {
-      // possibly need to check if there are more than one block get 2T+1 votes
-      // ...
       if (blockhash_pair.second >= TWO_T_PLUS_ONE) {
         LOG(log_deb_) << "find block hash " << blockhash_pair.first
                       << " vote type " << vote_type << " in round "

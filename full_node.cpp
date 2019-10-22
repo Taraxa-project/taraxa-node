@@ -644,10 +644,6 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                << " vote: " << vote.getHash();
-
-  // add vote
-  addVote(vote);
-
   return vote;
 }
 
