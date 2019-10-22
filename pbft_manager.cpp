@@ -1323,9 +1323,11 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       for (auto const &block : blocks_in_cs) {
         LOG(log_err_) << "block: " << block;
       }
-      std::string filename = "debug_dag_graph";
-      full_node->drawGraph(filename);
-      //assert(false);
+      std::string filename =
+          "unmatched_cs_order_in_period_" + std::to_string(pbft_chain_period);
+      auto addr = full_node->getAddress();
+      full_node->drawGraph(addr.toString() + "_" + filename);
+      // assert(false);
     }
     return false;
   }
