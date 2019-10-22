@@ -4,8 +4,11 @@
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
+#include <mutex>
+#include <shared_mutex>
 #include <vector>
 #include "core_tests/util.hpp"
+#include "core_tests/util/transaction_client.hpp"
 #include "create_samples.hpp"
 #include "dag.hpp"
 #include "libdevcore/DBFactory.h"
@@ -19,10 +22,14 @@
 #include "string"
 #include "top.hpp"
 #include "util.hpp"
+#include "util/wait.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using samples::sendTrx;
+using transaction_client::TransactionClient;
+using wait::wait;
+using wait::WaitOptions;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
@@ -220,11 +227,11 @@ void send_dummy_trx() {
   system(dummy_trx.c_str());
   taraxa::thisThreadSleepForSeconds(2);
 }
-struct TopTest : public DBUsingTest<> {};
 struct FullNodeTest : public DBUsingTest<> {};
 
 // fixme: flaky
-TEST_F(TopTest, sync_five_nodes) {
+TEST_F(FullNodeTest, sync_five_nodes) {
+  using namespace std;
   Top top1(5, input1);
   std::cout << "Top1 created ..." << std::endl;
   Top top2(5, input2);
@@ -256,75 +263,77 @@ TEST_F(TopTest, sync_five_nodes) {
 
   EXPECT_EQ(node1->getDagBlockMaxHeight(), 1);  // genesis block
 
-  // transfer some coins to your friends ...
-  init_5_nodes_coin();
+  class context {
+    decltype(nodes) const &nodes_;
+    vector<TransactionClient> trx_clients;
+    uint64_t issued_trx_count = 0;
+    unordered_map<addr_t, val_t> expected_balances;
+    shared_mutex m;
 
-  taraxa::thisThreadSleepForSeconds(5);
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    if (i % 10 == 0) {
-      std::cout << "Wait for init balance syncing ..." << std::endl;
-    }
-
-    bool ok = true;
-    // for each node, check initial balances
-    for (auto const &node : nodes) {
-      if (!((node->getBalance(
-                     addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
-                 .first == TARAXA_COINS_DECIMAL - g_init_bal * 4) &&
-            node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
-                    .first == g_init_bal &&
-            node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
-                    .first == g_init_bal &&
-            node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
-                    .first == g_init_bal &&
-            node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
-                    .first == g_init_bal)) {
-        ok = false;
+   public:
+    context(decltype(nodes_) nodes) : nodes_(nodes) {
+      for (auto &[addr, acc] : nodes[0]->getConfig().genesis_state.accounts) {
+        expected_balances[addr] = acc.balance;
+      }
+      for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
+        auto const &backend = nodes_[(i + 1) % cnt];  // shuffle a bit
+        trx_clients.emplace_back(nodes_[i]->getSecretKey(), backend);
       }
     }
-    if (ok) {
-      break;
+
+    auto getIssuedTrxCount() {
+      shared_lock l(m);
+      return issued_trx_count;
     }
-    taraxa::thisThreadSleepForMilliSeconds(200);
+
+    void coin_transfer(int sender_node_i, addr_t const &to,
+                       val_t const &amount) {
+      {
+        unique_lock l(m);
+        ++issued_trx_count;
+        expected_balances[to] += amount;
+        expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
+      }
+      auto result = trx_clients[sender_node_i].coinTransfer(to, amount);
+      EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+    }
+
+    void assert_balances_synced() {
+      shared_lock l(m);
+      for (auto &[addr, val] : expected_balances) {
+        for (auto &node : nodes_) {
+          ASSERT_EQ(val, node->getBalance(addr).first);
+        }
+      }
+    }
+
+  } context(nodes);
+
+  // transfer some coins to your friends ...
+  auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
+  for (auto i(1); i < nodes.size(); ++i) {
+    context.coin_transfer(0, nodes[i]->getAddress(), init_bal);
   }
 
-  // make sure all accounts init balance are finished
-  for (auto const &node : nodes) {
-    ASSERT_EQ(
-        node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
-            .first,
-        TARAXA_COINS_DECIMAL - g_init_bal * 4);
-    ASSERT_EQ(
-        node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
-            .first,
-        g_init_bal);
-    ASSERT_EQ(
-        node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
-            .first,
-        g_init_bal);
-    ASSERT_EQ(
-        node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
-            .first,
-        g_init_bal);
-    ASSERT_EQ(
-        node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
-            .first,
-        g_init_bal);
-  }
+  context.assert_balances_synced();
   std::cout << "Balance initialized ... " << std::endl;
-  // send 1000 trxs
-  try {
-    send_5_nodes_trxs();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
 
-  // check dags
-  auto num_vertices1 = node1->getNumVerticesInDag();
-  auto num_vertices2 = node2->getNumVerticesInDag();
-  auto num_vertices3 = node3->getNumVerticesInDag();
-  auto num_vertices4 = node4->getNumVerticesInDag();
-  auto num_vertices5 = node5->getNumVerticesInDag();
+  {
+    vector<thread> threads;
+    for (auto i(0); i < nodes.size(); ++i) {
+      auto to = i < nodes.size() - 1
+                    ? nodes[i + 1]->getAddress()
+                    : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
+      threads.emplace_back([i, to, &context] {
+        for (auto _(0); _ < 10; ++_) {
+          context.coin_transfer(i, to, 100);
+        }
+      });
+    }
+    for (auto &t : threads) {
+      t.join();
+    }
+  }
 
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (i % 10 == 0) {
@@ -340,19 +349,19 @@ TEST_F(TopTest, sync_five_nodes) {
                 << " Node 5: Dag size = " << node5->getNumVerticesInDag().first
                 << std::endl;
     }
-    num_vertices1 = node1->getNumVerticesInDag();
-    num_vertices2 = node2->getNumVerticesInDag();
-    num_vertices3 = node3->getNumVerticesInDag();
-    num_vertices4 = node4->getNumVerticesInDag();
-    num_vertices5 = node5->getNumVerticesInDag();
+    auto num_vertices1 = node1->getNumVerticesInDag();
+    auto num_vertices2 = node2->getNumVerticesInDag();
+    auto num_vertices3 = node3->getNumVerticesInDag();
+    auto num_vertices4 = node4->getNumVerticesInDag();
+    auto num_vertices5 = node5->getNumVerticesInDag();
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == 10004 &&
-        node2->getTransactionStatusCount() == 10004 &&
-        node3->getTransactionStatusCount() == 10004 &&
-        node4->getTransactionStatusCount() == 10004 &&
-        node5->getTransactionStatusCount() == 10004)
+        node1->getTransactionStatusCount() == context.getIssuedTrxCount() &&
+        node2->getTransactionStatusCount() == context.getIssuedTrxCount() &&
+        node3->getTransactionStatusCount() == context.getIssuedTrxCount() &&
+        node4->getTransactionStatusCount() == context.getIssuedTrxCount() &&
+        node5->getTransactionStatusCount() == context.getIssuedTrxCount())
       break;
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
@@ -363,48 +372,42 @@ TEST_F(TopTest, sync_five_nodes) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node2->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node3->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node1->getTransactionStatusCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node2->getTransactionStatusCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node3->getTransactionStatusCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node4->getTransactionStatusCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node5->getTransactionStatusCount(), context.getIssuedTrxCount());
   // send dummy trx to make sure all DAGs are ordered
-  try {
-    send_dummy_trx();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
+  context.coin_transfer(0, addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
+                        0);
+  auto issued_trx_count = context.getIssuedTrxCount();
 
-  num_vertices1 = node1->getNumVerticesInDag();
-  num_vertices2 = node2->getNumVerticesInDag();
-  num_vertices3 = node3->getNumVerticesInDag();
-  num_vertices4 = node4->getNumVerticesInDag();
-  num_vertices5 = node5->getNumVerticesInDag();
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
 
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node2->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node3->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node4->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node5->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node1->getTransactionStatusCount(), issued_trx_count);
+  ASSERT_EQ(node2->getTransactionStatusCount(), issued_trx_count);
+  ASSERT_EQ(node3->getTransactionStatusCount(), issued_trx_count);
+  ASSERT_EQ(node4->getTransactionStatusCount(), issued_trx_count);
+  ASSERT_EQ(node5->getTransactionStatusCount(), issued_trx_count);
 
   std::cout << "All transactions received ..." << std::endl;
-  // wait for trx execution ...
-  taraxa::thisThreadSleepForSeconds(10);
-  uint64_t trx_executed1, trx_executed2, trx_executed3, trx_executed4,
-      trx_executed5;
 
   auto TIMEOUT = SYNC_TIMEOUT * 10;
   for (auto i = 0; i < TIMEOUT; i++) {
-    trx_executed1 = node1->getNumTransactionExecuted();
-    trx_executed2 = node2->getNumTransactionExecuted();
-    trx_executed3 = node3->getNumTransactionExecuted();
-    trx_executed4 = node4->getNumTransactionExecuted();
-    trx_executed5 = node5->getNumTransactionExecuted();
+    auto trx_executed1 = node1->getNumTransactionExecuted();
+    auto trx_executed2 = node2->getNumTransactionExecuted();
+    auto trx_executed3 = node3->getNumTransactionExecuted();
+    auto trx_executed4 = node4->getNumTransactionExecuted();
+    auto trx_executed5 = node5->getNumTransactionExecuted();
 
     auto trx_packed1 = node1->getPackedTrxs().size();
     auto trx_packed2 = node2->getPackedTrxs().size();
@@ -418,49 +421,53 @@ TEST_F(TopTest, sync_five_nodes) {
                 << " executed transactions in node 1";
     }
 
-    if (trx_executed1 == 10005 && trx_executed2 == 10005 &&
-        trx_executed3 == 10005 && trx_executed4 == 10005 &&
-        trx_executed5 == 10005) {
-      if (trx_packed1 == 10005 && trx_packed2 == 10005 &&
-          trx_packed3 == 10005 && trx_packed4 == 10005 &&
-          trx_packed5 == 10005) {
+    if (trx_executed1 == issued_trx_count &&
+        trx_executed2 == issued_trx_count &&
+        trx_executed3 == issued_trx_count &&
+        trx_executed4 == issued_trx_count &&
+        trx_executed5 == issued_trx_count) {
+      if (trx_packed1 == issued_trx_count && trx_packed2 == issued_trx_count &&
+          trx_packed3 == issued_trx_count && trx_packed4 == issued_trx_count &&
+          trx_packed5 == issued_trx_count) {
         break;
       } else {
-        std::cout << "Warning! See all nodes with 10005 executed transactions, "
-                     "but not all nodes yet see 10005 packed transactions!!!";
+        std::cout << "Warning! See all nodes with " << issued_trx_count
+                  << " executed transactions, "
+                     "but not all nodes yet see"
+                  << issued_trx_count << " packed transactions!!!";
       }
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
     if (i % 100 == 0) {
-      if (trx_executed1 != 10005) {
+      if (trx_executed1 != issued_trx_count) {
         std::cout << " Node 1: executed blk= " << node2->getNumBlockExecuted()
                   << " Dag size: " << node1->getNumVerticesInDag().first
-                  << " executed trx = " << trx_executed2 << "/10005"
-                  << std::endl;
+                  << " executed trx = " << trx_executed2 << "/"
+                  << issued_trx_count << std::endl;
       }
-      if (trx_executed2 != 10005) {
+      if (trx_executed2 != issued_trx_count) {
         std::cout << " Node 2: executed blk= " << node2->getNumBlockExecuted()
                   << " Dag size: " << node2->getNumVerticesInDag().first
-                  << " executed trx = " << trx_executed2 << "/10005"
-                  << std::endl;
+                  << " executed trx = " << trx_executed2 << "/"
+                  << issued_trx_count << std::endl;
       }
-      if (trx_executed3 != 10005) {
+      if (trx_executed3 != issued_trx_count) {
         std::cout << " Node 3: executed blk= " << node3->getNumBlockExecuted()
                   << " Dag size: " << node3->getNumVerticesInDag().first
-                  << " executed trx = " << trx_executed3 << "/10005"
-                  << std::endl;
+                  << " executed trx = " << trx_executed3 << "/"
+                  << issued_trx_count << std::endl;
       }
-      if (trx_executed4 != 10005) {
+      if (trx_executed4 != issued_trx_count) {
         std::cout << " Node 4: executed blk= " << node4->getNumBlockExecuted()
                   << " Dag size: " << node4->getNumVerticesInDag().first
-                  << " executed trx = " << trx_executed4 << "/10005"
-                  << std::endl;
+                  << " executed trx = " << trx_executed4 << "/"
+                  << issued_trx_count << std::endl;
       }
-      if (trx_executed5 != 10005) {
+      if (trx_executed5 != issued_trx_count) {
         std::cout << " Node 5: executed blk= " << node5->getNumBlockExecuted()
                   << " Dag size: " << node5->getNumVerticesInDag().first
-                  << " executed trx = " << trx_executed5 << "/10005"
-                  << std::endl;
+                  << " executed trx = " << trx_executed5 << "/"
+                  << issued_trx_count << std::endl;
       }
     }
     if (i == TIMEOUT - 1) {
@@ -474,9 +481,10 @@ TEST_F(TopTest, sync_five_nodes) {
     k++;
     auto vertices_diff =
         node->getNumVerticesInDag().first - 1 - node->getNumBlockExecuted();
-    if (vertices_diff >= 5 || vertices_diff < 0 ||
-        node->getNumTransactionExecuted() != 10005 ||
-        node->getPackedTrxs().size() != 10005) {
+    if (vertices_diff >= nodes.size()                             //
+        || vertices_diff < 0                                      //
+        || node->getNumTransactionExecuted() != issued_trx_count  //
+        || node->getPackedTrxs().size() != issued_trx_count) {
       std::cout << "Node " << k
                 << " :Number of trx packed = " << node->getPackedTrxs().size()
                 << std::endl;
@@ -505,7 +513,7 @@ TEST_F(TopTest, sync_five_nodes) {
   for (auto const &node : nodes) {
     k++;
 
-    EXPECT_EQ(node->getNumTransactionExecuted(), 10005)
+    EXPECT_EQ(node->getNumTransactionExecuted(), issued_trx_count)
         << " \nNum executed in node " << k << " node " << node
         << " is : " << node->getNumTransactionExecuted()
         << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
@@ -518,7 +526,7 @@ TEST_F(TopTest, sync_five_nodes) {
 
     // diff should be larger than 0 but smaller than number of nodes
     // genesis block won't be executed
-    EXPECT_LT(vertices_diff, 5)
+    EXPECT_LT(vertices_diff, nodes.size())
         << "Failed in node " << k << "node " << node
         << " Number of vertices: " << node->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getNumBlockExecuted()
@@ -528,7 +536,7 @@ TEST_F(TopTest, sync_five_nodes) {
         << " Number of vertices: " << node->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getNumBlockExecuted()
         << std::endl;
-    EXPECT_EQ(node->getPackedTrxs().size(), 10005);
+    EXPECT_EQ(node->getPackedTrxs().size(), issued_trx_count);
   }
 
   auto dags = node1->getLinearizedDagBlocks();
@@ -540,32 +548,7 @@ TEST_F(TopTest, sync_five_nodes) {
     }
   }
 
-  for (auto const &node : nodes) {
-    EXPECT_EQ(
-        node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
-            .first,
-        TARAXA_COINS_DECIMAL - g_init_bal * 4 - 2000 * 100);
-    EXPECT_EQ(
-        node->getBalance(addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"))
-            .first,
-        g_init_bal);
-    EXPECT_EQ(
-        node->getBalance(addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"))
-            .first,
-        g_init_bal);
-    EXPECT_EQ(
-        node->getBalance(addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"))
-            .first,
-        g_init_bal);
-    EXPECT_EQ(
-        node->getBalance(addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"))
-            .first,
-        g_init_bal);
-    EXPECT_EQ(
-        node->getBalance(addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9"))
-            .first,
-        2000 * 100);
-  }
+  context.assert_balances_synced();
 }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
@@ -646,7 +629,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   EXPECT_EQ(num_blks_set, 5);
 }
 
-TEST(Top, destroy_db) {
+TEST_F(FullNodeTest, destroy_db) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -684,7 +667,7 @@ TEST(Top, destroy_db) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST(Top, reconstruct_dag) {
+TEST_F(FullNodeTest, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
@@ -750,7 +733,7 @@ TEST(Top, reconstruct_dag) {
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
-TEST_F(TopTest, sync_two_nodes1) {
+TEST_F(FullNodeTest, sync_two_nodes1) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
 
@@ -797,7 +780,7 @@ TEST_F(TopTest, sync_two_nodes1) {
   EXPECT_EQ(num_vertices1, num_vertices2);
 }
 
-TEST_F(TopTest, sync_two_nodes2) {
+TEST_F(FullNodeTest, sync_two_nodes2) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
   // send 1000 trxs
@@ -848,7 +831,7 @@ TEST_F(FullNodeTest, genesis_balance) {
 }
 
 // disabled for now, need to create two trx with nonce 0!
-TEST_F(TopTest, single_node_run_two_transactions) {
+TEST_F(FullNodeTest, single_node_run_two_transactions) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
   auto node1 = top1.getNode();
@@ -898,7 +881,7 @@ TEST_F(TopTest, single_node_run_two_transactions) {
 }
 
 // disabled for now, need to create two trx with nonce 0!
-TEST_F(TopTest, two_nodes_run_two_transactions) {
+TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
   conf1.node_secret =
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
@@ -1028,7 +1011,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   EXPECT_GT(node1->getNumProposedBlocks(), 0);
 }
 
-TEST_F(TopTest, detect_overlap_transactions) {
+TEST_F(FullNodeTest, detect_overlap_transactions) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
 
@@ -1283,7 +1266,7 @@ TEST_F(TopTest, detect_overlap_transactions) {
       << std::endl;
 }
 
-TEST_F(TopTest, transfer_to_self) {
+TEST_F(FullNodeTest, transfer_to_self) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
   auto node1 = top1.getNode();
@@ -1316,7 +1299,8 @@ TEST_F(TopTest, transfer_to_self) {
   EXPECT_EQ(bal.first, initial_bal.first);
 }
 
-TEST_F(TopTest, DISABLED_transaction_failure_does_not_cause_block_failure) {
+TEST_F(FullNodeTest,
+       DISABLED_transaction_failure_does_not_cause_block_failure) {
   // TODO move to another file
   using namespace std;
   for (auto i(0); i < 2; ++i) {

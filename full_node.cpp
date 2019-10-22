@@ -301,12 +301,12 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
-void FullNode::insertTransaction(Transaction const &trx) {
+bool FullNode::insertTransaction(Transaction const &trx) {
   auto rlp = trx.rlp(true);
   if (conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({rlp});
   }
-  trx_mgr_->insertTrx(trx, trx.rlp(true), true);
+  return trx_mgr_->insertTrx(trx, trx.rlp(true), true);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
