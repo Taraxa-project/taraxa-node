@@ -91,8 +91,6 @@ class Dag {
   // ith_number
   bool computeOrder(bool finialized, vertex_hash const &anchor,
                     uint64_t ith_peroid,
-                    std::unordered_set<vertex_hash>
-                        &recent_added_blks,  // iterater only from new blocks
                     std::vector<vertex_hash> &ordered_period_vertices);
   // warning! slow, iterate through all vertices ...
   void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
@@ -105,6 +103,12 @@ class Dag {
   // properties
   uint64_t getVertexPeriod(vertex_hash const &vertex) const;
   void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
+  std::unordered_set<std::string> getUnOrderedDagBlks() const {
+    return recent_added_blks_;
+  }
+  void addRecentDagBlks(vertex_hash const &hash) {
+    recent_added_blks_.insert(hash);
+  }
 
  protected:
   // Note: private functions does not lock
@@ -125,9 +129,13 @@ class Dag {
   graph_t graph_;
   std::unordered_map<uint64_t, std::unordered_set<vertex_hash>> periods_;
   vertex_t genesis_;  // root node
+  std::unordered_set<std::string> recent_added_blks_;
+
   mutable boost::shared_mutex mutex_;
 
  private:
+  mutable dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
   mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   mutable dev::Logger log_wr_{
@@ -154,6 +162,8 @@ class PivotTree : public Dag {
                     std::vector<vertex_hash> &pivot_chain) const;
 
  private:
+  mutable dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
   mutable dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
   mutable dev::Logger log_wr_{
@@ -219,7 +229,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
   std::string getLatestAnchor() const { return anchors_.back(); }
   std::unordered_set<std::string> getUnOrderedDagBlks() const {
-    return recent_added_blks_;
+    return total_dag_->getUnOrderedDagBlks();
   }
 
  private:
@@ -236,8 +246,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
-  std::unordered_set<std::string> recent_added_blks_;
-  std::vector<std::string> anchors_;  // pivots that define periods
+  std::vector<std::string> anchors_;       // pivots that define periods
   std::string genesis_;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
@@ -261,8 +270,7 @@ class vertex_label_writer {
       : name(name), period(period) {}
   template <class Vertex>
   void operator()(std::ostream &out, const Vertex &v) const {
-    out << "[label=\"" << name[v].substr(0, 6) << "..." << name[v].substr(58)
-        << " (" << period[v] << ") "
+    out << "[label=\"" << name[v].substr(0, 8) << " (" << period[v] << ") "
         << "\"]";
   }
 

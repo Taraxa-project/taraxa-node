@@ -184,7 +184,6 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
 // only iterate only through non finalized blocks
 bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
                        uint64_t ith_period,
-                       std::unordered_set<vertex_hash> &recent_added_blks,
                        std::vector<vertex_hash> &ordered_period_vertices) {
   uLock lock(mutex_);
 
@@ -198,16 +197,20 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   ordered_period_vertices.clear();
 
   vertex_iter_t s, e;
-  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
+  vertex_index_map_t index_map = boost::get(
+      boost::vertex_index, graph_);  // from vertex_descriptor to hash
   vertex_period_map_t ep_map = boost::get(boost::vertex_index1, graph_);
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
+  if (recent_added_blks_.find(anchor) == recent_added_blks_.end()) {
+    LOG(log_er_) << "Anchor is not in recent_added_blks " << anchor;
+  }
   epfriend[blk_hash_t(index_map[target])] = target;
 
   // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
 
-  auto iter = recent_added_blks.begin();
-  while (iter != recent_added_blks.end()) {
+  auto iter = recent_added_blks_.begin();
+  while (iter != recent_added_blks_.end()) {
     auto v = graph_.vertex(*iter);
     if (ep_map[v] > 0) {
       iter++;
@@ -222,7 +225,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
         ep_map[v] = ith_period;
         // update periods table
         periods_[ith_period].insert(index_map[v]);
-        iter = recent_added_blks.erase(iter);
+        iter = recent_added_blks_.erase(iter);
       } else {
         iter++;
       }
@@ -274,6 +277,18 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
     }
   }
   std::reverse(ordered_period_vertices.begin(), ordered_period_vertices.end());
+  // if (finialized){
+  //   LOG(log_si_)<<"Finalize DAG period "<<ith_period<< " anchor "<< anchor;
+  //   for (auto const &v: ordered_period_vertices){
+  //     auto n = graph_.vertex(v);
+  //     if (ep_map[n]!=ith_period){
+  //       LOG(log_er_)<<n<<" "<<v<<" does not have correct period set: "<<
+  //       ep_map[n]<<" ,current period:"<<ith_period;
+  //     }
+  //   }
+  // } else {
+  //   LOG(log_si_)<<"Querying DAG period "<<ith_period<< " anchor "<< anchor;
+  // }
   return true;
 }
 
@@ -493,7 +508,9 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
     tips.push_back(tip);
   }
 
+  max_level_ = std::max(max_level_, blk.getLevel());
   addToDag(hash, pivot, tips);
+
   auto full_node = full_node_.lock();
 
   // full_node could be null in test
@@ -508,15 +525,13 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
                  << blk.getHash() << "anchor " << anchors_.back()
                  << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
   }
-
-  max_level_ = std::max(max_level_, blk.getLevel());
-  recent_added_blks_.insert(hash);
   return true;
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);
+  total_dag_->addRecentDagBlks(hash);
   pivot_tree_->addVEEs(hash, pivot, {});
   LOG(log_dg_) << getFullNodeAddress() << " Insert block to DAG : " << hash;
 }
@@ -602,9 +617,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 
   auto new_period = anchors_.size();
 
-  auto ok =
-      total_dag_->computeOrder(false /* finalized */, anchor.toString(),
-                               new_period, recent_added_blks_, blk_orders);
+  auto ok = total_dag_->computeOrder(false /* finalized */, anchor.toString(),
+                                     new_period, blk_orders);
   if (!ok) {
     LOG(log_er_) << getFullNodeAddress() << " Create period " << new_period
                  << " anchor: " << anchor << " failed " << std::endl;
@@ -631,7 +645,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   std::vector<std::string> blk_orders;
 
   auto ok = total_dag_->computeOrder(true /* finalized */, anchor.toString(),
-                                     period, recent_added_blks_, blk_orders);
+                                     period, blk_orders);
   anchors_.emplace_back(anchor.toString());
 
   if (!ok) {
