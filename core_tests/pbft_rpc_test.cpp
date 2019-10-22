@@ -95,6 +95,20 @@ TEST_F(VoteManagerTest, add_cleanup_get_votes) {
   EXPECT_EQ(votes_size, 0);
 }
 
+TEST(VoteTest, reconstruct_votes) {
+  public_t pk(12345);
+  sig_t sortition_sig(1234567);
+  sig_t vote_sig(9878766);
+  blk_hash_t blk_hash(111111);
+  PbftVoteTypes type(propose_vote_type);
+  uint64_t round(999);
+  size_t step(2);
+  Vote vote1(pk, sortition_sig, vote_sig, blk_hash, type, round, step);
+  auto rlp = vote1.rlp();
+  Vote vote2(rlp);
+  EXPECT_EQ(vote1, vote2);
+}
+
 // Generate a vote, send the vote from node2 to node1
 TEST_F(NetworkTest, transfer_vote) {
   // set nodes account balance

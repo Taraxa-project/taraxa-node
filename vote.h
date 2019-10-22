@@ -20,6 +20,8 @@ class Vote {
        sig_t const& vote_signature, blk_hash_t const& blockhash,
        PbftVoteTypes type, uint64_t round, size_t step);
   Vote(stream& strm);
+  Vote(bytes const& rlp);
+  bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}
 
   bool serialize(stream& strm) const;
@@ -33,15 +35,29 @@ class Vote {
   PbftVoteTypes getType() const;
   uint64_t getRound() const;
   size_t getStep() const;
+  bytes rlp() const;
+
+  friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
+    strm << "[Vote] " << std::endl;
+    strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
+    strm << "  node_pk: " << vote.node_pk_ << std::endl;
+    strm << "  sortition_signature: " << vote.sortition_signature_ << std::endl;
+    strm << "  vote_signatue: " << vote.vote_signatue_ << std::endl;
+    strm << "  blockhash: " << vote.blockhash_ << std::endl;
+    strm << "  type: " << vote.type_ << std::endl;
+    strm << "  round: " << vote.round_ << std::endl;
+    strm << "  step: " << vote.step_ << std::endl;
+    return strm;
+  }
 
  private:
   void streamRLP_(dev::RLPStream& strm) const;
 
-  vote_hash_t vote_hash_;
+  vote_hash_t vote_hash_;  // hash of this vote
   public_t node_pk_;
   sig_t sortition_signature_;
   sig_t vote_signatue_;
-  blk_hash_t blockhash_;
+  blk_hash_t blockhash_;  // pbft_block_hash
   PbftVoteTypes type_;
   uint64_t round_;
   size_t step_;

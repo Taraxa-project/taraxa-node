@@ -36,6 +36,19 @@ Vote::Vote(public_t const& node_pk, sig_t const& sortition_signaure,
 
 Vote::Vote(taraxa::stream& strm) { deserialize(strm); }
 
+Vote::Vote(bytes const& b) {
+  dev::RLP const rlp(b);
+  if (!rlp.isList())
+    throw std::invalid_argument("transaction RLP must be a list");
+  vote_hash_ = rlp[0].toHash<vote_hash_t>();
+  node_pk_ = rlp[1].toHash<public_t>();
+  sortition_signature_ = rlp[2].toHash<sig_t>();
+  vote_signatue_ = rlp[3].toHash<sig_t>();
+  blockhash_ = rlp[4].toHash<blk_hash_t>();
+  type_ = (PbftVoteTypes)rlp[5].toInt<uint>();
+  round_ = rlp[6].toInt<uint64_t>();
+  step_ = rlp[7].toInt<size_t>();
+}
 bool Vote::serialize(stream& strm) const {
   bool ok = true;
 
@@ -67,8 +80,14 @@ bool Vote::deserialize(stream& strm) {
 
   return ok;
 }
+bytes Vote::rlp() const {
+  dev::RLPStream s;
+  streamRLP_(s);
+  return s.out();
+}
 
 void Vote::streamRLP_(dev::RLPStream& strm) const {
+  strm.appendList(8);
   strm << vote_hash_;
   strm << node_pk_;
   strm << sortition_signature_;
@@ -102,6 +121,7 @@ void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   pbft_mgr_ = full_node->getPbftManager();
 }
 
+// Problem??
 sig_t VoteManager::signVote(secret_t const& node_sk,
                             taraxa::blk_hash_t const& block_hash,
                             taraxa::PbftVoteTypes type, uint64_t round,

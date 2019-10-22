@@ -84,7 +84,7 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       conf_.transactions_db_path(), destroy_db, 100000);
   db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
       conf_.trxs_to_blk_db_path(), destroy_db);
-  db_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
+  db_cert_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
       conf_.pbft_votes_db_path(), destroy_db);
   db_pbftchain_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
       conf_.pbft_chain_db_path(), destroy_db);
@@ -262,7 +262,7 @@ void FullNode::stop() {
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);
   assert(db_trxs_to_blk_.use_count() == 1);
-  assert(db_votes_.use_count() == 1);
+  assert(db_cert_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
   assert(db_pbft_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_order_.use_count() == 1);
@@ -641,8 +641,12 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
   Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
             period, step);
+
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                << " vote: " << vote.getHash();
+
+  // add vote
+  addVote(vote);
 
   return vote;
 }

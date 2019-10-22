@@ -147,64 +147,57 @@ TEST(Dag, dag_traverse3_get_ordered_blks) {
   graph.addVEEs(vK, vI, empty);
 
   std::vector<std::string> ordered_blks;
-  std::unordered_set<std::string> recent_added_blks;
   // read only
   graph.getEpFriendVertices(vE, vH, ordered_blks);
   EXPECT_EQ(ordered_blks.size(), 4);
 
   // ------------------ epoch A ------------------
 
-  recent_added_blks.insert(vA);
-
   {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, vA, 1, recent_added_blks,
-                       ordered_blks);
-
+    graph.computeOrder(false /*finialized */, vA, 1, ordered_blks);
+    graph.addRecentDagBlks(vA);
     EXPECT_EQ(ordered_blks.size(), 1);  // vA
-    EXPECT_EQ(recent_added_blks.size(), 1);
+    EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 1);
   }
-  graph.computeOrder(true /*finialized */, vA, 1, recent_added_blks,
-                     ordered_blks);
+  graph.computeOrder(true /*finialized */, vA, 1, ordered_blks);
 
   EXPECT_EQ(ordered_blks.size(), 1);  // vA
-  EXPECT_EQ(recent_added_blks.size(), 0);
+  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
 
   // ------------------ epoch C ------------------
 
-  recent_added_blks.insert(vB);
-  recent_added_blks.insert(vC);
+  graph.addRecentDagBlks(vB);
+  graph.addRecentDagBlks(vC);
 
   {  // get only, do not finalize
-    graph.computeOrder(false /*finialized */, vC, 2, recent_added_blks,
-                       ordered_blks);
+    graph.computeOrder(false /*finialized */, vC, 2, ordered_blks);
     EXPECT_EQ(ordered_blks.size(), 2);  // vB, vC
-    EXPECT_EQ(recent_added_blks.size(), 2);
+    EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 2);
   }
 
-  graph.computeOrder(true /*finialized */, vC, 2, recent_added_blks,
-                     ordered_blks);
+  graph.computeOrder(true /*finialized */, vC, 2, ordered_blks);
   EXPECT_EQ(ordered_blks.size(), 2);  // vB, vC
-  EXPECT_EQ(recent_added_blks.size(), 0);
+  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
 
   // ------------------ epoch E ------------------
 
-  recent_added_blks.insert(vD);
-  recent_added_blks.insert(vE);
-  recent_added_blks.insert(vF);
-  graph.computeOrder(true /*finialized */, vE, 3, recent_added_blks,
-                     ordered_blks);
+  graph.addRecentDagBlks(vD);
+  graph.addRecentDagBlks(vE);
+  graph.addRecentDagBlks(vF);
+
+  graph.computeOrder(true /*finialized */, vE, 3, ordered_blks);
   EXPECT_EQ(ordered_blks.size(), 3);  // vD, vF, vE
-  EXPECT_EQ(recent_added_blks.size(), 0);
+  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
 
   // ------------------ epoch H ------------------
-  recent_added_blks.insert(vG);
-  recent_added_blks.insert(vH);
-  recent_added_blks.insert(vI);
-  recent_added_blks.insert(vJ);
-  graph.computeOrder(true /*finialized */, vH, 4, recent_added_blks,
-                     ordered_blks);
+  graph.addRecentDagBlks(vG);
+  graph.addRecentDagBlks(vH);
+  graph.addRecentDagBlks(vI);
+  graph.addRecentDagBlks(vJ);
+
+  graph.computeOrder(true /*finialized */, vH, 4, ordered_blks);
   EXPECT_EQ(ordered_blks.size(), 4);  // vG, vJ, vI, vH
-  EXPECT_EQ(recent_added_blks.size(), 0);
+  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
 
   if (ordered_blks.size() == 4) {
     EXPECT_EQ(ordered_blks[0], vJ);
@@ -214,11 +207,11 @@ TEST(Dag, dag_traverse3_get_ordered_blks) {
   }
 
   // ------------------ epoch H ------------------
-  recent_added_blks.insert(vK);
-  graph.computeOrder(true /*finialized */, vK, 5, recent_added_blks,
-                     ordered_blks);
+  graph.addRecentDagBlks(vK);
+
+  graph.computeOrder(true /*finialized */, vK, 5, ordered_blks);
   EXPECT_EQ(ordered_blks.size(), 1);  // vK
-  EXPECT_EQ(recent_added_blks.size(), 0);
+  EXPECT_EQ(graph.getUnOrderedDagBlks().size(), 0);
   EXPECT_EQ(graph.getNumVertices(), 12);
 
   graph.deletePeriod(0);  // should be no op

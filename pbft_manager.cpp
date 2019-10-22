@@ -70,7 +70,7 @@ void PbftManager::start() {
   LOG(log_deb_) << "PBFT start at GHOST size " << ghost.size()
                 << ", the last of DAG blocks is " << ghost.back();
 
-  db_votes_ = full_node->getVotesDB();
+  db_cert_votes_ = full_node->getVotesDB();
 
   // Reset round and step...
   pbft_round_last_ = 1;
@@ -84,7 +84,7 @@ void PbftManager::start() {
   // Setup sortition table according to status DB
 
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
-  LOG(log_sil_) << "PBFT daemon initiated ...";
+  LOG(log_deb_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
     monitor_stop_ = false;
     monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
@@ -102,8 +102,8 @@ void PbftManager::stop() {
     LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
   }
   daemon_->join();
-  LOG(log_sil_) << "PBFT daemon terminated ...";
-  db_votes_ = nullptr;
+  LOG(log_deb_) << "PBFT daemon terminated ...";
+  db_cert_votes_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -215,6 +215,7 @@ void PbftManager::run() {
       if (cert_voted_block_hash.second) {
         LOG(log_deb_) << "PBFT block " << cert_voted_block_hash.first
                       << " has enough certed votes";
+
         // put pbft block into chain
         if (checkPbftBlockInUnverifiedQueue_(cert_voted_block_hash.first)) {
           if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first)) {
@@ -222,6 +223,29 @@ void PbftManager::run() {
                 cert_voted_block_hash.first;
             next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
             have_executed_this_round = true;
+            LOG(log_sil_) << "Write " << cert_votes_for_round.size()
+                          << " votes ... in round " << pbft_round_;
+
+            // CCL: store cert votes to db
+            RLPStream s;
+            s.appendList(cert_votes_for_round.size());
+            for (auto const &v : cert_votes_for_round) {
+              // LOG(log_sil_) << v;
+              s.append(v.rlp());
+            }
+            auto ss = s.out();
+            db_cert_votes_->put(cert_voted_block_hash.first, ss);
+            db_cert_votes_->commit();
+            // RLP rlps(ss);
+            // std::vector<Vote> reconstruct;
+            // auto num_votes = rlps.itemCount();
+            // for (auto i = 0; i < num_votes; ++i) {
+            //   auto rev = Vote(rlps[i].toBytes());
+            //   LOG(log_sil_) << rev;
+            //   reconstruct.push_back(rev);
+            // }
+            // LOG(log_sil_) << "Reconstruct " << num_votes << " votes ... ";
+
             // TODO: debug remove later
             LOG(log_deb_) << "The cert voted pbft block is "
                           << cert_voted_block_hash.first;
@@ -471,6 +495,7 @@ void PbftManager::run() {
               LOG(log_deb_)
                   << "Cert voting " << soft_voted_block_for_this_round.first
                   << " for round " << pbft_round_;
+              // generate cert vote
               placeVote_(soft_voted_block_for_this_round.first, cert_vote_type,
                          pbft_round_, pbft_step_);
             }
@@ -835,6 +860,8 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
     }
 
     for (auto const &blockhash_pair : tally_by_blockhash) {
+      // possibly need to check if there are more than one block get 2T+1 votes
+      // ...
       if (blockhash_pair.second >= TWO_T_PLUS_ONE) {
         LOG(log_deb_) << "find block hash " << blockhash_pair.first
                       << " vote type " << vote_type << " in round "
@@ -1296,9 +1323,11 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       for (auto const &block : blocks_in_cs) {
         LOG(log_err_) << "block: " << block;
       }
-      std::string filename = "debug_dag_graph";
-      full_node->drawGraph(filename);
-      //assert(false);
+      std::string filename =
+          "unmatched_cs_order_in_period_" + std::to_string(pbft_chain_period);
+      auto addr = full_node->getAddress();
+      full_node->drawGraph(addr.toString() + "_" + filename);
+      // assert(false);
     }
     return false;
   }

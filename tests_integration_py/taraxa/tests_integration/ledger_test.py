@@ -37,8 +37,10 @@ START_FULL_NODE_SILENT = f"{paths.node_exe} --conf_taraxa {workspace}/conf_tarax
 NODE_PORTS = []
 BOOT_NODE_PORT = 7777
 TOTAL_TARAXA_COINS = 9007199254740991
-NUM_TRXS = 2000
-INIT_NODE_BAL = 700000
+NUM_TRXS = 20000
+INIT_NODE_BAL = 70000000
+
+NONCE_TABLE = {}
 
 
 def get_node_port(num_nodes):
@@ -64,6 +66,7 @@ def this_test_success():
 
 
 def read_account_table(file_name):
+    global NONCE_TABLE
     node_secret = []
     node_public = []
     node_address = []
@@ -74,6 +77,7 @@ def read_account_table(file_name):
             data = line.rstrip('\n')
             if counter == 1:
                 node_secret.append(data)
+                NONCE_TABLE[data] = 0
             elif counter == 2:
                 node_public.append(data)
             elif counter == 3:
@@ -82,6 +86,7 @@ def read_account_table(file_name):
                 num_acc += 1
             counter = (counter + 1) % 4
     print("Number of accounts read:", num_acc)
+
     return node_secret, node_public, node_address
 
 
@@ -140,8 +145,8 @@ def trx_count_testing(num_nodes):
             print("Trx count =", count)
         else:
             if (count != answer):
-                print("Error! node", node, "has only", count,
-                      " transactions, expected:", answer)
+                print("Error! node", node, "has ", count,
+                      " transactions, expected (node0):", answer)
                 ok = 0
         print("Check transaction count ... in node", node, "status =", ok)
     return ok
@@ -215,10 +220,12 @@ def initialize_coin_allocation(num_nodes, coins):
     boot_node_coin = send_get_boot_node_balance()
     print("Boot node balance", boot_node_coin)
     global INIT_NODE_BAL
+    global NONCE_TABLE
     print("Expected init balance", INIT_NODE_BAL)
     for i in range(num_nodes):
         neighbor = NODE_ADDRESS[i + 1]
-        taraxa_rpc_send_coins(BOOT_NODE_PORT, neighbor, INIT_NODE_BAL)
+        taraxa_rpc_send_coins(BOOT_NODE_SK, BOOT_NODE_PORT, neighbor,
+                              INIT_NODE_BAL, NONCE_TABLE)
     start_time = time.time()
     print("Wait for coin init ...")
     ok = 1
@@ -255,13 +262,16 @@ def initialize_coin_allocation(num_nodes, coins):
 
 
 def send_dummy_trx(num_nodes):
+    global NONCE_TABLE
     time.sleep(num_nodes*2)
-    taraxa_rpc_send_coins(BOOT_NODE_PORT, NODE_ADDRESS[1], 0)
+    taraxa_rpc_send_coins(BOOT_NODE_SK, BOOT_NODE_PORT,
+                          NODE_ADDRESS[1], 0, NONCE_TABLE)
     time.sleep(num_nodes*2)
 
 
 def send_trx_from_node_to_neighbors_testing(num_nodes):
     global INIT_NODE_BAL
+    global NONCE_TABLE
     number_of_trx_created = int(NUM_TRXS)
     total_transfer = 100 * number_of_trx_created
     print("total_transfer ", total_transfer)
@@ -270,8 +280,8 @@ def send_trx_from_node_to_neighbors_testing(num_nodes):
         neighbor = NODE_ADDRESS[receiver]
         print("Node", NODE_PORTS[sender], "create", number_of_trx_created, "trxs to (",
               receiver, ")", neighbor, ",total coins=", total_transfer)
-        taraxa_rpc_send_many_trx_to_neighbor(
-            NODE_PORTS[sender], neighbor, number_of_trx_created)
+        taraxa_rpc_send_many_trx_to_neighbor(NODE_SECRET[sender],
+                                             NODE_PORTS[sender], neighbor, number_of_trx_created, NONCE_TABLE)
     ok = 1
     start_time = time.time()
     print("Wait for coin transfer ...")
@@ -355,6 +365,8 @@ def test_main(num_nodes):
     NODE_SECRET, NODE_PUBLIC, NODE_ADDRESS = read_account_table(
         f"{paths.core_tests_dir}/account_table.txt")
     global NODE_PORTS
+    global BOOT_NODE_SK
+    BOOT_NODE_SK = NODE_SECRET[0]
     NODE_PORTS = get_node_port(num_nodes)
     print(NODE_PORTS)
     create_taraxa_conf(f"{workspace}/conf_taraxa{{}}.json".format,
