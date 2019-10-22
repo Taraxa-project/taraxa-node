@@ -479,9 +479,12 @@ void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
   genesis_hash_ = blk_hash_t(doc.get<std::string>("genesis_hash"));
   size_ = doc.get<uint64_t>("size");
   period_ = doc.get<uint64_t>("period");
-  next_pbft_block_type_ = static_cast<PbftBlockTypes>(doc.get<int>("next_pbft_block_type"));
-  last_pbft_block_hash_ = blk_hash_t(doc.get<std::string>("last_pbft_block_hash"));
-  last_pbft_pivot_hash_ = blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
+  next_pbft_block_type_ =
+      static_cast<PbftBlockTypes>(doc.get<int>("next_pbft_block_type"));
+  last_pbft_block_hash_ =
+      blk_hash_t(doc.get<std::string>("last_pbft_block_hash"));
+  last_pbft_pivot_hash_ =
+      blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
 }
 
 void PbftChain::releaseDB() {
