@@ -141,9 +141,8 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
     std::string response = fastWriter.write(res);
     ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
-    ws_.async_write(boost::asio::buffer(response),
-                    beast::bind_front_handler(&WSSession::on_write_no_read,
-                                              shared_from_this()));
+    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
+                            std::allocator<void>());
   }
 }
 
