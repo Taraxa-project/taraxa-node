@@ -272,15 +272,15 @@ class PbftChain {
   uint64_t max_dag_blocks_height_ = 0;
 
   std::weak_ptr<FullNode> node_;
-  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;
   // key : block height(start at 1), value : block hash
-  std::shared_ptr<SimpleDBFace> db_pbft_blocks_order_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_pbft_blocks_order_ = nullptr;
   // Start DAG genesis at index 1
   // key : DAG block height, value : DAG block hash
-  std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
   // Start DAG genesis at block height 1
   // key : DAG block hash, value : DAG block height
-  std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>>

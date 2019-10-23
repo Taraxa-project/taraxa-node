@@ -254,8 +254,11 @@ void PbftManager::run() {
               s.append(v.rlp());
             }
             auto ss = s.out();
-            db_cert_votes_->put(cert_voted_block_hash.first, ss);
-            db_cert_votes_->commit();
+            db_cert_votes_->insert(
+                db::Slice(reinterpret_cast<char const *>(
+                              &cert_voted_block_hash.first),
+                          sizeof(cert_voted_block_hash.first)),
+                db::Slice(reinterpret_cast<char const *>(&ss[0]), ss.size()));
             // RLP rlps(ss);
             // std::vector<Vote> reconstruct;
             // auto num_votes = rlps.itemCount();

@@ -79,10 +79,10 @@ TEST(PbftChain, pbft_db_test) {
       std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
 
-  std::shared_ptr<SimpleDBFace> db_pbftchain = node->getPbftChainDB();
+  std::shared_ptr<dev::db::DatabaseFace> db_pbftchain = node->getPbftChainDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::string pbft_genesis_from_db =
-      db_pbftchain->get(pbft_chain->getGenesisHash().toString());
+      db_pbftchain->lookup(pbft_chain->getGenesisHash().toString());
   EXPECT_FALSE(pbft_genesis_from_db.empty());
 
   // generate pbft pivot block sample
@@ -106,7 +106,7 @@ TEST(PbftChain, pbft_db_test) {
   EXPECT_EQ(node->getPbftChainSize(), 2);
 
   std::string pbft_block_from_db =
-      db_pbftchain->get(pbft_block1.getBlockHash().toString());
+      db_pbftchain->lookup(pbft_block1.getBlockHash().toString());
   PbftBlock pbft_block2(pbft_block_from_db);
 
   std::stringstream ss1, ss2;
@@ -131,7 +131,8 @@ TEST(PbftChain, pbft_db_test) {
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node->getPbftChainSize(), 3);
 
-  pbft_block_from_db = db_pbftchain->get(pbft_block3.getBlockHash().toString());
+  pbft_block_from_db =
+      db_pbftchain->lookup(pbft_block3.getBlockHash().toString());
   PbftBlock pbft_block4(pbft_block_from_db);
 
   std::stringstream ss3, ss4;
@@ -141,7 +142,7 @@ TEST(PbftChain, pbft_db_test) {
 
   // check pbft genesis update in DB
   pbft_genesis_from_db =
-      db_pbftchain->get(pbft_chain->getGenesisHash().toString());
+      db_pbftchain->lookup(pbft_chain->getGenesisHash().toString());
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
 
   db_pbftchain = nullptr;

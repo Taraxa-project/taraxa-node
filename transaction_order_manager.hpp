@@ -50,7 +50,7 @@ class TransactionOrderManager {
   std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
-  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
