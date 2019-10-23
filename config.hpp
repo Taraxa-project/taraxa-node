@@ -63,7 +63,7 @@ struct FullNodeConfig {
   auto block_db_path() { return db_path + "/blk"; }
   auto block_index_db_path() { return db_path + "/blk_index"; }
   auto transactions_db_path() { return db_path + "/trx"; }
-  auto pbft_votes_db_path() { return db_path + "/pbftvotes"; }
+  auto pbft_cert_votes_db_path() { return db_path + "/pbft_cert_votes"; }
   auto pbft_chain_db_path() { return db_path + "/pbftchain"; }
   auto pbft_blocks_order_db_path() { return db_path + "/pbft_blocks_order"; }
   auto dag_blocks_order_path() { return db_path + "/dag_blocks_order"; }
