@@ -91,9 +91,8 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   std::string response = fastWriter.write(json_response);
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "WS WRITE " << response.c_str();
-  ws_.async_write(
-      boost::asio::buffer(response),
-      beast::bind_front_handler(&WSSession::on_write, shared_from_this()));
+  ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
+                            std::allocator<void>());
 }
 
 void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
