@@ -154,11 +154,14 @@ void WSSession::write(const std::string &message) {
 }
 
 void WSSession::writeImpl(const std::string &message) {
-  if (queue_messages_.size() > 0) {
+  
+  queue_messages_.push_back(message);
+
+  if (queue_messages_.size() > 1) {
     // outstanding async_write
-    queue_messages_.push_back(message);
     return;
   }
+
   write(message);
 }
 
