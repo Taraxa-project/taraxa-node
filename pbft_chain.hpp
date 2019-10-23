@@ -162,7 +162,9 @@ class PbftBlock {
       : pivot_block_(pivot_block), block_type_(pivot_block_type) {}
   PbftBlock(ScheduleBlock const& schedule_block)
       : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
-  PbftBlock(dev::RLP const& _r);
+  PbftBlock(dev::RLP const& r);
+  PbftBlock(bytes const& b);
+
   PbftBlock(std::string const& json);
   ~PbftBlock() {}
 
@@ -184,6 +186,7 @@ class PbftBlock {
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
   void streamRLP(dev::RLPStream& strm) const;
+  bytes rlp() const;
 
  private:
   blk_hash_t block_hash_;
@@ -195,6 +198,19 @@ class PbftBlock {
   // TODO: need more pbft block type
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
+
+class Vote;
+
+struct PbftBlockCert {
+  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
+  PbftBlockCert(bytes const& all_rlp);
+  PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
+
+  PbftBlock pbft_blk;
+  std::vector<Vote> cert_votes;
+  bytes rlp() const;
+};
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 class PbftChain {
  public:
