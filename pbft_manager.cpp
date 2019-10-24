@@ -1546,7 +1546,7 @@ void PbftManager::updateSortitionAccountsDB_() {
 }
 
 size_t PbftManager::getValidPbftSortitionPlayerSize_() {
-  if (db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
+  if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // Cannot find
     LOG(log_err_) << "Cannot find sortition accounts size in DB";
     assert(false);
