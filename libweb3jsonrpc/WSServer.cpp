@@ -146,7 +146,7 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
       return;
     }
     executor.post(boost::bind(&WSSession::writeImpl, this, response),
-                   std::allocator<void>());
+                  std::allocator<void>());
   }
 }
 
@@ -256,7 +256,7 @@ void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
       return;
     }
     executor.post(boost::bind(&WSSession::writeImpl, this, response),
-              std::allocator<void>());
+                  std::allocator<void>());
   }
 }
 
