@@ -93,15 +93,6 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   LOG(log_tr_) << "WS WRITE " << response.c_str();
   ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
                             std::allocator<void>());
-}
-
-void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
-  boost::ignore_unused(bytes_transferred);
-
-  if (ec) {
-    if (!closed_) LOG(log_er_) << ec << " write";
-    return;
-  }
   // Clear the buffer
   buffer_.consume(buffer_.size());
 
@@ -111,8 +102,10 @@ void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
 
 void WSSession::on_write_no_read(beast::error_code ec,
                                  std::size_t bytes_transferred) {
+  LOG(log_tr_) << "WS ASYNC WRITE COMPLETE" << " " << &ws_;
   boost::ignore_unused(bytes_transferred);
 
+  queue_messages_.pop_front();
   if (ec) {
     if (!closed_) LOG(log_er_) << ec << " write";
     return;
@@ -122,7 +115,6 @@ void WSSession::on_write_no_read(beast::error_code ec,
 
   if (queue_messages_.size() > 0) {
     std::string message = queue_messages_.front();
-    queue_messages_.pop_front();
     write(message);
   }
 }
@@ -147,7 +139,7 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
 
 void WSSession::write(const std::string &message) {
   ws_.text(ws_.got_text());
-  LOG(log_tr_) << "WS WRITE " << message.c_str();
+  LOG(log_tr_) << "WS ASYNC WRITE " << message.c_str() << " " << &ws_;
   ws_.async_write(boost::asio::buffer(message),
                   beast::bind_front_handler(&WSSession::on_write_no_read,
                                             shared_from_this()));
@@ -156,7 +148,6 @@ void WSSession::write(const std::string &message) {
 void WSSession::writeImpl(const std::string &message) {
   
   queue_messages_.push_back(message);
-
   if (queue_messages_.size() > 1) {
     // outstanding async_write
     return;
