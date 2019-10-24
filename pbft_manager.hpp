@@ -40,8 +40,6 @@ class PbftManager {
   void stop();
   void run();
 
-//  int64_t stringToInt64(std::string &str);
-
   blk_hash_t getLastPbftBlockHashAtStartOfRound() const {
     return pbft_chain_last_block_hash_;
   }
@@ -145,7 +143,7 @@ class PbftManager {
   // Database
   std::shared_ptr<SimpleDBFace> db_cert_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
-  // Key: account address, value: last period seen sending trxs
+  // Key: account address, value: PbftSortitionAccountStatus
   std::shared_ptr<dev::db::DatabaseFace> db_sortition_accounts_;
   size_t valid_sortition_accounts_size_;
 
