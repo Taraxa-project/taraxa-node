@@ -81,7 +81,8 @@ void PbftManager::start() {
       LOG(log_err_) << "PBFT sortition accounts table should be empty";
       assert(false);
     }
-    db_sortition_accounts_->forEach([&](auto const &addr, auto const &account_json) {
+    db_sortition_accounts_->forEach([&](auto const &addr,
+                                        auto const &account_json) {
       PbftSortitionAccount account(account_json.toString());
       sortition_account_balance_table[account.address] = account;
       return true;
@@ -1276,7 +1277,7 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   std::pair<PbftBlock, bool> cs_block =
       pbft_chain_->getUnverifiedPbftBlock(cs_block_hash);
   if (!cs_block.second) {
-    LOG(log_inf_) << "Have not got the PBFT CS block yet. block hash: "
+    LOG(log_deb_) << "Have not got the PBFT CS block yet. block hash: "
                   << cs_block_hash;
     return false;
   }
