@@ -70,7 +70,7 @@ void PbftManager::start() {
 
   db_cert_votes_ = full_node->getVotesDB();
   db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
-  if (!db_sortition_accounts_->exists("sortition_accounts_size")) {
+  if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
     addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
@@ -96,10 +96,10 @@ void PbftManager::start() {
       LOG(log_err_) << "PBFT sortition accounts table should be empty";
       assert(false);
     }
-    db_sortition_accounts_->forEach([&](auto const &addr,
-                                        auto const &account_json) {
-      PbftSortitionAccount account(account_json);
+    db_sortition_accounts_->forEach([&](auto const &addr, auto const &account_json) {
+      PbftSortitionAccount account(account_json.toString());
       sortition_account_balance_table[account.address] = account;
+      return true;
     });
     valid_sortition_accounts_size_ = getValidPbftSortitionPlayerSize_();
   }
@@ -1559,31 +1559,36 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
 //}
 
 void PbftManager::updateSortitionAccountsDB_() {
+  auto accounts = db_sortition_accounts_->createWriteBatch();
   for (auto &account : sortition_account_balance_table) {
     if (account.second.status == new_change) {
-      db_sortition_accounts_->insert(account.first.toString(),
-                                     account.second.getJsonStr());
+      accounts->insert(account.first.toString(), account.second.getJsonStr());
+//      db_sortition_accounts_->insert(account.first.toString(),
+//                                     account.second.getJsonStr());
       account.second.status = updated;
     } else if (account.second.status == remove) {
       // TODO: not sure if kill is to remove in DB
+//      accounts->kill(account.first.toString());
       db_sortition_accounts_->kill(account.first.toString());
       sortition_account_balance_table.erase(account.first);
     }
   }
   valid_sortition_accounts_size_ = sortition_account_balance_table.size();
-  db_sortition_accounts_->insert("sortition_accounts_size",
-                                 valid_sortition_accounts_size_);
-//  db_sortition_accounts_->commit();
+  accounts->insert(std::string("sortition_accounts_size"),
+                                 std::to_string(valid_sortition_accounts_size_));
+//  db_sortition_accounts_->insert(std::string("sortition_accounts_size"),
+//      std::to_string(valid_sortition_accounts_size_));
+  db_sortition_accounts_->commit(std::move(accounts));
 }
 
 size_t PbftManager::getValidPbftSortitionPlayerSize_() {
-  if (db_sortition_accounts_->exists("sortition_accounts_size")) {
+  if (db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // Cannot find
     LOG(log_err_) << "Cannot find sortition accounts size in DB";
     assert(false);
   }
   std::string sortition_accounts_size =
-      db_sortition_accounts_->lookup("sortition_accounts_size");
+      db_sortition_accounts_->lookup(std::string("sortition_accounts_size"));
   std::stringstream sstream(sortition_accounts_size);
   size_t valid_players_size;
   sstream >> valid_players_size;
