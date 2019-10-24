@@ -93,15 +93,6 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   LOG(log_tr_) << "WS WRITE " << response.c_str();
   ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
                             std::allocator<void>());
-}
-
-void WSSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
-  boost::ignore_unused(bytes_transferred);
-
-  if (ec) {
-    if (!closed_) LOG(log_er_) << ec << " write";
-    return;
-  }
   // Clear the buffer
   buffer_.consume(buffer_.size());
 
@@ -155,10 +146,9 @@ void WSSession::write(const std::string &message) {
 
 void WSSession::writeImpl(const std::string &message) {
   
-  queue_messages_.push_back(message);
-
-  if (queue_messages_.size() > 1) {
+  if (queue_messages_.size() > 0) {
     // outstanding async_write
+    queue_messages_.push_back(message);
     return;
   }
 
