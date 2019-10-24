@@ -472,11 +472,14 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (my_chain_size >= height_to_sync) {
             size_t blocks_to_transfer = std::min(
                 max_blocks_in_packet, my_chain_size - (height_to_sync - 1));
+            //Question: will send multiple times to same receiver, why?
+            LOG(log_dg_) << "Send pbftblocks to " << _nodeID;
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
         }
         break;
       }
+      // no cert vote needed
       case NewPbftBlockPacket: {
         LOG(log_dg_) << "In NewPbftBlockPacket";
 
@@ -497,25 +500,33 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         break;
       }
+      // need cert vote (syncing)
       case PbftBlockPacket: {
         LOG(log_dg_) << "In PbftBlockPacket";
 
         auto block_count = _r.itemCount();
         for (auto iblock = 0; iblock < block_count; iblock++) {
-          PbftBlock pbft_block(_r[iblock]);
-          LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
-          peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
-
+          PbftBlockCert blks(_r[iblock].toBytes());
+          auto pbft_blk_hash = blks.pbft_blk.getBlockHash();
+          peer->markPbftBlockAsKnown(pbft_blk_hash);
           auto full_node = full_node_.lock();
           if (!full_node) {
             LOG(log_er_) << "PbftBlock full node weak pointer empty";
             return false;
           }
-          if (!full_node->isKnownPbftBlockForSyncing(
-                  pbft_block.getBlockHash())) {
-            // TODO: need check 2t+1 cert votes, then put into chain and
-            //  store in DB. May send request for cert votes here
-            full_node->setVerifiedPbftBlock(pbft_block);
+          if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
+            // CCL
+            if (full_node->pbftBlockHasEnoughCertVotes(blks.pbft_blk,
+                                                       blks.cert_votes)) {
+              // Check 2t+1 cert votes, then put into chain and
+              //  store in DB. May send request for cert votes here
+              full_node->setVerifiedPbftBlock(blks.pbft_blk);
+              LOG(log_dg_) << "Pbftblock " << pbft_blk_hash
+                           << " have enough cert votes!";
+            } else {
+              LOG(log_wr_) << "Pbftblock " << pbft_blk_hash
+                           << " does not have enough cert votes";
+            }
           }
         }
         if (block_count > 0) {
@@ -998,6 +1009,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
   }
 }
 
+// api for pbft syncing
 void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                                       size_t blocks_to_transfer) {
   LOG(log_dg_) << "In sendPbftBlocks, already have pbft verified blocks size: "
@@ -1006,17 +1018,35 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
   if (auto full_node = full_node_.lock()) {
     auto pbftchain = full_node->getPbftChain();
     assert(pbftchain);
+    auto vote_db = full_node->getVotesDB();
+    assert(vote_db);
+    // add cert votes for each pbftblock
     std::vector<PbftBlock> blocks =
         pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
+    std::vector<PbftBlockCert> cert_blocks;
+
+    // has some redundancy here. fix later
+    for (auto const &b : blocks) {
+      auto cert_votes_rlp = (vote_db->get(b.getBlockHash()));
+      assert(!cert_votes_rlp.empty());
+      if (cert_votes_rlp.empty()) continue;
+      PbftBlockCert bk(b, cert_votes_rlp);
+      cert_blocks.emplace_back(bk);
+    }
+
     // Protect PBFT chain DB processing happening in the same time
-    if (blocks.empty()) {
+    if (cert_blocks.empty()) {
       return;
     }
     RLPStream s;
     host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
-                                 blocks.size());
-    for (auto &block : blocks) block.serializeRLP(s);
+                                 cert_blocks.size());
+    for (auto const &b : cert_blocks) s.append(b.rlp());
     host_.capabilityHost()->sealAndSend(_id, s);
+    if (!cert_blocks.empty()) {
+      //Question: will send multiple times to a same receiver, why? 
+      LOG(log_dg_) << "Sending PbftCertBlocks " << cert_blocks << " to " << _id;
+    }
   }
 }
 

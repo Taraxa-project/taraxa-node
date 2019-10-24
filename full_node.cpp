@@ -693,6 +693,29 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   }
   return ret;
 }
+
+void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
+                              std::vector<Vote> const &votes) {
+  RLPStream s;
+  s.appendList(votes.size());
+  for (auto const &v : votes) {
+    // LOG(log_sil_) << v;
+    s.append(v.rlp());
+  }
+  auto ss = s.out();
+  db_cert_votes_->put(pbft_hash, ss);
+  db_cert_votes_->commit();
+  LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
+               << votes;
+}
+bool FullNode::pbftBlockHasEnoughCertVotes(PbftBlock const &blk,
+                                           std::vector<Vote> &votes) const {
+  return pbft_mgr_->hasEnoughCertVotes(blk, votes);
+}
+void FullNode::setTwoTPlusOne(size_t val) {
+  pbft_mgr_->setTwoTPlusOne(val);
+}
+
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
