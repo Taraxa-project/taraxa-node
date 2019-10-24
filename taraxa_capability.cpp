@@ -515,7 +515,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-            // CCL
             if (full_node->pbftBlockHasEnoughCertVotes(blks.pbft_blk,
                                                        blks.cert_votes)) {
               // Check 2t+1 cert votes, then put into chain and
