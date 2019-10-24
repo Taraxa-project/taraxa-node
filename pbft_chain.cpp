@@ -923,7 +923,7 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
   }
 }
 
-PbftSortitionAccount::PbftSortitionAccount(std::string const &json) {
+PbftSortitionAccount::PbftSortitionAccount(std::string const& json) {
   ptree doc = strToJson(json);
 
   address = addr_t(doc.get<std::string>("address"));

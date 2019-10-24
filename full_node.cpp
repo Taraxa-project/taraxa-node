@@ -106,7 +106,8 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   }
   auto const &genesis_hash = genesis_block.getHash();
   auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
-  db_pbft_sortition_accounts_ = std::move(newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
+  db_pbft_sortition_accounts_ = std::move(
+      newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
   // store genesis blk to db
   db_blks_->put(genesis_hash, genesis_block.rlp(true));
   db_blks_->commit();
@@ -415,7 +416,8 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
 }
 // receive pbft-povit-blk, update periods
 uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
-  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor << " and period " << period; 
+  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor
+               << " and period " << period;
   auto res = dag_mgr_->setDagBlockPeriod(anchor, period);
   if (ws_server_) ws_server_->newDagBlockFinalized(anchor, period);
   return res;
@@ -558,8 +560,8 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, PbftSortitionAccount>&
-        sortition_account_balance_table,
+    std::unordered_map<addr_t, PbftSortitionAccount>
+        &sortition_account_balance_table,
     uint64_t period) {
   // update transaction overlap table first
   auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());

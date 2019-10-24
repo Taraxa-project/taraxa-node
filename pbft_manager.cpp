@@ -69,8 +69,9 @@ void PbftManager::start() {
           << "Initial master boot node account balance. Current balance "
           << master_boot_node_account_balance.first;
     }
-    PbftSortitionAccount master_boot_node(master_boot_node_address,
-        master_boot_node_account_balance.first, 0, new_change);
+    PbftSortitionAccount master_boot_node(
+        master_boot_node_address, master_boot_node_account_balance.first, 0,
+        new_change);
     sortition_account_balance_table[master_boot_node_address] =
         master_boot_node;
     valid_sortition_accounts_size_ = 1;
@@ -81,12 +82,12 @@ void PbftManager::start() {
       LOG(log_err_) << "PBFT sortition accounts table should be empty";
       assert(false);
     }
-    db_sortition_accounts_->forEach([&](auto const &addr,
-                                        auto const &account_json) {
-      PbftSortitionAccount account(account_json.toString());
-      sortition_account_balance_table[account.address] = account;
-      return true;
-    });
+    db_sortition_accounts_->forEach(
+        [&](auto const &addr, auto const &account_json) {
+          PbftSortitionAccount account(account_json.toString());
+          sortition_account_balance_table[account.address] = account;
+          return true;
+        });
     valid_sortition_accounts_size_ = getValidPbftSortitionPlayerSize_();
   }
 
@@ -202,8 +203,7 @@ void PbftManager::run() {
     // Get votes
     bool sync_peers_pbft_chain = false;
     std::vector<Vote> votes = vote_mgr_->getVotes(
-        pbft_round_ - 1, valid_sortition_accounts_size_,
-        sync_peers_pbft_chain);
+        pbft_round_ - 1, valid_sortition_accounts_size_, sync_peers_pbft_chain);
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
     if (sync_peers_pbft_chain) {
@@ -781,8 +781,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
                         std::to_string(step);
   dev::Signature sortition_signature = full_node->signMessage(message);
   string sortition_credential = taraxa::hashSignature(sortition_signature);
-  if (!taraxa::sortition(sortition_credential,
-                         valid_sortition_accounts_size_,
+  if (!taraxa::sortition(sortition_credential, valid_sortition_accounts_size_,
                          sortition_threshold_)) {
     LOG(log_tra_) << "Don't get sortition";
     return false;
@@ -1484,9 +1483,9 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         //  pairs<addr_t, val_t>.
         //  Will need update sortition_account_balance_table here
         uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-        if (!full_node->executeScheduleBlock(
-                pbft_block.getScheduleBlock(),
-                sortition_account_balance_table, pbft_period)) {
+        if (!full_node->executeScheduleBlock(pbft_block.getScheduleBlock(),
+                                             sortition_account_balance_table,
+                                             pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
         executed_cs_block_ = true;

@@ -316,8 +316,7 @@ enum PbftSortitionAccountStatus {
 class PbftSortitionAccount {
  public:
   PbftSortitionAccount() = default;
-  PbftSortitionAccount(addr_t account_address,
-                       val_t account_balance,
+  PbftSortitionAccount(addr_t account_address, val_t account_balance,
                        int64_t pbft_period,
                        PbftSortitionAccountStatus account_status)
       : address(account_address),
@@ -331,7 +330,8 @@ class PbftSortitionAccount {
 
   addr_t address;
   val_t balance;
-  int64_t last_period_seen; // last PBFT period seen sending transactions, -1 means never seen sending trxs
+  int64_t last_period_seen;  // last PBFT period seen sending transactions, -1
+                             // means never seen sending trxs
   PbftSortitionAccountStatus status;
 };
 
