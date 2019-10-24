@@ -82,13 +82,16 @@ void PbftManager::start() {
       LOG(log_err_) << "PBFT sortition accounts table should be empty";
       assert(false);
     }
-    db_sortition_accounts_->forEach(
-        [&](auto const &addr, auto const &account_json) {
-          PbftSortitionAccount account(account_json.toString());
-          sortition_account_balance_table[account.address] = account;
-          return true;
-        });
-    valid_sortition_accounts_size_ = getValidPbftSortitionPlayerSize_();
+    db_sortition_accounts_->forEach([&](auto const &key, auto const &value) {
+      if (key.toString() == "sortition_accounts_size") {
+        std::stringstream sstream(value.toString());
+        sstream >> valid_sortition_accounts_size_;
+        return true;
+      }
+      PbftSortitionAccount account(value.toString());
+      sortition_account_balance_table[account.address] = account;
+      return true;
+    });
   }
 
   // Reset round and step...
