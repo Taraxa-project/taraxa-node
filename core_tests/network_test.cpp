@@ -284,7 +284,11 @@ chain on the other end is the same
 TEST(Network, node_pbft_sync) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
-  node1->setDebug(true);
+  auto node2(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa2.json"), true));
+  auto node3(taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa2.json"), true));
+  node1->setTwoTPlusOne(2);
   node1->start(true);  // boot node
 
   // generate pbft pivot block sample
@@ -302,7 +306,16 @@ TEST(Network, node_pbft_sync) {
   std::string pbft_block_str = pbft_block1.getJsonStr();
   sig_t signature = node1->signMessage(pbft_block_str);
   pbft_block1.setSignature(signature);
+  std::vector<Vote> votes_for_pivot_blk;
+  votes_for_pivot_blk.emplace_back(node1->generateVote(
+      pbft_block1.getBlockHash(), cert_vote_type, 1, 1, prev_block_blk));
+  votes_for_pivot_blk.emplace_back(node2->generateVote(
+      pbft_block1.getBlockHash(), cert_vote_type, 1, 1, prev_block_blk));
+  votes_for_pivot_blk.emplace_back(node3->generateVote(
+      pbft_block1.getBlockHash(), cert_vote_type, 1, 1, prev_block_blk));
+  std::cout << "Generate 3 votes for pivot blk " << std::endl;
 
+  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pivot_blk);
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   // node1 put block1 into pbft chain and store into DB
   bool push_block = pbft_chain1->pushPbftPivotBlock(pbft_block1);
@@ -320,24 +333,36 @@ TEST(Network, node_pbft_sync) {
   pbft_block_str = pbft_block2.getJsonStr();
   signature = node1->signMessage(pbft_block_str);
   pbft_block2.setSignature(signature);
+
+  std::vector<Vote> votes_for_sc_blk;
+  votes_for_sc_blk.emplace_back(node1->generateVote(
+      pbft_block2.getBlockHash(), cert_vote_type, 1, 2, prev_block_blk));
+  votes_for_sc_blk.emplace_back(node2->generateVote(
+      pbft_block2.getBlockHash(), cert_vote_type, 1, 2, prev_block_blk));
+  votes_for_sc_blk.emplace_back(node3->generateVote(
+      pbft_block2.getBlockHash(), cert_vote_type, 1, 2, prev_block_blk));
+  std::cout << "Generate 3 votes for cs blk " << std::endl;
+
+  node1->storeCertVotes(pbft_block2.getBlockHash(), votes_for_sc_blk);
+
   // node1 put block2 into pbft chain and store into DB
   push_block = pbft_chain1->pushPbftScheduleBlock(pbft_block2);
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node1->getPbftChainSize(), 3);
 
-  auto node2 = taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json"), true);
-  node2->setDebug(true);
-  node2->start(false);  // boot node
+  auto node4 = taraxa::FullNode::make(
+      std::string("./core_tests/conf/conf_taraxa4.json"), true);
+  node4->setTwoTPlusOne(2);
+  node4->start(false);  // boot node
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
   for (int i = 0; i < 1200; i++) {
-    if (node2->getPbftChainSize() == 3) {
+    if (node4->getPbftChainSize() == 3) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftChainSize(), 3);
+  EXPECT_EQ(node4->getPbftChainSize(), 3);
 }
 
 /*

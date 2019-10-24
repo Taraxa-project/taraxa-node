@@ -198,7 +198,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
   void newPendingTransaction(trx_hash_t const &trx_hash);
-
+  void storeCertVotes(blk_hash_t const & pbft_hash, std::vector<Vote> const & votes);
+  bool pbftBlockHasEnoughCertVotes(PbftBlock const &blk, std::vector<Vote> &votes) const ;
+  void setTwoTPlusOne(size_t val);
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_cert_votes_; }

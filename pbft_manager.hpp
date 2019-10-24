@@ -60,6 +60,7 @@ class PbftManager {
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
+  bool hasEnoughCertVotes(PbftBlock const &blk, std::vector<Vote> &votes) const;
 
   // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
@@ -79,7 +80,7 @@ class PbftManager {
  private:
   uint64_t roundDeterminedFromVotes_();
 
-  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
+  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes) const;
 
   bool nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
                                           uint64_t round);

@@ -245,26 +245,10 @@ void PbftManager::run() {
             have_executed_this_round = true;
             LOG(log_sil_) << "Write " << cert_votes_for_round.size()
                           << " votes ... in round " << pbft_round_;
-
-            // CCL: store cert votes to db
-            RLPStream s;
-            s.appendList(cert_votes_for_round.size());
-            for (auto const &v : cert_votes_for_round) {
-              // LOG(log_sil_) << v;
-              s.append(v.rlp());
-            }
-            auto ss = s.out();
-            db_cert_votes_->put(cert_voted_block_hash.first, ss);
-            db_cert_votes_->commit();
-            // RLP rlps(ss);
-            // std::vector<Vote> reconstruct;
-            // auto num_votes = rlps.itemCount();
-            // for (auto i = 0; i < num_votes; ++i) {
-            //   auto rev = Vote(rlps[i].toBytes());
-            //   LOG(log_sil_) << rev;
-            //   reconstruct.push_back(rev);
-            // }
-            // LOG(log_sil_) << "Reconstruct " << num_votes << " votes ... ";
+            auto full_node = node_.lock();
+            full_node->storeCertVotes(cert_voted_block_hash.first,
+                                      cert_votes_for_round);
+            
 
             // TODO: debug remove later
             LOG(log_deb_) << "The cert voted pbft block is "
@@ -835,10 +819,15 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
   }
   return pbft_round_;
 }
-
+bool PbftManager::hasEnoughCertVotes(PbftBlock const &blk,
+                                     std::vector<Vote> &votes) const {
+  auto [blk_hash, ok] = blockWithEnoughVotes_(votes);
+  if (ok && blk_hash == blk.getBlockHash()) return true;
+  return false;
+}
 // Assumption is that all votes are in the same round and of same type...
 std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
-    std::vector<Vote> &votes) {
+    std::vector<Vote> &votes) const {
   bool is_first_block = true;
   PbftVoteTypes vote_type;
   uint64_t vote_round;
@@ -880,7 +869,8 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
         LOG(log_tra_) << "Don't have enough votes. block hash "
                       << blockhash_pair.first << " vote type " << vote_type
                       << " in round " << vote_round << " has "
-                      << blockhash_pair.second << " votes";
+                      << blockhash_pair.second << " votes"
+                      << " (2TP1 = " << TWO_T_PLUS_ONE << ")";
       }
     }
   }
