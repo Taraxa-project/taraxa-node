@@ -36,7 +36,7 @@ class Executor {
   bool use_basic_executor_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using BalanceTable = std::unordered_map<addr_t, std::pair<val_t, int64_t>>;
+  using BalanceTable = std::unordered_map<addr_t, PbftSortitionAccount>;
   using AccountNonceTable = StatusTable<addr_t, val_t>;
   AccountNonceTable accs_nonce_;
 
@@ -85,12 +85,10 @@ class Executor {
                      uint64_t period);
   bool executeBlkTrxs(StateRegistry::State&, blk_hash_t const& blk,
                       std::vector<uint> const& trx_modes,
-                      std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                          sortition_account_balance_table,
+                      BalanceTable& sortition_account_balance_table,
                       uint64_t period);
   bool coinTransfer(StateRegistry::State&, Transaction const& trx,
-                    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-                        sortition_account_balance_table,
+                    BalanceTable& sortition_account_balance_table,
                     uint64_t period, DagBlock const& dag_block);
   addr_t getFullNodeAddress() const;
 };

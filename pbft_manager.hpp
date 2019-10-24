@@ -40,6 +40,8 @@ class PbftManager {
   void stop();
   void run();
 
+//  int64_t stringToInt64(std::string &str);
+
   blk_hash_t getLastPbftBlockHashAtStartOfRound() const {
     return pbft_chain_last_block_hash_;
   }
@@ -62,13 +64,11 @@ class PbftManager {
   size_t getPbftStep() const { return pbft_step_; }
 
   // TODO: Maybe don't need account balance in the table
-  // <account_addr, <account_balance, last_period_seen_trxs>>
-  // last_period_seen_trxs = -1 means never seen trxs
-  std::unordered_map<addr_t, std::pair<val_t, int64_t>>
+  // <account address, PbftSortitionAccount>
+  // Temp table for executor to update
+  std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
-  // TODO: temp using, need remove later
-  std::unordered_map<addr_t, std::pair<val_t, int64_t>>
-      new_sortition_account_balance_table;
+
   u_long LAMBDA_ms;                // TODO: Only for test, need remove later
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
@@ -128,7 +128,9 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
-  void updateSortitionAccountBalanceTable_();
+  void updateSortitionAccountsDB_();
+
+  size_t getValidPbftSortitionPlayerSize_();
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT CS block has proposed already in one period
@@ -143,6 +145,9 @@ class PbftManager {
   // Database
   std::shared_ptr<SimpleDBFace> db_cert_votes_;
   std::shared_ptr<SimpleDBFace> db_pbftchain_;
+  // Key: account address, value: last period seen sending trxs
+  std::shared_ptr<dev::db::DatabaseFace> db_sortition_accounts_;
+  size_t valid_sortition_accounts_size_;
 
   blk_hash_t pbft_chain_last_block_hash_;
 

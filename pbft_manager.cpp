@@ -37,22 +37,20 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
 
-  // Initialize master boot node account balance
-  addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
-  std::pair<val_t, bool> master_boot_node_account_balance =
-      full_node->getBalance(master_boot_node_address);
-  if (!master_boot_node_account_balance.second) {
-    LOG(log_err_) << "Failed initial master boot node account balance."
-                  << " Master boot node balance is not exist.";
-  } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
-    LOG(log_inf_)
-        << "Initial master boot node account balance. Current balance "
-        << master_boot_node_account_balance.first;
-  }
-  sortition_account_balance_table[master_boot_node_address] =
-      std::make_pair(master_boot_node_account_balance.first, 0);
-  new_sortition_account_balance_table[master_boot_node_address] =
-      std::make_pair(master_boot_node_account_balance.first, 0);
+//  // Initialize master boot node account balance
+//  addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
+//  std::pair<val_t, bool> master_boot_node_account_balance =
+//      full_node->getBalance(master_boot_node_address);
+//  if (!master_boot_node_account_balance.second) {
+//    LOG(log_err_) << "Failed initial master boot node account balance."
+//                  << " Master boot node balance is not exist.";
+//  } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
+//    LOG(log_inf_)
+//        << "Initial master boot node account balance. Current balance "
+//        << master_boot_node_account_balance.first;
+//  }
+//  sortition_account_balance_table[master_boot_node_address] =
+//      std::make_pair(master_boot_node_account_balance.first, 0);
 }
 
 void PbftManager::start() {
@@ -71,6 +69,40 @@ void PbftManager::start() {
                 << ", the last of DAG blocks is " << ghost.back();
 
   db_cert_votes_ = full_node->getVotesDB();
+  db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
+  if (!db_sortition_accounts_->exists("sortition_accounts_size")) {
+    // New node
+    // Initialize master boot node account balance
+    addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
+    std::pair<val_t, bool> master_boot_node_account_balance =
+        full_node->getBalance(master_boot_node_address);
+    if (!master_boot_node_account_balance.second) {
+      LOG(log_err_) << "Failed initial master boot node account balance."
+                    << " Master boot node balance is not exist.";
+    } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
+      LOG(log_inf_)
+          << "Initial master boot node account balance. Current balance "
+          << master_boot_node_account_balance.first;
+    }
+    PbftSortitionAccount master_boot_node(master_boot_node_address,
+        master_boot_node_account_balance.first, 0, new_change);
+    sortition_account_balance_table[master_boot_node_address] =
+        master_boot_node;
+    valid_sortition_accounts_size_ = 1;
+    updateSortitionAccountsDB_();
+  } else {
+    // Full node join back
+    if (!sortition_account_balance_table.empty()) {
+      LOG(log_err_) << "PBFT sortition accounts table should be empty";
+      assert(false);
+    }
+    db_sortition_accounts_->forEach([&](auto const &addr,
+                                        auto const &account_json) {
+      PbftSortitionAccount account(account_json);
+      sortition_account_balance_table[account.address] = account;
+    });
+    valid_sortition_accounts_size_ = getValidPbftSortitionPlayerSize_();
+  }
 
   // Reset round and step...
   pbft_round_last_ = 1;
@@ -80,8 +112,6 @@ void PbftManager::start() {
   // Reset last sync request point...
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
-
-  // Setup sortition table according to status DB
 
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_deb_) << "PBFT daemon initiated ...";
@@ -104,6 +134,7 @@ void PbftManager::stop() {
   daemon_->join();
   LOG(log_deb_) << "PBFT daemon terminated ...";
   db_cert_votes_ = nullptr;
+  db_sortition_accounts_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -166,7 +197,7 @@ void PbftManager::run() {
       if (executed_cs_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
         // update sortition account balance table
-        updateSortitionAccountBalanceTable_();
+        updateSortitionAccountsDB_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
         executed_cs_block_ = false;
@@ -185,7 +216,7 @@ void PbftManager::run() {
     // Get votes
     bool sync_peers_pbft_chain = false;
     std::vector<Vote> votes = vote_mgr_->getVotes(
-        pbft_round_ - 1, sortition_account_balance_table.size(),
+        pbft_round_ - 1, valid_sortition_accounts_size_,
         sync_peers_pbft_chain);
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
@@ -313,7 +344,7 @@ void PbftManager::run() {
       if (executed_cs_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
         // update sortition account balance table
-        updateSortitionAccountBalanceTable_();
+        updateSortitionAccountsDB_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
         executed_cs_block_ = false;
@@ -740,30 +771,30 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   addr_t account_address = full_node->getAddress();
-  if (sortition_account_balance_table.find(account_address) ==
-      sortition_account_balance_table.end()) {
+  if (!db_sortition_accounts_->exists(account_address.toString())) {
     LOG(log_tra_) << "Don't have enough coins to vote";
     return false;
   }
   // only active players are able to vote
   uint64_t last_period = last_period_should_speak_;
-  // pbft_chain_->getPbftChainPeriod();
   int64_t since_period;
   if (last_period < SKIP_PERIODS) {
     since_period = 0;
   } else {
     since_period = last_period - SKIP_PERIODS;
   }
-  if (sortition_account_balance_table[account_address].second < since_period) {
+  PbftSortitionAccount account(
+      db_sortition_accounts_->lookup(account_address.toString()));
+  if (account.last_period_seen < since_period) {
     LOG(log_tra_) << "Non-active player since period " << since_period;
     return false;
   }
-  std::pair<val_t, bool> account_balance =
-      full_node->getBalance(account_address);
-  if (!account_balance.second) {
-    LOG(log_tra_) << "Full node account unavailable" << std::endl;
-    return false;
-  }
+//  std::pair<val_t, bool> account_balance =
+//      full_node->getBalance(account_address);
+//  if (!account_balance.second) {
+//    LOG(log_tra_) << "Full node account unavailable" << std::endl;
+//    return false;
+//  }
 
   // blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   std::string message = pbft_chain_last_block_hash_.toString() +
@@ -774,7 +805,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   string sortition_credential = taraxa::hashSignature(sortition_signature);
 
   if (!taraxa::sortition(sortition_credential,
-                         sortition_account_balance_table.size(),
+                         valid_sortition_accounts_size_,
                          sortition_threshold_)) {
     LOG(log_tra_) << "Don't get sortition";
     return false;
@@ -1478,7 +1509,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
         if (!full_node->executeScheduleBlock(
                 pbft_block.getScheduleBlock(),
-                new_sortition_account_balance_table, pbft_period)) {
+                sortition_account_balance_table, pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
         executed_cs_block_ = true;
@@ -1492,7 +1523,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
-  size_t players_size = sortition_account_balance_table.size();
+  size_t players_size = getValidPbftSortitionPlayerSize_();
   int64_t since_period;
   if (last_pbft_period < SKIP_PERIODS) {
     since_period = 0;
@@ -1501,7 +1532,7 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   }
   size_t active_players = 0;
   for (auto const &account : sortition_account_balance_table) {
-    if (account.second.second >= since_period) {
+    if (account.second.last_period_seen >= since_period) {
       active_players++;
     }
   }
@@ -1520,11 +1551,43 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << " since period " << since_period;
 }
 
-void PbftManager::updateSortitionAccountBalanceTable_() {
-  sortition_account_balance_table.clear();
-  for (auto const &account : new_sortition_account_balance_table) {
-    sortition_account_balance_table[account.first] = account.second;
+//void PbftManager::updateSortitionAccountBalanceTable_() {
+//  sortition_account_balance_table.clear();
+//  for (auto const &account : new_sortition_account_balance_table) {
+//    sortition_account_balance_table[account.first] = account.second;
+//  }
+//}
+
+void PbftManager::updateSortitionAccountsDB_() {
+  for (auto &account : sortition_account_balance_table) {
+    if (account.second.status == new_change) {
+      db_sortition_accounts_->insert(account.first.toString(),
+                                     account.second.getJsonStr());
+      account.second.status = updated;
+    } else if (account.second.status == remove) {
+      // TODO: not sure if kill is to remove in DB
+      db_sortition_accounts_->kill(account.first.toString());
+      sortition_account_balance_table.erase(account.first);
+    }
   }
+  valid_sortition_accounts_size_ = sortition_account_balance_table.size();
+  db_sortition_accounts_->insert("sortition_accounts_size",
+                                 valid_sortition_accounts_size_);
+//  db_sortition_accounts_->commit();
+}
+
+size_t PbftManager::getValidPbftSortitionPlayerSize_() {
+  if (db_sortition_accounts_->exists("sortition_accounts_size")) {
+    // Cannot find
+    LOG(log_err_) << "Cannot find sortition accounts size in DB";
+    assert(false);
+  }
+  std::string sortition_accounts_size =
+      db_sortition_accounts_->lookup("sortition_accounts_size");
+  std::stringstream sstream(sortition_accounts_size);
+  size_t valid_players_size;
+  sstream >> valid_players_size;
+  return valid_players_size;
 }
 
 void PbftManager::countVotes_() {
@@ -1573,5 +1636,12 @@ void PbftManager::countVotes_() {
     thisThreadSleepForMilliSeconds(100);
   }
 }
+
+//int64_t PbftManager::stringToInt64(std::string &str){
+//  std::stringstream sstream(str);
+//  int64_t num;
+//  sstream >> num;
+//  return num;
+//}
 
 }  // namespace taraxa
