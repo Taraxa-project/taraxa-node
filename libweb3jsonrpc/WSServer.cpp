@@ -91,8 +91,14 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   std::string response = fastWriter.write(json_response);
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "WS WRITE " << response.c_str();
-  ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
-                            std::allocator<void>());
+  auto executor = ws_.get_executor();
+  if (!executor) {
+    LOG(log_tr_) << "Executor missing - WS closed";
+    closed_ = true;
+    return;
+  }
+  executor.post(boost::bind(&WSSession::writeImpl, this, response),
+                std::allocator<void>());
   // Clear the buffer
   buffer_.consume(buffer_.size());
 
@@ -102,7 +108,8 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
 void WSSession::on_write_no_read(beast::error_code ec,
                                  std::size_t bytes_transferred) {
-  LOG(log_tr_) << "WS ASYNC WRITE COMPLETE" << " " << &ws_;
+  LOG(log_tr_) << "WS ASYNC WRITE COMPLETE"
+               << " " << &ws_;
   boost::ignore_unused(bytes_transferred);
 
   queue_messages_.pop_front();
@@ -132,8 +139,14 @@ void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
     std::string response = fastWriter.write(res);
     ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
-    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
-                            std::allocator<void>());
+    auto executor = ws_.get_executor();
+    if (!executor) {
+      LOG(log_tr_) << "Executor missing - WS closed";
+      closed_ = true;
+      return;
+    }
+    executor.post(boost::bind(&WSSession::writeImpl, this, response),
+                   std::allocator<void>());
   }
 }
 
@@ -146,7 +159,6 @@ void WSSession::write(const std::string &message) {
 }
 
 void WSSession::writeImpl(const std::string &message) {
-  
   queue_messages_.push_back(message);
   if (queue_messages_.size() > 1) {
     // outstanding async_write
@@ -166,8 +178,14 @@ void WSSession::newDagBlock(DagBlock const &blk) {
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
-                            std::allocator<void>());
+    auto executor = ws_.get_executor();
+    if (!executor) {
+      LOG(log_tr_) << "Executor missing - WS closed";
+      closed_ = true;
+      return;
+    }
+    executor.post(boost::bind(&WSSession::writeImpl, this, response),
+                  std::allocator<void>());
   }
 }
 
@@ -183,8 +201,14 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
-                            std::allocator<void>());
+    auto executor = ws_.get_executor();
+    if (!executor) {
+      LOG(log_tr_) << "Executor missing - WS closed";
+      closed_ = true;
+      return;
+    }
+    executor.post(boost::bind(&WSSession::writeImpl, this, response),
+                  std::allocator<void>());
   }
 }
 
@@ -204,8 +228,14 @@ void WSSession::newScheduleBlockExecuted(ScheduleBlock const &sche_blk,
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
-                            std::allocator<void>());
+    auto executor = ws_.get_executor();
+    if (!executor) {
+      LOG(log_tr_) << "Executor missing - WS closed";
+      closed_ = true;
+      return;
+    }
+    executor.post(boost::bind(&WSSession::writeImpl, this, response),
+                  std::allocator<void>());
   }
 }
 
@@ -219,8 +249,14 @@ void WSSession::newPendingTransaction(trx_hash_t const &trx_hash) {
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
-    ws_.get_executor().post(boost::bind(&WSSession::writeImpl, this, response),
-                            std::allocator<void>());
+    auto executor = ws_.get_executor();
+    if (!executor) {
+      LOG(log_tr_) << "Executor missing - WS closed";
+      closed_ = true;
+      return;
+    }
+    executor.post(boost::bind(&WSSession::writeImpl, this, response),
+              std::allocator<void>());
   }
 }
 
