@@ -56,7 +56,7 @@ bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
   for (auto i(0); i < sche.blk_order.size(); ++i) {
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
-    auto blk_bytes = db_blks_->get(blk);
+    auto blk_bytes = db_blks_->lookup(blk);
     if (blk_bytes.size() == 0) {
       LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
       return false;

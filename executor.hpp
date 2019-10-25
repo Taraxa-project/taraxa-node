@@ -15,6 +15,7 @@
 #include "state_registry.hpp"
 #include "trx_engine/trx_engine.hpp"
 #include "util.hpp"
+#include "database_face_cache.hpp"
 
 namespace taraxa {
 /**
@@ -30,8 +31,8 @@ class Executor {
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   trx_engine::TrxEngine trx_engine_;
   bool use_basic_executor_;

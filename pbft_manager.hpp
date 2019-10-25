@@ -8,7 +8,6 @@
 #include "config.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "simple_db_face.hpp"
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.h"

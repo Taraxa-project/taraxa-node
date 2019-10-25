@@ -3,7 +3,6 @@
 #include <thread>
 #include <vector>
 #include "create_samples.hpp"
-#include "simple_db_factory.hpp"
 
 namespace taraxa {
 const unsigned NUM_TRX = 40;

@@ -5,13 +5,13 @@
 #include <libdevcore/Log.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
+#include <libdevcore/db.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
 

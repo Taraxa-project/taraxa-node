@@ -12,9 +12,9 @@
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "simple_db_face.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include "database_face_cache.hpp"
 
 namespace taraxa {
 
@@ -51,7 +51,7 @@ class TransactionOrderManager {
   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
   dev::Logger log_wr_{

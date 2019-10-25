@@ -106,7 +106,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/simple_overlaydb_delegate.o \
 	${OBJECTDIR}/trx_engine/types.o \
 	${OBJECTDIR}/trx_engine/trx_engine.o \
 	${OBJECTDIR}/pbft_sortition_account.o
@@ -247,11 +246,6 @@ ${OBJECTDIR}/vote.o: vote.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/simple_overlaydb_delegate.o: simple_overlaydb_delegate.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/simple_overlaydb_delegate.o simple_overlaydb_delegate.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/trx_engine/types.o: trx_engine/types.cpp
 	${MKDIR} -p ${OBJECTDIR}
