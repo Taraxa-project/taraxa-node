@@ -3,6 +3,7 @@
 #include <thread>
 #include <vector>
 #include "create_samples.hpp"
+#include "util/eth.hpp"
 
 namespace taraxa {
 const unsigned NUM_TRX = 40;
@@ -86,8 +87,8 @@ TEST(TransactionQueue, verifiers) {
 TEST(TransactionManager, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(
-      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-          "/tmp/rocksdb/trx", true));
+      std::make_shared<DatabaseFaceCache>(util::eth::newDB(
+      "/tmp/rocksdb/trx", blk_hash_t(), dev::WithExisting::Kill).db, 100000));
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {
