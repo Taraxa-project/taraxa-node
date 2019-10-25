@@ -105,11 +105,13 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
     assert(false);
   }
   auto const &genesis_hash = genesis_block.getHash();
+  auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
+  db_pbft_sortition_accounts_ = std::move(
+      newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
   // store genesis blk to db
   db_blks_->put(genesis_hash, genesis_block.rlp(true));
   db_blks_->commit();
   // TODO add move to a StateRegistry constructor?
-  auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
   auto acc_db = newDB(conf_.account_db_path(),
                       genesis_hash,  //
                       mode);
@@ -267,6 +269,7 @@ void FullNode::stop() {
   assert(db_pbft_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_height_.use_count() == 1);
+  assert(db_pbft_sortition_accounts_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";
@@ -413,7 +416,8 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
 }
 // receive pbft-povit-blk, update periods
 uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
-  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor << " and period " << period; 
+  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor
+               << " and period " << period;
   auto res = dag_mgr_->setDagBlockPeriod(anchor, period);
   if (ws_server_) ws_server_->newDagBlockFinalized(anchor, period);
   return res;
@@ -556,7 +560,7 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 }
 bool FullNode::executeScheduleBlock(
     ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, std::pair<val_t, int64_t>>
+    std::unordered_map<addr_t, PbftSortitionAccount>
         &sortition_account_balance_table,
     uint64_t period) {
   // update transaction overlap table first
@@ -644,10 +648,6 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                << " vote: " << vote.getHash();
-
-  // add vote
-  addVote(vote);
-
   return vote;
 }
 

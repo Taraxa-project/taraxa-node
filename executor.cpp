@@ -103,17 +103,23 @@ bool Executor::execute_main(TrxSchedule const& schedule,
         auto const& new_sender_bal = current_state.balance(sender);
         auto const& new_receiver_bal = current_state.balance(receiver);
         if (new_sender_bal >= pbft_require_sortition_coins_) {
-          sortition_account_balance_table[sender] = {new_sender_bal, period};
+          sortition_account_balance_table[sender] = PbftSortitionAccount(
+              sender, new_sender_bal, static_cast<int64_t>(period), new_change);
         } else if (sortition_account_balance_table.find(sender) !=
                    sortition_account_balance_table.end()) {
-          sortition_account_balance_table.erase(sender);
+          sortition_account_balance_table[sender].status = remove;
         }
         if (new_receiver_bal >= pbft_require_sortition_coins_) {
           if (sortition_account_balance_table.find(receiver) !=
               sortition_account_balance_table.end()) {
-            sortition_account_balance_table[receiver].first = new_receiver_bal;
+            // update receiver account
+            sortition_account_balance_table[receiver].balance =
+                new_receiver_bal;
+            sortition_account_balance_table[receiver].status = new_change;
           } else {
-            sortition_account_balance_table[receiver] = {new_receiver_bal, -1};
+            // New receiver account
+            sortition_account_balance_table[receiver] = PbftSortitionAccount(
+                receiver, new_receiver_bal, -1, new_change);
           }
         }
         LOG(log_dg_) << "Update sender bal: " << sender << " --> "
@@ -134,11 +140,9 @@ bool Executor::execute_main(TrxSchedule const& schedule,
   return true;
 }
 
-bool Executor::execute_basic(
-    TrxSchedule const& sche,
-    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-        sortition_account_balance_table,
-    uint64_t period) {
+bool Executor::execute_basic(TrxSchedule const& sche,
+                             BalanceTable& sortition_account_balance_table,
+                             uint64_t period) {
   if (sche.blk_order.empty()) {
     return true;
   }
@@ -157,12 +161,11 @@ bool Executor::execute_basic(
   return true;
 }
 
-bool Executor::executeBlkTrxs(
-    StateRegistry::State& state, blk_hash_t const& blk,
-    std::vector<uint> const& trx_modes,
-    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-        sortition_account_balance_table,
-    uint64_t period) {
+bool Executor::executeBlkTrxs(StateRegistry::State& state,
+                              blk_hash_t const& blk,
+                              std::vector<uint> const& trx_modes,
+                              BalanceTable& sortition_account_balance_table,
+                              uint64_t period) {
   std::string blk_json = db_blks_->get(blk.toString());
   auto blk_bytes = db_blks_->get(blk);
   if (blk_bytes.size() == 0) {
@@ -207,11 +210,9 @@ bool Executor::executeBlkTrxs(
   return true;
 }
 
-bool Executor::coinTransfer(
-    StateRegistry::State& state, Transaction const& trx,
-    std::unordered_map<addr_t, std::pair<val_t, int64_t>>&
-        sortition_account_balance_table,
-    uint64_t period, DagBlock const& dag_block) {
+bool Executor::coinTransfer(StateRegistry::State& state, Transaction const& trx,
+                            BalanceTable& sortition_account_balance_table,
+                            uint64_t period, DagBlock const& dag_block) {
   auto hash = trx.getHash();
   val_t value = trx.getValue();
   addr_t sender = trx.getSender();
@@ -274,19 +275,22 @@ bool Executor::coinTransfer(
   // Update PBFT account balance table. Will remove in VM since vm return a list
   // of modified balance accounts
   if (new_sender_bal >= pbft_require_sortition_coins_) {
-    sortition_account_balance_table[sender] =
-        std::make_pair(new_sender_bal, period);
+    sortition_account_balance_table[sender] = PbftSortitionAccount(
+        sender, new_sender_bal, static_cast<int64_t>(period), new_change);
   } else if (sortition_account_balance_table.find(sender) !=
              sortition_account_balance_table.end()) {
-    sortition_account_balance_table.erase(sender);
+    sortition_account_balance_table[sender].status = remove;
   }
   if (new_receiver_bal >= pbft_require_sortition_coins_) {
     if (sortition_account_balance_table.find(receiver) !=
         sortition_account_balance_table.end()) {
-      sortition_account_balance_table[receiver].first = new_receiver_bal;
+      // update receiver account
+      sortition_account_balance_table[receiver].balance = new_receiver_bal;
+      sortition_account_balance_table[receiver].status = new_change;
     } else {
+      // New receiver account
       sortition_account_balance_table[receiver] =
-          std::make_pair(new_receiver_bal, -1);
+          PbftSortitionAccount(receiver, new_receiver_bal, -1, new_change);
     }
   }
 

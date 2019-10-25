@@ -68,6 +68,9 @@ struct FullNodeConfig {
   auto pbft_blocks_order_db_path() { return db_path + "/pbft_blocks_order"; }
   auto dag_blocks_order_path() { return db_path + "/dag_blocks_order"; }
   auto dag_blocks_height_path() { return db_path + "/dag_blocks_height"; }
+  auto pbft_sortition_accounts_db_path() {
+    return db_path + "/pbft_sortition_accounts";
+  }
   auto trxs_to_blk_db_path() { return db_path + "/trxs_to_blk"; }
   auto dag_blk_to_state_root_db_path() {
     return db_path + "/blk_to_state_root";

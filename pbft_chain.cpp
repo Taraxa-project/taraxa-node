@@ -458,13 +458,33 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   db_dag_blocks_height_ = full_node->getDagBlocksHeightDB();
   assert(db_dag_blocks_height_);
 
-  // store PBFT chain genesis(HEAD) block to db
-  insertPbftBlockIndex_(genesis_hash_);
-  db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
-  db_pbftchain_->commit();
+  // Get PBFT head from DB
+  std::string pbft_genesis_str = db_pbftchain_->get(genesis_hash_.toString());
+  if (pbft_genesis_str.empty()) {
+    // Store PBFT chain genesis(HEAD) block to db
+    insertPbftBlockIndex_(genesis_hash_);
+    db_pbftchain_->put(genesis_hash_.toString(), getJsonStr());
+    db_pbftchain_->commit();
+    // Initialize DAG genesis at DAG block heigh 1
+    pushDagBlockHash(dag_genesis_hash_);
+  } else {
+    // set PBFT genesis from DB
+    setPbftGenesis(pbft_genesis_str);
+  }
+}
 
-  // Initialize DAG genesis at DAG block heigh 1
-  pushDagBlockHash(dag_genesis_hash_);
+void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
+  ptree doc = strToJson(pbft_genesis_str);
+
+  genesis_hash_ = blk_hash_t(doc.get<std::string>("genesis_hash"));
+  size_ = doc.get<uint64_t>("size");
+  period_ = doc.get<uint64_t>("period");
+  next_pbft_block_type_ =
+      static_cast<PbftBlockTypes>(doc.get<int>("next_pbft_block_type"));
+  last_pbft_block_hash_ =
+      blk_hash_t(doc.get<std::string>("last_pbft_block_hash"));
+  last_pbft_pivot_hash_ =
+      blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
 }
 
 void PbftChain::releaseDB() {
@@ -831,7 +851,7 @@ std::string PbftChain::getJsonStr() const {
   tree.put("period", period_);
   tree.put("next_pbft_block_type", next_pbft_block_type_);
   tree.put("last_pbft_block_hash", last_pbft_block_hash_.toString());
-  tree.put("last_pbft_pivot_block", last_pbft_pivot_hash_.toString());
+  tree.put("last_pbft_pivot_hash", last_pbft_pivot_hash_.toString());
   // TODO: need add more info
 
   std::stringstream ostrm;

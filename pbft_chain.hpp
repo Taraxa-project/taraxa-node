@@ -201,6 +201,7 @@ class PbftChain {
   PbftChain(std::string const& dag_genesis_hash);
 
   void setFullNode(std::shared_ptr<FullNode> node);
+  void setPbftGenesis(std::string const& pbft_genesis_str);
   void releaseDB();
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);

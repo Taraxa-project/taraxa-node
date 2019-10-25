@@ -168,8 +168,10 @@ TEST_F(NetworkTest, transfer_vote) {
   pbft_mgr1->stop();
   pbft_mgr2->stop();
 
-  size_t vote_queue_size = node1->getUnverifiedVotesSize();
-  EXPECT_EQ(vote_queue_size, 1);
+  size_t vote_queue_size_in_node1 = node1->getUnverifiedVotesSize();
+  EXPECT_EQ(vote_queue_size_in_node1, 1);
+  size_t vote_queue_size_in_node2 = node2->getUnverifiedVotesSize();
+  EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
 TEST_F(NetworkTest, vote_broadcast) {

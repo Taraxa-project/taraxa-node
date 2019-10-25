@@ -158,11 +158,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
-  bool executeScheduleBlock(
-      ScheduleBlock const &sche_blk,
-      std::unordered_map<addr_t, std::pair<val_t, int64_t>>
-          &sortition_account_balance_table,
-      uint64_t period);
+  bool executeScheduleBlock(ScheduleBlock const &sche_blk,
+                            std::unordered_map<addr_t, PbftSortitionAccount>
+                                &sortition_account_balance_table,
+                            uint64_t period);
 
   // get DBs
   std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
@@ -212,6 +211,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   std::shared_ptr<SimpleDBFace> getDagBlocksHeightDB() const {
     return db_dag_blocks_height_;
+  }
+  std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
+    return db_pbft_sortition_accounts_;
   }
 
   // PBFT RPC
@@ -296,6 +298,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<SimpleDBFace> db_pbft_blocks_order_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
   std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
