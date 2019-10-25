@@ -1502,7 +1502,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
-  size_t players_size = getValidPbftSortitionPlayerSize_();
+  size_t players_size = valid_sortition_accounts_size_;
   int64_t since_period;
   if (last_pbft_period < SKIP_PERIODS) {
     since_period = 0;
