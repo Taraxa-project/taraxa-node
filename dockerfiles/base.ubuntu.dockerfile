@@ -23,10 +23,12 @@ ENV BOOST_VERSION="1_71_0"
 RUN cd /tmp \
     && wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.bz2 \
     && tar --bzip2 -xf boost_${BOOST_VERSION}.tar.bz2 \
-    && export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python2.7/" \
-    && cd boost_${BOOST_VERSION} \
-    && ./bootstrap.sh --prefix=/usr/local \
-    && ./b2 install \
+    && export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python2.7/"
+RUN cd /tmp/boost_${BOOST_VERSION} \
+    && ls -al \
+    && ./bootstrap.sh --prefix=/usr/local
+RUN cd /tmp/boost_${BOOST_VERSION}; ls -al ; ./b2 install
+RUN cd /tmp/boost_${BOOST_VERSION} \
     && ln -s /usr/local/lib/libboost_thread.so /usr/local/lib/libboost_thread-mt.so
 
 FROM boost-layer as gtest-layer
