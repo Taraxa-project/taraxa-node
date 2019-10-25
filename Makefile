@@ -108,7 +108,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/simple_overlaydb_delegate.o \
 	${OBJECTDIR}/trx_engine/types.o \
-	${OBJECTDIR}/trx_engine/trx_engine.o
+	${OBJECTDIR}/trx_engine/trx_engine.o \
+	${OBJECTDIR}/pbft_sortition_account.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -263,6 +264,11 @@ ${OBJECTDIR}/trx_engine/trx_engine.o: trx_engine/trx_engine.cpp
 	${MKDIR} -p ${OBJECTDIR}/trx_engine
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trx_engine/trx_engine.o trx_engine/trx_engine.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/pbft_sortition_account.o: pbft_sortition_account.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_sortition_account.o pbft_sortition_account.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}

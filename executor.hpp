@@ -11,6 +11,7 @@
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
+#include "pbft_sortition_account.h"
 #include "state_registry.hpp"
 #include "trx_engine/trx_engine.hpp"
 #include "util.hpp"
