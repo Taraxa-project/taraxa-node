@@ -28,7 +28,7 @@ std::unique_ptr<dev::db::WriteBatchFace> DatabaseFaceCache::createWriteBatch() {
 }
 
 void DatabaseFaceCache::commit(std::unique_ptr<dev::db::WriteBatchFace> _batch) {
-  db_->commit(_batch);
+  db_->commit(std::move(_batch));
 }
 
 void DatabaseFaceCache::forEach(

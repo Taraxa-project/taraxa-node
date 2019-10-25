@@ -108,7 +108,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/trx_engine/types.o \
 	${OBJECTDIR}/trx_engine/trx_engine.o \
-	${OBJECTDIR}/pbft_sortition_account.o
+	${OBJECTDIR}/pbft_sortition_account.o \
+	${OBJECTDIR}/database_face_cache.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -141,7 +142,12 @@ ${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
-	
+
+${OBJECTDIR}/database_face_cache.o: database_face_cache.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/database_face_cache.o database_face_cache.cpp $(CPPFLAGS)	
+
 ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
