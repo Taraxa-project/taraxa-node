@@ -46,15 +46,14 @@ void WSSession::do_read() {
 
 void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   boost::ignore_unused(bytes_transferred);
+  if (closed_) return;
 
-  // This indicates that the session was closed
-  if (ec == websocket::error::closed) {
-    LOG(log_tr_) << "WS closed";
+  // For any error close the connection
+  if (ec) {
+    LOG(log_tr_) << "WS closed in on_read " << ec;
     closed_ = true;
     return;
   }
-
-  if (ec) LOG(log_er_) << ec << " read";
 
   LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
 
@@ -110,6 +109,15 @@ void WSSession::on_write_no_read(beast::error_code ec,
                                  std::size_t bytes_transferred) {
   LOG(log_tr_) << "WS ASYNC WRITE COMPLETE"
                << " " << &ws_;
+  if (closed_) return;
+
+  // For any error close the connection
+  if (ec) {
+    LOG(log_tr_) << "WS closed in on_write " << ec;
+    closed_ = true;
+    return;
+  }
+
   boost::ignore_unused(bytes_transferred);
 
   queue_messages_.pop_front();
