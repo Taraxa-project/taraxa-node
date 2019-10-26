@@ -74,8 +74,8 @@ Transaction::Transaction(bytes const &_rlp) {
   data_ = rlp[5].toBytes();
 
   int const v = rlp[6].toInt<int>();
-  h256 const r = rlp[7].toInt<dev::u256>();
-  h256 const s = rlp[8].toInt<dev::u256>();
+  dev::h256 const r = rlp[7].toInt<dev::u256>();
+  dev::h256 const s = rlp[8].toInt<dev::u256>();
 
   if (!r && !s) {
     chain_id_ = v;
