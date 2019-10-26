@@ -38,18 +38,26 @@ bool Executor::execute_main(TrxSchedule const& schedule,
     std::vector<trx_engine::Transaction> trx_to_execute;
     for (auto trx_i(0); trx_i < num_trxs; ++trx_i) {
       auto const& trx_hash = trxs_hashes[trx_i];
-      auto mode = trx_modes[trx_i];
-      if (mode == 0) {
-        LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk_hash
-                     << " is overlapped";
-        num_overlapped_trx++;
-        continue;
-      }
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
       Transaction trx(db_trxs_->get(trx_hash));
       if (!trx.getHash()) {
         LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
+        continue;
+      }
+      // Update PBFT sortition account last period seen sending trxs
+      auto const& trx_sender = trx.getSender();
+      if (sortition_account_balance_table.find(trx_sender) !=
+          sortition_account_balance_table.end()) {
+        sortition_account_balance_table[trx_sender].last_period_seen =
+            static_cast<int64_t>(period);
+        sortition_account_balance_table[trx_sender].status = new_change;
+      }
+      auto mode = trx_modes[trx_i];
+      if (mode == 0) {
+        LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk_hash
+                     << " is overlapped";
+        num_overlapped_trx++;
         continue;
       }
       auto const& receiver = trx.getReceiver();
@@ -103,10 +111,10 @@ bool Executor::execute_main(TrxSchedule const& schedule,
         auto const& new_sender_bal = current_state.balance(sender);
         auto const& new_receiver_bal = current_state.balance(receiver);
         if (new_sender_bal >= pbft_require_sortition_coins_) {
-          sortition_account_balance_table[sender] = PbftSortitionAccount(
-              sender, new_sender_bal, static_cast<int64_t>(period), new_change);
+          sortition_account_balance_table[sender].balance = new_sender_bal;
         } else if (sortition_account_balance_table.find(sender) !=
                    sortition_account_balance_table.end()) {
+          sortition_account_balance_table[sender].balance = new_sender_bal;
           sortition_account_balance_table[sender].status = remove;
         }
         if (new_receiver_bal >= pbft_require_sortition_coins_) {
@@ -182,18 +190,26 @@ bool Executor::executeBlkTrxs(StateRegistry::State& state,
 
   for (auto i(0); i < trxs_hash.size(); ++i) {
     auto const& trx_hash = trxs_hash[i];
-    auto mode = trx_modes[i];
-    if (mode == 0) {
-      LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk
-                   << " is overlapped";
-      num_overlapped_trx++;
-      continue;
-    }
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
     Transaction trx(db_trxs_->get(trx_hash));
     if (!trx.getHash()) {
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
+      continue;
+    }
+    // Update PBFT sortition account last period seen sending trxs
+    auto const& trx_sender = trx.getSender();
+    if (sortition_account_balance_table.find(trx_sender) !=
+        sortition_account_balance_table.end()) {
+      sortition_account_balance_table[trx_sender].last_period_seen =
+          static_cast<int64_t>(period);
+      sortition_account_balance_table[trx_sender].status = new_change;
+    }
+    auto mode = trx_modes[i];
+    if (mode == 0) {
+      LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk
+                   << " is overlapped";
+      num_overlapped_trx++;
       continue;
     }
     coinTransfer(state, trx, sortition_account_balance_table, period,
@@ -275,10 +291,10 @@ bool Executor::coinTransfer(StateRegistry::State& state, Transaction const& trx,
   // Update PBFT account balance table. Will remove in VM since vm return a list
   // of modified balance accounts
   if (new_sender_bal >= pbft_require_sortition_coins_) {
-    sortition_account_balance_table[sender] = PbftSortitionAccount(
-        sender, new_sender_bal, static_cast<int64_t>(period), new_change);
+    sortition_account_balance_table[sender].balance = new_sender_bal;
   } else if (sortition_account_balance_table.find(sender) !=
              sortition_account_balance_table.end()) {
+    sortition_account_balance_table[sender].balance = new_sender_bal;
     sortition_account_balance_table[sender].status = remove;
   }
   if (new_receiver_bal >= pbft_require_sortition_coins_) {
