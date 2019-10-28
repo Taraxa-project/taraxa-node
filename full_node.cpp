@@ -733,9 +733,7 @@ bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
   return valid_votes.size() >= pbft_mgr_->getTwoTPlusOne();
 }
 
-void FullNode::setTwoTPlusOne(size_t val) {
-  pbft_mgr_->setTwoTPlusOne(val);
-}
+void FullNode::setTwoTPlusOne(size_t val) { pbft_mgr_->setTwoTPlusOne(val); }
 
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();

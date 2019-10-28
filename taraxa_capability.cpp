@@ -472,7 +472,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (my_chain_size >= height_to_sync) {
             size_t blocks_to_transfer = std::min(
                 max_blocks_in_packet, my_chain_size - (height_to_sync - 1));
-            //Question: will send multiple times to same receiver, why?
+            // Question: will send multiple times to same receiver, why?
             LOG(log_dg_) << "Send pbftblocks to " << _nodeID;
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
@@ -515,7 +515,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-            if (full_node->pbftBlockHasEnoughCertVotes(pbft_blk_hash, blk_and_votes.cert_votes)) {
+            if (full_node->pbftBlockHasEnoughCertVotes(
+                    pbft_blk_hash, blk_and_votes.cert_votes)) {
               // Check 2t+1 cert votes, then put PBFT block into chain and
               //  store cert votes in DB.
               full_node->setVerifiedPbftBlock(blk_and_votes.pbft_blk);
@@ -1042,7 +1043,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
     for (auto const &b : cert_blocks) s.append(b.rlp());
     host_.capabilityHost()->sealAndSend(_id, s);
     if (!cert_blocks.empty()) {
-      //Question: will send multiple times to a same receiver, why? 
+      // Question: will send multiple times to a same receiver, why?
       LOG(log_dg_) << "Sending PbftCertBlocks " << cert_blocks << " to " << _id;
     }
   }

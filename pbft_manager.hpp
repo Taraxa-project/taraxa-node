@@ -79,7 +79,8 @@ class PbftManager {
  private:
   uint64_t roundDeterminedFromVotes_();
 
-  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes) const;
+  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
+      std::vector<Vote> &votes) const;
 
   bool nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
                                           uint64_t round);
