@@ -50,6 +50,7 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one) {
     TWO_T_PLUS_ONE = two_t_plus_one;
   }
+  size_t getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
 
   // TODO: only for test
   void setPbftThreshold(size_t const threshold) {
@@ -59,7 +60,6 @@ class PbftManager {
   void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
-  bool hasEnoughCertVotes(PbftBlock const &blk, std::vector<Vote> &votes) const;
 
   // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
