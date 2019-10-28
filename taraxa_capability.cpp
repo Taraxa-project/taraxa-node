@@ -506,8 +506,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
         auto block_count = _r.itemCount();
         for (auto iblock = 0; iblock < block_count; iblock++) {
-          PbftBlockCert blks(_r[iblock].toBytes());
-          auto pbft_blk_hash = blks.pbft_blk.getBlockHash();
+          PbftBlockCert blk_and_votes(_r[iblock].toBytes());
+          auto pbft_blk_hash = blk_and_votes.pbft_blk.getBlockHash();
           peer->markPbftBlockAsKnown(pbft_blk_hash);
           auto full_node = full_node_.lock();
           if (!full_node) {
@@ -515,11 +515,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-            if (full_node->pbftBlockHasEnoughCertVotes(blks.pbft_blk,
-                                                       blks.cert_votes)) {
-              // Check 2t+1 cert votes, then put into chain and
-              //  store in DB. May send request for cert votes here
-              full_node->setVerifiedPbftBlock(blks.pbft_blk);
+            if (full_node->pbftBlockHasEnoughCertVotes(pbft_blk_hash, blk_and_votes.cert_votes)) {
+              // Check 2t+1 cert votes, then put PBFT block into chain and
+              //  store cert votes in DB.
+              full_node->setVerifiedPbftBlock(blk_and_votes.pbft_blk);
+              full_node->storeCertVotes(pbft_blk_hash,
+                                        blk_and_votes.cert_votes);
               LOG(log_dg_) << "Pbftblock " << pbft_blk_hash
                            << " have enough cert votes!";
             } else {
@@ -1011,7 +1012,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
 // api for pbft syncing
 void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                                       size_t blocks_to_transfer) {
-  LOG(log_dg_) << "In sendPbftBlocks, already have pbft verified blocks size: "
+  LOG(log_dg_) << "In sendPbftBlocks, peer want to sync from pbft chain height "
                << height_to_sync << ", will send " << blocks_to_transfer
                << " pbft blocks to " << _id;
   if (auto full_node = full_node_.lock()) {
@@ -1026,9 +1027,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
 
     // has some redundancy here. fix later
     for (auto const &b : blocks) {
-      auto cert_votes_rlp = (vote_db->get(b.getBlockHash()));
-      assert(!cert_votes_rlp.empty());
-      if (cert_votes_rlp.empty()) continue;
+      auto cert_votes_rlp = vote_db->get(b.getBlockHash());
       PbftBlockCert bk(b, cert_votes_rlp);
       cert_blocks.emplace_back(bk);
     }
