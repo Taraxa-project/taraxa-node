@@ -819,12 +819,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
   }
   return pbft_round_;
 }
-bool PbftManager::hasEnoughCertVotes(PbftBlock const &blk,
-                                     std::vector<Vote> &votes) const {
-  auto [blk_hash, ok] = blockWithEnoughVotes_(votes);
-  if (ok && blk_hash == blk.getBlockHash()) return true;
-  return false;
-}
+
 // Assumption is that all votes are in the same round and of same type...
 std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
     std::vector<Vote> &votes) const {
