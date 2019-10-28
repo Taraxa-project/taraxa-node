@@ -248,7 +248,6 @@ void PbftManager::run() {
             auto full_node = node_.lock();
             full_node->storeCertVotes(cert_voted_block_hash.first,
                                       cert_votes_for_round);
-            
 
             // TODO: debug remove later
             LOG(log_deb_) << "The cert voted pbft block is "
