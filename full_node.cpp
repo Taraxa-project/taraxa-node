@@ -715,10 +715,31 @@ void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
                << votes;
 }
-bool FullNode::pbftBlockHasEnoughCertVotes(PbftBlock const &blk,
+
+bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
                                            std::vector<Vote> &votes) const {
-  return pbft_mgr_->hasEnoughCertVotes(blk, votes);
+  std::vector<Vote> valid_votes;
+  for (auto const &v : votes) {
+    if (v.getType() != cert_vote_type) {
+      continue;
+    } else if (v.getStep() != 3) {
+      continue;
+    } else if (v.getBlockHash() != blk_hash) {
+      continue;
+    }
+    blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+    size_t valid_sortition_players =
+        pbft_mgr_->sortition_account_balance_table.size();
+    size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+    if (vote_mgr_->voteValidation(pbft_chain_last_block_hash, v,
+                                  valid_sortition_players,
+                                  sortition_threshold)) {
+      valid_votes.emplace_back(v);
+    }
+  }
+  return valid_votes.size() >= pbft_mgr_->getTwoTPlusOne();
 }
+
 void FullNode::setTwoTPlusOne(size_t val) {
   pbft_mgr_->setTwoTPlusOne(val);
 }
@@ -726,6 +747,7 @@ void FullNode::setTwoTPlusOne(size_t val) {
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
+
 std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {
   return dag_mgr_->getUnOrderedDagBlks();
 }
