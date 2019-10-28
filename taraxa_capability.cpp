@@ -1042,10 +1042,8 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
                                  cert_blocks.size());
     for (auto const &b : cert_blocks) s.append(b.rlp());
     host_.capabilityHost()->sealAndSend(_id, s);
-    if (!cert_blocks.empty()) {
-      // Question: will send multiple times to a same receiver, why?
-      LOG(log_dg_) << "Sending PbftCertBlocks " << cert_blocks << " to " << _id;
-    }
+    // Question: will send multiple times to a same receiver, why?
+    LOG(log_dg_) << "Sending PbftCertBlocks " << cert_blocks << " to " << _id;
   }
 }
 
