@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <vector>
 #include "config.hpp"
+#include "database_face_cache.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
@@ -21,7 +22,6 @@
 #include "util.hpp"
 #include "util/process_container.hpp"
 #include "vote.h"
-#include "database_face_cache.hpp"
 
 class Top;
 
@@ -206,7 +206,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setTwoTPlusOne(size_t val);
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const { return db_pbftchain_; }
+  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const {
+    return db_pbftchain_;
+  }
   std::shared_ptr<dev::db::DatabaseFace> getPbftBlocksOrderDB() const {
     return db_pbft_blocks_order_;
   }
@@ -219,7 +221,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
     return db_pbft_sortition_accounts_;
   }
-  std::shared_ptr<DatabaseFaceCache> getVotesDB() const { return db_cert_votes_; }
+  std::shared_ptr<DatabaseFaceCache> getVotesDB() const {
+    return db_cert_votes_;
+  }
 
   // PBFT RPC
   void broadcastVote(Vote const &vote);

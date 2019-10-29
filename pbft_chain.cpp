@@ -464,7 +464,8 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   assert(db_dag_blocks_height_);
 
   // Get PBFT head from DB
-  std::string pbft_genesis_str = db_pbftchain_->lookup(genesis_hash_.toString());
+  std::string pbft_genesis_str =
+      db_pbftchain_->lookup(genesis_hash_.toString());
   if (pbft_genesis_str.empty()) {
     // Store PBFT chain genesis(HEAD) block to db
     insertPbftBlockIndex_(genesis_hash_);

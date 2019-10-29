@@ -667,7 +667,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     if (db_trxs_->exists(hash)) {
       continue;
     }
-    trx_batch->insert(db_trxs_->toSlice(hash.asBytes()), exist1 ? db_trxs_->toSlice(rlp) : db_trxs_->toSlice(trx.rlp(true)));
+    trx_batch->insert(
+        db_trxs_->toSlice(hash.asBytes()),
+        exist1 ? db_trxs_->toSlice(rlp) : db_trxs_->toSlice(trx.rlp(true)));
     changed = true;
 
     auto [status, exist2] = trx_status_.get(hash);
