@@ -1027,7 +1027,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
     std::vector<PbftBlockCert> cert_blocks;
     // has some redundancy here. fix later
     for (auto const &b : blocks) {
-      auto cert_votes_rlp = vote_db->get(b.getBlockHash());
+      auto cert_votes_rlp = vote_db->lookup(b.getBlockHash());
       PbftBlockCert bk(b, cert_votes_rlp);
       cert_blocks.emplace_back(bk);
     }

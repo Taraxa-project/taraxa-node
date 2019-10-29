@@ -94,8 +94,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       conf_.transactions_db_path(), genesis_hash, mode).db, 100000);
   db_trxs_to_blk_ =
       std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash, mode).db);
-  db_cert_votes_ =
-      std::move(newDB(conf_.pbft_votes_db_path(), genesis_hash, mode).db);
   db_pbftchain_ =
       std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash, mode).db);
   db_pbft_blocks_order_ = std::move(
@@ -104,6 +102,8 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash, mode).db);
   db_dag_blocks_height_ =
       std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash, mode).db);
+  db_cert_votes_ = std::make_shared<DatabaseFaceCache>(newDB(
+      conf_.pbft_cert_votes_db_path(), genesis_hash, mode).db, 100000);
   // store genesis blk to db
   db_blks_->insert(genesis_hash, genesis_block.rlp(true));
   // TODO add move to a StateRegistry constructor?
@@ -703,8 +703,7 @@ void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
     s.append(v.rlp());
   }
   auto ss = s.out();
-  db_cert_votes_->put(pbft_hash, ss);
-  db_cert_votes_->commit();
+  db_cert_votes_->insert(pbft_hash, ss);
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
                << votes;
 }

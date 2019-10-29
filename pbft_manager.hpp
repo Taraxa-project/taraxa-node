@@ -145,8 +145,8 @@ class PbftManager {
   std::shared_ptr<dev::db::DatabaseFace> db_sortition_accounts_;
   size_t valid_sortition_accounts_size_;
   // Database
-  std::shared_ptr<dev::db::DatabaseFace> db_cert_votes_;
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_;
+  std::shared_ptr<DatabaseFaceCache> db_cert_votes_;
 
   blk_hash_t pbft_chain_last_block_hash_;
 

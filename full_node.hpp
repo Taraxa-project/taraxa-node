@@ -206,7 +206,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setTwoTPlusOne(size_t val);
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<dev::db::DatabaseFace> getVotesDB() const { return db_cert_votes_; }
   std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const { return db_pbftchain_; }
   std::shared_ptr<dev::db::DatabaseFace> getPbftBlocksOrderDB() const {
     return db_pbft_blocks_order_;
@@ -220,6 +219,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
     return db_pbft_sortition_accounts_;
   }
+  std::shared_ptr<DatabaseFaceCache> getVotesDB() const { return db_cert_votes_; }
 
   // PBFT RPC
   void broadcastVote(Vote const &vote);
@@ -299,11 +299,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<StateRegistry::State> state_ = nullptr;
   // PBFT DB
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_cert_votes_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_blocks_order_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
