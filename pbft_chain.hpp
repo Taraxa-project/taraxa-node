@@ -199,19 +199,6 @@ class PbftBlock {
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
-class Vote;
-
-struct PbftBlockCert {
-  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
-  PbftBlockCert(bytes const& all_rlp);
-  PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
-
-  PbftBlock pbft_blk;
-  std::vector<Vote> cert_votes;
-  bytes rlp() const;
-};
-std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
-
 class PbftChain {
  public:
   PbftChain(std::string const& dag_genesis_hash);
@@ -321,6 +308,19 @@ class PbftChain {
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_CHAIN")};
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
+
+class Vote;
+
+struct PbftBlockCert {
+  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
+  PbftBlockCert(bytes const& all_rlp);
+  PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
+
+  PbftBlock pbft_blk;
+  std::vector<Vote> cert_votes;
+  bytes rlp() const;
+};
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 }  // namespace taraxa
 #endif
