@@ -9,7 +9,6 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
-#include "simple_db_factory.hpp"
 #include "sortition.h"
 #include "state_registry.hpp"
 #include "util/eth.hpp"
@@ -76,27 +75,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
-  db_blks_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-      conf_.block_db_path(), destroy_db, 10000);
-  db_blks_index_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-      conf_.block_index_db_path(), destroy_db, 10000);
-  db_trxs_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-      conf_.transactions_db_path(), destroy_db, 100000);
-  db_trxs_to_blk_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-      conf_.trxs_to_blk_db_path(), destroy_db);
-  db_cert_votes_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-      conf_.pbft_votes_db_path(), destroy_db);
-  db_pbftchain_ = SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-      conf_.pbft_chain_db_path(), destroy_db);
-  db_pbft_blocks_order_ =
-      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-          conf_.pbft_blocks_order_db_path(), destroy_db);
-  db_dag_blocks_order_ =
-      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-          conf_.dag_blocks_order_path(), destroy_db);
-  db_dag_blocks_height_ =
-      SimpleDBFactory::createDelegate<SimpleOverlayDBDelegate>(
-          conf_.dag_blocks_height_path(), destroy_db);
   // THIS IS THE GENESIS
   // TODO extract to a function
   auto const &genesis_block = conf_.genesis_state.block;
@@ -108,9 +86,26 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
   db_pbft_sortition_accounts_ = std::move(
       newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
+  db_blks_ = std::make_shared<DatabaseFaceCache>(newDB(
+      conf_.block_db_path(), genesis_hash, mode).db, 10000);
+  db_blks_index_ = 
+      std::move(newDB(conf_.block_index_db_path(), genesis_hash, mode).db);
+  db_trxs_ = std::make_shared<DatabaseFaceCache>(newDB(
+      conf_.transactions_db_path(), genesis_hash, mode).db, 100000);
+  db_trxs_to_blk_ =
+      std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash, mode).db);
+  db_cert_votes_ =
+      std::move(newDB(conf_.pbft_votes_db_path(), genesis_hash, mode).db);
+  db_pbftchain_ =
+      std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash, mode).db);
+  db_pbft_blocks_order_ = std::move(
+      newDB(conf_.pbft_blocks_order_db_path(), genesis_hash, mode).db);
+  db_dag_blocks_order_ =
+      std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash, mode).db);
+  db_dag_blocks_height_ =
+      std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash, mode).db);
   // store genesis blk to db
-  db_blks_->put(genesis_hash, genesis_block.rlp(true));
-  db_blks_->commit();
+  db_blks_->insert(genesis_hash, genesis_block.rlp(true));
   // TODO add move to a StateRegistry constructor?
   auto acc_db = newDB(conf_.account_db_path(),
                       genesis_hash,  //
@@ -140,12 +135,12 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
     unsigned long level = 1;
     while (true) {
       h256 level_key(level);
-      string entry = db_blks_index_->get(level_key.toString());
+      string entry = db_blks_index_->lookup(level_key.toString());
       if (entry.empty()) break;
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
-        auto block_bytes = db_blks_->get(blk_hash_t(block));
+        auto block_bytes = db_blks_->lookup(blk_hash_t(block));
         if (block_bytes.size() > 0) {
           auto blk = DagBlock(block_bytes);
           dag_mgr_->addDagBlock(blk);
@@ -211,20 +206,18 @@ void FullNode::start(bool boot_node) {
         if (dag_mgr_->addDagBlock(blk)) {
           {
             auto block_bytes = blk.rlp(true);
-            db_blks_->put(blk.getHash(), block_bytes);
-            db_blks_->commit();
+            db_blks_->insert(blk.getHash(), block_bytes);
             auto level = blk.getLevel();
             h256 level_key(level);
-            std::string blocks = db_blks_index_->get(level_key.toString());
+            std::string blocks = db_blks_index_->lookup(level_key.toString());
             if (blocks == "") {
-              db_blks_index_->put(level_key.toString(),
-                                  blk.getHash().toString());
+              db_blks_index_->insert(level_key.toString(),
+                                     blk.getHash().toString());
             } else {
               auto newblocks = blocks + "," + blk.getHash().toString();
-              db_blks_index_->update(level_key.toString(),
+              db_blks_index_->insert(level_key.toString(),
                                      blocks + "," + blk.getHash().hex());
             }
-            db_blks_index_->commit();
             if (ws_server_) ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
@@ -314,7 +307,7 @@ bool FullNode::insertTransaction(Transaction const &trx) {
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
     blk_hash_t const &hash) const {
-  auto blk_bytes = db_blks_->get(hash);
+  auto blk_bytes = db_blks_->lookup(hash);
   if (blk_bytes.size() > 0) {
     return std::make_shared<DagBlock>(blk_bytes);
   }
@@ -327,7 +320,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   blk = blk_mgr_->getDagBlock(hash);
   // not in queue, search db
   if (!blk) {
-    auto blk_bytes = db_blks_->get(hash);
+    auto blk_bytes = db_blks_->lookup(hash);
     if (blk_bytes.size() > 0) {
       blk = std::make_shared<DagBlock>(blk_bytes);
     }
@@ -357,13 +350,13 @@ std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
     dev::h256 level_key(level + i);
-    string entry = db_blks_index_->get(level_key.toString());
+    string entry = db_blks_index_->lookup(level_key.toString());
 
     if (entry.empty()) break;
     vector<string> blocks;
     boost::split(blocks, entry, boost::is_any_of(","));
     for (auto const &block : blocks) {
-      auto block_bytes = db_blks_->get(blk_hash_t(block));
+      auto block_bytes = db_blks_->lookup(blk_hash_t(block));
       if (block_bytes.size() > 0) {
         res.push_back(std::make_shared<DagBlock>(block_bytes));
       }

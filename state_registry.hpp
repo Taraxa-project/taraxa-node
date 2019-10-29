@@ -8,7 +8,6 @@
 #include <utility>
 #include <vector>
 #include "genesis_state.hpp"
-#include "simple_db_face.hpp"
 #include "thread_safe_state.hpp"
 #include "types.hpp"
 

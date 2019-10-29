@@ -24,7 +24,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
   }
   for (auto blk_i(0); blk_i < schedule.blk_order.size(); ++blk_i) {
     auto blk_hash = schedule.blk_order[blk_i];
-    auto blk_bytes = db_blks_->get(blk_hash);
+    auto blk_bytes = db_blks_->lookup(blk_hash);
     if (blk_bytes.size() == 0) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
@@ -40,7 +40,7 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       auto const& trx_hash = trxs_hashes[trx_i];
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
-      Transaction trx(db_trxs_->get(trx_hash));
+      Transaction trx(db_trxs_->lookup(trx_hash));
       if (!trx.getHash()) {
         LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
         continue;
@@ -174,8 +174,8 @@ bool Executor::executeBlkTrxs(StateRegistry::State& state,
                               std::vector<uint> const& trx_modes,
                               BalanceTable& sortition_account_balance_table,
                               uint64_t period) {
-  std::string blk_json = db_blks_->get(blk.toString());
-  auto blk_bytes = db_blks_->get(blk);
+  std::string blk_json = db_blks_->lookup(blk.toString());
+  auto blk_bytes = db_blks_->lookup(blk);
   if (blk_bytes.size() == 0) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
@@ -192,7 +192,7 @@ bool Executor::executeBlkTrxs(StateRegistry::State& state,
     auto const& trx_hash = trxs_hash[i];
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
-    Transaction trx(db_trxs_->get(trx_hash));
+    Transaction trx(db_trxs_->lookup(trx_hash));
     if (!trx.getHash()) {
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;

@@ -48,7 +48,7 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
 
 blk_hash_t TransactionOrderManager::getDagBlockFromTransaction(
     trx_hash_t const& trx) {
-  auto blk = db_trxs_to_blk_->get(trx.toString());
+  auto blk = db_trxs_to_blk_->lookup(trx.toString());
   return blk_hash_t(blk);
 }
 
@@ -56,7 +56,7 @@ bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
   for (auto i(0); i < sche.blk_order.size(); ++i) {
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
-    auto blk_bytes = db_blks_->get(blk);
+    auto blk_bytes = db_blks_->lookup(blk);
     if (blk_bytes.size() == 0) {
       LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
       return false;
@@ -75,11 +75,13 @@ bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
           LOG(log_er_) << "Transaction " << trx_hash << " has been executed";
         }
         if (db_trxs_to_blk_) {
-          auto ok = db_trxs_to_blk_->put(trx_hash.toString(), blk.toString());
-          if (!ok) {
+          auto exists = db_trxs_to_blk_->exists(trx_hash.toString());
+          if (!exists) {
+            db_trxs_to_blk_->insert(trx_hash.toString(), blk.toString());
+          } else {
             LOG(log_er_) << "Cannot insert transaction " << trx_hash << " --> "
                          << blk << " mapping, it has been executed in blk "
-                         << db_trxs_to_blk_->get(trx_hash.toString());
+                         << db_trxs_to_blk_->lookup(trx_hash.toString());
           }
         }
       }

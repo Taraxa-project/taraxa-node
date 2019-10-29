@@ -637,12 +637,11 @@ TEST_F(FullNodeTest, destroy_db) {
                                      true));  // destroy DB
     node->start(false);
     auto trx_db = node->getTrxsDB();
-    trx_db->put(g_trx_signed_samples[0].getHash().toString(),
+    trx_db->insert(g_trx_signed_samples[0].getHash().toString(),
                 g_trx_signed_samples[0].getJsonStr());
     // Verify trx saved in db
     EXPECT_TRUE(
-        !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
-    trx_db->commit();
+        !trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -652,7 +651,7 @@ TEST_F(FullNodeTest, destroy_db) {
     auto trx_db = node->getTrxsDB();
     // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(
-        !trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
+        !trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -662,7 +661,7 @@ TEST_F(FullNodeTest, destroy_db) {
     auto trx_db = node->getTrxsDB();
     // Verify trx not in db after restart with destroy_db true
     EXPECT_TRUE(
-        trx_db->get(g_trx_signed_samples[0].getHash().toString()).empty());
+        trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
   }
   dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }

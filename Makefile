@@ -106,10 +106,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/vote.o \
 	${OBJECTDIR}/top.o \
 	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/simple_overlaydb_delegate.o \
 	${OBJECTDIR}/trx_engine/types.o \
 	${OBJECTDIR}/trx_engine/trx_engine.o \
-	${OBJECTDIR}/pbft_sortition_account.o
+	${OBJECTDIR}/pbft_sortition_account.o \
+	${OBJECTDIR}/database_face_cache.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -142,7 +142,12 @@ ${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
-	
+
+${OBJECTDIR}/database_face_cache.o: database_face_cache.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/database_face_cache.o database_face_cache.cpp $(CPPFLAGS)	
+
 ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -247,11 +252,6 @@ ${OBJECTDIR}/vote.o: vote.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/simple_overlaydb_delegate.o: simple_overlaydb_delegate.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/simple_overlaydb_delegate.o simple_overlaydb_delegate.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/trx_engine/types.o: trx_engine/types.cpp
 	${MKDIR} -p ${OBJECTDIR}

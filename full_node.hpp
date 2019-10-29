@@ -21,6 +21,7 @@
 #include "util.hpp"
 #include "util/process_container.hpp"
 #include "vote.h"
+#include "database_face_cache.hpp"
 
 class Top;
 
@@ -164,9 +165,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                             uint64_t period);
 
   // get DBs
-  std::shared_ptr<SimpleDBFace> getTrxsDB() const { return db_trxs_; }
-  std::shared_ptr<SimpleDBFace> getBlksDB() const { return db_blks_; }
-  std::shared_ptr<SimpleDBFace> getTrxsToBlkDB() const {
+  std::shared_ptr<DatabaseFaceCache> getTrxsDB() const { return db_trxs_; }
+  std::shared_ptr<DatabaseFaceCache> getBlksDB() const { return db_blks_; }
+  std::shared_ptr<dev::db::DatabaseFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
   std::shared_ptr<StateRegistry> getStateRegistry() const {
@@ -201,15 +202,15 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<SimpleDBFace> getVotesDB() const { return db_cert_votes_; }
-  std::shared_ptr<SimpleDBFace> getPbftChainDB() const { return db_pbftchain_; }
-  std::shared_ptr<SimpleDBFace> getPbftBlocksOrderDB() const {
+  std::shared_ptr<dev::db::DatabaseFace> getVotesDB() const { return db_cert_votes_; }
+  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const { return db_pbftchain_; }
+  std::shared_ptr<dev::db::DatabaseFace> getPbftBlocksOrderDB() const {
     return db_pbft_blocks_order_;
   }
-  std::shared_ptr<SimpleDBFace> getDagBlocksOrderDB() const {
+  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksOrderDB() const {
     return db_dag_blocks_order_;
   }
-  std::shared_ptr<SimpleDBFace> getDagBlocksHeightDB() const {
+  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksHeightDB() const {
     return db_dag_blocks_height_;
   }
   std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
@@ -286,19 +287,19 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<taraxa::WSServer> ws_server_;
   // storage
-  std::shared_ptr<SimpleDBFace> db_blks_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_blks_index_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_trxs_to_blk_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_blks_index_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<StateRegistry::State> state_ = nullptr;
   // PBFT DB
-  std::shared_ptr<SimpleDBFace> db_cert_votes_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_pbftchain_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_pbft_blocks_order_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_dag_blocks_order_ = nullptr;
-  std::shared_ptr<SimpleDBFace> db_dag_blocks_height_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_cert_votes_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_pbft_blocks_order_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;

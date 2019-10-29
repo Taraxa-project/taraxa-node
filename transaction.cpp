@@ -74,8 +74,8 @@ Transaction::Transaction(bytes const &_rlp) {
   data_ = rlp[5].toBytes();
 
   int const v = rlp[6].toInt<int>();
-  h256 const r = rlp[7].toInt<dev::u256>();
-  h256 const s = rlp[8].toInt<dev::u256>();
+  dev::h256 const r = rlp[7].toInt<dev::u256>();
+  dev::h256 const s = rlp[8].toInt<dev::u256>();
 
   if (!r && !s) {
     chain_id_ = v;
@@ -530,7 +530,7 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
       tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
           std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
     } else {  // search from db
-      auto trx_bytes = db_trxs_->get(hash);
+      auto trx_bytes = db_trxs_->lookup(hash);
       if (trx_bytes.size() > 0) {
         tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes,
                                                                      trx_bytes);
@@ -558,10 +558,9 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
       auto trx_hash = trx.getHash();
-      db_trxs_->update(trx_hash, trx.rlp(trx.hasSig()));
+      db_trxs_->insert(trx_hash, trx.rlp(trx.hasSig()));
       trx_status_.update(trx_hash, TransactionStatus::in_block);
     }
-    db_trxs_->commit();
   }
 
   // Second step: Remove from the queue any transaction that is part of the
@@ -659,14 +658,16 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
 
   bool changed = false;
+  auto trx_batch = db_trxs_->createWriteBatch();
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
     auto [rlp, exist1] = rlp_cache_.get(hash);
     // Skip if transaction is already in existing block
-    if (!db_trxs_->put(hash, exist1 ? rlp : trx.rlp(true))) {
+    if (db_trxs_->exists(hash)) {
       continue;
     }
+    trx_batch->insert(db_trxs_->toSlice(hash.asBytes()), exist1 ? db_trxs_->toSlice(rlp) : db_trxs_->toSlice(trx.rlp(true)));
     changed = true;
 
     auto [status, exist2] = trx_status_.get(hash);
@@ -677,7 +678,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   }
 
   if (changed) {
-    db_trxs_->commit();
+    db_trxs_->commit(std::move(trx_batch));
   }
 
   // check requeued trx
