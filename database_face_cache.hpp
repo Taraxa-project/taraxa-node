@@ -43,7 +43,7 @@ class DatabaseFaceCache {
 
  private:
   std::unique_ptr<dev::db::DatabaseFace> db_;
-  ExpirationCacheMap<std::string, dev::db::Slice> memory_cache_;
+  ExpirationCacheMap<std::string, std::string> memory_cache_;
   uint32_t memory_cache_size_;
 };
 #endif  // TARAXA_NODE_SIMPLE_OVERLAYDB_DELEGATE_HPP

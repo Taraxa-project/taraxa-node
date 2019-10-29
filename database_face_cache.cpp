@@ -8,7 +8,7 @@ std::string DatabaseFaceCache::lookup(dev::db::Slice _key) const {
   if (!value.second) {
     return db_->lookup(_key);
   }
-  return value.first.toString();
+  return value.first;
 }
 
 bool DatabaseFaceCache::exists(dev::db::Slice _key) const {
@@ -19,7 +19,7 @@ bool DatabaseFaceCache::exists(dev::db::Slice _key) const {
 }
 
 void DatabaseFaceCache::insert(dev::db::Slice _key, dev::db::Slice _value) {
-  memory_cache_.update(_key.toString(), _value);
+  memory_cache_.update(_key.toString(), _value.toString());
   db_->insert(_key, _value);
 }
 
