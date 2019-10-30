@@ -10,11 +10,25 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <string>
+#include "ProverWesolowski.h"
 #include "core_tests/util.hpp"
+#include "openssl/bn.h"
 
 namespace taraxa {
 using namespace core_tests::util;
+using namespace vdf;
 using std::string;
+TEST(Vdf, VerifierWesolowski) {
+  BIGNUM* N_bn = BN_secure_new();
+  BN_dec2bn(&N_bn, "799979478482341");
+  bytevec N = vdf::bn2bytevec(N_bn);
+
+  VerifierWesolowski verifier(20, 8, {97}, N);
+  ProverWesolowski prover;
+  const auto sol = prover(verifier);
+  auto ok = verifier(sol);
+  EXPECT_TRUE(ok);
+}
 
 struct CryptoTest : core_tests::util::DBUsingTest<> {};
 
