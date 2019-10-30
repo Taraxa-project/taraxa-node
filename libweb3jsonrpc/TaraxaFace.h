@@ -72,6 +72,7 @@ namespace dev {
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getDagBlockByLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_STRING,"param2",jsonrpc::JSON_BOOLEAN, NULL), &dev::rpc::TaraxaFace::taraxa_getDagBlockByLevelI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_dagBlockLevel", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_dagBlockLevelI);
                     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_dagBlockPeriod", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_dagBlockPeriodI);
+                    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getScheduleBlockByPeriod", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_STRING, NULL), &dev::rpc::TaraxaFace::taraxa_getScheduleBlockByPeriodI);
                     
                     //This section only points "eth_" methods to "taraxa_" implementation to support ethereum clients
                     this->bindAndAddMethod(jsonrpc::Procedure("eth_protocolVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,  NULL), &dev::rpc::TaraxaFace::taraxa_protocolVersionI);
@@ -358,6 +359,10 @@ namespace dev {
                 {
                     response = this->taraxa_getDagBlockByLevel(request[0u].asString(), request[1u].asBool());
                 }
+                inline virtual void taraxa_getScheduleBlockByPeriodI(const Json::Value &request, Json::Value &response)
+                {
+                    response = this->taraxa_getScheduleBlockByPeriod(request[0u].asString());
+                }
                 inline virtual void taraxa_dagBlockLevelI(const Json::Value &request, Json::Value &response)
                 {
                     (void)request;
@@ -422,6 +427,7 @@ namespace dev {
                 virtual std::string taraxa_chainId() = 0;
                 virtual Json::Value taraxa_getDagBlockByHash(const std::string& param1, bool param2) = 0;
                 virtual Json::Value taraxa_getDagBlockByLevel(const std::string& param1, bool param2) = 0;
+                virtual Json::Value taraxa_getScheduleBlockByPeriod(const std::string& param1) = 0;
                 virtual std::string taraxa_dagBlockLevel() = 0;
                 virtual std::string taraxa_dagBlockPeriod() = 0;
         };

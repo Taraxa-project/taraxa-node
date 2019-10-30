@@ -54,6 +54,7 @@
 { "name": "taraxa_getDagBlockByHash", "params": ["", false],"order": [], "returns": {}},
 { "name": "taraxa_getDagBlockByLevel", "params": ["", false],"order": [], "returns": {}},
 { "name": "taraxa_dagBlockLevel", "params": [], "order": [], "returns" : ""},
-{ "name": "taraxa_dagBlockPeriod", "params": [], "order": [], "returns" : ""}
+{ "name": "taraxa_dagBlockPeriod", "params": [], "order": [], "returns" : ""},
+{ "name": "taraxa_getScheduleBlockByPeriod", "params": [""],"order": [], "returns": {}}
 ]
 

@@ -164,6 +164,8 @@ class Taraxa : public dev::rpc::TaraxaFace {
       std::string const& _blockLevel, bool _includeTransactions) override;
   virtual std::string taraxa_dagBlockLevel() override;
   virtual std::string taraxa_dagBlockPeriod() override;
+  virtual Json::Value taraxa_getScheduleBlockByPeriod(
+      std::string const& _period) override;
 
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;
