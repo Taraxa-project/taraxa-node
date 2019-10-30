@@ -638,7 +638,7 @@ TEST_F(FullNodeTest, destroy_db) {
     node->start(false);
     auto trx_db = node->getTrxsDB();
     trx_db->insert(g_trx_signed_samples[0].getHash().toString(),
-                g_trx_signed_samples[0].getJsonStr());
+                   g_trx_signed_samples[0].getJsonStr());
     // Verify trx saved in db
     EXPECT_TRUE(
         !trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());

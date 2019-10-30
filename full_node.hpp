@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <vector>
 #include "config.hpp"
+#include "database_face_cache.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
@@ -21,7 +22,6 @@
 #include "util.hpp"
 #include "util/process_container.hpp"
 #include "vote.h"
-#include "database_face_cache.hpp"
 
 class Top;
 
@@ -199,11 +199,16 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
   void newPendingTransaction(trx_hash_t const &trx_hash);
-
+  void storeCertVotes(blk_hash_t const &pbft_hash,
+                      std::vector<Vote> const &votes);
+  bool pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
+                                   std::vector<Vote> &votes) const;
+  void setTwoTPlusOne(size_t val);
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<dev::db::DatabaseFace> getVotesDB() const { return db_cert_votes_; }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const { return db_pbftchain_; }
+  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const {
+    return db_pbftchain_;
+  }
   std::shared_ptr<dev::db::DatabaseFace> getPbftBlocksOrderDB() const {
     return db_pbft_blocks_order_;
   }
@@ -215,6 +220,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
     return db_pbft_sortition_accounts_;
+  }
+  std::shared_ptr<DatabaseFaceCache> getVotesDB() const {
+    return db_cert_votes_;
   }
 
   // PBFT RPC
@@ -295,11 +303,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<StateRegistry::State> state_ = nullptr;
   // PBFT DB
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_cert_votes_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_blocks_order_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
+  std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;

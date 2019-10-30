@@ -27,11 +27,12 @@ std::unique_ptr<dev::db::WriteBatchFace> DatabaseFaceCache::createWriteBatch() {
   return db_->createWriteBatch();
 }
 
-void DatabaseFaceCache::commit(std::unique_ptr<dev::db::WriteBatchFace> _batch) {
+void DatabaseFaceCache::commit(
+    std::unique_ptr<dev::db::WriteBatchFace> _batch) {
   db_->commit(std::move(_batch));
 }
 
 void DatabaseFaceCache::forEach(
-      std::function<bool(dev::db::Slice, dev::db::Slice)> f) const {
-        db_->forEach(f);
-      }
+    std::function<bool(dev::db::Slice, dev::db::Slice)> f) const {
+  db_->forEach(f);
+}

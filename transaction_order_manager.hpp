@@ -10,11 +10,11 @@
 #include <set>
 #include <thread>
 #include "dag_block.hpp"
+#include "database_face_cache.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
-#include "database_face_cache.hpp"
 
 namespace taraxa {
 

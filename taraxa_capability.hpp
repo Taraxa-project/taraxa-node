@@ -238,6 +238,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::mt19937 delay_rng_;
   bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "TARCAP")};
+  dev::Logger log_wr_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "TARCAP")};
   dev::Logger log_nf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
   dev::Logger log_dg_{

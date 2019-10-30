@@ -86,16 +86,14 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
   db_pbft_sortition_accounts_ = std::move(
       newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
-  db_blks_ = std::make_shared<DatabaseFaceCache>(newDB(
-      conf_.block_db_path(), genesis_hash, mode).db, 10000);
-  db_blks_index_ = 
+  db_blks_ = std::make_shared<DatabaseFaceCache>(
+      newDB(conf_.block_db_path(), genesis_hash, mode).db, 10000);
+  db_blks_index_ =
       std::move(newDB(conf_.block_index_db_path(), genesis_hash, mode).db);
-  db_trxs_ = std::make_shared<DatabaseFaceCache>(newDB(
-      conf_.transactions_db_path(), genesis_hash, mode).db, 100000);
+  db_trxs_ = std::make_shared<DatabaseFaceCache>(
+      newDB(conf_.transactions_db_path(), genesis_hash, mode).db, 100000);
   db_trxs_to_blk_ =
       std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash, mode).db);
-  db_cert_votes_ =
-      std::move(newDB(conf_.pbft_votes_db_path(), genesis_hash, mode).db);
   db_pbftchain_ =
       std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash, mode).db);
   db_pbft_blocks_order_ = std::move(
@@ -104,6 +102,8 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash, mode).db);
   db_dag_blocks_height_ =
       std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash, mode).db);
+  db_cert_votes_ = std::make_shared<DatabaseFaceCache>(
+      newDB(conf_.pbft_cert_votes_db_path(), genesis_hash, mode).db, 100000);
   // store genesis blk to db
   db_blks_->insert(genesis_hash, genesis_block.rlp(true));
   // TODO add move to a StateRegistry constructor?
@@ -693,9 +693,51 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   }
   return ret;
 }
+
+void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
+                              std::vector<Vote> const &votes) {
+  RLPStream s;
+  s.appendList(votes.size());
+  for (auto const &v : votes) {
+    // LOG(log_sil_) << v;
+    s.append(v.rlp());
+  }
+  auto ss = s.out();
+  db_cert_votes_->insert(pbft_hash, ss);
+  LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
+               << votes;
+}
+
+bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
+                                           std::vector<Vote> &votes) const {
+  std::vector<Vote> valid_votes;
+  for (auto const &v : votes) {
+    if (v.getType() != cert_vote_type) {
+      continue;
+    } else if (v.getStep() != 3) {
+      continue;
+    } else if (v.getBlockHash() != blk_hash) {
+      continue;
+    }
+    blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+    size_t valid_sortition_players =
+        pbft_mgr_->sortition_account_balance_table.size();
+    size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+    if (vote_mgr_->voteValidation(pbft_chain_last_block_hash, v,
+                                  valid_sortition_players,
+                                  sortition_threshold)) {
+      valid_votes.emplace_back(v);
+    }
+  }
+  return valid_votes.size() >= pbft_mgr_->getTwoTPlusOne();
+}
+
+void FullNode::setTwoTPlusOne(size_t val) { pbft_mgr_->setTwoTPlusOne(val); }
+
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
+
 std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {
   return dag_mgr_->getUnOrderedDagBlks();
 }

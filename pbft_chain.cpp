@@ -296,11 +296,11 @@ void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
     }
   }
 }
+PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
-PbftBlock::PbftBlock(dev::RLP const& _r) {
-  std::vector<::byte> blockBytes;
-  blockBytes = _r.toBytes();
-  taraxa::bufferstream strm(blockBytes.data(), blockBytes.size());
+PbftBlock::PbftBlock(dev::RLP const& r) {
+  auto blockbytes = r.toBytes();
+  taraxa::bufferstream strm(blockbytes.data(), blockbytes.size());
   deserialize(strm);
 }
 
@@ -337,7 +337,12 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
   strm << timestamp_;
   strm << signature_;
 }
-
+bytes PbftBlock::rlp() const {
+  RLPStream strm;
+  serializeRLP(
+      strm);  // CCL: to fix, this is not from real rlp, should use streamRLP
+  return strm.out();
+}
 blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
 
 std::string PbftBlock::getJsonStr() const {
@@ -459,7 +464,8 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   assert(db_dag_blocks_height_);
 
   // Get PBFT head from DB
-  std::string pbft_genesis_str = db_pbftchain_->lookup(genesis_hash_.toString());
+  std::string pbft_genesis_str =
+      db_pbftchain_->lookup(genesis_hash_.toString());
   if (pbft_genesis_str.empty()) {
     // Store PBFT chain genesis(HEAD) block to db
     insertPbftBlockIndex_(genesis_hash_);
@@ -915,6 +921,46 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
     upgradeLock_ locked(lock);
     unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
   }
+}
+
+PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
+                             std::vector<Vote> const& cert_votes)
+    : pbft_blk(pbft_blk), cert_votes(cert_votes) {}
+
+PbftBlockCert::PbftBlockCert(bytes const& all_rlp) {
+  dev::RLP const rlp(all_rlp);
+  auto num_items = rlp.itemCount();
+  pbft_blk = PbftBlock(rlp[0].toBytes());
+  PbftBlock t(rlp[0]);
+  for (auto i = 1; i < num_items; ++i) {
+    cert_votes.emplace_back(Vote(rlp[i].toBytes()));
+  }
+}
+
+PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
+                             bytes const& cert_votes_rlp)
+    : pbft_blk(pbft_blk) {
+  auto rlp = dev::RLP(cert_votes_rlp);
+  auto num_votes = rlp.itemCount();
+  for (auto i = 0; i < num_votes; ++i) {
+    cert_votes.emplace_back(rlp[i].toBytes());
+  }
+}
+
+bytes PbftBlockCert::rlp() const {
+  RLPStream s;
+  s.appendList(cert_votes.size() + 1);
+  s.append(pbft_blk.rlp());
+  for (auto const& v : cert_votes) {
+    s.append(v.rlp());
+  }
+  return s.out();
+}
+
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
+  strm << "[PbftBlockCert] hash: " << b.pbft_blk.getBlockHash()
+       << " , num of votes " << b.cert_votes.size() << std::endl;
+  return strm;
 }
 
 }  // namespace taraxa

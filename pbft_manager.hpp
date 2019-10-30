@@ -50,6 +50,7 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one) {
     TWO_T_PLUS_ONE = two_t_plus_one;
   }
+  size_t getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
 
   // TODO: only for test
   void setPbftThreshold(size_t const threshold) {
@@ -78,7 +79,8 @@ class PbftManager {
  private:
   uint64_t roundDeterminedFromVotes_();
 
-  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(std::vector<Vote> &votes);
+  std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
+      std::vector<Vote> &votes) const;
 
   bool nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
                                           uint64_t round);
@@ -143,8 +145,8 @@ class PbftManager {
   std::shared_ptr<dev::db::DatabaseFace> db_sortition_accounts_;
   size_t valid_sortition_accounts_size_;
   // Database
-  std::shared_ptr<dev::db::DatabaseFace> db_cert_votes_;
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_;
+  std::shared_ptr<DatabaseFaceCache> db_cert_votes_;
 
   blk_hash_t pbft_chain_last_block_hash_;
 
