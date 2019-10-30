@@ -11,6 +11,6 @@ patterns="
   -o -iname '*.hh' -o -iname '*.cc'
 "
 eval find . -maxdepth 1 ${patterns}
-eval find concur_storage core_tests ${patterns}
+eval find core_tests ${patterns}
 
 cd ${PREV_CWD}
