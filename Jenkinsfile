@@ -15,12 +15,11 @@ pipeline {
       disableConcurrentBuilds()
     }
     stages {
-        stage('Validate C++ formatting') {
-            steps {
-               echo 'This is step being skipped'
-               // sh './scripts/validate_format_project_files_cxx.sh'
-            }
-        }
+        // stage('Validate C++ formatting') {
+        //     steps {
+        //        sh './scripts/validate_format_project_files_cxx.sh'
+        //     }
+        // }
         stage('Trigger Base Image Build') {
             steps {
               build job: "docker-base-image/${BRANCH_NAME}", parameters: [
