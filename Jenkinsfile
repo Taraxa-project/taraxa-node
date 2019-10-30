@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Validate C++ formatting') {
             steps {
-                sh './scripts/validate_format_project_files_cxx.sh'
+               // sh './scripts/validate_format_project_files_cxx.sh'
             }
         }
         stage('Trigger Base Image Build') {
