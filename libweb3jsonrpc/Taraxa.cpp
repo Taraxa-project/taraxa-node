@@ -536,8 +536,12 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
     auto block = node->getDagBlock(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
-      auto period = node->getDagBlockOrder(blk_hash_t(block->getHash()));
-      block_json["period"] = toJS(period.first);
+      auto period = node->getDagBlockPeriod(blk_hash_t(block->getHash()));
+      if (period.first) {
+        block_json["period"] = toJS(period.second);
+      } else {
+        block_json["period"] = "-0x1";
+      }
       auto snapshot =
           node->getStateRegistry()->getSnapshot(blk_hash_t(block->getHash()));
       if (snapshot.has_value()) {
@@ -551,8 +555,6 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
           block_json["transactions"].append(
               node->getTransaction(t)->first.getJson());
         }
-        auto period = node->getDagBlockOrder(blk_hash_t(_blockHash));
-        block_json["period"] = toJS(period.first);
       }
       return block_json;
     }
@@ -560,6 +562,20 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
   return JSON_NULL;
+}
+
+Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(
+    std::string const& _period) {
+  try {
+    auto node = tryGetNode();
+    auto block = node->getScheduleBlockByPeriod(std::stoull(_period, 0, 16));
+    Json::Value res;
+    Json::Reader reader;
+    reader.parse(block, res);
+    return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
 }
 
 Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
@@ -570,8 +586,12 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
     auto res = Json::Value(Json::arrayValue);
     for (auto const& b : blocks) {
       auto block_json = b->getJson();
-      auto period = node->getDagBlockOrder(blk_hash_t(b->getHash()));
-      block_json["period"] = toJS(period.first);
+      auto period = node->getDagBlockPeriod(blk_hash_t(b->getHash()));
+      if (period.first) {
+        block_json["period"] = toJS(period.second);
+      } else {
+        block_json["period"] = "-0x1";
+      }
       auto snapshot =
           node->getStateRegistry()->getSnapshot(blk_hash_t(b->getHash()));
       if (snapshot.has_value()) {

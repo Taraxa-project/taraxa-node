@@ -43,6 +43,10 @@ class PbftManager {
     return pbft_chain_last_block_hash_;
   }
 
+  std::string getScheduleBlockByPeriod(uint64_t period);
+
+  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
+
   size_t getSortitionThreshold() const { return sortition_threshold_; }
   void setSortitionThreshold(size_t const sortition_threshold) {
     sortition_threshold_ = sortition_threshold;
@@ -147,6 +151,8 @@ class PbftManager {
   // Database
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_;
   std::shared_ptr<DatabaseFaceCache> db_cert_votes_;
+  std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_;
+  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_;
 
   blk_hash_t pbft_chain_last_block_hash_;
 

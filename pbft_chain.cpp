@@ -165,12 +165,8 @@ Json::Value ScheduleBlock::getJson() const {
 }
 
 std::string ScheduleBlock::getJsonStr() const {
-  std::stringstream strm;
-  strm << "[ScheduleBlock]" << std::endl;
-  strm << " prev_block_pivot_hash: " << prev_block_hash_ << std::endl;
-  strm << " --> Schedule ..." << std::endl;
-  strm << schedule_;
-  return strm.str();
+  Json::StreamWriterBuilder builder;
+  return Json::writeString(builder, getJson());
 }
 
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
