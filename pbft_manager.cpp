@@ -14,6 +14,7 @@
 #include "network.hpp"
 #include "sortition.h"
 #include "util.hpp"
+#include "util/eth.hpp"
 
 #include <chrono>
 #include <string>
@@ -55,6 +56,8 @@ void PbftManager::start() {
 
   db_cert_votes_ = full_node->getVotesDB();
   db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
+  db_period_schedule_block_ = full_node->getPeriodScheduleBlockDB();
+  db_dag_blocks_period_ = full_node->getDagBlocksPeriodDB();
   if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
@@ -734,6 +737,31 @@ void PbftManager::run() {
       thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
     }
   }
+}
+
+std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
+    blk_hash_t const &hash) {
+  std::pair<bool, uint64_t> res;
+  auto value = db_dag_blocks_period_->lookup(taraxa::util::eth::toSlice(hash));
+  if (value.empty()) {
+    res.first = false;
+  } else {
+    res.first = true;
+    res.second = *((uint64_t *)value.data());
+  }
+  return res;
+}
+
+std::string PbftManager::getScheduleBlockByPeriod(uint64_t period) {
+  auto value = db_period_schedule_block_->lookup(
+      dev::db::Slice(reinterpret_cast<char const *>(&period), sizeof(period)));
+  if (!value.empty()) {
+    blk_hash_t pbft_block_hash = *(blk_hash_t *)value.data();
+    return pbft_chain_->getPbftBlockInChain(pbft_block_hash)
+        .getScheduleBlock()
+        .getJsonStr();
+  }
+  return "";
 }
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
@@ -1475,6 +1503,22 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
                                              pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
+        db_period_schedule_block_->insert(
+            dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
+                           sizeof(pbft_period)),
+            taraxa::util::eth::toSlice(pbft_block.getBlockHash()));
+        if (pbft_block.getScheduleBlock().getSchedule().blk_order.size() > 0) {
+          auto write_batch = db_dag_blocks_period_->createWriteBatch();
+          for (auto const blk_hash :
+               pbft_block.getScheduleBlock().getSchedule().blk_order) {
+            write_batch->insert(
+                taraxa::util::eth::toSlice(blk_hash),
+                dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
+                               sizeof(pbft_period)));
+          }
+          db_dag_blocks_period_->commit(std::move(write_batch));
+        }
+
         executed_cs_block_ = true;
         return true;
       }

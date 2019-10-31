@@ -225,6 +225,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   std::shared_ptr<DatabaseFaceCache> getVotesDB() const {
     return db_cert_votes_;
+  std::shared_ptr<dev::db::DatabaseFace> getPeriodScheduleBlockDB() const {
+    return db_period_schedule_block_;
+  }
+  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksPeriodDB() const {
+    return db_dag_blocks_period_;
   }
 
   // PBFT RPC

@@ -404,16 +404,7 @@ std::vector<std::string> FullNode::getDagBlockEpFriend(blk_hash_t const &from,
 }
 
 std::pair<bool, uint64_t> FullNode::getDagBlockPeriod(blk_hash_t const &hash) {
-  std::pair<bool, uint64_t> res;
-  auto value = db_dag_blocks_period_->lookup(
-      dev::db::Slice(reinterpret_cast<char const *>(&hash), sizeof(hash)));
-  if (value.empty()) {
-    res.first = false;
-  } else {
-    res.first = true;
-    res.second = *((uint64_t *)value.data());
-  }
-  return res;
+  return pbft_mgr_->getDagBlockPeriod(hash);
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
@@ -582,27 +573,14 @@ bool FullNode::executeScheduleBlock(
     block_number =
         pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().blk_order[0])
             .first;
-    auto write_batch = db_dag_blocks_period_->createWriteBatch();
-    for (auto const blk_hash : sche_blk.getSchedule().blk_order) {
-      write_batch->insert(
-          dev::db::Slice(reinterpret_cast<char const *>(&blk_hash),
-                         sizeof(blk_hash)),
-          dev::db::Slice(reinterpret_cast<char const *>(&period),
-                         sizeof(period)));
-    }
-    db_dag_blocks_period_->commit(std::move(write_batch));
   }
-  db_period_schedule_block_->insert(
-      dev::db::Slice(reinterpret_cast<char const *>(&period), sizeof(period)),
-      sche_blk.getJsonStr());
   if (ws_server_)
     ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
   return res;
 }
 
 std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {
-  return db_period_schedule_block_->lookup(
-      dev::db::Slice(reinterpret_cast<char const *>(&period), sizeof(period)));
+  return pbft_mgr_->getScheduleBlockByPeriod(period);
 }
 
 std::vector<Vote> FullNode::getAllVotes() { return vote_mgr_->getAllVotes(); }
