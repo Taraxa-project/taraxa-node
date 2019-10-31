@@ -1,8 +1,6 @@
 pipeline {
     agent any
     environment {
-        AWS = credentials('AWS')
-        REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
         GCP_REGISTRY = 'gcr.io/jovial-meridian-249123'
         IMAGE = 'taraxa-node'
         BASE_IMAGE = 'taraxa-node-base'
@@ -40,7 +38,7 @@ pipeline {
             agent {
               docker {
                 alwaysPull true
-                image "${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
+                image "${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
                 reuseNode true
               }
             }
@@ -52,9 +50,9 @@ pipeline {
             steps {
                 sh '''
                     git submodule update --init --recursive
-                    docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
+                    docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
-                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
+                    --build-arg BASE_IMAGE=${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
                     -f dockerfiles/Dockerfile .
                 '''
             }
@@ -106,10 +104,6 @@ pipeline {
         stage('Push Docker Image') {
             when {branch 'master'}
             steps {
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}'
-                sh 'docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker push ${REGISTRY}/${IMAGE}'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}'
                 sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
