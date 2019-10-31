@@ -18,6 +18,8 @@ using dev::RLP;
 using dev::RLPStream;
 using dev::toBigEndianString;
 using dev::db::RocksDB;
+using std::getline;
+using std::istringstream;
 using std::list;
 using std::make_shared;
 using std::move;
@@ -128,7 +130,7 @@ class ReplayProtectionEngine {
     optional<round_t> bottom_round =
         round >= range_ ? optional(round - range_) : nullopt;
     auto batch = db_->createWriteBatch();
-    stringstream round_state;
+    stringstream round_data_keys;
     unordered_map<string, shared_ptr<SenderState>> sender_states;
     for (auto const& trx : trxs) {
       auto sender_str = trx->sender().hex();
@@ -143,11 +145,10 @@ class ReplayProtectionEngine {
       }
       sender_state->setNonceMax(trx->getNonce());
       auto trx_hash_str = trx->getHash().hex();
-      round_state << trx_hash_str << sender_str;
       static string DUMMY_VALUE = "_";
       batch->insert(trxHashKey(trx_hash_str), DUMMY_VALUE);
+      round_data_keys << trx_hash_str << "\n";
     }
-    batch->insert(roundStateKey(round), round_state.str());
     for (auto const& [sender, state] : sender_states) {
       if (bottom_round) {
         auto v = db_->lookup(maxNonceAtRoundKey(*bottom_round, sender));
@@ -161,20 +162,27 @@ class ReplayProtectionEngine {
       if (state->isNonceMaxDirty() || state->isDefaultInitialized()) {
         batch->insert(maxNonceAtRoundKey(round, sender),
                       toBigEndianString(state->getNonceMax()));
+        round_data_keys << sender << "\n";
       }
     }
+    batch->insert(roundDataKeysKey(round), round_data_keys.str());
     if (bottom_round) {
-      auto bottom_round_state_key = roundStateKey(*bottom_round);
-      auto bottom_round_state = db_->lookup(bottom_round_state_key);
-      for (auto i(0); i < bottom_round_state.size();) {
-        auto trx_hash_str = bottom_round_state.substr(i, trx_hash_t::size);
-        i += trx_hash_t::size;
-        auto sender_str = bottom_round_state.substr(i, addr_t::size);
-        i += addr_t::size;
-        batch->kill(trxHashKey(trx_hash_str));
-        batch->kill(maxNonceAtRoundKey(*bottom_round, sender_str));
+      // cleanup
+      auto bottom_round_data_keys_key = roundDataKeysKey(*bottom_round);
+      if (auto keys = db_->lookup(bottom_round_data_keys_key); !keys.empty()) {
+        istringstream is(keys);
+        for (string line; getline(is, line);) {
+          switch (line.size()) {
+            case addr_t::size:
+              batch->kill(maxNonceAtRoundKey(*bottom_round, line));
+              break;
+            case trx_hash_t::size:
+              batch->kill(trxHashKey(line));
+              break;
+          }
+        }
+        batch->kill(bottom_round_data_keys_key);
       }
-      batch->kill(bottom_round_state_key);
     }
     batch->insert(CURR_ROUND_KEY, to_string(round));
     db_->commit(move(batch));
@@ -195,8 +203,8 @@ class ReplayProtectionEngine {
     return "sender_" + sender_str;
   }
 
-  static string roundStateKey(round_t round) {
-    return "trxs_at_" + to_string(round);
+  static string roundDataKeysKey(round_t round) {
+    return "data_keys_at" + to_string(round);
   }
 
   static string trxHashKey(string const& trx_hash_str) {
