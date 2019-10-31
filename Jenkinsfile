@@ -28,7 +28,6 @@ pipeline {
         }
         stage('Docker Registry Login') {
             steps {
-                sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
                 withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
                   sh 'echo ${GCP_KEY} | docker login -u _json_key --password-stdin https://gcr.io'
                 }
