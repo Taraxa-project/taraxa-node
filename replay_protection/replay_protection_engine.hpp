@@ -37,54 +37,54 @@ using util::eth::toSlice;
 
 class SenderState {
   // persistent
-  trx_nonce_t nonce_max;
-  trx_nonce_t nonce_watermark;
-  bool nonce_watermark_exists;
+  trx_nonce_t nonce_max_;
+  trx_nonce_t nonce_watermark_;
+  bool nonce_watermark_exists_;
   // transient
-  bool dirty;
-  bool nonce_max_dirty;
-  bool default_initialized;
+  bool dirty_;
+  bool nonce_max_dirty_;
+  bool default_initialized_;
 
  public:
-  SenderState() : default_initialized(true) {}
+  SenderState() : default_initialized_(true) {}
 
   explicit SenderState(RLP const& rlp)
-      : nonce_max(rlp[0].toInt<trx_nonce_t>()),
-        nonce_watermark(rlp[1].toInt<trx_nonce_t>()),
-        nonce_watermark_exists(rlp[2].toInt<bool>()) {}
+      : nonce_max_(rlp[0].toInt<trx_nonce_t>()),
+        nonce_watermark_(rlp[1].toInt<trx_nonce_t>()),
+        nonce_watermark_exists_(rlp[2].toInt<bool>()) {}
 
-  auto isDefaultInitialized() { return default_initialized; };
+  auto isDefaultInitialized() { return default_initialized_; };
 
-  auto isDirty() { return dirty; }
+  auto isDirty() { return dirty_; }
 
-  auto isNonceMaxDirty() { return nonce_max_dirty; }
+  auto isNonceMaxDirty() { return nonce_max_dirty_; }
 
-  auto getNonceMax() { return nonce_max; }
+  auto getNonceMax() { return nonce_max_; }
 
   bool setNonceMax(trx_nonce_t v) {
-    if (nonce_max >= v) {
+    if (nonce_max_ >= v) {
       return false;
     }
-    nonce_max = v;
-    dirty = nonce_max_dirty = true;
+    nonce_max_ = v;
+    dirty_ = nonce_max_dirty_ = true;
     return true;
   }
 
   optional<trx_nonce_t> getNonceWatermark() {
-    return nonce_watermark_exists ? optional(nonce_watermark) : nullopt;
+    return nonce_watermark_exists_ ? optional(nonce_watermark_) : nullopt;
   };
 
   void setNonceWatermark(trx_nonce_t v) {
-    if (nonce_watermark == v && nonce_watermark_exists) {
+    if (nonce_watermark_ == v && nonce_watermark_exists_) {
       return;
     }
-    nonce_watermark = v;
-    dirty = nonce_watermark_exists = true;
+    nonce_watermark_ = v;
+    dirty_ = nonce_watermark_exists_ = true;
   }
 
   RLPStream rlp() {
-    return RLPStream(3) << nonce_max << nonce_watermark
-                        << nonce_watermark_exists;
+    return RLPStream(3) << nonce_max_ << nonce_watermark_
+                        << nonce_watermark_exists_;
   }
 };
 
