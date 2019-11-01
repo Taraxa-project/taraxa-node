@@ -10,15 +10,25 @@ using trx_engine::TrxEngine;
 bool Executor::execute(TrxSchedule const& schedule,
                        BalanceTable& sortition_account_balance_table,
                        uint64_t period) {
+  ReplayProtectionService::transaction_batch_t executed_trx;
+  bool success = false;
   if (this->use_basic_executor_) {
-    return execute_basic(schedule, sortition_account_balance_table, period);
+    success = execute_basic(schedule, sortition_account_balance_table, period,
+                            executed_trx);
+  } else {
+    success = execute_main(schedule, sortition_account_balance_table, period,
+                           executed_trx);
   }
-  return execute_main(schedule, sortition_account_balance_table, period);
+  if (success) {
+//    replay_protection_service_->commit(period, executed_trx);
+  }
+  return success;
 }
 
-bool Executor::execute_main(TrxSchedule const& schedule,
-                            BalanceTable& sortition_account_balance_table,
-                            uint64_t period) {
+bool Executor::execute_main(
+    TrxSchedule const& schedule, BalanceTable& sortition_account_balance_table,
+    uint64_t period,
+    ReplayProtectionService::transaction_batch_t& executed_trx) {
   if (schedule.blk_order.empty()) {
     return true;
   }
@@ -40,13 +50,13 @@ bool Executor::execute_main(TrxSchedule const& schedule,
       auto const& trx_hash = trxs_hashes[trx_i];
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
-      Transaction trx(db_trxs_->lookup(trx_hash));
-      if (!trx.getHash()) {
+      auto trx = std::make_shared<Transaction>(db_trxs_->lookup(trx_hash));
+      if (!trx->getHash()) {
         LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
         continue;
       }
       // Update PBFT sortition account last period seen sending trxs
-      auto const& trx_sender = trx.getSender();
+      auto const& trx_sender = trx->getSender();
       if (sortition_account_balance_table.find(trx_sender) !=
           sortition_account_balance_table.end()) {
         sortition_account_balance_table[trx_sender].last_period_seen =
@@ -60,19 +70,20 @@ bool Executor::execute_main(TrxSchedule const& schedule,
         num_overlapped_trx++;
         continue;
       }
-      auto const& receiver = trx.getReceiver();
+      auto const& receiver = trx->getReceiver();
       trx_to_execute.push_back({
           receiver.isZero() ? std::nullopt : std::optional(receiver),
-          trx.getSender(),
+          trx->getSender(),
           // TODO unint64 is correct
-          uint64_t(trx.getNonce()),
-          trx.getValue(),
+          uint64_t(trx->getNonce()),
+          trx->getValue(),
           // TODO unint64 is correct
-          uint64_t(trx.getGas()),
-          trx.getGasPrice(),
-          trx.getData(),
+          uint64_t(trx->getGas()),
+          trx->getGasPrice(),
+          trx->getData(),
           trx_hash,
       });
+      executed_trx.push_back(trx);
     }
     if (!trx_to_execute.empty()) {
       auto const& snapshot = state_registry_->getCurrentSnapshot();
@@ -148,9 +159,10 @@ bool Executor::execute_main(TrxSchedule const& schedule,
   return true;
 }
 
-bool Executor::execute_basic(TrxSchedule const& sche,
-                             BalanceTable& sortition_account_balance_table,
-                             uint64_t period) {
+bool Executor::execute_basic(
+    TrxSchedule const& sche, BalanceTable& sortition_account_balance_table,
+    uint64_t period,
+    ReplayProtectionService::transaction_batch_t& executed_trx) {
   if (sche.blk_order.empty()) {
     return true;
   }
@@ -161,7 +173,7 @@ bool Executor::execute_basic(TrxSchedule const& sche,
     auto blk = sche.blk_order[i];
     auto trx_modes = sche.vec_trx_modes[i];
     if (!executeBlkTrxs(state, blk, trx_modes, sortition_account_balance_table,
-                        period)) {
+                        period, executed_trx)) {
       return false;
     }
   }
@@ -169,11 +181,11 @@ bool Executor::execute_basic(TrxSchedule const& sche,
   return true;
 }
 
-bool Executor::executeBlkTrxs(StateRegistry::State& state,
-                              blk_hash_t const& blk,
-                              std::vector<uint> const& trx_modes,
-                              BalanceTable& sortition_account_balance_table,
-                              uint64_t period) {
+bool Executor::executeBlkTrxs(
+    StateRegistry::State& state, blk_hash_t const& blk,
+    std::vector<uint> const& trx_modes,
+    BalanceTable& sortition_account_balance_table, uint64_t period,
+    ReplayProtectionService::transaction_batch_t& executed_trx) {
   std::string blk_json = db_blks_->lookup(blk.toString());
   auto blk_bytes = db_blks_->lookup(blk);
   if (blk_bytes.size() == 0) {
@@ -192,13 +204,13 @@ bool Executor::executeBlkTrxs(StateRegistry::State& state,
     auto const& trx_hash = trxs_hash[i];
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
-    Transaction trx(db_trxs_->lookup(trx_hash));
-    if (!trx.getHash()) {
+    auto trx = std::make_shared<Transaction>(db_trxs_->lookup(trx_hash));
+    if (!trx->getHash()) {
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
     // Update PBFT sortition account last period seen sending trxs
-    auto const& trx_sender = trx.getSender();
+    auto const& trx_sender = trx->getSender();
     if (sortition_account_balance_table.find(trx_sender) !=
         sortition_account_balance_table.end()) {
       sortition_account_balance_table[trx_sender].last_period_seen =
@@ -212,8 +224,10 @@ bool Executor::executeBlkTrxs(StateRegistry::State& state,
       num_overlapped_trx++;
       continue;
     }
-    coinTransfer(state, trx, sortition_account_balance_table, period,
-                 dag_block);
+    if (coinTransfer(state, *trx, sortition_account_balance_table, period,
+                     dag_block)) {
+      executed_trx.push_back(trx);
+    }
     num_executed_trx_.fetch_add(1);
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();

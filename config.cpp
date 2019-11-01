@@ -54,6 +54,10 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {
       use_basic_executor = *v;
     }
+    if (auto v = doc.get_optional<round_t>("replay_protection_service_range");
+        v) {
+      replay_protection_service_range = *v;
+    }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

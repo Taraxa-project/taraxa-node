@@ -16,7 +16,9 @@ namespace taraxa {
 using namespace core_tests::util;
 using std::string;
 
-TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
+struct CryptoTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   dev::KeyPair key_pair = dev::KeyPair::create();
   EXPECT_EQ(key_pair.pub().size, 64);
   EXPECT_EQ(key_pair.secret().size, 32);
@@ -32,7 +34,7 @@ TEST(EthereumCrypto, keypair_signature_verify_hash_test) {
   EXPECT_EQ(credential.length(), 64);
 }
 
-TEST(EthereumCrypto, hex_to_decimal_test) {
+TEST_F(CryptoTest, hex_to_decimal_test) {
   string hex =
       "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
   string hex_decimal =
@@ -42,7 +44,7 @@ TEST(EthereumCrypto, hex_to_decimal_test) {
   EXPECT_EQ(decimal, hex_decimal);
 }
 
-TEST(EthereumCrypto, big_number_multiplication_test) {
+TEST_F(CryptoTest, big_number_multiplication_test) {
   // input num is the decimal of the max hash number 64 F
   string num =
       "115792089237316195423570985008687907853269984665640564039457584007913129"
@@ -55,7 +57,7 @@ TEST(EthereumCrypto, big_number_multiplication_test) {
   EXPECT_EQ(sum, output);
 }
 
-TEST(EthereumCrypto, sortition_test) {
+TEST_F(CryptoTest, sortition_test) {
   string credential =
       "0000000000000000000000000000000000000000000000000000000000000001";
   size_t valid_sortition_players = 10;
@@ -65,7 +67,7 @@ TEST(EthereumCrypto, sortition_test) {
   EXPECT_EQ(sortition, true);
 }
 
-TEST(EthereumCrypto, sortition_rate) {
+TEST_F(CryptoTest, sortition_rate) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   auto node(FullNode::make(cfg, true));
 

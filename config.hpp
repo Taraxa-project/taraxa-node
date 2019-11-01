@@ -47,6 +47,8 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
+  static inline round_t const REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT = 10;
+
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
@@ -57,6 +59,8 @@ struct FullNodeConfig {
   TestParamsConfig test_params;
   GenesisState genesis_state;
   bool use_basic_executor;
+  round_t replay_protection_service_range =
+      REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT;
 
   auto account_db_path() { return db_path + "/acc"; }
   auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }
@@ -74,6 +78,9 @@ struct FullNodeConfig {
   auto trxs_to_blk_db_path() { return db_path + "/trxs_to_blk"; }
   auto dag_blk_to_state_root_db_path() {
     return db_path + "/blk_to_state_root";
+  }
+  auto replay_protection_service_db_path() {
+    return db_path + "/replay_protection_service";
   }
 };
 

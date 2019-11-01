@@ -22,8 +22,10 @@ namespace taraxa {
 using namespace core_tests::util;
 using samples::sendTrx;
 const unsigned NUM_TRX = 50000;
-struct PerfTest : public DBUsingTest<> {};
-TEST_F(PerfTest, execute_transactions) {
+
+struct PerformanceTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(PerformanceTest, execute_transactions) {
   val_t initbal(1000000000);  // disable pbft sortition
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   // //
@@ -120,7 +122,7 @@ int main(int argc, char **argv) {
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

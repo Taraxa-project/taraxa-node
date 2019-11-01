@@ -2,6 +2,7 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "util/eth.hpp"
 
@@ -21,7 +22,9 @@ auto g_signed_trx_samples =
 auto g_blk_samples = samples::createMockDagBlkSamples(
     0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
-TEST(transaction, serialize_deserialize) {
+struct TransactionTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(TransactionTest, serialize_deserialize) {
   Transaction& trans1 = g_trx_samples[0];
   std::stringstream ss1, ss2;
   ss1 << trans1;
@@ -46,7 +49,7 @@ TEST(transaction, serialize_deserialize) {
   ASSERT_EQ(trans2.getJsonStr(), trans3.getJsonStr());
 }
 
-TEST(Transaction, signer_signature_verify) {
+TEST_F(TransactionTest, signer_signature_verify) {
   Transaction trans1 = g_trx_samples[0];
   Transaction trans2 = g_trx_samples[1];
   auto pk = dev::toPublic(g_secret);
@@ -59,7 +62,7 @@ TEST(Transaction, signer_signature_verify) {
   EXPECT_TRUE(trans2.verifySig());
 }
 
-TEST(TransactionQueue, verifiers) {
+TEST_F(TransactionTest, verifiers) {
   TransactionStatusTable status_table(100000, 1000);
   AccountNonceTable accs_table;
 
@@ -84,7 +87,7 @@ TEST(TransactionQueue, verifiers) {
   EXPECT_EQ(verified_trxs.size(), g_trx_samples.size());
 }
 
-TEST(TransactionManager, prepare_signed_trx_for_propose) {
+TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(std::make_shared<DatabaseFaceCache>(
       util::eth::newDB("/tmp/rocksdb/trx", blk_hash_t(),

@@ -10,6 +10,7 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+#include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "libp2p/Host.h"
 #include "network.hpp"
@@ -28,12 +29,14 @@ auto g_secret = dev::Secret(
 auto g_signed_trx_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 
+struct P2PTest : core_tests::util::DBUsingTest<> {};
+
 /*
 Test creates one boot node and 10 nodes that uses that boot node
 to find each other. Test confirm that after a delay each node had found
 all other nodes.
 */
-TEST(p2p, p2p_discovery) {
+TEST_F(P2PTest, p2p_discovery) {
   auto secret = dev::Secret(
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
@@ -81,7 +84,7 @@ Test creates two host/network/capability and verifies that host connect
 to each other and that a test packet message can be sent from one host
 to the other using TaraxaCapability
 */
-TEST(p2p, capability_send_test) {
+TEST_F(P2PTest, capability_send_test) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
@@ -147,7 +150,7 @@ Test creates two host/network/capability and verifies that host connect
 to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
-TEST(p2p, capability_send_block) {
+TEST_F(P2PTest, capability_send_block) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
@@ -228,7 +231,7 @@ using node discovery. Block is created on one host and automatically
 propagated to all other hosts. Test verifies that each node has received
 the block
 */
-TEST(p2p, block_propagate) {
+TEST_F(P2PTest, block_propagate) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   int const nodeCount = 10;

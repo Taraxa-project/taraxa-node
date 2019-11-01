@@ -227,7 +227,7 @@ void send_dummy_trx() {
   system(dummy_trx.c_str());
   taraxa::thisThreadSleepForSeconds(2);
 }
-struct FullNodeTest : public DBUsingTest<> {};
+struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
@@ -630,7 +630,6 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 }
 
 TEST_F(FullNodeTest, destroy_db) {
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(taraxa::FullNode::make(conf,
@@ -663,11 +662,9 @@ TEST_F(FullNodeTest, destroy_db) {
     EXPECT_TRUE(
         trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
   }
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
 TEST_F(FullNodeTest, reconstruct_dag) {
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::LevelDB);
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
   unsigned long vertices3 = 0;
@@ -728,8 +725,6 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   EXPECT_EQ(vertices1, vertices2);
   EXPECT_EQ(vertices2, vertices3);
   EXPECT_EQ(vertices3, vertices4);
-
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
 }
 
 TEST_F(FullNodeTest, sync_two_nodes1) {
@@ -1349,7 +1344,7 @@ int main(int argc, char **argv) {
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

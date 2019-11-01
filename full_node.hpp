@@ -17,6 +17,7 @@
 #include "libdevcrypto/Common.h"
 #include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
+#include "replay_protection/replay_protection_service.hpp"
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
@@ -282,9 +283,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-
+  using ReplayProtectionService =
+      replay_protection::replay_protection_service::ReplayProtectionService;
+  std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   // transaction executor
   std::shared_ptr<Executor> executor_ = nullptr;
+
   //
   std::vector<std::thread> block_workers_;
 
@@ -295,6 +299,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<taraxa::WSServer> ws_server_;
   // storage
+  std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
   std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_blks_index_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;

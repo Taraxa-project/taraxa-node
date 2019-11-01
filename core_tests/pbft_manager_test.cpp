@@ -20,7 +20,7 @@ auto g_trx_signed_samples =
     samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
 auto g_mock_dag0 = samples::createMockDag0();
 
-struct PbftManagerTest : public DBUsingTest<> {};
+struct PbftManagerTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   const char *input[] = {"./build/main", "--conf_taraxa",
@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
   dev::setupLogging(logOptions);
   // use the in-memory db so test will not affect other each other through
   // persistent storage
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -2,9 +2,13 @@
 #include <gtest/gtest.h>
 #include "libdevcore/Log.h"
 #include "types.hpp"
+#include "core_tests/util.hpp"
 
 namespace taraxa {
-TEST(Dag, build_dag) {
+
+struct DagTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(DagTest, build_dag) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
@@ -35,7 +39,7 @@ TEST(Dag, build_dag) {
   EXPECT_EQ(4, graph.getNumEdges());
 }
 
-TEST(Dag, dag_traverse_get_children_tips) {
+TEST_F(DagTest, dag_traverse_get_children_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
@@ -86,7 +90,7 @@ TEST(Dag, dag_traverse_get_children_tips) {
   EXPECT_EQ(8, graph.getNumEdges());
 }
 
-TEST(Dag, dag_traverse2_get_children_tips) {
+TEST_F(DagTest, dag_traverse2_get_children_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
@@ -116,7 +120,7 @@ TEST(Dag, dag_traverse2_get_children_tips) {
 }
 
 // Use the example on Conflux paper
-TEST(Dag, dag_traverse3_get_ordered_blks) {
+TEST_F(DagTest, dag_traverse3_get_ordered_blks) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::Dag graph(GENESIS);
@@ -226,7 +230,8 @@ TEST(Dag, dag_traverse3_get_ordered_blks) {
   graph.deletePeriod(5);  // should be no op
   EXPECT_EQ(graph.getNumVertices(), 1);
 }
-TEST(PivotTree, genesis_get_pivot) {
+
+TEST_F(DagTest, genesis_get_pivot) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   taraxa::PivotTree graph(GENESIS);
@@ -239,7 +244,7 @@ TEST(PivotTree, genesis_get_pivot) {
 }
 
 // Use the example on Conflux paper
-TEST(DagManager, compute_epoch) {
+TEST_F(DagTest, compute_epoch) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
@@ -319,7 +324,7 @@ TEST(DagManager, compute_epoch) {
   mgr->setDagBlockPeriod(blkK.getHash(), period);
 }
 
-TEST(DagManager, receive_block_in_order) {
+TEST_F(DagTest, receive_block_in_order) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
@@ -358,7 +363,7 @@ TEST(DagManager, receive_block_in_order) {
 
 // Use the example on Conflux paper, insert block in different order and make
 // sure block order are the same
-TEST(DagManager, compute_epoch_2) {
+TEST_F(DagTest, compute_epoch_2) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
@@ -459,7 +464,7 @@ TEST(DagManager, compute_epoch_2) {
   EXPECT_EQ(mgr->getNumVerticesInDag().second, 1);
 }
 
-TEST(DagManager, get_latest_pivot_tips) {
+TEST_F(DagTest, get_latest_pivot_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   auto mgr = std::make_shared<DagManager>(GENESIS);
