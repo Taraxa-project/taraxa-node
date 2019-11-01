@@ -20,7 +20,7 @@ using namespace vdf;
 using std::string;
 TEST(Vdf, VerifierWesolowski) {
   BIGNUM* N_bn = BN_secure_new();
-  BN_dec2bn(&N_bn, "799979478482341");
+  BN_dec2bn(&N_bn, "10");  // 799979478482341
   bytevec N = vdf::bn2bytevec(N_bn);
 
   VerifierWesolowski verifier(20, 8, {97}, N);
