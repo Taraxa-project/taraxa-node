@@ -128,6 +128,8 @@ void PbftManager::stop() {
   LOG(log_deb_) << "PBFT daemon terminated ...";
   db_cert_votes_ = nullptr;
   db_sortition_accounts_ = nullptr;
+  db_period_schedule_block_ = nullptr;
+  db_dag_blocks_period_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block

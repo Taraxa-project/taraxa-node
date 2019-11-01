@@ -329,7 +329,10 @@ void WSServer::do_accept() {
 
 void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (ec) {
-    if (!stopped_) LOG(log_er_) << ec << " accept";
+    if (!stopped_) {
+      LOG(log_er_) << ec << " Error on server accept, WS server down, check port";
+      return;
+    }
   } else {
     boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
     // Remove any close sessions
