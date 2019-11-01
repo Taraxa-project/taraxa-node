@@ -1,8 +1,6 @@
 pipeline {
     agent any
     environment {
-        AWS = credentials('AWS')
-        REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
         GCP_REGISTRY = 'gcr.io/jovial-meridian-249123'
         IMAGE = 'taraxa-node'
         BASE_IMAGE = 'taraxa-node-base'
@@ -30,7 +28,6 @@ pipeline {
         }
         stage('Docker Registry Login') {
             steps {
-                sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
                 withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
                   sh 'echo ${GCP_KEY} | docker login -u _json_key --password-stdin https://gcr.io'
                 }
@@ -40,7 +37,7 @@ pipeline {
             agent {
               docker {
                 alwaysPull true
-                image "${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
+                image "${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
                 reuseNode true
               }
             }
@@ -52,9 +49,9 @@ pipeline {
             steps {
                 sh '''
                     git submodule update --init --recursive
-                    docker build --pull --cache-from=${REGISTRY}/${IMAGE} \
+                    docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
-                    --build-arg BASE_IMAGE=${REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
+                    --build-arg BASE_IMAGE=${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
                     -f dockerfiles/Dockerfile .
                 '''
             }
@@ -106,10 +103,6 @@ pipeline {
         stage('Push Docker Image') {
             when {branch 'master'}
             steps {
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}'
-                sh 'docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker push ${REGISTRY}/${IMAGE}'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}'
                 sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'

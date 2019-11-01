@@ -15,8 +15,7 @@ def branchSlug(branch='') {
 pipeline {
     agent any
     environment {
-        AWS = credentials('AWS')
-        REGISTRY = '541656622270.dkr.ecr.us-west-2.amazonaws.com'
+        GCP_REGISTRY = 'gcr.io/jovial-meridian-249123'
         IMAGE = 'taraxa-node-base'
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
@@ -25,24 +24,26 @@ pipeline {
     stages {
         stage('Docker Registry Login') {
             steps {
-                sh 'eval $(docker run --rm -e AWS_ACCESS_KEY_ID=$AWS_USR -e AWS_SECRET_ACCESS_KEY=$AWS_PSW mendrugory/awscli aws ecr get-login --region us-west-2 --no-include-email)'
+                withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
+                  sh 'echo ${GCP_KEY} | docker login -u _json_key --password-stdin https://gcr.io'
+                }
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker pull ${REGISTRY}/${IMAGE}|| echo "Image not found"'
-                sh 'docker build --pull --cache-from=${REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
+                sh 'docker pull ${GCP_REGISTRY}/${IMAGE}|| echo "Image not found"'
+                sh 'docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }
         }
         stage('Push Docker Image') {
             when { branch 'master' }
             steps {
                 sh '''
-                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
-                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:latest
+                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}
+                  docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:latest
 
-                  docker push ${REGISTRY}/${IMAGE}:${BUILD_NUMBER}
-                  docker push ${REGISTRY}/${IMAGE}:latest
+                  docker push ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}
+                  docker push ${GCP_REGISTRY}/${IMAGE}:latest
                 '''
             }
         }
@@ -50,8 +51,8 @@ pipeline {
             when { not { branch 'master' } }
             steps {
               sh '''
-                docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${REGISTRY}/${IMAGE}:${DOCKER_BRANCH_TAG}
-                docker push ${REGISTRY}/${IMAGE}:${DOCKER_BRANCH_TAG}
+                docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${DOCKER_BRANCH_TAG}
+                docker push ${GCP_REGISTRY}/${IMAGE}:${DOCKER_BRANCH_TAG}
               '''
             }
         }
