@@ -301,8 +301,11 @@ TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
     void assert_balances_synced() {
       shared_lock l(m);
       for (auto &[addr, val] : expected_balances) {
+        int i = 0;
         for (auto &node : nodes_) {
-          ASSERT_EQ(val, node->getBalance(addr).first);
+          EXPECT_EQ(val, node->getBalance(addr).first)
+              << "node " << i << "addr: " << addr << std::endl;
+          i++;
         }
       }
     }
