@@ -230,7 +230,7 @@ void send_dummy_trx() {
 struct FullNodeTest : public DBUsingTest<> {};
 
 // fixme: flaky
-TEST_F(FullNodeTest, sync_five_nodes) {
+TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
   using namespace std;
   Top top1(5, input1);
   std::cout << "Top1 created ..." << std::endl;
