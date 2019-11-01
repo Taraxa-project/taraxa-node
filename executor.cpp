@@ -232,18 +232,18 @@ bool Executor::coinTransfer(StateRegistry::State& state, Transaction const& trx,
   auto hash = trx.getHash();
   val_t value = trx.getValue();
   addr_t sender = trx.getSender();
-  {
-    auto nonce = state.getNonce(sender);
-    if (nonce != trx.getNonce()) {
-      LOG(log_nf_) << fmt(
-          "Invalid nonce. account: %s, trx: %s, expected nonce: "
-          "%s, actual "
-          "nonce: %s",
-          sender, hash, trx.getNonce(), nonce);
-      return false;
-    }
-    state.setNonce(sender, nonce + 1);
-  }
+//  { TODO remove
+//    auto nonce = state.getNonce(sender);
+//    if (nonce != trx.getNonce()) {
+//      LOG(log_nf_) << fmt(
+//          "Invalid nonce. account: %s, trx: %s, expected nonce: "
+//          "%s, actual "
+//          "nonce: %s",
+//          sender, hash, trx.getNonce(), nonce);
+//      return false;
+//    }
+//    state.setNonce(sender, nonce + 1);
+//  }
   addr_t receiver = trx.getReceiver();
   val_t sender_initial_coin = state.balance(sender);
   val_t receiver_initial_coin = state.balance(receiver);
