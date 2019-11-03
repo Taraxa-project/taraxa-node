@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=541656622270.dkr.ecr.us-west-2.amazonaws.com/taraxa-node-base:latest
+ARG BASE_IMAGE=gcr.io/jovial-meridian-249123/taraxa-node-base:latest
 FROM $BASE_IMAGE as builder
 
 ENV APP_PATH /opt/taraxa/taraxa-node
