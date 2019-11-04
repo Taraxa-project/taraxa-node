@@ -103,6 +103,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       unsigned long level, int number_of_levels);
+  std::string getScheduleBlockByPeriod(uint64_t period);
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips);
@@ -119,6 +120,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // finialize)
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
       blk_hash_t const &anchor);
+  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
@@ -226,6 +228,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return db_cert_votes_;
   }
 
+  std::shared_ptr<dev::db::DatabaseFace> getPeriodScheduleBlockDB() const {
+    return db_period_schedule_block_;
+  }
+  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksPeriodDB() const {
+    return db_dag_blocks_period_;
+  }
+
   // PBFT RPC
   void broadcastVote(Vote const &vote);
   Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -313,6 +322,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_ = nullptr;
+
   // debugger
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;

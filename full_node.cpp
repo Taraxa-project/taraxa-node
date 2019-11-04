@@ -110,6 +110,10 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash, mode).db);
   db_cert_votes_ = std::make_shared<DatabaseFaceCache>(
       newDB(conf_.pbft_cert_votes_db_path(), genesis_hash, mode).db, 100000);
+  db_dag_blocks_period_ =
+      std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash, mode).db);
+  db_period_schedule_block_ = std::move(
+      newDB(conf_.period_schedule_block_path(), genesis_hash, mode).db);
   // store genesis blk to db
   db_blks_->insert(genesis_hash, genesis_block.rlp(true));
   // TODO add move to a StateRegistry constructor?
@@ -411,6 +415,10 @@ std::vector<std::string> FullNode::getDagBlockEpFriend(blk_hash_t const &from,
   return epfriend;
 }
 
+std::pair<bool, uint64_t> FullNode::getDagBlockPeriod(blk_hash_t const &hash) {
+  return pbft_mgr_->getDagBlockPeriod(hash);
+}
+
 // return {period, block order}, for pbft-pivot-blk proposing
 std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
     blk_hash_t const &anchor) {
@@ -573,13 +581,18 @@ bool FullNode::executeScheduleBlock(
   res |= executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table, period);
   uint64_t block_number = 0;
-  if (sche_blk.getSchedule().blk_order.size() > 0)
+  if (sche_blk.getSchedule().blk_order.size() > 0) {
     block_number =
         pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().blk_order[0])
             .first;
+  }
   if (ws_server_)
     ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
   return res;
+}
+
+std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {
+  return pbft_mgr_->getScheduleBlockByPeriod(period);
 }
 
 std::vector<Vote> FullNode::getAllVotes() { return vote_mgr_->getAllVotes(); }

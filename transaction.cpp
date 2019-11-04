@@ -709,88 +709,91 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   //                << " pre-filtered trxs: " << all_trxs.str();
   // }
   auto orig_size = list_trxs.size();
-  auto iter = list_trxs.begin();
-  // filter out nonce gaps (drop transctions that have gap)
-  int outdated_trx = 0;
-  int gapped_trx = 0;
-  {
-    uLock lock(mu_for_nonce_table_);
-    while (iter != list_trxs.end()) {
-      auto curr_sender = iter->getSender();
-      auto curr_nonce = iter->getNonce();
+  // auto iter = list_trxs.begin();
+  // // filter out nonce gaps (drop transctions that have gap)
+  // int outdated_trx = 0;
+  // int gapped_trx = 0;
+  // {
+  //   uLock lock(mu_for_nonce_table_);
+  //   while (iter != list_trxs.end()) {
+  //     auto curr_sender = iter->getSender();
+  //     auto curr_nonce = iter->getNonce();
 
-      auto [curr_sender_prev_nonce, exist] = accs_nonce_.get(curr_sender);
+  //     auto [curr_sender_prev_nonce, exist] = accs_nonce_.get(curr_sender);
 
-      // skip if outdated
-      if (exist && curr_sender_prev_nonce >= curr_nonce) {
-        LOG(log_dg_) << getFullNodeAddress() << " Remove trx "
-                     << iter->getHash() << "Sender " << curr_sender << " Nonce "
-                     << curr_nonce
-                     << " too old, because prev sender nonce on file is "
-                     << curr_sender_prev_nonce;
-        iter = list_trxs.erase(iter);
-        outdated_trx++;
-        continue;
-      }
+  //     // skip if outdated
+  //     if (exist && curr_sender_prev_nonce >= curr_nonce) {
+  //       LOG(log_dg_) << getFullNodeAddress() << " Remove trx "
+  //                    << iter->getHash() << "Sender " << curr_sender << "
+  //                    Nonce "
+  //                    << curr_nonce
+  //                    << " too old, because prev sender nonce on file is "
+  //                    << curr_sender_prev_nonce;
+  //       iter = list_trxs.erase(iter);
+  //       outdated_trx++;
+  //       continue;
+  //     }
 
-      auto prev_iter = std::prev(iter);
-      bool is_first_account_seq =
-          (iter == list_trxs.begin() || prev_iter->getSender() != curr_sender);
+  //     auto prev_iter = std::prev(iter);
+  //     bool is_first_account_seq =
+  //         (iter == list_trxs.begin() || prev_iter->getSender() !=
+  //         curr_sender);
 
-      if (is_first_account_seq) {
-        if (!exist) {
-          if (curr_nonce != 0) {
-            LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
-                         << iter->getHash() << " Sender " << curr_sender
-                         << " Nonce " << curr_nonce
-                         << " cannot be packed, no nonce 0 seen ";
-            trx_requeued_.push(*iter);
-            iter = list_trxs.erase(iter);
-            gapped_trx++;
-            continue;
-          }
-        } else {
-          if (curr_nonce != curr_sender_prev_nonce + 1) {
-            LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
-                         << iter->getHash() << " Sender " << curr_sender
-                         << " Nonce " << curr_nonce
-                         << " cannot be packed, no previous nonce available "
-                         << curr_sender_prev_nonce;
-            trx_requeued_.push(*iter);
-            iter = list_trxs.erase(iter);
-            gapped_trx++;
-            continue;
-          }
-        }
-      } else {
-        auto prev_nonce = prev_iter->getNonce();
+  //     if (is_first_account_seq) {
+  //       if (!exist) {
+  //         if (curr_nonce != 0) {
+  //           LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
+  //                        << iter->getHash() << " Sender " << curr_sender
+  //                        << " Nonce " << curr_nonce
+  //                        << " cannot be packed, no nonce 0 seen ";
+  //           trx_requeued_.push(*iter);
+  //           iter = list_trxs.erase(iter);
+  //           gapped_trx++;
+  //           continue;
+  //         }
+  //       } else {
+  //         if (curr_nonce != curr_sender_prev_nonce + 1) {
+  //           LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
+  //                        << iter->getHash() << " Sender " << curr_sender
+  //                        << " Nonce " << curr_nonce
+  //                        << " cannot be packed, no previous nonce available "
+  //                        << curr_sender_prev_nonce;
+  //           trx_requeued_.push(*iter);
+  //           iter = list_trxs.erase(iter);
+  //           gapped_trx++;
+  //           continue;
+  //         }
+  //       }
+  //     } else {
+  //       auto prev_nonce = prev_iter->getNonce();
 
-        if (curr_nonce != (prev_nonce + 1)) {
-          LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
-                       << iter->getHash() << "Sender " << curr_sender
-                       << " Nonce " << curr_nonce << " because prev nonce is "
-                       << prev_nonce << " nonce table is "
-                       << accs_nonce_.get(curr_sender).first;
-          trx_requeued_.push(*iter);
-          iter = list_trxs.erase(iter);
-          gapped_trx++;
-          continue;
-        }
-      }
+  //       if (curr_nonce != (prev_nonce + 1)) {
+  //         LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
+  //                      << iter->getHash() << "Sender " << curr_sender
+  //                      << " Nonce " << curr_nonce << " because prev nonce is
+  //                      "
+  //                      << prev_nonce << " nonce table is "
+  //                      << accs_nonce_.get(curr_sender).first;
+  //         trx_requeued_.push(*iter);
+  //         iter = list_trxs.erase(iter);
+  //         gapped_trx++;
+  //         continue;
+  //       }
+  //     }
 
-      iter++;
-    }
-  }
-  if (list_trxs.empty()) {
-    return;
-  }
+  //     iter++;
+  //   }
+  // }
+  // if (list_trxs.empty()) {
+  //   return;
+  // }
 
-  auto pruned_size = list_trxs.size();
-  if (orig_size != pruned_size) {
-    LOG(log_dg_) << getFullNodeAddress() << " Shorten trx pack from "
-                 << orig_size << " to " << pruned_size << " outdated "
-                 << outdated_trx << " gapped " << gapped_trx;
-  }
+  // auto pruned_size = list_trxs.size();
+  // if (orig_size != pruned_size) {
+  //   LOG(log_dg_) << getFullNodeAddress() << " Shorten trx pack from "
+  //                << orig_size << " to " << pruned_size << " outdated "
+  //                << outdated_trx << " gapped " << gapped_trx;
+  // }
 
   for (auto const &t : list_trxs) {
     to_be_packed_trx.emplace_back(t.getHash());
