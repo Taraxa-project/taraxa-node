@@ -40,7 +40,10 @@ struct TransactionClient {
   TransactionClient(secret_t const& secret, decltype(node_) const& node,
                     Options const& opts =
                         {
-                            WaitOptions_DEFAULT,
+                            {
+                                60 * 3,
+                                nanoseconds(1000 * 1000 * 1000 * 1),
+                            },
                         })
       : key_pair_(secret), node_(node), opts_(opts) {}
 
