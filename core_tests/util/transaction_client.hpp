@@ -41,8 +41,8 @@ struct TransactionClient {
                     Options const& opts =
                         {
                             {
-                                60 * 3,
-                                nanoseconds(1000 * 1000 * 1000 * 1),
+                                60,
+                                nanoseconds(1000 * 1000 * 1000 * 2),
                             },
                         })
       : key_pair_(secret), node_(node), opts_(opts) {}
