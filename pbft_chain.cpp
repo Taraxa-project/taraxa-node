@@ -699,34 +699,49 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   return true;
 }
 
-bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
-  if (pbft_block.getBlockType() != pivot_block_type) {
-    LOG(log_err_) << "pushPbftPivotBlock() found pbft block type not equal "
-                     "pivot block type";
+bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) {
+  PbftBlockTypes pbft_block_type = pbft_block.getBlockType();
+  if (pbft_block_type != next_pbft_block_type_) {
+    LOG(log_err_) << "Pbft chain next pbft block type should be "
+                  << next_pbft_block_type_ << " Invalid pbft block type "
+                  << pbft_block.getBlockType();
     return false;
   }
-  if (next_pbft_block_type_ != pivot_block_type) {
-    LOG(log_err_) << "pushPbftPivotBlock() found next_pbft_block_type_ not "
-                     "equal pivot block type";
-    return false;
-  }
-  if (!last_pbft_block_hash_) {
-    // The first PBFT Pivot Block
-    if (pbft_block.getPivotBlock().getPrevBlockHash() != genesis_hash_) {
-      LOG(log_err_)
-          << "pushPbftPivotBlock() found getPivotBlock().getPrevBlockHash() "
-             "not equal genesis hash";
+  if (pbft_block_type == pivot_block_type) {
+    if (pbft_block.getPivotBlock().getPrevBlockHash() !=
+        last_pbft_block_hash_) {
+      LOG(log_err_) << "Pbft chain last block hash "
+                    << last_pbft_block_hash_
+                    << " Invalid pbft prev block hash "
+                    << pbft_block.getPivotBlock().getPrevBlockHash();
+      return false;
+    }
+    if (pbft_block.getPivotBlock().getPrevPivotBlockHash() != last_pbft_pivot_hash_) {
+      LOG(log_err_) << "Pbft chain last pivot block hash "
+                    << last_pbft_pivot_hash_
+                    << " Invalid pbft prev pivot block hash "
+                    << pbft_block.getPivotBlock().getPrevPivotBlockHash();
+      return false;
+    }
+  } else if (pbft_block_type == schedule_block_type) {
+    if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
+        last_pbft_block_hash_) {
+      LOG(log_err_) << "Pbft chain last block hash "
+                    << last_pbft_block_hash_
+                    << " Invalid pbft prev block hash "
+                    << pbft_block.getScheduleBlock().getPrevBlockHash();
       return false;
     }
   } else {
-    PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
-    if (pbft_block.getPivotBlock().getPrevBlockHash() !=
-        pbft_chain_last_blk.getBlockHash()) {
-      LOG(log_err_)
-          << "pushPbftPivotBlock() found getPivotBlock().getPrevBlockHash() "
-             "not equal pbft_chain_last_blk.getBlockHash()";
-      return false;
-    }
+    LOG(log_err_) << "Unknown PBFT block type " << pbft_block_type;
+    assert(false);
+  }
+  return true;
+}
+
+bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
+  if (!checkPbftBlockValidation(pbft_block)) {
+    return false;
   }
   period_++;
   if (!pushPbftBlock(pbft_block)) {
@@ -739,22 +754,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
-  if (pbft_block.getBlockType() != schedule_block_type) {
-    LOG(log_err_) << "pushPbftScheduleBlock() found pbft block type not equal "
-                     "schedule block type";
-    return false;
-  }
-  if (next_pbft_block_type_ != schedule_block_type) {
-    LOG(log_err_) << "pushPbftScheduleBlock() found next_pbft_block_type_ not "
-                     "equal schedule block type";
-    return false;
-  }
-  PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
-  if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.getBlockHash()) {
-    LOG(log_err_) << "pushPbftScheduleBlock() found "
-                     "getScheduleBlock().getPrevBlockHash() not equal "
-                     "pbft_chain_last_blk.getBlockHash()";
+  if (!checkPbftBlockValidation(pbft_block)) {
     return false;
   }
   if (!pushPbftBlock(pbft_block)) {

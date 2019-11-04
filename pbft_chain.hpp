@@ -241,13 +241,15 @@ class PbftChain {
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
-  // Added for debug message purposes
-  size_t pbftVerifiedQueueSize() const;
+  bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block);
 
   bool pbftVerifiedQueueEmpty() const;
   PbftBlock pbftVerifiedQueueFront() const;
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
+
+  // Added for debug message purposes
+  size_t pbftVerifiedQueueSize() const;
 
  private:
   void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
