@@ -2,6 +2,7 @@ DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/libff/build/libff/libff.a \
 	submodules/secp256k1/.libs/libsecp256k1.a \
+	submodules/openssl/libssl.a\
 	submodules/taraxa-vdf/lib/libvdf.a \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
@@ -11,12 +12,10 @@ ifneq (,$(shell git submodule update --recursive --init))
     $(info Cleaning up built dependencies cause the submodules changed: $(DEPENDENCIES))
     $(shell rm -rf $(DEPENDENCIES))
 endif
-OPENSSL_HOME = "/usr/local/Cellar/openssl@1.1/1.1.1/"
-OPENSSL_LDFLAGS = $(OPENSSL_HOME)/lib -lssl 
 
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
+CPPFLAGS := -I submodules -I submodules/openssl/include -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -63,7 +62,7 @@ ifneq ($(DEBUG), 0)
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
-LDFLAGS := -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib -L $(OPENSSL_LDFLAGS)
+LDFLAGS := -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib -L submodules/openssl
 MKDIR := mkdir
 RM := rm -f
 
@@ -356,9 +355,13 @@ trx_engine/trx_engine.a:
 	@echo Building Go trx engine static C library
 	cd submodules/taraxa-evm; go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ../../trx_engine/trx_engine.a
 
+submodules/openssl/libssl.a:
+	@echo Attempting to compile openssl 1.1.1
+	cd submodules/openssl;./config; make  
+
 submodules/taraxa-vdf/lib/libvdf.a:
 	@echo Attempting to compile vdf
-	cd submodules/taraxa-vdf; make OPENSSL_HOME=/usr/local/Cellar/openssl@1.1/1.1.1/
+	cd submodules/taraxa-vdf; make OPENSSL_HOME="../openssl"
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
