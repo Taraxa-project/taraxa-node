@@ -38,7 +38,7 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
           conf_.genesis_state.block.getHash().toString())),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>()),
+      trx_mgr_(std::make_shared<TransactionManager>(conf_.test_params.check_nonce)),
       trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
       blk_proposer_(std::make_shared<BlockProposer>(
           conf_.test_params.block_proposer, dag_mgr_->getShared(),

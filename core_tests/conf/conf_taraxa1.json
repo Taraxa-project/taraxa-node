@@ -35,7 +35,8 @@
       1000000000,
       100,
       0
-    ]
+    ],
+    "check_nonce": 3
   },
   "genesis_state": {
     "account_start_nonce": 0,

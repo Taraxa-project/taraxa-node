@@ -49,6 +49,9 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
         test_params.pbft.push_back(i);
       }
+      if (auto const &v = doc.get_optional<uint>("test_params.check_nonce"); v) {
+        test_params.check_nonce = *v;
+      }
     }
     genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
     if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {

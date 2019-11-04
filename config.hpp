@@ -44,6 +44,7 @@ struct NetworkConfig {
 struct TestParamsConfig {
   std::vector<uint> block_proposer;  // test_params.block_proposer
   std::vector<uint> pbft;            // test_params.pbft
+  uint check_nonce;
 };
 
 struct FullNodeConfig {

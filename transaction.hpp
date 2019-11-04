@@ -296,17 +296,17 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager()
-      : trx_status_(1000000, 1000),
-        rlp_cache_(100000, 10000),
-        accs_nonce_(),
-        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
-  TransactionManager(std::shared_ptr<DatabaseFaceCache> db_trx)
-      : db_trxs_(db_trx),
+  TransactionManager(uint check_nonce = 0x111)
+      : check_nonce_(check_nonce),
         trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
+  TransactionManager(std::shared_ptr<DatabaseFaceCache> db_trx,
+                     bool check_nonce = true)
+      : TransactionManager(check_nonce) {
+    db_trxs_ = db_trx;
+  }
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -364,7 +364,10 @@ class TransactionManager
   }
   void updateNonce(DagBlock const &blk, DagFrontier const &frontier);
 
+  enum CheckNonce { CheckOutdated = 0x1, CheckGap = 0x2, CheckDebug = 0x4 };
+
  private:
+  uint check_nonce_ = 0x11;
   addr_t getFullNodeAddress() const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
