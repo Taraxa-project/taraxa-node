@@ -41,7 +41,7 @@ struct TransactionClient {
                     Options const& opts =
                         {
                             {
-                                60,
+                                90,
                                 nanoseconds(1000 * 1000 * 1000 * 2),
                             },
                         })
