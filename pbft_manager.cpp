@@ -1255,6 +1255,11 @@ void PbftManager::syncPbftChainFromPeers_() {
     LOG(log_deb_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
   }
+  uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
+  if (height_to_sync == last_pbft_syncing_size_) {
+    // First PBFT syncing height should be 2
+    return;
+  }
 
   vector<NodeID> peers = capability_->getAllPeers();
   if (peers.empty()) {
@@ -1284,6 +1289,7 @@ void PbftManager::syncPbftChainFromPeers_() {
 
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
+      last_pbft_syncing_size_ = height_to_sync;
     }
   }
 }
