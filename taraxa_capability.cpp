@@ -50,6 +50,7 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
         peers_pbft_chain_syncing_height_[_nodeID] < height_to_sync) {
       LOG(log_nf_) << "Sync peer node " << _nodeID << " from pbft chain height "
                    << height_to_sync;
+
       requestPbftBlocks(_nodeID, height_to_sync);
       peers_pbft_chain_syncing_height_[_nodeID] = height_to_sync;
     }
