@@ -1344,8 +1344,6 @@ int main(int argc, char **argv) {
   // logOptions.includeChannels.push_back("PBFT_CHAIN");
 
   dev::setupLogging(logOptions);
-  // use the in-memory db so test will not affect other each other through
-  // persistent storage
   dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
