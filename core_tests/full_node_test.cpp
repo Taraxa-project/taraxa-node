@@ -24,6 +24,8 @@
 #include "util.hpp"
 #include "util/wait.hpp"
 
+#include "replay_protection/replay_protection_service_test.hpp"
+
 namespace taraxa {
 using namespace core_tests::util;
 using samples::sendTrx;

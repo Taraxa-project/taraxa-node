@@ -22,7 +22,7 @@ struct ReplayProtectionService {
   using transaction_batch_t = list<shared_ptr<Transaction>>;
 
  private:
-  round_t range_;
+  round_t range_ = 0;
   // explicitly use rocksdb since WriteBatchFace may behave not as expected
   // in other implementations
   shared_ptr<RocksDB> db_;
@@ -32,11 +32,11 @@ struct ReplayProtectionService {
  public:
   ReplayProtectionService(decltype(range_) range, decltype(db_) const& db);
   bool hasBeenExecuted(Transaction const& trx);
-
   void commit(round_t round, transaction_batch_t const& trxs);
 
  private:
-  shared_ptr<SenderState> loadSenderState(string const& sender_str);
+  bool hasBeenExecuted_(Transaction const& trx);
+  shared_ptr<SenderState> loadSenderState(string const& key);
 };
 
 }  // namespace taraxa::replay_protection::replay_protection_service

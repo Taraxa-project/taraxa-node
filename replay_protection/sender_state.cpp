@@ -7,16 +7,17 @@ bool SenderState::setNonceMax(trx_nonce_t v) {
     return false;
   }
   nonce_max_ = v;
-  dirty_ = nonce_max_dirty_ = true;
+  nonce_max_dirty_ = true;
   return true;
 }
 
-void SenderState::setNonceWatermark(trx_nonce_t v) {
+bool SenderState::setNonceWatermark(trx_nonce_t v) {
   if (nonce_watermark_ == v && nonce_watermark_exists_) {
-    return;
+    return false;
   }
   nonce_watermark_ = v;
-  dirty_ = nonce_watermark_exists_ = true;
+  nonce_watermark_exists_ = true;
+  return true;
 }
 
 }  // namespace taraxa::replay_protection::sender_state

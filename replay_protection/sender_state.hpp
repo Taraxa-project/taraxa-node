@@ -13,13 +13,12 @@ using std::optional;
 
 class SenderState {
   // persistent
-  trx_nonce_t nonce_max_;
-  trx_nonce_t nonce_watermark_;
-  bool nonce_watermark_exists_;
+  trx_nonce_t nonce_max_ = 0;
+  trx_nonce_t nonce_watermark_ = 0;
+  bool nonce_watermark_exists_ = 0;
   // transient
-  bool dirty_;
-  bool nonce_max_dirty_;
-  bool default_initialized_;
+  bool nonce_max_dirty_ = 0;
+  bool default_initialized_ = 0;
 
  public:
   SenderState() : default_initialized_(true) {}
@@ -31,8 +30,6 @@ class SenderState {
 
   auto isDefaultInitialized() { return default_initialized_; };
 
-  auto isDirty() { return dirty_; }
-
   auto isNonceMaxDirty() { return nonce_max_dirty_; }
 
   auto getNonceMax() { return nonce_max_; }
@@ -43,7 +40,7 @@ class SenderState {
     return nonce_watermark_exists_ ? optional(nonce_watermark_) : nullopt;
   };
 
-  void setNonceWatermark(trx_nonce_t v);
+  bool setNonceWatermark(trx_nonce_t v);
 
   RLPStream rlp() {
     return RLPStream(3) << nonce_max_ << nonce_watermark_

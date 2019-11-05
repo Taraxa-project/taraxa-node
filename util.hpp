@@ -19,6 +19,12 @@
 #include <unordered_set>
 #include "types.hpp"
 
+#ifdef TARAXA_PARANOID
+#define TARAXA_PARANOID_CHECK
+#else
+#define TARAXA_PARANOID_CHECK if (false)
+#endif
+
 namespace taraxa {
 
 boost::property_tree::ptree strToJson(const std::string_view &str);
@@ -284,6 +290,11 @@ std::optional<Pos> find(Where const &where, What const &what) {
 }
 
 inline auto noop() { return [](auto...) -> auto {}; }
+
+template <typename T>
+std::shared_ptr<T> as_shared(T *ptr) {
+  return std::shared_ptr<T>(ptr);
+}
 
 }  // namespace taraxa
 
