@@ -34,13 +34,16 @@ class SenderState {
 
   auto getNonceMax() { return nonce_max_; }
 
-  bool setNonceMax(trx_nonce_t v);
+  void setNonceMax(trx_nonce_t v);
 
   optional<trx_nonce_t> getNonceWatermark() {
     return nonce_watermark_exists_ ? optional(nonce_watermark_) : nullopt;
   };
 
-  bool setNonceWatermark(trx_nonce_t v);
+  void setNonceWatermark(trx_nonce_t v) {
+    nonce_watermark_ = v;
+    nonce_watermark_exists_ = true;
+  }
 
   RLPStream rlp() {
     return RLPStream(3) << nonce_max_ << nonce_watermark_

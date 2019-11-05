@@ -108,9 +108,8 @@ void ReplayProtectionService::commit(round_t round,
           if (auto v = db_->lookup(nonce_max_key); !v.empty()) {
             auto sender_state_key = senderStateKey(line);
             auto state = loadSenderState(sender_state_key);
-            if (state->setNonceWatermark(fromBigEndian<trx_nonce_t>(v))) {
-              batch->insert(sender_state_key, toSlice(state->rlp().out()));
-            }
+            state->setNonceWatermark(fromBigEndian<trx_nonce_t>(v));
+            batch->insert(sender_state_key, toSlice(state->rlp().out()));
             batch->kill(nonce_max_key);
           }
         } else if (trx_hash_t::size == line_size_bytes) {
