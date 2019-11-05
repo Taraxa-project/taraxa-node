@@ -464,7 +464,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case GetPbftBlockPacket: {
         LOG(log_dg_) << "Received GetPbftBlockPacket Block";
-        const size_t max_blocks_in_packet = 2;
+        // TODO: Since syncing PBFT block and cert votes validation issue, each
+        //  time sync one block. And need to fix later
+        const size_t max_blocks_in_packet = 1;
         auto full_node = full_node_.lock();
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
