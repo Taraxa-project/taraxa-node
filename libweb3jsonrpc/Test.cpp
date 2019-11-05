@@ -364,7 +364,7 @@ Json::Value Test::get_transaction_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getTransactionStatusCount();
+      auto count = node->getTransactionCount();
       res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {

@@ -86,6 +86,7 @@ struct FullNodeConfig {
   auto replay_protection_service_db_path() {
     return db_path + "/replay_protection_service";
   }
+  auto status_path() { return db_path + "/status"; }
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

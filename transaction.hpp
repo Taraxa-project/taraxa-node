@@ -346,6 +346,7 @@ class TransactionManager
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
       trx_hash_t const &hash) const;
   unsigned long getTransactionStatusCount() const;
+  unsigned long getTransactionCount() const;
   bool isTransactionVerified(trx_hash_t const &hash) {
     // in_block means in db, i.e., already verified
     auto status = trx_status_.get(hash);
@@ -371,12 +372,14 @@ class TransactionManager
   std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
   TransactionStatusTable trx_status_;
   TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;
   std::queue<Transaction> trx_requeued_;
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
+  std::atomic<unsigned long> trx_count_ = 0;
 
   mutable std::mutex mu_for_nonce_table_;
   mutable dev::Logger log_si_{

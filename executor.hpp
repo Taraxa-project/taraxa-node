@@ -36,6 +36,7 @@ class Executor {
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
+  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   trx_engine::TrxEngine trx_engine_;
   bool use_basic_executor_;
@@ -64,15 +65,8 @@ class Executor {
            decltype(db_trxs_) db_trxs,                                      //
            decltype(replay_protection_service_) replay_protection_service,  //
            decltype(state_registry_) state_registry,                        //
-           bool use_basic_executor = false)
-      : pbft_require_sortition_coins_(pbft_require_sortition_coins),
-        log_time_(std::move(log_time)),
-        db_blks_(std::move(db_blks)),
-        db_trxs_(std::move(db_trxs)),
-        replay_protection_service_(std::move(replay_protection_service)),
-        state_registry_(std::move(state_registry)),
-        trx_engine_({state_registry_->getAccountDbRaw(), noop()}),
-        use_basic_executor_(use_basic_executor) {}
+           decltype(db_status_) db_status,            //
+           bool use_basic_executor = false);
 
   bool execute(TrxSchedule const& schedule,
                BalanceTable& sortition_account_balance_table, uint64_t period);
