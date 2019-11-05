@@ -483,7 +483,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         break;
       }
-      // no cert vote needed
+      // no cert vote needed (propose block)
       case NewPbftBlockPacket: {
         LOG(log_dg_) << "In NewPbftBlockPacket";
 
@@ -504,7 +504,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         break;
       }
-      // need cert vote (syncing)
+      // need cert votes (syncing)
       case PbftBlockPacket: {
         LOG(log_dg_) << "In PbftBlockPacket";
 
@@ -519,18 +519,19 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-            if (full_node->pbftBlockHasEnoughCertVotes(
-                    pbft_blk_hash, blk_and_votes.cert_votes)) {
-              // Check 2t+1 cert votes, then put PBFT block into chain and
-              //  store cert votes in DB.
-              full_node->setVerifiedPbftBlock(blk_and_votes.pbft_blk);
-              full_node->storeCertVotes(pbft_blk_hash,
-                                        blk_and_votes.cert_votes);
-              LOG(log_dg_) << "Pbftblock " << pbft_blk_hash
-                           << " have enough cert votes!";
-            } else {
-              LOG(log_wr_) << "Pbftblock " << pbft_blk_hash
-                           << " does not have enough cert votes";
+            if (full_node->checkPbftBlockValidation(blk_and_votes.pbft_blk)) {
+              if (full_node->pbftBlockHasEnoughCertVotes(pbft_blk_hash, blk_and_votes.cert_votes)) {
+                // Check 2t+1 cert votes, then put PBFT block into chain and
+                //  store cert votes in DB.
+                full_node->setVerifiedPbftBlock(blk_and_votes.pbft_blk);
+                full_node->storeCertVotes(pbft_blk_hash,
+                                          blk_and_votes.cert_votes);
+                LOG(log_dg_) << "Pbftblock " << pbft_blk_hash
+                             << " have enough cert votes!";
+              } else {
+                LOG(log_wr_) << "Pbftblock " << pbft_blk_hash
+                             << " does not have enough valid cert votes";
+              }
             }
           }
         }

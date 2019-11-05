@@ -699,7 +699,7 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   return true;
 }
 
-bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) {
+bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const {
   PbftBlockTypes pbft_block_type = pbft_block.getBlockType();
   if (pbft_block_type != next_pbft_block_type_) {
     LOG(log_err_) << "Pbft chain next pbft block type should be "
@@ -716,7 +716,8 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) {
                     << pbft_block.getPivotBlock().getPrevBlockHash();
       return false;
     }
-    if (pbft_block.getPivotBlock().getPrevPivotBlockHash() != last_pbft_pivot_hash_) {
+    if (pbft_block.getPivotBlock().getPrevPivotBlockHash() !=
+        last_pbft_pivot_hash_) {
       LOG(log_err_) << "Pbft chain last pivot block hash "
                     << last_pbft_pivot_hash_
                     << " Invalid pbft prev pivot block hash "
