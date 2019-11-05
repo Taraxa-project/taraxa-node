@@ -22,33 +22,14 @@ class SenderState {
 
  public:
   SenderState() : default_initialized_(true) {}
-
-  explicit SenderState(RLP const& rlp)
-      : nonce_max_(rlp[0].toInt<trx_nonce_t>()),
-        nonce_watermark_(rlp[1].toInt<trx_nonce_t>()),
-        nonce_watermark_exists_(rlp[2].toInt<bool>()) {}
-
+  explicit SenderState(RLP const& rlp);
   auto isDefaultInitialized() { return default_initialized_; };
-
   auto isNonceMaxDirty() { return nonce_max_dirty_; }
-
   auto getNonceMax() { return nonce_max_; }
-
   void setNonceMax(trx_nonce_t v);
-
-  optional<trx_nonce_t> getNonceWatermark() {
-    return nonce_watermark_exists_ ? optional(nonce_watermark_) : nullopt;
-  };
-
-  void setNonceWatermark(trx_nonce_t v) {
-    nonce_watermark_ = v;
-    nonce_watermark_exists_ = true;
-  }
-
-  RLPStream rlp() {
-    return RLPStream(3) << nonce_max_ << nonce_watermark_
-                        << nonce_watermark_exists_;
-  }
+  optional<trx_nonce_t> getNonceWatermark();
+  void setNonceWatermark(trx_nonce_t v);
+  RLPStream rlp();
 };
 
 }  // namespace taraxa::replay_protection::sender_state
