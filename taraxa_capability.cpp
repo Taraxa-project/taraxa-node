@@ -519,7 +519,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-            if (full_node->checkPbftBlockValidation(blk_and_votes.pbft_blk)) {
+            if (full_node->checkPbftBlockValidationFromSyncing(blk_and_votes.pbft_blk)) {
               if (full_node->pbftBlockHasEnoughCertVotes(pbft_blk_hash, blk_and_votes.cert_votes)) {
                 // Check 2t+1 cert votes, then put PBFT block into chain and
                 //  store cert votes in DB.

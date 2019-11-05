@@ -241,10 +241,12 @@ class PbftChain {
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
+  bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
   bool pbftVerifiedQueueEmpty() const;
   PbftBlock pbftVerifiedQueueFront() const;
+  PbftBlock pbftVerifiedQueueBack() const;
   void pbftVerifiedQueuePopFront();
   void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
 
