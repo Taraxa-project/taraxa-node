@@ -5,8 +5,6 @@ DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/openssl/libssl.a\
 	submodules/taraxa-vdf/lib/libvdf.a \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a \
 	trx_engine/trx_engine.a
 ifneq (,$(shell git submodule update --recursive --init))
     $(info Cleaning up built dependencies cause the submodules changed: $(DEPENDENCIES))
@@ -384,7 +382,7 @@ submodules/secp256k1/.libs/libsecp256k1.a:
 	cd submodules/secp256k1; ./configure --disable-shared --disable-tests --disable-coverage --disable-openssl-tests --disable-exhaustive-tests --disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit --with-asm=no --enable-module-ecdh --enable-module-recovery --enable-experimental 
 	cd submodules/secp256k1; make
 
-submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a:
+submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a:
 	@echo Attempting to compile libprometheus, if it fails try compiling it manually. See https://github.com/jupp0r/prometheus-cpp
 	cd submodules/prometheus-cpp; git submodule update --init 3rdparty/civetweb/; mkdir -p _build; cd _build; cmake .. -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF; make -j 4; mkdir -p deploy; make DESTDIR=`pwd`/deploy install
 
