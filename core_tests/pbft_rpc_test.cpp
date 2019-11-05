@@ -13,12 +13,9 @@
 namespace taraxa {
 using namespace core_tests::util;
 
-struct PbftManagerTest : public DBUsingTest<> {};
-struct PbftVoteTest : public DBUsingTest<> {};
-struct NetworkTest : public DBUsingTest<> {};
-struct VoteManagerTest : public DBUsingTest<> {};
+struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
 
-TEST_F(PbftManagerTest, pbft_manager_lambda_input_test) {
+TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
   uint lambda_ms = 1000;
@@ -33,7 +30,7 @@ TEST_F(PbftManagerTest, pbft_manager_lambda_input_test) {
   EXPECT_EQ(valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);
 }
 
-TEST_F(PbftManagerTest, full_node_lambda_input_test) {
+TEST_F(PbftRpcTest, full_node_lambda_input_test) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
@@ -44,7 +41,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
 // Add votes round 1, 2 and 3 into unverified vote table
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3
 // votes
-TEST_F(VoteManagerTest, add_cleanup_get_votes) {
+TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   const char* input[] = {"./build/main", "--conf_taraxa",
                          "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
   Top top(5, input);
@@ -95,7 +92,7 @@ TEST_F(VoteManagerTest, add_cleanup_get_votes) {
   EXPECT_EQ(votes_size, 0);
 }
 
-TEST(VoteTest, reconstruct_votes) {
+TEST_F(PbftRpcTest, reconstruct_votes) {
   public_t pk(12345);
   sig_t sortition_sig(1234567);
   sig_t vote_sig(9878766);
@@ -110,7 +107,7 @@ TEST(VoteTest, reconstruct_votes) {
 }
 
 // Generate a vote, send the vote from node2 to node1
-TEST_F(NetworkTest, transfer_vote) {
+TEST_F(PbftRpcTest, transfer_vote) {
   // set nodes account balance
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;
@@ -174,7 +171,7 @@ TEST_F(NetworkTest, transfer_vote) {
   EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
-TEST_F(NetworkTest, vote_broadcast) {
+TEST_F(PbftRpcTest, vote_broadcast) {
   // set nodes account balance
   val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;
@@ -257,9 +254,7 @@ int main(int argc, char** argv) {
   logOptions.includeChannels.push_back("TARCAP");
   logOptions.includeChannels.push_back("VOTE_MGR");
   dev::setupLogging(logOptions);
-  // use the in-memory db so test will not affect other each other through
-  // persistent storage
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

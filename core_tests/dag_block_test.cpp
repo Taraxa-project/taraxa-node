@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <vector>
+#include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "full_node.hpp"
 #include "libdevcore/Log.h"
@@ -13,6 +14,8 @@ const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
 
+struct DagBlockTest : core_tests::util::DBUsingTest<> {};
+
 auto g_blk_samples = samples::createMockDagBlkSamples(
     0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
@@ -21,7 +24,7 @@ auto g_secret = dev::Secret(
     dev::Secret::ConstructFromStringType::FromHex);
 auto g_key_pair = dev::KeyPair(g_secret);
 
-TEST(uint256_hash_t, clear) {
+TEST_F(DagBlockTest, clear) {
   std::string str(
       "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
   ASSERT_EQ(str.size(), 64);
@@ -33,7 +36,7 @@ TEST(uint256_hash_t, clear) {
             "0000000000000000000000000000000000000000000000000000000000000000");
 }
 
-TEST(uint256_hash_t, send_receive_one) {
+TEST_F(DagBlockTest, send_receive_one) {
   uint256_hash_t send(
       "8f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f");
 
@@ -51,7 +54,7 @@ TEST(uint256_hash_t, send_receive_one) {
   ASSERT_EQ(send, recv);
 }
 
-TEST(uint256_hash_t, send_receive_two) {
+TEST_F(DagBlockTest, send_receive_two) {
   using std::string;
   using std::vector;
   vector<uint256_hash_t> outgoings{
@@ -78,7 +81,7 @@ TEST(uint256_hash_t, send_receive_two) {
   ASSERT_EQ(outgoings, receivings);
 }
 
-TEST(uint256_hash_t, send_receive_three) {
+TEST_F(DagBlockTest, send_receive_three) {
   using std::string;
   using std::vector;
   vector<uint256_hash_t> outgoings{
@@ -107,7 +110,7 @@ TEST(uint256_hash_t, send_receive_three) {
   ASSERT_EQ(outgoings, receivings);
 }
 
-TEST(DagBlock, string_format) {
+TEST_F(DagBlockTest, string_format) {
   using std::string;
   DagBlock blk(
       blk_hash_t(
@@ -150,7 +153,7 @@ TEST(DagBlock, string_format) {
   ASSERT_EQ(blk.getJsonStr(), blk2.getJsonStr());
 }
 
-TEST(DagBlock, sign_verify) {
+TEST_F(DagBlockTest, sign_verify) {
   DagBlock blk1(blk_hash_t(111),   // pivot
                 0,                 // level
                 {blk_hash_t(222),  // tips
@@ -184,7 +187,7 @@ TEST(DagBlock, sign_verify) {
   EXPECT_TRUE(blk2.verifySig());
 }
 
-TEST(BlockManager, push_and_pop) {
+TEST_F(DagBlockTest, push_and_pop) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   BlockManager blk_qu(1024, 2);
@@ -209,7 +212,7 @@ TEST(BlockManager, push_and_pop) {
   blk_qu.stop();
 }
 
-TEST(TransactionOrderManager, overlap) {
+TEST_F(DagBlockTest, overlap) {
   DagBlock blk1(blk_hash_t(1111), level_t(1), {},
                 {trx_hash_t(1000), trx_hash_t(2000), trx_hash_t(3000)},
                 sig_t(7777), blk_hash_t(888), addr_t(999));

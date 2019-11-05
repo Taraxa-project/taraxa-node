@@ -13,6 +13,7 @@
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.h"
+#include "replay_protection/replay_protection_service.hpp"
 #include "state_registry.hpp"
 #include "trx_engine/trx_engine.hpp"
 #include "util.hpp"
@@ -28,12 +29,16 @@ class FullNode;
 
 class Executor {
  private:
+  using ReplayProtectionService =
+      replay_protection::replay_protection_service::ReplayProtectionService;
+
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   trx_engine::TrxEngine trx_engine_;
   bool use_basic_executor_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
@@ -58,13 +63,15 @@ class Executor {
   Executor(uint64_t pbft_require_sortition_coins,
            decltype(log_time_) log_time,  //
            decltype(db_blks_) db_blks,
-           decltype(db_trxs_) db_trxs,                //
-           decltype(state_registry_) state_registry,  //
+           decltype(db_trxs_) db_trxs,                                      //
+           decltype(replay_protection_service_) replay_protection_service,  //
+           decltype(state_registry_) state_registry,                        //
            bool use_basic_executor = false)
       : pbft_require_sortition_coins_(pbft_require_sortition_coins),
         log_time_(std::move(log_time)),
         db_blks_(std::move(db_blks)),
         db_trxs_(std::move(db_trxs)),
+        replay_protection_service_(std::move(replay_protection_service)),
         state_registry_(std::move(state_registry)),
         trx_engine_({state_registry_->getAccountDbRaw(), noop()}),
         use_basic_executor_(use_basic_executor) {}
@@ -81,17 +88,21 @@ class Executor {
  private:
   bool execute_main(TrxSchedule const& schedule,
                     BalanceTable& sortition_account_balance_table,
-                    uint64_t period);
-  bool execute_basic(TrxSchedule const& schedule,
-                     BalanceTable& sortition_account_balance_table,
-                     uint64_t period);
-  bool executeBlkTrxs(StateRegistry::State&, blk_hash_t const& blk,
-                      std::vector<uint> const& trx_modes,
-                      BalanceTable& sortition_account_balance_table,
-                      uint64_t period);
+                    uint64_t period,
+                    ReplayProtectionService::transaction_batch_t& executed_trx);
+  bool execute_basic(
+      TrxSchedule const& schedule,
+      BalanceTable& sortition_account_balance_table, uint64_t period,
+      ReplayProtectionService::transaction_batch_t& executed_trx);
+  bool executeBlkTrxs(
+      StateRegistry::State&, blk_hash_t const& blk,
+      std::vector<uint> const& trx_modes,
+      BalanceTable& sortition_account_balance_table, uint64_t period,
+      ReplayProtectionService::transaction_batch_t& executed_trx);
   bool coinTransfer(StateRegistry::State&, Transaction const& trx,
                     BalanceTable& sortition_account_balance_table,
-                    uint64_t period, DagBlock const& dag_block);
+                    uint64_t period,  //
+                    DagBlock const& dag_block);
   addr_t getFullNodeAddress() const;
 };
 

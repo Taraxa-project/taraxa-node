@@ -84,6 +84,12 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   }
   auto const &genesis_hash = genesis_block.getHash();
   auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
+  {
+    using namespace dev::db;
+    auto db_path = conf_.replay_protection_service_db_path();
+    auto db_result = newDB(db_path, genesis_hash, mode, DatabaseKind::RocksDB);
+    db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
+  }
   db_pbft_sortition_accounts_ = std::move(
       newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
   db_blks_ = std::make_shared<DatabaseFaceCache>(
@@ -182,11 +188,15 @@ void FullNode::start(bool boot_node) {
   pbft_mgr_->setFullNode(getShared());
   pbft_mgr_->start();
 
+  replay_protection_service_ = std::make_shared<ReplayProtectionService>(
+      conf_.replay_protection_service_range, db_replay_protection_service_);
+
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_blks_,
-                                         db_trxs_,         //
-                                         state_registry_,  //
+                                         db_trxs_,                    //
+                                         replay_protection_service_,  //
+                                         state_registry_,             //
                                          conf_.use_basic_executor);
   executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
@@ -257,6 +267,8 @@ void FullNode::stop() {
     t.join();
   }
   executor_ = nullptr;
+  replay_protection_service_ = nullptr;
+  assert(db_replay_protection_service_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
   assert(db_blks_index_.use_count() == 1);
   assert(db_trxs_.use_count() == 1);

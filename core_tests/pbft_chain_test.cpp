@@ -13,7 +13,9 @@
 
 namespace taraxa {
 
-TEST(TrxSchedule, serialize_deserialize) {
+struct PbftChainTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(32443)};
   std::vector<std::vector<uint>> modes{
       {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
@@ -23,7 +25,7 @@ TEST(TrxSchedule, serialize_deserialize) {
   EXPECT_EQ(sche1, sche2);
 }
 
-TEST(PivotBlock, serialize_deserialize) {
+TEST_F(PbftChainTest, serialize_deserialize_pivot_block) {
   blk_hash_t prev_pivot_blk(34);
   blk_hash_t prev_res_blk(56);
   blk_hash_t dag_blk(78);
@@ -49,7 +51,7 @@ TEST(PivotBlock, serialize_deserialize) {
   EXPECT_EQ(ss1.str(), ss2.str());
 }
 
-TEST(ScheduleBlock, serialize_deserialize) {
+TEST_F(PbftChainTest, serialize_deserialize_schedule_block) {
   blk_hash_t prev_pivot(22);
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
   std::vector<std::vector<uint>> modes{
@@ -74,7 +76,7 @@ TEST(ScheduleBlock, serialize_deserialize) {
   EXPECT_EQ(ss1.str(), ss2.str());
 }
 
-TEST(PbftChain, pbft_db_test) {
+TEST_F(PbftChainTest, pbft_db_test) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
@@ -148,7 +150,7 @@ TEST(PbftChain, pbft_db_test) {
   db_pbftchain = nullptr;
 }
 
-TEST(PbftChain, block_broadcast) {
+TEST_F(PbftChainTest, block_broadcast) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   auto node2(taraxa::FullNode::make(
@@ -328,7 +330,7 @@ TEST(PbftChain, block_broadcast) {
   ASSERT_FALSE(find_erased_block);
 }
 
-TEST(PbftChain, get_dag_block_hash) {
+TEST_F(PbftChainTest, get_dag_block_hash) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   node->setDebug(true);
@@ -388,7 +390,7 @@ TEST(PbftChain, get_dag_block_hash) {
   ASSERT_EQ(last_dag_block_height.first, 2);
 }
 
-TEST(PbftChain, get_dag_block_height) {
+TEST_F(PbftChainTest, get_dag_block_height) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   node->setDebug(true);
@@ -412,9 +414,7 @@ int main(int argc, char** argv) {
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
-  // use the in-memory db so test will not affect other each other through
-  // persistent storage
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

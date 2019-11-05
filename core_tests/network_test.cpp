@@ -4,6 +4,7 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+#include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "libdevcore/DBFactory.h"
 #include "libdevcore/Log.h"
@@ -30,11 +31,13 @@ FullNodeConfig g_conf1("./core_tests/conf/conf_taraxa1.json");
 FullNodeConfig g_conf2("./core_tests/conf/conf_taraxa2.json");
 FullNodeConfig g_conf3("./core_tests/conf/conf_taraxa3.json");
 
+struct NetworkTest : core_tests::util::DBUsingTest<> {};
+
 /*
 Test creates two Network setup and verifies sending block
 between is successfull
 */
-TEST(Network, transfer_block) {
+TEST_F(NetworkTest, transfer_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
       g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
@@ -74,7 +77,7 @@ TEST(Network, transfer_block) {
 Test creates two Network setup and verifies sending transaction
 between is successfull
 */
-TEST(Network, transfer_transaction) {
+TEST_F(NetworkTest, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
       g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
@@ -109,7 +112,7 @@ Test verifies saving network to a file and restoring it from a file
 is successfull. Once restored from the file it is able to reestablish
 connections even with boot nodes down
 */
-TEST(Network, save_network) {
+TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
         g_conf1.network, g_conf1.genesis_state.block.getHash().toString()));
@@ -163,7 +166,7 @@ TEST(Network, save_network) {
 Test creates one node with testnet network ID and one node with main ID and
 verifies that connection fails
 */
-TEST(Network, node_network_id) {
+TEST_F(NetworkTest, node_network_id) {
   {
     FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
     conf1.network.network_id = "main";
@@ -209,7 +212,7 @@ Test creates a DAG on one node and verifies
 that the second node syncs with it and that the resulting
 DAG on the other end is the same
 */
-TEST(Network, node_sync) {
+TEST_F(NetworkTest, node_sync) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
@@ -281,7 +284,7 @@ Test creates a PBFT chain on one node and verifies
 that the second node syncs with it and that the resulting
 chain on the other end is the same
 */
-TEST(Network, node_pbft_sync) {
+TEST_F(NetworkTest, node_pbft_sync) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->start(true);  // boot node
@@ -351,7 +354,7 @@ TEST(Network, node_pbft_sync) {
   EXPECT_EQ(node2->getPbftChainSize(), 3);
 }
 
-TEST(Network, node_pbft_sync_without_enough_votes) {
+TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->start(true);  // boot node
@@ -423,7 +426,7 @@ DAG on the other end is the same
 Unlike the previous tests, this DAG contains blocks with transactions
 and verifies that the sync containing transactions is successful
 */
-TEST(Network, node_sync_with_transactions) {
+TEST_F(NetworkTest, node_sync_with_transactions) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
@@ -505,7 +508,7 @@ Test creates a complex DAG on one node and verifies
 that the second node syncs with it and that the resulting
 DAG on the other end is the same
 */
-TEST(Network, node_sync2) {
+TEST_F(NetworkTest, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto node1(taraxa::FullNode::make(
@@ -637,7 +640,7 @@ TEST(Network, node_sync2) {
 Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
-TEST(Network, node_transaction_sync) {
+TEST_F(NetworkTest, node_transaction_sync) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
 
@@ -677,7 +680,7 @@ these transactions which get created on random nodes are synced and the
 resulting DAG is the same on all nodes
 */
 // fixme: flaky
-TEST(Network, node_full_sync) {
+TEST_F(NetworkTest, node_full_sync) {
   const int numberOfNodes = 5;
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
@@ -776,9 +779,7 @@ int main(int argc, char** argv) {
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
-  // use the in-memory db so test will not affect other each other through
-  // persistent storage
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::MemoryDB);
+  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

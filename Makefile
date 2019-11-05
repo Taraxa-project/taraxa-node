@@ -109,7 +109,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/trx_engine/types.o \
 	${OBJECTDIR}/trx_engine/trx_engine.o \
 	${OBJECTDIR}/pbft_sortition_account.o \
-	${OBJECTDIR}/database_face_cache.o
+	${OBJECTDIR}/database_face_cache.o \
+	${OBJECTDIR}/replay_protection/sender_state.o \
+	${OBJECTDIR}/replay_protection/replay_protection_service.o
 
 MAINOBJECTFILES= \
 	${OBJECTDIR}/main.o \
@@ -269,6 +271,18 @@ ${OBJECTDIR}/pbft_sortition_account.o: pbft_sortition_account.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_sortition_account.o pbft_sortition_account.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/replay_protection/sender_state.o: replay_protection/sender_state.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/replay_protection
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/replay_protection/sender_state.o replay_protection/sender_state.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/replay_protection/replay_protection_service.o: replay_protection/replay_protection_service.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/replay_protection
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/replay_protection/replay_protection_service.o replay_protection/replay_protection_service.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
