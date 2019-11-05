@@ -74,17 +74,17 @@ struct ReplayProtectionServiceTest : testing::Test {
     }
   }
 
-  bool hasNonceWatermark(secret_t const& sender_sk,
-                         optional<trx_nonce_t> watermark = nullopt) {
-    if (!watermark) {
-      return !sut->hasBeenExecuted(*makeTrx(0, sender_sk));
-    }
-    for (trx_nonce_t i(0); i <= *watermark; ++i) {
+  bool hasNoNonceWatermark(secret_t const& sender_sk) {
+    return !sut->hasBeenExecuted(*makeTrx(0, sender_sk));
+  }
+
+  bool hasNonceWatermark(secret_t const& sender_sk, trx_nonce_t watermark) {
+    for (trx_nonce_t i(0); i <= watermark; ++i) {
       if (!sut->hasBeenExecuted(*makeTrx(i, sender_sk))) {
         return false;
       }
     }
-    return !sut->hasBeenExecuted(*makeTrx(*watermark + 1, sender_sk));
+    return !sut->hasBeenExecuted(*makeTrx(watermark + 1, sender_sk));
   }
 };
 
@@ -145,7 +145,7 @@ TEST_F(ReplayProtectionServiceTest, multi_senders_1) {
   apply_history();
   EXPECT_TRUE(hasNonceWatermark(sender_1, 5));
   EXPECT_TRUE(hasNonceWatermark(sender_2, 3));
-  EXPECT_TRUE(hasNonceWatermark(sender_3));
+  EXPECT_TRUE(hasNoNonceWatermark(sender_3));
   check_history_not_replayable();
 }
 

@@ -20,7 +20,7 @@ bool Executor::execute(TrxSchedule const& schedule,
                            executed_trx);
   }
   if (success) {
-//    replay_protection_service_->commit(period, executed_trx);
+    replay_protection_service_->commit(period, executed_trx);
   }
   return success;
 }
