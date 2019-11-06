@@ -1,8 +1,8 @@
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
-	submodules/ethash/build/lib/ethash/libethash.a \
-	submodules/libff/build/libff/libff.a \
-	submodules/secp256k1/.libs/libsecp256k1.a \
 	submodules/openssl/libssl.a\
+	submodules/ethash/build/lib/ethash/libethash.a \
+	submodules/secp256k1/.libs/libsecp256k1.a \
+	submodules/libff/build/libff/libff.a \
 	submodules/taraxa-vdf/lib/libvdf.a \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
 	trx_engine/trx_engine.a
@@ -24,7 +24,7 @@ DEBUG = 0
 PERF = 0
 CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
 CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF 
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lvdf -lcrypto -lgmpxx -lmpfr -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server trx_engine/trx_engine.a 
+LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lssl -lvdf -lcrypto -lgmpxx -lmpfr -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server trx_engine/trx_engine.a  
 ifeq ($(OS), Darwin)
 	LIBS += -framework CoreFoundation -framework Security
 endif
@@ -60,7 +60,7 @@ ifneq ($(DEBUG), 0)
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
-LDFLAGS := -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib -L submodules/openssl
+LDFLAGS := -L submodules/openssl -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib 
 MKDIR := mkdir
 RM := rm -f
 
@@ -389,7 +389,7 @@ submodules/ethash/build/lib/ethash/libethash.a:
 submodules/libff/build/libff/libff.a:
 	@echo Attempting to compile libff, if it fails try compiling it manually
 	cd submodules/libff; ${MKDIR} -p build
-	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; make
+	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ -DOPENSSL_ROOT_DIR="../../openssl" -DOPENSSL_LIBRARIES="../../openssl"; make
 
 submodules/secp256k1/.libs/libsecp256k1.a:
 	@echo Attempting to compile libsecp256k1, if it fails try compiling it manually
