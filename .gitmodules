@@ -34,3 +34,7 @@
 	path = submodules/openssl
 	url = https://github.com/openssl/openssl.git
 	ignore = dirty
+[submodule "submodules/taraxa-vrf"]
+	path = submodules/taraxa-vrf
+	url = https://github.com/Taraxa-project/taraxa-vrf.git
+	ignore = dirty

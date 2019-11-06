@@ -4,6 +4,7 @@ DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
 	submodules/secp256k1/.libs/libsecp256k1.a \
 	submodules/libff/build/libff/libff.a \
 	submodules/taraxa-vdf/lib/libvdf.a \
+	submodules/taraxa-vrf/build/lib/libsodium.a \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
 	trx_engine/trx_engine.a
 ifneq (,$(shell git submodule update --recursive --init))
@@ -377,6 +378,10 @@ submodules/openssl/libssl.a:
 submodules/taraxa-vdf/lib/libvdf.a:
 	@echo Attempting to compile vdf
 	cd submodules/taraxa-vdf; make OPENSSL_HOME="../openssl"
+
+submodules/taraxa-vrf/build/lib/libsodium.a:
+	@echo Attempting to compile vrf
+	cd submodules/taraxa-vrf; mkdir -p build; ./configure --prefix=$(shell pwd)/build; make; make install
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
