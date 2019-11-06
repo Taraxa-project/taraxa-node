@@ -106,6 +106,9 @@ void PbftManager::start() {
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
 
+  // initial last pbft syncing height
+  last_pbft_syncing_height_ = 0;
+
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_deb_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
@@ -300,6 +303,8 @@ void PbftManager::run() {
         //       recent
         pbft_round_ = consensus_pbft_round;
         pbft_step_ = 1;
+        // Reset last pbft syncing height
+        last_pbft_syncing_height_ = 0;
         syncPbftChainFromPeers_();
       }
 
@@ -332,7 +337,8 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
-
+      // Reset last pbft syncing height
+      last_pbft_syncing_height_ = 0;
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
       continue;
@@ -1256,8 +1262,8 @@ void PbftManager::syncPbftChainFromPeers_() {
     return;
   }
   uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
-  if (height_to_sync == last_pbft_syncing_size_) {
-    // First PBFT syncing height should be 2
+  if (height_to_sync == last_pbft_syncing_height_) {
+    // First PBFT height to syncing should be 2
     return;
   }
 
@@ -1265,7 +1271,6 @@ void PbftManager::syncPbftChainFromPeers_() {
   if (peers.empty()) {
     LOG(log_inf_) << "There is no peers with connection.";
   } else {
-    LOG(log_inf_) << "There are " << peers.size() << " peers.";
     if (pbft_round_ != pbft_round_last_requested_sync_ ||
         pbft_step_ != pbft_step_last_requested_sync_) {
       if (pbft_round_last_requested_sync_ != 0 &&
@@ -1290,7 +1295,7 @@ void PbftManager::syncPbftChainFromPeers_() {
       }
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
-      last_pbft_syncing_size_ = height_to_sync;
+      last_pbft_syncing_height_ = height_to_sync;
     }
   }
 }
