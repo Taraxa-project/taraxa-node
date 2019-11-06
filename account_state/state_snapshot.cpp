@@ -11,7 +11,7 @@ StateSnapshot StateSnapshot::make(RLP const& rlp) {
 }
 
 RLPStream StateSnapshot::rlp() const {
-  RLPStream(3) << block_number << block_hash << state_root;
+  return RLPStream(3) << block_number << block_hash << state_root;
 }
 
 bool StateSnapshot::operator==(StateSnapshot const& s) const {
