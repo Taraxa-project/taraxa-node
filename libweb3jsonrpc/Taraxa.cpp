@@ -454,7 +454,7 @@ optional<StateSnapshot> Taraxa::getSnapshot(NodePtr const& node,
   }
 }
 
-shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
+shared_ptr<account_state::State> Taraxa::getState(NodePtr const& node,
                                                   BlockNumber const& num) {
   switch (num.kind) {
     case BlockNumber::Kind::latest:
@@ -463,7 +463,7 @@ shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
     default: {
       // TODO cache
       auto state = node->getStateRegistry()->getState(*num.block_number);
-      return state ? make_shared<StateRegistry::State>(*state) : nullptr;
+      return state ? make_shared<account_state::State>(*state) : nullptr;
     }
   }
 }

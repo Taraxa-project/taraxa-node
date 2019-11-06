@@ -8,7 +8,7 @@
 #include "util/once_out_of_scope.hpp"
 #include "util_json.hpp"
 
-namespace taraxa::trx_engine {
+namespace taraxa::trx_engine::trx_engine {
 using namespace std;
 using namespace dev;
 using util::once_out_of_scope::OnceOutOfScope;

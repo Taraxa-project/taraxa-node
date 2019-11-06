@@ -17,7 +17,7 @@
 #include "libdevcrypto/Common.h"
 #include "libweb3jsonrpc/WSServer.h"
 #include "pbft_chain.hpp"
-#include "replay_protection/replay_protection_service.hpp"
+#include "replay_protection/index.hpp"
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
@@ -173,10 +173,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
-  std::shared_ptr<StateRegistry> getStateRegistry() const {
+  std::shared_ptr<account_state::StateRegistry> getStateRegistry() const {
     return state_registry_;
   }
-  std::shared_ptr<StateRegistry::State> updateAndGetState() const {
+  std::shared_ptr<account_state::State> updateAndGetState() const {
     state_registry_->rebase(*state_);
     return state_;
   }
@@ -292,8 +292,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-  using ReplayProtectionService =
-      replay_protection::replay_protection_service::ReplayProtectionService;
+  using ReplayProtectionService = replay_protection::ReplayProtectionService;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   // transaction executor
   std::shared_ptr<Executor> executor_ = nullptr;
@@ -313,8 +312,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> db_blks_index_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
-  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
-  std::shared_ptr<StateRegistry::State> state_ = nullptr;
+  std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<account_state::State> state_ = nullptr;
   // PBFT DB
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;

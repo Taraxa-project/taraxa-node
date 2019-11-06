@@ -2,10 +2,11 @@
 #include <iostream>
 #include <string>
 #include <unordered_set>
+#include "state.hpp"
 #include "util/eth.hpp"
 
-namespace taraxa::state_registry {
-using State = StateRegistry::State;
+namespace taraxa::account_state::state_registry {
+using state::State;
 using util::eth::calculateGenesisState;
 using util::eth::toSlice;
 
@@ -134,4 +135,4 @@ void StateRegistry::append(vector<pair<blk_hash_t, root_t>> const &blk_to_root,
   current_snapshot_ = {blk_num, last_blk, last_root};
 }
 
-}  // namespace taraxa::state_registry
+}  // namespace taraxa::account_state::state_registry

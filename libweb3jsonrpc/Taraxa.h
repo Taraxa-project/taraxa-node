@@ -176,7 +176,7 @@ class Taraxa : public dev::rpc::TaraxaFace {
   NodePtr tryGetNode();
   static std::optional<taraxa::StateSnapshot> getSnapshot(NodePtr const&,  //
                                                           BlockNumber const&);
-  static std::shared_ptr<taraxa::StateRegistry::State> getState(
+  static std::shared_ptr<taraxa::account_state::State> getState(
       NodePtr const&,  //
       BlockNumber const&);
   static Json::Value getBlockJson(NodePtr const&,

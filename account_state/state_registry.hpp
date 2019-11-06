@@ -1,5 +1,5 @@
-#ifndef TARAXA_NODE_STATE_REGISTRY_HPP
-#define TARAXA_NODE_STATE_REGISTRY_HPP
+#ifndef TARAXA_NODE_ACCOUNT_STATE_STATE_REGISTRY_HPP
+#define TARAXA_NODE_ACCOUNT_STATE_STATE_REGISTRY_HPP
 
 #include <atomic>
 #include <memory>
@@ -8,57 +8,16 @@
 #include <utility>
 #include <vector>
 #include "genesis_state.hpp"
+#include "state.hpp"
 #include "thread_safe_state.hpp"
 #include "types.hpp"
 
-namespace taraxa::state_registry {
+namespace taraxa::account_state::state_registry {
 using namespace std;
 using namespace dev;
+using state::State;
 
-class StateRegistry {
- public:
-  class State : public ThreadSafeState {
-    friend class StateRegistry;
-
-    StateRegistry *const host_;
-    StateSnapshot snapshot_;
-
-    State(decltype(host_) &host,
-          decltype(snapshot_) const &snapshot,  //
-          u256 const &account_start_nonce,      //
-          OverlayDB const &db)
-        : host_(host),
-          snapshot_(snapshot),
-          ThreadSafeState(account_start_nonce, db, eth::BaseState::Empty) {
-      setRoot(snapshot.state_root);
-    }
-
-   public:
-    State &operator=(State const &s) {
-      if (&s != this) {
-        assert(host_ == s.host_);
-        unique_lock l(m_);
-        eth::State::operator=(s);
-        snapshot_ = s.snapshot_;
-      }
-      return *this;
-    }
-
-    StateSnapshot getSnapshot() {
-      unique_lock l(m_);
-      return snapshot_;
-    }
-
-   private:
-    void setSnapshot(StateSnapshot const &snapshot) {
-      unique_lock l(m_);
-      snapshot_ = snapshot;
-    }
-
-    using eth::State::setRoot;
-    using ThreadSafeState::commitAndPush;
-  };
-
+struct StateRegistry {
   static inline string const CURRENT_BLOCK_NUMBER_KEY = "blk_num_current";
   static inline string const BLOCK_HASH_KEY_PREFIX = "blk_hash_";
   static inline string const BLOCK_NUMBER_KEY_PREFIX = "blk_num_";
@@ -116,10 +75,6 @@ class StateRegistry {
   void append(vector<pair<blk_hash_t, root_t>> const &blk_to_root, bool init);
 };
 
-}  // namespace taraxa::state_registry
+}  // namespace taraxa::account_state::state_registry
 
-namespace taraxa {
-using state_registry::StateRegistry;
-}
-
-#endif  // TARAXA_NODE_STATEREGISTRY_HPP
+#endif

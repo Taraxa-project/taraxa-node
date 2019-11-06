@@ -6,84 +6,93 @@
 #include <unordered_map>
 #include "../types.hpp"
 
-namespace taraxa::trx_engine {
+namespace taraxa::trx_engine::types {
+using dev::Address;
+using dev::bytes;
+using dev::h256;
+using dev::u256;
+using dev::eth::LogBloom;
+using std::optional;
+using std::string;
+using std::unordered_map;
+using std::vector;
 
 struct LogEntry {
-  dev::Address address;
-  std::vector<dev::h256> topics;
-  dev::bytes data;
-  dev::u256 blockNumber;
-  dev::h256 transactionHash;
+  Address address;
+  vector<h256> topics;
+  bytes data;
+  u256 blockNumber;
+  h256 transactionHash;
   int transactionIndex;
-  dev::h256 blockHash;
+  h256 blockHash;
   int logIndex;
 
   void fromJson(Json::Value const&);
 };
 
 struct EthTransactionReceipt {
-  std::optional<dev::bytes> root;
-  std::optional<int> status;
-  dev::u256 cumulativeGasUsed;
-  dev::eth::LogBloom logsBloom;
-  std::vector<LogEntry> logs;
-  dev::h256 transactionHash;
-  dev::Address contractAddress;
-  dev::u256 gasUsed;
+  optional<bytes> root;
+  optional<int> status;
+  u256 cumulativeGasUsed;
+  LogBloom logsBloom;
+  vector<LogEntry> logs;
+  h256 transactionHash;
+  Address contractAddress;
+  u256 gasUsed;
 
   void fromJson(Json::Value const&);
 };
 
 struct TaraxaTransactionReceipt {
-  dev::bytes returnValue;
+  bytes returnValue;
   EthTransactionReceipt ethereumReceipt;
-  std::string error;
+  string error;
 
   void fromJson(Json::Value const&);
 };
 
 struct StateTransitionResult {
-  dev::h256 stateRoot;
-  std::vector<TaraxaTransactionReceipt> receipts;
-  std::vector<LogEntry> allLogs;
-  dev::u256 usedGas;
-  std::unordered_map<dev::Address, dev::u256> updatedBalances;
+  h256 stateRoot;
+  vector<TaraxaTransactionReceipt> receipts;
+  vector<LogEntry> allLogs;
+  u256 usedGas;
+  unordered_map<Address, u256> updatedBalances;
 
   void fromJson(Json::Value const&);
 };
 
 struct Transaction {
-  std::optional<dev::Address> to;
-  dev::Address from;
+  optional<Address> to;
+  Address from;
   uint64_t nonce;
-  dev::u256 value;
+  u256 value;
   uint64_t gas;
-  dev::u256 gasPrice;
-  dev::bytes input;
-  dev::h256 hash;
+  u256 gasPrice;
+  bytes input;
+  h256 hash;
 
   Json::Value toJson() const;
 };
 
 struct Block {
-  dev::u256 number;
-  dev::Address miner;
+  u256 number;
+  Address miner;
   int64_t time;
-  dev::u256 difficulty;
+  u256 difficulty;
   uint64_t gasLimit;
-  dev::h256 hash;
-  std::vector<Transaction> transactions;
+  h256 hash;
+  vector<Transaction> transactions;
 
   Json::Value toJson() const;
 };
 
 struct StateTransitionRequest {
-  dev::h256 stateRoot;
+  h256 stateRoot;
   Block block;
 
   Json::Value toJson() const;
 };
 
-}  // namespace taraxa::trx_engine
+}  // namespace taraxa::trx_engine::types
 
 #endif  // TARAXA_NODE_TRX_ENGINE_TYPES_HPP_

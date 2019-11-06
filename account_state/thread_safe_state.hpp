@@ -1,13 +1,17 @@
-#ifndef TARAXA_NODE_THREAD_SAFE_STATE_HPP_
-#define TARAXA_NODE_THREAD_SAFE_STATE_HPP_
+#ifndef TARAXA_NODE_ACCOUNT_STATE_THREAD_SAFE_STATE_HPP_
+#define TARAXA_NODE_ACCOUNT_STATE_THREAD_SAFE_STATE_HPP_
 
 #include <libethereum/State.h>
 #include <mutex>
 #include "types.hpp"
 
-namespace taraxa::thread_safe_state {
-using namespace dev;
-using namespace std;
+namespace taraxa::account_state::thread_safe_state {
+namespace eth = dev::eth;
+using dev::Address;
+using dev::h256;
+using dev::u256;
+using std::mutex;
+using std::unique_lock;
 
 class ThreadSafeState : public eth::State {
  protected:
@@ -213,10 +217,6 @@ class ThreadSafeState : public eth::State {
   }
 };
 
-}  // namespace taraxa::thread_safe_state
+}  // namespace taraxa::account_state::thread_safe_state
 
-namespace taraxa {
-using thread_safe_state::ThreadSafeState;
-}
-
-#endif  // TARAXA_NODE__THREAD_SAFE_STATE_HPP_
+#endif

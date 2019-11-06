@@ -4,13 +4,13 @@
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
+#include "account_state/index.hpp"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.h"
-#include "state_registry.hpp"
 #include "util/eth.hpp"
 #include "vote.h"
 
@@ -123,11 +123,12 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
                            genesis_hash,  //
                            mode);
-  state_registry_ = make_shared<StateRegistry>(conf_.genesis_state,
-                                               move(acc_db.db),  //
-                                               move(snapshot_db.db));
+  state_registry_ =
+      make_shared<account_state::StateRegistry>(conf_.genesis_state,
+                                                move(acc_db.db),  //
+                                                move(snapshot_db.db));
   state_ =
-      make_shared<StateRegistry::State>(state_registry_->getCurrentState());
+      make_shared<account_state::State>(state_registry_->getCurrentState());
   LOG(log_nf_) << "DB initialized ...";
   bool boot_node_balance_initialized = false;
   // init master boot node ...
