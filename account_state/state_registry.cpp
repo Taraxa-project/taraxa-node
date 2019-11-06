@@ -10,7 +10,20 @@ using state::State;
 using util::eth::calculateGenesisState;
 using util::eth::toSlice;
 
-void StateRegistry::init(GenesisState const &genesis_state) {
+string const CURRENT_BLOCK_NUMBER_KEY = "blk_num_current";
+
+string blkNumKey(dag_blk_num_t const &x) { return "blk_num_" + to_string(x); }
+
+string blkHashKey(blk_hash_t const &x) { return "blk_hash_" + x.hex(); }
+
+StateRegistry::StateRegistry(GenesisState const &genesis_state,
+                             unique_ptr<db::DatabaseFace> account_db,
+                             unique_ptr<db::DatabaseFace> snapshot_db)
+    : account_start_nonce_(genesis_state.account_start_nonce),
+      account_db_raw_(account_db.get()),
+      account_db_(OverlayDB(move(account_db))),
+      snapshot_db_(move(snapshot_db)),
+      current_snapshot_(StateSnapshot()) {
   eth::AccountMap genesis_accs_eth;
   for (auto &acc : genesis_state.accounts) {
     genesis_accs_eth[acc.first] = {account_start_nonce_, acc.second.balance};
@@ -33,7 +46,7 @@ void StateRegistry::init(GenesisState const &genesis_state) {
   } else {
     current_snapshot_ = genesis_snapshot;
   }
-};
+}
 
 void StateRegistry::commitAndPush(
     State &state,  //
@@ -42,7 +55,7 @@ void StateRegistry::commitAndPush(
   assert(state.host_ == this);
   assert(state.getSnapshot() == getCurrentSnapshot());
   auto const &root = state.commitAndPush(commit_behaviour);
-  vector<pair<blk_hash_t, root_t>> blk_to_root;
+  batch_t blk_to_root;
   for (auto const &blk : blks) {
     blk_to_root.push_back({blk, root});
   }
@@ -110,8 +123,7 @@ optional<StateSnapshot> StateRegistry::getSnapshotFromDB(
   }};
 }
 
-void StateRegistry::append(vector<pair<blk_hash_t, root_t>> const &blk_to_root,
-                           bool init) {
+void StateRegistry::append(batch_t const &blk_to_root, bool init) {
   assert(!blk_to_root.empty());
   unique_lock l(m_);
   auto batch = snapshot_db_->createWriteBatch();

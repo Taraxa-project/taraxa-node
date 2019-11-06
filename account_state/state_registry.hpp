@@ -18,9 +18,7 @@ using namespace dev;
 using state::State;
 
 struct StateRegistry {
-  static inline string const CURRENT_BLOCK_NUMBER_KEY = "blk_num_current";
-  static inline string const BLOCK_HASH_KEY_PREFIX = "blk_hash_";
-  static inline string const BLOCK_NUMBER_KEY_PREFIX = "blk_num_";
+  using batch_t = vector<pair<blk_hash_t, root_t>>;
 
  private:
   uint256_t const account_start_nonce_;
@@ -30,34 +28,12 @@ struct StateRegistry {
   atomic<StateSnapshot> current_snapshot_;
   mutex m_;
 
-  void init(GenesisState const &);
-
  public:
   StateRegistry(GenesisState const &genesis_state,
                 unique_ptr<db::DatabaseFace> account_db,  //
-                unique_ptr<db::DatabaseFace> snapshot_db)
-      : account_start_nonce_(genesis_state.account_start_nonce),
-        account_db_raw_(account_db.get()),
-        account_db_(OverlayDB(move(account_db))),
-        snapshot_db_(move(snapshot_db)),
-        current_snapshot_(StateSnapshot()) {
-    init(genesis_state);
-  }
-
-  static string blkNumKey(dag_blk_num_t const &x) {
-    return BLOCK_NUMBER_KEY_PREFIX + to_string(x);
-  }
-
-  static string blkHashKey(blk_hash_t const &x) {
-    return BLOCK_HASH_KEY_PREFIX + x.hex();
-  }
-
+                unique_ptr<db::DatabaseFace> snapshot_db);
   auto getAccountDbRaw() { return account_db_raw_; }
-
-  void append(vector<pair<blk_hash_t, root_t>> const &blk_to_root) {
-    append(blk_to_root, false);
-  }
-
+  void append(batch_t const &blk_to_root) { append(blk_to_root, false); }
   void commitAndPush(State &,
                      vector<blk_hash_t> const &,  //
                      eth::State::CommitBehaviour const & =
@@ -72,7 +48,7 @@ struct StateRegistry {
 
  private:
   optional<StateSnapshot> getSnapshotFromDB(dag_blk_num_t const &);
-  void append(vector<pair<blk_hash_t, root_t>> const &blk_to_root, bool init);
+  void append(batch_t const &blk_to_root, bool init);
 };
 
 }  // namespace taraxa::account_state::state_registry

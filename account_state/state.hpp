@@ -15,7 +15,7 @@ using state_registry::StateRegistry;
 using std::unique_lock;
 using thread_safe_state::ThreadSafeState;
 
-struct State : ThreadSafeState {
+class State : public ThreadSafeState {
   friend class StateRegistry;
 
   StateRegistry *const host_;
@@ -24,37 +24,17 @@ struct State : ThreadSafeState {
   State(decltype(host_) &host,
         decltype(snapshot_) const &snapshot,  //
         u256 const &account_start_nonce,      //
-        OverlayDB const &db)
-      : host_(host),
-        snapshot_(snapshot),
-        ThreadSafeState(account_start_nonce, db, eth::BaseState::Empty) {
-    setRoot(snapshot.state_root);
-  }
+        OverlayDB const &db);
 
  public:
-  State &operator=(State const &s) {
-    if (&s != this) {
-      assert(host_ == s.host_);
-      unique_lock l(m_);
-      eth::State::operator=(s);
-      snapshot_ = s.snapshot_;
-    }
-    return *this;
-  }
-
-  StateSnapshot getSnapshot() {
-    unique_lock l(m_);
-    return snapshot_;
-  }
+  State &operator=(State const &s);
+  StateSnapshot getSnapshot();
 
  private:
-  void setSnapshot(StateSnapshot const &snapshot) {
-    unique_lock l(m_);
-    snapshot_ = snapshot;
-  }
-
   using eth::State::setRoot;
   using ThreadSafeState::commitAndPush;
+
+  void setSnapshot(StateSnapshot const &snapshot);
 };
 
 }  // namespace taraxa::account_state::state
