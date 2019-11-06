@@ -412,3 +412,51 @@ Json::Value Test::get_dag_size(const Json::Value &param1) {
   }
   return res;
 }
+
+Json::Value Test::get_pbft_chain_size() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getPbftChainSize();
+      res["value"] = std::to_string(count);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_pbft_chain_blocks(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto height_json = param1["height"];
+      auto count_json = param1["count"];
+      auto include_json = param1["include_json"];
+      int height = 1;
+      int count = 0;
+      if (!count_json.isNull())
+        count = std::stoi(count_json.asString());
+      else
+        count = node->getPbftChainSize();
+      if (!height_json.isNull()) 
+        height = std::stoi(height_json.asString());
+      else 
+        height = node->getPbftChainSize() - count + 1;
+
+      auto blocks = node->getPbftChain()->getPbftBlocksStr(height, count, include_json.isNull());
+      res["value"] = Json::Value(Json::arrayValue);
+      count = 0;
+      for (auto const &b : blocks) {
+        Json::Value block_json;
+        block_json["height"] = height + count;
+        count++;
+        block_json["block"] = b;
+        res["value"].append(block_json);
+      }
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}

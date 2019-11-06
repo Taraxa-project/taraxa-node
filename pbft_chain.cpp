@@ -657,6 +657,32 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
   return result;
 }
 
+std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
+                                                     size_t count,
+                                                     bool hash) const {
+  std::vector<std::string> result;
+  for (auto i = height; i < height + count; i++) {
+    std::string pbft_block_hash_str =
+        db_pbft_blocks_order_->lookup(std::to_string(i));
+    if (pbft_block_hash_str.empty()) {
+      LOG(log_err_) << "PBFT block height " << i
+                    << " is not exist in blocks order DB.";
+      break;
+    }
+    std::string pbft_block_str = db_pbftchain_->lookup(pbft_block_hash_str);
+    if (pbft_block_str.empty()) {
+      LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash_str
+                    << " in PBFT chain DB.";
+      break;
+    }
+    if (hash)
+      result.push_back(pbft_block_hash_str);
+    else
+      result.push_back(pbft_block_str);
+  }
+  return result;
+}
+
 bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
   if (db_pbftchain_->exists(pbft_block.getBlockHash().toString())) {
     LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()

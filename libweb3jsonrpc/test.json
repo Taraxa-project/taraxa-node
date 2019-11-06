@@ -133,5 +133,17 @@
       {}
     ],
     "returns": {}
+  },
+  {
+    "name": "get_pbft_chain_size",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_pbft_chain_blocks",
+    "params": [
+      {}
+    ],
+    "returns": {}
   }
 ]
