@@ -8,14 +8,15 @@ namespace taraxa {
 using trx_engine::StateTransitionResult;
 using trx_engine::TrxEngine;
 
-Executor::Executor(uint64_t pbft_require_sortition_coins,
-                   decltype(log_time_) log_time,  //
-                   decltype(db_blks_) db_blks,
-                   decltype(db_trxs_) db_trxs,                //
-                   decltype(replay_protection_service_) replay_protection_service,  //
-                   decltype(state_registry_) state_registry,  //
-                   decltype(db_status_) db_status,            //
-                   bool use_basic_executor)
+Executor::Executor(
+    uint64_t pbft_require_sortition_coins,
+    decltype(log_time_) log_time,  //
+    decltype(db_blks_) db_blks,
+    decltype(db_trxs_) db_trxs,                                      //
+    decltype(replay_protection_service_) replay_protection_service,  //
+    decltype(state_registry_) state_registry,                        //
+    decltype(db_status_) db_status,                                  //
+    bool use_basic_executor)
     : pbft_require_sortition_coins_(pbft_require_sortition_coins),
       log_time_(std::move(log_time)),
       db_blks_(std::move(db_blks)),

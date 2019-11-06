@@ -65,7 +65,7 @@ class Executor {
            decltype(db_trxs_) db_trxs,                                      //
            decltype(replay_protection_service_) replay_protection_service,  //
            decltype(state_registry_) state_registry,                        //
-           decltype(db_status_) db_status,            //
+           decltype(db_status_) db_status,                                  //
            bool use_basic_executor = false);
 
   bool execute(TrxSchedule const& schedule,
