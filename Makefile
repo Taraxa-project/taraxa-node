@@ -93,7 +93,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/transaction.o \
 	${OBJECTDIR}/executor.o \
 	${OBJECTDIR}/transaction_order_manager.o \
-	${OBJECTDIR}/state_registry.o \
+	${OBJECTDIR}/account_state/state.o \
+	${OBJECTDIR}/account_state/state_snapshot.o \
+	${OBJECTDIR}/account_state/state_registry.o \
 	${OBJECTDIR}/genesis_state.o \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_capability.o \
@@ -160,10 +162,23 @@ ${OBJECTDIR}/transaction_order_manager.o: transaction_order_manager.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_order_manager.o transaction_order_manager.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/state_registry.o: state_registry.cpp
+${OBJECTDIR}/account_state/state.o: account_state/state.cpp
 	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/account_state
 	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/state_registry.o state_registry.cpp $(CPPFLAGS)
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account_state/state.o account_state/state.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/account_state/state_snapshot.o: account_state/state_snapshot.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/account_state
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account_state/state_snapshot.o account_state/state_snapshot.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/account_state/state_registry.o: account_state/state_registry.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/account_state
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account_state/state_registry.o account_state/state_registry.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/genesis_state.o: genesis_state.cpp
 	${MKDIR} -p ${OBJECTDIR}
