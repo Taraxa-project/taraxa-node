@@ -247,7 +247,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               syncPeer(_nodeID, max_level);
             }
           }
-          syncPeerPbft(_nodeID);
+          // Why PBFT chain need sync here?
+          // syncPeerPbft(_nodeID);
           // Start gossiping if other node is within 10 blocks from our level
           peer->syncing_ = level > (max_level - 10);
         }
@@ -573,7 +574,8 @@ void TaraxaCapability::restartSyncing() {
       syncing_ = true;
       peer_syncing_ = max_level_nodeID;
       syncPeer(max_level_nodeID, full_node->getMaxDagLevel());
-      syncPeerPbft(max_level_nodeID);
+      // Why PBFT chain need sync here?
+      // syncPeerPbft(max_level_nodeID);
     }
   }
 }
