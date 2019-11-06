@@ -304,6 +304,7 @@ class TransactionManager
   TransactionManager(std::shared_ptr<DatabaseFaceCache> db_trx,
                      std::shared_ptr<dev::db::DatabaseFace> db_status)
       : db_trxs_(db_trx),
+        db_status_(db_status),
         trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
