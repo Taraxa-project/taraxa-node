@@ -372,7 +372,7 @@ trx_engine/trx_engine.a:
 
 submodules/openssl/libssl.a:
 	@echo Attempting to compile openssl 1.1.1
-	cd submodules/openssl;./config --prefix=$(pwd)/build; make; make install  
+	cd submodules/openssl;./config --prefix=$(shell pwd)/$(OPENSSL_HOME); make; make install  
 
 submodules/taraxa-vdf/lib/libvdf.a:
 	@echo Attempting to compile vdf
