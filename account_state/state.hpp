@@ -1,6 +1,7 @@
 #ifndef TARAXA_NODE_ACCOUNT_STATE_STATE_HPP_
 #define TARAXA_NODE_ACCOUNT_STATE_STATE_HPP_
 
+#include "state_snapshot.hpp"
 #include "thread_safe_state.hpp"
 
 namespace taraxa::account_state::state_registry {
@@ -12,6 +13,7 @@ namespace eth = dev::eth;
 using dev::OverlayDB;
 using dev::u256;
 using state_registry::StateRegistry;
+using state_snapshot::StateSnapshot;
 using std::unique_lock;
 using thread_safe_state::ThreadSafeState;
 

@@ -9,29 +9,38 @@
 #include <vector>
 #include "genesis_state.hpp"
 #include "state.hpp"
+#include "state_snapshot.hpp"
 #include "thread_safe_state.hpp"
 #include "types.hpp"
 
 namespace taraxa::account_state::state_registry {
-using namespace std;
-using namespace dev;
+namespace eth = dev::eth;
+using dev::OverlayDB;
+using dev::db::DatabaseFace;
 using state::State;
+using state_snapshot::StateSnapshot;
+using std::atomic;
+using std::mutex;
+using std::optional;
+using std::pair;
+using std::unique_ptr;
+using std::vector;
 
 struct StateRegistry {
   using batch_t = vector<pair<blk_hash_t, root_t>>;
 
  private:
   uint256_t const account_start_nonce_;
-  db::DatabaseFace *account_db_raw_;
+  DatabaseFace *account_db_raw_;
   OverlayDB account_db_;
-  unique_ptr<db::DatabaseFace> snapshot_db_;
+  unique_ptr<DatabaseFace> snapshot_db_;
   atomic<StateSnapshot> current_snapshot_;
   mutex m_;
 
  public:
   StateRegistry(GenesisState const &genesis_state,
-                unique_ptr<db::DatabaseFace> account_db,  //
-                unique_ptr<db::DatabaseFace> snapshot_db);
+                unique_ptr<DatabaseFace> account_db,  //
+                unique_ptr<DatabaseFace> snapshot_db);
   auto getAccountDbRaw() { return account_db_raw_; }
   void append(batch_t const &blk_to_root) { append(blk_to_root, false); }
   void commitAndPush(State &,

@@ -6,7 +6,13 @@
 #include "util/eth.hpp"
 
 namespace taraxa::account_state::state_registry {
-using state::State;
+using dev::RLP;
+using dev::RLPStream;
+using dev::StateCacheDB;
+using std::nullopt;
+using std::to_string;
+using std::unique_lock;
+using std::unordered_set;
 using util::eth::calculateGenesisState;
 using util::eth::toSlice;
 
@@ -17,8 +23,8 @@ string blkNumKey(dag_blk_num_t const &x) { return "blk_num_" + to_string(x); }
 string blkHashKey(blk_hash_t const &x) { return "blk_hash_" + x.hex(); }
 
 StateRegistry::StateRegistry(GenesisState const &genesis_state,
-                             unique_ptr<db::DatabaseFace> account_db,
-                             unique_ptr<db::DatabaseFace> snapshot_db)
+                             unique_ptr<DatabaseFace> account_db,
+                             unique_ptr<DatabaseFace> snapshot_db)
     : account_start_nonce_(genesis_state.account_start_nonce),
       account_db_raw_(account_db.get()),
       account_db_(OverlayDB(move(account_db))),
@@ -115,12 +121,7 @@ optional<StateSnapshot> StateRegistry::getSnapshotFromDB(
   if (snapshot_str.empty()) {
     return nullopt;
   }
-  RLP snapshot_rlp(snapshot_str);
-  return {{
-      snapshot_rlp[0].toInt<decltype(StateSnapshot::block_number)>(),
-      snapshot_rlp[1].toHash<decltype(StateSnapshot::block_hash)>(),
-      snapshot_rlp[2].toHash<decltype(StateSnapshot::state_root)>(),
-  }};
+  return StateSnapshot::make(RLP(snapshot_str));
 }
 
 void StateRegistry::append(batch_t const &blk_to_root, bool init) {
@@ -134,9 +135,8 @@ void StateRegistry::append(batch_t const &blk_to_root, bool init) {
     auto blk_hash_key = blkHashKey(blk_hash);
     // The assert checks double commit a block
     assert(snapshot_db_->lookup(blk_hash_key).empty());
-    RLPStream snapshot_rlp(3);
-    snapshot_rlp << blk_num << blk_hash << state_root;
-    batch->insert(blkNumKey(blk_num), toSlice(snapshot_rlp.out()));
+    StateSnapshot s{blk_num, blk_hash, state_root};
+    batch->insert(blkNumKey(blk_num), toSlice(s.rlp().out()));
     batch->insert(blk_hash_key, to_string(blk_num));
     ++blk_num;
   }

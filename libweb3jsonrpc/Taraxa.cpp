@@ -17,6 +17,7 @@ using namespace eth;
 using namespace shh;
 using namespace dev::rpc;
 using namespace taraxa;
+using taraxa::account_state::StateSnapshot;
 
 Taraxa::Taraxa(std::shared_ptr<FullNode>& _full_node)
     : full_node_(_full_node) {}

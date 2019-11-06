@@ -3,11 +3,13 @@
 
 #include "state.hpp"
 #include "state_registry.hpp"
+#include "state_snapshot.hpp"
 #include "thread_safe_state.hpp"
 
 namespace taraxa::account_state {
 using state::State;
 using state_registry::StateRegistry;
+using state_snapshot::StateSnapshot;
 using thread_safe_state::ThreadSafeState;
 };  // namespace taraxa::account_state
 
