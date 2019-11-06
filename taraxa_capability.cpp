@@ -44,9 +44,15 @@ void TaraxaCapability::syncPeer(NodeID const &_nodeID,
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
-    LOG(log_nf_) << "Sync Peer Pbft:" << _nodeID;
     size_t height_to_sync = full_node->getPbftChainSize() + 1;
-    requestPbftBlocks(_nodeID, height_to_sync);
+    if (peers_pbft_chain_syncing_height_.find(_nodeID) ==
+            peers_pbft_chain_syncing_height_.end() ||
+        peers_pbft_chain_syncing_height_[_nodeID] < height_to_sync) {
+      LOG(log_nf_) << "Sync peer node " << _nodeID << " from pbft chain height "
+                   << height_to_sync;
+      requestPbftBlocks(_nodeID, height_to_sync);
+      peers_pbft_chain_syncing_height_[_nodeID] = height_to_sync;
+    }
   }
 }
 
@@ -241,7 +247,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               syncPeer(_nodeID, max_level);
             }
           }
-          syncPeerPbft(_nodeID);
+          // Why PBFT chain need sync here?
+          // syncPeerPbft(_nodeID);
           // Start gossiping if other node is within 10 blocks from our level
           peer->syncing_ = level > (max_level - 10);
         }
@@ -464,7 +471,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case GetPbftBlockPacket: {
         LOG(log_dg_) << "Received GetPbftBlockPacket Block";
-        const size_t max_blocks_in_packet = 2;
+        // TODO: Since syncing PBFT block and cert votes validation issue, each
+        //  time sync one block. And need to fix later
+        const size_t max_blocks_in_packet = 1;
         auto full_node = full_node_.lock();
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
@@ -565,7 +574,8 @@ void TaraxaCapability::restartSyncing() {
       syncing_ = true;
       peer_syncing_ = max_level_nodeID;
       syncPeer(max_level_nodeID, full_node->getMaxDagLevel());
-      syncPeerPbft(max_level_nodeID);
+      // Why PBFT chain need sync here?
+      // syncPeerPbft(max_level_nodeID);
     }
   }
 }

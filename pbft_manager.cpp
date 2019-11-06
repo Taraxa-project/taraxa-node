@@ -1255,11 +1255,17 @@ void PbftManager::syncPbftChainFromPeers_() {
     LOG(log_deb_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
   }
+  uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
+  if (height_to_sync == last_pbft_syncing_size_) {
+    // First PBFT syncing height should be 2
+    return;
+  }
 
   vector<NodeID> peers = capability_->getAllPeers();
   if (peers.empty()) {
     LOG(log_inf_) << "There is no peers with connection.";
   } else {
+    LOG(log_inf_) << "There are " << peers.size() << " peers.";
     if (pbft_round_ != pbft_round_last_requested_sync_ ||
         pbft_step_ != pbft_step_last_requested_sync_) {
       if (pbft_round_last_requested_sync_ != 0 &&
@@ -1269,21 +1275,22 @@ void PbftManager::syncPbftChainFromPeers_() {
                       << ", will request again from all " << peers.size()
                       << " peers.";
       } else {
-        LOG(log_sil_)
+        LOG(log_deb_)
             << "First time requesting pbft chain sync, currently in round "
             << pbft_round_ << ", step " << pbft_step_
             << ", will request again from all " << peers.size() << " peers.";
       }
 
-      for (auto &peer : peers) {
-        LOG(log_deb_) << "In round " << pbft_round_ << ", in step "
-                      << pbft_step_ << ", sync pbft chain with node " << peer
+      for (auto i = 0; i < peers.size(); i++) {
+        LOG(log_deb_) << "Syncing the " << i + 1 << " peer " << peers[i]
+                      << " In round " << pbft_round_ << ", in step "
+                      << pbft_step_
                       << " Send request to ask missing pbft blocks in chain";
-        capability_->syncPeerPbft(peer);
+        capability_->syncPeerPbft(peers[i]);
       }
-
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
+      last_pbft_syncing_size_ = height_to_sync;
     }
   }
 }
