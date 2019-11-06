@@ -16,7 +16,7 @@ OPENSSL_HOME = submodules/openssl/build
 
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
+CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vrf/build/ -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -381,7 +381,7 @@ submodules/taraxa-vdf/lib/libvdf.a:
 
 submodules/taraxa-vrf/build/lib/libsodium.a:
 	@echo Attempting to compile vrf
-	cd submodules/taraxa-vrf; mkdir -p build; ./configure --prefix=$(shell pwd)/build; make; make install
+	cd submodules/taraxa-vrf; mkdir -p build; ./configure --prefix=$(shell pwd)/submodules/taraxa-vrf/build; make; make install
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
