@@ -239,10 +239,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
 
-  // PBFT
-  // <peer node ID, last pbft chain syncing height>
-  std::unordered_map<NodeID, uint64_t> peers_pbft_chain_syncing_height_;
-
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TARCAP")};
   dev::Logger log_wr_{
