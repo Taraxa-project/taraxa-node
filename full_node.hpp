@@ -269,9 +269,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   unsigned long getTransactionCount() const;
   TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
-    return executor_->getNumExecutedTrx();
+    return executor_ ? executor_->getNumExecutedTrx() : 0;
   }
-  auto getNumBlockExecuted() const { return executor_->getNumExecutedBlk(); }
+  auto getNumBlockExecuted() const {
+    return executor_ ? executor_->getNumExecutedBlk() : 0;
+  }
   std::vector<blk_hash_t> getLinearizedDagBlocks() const;
   std::vector<trx_hash_t> getPackedTrxs() const;
   void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {

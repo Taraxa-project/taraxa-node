@@ -58,6 +58,7 @@ void PbftManager::start() {
   db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
   db_period_schedule_block_ = full_node->getPeriodScheduleBlockDB();
   db_dag_blocks_period_ = full_node->getDagBlocksPeriodDB();
+  db_status_ = full_node->getStatusDB();
   if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
@@ -133,6 +134,7 @@ void PbftManager::stop() {
   db_sortition_accounts_ = nullptr;
   db_period_schedule_block_ = nullptr;
   db_dag_blocks_period_ = nullptr;
+  db_status_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -1555,6 +1557,11 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
 }
 
 void PbftManager::updateSortitionAccountsDB_() {
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
   auto accounts = db_sortition_accounts_->createWriteBatch();
   for (auto &account : sortition_account_balance_table) {
     if (account.second.status == new_change) {
@@ -1570,6 +1577,16 @@ void PbftManager::updateSortitionAccountsDB_() {
   accounts->insert(std::string("sortition_accounts_size"),
                    std::to_string(valid_sortition_accounts_size_));
   db_sortition_accounts_->commit(std::move(accounts));
+  auto num_executed_blk = full_node->getNumBlockExecuted();
+  auto num_executed_trx = full_node->getNumTransactionExecuted();
+  if (num_executed_blk > 0 && num_executed_trx > 0) {
+    db_status_->insert(
+        util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
+        util::eth::toSlice(num_executed_blk));
+    db_status_->insert(
+        util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
+        util::eth::toSlice(num_executed_trx));
+  }
 }
 
 size_t PbftManager::getValidPbftSortitionPlayerSize_() {

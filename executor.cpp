@@ -182,14 +182,6 @@ bool Executor::execute_main(
       }
     }
     num_executed_blk_.fetch_add(1);
-    auto num_executed_blk = num_executed_blk_.load();
-    auto num_executed_trx = num_executed_trx_.load();
-    db_status_->insert(
-        util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
-        util::eth::toSlice(num_executed_blk));
-    db_status_->insert(
-        util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
-        util::eth::toSlice(num_executed_trx));
     LOG(log_si_) << getFullNodeAddress() << " : Block number "
                  << num_executed_blk_ << ": " << blk_hash
                  << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
@@ -272,15 +264,6 @@ bool Executor::executeBlkTrxs(
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
   num_executed_blk_.fetch_add(1);
-  auto num_executed_blk = num_executed_blk_.load();
-  auto num_executed_trx = num_executed_trx_.load();
-  db_status_->insert(
-      util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
-      util::eth::toSlice(num_executed_blk));
-  db_status_->insert(
-      util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
-      util::eth::toSlice(num_executed_trx));
-
   LOG(log_si_) << getFullNodeAddress() << " : Block number "
                << num_executed_blk_ << ": " << blk
                << " executed, Efficiency: " << (num_trxs - num_overlapped_trx)
