@@ -279,6 +279,8 @@ void FullNode::stop() {
   assert(db_dag_blocks_order_.use_count() == 1);
   assert(db_dag_blocks_height_.use_count() == 1);
   assert(db_pbft_sortition_accounts_.use_count() == 1);
+  assert(db_dag_blocks_period_.use_count() == 1);
+  assert(db_period_schedule_block_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";

@@ -1,8 +1,8 @@
 #include "dag.hpp"
 #include <gtest/gtest.h>
+#include "core_tests/util.hpp"
 #include "libdevcore/Log.h"
 #include "types.hpp"
-#include "core_tests/util.hpp"
 
 namespace taraxa {
 
