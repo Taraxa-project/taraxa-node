@@ -1,24 +1,25 @@
-#include "sortition.h"
-
-#include "full_node.hpp"
-#include "libdevcore/FixedHash.h"
-#include "libdevcore/Log.h"
-#include "libdevcore/SHA3.h"
-#include "libdevcrypto/Common.h"
-#include "pbft_manager.hpp"
-
 #include <gtest/gtest.h>
 #include <iostream>
 #include <string>
 #include "ProverWesolowski.h"
 #include "core_tests/util.hpp"
+#include "full_node.hpp"
+#include "libdevcore/FixedHash.h"
+#include "libdevcore/Log.h"
+#include "libdevcore/SHA3.h"
+#include "libdevcrypto/Common.h"
 #include "openssl/bn.h"
+#include "pbft_manager.hpp"
+#include "sodium.h"
+#include "sortition.h"
 
 namespace taraxa {
 using namespace core_tests::util;
 using namespace vdf;
 using std::string;
-TEST(Vdf, VerifierWesolowski) {
+struct CryptoTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(CryptoTest, VerifierWesolowski) {
   BIGNUM* N_bn = BN_secure_new();
   BN_dec2bn(&N_bn, "10");  // 799979478482341
   bytevec N = vdf::bn2bytevec(N_bn);
@@ -30,7 +31,20 @@ TEST(Vdf, VerifierWesolowski) {
   EXPECT_TRUE(ok);
 }
 
-struct CryptoTest : core_tests::util::DBUsingTest<> {};
+TEST_F(CryptoTest, vrf_key_gen) {
+  std::string secret_key_bin(crypto_vrf_SECRETKEYBYTES, ' '),
+      public_key_bin(crypto_vrf_PUBLICKEYBYTES, ' ');
+  crypto_vrf_keypair((unsigned char*)public_key_bin.data(),
+                     (unsigned char*)secret_key_bin.data());
+  std::cout << "VRF pk bytes: (" << crypto_vrf_publickeybytes() << ") "
+            << toHex(public_key_bin) << std::endl;
+  std::cout << "VRF sk bytes: (" << crypto_vrf_secretkeybytes() << ") "
+            << toHex(secret_key_bin) << std::endl;
+  std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
+            << std::endl;
+  std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") "
+            << std::endl;
+}
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   dev::KeyPair key_pair = dev::KeyPair::create();

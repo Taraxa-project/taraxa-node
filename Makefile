@@ -16,7 +16,7 @@ OPENSSL_HOME = submodules/openssl/build
 
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vrf/build/ -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
+CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vrf/build/include -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB 
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -27,7 +27,7 @@ DEBUG = 0
 PERF = 0
 CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
 CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF 
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lssl -lvdf -lcrypto -lgmpxx -lmpfr -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server trx_engine/trx_engine.a  
+LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lsodium -lssl -lvdf -lcrypto -lgmpxx -lmpfr -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server trx_engine/trx_engine.a 
 ifeq ($(OS), Darwin)
 	LIBS += -framework CoreFoundation -framework Security
 endif
@@ -63,7 +63,7 @@ ifneq ($(DEBUG), 0)
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
-LDFLAGS := -L $(OPENSSL_HOME)/lib -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib 
+LDFLAGS := -L $(OPENSSL_HOME)/lib -L submodules/taraxa-vrf/build/lib -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib 
 MKDIR := mkdir
 RM := rm -f
 
@@ -381,7 +381,7 @@ submodules/taraxa-vdf/lib/libvdf.a:
 
 submodules/taraxa-vrf/build/lib/libsodium.a:
 	@echo Attempting to compile vrf
-	cd submodules/taraxa-vrf; mkdir -p build; ./configure --prefix=$(shell pwd)/submodules/taraxa-vrf/build; make; make install
+	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure --prefix=$(shell pwd)/submodules/taraxa-vrf/build; make; make install
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
@@ -438,7 +438,7 @@ $(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(OBJECTFILES)
 
 $(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/pbft_chain_test: $(OBJECTDIR)/pbft_chain_test.o $(OBJECTFILES) $(P2POBJECTFILES) $(DEPENDENCIES)
 	${MKDIR} -p ${TESTBUILDDIR}
