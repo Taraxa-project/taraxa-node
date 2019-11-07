@@ -182,7 +182,7 @@ bool Executor::execute_basic(
 }
 
 bool Executor::executeBlkTrxs(
-    StateRegistry::State& state, blk_hash_t const& blk,
+    account_state::State& state, blk_hash_t const& blk,
     std::vector<uint> const& trx_modes,
     BalanceTable& sortition_account_balance_table, uint64_t period,
     ReplayProtectionService::transaction_batch_t& executed_trx) {
@@ -240,7 +240,7 @@ bool Executor::executeBlkTrxs(
   return true;
 }
 
-bool Executor::coinTransfer(StateRegistry::State& state, Transaction const& trx,
+bool Executor::coinTransfer(account_state::State& state, Transaction const& trx,
                             BalanceTable& sortition_account_balance_table,
                             uint64_t period, DagBlock const& dag_block) {
   auto hash = trx.getHash();

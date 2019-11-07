@@ -10,20 +10,26 @@ extern "C" {
 #include <string>
 #include "types.hpp"
 
-namespace taraxa::trx_engine {
+namespace taraxa::trx_engine::trx_engine {
+using dev::db::DatabaseFace;
+using std::runtime_error;
+using std::shared_ptr;
+using std::string;
+using types::StateTransitionRequest;
+using types::StateTransitionResult;
 
 class TrxEngine {
-  std::string go_address_;
+  string go_address_;
 
  public:
-  class Exception : public std::runtime_error {
-    using std::runtime_error::runtime_error;
+  class Exception : public runtime_error {
+    using runtime_error::runtime_error;
   };
 
   class CreationException : public Exception {
     using Exception::Exception;
   };
-  explicit TrxEngine(std::shared_ptr<dev::db::DatabaseFace> db);
+  explicit TrxEngine(shared_ptr<DatabaseFace> db);
 
   ~TrxEngine();
 
@@ -35,9 +41,9 @@ class TrxEngine {
   class CommitToDiskException : public Exception {
     using Exception::Exception;
   };
-  void commitToDisk(taraxa::root_t const& state_root);
+  void commitToDisk(root_t const& state_root);
 };
 
-}  // namespace taraxa::trx_engine
+}  // namespace taraxa::trx_engine::trx_engine
 
 #endif

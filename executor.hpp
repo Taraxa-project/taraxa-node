@@ -8,14 +8,14 @@
 #include <memory>
 #include <set>
 #include <thread>
+#include "account_state/index.hpp"
 #include "dag_block.hpp"
 #include "database_face_cache.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.h"
-#include "replay_protection/replay_protection_service.hpp"
-#include "state_registry.hpp"
-#include "trx_engine/trx_engine.hpp"
+#include "replay_protection/index.hpp"
+#include "trx_engine/index.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -29,15 +29,13 @@ class FullNode;
 
 class Executor {
  private:
-  using ReplayProtectionService =
-      replay_protection::replay_protection_service::ReplayProtectionService;
-
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
-  std::shared_ptr<StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
+  using ReplayProtectionService = replay_protection::ReplayProtectionService;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   trx_engine::TrxEngine trx_engine_;
   bool use_basic_executor_;
@@ -95,11 +93,11 @@ class Executor {
       BalanceTable& sortition_account_balance_table, uint64_t period,
       ReplayProtectionService::transaction_batch_t& executed_trx);
   bool executeBlkTrxs(
-      StateRegistry::State&, blk_hash_t const& blk,
+      account_state::State&, blk_hash_t const& blk,
       std::vector<uint> const& trx_modes,
       BalanceTable& sortition_account_balance_table, uint64_t period,
       ReplayProtectionService::transaction_batch_t& executed_trx);
-  bool coinTransfer(StateRegistry::State&, Transaction const& trx,
+  bool coinTransfer(account_state::State&, Transaction const& trx,
                     BalanceTable& sortition_account_balance_table,
                     uint64_t period,  //
                     DagBlock const& dag_block);

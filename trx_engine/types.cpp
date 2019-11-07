@@ -3,7 +3,7 @@
 #include <libdevcore/CommonIO.h>
 #include <libdevcore/CommonJS.h>
 
-namespace taraxa::trx_engine {
+namespace taraxa::trx_engine::types {
 using namespace std;
 using namespace dev;
 

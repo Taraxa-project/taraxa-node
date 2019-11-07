@@ -17,6 +17,7 @@ using namespace eth;
 using namespace shh;
 using namespace dev::rpc;
 using namespace taraxa;
+using taraxa::account_state::StateSnapshot;
 
 Taraxa::Taraxa(std::shared_ptr<FullNode>& _full_node)
     : full_node_(_full_node) {}
@@ -454,7 +455,7 @@ optional<StateSnapshot> Taraxa::getSnapshot(NodePtr const& node,
   }
 }
 
-shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
+shared_ptr<account_state::State> Taraxa::getState(NodePtr const& node,
                                                   BlockNumber const& num) {
   switch (num.kind) {
     case BlockNumber::Kind::latest:
@@ -463,7 +464,7 @@ shared_ptr<StateRegistry::State> Taraxa::getState(NodePtr const& node,
     default: {
       // TODO cache
       auto state = node->getStateRegistry()->getState(*num.block_number);
-      return state ? make_shared<StateRegistry::State>(*state) : nullptr;
+      return state ? make_shared<account_state::State>(*state) : nullptr;
     }
   }
 }
