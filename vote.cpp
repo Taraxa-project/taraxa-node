@@ -373,7 +373,7 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
     PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
     size_t sortition_threshold, size_t pbft_2t_plus_1) const {
   std::vector<Vote> valid_votes;
-  for (auto const &v : pbft_block_and_votes.cert_votes) {
+  for (auto const& v : pbft_block_and_votes.cert_votes) {
     if (v.getType() != cert_vote_type) {
       LOG(log_war_) << "For PBFT block "
                     << pbft_block_and_votes.pbft_blk.getBlockHash()

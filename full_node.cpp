@@ -762,7 +762,8 @@ bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
 
 void FullNode::setTwoTPlusOne(size_t val) { pbft_mgr_->setTwoTPlusOne(val); }
 
-bool FullNode::checkPbftBlockValidationFromSyncing(PbftBlock const &pbft_block) const {
+bool FullNode::checkPbftBlockValidationFromSyncing(
+    PbftBlock const &pbft_block) const {
   return pbft_chain_->checkPbftBlockValidationFromSyncing(pbft_block);
 }
 

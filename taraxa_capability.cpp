@@ -520,13 +520,14 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           // Check the PBFT block whether in the chain or in the synced queue
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
             // Check the PBFT block validation
-            if (full_node->checkPbftBlockValidationFromSyncing(pbft_blk_and_votes.pbft_blk)) {
+            if (full_node->checkPbftBlockValidationFromSyncing(
+                    pbft_blk_and_votes.pbft_blk)) {
               // Notice: cannot verify 2t+1 cert votes here. Since don't have
               // correct account status for nodes which after the first synced
               // one.
               full_node->setSyncedPbftBlock(pbft_blk_and_votes);
-              LOG(log_dg_) << "Receive PBFT block " << pbft_blk_hash
-                           << " with " << pbft_blk_and_votes.cert_votes.size()
+              LOG(log_dg_) << "Receive PBFT block " << pbft_blk_hash << " with "
+                           << pbft_blk_and_votes.cert_votes.size()
                            << " cert votes!";
             } else {
               LOG(log_wr_) << "The PBFT block " << pbft_blk_hash

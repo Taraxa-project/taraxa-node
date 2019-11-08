@@ -1367,7 +1367,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     LOG(log_deb_) << "Pick pbft block "
                   << pbft_block_and_votes.pbft_blk.getBlockHash()
                   << " from synced queue in round " << pbft_round_;
-    if (pbft_chain_->findPbftBlockInChain(pbft_block_and_votes.pbft_blk.getBlockHash())) {
+    if (pbft_chain_->findPbftBlockInChain(
+            pbft_block_and_votes.pbft_blk.getBlockHash())) {
       // pushed already from PBFT unverified queue, remove and skip it
       pbft_chain_->pbftSyncedQueuePopFront();
 

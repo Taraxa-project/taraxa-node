@@ -253,7 +253,8 @@ class PbftChain {
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
-  bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
+  bool checkPbftBlockValidationFromSyncing(
+      taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
   bool pbftSyncedQueueEmpty() const;

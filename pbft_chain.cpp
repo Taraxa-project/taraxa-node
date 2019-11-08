@@ -699,7 +699,8 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   return true;
 }
 
-bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const {
+bool PbftChain::checkPbftBlockValidationFromSyncing(
+    taraxa::PbftBlock const& pbft_block) const {
   if (pbftSyncedQueueEmpty()) {
     // The last PBFT block in the chain
     return checkPbftBlockValidation(pbft_block);
@@ -758,7 +759,8 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbf
   }
 }
 
-bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const {
+bool PbftChain::checkPbftBlockValidation(
+    taraxa::PbftBlock const& pbft_block) const {
   PbftBlockTypes pbft_block_type = pbft_block.getBlockType();
   if (pbft_block_type != next_pbft_block_type_) {
     LOG(log_err_) << "Pbft chain next pbft block type should be "
@@ -769,8 +771,7 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
   if (pbft_block_type == pivot_block_type) {
     if (pbft_block.getPivotBlock().getPrevBlockHash() !=
         last_pbft_block_hash_) {
-      LOG(log_err_) << "Pbft chain last block hash "
-                    << last_pbft_block_hash_
+      LOG(log_err_) << "Pbft chain last block hash " << last_pbft_block_hash_
                     << " Invalid pbft prev block hash "
                     << pbft_block.getPivotBlock().getPrevBlockHash();
       return false;
@@ -786,8 +787,7 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
   } else if (pbft_block_type == schedule_block_type) {
     if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
         last_pbft_block_hash_) {
-      LOG(log_err_) << "Pbft chain last block hash "
-                    << last_pbft_block_hash_
+      LOG(log_err_) << "Pbft chain last block hash " << last_pbft_block_hash_
                     << " Invalid pbft prev block hash "
                     << pbft_block.getScheduleBlock().getPrevBlockHash();
       return false;
