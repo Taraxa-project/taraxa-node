@@ -84,11 +84,11 @@ class VoteManager {
                              size_t valid_sortiton_players);
   std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
                              bool& sync_peers_pbft_chain);
-
   std::string getJsonStr(std::vector<Vote>& votes);
-
-  // TODO: TEST functions, will remove later
   std::vector<Vote> getAllVotes();
+  bool pbftBlockHasEnoughValidCertVotes(
+      PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
+      size_t sortition_threshold, size_t pbft_2t_plus_1) const;
 
  private:
   using uniqueLock_ = boost::unique_lock<boost::shared_mutex>;

@@ -198,7 +198,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
   uint64_t getPbftChainSize() const;
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
-  void setVerifiedPbftBlock(PbftBlock const &pbft_block);
+  void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
   void newPendingTransaction(trx_hash_t const &trx_hash);
@@ -207,6 +207,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
                                    std::vector<Vote> &votes) const;
   void setTwoTPlusOne(size_t val);
+  bool checkPbftBlockValidationFromSyncing(PbftBlock const &pbft_block) const;
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const {

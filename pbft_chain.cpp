@@ -602,9 +602,9 @@ bool PbftChain::findUnverifiedPbftBlock(
   return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
 }
 
-bool PbftChain::findPbftBlockInVerifiedSet(
+bool PbftChain::findPbftBlockInSyncedSet(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_verified_set_.find(pbft_block_hash) != pbft_verified_set_.end();
+  return pbft_synced_set_.find(pbft_block_hash) != pbft_synced_set_.end();
 }
 
 PbftBlock PbftChain::getPbftBlockInChain(
@@ -669,7 +669,7 @@ bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
 bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   setLastPbftBlockHash(pbft_block_hash);
-  pbftVerifiedSetInsert_(pbft_block.getBlockHash());
+  pbftSyncedSetInsert_(pbft_block.getBlockHash());
   // TODO: only support pbft pivot and schedule block type so far
   //  may need add pbft result block type later
   if (pbft_block.getBlockType() == pivot_block_type) {
@@ -699,34 +699,110 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   return true;
 }
 
-bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
-  if (pbft_block.getBlockType() != pivot_block_type) {
-    LOG(log_err_) << "pushPbftPivotBlock() found pbft block type not equal "
-                     "pivot block type";
+bool PbftChain::checkPbftBlockValidationFromSyncing(
+    taraxa::PbftBlock const& pbft_block) const {
+  if (pbftSyncedQueueEmpty()) {
+    // The last PBFT block in the chain
+    return checkPbftBlockValidation(pbft_block);
+  } else {
+    // The last PBFT block in the synced queue
+    PbftBlock last_pbft_block = pbftSyncedQueueBack().pbft_blk;
+    PbftBlockTypes next_pbft_block_type;
+    if (last_pbft_block.getBlockType() == pivot_block_type) {
+      next_pbft_block_type = schedule_block_type;
+    } else if (last_pbft_block.getBlockType() == schedule_block_type) {
+      next_pbft_block_type = pivot_block_type;
+    } else {
+      LOG(log_err_) << "Unknown PBFT block type "
+                    << last_pbft_block.getBlockType();
+      assert(false);
+    }
+    PbftBlockTypes pbft_block_type = pbft_block.getBlockType();
+    if (pbft_block_type != next_pbft_block_type) {
+      LOG(log_err_) << "Next pbft block type should be "
+                    << next_pbft_block_type_ << " Invalid pbft block type "
+                    << pbft_block.getBlockType();
+      return false;
+    }
+    if (pbft_block_type == pivot_block_type) {
+      if (pbft_block.getPivotBlock().getPrevBlockHash() !=
+          last_pbft_block.getBlockHash()) {
+        LOG(log_err_) << "Last schedule block hash "
+                      << last_pbft_block.getBlockHash()
+                      << " Invalid pbft prev block hash "
+                      << pbft_block.getPivotBlock().getPrevBlockHash();
+        return false;
+      }
+      if (pbft_block.getPivotBlock().getPrevPivotBlockHash() !=
+          last_pbft_block.getScheduleBlock().getPrevBlockHash()) {
+        LOG(log_err_) << "Last pivot block hash "
+                      << last_pbft_block.getScheduleBlock().getPrevBlockHash()
+                      << " Invalid pbft prev pivot block hash "
+                      << pbft_block.getPivotBlock().getPrevPivotBlockHash();
+        return false;
+      }
+    } else if (pbft_block_type == schedule_block_type) {
+      if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
+          last_pbft_block.getBlockHash()) {
+        LOG(log_err_) << "Last pivot block hash "
+                      << last_pbft_block.getBlockHash()
+                      << " Invalid pbft prev block hash "
+                      << pbft_block.getScheduleBlock().getPrevBlockHash();
+        return false;
+      }
+    } else {
+      LOG(log_err_) << "Unknown PBFT block type " << pbft_block_type;
+      assert(false);
+    }
+    // TODO: Need to verify block signature
+    return true;
+  }
+}
+
+bool PbftChain::checkPbftBlockValidation(
+    taraxa::PbftBlock const& pbft_block) const {
+  PbftBlockTypes pbft_block_type = pbft_block.getBlockType();
+  if (pbft_block_type != next_pbft_block_type_) {
+    LOG(log_err_) << "Pbft chain next pbft block type should be "
+                  << next_pbft_block_type_ << " Invalid pbft block type "
+                  << pbft_block.getBlockType();
     return false;
   }
-  if (next_pbft_block_type_ != pivot_block_type) {
-    LOG(log_err_) << "pushPbftPivotBlock() found next_pbft_block_type_ not "
-                     "equal pivot block type";
-    return false;
-  }
-  if (!last_pbft_block_hash_) {
-    // The first PBFT Pivot Block
-    if (pbft_block.getPivotBlock().getPrevBlockHash() != genesis_hash_) {
-      LOG(log_err_)
-          << "pushPbftPivotBlock() found getPivotBlock().getPrevBlockHash() "
-             "not equal genesis hash";
+  if (pbft_block_type == pivot_block_type) {
+    if (pbft_block.getPivotBlock().getPrevBlockHash() !=
+        last_pbft_block_hash_) {
+      LOG(log_err_) << "Pbft chain last block hash " << last_pbft_block_hash_
+                    << " Invalid pbft prev block hash "
+                    << pbft_block.getPivotBlock().getPrevBlockHash();
+      return false;
+    }
+    if (pbft_block.getPivotBlock().getPrevPivotBlockHash() !=
+        last_pbft_pivot_hash_) {
+      LOG(log_err_) << "Pbft chain last pivot block hash "
+                    << last_pbft_pivot_hash_
+                    << " Invalid pbft prev pivot block hash "
+                    << pbft_block.getPivotBlock().getPrevPivotBlockHash();
+      return false;
+    }
+  } else if (pbft_block_type == schedule_block_type) {
+    if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
+        last_pbft_block_hash_) {
+      LOG(log_err_) << "Pbft chain last block hash " << last_pbft_block_hash_
+                    << " Invalid pbft prev block hash "
+                    << pbft_block.getScheduleBlock().getPrevBlockHash();
       return false;
     }
   } else {
-    PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
-    if (pbft_block.getPivotBlock().getPrevBlockHash() !=
-        pbft_chain_last_blk.getBlockHash()) {
-      LOG(log_err_)
-          << "pushPbftPivotBlock() found getPivotBlock().getPrevBlockHash() "
-             "not equal pbft_chain_last_blk.getBlockHash()";
-      return false;
-    }
+    LOG(log_err_) << "Unknown PBFT block type " << pbft_block_type;
+    assert(false);
+  }
+  // TODO: Need to verify block signature
+  return true;
+}
+
+bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
+  if (!checkPbftBlockValidation(pbft_block)) {
+    return false;
   }
   period_++;
   if (!pushPbftBlock(pbft_block)) {
@@ -739,22 +815,7 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 bool PbftChain::pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block) {
-  if (pbft_block.getBlockType() != schedule_block_type) {
-    LOG(log_err_) << "pushPbftScheduleBlock() found pbft block type not equal "
-                     "schedule block type";
-    return false;
-  }
-  if (next_pbft_block_type_ != schedule_block_type) {
-    LOG(log_err_) << "pushPbftScheduleBlock() found next_pbft_block_type_ not "
-                     "equal schedule block type";
-    return false;
-  }
-  PbftBlock pbft_chain_last_blk = getPbftBlockInChain(last_pbft_block_hash_);
-  if (pbft_block.getScheduleBlock().getPrevBlockHash() !=
-      pbft_chain_last_blk.getBlockHash()) {
-    LOG(log_err_) << "pushPbftScheduleBlock() found "
-                     "getScheduleBlock().getPrevBlockHash() not equal "
-                     "pbft_chain_last_blk.getBlockHash()";
+  if (!checkPbftBlockValidation(pbft_block)) {
     return false;
   }
   if (!pushPbftBlock(pbft_block)) {
@@ -860,44 +921,51 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
-size_t PbftChain::pbftVerifiedQueueSize() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.size();
+size_t PbftChain::pbftSyncedQueueSize() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.size();
 }
 
-bool PbftChain::pbftVerifiedQueueEmpty() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.empty();
+bool PbftChain::pbftSyncedQueueEmpty() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.empty();
 }
 
-PbftBlock PbftChain::pbftVerifiedQueueFront() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.front();
+PbftBlockCert PbftChain::pbftSyncedQueueFront() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.front();
 }
 
-void PbftChain::pbftVerifiedQueuePopFront() {
-  pbftVerifiedSetErase_();
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_queue_.pop_front();
+PbftBlockCert PbftChain::pbftSyncedQueueBack() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.back();
 }
 
-void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
-  LOG(log_inf_) << "get pbft block " << pbft_block.getBlockHash()
-                << " from peer and push into verified queue";
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_queue_.emplace_back(pbft_block);
-  pbft_verified_set_.insert(pbft_block.getBlockHash());
+void PbftChain::pbftSyncedQueuePopFront() {
+  pbftSyncedSetErase_();
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_queue_.pop_front();
 }
 
-void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_set_.insert(pbft_block_hash);
+void PbftChain::setSyncedPbftBlockIntoQueue(
+    PbftBlockCert const& pbft_block_and_votes) {
+  LOG(log_inf_) << "Receive pbft block "
+                << pbft_block_and_votes.pbft_blk.getBlockHash()
+                << " from peer and push into synced queue";
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_queue_.emplace_back(pbft_block_and_votes);
+  pbft_synced_set_.insert(pbft_block_and_votes.pbft_blk.getBlockHash());
 }
 
-void PbftChain::pbftVerifiedSetErase_() {
-  PbftBlock pbft_block = pbftVerifiedQueueFront();
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_set_.erase(pbft_block.getBlockHash());
+void PbftChain::pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash) {
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_set_.insert(pbft_block_hash);
+}
+
+void PbftChain::pbftSyncedSetErase_() {
+  PbftBlock pbft_block = pbftSyncedQueueFront().pbft_blk;
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_set_.erase(pbft_block.getBlockHash());
 }
 
 void PbftChain::insertPbftBlockIndex_(
