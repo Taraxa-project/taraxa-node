@@ -232,7 +232,7 @@ class PbftChain {
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
-  bool findPbftBlockInVerifiedSet(blk_hash_t const& pbft_block_hash) const;
+  bool findPbftBlockInSyncedSet(blk_hash_t const& pbft_block_hash) const;
 
   bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
   bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
@@ -244,18 +244,18 @@ class PbftChain {
   bool checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
-  bool pbftVerifiedQueueEmpty() const;
-  PbftBlock pbftVerifiedQueueFront() const;
-  PbftBlock pbftVerifiedQueueBack() const;
-  void pbftVerifiedQueuePopFront();
-  void setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block);
+  bool pbftSyncedQueueEmpty() const;
+  PbftBlock pbftSyncedQueueFront() const;
+  PbftBlock pbftSyncedQueueBack() const;
+  void pbftSyncedQueuePopFront();
+  void setSyncedPbftBlockIntoQueue(PbftBlock const& pbft_block);
 
   // Added for debug message purposes
-  size_t pbftVerifiedQueueSize() const;
+  size_t pbftSyncedQueueSize() const;
 
  private:
-  void pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash);
-  void pbftVerifiedSetErase_();
+  void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
+  void pbftSyncedSetErase_();
   void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
   void insertUnverifiedPbftBlockIntoParentMap_(
       blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
@@ -265,7 +265,7 @@ class PbftChain {
   using upgradableLock_ = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock_ = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  mutable boost::shared_mutex verified_access_;
+  mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
 
   blk_hash_t genesis_hash_;
@@ -295,8 +295,8 @@ class PbftChain {
   std::unordered_map<blk_hash_t, PbftBlock> unverified_blocks_;
 
   // syncing pbft blocks from peers
-  std::deque<PbftBlock> pbft_verified_queue_;
-  std::unordered_set<blk_hash_t> pbft_verified_set_;
+  std::deque<PbftBlock> pbft_synced_queue_;
+  std::unordered_set<blk_hash_t> pbft_synced_set_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_CHAIN")};

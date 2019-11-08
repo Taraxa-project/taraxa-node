@@ -125,7 +125,7 @@ class PbftManager {
   bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
   bool comparePbftCSblockWithDAGblocks_(PbftBlock const &pbft_block_cs);
 
-  void pushVerifiedPbftBlocksIntoChain_();
+  void pushSyncedPbftBlocksIntoChain_();
 
   bool pushPbftBlockIntoChain_(PbftBlock const &pbft_block);
 
@@ -164,7 +164,7 @@ class PbftManager {
   uint64_t pbft_round_last_requested_sync_;
   size_t pbft_step_last_requested_sync_;
 
-  size_t pbft_chain_last_observed_verified_queue_size_ = 0;
+  size_t pbft_last_observed_synced_queue_size_ = 0;
 
   uint64_t last_period_should_speak_ = 0;
 

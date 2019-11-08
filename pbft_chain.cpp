@@ -602,9 +602,9 @@ bool PbftChain::findUnverifiedPbftBlock(
   return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
 }
 
-bool PbftChain::findPbftBlockInVerifiedSet(
+bool PbftChain::findPbftBlockInSyncedSet(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  return pbft_verified_set_.find(pbft_block_hash) != pbft_verified_set_.end();
+  return pbft_synced_set_.find(pbft_block_hash) != pbft_synced_set_.end();
 }
 
 PbftBlock PbftChain::getPbftBlockInChain(
@@ -669,7 +669,7 @@ bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
 bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   setLastPbftBlockHash(pbft_block_hash);
-  pbftVerifiedSetInsert_(pbft_block.getBlockHash());
+  pbftSyncedSetInsert_(pbft_block.getBlockHash());
   // TODO: only support pbft pivot and schedule block type so far
   //  may need add pbft result block type later
   if (pbft_block.getBlockType() == pivot_block_type) {
@@ -700,12 +700,12 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbft_block) const {
-  if (pbftVerifiedQueueEmpty()) {
+  if (pbftSyncedQueueEmpty()) {
     // The last PBFT block in the chain
     return checkPbftBlockValidation(pbft_block);
   } else {
-    // The last PBFT block in the verified queue
-    PbftBlock last_pbft_block = pbftVerifiedQueueBack();
+    // The last PBFT block in the synced queue
+    PbftBlock last_pbft_block = pbftSyncedQueueBack();
     PbftBlockTypes next_pbft_block_type;
     if (last_pbft_block.getBlockType() == pivot_block_type) {
       next_pbft_block_type = schedule_block_type;
@@ -919,49 +919,49 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
-size_t PbftChain::pbftVerifiedQueueSize() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.size();
+size_t PbftChain::pbftSyncedQueueSize() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.size();
 }
 
-bool PbftChain::pbftVerifiedQueueEmpty() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.empty();
+bool PbftChain::pbftSyncedQueueEmpty() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.empty();
 }
 
-PbftBlock PbftChain::pbftVerifiedQueueFront() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.front();
+PbftBlock PbftChain::pbftSyncedQueueFront() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.front();
 }
 
-PbftBlock PbftChain::pbftVerifiedQueueBack() const {
-  sharedLock_ lock(verified_access_);
-  return pbft_verified_queue_.back();
+PbftBlock PbftChain::pbftSyncedQueueBack() const {
+  sharedLock_ lock(sync_access_);
+  return pbft_synced_queue_.back();
 }
 
-void PbftChain::pbftVerifiedQueuePopFront() {
-  pbftVerifiedSetErase_();
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_queue_.pop_front();
+void PbftChain::pbftSyncedQueuePopFront() {
+  pbftSyncedSetErase_();
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_queue_.pop_front();
 }
 
-void PbftChain::setVerifiedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
+void PbftChain::setSyncedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
   LOG(log_inf_) << "get pbft block " << pbft_block.getBlockHash()
-                << " from peer and push into verified queue";
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_queue_.emplace_back(pbft_block);
-  pbft_verified_set_.insert(pbft_block.getBlockHash());
+                << " from peer and push into synced queue";
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_queue_.emplace_back(pbft_block);
+  pbft_synced_set_.insert(pbft_block.getBlockHash());
 }
 
-void PbftChain::pbftVerifiedSetInsert_(blk_hash_t const& pbft_block_hash) {
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_set_.insert(pbft_block_hash);
+void PbftChain::pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash) {
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_set_.insert(pbft_block_hash);
 }
 
-void PbftChain::pbftVerifiedSetErase_() {
-  PbftBlock pbft_block = pbftVerifiedQueueFront();
-  uniqueLock_ lock(verified_access_);
-  pbft_verified_set_.erase(pbft_block.getBlockHash());
+void PbftChain::pbftSyncedSetErase_() {
+  PbftBlock pbft_block = pbftSyncedQueueFront();
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_set_.erase(pbft_block.getBlockHash());
 }
 
 void PbftChain::insertPbftBlockIndex_(

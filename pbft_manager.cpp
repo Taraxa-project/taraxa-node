@@ -178,18 +178,18 @@ void PbftManager::run() {
     LOG(log_tra_) << "PBFT current round is " << pbft_round_;
     LOG(log_tra_) << "PBFT current step is " << pbft_step_;
 
-    // push verified pbft blocks into chain syncing from peers
-    auto chain_size_before_pushing_verified_blocks =
+    // push synced pbft blocks into chain
+    auto chain_size_before_pushing_synced_blocks =
         pbft_chain_->getPbftChainSize();
-    pushVerifiedPbftBlocksIntoChain_();
-    auto chain_size_after_pushing_verified_blocks =
+    pushSyncedPbftBlocksIntoChain_();
+    auto chain_size_after_pushing_synced_blocks =
         pbft_chain_->getPbftChainSize();
 
     // update next pbft block type accordingly...
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
 
-    if (chain_size_after_pushing_verified_blocks >
-        chain_size_before_pushing_verified_blocks) {
+    if (chain_size_after_pushing_synced_blocks >
+        chain_size_before_pushing_synced_blocks) {
       // We shold update sortition and account balance table here...
 
       if (executed_cs_block_) {
@@ -207,7 +207,7 @@ void PbftManager::run() {
 
       LOG(log_deb_)
           << "Updating sortition account balance table, committee size, and "
-             "threshold due to verified block push. PBFT round remains "
+             "threshold due to synced blocks push. PBFT round remains "
           << pbft_round_ << ", likely this is behind.";
     }
 
@@ -218,7 +218,7 @@ void PbftManager::run() {
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
     if (sync_peers_pbft_chain) {
-      if (pbft_chain_->pbftVerifiedQueueEmpty() &&
+      if (pbft_chain_->pbftSyncedQueueEmpty() &&
           (pbft_round_ != pbft_round_last_requested_sync_ ||
            pbft_step_ != pbft_step_last_requested_sync_)) {
         LOG(log_sil_) << "Vote validation triggered pbft chain sync";
@@ -1257,7 +1257,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
 }
 
 void PbftManager::syncPbftChainFromPeers_() {
-  if (!pbft_chain_->pbftVerifiedQueueEmpty()) {
+  if (!pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_deb_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
   }
@@ -1386,64 +1386,55 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
   return true;
 }
 
-void PbftManager::pushVerifiedPbftBlocksIntoChain_() {
+void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   bool queue_was_full = false;
 
-  size_t pbft_chain_verified_queue_size;
+  size_t pbft_synced_queue_size;
 
-  while (!pbft_chain_->pbftVerifiedQueueEmpty()) {
+  while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     queue_was_full = true;
-    PbftBlock pbft_block = pbft_chain_->pbftVerifiedQueueFront();
+    PbftBlock pbft_block = pbft_chain_->pbftSyncedQueueFront();
     LOG(log_sil_) << "Pick pbft block " << pbft_block.getBlockHash()
-                  << " from verified queue in round " << pbft_round_;
+                  << " from synced queue in round " << pbft_round_;
     if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
       // pushed already from PBFT unverified queue
-      pbft_chain_->pbftVerifiedQueuePopFront();
+      pbft_chain_->pbftSyncedQueuePopFront();
 
-      pbft_chain_verified_queue_size = pbft_chain_->pbftVerifiedQueueSize();
-      if (pbft_chain_last_observed_verified_queue_size_ !=
-          pbft_chain_verified_queue_size) {
+      pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
+      if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
         LOG(log_deb_) << "PBFT block " << pbft_block.getBlockHash()
                       << " already present in chain.";
-        LOG(log_deb_) << "PBFT verified queue still contains "
-                      << pbft_chain_verified_queue_size
-                      << " verified blocks that could not be pushed.";
+        LOG(log_deb_) << "PBFT synced queue still contains "
+                      << pbft_synced_queue_size
+                      << " synced blocks that could not be pushed.";
       }
-      pbft_chain_last_observed_verified_queue_size_ =
-          pbft_chain_verified_queue_size;
-
+      pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
       continue;
     }
     if (!pushPbftBlockIntoChain_(pbft_block)) {
-      pbft_chain_verified_queue_size = pbft_chain_->pbftVerifiedQueueSize();
-      if (pbft_chain_last_observed_verified_queue_size_ !=
-          pbft_chain_verified_queue_size) {
-        LOG(log_deb_) << "PBFT chain unable to push verified block "
+      pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
+      if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
+        LOG(log_deb_) << "PBFT chain unable to push synced block "
                       << pbft_block.getBlockHash();
-        LOG(log_deb_) << "PBFT verified queue still contains "
-                      << pbft_chain_verified_queue_size
-                      << " verified blocks that could not be pushed.";
+        LOG(log_deb_) << "PBFT synced queue still contains "
+                      << pbft_synced_queue_size
+                      << " synced blocks that could not be pushed.";
       }
-      pbft_chain_last_observed_verified_queue_size_ =
-          pbft_chain_verified_queue_size;
-
+      pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
       break;
     }
-    pbft_chain_->pbftVerifiedQueuePopFront();
+    pbft_chain_->pbftSyncedQueuePopFront();
 
-    pbft_chain_verified_queue_size = pbft_chain_->pbftVerifiedQueueSize();
-    if (pbft_chain_last_observed_verified_queue_size_ !=
-        pbft_chain_verified_queue_size) {
-      LOG(log_deb_) << "PBFT verified queue still contains "
-                    << pbft_chain_verified_queue_size
-                    << " verified blocks that could not be pushed.";
+    pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
+    if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
+      LOG(log_deb_) << "PBFT synced queue still contains "
+                    << pbft_synced_queue_size
+                    << " synced blocks that could not be pushed.";
     }
-    pbft_chain_last_observed_verified_queue_size_ =
-        pbft_chain_verified_queue_size;
+    pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
   }
-
-  if (queue_was_full == true && pbft_chain_->pbftVerifiedQueueEmpty()) {
-    LOG(log_inf_) << "PBFT block verified queue is newly empty.  Will check if "
+  if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
+    LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
                      "need to sync in round "
                   << pbft_round_;
     syncPbftChainFromPeers_();
