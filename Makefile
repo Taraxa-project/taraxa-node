@@ -1,10 +1,10 @@
 DEPENDENCIES = submodules/cryptopp/libcryptopp.a \
-	submodules/openssl/libssl.a\
+	submodules/openssl/ok\
 	submodules/ethash/build/lib/ethash/libethash.a \
 	submodules/secp256k1/.libs/libsecp256k1.a \
 	submodules/libff/build/libff/libff.a \
 	submodules/taraxa-vdf/lib/libvdf.a \
-	submodules/taraxa-vrf/build/lib/libsodium.a \
+	submodules/taraxa-vrf/ok \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
 	trx_engine/trx_engine.a
 ifneq (,$(shell git submodule update --recursive --init))
@@ -371,17 +371,17 @@ trx_engine/trx_engine.a:
 	@echo Building Go trx engine static C library
 	cd submodules/taraxa-evm; go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ../../trx_engine/trx_engine.a
 
-submodules/openssl/libssl.a:
-	@echo Attempting to compile openssl 1.1.1
-	cd submodules/openssl;./config --prefix=$(shell pwd)/$(OPENSSL_HOME); make; make install  
+submodules/openssl/ok:
+	@echo Attempting to compile openssl 1.1.1, if it fails try compiling it manuallyv
+	cd submodules/openssl;./config; make; make install; touch ok 
 
 submodules/taraxa-vdf/lib/libvdf.a:
-	@echo Attempting to compile vdf
+	@echo Attempting to compile vdf, if it fails try compiling it manually
 	cd submodules/taraxa-vdf; make OPENSSL_HOME="../openssl"
 
-submodules/taraxa-vrf/build/lib/libsodium.a:
-	@echo Attempting to compile vrf
-	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure --prefix=$(shell pwd)/submodules/taraxa-vrf/build; make; make install
+submodules/taraxa-vrf/ok:
+	@echo Attempting to compile vrf, if it fails try compiling it manually
+	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; make; make install; touch ok
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
