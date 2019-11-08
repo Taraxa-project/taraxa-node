@@ -179,37 +179,11 @@ void PbftManager::run() {
     LOG(log_tra_) << "PBFT current step is " << pbft_step_;
 
     // push synced pbft blocks into chain
-    auto chain_size_before_pushing_synced_blocks =
-        pbft_chain_->getPbftChainSize();
     pushSyncedPbftBlocksIntoChain_();
-    auto chain_size_after_pushing_synced_blocks =
-        pbft_chain_->getPbftChainSize();
-
     // update next pbft block type accordingly...
     next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
-
-    if (chain_size_after_pushing_synced_blocks >
-        chain_size_before_pushing_synced_blocks) {
-      // We shold update sortition and account balance table here...
-
-      if (executed_cs_block_) {
-        last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
-        // update sortition account balance table
-        updateSortitionAccountsDB_();
-        // reset sortition_threshold and TWO_T_PLUS_ONE
-        updateTwoTPlusOneAndThreshold_();
-        executed_cs_block_ = false;
-      }
-
-      // Attempt to get onto  current pbft chain  last
-      // block  hash...
-      pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-
-      LOG(log_deb_)
-          << "Updating sortition account balance table, committee size, and "
-             "threshold due to synced blocks push. PBFT round remains "
-          << pbft_round_ << ", likely this is behind.";
-    }
+    // update pbft chain last block hash
+    pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
     // Get votes
     bool sync_peers_pbft_chain = false;
@@ -307,7 +281,6 @@ void PbftManager::run() {
         last_pbft_syncing_height_ = 0;
         syncPbftChainFromPeers_();
       }
-
       // Update pbft chain last block hash at start of new round...
       pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
@@ -325,8 +298,6 @@ void PbftManager::run() {
       next_voted_soft_value = false;
       if (executed_cs_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
-        // update sortition account balance table
-        updateSortitionAccountsDB_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
         executed_cs_block_ = false;
@@ -1388,21 +1359,22 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   bool queue_was_full = false;
-
   size_t pbft_synced_queue_size;
-
+  auto full_node = node_.lock();
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     queue_was_full = true;
-    PbftBlock pbft_block = pbft_chain_->pbftSyncedQueueFront();
-    LOG(log_sil_) << "Pick pbft block " << pbft_block.getBlockHash()
+    PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
+    LOG(log_deb_) << "Pick pbft block "
+                  << pbft_block_and_votes.pbft_blk.getBlockHash()
                   << " from synced queue in round " << pbft_round_;
-    if (pbft_chain_->findPbftBlockInChain(pbft_block.getBlockHash())) {
-      // pushed already from PBFT unverified queue
+    if (pbft_chain_->findPbftBlockInChain(pbft_block_and_votes.pbft_blk.getBlockHash())) {
+      // pushed already from PBFT unverified queue, remove and skip it
       pbft_chain_->pbftSyncedQueuePopFront();
 
       pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
       if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
-        LOG(log_deb_) << "PBFT block " << pbft_block.getBlockHash()
+        LOG(log_deb_) << "PBFT block "
+                      << pbft_block_and_votes.pbft_blk.getBlockHash()
                       << " already present in chain.";
         LOG(log_deb_) << "PBFT synced queue still contains "
                       << pbft_synced_queue_size
@@ -1411,20 +1383,42 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
       continue;
     }
-    if (!pushPbftBlockIntoChain_(pbft_block)) {
+    // Check cert votes validation
+    if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(
+            pbft_block_and_votes, valid_sortition_accounts_size_,
+            sortition_threshold_, TWO_T_PLUS_ONE)) {
+      // Failed cert votes validation, drop it
+      LOG(log_war_) << "Synced PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << " doesn't have enough valid cert votes. Drop it!";
+      pbft_chain_->pbftSyncedQueuePopFront();
+      continue;
+    }
+    if (!pushPbftBlockIntoChain_(pbft_block_and_votes.pbft_blk)) {
+      // TODO: May need clear PBFT synced queue/set, since next one validation
+      //  depends on the current one
       pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
       if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
         LOG(log_deb_) << "PBFT chain unable to push synced block "
-                      << pbft_block.getBlockHash();
+                      << pbft_block_and_votes.pbft_blk.getBlockHash();
         LOG(log_deb_) << "PBFT synced queue still contains "
                       << pbft_synced_queue_size
                       << " synced blocks that could not be pushed.";
       }
       pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
-      break;
+      pbft_chain_->pbftSyncedQueuePopFront();
+      continue;
     }
     pbft_chain_->pbftSyncedQueuePopFront();
-
+    // Store cert votes in DB
+    full_node->storeCertVotes(pbft_block_and_votes.pbft_blk.getBlockHash(),
+                              pbft_block_and_votes.cert_votes);
+    if (executed_cs_block_) {
+      last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+      // update sortition_threshold and TWO_T_PLUS_ONE
+      updateTwoTPlusOneAndThreshold_();
+      executed_cs_block_ = false;
+    }
     pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
     if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
       LOG(log_deb_) << "PBFT synced queue still contains "
@@ -1523,7 +1517,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
           }
           db_dag_blocks_period_->commit(std::move(write_batch));
         }
-
+        // update sortition account balance table
+        updateSortitionAccountsDB_();
         executed_cs_block_ = true;
         return true;
       }

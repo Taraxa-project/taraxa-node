@@ -468,7 +468,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(log_dg_) << "Received GetPbftBlockPacket Block";
         // TODO: Since syncing PBFT block and cert votes validation issue, each
         //  time sync one block. And need to fix later
-        const size_t max_blocks_in_packet = 1;
+        const size_t max_blocks_in_packet = 4;
         auto full_node = full_node_.lock();
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
@@ -506,39 +506,37 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       // need cert votes (syncing)
       case PbftBlockPacket: {
-        LOG(log_dg_) << "In PbftBlockPacket";
-
+        LOG(log_dg_) << "In PbftBlockPacket for receive blocks from syncing";
         auto block_count = _r.itemCount();
         for (auto iblock = 0; iblock < block_count; iblock++) {
-          PbftBlockCert blk_and_votes(_r[iblock].toBytes());
-          auto pbft_blk_hash = blk_and_votes.pbft_blk.getBlockHash();
+          PbftBlockCert pbft_blk_and_votes(_r[iblock].toBytes());
+          auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk.getBlockHash();
           peer->markPbftBlockAsKnown(pbft_blk_hash);
           auto full_node = full_node_.lock();
           if (!full_node) {
             LOG(log_er_) << "PbftBlock full node weak pointer empty";
             return false;
           }
-          // Check the PBFT block if in the chain or in the synced queue
+          // Check the PBFT block whether in the chain or in the synced queue
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
             // Check the PBFT block validation
-            if (full_node->checkPbftBlockValidationFromSyncing(blk_and_votes.pbft_blk)) {
-              //if (full_node->pbftBlockHasEnoughCertVotes(pbft_blk_hash, blk_and_votes.cert_votes)) {
-                // Check 2t+1 cert votes, then put PBFT block into chain and
-                //  store cert votes in DB.
-                full_node->setSyncedPbftBlock(blk_and_votes.pbft_blk);
-               // full_node->storeCertVotes(pbft_blk_hash,
-               //                           blk_and_votes.cert_votes);
-                LOG(log_dg_) << "Pbftblock " << pbft_blk_hash
-                             << " have enough cert votes!";
-//              } else {
-//                LOG(log_wr_) << "Pbftblock " << pbft_blk_hash
-//                             << " does not have enough valid cert votes";
-//              }
+            if (full_node->checkPbftBlockValidationFromSyncing(pbft_blk_and_votes.pbft_blk)) {
+              // Notice: cannot verify 2t+1 cert votes here. Since don't have
+              // correct account status for nodes which after the first synced
+              // one.
+              full_node->setSyncedPbftBlock(pbft_blk_and_votes);
+              LOG(log_dg_) << "Receive PBFT block " << pbft_blk_hash
+                           << " with " << pbft_blk_and_votes.cert_votes.size()
+                           << " cert votes!";
+            } else {
+              LOG(log_wr_) << "The PBFT block " << pbft_blk_hash
+                           << " failed validation. Drop it!";
             }
           }
         }
-        // TODO: Since the received PBFT block is not put into chain immediately
-        //  , each time will send the same height to ask syncing. Need fix
+        // TODO: Since the received PBFT blocks are not put into chain
+        //  immediately, each time will send the same height to ask syncing.
+        //  Need fix
         // if (block_count > 0) {
         //   syncPeerPbft(_nodeID);
         // }
