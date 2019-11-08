@@ -650,8 +650,8 @@ void FullNode::newPendingTransaction(trx_hash_t const &trx_hash) {
   if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
 }
 
-void FullNode::setSyncedPbftBlock(PbftBlock const &pbft_block) {
-  pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_block);
+void FullNode::setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes) {
+  pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_block_and_votes);
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -735,7 +735,7 @@ void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
                << votes;
 }
-
+// Need remove later, keep it now for reuse
 bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
                                            std::vector<Vote> &votes) const {
   std::vector<Vote> valid_votes;

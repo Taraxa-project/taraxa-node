@@ -64,6 +64,7 @@ struct TrxSchedule {
 std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche);
 
 class FullNode;
+class Vote;
 
 class PivotBlock {
  public:
@@ -199,6 +200,17 @@ class PbftBlock {
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
+struct PbftBlockCert {
+  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
+  PbftBlockCert(bytes const& all_rlp);
+  PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
+
+  PbftBlock pbft_blk;
+  std::vector<Vote> cert_votes;
+  bytes rlp() const;
+};
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
+
 class PbftChain {
  public:
   PbftChain(std::string const& dag_genesis_hash);
@@ -245,10 +257,10 @@ class PbftChain {
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
   bool pbftSyncedQueueEmpty() const;
-  PbftBlock pbftSyncedQueueFront() const;
-  PbftBlock pbftSyncedQueueBack() const;
+  PbftBlockCert pbftSyncedQueueFront() const;
+  PbftBlockCert pbftSyncedQueueBack() const;
   void pbftSyncedQueuePopFront();
-  void setSyncedPbftBlockIntoQueue(PbftBlock const& pbft_block);
+  void setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes);
 
   // Added for debug message purposes
   size_t pbftSyncedQueueSize() const;
@@ -295,7 +307,7 @@ class PbftChain {
   std::unordered_map<blk_hash_t, PbftBlock> unverified_blocks_;
 
   // syncing pbft blocks from peers
-  std::deque<PbftBlock> pbft_synced_queue_;
+  std::deque<PbftBlockCert> pbft_synced_queue_;
   std::unordered_set<blk_hash_t> pbft_synced_set_;
 
   mutable dev::Logger log_sil_{
@@ -312,19 +324,6 @@ class PbftChain {
       dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_CHAIN")};
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
-
-class Vote;
-
-struct PbftBlockCert {
-  PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
-  PbftBlockCert(bytes const& all_rlp);
-  PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
-
-  PbftBlock pbft_blk;
-  std::vector<Vote> cert_votes;
-  bytes rlp() const;
-};
-std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 }  // namespace taraxa
 #endif

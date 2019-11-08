@@ -198,7 +198,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
   uint64_t getPbftChainSize() const;
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
-  void setSyncedPbftBlock(PbftBlock const &pbft_block);
+  void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
   void newOrderedBlock(blk_hash_t const &dag_block_hash,
                        uint64_t const &block_number);
   void newPendingTransaction(trx_hash_t const &trx_hash);

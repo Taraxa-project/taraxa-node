@@ -705,7 +705,7 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbf
     return checkPbftBlockValidation(pbft_block);
   } else {
     // The last PBFT block in the synced queue
-    PbftBlock last_pbft_block = pbftSyncedQueueBack();
+    PbftBlock last_pbft_block = pbftSyncedQueueBack().pbft_blk;
     PbftBlockTypes next_pbft_block_type;
     if (last_pbft_block.getBlockType() == pivot_block_type) {
       next_pbft_block_type = schedule_block_type;
@@ -753,6 +753,7 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(taraxa::PbftBlock const& pbf
       LOG(log_err_) << "Unknown PBFT block type " << pbft_block_type;
       assert(false);
     }
+    // TODO: Need to verify block signature
     return true;
   }
 }
@@ -795,6 +796,7 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
     LOG(log_err_) << "Unknown PBFT block type " << pbft_block_type;
     assert(false);
   }
+  // TODO: Need to verify block signature
   return true;
 }
 
@@ -929,12 +931,12 @@ bool PbftChain::pbftSyncedQueueEmpty() const {
   return pbft_synced_queue_.empty();
 }
 
-PbftBlock PbftChain::pbftSyncedQueueFront() const {
+PbftBlockCert PbftChain::pbftSyncedQueueFront() const {
   sharedLock_ lock(sync_access_);
   return pbft_synced_queue_.front();
 }
 
-PbftBlock PbftChain::pbftSyncedQueueBack() const {
+PbftBlockCert PbftChain::pbftSyncedQueueBack() const {
   sharedLock_ lock(sync_access_);
   return pbft_synced_queue_.back();
 }
@@ -945,12 +947,14 @@ void PbftChain::pbftSyncedQueuePopFront() {
   pbft_synced_queue_.pop_front();
 }
 
-void PbftChain::setSyncedPbftBlockIntoQueue(PbftBlock const& pbft_block) {
-  LOG(log_inf_) << "get pbft block " << pbft_block.getBlockHash()
+void PbftChain::setSyncedPbftBlockIntoQueue(
+    PbftBlockCert const& pbft_block_and_votes) {
+  LOG(log_inf_) << "Receive pbft block "
+                << pbft_block_and_votes.pbft_blk.getBlockHash()
                 << " from peer and push into synced queue";
   uniqueLock_ lock(sync_access_);
-  pbft_synced_queue_.emplace_back(pbft_block);
-  pbft_synced_set_.insert(pbft_block.getBlockHash());
+  pbft_synced_queue_.emplace_back(pbft_block_and_votes);
+  pbft_synced_set_.insert(pbft_block_and_votes.pbft_blk.getBlockHash());
 }
 
 void PbftChain::pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash) {
@@ -959,7 +963,7 @@ void PbftChain::pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash) {
 }
 
 void PbftChain::pbftSyncedSetErase_() {
-  PbftBlock pbft_block = pbftSyncedQueueFront();
+  PbftBlock pbft_block = pbftSyncedQueueFront().pbft_blk;
   uniqueLock_ lock(sync_access_);
   pbft_synced_set_.erase(pbft_block.getBlockHash());
 }
