@@ -1504,6 +1504,16 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
             dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
                            sizeof(pbft_period)),
             taraxa::util::eth::toSlice(pbft_block.getBlockHash()));
+        auto num_executed_blk = full_node->getNumBlockExecuted();
+        auto num_executed_trx = full_node->getNumTransactionExecuted();
+        if (num_executed_blk > 0 && num_executed_trx > 0) {
+          db_status_->insert(
+              util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
+              util::eth::toSlice(num_executed_blk));
+          db_status_->insert(
+              util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
+              util::eth::toSlice(num_executed_trx));
+        }
         if (pbft_block.getScheduleBlock().getSchedule().blk_order.size() > 0) {
           auto write_batch = db_dag_blocks_period_->createWriteBatch();
           for (auto const blk_hash :
@@ -1577,16 +1587,6 @@ void PbftManager::updateSortitionAccountsDB_() {
   accounts->insert(std::string("sortition_accounts_size"),
                    std::to_string(valid_sortition_accounts_size_));
   db_sortition_accounts_->commit(std::move(accounts));
-  auto num_executed_blk = full_node->getNumBlockExecuted();
-  auto num_executed_trx = full_node->getNumTransactionExecuted();
-  if (num_executed_blk > 0 && num_executed_trx > 0) {
-    db_status_->insert(
-        util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
-        util::eth::toSlice(num_executed_blk));
-    db_status_->insert(
-        util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
-        util::eth::toSlice(num_executed_trx));
-  }
 }
 
 size_t PbftManager::getValidPbftSortitionPlayerSize_() {
