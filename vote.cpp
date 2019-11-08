@@ -369,6 +369,44 @@ std::vector<Vote> VoteManager::getAllVotes() {
   return votes;
 }
 
+bool VoteManager::pbftBlockHasEnoughValidCertVotes(
+    PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
+    size_t sortition_threshold, size_t pbft_2t_plus_1) const {
+  std::vector<Vote> valid_votes;
+  for (auto const &v : pbft_block_and_votes.cert_votes) {
+    if (v.getType() != cert_vote_type) {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash() << " has wrong vote type "
+                    << v.getType();
+      continue;
+    } else if (v.getStep() != 3) {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash() << " has wrong vote step "
+                    << v.getStep();
+      continue;
+    } else if (v.getBlockHash() !=
+               pbft_block_and_votes.pbft_blk.getBlockHash()) {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash()
+                    << " has wrong vote block hash " << v.getBlockHash();
+      continue;
+    }
+    blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+    if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players,
+                       sortition_threshold)) {
+      valid_votes.emplace_back(v);
+    } else {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash() << " failed validation";
+    }
+  }
+  return valid_votes.size() >= pbft_2t_plus_1;
+}
+
 vote_hash_t VoteManager::hash_(std::string const& str) const {
   return dev::sha3(str);
 }
