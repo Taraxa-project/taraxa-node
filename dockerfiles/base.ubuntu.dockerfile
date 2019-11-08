@@ -94,3 +94,10 @@ FROM go-layer as release
 # Clean up image
 WORKDIR /app
 RUN cd / && rm -rf /tmp/*
+
+ENV APP_PATH /opt/taraxa/taraxa-node
+ENV LD_LIBRARY_PATH /usr/local/lib
+WORKDIR ${APP_PATH}
+
+COPY . .
+RUN make -f Makefile.dependencies dependencies

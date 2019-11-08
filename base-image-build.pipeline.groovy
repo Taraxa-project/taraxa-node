@@ -32,7 +32,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'docker pull ${GCP_REGISTRY}/${IMAGE}|| echo "Image not found"'
-                sh 'docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
+                sh 'DOCKER_BUILDKIT=1 docker build --progress=plain --pull --cache-from=${GCP_REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }
         }
         stage('Push Docker Image') {

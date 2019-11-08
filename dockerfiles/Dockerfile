@@ -1,12 +1,9 @@
 ARG BASE_IMAGE=gcr.io/jovial-meridian-249123/taraxa-node-base:latest
 FROM $BASE_IMAGE as builder
 
-ENV APP_PATH /opt/taraxa/taraxa-node
-ENV LD_LIBRARY_PATH /usr/local/lib
-WORKDIR ${APP_PATH}
-ADD . .
-RUN make -j 4 main
-RUN make -j 4 DEBUG=1 main
+COPY . .
+RUN make -j $(nproc --all) main
+RUN make -j $(nproc --all) DEBUG=1 main
 
 
 # Copy over only minimal information
