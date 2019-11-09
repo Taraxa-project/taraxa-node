@@ -830,10 +830,10 @@ TEST_F(FullNodeTest, persist_counter) {
     EXPECT_EQ(num_exe_trx1, num_trx2);
   }
   {
-    Top top1(6, input1_persist_db);
+    Top top1(5, input1_persist_db);
     std::cout << "Top1 created ..." << std::endl;
 
-    Top top2(6, input2_persist_db);
+    Top top2(5, input2_persist_db);
     std::cout << "Top2 created ..." << std::endl;
 
     auto node1 = top1.getNode();
