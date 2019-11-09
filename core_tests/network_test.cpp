@@ -297,7 +297,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   addr_t beneficiary(987654321);
   PivotBlock pivot_block(prev_pivot_blk, prev_block_blk, dag_blk, period,
                          beneficiary);
-  PbftBlock pbft_block1(blk_hash_t(1));
+  PbftBlock pbft_block1(blk_hash_t(1), 2);
   pbft_block1.setPivotBlock(pivot_block);
   uint64_t timestamp = std::time(nullptr);
   pbft_block1.setTimestamp(timestamp);
@@ -320,7 +320,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   blk_hash_t prev_pivot(1);
   TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
-  PbftBlock pbft_block2(blk_hash_t(2));
+  PbftBlock pbft_block2(blk_hash_t(2), 3);
   pbft_block2.setScheduleBlock(schedule_blk);
   timestamp = std::time(nullptr);
   pbft_block2.setTimestamp(timestamp);
@@ -367,7 +367,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   addr_t beneficiary(987654321);
   PivotBlock pivot_block(prev_pivot_blk, prev_block_blk, dag_blk, period,
                          beneficiary);
-  PbftBlock pbft_block1(blk_hash_t(1));
+  PbftBlock pbft_block1(blk_hash_t(1), 2);
   pbft_block1.setPivotBlock(pivot_block);
   uint64_t timestamp = std::time(nullptr);
   pbft_block1.setTimestamp(timestamp);
@@ -390,7 +390,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   blk_hash_t prev_pivot(1);
   TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
-  PbftBlock pbft_block2(blk_hash_t(2));
+  PbftBlock pbft_block2(blk_hash_t(2), 3);
   pbft_block2.setScheduleBlock(schedule_blk);
   timestamp = std::time(nullptr);
   pbft_block2.setTimestamp(timestamp);

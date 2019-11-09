@@ -305,6 +305,7 @@ PbftBlock::PbftBlock(std::string const& json) {
 
   block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
   block_type_ = static_cast<PbftBlockTypes>(doc.get<int>("block_type"));
+  height_ = doc.get<uint64_t>("height");
   if (block_type_ == pivot_block_type) {
     ptree& pivot_block = doc.get_child("pivot_block");
     pivot_block_.setBlockByJson(pivot_block);
@@ -332,6 +333,7 @@ void PbftBlock::streamRLP(dev::RLPStream& strm) const {
   }  // TODO: more block types
   strm << timestamp_;
   strm << signature_;
+  strm << height_;
 }
 bytes PbftBlock::rlp() const {
   RLPStream strm;
@@ -345,6 +347,7 @@ std::string PbftBlock::getJsonStr() const {
   ptree tree;
   tree.put("block_hash", block_hash_.toString());
   tree.put("block_type", block_type_);
+  tree.put("height", height_);
   if (block_type_ == pivot_block_type) {
     tree.put_child("pivot_block", ptree());
     pivot_block_.setJsonTree(tree.get_child("pivot_block"));
@@ -403,6 +406,7 @@ bool PbftBlock::serialize(stream& strm) const {
   bool ok = true;
   ok &= write(strm, block_hash_);
   ok &= write(strm, block_type_);
+  ok &= write(strm, height_);
   if (block_type_ == pivot_block_type) {
     pivot_block_.serialize(strm);
   } else if (block_type_ == schedule_block_type) {
@@ -415,10 +419,13 @@ bool PbftBlock::serialize(stream& strm) const {
   return ok;
 }
 
+uint64_t PbftBlock::getHeight() const { return height_; }
+
 bool PbftBlock::deserialize(taraxa::stream& strm) {
   bool ok = true;
   ok &= read(strm, block_hash_);
   ok &= read(strm, block_type_);
+  ok &= read(strm, height_);
   if (block_type_ == pivot_block_type) {
     pivot_block_.deserialize(strm);
   } else if (block_type_ == schedule_block_type) {

@@ -158,11 +158,17 @@ class ResultBlock {
 class PbftBlock {
  public:
   PbftBlock() = default;
-  PbftBlock(blk_hash_t const& block_hash) : block_hash_(block_hash) {}
-  PbftBlock(PivotBlock const& pivot_block)
-      : pivot_block_(pivot_block), block_type_(pivot_block_type) {}
-  PbftBlock(ScheduleBlock const& schedule_block)
-      : schedule_block_(schedule_block), block_type_(schedule_block_type) {}
+  PbftBlock(uint64_t height) : height_(height) {}
+  PbftBlock(blk_hash_t const& block_hash, uint64_t height)
+      : block_hash_(block_hash), height_(height) {}
+  PbftBlock(PivotBlock const& pivot_block, uint64_t height)
+      : pivot_block_(pivot_block),
+        block_type_(pivot_block_type),
+        height_(height) {}
+  PbftBlock(ScheduleBlock const& schedule_block, uint64_t height)
+      : schedule_block_(schedule_block),
+        block_type_(schedule_block_type),
+        height_(height) {}
   PbftBlock(dev::RLP const& r);
   PbftBlock(bytes const& b);
 
@@ -175,6 +181,7 @@ class PbftBlock {
   ScheduleBlock getScheduleBlock() const;
   uint64_t getTimestamp() const;
   std::string getJsonStr() const;
+  uint64_t getHeight() const;
 
   void setBlockHash();
   void setBlockType(PbftBlockTypes block_type);
@@ -196,6 +203,7 @@ class PbftBlock {
   ScheduleBlock schedule_block_;
   uint64_t timestamp_;
   sig_t signature_;
+  uint64_t height_;
   // TODO: need more pbft block type
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
