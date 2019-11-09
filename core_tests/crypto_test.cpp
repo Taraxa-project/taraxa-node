@@ -31,19 +31,33 @@ TEST_F(CryptoTest, VerifierWesolowski) {
   EXPECT_TRUE(ok);
 }
 
-TEST_F(CryptoTest, vrf_key_gen) {
-  std::string secret_key_bin(crypto_vrf_SECRETKEYBYTES, ' '),
-      public_key_bin(crypto_vrf_PUBLICKEYBYTES, ' ');
-  crypto_vrf_keypair((unsigned char*)public_key_bin.data(),
-                     (unsigned char*)secret_key_bin.data());
+TEST_F(CryptoTest, vrf_proof_verify) {
+  std::string sk(crypto_vrf_SECRETKEYBYTES, ' '),
+      pk(crypto_vrf_PUBLICKEYBYTES, ' ');
+  crypto_vrf_keypair((unsigned char*)pk.data(), (unsigned char*)sk.data());
+  std::string message("helloworld");
+  crypto_vrf_keypair((unsigned char*)pk.data(), (unsigned char*)sk.data());
   std::cout << "VRF pk bytes: (" << crypto_vrf_publickeybytes() << ") "
-            << toHex(public_key_bin) << std::endl;
+            << toHex(pk) << std::endl;
   std::cout << "VRF sk bytes: (" << crypto_vrf_secretkeybytes() << ") "
-            << toHex(secret_key_bin) << std::endl;
-  std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
-            << std::endl;
+            << toHex(sk) << std::endl;
+  string proof(crypto_vrf_proofbytes(), ' ');
+  crypto_vrf_prove((unsigned char*)proof.data(),
+                   (const unsigned char*)sk.data(),
+                   (const unsigned char*)message.data(), message.size());
+
   std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") "
-            << std::endl;
+            << toHex(proof) << std::endl;
+
+  string output(crypto_vrf_outputbytes(), ' ');
+
+  auto res = crypto_vrf_verify(
+      (unsigned char*)output.data(), (const unsigned char*)pk.data(),
+      (const unsigned char*)proof.data(), (const unsigned char*)message.data(),
+      message.size());
+  std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
+            << toHex(output) <<endl;
+  EXPECT_FALSE(res);  // means success
 }
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
