@@ -983,7 +983,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
-  PbftBlock pbft_block;
+  PbftBlock pbft_block(pbft_chain_->getPbftChainSize() + 1);
   PbftBlockTypes next_pbft_block_type = pbft_chain_->getNextPbftBlockType();
   if (next_pbft_block_type == pivot_block_type) {
     LOG(log_deb_) << "Into propose anchor block";
@@ -1257,13 +1257,10 @@ void PbftManager::syncPbftChainFromPeers_() {
             << ", will request again from all " << peers.size() << " peers.";
       }
 
-      for (auto i = 0; i < peers.size(); i++) {
-        LOG(log_deb_) << "Syncing the " << i + 1 << " peer " << peers[i]
-                      << " In round " << pbft_round_ << ", in step "
-                      << pbft_step_
-                      << " Send request to ask missing pbft blocks in chain";
-        capability_->syncPeerPbft(peers[i]);
-      }
+      LOG(log_deb_) << "Restarting pbft sync."
+                    << " In round " << pbft_round_ << ", in step " << pbft_step_
+                    << " Send request to ask missing pbft blocks in chain";
+      capability_->restartSyncingPbft();
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
       last_pbft_syncing_height_ = height_to_sync;
