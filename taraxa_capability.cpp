@@ -35,7 +35,8 @@ void TaraxaCapability::insertPeer(NodeID const &node_id,
 void TaraxaCapability::syncPeerDag(NodeID const &_nodeID,
                                    unsigned long level_to_sync) {
   if (auto full_node = full_node_.lock()) {
-    LOG(log_nf_) << "Sync Peer:" << _nodeID;
+    LOG(log_nf_) << "Sync peer node " << _nodeID << " from dag level " 
+                 << level_to_sync;
     auto peer = getPeer(_nodeID);
     if (level_to_sync == 0) level_to_sync = 1;
     requestBlocksLevel(_nodeID, level_to_sync, conf_.network_sync_level_size);
