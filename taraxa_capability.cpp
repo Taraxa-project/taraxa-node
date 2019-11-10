@@ -553,15 +553,21 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (block_count > 0) {
           if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
-            while (max_block_height >
-                   full_node->getPbftChainSize() +
-                       (10 * conf_.network_sync_level_size)) {
-              LOG(log_dg_) << "Syncing pbft blocks faster than processing "
-                           << max_block_height << " "
-                           << full_node->getPbftChainSize();
-              thisThreadSleepForSeconds(1);
-            }
-            syncPeerPbft(_nodeID, max_block_height + 1);
+            // while (max_block_height >
+            //        full_node->getPbftChainSize() +
+            //            (10 * conf_.network_sync_level_size)) {
+            //   LOG(log_dg_) << "Syncing pbft blocks faster than processing "
+            //                << max_block_height << " "
+            //                << full_node->getPbftChainSize();
+            //   thisThreadSleepForSeconds(1);
+            // }
+            if (max_block_height <= full_node->getPbftChainSize() +
+                        (10 * conf_.network_sync_level_size)) {
+              syncPeerPbft(_nodeID, max_block_height + 1);
+            } else {
+              syncing_pbft_ = false;
+            } 
+            
           }
         } else {
           syncing_pbft_ = false;
