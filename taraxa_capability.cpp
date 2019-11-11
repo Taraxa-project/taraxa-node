@@ -628,6 +628,7 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   cnt_received_messages_.erase(_nodeID);
   test_sums_.erase(_nodeID);
+  erasePeer(_nodeID);
   // If syncing to the disconnected peer, find another peer to sync with
   if (syncing_dag_ && peer_syncing_dag_ == _nodeID && getPeersCount() > 0) {
     syncing_dag_ = false;
@@ -637,7 +638,6 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
     syncing_pbft_ = false;
     restartSyncingPbft();
   }
-  erasePeer(_nodeID);
 }
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
