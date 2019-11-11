@@ -104,9 +104,8 @@ void TaraxaCapability::continueSyncDag(NodeID const &_nodeID) {
         uint64_t max_level = full_node->getMaxDagLevel();
         if (max_block_level_received >
             max_level + (10 * conf_.network_sync_level_size)) {
-          LOG(log_dg_) << "Syncing blocks faster than processing "
-                       << max_block_level_received << " " << max_level;
-          thisThreadSleepForSeconds(1);
+          LOG(log_dg_) << "Syncing blocks faster than processing. Synced level: "
+                       << max_block_level_received << "  Dag Level: " << max_level << " delayedDagSync counter 1";
           host_.scheduleExecution(
               1000, [this, _nodeID, max_block_level_received]() {
                 delayedDagSync(_nodeID, max_block_level_received, 1);
@@ -140,9 +139,8 @@ void TaraxaCapability::delayedDagSync(NodeID _nodeID,
         uint64_t max_level = full_node->getMaxDagLevel();
         if (max_block_level_received >
             max_level + (10 * conf_.network_sync_level_size)) {
-          LOG(log_dg_) << "Syncing blocks faster than processing "
-                       << max_block_level_received << " " << max_level;
-          thisThreadSleepForSeconds(1);
+          LOG(log_dg_) << "Syncing blocks faster than processing. Synced level: "
+                       << max_block_level_received << "  Dag Level: " << max_level << " delayedDagSync counter " << (counter + 1);
           host_.scheduleExecution(
               1000, [this, _nodeID, max_block_level_received, counter]() {
                 delayedDagSync(_nodeID, max_block_level_received, counter + 1);
