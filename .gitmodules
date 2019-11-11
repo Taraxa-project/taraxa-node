@@ -27,3 +27,14 @@
 [submodule "submodules/taraxa-evm"]
 	path = submodules/taraxa-evm
 	url = https://github.com/Taraxa-project/taraxa-evm.git
+[submodule "submodules/taraxa-vdf"]
+	path = submodules/taraxa-vdf
+	url = https://github.com/Taraxa-project/taraxa-vdf.git
+[submodule "submodules/openssl"]
+	path = submodules/openssl
+	url = https://github.com/openssl/openssl.git
+	ignore = dirty
+[submodule "submodules/taraxa-vrf"]
+	path = submodules/taraxa-vrf
+	url = https://github.com/Taraxa-project/taraxa-vrf.git
+	ignore = dirty
