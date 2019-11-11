@@ -153,6 +153,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void continueSyncDag(NodeID const &_nodeID);
   void restartSyncingDag();
   void restartSyncingPbft();
+  void delayedPbftSync(NodeID _nodeID, uint64_t max_block_height, int counter);
+  void delayedDagSync(NodeID _nodeID, uint64_t max_block_level_received,
+                      int counter);
   std::pair<bool, blk_hash_t> checkTipsandPivot(DagBlock const &block);
   bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
                                  RLP const &_r) override;
