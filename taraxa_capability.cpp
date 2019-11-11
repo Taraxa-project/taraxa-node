@@ -35,7 +35,8 @@ void TaraxaCapability::insertPeer(NodeID const &node_id,
 void TaraxaCapability::syncPeerDag(NodeID const &_nodeID,
                                    unsigned long level_to_sync) {
   if (auto full_node = full_node_.lock()) {
-    LOG(log_nf_) << "Sync Peer:" << _nodeID;
+    LOG(log_nf_) << "Sync peer node " << _nodeID << " from dag level " 
+                 << level_to_sync;
     auto peer = getPeer(_nodeID);
     if (level_to_sync == 0) level_to_sync = 1;
     requestBlocksLevel(_nodeID, level_to_sync, conf_.network_sync_level_size);
@@ -525,7 +526,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (my_chain_size >= height_to_sync) {
             size_t blocks_to_transfer =
                 std::min((uint64_t)conf_.network_sync_level_size,
-                         my_chain_size - (height_to_sync - 1));
+                         (uint64_t)(my_chain_size - (height_to_sync - 1)));
             LOG(log_dg_) << "Send pbftblocks to " << _nodeID;
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
@@ -675,7 +676,7 @@ void TaraxaCapability::restartSyncingDag() {
 }
 
 void TaraxaCapability::restartSyncingPbft() {
-  if (syncing_pbft_) return;
+  //if (syncing_pbft_) return;
   LOG(log_nf_) << "Restarting syncing PBFT";
   NodeID max_pbft_chain_nodeID;
   unsigned long max_pbft_chain_size = 0;
