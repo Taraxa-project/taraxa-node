@@ -320,10 +320,10 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
-    } else if (v.getRound() == pbft_round + 1) {
+    } else if (v.getRound() == pbft_round + 1 &&  v.getType() == next_vote_type) {
       // We know that votes in our current round should reference our latest
       // PBFT chain block This is not immune to malacious attack!!!
-      LOG(log_deb_) << "Vote in current round " << pbft_round + 1
+      LOG(log_deb_) << "Next vote in current round " << pbft_round + 1
                     << " points to different block hash "
                     << last_pbft_block_hash << " | vote hash: " << v.getHash()
                     << " vote address: " << vote_address;
