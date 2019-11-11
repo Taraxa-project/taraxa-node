@@ -163,7 +163,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     // Return false, will not effect PBFT consensus
     // if the vote is valid, will count when node has the relative pbft block
     // if the vote is invalid, will remove when pass the pbft round
-    LOG(log_tra_) << "Haven't have the newest PBFT block to verify the vote "
+    LOG(log_tra_) << "Have not received latest PBFT block to verify the vote "
                   << "sortition signature: " << sortition_signature
                   << " vote hash " << vote.getHash();
     return false;
