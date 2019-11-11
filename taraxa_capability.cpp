@@ -101,14 +101,52 @@ void TaraxaCapability::continueSyncDag(NodeID const &_nodeID) {
       peer->m_syncBlocks.clear();
       if (syncing_dag_ && peer_syncing_dag_ == _nodeID) {
         uint64_t max_level = full_node->getMaxDagLevel();
-        while (max_block_level_received >
-               max_level + (10 * conf_.network_sync_level_size)) {
+        if (max_block_level_received >
+            max_level + (10 * conf_.network_sync_level_size)) {
           LOG(log_dg_) << "Syncing blocks faster than processing "
                        << max_block_level_received << " " << max_level;
           thisThreadSleepForSeconds(1);
-          max_level = full_node->getMaxDagLevel();
+          host_.scheduleExecution(
+              1000, [this, _nodeID, max_block_level_received]() {
+                delayedDagSync(_nodeID, max_block_level_received, 1);
+              });
+        } else if (max_block_level_received < max_level) {
+          syncPeerDag(_nodeID, max_level + 1);
+        } else {
+          syncPeerDag(_nodeID, max_block_level_received + 1);
         }
-        if (max_block_level_received < max_level) {
+      }
+    }
+  }
+}
+
+void TaraxaCapability::delayedDagSync(NodeID _nodeID,
+                                      uint64_t max_block_level_received,
+                                      int counter) {
+  if (!stopped_) {
+    auto full_node = full_node_.lock();
+    if (full_node) {
+      if (counter > 60) {
+        LOG(log_er_) << "Dag blocks stuck in queue, no new block processed in "
+                        "60 seconds "
+                     << max_block_level_received << " "
+                     << full_node->getMaxDagLevel();
+        syncing_dag_ = false;
+        return;
+      }
+      if (syncing_dag_ && peer_syncing_dag_ == _nodeID) {
+        uint64_t max_level = full_node->getMaxDagLevel();
+        if (max_block_level_received >
+            max_level + (10 * conf_.network_sync_level_size)) {
+          LOG(log_dg_) << "Syncing blocks faster than processing "
+                       << max_block_level_received << " " << max_level;
+          thisThreadSleepForSeconds(1);
+          host_.scheduleExecution(
+              1000, [this, _nodeID, max_block_level_received, counter]() {
+                delayedDagSync(_nodeID, max_block_level_received, counter + 1);
+              });
+          max_level = full_node->getMaxDagLevel();
+        } else if (max_block_level_received < max_level) {
           syncPeerDag(_nodeID, max_level + 1);
         } else {
           syncPeerDag(_nodeID, max_block_level_received + 1);
@@ -423,8 +461,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             syncing_dag_ = false;
             sendSyncedMessage();
             continueSyncDag(_nodeID);
-            // Call continue Sync, just one more time to make sure that no block
-            // is missed between stopping sync and starting gossiping
+            // Call continue Sync, just one more time to make sure that no
+            // block is missed between stopping sync and starting gossiping
           }
         }
         break;
@@ -477,7 +515,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case GetPbftBlockPacket: {
         LOG(log_dg_) << "Received GetPbftBlockPacket Block";
-        // TODO: Since syncing PBFT block and cert votes validation issue, each
+        // TODO: Since syncing PBFT block and cert votes validation issue,
+        // each
         //  time sync one block. And need to fix later
         auto full_node = full_node_.lock();
         if (full_node) {
@@ -552,15 +591,18 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (block_count > 0) {
           if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
-            while (max_block_height >
-                   full_node->getPbftChainSize() +
-                       (10 * conf_.network_sync_level_size)) {
+            if (max_block_height > full_node->getPbftChainSize() +
+                                       (10 * conf_.network_sync_level_size)) {
               LOG(log_dg_) << "Syncing pbft blocks faster than processing "
                            << max_block_height << " "
                            << full_node->getPbftChainSize();
-              thisThreadSleepForSeconds(1);
+              host_.scheduleExecution(
+                  1000, [this, _nodeID, max_block_height]() {
+                    delayedPbftSync(_nodeID, max_block_height, 1);
+                  });
+            } else {
+              syncPeerPbft(_nodeID, max_block_height + 1);
             }
-            syncPeerPbft(_nodeID, max_block_height + 1);
           }
         } else {
           syncing_pbft_ = false;
@@ -576,6 +618,37 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
     };
   }
   return true;
+}
+
+void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
+                                       uint64_t max_block_height, int counter) {
+  if (!stopped_) {
+    auto full_node = full_node_.lock();
+    if (full_node) {
+      if (counter > 60) {
+        LOG(log_er_) << "Pbft blocks stuck in queue, no new block processed "
+                        "in 60 seconds "
+                     << max_block_height << " "
+                     << full_node->getPbftChainSize();
+        syncing_pbft_ = false;
+        return;
+      }
+      if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
+        if (max_block_height > full_node->getPbftChainSize() +
+                                   (10 * conf_.network_sync_level_size)) {
+          LOG(log_dg_) << "Syncing pbft blocks faster than processing "
+                       << max_block_height << " "
+                       << full_node->getPbftChainSize();
+          host_.scheduleExecution(
+              1000, [this, _nodeID, max_block_height, counter]() {
+                delayedPbftSync(_nodeID, max_block_height, counter + 1);
+              });
+        } else {
+          syncPeerPbft(_nodeID, max_block_height + 1);
+        }
+      }
+    }
+  }
 }
 
 void TaraxaCapability::restartSyncingDag() {
