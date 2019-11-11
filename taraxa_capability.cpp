@@ -603,7 +603,7 @@ void TaraxaCapability::restartSyncingDag() {
 }
 
 void TaraxaCapability::restartSyncingPbft() {
-  if (syncing_pbft_) return;
+  //if (syncing_pbft_) return;
   LOG(log_nf_) << "Restarting syncing PBFT";
   NodeID max_pbft_chain_nodeID;
   unsigned long max_pbft_chain_size = 0;
