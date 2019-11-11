@@ -202,33 +202,6 @@ class StatusTable {
   std::unordered_map<K, V> status_;
 };
 
-/**
- * Observer pattern
- */
-
-class Observer;
-
-class Subject {
- public:
-  ~Subject();
-  void subscribe(std::shared_ptr<Observer> obs);
-  void unsubscribe(std::shared_ptr<Observer> obs);
-  void notify();
-
- protected:
-  std::unordered_set<std::shared_ptr<Observer>> viewers_;
-};
-
-class Observer : std::enable_shared_from_this<Observer> {
- public:
-  Observer(std::shared_ptr<Subject> sub);
-  virtual ~Observer();
-  virtual void update() = 0;
-
- protected:
-  std::shared_ptr<Subject> subject_;
-};
-
 inline char *cgo_str(const std::string &str) {
   return const_cast<char *>(str.data());
 }
