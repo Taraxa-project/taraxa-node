@@ -255,6 +255,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
   dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TARCAP")};
+  dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "TARCAP")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
   dev::Logger log_perf_{

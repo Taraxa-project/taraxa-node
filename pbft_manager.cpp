@@ -1247,14 +1247,11 @@ void PbftManager::syncPbftChainFromPeers_() {
       if (pbft_round_last_requested_sync_ != 0 &&
           pbft_step_last_requested_sync_ != 0) {
         LOG(log_deb_) << "Last requested sync in round " << pbft_round_last_requested_sync_
-                      << ", step " << pbft_step_last_requested_sync_
-                      << ", will request again from all " << peers.size()
-                      << " peers.";
+                      << ", step " << pbft_step_last_requested_sync_;
       } else {
         LOG(log_deb_)
             << "First time requesting pbft chain sync, currently in round "
-            << pbft_round_ << ", step " << pbft_step_
-            << ", will request again from all " << peers.size() << " peers.";
+            << pbft_round_ << ", step " << pbft_step_;
       }
 
       LOG(log_deb_) << "Restarting pbft sync."

@@ -133,6 +133,7 @@ void TaraxaCapability::delayedDagSync(NodeID _nodeID,
                      << max_block_level_received << " "
                      << full_node->getMaxDagLevel();
         syncing_dag_ = false;
+        LOG(log_dg_) << "Syncing DAG is stopping";
         return;
       }
       if (syncing_dag_ && peer_syncing_dag_ == _nodeID) {
@@ -460,6 +461,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           // blocks
           if (syncing_dag_) {
             syncing_dag_ = false;
+            LOG(log_dg_) << "Syncing DAG is stopping";
             sendSyncedMessage();
             continueSyncDag(_nodeID);
             // Call continue Sync, just one more time to make sure that no
@@ -481,7 +483,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (transactionCount > 0) {
           LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
+                       << " transactions";
+          LOG(log_tr_) << "Received TransactionPacket with " << _r.itemCount()
                        << " transactions:" << receivedTransactions.c_str();
+          
           onNewTransactions(transactions, true);
         }
         break;
@@ -607,6 +612,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
         } else {
           syncing_pbft_ = false;
+          LOG(log_dg_) << "Syncing PBFT is stopping";
         }
         break;
       }
@@ -632,6 +638,7 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
                      << max_block_height << " "
                      << full_node->getPbftChainSize();
         syncing_pbft_ = false;
+        LOG(log_dg_) << "Syncing PBFT is stopping";
         return;
       }
       if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
@@ -653,7 +660,10 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
 }
 
 void TaraxaCapability::restartSyncingDag() {
-  if (syncing_dag_) return;
+  if (syncing_dag_) {
+    LOG(log_dg_) << "restartSyncingDag called but syncing_dag_ already true";
+    return;
+  }
   LOG(log_nf_) << "Restarting syncing";
   NodeID max_level_nodeID;
   unsigned long max_level = 0;
@@ -676,7 +686,11 @@ void TaraxaCapability::restartSyncingDag() {
 }
 
 void TaraxaCapability::restartSyncingPbft() {
-  //if (syncing_pbft_) return;
+  if (syncing_pbft_) {
+    LOG(log_dg_) << "restartSyncingPbft called but syncing_pbft_ already true";
+    return;
+  }
+    
   LOG(log_nf_) << "Restarting syncing PBFT";
   NodeID max_pbft_chain_nodeID;
   unsigned long max_pbft_chain_size = 0;
@@ -706,10 +720,12 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   // If syncing to the disconnected peer, find another peer to sync with
   if (syncing_dag_ && peer_syncing_dag_ == _nodeID && getPeersCount() > 0) {
     syncing_dag_ = false;
+    LOG(log_dg_) << "Syncing DAG is stopping";
     restartSyncingDag();
   }
   if (syncing_pbft_ && peer_syncing_pbft == _nodeID && getPeersCount() > 0) {
     syncing_pbft_ = false;
+    LOG(log_dg_) << "Syncing PBFT is stopping";
     restartSyncingPbft();
   }
 }
