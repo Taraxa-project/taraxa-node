@@ -286,6 +286,9 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                                         bool& sync_peers_pbft_chain) {
   cleanupVotes(pbft_round);
 
+  // Should be sure we always write a value to this pointer...
+  sync_peers_pbft_chain = false;
+
   std::vector<Vote> verified_votes;
 
   auto full_node = node_.lock();
