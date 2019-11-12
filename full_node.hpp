@@ -52,6 +52,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   friend class Top;
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
+  using vrf_proof_t = vrf_wrapper::vrf_proof_t;
+  using vrf_output_t = vrf_wrapper::vrf_output_t;
 
   explicit FullNode(std::string const &conf_full_node_file,
                     bool destroy_db = false, bool rebuild_network = false);
