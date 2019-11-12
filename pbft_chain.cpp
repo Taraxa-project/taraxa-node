@@ -964,6 +964,12 @@ void PbftChain::setSyncedPbftBlockIntoQueue(
   pbft_synced_set_.insert(pbft_block_and_votes.pbft_blk.getBlockHash());
 }
 
+void PbftChain::clearSyncedPbftBlocks() {
+  uniqueLock_ lock(sync_access_);
+  pbft_synced_queue_.clear();
+  pbft_synced_set_.clear();
+}
+
 void PbftChain::pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash) {
   uniqueLock_ lock(sync_access_);
   pbft_synced_set_.insert(pbft_block_hash);

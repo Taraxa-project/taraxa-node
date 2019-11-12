@@ -270,8 +270,7 @@ class PbftChain {
   PbftBlockCert pbftSyncedQueueBack() const;
   void pbftSyncedQueuePopFront();
   void setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes);
-
-  // Added for debug message purposes
+  void clearSyncedPbftBlocks();
   size_t pbftSyncedQueueSize() const;
 
  private:
