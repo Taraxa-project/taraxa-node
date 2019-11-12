@@ -56,7 +56,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
       (const unsigned char*)proof.data(), (const unsigned char*)message.data(),
       message.size());
   std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
-            << toHex(output) <<endl;
+            << toHex(output) << endl;
   EXPECT_FALSE(res);  // means success
 }
 
