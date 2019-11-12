@@ -563,8 +563,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       // need cert votes (syncing)
       case PbftBlockPacket: {
-        LOG(log_dg_) << "In PbftBlockPacket for receive blocks from syncing";
         auto block_count = _r.itemCount();
+        LOG(log_dg_) << "In PbftBlockPacket received " << block_count
+                     << " blocks from syncing";
         auto full_node = full_node_.lock();
         if (!full_node) {
           LOG(log_er_) << "PbftBlock full node weak pointer empty";
@@ -611,6 +612,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             } else {
               syncPeerPbft(_nodeID, max_block_height + 1);
             }
+          } else {
+            LOG(log_dg_) << "Received PbftBlockPacket from node " << _nodeID
+                         << " but currently syncing with peer "
+                         << peer_syncing_pbft;
           }
         } else {
           syncing_pbft_ = false;
