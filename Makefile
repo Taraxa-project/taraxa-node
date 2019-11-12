@@ -12,7 +12,7 @@ ifneq (,$(shell git submodule update --recursive --init))
     $(shell rm -rf $(DEPENDENCIES))
 endif
 
-OPENSSL_HOME = submodules/openssl/build
+OPENSSL_HOME = submodules/openssl
 
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
