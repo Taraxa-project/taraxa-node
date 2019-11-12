@@ -23,6 +23,7 @@
 #include "util.hpp"
 #include "util/process_container.hpp"
 #include "vote.h"
+#include "vrf_wrapper.hpp"
 
 class Top;
 
@@ -49,6 +50,8 @@ enum StatusDbField : uint8_t {
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
   friend class Top;
+  using vrf_pk_t = vrf_wrapper::vrf_pk_t;
+  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
   explicit FullNode(std::string const &conf_full_node_file,
                     bool destroy_db = false, bool rebuild_network = false);
@@ -293,6 +296,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   secret_t node_sk_;
   public_t node_pk_;
   addr_t node_addr_;
+  vrf_sk_t vrf_sk_;
+  vrf_pk_t vrf_pk_;
   addr_t master_boot_node_address_;
 
   // network

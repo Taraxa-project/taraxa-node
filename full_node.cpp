@@ -19,7 +19,6 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 using util::eth::newDB;
-
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(std::string const &conf_full_node_file,
@@ -70,9 +69,13 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
+  vrf_sk_ = vrf_sk_t(conf_.vrf_secret);
+  vrf_pk_ = vrf_wrapper::getVrfPublicKey(vrf_sk_);
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
+               << std::endl;
+  LOG(log_si_) << "Node VRF public key: " << EthGreen << vrf_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
   // THIS IS THE GENESIS
