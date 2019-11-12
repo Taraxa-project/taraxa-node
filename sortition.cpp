@@ -52,7 +52,7 @@ bool sortition(string credential, size_t valid_players, size_t threshold) {
     return false;
   }
   sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX,
-                                              std::to_string(valid_players));
+                                              std::to_string(threshold));
   if (sum_right.empty()) {
     LOG(log_error_)
         << "Failed multiplication of max signature hash * sortition threshold";
