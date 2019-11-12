@@ -410,8 +410,8 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
   }
   if (valid_votes.size() < pbft_2t_plus_1) {
     LOG(log_err_) << "PBFT block "
-                  << pbft_block_and_votes.pbft_blk.getBlockHash()
-                  << " with " << pbft_block_and_votes.cert_votes.size()
+                  << pbft_block_and_votes.pbft_blk.getBlockHash() << " with "
+                  << pbft_block_and_votes.cert_votes.size()
                   << " cert votes. Has " << valid_votes.size()
                   << " valid cert votes. 2t+1 is " << pbft_2t_plus_1
                   << ", Valid sortition players " << valid_sortition_players

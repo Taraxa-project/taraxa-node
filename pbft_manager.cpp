@@ -1385,9 +1385,10 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
             sortition_threshold_, TWO_T_PLUS_ONE)) {
       // Failed cert votes validation, flush synced PBFT queue and set since
       // next block validation depends on the current one
-      LOG(log_err_) << "Synced PBFT block "
-                    << pbft_block_and_votes.pbft_blk.getBlockHash()
-                    << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
+      LOG(log_err_)
+          << "Synced PBFT block "
+          << pbft_block_and_votes.pbft_blk.getBlockHash()
+          << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
       pbft_chain_->clearSyncedPbftBlocks();
       break;
     }
