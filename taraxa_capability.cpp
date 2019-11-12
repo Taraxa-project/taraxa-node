@@ -270,7 +270,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
         }
         if (auto full_node = full_node_.lock()) {
-          int max_level = full_node->getMaxDagLevel();
+          uint64_t max_level = full_node->getMaxDagLevel();
           peer->level_ = level;
           if (level > max_peer_level_) {
             max_peer_level_ = level;
@@ -282,7 +282,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             }
           }
           // Start gossiping if other node is within 10 blocks from our level
-          peer->syncing_ = level > (max_level - 10);
+          peer->syncing_ = (level + 10) > max_level;
 
           auto pbft_chain_size = full_node->getPbftChainSize();
           peer->pbft_chain_size_ = pbft_chain_size;
@@ -740,7 +740,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id) {
     LOG(log_dg_) << "Sending status message to " << _id << " "
                  << c_protocolVersion << " " << conf_.network_id << " "
                  << full_node->getMaxDagLevel() << " "
-                 << full_node->getMaxDagLevel() << " " << genesis_ << " "
+                 << full_node->getPbftChainSize() << " " << genesis_ << " "
                  << full_node->getPbftChainSize();
     host_.capabilityHost()->sealAndSend(
         _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
