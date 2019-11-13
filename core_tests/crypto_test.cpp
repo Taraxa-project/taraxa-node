@@ -113,7 +113,7 @@ TEST_F(CryptoTest, sortition_rate) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   auto node(FullNode::make(cfg, true));
 
-  size_t valid_sortition_players = 100;
+  size_t valid_sortition_players = 5;
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;
