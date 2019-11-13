@@ -1,12 +1,19 @@
 DEPENDENCIES = \
 	submodules/cryptopp/libcryptopp.a \
+	submodules/openssl/ok \
 	submodules/ethash/build/lib/ethash/libethash.a \
-	submodules/libff/build/libff/libff.a \
 	submodules/secp256k1/.libs/libsecp256k1.a \
+	submodules/libff/build/libff/libff.a \
+	submodules/taraxa-vdf/lib/libvdf.a \
+	submodules/taraxa-vrf/ok \
 	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a \
-	submodules/taraxa-evm/taraxa_evm_cgo.a
+
+ifneq (,$(shell git submodule update --recursive --init))
+    $(info Cleaning up built dependencies cause the submodules changed: $(DEPENDENCIES))
+    $(shell rm -rf $(DEPENDENCIES))
+endif
+
+OPENSSL_HOME = submodules/openssl
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
@@ -56,5 +63,17 @@ submodules/taraxa-evm/taraxa_evm_cgo.a:
 	@echo Building Go trx engine static C library
 	cd submodules/taraxa-evm; \
 	go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ./taraxa_evm_cgo.a
+
+	submodules/openssl/ok:
+	@echo Attempting to compile openssl 1.1.1, if it fails try compiling it manuallyv
+	cd submodules/openssl;./config; make && make install && touch ok
+
+submodules/taraxa-vdf/lib/libvdf.a:
+	@echo Attempting to compile vdf, if it fails try compiling it manually
+	cd submodules/taraxa-vdf; make OPENSSL_HOME="../openssl"
+
+submodules/taraxa-vrf/ok:
+	@echo Attempting to compile vrf, if it fails try compiling it manually
+	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; make && make install && touch ok
 
 dependencies: $(DEPENDENCIES)

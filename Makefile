@@ -1,8 +1,4 @@
 include Makefile.dependencies
-ifneq (,$(shell git submodule update --recursive --init))
-    $(info Cleaning up built dependencies cause the submodules changed: $(DEPENDENCIES))
-    $(shell rm -rf $(DEPENDENCIES))
-endif
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
 CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vrf/src/libsodium/include -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
@@ -73,7 +69,8 @@ all:  $(DEPENDENCIES) main
 
 include p2p.inc
 
-OBJECTFILES = \
+
+OBJECTFILES= \
 	${OBJECTDIR}/dag_block.o \
 	${OBJECTDIR}/util.o \
 	${OBJECTDIR}/network.o \
