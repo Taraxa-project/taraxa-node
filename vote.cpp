@@ -376,6 +376,7 @@ std::vector<Vote> VoteManager::getAllVotes() {
 bool VoteManager::pbftBlockHasEnoughValidCertVotes(
     PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
     size_t sortition_threshold, size_t pbft_2t_plus_1) const {
+  blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
   std::vector<Vote> valid_votes;
   for (auto const& v : pbft_block_and_votes.cert_votes) {
     if (v.getType() != cert_vote_type) {
@@ -398,7 +399,6 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
                     << " has wrong vote block hash " << v.getBlockHash();
       continue;
     }
-    blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
     if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       valid_votes.emplace_back(v);
@@ -415,7 +415,9 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
                   << " cert votes. Has " << valid_votes.size()
                   << " valid cert votes. 2t+1 is " << pbft_2t_plus_1
                   << ", Valid sortition players " << valid_sortition_players
-                  << ", sortition threshold is " << sortition_threshold;
+                  << ", sortition threshold is " << sortition_threshold
+                  << ". The last block in pbft chain is "
+                  << pbft_chain_last_block_hash;
   }
   return valid_votes.size() >= pbft_2t_plus_1;
 }
