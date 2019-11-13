@@ -523,9 +523,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case GetPbftBlockPacket: {
         LOG(log_dg_) << "Received GetPbftBlockPacket Block";
-        // TODO: Since syncing PBFT block and cert votes validation issue,
-        // each
-        //  time sync one block. And need to fix later
         auto full_node = full_node_.lock();
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
@@ -571,12 +568,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           LOG(log_er_) << "PbftBlock full node weak pointer empty";
           return false;
         }
-        uint64_t max_block_height = 0;
         for (auto iblock = 0; iblock < block_count; iblock++) {
           PbftBlockCert pbft_blk_and_votes(_r[iblock].toBytes());
-          if (iblock == block_count - 1)
-            max_block_height = pbft_blk_and_votes.pbft_blk.getHeight();
-
           auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk.getBlockHash();
           peer->markPbftBlockAsKnown(pbft_blk_hash);
 
@@ -600,6 +593,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (block_count > 0) {
           if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
+            uint64_t max_block_height = full_node->getPbftChainSize() +
+                                        full_node->getPbftSyncedQueueSize();
             if (max_block_height > full_node->getPbftChainSize() +
                                        (10 * conf_.network_sync_level_size)) {
               LOG(log_dg_) << "Syncing pbft blocks faster than processing "

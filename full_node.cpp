@@ -767,6 +767,10 @@ bool FullNode::checkPbftBlockValidationFromSyncing(
   return pbft_chain_->checkPbftBlockValidationFromSyncing(pbft_block);
 }
 
+size_t FullNode::getPbftSyncedQueueSize() const {
+  return pbft_chain_->pbftSyncedQueueSize();
+}
+
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();
 }
