@@ -32,21 +32,22 @@ void TaraxaCapability::insertPeer(NodeID const &node_id,
       std::make_pair(node_id, std::make_shared<TaraxaPeer>(node_id)));
 }
 
-void TaraxaCapability::syncPeer(NodeID const &_nodeID,
-                                unsigned long level_to_sync) {
+void TaraxaCapability::syncPeerDag(NodeID const &_nodeID,
+                                   unsigned long level_to_sync) {
   if (auto full_node = full_node_.lock()) {
-    LOG(log_nf_) << "Sync Peer:" << _nodeID;
+    LOG(log_nf_) << "SYNCDAG Sync peer node " << _nodeID << " from dag level "
+                 << level_to_sync;
     auto peer = getPeer(_nodeID);
     if (level_to_sync == 0) level_to_sync = 1;
     requestBlocksLevel(_nodeID, level_to_sync, conf_.network_sync_level_size);
   }
 }
 
-void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID) {
+void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID,
+                                    unsigned long height_to_sync) {
   if (auto full_node = full_node_.lock()) {
-    size_t height_to_sync = full_node->getPbftChainSize() + 1;
-    LOG(log_nf_) << "Sync peer node " << _nodeID << " from pbft chain height "
-                 << height_to_sync;
+    LOG(log_nf_) << "SYNCPBFT Sync peer node " << _nodeID
+                 << " from pbft chain height " << height_to_sync;
     requestPbftBlocks(_nodeID, height_to_sync);
   }
 }
@@ -71,7 +72,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
   return std::make_pair(true, blk_hash_t());
 }
 
-void TaraxaCapability::continueSync(NodeID const &_nodeID) {
+void TaraxaCapability::continueSyncDag(NodeID const &_nodeID) {
   if (auto full_node = full_node_.lock()) {
     auto peer = getPeer(_nodeID);
     int max_block_level_received = 0;
@@ -84,13 +85,16 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
           auto status = checkTipsandPivot(block.second.first);
           if (!status.first) {
             peer->m_lastRequest = status.second;
+            LOG(log_nf_)
+                << "SYNCDAG Block has a missing tip/pivot, request block: "
+                << status.second;
             requestBlock(_nodeID, status.second, false);
             return;
           }
         }
 
         for (auto block : block_level->second) {
-          LOG(log_nf_) << "Storing block "
+          LOG(log_nf_) << "SYNCDAG Storing block "
                        << block.second.first.getHash().toString() << " with "
                        << block.second.second.size() << " transactions";
           full_node->insertBroadcastedBlockWithTransactions(
@@ -99,19 +103,60 @@ void TaraxaCapability::continueSync(NodeID const &_nodeID) {
         peer->m_syncBlocks.erase(block_level++);
       }
       peer->m_syncBlocks.clear();
-      if (syncing_ && peer_syncing_ == _nodeID) {
+      if (syncing_dag_ && peer_syncing_dag_ == _nodeID) {
         uint64_t max_level = full_node->getMaxDagLevel();
-        while (max_block_level_received >
-               max_level + (10 * conf_.network_sync_level_size)) {
-          LOG(log_er_) << "Syncing blocks faster then processing"
-                       << max_block_level_received << " " << max_level;
-          thisThreadSleepForSeconds(1);
-          max_level = full_node->getMaxDagLevel();
-        }
-        if (max_block_level_received < max_level) {
-          syncPeer(_nodeID, max_level + 1);
+        if (max_block_level_received >
+            max_level + (10 * conf_.network_sync_level_size)) {
+          LOG(log_dg_)
+              << "SYNCDAG Syncing blocks faster than processing. Synced level: "
+              << max_block_level_received << "  Dag Level: " << max_level
+              << " delayedDagSync counter 1";
+          host_.scheduleExecution(
+              1000, [this, _nodeID, max_block_level_received]() {
+                delayedDagSync(_nodeID, max_block_level_received, 1);
+              });
+        } else if (max_block_level_received < max_level) {
+          syncPeerDag(_nodeID, max_level + 1);
         } else {
-          syncPeer(_nodeID, max_block_level_received + 1);
+          syncPeerDag(_nodeID, max_block_level_received + 1);
+        }
+      }
+    }
+  }
+}
+
+void TaraxaCapability::delayedDagSync(NodeID _nodeID,
+                                      uint64_t max_block_level_received,
+                                      int counter) {
+  if (!stopped_) {
+    auto full_node = full_node_.lock();
+    if (full_node) {
+      if (counter > 60) {
+        LOG(log_er_)
+            << "SYNCDAG Dag blocks stuck in queue, no new block processed in "
+               "60 seconds "
+            << max_block_level_received << " " << full_node->getMaxDagLevel();
+        syncing_dag_ = false;
+        LOG(log_dg_) << "SYNCDAG Syncing DAG is stopping";
+        return;
+      }
+      if (syncing_dag_ && peer_syncing_dag_ == _nodeID) {
+        uint64_t max_level = full_node->getMaxDagLevel();
+        if (max_block_level_received >
+            max_level + (10 * conf_.network_sync_level_size)) {
+          LOG(log_dg_)
+              << "SYNCDAG Syncing blocks faster than processing. Synced level: "
+              << max_block_level_received << "  Dag Level: " << max_level
+              << " delayedDagSync counter " << (counter + 1);
+          host_.scheduleExecution(
+              1000, [this, _nodeID, max_block_level_received, counter]() {
+                delayedDagSync(_nodeID, max_block_level_received, counter + 1);
+              });
+          max_level = full_node->getMaxDagLevel();
+        } else if (max_block_level_received < max_level) {
+          syncPeerDag(_nodeID, max_level + 1);
+        } else {
+          syncPeerDag(_nodeID, max_block_level_received + 1);
         }
       }
     }
@@ -211,9 +256,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         auto const network_id = _r[1].toString();
         auto const level = _r[2].toInt();
         auto const genesis_hash = _r[3].toString();
-        LOG(log_dg_) << "Received status message from " << _nodeID << " "
-                     << peer_protocol_version << " " << network_id << " "
-                     << level << " " << genesis_;
+        auto const pbf_chain_size = _r[4].toString();
+        LOG(log_dg_) << "SYNCDAG Received status message from " << _nodeID
+                     << " " << peer_protocol_version << " " << network_id << " "
+                     << level << " " << genesis_ << " " << pbf_chain_size;
 
         if (peer_protocol_version != c_protocolVersion) {
           LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
@@ -231,21 +277,54 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
         }
         if (auto full_node = full_node_.lock()) {
-          int max_level = full_node->getMaxDagLevel();
+          uint64_t max_level = full_node->getMaxDagLevel();
           peer->level_ = level;
           if (level > max_peer_level_) {
             max_peer_level_ = level;
+            LOG(log_dg_) << "SYNCDAG new max peer level: " << max_peer_level_;
             // If our block level is less then max peer level start sync
             if (max_level < max_peer_level_) {
-              syncing_ = true;
-              peer_syncing_ = _nodeID;
-              syncPeer(_nodeID, max_level);
+              if (syncing_dag_) {
+                LOG(log_dg_)
+                    << "SYNCDAG - Switching syncing to new node: " << _nodeID;
+              } else {
+                LOG(log_dg_)
+                    << "SYNCDAG - Syncing to new connected node: " << _nodeID;
+              }
+              syncing_dag_ = true;
+              peer_syncing_dag_ = _nodeID;
+              syncPeerDag(_nodeID, max_level);
             }
           }
-          // Why PBFT chain need sync here?
-          // syncPeerPbft(_nodeID);
-          // Start gossiping if other node is within 10 blocks from our level
-          peer->syncing_ = level > (max_level - 10);
+          // Prevent gossiping if other node is behind by 10 levels or more from
+          // our level
+          peer->syncing_ = (level + 10) < max_level;
+          if (peer->syncing_) {
+            LOG(log_dg_) << "SYNCDAG - Other node is behind, prevent gossiping "
+                         << _nodeID << "Our level: " << max_level
+                         << " Peer level: " << level;
+          }
+
+          auto pbft_chain_size = full_node->getPbftChainSize();
+          peer->pbft_chain_size_ = pbft_chain_size;
+          if (pbft_chain_size > max_peer_pbft_chain_size_) {
+            max_peer_pbft_chain_size_ = pbft_chain_size;
+            LOG(log_dg_) << "SYNCPBFT new max chain size: "
+                         << max_peer_pbft_chain_size_;
+            // If our block level is less then max peer level start sync
+            if (pbft_chain_size < max_peer_pbft_chain_size_) {
+              if (syncing_pbft_) {
+                LOG(log_dg_)
+                    << "SYNCPBFT - Switching syncing to new node: " << _nodeID;
+              } else {
+                LOG(log_dg_)
+                    << "SYNCPBFT - Syncing to new connected node: " << _nodeID;
+              }
+              syncing_pbft_ = true;
+              peer_syncing_pbft = _nodeID;
+              syncPeerPbft(_nodeID, pbft_chain_size + 1);
+            }
+          }
         }
         break;
       }
@@ -284,7 +363,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           peer->markTransactionAsKnown(transaction.getHash());
         }
 
-        LOG(log_dg_) << "Received BlockPacket " << block.getHash().toString();
+        LOG(log_dg_) << "SYNCDAG - Received BlockPacket " << block.getHash().toString();
         peer->markBlockAsKnown(block.getHash());
         // Initial syncing
         if (peer->m_lastRequest == block.getHash()) {
@@ -293,11 +372,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             vTransactions.push_back(t.second);
           peer->m_syncBlocks[block.getLevel()][block.getHash()] = {
               block, vTransactions};
-          continueSync(_nodeID);
+          continueSyncDag(_nodeID);
         } else if (auto full_node = full_node_.lock()) {
           auto status = checkTipsandPivot(block);
           if (!status.first) {
-            restartSyncing();
+            restartSyncingDag();
             break;
           }
           LOG(log_nf_) << "Storing blocks " << block.getHash().toString()
@@ -402,18 +481,19 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (iBlock + transactionCount + 1 >= itemCount) break;
         }
         if (itemCount > 0) {
-          LOG(log_nf_) << "Received BlocksPacket with " << receivedBlocks.size()
+          LOG(log_nf_) << "SYNCDAG Received BlocksPacket with " << itemCount
                        << "  blocks:" << receivedBlocks.c_str();
-          continueSync(_nodeID);
+          continueSyncDag(_nodeID);
         } else {
           // We are synced, send message to other node to start gossiping new
           // blocks
-          if (syncing_) {
-            syncing_ = false;
+          if (syncing_dag_) {
+            syncing_dag_ = false;
+            LOG(log_dg_) << "SYNCDAG Syncing DAG is stopping";
             sendSyncedMessage();
-            continueSync(_nodeID);
-            // Call continue Sync, just one more time to make sure that no block
-            // is missed between stopping sync and starting gossiping
+            continueSyncDag(_nodeID);
+            // Call continue Sync, just one more time to make sure that no
+            // block is missed between stopping sync and starting gossiping
           }
         }
         break;
@@ -431,7 +511,10 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (transactionCount > 0) {
           LOG(log_dg_) << "Received TransactionPacket with " << _r.itemCount()
+                       << " transactions";
+          LOG(log_tr_) << "Received TransactionPacket with " << _r.itemCount()
                        << " transactions:" << receivedTransactions.c_str();
+
           onNewTransactions(transactions, true);
         }
         break;
@@ -466,24 +549,21 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case GetPbftBlockPacket: {
         LOG(log_dg_) << "Received GetPbftBlockPacket Block";
-        // TODO: Since syncing PBFT block and cert votes validation issue, each
-        //  time sync one block. And need to fix later
-        const size_t max_blocks_in_packet = 1;
         auto full_node = full_node_.lock();
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
           size_t my_chain_size = full_node->getPbftChainSize();
           if (my_chain_size >= height_to_sync) {
-            size_t blocks_to_transfer = std::min(
-                max_blocks_in_packet, my_chain_size - (height_to_sync - 1));
-            // Question: will send multiple times to same receiver, why?
+            size_t blocks_to_transfer =
+                std::min((uint64_t)conf_.network_sync_level_size,
+                         (uint64_t)(my_chain_size - (height_to_sync - 1)));
             LOG(log_dg_) << "Send pbftblocks to " << _nodeID;
             sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
         }
         break;
       }
-      // no cert vote needed
+      // no cert vote needed (propose block)
       case NewPbftBlockPacket: {
         LOG(log_dg_) << "In NewPbftBlockPacket";
 
@@ -504,41 +584,64 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         break;
       }
-      // need cert vote (syncing)
+      // need cert votes (syncing)
       case PbftBlockPacket: {
-        LOG(log_dg_) << "In PbftBlockPacket";
-
         auto block_count = _r.itemCount();
+        LOG(log_dg_) << "SYNCPBFT In PbftBlockPacket received " << block_count
+                     << " blocks from syncing";
+        auto full_node = full_node_.lock();
+        if (!full_node) {
+          LOG(log_er_) << "PbftBlock full node weak pointer empty";
+          return false;
+        }
         for (auto iblock = 0; iblock < block_count; iblock++) {
-          PbftBlockCert blk_and_votes(_r[iblock].toBytes());
-          auto pbft_blk_hash = blk_and_votes.pbft_blk.getBlockHash();
+          PbftBlockCert pbft_blk_and_votes(_r[iblock].toBytes());
+          auto pbft_blk_hash = pbft_blk_and_votes.pbft_blk.getBlockHash();
           peer->markPbftBlockAsKnown(pbft_blk_hash);
-          auto full_node = full_node_.lock();
-          if (!full_node) {
-            LOG(log_er_) << "PbftBlock full node weak pointer empty";
-            return false;
-          }
+
+          // Check the PBFT block whether in the chain or in the synced queue
           if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
-            if (full_node->pbftBlockHasEnoughCertVotes(
-                    pbft_blk_hash, blk_and_votes.cert_votes)) {
-              // Check 2t+1 cert votes, then put PBFT block into chain and
-              //  store cert votes in DB.
-              full_node->setVerifiedPbftBlock(blk_and_votes.pbft_blk);
-              full_node->storeCertVotes(pbft_blk_hash,
-                                        blk_and_votes.cert_votes);
-              LOG(log_dg_) << "Pbftblock " << pbft_blk_hash
-                           << " have enough cert votes!";
+            // Check the PBFT block validation
+            if (full_node->checkPbftBlockValidationFromSyncing(
+                    pbft_blk_and_votes.pbft_blk)) {
+              // Notice: cannot verify 2t+1 cert votes here. Since don't have
+              // correct account status for nodes which after the first synced
+              // one.
+              full_node->setSyncedPbftBlock(pbft_blk_and_votes);
+              LOG(log_dg_) << "SYNCPBFT Receive PBFT block " << pbft_blk_hash
+                           << " with " << pbft_blk_and_votes.cert_votes.size()
+                           << " cert votes!";
             } else {
-              LOG(log_wr_) << "Pbftblock " << pbft_blk_hash
-                           << " does not have enough cert votes";
+              LOG(log_wr_) << "SYNCPBFT The PBFT block " << pbft_blk_hash
+                           << " failed validation. Drop it!";
             }
           }
         }
-        // TODO: Since the received PBFT block is not put into chain immediately
-        //  , each time will send the same height to ask syncing. Need fix
-        // if (block_count > 0) {
-        //   syncPeerPbft(_nodeID);
-        // }
+        if (block_count > 0) {
+          if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
+            uint64_t max_block_height = full_node->getPbftChainSize() +
+                                        full_node->getPbftSyncedQueueSize();
+            if (max_block_height > full_node->getPbftChainSize() +
+                                       (10 * conf_.network_sync_level_size)) {
+              LOG(log_dg_)
+                  << "SYNCPBFT Syncing pbft blocks faster than processing "
+                  << max_block_height << " " << full_node->getPbftChainSize();
+              host_.scheduleExecution(
+                  1000, [this, _nodeID, max_block_height]() {
+                    delayedPbftSync(_nodeID, max_block_height, 1);
+                  });
+            } else {
+              syncPeerPbft(_nodeID, max_block_height + 1);
+            }
+          } else {
+            LOG(log_dg_) << "Received PbftBlockPacket from node " << _nodeID
+                         << " but currently syncing with peer "
+                         << peer_syncing_pbft;
+          }
+        } else {
+          syncing_pbft_ = false;
+          LOG(log_dg_) << "SYNCPBFT Syncing PBFT is stopping";
+        }
         break;
       }
       case TestPacket:
@@ -552,13 +655,50 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
   return true;
 }
 
-void TaraxaCapability::restartSyncing() {
-  if (syncing_) return;
-  LOG(log_nf_) << "Restarting syncing";
+void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
+                                       uint64_t max_block_height, int counter) {
+  if (!stopped_) {
+    auto full_node = full_node_.lock();
+    if (full_node) {
+      if (counter > 60) {
+        LOG(log_er_)
+            << "SYNCPBFT Pbft blocks stuck in queue, no new block processed "
+               "in 60 seconds "
+            << max_block_height << " " << full_node->getPbftChainSize();
+        syncing_pbft_ = false;
+        LOG(log_dg_) << "SYNCPBFT Syncing PBFT is stopping";
+        return;
+      }
+      if (syncing_pbft_ && peer_syncing_pbft == _nodeID) {
+        if (max_block_height > full_node->getPbftChainSize() +
+                                   (10 * conf_.network_sync_level_size)) {
+          LOG(log_dg_) << "SYNCPBFT Syncing pbft blocks faster than processing "
+                       << max_block_height << " "
+                       << full_node->getPbftChainSize();
+          host_.scheduleExecution(
+              1000, [this, _nodeID, max_block_height, counter]() {
+                delayedPbftSync(_nodeID, max_block_height, counter + 1);
+              });
+        } else {
+          syncPeerPbft(_nodeID, max_block_height + 1);
+        }
+      }
+    }
+  }
+}
+
+void TaraxaCapability::restartSyncingDag() {
+  if (syncing_dag_) {
+    LOG(log_dg_)
+        << "SYNCDAG restartSyncingDag called but syncing_dag_ already true";
+    return;
+  }
+  LOG(log_nf_) << "SYNCDAG Restarting syncing";
   NodeID max_level_nodeID;
   unsigned long max_level = 0;
   {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    if (peers_.size() == 0) return;
     for (auto const peer : peers_) {
       if (peer.second->level_ > max_level) {
         max_level = peer.second->level_;
@@ -568,11 +708,37 @@ void TaraxaCapability::restartSyncing() {
   }
   if (auto full_node = full_node_.lock()) {
     if (!stopped_) {
-      syncing_ = true;
-      peer_syncing_ = max_level_nodeID;
-      syncPeer(max_level_nodeID, full_node->getMaxDagLevel());
-      // Why PBFT chain need sync here?
-      // syncPeerPbft(max_level_nodeID);
+      syncing_dag_ = true;
+      peer_syncing_dag_ = max_level_nodeID;
+      syncPeerDag(max_level_nodeID, full_node->getMaxDagLevel());
+    }
+  }
+}
+
+void TaraxaCapability::restartSyncingPbft() {
+  if (syncing_pbft_) {
+    LOG(log_dg_)
+        << "SYNCPBFT restartSyncingPbft called but syncing_pbft_ already true";
+    return;
+  }
+
+  LOG(log_nf_) << "SYNCPBFT Restarting syncing PBFT";
+  NodeID max_pbft_chain_nodeID;
+  unsigned long max_pbft_chain_size = 0;
+  {
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const peer : peers_) {
+      if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
+        max_pbft_chain_size = peer.second->pbft_chain_size_;
+        max_pbft_chain_nodeID = peer.first;
+      }
+    }
+  }
+  if (auto full_node = full_node_.lock()) {
+    if (!stopped_) {
+      syncing_pbft_ = true;
+      peer_syncing_pbft = max_pbft_chain_nodeID;
+      syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
     }
   }
 }
@@ -581,11 +747,18 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   cnt_received_messages_.erase(_nodeID);
   test_sums_.erase(_nodeID);
-  // If syncing to the disconnected peer, find another peer to sync with
-  if (syncing_ && peer_syncing_ == _nodeID && getPeersCount() > 0) {
-    restartSyncing();
-  }
   erasePeer(_nodeID);
+  // If syncing to the disconnected peer, find another peer to sync with
+  if (syncing_dag_ && peer_syncing_dag_ == _nodeID && getPeersCount() > 0) {
+    syncing_dag_ = false;
+    LOG(log_dg_) << "Syncing DAG is stopping";
+    restartSyncingDag();
+  }
+  if (syncing_pbft_ && peer_syncing_pbft == _nodeID && getPeersCount() > 0) {
+    syncing_pbft_ = false;
+    LOG(log_dg_) << "Syncing PBFT is stopping";
+    restartSyncingPbft();
+  }
 }
 
 void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
@@ -597,14 +770,16 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
 void TaraxaCapability::sendStatus(NodeID const &_id) {
   RLPStream s;
   if (auto full_node = full_node_.lock()) {
-    LOG(log_dg_) << "Sending status message to " << _id << " "
+    LOG(log_dg_) << "SYNCDAG Sending status message to " << _id << " "
                  << c_protocolVersion << " " << conf_.network_id << " "
                  << full_node->getMaxDagLevel() << " "
-                 << full_node->getMaxDagLevel() << genesis_;
+                 << full_node->getPbftChainSize() << " " << genesis_ << " "
+                 << full_node->getPbftChainSize();
     host_.capabilityHost()->sealAndSend(
-        _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
+        _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
                  << c_protocolVersion << conf_.network_id
-                 << full_node->getMaxDagLevel() << genesis_);
+                 << full_node->getMaxDagLevel() << genesis_
+                 << full_node->getPbftChainSize());
   }
 }
 
@@ -699,7 +874,7 @@ void TaraxaCapability::onNewBlockReceived(
     } else {
       auto status = checkTipsandPivot(block);
       if (!status.first) {
-        restartSyncing();
+        restartSyncingDag();
         return;
       }
       LOG(log_nf_) << "Storing block " << block.getHash().toString() << " with "
@@ -721,7 +896,7 @@ void TaraxaCapability::onNewBlockReceived(
 }
 
 void TaraxaCapability::sendSyncedMessage() {
-  LOG(log_dg_) << "sendSyncedMessage ";
+  LOG(log_dg_) << "SYNCDAG sendSyncedMessage ";
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
   for (auto &peer : peers_) {
     RLPStream s;
@@ -897,7 +1072,8 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
-  LOG(log_dg_) << "Sending GetPbftBlockPacket with size: " << height_to_sync;
+  LOG(log_dg_) << "SYNCPBFT Sending GetPbftBlockPacket with height: "
+               << height_to_sync;
   auto peer = getPeer(_id);
   if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
@@ -911,8 +1087,8 @@ void TaraxaCapability::requestBlocksLevel(NodeID const &_id,
   host_.capabilityHost()->prep(_id, name(), s, GetBlocksLevelPacket, 2);
   s << level;
   s << number_of_levels;
-  LOG(log_nf_) << "Sending GetBlocksLevelPacket of level:" << level << " "
-               << number_of_levels;
+  LOG(log_nf_) << "SYNCDAG Sending GetBlocksLevelPacket of level:" << level
+               << " " << number_of_levels;
   auto peer = getPeer(_id);
   if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);
@@ -951,7 +1127,7 @@ void TaraxaCapability::doBackgroundWork() {
         std::chrono::system_clock::to_time_t(chrono::system_clock::now());
     // Disconnect any node that do not respond within 10 seconds
     if (peer.second->asking() && now - peer.second->lastAsk() > 10) {
-      LOG(log_nf_) << "Host disconnected, no response in 10 seconds"
+      LOG(log_nf_) << "SYNCDAG Host disconnected, no response in 10 seconds"
                    << peer.first;
       host_.capabilityHost()->disconnect(peer.first, p2p::PingTimeout);
     }

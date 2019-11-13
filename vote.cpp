@@ -163,7 +163,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     // Return false, will not effect PBFT consensus
     // if the vote is valid, will count when node has the relative pbft block
     // if the vote is invalid, will remove when pass the pbft round
-    LOG(log_tra_) << "Haven't have the newest PBFT block to verify the vote "
+    LOG(log_tra_) << "Have not received latest PBFT block to verify the vote "
                   << "sortition signature: " << sortition_signature
                   << " vote hash " << vote.getHash();
     return false;
@@ -286,6 +286,9 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                                         bool& sync_peers_pbft_chain) {
   cleanupVotes(pbft_round);
 
+  // Should be sure we always write a value to this pointer...
+  sync_peers_pbft_chain = false;
+
   std::vector<Vote> verified_votes;
 
   auto full_node = node_.lock();
@@ -317,10 +320,11 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
-    } else if (v.getRound() == pbft_round + 1) {
+    } else if (v.getRound() == pbft_round + 1 &&
+               v.getType() == next_vote_type) {
       // We know that votes in our current round should reference our latest
       // PBFT chain block This is not immune to malacious attack!!!
-      LOG(log_deb_) << "Vote in current round " << pbft_round + 1
+      LOG(log_deb_) << "Next vote in current round " << pbft_round + 1
                     << " points to different block hash "
                     << last_pbft_block_hash << " | vote hash: " << v.getHash()
                     << " vote address: " << vote_address;
@@ -367,6 +371,55 @@ std::vector<Vote> VoteManager::getAllVotes() {
   }
 
   return votes;
+}
+
+bool VoteManager::pbftBlockHasEnoughValidCertVotes(
+    PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,
+    size_t sortition_threshold, size_t pbft_2t_plus_1) const {
+  blk_hash_t pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+  std::vector<Vote> valid_votes;
+  for (auto const& v : pbft_block_and_votes.cert_votes) {
+    if (v.getType() != cert_vote_type) {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash() << " has wrong vote type "
+                    << v.getType();
+      continue;
+    } else if (v.getStep() != 3) {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash() << " has wrong vote step "
+                    << v.getStep();
+      continue;
+    } else if (v.getBlockHash() !=
+               pbft_block_and_votes.pbft_blk.getBlockHash()) {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash()
+                    << " has wrong vote block hash " << v.getBlockHash();
+      continue;
+    }
+    if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players,
+                       sortition_threshold)) {
+      valid_votes.emplace_back(v);
+    } else {
+      LOG(log_war_) << "For PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << ", cert vote " << v.getHash() << " failed validation";
+    }
+  }
+  if (valid_votes.size() < pbft_2t_plus_1) {
+    LOG(log_err_) << "PBFT block "
+                  << pbft_block_and_votes.pbft_blk.getBlockHash() << " with "
+                  << pbft_block_and_votes.cert_votes.size()
+                  << " cert votes. Has " << valid_votes.size()
+                  << " valid cert votes. 2t+1 is " << pbft_2t_plus_1
+                  << ", Valid sortition players " << valid_sortition_players
+                  << ", sortition threshold is " << sortition_threshold
+                  << ". The last block in pbft chain is "
+                  << pbft_chain_last_block_hash;
+  }
+  return valid_votes.size() >= pbft_2t_plus_1;
 }
 
 vote_hash_t VoteManager::hash_(std::string const& str) const {

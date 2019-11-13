@@ -103,6 +103,7 @@ class TaraxaPeer : public boost::noncopyable {
   blk_hash_t m_lastRequest;
   bool syncing_ = false;
   uint64_t level_ = 0;
+  uint64_t pbft_chain_size_ = 0;
 
  private:
   ExpirationCache<blk_hash_t> known_blocks_;
@@ -147,10 +148,14 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
-  void syncPeer(NodeID const &_nodeID, unsigned long level_to_sync);
-  void syncPeerPbft(NodeID const &_nodeID);
-  void continueSync(NodeID const &_nodeID);
-  void restartSyncing();
+  void syncPeerDag(NodeID const &_nodeID, unsigned long level_to_sync);
+  void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
+  void continueSyncDag(NodeID const &_nodeID);
+  void restartSyncingDag();
+  void restartSyncingPbft();
+  void delayedPbftSync(NodeID _nodeID, uint64_t max_block_height, int counter);
+  void delayedDagSync(NodeID _nodeID, uint64_t max_block_level_received,
+                      int counter);
   std::pair<bool, blk_hash_t> checkTipsandPivot(DagBlock const &block);
   bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
                                  RLP const &_r) override;
@@ -204,7 +209,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void insertPeer(NodeID const &node_id,
                   std::shared_ptr<TaraxaPeer> const &peer);
 
-  bool syncing_ = false;
+  bool syncing_dag_ = false;
+  bool syncing_pbft_ = false;
 
  private:
   Host &host_;
@@ -230,7 +236,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
   unsigned long max_peer_level_ = 0;
-  NodeID peer_syncing_;
+  unsigned long max_peer_pbft_chain_size_ = 0;
+  NodeID peer_syncing_dag_;
+  NodeID peer_syncing_pbft;
   std::string genesis_;
   bool performance_log_;
   mutable std::mt19937_64
@@ -247,6 +255,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityInfo, "TARCAP")};
   dev::Logger log_dg_{
       dev::createLogger(dev::Verbosity::VerbosityDebug, "TARCAP")};
+  dev::Logger log_tr_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "TARCAP")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
   dev::Logger log_perf_{

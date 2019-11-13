@@ -1,22 +1,64 @@
-#include "sortition.h"
-
+#include <gtest/gtest.h>
+#include <iostream>
+#include <string>
+#include "ProverWesolowski.h"
+#include "core_tests/util.hpp"
 #include "full_node.hpp"
 #include "libdevcore/FixedHash.h"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
 #include "libdevcrypto/Common.h"
+#include "openssl/bn.h"
 #include "pbft_manager.hpp"
-
-#include <gtest/gtest.h>
-#include <iostream>
-#include <string>
-#include "core_tests/util.hpp"
+#include "sodium.h"
+#include "sortition.h"
 
 namespace taraxa {
 using namespace core_tests::util;
+using namespace vdf;
 using std::string;
-
 struct CryptoTest : core_tests::util::DBUsingTest<> {};
+
+TEST_F(CryptoTest, VerifierWesolowski) {
+  BIGNUM* N_bn = BN_secure_new();
+  BN_dec2bn(&N_bn, "10");  // 799979478482341
+  bytevec N = vdf::bn2bytevec(N_bn);
+
+  VerifierWesolowski verifier(20, 8, {97}, N);
+  ProverWesolowski prover;
+  const auto sol = prover(verifier);
+  auto ok = verifier(sol);
+  EXPECT_TRUE(ok);
+}
+
+TEST_F(CryptoTest, vrf_proof_verify) {
+  std::string sk(crypto_vrf_SECRETKEYBYTES, ' '),
+      pk(crypto_vrf_PUBLICKEYBYTES, ' ');
+  crypto_vrf_keypair((unsigned char*)pk.data(), (unsigned char*)sk.data());
+  std::string message("helloworld");
+  crypto_vrf_keypair((unsigned char*)pk.data(), (unsigned char*)sk.data());
+  std::cout << "VRF pk bytes: (" << crypto_vrf_publickeybytes() << ") "
+            << toHex(pk) << std::endl;
+  std::cout << "VRF sk bytes: (" << crypto_vrf_secretkeybytes() << ") "
+            << toHex(sk) << std::endl;
+  string proof(crypto_vrf_proofbytes(), ' ');
+  crypto_vrf_prove((unsigned char*)proof.data(),
+                   (const unsigned char*)sk.data(),
+                   (const unsigned char*)message.data(), message.size());
+
+  std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") "
+            << toHex(proof) << std::endl;
+
+  string output(crypto_vrf_outputbytes(), ' ');
+
+  auto res = crypto_vrf_verify(
+      (unsigned char*)output.data(), (const unsigned char*)pk.data(),
+      (const unsigned char*)proof.data(), (const unsigned char*)message.data(),
+      message.size());
+  std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
+            << toHex(output) << endl;
+  EXPECT_FALSE(res);  // means success
+}
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   dev::KeyPair key_pair = dev::KeyPair::create();
@@ -71,7 +113,7 @@ TEST_F(CryptoTest, sortition_rate) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   auto node(FullNode::make(cfg, true));
 
-  size_t valid_sortition_players = 100;
+  size_t valid_sortition_players = 5;
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;

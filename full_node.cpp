@@ -623,7 +623,7 @@ uint64_t FullNode::getUnverifiedVotesSize() const {
 
 bool FullNode::isKnownPbftBlockForSyncing(
     taraxa::blk_hash_t const &pbft_block_hash) const {
-  return pbft_chain_->findPbftBlockInVerifiedSet(pbft_block_hash) ||
+  return pbft_chain_->findPbftBlockInSyncedSet(pbft_block_hash) ||
          pbft_chain_->findPbftBlockInChain(pbft_block_hash);
 }
 
@@ -650,8 +650,8 @@ void FullNode::newPendingTransaction(trx_hash_t const &trx_hash) {
   if (ws_server_) ws_server_->newPendingTransaction(trx_hash);
 }
 
-void FullNode::setVerifiedPbftBlock(PbftBlock const &pbft_block) {
-  pbft_chain_->setVerifiedPbftBlockIntoQueue(pbft_block);
+void FullNode::setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes) {
+  pbft_chain_->setSyncedPbftBlockIntoQueue(pbft_block_and_votes);
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
@@ -735,7 +735,7 @@ void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
                << votes;
 }
-
+// Need remove later, keep it now for reuse
 bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
                                            std::vector<Vote> &votes) const {
   std::vector<Vote> valid_votes;
@@ -761,6 +761,15 @@ bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
 }
 
 void FullNode::setTwoTPlusOne(size_t val) { pbft_mgr_->setTwoTPlusOne(val); }
+
+bool FullNode::checkPbftBlockValidationFromSyncing(
+    PbftBlock const &pbft_block) const {
+  return pbft_chain_->checkPbftBlockValidationFromSyncing(pbft_block);
+}
+
+size_t FullNode::getPbftSyncedQueueSize() const {
+  return pbft_chain_->pbftSyncedQueueSize();
+}
 
 TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
   return trx_mgr_->getUnsafeTransactionStatusTable();

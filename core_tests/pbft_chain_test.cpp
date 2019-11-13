@@ -95,7 +95,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_hash, prev_blk_hash, dag_blk_hash,
                          pbft_chain_period, beneficiary);
-  PbftBlock pbft_block1(blk_hash_t(1));
+  PbftBlock pbft_block1(blk_hash_t(1), 2);
   pbft_block1.setPivotBlock(pivot_block);
   // setup timestamp for pbft block
   pbft_block1.setTimestamp(std::time(nullptr));
@@ -121,7 +121,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
 
-  PbftBlock pbft_block3(blk_hash_t(2));
+  PbftBlock pbft_block3(blk_hash_t(2), 3);
   pbft_block3.setScheduleBlock(schedule_blk);
   // setup timestamp for pbft block
   pbft_block3.setTimestamp(std::time(nullptr));
@@ -203,7 +203,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   addr_t beneficiary(10);
   PivotBlock pivot_block(prev_pivot_blk, prev_res_blk, dag_blk, period,
                          beneficiary);
-  PbftBlock pbft_block1(blk_hash_t(1));
+  PbftBlock pbft_block1(blk_hash_t(1), 2);
   pbft_block1.setPivotBlock(pivot_block);
   // setup timestamp for pbft block
   pbft_block1.setTimestamp(std::time(nullptr));
@@ -268,7 +268,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   blk_hash_t prev_pivot(1);
   TrxSchedule schedule;
   ScheduleBlock schedule_blk(prev_pivot, schedule);
-  PbftBlock pbft_block2(blk_hash_t(2));
+  PbftBlock pbft_block2(blk_hash_t(2), 3);
   pbft_block2.setScheduleBlock(schedule_blk);
   // setup timestamp for pbft block
   pbft_block2.setTimestamp(std::time(nullptr));
