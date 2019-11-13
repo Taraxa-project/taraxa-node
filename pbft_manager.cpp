@@ -1383,16 +1383,17 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     if (!vote_mgr_->pbftBlockHasEnoughValidCertVotes(
             pbft_block_and_votes, valid_sortition_accounts_size_,
             sortition_threshold_, TWO_T_PLUS_ONE)) {
-      // Failed cert votes validation, drop it
-      LOG(log_war_) << "Synced PBFT block "
-                    << pbft_block_and_votes.pbft_blk.getBlockHash()
-                    << " doesn't have enough valid cert votes. Drop it!";
-      pbft_chain_->pbftSyncedQueuePopFront();
-      continue;
+      // Failed cert votes validation, flush synced PBFT queue and set since
+      // next block validation depends on the current one
+      LOG(log_err_)
+          << "Synced PBFT block "
+          << pbft_block_and_votes.pbft_blk.getBlockHash()
+          << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
+      pbft_chain_->clearSyncedPbftBlocks();
+      break;
     }
     if (!pushPbftBlockIntoChain_(pbft_block_and_votes.pbft_blk)) {
-      // TODO: May need clear PBFT synced queue/set, since next one validation
-      //  depends on the current one
+      // PBFT chain syncing faster than DAG syncing, wait!
       pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
       if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
         LOG(log_deb_) << "PBFT chain unable to push synced block "
@@ -1402,8 +1403,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
                       << " synced blocks that could not be pushed.";
       }
       pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
-      pbft_chain_->pbftSyncedQueuePopFront();
-      continue;
+      break;
     }
     pbft_chain_->pbftSyncedQueuePopFront();
     // Store cert votes in DB

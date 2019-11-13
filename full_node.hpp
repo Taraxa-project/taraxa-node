@@ -208,6 +208,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                                    std::vector<Vote> &votes) const;
   void setTwoTPlusOne(size_t val);
   bool checkPbftBlockValidationFromSyncing(PbftBlock const &pbft_block) const;
+  size_t getPbftSyncedQueueSize() const;
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const {
