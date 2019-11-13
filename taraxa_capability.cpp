@@ -363,7 +363,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           peer->markTransactionAsKnown(transaction.getHash());
         }
 
-        LOG(log_dg_) << "SYNCDAG - Received BlockPacket " << block.getHash().toString();
+        LOG(log_dg_) << "SYNCDAG - Received BlockPacket "
+                     << block.getHash().toString();
         peer->markBlockAsKnown(block.getHash());
         // Initial syncing
         if (peer->m_lastRequest == block.getHash()) {
