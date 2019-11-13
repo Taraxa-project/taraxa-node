@@ -36,7 +36,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    git submodule update --init --recursive
                     docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
                     --build-arg BASE_IMAGE=${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
