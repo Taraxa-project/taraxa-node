@@ -815,6 +815,8 @@ bool PbftChain::pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block) {
   if (!pushPbftBlock(pbft_block)) {
     LOG(log_err_)
         << "pushPbftPivotBlock() found pushPbftBlock() returned false";
+    // Roll back PBFT period
+    period_--;
     return false;
   }
   last_pbft_pivot_hash_ = pbft_block.getBlockHash();
