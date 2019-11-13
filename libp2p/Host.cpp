@@ -91,7 +91,8 @@ Host::Host(string const& _clientVersion, KeyPair const& _alias,
       m_capabilityHost(createCapabilityHost(*this)),
       m_encrypt(encrypt),
       m_idealPeerCount(ideal_peers),
-      m_maxPeerCount(max_peers) {
+      m_maxPeerCount(max_peers),
+      m_timers(DeadlineOps::make_shared(m_ioService)) {
   cnetnote << "Id: " << id();
 }
 
@@ -159,7 +160,7 @@ void Host::doneWorking() {
   m_ioService.reset();
 
   DEV_GUARDED(x_timers)
-  m_timers.clear();
+  m_timers->stop();
 
   // shutdown acceptor
   m_tcp4Acceptor.cancel();
@@ -692,10 +693,6 @@ void Host::run(boost::system::error_code const& _ec) {
   DEV_GUARDED(x_connecting)
   m_connecting.remove_if(
       [](std::weak_ptr<RLPXHandshake> h) { return h.expired(); });
-  DEV_GUARDED(x_timers)
-  m_timers.remove_if([](std::unique_ptr<io::deadline_timer> const& t) {
-    return t->expires_from_now().total_milliseconds() < 0;
-  });
 
   keepAlivePeers();
 
@@ -996,10 +993,7 @@ void Host::forEachPeer(std::string const& _capabilityName,
 }
 
 void Host::scheduleExecution(int _delayMs, std::function<void()> _f) {
-  std::unique_ptr<io::deadline_timer> t(new io::deadline_timer(m_ioService));
-  t->expires_from_now(boost::posix_time::milliseconds(_delayMs));
-  t->async_wait([_f](boost::system::error_code const& _ec) {
+  m_timers->schedule(_delayMs, [_f](boost::system::error_code const& _ec) {
     if (!_ec) _f();
   });
-  DEV_GUARDED(x_timers) { m_timers.emplace_back(std::move(t)); }
 }
