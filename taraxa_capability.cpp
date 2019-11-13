@@ -1215,10 +1215,6 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
       cert_blocks.emplace_back(bk);
     }
 
-    // Protect PBFT chain DB processing happening in the same time
-    if (cert_blocks.empty()) {
-      return;
-    }
     RLPStream s;
     host_.capabilityHost()->prep(_id, name(), s, PbftBlockPacket,
                                  cert_blocks.size());
