@@ -418,7 +418,6 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
                   << ", sortition threshold is " << sortition_threshold
                   << ". The last block in pbft chain is "
                   << pbft_chain_last_block_hash;
-
   }
   return valid_votes.size() >= pbft_2t_plus_1;
 }
