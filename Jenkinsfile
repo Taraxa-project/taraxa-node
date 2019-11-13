@@ -33,18 +33,6 @@ pipeline {
                 }
             }
         }
-        stage('Unit Tests') {
-            agent {
-              docker {
-                alwaysPull true
-                image "${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
-                reuseNode true
-              }
-            }
-            steps {
-                sh 'make DEBUG=1 -j 4 run_test'
-            }
-        }
         stage('Build Docker Image') {
             steps {
                 sh '''
