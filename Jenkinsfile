@@ -33,7 +33,7 @@ pipeline {
                 }
             }
         }
-        stage('Build Docker Image') {
+        stage('Tests + Build Docker Image') {
             steps {
                 sh '''
                     docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
