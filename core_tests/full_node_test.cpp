@@ -1236,64 +1236,49 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
   ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
 
-  // time to make sure all transactions have been packed into block...
+  // send dummy trx to make sure all DAG blocks are ordered
+  // NOTE: have to wait longer than block proposer time + transaction
+  // propogation time to ensure
+  //       all transacations have already been packed into other blocks and that
+  //       this new transaction will get packed into a unique block that will
+  //       reference all outstanding tips
+  std::cout << "Sleep 2 seconds before sending dummy transaction ... "
+            << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   // send dummy trx to make sure all DAGs are ordered
+  std::cout << "Send dummy transaction ... " << std::endl;
   try {
     send_dummy_trx();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
-  for (int i = 0; i < SYNC_TIMEOUT; ++i) {
-    num_vertices1 = node1->getNumVerticesInDag();
-    num_vertices2 = node2->getNumVerticesInDag();
-    num_vertices3 = node3->getNumVerticesInDag();
-    num_vertices4 = node4->getNumVerticesInDag();
-    num_vertices5 = node5->getNumVerticesInDag();
-    if (i % 10 == 0) {
-      std::cout << "Wait for dummy trx syncing ..." << std::endl;
-      std::cout << "Node 1 trx received: " << node1->getTransactionStatusCount()
-                << " Dag size: " << num_vertices1 << std::endl;
-      std::cout << "Node 2 trx received: " << node2->getTransactionStatusCount()
-                << " Dag size: " << num_vertices2 << std::endl;
-      std::cout << "Node 3 trx received: " << node3->getTransactionStatusCount()
-                << " Dag size: " << num_vertices3 << std::endl;
-      std::cout << "Node 4 trx received: " << node4->getTransactionStatusCount()
-                << " Dag size: " << num_vertices4 << std::endl;
-      std::cout << "Node 5 trx received: " << node5->getTransactionStatusCount()
-                << " Dag size: " << num_vertices5 << std::endl;
-    }
+  std::cout << "Wait 2 seconds before checking all nodes have seen a new DAG "
+               "block (containing dummy transaction) ... "
+            << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
-    if (node1->getTransactionStatusCount() == 10005 &&
-        node2->getTransactionStatusCount() == 10005 &&
-        node3->getTransactionStatusCount() == 10005 &&
-        node4->getTransactionStatusCount() == 10005 &&
-        node5->getTransactionStatusCount() == 10005 &&
-        num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
-        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5)
-      break;
-    taraxa::thisThreadSleepForMilliSeconds(200);
-  }
-
-  num_vertices1 = node1->getNumVerticesInDag();
-  num_vertices2 = node2->getNumVerticesInDag();
-  num_vertices3 = node3->getNumVerticesInDag();
-  num_vertices4 = node4->getNumVerticesInDag();
-  num_vertices5 = node5->getNumVerticesInDag();
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
 
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node1->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node2->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node3->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node4->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node5->getTransactionStatusCount(), 10005);
 
+  std::cout << "All transactions received ..." << std::endl;
+
+  std::cout << "Compute ordered dag blocks ..." << std::endl;
   auto block = node1->getConfig().genesis_state.block;
   std::vector<std::string> ghost;
   node1->getGhostPath(block.getHash().toString(), ghost);
