@@ -254,12 +254,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       case StatusPacket: {
         auto const peer_protocol_version = _r[0].toInt<unsigned>();
         auto const network_id = _r[1].toString();
-        auto const level = _r[2].toInt();
+        auto const peer_level = _r[2].toPositiveInt64();
         auto const genesis_hash = _r[3].toString();
-        auto const pbf_chain_size = _r[4].toString();
+        auto const peer_pbft_chain_size = _r[4].toPositiveInt64();
         LOG(log_dg_) << "SYNCDAG Received status message from " << _nodeID
                      << " " << peer_protocol_version << " " << network_id << " "
-                     << level << " " << genesis_ << " " << pbf_chain_size;
+                     << peer_level << " " << genesis_ << " "
+                     << peer_pbft_chain_size;
 
         if (peer_protocol_version != c_protocolVersion) {
           LOG(log_er_) << "Incorrect protocol version " << peer_protocol_version
@@ -278,9 +279,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (auto full_node = full_node_.lock()) {
           uint64_t max_level = full_node->getMaxDagLevel();
-          peer->level_ = level;
-          if (level > max_peer_level_) {
-            max_peer_level_ = level;
+          peer->level_ = peer_level;
+          if (peer_level > max_peer_level_) {
+            max_peer_level_ = peer_level;
             LOG(log_dg_) << "SYNCDAG new max peer level: " << max_peer_level_;
             // If our block level is less then max peer level start sync
             if (max_level < max_peer_level_) {
@@ -298,17 +299,17 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
           // Prevent gossiping if other node is behind by 10 levels or more from
           // our level
-          peer->syncing_ = (level + 10) < max_level;
+          peer->syncing_ = (peer_level + 10) < max_level;
           if (peer->syncing_) {
             LOG(log_dg_) << "SYNCDAG - Other node is behind, prevent gossiping "
                          << _nodeID << "Our level: " << max_level
-                         << " Peer level: " << level;
+                         << " Peer level: " << peer_level;
           }
 
           auto pbft_chain_size = full_node->getPbftChainSize();
-          peer->pbft_chain_size_ = pbft_chain_size;
-          if (pbft_chain_size > max_peer_pbft_chain_size_) {
-            max_peer_pbft_chain_size_ = pbft_chain_size;
+          peer->pbft_chain_size_ = peer_pbft_chain_size;
+          if (peer_pbft_chain_size > max_peer_pbft_chain_size_) {
+            max_peer_pbft_chain_size_ = peer_pbft_chain_size;
             LOG(log_dg_) << "SYNCPBFT new max chain size: "
                          << max_peer_pbft_chain_size_;
             // If our block level is less then max peer level start sync
@@ -345,6 +346,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
 
         peer->markBlockAsKnown(block.getHash());
+        if (block.getLevel() > peer->level_) peer->level_ = block.getLevel();
         onNewBlockReceived(block, newTransactions);
         break;
       }
@@ -572,6 +574,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         PbftBlock pbft_block(_r[0]);
         LOG(log_dg_) << "Received PBFT Block " << pbft_block.getBlockHash();
         peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
+        if ((pbft_block.getHeight() - 1) > peer->pbft_chain_size_)
+          peer->pbft_chain_size_ = pbft_block.getHeight() - 1;
 
         auto full_node = full_node_.lock();
         if (!full_node) {
@@ -775,7 +779,7 @@ void TaraxaCapability::sendStatus(NodeID const &_id) {
     LOG(log_dg_) << "SYNCDAG Sending status message to " << _id << " "
                  << c_protocolVersion << " " << conf_.network_id << " "
                  << full_node->getMaxDagLevel() << " "
-                 << full_node->getPbftChainSize() << " " << genesis_ << " "
+                 << full_node->getMaxDagLevel() << " " << genesis_ << " "
                  << full_node->getPbftChainSize();
     host_.capabilityHost()->sealAndSend(
         _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
