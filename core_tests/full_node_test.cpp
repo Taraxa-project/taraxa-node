@@ -251,6 +251,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   auto node4 = top4.getNode();
   auto node5 = top5.getNode();
 
+  taraxa::thisThreadSleepForMilliSeconds(500);
+
   ASSERT_GT(node1->getPeerCount(), 0);
   ASSERT_GT(node2->getPeerCount(), 0);
   ASSERT_GT(node3->getPeerCount(), 0);
