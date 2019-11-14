@@ -261,6 +261,72 @@ class TaraxaCapability : public CapabilityFace, public Worker {
       dev::createLogger(dev::Verbosity::VerbosityError, "TARCAP")};
   dev::Logger log_perf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "NETPER")};
+
+  dev::Logger log_wr_pbft_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFTSYNC")};
+  dev::Logger log_nf_pbft_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFTSYNC")};
+  dev::Logger log_dg_pbft_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFTSYNC")};
+  dev::Logger log_tr_pbft_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFTSYNC")};
+  dev::Logger log_er_pbft_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "PBFTSYNC")};
+
+  dev::Logger log_wr_dag_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGSYNC")};
+  dev::Logger log_nf_dag_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGSYNC")};
+  dev::Logger log_dg_dag_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "DAGSYNC")};
+  dev::Logger log_tr_dag_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGSYNC")};
+  dev::Logger log_er_dag_sync_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGSYNC")};
+
+  dev::Logger log_wr_trx_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXPRP")};
+  dev::Logger log_nf_trx_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXPRP")};
+  dev::Logger log_dg_trx_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXPRP")};
+  dev::Logger log_tr_trx_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "TRXPRP")};
+  dev::Logger log_er_trx_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "TRXPRP")};
+
+  dev::Logger log_wr_dag_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGPRP")};
+  dev::Logger log_nf_dag_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGPRP")};
+  dev::Logger log_dg_dag_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "DAGPRP")};
+  dev::Logger log_tr_dag_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGPRP")};
+  dev::Logger log_er_dag_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "DAGPRP")};
+
+  dev::Logger log_wr_pbft_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFTPRP")};
+  dev::Logger log_nf_pbft_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFTPRP")};
+  dev::Logger log_dg_pbft_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFTPRP")};
+  dev::Logger log_tr_pbft_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFTPRP")};
+  dev::Logger log_er_pbft_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "PBFTPRP")};
+
+  dev::Logger log_wr_vote_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTEPRP")};
+  dev::Logger log_nf_vote_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTEPRP")};
+  dev::Logger log_dg_vote_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityDebug, "VOTEPRP")};
+  dev::Logger log_tr_vote_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityTrace, "VOTEPRP")};
+  dev::Logger log_er_vote_prp_{
+      dev::createLogger(dev::Verbosity::VerbosityError, "VOTEPRP")};
 };
 }  // namespace taraxa
 #endif
