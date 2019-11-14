@@ -16,6 +16,7 @@ using time_stamp_t = unsigned long;
 using uint128_t = boost::multiprecision::uint128_t;
 using uint256_t = boost::multiprecision::uint256_t;
 using uint512_t = boost::multiprecision::uint512_t;
+using uint1024_t = boost::multiprecision::uint1024_t;
 
 // newtork related
 using end_point_udp_t = boost::asio::ip::udp::endpoint;

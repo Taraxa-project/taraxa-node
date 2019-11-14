@@ -40,6 +40,8 @@ struct VrfSortition {
     return pk == other.pk && type == other.type && round == other.round &&
            step == other.step && proof == other.proof && output == other.output;
   }
+  static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
+  bool canSpeak(size_t threshold, size_t valid_players) const;
   friend std::ostream& operator<<(std::ostream& strm,
                                   VrfSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;

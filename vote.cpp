@@ -30,6 +30,17 @@ bytes VrfSortition::getRlpBytes() const {
   s << output;
   return s.out();
 }
+/*
+ * Sortition return true:
+ * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
+ * i.e., CREDENTIAL * VALID PLAYERS <= SORTITION THRESHOLD * SIGNATURE_HASH_MAX
+ * otherwise return false
+ */
+bool VrfSortition::canSpeak(size_t threshold, size_t valid_players) const {
+  uint1024_t left = (uint1024_t)((uint512_t)output) * valid_players;
+  uint1024_t right = (uint1024_t)max512bits * threshold;
+  return left <= right;
+}
 // Vote
 Vote::Vote(public_t const& node_pk, sig_t const& sortition_proof,
            sig_t const& vote_signature, blk_hash_t const& blockhash,
