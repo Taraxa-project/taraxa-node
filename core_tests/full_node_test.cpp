@@ -385,12 +385,15 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   ASSERT_EQ(node3->getTransactionStatusCount(), context.getIssuedTrxCount());
   ASSERT_EQ(node4->getTransactionStatusCount(), context.getIssuedTrxCount());
   ASSERT_EQ(node5->getTransactionStatusCount(), context.getIssuedTrxCount());
-  
+
   // send dummy trx to make sure all DAGs are ordered
-  // NOTE: have to wait longer than block proposer time + transaction propogation time to ensure 
-  //       all transacations have already been packed into other blocks and that this new 
-  //       transaction will get packed into a unique block that will reference all outstanding tips
-  std::cout << "Sleep 2 seconds before sending dummy transaction ... " << std::endl;
+  // NOTE: have to wait longer than block proposer time + transaction
+  // propogation time to ensure
+  //       all transacations have already been packed into other blocks and that
+  //       this new transaction will get packed into a unique block that will
+  //       reference all outstanding tips
+  std::cout << "Sleep 2 seconds before sending dummy transaction ... "
+            << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
   std::cout << "Send dummy transaction ... " << std::endl;
   context.coin_transfer(0, addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
@@ -398,9 +401,11 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   auto issued_trx_count = context.getIssuedTrxCount();
 
-  std::cout << "Wait 2 seconds before checking all nodes have seend a new DAG block (containing dummy transaction) ... " << std::endl;
+  std::cout << "Wait 2 seconds before checking all nodes have seend a new DAG "
+               "block (containing dummy transaction) ... "
+            << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
-  
+
   auto num_vertices1 = node1->getNumVerticesInDag();
   auto num_vertices2 = node2->getNumVerticesInDag();
   auto num_vertices3 = node3->getNumVerticesInDag();
