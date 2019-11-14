@@ -25,7 +25,8 @@ submodules/cryptopp/libcryptopp.a:
 submodules/ethash/build/lib/ethash/libethash.a:
 	@echo Attempting to compile ethash, if it fails try compiling it manually
 	cd submodules/ethash; mkdir -p build
-	cd submodules/ethash/build; cmake ..; cmake --build .
+	cd submodules/ethash/build; cmake ..; \
+	$(MAKE)
 
 submodules/libff/build/libff/libff.a:
 	@echo Attempting to compile libff, if it fails try compiling it manually
@@ -34,7 +35,7 @@ submodules/libff/build/libff/libff.a:
 	-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ \
 	-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
 	-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; \
-	make
+	$(MAKE)
 
 submodules/secp256k1/.libs/libsecp256k1.a:
 	@echo Attempting to compile libsecp256k1, \
@@ -46,36 +47,39 @@ submodules/secp256k1/.libs/libsecp256k1.a:
 	--with-asm=no --enable-module-ecdh --enable-module-recovery \
 	--enable-experimental
 	cd submodules/secp256k1; \
-	make
+	$(MAKE)
 
 submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a:
 	@echo Attempting to compile libprometheus, if it fails try compiling it \
 	manually. See https://github.com/jupp0r/prometheus-cpp
 	cd submodules/prometheus-cpp; \
+	mkdir -p deploy; \
 	git submodule update --init 3rdparty/civetweb/; \
 	mkdir -p _build; cd _build; \
 	cmake .. -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF; \
-	make -j 4; \
-	mkdir -p deploy; \
-	make DESTDIR=`pwd`/deploy install
+	$(MAKE) && $(MAKE) DESTDIR=`pwd`/deploy install
 
 submodules/taraxa-evm/taraxa_evm_cgo.a:
 	@echo Building Go trx engine static C library
 	cd submodules/taraxa-evm; \
 	go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ./taraxa_evm_cgo.a
 
-	submodules/openssl/ok:
+submodules/openssl/ok:
 	@echo Attempting to compile openssl 1.1.1, \
 	if it fails try compiling it manually
-	cd submodules/openssl;./config; make && make install && touch ok
+	cd submodules/openssl;./config; \
+	$(MAKE) && $(MAKE) install && touch ok
 
 submodules/taraxa-vdf/lib/libvdf.a:
 	@echo Attempting to compile vdf, if it fails try compiling it manually
-	cd submodules/taraxa-vdf; make OPENSSL_HOME="../openssl"
+	cd submodules/taraxa-vdf; \
+	$(MAKE) OPENSSL_HOME="../openssl"
 
 submodules/taraxa-vrf/ok:
 	@echo Attempting to compile vrf, if it fails try compiling it manually
 	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; \
-	make && make install && touch ok
+	$(MAKE) && $(MAKE) install && touch ok
+
+.NOTPARALLEL: $(DEPENDENCIES)
 
 dependencies: $(DEPENDENCIES)

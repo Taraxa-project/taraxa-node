@@ -2,9 +2,9 @@ ARG BASE_IMAGE=gcr.io/jovial-meridian-249123/taraxa-node-base:latest
 FROM $BASE_IMAGE as builder
 
 COPY . .
-RUN make -j $(nproc --all) DEBUG=1 run_test
-RUN make -j $(nproc --all) main
-RUN make -j $(nproc --all) DEBUG=1 main
+RUN make -j $(nproc) DEBUG=1 run_test
+RUN make -j $(nproc) main
+RUN make -j $(nproc) DEBUG=1 main
 
 
 # Copy over only minimal information

@@ -34,7 +34,8 @@ RUN cd /tmp/boost_${BOOST_VERSION} \
 FROM boost-layer as gtest-layer
 ENV LD_LIBRARY_PATH /usr/local/lib/
 RUN git clone https://github.com/google/googletest /tmp/gtest \
-  && cd /tmp/gtest && mkdir build && cd build && cmake .. && make && make install
+  && cd /tmp/gtest && mkdir build && cd build && cmake .. \
+  && make -j $(nproc) && make -j $(nproc) install
 
 FROM gtest-layer as rocksdb-layer
 ARG rocksdb_version=5.18.3
@@ -42,7 +43,7 @@ ENV ROCKSDB_VERSION="$rocksdb_version"
 RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
     && unzip v$rocksdb_version.zip -d /tmp \
     && cd /tmp/rocksdb-$rocksdb_version \
-    && make shared_lib PORTABLE=1 \
+    && make -j $(nproc) shared_lib PORTABLE=1 \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
 
@@ -54,34 +55,12 @@ RUN wget https://github.com/google/leveldb/archive/v${LEVELDB_VERSION}.tar.gz \
   && rm -f v${LEVELDB_VERSION}.tar.gz
 
 WORKDIR /tmp/leveldb-${LEVELDB_VERSION}
-RUN make
+RUN make -j $(nproc)
 RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
 RUN scp -r include/leveldb /usr/local/include
 RUN ldconfig
 
-FROM leveldb-layer as grpc-layer
-ENV CC=gcc
-ENV CXX=g++
-ENV GRPC_VERSION="v1.19.1"
-RUN cd /tmp && git clone --verbose --progress --recursive --depth 1 --jobs 10 --branch ${GRPC_VERSION} https://github.com/grpc/grpc.git
-RUN cd /tmp/grpc/ && git submodule update --init
-ENV PROTOBUF_VERSION="v3.7.1"
-RUN cd /tmp/grpc/third_party/protobuf \
-  && git checkout tags/${PROTOBUF_VERSION} \
-  && (git pull || true) \
-  && ./autogen.sh \
-  && ./configure --prefix=/usr \
-  && make -j `nproc` \
-  && make install
-
-RUN cd /tmp/grpc/third_party/cares/cares && (git pull || true)
-RUN cd /tmp/grpc/third_party/boringssl && (git pull || true)
-RUN cd /tmp/grpc \
-  && make clean \
-  && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' -j `nproc` \
-  && make CFLAGS='-g -O2 -w' CXXFLAGS='-g -O2 -w' prefix=/usr install
-
-FROM grpc-layer as go-layer
+FROM leveldb-layer as go-layer
 ARG go_version=1.13
 RUN wget -qO- --show-progress --progress=bar:force \
     https://dl.google.com/go/go$go_version.linux-amd64.tar.gz \
@@ -100,4 +79,4 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
 
 COPY . .
-RUN make -f Makefile.dependencies dependencies
+RUN make -f Makefile.dependencies -j $(nproc) dependencies
