@@ -1156,11 +1156,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   node4->getPbftManager()->stop();
   node5->getPbftManager()->stop();
 
-  EXPECT_GT(node1->getPeerCount(), 0);
-  EXPECT_GT(node2->getPeerCount(), 0);
-  EXPECT_GT(node3->getPeerCount(), 0);
-  EXPECT_GT(node4->getPeerCount(), 0);
-  EXPECT_GT(node5->getPeerCount(), 0);
+  thisThreadSleepForMilliSeconds(500);
+
+  ASSERT_GT(node1->getPeerCount(), 0);
+  ASSERT_GT(node2->getPeerCount(), 0);
+  ASSERT_GT(node3->getPeerCount(), 0);
+  ASSERT_GT(node4->getPeerCount(), 0);
+  ASSERT_GT(node5->getPeerCount(), 0);
 
   try {
     init_5_nodes_coin();
