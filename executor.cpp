@@ -2,10 +2,41 @@
 #include <stdexcept>
 #include "full_node.hpp"
 #include "transaction.hpp"
+#include "util/eth.hpp"
 
 namespace taraxa {
 using trx_engine::StateTransitionResult;
 using trx_engine::TrxEngine;
+
+Executor::Executor(
+    uint64_t pbft_require_sortition_coins,
+    decltype(log_time_) log_time,  //
+    decltype(db_blks_) db_blks,
+    decltype(db_trxs_) db_trxs,                                      //
+    decltype(replay_protection_service_) replay_protection_service,  //
+    decltype(state_registry_) state_registry,                        //
+    decltype(db_status_) db_status,                                  //
+    bool use_basic_executor)
+    : pbft_require_sortition_coins_(pbft_require_sortition_coins),
+      log_time_(std::move(log_time)),
+      db_blks_(std::move(db_blks)),
+      db_trxs_(std::move(db_trxs)),
+      replay_protection_service_(std::move(replay_protection_service)),
+      db_status_(std::move(db_status)),
+      state_registry_(std::move(state_registry)),
+      trx_engine_({state_registry_->getAccountDbRaw(), noop()}),
+      use_basic_executor_(use_basic_executor) {
+  auto blk_count = db_status_->lookup(
+      util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedBlkCount));
+  if (!blk_count.empty()) {
+    num_executed_blk_.store(*(unsigned long*)&blk_count[0]);
+  }
+  auto trx_count = db_status_->lookup(
+      util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedTrxCount));
+  if (!trx_count.empty()) {
+    num_executed_trx_.store(*(unsigned long*)&trx_count[0]);
+  }
+}
 
 bool Executor::execute(TrxSchedule const& schedule,
                        BalanceTable& sortition_account_balance_table,

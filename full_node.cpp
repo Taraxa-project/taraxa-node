@@ -114,6 +114,7 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash, mode).db);
   db_period_schedule_block_ = std::move(
       newDB(conf_.period_schedule_block_path(), genesis_hash, mode).db);
+  db_status_ = std::move(newDB(conf_.status_path(), genesis_hash, mode).db);
   // store genesis blk to db
   db_blks_->insert(genesis_hash, genesis_block.rlp(true));
   // TODO add move to a StateRegistry constructor?
@@ -198,7 +199,7 @@ void FullNode::start(bool boot_node) {
                                          db_trxs_,                    //
                                          replay_protection_service_,  //
                                          state_registry_,             //
-                                         conf_.use_basic_executor);
+                                         db_status_, conf_.use_basic_executor);
   executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
@@ -361,6 +362,13 @@ unsigned long FullNode::getTransactionStatusCount() const {
     return 0;
   }
   return trx_mgr_->getTransactionStatusCount();
+}
+
+unsigned long FullNode::getTransactionCount() const {
+  if (stopped_ || !trx_mgr_) {
+    return 0;
+  }
+  return trx_mgr_->getTransactionCount();
 }
 
 std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(

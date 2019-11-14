@@ -111,6 +111,15 @@ class TestFace : public ServerInterface<TestFace> {
                            jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
                            NULL),
         &TestFace::get_dag_sizeI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("get_pbft_chain_size", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, NULL),
+        &TestFace::get_pbft_chain_sizeI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("get_pbft_chain_blocks", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &TestFace::get_pbft_chain_blocksI);
   }
   inline virtual void insert_dag_blockI(const Json::Value &request,
                                         Json::Value &response) {
@@ -196,6 +205,14 @@ class TestFace : public ServerInterface<TestFace> {
                                     Json::Value &response) {
     response = this->get_dag_size(request[0u]);
   }
+  inline virtual void get_pbft_chain_sizeI(const Json::Value &request,
+                                    Json::Value &response) {
+    response = this->get_pbft_chain_size();
+  }
+  inline virtual void get_pbft_chain_blocksI(const Json::Value &request,
+                                    Json::Value &response) {
+    response = this->get_pbft_chain_blocks(request[0u]);
+  }
   virtual Json::Value insert_dag_block(const Json::Value &param1) = 0;
   virtual Json::Value get_dag_block(const Json::Value &param1) = 0;
   virtual Json::Value get_dag_block_epfriend(const Json::Value &param1) = 0;
@@ -219,6 +236,8 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_executed_blk_count(const Json::Value &param1) = 0;
 
   virtual Json::Value get_dag_size(const Json::Value &param1) = 0;
+  virtual Json::Value get_pbft_chain_size() = 0;
+  virtual Json::Value get_pbft_chain_blocks(const Json::Value &param1) = 0;
 };
 }  // namespace rpc
 }  // namespace dev
