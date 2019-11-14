@@ -1171,19 +1171,14 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+  
   // check dags
-  auto num_vertices1 = node1->getNumVerticesInDag();
-  auto num_vertices2 = node2->getNumVerticesInDag();
-  auto num_vertices3 = node3->getNumVerticesInDag();
-  auto num_vertices4 = node4->getNumVerticesInDag();
-  auto num_vertices5 = node5->getNumVerticesInDag();
-
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    num_vertices1 = node1->getNumVerticesInDag();
-    num_vertices2 = node2->getNumVerticesInDag();
-    num_vertices3 = node3->getNumVerticesInDag();
-    num_vertices4 = node4->getNumVerticesInDag();
-    num_vertices5 = node5->getNumVerticesInDag();
+    auto num_vertices1 = node1->getNumVerticesInDag();
+    auto num_vertices2 = node2->getNumVerticesInDag();
+    auto num_vertices3 = node3->getNumVerticesInDag();
+    auto num_vertices4 = node4->getNumVerticesInDag();
+    auto num_vertices5 = node5->getNumVerticesInDag();
 
     auto trx_table = node1->getUnsafeTransactionStatusTable();
     int packed_trx = 0;
