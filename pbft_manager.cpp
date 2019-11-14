@@ -58,6 +58,7 @@ void PbftManager::start() {
   db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
   db_period_schedule_block_ = full_node->getPeriodScheduleBlockDB();
   db_dag_blocks_period_ = full_node->getDagBlocksPeriodDB();
+  db_status_ = full_node->getStatusDB();
   if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
@@ -133,6 +134,7 @@ void PbftManager::stop() {
   db_sortition_accounts_ = nullptr;
   db_period_schedule_block_ = nullptr;
   db_dag_blocks_period_ = nullptr;
+  db_status_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -1302,15 +1304,16 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
     for (auto i = 0; i < blocks_in_cs.size(); i++) {
       if (blocks_in_cs[i] != (*dag_blocks_order)[i]) {
         LOG(log_inf_) << "DAG blocks have not sync yet. In period: "
-                      << pbft_chain_period << " Block hash: " << blocks_in_cs[i]
+                      << pbft_chain_->getPbftChainPeriod()
+                      << ", Block hash: " << blocks_in_cs[i]
                       << " in PBFT CS is different with DAG block hash "
                       << (*dag_blocks_order)[i];
         return false;
       }
     }
   } else {
-    LOG(log_inf_) << "DAG blocks have not sync yet. in period: "
-                  << pbft_chain_period
+    LOG(log_inf_) << "DAG blocks have not sync yet. In period: "
+                  << pbft_chain_->getPbftChainPeriod()
                   << " PBFT CS blocks size: " << blocks_in_cs.size()
                   << " DAG blocks size: " << dag_blocks_order->size();
     // For debug
@@ -1323,8 +1326,8 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       for (auto const &block : blocks_in_cs) {
         LOG(log_err_) << "block: " << block;
       }
-      std::string filename =
-          "unmatched_cs_order_in_period_" + std::to_string(pbft_chain_period);
+      std::string filename = "unmatched_cs_order_in_period_" +
+                             std::to_string(pbft_chain_->getPbftChainPeriod());
       auto addr = full_node->getAddress();
       full_node->drawGraph(addr.toString() + "_" + filename);
       // assert(false);
@@ -1348,7 +1351,6 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       return false;
     }
   }
-
   return true;
 }
 
@@ -1502,6 +1504,16 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
             dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
                            sizeof(pbft_period)),
             taraxa::util::eth::toSlice(pbft_block.getBlockHash()));
+        auto num_executed_blk = full_node->getNumBlockExecuted();
+        auto num_executed_trx = full_node->getNumTransactionExecuted();
+        if (num_executed_blk > 0 && num_executed_trx > 0) {
+          db_status_->insert(
+              util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
+              util::eth::toSlice(num_executed_blk));
+          db_status_->insert(
+              util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
+              util::eth::toSlice(num_executed_trx));
+        }
         if (pbft_block.getScheduleBlock().getSchedule().blk_order.size() > 0) {
           auto write_batch = db_dag_blocks_period_->createWriteBatch();
           for (auto const blk_hash :
@@ -1555,6 +1567,11 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
 }
 
 void PbftManager::updateSortitionAccountsDB_() {
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
   auto accounts = db_sortition_accounts_->createWriteBatch();
   for (auto &account : sortition_account_balance_table) {
     if (account.second.status == new_change) {

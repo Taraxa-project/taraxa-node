@@ -239,6 +239,8 @@ class PbftChain {
   std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
       blk_hash_t const& pbft_block_hash);
   std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
+  std::vector<std::string> getPbftBlocksStr(size_t height, size_t count,
+                                            bool hash) const;
   std::string getGenesisStr() const;
   std::string getJsonStr() const;
   dev::Logger& getLoggerErr() { return log_err_; }

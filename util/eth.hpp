@@ -28,6 +28,14 @@ inline Slice toSlice(bytes const& _b) {
   return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
 }
 
+inline Slice toSlice(uint8_t const& c) {
+  return Slice(reinterpret_cast<char const*>(&c), 1);
+}
+
+inline Slice toSlice(unsigned long const& c) {
+  return Slice(reinterpret_cast<char const*>(&c), sizeof(unsigned long));
+}
+
 // partially copied from /libethereum/State.cpp
 inline bool isDiskDatabase(const DatabaseKind& kind) {
   switch (kind) {

@@ -113,17 +113,37 @@ TEST_F(CryptoTest, sortition_rate) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   auto node(FullNode::make(cfg, true));
 
-  size_t valid_sortition_players = 5;
+  size_t valid_sortition_players;
   string message = "This is a test message.";
   int count = 0;
   int round = 1000;
   int sortition_threshold;
+
+  valid_sortition_players = 100;
+  sortition_threshold = node->getPbftManager()->COMMITTEE_SIZE;  // 5
+  // Test for one player sign round messages to get sortition
+  // Sortition rate THRESHOLD / PLAYERS = 5%
+  for (int i = 0; i < round; i++) {
+    message += std::to_string(i);
+    sig_t signature = node->signMessage(message);
+    sig_hash_t credential = dev::sha3(signature);
+    bool win = sortition(credential.toString(), valid_sortition_players,
+                         sortition_threshold);
+    if (win) {
+      count++;
+    }
+  }
+  EXPECT_EQ(count, 54);  // Test experience
+
+  count = 0;
+  valid_sortition_players = node->getPbftManager()->COMMITTEE_SIZE;
   if (node->getPbftManager()->COMMITTEE_SIZE <= valid_sortition_players) {
     sortition_threshold = node->getPbftManager()->COMMITTEE_SIZE;
   } else {
     sortition_threshold = valid_sortition_players;
   }
   // Test for one player sign round messages to get sortition
+  // Sortition rate THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < round; i++) {
     message += std::to_string(i);
     sig_t signature = node->signMessage(message);

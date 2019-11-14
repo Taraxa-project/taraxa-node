@@ -4,6 +4,7 @@
 #include <string>
 #include <utility>
 #include "full_node.hpp"
+#include "util/eth.hpp"
 
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
@@ -469,6 +470,12 @@ void TransactionManager::start() {
     auto full_node = full_node_.lock();
     assert(full_node);
     db_trxs_ = full_node->getTrxsDB();
+    db_status_ = full_node->getStatusDB();
+    auto trx_count = db_status_->lookup(
+        util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedTrxCount));
+    if (!trx_count.empty()) {
+      trx_count_.store(*(unsigned long *)&trx_count[0]);
+    }
     DagBlock blk;
     string pivot;
     std::vector<std::string> tips;
@@ -486,6 +493,7 @@ void TransactionManager::stop() {
   }
   db_trxs_ = nullptr;
   trx_qu_.stop();
+  db_status_ = nullptr;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -510,6 +518,10 @@ TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
 
 unsigned long TransactionManager::getTransactionStatusCount() const {
   return trx_status_.size();
+}
+
+unsigned long TransactionManager::getTransactionCount() const {
+  return trx_count_.load();
 }
 
 std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
@@ -558,10 +570,17 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   if (!some_trxs.empty()) {
     for (auto const &trx : some_trxs) {
       auto trx_hash = trx.getHash();
-      db_trxs_->insert(trx_hash, trx.rlp(trx.hasSig()));
-      trx_status_.update(trx_hash, TransactionStatus::in_block);
+      auto status = trx_status_.get(trx_hash);
+      if (!status.second || status.first != TransactionStatus::in_block) {
+        trx_count_.fetch_add(1);
+        db_trxs_->insert(trx_hash, trx.rlp(trx.hasSig()));
+        trx_status_.update(trx_hash, TransactionStatus::in_block);
+      }
     }
   }
+  auto trx_count = trx_count_.load();
+  db_status_->insert(util::eth::toSlice((uint8_t)StatusDbField::TrxCount),
+                     util::eth::toSlice(trx_count));
 
   // Second step: Remove from the queue any transaction that is part of the
   // block Verify that all transactions are saved in the database If all
@@ -670,6 +689,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     trx_batch->insert(
         db_trxs_->toSlice(hash.asBytes()),
         exist1 ? db_trxs_->toSlice(rlp) : db_trxs_->toSlice(trx.rlp(true)));
+    trx_count_.fetch_add(1);
     changed = true;
 
     auto [status, exist2] = trx_status_.get(hash);
@@ -681,6 +701,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   if (changed) {
     db_trxs_->commit(std::move(trx_batch));
+    auto trx_count = trx_count_.load();
+    db_status_->insert(util::eth::toSlice((uint8_t)StatusDbField::TrxCount),
+                       util::eth::toSlice(trx_count));
   }
 
   // check requeued trx

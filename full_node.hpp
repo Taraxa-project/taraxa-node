@@ -41,6 +41,12 @@ class VoteManager;
 class PbftManager;
 class NetworkConfig;
 
+enum StatusDbField : uint8_t {
+  ExecutedBlkCount = 0,
+  ExecutedTrxCount,
+  TrxCount
+};
+
 class FullNode : public std::enable_shared_from_this<FullNode> {
   friend class Top;
 
@@ -236,6 +242,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> getDagBlocksPeriodDB() const {
     return db_dag_blocks_period_;
   }
+  std::shared_ptr<dev::db::DatabaseFace> getStatusDB() const {
+    return db_status_;
+  }
 
   // PBFT RPC
   void broadcastVote(Vote const &vote);
@@ -257,11 +266,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;
   unsigned long getTransactionStatusCount() const;
+  unsigned long getTransactionCount() const;
   TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
-    return executor_->getNumExecutedTrx();
+    return executor_ ? executor_->getNumExecutedTrx() : 0;
   }
-  auto getNumBlockExecuted() const { return executor_->getNumExecutedBlk(); }
+  auto getNumBlockExecuted() const {
+    return executor_ ? executor_->getNumExecutedBlk() : 0;
+  }
   std::vector<blk_hash_t> getLinearizedDagBlocks() const;
   std::vector<trx_hash_t> getPackedTrxs() const;
   void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
@@ -325,6 +337,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_ = nullptr;
+  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;
