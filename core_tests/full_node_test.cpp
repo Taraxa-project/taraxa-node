@@ -317,8 +317,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     context.coin_transfer(0, nodes[i]->getAddress(), init_bal);
   }
 
-  context.assert_balances_synced();
-  std::cout << "Balance initialized ... " << std::endl;
+  std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
     vector<thread> threads;
