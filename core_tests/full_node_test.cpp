@@ -379,9 +379,15 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   ASSERT_EQ(node3->getTransactionStatusCount(), context.getIssuedTrxCount());
   ASSERT_EQ(node4->getTransactionStatusCount(), context.getIssuedTrxCount());
   ASSERT_EQ(node5->getTransactionStatusCount(), context.getIssuedTrxCount());
+  
   // send dummy trx to make sure all DAGs are ordered
+  // NOTE: have to wait longer than block proposer time + transaction propogation time to ensure 
+  //       all transacations have already been packed into other blocks and that this new 
+  //       transaction will get packed into a unique block that will reference all outstanding tips
+  taraxa::thisThreadSleepForMilliSeconds(2000);
   context.coin_transfer(0, addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
                         0);
+
   auto issued_trx_count = context.getIssuedTrxCount();
 
   auto num_vertices1 = node1->getNumVerticesInDag();
