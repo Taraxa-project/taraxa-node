@@ -554,13 +554,14 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         if (full_node) {
           size_t height_to_sync = _r[0].toInt();
           size_t my_chain_size = full_node->getPbftChainSize();
+          size_t blocks_to_transfer = 0;
           if (my_chain_size >= height_to_sync) {
-            size_t blocks_to_transfer =
+            blocks_to_transfer =
                 std::min((uint64_t)conf_.network_sync_level_size,
                          (uint64_t)(my_chain_size - (height_to_sync - 1)));
-            LOG(log_dg_) << "Send pbftblocks to " << _nodeID;
-            sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
           }
+          LOG(log_dg_) << "Send pbftblocks to " << _nodeID;
+          sendPbftBlocks(_nodeID, height_to_sync, blocks_to_transfer);
         }
         break;
       }
