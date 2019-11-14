@@ -770,12 +770,12 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     LOG(log_tra_) << "Non-active player since period " << since_period;
     return false;
   }
-
+  // compute sorition
   std::string message = pbft_chain_last_block_hash_.toString() +
                         std::to_string(type) + std::to_string(round) +
                         std::to_string(step);
-  dev::Signature sortition_signature = full_node->signMessage(message);
-  string sortition_credential = taraxa::hashSignature(sortition_signature);
+  dev::Signature sortition_proof = full_node->signMessage(message);
+  string sortition_credential = taraxa::hashSignature(sortition_proof);
   if (!taraxa::sortition(sortition_credential, valid_sortition_accounts_size_,
                          sortition_threshold_)) {
     LOG(log_tra_) << "Don't get sortition";

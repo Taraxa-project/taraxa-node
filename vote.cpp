@@ -1,13 +1,4 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-11
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-07-26
- */
-
 #include "vote.h"
-
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "pbft_manager.hpp"
@@ -17,13 +8,34 @@
 #include <boost/property_tree/ptree.hpp>
 
 namespace taraxa {
-
+VrfSortition::VrfSortition(bytes const& b) {
+  dev::RLP const rlp(b);
+  if (!rlp.isList())
+    throw std::invalid_argument("VrfSortition RLP must be a list");
+  pk = vrf_pk_t(rlp[0].toString());
+  type = PbftVoteTypes(rlp[1].toInt<uint>());
+  round = rlp[2].toInt<uint64_t>();
+  step = rlp[3].toInt<size_t>();
+  proof = vrf_proof_t(rlp[4].toString());
+  output = vrf_output_t(rlp[5].toString());
+}
+bytes VrfSortition::getRlpBytes() const {
+  dev::RLPStream s;
+  s.appendList(6);
+  s << pk;
+  s << type;
+  s << round;
+  s << step;
+  s << proof;
+  s << output;
+  return s.out();
+}
 // Vote
-Vote::Vote(public_t const& node_pk, sig_t const& sortition_signaure,
+Vote::Vote(public_t const& node_pk, sig_t const& sortition_proof,
            sig_t const& vote_signature, blk_hash_t const& blockhash,
            PbftVoteTypes type, uint64_t round, size_t step)
     : node_pk_(node_pk),
-      sortition_signature_(sortition_signaure),
+      sortition_proof_(sortition_proof),
       vote_signatue_(vote_signature),
       blockhash_(blockhash),
       type_(type),
@@ -42,7 +54,7 @@ Vote::Vote(bytes const& b) {
     throw std::invalid_argument("transaction RLP must be a list");
   vote_hash_ = rlp[0].toHash<vote_hash_t>();
   node_pk_ = rlp[1].toHash<public_t>();
-  sortition_signature_ = rlp[2].toHash<sig_t>();
+  sortition_proof_ = rlp[2].toHash<sig_t>();
   vote_signatue_ = rlp[3].toHash<sig_t>();
   blockhash_ = rlp[4].toHash<blk_hash_t>();
   type_ = (PbftVoteTypes)rlp[5].toInt<uint>();
@@ -54,7 +66,7 @@ bool Vote::serialize(stream& strm) const {
 
   ok &= write(strm, vote_hash_);
   ok &= write(strm, node_pk_);
-  ok &= write(strm, sortition_signature_);
+  ok &= write(strm, sortition_proof_);
   ok &= write(strm, vote_signatue_);
   ok &= write(strm, blockhash_);
   ok &= write(strm, type_);
@@ -70,7 +82,7 @@ bool Vote::deserialize(stream& strm) {
 
   ok &= read(strm, vote_hash_);
   ok &= read(strm, node_pk_);
-  ok &= read(strm, sortition_signature_);
+  ok &= read(strm, sortition_proof_);
   ok &= read(strm, vote_signatue_);
   ok &= read(strm, blockhash_);
   ok &= read(strm, type_);
@@ -90,7 +102,7 @@ void Vote::streamRLP_(dev::RLPStream& strm) const {
   strm.appendList(8);
   strm << vote_hash_;
   strm << node_pk_;
-  strm << sortition_signature_;
+  strm << sortition_proof_;
   strm << vote_signatue_;
   strm << blockhash_;
   strm << type_;
@@ -102,7 +114,7 @@ vote_hash_t Vote::getHash() const { return vote_hash_; }
 
 public_t Vote::getPublicKey() const { return node_pk_; }
 
-sig_t Vote::getSortitionSignature() const { return sortition_signature_; }
+sig_t Vote::getSortitionProof() const { return sortition_proof_; }
 
 sig_t Vote::getVoteSignature() const { return vote_signatue_; }
 
@@ -151,12 +163,12 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     return false;
   }
 
-  // verify sortition signature
+  // verify sortition proof
   std::string const sortition_message =
       last_pbft_block_hash.toString() + std::to_string(type) +
       std::to_string(round) + std::to_string(step);
-  sig_t sortition_signature = vote.getSortitionSignature();
-  if (!dev::verify(public_key, sortition_signature, hash_(sortition_message))) {
+  sig_t sortition_proof = vote.getSortitionProof();
+  if (!dev::verify(public_key, sortition_proof, hash_(sortition_message))) {
     // 1. PBFT chain has not have the newest PBFT block yet
     // 2. When new node join, the new node doesn't have the lastest pbft block
     // to verify the vote.
@@ -164,18 +176,17 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     // if the vote is valid, will count when node has the relative pbft block
     // if the vote is invalid, will remove when pass the pbft round
     LOG(log_tra_) << "Have not received latest PBFT block to verify the vote "
-                  << "sortition signature: " << sortition_signature
-                  << " vote hash " << vote.getHash();
+                  << "sortition proof: " << sortition_proof << " vote hash "
+                  << vote.getHash();
     return false;
   }
 
   // verify sortition
-  std::string sortition_signature_hash =
-      taraxa::hashSignature(sortition_signature);
+  std::string sortition_signature_hash = taraxa::hashSignature(sortition_proof);
   if (!taraxa::sortition(sortition_signature_hash, valid_sortition_players,
                          sortition_threshold)) {
-    LOG(log_war_) << "Vote sortition failed, sortition signature "
-                  << sortition_signature;
+    LOG(log_war_) << "Vote sortition failed, sortition proof "
+                  << sortition_proof;
     return false;
   }
 
@@ -343,7 +354,7 @@ std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
     ptree ptvote;
     ptvote.put("vote_hash", v.getHash());
     ptvote.put("accounthash", v.getPublicKey());
-    ptvote.put("sortition_signature", v.getSortitionSignature());
+    ptvote.put("sortition_proof", v.getSortitionProof());
     ptvote.put("vote_signature", v.getVoteSignature());
     ptvote.put("blockhash", v.getBlockHash());
     ptvote.put("type", v.getType());

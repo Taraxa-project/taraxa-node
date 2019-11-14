@@ -37,8 +37,6 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
-class Vote;
-class VoteManager;
 class PbftManager;
 class NetworkConfig;
 

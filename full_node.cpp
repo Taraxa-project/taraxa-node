@@ -668,15 +668,15 @@ void FullNode::setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes) {
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             uint64_t period, size_t step,
                             blk_hash_t const &last_pbft_block_hash) {
-  // sortition signature
-  sig_t sortition_signature =
+  // sortition proof
+  sig_t sortition_proof =
       vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);
   // vote signature
   sig_t vote_signature =
       vote_mgr_->signVote(node_sk_, blockhash, type, period, step);
 
-  Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
-            period, step);
+  Vote vote(node_pk_, sortition_proof, vote_signature, blockhash, type, period,
+            step);
 
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                << " vote: " << vote.getHash();
