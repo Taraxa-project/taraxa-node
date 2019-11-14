@@ -1,85 +1,112 @@
-DEPENDENCIES = \
-	submodules/cryptopp/libcryptopp.a \
-	submodules/openssl/ok \
-	submodules/ethash/build/lib/ethash/libethash.a \
-	submodules/secp256k1/.libs/libsecp256k1.a \
-	submodules/libff/build/libff/libff.a \
-	submodules/taraxa-vdf/lib/libvdf.a \
-	submodules/taraxa-vrf/ok \
-	submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a \
-
-ifneq (,$(shell git submodule update --recursive --init))
-    $(info Cleaning up built dependencies cause the submodules changed: $(DEPENDENCIES))
-    $(shell rm -rf $(DEPENDENCIES))
+# TODO more granular submodule rebuild on update
+# For local development convenience
+submodule_update_log := $(shell git status &> /dev/null && \
+	git submodule update --recursive --init)
+ifneq (, $(submodule_update_log))
+$(info Submodules changed, resetting them...)
+_ := $(shell git submodule deinit --all --force)
+_ := $(shell git submodule update --recursive --init)
 endif
 
-OPENSSL_HOME = submodules/openssl
+DEPENDENCIES = \
+	submodules/cryptopp/ok \
+	submodules/openssl/ok \
+	submodules/ethash/ok \
+	submodules/secp256k1/ok \
+	submodules/libff/ok \
+	submodules/taraxa-vdf/ok \
+	submodules/taraxa-vrf/ok \
+	submodules/taraxa-evm/ok \
+	submodules/prometheus-cpp/ok
 
-submodules/cryptopp/libcryptopp.a:
+OPENSSL_HOME = $(shell pwd)/submodules/openssl/build/usr/local
+
+submodules/cryptopp/ok:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
-	@if [ $(shell uname) = 'Darwin' ]; then $(MAKE) -C submodules/cryptopp; \
-	else $(MAKE) -C submodules/cryptopp CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC \
-	-DCRYPTOPP_DISABLE_ASM -pthread -pipe -c"; \
-	fi
+	cd submodules/cryptopp; \
+	if [ $(shell uname) = 'Darwin' ]; then \
+		$(MAKE); \
+	else \
+		$(MAKE) CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC \
+			-DCRYPTOPP_DISABLE_ASM -pthread -pipe -c"; \
+	fi; \
+	test $$? -eq 0 && \
+	touch ok
 
-submodules/ethash/build/lib/ethash/libethash.a:
+submodules/ethash/ok:
 	@echo Attempting to compile ethash, if it fails try compiling it manually
-	cd submodules/ethash; mkdir -p build
-	cd submodules/ethash/build; cmake ..; \
-	$(MAKE)
+	cd submodules/ethash; \
+	mkdir -p build; cd build; \
+	cmake ..; \
+	$(MAKE) && \
+	touch ../ok
 
-submodules/libff/build/libff/libff.a:
+submodules/libff/ok:
 	@echo Attempting to compile libff, if it fails try compiling it manually
-	cd submodules/libff; mkdir -p build
-	cd submodules/libff/build; cmake .. -DWITH_PROCPS=Off \
-	-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ \
-	-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
-	-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; \
-	$(MAKE)
+	cd submodules/libff; \
+	mkdir -p build; cd build; \
+	cmake .. -DWITH_PROCPS=Off \
+		-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ \
+		-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+		-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; \
+	$(MAKE) && \
+	touch ../ok
 
-submodules/secp256k1/.libs/libsecp256k1.a:
+submodules/secp256k1/ok:
 	@echo Attempting to compile libsecp256k1, \
 	if it fails try compiling it manually
-	cd submodules/secp256k1; ./autogen.sh
-	cd submodules/secp256k1; ./configure --disable-shared --disable-tests \
-	--disable-coverage --disable-openssl-tests --disable-exhaustive-tests \
-	--disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit \
-	--with-asm=no --enable-module-ecdh --enable-module-recovery \
-	--enable-experimental
 	cd submodules/secp256k1; \
-	$(MAKE)
+	./autogen.sh; \
+	./configure --disable-shared --disable-tests \
+		--disable-coverage --disable-openssl-tests --disable-exhaustive-tests \
+		--disable-jni --with-bignum=no --with-field=64bit --with-scalar=64bit \
+		--with-asm=no --enable-module-ecdh --enable-module-recovery \
+		--enable-experimental; \
+	$(MAKE) && \
+	touch ok
 
-submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-core.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-pull.a submodules/prometheus-cpp/_build/deploy/usr/local/lib/libprometheus-cpp-push.a:
+submodules/prometheus-cpp/ok:
 	@echo Attempting to compile libprometheus, if it fails try compiling it \
 	manually. See https://github.com/jupp0r/prometheus-cpp
 	cd submodules/prometheus-cpp; \
-	mkdir -p deploy; \
 	git submodule update --init 3rdparty/civetweb/; \
 	mkdir -p _build; cd _build; \
 	cmake .. -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTING=OFF; \
-	$(MAKE) && $(MAKE) DESTDIR=`pwd`/deploy install
+	$(MAKE) && \
+	$(MAKE) DESTDIR=`pwd`/deploy install && \
+	touch ../ok
 
-submodules/taraxa-evm/taraxa_evm_cgo.a:
+submodules/taraxa-evm/ok:
 	@echo Building Go trx engine static C library
 	cd submodules/taraxa-evm; \
-	go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ./taraxa_evm_cgo.a
+	go build -tags=secp256k1_no_cgo -buildmode=c-archive \
+		-o ./taraxa_evm_cgo.a && \
+	touch ok
 
 submodules/openssl/ok:
 	@echo Attempting to compile openssl 1.1.1, \
 	if it fails try compiling it manually
-	cd submodules/openssl;./config; \
-	$(MAKE) && $(MAKE) install && touch ok
+	cd submodules/openssl; \
+	mkdir -p $(OPENSSL_HOME); \
+	./config --prefix=$(OPENSSL_HOME) --openssldir=$(OPENSSL_HOME)/ssl; \
+	$(MAKE) && $(MAKE) install && \
+	touch ok
 
-submodules/taraxa-vdf/lib/libvdf.a:
+submodules/taraxa-vdf/ok: submodules/openssl/ok
 	@echo Attempting to compile vdf, if it fails try compiling it manually
 	cd submodules/taraxa-vdf; \
-	$(MAKE) OPENSSL_HOME="../openssl"
+	$(MAKE) OPENSSL_HOME=$(OPENSSL_HOME) && \
+	touch ok
 
 submodules/taraxa-vrf/ok:
 	@echo Attempting to compile vrf, if it fails try compiling it manually
-	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; \
-	$(MAKE) && $(MAKE) install && touch ok
+	cd submodules/taraxa-vrf; mkdir -p build; \
+	automake; \
+	./configure; \
+	$(MAKE) && \
+	$(MAKE) install && \
+	touch ok
 
-.NOTPARALLEL: $(DEPENDENCIES)
+#.NOTPARALLEL: $(DEPENDENCIES)
 
 dependencies: $(DEPENDENCIES)

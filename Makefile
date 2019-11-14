@@ -48,7 +48,7 @@ ifneq ($(DEBUG), 0)
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
-LDFLAGS := -L $(OPENSSL_HOME) -L submodules/taraxa-vrf/src/libsodium/.libs/ -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
+LDFLAGS := -L $(OPENSSL_HOME)/lib -L submodules/taraxa-vrf/src/libsodium/.libs/ -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
 MKDIR := mkdir
 RM := rm -f
 
