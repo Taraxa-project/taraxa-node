@@ -8,6 +8,7 @@
 #include <libethereum/SecureTrieDB.h>
 #include <boost/filesystem.hpp>
 #include <tuple>
+#include <type_traits>
 
 namespace taraxa::util::eth {
 using namespace std;
@@ -28,12 +29,9 @@ inline Slice toSlice(bytes const& _b) {
   return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
 }
 
-inline Slice toSlice(uint8_t const& c) {
-  return Slice(reinterpret_cast<char const*>(&c), 1);
-}
-
-inline Slice toSlice(unsigned long const& c) {
-  return Slice(reinterpret_cast<char const*>(&c), sizeof(unsigned long));
+template <class N, typename = std::enable_if_t<std::is_arithmetic<N>::value>>
+inline Slice toSlice(N const& n) {
+  return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
 }
 
 // partially copied from /libethereum/State.cpp
