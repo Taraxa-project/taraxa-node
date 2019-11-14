@@ -398,7 +398,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   ASSERT_EQ(node4->getTransactionStatusCount(), context.getIssuedTrxCount());
   ASSERT_EQ(node5->getTransactionStatusCount(), context.getIssuedTrxCount());
 
-  // send dummy trx to make sure all DAGs are ordered
+  // send dummy trx to make sure all DAG blocks are ordered
   // NOTE: have to wait longer than block proposer time + transaction
   // propogation time to ensure
   //       all transacations have already been packed into other blocks and that
@@ -413,7 +413,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   auto issued_trx_count = context.getIssuedTrxCount();
 
-  std::cout << "Wait 2 seconds before checking all nodes have seend a new DAG "
+  std::cout << "Wait 2 seconds before checking all nodes have seen a new DAG "
                "block (containing dummy transaction) ... "
             << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1144,8 +1144,6 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   Top top5(6, input5);
   std::cout << "Top5 created ..." << std::endl;
 
-  std::cout << "Sleep for 1 second ..." << std::endl;
-
   auto node1 = top1.getNode();
   auto node2 = top2.getNode();
   auto node3 = top3.getNode();
@@ -1309,7 +1307,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
   ASSERT_TRUE(order);
   EXPECT_GT(order->size(), 5);
-  std::cout << "Ordered dagblock size: " << order->size() << std::endl;
+  std::cout << "Ordered dag block chain size: " << order->size() << std::endl;
 
   auto dag_size = node1->getNumVerticesInDag();
 
