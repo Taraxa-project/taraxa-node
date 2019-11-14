@@ -26,15 +26,15 @@
 	url = https://github.com/jupp0r/prometheus-cpp.git
 [submodule "submodules/taraxa-evm"]
 	path = submodules/taraxa-evm
-	url = ssh://git@github.com/Taraxa-project/taraxa-evm.git
+	url = https://github.com/Taraxa-project/taraxa-evm.git
 [submodule "submodules/taraxa-vdf"]
 	path = submodules/taraxa-vdf
-	url = ssh://git@github.com/Taraxa-project/taraxa-vdf.git
+	url = https://github.com/Taraxa-project/taraxa-vdf.git
 [submodule "submodules/openssl"]
 	path = submodules/openssl
 	url = https://github.com/openssl/openssl.git
 	ignore = dirty
 [submodule "submodules/taraxa-vrf"]
 	path = submodules/taraxa-vrf
-	url = ssh://git@github.com/Taraxa-project/taraxa-vrf.git
+	url = https://github.com/Taraxa-project/taraxa-vrf.git
 	ignore = dirty
