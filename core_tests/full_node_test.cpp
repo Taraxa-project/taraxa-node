@@ -216,11 +216,6 @@ void send_5_nodes_trxs() {
 }  // namespace taraxa
 
 void send_dummy_trx() {
-  std::cout << "Wait for 40 seconds before sent dummy transaction ..."
-            << std::endl;
-
-  taraxa::thisThreadSleepForSeconds(40);
-
   std::string dummy_trx =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
                                       "params": [{
@@ -233,7 +228,6 @@ void send_dummy_trx() {
 
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
-  taraxa::thisThreadSleepForSeconds(2);
 }
 struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
@@ -323,8 +317,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     context.coin_transfer(0, nodes[i]->getAddress(), init_bal);
   }
 
-  context.assert_balances_synced();
-  std::cout << "Balance initialized ... " << std::endl;
+  std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
     vector<thread> threads;
@@ -1228,6 +1221,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   ASSERT_EQ(node3->getTransactionStatusCount(), 10004);
   ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
   ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
+
+  // time to make sure all transactions have been packed into block...
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   // send dummy trx to make sure all DAGs are ordered
   try {
