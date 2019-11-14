@@ -42,6 +42,7 @@ brew install rapidjson
 brew install gmp
 brew install cmake
 brew install openssl
+brew install mpfr
 brew install leveldb
 brew install libscrypt
 brew install automake

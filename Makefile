@@ -63,7 +63,7 @@ ifneq ($(DEBUG), 0)
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
-LDFLAGS := -L $(OPENSSL_HOME)/lib -L submodules/taraxa-vrf/src/libsodium/.libs/ -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib 
+LDFLAGS := -L $(OPENSSL_HOME) -L submodules/taraxa-vrf/src/libsodium/.libs/ -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib 
 MKDIR := mkdir
 RM := rm -f
 
@@ -373,15 +373,15 @@ trx_engine/trx_engine.a:
 
 submodules/openssl/ok:
 	@echo Attempting to compile openssl 1.1.1, if it fails try compiling it manuallyv
-	cd submodules/openssl;./config; make; make install; touch ok 
+	cd submodules/openssl && ./config && make && make install && touch ok 
 
 submodules/taraxa-vdf/lib/libvdf.a:
 	@echo Attempting to compile vdf, if it fails try compiling it manually
-	cd submodules/taraxa-vdf; make OPENSSL_HOME="../openssl"
+	cd submodules/taraxa-vdf && make OPENSSL_HOME="../openssl"
 
 submodules/taraxa-vrf/ok:
 	@echo Attempting to compile vrf, if it fails try compiling it manually
-	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; make; make install; touch ok
+	cd submodules/taraxa-vrf && mkdir -p build && automake && ./configure && make && make install && touch ok
 
 submodules/cryptopp/libcryptopp.a:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
