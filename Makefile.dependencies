@@ -65,7 +65,8 @@ submodules/taraxa-evm/taraxa_evm_cgo.a:
 	go build -tags=secp256k1_no_cgo -buildmode=c-archive -o ./taraxa_evm_cgo.a
 
 	submodules/openssl/ok:
-	@echo Attempting to compile openssl 1.1.1, if it fails try compiling it manuallyv
+	@echo Attempting to compile openssl 1.1.1, \
+	if it fails try compiling it manually
 	cd submodules/openssl;./config; make && make install && touch ok
 
 submodules/taraxa-vdf/lib/libvdf.a:
@@ -74,6 +75,7 @@ submodules/taraxa-vdf/lib/libvdf.a:
 
 submodules/taraxa-vrf/ok:
 	@echo Attempting to compile vrf, if it fails try compiling it manually
-	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; make && make install && touch ok
+	cd submodules/taraxa-vrf; mkdir -p build; automake; ./configure; \
+	make && make install && touch ok
 
 dependencies: $(DEPENDENCIES)
