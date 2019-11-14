@@ -1221,7 +1221,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       }
     }
 
-    taraxa::thisThreadSleepForMilliSeconds(200);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
   EXPECT_GT(node1->getNumProposedBlocks(), 2);
