@@ -1,7 +1,22 @@
 include Makefile.dependencies
 # adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
 CXX := g++
-CPPFLAGS := -I submodules -I$(OPENSSL_HOME)/include -I submodules/taraxa-vrf/src/libsodium/include -I submodules/taraxa-vdf/include -I submodules/rapidjson/include -I submodules/libff -I submodules/libff/libff -I submodules/ethash/include -I . -I submodules/prometheus-cpp/push/include -I submodules/prometheus-cpp/pull/include -I submodules/prometheus-cpp/core/include -I submodules/secp256k1/include -I/usr/include/jsoncpp -I submodules/taraxa-evm -DBOOST_LOG_DYN_LINK -DETH_FATDB
+CPPFLAGS := \
+	-I submodules \
+	-I $(OPENSSL_HOME)/include \
+	-I submodules/taraxa-vrf/src/libsodium/include \
+	-I submodules/taraxa-vdf/include \
+	-I submodules/rapidjson/include \
+	-I submodules/libff \
+	-I submodules/libff/libff \
+	-I submodules/ethash/include -I . \
+	-I submodules/prometheus-cpp/push/include \
+	-I submodules/prometheus-cpp/pull/include \
+	-I submodules/prometheus-cpp/core/include \
+	-I submodules/secp256k1/include \
+	-I /usr/include/jsoncpp \
+	-I submodules/taraxa-evm \
+	-DBOOST_LOG_DYN_LINK -DETH_FATDB
 OS := $(shell uname)
 LOG_LIB = -lboost_log-mt
 ifneq ($(OS), Darwin) #Mac
@@ -11,8 +26,21 @@ endif
 DEBUG = 0
 PERF = 0
 CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
-CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF 
-LIBS := -DBOOST_LOG_DYN_LINK $(LOG_LIB) -lsodium -lssl -lvdf -lcrypto -lgmpxx -lmpfr -lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread -lboost_program_options -lboost_filesystem -lboost_system -lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest -lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push -lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common -ljsonrpccpp-server submodules/taraxa-evm/taraxa_evm_cgo.a
+CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF
+LIBS := \
+	-DBOOST_LOG_DYN_LINK \
+	$(LOG_LIB) \
+	-lsodium \
+	-lssl \
+	-lvdf \
+	-lcrypto \
+	-lgmpxx -lmpfr \
+	-lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread \
+	-lboost_program_options -lboost_filesystem -lboost_system \
+	-lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest \
+	-lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push \
+	-lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common \
+	-ljsonrpccpp-server submodules/taraxa-evm/taraxa_evm_cgo.a
 ifeq ($(OS), Darwin)
 	LIBS += -framework CoreFoundation -framework Security
 endif
@@ -48,27 +76,26 @@ ifneq ($(DEBUG), 0)
 	TESTBUILDDIR := test_build-d
 	OBJECTDIR := obj-d
 endif
-LDFLAGS := -L $(OPENSSL_HOME)/lib -L submodules/taraxa-vrf/src/libsodium/.libs/ -L submodules/taraxa-vdf/lib -L submodules/cryptopp -L submodules/ethash/build/lib/ethash -L submodules/libff/build/libff -L submodules/secp256k1/.libs -L submodules/prometheus-cpp/_build/deploy/usr/local/lib
+LDFLAGS := \
+	-L $(OPENSSL_HOME)/lib \
+	-L submodules/taraxa-vrf/src/libsodium/.libs/ \
+	-L submodules/taraxa-vdf/lib \
+	-L submodules/cryptopp \
+	-L submodules/ethash/build/lib/ethash \
+	-L submodules/libff/build/libff \
+	-L submodules/secp256k1/.libs \
+	-L submodules/prometheus-cpp/_build/deploy/usr/local/lib
 MKDIR := mkdir
 RM := rm -f
 
 COMPILE = $(CXX) $(CXXFLAGS)
-
-.depcheck-impl:
-	@echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES} ))" >.dep.inc; \
-	echo "DEPFILES+=\$$(wildcard \$$(addsuffix .d, \$${P2POBJECTFILES} ))" >>.dep.inc; \
-	echo "DEPFILES+=\$$(wildcard \$$(addsuffix .d, \$${MAINOBJECTFILES} ))" >>.dep.inc; \
-	echo "ifneq (\$${DEPFILES},)" >>.dep.inc; \
-	echo "include \$${DEPFILES}" >>.dep.inc; \
-	echo "endif" >>.dep.inc; \
 
 main: $(BUILDDIR)/main
 	@echo MAIN
 
 all:  $(DEPENDENCIES) main
 
-include p2p.inc
-
+include Makefile.aleth
 
 OBJECTFILES= \
 	${OBJECTDIR}/dag_block.o \
@@ -103,7 +130,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/replay_protection/sender_state.o \
 	${OBJECTDIR}/replay_protection/replay_protection_service.o
 
-NODE_OBJECTS = $(DEPENDENCIES) $(OBJECTFILES) $(P2POBJECTFILES)
+NODE_OBJECTS = $(DEPENDENCIES) $(OBJECTFILES) $(ALETH_OBJ)
 
 TESTS = \
 	$(TESTBUILDDIR)/full_node_test \
@@ -353,55 +380,55 @@ node_objects: $(NODE_OBJECTS)
 
 $(BUILDDIR)/main: $(NODE_OBJECTS) $(OBJECTDIR)/main.o
 	${MKDIR} -p ${BUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/dag_block_test: $(OBJECTDIR)/dag_block_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/dag_block_test.o -o $(TESTBUILDDIR)/dag_block_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/dag_block_test.o -o $(TESTBUILDDIR)/dag_block_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/full_node_test: $(OBJECTDIR)/full_node_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
 
 $(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/pbft_chain_test: $(OBJECTDIR)/pbft_chain_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/pbft_rpc_test: $(OBJECTDIR)/pbft_rpc_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_rpc_test.o -o $(TESTBUILDDIR)/pbft_rpc_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/pbft_rpc_test.o -o $(TESTBUILDDIR)/pbft_rpc_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/pbft_manager_test: $(OBJECTDIR)/pbft_manager_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/pbft_manager_test.o -o $(TESTBUILDDIR)/pbft_manager_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/pbft_manager_test.o -o $(TESTBUILDDIR)/pbft_manager_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/performance_test: $(OBJECTDIR)/performance_test.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/performance_test.o -o $(TESTBUILDDIR)/performance_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/performance_test.o -o $(TESTBUILDDIR)/performance_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 $(TESTBUILDDIR)/prometheus_demo: $(OBJECTDIR)/prometheus_demo.o $(NODE_OBJECTS)
 	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(P2POBJECTFILES) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS) $(CPPFLAGS)
 
 test: $(TESTS)
 
@@ -423,10 +450,4 @@ c: clean
 clean:
 	@echo CLEAN && rm -rf $(BUILDDIR) $(TESTBUILDDIR) $(OBJECTDIR)
 
-.PHONY: run_test protoc 
-
-# Enable dependency checking
-.dep.inc: .depcheck-impl
-
-include .dep.inc
-
+.PHONY: run_test

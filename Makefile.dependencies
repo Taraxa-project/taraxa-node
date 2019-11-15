@@ -19,7 +19,14 @@ DEPENDENCIES = \
 	submodules/taraxa-evm/ok \
 	submodules/prometheus-cpp/ok
 
-OPENSSL_HOME = $(shell pwd)/submodules/openssl/build/usr/local
+# This is the default openssl install prefix
+# TODO: by default we should not install to system user library paths
+# because they are under control of package managers like `brew` (OS X)
+# NOTE: one can define this variable according to specifics of the local env
+# Just keep in mind the dynamic lib search paths configuration
+OPENSSL_HOME = /usr/local
+# TODO:
+# OPENSSL_HOME = $(shell pwd)/submodules/openssl/build
 
 submodules/cryptopp/ok:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually

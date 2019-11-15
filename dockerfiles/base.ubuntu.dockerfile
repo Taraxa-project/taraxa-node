@@ -79,4 +79,5 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 WORKDIR ${APP_PATH}
 
 COPY . .
-RUN make -f Makefile.dependencies -j $(nproc) dependencies
+RUN make -f Makefile.dependencies \
+    OPENSSL_HOME=/usr/local -j $(nproc) dependencies

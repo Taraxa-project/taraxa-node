@@ -1,5 +1,5 @@
-ALETH_OBJ=\
-    ${OBJECTDIR}/libdevcore/Address.o \
+ALETH_OBJ = \
+	${OBJECTDIR}/libdevcore/Address.o \
 	${OBJECTDIR}/libdevcore/Base64.o \
 	${OBJECTDIR}/libdevcore/Common.o \
 	${OBJECTDIR}/libdevcore/CommonData.o \
@@ -28,9 +28,7 @@ ALETH_OBJ=\
 	${OBJECTDIR}/libdevcrypto/CryptoPP.o \
 	${OBJECTDIR}/libdevcrypto/Hash.o \
 	${OBJECTDIR}/libdevcrypto/LibSnark.o \
-	${OBJECTDIR}/libdevcrypto/SecretStore.o
-P2POBJECTFILES= \
-	${ALETH_OBJ}\
+	${OBJECTDIR}/libdevcrypto/SecretStore.o \
 	${OBJECTDIR}/libp2p/CapabilityHost.o \
 	${OBJECTDIR}/libp2p/Common.o \
 	${OBJECTDIR}/libp2p/Host.o \
@@ -56,7 +54,6 @@ P2POBJECTFILES= \
 	${OBJECTDIR}/libweb3jsonrpc/RpcServer.o \
 	${OBJECTDIR}/libweb3jsonrpc/WSServer.o \
 
-	
 ${OBJECTDIR}/libdevcore/Address.o: libdevcore/Address.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libdevcore
