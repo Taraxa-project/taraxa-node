@@ -3,6 +3,7 @@ FROM ubuntu:18.10 as builder
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 
+# fixme: we have multiple openssl
 RUN apt-get update \
     && apt-get install -y \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
