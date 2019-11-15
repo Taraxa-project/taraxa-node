@@ -4,6 +4,8 @@
 #include "pbft_manager.hpp"
 #include "sortition.h"
 
+#include <libdevcrypto/Common.h>
+#include <libethcore/Common.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -12,17 +14,19 @@ VrfSortition::VrfSortition(bytes const& b) {
   dev::RLP const rlp(b);
   if (!rlp.isList())
     throw std::invalid_argument("VrfSortition RLP must be a list");
-  pk = vrf_pk_t(rlp[0].toString());
-  type = PbftVoteTypes(rlp[1].toInt<uint>());
-  round = rlp[2].toInt<uint64_t>();
-  step = rlp[3].toInt<size_t>();
-  proof = vrf_proof_t(rlp[4].toString());
-  output = vrf_output_t(rlp[5].toString());
+  pk = rlp[0].toHash<vrf_pk_t>();
+  blk = rlp[1].toHash<blk_hash_t>();
+  type = PbftVoteTypes(rlp[2].toInt<uint>());
+  round = rlp[3].toInt<uint64_t>();
+  step = rlp[4].toInt<size_t>();
+  proof = rlp[5].toHash<vrf_proof_t>();
+  output = rlp[6].toHash<vrf_output_t>();
 }
 bytes VrfSortition::getRlpBytes() const {
   dev::RLPStream s;
-  s.appendList(6);
+  s.appendList(7);
   s << pk;
+  s << blk;
   s << type;
   s << round;
   s << step;

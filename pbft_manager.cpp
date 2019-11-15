@@ -771,13 +771,9 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   // compute sorition
-  std::string message = pbft_chain_last_block_hash_.toString() +
-                        std::to_string(type) + std::to_string(round) +
-                        std::to_string(step);
-  dev::Signature sortition_proof = full_node->signMessage(message);
-  string sortition_credential = taraxa::hashSignature(sortition_proof);
-  if (!taraxa::sortition(sortition_credential, valid_sortition_accounts_size_,
-                         sortition_threshold_)) {
+  VrfSortition vrf_sortition(full_node->getVrfSecretKey(), pbft_chain_last_block_hash_, type, round, step);
+
+  if (!vrf_sortition.canSpeak(sortition_threshold_, valid_sortition_accounts_size_)){
     LOG(log_tra_) << "Don't get sortition";
     return false;
   }

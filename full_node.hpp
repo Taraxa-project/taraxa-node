@@ -170,6 +170,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
+  auto getVrfSecretKey() const { return vrf_sk_; }
+  auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
   bool executeScheduleBlock(ScheduleBlock const &sche_blk,
                             std::unordered_map<addr_t, PbftSortitionAccount>

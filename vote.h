@@ -22,14 +22,15 @@ struct VrfSortition {
   using vrf_output_t = vrf_wrapper::vrf_output_t;
   using bytes = dev::bytes;
   VrfSortition() = default;
-  VrfSortition(vrf_sk_t const& sk, PbftVoteTypes type, uint64_t round,
-               size_t step)
+  VrfSortition(vrf_sk_t const& sk, blk_hash_t const& blk, PbftVoteTypes type,
+               uint64_t round, size_t step)
       : pk(vrf_wrapper::getVrfPublicKey(sk)),
+        blk(blk),
         type(type),
         round(round),
         step(step) {
-    std::string msg = std::to_string(type) + "_" + std::to_string(round) + "_" +
-                      std::to_string(step);
+    std::string msg = blk.toString() + std::to_string(type) + "_" +
+                      std::to_string(round) + "_" + std::to_string(step);
     const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
     proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();
     output = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
@@ -37,7 +38,7 @@ struct VrfSortition {
   VrfSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool operator==(VrfSortition const& other) const {
-    return pk == other.pk && type == other.type && round == other.round &&
+    return pk == other.pk && blk == other.blk && type == other.type && round == other.round &&
            step == other.step && proof == other.proof && output == other.output;
   }
   static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
@@ -46,6 +47,7 @@ struct VrfSortition {
                                   VrfSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
     strm << "  pk: " << vrf_sortition.pk << std::endl;
+    strm << "  blk_hash: " << vrf_sortition.blk << std::endl;
     strm << "  type: " << vrf_sortition.type << std::endl;
     strm << "  round: " << vrf_sortition.round << std::endl;
     strm << "  step: " << vrf_sortition.step << std::endl;
@@ -54,6 +56,7 @@ struct VrfSortition {
     return strm;
   }
   vrf_pk_t pk;
+  blk_hash_t blk;
   PbftVoteTypes type;
   uint64_t round;
   size_t step;
@@ -65,8 +68,11 @@ class Vote {
  public:
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   Vote() = default;
-  Vote(public_t const& node_pk, blk_hash_t const& blockhash,
-       VrfSortition const& vrf_sortition);
+  Vote(public_t const& node_pk, VrfSortition const& vrf_sortition,
+       blk_hash_t const& blockhash)
+      : node_pk_(node_pk),
+        vrf_sortition_(vrf_sortition),
+        blockhash_(blockhash) {}
 
   Vote(public_t const& node_pk, sig_t const& sortition_proof,
        sig_t const& vote_signature, blk_hash_t const& blockhash,

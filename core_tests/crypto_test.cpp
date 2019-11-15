@@ -61,9 +61,13 @@ TEST_F(CryptoTest, vrf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VrfSortition sortition(sk, PbftVoteTypes::cert_vote_type, 1, 3);
+  VrfSortition sortition(sk, blk_hash_t(111), PbftVoteTypes::cert_vote_type, 1,
+                         3);
   EXPECT_FALSE(sortition.canSpeak(10000000, 20000000));
   EXPECT_TRUE(sortition.canSpeak(1, 1));
+  auto b = sortition.getRlpBytes();
+  auto sortition2(b);
+  EXPECT_EQ(sortition, sortition2);
 }
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
