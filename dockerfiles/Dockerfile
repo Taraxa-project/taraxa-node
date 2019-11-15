@@ -2,9 +2,9 @@ ARG BASE_IMAGE=gcr.io/jovial-meridian-249123/taraxa-node-base:latest
 FROM $BASE_IMAGE as builder
 
 COPY . .
-RUN make -j $(nproc) DEBUG=1 run_test
-RUN make -j $(nproc) main
-RUN make -j $(nproc) DEBUG=1 main
+RUN make OPENSSL_HOME=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 run_test
+RUN make OPENSSL_HOME=${APP_LIBRARY_HOME} -j $(nproc) main
+RUN make OPENSSL_HOME=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 main
 
 
 # Copy over only minimal information

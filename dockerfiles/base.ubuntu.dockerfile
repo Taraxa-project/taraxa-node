@@ -76,9 +76,10 @@ WORKDIR /app
 RUN cd / && rm -rf /tmp/*
 
 ENV APP_PATH /opt/taraxa/taraxa-node
-ENV LD_LIBRARY_PATH /usr/local/lib
+ENV APP_LIBRARY_HOME /usr/local
+ENV LD_LIBRARY_PATH ${APP_LIBRARY_HOME}/lib
 WORKDIR ${APP_PATH}
 
 COPY . .
 RUN make -f Makefile.dependencies \
-    OPENSSL_HOME=/usr/local -j $(nproc) dependencies
+    OPENSSL_HOME=${APP_LIBRARY_HOME} -j $(nproc) dependencies
