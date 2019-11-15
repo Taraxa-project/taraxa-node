@@ -2,7 +2,7 @@
 #define TARAXA_NODE_TRX_ENGINE_TRX_ENGINE_HPP_
 
 extern "C" {
-#include "trx_engine.h"
+#include "taraxa_evm_cgo.h"
 }
 #include <json/value.h>
 #include <libdevcore/db.h>

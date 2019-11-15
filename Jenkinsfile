@@ -33,22 +33,9 @@ pipeline {
                 }
             }
         }
-        stage('Unit Tests') {
-            agent {
-              docker {
-                alwaysPull true
-                image "${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG}"
-                reuseNode true
-              }
-            }
-            steps {
-                sh 'make DEBUG=1 -j 4 run_test'
-            }
-        }
-        stage('Build Docker Image') {
+        stage('Tests + Build Docker Image') {
             steps {
                 sh '''
-                    git submodule update --init --recursive
                     docker build --pull --cache-from=${GCP_REGISTRY}/${IMAGE} \
                     -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} \
                     --build-arg BASE_IMAGE=${GCP_REGISTRY}/${BASE_IMAGE}:${DOCKER_BRANCH_TAG} \
