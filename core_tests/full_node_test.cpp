@@ -251,6 +251,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   auto node4 = top4.getNode();
   auto node5 = top5.getNode();
 
+  taraxa::thisThreadSleepForMilliSeconds(500);
+
   ASSERT_GT(node1->getPeerCount(), 0);
   ASSERT_GT(node2->getPeerCount(), 0);
   ASSERT_GT(node3->getPeerCount(), 0);
@@ -337,33 +339,50 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   }
 
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    if (i % 10 == 0) {
-      std::cout << "Wait for vertices syncing ..." << std::endl;
-      std::cout << " Node 1: Dag size = " << node1->getNumVerticesInDag().first
-                << std::endl
-                << " Node 2: Dag size = " << node2->getNumVerticesInDag().first
-                << std::endl
-                << " Node 3: Dag size = " << node3->getNumVerticesInDag().first
-                << std::endl
-                << " Node 4: Dag size = " << node4->getNumVerticesInDag().first
-                << std::endl
-                << " Node 5: Dag size = " << node5->getNumVerticesInDag().first
-                << std::endl;
-    }
+    
     auto num_vertices1 = node1->getNumVerticesInDag();
     auto num_vertices2 = node2->getNumVerticesInDag();
     auto num_vertices3 = node3->getNumVerticesInDag();
     auto num_vertices4 = node4->getNumVerticesInDag();
     auto num_vertices5 = node5->getNumVerticesInDag();
 
+    auto num_trx1 = node1->getTransactionStatusCount();
+    auto num_trx2 = node1->getTransactionStatusCount();
+    auto num_trx3 = node1->getTransactionStatusCount();
+    auto num_trx4 = node1->getTransactionStatusCount();
+    auto num_trx5 = node1->getTransactionStatusCount();
+
+    auto issued_trx_count = context.getIssuedTrxCount();
+
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        node1->getTransactionStatusCount() == context.getIssuedTrxCount() &&
-        node2->getTransactionStatusCount() == context.getIssuedTrxCount() &&
-        node3->getTransactionStatusCount() == context.getIssuedTrxCount() &&
-        node4->getTransactionStatusCount() == context.getIssuedTrxCount() &&
-        node5->getTransactionStatusCount() == context.getIssuedTrxCount())
+        num_trx1 == issued_trx_count &&
+        num_trx2 == issued_trx_count &&
+        num_trx3 == issued_trx_count &&
+        num_trx4 == issued_trx_count &&
+        num_trx5 == issued_trx_count)
       break;
+
+    if (i % 10 == 0) {
+      std::cout << "Still waiting for DAG vertices and transaction gossiping to sync ..." << std::endl;
+      std::cout << " Node 1: Dag size = " << num_vertices1.first
+                << " Trx count = " << num_trx1
+                << std::endl
+                << " Node 2: Dag size = " << num_vertices2.first
+                << " Trx count = " << num_trx2
+                << std::endl
+                << " Node 3: Dag size = " << num_vertices3.first
+                << " Trx count = " << num_trx3
+                << std::endl
+                << " Node 4: Dag size = " << num_vertices4.first
+                << " Trx count = " << num_trx4
+                << std::endl
+                << " Node 5: Dag size = " << num_vertices5.first
+                << " Trx count = " << num_trx5
+                << " Issued transaction count = " << issued_trx_count
+                << std::endl;
+    }
+
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
@@ -379,7 +398,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   ASSERT_EQ(node4->getTransactionStatusCount(), context.getIssuedTrxCount());
   ASSERT_EQ(node5->getTransactionStatusCount(), context.getIssuedTrxCount());
 
-  // send dummy trx to make sure all DAGs are ordered
+  // send dummy trx to make sure all DAG blocks are ordered
   // NOTE: have to wait longer than block proposer time + transaction
   // propogation time to ensure
   //       all transacations have already been packed into other blocks and that
@@ -394,7 +413,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   auto issued_trx_count = context.getIssuedTrxCount();
 
-  std::cout << "Wait 2 seconds before checking all nodes have seend a new DAG "
+  std::cout << "Wait 2 seconds before checking all nodes have seen a new DAG "
                "block (containing dummy transaction) ... "
             << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1125,8 +1144,6 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   Top top5(6, input5);
   std::cout << "Top5 created ..." << std::endl;
 
-  std::cout << "Sleep for 1 second ..." << std::endl;
-
   auto node1 = top1.getNode();
   auto node2 = top2.getNode();
   auto node3 = top3.getNode();
@@ -1139,11 +1156,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   node4->getPbftManager()->stop();
   node5->getPbftManager()->stop();
 
-  EXPECT_GT(node1->getPeerCount(), 0);
-  EXPECT_GT(node2->getPeerCount(), 0);
-  EXPECT_GT(node3->getPeerCount(), 0);
-  EXPECT_GT(node4->getPeerCount(), 0);
-  EXPECT_GT(node5->getPeerCount(), 0);
+  thisThreadSleepForMilliSeconds(500);
+
+  ASSERT_GT(node1->getPeerCount(), 0);
+  ASSERT_GT(node2->getPeerCount(), 0);
+  ASSERT_GT(node3->getPeerCount(), 0);
+  ASSERT_GT(node4->getPeerCount(), 0);
+  ASSERT_GT(node5->getPeerCount(), 0);
 
   try {
     init_5_nodes_coin();
@@ -1152,19 +1171,14 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+  
   // check dags
-  auto num_vertices1 = node1->getNumVerticesInDag();
-  auto num_vertices2 = node2->getNumVerticesInDag();
-  auto num_vertices3 = node3->getNumVerticesInDag();
-  auto num_vertices4 = node4->getNumVerticesInDag();
-  auto num_vertices5 = node5->getNumVerticesInDag();
-
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    num_vertices1 = node1->getNumVerticesInDag();
-    num_vertices2 = node2->getNumVerticesInDag();
-    num_vertices3 = node3->getNumVerticesInDag();
-    num_vertices4 = node4->getNumVerticesInDag();
-    num_vertices5 = node5->getNumVerticesInDag();
+    auto num_vertices1 = node1->getNumVerticesInDag();
+    auto num_vertices2 = node2->getNumVerticesInDag();
+    auto num_vertices3 = node3->getNumVerticesInDag();
+    auto num_vertices4 = node4->getNumVerticesInDag();
+    auto num_vertices5 = node5->getNumVerticesInDag();
 
     auto trx_table = node1->getUnsafeTransactionStatusTable();
     int packed_trx = 0;
@@ -1207,7 +1221,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       }
     }
 
-    taraxa::thisThreadSleepForMilliSeconds(200);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
   EXPECT_GT(node1->getNumProposedBlocks(), 2);
@@ -1222,64 +1236,49 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
   ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
 
-  // time to make sure all transactions have been packed into block...
+  // send dummy trx to make sure all DAG blocks are ordered
+  // NOTE: have to wait longer than block proposer time + transaction
+  // propogation time to ensure
+  //       all transacations have already been packed into other blocks and that
+  //       this new transaction will get packed into a unique block that will
+  //       reference all outstanding tips
+  std::cout << "Sleep 2 seconds before sending dummy transaction ... "
+            << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   // send dummy trx to make sure all DAGs are ordered
+  std::cout << "Send dummy transaction ... " << std::endl;
   try {
     send_dummy_trx();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
 
-  for (int i = 0; i < SYNC_TIMEOUT; ++i) {
-    num_vertices1 = node1->getNumVerticesInDag();
-    num_vertices2 = node2->getNumVerticesInDag();
-    num_vertices3 = node3->getNumVerticesInDag();
-    num_vertices4 = node4->getNumVerticesInDag();
-    num_vertices5 = node5->getNumVerticesInDag();
-    if (i % 10 == 0) {
-      std::cout << "Wait for dummy trx syncing ..." << std::endl;
-      std::cout << "Node 1 trx received: " << node1->getTransactionStatusCount()
-                << " Dag size: " << num_vertices1 << std::endl;
-      std::cout << "Node 2 trx received: " << node2->getTransactionStatusCount()
-                << " Dag size: " << num_vertices2 << std::endl;
-      std::cout << "Node 3 trx received: " << node3->getTransactionStatusCount()
-                << " Dag size: " << num_vertices3 << std::endl;
-      std::cout << "Node 4 trx received: " << node4->getTransactionStatusCount()
-                << " Dag size: " << num_vertices4 << std::endl;
-      std::cout << "Node 5 trx received: " << node5->getTransactionStatusCount()
-                << " Dag size: " << num_vertices5 << std::endl;
-    }
+  std::cout << "Wait 2 seconds before checking all nodes have seen a new DAG "
+               "block (containing dummy transaction) ... "
+            << std::endl;
+  taraxa::thisThreadSleepForMilliSeconds(2000);
 
-    if (node1->getTransactionStatusCount() == 10005 &&
-        node2->getTransactionStatusCount() == 10005 &&
-        node3->getTransactionStatusCount() == 10005 &&
-        node4->getTransactionStatusCount() == 10005 &&
-        node5->getTransactionStatusCount() == 10005 &&
-        num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
-        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5)
-      break;
-    taraxa::thisThreadSleepForMilliSeconds(200);
-  }
-
-  num_vertices1 = node1->getNumVerticesInDag();
-  num_vertices2 = node2->getNumVerticesInDag();
-  num_vertices3 = node3->getNumVerticesInDag();
-  num_vertices4 = node4->getNumVerticesInDag();
-  num_vertices5 = node5->getNumVerticesInDag();
+  auto num_vertices1 = node1->getNumVerticesInDag();
+  auto num_vertices2 = node2->getNumVerticesInDag();
+  auto num_vertices3 = node3->getNumVerticesInDag();
+  auto num_vertices4 = node4->getNumVerticesInDag();
+  auto num_vertices5 = node5->getNumVerticesInDag();
 
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  EXPECT_EQ(node1->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node3->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node4->getTransactionStatusCount(), 10005);
-  EXPECT_EQ(node5->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node1->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node2->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node3->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node4->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node5->getTransactionStatusCount(), 10005);
 
+  std::cout << "All transactions received ..." << std::endl;
+
+  std::cout << "Compute ordered dag blocks ..." << std::endl;
   auto block = node1->getConfig().genesis_state.block;
   std::vector<std::string> ghost;
   node1->getGhostPath(block.getHash().toString(), ghost);
@@ -1290,7 +1289,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::tie(cur_period, order) = node1->getDagBlockOrder(anchor);
   ASSERT_TRUE(order);
   EXPECT_GT(order->size(), 5);
-  std::cout << "Ordered dagblock size: " << order->size() << std::endl;
+  std::cout << "Ordered dag block chain size: " << order->size() << std::endl;
 
   auto dag_size = node1->getNumVerticesInDag();
 
