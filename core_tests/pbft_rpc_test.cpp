@@ -9,10 +9,17 @@
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>
 #include "core_tests/util.hpp"
+#include "vote.h"
 
 namespace taraxa {
 using namespace core_tests::util;
-
+using namespace vrf_wrapper;
+vrf_sk_t g_vrf_sk(
+    "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+    "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+secret_t g_sk(
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+    dev::Secret::ConstructFromStringType::FromHex);
 struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
@@ -100,7 +107,8 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
   PbftVoteTypes type(propose_vote_type);
   uint64_t round(999);
   size_t step(2);
-  Vote vote1(pk, sortition_sig, vote_sig, blk_hash, type, round, step);
+  VrfSortition vrf_sortition(g_vrf_sk, blk_hash_t(123), type, round, step);
+  Vote vote1(g_sk, vrf_sortition, blk_hash);
   auto rlp = vote1.rlp();
   Vote vote2(rlp);
   EXPECT_EQ(vote1, vote2);
@@ -148,11 +156,12 @@ TEST_F(PbftRpcTest, transfer_vote) {
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
 
   // generate vote
-  blk_hash_t blockhash(1);
-  blk_hash_t pbft_blockhash(1);
+  blk_hash_t blockhash(11);
+  blk_hash_t pbft_blockhash(991);
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
+
   Vote vote =
       node2->generateVote(blockhash, type, period, step, pbft_blockhash);
 

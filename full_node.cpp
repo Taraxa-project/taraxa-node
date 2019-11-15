@@ -670,8 +670,7 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             blk_hash_t const &last_pbft_block_hash) {
   // sortition proof
   VrfSortition vrf_sortition(vrf_sk_, last_pbft_block_hash, type, period, step);
-
-  Vote vote(node_pk_, vrf_sortition, blockhash);
+  Vote vote(node_sk_, vrf_sortition, blockhash);
 
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                << " vote: " << vote.getHash();

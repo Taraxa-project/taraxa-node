@@ -45,23 +45,6 @@ bool VrfSortition::canSpeak(size_t threshold, size_t valid_players) const {
   uint1024_t right = (uint1024_t)max512bits * threshold;
   return left <= right;
 }
-// Vote
-Vote::Vote(public_t const& node_pk, sig_t const& sortition_proof,
-           sig_t const& vote_signature, blk_hash_t const& blockhash,
-           PbftVoteTypes type, uint64_t round, size_t step)
-    : node_pk_(node_pk),
-      sortition_proof_(sortition_proof),
-      vote_signatue_(vote_signature),
-      blockhash_(blockhash),
-      type_(type),
-      round_(round),
-      step_(step) {
-  dev::RLPStream s;
-  streamRLP_(s);
-  vote_hash_ = dev::sha3(s.out());
-}
-
-Vote::Vote(taraxa::stream& strm) { deserialize(strm); }
 
 Vote::Vote(bytes const& b) {
   dev::RLP const rlp(b);
@@ -69,44 +52,11 @@ Vote::Vote(bytes const& b) {
     throw std::invalid_argument("transaction RLP must be a list");
   vote_hash_ = rlp[0].toHash<vote_hash_t>();
   node_pk_ = rlp[1].toHash<public_t>();
-  sortition_proof_ = rlp[2].toHash<sig_t>();
+  blockhash_ = rlp[2].toHash<blk_hash_t>();
   vote_signatue_ = rlp[3].toHash<sig_t>();
-  blockhash_ = rlp[4].toHash<blk_hash_t>();
-  type_ = (PbftVoteTypes)rlp[5].toInt<uint>();
-  round_ = rlp[6].toInt<uint64_t>();
-  step_ = rlp[7].toInt<size_t>();
-}
-bool Vote::serialize(stream& strm) const {
-  bool ok = true;
-
-  ok &= write(strm, vote_hash_);
-  ok &= write(strm, node_pk_);
-  ok &= write(strm, sortition_proof_);
-  ok &= write(strm, vote_signatue_);
-  ok &= write(strm, blockhash_);
-  ok &= write(strm, type_);
-  ok &= write(strm, round_);
-  ok &= write(strm, step_);
-  assert(ok);
-
-  return ok;
+  vrf_sortition_ = VrfSortition(rlp[4].toBytes());
 }
 
-bool Vote::deserialize(stream& strm) {
-  bool ok = true;
-
-  ok &= read(strm, vote_hash_);
-  ok &= read(strm, node_pk_);
-  ok &= read(strm, sortition_proof_);
-  ok &= read(strm, vote_signatue_);
-  ok &= read(strm, blockhash_);
-  ok &= read(strm, type_);
-  ok &= read(strm, round_);
-  ok &= read(strm, step_);
-  assert(ok);
-
-  return ok;
-}
 bytes Vote::rlp() const {
   dev::RLPStream s;
   streamRLP_(s);
@@ -114,32 +64,29 @@ bytes Vote::rlp() const {
 }
 
 void Vote::streamRLP_(dev::RLPStream& strm) const {
-  strm.appendList(8);
+  strm.appendList(5);
   strm << vote_hash_;
   strm << node_pk_;
-  strm << sortition_proof_;
-  strm << vote_signatue_;
   strm << blockhash_;
-  strm << type_;
-  strm << round_;
-  strm << step_;
+  strm << vote_signatue_;
+  strm << vrf_sortition_.getRlpBytes();
 }
 
 vote_hash_t Vote::getHash() const { return vote_hash_; }
 
 public_t Vote::getPublicKey() const { return node_pk_; }
 
-sig_t Vote::getSortitionProof() const { return sortition_proof_; }
+auto Vote::getSortitionProof() const { return vrf_sortition_.proof; }
 
 sig_t Vote::getVoteSignature() const { return vote_signatue_; }
 
 blk_hash_t Vote::getBlockHash() const { return blockhash_; }
 
-PbftVoteTypes Vote::getType() const { return type_; }
+PbftVoteTypes Vote::getType() const { return vrf_sortition_.type; }
 
-uint64_t Vote::getRound() const { return round_; }
+uint64_t Vote::getRound() const { return vrf_sortition_.round; }
 
-size_t Vote::getStep() const { return step_; }
+size_t Vote::getStep() const { return vrf_sortition_.step; }
 
 // Vote Manager
 void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
@@ -163,48 +110,20 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
                                  size_t valid_sortition_players,
                                  size_t sortition_threshold) const {
-  PbftVoteTypes type = vote.getType();
-  uint64_t round = vote.getRound();
-  size_t step = vote.getStep();
-  // verify vote signature
-  std::string const vote_message = vote.getBlockHash().toString() +
-                                   std::to_string(type) +
-                                   std::to_string(round) + std::to_string(step);
-  public_t public_key = vote.getPublicKey();
-  sig_t vote_signature = vote.getVoteSignature();
-  if (!dev::verify(public_key, vote_signature, hash_(vote_message))) {
-    LOG(log_war_) << "Invalid vote signature " << vote_signature
-                  << " vote hash " << vote.getHash();
+  if (last_pbft_block_hash != vote.getVrfSorition().blk) {
+    LOG(log_war_) << "Last pbft block hash does not match "
+                  << last_pbft_block_hash;
     return false;
   }
-
-  // verify sortition proof
-  std::string const sortition_message =
-      last_pbft_block_hash.toString() + std::to_string(type) +
-      std::to_string(round) + std::to_string(step);
-  sig_t sortition_proof = vote.getSortitionProof();
-  if (!dev::verify(public_key, sortition_proof, hash_(sortition_message))) {
-    // 1. PBFT chain has not have the newest PBFT block yet
-    // 2. When new node join, the new node doesn't have the lastest pbft block
-    // to verify the vote.
-    // Return false, will not effect PBFT consensus
-    // if the vote is valid, will count when node has the relative pbft block
-    // if the vote is invalid, will remove when pass the pbft round
-    LOG(log_tra_) << "Have not received latest PBFT block to verify the vote "
-                  << "sortition proof: " << sortition_proof << " vote hash "
-                  << vote.getHash();
+  if (!vote.verifyVote()) {
+    LOG(log_war_) << "Invalid vote signature, vote hash " << vote.getHash();
     return false;
   }
-
-  // verify sortition
-  std::string sortition_signature_hash = taraxa::hashSignature(sortition_proof);
-  if (!taraxa::sortition(sortition_signature_hash, valid_sortition_players,
-                         sortition_threshold)) {
+  if (!vote.verifyCanSpeak(sortition_threshold, valid_sortition_players)) {
     LOG(log_war_) << "Vote sortition failed, sortition proof "
-                  << sortition_proof;
+                  << vote.getSortitionProof();
     return false;
   }
-
   return true;
 }
 

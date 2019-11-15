@@ -38,8 +38,9 @@ struct VrfSortition {
   VrfSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool operator==(VrfSortition const& other) const {
-    return pk == other.pk && blk == other.blk && type == other.type && round == other.round &&
-           step == other.step && proof == other.proof && output == other.output;
+    return pk == other.pk && blk == other.blk && type == other.type &&
+           round == other.round && step == other.step && proof == other.proof &&
+           output == other.output;
   }
   static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
   bool canSpeak(size_t threshold, size_t valid_players) const;
@@ -68,60 +69,57 @@ class Vote {
  public:
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   Vote() = default;
-  Vote(public_t const& node_pk, VrfSortition const& vrf_sortition,
+  Vote(secret_t const& node_sk, VrfSortition const& vrf_sortition,
        blk_hash_t const& blockhash)
-      : node_pk_(node_pk),
+      : node_pk_(dev::toPublic(node_sk)),
         vrf_sortition_(vrf_sortition),
-        blockhash_(blockhash) {}
+        blockhash_(blockhash) {
+    vote_hash_ = sha3();
+    vote_signatue_ = dev::sign(node_sk, vote_hash_);
+  }
 
-  Vote(public_t const& node_pk, sig_t const& sortition_proof,
-       sig_t const& vote_signature, blk_hash_t const& blockhash,
-       PbftVoteTypes type, uint64_t round, size_t step);
-  Vote(stream& strm);
   Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}
 
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
-
   vote_hash_t getHash() const;
   public_t getPublicKey() const;
-  sig_t getSortitionProof() const;
+  auto getVrfSorition() const { return vrf_sortition_; }
+  auto getSortitionProof() const;
   sig_t getVoteSignature() const;
   blk_hash_t getBlockHash() const;
   PbftVoteTypes getType() const;
   uint64_t getRound() const;
   size_t getStep() const;
   bytes rlp() const;
+  bool verifyVote() const {
+    auto msg = sha3();
+    auto pk = dev::recover(vote_signatue_, msg);
+    return dev::verify(pk, vote_signatue_, msg);
+  }
+  bool verifyCanSpeak(size_t threshold, size_t valid_players) const {
+    return vrf_sortition_.canSpeak(threshold, valid_players);
+  }
 
   friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
     strm << "[Vote] " << std::endl;
     strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
     strm << "  node_pk: " << vote.node_pk_ << std::endl;
-    strm << "  vrf_pk: " << vote.vrf_pk_ << std::endl;
-    strm << "  sortition_proof: " << vote.sortition_proof_ << std::endl;
     strm << "  vote_signatue: " << vote.vote_signatue_ << std::endl;
     strm << "  blockhash: " << vote.blockhash_ << std::endl;
-    strm << "  type: " << vote.type_ << std::endl;
-    strm << "  round: " << vote.round_ << std::endl;
-    strm << "  step: " << vote.step_ << std::endl;
+    strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
     return strm;
   }
 
  private:
+  blk_hash_t sha3() const { return dev::sha3(rlp()); }
   void streamRLP_(dev::RLPStream& strm) const;
 
   vote_hash_t vote_hash_;  // hash of this vote
   public_t node_pk_;
-  VrfSortition vrf_sortition_;
-  vrf_pk_t vrf_pk_;
-  sig_t sortition_proof_;
+  blk_hash_t blockhash_;
   sig_t vote_signatue_;
-  blk_hash_t blockhash_;  // pbft_block_hash
-  PbftVoteTypes type_;
-  uint64_t round_;
-  size_t step_;
+  VrfSortition vrf_sortition_;
 };
 
 class VoteManager {
