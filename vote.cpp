@@ -50,60 +50,43 @@ Vote::Vote(bytes const& b) {
   dev::RLP const rlp(b);
   if (!rlp.isList())
     throw std::invalid_argument("transaction RLP must be a list");
-  vote_hash_ = rlp[0].toHash<vote_hash_t>();
-  node_pk_ = rlp[1].toHash<public_t>();
-  blockhash_ = rlp[2].toHash<blk_hash_t>();
-  vote_signatue_ = rlp[3].toHash<sig_t>();
-  vrf_sortition_ = VrfSortition(rlp[4].toBytes());
+  blockhash_ = rlp[0].toHash<blk_hash_t>();
+  vrf_sortition_ = VrfSortition(rlp[1].toBytes());
+  vote_signatue_ = rlp[2].toHash<sig_t>();
+  vote_hash_ = sha3(true);
 }
 
-bytes Vote::rlp() const {
+Vote::Vote(secret_t const& node_sk, VrfSortition const& vrf_sortition,
+           blk_hash_t const& blockhash)
+    : vrf_sortition_(vrf_sortition), blockhash_(blockhash) {
+  vote_signatue_ = dev::sign(node_sk, sha3(false));
+  vote_hash_ = sha3(true);
+}
+
+bytes Vote::rlp(bool inc_sig) const {
   dev::RLPStream s;
-  streamRLP_(s);
+  s.appendList(inc_sig ? 3 : 2);
+
+  s << blockhash_;
+  s << vrf_sortition_.getRlpBytes();
+  if (inc_sig) {
+    s << vote_signatue_;
+  }
+
   return s.out();
 }
 
-void Vote::streamRLP_(dev::RLPStream& strm) const {
-  strm.appendList(5);
-  strm << vote_hash_;
-  strm << node_pk_;
-  strm << blockhash_;
-  strm << vote_signatue_;
-  strm << vrf_sortition_.getRlpBytes();
+void Vote::voter() const {
+  if (cached_voter_) return;
+  cached_voter_ = dev::recover(vote_signatue_, sha3(false));
+  assert(cached_voter_);
 }
-
-vote_hash_t Vote::getHash() const { return vote_hash_; }
-
-public_t Vote::getPublicKey() const { return node_pk_; }
-
-auto Vote::getSortitionProof() const { return vrf_sortition_.proof; }
-
-sig_t Vote::getVoteSignature() const { return vote_signatue_; }
-
-blk_hash_t Vote::getBlockHash() const { return blockhash_; }
-
-PbftVoteTypes Vote::getType() const { return vrf_sortition_.type; }
-
-uint64_t Vote::getRound() const { return vrf_sortition_.round; }
-
-size_t Vote::getStep() const { return vrf_sortition_.step; }
 
 // Vote Manager
 void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   node_ = full_node;
   pbft_chain_ = full_node->getPbftChain();
   pbft_mgr_ = full_node->getPbftManager();
-}
-
-// Problem??
-sig_t VoteManager::signVote(secret_t const& node_sk,
-                            taraxa::blk_hash_t const& block_hash,
-                            taraxa::PbftVoteTypes type, uint64_t round,
-                            size_t step) {
-  std::string message = block_hash.toString() + std::to_string(type) +
-                        std::to_string(round) + std::to_string(step);
-  // sign message
-  return dev::sign(node_sk, hash_(message));
 }
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
@@ -206,7 +189,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   for (auto const& v : votes_to_verify) {
     // vote verification
     // TODO: or search in PBFT sortition_account_balance_table?
-    addr_t vote_address = dev::toAddress(v.getPublicKey());
+    addr_t vote_address = dev::toAddress(v.getVoter());
     std::pair<val_t, bool> account_balance =
         full_node->getBalance(vote_address);
     if (!account_balance.second) {
@@ -251,7 +234,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   for (auto const& v : votes_to_verify) {
     // vote verification
     // TODO: or search in PBFT sortition_account_balance_table?
-    addr_t vote_address = dev::toAddress(v.getPublicKey());
+    addr_t vote_address = dev::toAddress(v.getVoter());
     std::pair<val_t, bool> account_balance =
         full_node->getBalance(vote_address);
     if (!account_balance.second) {
@@ -287,7 +270,7 @@ std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
   for (Vote const& v : votes) {
     ptree ptvote;
     ptvote.put("vote_hash", v.getHash());
-    ptvote.put("accounthash", v.getPublicKey());
+    ptvote.put("accounthash", v.getVoter());
     ptvote.put("sortition_proof", v.getSortitionProof());
     ptvote.put("vote_signature", v.getVoteSignature());
     ptvote.put("blockhash", v.getBlockHash());
