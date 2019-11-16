@@ -38,9 +38,10 @@ Executor::Executor(
   }
 }
 
-bool Executor::execute(TrxSchedule const& schedule,
+bool Executor::execute(PbftBlock const& pbft_block,
                        BalanceTable& sortition_account_balance_table,
                        uint64_t period) {
+  auto const& schedule = pbft_block.getScheduleBlock().getSchedule();
   ReplayProtectionService::transaction_batch_t executed_trx;
   bool success = false;
   if (this->use_basic_executor_) {

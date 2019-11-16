@@ -145,16 +145,6 @@ class ScheduleBlock {
 };
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
 
-class ResultBlock {
- public:
- private:
-  val_t state_root_;
-  val_t trx_root_;
-  val_t receipt_root_;
-  val_t gas_limit_;
-  val_t gas_used_;
-};
-
 class PbftBlock {
  public:
   PbftBlock() = default;

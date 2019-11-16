@@ -582,15 +582,15 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
-bool FullNode::executeScheduleBlock(
-    ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, PbftSortitionAccount>
-        &sortition_account_balance_table,
-    uint64_t period) {
+bool FullNode::executePeriod(PbftBlock const &pbft_block,
+                             std::unordered_map<addr_t, PbftSortitionAccount>
+                                 &sortition_account_balance_table,
+                             uint64_t period) {
   // update transaction overlap table first
+  auto const &sche_blk = pbft_block.getScheduleBlock();
   auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
-  res |= executor_->execute(sche_blk.getSchedule(),
-                            sortition_account_balance_table, period);
+  res |=
+      executor_->execute(pbft_block, sortition_account_balance_table, period);
   uint64_t block_number = 0;
   if (sche_blk.getSchedule().blk_order.size() > 0) {
     block_number =

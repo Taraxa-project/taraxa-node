@@ -68,7 +68,7 @@ class Executor {
            decltype(db_status_) db_status,                                  //
            bool use_basic_executor = false);
 
-  bool execute(TrxSchedule const& schedule,
+  bool execute(PbftBlock const& pbft_block,
                BalanceTable& sortition_account_balance_table, uint64_t period);
 
   uint64_t getNumExecutedTrx() { return num_executed_trx_; }

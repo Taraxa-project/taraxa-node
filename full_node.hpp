@@ -168,10 +168,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
   // pbft stuff
-  bool executeScheduleBlock(ScheduleBlock const &sche_blk,
-                            std::unordered_map<addr_t, PbftSortitionAccount>
-                                &sortition_account_balance_table,
-                            uint64_t period);
+  bool executePeriod(PbftBlock const &pbft_block,
+                     std::unordered_map<addr_t, PbftSortitionAccount>
+                         &sortition_account_balance_table,
+                     uint64_t period);
 
   // get DBs
   std::shared_ptr<DatabaseFaceCache> getTrxsDB() const { return db_trxs_; }
