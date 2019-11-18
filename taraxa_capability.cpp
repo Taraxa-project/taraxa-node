@@ -533,17 +533,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       case PbftVotePacket: {
         LOG(log_dg_vote_prp_) << "In PbftVotePacket";
 
-        std::vector<::byte> pbft_vote_bytes;
 
-        for (auto i = 0; i < _r[0].itemCount(); i++) {
-          pbft_vote_bytes.push_back(_r[0][i].toInt());
-        }
-        taraxa::bufferstream strm(pbft_vote_bytes.data(),
-                                  pbft_vote_bytes.size());
-        Vote vote;
-        vote.deserialize(strm);
+        Vote vote(_r[0].toBytes());
         LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote.getHash();
-
         peer->markVoteAsKnown(vote.getHash());
 
         auto full_node = full_node_.lock();
@@ -1199,20 +1191,11 @@ void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
 void TaraxaCapability::sendPbftVote(NodeID const &_id,
                                     taraxa::Vote const &vote) {
   LOG(log_dg_vote_prp_) << "sendPbftVote " << vote.getHash() << " to " << _id;
+  auto vote_rlp = vote.rlp();
 
   RLPStream s;
-  std::vector<uint8_t> bytes;
-
-  // Need to put a scope of vectorstream, other bytes won't get result.
-  {
-    vectorstream strm(bytes);
-    vote.serialize(strm);
-  }
   host_.capabilityHost()->prep(_id, name(), s, PbftVotePacket, 1);
-  s.appendList(bytes.size());
-  for (auto i = 0; i < bytes.size(); i++) {
-    s << bytes[i];
-  }
+  s.append(vote_rlp);
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 

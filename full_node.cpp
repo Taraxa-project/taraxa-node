@@ -19,7 +19,6 @@ namespace taraxa {
 using std::string;
 using std::to_string;
 using util::eth::newDB;
-
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 FullNode::FullNode(std::string const &conf_full_node_file,
@@ -70,9 +69,13 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
+  vrf_sk_ = vrf_sk_t(conf_.vrf_secret);
+  vrf_pk_ = vrf_wrapper::getVrfPublicKey(vrf_sk_);
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
+               << std::endl;
+  LOG(log_si_) << "Node VRF public key: " << EthGreen << vrf_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
   // THIS IS THE GENESIS
@@ -665,15 +668,9 @@ void FullNode::setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes) {
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             uint64_t period, size_t step,
                             blk_hash_t const &last_pbft_block_hash) {
-  // sortition signature
-  sig_t sortition_signature =
-      vote_mgr_->signVote(node_sk_, last_pbft_block_hash, type, period, step);
-  // vote signature
-  sig_t vote_signature =
-      vote_mgr_->signVote(node_sk_, blockhash, type, period, step);
-
-  Vote vote(node_pk_, sortition_signature, vote_signature, blockhash, type,
-            period, step);
+  // sortition proof
+  VrfSortition vrf_sortition(vrf_sk_, last_pbft_block_hash, type, period, step);
+  Vote vote(node_sk_, vrf_sortition, blockhash);
 
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
                << " vote: " << vote.getHash();

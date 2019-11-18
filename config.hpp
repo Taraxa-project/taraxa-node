@@ -52,6 +52,7 @@ struct FullNodeConfig {
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
+  std::string vrf_secret;
   std::string db_path;
   uint16_t dag_processing_threads;
   NetworkConfig network;

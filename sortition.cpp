@@ -28,6 +28,7 @@ string hashSignature(dev::Signature signature) {
 /*
  * Sortition return true:
  * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
+ * i.e., CREDENTIAL * VALID PLAYERS <= SORTITION THRESHOLD * SIGNATURE_HASH_MAX
  * otherwise return false
  */
 bool sortition(string credential, size_t valid_players, size_t threshold) {
@@ -51,6 +52,7 @@ bool sortition(string credential, size_t valid_players, size_t threshold) {
                     << "credential * total number of valid sortition players";
     return false;
   }
+
   sum_right = taraxa::bigNumberMultiplication(SIGNATURE_HASH_MAX,
                                               std::to_string(threshold));
   if (sum_right.empty()) {

@@ -128,7 +128,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/pbft_sortition_account.o \
 	${OBJECTDIR}/database_face_cache.o \
 	${OBJECTDIR}/replay_protection/sender_state.o \
-	${OBJECTDIR}/replay_protection/replay_protection_service.o
+	${OBJECTDIR}/replay_protection/replay_protection_service.o \
+	${OBJECTDIR}/vrf_wrapper.o
+
 
 NODE_OBJECTS = $(DEPENDENCIES) $(OBJECTFILES) $(ALETH_OBJ)
 
@@ -148,6 +150,11 @@ ${OBJECTDIR}/config.o: config.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/config.o config.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/vrf_wrapper.o: vrf_wrapper.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vrf_wrapper.o vrf_wrapper.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/top.o: top.cpp
 	${MKDIR} -p ${OBJECTDIR}
