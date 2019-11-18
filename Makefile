@@ -77,7 +77,7 @@ ifneq ($(DEBUG), 0)
 	OBJECTDIR := obj-d
 endif
 LDFLAGS := \
-	-Wl,-rpath $(OPENSSL_HOME)/lib \
+	-Wl,-rpath $(OPENSSL_HOME)/ \
 	-L submodules/taraxa-vrf/src/libsodium/.libs/ \
 	-L submodules/taraxa-vdf/lib \
 	-L submodules/cryptopp \
