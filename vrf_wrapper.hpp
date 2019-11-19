@@ -24,4 +24,32 @@ std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk,
                                          bytes const &msg);
 dev::bytes getRlpBytes(std::string const &str);
 
+struct VrfMsgFace {
+  virtual std::string toString() const = 0;
+};
+
+struct VrfSortitionBase {
+  VrfSortitionBase() = default;
+  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg)
+      : pk(vrf_wrapper::getVrfPublicKey(sk)) {
+    const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
+    proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();
+    output = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
+  }
+  bool operator==(VrfSortitionBase const &other) const {
+    return pk == other.pk && proof == other.proof && output == other.output;
+  }
+  friend std::ostream &operator<<(std::ostream &strm,
+                                  VrfSortitionBase const &vrf_sortition) {
+    strm << "[VRF SortitionBase] " << std::endl;
+    strm << "  pk: " << vrf_sortition.pk << std::endl;
+    strm << "  proof: " << vrf_sortition.proof << std::endl;
+    strm << "  output: " << vrf_sortition.output << std::endl;
+    return strm;
+  }
+  vrf_pk_t pk;
+  vrf_proof_t proof;
+  vrf_output_t output;
+};
+
 }  // namespace taraxa::vrf_wrapper
