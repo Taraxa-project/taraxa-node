@@ -99,6 +99,11 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                   << last_pbft_block_hash;
     return false;
   }
+
+  if (!vote.getVrfSortition().verify(pbft_msg)) {
+    LOG(log_war_) << "Invalid vrf proof, vote hash " << vote.getHash();
+    return false;
+  }
   if (!vote.verifyVote()) {
     LOG(log_war_) << "Invalid vote signature, vote hash " << vote.getHash();
     return false;

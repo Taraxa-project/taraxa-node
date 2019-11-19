@@ -93,7 +93,7 @@ class Vote {
     voter();
     return cached_voter_;
   }
-  auto getVrfSorition() const { return vrf_sortition_; }
+  auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   sig_t getVoteSignature() const { return vote_signatue_; }
   blk_hash_t getBlockHash() const { return blockhash_; }

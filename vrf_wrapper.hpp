@@ -36,6 +36,11 @@ struct VrfSortitionBase {
     proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();
     output = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
   }
+  bool verify(VrfMsgFace const &msg) const {
+    const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
+    auto res = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
+    return res == output;
+  }
   bool operator==(VrfSortitionBase const &other) const {
     return pk == other.pk && proof == other.proof && output == other.output;
   }
