@@ -38,3 +38,6 @@
 	path = submodules/taraxa-vrf
 	url = https://github.com/Taraxa-project/taraxa-vrf.git
 	ignore = dirty
+[submodule "submodules/aleth"]
+	path = submodules/aleth
+	url = https://github.com/02p01r/aleth.git
