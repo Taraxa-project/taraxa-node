@@ -19,7 +19,7 @@ DEPENDENCIES = \
 	submodules/taraxa-evm/ok \
 	submodules/prometheus-cpp/ok
 
-OPENSSL_HOME = $(shell pwd)/submodules/openssl/build
+OPENSSL_HOME = $(shell pwd)/submodules/openssl/
 git_clean := git status &> /dev/null && git clean -dfx
 
 submodules/cryptopp/ok:
