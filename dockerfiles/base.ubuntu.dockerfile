@@ -81,5 +81,5 @@ ENV LD_LIBRARY_PATH ${APP_LIBRARY_HOME}/lib
 WORKDIR ${APP_PATH}
 
 COPY . .
-RUN make -f Makefile.dependencies \
+RUN make -f Makefile.submodules \
     OPENSSL_HOME=${APP_LIBRARY_HOME} -j $(nproc) dependencies

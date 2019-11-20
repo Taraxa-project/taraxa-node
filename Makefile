@@ -1,101 +1,10 @@
-include Makefile.dependencies
-# adjust these to your system by calling e.g. make CXX=asdf LIBS=qwerty
-CXX := g++
-CPPFLAGS := \
-	-I submodules \
-	-I $(OPENSSL_HOME)/include \
-	-I submodules/taraxa-vrf/src/libsodium/include \
-	-I submodules/taraxa-vdf/include \
-	-I submodules/rapidjson/include \
-	-I submodules/libff \
-	-I submodules/libff/libff \
-	-I submodules/ethash/include -I . \
-	-I submodules/prometheus-cpp/push/include \
-	-I submodules/prometheus-cpp/pull/include \
-	-I submodules/prometheus-cpp/core/include \
-	-I submodules/secp256k1/include \
-	-I /usr/include/jsoncpp \
-	-I submodules/taraxa-evm \
-	-DBOOST_LOG_DYN_LINK -DETH_FATDB
-OS := $(shell uname)
-LOG_LIB = -lboost_log-mt
-ifneq ($(OS), Darwin) #Mac
-	CPPFLAGS += -DCRYPTOPP_DISABLE_ASM 
-	LOG_LIB = -lboost_log
-endif
-DEBUG = 0
-PERF = 0
-CXXFLAGS := -std=c++17 -c -O3 -MMD -MP -MF 
-CXXFLAGS2 := -std=c++17 -c -O3 -MMD -MP -MF
-LIBS := \
-	-DBOOST_LOG_DYN_LINK \
-	$(LOG_LIB) \
-	-lsodium \
-	-lssl \
-	-lvdf \
-	-lcrypto \
-	-lgmpxx -lmpfr \
-	-lleveldb -lrocksdb -lsecp256k1 -lgmp -lscrypt -lpthread \
-	-lboost_program_options -lboost_filesystem -lboost_system \
-	-lboost_log_setup -lboost_log -lcryptopp -lethash -lff -lgtest \
-	-lboost_thread-mt -lrocksdb -lprometheus-cpp-core -lprometheus-cpp-push \
-	-lprometheus-cpp-pull -lz -lcurl -ljsoncpp -ljsonrpccpp-common \
-	-ljsonrpccpp-server submodules/taraxa-evm/taraxa_evm_cgo.a
-ifeq ($(OS), Darwin)
-	LIBS += -framework CoreFoundation -framework Security
-endif
-OBJECTDIR := obj
-BUILDDIR := build
-TESTBUILDDIR := test_build
-# Note: makefile translates `$$?` into `$?`
-LIBATOMIC_NOT_FOUND = $(shell \
-    $(CXX) $(LDFLAGS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
-)
-# Optional linking for libatomic (part of standard library).
-# Some toolchains provide this library,
-# and assume programs using <atomic> would link against it.
-ifeq ($(LIBATOMIC_NOT_FOUND), 0)
-    LIBS += -latomic
-endif
-
-# Note: gperftools seems not work in Darwin
-ifneq ($(PERF), 0)
- 	CPPFLAGS += -fno-omit-frame-pointer 
-		LIBS += -lprofiler -ltcmalloc
-endif
-
-ifneq ($(DEBUG), 0)
-	CXXFLAGS := -std=c++17 -c -g -MMD -MP -MF 
-	CXXFLAGS2 := -std=c++17 -c -g -MMD -MP -MF
-	ifeq ($(OS),Dawrin)
-		CPPFLAGS += -Wl,--export-dynamic 
-	else 
-		CPPFLAGS += -rdynamic
-	endif
-	BUILDDIR := build-d
-	TESTBUILDDIR := test_build-d
-	OBJECTDIR := obj-d
-endif
-LDFLAGS := \
-	-Wl,-rpath $(OPENSSL_HOME)/lib \
-	-L submodules/taraxa-vrf/src/libsodium/.libs/ \
-	-L submodules/taraxa-vdf/lib \
-	-L submodules/cryptopp \
-	-L submodules/ethash/build/lib/ethash \
-	-L submodules/libff/build/libff \
-	-L submodules/secp256k1/.libs \
-	-L submodules/prometheus-cpp/_build/deploy/usr/local/lib
-MKDIR := mkdir
-RM := rm -f
-
-COMPILE = $(CXX) $(CXXFLAGS)
+include Makefile.common
+include Makefile.aleth
 
 main: $(BUILDDIR)/main
 	@echo MAIN
 
-all:  $(DEPENDENCIES) main
-
-include Makefile.aleth
+all:  main
 
 OBJECTFILES= \
 	${OBJECTDIR}/dag_block.o \
@@ -114,10 +23,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/genesis_state.o \
 	${OBJECTDIR}/pbft_chain.o \
 	${OBJECTDIR}/taraxa_capability.o \
-	${OBJECTDIR}/libethereum/account.o \
-	${OBJECTDIR}/libethcore/log_entry.o \
-	${OBJECTDIR}/libethereum/transaction_receipt.o \
-	${OBJECTDIR}/libethereum/state.o \
 	${OBJECTDIR}/sortition.o \
 	${OBJECTDIR}/pbft_manager.o \
 	${OBJECTDIR}/vote.o \
@@ -130,7 +35,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/replay_protection/sender_state.o \
 	${OBJECTDIR}/replay_protection/replay_protection_service.o
 
-NODE_OBJECTS = $(DEPENDENCIES) $(OBJECTFILES) $(ALETH_OBJ)
+NODE_OBJECTS := $(SUBMODULE_BUILT_INDICATORS) $(OBJECTFILES) $(ALETH_OBJ)
 
 TESTS = \
 	$(TESTBUILDDIR)/full_node_test \
@@ -236,31 +141,6 @@ ${OBJECTDIR}/transaction.o: transaction.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/libethereum/account.o: libethereum/Account.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libethereum
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethereum/account.o libethereum/Account.cpp $(CPPFLAGS)
-
-# required for TransactionReceipt
-${OBJECTDIR}/libethcore/log_entry.o: libethcore/LogEntry.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libethcore
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethcore/log_entry.o libethcore/LogEntry.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/libethereum/transaction_receipt.o: libethereum/TransactionReceipt.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libethereum
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethereum/transaction_receipt.o libethereum/TransactionReceipt.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/libethereum/state.o: libethereum/State.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libethereum
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethereum/state.o libethereum/State.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
 	${MKDIR} -p ${OBJECTDIR}

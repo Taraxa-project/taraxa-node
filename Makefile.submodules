@@ -1,0 +1,128 @@
+ifndef Makefile.submodules
+Makefile.submodules=_
+
+# =========== Submodule update
+
+$(info Checking/updating submodules...)
+__SUBMODULE_UPDATE_LOG_FILE__ := $(shell mktemp)
+__SUBMODULE_UPDATE_EXIT_CODE__ := $(shell \
+	scripts/submodule_update.sh &> $(__SUBMODULE_UPDATE_LOG_FILE__); \
+	echo $$?; \
+)
+ifneq (0, $(__SUBMODULE_UPDATE_EXIT_CODE__))
+$(error Submodule update failed, log at: $(__SUBMODULE_UPDATE_LOG_FILE__))
+endif
+_ := $(shell rm $(__SUBMODULE_UPDATE_LOG_FILE__))
+
+# ===========
+
+OPENSSL_HOME := $(CURDIR)/submodules/openssl/build
+
+SUBMODULES = $(shell scripts/submodule_list.sh)
+SUBMODULE_BUILT_INDICATOR := ok
+SUBMODULE_BUILT_INDICATORS := \
+	$(addsuffix /$(SUBMODULE_BUILT_INDICATOR), $(SUBMODULES))
+SUBMODULE_BUILD_INIT = \
+	echo Building $(@D); \
+	cd $(@D); \
+	git clean -dfx &> /dev/null; \
+	trap '[ $$? -eq 0 ] && touch $(CURDIR)/$@' EXIT;
+
+submodules/cryptopp/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	if [ $(shell uname) = 'Darwin' ]; then \
+		$(MAKE); \
+	else \
+		$(MAKE) CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC \
+			-DCRYPTOPP_DISABLE_ASM -pthread -pipe -c"; \
+	fi;
+
+submodules/ethash/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	mkdir -p build; cd build; \
+	cmake .. \
+		-DBUILD_TESTING=OFF \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DETHASH_BUILD_TESTS=OFF \
+		-DHUNTER_ENABLED=OFF && \
+	$(MAKE)
+
+submodules/libff/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	mkdir -p build; cd build; \
+	cmake .. \
+		-DBUILD_TESTING=OFF \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DWITH_PROCPS=OFF \
+		-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ \
+		-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+		-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib && \
+	$(MAKE)
+
+submodules/secp256k1/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	./autogen.sh && \
+	./configure --disable-shared --disable-tests \
+		--disable-coverage --disable-openssl-tests \
+		--disable-exhaustive-tests \
+		--disable-jni --with-bignum=no --with-field=64bit \
+		--with-scalar=64bit --with-asm=no \
+		--enable-module-ecdh --enable-module-recovery \
+		--enable-experimental && \
+	$(MAKE)
+
+submodules/prometheus-cpp/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	mkdir -p _build; cd _build; \
+	cmake .. \
+		-DBUILD_TESTING=OFF \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DENABLE_TESTING=OFF && \
+	$(MAKE) && \
+	$(MAKE) DESTDIR=`pwd`/deploy install
+
+submodules/taraxa-evm/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	go build -tags=secp256k1_no_cgo -buildmode=c-archive \
+		-o ./taraxa_evm_cgo.a
+
+submodules/openssl/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	mkdir -p $(OPENSSL_HOME); \
+	./config --prefix=$(OPENSSL_HOME) --openssldir=$(OPENSSL_HOME)/ssl && \
+	$(MAKE) && \
+	$(MAKE) install
+
+submodules/taraxa-vdf/$(SUBMODULE_BUILT_INDICATOR): \
+submodules/openssl/$(SUBMODULE_BUILT_INDICATOR)
+	$(SUBMODULE_BUILD_INIT) \
+	$(MAKE) OPENSSL_HOME=$(OPENSSL_HOME)
+
+submodules/taraxa-vrf/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	automake; \
+	./configure && \
+	$(MAKE) && \
+	$(MAKE) install
+
+submodules/aleth/$(SUBMODULE_BUILT_INDICATOR):
+#	@echo Attempting to compile aleth
+#	cd $(@D); $(git_clean); \
+#	mkdir -p build; cd build; \
+#	cmake ..; \
+#	$(MAKE) devcore
+#	touch ../$(SUBMODULE_BUILT_INDICATOR)
+
+submodules/rapidjson/$(SUBMODULE_BUILT_INDICATOR):
+
+submodules/bls/$(SUBMODULE_BUILT_INDICATOR):
+
+submodules/mcl/$(SUBMODULE_BUILT_INDICATOR):
+
+submodules: $(SUBMODULE_BUILT_INDICATORS)
+
+
+.PHONY: submodules
+.SILENT: submodules $(SUBMODULE_BUILT_INDICATORS)
+
+endif # Makefile.submodules

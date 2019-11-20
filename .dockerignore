@@ -15,7 +15,7 @@ obj
 obj-d
 
 submodules
-Makefile.dependencies
+Makefile.submodules
 
 sdk_py
 tests_integration_py
