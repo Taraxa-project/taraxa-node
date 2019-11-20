@@ -1,10 +1,26 @@
 /*
-   This file is a refactored part of cpp-ethereum State.
-   State provides API to read and write the structure under State i.e. Account
-   and Storage State does *NOT* execute any logic from state to state.
+    This file is part of cpp-ethereum.
+
+    cpp-ethereum is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    cpp-ethereum is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
 */
+/** @file State.cpp
+ * @author Gav Wood <i@gavwood.com>
+ * @date 2014
+ */
 
 #include "State.h"
+
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/TrieHash.h>
@@ -38,15 +54,14 @@ OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash,
                         WithExisting _we) {
   fs::path path = _basePath.empty() ? db::databasePath() : _basePath;
 
-  path /= fs::path(toHex(_genesisHash.ref().cropped(
-              0, 4))) /  // fs::path(toString(c_databaseVersion));
-          fs::path(toString(9 + (23 << 9)));  // copied from libethcore/Common.c
   if (db::isDiskDatabase() && _we == WithExisting::Kill) {
     clog(VerbosityDebug, "statedb")
         << "Killing state database (WithExisting::Kill).";
     fs::remove_all(path / fs::path("state"));
   }
 
+  path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) /
+          fs::path(toString(c_databaseVersion));
   if (db::isDiskDatabase()) {
     fs::create_directories(path);
     DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
@@ -257,7 +272,7 @@ bool State::addressHasCode(Address const& _id) const {
     return false;
 }
 
-taraxa::val_t State::balance(Address const& _id) const {
+u256 State::balance(Address const& _id) const {
   if (auto a = account(_id))
     return a->balance();
   else
@@ -284,7 +299,7 @@ void State::setNonce(Address const& _addr, u256 const& _newNonce) {
     createAccount(_addr, Account(_newNonce, 0));
 }
 
-void State::addBalance(Address const& _id, taraxa::val_t const& _amount) {
+void State::addBalance(Address const& _id, u256 const& _amount) {
   if (Account* a = account(_id)) {
     // Log empty account being touched. Empty touched accounts are cleared
     // after the transaction, so this event must be also reverted.
@@ -305,7 +320,7 @@ void State::addBalance(Address const& _id, taraxa::val_t const& _amount) {
   if (_amount) m_changeLog.emplace_back(Change::Balance, _id, _amount);
 }
 
-void State::subBalance(Address const& _addr, taraxa::val_t const& _value) {
+void State::subBalance(Address const& _addr, u256 const& _value) {
   if (_value == 0) return;
 
   Account* a = account(_addr);
@@ -317,9 +332,9 @@ void State::subBalance(Address const& _addr, taraxa::val_t const& _value) {
   addBalance(_addr, 0 - _value);
 }
 
-void State::setBalance(Address const& _addr, taraxa::val_t const& _value) {
+void State::setBalance(Address const& _addr, u256 const& _value) {
   Account* a = account(_addr);
-  taraxa::val_t original = a ? a->balance() : 0;
+  u256 original = a ? a->balance() : 0;
 
   // Fall back to addBalance().
   addBalance(_addr, _value - original);
@@ -483,7 +498,7 @@ void State::rollback(size_t _savepoint) {
         account.setStorageRoot(change.value);
         break;
       case Change::Balance:
-        account.addBalance(0 - (taraxa::val_t)change.value);
+        account.addBalance(0 - change.value);
         break;
       case Change::Nonce:
         account.setNonce(change.value);

@@ -1,7 +1,18 @@
 /*
-    This file is a refactored part of cpp-ethereum State.
-    State provides API to read and write the structure under State i.e. Account
-   and Storage State does *NOT* execute any logic from state to state.
+    This file is part of cpp-ethereum.
+
+    cpp-ethereum is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    cpp-ethereum is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #pragma once
@@ -176,16 +187,16 @@ class State {
 
   /// Add some amount to balance.
   /// Will initialise the address if it has never been used.
-  void addBalance(Address const& _id, taraxa::val_t const& _amount);
+  void addBalance(Address const& _id, u256 const& _amount);
 
   /// Subtract the @p _value amount from the balance of @p _addr account.
   /// @throws NotEnoughCash if the balance of the account is less than the
   /// amount to be subtrackted (also in case the account does not exist).
-  void subBalance(Address const& _addr, taraxa::val_t const& _value);
+  void subBalance(Address const& _addr, u256 const& _value);
 
   /// Set the balance of @p _addr to @p _value.
   /// Will instantiate the address if it has never been used.
-  void setBalance(Address const& _addr, taraxa::val_t const& _value);
+  void setBalance(Address const& _addr, u256 const& _value);
 
   /**
    * @brief Transfers "the balance @a _value between two accounts.
@@ -194,7 +205,7 @@ class State {
    * @param _value Amount to be transferred.
    */
   void transferBalance(Address const& _from, Address const& _to,
-                       taraxa::val_t const& _value) {
+                       u256 const& _value) {
     subBalance(_from, _value);
     addBalance(_to, _value);
   }

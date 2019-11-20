@@ -1,19 +1,38 @@
 /*
-        This file is a modified version of cpp-ethereum Account.
+    This file is part of cpp-ethereum.
+
+    cpp-ethereum is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    cpp-ethereum is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/** @file Account.h
+ * @author Gav Wood <i@gavwood.com>
+ * @date 2014
  */
+
 #pragma once
 
-#include <libdevcore/Address.h>
 #include <libdevcore/Common.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcore/TrieCommon.h>
+#include <libethcore/Common.h>
+
 #include <boost/filesystem/path.hpp>
-#include <types.hpp>
 
 namespace dev {
 class OverlayDB;
 
 namespace eth {
+
 /**
  * Models the state of a single Ethereum account.
  * Used to cache a portion of the full Ethereum state. State keeps a mapping of
@@ -96,14 +115,14 @@ class Account {
   /// @returns true if the nonce, balance and code is zero / empty. Code is
   /// considered empty during creation phase.
   bool isEmpty() const {
-    return nonce().is_zero() && balance().is_zero() && codeHash() == EmptySHA3;
+    return nonce() == 0 && balance() == 0 && codeHash() == EmptySHA3;
   }
 
   /// @returns the balance of this account.
-  taraxa::val_t const& balance() const { return m_balance; }
+  u256 const& balance() const { return m_balance; }
 
   /// Increments the balance of this account by the given amount.
-  void addBalance(taraxa::val_t _value) {
+  void addBalance(u256 _value) {
     m_balance += _value;
     changed();
   }
@@ -209,7 +228,7 @@ class Account {
   u256 m_nonce;
 
   /// Account's balance.
-  u256 m_balance;
+  u256 m_balance = 0;
 
   /// The base storage root. Used with the state DB to give a base to the
   /// storage. m_storageOverlay is overlaid on this and takes precedence for all
