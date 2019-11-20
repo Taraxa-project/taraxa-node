@@ -125,7 +125,7 @@ class FixedHash {
     memcpy(m_data.data(), _bs, N);
   }
 
-  /// construct, copying from a  string.
+  /// Explicitly construct, copying from a  string.
   explicit FixedHash(std::string const& _s,
                      ConstructFromStringType _t = FromHex,
                      ConstructFromHashType _ht = FailIfDifferent)
@@ -136,7 +136,7 @@ class FixedHash {
   /// Convert to arithmetic type.
   operator Arith() const { return fromBigEndian<Arith>(m_data); }
 
-  /// @returns true iff this is not empty hash.
+  /// @returns true iff this is the empty hash.
   explicit operator bool() const {
     return std::any_of(m_data.begin(), m_data.end(),
                        [](byte _b) { return _b != 0; });
@@ -269,7 +269,7 @@ class FixedHash {
     size_t operator()(FixedHash const& _value) const {
       return boost::hash_range(_value.m_data.cbegin(), _value.m_data.cend());
     }
-  };  // namespace dev
+  };
 
   template <unsigned P, unsigned M>
   inline FixedHash& shiftBloom(FixedHash<M> const& _h) {
@@ -556,6 +556,7 @@ inline std::string toString(h256s const& _bs) {
   out << "]";
   return out.str();
 }
+
 }  // namespace dev
 
 namespace std {

@@ -53,7 +53,6 @@ class OverlayDB : public StateCacheDB {
   bool exists(h256 const& _h) const;
   void kill(h256 const& _h);
 
-  bool existsAux(h256 const& _h) const;
   bytes lookupAux(h256 const& _h) const;
 
  private:

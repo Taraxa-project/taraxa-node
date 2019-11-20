@@ -16,7 +16,7 @@
 */
 
 #include "LevelDB.h"
-#include "../util.hpp"
+#include <boost/bind.hpp>
 #include "Assertions.h"
 
 namespace dev {

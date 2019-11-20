@@ -24,6 +24,7 @@
 #ifdef __APPLE__
 #include <pthread.h>
 #endif
+
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/clock.hpp>
 #include <boost/log/attributes/function.hpp>
