@@ -24,7 +24,7 @@ along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
 namespace dev {
 class UnixDomainSocketServer : public IpcServerBase<int> {
  public:
-  explicit UnixDomainSocketServer(std::string const& _path);
+  explicit UnixDomainSocketServer(std::string const& _appId);
   ~UnixDomainSocketServer() override;
   bool StartListening() override;
   bool StopListening() override;

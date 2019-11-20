@@ -2,7 +2,7 @@
 #include <libethcore/CommonJS.h>
 #include <libethcore/KeyManager.h>
 #include <libweb3jsonrpc/AccountHolder.h>
-#include <libweb3jsonrpc/JsonHelper.h>
+#include <libweb3jsonrpc/JsonHelperTaraxa.h>
 
 #include "Personal.h"
 

@@ -27,7 +27,7 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 #include <libethcore/Common.h>
-#include <libweb3jsonrpc/JsonHelper.h>
+#include <libweb3jsonrpc/JsonHelperTaraxa.h>
 #include <libwebthree/WebThree.h>
 #include "full_node.hpp"
 #include "network.hpp"

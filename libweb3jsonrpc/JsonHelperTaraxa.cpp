@@ -20,7 +20,7 @@
  * @date 2014
  */
 
-#include "JsonHelper.h"
+#include "JsonHelperTaraxa.h"
 #include <libethcore/SealEngine.h>
 //#include <libethereum/Client.h>
 #include <jsonrpccpp/common/exception.h>

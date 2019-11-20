@@ -1,7 +1,7 @@
 #include "AdminTaraxa.h"
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
-#include "JsonHelper.h"
+#include "JsonHelperTaraxa.h"
 #include "SessionManager.h"
 //#include <libethashseal/Ethash.h>
 #include <libethcore/KeyManager.h>

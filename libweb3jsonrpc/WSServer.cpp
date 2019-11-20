@@ -3,7 +3,7 @@
 #include <json/reader.h>
 #include <json/value.h>
 #include <json/writer.h>
-#include <libweb3jsonrpc/JsonHelper.h>
+#include <libweb3jsonrpc/JsonHelperTaraxa.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include "libdevcore/CommonJS.h"

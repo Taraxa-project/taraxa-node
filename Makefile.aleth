@@ -35,6 +35,8 @@ ALETH_OBJ := \
 	${OBJECTDIR}/libdevcrypto/LibSnark.o \
 	${OBJECTDIR}/libdevcrypto/SecretStore.o \
 	${OBJECTDIR}/libethcore/log_entry.o \
+	${OBJECTDIR}/libethcore/BlockHeader.o \
+    ${OBJECTDIR}/libethcore/Common.o \
 	${OBJECTDIR}/libethereum/account.o \
 	${OBJECTDIR}/libethereum/transaction_receipt.o \
 	${OBJECTDIR}/libethereum/state.o \
@@ -53,8 +55,7 @@ ALETH_OBJ := \
 	${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o \
 	${OBJECTDIR}/libweb3jsonrpc/Net.o \
 	${OBJECTDIR}/libweb3jsonrpc/SessionManager.o \
-	${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o \
-	${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o \
+	${OBJECTDIR}/libweb3jsonrpc/JsonHelperTaraxa.o \
 	${OBJECTDIR}/libweb3jsonrpc/Test.o \
 	${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o \
 	${OBJECTDIR}/libweb3jsonrpc/Debug.o \
@@ -256,6 +257,18 @@ ${OBJECTDIR}/libethcore/log_entry.o: libethcore/LogEntry.cpp
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethcore/log_entry.o libethcore/LogEntry.cpp $(CPPFLAGS)
 
+${OBJECTDIR}/libethcore/BlockHeader.o: libethcore/BlockHeader.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libethcore
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethcore/BlockHeader.o libethcore/BlockHeader.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/libethcore/Common.o: libethcore/Common.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${MKDIR} -p ${OBJECTDIR}/libethcore
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libethcore/Common.o libethcore/Common.cpp $(CPPFLAGS)
+
 ${OBJECTDIR}/libethereum/transaction_receipt.o: libethereum/TransactionReceipt.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libethereum
@@ -381,11 +394,11 @@ ${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o: libweb3jsonrpc/IpcServerBase.cpp
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o libweb3jsonrpc/IpcServerBase.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o: libweb3jsonrpc/JsonHelper.cpp
+${OBJECTDIR}/libweb3jsonrpc/JsonHelperTaraxa.o: libweb3jsonrpc/JsonHelperTaraxa.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
-	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/JsonHelper.o libweb3jsonrpc/JsonHelper.cpp $(CPPFLAGS)
+	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/JsonHelperTaraxa.o libweb3jsonrpc/JsonHelperTaraxa.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libweb3jsonrpc/Net.o: libweb3jsonrpc/Net.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -410,12 +423,6 @@ ${OBJECTDIR}/libweb3jsonrpc/Test.o: libweb3jsonrpc/Test.cpp
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Test.o libweb3jsonrpc/Test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o: libweb3jsonrpc/UnixSocketServer.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
-	${RM} "$@.d"
-	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/UnixSocketServer.o libweb3jsonrpc/UnixSocketServer.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libweb3jsonrpc/RpcServer.o: libweb3jsonrpc/RpcServer.cpp
 	${MKDIR} -p ${OBJECTDIR}

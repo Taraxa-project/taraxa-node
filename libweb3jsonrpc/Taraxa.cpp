@@ -2,11 +2,11 @@
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonData.h>
 #include <libethcore/CommonJS.h>
-#include <libweb3jsonrpc/JsonHelper.h>
+#include <libweb3jsonrpc/JsonHelperTaraxa.h>
 #include <libwebthree/WebThree.h>
 #include <csignal>
 #include "AccountHolder.h"
-#include "JsonHelper.h"
+#include "JsonHelperTaraxa.h"
 #include "libethereum/TransactionReceipt.h"
 #include "rlp_array.hpp"
 

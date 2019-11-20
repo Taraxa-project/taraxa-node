@@ -3,7 +3,7 @@
 #include <libdevcore/CommonIO.h>
 #include <libdevcore/CommonJS.h>
 #include <libethcore/CommonJS.h>
-#include "JsonHelper.h"
+#include "JsonHelperTaraxa.h"
 using namespace std;
 using namespace dev;
 using namespace dev::rpc;

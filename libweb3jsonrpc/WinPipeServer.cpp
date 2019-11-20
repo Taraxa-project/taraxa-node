@@ -26,8 +26,9 @@ using namespace dev;
 
 static int constexpr c_bufferSize = 1024;
 
-WindowsPipeServer::WindowsPipeServer(string const& _path)
-    : IpcServerBase("\\\\.\\pipe\\" + _path + "\\" + "taraxa.ipc") {}
+WindowsPipeServer::WindowsPipeServer(string const& _appId)
+    : IpcServerBase("\\\\.\\pipe\\" + getIpcPath().string() + "\\" + _appId +
+                    ".ipc") {}
 
 void WindowsPipeServer::CloseConnection(HANDLE _socket) {
   ::CloseHandle(_socket);
