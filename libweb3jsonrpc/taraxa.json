@@ -1,55 +1,407 @@
 [
-{ "name": "taraxa_protocolVersion", "params": [], "order": [], "returns" : "" },
-{ "name": "taraxa_hashrate", "params": [], "order": [], "returns" : "" },
-{ "name": "taraxa_coinbase", "params": [], "order": [], "returns" : "" },
-{ "name": "taraxa_mining", "params": [], "order": [], "returns" : false },
-{ "name": "taraxa_gasPrice", "params": [], "order": [], "returns" : "" },
-{ "name": "taraxa_accounts", "params": [], "order": [], "returns" : [] },
-{ "name": "taraxa_blockNumber", "params": [], "order": [], "returns" : ""},
-{ "name": "taraxa_getBalance", "params": ["", ""], "order": [], "returns" : ""},
-{ "name": "taraxa_getStorageAt", "params": ["", "", ""], "order": [], "returns": ""},
-{ "name": "taraxa_getStorageRoot", "params": ["", ""], "order": [], "returns": ""},
-{ "name": "taraxa_getTransactionCount", "params": ["", ""], "order": [], "returns" : ""},
-{ "name": "taraxa_pendingTransactions", "params": [], "order": [], "returns" : [] },
-{ "name": "taraxa_getBlockTransactionCountByHash", "params": [""], "order": [], "returns" : {}},
-{ "name": "taraxa_getBlockTransactionCountByNumber", "params": [""], "order": [], "returns" : {}},
-{ "name": "taraxa_getUncleCountByBlockHash", "params": [""], "order": [], "returns" : {}},
-{ "name": "taraxa_getUncleCountByBlockNumber", "params": [""], "order": [], "returns" : {}},
-{ "name": "taraxa_getCode", "params": ["", ""], "order": [], "returns": ""},
-{ "name": "taraxa_sendTransaction", "params": [{}], "order": [], "returns": ""},
-{ "name": "taraxa_call", "params": [{}, ""], "order": [], "returns": ""},
-{ "name": "taraxa_flush", "params": [], "order": [], "returns" : true},
-{ "name": "taraxa_getBlockByHash", "params": ["", false],"order": [], "returns": {}},
-{ "name": "taraxa_getBlockByNumber", "params": ["", false],"order": [], "returns": {}},
-{ "name": "taraxa_getTransactionByHash", "params": [""], "order": [], "returns": {}},
-{ "name": "taraxa_getTransactionByBlockHashAndIndex", "params": ["", ""], "order": [], "returns": {}},
-{ "name": "taraxa_getTransactionByBlockNumberAndIndex", "params": ["", ""], "order": [], "returns": {}},
-{ "name": "taraxa_getTransactionReceipt", "params": [""], "order": [], "returns": {}},
-{ "name": "taraxa_getUncleByBlockHashAndIndex", "params": ["", ""], "order": [], "returns": {}},
-{ "name": "taraxa_getUncleByBlockNumberAndIndex", "params": ["", ""], "order": [], "returns": {}},
-{ "name": "taraxa_newFilter", "params": [{}], "order": [], "returns": ""},
-{ "name": "taraxa_newFilterEx", "params": [{}], "order": [], "returns": ""},
-{ "name": "taraxa_newBlockFilter", "params": [], "order": [], "returns": ""},
-{ "name": "taraxa_newPendingTransactionFilter", "params": [], "order": [], "returns": ""},
-{ "name": "taraxa_uninstallFilter", "params": [""], "order": [], "returns": true},
-{ "name": "taraxa_getFilterChanges", "params": [""], "order": [], "returns": []},
-{ "name": "taraxa_getFilterChangesEx", "params": [""], "order": [], "returns": []},
-{ "name": "taraxa_getFilterLogs", "params": [""], "order": [], "returns": []},
-{ "name": "taraxa_getFilterLogsEx", "params": [""], "order": [], "returns": []},
-{ "name": "taraxa_getLogs", "params": [{}], "order": [], "returns": []},
-{ "name": "taraxa_getLogsEx", "params": [{}], "order": [], "returns": []},
-{ "name": "taraxa_getWork", "params": [], "order": [], "returns": []},
-{ "name": "taraxa_submitWork", "params": ["", "", ""], "order": [], "returns": true},
-{ "name": "taraxa_submitHashrate", "params": ["", ""], "order": [], "returns": true},
-{ "name": "taraxa_register", "params": [""], "order": [], "returns": ""},
-{ "name": "taraxa_unregister", "params": [""], "order": [], "returns": true},
-{ "name": "taraxa_fetchQueuedTransactions", "params": [""], "order": [], "returns": []},
-{ "name": "taraxa_signTransaction", "params": [{}], "order": [], "returns": {}},
-{ "name": "taraxa_inspectTransaction", "params": [""], "order": [], "returns": {}},
-{ "name": "taraxa_sendRawTransaction", "params": [""], "order": [], "returns": ""},
-{ "name": "taraxa_notePassword", "params": [""], "order": [], "returns": true},
-{ "name": "taraxa_syncing", "params": [], "order": [], "returns": {}},
-{ "name": "taraxa_estimateGas", "params": [{}], "order": [], "returns": ""},
-{ "name": "taraxa_chainId", "params": [], "order": [], "returns": ""}
+  {
+    "name": "taraxa_protocolVersion",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_hashrate",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_coinbase",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_mining",
+    "params": [],
+    "order": [],
+    "returns": false
+  },
+  {
+    "name": "taraxa_gasPrice",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_accounts",
+    "params": [],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_blockNumber",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_getBalance",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_getStorageAt",
+    "params": [
+      "",
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_getStorageRoot",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_getTransactionCount",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_pendingTransactions",
+    "params": [],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getBlockTransactionCountByHash",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getBlockTransactionCountByNumber",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getUncleCountByBlockHash",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getUncleCountByBlockNumber",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getCode",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_sendTransaction",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_call",
+    "params": [
+      {},
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_flush",
+    "params": [],
+    "order": [],
+    "returns": true
+  },
+  {
+    "name": "taraxa_getBlockByHash",
+    "params": [
+      "",
+      false
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getBlockByNumber",
+    "params": [
+      "",
+      false
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getTransactionByHash",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getTransactionByBlockHashAndIndex",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getTransactionByBlockNumberAndIndex",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getTransactionReceipt",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getUncleByBlockHashAndIndex",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_getUncleByBlockNumberAndIndex",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_newFilter",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_newFilterEx",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_newBlockFilter",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_newPendingTransactionFilter",
+    "params": [],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_uninstallFilter",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": true
+  },
+  {
+    "name": "taraxa_getFilterChanges",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getFilterChangesEx",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getFilterLogs",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getFilterLogsEx",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getLogs",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getLogsEx",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_getWork",
+    "params": [],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_submitWork",
+    "params": [
+      "",
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": true
+  },
+  {
+    "name": "taraxa_submitHashrate",
+    "params": [
+      "",
+      ""
+    ],
+    "order": [],
+    "returns": true
+  },
+  {
+    "name": "taraxa_register",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_unregister",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": true
+  },
+  {
+    "name": "taraxa_fetchQueuedTransactions",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "taraxa_signTransaction",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_inspectTransaction",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_sendRawTransaction",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_notePassword",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": true
+  },
+  {
+    "name": "taraxa_syncing",
+    "params": [],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_estimateGas",
+    "params": [
+      {}
+    ],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_chainId",
+    "params": [],
+    "order": [],
+    "returns": ""
+  }
 ]
 

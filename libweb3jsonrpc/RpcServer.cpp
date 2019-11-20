@@ -114,11 +114,12 @@ void RpcConnection::read() {
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
             string response;
             if (this_sp->rpc_->GetHandler() != NULL) {
-              LOG(this_sp->rpc_->log_tr_) << "Read: " << this_sp->request_.body();
+              LOG(this_sp->rpc_->log_tr_)
+                  << "Read: " << this_sp->request_.body();
               this_sp->rpc_->GetHandler()->HandleRequest(
                   this_sp->request_.body(), response);
             }
-            LOG(this_sp->rpc_->log_tr_) << "Write: " << response;          
+            LOG(this_sp->rpc_->log_tr_) << "Write: " << response;
             replier(response);
           }
         } else {

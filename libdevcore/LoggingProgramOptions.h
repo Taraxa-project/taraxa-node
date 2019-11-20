@@ -17,11 +17,10 @@
 
 #pragma once
 
-#include "Log.h"
 #include <boost/program_options/options_description.hpp>
+#include "Log.h"
 
-namespace dev
-{
+namespace dev {
 boost::program_options::options_description createLoggingProgramOptions(
     unsigned _lineLength, LoggingOptions& _options);
 

@@ -19,10 +19,8 @@
 
 #include <libdevcore/TrieDB.h>
 
-namespace dev
-{
-namespace eth
-{
+namespace dev {
+namespace eth {
 #if ETH_FATDB
 template <class KeyType, class DB>
 using SecureTrieDB = SpecificTrieDB<FatGenericTrieDB<DB>, KeyType>;

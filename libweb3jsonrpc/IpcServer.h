@@ -22,8 +22,7 @@ along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
 #include "UnixSocketServer.h"
 #endif
 
-namespace dev
-{
+namespace dev {
 #if _WIN32
 using IpcServer = WindowsPipeServer;
 #else

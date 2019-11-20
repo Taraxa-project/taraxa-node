@@ -47,7 +47,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 
 // Accepts incoming connections and launches the sessions
 class WSListener : public std::enable_shared_from_this<WSListener> {
-  public:
+ public:
   WSListener(net::io_context& ioc, tcp::endpoint endpoint);
 
   // Start accepting incoming connections

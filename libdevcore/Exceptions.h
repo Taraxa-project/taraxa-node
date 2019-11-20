@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "FixedHash.h"
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/exception.hpp>
@@ -31,28 +30,23 @@
 #include <boost/tuple/tuple.hpp>
 #include <exception>
 #include <string>
+#include "FixedHash.h"
 
-namespace dev
-{
+namespace dev {
 /// Base class for all exceptions.
-struct Exception : virtual std::exception, virtual boost::exception
-{
-    const char* what() const noexcept override { return boost::diagnostic_information_what(*this); }
+struct Exception : virtual std::exception, virtual boost::exception {
+  const char* what() const noexcept override {
+    return boost::diagnostic_information_what(*this);
+  }
 };
 
-#define DEV_SIMPLE_EXCEPTION(X)  \
-    struct X : virtual Exception \
-    {                            \
-    }
+#define DEV_SIMPLE_EXCEPTION(X) \
+  struct X : virtual Exception {}
 
 /// Base class for all RLP exceptions.
-struct RLPException : virtual Exception
-{
-};
+struct RLPException : virtual Exception {};
 #define DEV_SIMPLE_EXCEPTION_RLP(X) \
-    struct X : virtual RLPException \
-    {                               \
-    }
+  struct X : virtual RLPException {}
 
 DEV_SIMPLE_EXCEPTION_RLP(BadCast);
 DEV_SIMPLE_EXCEPTION_RLP(BadRLP);
@@ -84,14 +78,16 @@ using errinfo_got = boost::error_info<struct tag_got, bigint>;
 using errinfo_min = boost::error_info<struct tag_min, bigint>;
 using errinfo_max = boost::error_info<struct tag_max, bigint>;
 using RequirementError = boost::tuple<errinfo_required, errinfo_got>;
-using RequirementErrorComment = boost::tuple<errinfo_required, errinfo_got, errinfo_comment>;
+using RequirementErrorComment =
+    boost::tuple<errinfo_required, errinfo_got, errinfo_comment>;
 using errinfo_hash256 = boost::error_info<struct tag_hash, h256>;
 using errinfo_required_h256 = boost::error_info<struct tag_required_h256, h256>;
 using errinfo_got_h256 = boost::error_info<struct tag_get_h256, h256>;
-using Hash256RequirementError = boost::tuple<errinfo_required_h256, errinfo_got_h256>;
+using Hash256RequirementError =
+    boost::tuple<errinfo_required_h256, errinfo_got_h256>;
 using errinfo_extraData = boost::error_info<struct tag_extraData, bytes>;
 using errinfo_externalFunction = boost::errinfo_api_function;
 using errinfo_interface = boost::error_info<struct tag_interface, std::string>;
 using errinfo_path = boost::error_info<struct tag_path, std::string>;
 using errinfo_nodeID = boost::error_info<struct tag_nodeID, h512>;
-}
+}  // namespace dev

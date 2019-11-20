@@ -24,67 +24,57 @@
 
 #include <libethcore/SealEngine.h>
 //#include <libethereum/Client.h>
-#include <libwebthree/WebThree.h>
-#include <libethcore/CommonJS.h>
 #include <jsonrpccpp/common/exception.h>
+#include <libethcore/CommonJS.h>
+#include <libwebthree/WebThree.h>
 using namespace std;
 using namespace dev;
 using namespace eth;
 
-namespace dev
-{
+namespace dev {
 
-Json::Value toJson(unordered_map<u256, u256> const& _storage)
-{
-    Json::Value res(Json::objectValue);
-    for (auto i: _storage)
-        res[toJS(i.first)] = toJS(i.second);
-    return res;
+Json::Value toJson(unordered_map<u256, u256> const& _storage) {
+  Json::Value res(Json::objectValue);
+  for (auto i : _storage) res[toJS(i.first)] = toJS(i.second);
+  return res;
 }
 
-Json::Value toJson(map<h256, pair<u256, u256>> const& _storage)
-{
-    Json::Value res(Json::objectValue);
-    for (auto i: _storage)
-        res[toJS(u256(i.second.first))] = toJS(i.second.second);
-    return res;
+Json::Value toJson(map<h256, pair<u256, u256>> const& _storage) {
+  Json::Value res(Json::objectValue);
+  for (auto i : _storage)
+    res[toJS(u256(i.second.first))] = toJS(i.second.second);
+  return res;
 }
 
-Json::Value toJson(Address const& _address)
-{
-    return toJS(_address);
-}
+Json::Value toJson(Address const& _address) { return toJS(_address); }
 
 // ////////////////////////////////////////////////////////////////////////////////
 // p2p
 // ////////////////////////////////////////////////////////////////////////////////
-namespace p2p
-{
+namespace p2p {
 
-Json::Value toJson(p2p::PeerSessionInfo const& _p)
-{
-    //@todo localAddress
-    //@todo protocols
-    Json::Value ret;
-    ret["id"] = _p.id.hex();
-    ret["name"] = _p.clientVersion;
-    ret["network"]["remoteAddress"] = _p.host + ":" + toString(_p.port);
-    ret["lastPing"] = (int)chrono::duration_cast<chrono::milliseconds>(_p.lastPing).count();
-    for (auto const& i: _p.notes)
-        ret["notes"][i.first] = i.second;
-    for (auto const& i: _p.caps)
-        ret["caps"].append(i.first + "/" + toString((unsigned)i.second));
-    return ret;
+Json::Value toJson(p2p::PeerSessionInfo const& _p) {
+  //@todo localAddress
+  //@todo protocols
+  Json::Value ret;
+  ret["id"] = _p.id.hex();
+  ret["name"] = _p.clientVersion;
+  ret["network"]["remoteAddress"] = _p.host + ":" + toString(_p.port);
+  ret["lastPing"] =
+      (int)chrono::duration_cast<chrono::milliseconds>(_p.lastPing).count();
+  for (auto const& i : _p.notes) ret["notes"][i.first] = i.second;
+  for (auto const& i : _p.caps)
+    ret["caps"].append(i.first + "/" + toString((unsigned)i.second));
+  return ret;
 }
 
-}
+}  // namespace p2p
 
 // ////////////////////////////////////////////////////////////////////////////////
 // eth
 // ////////////////////////////////////////////////////////////////////////////////
 
-namespace eth
-{
+namespace eth {
 
 /*Json::Value toJson(dev::eth::BlockHeader const& _bi, SealEngineFace* _sealer)
 {
@@ -104,17 +94,16 @@ namespace eth
         res["extraData"] = toJS(_bi.extraData());
         res["logsBloom"] = toJS(_bi.logBloom());
         res["timestamp"] = toJS(_bi.timestamp());
-        // TODO: remove once JSONRPC spec is updated to use "author" over "miner".
-        res["miner"] = toJS(_bi.author());
-        if (_sealer)
-            for (auto const& i: _sealer->jsInfo(_bi))
-                res[i.first] = i.second;
+        // TODO: remove once JSONRPC spec is updated to use "author" over
+"miner". res["miner"] = toJS(_bi.author()); if (_sealer) for (auto const& i:
+_sealer->jsInfo(_bi)) res[i.first] = i.second;
 
     }
     return res;
 }
 
-Json::Value toJson(dev::eth::Transaction const& _t, std::pair<h256, unsigned> _location, BlockNumber _blockNumber)
+Json::Value toJson(dev::eth::Transaction const& _t, std::pair<h256, unsigned>
+_location, BlockNumber _blockNumber)
 {
     Json::Value res;
     if (_t)
@@ -137,7 +126,8 @@ Json::Value toJson(dev::eth::Transaction const& _t, std::pair<h256, unsigned> _l
     return res;
 }
 
-Json::Value toJson(dev::eth::BlockHeader const& _bi, BlockDetails const& _bd, UncleHashes const& _us, Transactions const& _ts, SealEngineFace* _face)
+Json::Value toJson(dev::eth::BlockHeader const& _bi, BlockDetails const& _bd,
+UncleHashes const& _us, Transactions const& _ts, SealEngineFace* _face)
 {
     Json::Value res = toJson(_bi, _face);
     if (_bi)
@@ -149,12 +139,14 @@ Json::Value toJson(dev::eth::BlockHeader const& _bi, BlockDetails const& _bd, Un
             res["uncles"].append(toJS(h));
         res["transactions"] = Json::Value(Json::arrayValue);
         for (unsigned i = 0; i < _ts.size(); i++)
-            res["transactions"].append(toJson(_ts[i], std::make_pair(_bi.hash(), i), (BlockNumber)_bi.number()));
+            res["transactions"].append(toJson(_ts[i], std::make_pair(_bi.hash(),
+i), (BlockNumber)_bi.number()));
     }
     return res;
 }
 
-Json::Value toJson(dev::eth::BlockHeader const& _bi, BlockDetails const& _bd, UncleHashes const& _us, TransactionHashes const& _ts, SealEngineFace* _face)
+Json::Value toJson(dev::eth::BlockHeader const& _bi, BlockDetails const& _bd,
+UncleHashes const& _us, TransactionHashes const& _ts, SealEngineFace* _face)
 {
     Json::Value res = toJson(_bi, _face);
     if (_bi)
@@ -306,7 +298,8 @@ Json::Value toJson(dev::eth::LogEntry const& _e)
     return res;
 }
 
-Json::Value toJson(std::unordered_map<h256, dev::eth::LocalisedLogEntries> const& _entriesByBlock, vector<h256> const& _order)
+Json::Value toJson(std::unordered_map<h256, dev::eth::LocalisedLogEntries>
+const& _entriesByBlock, vector<h256> const& _order)
 {
     Json::Value res(Json::arrayValue);
     for (auto const& i: _order)
@@ -324,8 +317,8 @@ Json::Value toJson(std::unordered_map<h256, dev::eth::LocalisedLogEntries> const
         else
             currentBlock["type"] = "pending";
 
-        currentBlock["polarity"] = entry.polarity == BlockPolarity::Live ? true : false;
-        currentBlock["logs"] = Json::Value(Json::arrayValue);
+        currentBlock["polarity"] = entry.polarity == BlockPolarity::Live ? true
+: false; currentBlock["logs"] = Json::Value(Json::arrayValue);
 
         for (LocalisedLogEntry const& e: entries)
         {
@@ -378,8 +371,8 @@ TransactionSkeleton toTransactionSkeleton(Json::Value const& _json)
 
     if (!_json["from"].empty())
         ret.from = jsToAddress(_json["from"].asString());
-    if (!_json["to"].empty() && _json["to"].asString() != "0x" && !_json["to"].asString().empty())
-        ret.to = jsToAddress(_json["to"].asString());
+    if (!_json["to"].empty() && _json["to"].asString() != "0x" &&
+!_json["to"].asString().empty()) ret.to = jsToAddress(_json["to"].asString());
     else
         ret.creation = true;
 
@@ -392,8 +385,9 @@ TransactionSkeleton toTransactionSkeleton(Json::Value const& _json)
     if (!_json["gasPrice"].empty())
         ret.gasPrice = jsToU256(_json["gasPrice"].asString());
 
-    if (!_json["data"].empty())							// ethereum.js has preconstructed the data array
-        ret.data = jsToBytes(_json["data"].asString(), OnFailed::Throw);
+    if (!_json["data"].empty())							// ethereum.js has
+preconstructed the data array ret.data = jsToBytes(_json["data"].asString(),
+OnFailed::Throw);
 
     if (!_json["code"].empty())
         ret.data = jsToBytes(_json["code"].asString(), OnFailed::Throw);
@@ -409,8 +403,8 @@ dev::eth::LogFilter toLogFilter(Json::Value const& _json)
     if (!_json.isObject() || _json.empty())
         return filter;
 
-    // check only !empty. it should throw exceptions if input params are incorrect
-    if (!_json["fromBlock"].empty())
+    // check only !empty. it should throw exceptions if input params are
+incorrect if (!_json["fromBlock"].empty())
         filter.withEarliest(jsToFixed<32>(_json["fromBlock"].asString()));
     if (!_json["toBlock"].empty())
         filter.withLatest(jsToFixed<32>(_json["toBlock"].asString()));
@@ -431,21 +425,24 @@ dev::eth::LogFilter toLogFilter(Json::Value const& _json)
                     if (!t.isNull())
                         filter.topic(i, jsToFixed<32>(t.asString()));
             }
-            else if (!_json["topics"][i].isNull()) // if it is anything else then string, it should and will fail
-                filter.topic(i, jsToFixed<32>(_json["topics"][i].asString()));
+            else if (!_json["topics"][i].isNull()) // if it is anything else
+then string, it should and will fail filter.topic(i,
+jsToFixed<32>(_json["topics"][i].asString()));
         }
     return filter;
 }
 
-// TODO: this should be removed once we decide to remove backward compatibility with old log filters
-dev::eth::LogFilter toLogFilter(Json::Value const& _json, Interface const& _client)	// commented to avoid warning. Uncomment once in use @ PoC-7.
+// TODO: this should be removed once we decide to remove backward compatibility
+with old log filters dev::eth::LogFilter toLogFilter(Json::Value const& _json,
+Interface const& _client)	// commented to avoid warning. Uncomment once in
+use @ PoC-7.
 {
     dev::eth::LogFilter filter;
     if (!_json.isObject() || _json.empty())
         return filter;
 
-    // check only !empty. it should throw exceptions if input params are incorrect
-    if (!_json["fromBlock"].empty())
+    // check only !empty. it should throw exceptions if input params are
+incorrect if (!_json["fromBlock"].empty())
         filter.withEarliest(_client.hashFromNumber(jsToBlockNumber(_json["fromBlock"].asString())));
     if (!_json["toBlock"].empty())
         filter.withLatest(_client.hashFromNumber(jsToBlockNumber(_json["toBlock"].asString())));
@@ -466,8 +463,9 @@ dev::eth::LogFilter toLogFilter(Json::Value const& _json, Interface const& _clie
                     if (!t.isNull())
                         filter.topic(i, jsToFixed<32>(t.asString()));
             }
-            else if (!_json["topics"][i].isNull()) // if it is anything else then string, it should and will fail
-                filter.topic(i, jsToFixed<32>(_json["topics"][i].asString()));
+            else if (!_json["topics"][i].isNull()) // if it is anything else
+then string, it should and will fail filter.topic(i,
+jsToFixed<32>(_json["topics"][i].asString()));
         }
     return filter;
 }*/
@@ -478,19 +476,14 @@ dev::eth::LogFilter toLogFilter(Json::Value const& _json, Interface const& _clie
 // rpc
 // ////////////////////////////////////////////////////////////////////////////////////
 
-namespace rpc
-{
-h256 h256fromHex(string const& _s)
-{
-    try
-    {
-        return h256(_s);
-    }
-    catch (boost::exception const&)
-    {
-        throw jsonrpc::JsonRpcException("Invalid hex-encoded string: " + _s);
-    }
+namespace rpc {
+h256 h256fromHex(string const& _s) {
+  try {
+    return h256(_s);
+  } catch (boost::exception const&) {
+    throw jsonrpc::JsonRpcException("Invalid hex-encoded string: " + _s);
+  }
 }
-}
+}  // namespace rpc
 
-}
+}  // namespace dev

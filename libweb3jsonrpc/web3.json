@@ -1,4 +1,14 @@
 [
-{ "name": "web3_sha3", "params": [""], "returns" : "" },
-{ "name": "web3_clientVersion", "params": [], "returns" : "" }
+  {
+    "name": "web3_sha3",
+    "params": [
+      ""
+    ],
+    "returns": ""
+  },
+  {
+    "name": "web3_clientVersion",
+    "params": [],
+    "returns": ""
+  }
 ]

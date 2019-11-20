@@ -24,79 +24,81 @@
 
 #include "Common.h"
 
-namespace dev
-{
+namespace dev {
 
-namespace p2p
-{
+namespace p2p {
 
 /**
- * @brief Representation of connectivity state and all other pertinent Peer metadata.
- * A Peer represents connectivity between two nodes, which in this case, are the host
- * and remote nodes.
+ * @brief Representation of connectivity state and all other pertinent Peer
+ * metadata. A Peer represents connectivity between two nodes, which in this
+ * case, are the host and remote nodes.
  *
- * State information necessary for loading network topology is maintained by NodeTable.
+ * State information necessary for loading network topology is maintained by
+ * NodeTable.
  *
  * @todo Implement 'bool required'
- * @todo reputation: Move score, rating to capability-specific map (&& remove friend class)
+ * @todo reputation: Move score, rating to capability-specific map (&& remove
+ * friend class)
  * @todo reputation: implement via origin-tagged events
  * @todo Populate metadata upon construction; save when destroyed.
- * @todo Metadata for peers needs to be handled via a storage backend. 
+ * @todo Metadata for peers needs to be handled via a storage backend.
  * Specifically, peers can be utilized in a variety of
  * many-to-many relationships while also needing to modify shared instances of
  * those peers. Modifying these properties via a storage backend alleviates
  * Host of the responsibility. (&& remove save/restoreNetwork)
- * @todo reimplement recording of historical session information on per-transport basis
+ * @todo reimplement recording of historical session information on
+ * per-transport basis
  * @todo move attributes into protected
  */
-class Peer: public Node
-{
-    friend class Session;		/// Allows Session to update score and rating.
-    friend class Host;		/// For Host: saveNetwork(), restoreNetwork()
+class Peer : public Node {
+  friend class Session;  /// Allows Session to update score and rating.
+  friend class Host;     /// For Host: saveNetwork(), restoreNetwork()
 
-    friend class RLPXHandshake;
+  friend class RLPXHandshake;
 
-public:
-    /// Construct Peer from Node.
-    Peer(Node const& _node): Node(_node) {}
+ public:
+  /// Construct Peer from Node.
+  Peer(Node const& _node) : Node(_node) {}
 
-    Peer(Peer const&);
-    
-    bool isOffline() const { return !m_session.lock(); }
+  Peer(Peer const&);
 
-    /// WIP: Returns current peer rating.
-    int rating() const { return m_rating; }
+  bool isOffline() const { return !m_session.lock(); }
 
-    /// Return true if connection attempt should be made to this peer or false if
-    bool shouldReconnect() const;
+  /// WIP: Returns current peer rating.
+  int rating() const { return m_rating; }
 
-    /// Number of times connection has been attempted to peer.
-    int failedAttempts() const { return m_failedAttempts; }
+  /// Return true if connection attempt should be made to this peer or false if
+  bool shouldReconnect() const;
 
-    /// Reason peer was previously disconnected.
-    DisconnectReason lastDisconnect() const { return m_lastDisconnect; }
+  /// Number of times connection has been attempted to peer.
+  int failedAttempts() const { return m_failedAttempts; }
 
-    /// Peer session is noted as useful.
-    void noteSessionGood() { m_failedAttempts = 0; }
+  /// Reason peer was previously disconnected.
+  DisconnectReason lastDisconnect() const { return m_lastDisconnect; }
 
-private:
-    /// Returns number of seconds to wait until attempting connection, based on attempted connection history.
-    unsigned fallbackSeconds() const;
+  /// Peer session is noted as useful.
+  void noteSessionGood() { m_failedAttempts = 0; }
 
-    std::atomic<int> m_score{0};									///< All time cumulative.
-    std::atomic<int> m_rating{0};									///< Trending.
-    
-    /// Network Availability
-    
-    std::chrono::system_clock::time_point m_lastConnected;
-    std::chrono::system_clock::time_point m_lastAttempted;
-    std::atomic<unsigned> m_failedAttempts{0};
-    DisconnectReason m_lastDisconnect = NoDisconnect;	///< Reason for disconnect that happened last.
+ private:
+  /// Returns number of seconds to wait until attempting connection, based on
+  /// attempted connection history.
+  unsigned fallbackSeconds() const;
 
-    /// Used by isOffline() and (todo) for peer to emit session information.
-    std::weak_ptr<Session> m_session;
+  std::atomic<int> m_score{0};   ///< All time cumulative.
+  std::atomic<int> m_rating{0};  ///< Trending.
+
+  /// Network Availability
+
+  std::chrono::system_clock::time_point m_lastConnected;
+  std::chrono::system_clock::time_point m_lastAttempted;
+  std::atomic<unsigned> m_failedAttempts{0};
+  DisconnectReason m_lastDisconnect =
+      NoDisconnect;  ///< Reason for disconnect that happened last.
+
+  /// Used by isOffline() and (todo) for peer to emit session information.
+  std::weak_ptr<Session> m_session;
 };
 using Peers = std::vector<Peer>;
 
-}
-}
+}  // namespace p2p
+}  // namespace dev
