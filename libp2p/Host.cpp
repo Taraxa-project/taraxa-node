@@ -76,7 +76,8 @@ bytes ReputationManager::data(SessionFace const& _s,
 }
 
 Host::Host(string const& _clientVersion, KeyPair const& _alias,
-           NetworkConfig const& _n)
+           NetworkConfig const& _n, bool encrypt, uint16_t ideal_peers,
+           uint16_t max_peers)
     : Worker("p2p", 0),
       m_clientVersion(_clientVersion),
       m_netConfig(_n),
@@ -87,13 +88,19 @@ Host::Host(string const& _clientVersion, KeyPair const& _alias,
       m_timer(m_ioService),
       m_alias(_alias),
       m_lastPing(chrono::steady_clock::time_point::min()),
-      m_capabilityHost(createCapabilityHost(*this)) {
+      m_capabilityHost(createCapabilityHost(*this)),
+      m_encrypt(encrypt),
+      m_idealPeerCount(ideal_peers),
+      m_maxPeerCount(max_peers),
+      m_timers(DeadlineOps::make_shared(m_ioService)) {
   cnetnote << "Id: " << id();
 }
 
 Host::Host(string const& _clientVersion, NetworkConfig const& _n,
-           bytesConstRef _restoreNetwork)
-    : Host(_clientVersion, networkAlias(_restoreNetwork), _n) {
+           bytesConstRef _restoreNetwork, bool encrypt, uint16_t ideal_peers,
+           uint16_t max_peers)
+    : Host(_clientVersion, networkAlias(_restoreNetwork), _n, encrypt,
+           ideal_peers, max_peers) {
   m_restoreNetwork = _restoreNetwork.toBytes();
 }
 
@@ -102,11 +109,16 @@ Host::~Host() {
   terminate();
 }
 
-void Host::start() {
+void Host::start(bool bootNode) {
+  m_BootNode = bootNode;
+  // Boot node may get bombarded with other nodes, prevent it from making too
+  // many TCP connection Boot node main purpose is Node discovery over UDP
+  if (bootNode) setPeerMax(m_idealPeerCount);
   DEV_TIMED_FUNCTION_ABOVE(500);
   if (m_nodeTable) BOOST_THROW_EXCEPTION(NetworkRestartNotSupported());
 
   startWorking();
+  for (auto const& node : m_bootNodes) addNode(node.first, node.second);
   while (isWorking() && !haveNetwork())
     this_thread::sleep_for(chrono::milliseconds(10));
 
@@ -149,7 +161,7 @@ void Host::doneWorking() {
   m_ioService.reset();
 
   DEV_GUARDED(x_timers)
-  m_timers.clear();
+  m_timers->stop();
 
   // shutdown acceptor
   m_tcp4Acceptor.cancel();
@@ -348,7 +360,20 @@ void Host::onNodeTableEvent(NodeID const& _n, NodeTableEventType const& _e) {
     RecursiveGuard l(x_sessions);
     if (m_peers.count(_n) && m_peers[_n]->peerType == PeerType::Optional)
       m_peers.erase(_n);
+    // If node count drops to zero add boot nodes again and retry
+    if (getNodeCount() == 0) {
+      for (auto const& node : m_bootNodes) addNode(node.first, node.second);
+    }
   }
+}
+
+void Host::checkNodes() {
+  if (peerCount() == 0) {
+    for (auto const& node : m_bootNodes) {
+      m_nodeTable->invalidateNode(node.first);
+    }
+  }
+  scheduleExecution(30000, [this]() { checkNodes(); });
 }
 
 void Host::determinePublic() {
@@ -669,10 +694,6 @@ void Host::run(boost::system::error_code const& _ec) {
   DEV_GUARDED(x_connecting)
   m_connecting.remove_if(
       [](std::weak_ptr<RLPXHandshake> h) { return h.expired(); });
-  DEV_GUARDED(x_timers)
-  m_timers.remove_if([](std::unique_ptr<io::deadline_timer> const& t) {
-    return t->expires_from_now().total_milliseconds() < 0;
-  });
 
   keepAlivePeers();
 
@@ -718,7 +739,7 @@ void Host::run(boost::system::error_code const& _ec) {
   if (!m_run) return;
 
   auto runcb = [this](boost::system::error_code const& error) { run(error); };
-  m_timer.expires_from_now(boost::posix_time::milliseconds(c_timerInterval));
+  m_timer.expires_from_now(boost::posix_time::milliseconds(100));
   m_timer.async_wait(runcb);
 }
 
@@ -728,6 +749,9 @@ void Host::run(boost::system::error_code const& _ec) {
 void Host::startedWorking() {
   // start capability threads (ready for incoming connections)
   for (auto const& h : m_capabilities) h.second->onStarting();
+
+  // Every 30 seconds check if connected to another node and refresh boot nodes
+  scheduleExecution(30000, [this]() { checkNodes(); });
 
   if (haveCapabilities()) {
     // try to open acceptor (todo: ipv6)
@@ -746,7 +770,7 @@ void Host::startedWorking() {
       m_ioService, m_alias,
       NodeIPEndpoint(bi::address::from_string(listenAddress()), listenPort(),
                      listenPort()),
-      m_netConfig.discovery, m_netConfig.allowLocalDiscovery);
+      m_netConfig.discovery, m_netConfig.allowLocalDiscovery, m_BootNode);
   nodeTable->setEventHandler(new HostNodeTableHandler(*this));
   DEV_GUARDED(x_nodeTable)
   m_nodeTable = nodeTable;
@@ -970,10 +994,7 @@ void Host::forEachPeer(std::string const& _capabilityName,
 }
 
 void Host::scheduleExecution(int _delayMs, std::function<void()> _f) {
-  std::unique_ptr<io::deadline_timer> t(new io::deadline_timer(m_ioService));
-  t->expires_from_now(boost::posix_time::milliseconds(_delayMs));
-  t->async_wait([_f](boost::system::error_code const& _ec) {
+  m_timers->schedule(_delayMs, [_f](boost::system::error_code const& _ec) {
     if (!_ec) _f();
   });
-  DEV_GUARDED(x_timers) { m_timers.emplace_back(std::move(t)); }
 }

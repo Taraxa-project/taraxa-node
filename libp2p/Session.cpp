@@ -199,7 +199,8 @@ void Session::send(bytes&& _msg) {
 void Session::write() {
   bytes const* out = nullptr;
   DEV_GUARDED(x_framing) {
-    m_io->writeSingleFramePacket(&m_writeQueue[0], m_writeQueue[0]);
+    m_io->writeSingleFramePacket(&m_writeQueue[0], m_writeQueue[0],
+                                 m_server->m_encrypt);
     out = &m_writeQueue[0];
   }
   auto self(shared_from_this());
@@ -277,71 +278,114 @@ void Session::doRead() {
   // ignore packets received while waiting to disconnect.
   if (m_dropped) return;
 
-  auto self(shared_from_this());
-  m_data.resize(h256::size);
-  ba::async_read(
-      m_socket->ref(), boost::asio::buffer(m_data, h256::size),
-      [this, self](boost::system::error_code ec, std::size_t length) {
-        LOG_SCOPED_CONTEXT(m_logContext);
+  if (m_server->m_encrypt) {
+    auto self(shared_from_this());
+    m_data.resize(h256::size);
+    ba::async_read(
+        m_socket->ref(), boost::asio::buffer(m_data, h256::size),
+        [this, self](boost::system::error_code ec, std::size_t length) {
+          LOG_SCOPED_CONTEXT(m_logContext);
 
-        if (!checkRead(h256::size, ec, length))
-          return;
-        else if (!m_io->authAndDecryptHeader(bytesRef(m_data.data(), length))) {
-          cnetlog << "header decrypt failed";
-          drop(BadProtocol);  // todo: better error
-          return;
-        }
+          if (!checkRead(h256::size, ec, length))
+            return;
+          else if (!m_io->authAndDecryptHeader(
+                       bytesRef(m_data.data(), length))) {
+            cnetlog << "header decrypt failed";
+            drop(BadProtocol);  // todo: better error
+            return;
+          }
 
-        uint16_t hProtocolId;
-        uint32_t hLength;
-        uint8_t hPadding;
-        try {
-          RLPXFrameInfo header(bytesConstRef(m_data.data(), length));
-          hProtocolId = header.protocolId;
-          hLength = header.length;
-          hPadding = header.padding;
-        } catch (std::exception const& _e) {
-          cnetlog << "Exception decoding frame header RLP: " << _e.what() << " "
-                  << bytesConstRef(m_data.data(), h128::size).cropped(3);
-          drop(BadProtocol);
-          return;
-        }
+          uint16_t hProtocolId;
+          uint32_t hLength;
+          uint8_t hPadding;
+          try {
+            RLPXFrameInfo header(bytesConstRef(m_data.data(), length));
+            hProtocolId = header.protocolId;
+            hLength = header.length;
+            hPadding = header.padding;
+          } catch (std::exception const& _e) {
+            cnetlog << "Exception decoding frame header RLP: " << _e.what()
+                    << " "
+                    << bytesConstRef(m_data.data(), h128::size).cropped(3);
+            drop(BadProtocol);
+            return;
+          }
 
-        /// read padded frame and mac
-        auto tlen = hLength + hPadding + h128::size;
-        m_data.resize(tlen);
-        ba::async_read(
-            m_socket->ref(), boost::asio::buffer(m_data, tlen),
-            [this, self, hLength, hProtocolId, tlen](
-                boost::system::error_code ec, std::size_t length) {
-              LOG_SCOPED_CONTEXT(m_logContext);
+          /// read padded frame and mac
+          auto tlen = hLength + hPadding + h128::size;
+          m_data.resize(tlen);
+          ba::async_read(
+              m_socket->ref(), boost::asio::buffer(m_data, tlen),
+              [this, self, hLength, hProtocolId, tlen](
+                  boost::system::error_code ec, std::size_t length) {
+                LOG_SCOPED_CONTEXT(m_logContext);
 
-              if (!checkRead(tlen, ec, length))
-                return;
-              else if (!m_io->authAndDecryptFrame(
-                           bytesRef(m_data.data(), tlen))) {
-                cnetlog << "frame decrypt failed";
-                drop(BadProtocol);  // todo: better error
-                return;
-              }
+                if (!checkRead(tlen, ec, length))
+                  return;
+                else if (!m_io->authAndDecryptFrame(
+                             bytesRef(m_data.data(), tlen))) {
+                  cnetlog << "frame decrypt failed";
+                  drop(BadProtocol);  // todo: better error
+                  return;
+                }
 
-              bytesConstRef frame(m_data.data(), hLength);
-              if (!checkPacket(frame)) {
-                cerr << "Received " << frame.size() << ": " << toHex(frame)
-                     << endl;
-                cnetlog << "INVALID MESSAGE RECEIVED";
-                disconnect(BadProtocol);
-                return;
-              } else {
-                auto packetType =
-                    (PacketType)RLP(frame.cropped(0, 1)).toInt<unsigned>();
-                RLP r(frame.cropped(1));
-                bool ok = readPacket(hProtocolId, packetType, r);
-                if (!ok) cnetlog << "Couldn't interpret packet. " << RLP(r);
-              }
-              doRead();
-            });
-      });
+                bytesConstRef frame(m_data.data(), hLength);
+                if (!checkPacket(frame)) {
+                  cerr << "Received " << frame.size() << ": " << toHex(frame)
+                       << endl;
+                  cnetlog << "INVALID MESSAGE RECEIVED";
+                  disconnect(BadProtocol);
+                  return;
+                } else {
+                  auto packetType =
+                      (PacketType)RLP(frame.cropped(0, 1)).toInt<unsigned>();
+                  RLP r(frame.cropped(1));
+                  bool ok = readPacket(hProtocolId, packetType, r);
+                  if (!ok) cnetlog << "Couldn't interpret packet. " << RLP(r);
+                }
+                doRead();
+              });
+        });
+  } else {
+    auto self(shared_from_this());
+    m_data.resize(3);
+    ba::async_read(
+        m_socket->ref(), boost::asio::buffer(m_data, 3),
+        [this, self](boost::system::error_code ec, std::size_t length) {
+          LOG_SCOPED_CONTEXT(m_logContext);
+
+          if (!checkRead(3, ec, length)) return;
+
+          uint16_t hProtocolId;
+          uint32_t data_length((m_data[0] * 256 + m_data[1]) * 256 + m_data[2]);
+
+          m_data.resize(data_length);
+          ba::async_read(
+              m_socket->ref(), boost::asio::buffer(m_data, data_length),
+              [this, self, data_length, hProtocolId](
+                  boost::system::error_code ec, std::size_t length) {
+                LOG_SCOPED_CONTEXT(m_logContext);
+
+                if (!checkRead(data_length, ec, length)) return;
+
+                bytesConstRef frame(m_data.data(), data_length);
+                if (!checkPacket(frame)) {
+                  cerr << "Received " << frame.size() << ": " << toHex(frame)
+                       << endl;
+                  cnetlog << "INVALID MESSAGE RECEIVED";
+                  disconnect(BadProtocol);
+                  return;
+                } else {
+                  auto packetType =
+                      (PacketType)RLP(frame.cropped(0, 1)).toInt<unsigned>();
+                  RLP r(frame.cropped(1));
+                  bool ok = readPacket(hProtocolId, packetType, r);
+                  if (!ok) cnetlog << "Couldn't interpret packet. " << RLP(r);
+                }
+                doRead();
+              });
+        });
+  }
 }
 
 bool Session::checkRead(std::size_t _expected, boost::system::error_code _ec,

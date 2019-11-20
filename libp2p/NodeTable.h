@@ -127,7 +127,7 @@ class NodeTable : UDPSocketEvents {
   /// to listen on.
   NodeTable(ba::io_service& _io, KeyPair const& _alias,
             NodeIPEndpoint const& _endpoint, bool _enabled = true,
-            bool _allowLocalDiscovery = false);
+            bool _allowLocalDiscovery = false, bool bootNode = false);
   ~NodeTable() { stop(); }
 
   /// Returns distance based on xor metric two node ids. Used by NodeEntry and
@@ -142,7 +142,7 @@ class NodeTable : UDPSocketEvents {
 
   void stop() {
     m_socket->disconnect();
-    m_timers.stop();
+    m_timers->stop();
   }
 
   /// Set event handler for NodeEntryAdded and NodeEntryDropped events.
@@ -189,6 +189,7 @@ class NodeTable : UDPSocketEvents {
   /// is not found.
   Node node(NodeID const& _id);
 
+  void invalidateNode(NodeID const& _id);
   // protected only for derived classes in tests
  protected:
   /**
@@ -214,13 +215,14 @@ class NodeTable : UDPSocketEvents {
                                           ///< (discover)
 
   /// Chosen constants
-
-  static constexpr unsigned s_bucketSize =
-      16;  ///< Denoted by k in [Kademlia]. Number of nodes stored in each
-           ///< bucket.
   static constexpr unsigned s_alpha =
       3;  ///< Denoted by \alpha in [Kademlia]. Number of concurrent FindNode
           ///< requests.
+
+  // Bucket size will be increased for boot nodes
+  unsigned m_bucketSize = 16;  ///< Denoted by k in [Kademlia]. Number of nodes
+                               ///< stored in each bucket.
+  bool m_bootNode = false;
 
   /// Intervals
 
@@ -351,8 +353,8 @@ class NodeTable : UDPSocketEvents {
   bool m_allowLocalDiscovery;  ///< Allow nodes with local addresses to be
                                ///< included in the discovery process
 
-  DeadlineOps m_timers;  ///< this should be the last member - it must be
-                         ///< destroyed first
+  std::shared_ptr<DeadlineOps> m_timers;  ///< this should be the last member -
+                                          ///< it must be destroyed first
 };
 
 /**

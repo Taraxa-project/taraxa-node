@@ -55,7 +55,7 @@ class RLPXHandshake : public std::enable_shared_from_this<RLPXHandshake> {
       : m_host(_host),
         m_originated(false),
         m_socket(_socket),
-        m_idleTimer(m_socket->ref().get_io_service()) {
+        m_idleTimer(m_socket->ref().get_executor()) {
     crypto::Nonce::get().ref().copyTo(m_nonce.ref());
   }
 
@@ -66,7 +66,7 @@ class RLPXHandshake : public std::enable_shared_from_this<RLPXHandshake> {
         m_remote(_remote),
         m_originated(true),
         m_socket(_socket),
-        m_idleTimer(m_socket->ref().get_io_service()) {
+        m_idleTimer(m_socket->ref().get_executor()) {
     crypto::Nonce::get().ref().copyTo(m_nonce.ref());
   }
 

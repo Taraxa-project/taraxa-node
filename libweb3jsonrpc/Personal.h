@@ -1,4 +1,5 @@
 #pragma once
+#include "../full_node.hpp"
 #include "PersonalFace.h"
 
 namespace dev {
@@ -13,8 +14,7 @@ namespace rpc {
 
 class Personal : public dev::rpc::PersonalFace {
  public:
-  Personal(dev::eth::KeyManager& _keyManager,
-           dev::eth::AccountHolder& _accountHolder, eth::Interface& _eth);
+  Personal(std::shared_ptr<taraxa::FullNode>& _full_node);
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"personal", "1.0"}};
   }
@@ -30,9 +30,7 @@ class Personal : public dev::rpc::PersonalFace {
   virtual Json::Value personal_listAccounts() override;
 
  private:
-  dev::eth::KeyManager& m_keyManager;
-  dev::eth::AccountHolder& m_accountHolder;
-  dev::eth::Interface& m_eth;
+  std::weak_ptr<taraxa::FullNode> full_node_;
 };
 
 }  // namespace rpc

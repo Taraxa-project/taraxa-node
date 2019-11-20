@@ -6,13 +6,11 @@
 #include "transaction.hpp"
 #include "util.hpp"
 #include "vote.h"
-#include "wallet.hpp"
 
 namespace taraxa {
 
-RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
-                     std::shared_ptr<FullNode> node)
-    : conf_(conf_rpc), io_context_(io), acceptor_(io), node_(node) {
+RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc)
+    : conf_(conf_rpc), io_context_(io), acceptor_(io) {
   LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port << std::endl;
 }
 std::shared_ptr<RpcServer> RpcServer::getShared() {
@@ -26,10 +24,9 @@ std::shared_ptr<RpcServer> RpcServer::getShared() {
 }
 
 bool RpcServer::StartListening() {
-  if (!stopped_) {
+  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
-  stopped_ = false;
   boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
   acceptor_.open(ep.protocol());
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -49,7 +46,7 @@ bool RpcServer::StartListening() {
 
 void RpcServer::waitForAccept() {
   std::shared_ptr<RpcConnection> connection(
-      std::make_shared<RpcConnection>(getShared(), node_));
+      std::make_shared<RpcConnection>(getShared()));
   acceptor_.async_accept(
       connection->getSocket(),
       [this, connection](boost::system::error_code const &ec) {
@@ -68,9 +65,11 @@ void RpcServer::waitForAccept() {
 }
 
 bool RpcServer::StopListening() {
-  if (stopped_) return true;
-  stopped_ = true;
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return true;
+  }
   acceptor_.close();
+  LOG(log_tr_) << "StopListening: ";
   return true;
 }
 
@@ -87,9 +86,8 @@ std::shared_ptr<RpcConnection> RpcConnection::getShared() {
   }
 }
 
-RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc,
-                             std::shared_ptr<FullNode> node)
-    : rpc_(rpc), node_(node), socket_(rpc->getIoContext()) {
+RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc)
+    : rpc_(rpc), socket_(rpc->getIoContext()) {
   responded_.clear();
 }
 
@@ -110,7 +108,14 @@ void RpcConnection::read() {
                 [this_sp](boost::system::error_code const &ec,
                           size_t byte_transfered) {});
           });
-          // pass response handler
+          if (this_sp->request_.method() == boost::beast::http::verb::options) {
+            this_sp->write_options_response();
+            // async write
+            boost::beast::http::async_write(
+                this_sp->socket_, this_sp->response_,
+                [this_sp](boost::system::error_code const &ec,
+                          size_t byte_transfered) {});
+          }
           if (this_sp->request_.method() == boost::beast::http::verb::post) {
             string response;
             if (this_sp->rpc_->GetHandler() != NULL) {
@@ -139,6 +144,20 @@ void RpcConnection::write_response(std::string const &msg) {
     response_.set("Connection", "close");
     response_.result(boost::beast::http::status::ok);
     response_.body() = msg;
+    response_.prepare_payload();
+  } else {
+    assert(false && "RPC already responded ...\n");
+  }
+}
+
+void RpcConnection::write_options_response() {
+  if (!responded_.test_and_set()) {
+    response_.set("Allow", "OPTIONS, GET, HEAD, POST");
+    response_.set("Access-Control-Allow-Origin", "*");
+    response_.set("Access-Control-Allow-Headers",
+                  "Accept, Accept-Language, Content-Language, Content-Type");
+    response_.set("Connection", "close");
+    response_.result(boost::beast::http::status::no_content);
     response_.prepare_payload();
   } else {
     assert(false && "RPC already responded ...\n");

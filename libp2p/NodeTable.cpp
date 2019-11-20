@@ -43,7 +43,7 @@ inline bool operator==(std::weak_ptr<NodeEntry> const& _weak,
 
 NodeTable::NodeTable(ba::io_service& _io, KeyPair const& _alias,
                      NodeIPEndpoint const& _endpoint, bool _enabled,
-                     bool _allowLocalDiscovery)
+                     bool _allowLocalDiscovery, bool bootNode)
     : m_hostNodeID(_alias.pub()),
       m_hostNodeEndpoint(_endpoint),
       m_secret(_alias.secret()),
@@ -52,7 +52,11 @@ NodeTable::NodeTable(ba::io_service& _io, KeyPair const& _alias,
                                        (bi::udp::endpoint)m_hostNodeEndpoint)),
       m_requestTimeToLive(DiscoveryDatagram::c_timeToLive),
       m_allowLocalDiscovery(_allowLocalDiscovery),
-      m_timers(_io) {
+      m_timers(DeadlineOps::make_shared(_io)),
+      m_bootNode(bootNode) {
+  if (bootNode) {
+    m_bucketSize = 256;
+  }
   for (unsigned i = 0; i < s_bins; i++) m_buckets[i].distance = i;
 
   if (!_enabled) return;
@@ -211,7 +215,7 @@ void NodeTable::doDiscover(NodeID _node, unsigned _round,
     return;
   }
 
-  m_timers.schedule(
+  m_timers->schedule(
       c_reqTimeout.count() * 2,
       [this, _node, _round, _tried](boost::system::error_code const& _ec) {
         if (_ec)
@@ -222,7 +226,7 @@ void NodeTable::doDiscover(NodeID _node, unsigned _round,
               << " " << _ec.message();
 
         if (_ec.value() == boost::asio::error::operation_aborted ||
-            m_timers.isStopped())
+            m_timers->isStopped())
           return;
 
         // error::operation_aborted means that the timer was probably aborted.
@@ -277,7 +281,7 @@ vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID _target) {
   vector<shared_ptr<NodeEntry>> ret;
   for (auto& nodes : found)
     for (auto const& n : nodes.second)
-      if (ret.size() < s_bucketSize && !!n->endpoint &&
+      if (ret.size() < m_bucketSize && !!n->endpoint &&
           isAllowedEndpoint(n->endpoint))
         ret.push_back(n);
   return ret;
@@ -285,9 +289,9 @@ vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID _target) {
 
 void NodeTable::ping(NodeEntry const& _nodeEntry,
                      boost::optional<NodeID> const& _replacementNodeID) {
-  m_timers.schedule(0, [this, _nodeEntry, _replacementNodeID](
-                           boost::system::error_code const& _ec) {
-    if (_ec || m_timers.isStopped()) return;
+  m_timers->schedule(0, [this, _nodeEntry, _replacementNodeID](
+                            boost::system::error_code const& _ec) {
+    if (_ec || m_timers->isStopped()) return;
 
     NodeIPEndpoint src;
     src = m_hostNodeEndpoint;
@@ -308,8 +312,14 @@ void NodeTable::ping(NodeEntry const& _nodeEntry,
 
 void NodeTable::evict(NodeEntry const& _leastSeen, NodeEntry const& _new) {
   if (!m_socket->isOpen()) return;
-
-  ping(_leastSeen, _new.id);
+  // If this is a boot node we should drop the leastSeen
+  // Boot node should share the discovery data with new nodes
+  if (m_bootNode) {
+    if (auto lNode = nodeEntry(_leastSeen.id)) dropNode(move(lNode));
+    ping(_new);
+  } else {
+    ping(_leastSeen, _new.id);
+  }
 }
 
 void NodeTable::noteActiveNode(Public const& _pubk,
@@ -345,7 +355,7 @@ void NodeTable::noteActiveNode(Public const& _pubk,
         // if it was in the bucket, move it to the last position
         nodes.splice(nodes.end(), nodes, it);
       } else {
-        if (nodes.size() < s_bucketSize) {
+        if (nodes.size() < m_bucketSize) {
           // if it was not there, just add it as a most recently seen node
           // (i.e. to the end of the list)
           nodes.push_back(newNode);
@@ -369,6 +379,16 @@ void NodeTable::noteActiveNode(Public const& _pubk,
 
     if (nodeToEvict) evict(*nodeToEvict, *newNode);
   }
+}
+void NodeTable::invalidateNode(NodeID const& _id) {
+  auto sourceNodeEntry = nodeEntry(_id);
+  if (!sourceNodeEntry) {
+    return;
+  }
+  // This will cause the node to be pinged again to update status on the other
+  // node
+  sourceNodeEntry->lastPongReceivedTime =
+      RLPXDatagramFace::secondsSinceEpoch() - NodeTable::c_bondingTimeSeconds;
 }
 
 void NodeTable::dropNode(shared_ptr<NodeEntry> _n) {
@@ -427,6 +447,9 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
         }
 
         auto const sourceNodeEntry = nodeEntry(sourceId);
+        if (!sourceNodeEntry) {
+          return;
+        }
         assert(sourceNodeEntry);
         sourceNodeEntry->lastPongReceivedTime =
             RLPXDatagramFace::secondsSinceEpoch();
@@ -543,7 +566,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
 }
 
 void NodeTable::doDiscovery() {
-  m_timers.schedule(
+  m_timers->schedule(
       c_bucketRefresh.count(), [this](boost::system::error_code const& _ec) {
         if (_ec)
           // we can't use m_logger here, because captured this might be already
@@ -553,7 +576,7 @@ void NodeTable::doDiscovery() {
               << " " << _ec.message();
 
         if (_ec.value() == boost::asio::error::operation_aborted ||
-            m_timers.isStopped())
+            m_timers->isStopped())
           return;
 
         NodeID randNodeId;
@@ -567,10 +590,10 @@ void NodeTable::doDiscovery() {
 }
 
 void NodeTable::doHandleTimeouts() {
-  m_timers.schedule(
+  m_timers->schedule(
       c_handleTimeoutsIntervalMs, [this](boost::system::error_code const& _ec) {
         if ((_ec && _ec.value() == boost::asio::error::operation_aborted) ||
-            m_timers.isStopped())
+            m_timers->isStopped())
           return;
 
         vector<shared_ptr<NodeEntry>> nodesToActivate;

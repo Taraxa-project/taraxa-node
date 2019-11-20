@@ -168,8 +168,8 @@ class UDPSocket
   bi::udp::endpoint m_endpoint;  ///< Endpoint which we listen to.
 
   Mutex x_sendQ;
-  std::deque<UDPDatagram> m_sendQ;               ///< Queue for egress data.
-  std::array<byte, maxDatagramSize> m_recvData;  ///< Buffer for ingress data.
+  std::deque<UDPDatagram> m_sendQ;                 ///< Queue for egress data.
+  std::array<::byte, maxDatagramSize> m_recvData;  ///< Buffer for ingress data.
   bi::udp::endpoint m_recvEndpoint;  ///< Endpoint data was received from.
   bi::udp::socket m_socket;          ///< Boost asio udp socket.
 

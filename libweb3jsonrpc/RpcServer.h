@@ -1,14 +1,8 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Chia-Chun Lin
- * @Date: 2018-11-28 16:05:18
- * @Last Modified by: Chia-Chun Lin
- * @Last Modified time: 2019-04-23 18:22:52
- */
+#ifndef TARAXA_NODE_LIBWEB3JSONRPC_RPC_HPP
+#define TARAXA_NODE_LIBWEB3JSONRPC_RPC_HPP
 
-#ifndef RPC_HPP
-#define RPC_HPP
 #include <jsonrpccpp/server/abstractserverconnector.h>
+#include <atomic>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -18,23 +12,18 @@
 
 namespace taraxa {
 
-class FullNode;
 class RpcConnection;
 class RpcHandler;
 
 class RpcServer : public std::enable_shared_from_this<RpcServer>,
                   public jsonrpc::AbstractServerConnector {
  public:
-  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
-            std::shared_ptr<FullNode> node);
-  virtual ~RpcServer() {
-    if (!stopped_) StopListening();
-  }
+  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc);
+  virtual ~RpcServer() { StopListening(); }
 
   virtual bool StartListening() override;
   virtual bool StopListening() override;
-  bool virtual SendResponse(const std::string &response,
-                            void *addInfo = NULL) override;
+  virtual bool SendResponse(const std::string &response, void *addInfo = NULL);
   void waitForAccept();
   boost::asio::io_context &getIoContext() { return io_context_; }
   std::shared_ptr<RpcServer> getShared();
@@ -42,11 +31,10 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
   friend RpcHandler;
 
  private:
-  bool stopped_ = true;
+  std::atomic<bool> stopped_ = true;
   RpcConfig conf_;
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  std::shared_ptr<FullNode> node_;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
   dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
@@ -67,16 +55,16 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
 
 class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
  public:
-  RpcConnection(std::shared_ptr<RpcServer> rpc, std::shared_ptr<FullNode> node);
+  RpcConnection(std::shared_ptr<RpcServer> rpc);
   virtual ~RpcConnection() = default;
   virtual void read();
   virtual void write_response(std::string const &msg);
+  virtual void write_options_response();
   boost::asio::ip::tcp::socket &getSocket() { return socket_; }
   virtual std::shared_ptr<RpcConnection> getShared();
 
  private:
   std::shared_ptr<RpcServer> rpc_;
-  std::shared_ptr<FullNode> node_;
   boost::asio::ip::tcp::socket socket_;
   boost::beast::flat_buffer buffer_;
   boost::beast::http::request<boost::beast::http::string_body> request_;

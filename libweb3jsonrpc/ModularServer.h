@@ -109,17 +109,20 @@ class ModularServer : public jsonrpc::IProcedureInvokationHandler {
   virtual void HandleMethodCall(jsonrpc::Procedure& _proc,
                                 Json::Value const& _input,
                                 Json::Value& _output) override {
+    printf("HandleMethodCall\n");
     if (_proc.GetProcedureName() == "rpc_modules") modules(_input, _output);
   }
 
   virtual void HandleNotificationCall(jsonrpc::Procedure& _proc,
                                       Json::Value const& _input) override {
+    printf("HandleNotificationCall\n");
     (void)_proc;
     (void)_input;
   }
 
   /// server takes ownership of the connector
-  unsigned addConnector(jsonrpc::AbstractServerConnector* _connector) {
+  unsigned addConnector(
+      std::shared_ptr<jsonrpc::AbstractServerConnector> _connector) {
     m_connectors.emplace_back(_connector);
     _connector->SetHandler(m_handler.get());
     return m_connectors.size() - 1;
@@ -130,7 +133,7 @@ class ModularServer : public jsonrpc::IProcedureInvokationHandler {
   }
 
  protected:
-  std::vector<std::unique_ptr<jsonrpc::AbstractServerConnector>> m_connectors;
+  std::vector<std::shared_ptr<jsonrpc::AbstractServerConnector>> m_connectors;
   std::unique_ptr<jsonrpc::IProtocolHandler> m_handler;
   /// Mapping for implemented modules, to be filled by subclasses during
   /// construction.

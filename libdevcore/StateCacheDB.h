@@ -46,6 +46,7 @@ class StateCacheDB {
   void purge();
 
   bytes lookupAux(h256 const& _h) const;
+  bool existsAux(h256 const& _h) const;
   void removeAux(h256 const& _h);
   void insertAux(h256 const& _h, bytesConstRef _v);
 

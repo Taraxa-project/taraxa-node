@@ -1,18 +1,7 @@
 /*
-    This file is part of cpp-ethereum.
-
-    cpp-ethereum is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    cpp-ethereum is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
+    This file is a refactored part of cpp-ethereum State.
+    State provides API to read and write the structure under State i.e. Account
+   and Storage State does *NOT* execute any logic from state to state.
 */
 
 #pragma once
@@ -20,16 +9,12 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/OverlayDB.h>
 #include <libdevcore/RLP.h>
-#include <libethcore/BlockHeader.h>
 #include <libethcore/Exceptions.h>
 #include <libethereum/CodeSizeCache.h>
-#include <libevm/ExtVMFace.h>
 #include <array>
 #include <unordered_map>
 #include "Account.h"
-#include "GasPricer.h"
 #include "SecureTrieDB.h"
-#include "Transaction.h"
 #include "TransactionReceipt.h"
 
 namespace dev {
@@ -41,35 +26,6 @@ class StateLoader;
 
 namespace eth {
 
-// Import-specific errinfos
-using errinfo_uncleIndex = boost::error_info<struct tag_uncleIndex, unsigned>;
-using errinfo_currentNumber = boost::error_info<struct tag_currentNumber, u256>;
-using errinfo_uncleNumber = boost::error_info<struct tag_uncleNumber, u256>;
-using errinfo_unclesExcluded =
-    boost::error_info<struct tag_unclesExcluded, h256Hash>;
-using errinfo_block = boost::error_info<struct tag_block, bytes>;
-using errinfo_now = boost::error_info<struct tag_now, unsigned>;
-
-using errinfo_transactionIndex =
-    boost::error_info<struct tag_transactionIndex, unsigned>;
-
-using errinfo_vmtrace = boost::error_info<struct tag_vmtrace, std::string>;
-using errinfo_receipts =
-    boost::error_info<struct tag_receipts, std::vector<bytes>>;
-using errinfo_transaction = boost::error_info<struct tag_transaction, bytes>;
-using errinfo_phase = boost::error_info<struct tag_phase, unsigned>;
-using errinfo_required_LogBloom =
-    boost::error_info<struct tag_required_LogBloom, LogBloom>;
-using errinfo_got_LogBloom =
-    boost::error_info<struct tag_get_LogBloom, LogBloom>;
-using LogBloomRequirementError =
-    boost::tuple<errinfo_required_LogBloom, errinfo_got_LogBloom>;
-
-class BlockChain;
-class State;
-class TransactionQueue;
-struct VerifiedBlockRef;
-
 enum class BaseState { PreExisting, Empty };
 
 enum class Permanence {
@@ -80,9 +36,6 @@ enum class Permanence {
 
 DEV_SIMPLE_EXCEPTION(InvalidAccountStartNonceInState);
 DEV_SIMPLE_EXCEPTION(IncorrectAccountStartNonceInState);
-
-class SealEngineFace;
-class Executive;
 
 /// An atomic state changelog entry.
 struct Change {
@@ -155,11 +108,6 @@ using ChangeLog = std::vector<Change>;
  * The changelog is managed by savepoint(), rollback() and commit() methods.
  */
 class State {
-  friend class ExtVM;
-  friend class dev::test::ImportTest;
-  friend class dev::test::StateLoader;
-  friend class BlockChain;
-
  public:
   enum class CommitBehaviour { KeepEmptyAccounts, RemoveEmptyAccounts };
 
@@ -211,19 +159,6 @@ class State {
   std::pair<AddressMap, h256> addresses(h256 const& _begin,
                                         size_t _maxResults) const;
 
-  /// Execute a given transaction.
-  /// This will change the state accordingly.
-  std::pair<ExecutionResult, TransactionReceipt> execute(
-      EnvInfo const& _envInfo, SealEngineFace const& _sealEngine,
-      Transaction const& _t, Permanence _p = Permanence::Committed,
-      OnOpFunc const& _onOp = OnOpFunc());
-
-  /// Execute @a _txCount transactions of a given block.
-  /// This will change the state accordingly.
-  void executeBlockTransactions(Block const& _block, unsigned _txCount,
-                                LastBlockHashesFace const& _lastHashes,
-                                SealEngineFace const& _sealEngine);
-
   /// Check if the address is in use.
   bool addressInUse(Address const& _address) const;
 
@@ -241,16 +176,16 @@ class State {
 
   /// Add some amount to balance.
   /// Will initialise the address if it has never been used.
-  void addBalance(Address const& _id, u256 const& _amount);
+  void addBalance(Address const& _id, taraxa::val_t const& _amount);
 
   /// Subtract the @p _value amount from the balance of @p _addr account.
   /// @throws NotEnoughCash if the balance of the account is less than the
   /// amount to be subtrackted (also in case the account does not exist).
-  void subBalance(Address const& _addr, u256 const& _value);
+  void subBalance(Address const& _addr, taraxa::val_t const& _value);
 
   /// Set the balance of @p _addr to @p _value.
   /// Will instantiate the address if it has never been used.
-  void setBalance(Address const& _addr, u256 const& _value);
+  void setBalance(Address const& _addr, taraxa::val_t const& _value);
 
   /**
    * @brief Transfers "the balance @a _value between two accounts.
@@ -259,7 +194,7 @@ class State {
    * @param _value Amount to be transferred.
    */
   void transferBalance(Address const& _from, Address const& _to,
-                       u256 const& _value) {
+                       taraxa::val_t const& _value) {
     subBalance(_from, _value);
     addBalance(_to, _value);
   }
@@ -367,11 +302,6 @@ class State {
 
   void createAccount(Address const& _address, Account const&& _account);
 
-  /// @returns true when normally halted; false when exceptionally halted;
-  /// throws when internal VM exception occurred.
-  bool executeTransaction(Executive& _e, Transaction const& _t,
-                          OnOpFunc const& _onOp);
-
   /// Our overlay for the state tree.
   OverlayDB m_db;
   /// Our state tree, as an OverlayDB DB.
@@ -394,9 +324,6 @@ class State {
 };
 
 std::ostream& operator<<(std::ostream& _out, State const& _s);
-
-State& createIntermediateState(State& o_s, Block const& _block,
-                               unsigned _txIndex, BlockChain const& _bc);
 
 template <class DB>
 AddressHash commit(AccountMap const& _cache, SecureTrieDB<Address, DB>& _state);

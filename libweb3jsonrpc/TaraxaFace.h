@@ -268,6 +268,291 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
         jsonrpc::Procedure("taraxa_chainId", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_STRING, NULL),
         &dev::rpc::TaraxaFace::taraxa_chainIdI);
+
+    // These are taraxa only methods, no ethereum methods
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getDagBlockByHash",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_BOOLEAN, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getDagBlockByHashI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getDagBlockByLevel",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_BOOLEAN, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getDagBlockByLevelI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_dagBlockLevel", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_dagBlockLevelI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_dagBlockPeriod", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_dagBlockPeriodI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getScheduleBlockByPeriod",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getScheduleBlockByPeriodI);
+
+    // This section only points "eth_" methods to "taraxa_" implementation to
+    // support ethereum clients
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_protocolVersion", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_protocolVersionI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_hashrate", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_hashrateI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_coinbase", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_coinbaseI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_mining", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, NULL),
+        &dev::rpc::TaraxaFace::taraxa_miningI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_gasPrice", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_gasPriceI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_accounts", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, NULL),
+        &dev::rpc::TaraxaFace::taraxa_accountsI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_blockNumber", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_blockNumberI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getBalance", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING,
+                           "param2", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getBalanceI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getStorageAt", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING,
+                           "param2", jsonrpc::JSON_STRING, "param3",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getStorageAtI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getStorageRoot", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING,
+                           "param2", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getStorageRootI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getTransactionCount",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getTransactionCountI);
+    this->bindAndAddMethod(jsonrpc::Procedure("eth_pendingTransactions",
+                                              jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_ARRAY, NULL),
+                           &dev::rpc::TaraxaFace::taraxa_pendingTransactionsI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getBlockTransactionCountByHash",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getBlockTransactionCountByHashI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getBlockTransactionCountByNumber",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getBlockTransactionCountByNumberI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getUncleCountByBlockHash",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getUncleCountByBlockHashI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getUncleCountByBlockNumber",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getUncleCountByBlockNumberI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getCode", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING,
+                           "param2", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getCodeI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_sendTransaction", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_sendTransactionI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_call", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_OBJECT,
+                           "param2", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_callI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_flush", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, NULL),
+        &dev::rpc::TaraxaFace::taraxa_flushI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getBlockByHash", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING,
+                           "param2", jsonrpc::JSON_BOOLEAN, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getBlockByHashI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getBlockByNumber", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING,
+                           "param2", jsonrpc::JSON_BOOLEAN, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getBlockByNumberI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getTransactionByHash",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getTransactionByHashI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getTransactionByBlockHashAndIndex",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getTransactionByBlockHashAndIndexI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getTransactionByBlockNumberAndIndex",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getTransactionByBlockNumberAndIndexI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getTransactionReceipt",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getTransactionReceiptI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getUncleByBlockHashAndIndex",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getUncleByBlockHashAndIndexI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getUncleByBlockNumberAndIndex",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, "param2",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getUncleByBlockNumberAndIndexI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_newFilter", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_newFilterI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_newFilterEx", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_newFilterExI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_newBlockFilter", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_newBlockFilterI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_newPendingTransactionFilter",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_newPendingTransactionFilterI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_uninstallFilter", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, "param1",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_uninstallFilterI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getFilterChanges", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, "param1", jsonrpc::JSON_STRING,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_getFilterChangesI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getFilterChangesEx",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_ARRAY,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getFilterChangesExI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getFilterLogs", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, "param1", jsonrpc::JSON_STRING,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_getFilterLogsI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getFilterLogsEx", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, "param1", jsonrpc::JSON_STRING,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_getFilterLogsExI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getLogs", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_getLogsI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getLogsEx", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_getLogsExI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_getWork", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_ARRAY, NULL),
+        &dev::rpc::TaraxaFace::taraxa_getWorkI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_submitWork", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, "param1",
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING,
+                           "param3", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_submitWorkI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_submitHashrate", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, "param1",
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_submitHashrateI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_register", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_registerI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_unregister", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, "param1",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_unregisterI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_fetchQueuedTransactions",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_ARRAY,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_fetchQueuedTransactionsI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_signTransaction", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_signTransactionI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_inspectTransaction",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_inspectTransactionI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_sendRawTransaction",
+                           jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
+                           "param1", jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_sendRawTransactionI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_notePassword", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_BOOLEAN, "param1",
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_notePasswordI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_syncing", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, NULL),
+        &dev::rpc::TaraxaFace::taraxa_syncingI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_estimateGas", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &dev::rpc::TaraxaFace::taraxa_estimateGasI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_chainId", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_STRING, NULL),
+        &dev::rpc::TaraxaFace::taraxa_chainIdI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request,
@@ -507,6 +792,30 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     (void)request;
     response = this->taraxa_chainId();
   }
+  inline virtual void taraxa_getDagBlockByHashI(const Json::Value &request,
+                                                Json::Value &response) {
+    response = this->taraxa_getDagBlockByHash(request[0u].asString(),
+                                              request[1u].asBool());
+  }
+  inline virtual void taraxa_getDagBlockByLevelI(const Json::Value &request,
+                                                 Json::Value &response) {
+    response = this->taraxa_getDagBlockByLevel(request[0u].asString(),
+                                               request[1u].asBool());
+  }
+  inline virtual void taraxa_getScheduleBlockByPeriodI(
+      const Json::Value &request, Json::Value &response) {
+    response = this->taraxa_getScheduleBlockByPeriod(request[0u].asString());
+  }
+  inline virtual void taraxa_dagBlockLevelI(const Json::Value &request,
+                                            Json::Value &response) {
+    (void)request;
+    response = this->taraxa_dagBlockLevel();
+  }
+  inline virtual void taraxa_dagBlockPeriodI(const Json::Value &request,
+                                             Json::Value &response) {
+    (void)request;
+    response = this->taraxa_dagBlockPeriod();
+  }
   virtual std::string taraxa_protocolVersion() = 0;
   virtual std::string taraxa_hashrate() = 0;
   virtual std::string taraxa_coinbase() = 0;
@@ -582,6 +891,14 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual Json::Value taraxa_syncing() = 0;
   virtual std::string taraxa_estimateGas(const Json::Value &param1) = 0;
   virtual std::string taraxa_chainId() = 0;
+  virtual Json::Value taraxa_getDagBlockByHash(const std::string &param1,
+                                               bool param2) = 0;
+  virtual Json::Value taraxa_getDagBlockByLevel(const std::string &param1,
+                                                bool param2) = 0;
+  virtual Json::Value taraxa_getScheduleBlockByPeriod(
+      const std::string &param1) = 0;
+  virtual std::string taraxa_dagBlockLevel() = 0;
+  virtual std::string taraxa_dagBlockPeriod() = 0;
 };
 
 }  // namespace rpc

@@ -114,9 +114,10 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
                                    boost::log::keywords::channel = CHANNEL))
 
 struct LoggingOptions {
-  int verbosity = VerbosityInfo;
+  int verbosity = VerbosityWarning;
   strings includeChannels;
   strings excludeChannels;
+  std::string logfilename;
 };
 
 // Should be called in every executable
@@ -253,13 +254,13 @@ inline boost::log::formatting_ostream& operator<<(
 template <typename T>
 inline boost::log::formatting_ostream& operator<<(
     boost::log::formatting_ostream& _strm, std::vector<T> const& _value) {
-  _strm.stream() << EthWhite "[" EthReset;
+  _strm.stream() << EthWhite "[ " EthReset;
   int n = 0;
   for (T const& i : _value) {
-    _strm.stream() << (n++ ? EthWhite ", " EthReset : "");
+    _strm.stream() << (n++ ? EthWhite " " EthReset : "");
     _strm << i;
   }
-  _strm.stream() << EthWhite "]" EthReset;
+  _strm.stream() << EthWhite " ]" EthReset;
   return _strm;
 }
 template <typename T>
@@ -273,13 +274,13 @@ inline boost::log::formatting_ostream& operator<<(
 template <typename T>
 inline boost::log::formatting_ostream& operator<<(
     boost::log::formatting_ostream& _strm, std::set<T> const& _value) {
-  _strm.stream() << EthYellow "{" EthReset;
+  _strm.stream() << EthYellow "{ " EthReset;
   int n = 0;
   for (T const& i : _value) {
     _strm.stream() << (n++ ? EthYellow ", " EthReset : "");
     _strm << i;
   }
-  _strm.stream() << EthYellow "}" EthReset;
+  _strm.stream() << EthYellow " }" EthReset;
   return _strm;
 }
 template <typename T>
@@ -294,13 +295,13 @@ template <typename T>
 inline boost::log::formatting_ostream& operator<<(
     boost::log::formatting_ostream& _strm,
     std::unordered_set<T> const& _value) {
-  _strm.stream() << EthYellow "{" EthReset;
+  _strm.stream() << EthYellow "{ " EthReset;
   int n = 0;
   for (T const& i : _value) {
     _strm.stream() << (n++ ? EthYellow ", " EthReset : "");
     _strm << i;
   }
-  _strm.stream() << EthYellow "}" EthReset;
+  _strm.stream() << EthYellow " }" EthReset;
   return _strm;
 }
 template <typename T>
@@ -314,7 +315,7 @@ inline boost::log::formatting_ostream& operator<<(
 template <typename T, typename U>
 inline boost::log::formatting_ostream& operator<<(
     boost::log::formatting_ostream& _strm, std::map<T, U> const& _value) {
-  _strm.stream() << EthLime "{" EthReset;
+  _strm.stream() << EthLime "{ " EthReset;
   int n = 0;
   for (auto const& i : _value) {
     _strm << (n++ ? EthLime ", " EthReset : "");
@@ -322,7 +323,7 @@ inline boost::log::formatting_ostream& operator<<(
     _strm << (n++ ? EthLime ": " EthReset : "");
     _strm << i.second;
   }
-  _strm.stream() << EthLime "}" EthReset;
+  _strm.stream() << EthLime " }" EthReset;
   return _strm;
 }
 template <typename T, typename U>
@@ -337,7 +338,7 @@ template <typename T, typename U>
 inline boost::log::formatting_ostream& operator<<(
     boost::log::formatting_ostream& _strm,
     std::unordered_map<T, U> const& _value) {
-  _strm << EthLime "{" EthReset;
+  _strm << EthLime "{ " EthReset;
   int n = 0;
   for (auto const& i : _value) {
     _strm.stream() << (n++ ? EthLime ", " EthReset : "");
@@ -345,7 +346,7 @@ inline boost::log::formatting_ostream& operator<<(
     _strm.stream() << (n++ ? EthLime ": " EthReset : "");
     _strm << i.second;
   }
-  _strm << EthLime "}" EthReset;
+  _strm << EthLime " }" EthReset;
   return _strm;
 }
 template <typename T, typename U>
@@ -359,11 +360,11 @@ inline boost::log::formatting_ostream& operator<<(
 template <typename T, typename U>
 inline boost::log::formatting_ostream& operator<<(
     boost::log::formatting_ostream& _strm, std::pair<T, U> const& _value) {
-  _strm.stream() << EthPurple "(" EthReset;
+  _strm.stream() << EthPurple "( " EthReset;
   _strm << _value.first;
   _strm.stream() << EthPurple ", " EthReset;
   _strm << _value.second;
-  _strm.stream() << EthPurple ")" EthReset;
+  _strm.stream() << EthPurple " )" EthReset;
   return _strm;
 }
 template <typename T, typename U>

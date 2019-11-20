@@ -24,7 +24,6 @@
 #ifdef __APPLE__
 #include <pthread.h>
 #endif
-
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/clock.hpp>
 #include <boost/log/attributes/function.hpp>
@@ -34,6 +33,9 @@
 #include <boost/log/sources/severity_channel_logger.hpp>
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/exception_handler.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/file.hpp>
 
 #if defined(NDEBUG)
 #include <boost/log/sinks/async_frontend.hpp>
@@ -125,7 +127,8 @@ void setThreadName(std::string const& _n) {
 #endif
 }
 
-void setupLogging(LoggingOptions const& _options) {
+boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>
+setupLoggingSink(LoggingOptions const& _options) {
   auto sink =
       boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>();
 
@@ -141,7 +144,21 @@ void setupLogging(LoggingOptions const& _options) {
   });
 
   sink->set_formatter(&formatter);
+  sink->locked_backend()->auto_flush(true);
+  if (_options.logfilename != "") {
+    auto filesink = boost::log::add_file_log(_options.logfilename);
+    filesink->set_filter(
+        [_options](boost::log::attribute_value_set const& _set) {
+          if (_set[severity] > _options.verbosity) return false;
 
+          auto const messageChannel = _set[channel];
+          return (_options.includeChannels.empty() ||
+                  contains(_options.includeChannels, messageChannel)) &&
+                 !contains(_options.excludeChannels, messageChannel);
+        });
+    filesink->set_formatter(&formatter);
+    filesink->locked_backend()->auto_flush(true);
+  }
   boost::log::core::get()->add_sink(sink);
 
   boost::log::core::get()->add_global_attribute(
@@ -155,6 +172,12 @@ void setupLogging(LoggingOptions const& _options) {
             std::cerr << "Exception from the logging library: " << _ex.what()
                       << '\n';
           }));
+  return sink;
+}
+
+void setupLogging(LoggingOptions const& _options) {
+  static boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>
+      sink = setupLoggingSink(_options);
 }
 
 }  // namespace dev

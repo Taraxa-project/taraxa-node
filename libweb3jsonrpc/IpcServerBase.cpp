@@ -115,7 +115,12 @@ void IpcServerBase<S>::GenerateResponse(S _connection) {
           std::string r = request.substr(0, i + 1);
           request.erase(0, i + 1);
           clog(VerbosityTrace, "rpc") << r;
-          OnRequest(r, reinterpret_cast<void*>((intptr_t)_connection));
+          string response;
+          if (GetHandler() != NULL) {
+            GetHandler()->HandleRequest(r, response);
+            this->SendResponse(response,
+                               reinterpret_cast<void*>((intptr_t)_connection));
+          }
           i = 0;
           continue;
         }

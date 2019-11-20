@@ -1,47 +1,149 @@
 [
   {
-    "name": "test_getLogHash",
-    "params": [
-      ""
-    ],
-    "order": [],
-    "returns": ""
-  },
-  {
-    "name": "test_importRawBlock",
-    "params": [
-      ""
-    ],
-    "order": [],
-    "returns": ""
-  },
-  {
-    "name": "test_setChainParams",
+    "name": "insert_dag_block",
     "params": [
       {}
     ],
-    "order": [],
-    "returns": false
+    "returns": {}
   },
   {
-    "name": "test_mineBlocks",
+    "name": "get_dag_block",
     "params": [
-      0
+      {}
     ],
-    "returns": false
+    "returns": {}
   },
   {
-    "name": "test_modifyTimestamp",
+    "name": "get_dag_block_epfriend",
     "params": [
-      0
+      {}
     ],
-    "returns": false
+    "returns": {}
   },
   {
-    "name": "test_rewindToBlock",
+    "name": "send_coin_transaction",
     "params": [
-      0
+      {}
     ],
-    "returns": false
+    "returns": {}
+  },
+  {
+    "name": "create_test_coin_transactions",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_num_proposed_blocks",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "send_pbft_schedule_block",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_account_address",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_account_balance",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_node_count",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_peer_count",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_all_peers",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_all_nodes",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "should_speak",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "place_vote",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_votes",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "draw_graph",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_transaction_count",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_executed_trx_count",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_executed_blk_count",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_dag_size",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "get_pbft_chain_size",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_pbft_chain_blocks",
+    "params": [
+      {}
+    ],
+    "returns": {}
   }
 ]

@@ -1,26 +1,3 @@
-/*
-        This file is part of cpp-ethereum.
-
-        cpp-ethereum is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        cpp-ethereum is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** @file Taraxa.h
- * @authors:
- *   Gav Wood <i@gavwood.com>
- *   Marek Kotewicz <marek@ethdev.com>
- * @date 2014
- */
-
 #pragma once
 
 #include <jsonrpccpp/common/exception.h>
@@ -28,6 +5,7 @@
 #include <libdevcore/Common.h>
 #include <iosfwd>
 #include <memory>
+#include <optional>
 #include "../full_node.hpp"
 #include "SessionManager.h"
 #include "TaraxaFace.h"
@@ -35,6 +13,54 @@
 namespace dev {
 
 namespace rpc {
+
+inline taraxa::dag_blk_num_t to_blk_num(std::string const& str) {
+  if ((str.find("0x") != 0))
+    BOOST_THROW_EXCEPTION(
+        jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS));
+  return stoull(str, 0, 16);
+}
+
+inline taraxa::trx_num_t to_trx_num(std::string const& str) {
+  if ((str.find("0x") != 0))
+    BOOST_THROW_EXCEPTION(
+        jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS));
+  auto const& num = stoull(str, 0, 16);
+  if (num > std::numeric_limits<taraxa::trx_num_t>::max())
+    BOOST_THROW_EXCEPTION(
+        jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS));
+  return taraxa::trx_num_t(num);
+}
+
+// As per
+// https://github.com/ethereum/wiki/wiki/JSON-RPC#the-default-block-parameter
+struct BlockNumber {
+  enum class Kind { earliest, latest, pending, specific };
+
+  static BlockNumber const earliest, latest, pending;
+
+  Kind const kind;
+  std::optional<taraxa::dag_blk_num_t> const block_number;
+
+  static BlockNumber from(std::string const& str) {
+    if ("earliest" == str) return earliest;
+    if ("latest" == str) return latest;
+    if ("pending" == str) return pending;
+    return from(to_blk_num(str));
+  }
+
+  static BlockNumber from(taraxa::dag_blk_num_t const& val) {
+    return val == 0 ? earliest : BlockNumber(Kind::specific, val);
+  }
+
+ private:
+  BlockNumber(decltype(kind)& kind,
+              decltype(block_number)& block_number = std::nullopt)
+      : kind(kind), block_number(block_number) {}
+};
+inline BlockNumber const BlockNumber::earliest(Kind::earliest, 0);
+inline BlockNumber const BlockNumber::latest(Kind::latest);
+inline BlockNumber const BlockNumber::pending(Kind::pending);
 
 /**
  * @brief JSON-RPC api implementation
@@ -132,9 +158,31 @@ class Taraxa : public dev::rpc::TaraxaFace {
   }
   virtual Json::Value taraxa_syncing() override;
   virtual std::string taraxa_chainId() override;
+  virtual Json::Value taraxa_getDagBlockByHash(
+      std::string const& _blockHash, bool _includeTransactions) override;
+  virtual Json::Value taraxa_getDagBlockByLevel(
+      std::string const& _blockLevel, bool _includeTransactions) override;
+  virtual std::string taraxa_dagBlockLevel() override;
+  virtual std::string taraxa_dagBlockPeriod() override;
+  virtual Json::Value taraxa_getScheduleBlockByPeriod(
+      std::string const& _period) override;
 
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;
+
+ private:
+  using NodePtr = decltype(full_node_.lock());
+  using StateSnapshot = taraxa::account_state::StateSnapshot;
+
+  NodePtr tryGetNode();
+  static std::optional<StateSnapshot> getSnapshot(NodePtr const&,  //
+                                                  BlockNumber const&);
+  static std::shared_ptr<taraxa::account_state::State> getState(
+      NodePtr const&,  //
+      BlockNumber const&);
+  static Json::Value getBlockJson(NodePtr const&,
+                                  StateSnapshot const&,  //
+                                  bool include_trx);
 };
 
 }  // namespace rpc

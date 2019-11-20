@@ -23,7 +23,7 @@ along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
 namespace dev {
 class WindowsPipeServer : public IpcServerBase<HANDLE> {
  public:
-  WindowsPipeServer(std::string const& _appId);
+  WindowsPipeServer(std::string const& _path);
 
  protected:
   void Listen() override;

@@ -27,6 +27,8 @@
 #include <atomic>
 #include <set>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 // Make sure boost/asio.hpp is included before windows.h.
@@ -248,54 +250,39 @@ class Node {
   std::atomic<PeerType> peerType{PeerType::Optional};
 };
 
-class DeadlineOps {
-  // Boost deadline timer wrapper which provides thread-safety
-  class DeadlineOp {
-   public:
-    DeadlineOp(ba::io_service& _io, unsigned _msInFuture,
-               std::function<void(boost::system::error_code const&)> const& _f)
-        : m_timer(new ba::deadline_timer(_io)) {
-      m_timer->expires_from_now(boost::posix_time::milliseconds(_msInFuture));
-      m_timer->async_wait(_f);
-    }
-    ~DeadlineOp() {
-      if (m_timer) m_timer->cancel();
-    }
-
-    DeadlineOp(DeadlineOp&& _s) : m_timer(_s.m_timer.release()) {}
-    DeadlineOp& operator=(DeadlineOp&& _s) {
-      assert(&_s != this);
-
-      m_timer.reset(_s.m_timer.release());
-      return *this;
-    }
-
-    bool expired() {
-      Guard l(x_timer);
-      return m_timer->expires_from_now().total_nanoseconds() <= 0;
-    }
-    void wait() {
-      Guard l(x_timer);
-      m_timer->wait();
-    }
-
-   private:
-    std::unique_ptr<ba::deadline_timer> m_timer;
-    Mutex x_timer;
-  };
+class DeadlineOps : public std::enable_shared_from_this<DeadlineOps> {
+  DeadlineOps(ba::io_service& _io) : m_io(_io), m_stopped(false) {}
 
  public:
-  DeadlineOps(ba::io_service& _io, unsigned _reapIntervalMs = 100)
-      : m_io(_io), m_reapIntervalMs(_reapIntervalMs), m_stopped(false) {
-    reap();
+  template <typename... Arg>
+  static auto make_shared(Arg&&... args) {
+    return std::shared_ptr<DeadlineOps>(
+        new DeadlineOps(std::forward<Arg>(args)...));
   }
+
   ~DeadlineOps() { stop(); }
 
   void schedule(
       unsigned _msInFuture,
       std::function<void(boost::system::error_code const&)> const& _f) {
     if (m_stopped) return;
-    DEV_GUARDED(x_timers) m_timers.emplace_back(m_io, _msInFuture, _f);
+    auto timer = std::make_shared<ba::deadline_timer>(m_io);
+    timer->expires_from_now(boost::posix_time::milliseconds(_msInFuture));
+    DEV_GUARDED(x_timers) { m_timers.insert(timer); }
+    timer->async_wait([_f, weak_this = weak_from_this(),
+                       timer_wptr = decltype(timer)::weak_type(timer)]  //
+                      (auto const& err_code) {
+                        std::shared_ptr<void> __finally__(nullptr, [&](...) {
+                          auto this_ = weak_this.lock();
+                          auto timer_ptr = timer_wptr.lock();
+                          if (this_ && timer_ptr) {
+                            DEV_GUARDED(this_->x_timers) {
+                              this_->m_timers.erase(timer_ptr);
+                            }
+                          }
+                        });
+                        _f(err_code);
+                      });
   }
 
   void stop() {
@@ -305,14 +292,9 @@ class DeadlineOps {
 
   bool isStopped() const { return m_stopped; }
 
- protected:
-  void reap();
-
  private:
   ba::io_service& m_io;
-  unsigned m_reapIntervalMs;
-
-  std::vector<DeadlineOp> m_timers;
+  std::unordered_set<std::shared_ptr<ba::deadline_timer>> m_timers;
   Mutex x_timers;
 
   std::atomic<bool> m_stopped;

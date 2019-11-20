@@ -116,17 +116,21 @@ class Host : public Worker {
   /// Start server, listening for connections on the given port.
   Host(std::string const& _clientVersion,
        NetworkConfig const& _n = NetworkConfig{},
-       bytesConstRef _restoreNetwork = bytesConstRef());
+       bytesConstRef _restoreNetwork = bytesConstRef(), bool encrypt = true,
+       uint16_t ideal_peers = 11, uint16_t max_peers = 77);
 
   /// Alternative constructor that allows providing the node key directly
   /// without restoring the network.
   Host(std::string const& _clientVersion, KeyPair const& _alias,
-       NetworkConfig const& _n = NetworkConfig{});
+       NetworkConfig const& _n = NetworkConfig{}, bool encrypt = true,
+       uint16_t ideal_peers = 11, uint16_t max_peers = 77);
 
   /// Will block on network process events.
   virtual ~Host();
 
   int getNodeCount() { return m_nodeTable->nodes().size(); }
+
+  std::list<NodeEntry> getNodes() { return m_nodeTable->snapshot(); }
 
   /// Default hosts for current version of client.
   static std::unordered_map<Public, std::string> pocHosts();
@@ -158,6 +162,14 @@ class Host : public Worker {
   /// successful and table has capacity.
   void addNode(NodeID const& _node, NodeIPEndpoint const& _endpoint);
 
+  /// Add boot node
+  void addBootNode(NodeID const& _node, NodeIPEndpoint const& _endpoint) {
+    m_bootNodes.push_back(std::make_pair(_node, _endpoint));
+  }
+
+  // Refresh boot nodes if no other nodes found
+  void checkNodes();
+
   /// Create Peer and attempt keeping peer connected.
   void requirePeer(NodeID const& _node, NodeIPEndpoint const& _endpoint);
 
@@ -176,8 +188,8 @@ class Host : public Worker {
   /// Set ideal number of peers.
   void setIdealPeerCount(unsigned _n) { m_idealPeerCount = _n; }
 
-  /// Set multipier for max accepted connections.
-  void setPeerStretch(unsigned _n) { m_stretchPeers = _n; }
+  /// Set max accepted connections.
+  void setPeerMax(unsigned _n) { m_maxPeerCount = _n; }
 
   /// Get peer information.
   PeerSessionInfos peerSessionInfo() const;
@@ -210,7 +222,7 @@ class Host : public Worker {
   NetworkConfig const& networkConfig() const { return m_netConfig; }
 
   /// Start network. @threadsafe
-  void start();
+  void start(bool bootNode = false);
 
   /// Stop network. @threadsafe
   /// Resets acceptor, socket, and IO service. Called by deallocator.
@@ -282,8 +294,7 @@ class Host : public Worker {
   enum PeerSlotType { Egress, Ingress };
 
   unsigned peerSlots(PeerSlotType _type) {
-    return _type == Egress ? m_idealPeerCount
-                           : m_idealPeerCount * m_stretchPeers;
+    return _type == Egress ? m_idealPeerCount : m_maxPeerCount;
   }
 
   bool havePeerSession(NodeID const& _id) { return !!peerSession(_id); }
@@ -399,26 +410,29 @@ class Host : public Worker {
   Mutex x_connecting;  ///< Mutex for m_connecting.
 
   unsigned m_idealPeerCount =
-      11;  ///< Ideal number of peers to be connected to.
-  unsigned m_stretchPeers =
-      7;  ///< Accepted connection multiplier (max peers = ideal*stretch).
+      11;                        ///< Ideal number of peers to be connected to.
+  unsigned m_maxPeerCount = 77;  ///< Max peers to be connected to.
 
   /// Each of the capabilities we support.
   std::map<CapDesc, std::shared_ptr<CapabilityFace>> m_capabilities;
 
   /// Deadline timers used for isolated network events. GC'd by run.
-  std::list<std::unique_ptr<io::deadline_timer>> m_timers;
+  std::shared_ptr<DeadlineOps> m_timers;
   Mutex x_timers;
 
   std::chrono::steady_clock::time_point
       m_lastPing;  ///< Time we sent the last ping to all peers.
   bool m_accepting = false;
+  bool m_BootNode = false;
+  bool m_encrypt = true;
 
   ReputationManager m_repMan;
 
   std::shared_ptr<CapabilityHostFace> m_capabilityHost;
 
   Logger m_logger{createLogger(VerbosityDebug, "net")};
+
+  std::vector<std::pair<NodeID, NodeIPEndpoint>> m_bootNodes;
 };
 
 }  // namespace p2p

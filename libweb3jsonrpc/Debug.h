@@ -1,22 +1,14 @@
 #pragma once
-#include <libethereum/Executive.h>
+#include "../full_node.hpp"
 #include "DebugFace.h"
 
 namespace dev {
 
-namespace eth {
-class Client;
-
-StandardTrace::DebugOptions debugOptions(Json::Value const& _json);
-}  // namespace eth
-
 namespace rpc {
-
-class SessionManager;
 
 class Debug : public DebugFace {
  public:
-  explicit Debug(eth::Client const& _eth);
+  explicit Debug(std::shared_ptr<taraxa::FullNode>& _full_node);
 
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"debug", "1.0"}};
@@ -43,14 +35,7 @@ class Debug : public DebugFace {
                                        Json::Value const& _json);
 
  private:
-  eth::Client const& m_eth;
-  h256 blockHash(std::string const& _blockHashOrNumber) const;
-  eth::State stateAt(std::string const& _blockHashOrNumber, int _txIndex) const;
-  Json::Value traceTransaction(dev::eth::Executive& _e,
-                               dev::eth::Transaction const& _t,
-                               Json::Value const& _json);
-  Json::Value traceBlock(dev::eth::Block const& _block,
-                         Json::Value const& _json);
+  std::weak_ptr<taraxa::FullNode> full_node_;
 };
 
 }  // namespace rpc

@@ -1,36 +1,15 @@
 /*
-    This file is part of cpp-ethereum.
-
-    cpp-ethereum is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    cpp-ethereum is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
+   This file is a refactored part of cpp-ethereum State.
+   State provides API to read and write the structure under State i.e. Account
+   and Storage State does *NOT* execute any logic from state to state.
 */
-/** @file State.cpp
- * @author Gav Wood <i@gavwood.com>
- * @date 2014
- */
 
 #include "State.h"
-
 #include <libdevcore/Assertions.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/TrieHash.h>
-#include <libevm/VMFactory.h>
 #include <boost/filesystem.hpp>
 #include <boost/timer.hpp>
-#include "Block.h"
-#include "BlockChain.h"
-#include "ExtVM.h"
-#include "TransactionQueue.h"
 
 using namespace std;
 using namespace dev;
@@ -59,14 +38,15 @@ OverlayDB State::openDB(fs::path const& _basePath, h256 const& _genesisHash,
                         WithExisting _we) {
   fs::path path = _basePath.empty() ? db::databasePath() : _basePath;
 
+  path /= fs::path(toHex(_genesisHash.ref().cropped(
+              0, 4))) /  // fs::path(toString(c_databaseVersion));
+          fs::path(toString(9 + (23 << 9)));  // copied from libethcore/Common.c
   if (db::isDiskDatabase() && _we == WithExisting::Kill) {
     clog(VerbosityDebug, "statedb")
         << "Killing state database (WithExisting::Kill).";
     fs::remove_all(path / fs::path("state"));
   }
 
-  path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4))) /
-          fs::path(toString(c_databaseVersion));
   if (db::isDiskDatabase()) {
     fs::create_directories(path);
     DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
@@ -277,7 +257,7 @@ bool State::addressHasCode(Address const& _id) const {
     return false;
 }
 
-u256 State::balance(Address const& _id) const {
+taraxa::val_t State::balance(Address const& _id) const {
   if (auto a = account(_id))
     return a->balance();
   else
@@ -304,7 +284,7 @@ void State::setNonce(Address const& _addr, u256 const& _newNonce) {
     createAccount(_addr, Account(_newNonce, 0));
 }
 
-void State::addBalance(Address const& _id, u256 const& _amount) {
+void State::addBalance(Address const& _id, taraxa::val_t const& _amount) {
   if (Account* a = account(_id)) {
     // Log empty account being touched. Empty touched accounts are cleared
     // after the transaction, so this event must be also reverted.
@@ -325,7 +305,7 @@ void State::addBalance(Address const& _id, u256 const& _amount) {
   if (_amount) m_changeLog.emplace_back(Change::Balance, _id, _amount);
 }
 
-void State::subBalance(Address const& _addr, u256 const& _value) {
+void State::subBalance(Address const& _addr, taraxa::val_t const& _value) {
   if (_value == 0) return;
 
   Account* a = account(_addr);
@@ -337,9 +317,9 @@ void State::subBalance(Address const& _addr, u256 const& _value) {
   addBalance(_addr, 0 - _value);
 }
 
-void State::setBalance(Address const& _addr, u256 const& _value) {
+void State::setBalance(Address const& _addr, taraxa::val_t const& _value) {
   Account* a = account(_addr);
-  u256 original = a ? a->balance() : 0;
+  taraxa::val_t original = a ? a->balance() : 0;
 
   // Fall back to addBalance().
   addBalance(_addr, _value - original);
@@ -503,7 +483,7 @@ void State::rollback(size_t _savepoint) {
         account.setStorageRoot(change.value);
         break;
       case Change::Balance:
-        account.addBalance(0 - change.value);
+        account.addBalance(0 - (taraxa::val_t)change.value);
         break;
       case Change::Nonce:
         account.setNonce(change.value);
@@ -520,75 +500,6 @@ void State::rollback(size_t _savepoint) {
         break;
     }
     m_changeLog.pop_back();
-  }
-}
-
-std::pair<ExecutionResult, TransactionReceipt> State::execute(
-    EnvInfo const& _envInfo, SealEngineFace const& _sealEngine,
-    Transaction const& _t, Permanence _p, OnOpFunc const& _onOp) {
-  // Create and initialize the executive. This will throw fairly cheaply and
-  // quickly if the transaction is bad in any way.
-  Executive e(*this, _envInfo, _sealEngine);
-  ExecutionResult res;
-  e.setResultRecipient(res);
-
-  auto onOp = _onOp;
-#if ETH_VMTRACE
-  if (!onOp) onOp = e.simpleTrace();
-#endif
-  u256 const startGasUsed = _envInfo.gasUsed();
-  bool const statusCode = executeTransaction(e, _t, onOp);
-
-  bool removeEmptyAccounts = false;
-  switch (_p) {
-    case Permanence::Reverted:
-      m_cache.clear();
-      break;
-    case Permanence::Committed:
-      removeEmptyAccounts =
-          _envInfo.number() >= _sealEngine.chainParams().EIP158ForkBlock;
-      commit(removeEmptyAccounts ? State::CommitBehaviour::RemoveEmptyAccounts
-                                 : State::CommitBehaviour::KeepEmptyAccounts);
-      break;
-    case Permanence::Uncommitted:
-      break;
-  }
-
-  TransactionReceipt const receipt =
-      _envInfo.number() >= _sealEngine.chainParams().byzantiumForkBlock
-          ? TransactionReceipt(statusCode, startGasUsed + e.gasUsed(), e.logs())
-          : TransactionReceipt(rootHash(), startGasUsed + e.gasUsed(),
-                               e.logs());
-  return make_pair(res, receipt);
-}
-
-void State::executeBlockTransactions(Block const& _block, unsigned _txCount,
-                                     LastBlockHashesFace const& _lastHashes,
-                                     SealEngineFace const& _sealEngine) {
-  u256 gasUsed = 0;
-  for (unsigned i = 0; i < _txCount; ++i) {
-    EnvInfo envInfo(_block.info(), _lastHashes, gasUsed);
-
-    Executive e(*this, envInfo, _sealEngine);
-    executeTransaction(e, _block.pending()[i], OnOpFunc());
-
-    gasUsed += e.gasUsed();
-  }
-}
-
-/// @returns true when normally halted; false when exceptionally halted; throws
-/// when internal VM exception occurred.
-bool State::executeTransaction(Executive& _e, Transaction const& _t,
-                               OnOpFunc const& _onOp) {
-  size_t const savept = savepoint();
-  try {
-    _e.initialize(_t);
-
-    if (!_e.execute()) _e.go(_onOp);
-    return _e.finalize();
-  } catch (Exception const&) {
-    rollback(savept);
-    throw;
   }
 }
 
@@ -672,21 +583,6 @@ std::ostream& dev::eth::operator<<(std::ostream& _out, State const& _s) {
     }
   }
   return _out;
-}
-
-State& dev::eth::createIntermediateState(State& o_s, Block const& _block,
-                                         unsigned _txIndex,
-                                         BlockChain const& _bc) {
-  o_s = _block.state();
-  u256 const rootHash = _block.stateRootBeforeTx(_txIndex);
-  if (rootHash)
-    o_s.setRoot(rootHash);
-  else {
-    o_s.setRoot(_block.stateRootBeforeTx(0));
-    o_s.executeBlockTransactions(_block, _txIndex, _bc.lastBlockHashes(),
-                                 *_bc.sealEngine());
-  }
-  return o_s;
 }
 
 template <class DB>

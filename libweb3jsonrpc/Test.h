@@ -1,26 +1,5 @@
-/*
-        This file is part of cpp-ethereum.
-
-        cpp-ethereum is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        cpp-ethereum is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/** @file Test.h
- * @authors:
- *   Dimitry Khokhlov <dimitry@ethdev.com>
- * @date 2016
- */
-
 #pragma once
+#include "../full_node.hpp"
 #include "TestFace.h"
 
 namespace dev {
@@ -33,20 +12,43 @@ namespace rpc {
 
 class Test : public TestFace {
  public:
-  Test(eth::Client& _eth);
+  Test(std::shared_ptr<taraxa::FullNode>& _full_node);
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"test", "1.0"}};
   }
-  virtual std::string test_getLogHash(std::string const& _param1) override;
-  virtual std::string test_importRawBlock(
-      std::string const& _blockRLP) override;
-  virtual bool test_setChainParams(const Json::Value& _param1) override;
-  virtual bool test_mineBlocks(int _number) override;
-  virtual bool test_modifyTimestamp(int _timestamp) override;
-  virtual bool test_rewindToBlock(int _number) override;
+
+  virtual Json::Value insert_dag_block(const Json::Value& param1) override;
+  virtual Json::Value get_dag_block(const Json::Value& param1) override;
+  virtual Json::Value get_dag_block_epfriend(
+      const Json::Value& param1) override;
+  virtual Json::Value send_coin_transaction(const Json::Value& param1) override;
+  virtual Json::Value create_test_coin_transactions(
+      const Json::Value& param1) override;
+  virtual Json::Value get_num_proposed_blocks() override;
+  virtual Json::Value send_pbft_schedule_block(
+      const Json::Value& param1) override;
+  virtual Json::Value get_account_address() override;
+  virtual Json::Value get_account_balance(const Json::Value& param1) override;
+  virtual Json::Value get_peer_count() override;
+  virtual Json::Value get_node_count() override;
+  virtual Json::Value get_all_peers() override;
+  virtual Json::Value get_all_nodes() override;
+  virtual Json::Value should_speak(const Json::Value& param1) override;
+  virtual Json::Value place_vote(const Json::Value& param1) override;
+  virtual Json::Value get_votes(const Json::Value& param1) override;
+  virtual Json::Value draw_graph(const Json::Value& param1) override;
+  virtual Json::Value get_transaction_count(const Json::Value& param1) override;
+  virtual Json::Value get_executed_trx_count(
+      const Json::Value& param1) override;
+  virtual Json::Value get_executed_blk_count(
+      const Json::Value& param1) override;
+  virtual Json::Value get_dag_size(const Json::Value& param1) override;
+  virtual Json::Value get_pbft_chain_size() override;
+  virtual Json::Value get_pbft_chain_blocks(const Json::Value& param1) override;
 
  private:
-  eth::Client& m_eth;
+  std::weak_ptr<taraxa::FullNode> full_node_;
+  std::future<void> trx_creater_;
 };
 
 }  // namespace rpc

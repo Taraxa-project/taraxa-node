@@ -22,6 +22,7 @@
  */
 
 #pragma once
+#include "../full_node.hpp"
 #include "NetFace.h"
 
 namespace dev {
@@ -32,7 +33,7 @@ namespace rpc {
 
 class Net : public NetFace {
  public:
-  Net(NetworkFace& _network);
+  Net(std::shared_ptr<taraxa::FullNode>& _full_node);
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"net", "1.0"}};
   }
@@ -41,7 +42,7 @@ class Net : public NetFace {
   virtual bool net_listening() override;
 
  private:
-  NetworkFace& m_network;
+  std::weak_ptr<taraxa::FullNode> full_node_;
 };
 
 }  // namespace rpc

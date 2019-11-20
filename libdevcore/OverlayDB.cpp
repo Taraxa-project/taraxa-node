@@ -117,6 +117,13 @@ bool OverlayDB::exists(h256 const& _h) const {
   return m_db && m_db->exists(toSlice(_h));
 }
 
+bool OverlayDB::existsAux(h256 const& _h) const {
+  if (StateCacheDB::existsAux(_h)) return true;
+  bytes b = _h.asBytes();
+  b.push_back(255);  // for aux
+  return m_db && m_db->exists(toSlice(b));
+}
+
 void OverlayDB::kill(h256 const& _h) {
 #if ETH_PARANOIA || 1
   if (!StateCacheDB::kill(_h)) {
