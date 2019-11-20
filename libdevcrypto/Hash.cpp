@@ -1,7 +1,23 @@
-// Aleth: Ethereum C++ client, tools and libraries.
-// Copyright 2015-2019 Aleth Authors.
-// Licensed under the GNU General Public License, Version 3.
+/*
+	This file is part of cpp-ethereum.
 
+	cpp-ethereum is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	cpp-ethereum is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with cpp-ethereum.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/** @file Hash.cpp
+ * @author Gav Wood <i@gavwood.com>
+ * @date 2014
+ */
 
 #include "Hash.h"
 #include <secp256k1_sha256.h>
@@ -329,7 +345,7 @@ void MDcompress(uint32_t *MDbuf, uint32_t *X)
 	return;
 }
 
-void MDfinish(uint32_t *MDbuf, ::byte const *strptr, uint32_t lswlen, uint32_t mswlen)
+void MDfinish(uint32_t *MDbuf, byte const *strptr, uint32_t lswlen, uint32_t mswlen)
 {
 	unsigned int i;                                 /* counter       */
 	uint32_t        X[16];                             /* message words */
@@ -389,7 +405,7 @@ h160 ripemd160(bytesConstRef _input)
 
 	// initialize
 	rmd160::MDinit(buffer);
-	::byte const* message = _input.data();
+	byte const* message = _input.data();
 	uint32_t remaining = _input.size();	// # of bytes not yet processed
 
 	// process message in 16x 4-byte chunks
