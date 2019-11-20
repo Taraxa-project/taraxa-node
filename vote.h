@@ -50,15 +50,11 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using vrf_output_t = vrf_wrapper::vrf_output_t;
   using bytes = dev::bytes;
   VrfPbftSortition() = default;
-  // VrfPbftSortition(vrf_sk_t const& sk, blk_hash_t const& blk,
-  //                  PbftVoteTypes type, uint64_t round, size_t step)
-  //     : VrfPbftSortition(sk, VrfPbftMsg(blk, type, round, step)),
-  //       pbft_msg(blk, type, round, step) {}
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
       : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg) {}
   VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
-
+  bool verify() { return VrfSortitionBase::verify(pbft_msg); }
   bool operator==(VrfPbftSortition const& other) const {
     return pk == other.pk && pbft_msg == other.pbft_msg &&
            proof == other.proof && output == other.output;

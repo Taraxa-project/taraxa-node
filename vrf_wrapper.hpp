@@ -30,16 +30,21 @@ struct VrfMsgFace {
 
 struct VrfSortitionBase {
   VrfSortitionBase() = default;
-  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg)
-      : pk(vrf_wrapper::getVrfPublicKey(sk)) {
+  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg) {
+    pk = vrf_wrapper::getVrfPublicKey(sk);
     const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
     proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();
     output = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
   }
-  bool verify(VrfMsgFace const &msg) const {
+  bool verify(VrfMsgFace const &msg) {
+    if (!isValidVrfPublicKey(pk)) return false;
     const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
-    auto res = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
-    return res == output;
+    auto res = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes);
+    if (res != std::nullopt) {
+      output = res.value();
+      return true;
+    }
+    return false;
   }
   bool operator==(VrfSortitionBase const &other) const {
     return pk == other.pk && proof == other.proof && output == other.output;

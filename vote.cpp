@@ -20,18 +20,17 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   pbft_msg.round = rlp[3].toInt<uint64_t>();
   pbft_msg.step = rlp[4].toInt<size_t>();
   proof = rlp[5].toHash<vrf_proof_t>();
-  output = rlp[6].toHash<vrf_output_t>();
+  verify();
 }
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
-  s.appendList(7);
+  s.appendList(6);
   s << pk;
   s << pbft_msg.blk;
   s << pbft_msg.type;
   s << pbft_msg.round;
   s << pbft_msg.step;
   s << proof;
-  s << output;
   return s.out();
 }
 
@@ -100,7 +99,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     return false;
   }
 
-  if (!vote.getVrfSortition().verify(pbft_msg)) {
+  if (!vote.getVrfSortition().verify()) {
     LOG(log_war_) << "Invalid vrf proof, vote hash " << vote.getHash();
     return false;
   }
