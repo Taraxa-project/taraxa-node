@@ -69,7 +69,7 @@ void Worker::startWorking() {
           unique_lock<mutex> l(x_work);
           ex = m_state.exchange(WorkerState::Stopped);
           //					cnote << "State: Stopped: Thread
-          //was"
+          // was"
           //<< (unsigned)ex;
           if (ex == WorkerState::Killing || ex == WorkerState::Starting)
             m_state.exchange(ex);

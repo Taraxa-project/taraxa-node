@@ -1,5 +1,7 @@
-#include "SessionManager.h"
+// clang-format off
 #include <libdevcore/Base64.h>
+#include "SessionManager.h"
+// clang-format on
 
 using namespace std;
 using namespace dev;

@@ -96,7 +96,7 @@ bool KeyManager::load(string const& _pass) {
           m_keyInfo[addr] = KeyInfo(h256(i[2]), string(i[3]),
                                     i.itemCount() > 4 ? string(i[4]) : "");
         //				cdebug << toString(addr) <<
-        //toString(uuid)
+        // toString(uuid)
         //<< toString((h256)i[2]) << (string)i[3];
       }
       if (saveRequired) m_store.save();
