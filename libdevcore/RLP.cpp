@@ -201,7 +201,7 @@ void RLPStream::noteAppended(size_t _itemCount) {
       auto brs = bytesRequired(s);
       unsigned encodeSize = s < c_rlpListImmLenCount ? 1 : (1 + brs);
       //			cdebug << "s: " << s << ", p: " << p << ",
-      //m_out.size(): " << m_out.size() << ", encodeSize: " << encodeSize << "
+      // m_out.size(): " << m_out.size() << ", encodeSize: " << encodeSize << "
       //(br: " << brs << ")";
       auto os = m_out.size();
       m_out.resize(os + encodeSize);

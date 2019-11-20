@@ -1133,7 +1133,7 @@ bytes GenericTrieDB<DB>::graft(RLP const& _orig) {
   return rlpList(hexPrefixEncode(keyOf(_orig), keyOf(n), isLeaf(n)), n[1]);
   //	auto ret =
   //	std::cout << keyOf(_orig) << " ++ " << keyOf(n) << " == " <<
-  //keyOf(RLP(ret)) << std::endl; 	return ret;
+  // keyOf(RLP(ret)) << std::endl; 	return ret;
 }
 
 template <class DB>

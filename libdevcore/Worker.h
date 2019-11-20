@@ -81,7 +81,7 @@ class Worker {
 
   /// Blocks caller into worker thread has finished.
   //	void join() const { Guard l(x_work); try { if (m_work) m_work->join(); }
-  //catch (...) {} }
+  // catch (...) {} }
 
   /// Stop and never start again.
   /// This has to be called in the destructor of any most derived class.

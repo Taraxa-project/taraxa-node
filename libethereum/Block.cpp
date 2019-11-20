@@ -320,8 +320,9 @@ pair<TransactionReceipts, bool> Block::sync(BlockChain const& _bc,
             execute(_bc.lastBlockHashes(), t);
             ret.first.push_back(m_receipts.back());
             ++goodTxs;
-            //						cnote << "TX took:" << t.elapsed() *
-            //1000;
+            //						cnote << "TX took:" <<
+            // t.elapsed()
+            //* 1000;
           } else if (t.gasPrice() < _gp.ask(*this) * 9 / 10) {
             LOG(m_logger)
                 << t.sha3()
@@ -451,7 +452,7 @@ u256 Block::enact(VerifiedBlockRef const& _block, BlockChain const& _bc) {
   m_currentBlock = _block.info;
 
   //	cnote << "playback begins:" << m_currentBlock.hash() << "(without: " <<
-  //m_currentBlock.hash(WithoutSeal) << ")"; 	cnote << m_state;
+  // m_currentBlock.hash(WithoutSeal) << ")"; 	cnote << m_state;
 
   RLP rlp(_block.block);
 
@@ -463,11 +464,12 @@ u256 Block::enact(VerifiedBlockRef const& _block, BlockChain const& _bc) {
   for (Transaction const& tr : _block.transactions) {
     try {
       //				cnote << "Enacting transaction: " <<
-      //tr.nonce() << tr.from() << state().transactionsFrom(tr.from()) <<
-      //tr.value();
+      // tr.nonce() << tr.from() << state().transactionsFrom(tr.from()) <<
+      // tr.value();
       execute(_bc.lastBlockHashes(), tr);
       //				cnote << "Now: " << tr.from() <<
-      //state().transactionsFrom(tr.from()); 				cnote << m_state;
+      // state().transactionsFrom(tr.from()); 				cnote <<
+      // m_state;
     } catch (Exception& ex) {
       ex << errinfo_transactionIndex(i);
       throw;
@@ -488,7 +490,7 @@ u256 Block::enact(VerifiedBlockRef const& _block, BlockChain const& _bc) {
     ex << Hash256RequirementError(m_currentBlock.receiptsRoot(), receiptsRoot);
     ex << errinfo_receipts(receipts);
     //		ex << errinfo_vmtrace(vmTrace(_block.block, _bc,
-    //ImportRequirements::None));
+    // ImportRequirements::None));
     BOOST_THROW_EXCEPTION(ex);
   }
 
@@ -549,7 +551,7 @@ u256 Block::enact(VerifiedBlockRef const& _block, BlockChain const& _bc) {
       // 6
       // 7
       //												(8
-      //Invalid)
+      // Invalid)
       bigint depth = (bigint)m_currentBlock.number() - (bigint)uncle.number();
       if (depth > 6) {
         UncleTooOld ex;
@@ -821,7 +823,7 @@ bool Block::sealBlock(bytesConstRef _header) {
   ret.swapOut(m_currentBytes);
   m_currentBlock = BlockHeader(_header, HeaderData);
   //	cnote << "Mined " << m_currentBlock.hash() << "(parent: " <<
-  //m_currentBlock.parentHash() << ")";
+  // m_currentBlock.parentHash() << ")";
   // TODO: move into SealEngine
 
   m_state = m_precommit;

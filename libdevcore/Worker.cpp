@@ -47,7 +47,8 @@ void Worker::startWorking() {
           unique_lock<mutex> l(x_work);
           m_state = WorkerState::Started;
         }
-        //				cnote << "Trying to set Started: Thread was"
+        //				cnote << "Trying to set Started: Thread
+        // was"
         //<< (unsigned)ex << "; " << ok;
         m_state_notifier.notify_all();
 
@@ -61,14 +62,15 @@ void Worker::startWorking() {
 
         //				ex = WorkerState::Stopping;
         //				m_state.compare_exchange_strong(ex,
-        //WorkerState::Stopped);
+        // WorkerState::Stopped);
 
         {
           // the condition variable-related lock
           unique_lock<mutex> l(x_work);
           ex = m_state.exchange(WorkerState::Stopped);
-          //					cnote << "State: Stopped: Thread was" <<
-          //(unsigned)ex;
+          //					cnote << "State: Stopped: Thread
+          // was"
+          //<< (unsigned)ex;
           if (ex == WorkerState::Killing || ex == WorkerState::Starting)
             m_state.exchange(ex);
         }
