@@ -21,8 +21,6 @@
  */
 
 #include "JsonHelperTaraxa.h"
-#include <libethcore/SealEngine.h>
-//#include <libethereum/Client.h>
 #include <jsonrpccpp/common/exception.h>
 #include <libethcore/CommonJS.h>
 #include <libwebthree/WebThree.h>

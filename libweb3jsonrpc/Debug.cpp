@@ -1,9 +1,5 @@
 #include "Debug.h"
-#include <jsonrpccpp/common/exception.h>
-#include <libdevcore/CommonIO.h>
-#include <libdevcore/CommonJS.h>
-#include <libethcore/CommonJS.h>
-#include "JsonHelperTaraxa.h"
+
 using namespace std;
 using namespace dev;
 using namespace dev::rpc;

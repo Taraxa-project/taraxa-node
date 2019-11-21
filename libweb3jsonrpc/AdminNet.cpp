@@ -1,10 +1,4 @@
 #include "AdminNet.h"
-#include <jsonrpccpp/common/exception.h>
-#include <libdevcore/CommonJS.h>
-#include <libethcore/Common.h>
-#include <libwebthree/WebThree.h>
-#include "JsonHelperTaraxa.h"
-#include "SessionManager.h"
 
 using namespace std;
 using namespace dev;

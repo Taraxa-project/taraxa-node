@@ -1,12 +1,5 @@
 #include "AdminTaraxa.h"
-#include <jsonrpccpp/common/exception.h>
-#include <libdevcore/CommonJS.h>
-#include "JsonHelperTaraxa.h"
-#include "SessionManager.h"
-//#include <libethashseal/Ethash.h>
-#include <libethcore/KeyManager.h>
-//#include <libethereum/Client.h>
-//#include <libethereum/Executive.h>
+
 using namespace std;
 using namespace dev;
 using namespace dev::rpc;

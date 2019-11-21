@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_TOP_HPP
 #define TARAXA_NODE_TOP_HPP
 
-#include <libweb3jsonrpc/IpcServer.h>
 #include <libweb3jsonrpc/ModularServer.h>
 #include <libweb3jsonrpc/Test.h>
 #include <atomic>

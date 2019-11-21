@@ -1,9 +1,3 @@
-#include <jsonrpccpp/common/exception.h>
-#include <libethcore/CommonJS.h>
-#include <libethcore/KeyManager.h>
-#include <libweb3jsonrpc/AccountHolder.h>
-#include <libweb3jsonrpc/JsonHelperTaraxa.h>
-
 #include "Personal.h"
 
 using namespace std;

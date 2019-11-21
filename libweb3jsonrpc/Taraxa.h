@@ -7,7 +7,6 @@
 #include <memory>
 #include <optional>
 #include "../full_node.hpp"
-#include "SessionManager.h"
 #include "TaraxaFace.h"
 
 namespace dev {

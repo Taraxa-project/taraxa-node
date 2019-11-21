@@ -52,9 +52,7 @@ ALETH_OBJ := \
 	${OBJECTDIR}/libp2p/UDP.o \
 	${OBJECTDIR}/libp2p/UPnP.o \
 	${OBJECTDIR}/libweb3jsonrpc/AdminNet.o \
-	${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o \
 	${OBJECTDIR}/libweb3jsonrpc/Net.o \
-	${OBJECTDIR}/libweb3jsonrpc/SessionManager.o \
 	${OBJECTDIR}/libweb3jsonrpc/JsonHelperTaraxa.o \
 	${OBJECTDIR}/libweb3jsonrpc/Test.o \
 	${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o \
@@ -382,12 +380,6 @@ ${OBJECTDIR}/libweb3jsonrpc/Taraxa.o: libweb3jsonrpc/Taraxa.cpp
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Taraxa.o libweb3jsonrpc/Taraxa.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o: libweb3jsonrpc/IpcServerBase.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
-	${RM} "$@.d"
-	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/IpcServerBase.o libweb3jsonrpc/IpcServerBase.cpp $(CPPFLAGS)
-
 ${OBJECTDIR}/libweb3jsonrpc/JsonHelperTaraxa.o: libweb3jsonrpc/JsonHelperTaraxa.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
@@ -405,12 +397,6 @@ ${OBJECTDIR}/libweb3jsonrpc/Personal.o: libweb3jsonrpc/Personal.cpp
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/Personal.o libweb3jsonrpc/Personal.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/libweb3jsonrpc/SessionManager.o: libweb3jsonrpc/SessionManager.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
-	${RM} "$@.d"
-	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/SessionManager.o libweb3jsonrpc/SessionManager.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libweb3jsonrpc/Test.o: libweb3jsonrpc/Test.cpp
 	${MKDIR} -p ${OBJECTDIR}
