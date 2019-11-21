@@ -346,12 +346,6 @@ ${OBJECTDIR}/libp2p/UPnP.o: libp2p/UPnP.cpp
 	${RM} "$@.d"
 	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libp2p/UPnP.o libp2p/UPnP.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o: libweb3jsonrpc/AccountHolder.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
-	${RM} "$@.d"
-	${CXX} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/libweb3jsonrpc/AccountHolder.o libweb3jsonrpc/AccountHolder.cpp $(CPPFLAGS)
-
 ${OBJECTDIR}/libweb3jsonrpc/AdminTaraxa.o: libweb3jsonrpc/AdminTaraxa.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${MKDIR} -p ${OBJECTDIR}/libweb3jsonrpc
