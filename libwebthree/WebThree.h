@@ -191,10 +191,6 @@ class WebThreeDirect : public NetworkFace {
 
   p2p::NodeInfo nodeInfo() const override { return m_net.nodeInfo(); }
 
-  u256 networkId() const override {
-    return u256(); /*m_ethereum.get()->networkId();*/
-  }
-
   std::string enode() const override { return m_net.enode(); }
 
   /// Start the network subsystem.
