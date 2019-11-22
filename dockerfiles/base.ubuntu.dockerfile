@@ -32,13 +32,7 @@ RUN cd /tmp/boost_${BOOST_VERSION}; ls -al ; ./b2 install
 RUN cd /tmp/boost_${BOOST_VERSION} \
     && ln -s /usr/local/lib/libboost_thread.so /usr/local/lib/libboost_thread-mt.so
 
-FROM boost-layer as gtest-layer
-ENV LD_LIBRARY_PATH /usr/local/lib/
-RUN git clone https://github.com/google/googletest /tmp/gtest \
-  && cd /tmp/gtest && mkdir build && cd build && cmake .. \
-  && make -j $(nproc) && make -j $(nproc) install
-
-FROM gtest-layer as rocksdb-layer
+FROM boost-layer as rocksdb-layer
 ARG rocksdb_version=5.18.3
 ENV ROCKSDB_VERSION="$rocksdb_version"
 RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
