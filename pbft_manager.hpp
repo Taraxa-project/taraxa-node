@@ -29,11 +29,14 @@ class FullNode;
 
 class PbftManager {
  public:
+  using ReplayProtectionService = replay_protection::ReplayProtectionService;
+
   PbftManager(std::string const &genesis);
   PbftManager(std::vector<uint> const &params, std::string const &genesis);
   ~PbftManager() { stop(); }
 
-  void setFullNode(std::shared_ptr<FullNode> node);
+  void setFullNode(std::shared_ptr<FullNode> node,
+      std::shared_ptr<ReplayProtectionService> replay_protection_service);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();
   void stop();
@@ -145,6 +148,8 @@ class PbftManager {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<TaraxaCapability> capability_;
+  std::shared_ptr<ReplayProtectionService> replay_protection_service_;
+
   // Key: account address, value: PbftSortitionAccountStatus
   std::shared_ptr<dev::db::DatabaseFace> db_sortition_accounts_;
   size_t valid_sortition_accounts_size_;

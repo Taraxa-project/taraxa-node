@@ -190,12 +190,11 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   vote_mgr_->setFullNode(getShared());
-  pbft_mgr_->setFullNode(getShared());
-  pbft_mgr_->start();
 
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.replay_protection_service_range, db_replay_protection_service_);
-
+  pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
+  pbft_mgr_->start();
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_blks_,

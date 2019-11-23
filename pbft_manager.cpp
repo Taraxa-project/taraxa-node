@@ -32,11 +32,13 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       RUN_COUNT_VOTES(params[4]),
       dag_genesis_(genesis) {}
 
-void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
+void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node,
+    shared_ptr<ReplayProtectionService> replay_protection_service) {
   node_ = full_node;
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
+  replay_protection_service_ = replay_protection_service;
 }
 
 void PbftManager::start() {
