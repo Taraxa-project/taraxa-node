@@ -10,7 +10,9 @@ CPPFLAGS := \
 	-I $(ALETH_ROOT) \
 	-I . \
 	-I submodules \
-	-I $(OPENSSL_HOME)/include \
+	-I $(GTEST_ROOT)/include \
+	-I $(OPENSSL_ROOT)/include \
+	-I $(TARAXA_VRF_ROOT)/include \
 	-I submodules/taraxa-vrf/src/libsodium/include \
 	-I submodules/taraxa-vdf/include \
 	-I submodules/rapidjson/include \
@@ -86,8 +88,10 @@ ifneq ($(DEBUG), 0)
 	OBJECTDIR := obj-d
 endif
 LDFLAGS := \
-	-Wl,-rpath $(OPENSSL_HOME)/lib \
-	-L submodules/taraxa-vrf/src/libsodium/.libs/ \
+	-Wl,-rpath $(OPENSSL_ROOT)/lib \
+	-L $(OPENSSL_ROOT)/lib \
+	-L $(GTEST_ROOT)/lib \
+	-L $(TARAXA_VRF_ROOT)/lib \
 	-L submodules/taraxa-vdf/lib \
 	-L submodules/cryptopp \
 	-L submodules/ethash/build/lib/ethash \

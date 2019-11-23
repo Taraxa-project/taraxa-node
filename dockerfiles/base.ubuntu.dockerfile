@@ -76,4 +76,4 @@ WORKDIR ${APP_PATH}
 
 COPY . .
 RUN make -f Makefile.submodules \
-    OPENSSL_HOME=${APP_LIBRARY_HOME} -j $(nproc) dependencies
+    OPENSSL_ROOT=${APP_LIBRARY_HOME} -j $(nproc) dependencies

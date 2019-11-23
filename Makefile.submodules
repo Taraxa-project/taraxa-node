@@ -16,7 +16,9 @@ _ := $(shell rm $(__SUBMODULE_UPDATE_LOG_FILE__))
 
 # ===========
 
-OPENSSL_HOME := $(CURDIR)/submodules/openssl/build
+OPENSSL_ROOT := $(CURDIR)/submodules/openssl/build
+GTEST_ROOT := $(CURDIR)/submodules/googletest/build/dist
+TARAXA_VRF_ROOT := $(CURDIR)/submodules/taraxa-vrf/build/dist
 
 SUBMODULES = $(shell scripts/submodule_list.sh)
 SUBMODULE_BUILT_INDICATOR := ok
@@ -88,20 +90,27 @@ submodules/taraxa-evm/$(SUBMODULE_BUILT_INDICATOR):
 
 submodules/openssl/$(SUBMODULE_BUILT_INDICATOR):
 	$(SUBMODULE_BUILD_INIT) \
-	mkdir -p $(OPENSSL_HOME); \
-	./config --prefix=$(OPENSSL_HOME) --openssldir=$(OPENSSL_HOME)/ssl && \
+	mkdir -p $(OPENSSL_ROOT); \
+	./config --prefix=$(OPENSSL_ROOT) --openssldir=$(OPENSSL_ROOT)/ssl && \
 	$(MAKE) && \
 	$(MAKE) install
 
 submodules/taraxa-vdf/$(SUBMODULE_BUILT_INDICATOR): \
 submodules/openssl/$(SUBMODULE_BUILT_INDICATOR)
 	$(SUBMODULE_BUILD_INIT) \
-	$(MAKE) OPENSSL_HOME=$(OPENSSL_HOME)
+	$(MAKE) OPENSSL_HOME=$(OPENSSL_ROOT)
 
 submodules/taraxa-vrf/$(SUBMODULE_BUILT_INDICATOR):
 	$(SUBMODULE_BUILD_INIT) \
 	automake; \
-	./configure && \
+	./configure --prefix=$(TARAXA_VRF_ROOT) && \
+	$(MAKE) && \
+	$(MAKE) install
+
+submodules/googletest/$(SUBMODULE_BUILT_INDICATOR):
+	$(SUBMODULE_BUILD_INIT) \
+	mkdir -p build; cd build; \
+	cmake -DCMAKE_INSTALL_PREFIX=$(GTEST_ROOT) .. && \
 	$(MAKE) && \
 	$(MAKE) install
 
