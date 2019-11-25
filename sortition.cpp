@@ -8,7 +8,7 @@
 
 #include "sortition.h"
 
-#include "libdevcore/SHA3.h"
+#include <libdevcore/SHA3.h>
 
 #include <boost/multiprecision/cpp_int.hpp>
 #include <deque>

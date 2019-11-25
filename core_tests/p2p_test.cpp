@@ -12,7 +12,7 @@
 #include <vector>
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
-#include "libp2p/Host.h"
+#include <libp2p/Host.h>
 #include "network.hpp"
 #include "taraxa_capability.hpp"
 

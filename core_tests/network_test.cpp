@@ -6,8 +6,8 @@
 #include <vector>
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
-#include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
 
 namespace taraxa {
 

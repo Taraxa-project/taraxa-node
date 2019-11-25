@@ -30,7 +30,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include "boost/date_time/posix_time/posix_time.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "prometheus/gateway.h"
 #include "prometheus/registry.h"
 #include "prometheus/summary.h"

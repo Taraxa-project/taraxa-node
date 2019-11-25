@@ -4,8 +4,8 @@
 #include <utility>
 #include "dag.hpp"
 #include "full_node.hpp"
-#include "libdevcore/CommonJS.h"
-#include "libdevcore/Log.h"
+#include <libdevcore/CommonJS.h>
+#include <libdevcore/Log.h>
 
 namespace taraxa {
 

@@ -9,7 +9,7 @@
 #include "vote.h"
 
 #include "full_node.hpp"
-#include "libdevcore/SHA3.h"
+#include <libdevcore/SHA3.h>
 #include "pbft_manager.hpp"
 #include "sortition.h"
 

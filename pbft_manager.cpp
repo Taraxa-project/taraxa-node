@@ -10,7 +10,7 @@
 
 #include "dag.hpp"
 #include "full_node.hpp"
-#include "libdevcore/SHA3.h"
+#include <libdevcore/SHA3.h>
 #include "network.hpp"
 #include "sortition.h"
 #include "util.hpp"

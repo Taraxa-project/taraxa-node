@@ -5,9 +5,7 @@
 #include <iostream>
 #include <mutex>
 #include "config.hpp"
-#include "libweb3jsonrpc/Net.h"
-#include "libweb3jsonrpc/RpcServer.h"
-#include "libweb3jsonrpc/Taraxa.h"
+#include "net/RpcServer.h"
 
 using namespace std;
 
@@ -60,17 +58,18 @@ Top::Top(int argc, const char* argv[]) {
   rpc_thread_ = thread([this, rpc_init_done] {
     try {
       auto const& node_config = node_->getConfig();
-      auto rpc_server = make_shared<taraxa::RpcServer>(rpc_io_context_,  //
-                                                       node_config.rpc);
-      auto rpc = make_shared<Rpc>(new dev::rpc::Test(node_),
-                                  new dev::rpc::Taraxa(node_),  //
-                                  new dev::rpc::Net(node_));
+      auto rpc_server = make_shared<taraxa::net::RpcServer>(rpc_io_context_,  //
+                                                            node_config.rpc);
+      auto rpc = make_shared<Rpc>(new taraxa::net::Test(node_),
+                                  new taraxa::net::Taraxa(node_),  //
+                                  new taraxa::net::Net(node_));
       rpc->addConnector(rpc_server);
       rpc_server->StartListening();
-      auto ws_listener = make_shared<taraxa::WSServer>(
+      auto ws_listener = make_shared<taraxa::net::WSServer>(
           rpc_io_context_,  //
-          tcp::endpoint{
-              net::ip::make_address(node_config.rpc.address.to_string()),
+          boost::asio::ip::tcp::endpoint{
+              boost::asio::ip::make_address(
+                  node_config.rpc.address.to_string()),
               node_config.rpc.ws_port,
           });
       node_->setWSServer(ws_listener);

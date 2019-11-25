@@ -4,10 +4,10 @@
 #include "ProverWesolowski.h"
 #include "core_tests/util.hpp"
 #include "full_node.hpp"
-#include "libdevcore/FixedHash.h"
-#include "libdevcore/Log.h"
-#include "libdevcore/SHA3.h"
-#include "libdevcrypto/Common.h"
+#include <libdevcore/FixedHash.h>
+#include <libdevcore/Log.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
 #include "openssl/bn.h"
 #include "pbft_manager.hpp"
 #include "sodium.h"

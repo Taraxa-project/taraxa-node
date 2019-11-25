@@ -6,15 +6,16 @@
 #include <atomic>
 #include <boost/process.hpp>
 #include "full_node.hpp"
-#include "libdevcore/Log.h"
-#include "libdevcore/LoggingProgramOptions.h"
-#include "libweb3jsonrpc/Net.h"
-#include "libweb3jsonrpc/Taraxa.h"
-#include "libweb3jsonrpc/WSServer.h"
+#include <libdevcore/Log.h>
+#include <libdevcore/LoggingProgramOptions.h>
+#include "net/Net.h"
+#include "net/Taraxa.h"
+#include "net/Test.h"
+#include "net/WSServer.h"
 
 struct Top {
-  using Rpc = ModularServer<dev::rpc::TestFace, dev::rpc::TaraxaFace,
-                            dev::rpc::NetFace>;
+  using Rpc = ModularServer<taraxa::net::TestFace, taraxa::net::TaraxaFace,
+                            taraxa::net::NetFace>;
 
  private:
   boost::asio::io_context rpc_io_context_;

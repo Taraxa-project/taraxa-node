@@ -5,7 +5,7 @@
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "full_node.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "types.hpp"
 
 namespace taraxa {

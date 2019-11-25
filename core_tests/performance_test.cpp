@@ -9,9 +9,9 @@
 #include "create_samples.hpp"
 #include "dag.hpp"
 #include "full_node.hpp"
-#include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
-#include "libweb3jsonrpc/RpcServer.h"
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+#include "net/RpcServer.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"

@@ -6,7 +6,7 @@
 
 #include <atomic>
 #include "config.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "pbft_chain.hpp"
 #include "taraxa_capability.hpp"
 #include "types.hpp"

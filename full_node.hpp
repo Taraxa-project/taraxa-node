@@ -12,10 +12,10 @@
 #include "config.hpp"
 #include "database_face_cache.hpp"
 #include "executor.hpp"
-#include "libdevcore/Log.h"
-#include "libdevcore/SHA3.h"
-#include "libdevcrypto/Common.h"
-#include "libweb3jsonrpc/WSServer.h"
+#include <libdevcore/Log.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+#include "net/WSServer.h"
 #include "pbft_chain.hpp"
 #include "replay_protection/index.hpp"
 #include "transaction.hpp"
@@ -276,7 +276,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   std::vector<blk_hash_t> getLinearizedDagBlocks() const;
   std::vector<trx_hash_t> getPackedTrxs() const;
-  void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
+  void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
 
@@ -319,7 +319,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
 
-  std::shared_ptr<taraxa::WSServer> ws_server_;
+  std::shared_ptr<taraxa::net::WSServer> ws_server_;
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
   std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;

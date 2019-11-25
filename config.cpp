@@ -1,6 +1,6 @@
 #include "config.hpp"
 #include <fstream>
-#include "libdevcore/LevelDB.h"
+#include <libdevcore/LevelDB.h>
 
 namespace taraxa {
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
