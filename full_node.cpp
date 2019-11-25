@@ -555,6 +555,7 @@ void FullNode::insertBroadcastedTransactions(
 
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
+bool FullNode::isSynced() const { return network_->isSynced(); }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
   auto const &state = updateAndGetState();

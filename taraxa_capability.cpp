@@ -249,6 +249,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       case SyncedPacket: {
         LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
         peer->syncing_ = false;
+        peer->clearAllKnownBlocksAndTransactions();
       } break;
       case StatusPacket: {
         auto const peer_protocol_version = _r[0].toInt<unsigned>();
@@ -532,7 +533,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       }
       case PbftVotePacket: {
         LOG(log_dg_vote_prp_) << "In PbftVotePacket";
-
 
         Vote vote(_r[0].toBytes());
         LOG(log_dg_vote_prp_) << "Received PBFT vote " << vote.getHash();

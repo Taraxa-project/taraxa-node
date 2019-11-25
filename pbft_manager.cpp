@@ -771,9 +771,11 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   // compute sorition
-  VrfSortition vrf_sortition(full_node->getVrfSecretKey(), pbft_chain_last_block_hash_, type, round, step);
+  VrfSortition vrf_sortition(full_node->getVrfSecretKey(),
+                             pbft_chain_last_block_hash_, type, round, step);
 
-  if (!vrf_sortition.canSpeak(sortition_threshold_, valid_sortition_accounts_size_)){
+  if (!vrf_sortition.canSpeak(sortition_threshold_,
+                              valid_sortition_accounts_size_)) {
     LOG(log_tra_) << "Don't get sortition";
     return false;
   }
