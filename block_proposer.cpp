@@ -254,6 +254,11 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   auto full_node = full_node_.lock();
   assert(full_node);
 
+  // Blocks are not proposed if we are behind the network and still syncing
+  if (!full_node->isSynced()) {
+    return;
+  }
+
   blk.sign(full_node->getSecretKey());
   full_node_.lock()->insertBlock(blk);
 

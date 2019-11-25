@@ -311,6 +311,12 @@ class ExpirationCache {
     return cache_.count(key);
   }
 
+  void clear() {
+    boost::unique_lock lck(mtx_);
+    cache_.clear();
+    expiration_.clear();
+  }
+
  private:
   std::unordered_set<Key> cache_;
   std::deque<Key> expiration_;

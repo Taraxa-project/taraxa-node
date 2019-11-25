@@ -339,7 +339,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   }
 
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    
     auto num_vertices1 = node1->getNumVerticesInDag();
     auto num_vertices2 = node2->getNumVerticesInDag();
     auto num_vertices3 = node3->getNumVerticesInDag();
@@ -356,27 +355,23 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
-        num_trx1 == issued_trx_count &&
-        num_trx2 == issued_trx_count &&
-        num_trx3 == issued_trx_count &&
-        num_trx4 == issued_trx_count &&
+        num_trx1 == issued_trx_count && num_trx2 == issued_trx_count &&
+        num_trx3 == issued_trx_count && num_trx4 == issued_trx_count &&
         num_trx5 == issued_trx_count)
       break;
 
     if (i % 10 == 0) {
-      std::cout << "Still waiting for DAG vertices and transaction gossiping to sync ..." << std::endl;
+      std::cout << "Still waiting for DAG vertices and transaction gossiping "
+                   "to sync ..."
+                << std::endl;
       std::cout << " Node 1: Dag size = " << num_vertices1.first
-                << " Trx count = " << num_trx1
-                << std::endl
+                << " Trx count = " << num_trx1 << std::endl
                 << " Node 2: Dag size = " << num_vertices2.first
-                << " Trx count = " << num_trx2
-                << std::endl
+                << " Trx count = " << num_trx2 << std::endl
                 << " Node 3: Dag size = " << num_vertices3.first
-                << " Trx count = " << num_trx3
-                << std::endl
+                << " Trx count = " << num_trx3 << std::endl
                 << " Node 4: Dag size = " << num_vertices4.first
-                << " Trx count = " << num_trx4
-                << std::endl
+                << " Trx count = " << num_trx4 << std::endl
                 << " Node 5: Dag size = " << num_vertices5.first
                 << " Trx count = " << num_trx5
                 << " Issued transaction count = " << issued_trx_count
@@ -1171,7 +1166,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
-  
+
   // check dags
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     auto num_vertices1 = node1->getNumVerticesInDag();
