@@ -11,25 +11,46 @@
 #include "openssl/bn.h"
 #include "pbft_manager.hpp"
 #include "sortition.h"
+#include "vdf_sortition.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using namespace vdf;
 using namespace vrf_wrapper;
+using namespace vdf_sortition;
 using std::string;
 struct CryptoTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(CryptoTest, VerifierWesolowski) {
   BIGNUM* N_bn = BN_secure_new();
-  BN_dec2bn(&N_bn, "799979478482341");  // 799979478482341
-  bytevec N = vdf::bn2bytevec(N_bn);
+  BN_dec2bn(&N_bn,
+            "428804634136293954597073942907460909605269780080770775820474895139"
+            "313373884797174409549658274767664589927455921037291323722119107130"
+            "788925047898023345413122083756324027226108225954520307660745040887"
+            "759852389951961524084114541339969954680762018088000762978892474599"
+            "30444806028055000786854607913934385778187829");
 
+  bytevec N = vdf::bn2bytevec(N_bn);
   VerifierWesolowski verifier(20, 8, {97}, N);
+
   ProverWesolowski prover;
   const auto sol = prover(verifier);
-  auto ok = verifier(sol);
-  EXPECT_TRUE(ok);
+
+  EXPECT_TRUE(verifier(sol));
+
+  VerifierWesolowski verifier2(20, 8, {97}, N);
+  EXPECT_TRUE(verifier2(sol));
+
+  ProverWesolowski::solution zero;
+  EXPECT_FALSE(verifier(zero));
+
+  auto sol2 = sol, sol3 = sol;
+  sol2.first[0]++;
+  sol3.second[0]++;
+
+  EXPECT_FALSE(verifier(sol2));
+  EXPECT_FALSE(verifier(sol3));
 }
 
 TEST_F(CryptoTest, vrf_proof_verify) {
@@ -56,7 +77,15 @@ TEST_F(CryptoTest, vrf_proof_verify) {
               << output.value() << endl;
   }
 }
-
+TEST_F(CryptoTest, vdf_proof_verify) {
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  VdfMsg vdf_msg(blk_hash_t(100), 3);
+  VdfSortition vdf(sk, vdf_msg);
+  vdf.computeVdfSolution();
+  EXPECT_TRUE(vdf.verifyVdfSolution());
+}
 // TEST_F(CryptoTest, vrf_sortition_base) {
 //   vrf_sk_t sk(
 //       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
@@ -74,11 +103,11 @@ TEST_F(CryptoTest, vrf_sortition) {
   blk_hash_t blk(123);
   VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
   VrfPbftSortition sortition(sk, msg);
-  // EXPECT_FALSE(sortition.canSpeak(10000000, 20000000));
-  // EXPECT_TRUE(sortition.canSpeak(1, 1));
-  // auto b = sortition.getRlpBytes();
-  // auto sortition2(b);
-  // EXPECT_EQ(sortition, sortition2);
+  EXPECT_FALSE(sortition.canSpeak(10000000, 20000000));
+  EXPECT_TRUE(sortition.canSpeak(1, 1));
+  auto b = sortition.getRlpBytes();
+  auto sortition2(b);
+  EXPECT_EQ(sortition, sortition2);
 }
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {

@@ -140,7 +140,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/replay_protection/sender_state.o \
 	${OBJECTDIR}/replay_protection/replay_protection_service.o \
 	${OBJECTDIR}/vrf_wrapper.o \
-	${OBJECTDIR}/db_storage.o
+	${OBJECTDIR}/db_storage.o \
+	${OBJECTDIR}/vdf_sortition.o
 
 
 
@@ -169,6 +170,11 @@ ${OBJECTDIR}/vrf_wrapper.o: vrf_wrapper.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vrf_wrapper.o vrf_wrapper.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/vdf_sortition.o: vdf_sortition.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vdf_sortition.o vdf_sortition.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/top.o: top.cpp
 	${MKDIR} -p ${OBJECTDIR}
