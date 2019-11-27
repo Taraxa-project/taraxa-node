@@ -1,14 +1,11 @@
-ifeq (1, $(NO_SUBMODULES))
-	Makefile.submodules=_
-endif
 ifndef Makefile.submodules
 Makefile.submodules=_
 
 include Makefile.common
 
-# ====================================================
+ifneq (1, $(NO_SUBMODULES))
+SUBMODULE_DEPS := $(addsuffix /ok, $(shell scripts/submodule_list.sh))
 # Submodule update
-
 ifneq (1, $(NO_SUBMODULES_UPD))
 $(info Checking/updating submodules...)
 __SUBMODULE_UPDATE_LOG_FILE__ := $(shell mktemp)
@@ -21,10 +18,8 @@ $(error Submodule update failed, log at: $(__SUBMODULE_UPDATE_LOG_FILE__))
 endif
 _ := $(shell rm $(__SUBMODULE_UPDATE_LOG_FILE__))
 endif
+endif
 
-# ====================================================
-
-SUBMODULE_DEPS := $(addsuffix /ok, $(shell scripts/submodule_list.sh))
 SUBMODULE_BUILD_INIT = \
 	source scripts/lib/index.sh; \
 	on_success touch $(CURDIR)/$@; \
@@ -35,12 +30,6 @@ SUBMODULE_BUILD_INIT = \
 
 RAPIDJSON_INCLUDE_DIR := $(CURDIR)/submodules/rapidjson/include
 submodules/rapidjson/ok:
-	touch $@
-
-submodules/bls/ok:
-	touch $@
-
-submodules/mcl/ok:
 	touch $@
 
 # ====================================================
@@ -110,7 +99,7 @@ submodules/googletest/ok:
 CRYPTOPP_INSTALL_PREFIX := $(CURDIR)/submodules/cryptopp/dist
 CRYPTOPP_COMPILE_DEFIINITIONS :=
 ifneq ($(OS), Darwin)
-	CRYPTOPP_COMPILE_DEFIINITIONS += -DCRYPTOPP_DISABLE_ASM
+	CRYPTOPP_COMPILE_DEFIINITIONS := -DCRYPTOPP_DISABLE_ASM
 endif
 submodules/cryptopp/ok:
 	$(SUBMODULE_BUILD_INIT); \
@@ -197,7 +186,7 @@ ALETH_LIBS := \
 
 $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 	mkdir -p $(@D)
-	$(CXX) -c $(CXX_STD) $(COMPILE_FLAGS) \
+	$(CXX) -c $(CXX_STD) -O3 \
 		-I$(ALETH_ROOT) -I$(ALETH_INSTALL_PREFIX)/include \
 		$(ALETH_TRANSITIVE_INCLUDE_DIRS) \
 		$(BOOST_COMPILE_DEFINITIONS) $(ALETH_COMPILE_DEFINITIONS) \
@@ -226,9 +215,5 @@ submodules/secp256k1/ok
 	copy $(ALETH_ROOT) "lib*/*.h" $(ALETH_INSTALL_PREFIX)/include; \
 
 # ====================================================
-
-PHONY:
-
-submodules: $(SUBMODULE_DEPS)
 
 endif # Makefile.submodules

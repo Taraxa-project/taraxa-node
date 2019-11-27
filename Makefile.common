@@ -1,18 +1,9 @@
 ifndef Makefile.common
 Makefile.common=_
 
-DEBUG = 0
-PERF = 0
 CXX := g++
 OS := $(shell uname)
 BOOST_COMPILE_DEFINITIONS := -DBOOST_LOG_DYN_LINK
 CXX_STD := -std=c++17
-COMPILE_FLAGS := -O3
-ifneq ($(DEBUG), 0)
-	COMPILE_FLAGS := -g
-endif
-ifneq ($(PERF), 0)
- 	COMPILE_FLAGS += -fno-omit-frame-pointer
-endif
 
 endif # Makefile.common

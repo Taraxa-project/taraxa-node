@@ -3,6 +3,17 @@ include Makefile.submodules
 
 DEPS := $(SUBMODULE_DEPS)
 
+DEBUG = 0
+PERF = 0
+
+COMPILE_FLAGS := -O3
+ifneq ($(DEBUG), 0)
+	COMPILE_FLAGS := -g
+endif
+ifneq ($(PERF), 0)
+ 	COMPILE_FLAGS += -fno-omit-frame-pointer
+endif
+
 BOOST_LIBS := \
 	-lboost_program_options \
 	-lboost_filesystem \
@@ -148,11 +159,8 @@ TEST_SRCS := \
 TEST_OBJS := $(addprefix $(OBJ_DIR)/, $(TEST_SRCS:.cpp=.o))
 TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 
-#%: $(DEPS)
 
-#.SECONDARY: %.o
-
-$(OBJ_DIR)/%.o: %.cpp
+$(OBJ_DIR)/%.o: %.cpp $(DEPS)
 	mkdir -p $(@D)
 	$(CXX) -c $(CXX_STD) $(COMPILE_FLAGS) \
 		$(INCLUDE_DIRS) \
