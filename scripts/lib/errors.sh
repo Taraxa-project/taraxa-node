@@ -1,27 +1,50 @@
-#!/bin/bash
-
 # set LOG_TRACE=1 to see a more detailed log
 
 set -eo pipefail
 set -eo errtrace
 
-_exit_stack=$(mktemp)
+_success_handler_stack=$(mktemp)
+_error_handler_stack=$(mktemp)
+_exit_handler_stack=$(mktemp)
+
+function on_success() {
+  echo "$@" >>${_success_handler_stack}
+}
+
+function on_error() {
+  echo "$@" >>${_error_handler_stack}
+}
+
+function on_exit() {
+  echo "$@" >>${_exit_handler_stack}
+}
 
 function log_trace() {
   [ "${LOG_TRACE}" == "1" ] && echo $@ || true
 }
 
-function exit_handler() {
-  log_trace "EXIT at $0:$1"
-  cat ${_exit_stack} | while read line; do
-    log_trace "executing exit callback: ${line}"
+function __execute_stack__() {
+  local type=$1
+  local stack_file=$(eval echo \${_${type}_handler_stack})
+  cat ${stack_file} | while read line; do
+    log_trace "executing ${type} callback: ${line}"
     eval "${line}" || true
   done
-  rm ${_exit_stack}
+}
+function __do_exit__() {
+  local file="$0"
+  local line="$1"
+  local exit_code="$2"
+  log_trace "EXIT at ${file}:${line} with code ${exit_code}"
+  if [ ${exit_code} == "0" ]; then
+    __execute_stack__ success
+  else
+    __execute_stack__ error
+  fi
+  __execute_stack__ exit
+  rm ${_success_handler_stack}
+  rm ${_error_handler_stack}
+  rm ${_exit_handler_stack}
 }
 
-function finally() {
-  echo "$@" >>${_exit_stack}
-}
-
-trap 'exit_handler ${LINENO}' EXIT
+trap '__do_exit__ ${LINENO} $?' EXIT

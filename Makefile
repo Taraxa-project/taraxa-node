@@ -1,333 +1,194 @@
 include Makefile.common
-include Makefile.aleth
+include Makefile.submodules
 
-main: $(BUILDDIR)/main
-	@echo MAIN
+DEPS := $(SUBMODULE_DEPS)
 
-all:  main
+BOOST_LIBS := \
+	-lboost_program_options \
+	-lboost_filesystem \
+	-lboost_system \
+	-lboost_thread-mt \
+	-lboost_log_setup
+ifeq ($(OS), Darwin)
+	BOOST_LIBS += -lboost_log-mt
+else
+	BOOST_LIBS += -lboost_log
+endif
 
-OBJECTFILES= \
-	${OBJECTDIR}/dag_block.o \
-	${OBJECTDIR}/util.o \
-	${OBJECTDIR}/network.o \
-	${OBJECTDIR}/full_node.o \
-	${OBJECTDIR}/types.o \
-	${OBJECTDIR}/dag.o \
-	${OBJECTDIR}/block_proposer.o \
-	${OBJECTDIR}/transaction.o \
-	${OBJECTDIR}/executor.o \
-	${OBJECTDIR}/transaction_order_manager.o \
-	${OBJECTDIR}/account_state/state.o \
-	${OBJECTDIR}/account_state/state_snapshot.o \
-	${OBJECTDIR}/account_state/state_registry.o \
-	${OBJECTDIR}/genesis_state.o \
-	${OBJECTDIR}/pbft_chain.o \
-	${OBJECTDIR}/taraxa_capability.o \
-	${OBJECTDIR}/sortition.o \
-	${OBJECTDIR}/pbft_manager.o \
-	${OBJECTDIR}/vote.o \
-	${OBJECTDIR}/top.o \
-	${OBJECTDIR}/config.o \
-	${OBJECTDIR}/trx_engine/types.o \
-	${OBJECTDIR}/trx_engine/trx_engine.o \
-	${OBJECTDIR}/pbft_sortition_account.o \
-	${OBJECTDIR}/database_face_cache.o \
-	${OBJECTDIR}/replay_protection/sender_state.o \
-	${OBJECTDIR}/replay_protection/replay_protection_service.o
+INCLUDE_DIRS := \
+	-I$(CURDIR) \
+	$(ALETH_TRANSITIVE_INCLUDE_DIRS) \
+	-I$(ALETH_INSTALL_PREFIX)/include \
+	-I$(OPENSSL_INSTALL_PREFIX)/include \
+	-I$(TARAXA_VRF_INSTALL_PREFIX)/include \
+	-I$(TARAXA_VDF_INSTALL_PREFIX)/include \
+	-I$(PROMETHEUS_CPP_INSTALL_PREFIX)/include \
+	-I$(RAPIDJSON_INCLUDE_DIR) \
+	-I$(TARAXA_EVM_INCLUDE_DIR) \
+	-I$(GTEST_INSTALL_PREFIX)/include
 
-NODE_OBJECTS := $(SUBMODULE_BUILT_INDICATORS) $(OBJECTFILES) $(ALETH_OBJ)
+LIB_DIRS := \
+	-L$(OPENSSL_INSTALL_PREFIX)/lib \
+	-L$(TARAXA_VRF_INSTALL_PREFIX)/lib \
+	-L$(TARAXA_VDF_INSTALL_PREFIX)/lib \
+	-L$(CRYPTOPP_INSTALL_PREFIX)/lib \
+	-L$(ETHASH_INSTALL_PREFIX)/lib \
+	-L$(LIBFF_INSTALL_PREFIX)/lib \
+	-L$(SECP256K1_INSTALL_PREFIX)/lib \
+	-L$(ALETH_INSTALL_PREFIX)/lib \
+	-L$(TARAXA_EVM_LIB_DIR) \
+	-L$(PROMETHEUS_CPP_INSTALL_PREFIX)/lib \
+	-L$(GTEST_INSTALL_PREFIX)/lib
 
-TESTS = \
-	$(TESTBUILDDIR)/full_node_test \
-	$(TESTBUILDDIR)/dag_block_test \
-	$(TESTBUILDDIR)/network_test \
-	$(TESTBUILDDIR)/dag_test \
-	$(TESTBUILDDIR)/transaction_test \
-	$(TESTBUILDDIR)/p2p_test \
-	$(TESTBUILDDIR)/crypto_test \
-    $(TESTBUILDDIR)/pbft_chain_test \
-	$(TESTBUILDDIR)/pbft_rpc_test \
-	$(TESTBUILDDIR)/pbft_manager_test
+LIBS := \
+	-lpthread \
+	-lz \
+	-lcurl \
+	-lssl \
+	-lcrypto \
+	-lgmp \
+	-lgmpxx \
+	-lmpfr \
+	$(BOOST_LIBS) \
+	-lleveldb \
+	-lrocksdb \
+	-lsodium \
+	-lvdf \
+	-lscrypt \
+	-lprometheus-cpp-core \
+	-lprometheus-cpp-push \
+	-lprometheus-cpp-pull \
+	-ljsoncpp \
+	-ljsonrpccpp-common \
+	-ljsonrpccpp-server \
+	-lff \
+	-lsecp256k1 \
+	-lcryptopp \
+	-lethash \
+	$(addprefix -l, $(ALETH_LIBS)) \
+	-l$(TARAXA_EVM_LIB) \
+	-lgtest
+# Optional linking for libatomic (part of standard library).
+# Some toolchains provide this library,
+# and assume programs using <atomic> would link against it.
+# Note: makefile translates `$$?` into `$?`
+LIBATOMIC_NOT_FOUND = $(shell \
+    $(CXX) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
+)
+ifeq ($(LIBATOMIC_NOT_FOUND), 0)
+    LIBS += -latomic
+endif
+ifeq ($(OS), Darwin)
+	LIBS += -framework CoreFoundation -framework Security
+endif
 
-${OBJECTDIR}/config.o: config.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/config.o config.cpp $(CPPFLAGS)
+LINK_FLAGS := -Wl,-rpath $(OPENSSL_INSTALL_PREFIX)/lib
+ifneq ($(DEBUG), 0)
+	ifeq ($(OS),Dawrin)
+		LINK_FLAGS += -Wl,--export-dynamic
+	else
+		LINK_FLAGS += -rdynamic
+	endif
+endif
 
-${OBJECTDIR}/top.o: top.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/top.o top.cpp $(CPPFLAGS)
+BUILD_DIR := build
+ifneq ($(DEBUG), 0)
+	BUILD_DIR := build-d
+endif
+OBJ_DIR := $(BUILD_DIR)/obj
+BIN_DIR := $(BUILD_DIR)/bin
 
-${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
+NODE_SRCS := \
+	util.cpp \
+    dag_block.cpp \
+    network.cpp \
+    full_node.cpp \
+    types.cpp \
+    dag.cpp \
+    block_proposer.cpp \
+    transaction.cpp \
+    executor.cpp \
+    transaction_order_manager.cpp \
+    pbft_chain.cpp \
+    taraxa_capability.cpp \
+    sortition.cpp \
+    pbft_manager.cpp \
+    vote.cpp \
+    top.cpp \
+    config.cpp \
+    genesis_state.cpp \
+    account_state/state.cpp \
+    account_state/state_snapshot.cpp \
+    account_state/state_registry.cpp \
+    trx_engine/trx_engine.cpp \
+    trx_engine/types.cpp \
+    pbft_sortition_account.cpp \
+    database_face_cache.cpp \
+    replay_protection/sender_state.cpp \
+    replay_protection/replay_protection_service.cpp \
+    net/JsonHelper.cpp \
+    net/RpcServer.cpp \
+    net/WSServer.cpp \
+    net/Test.cpp \
+    net/Taraxa.cpp \
+    net/Net.cpp
+NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
 
-${OBJECTDIR}/database_face_cache.o: database_face_cache.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/database_face_cache.o database_face_cache.cpp $(CPPFLAGS)	
+TEST_SRCS := \
+	core_tests/full_node_test.cpp \
+	core_tests/dag_block_test.cpp \
+	core_tests/network_test.cpp \
+	core_tests/dag_test.cpp \
+	core_tests/transaction_test.cpp \
+	core_tests/p2p_test.cpp \
+	core_tests/crypto_test.cpp \
+    core_tests/pbft_chain_test.cpp \
+	core_tests/pbft_rpc_test.cpp \
+	core_tests/pbft_manager_test.cpp
+TEST_OBJS := $(addprefix $(OBJ_DIR)/, $(TEST_SRCS:.cpp=.o))
+TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 
-${OBJECTDIR}/executor.o: executor.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/executor.o executor.cpp $(CPPFLAGS)
+#%: $(DEPS)
 
-${OBJECTDIR}/transaction_order_manager.o: transaction_order_manager.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_order_manager.o transaction_order_manager.cpp $(CPPFLAGS)
+#.SECONDARY: %.o
 
-${OBJECTDIR}/account_state/state.o: account_state/state.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/account_state
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account_state/state.o account_state/state.cpp $(CPPFLAGS)
+$(OBJ_DIR)/%.o: %.cpp
+	mkdir -p $(@D)
+	$(CXX) -c $(CXX_STD) $(COMPILE_FLAGS) \
+		$(INCLUDE_DIRS) \
+		$(BOOST_COMPILE_DEFINITIONS) $(ALETH_COMPILE_DEFINITIONS) \
+		$(CRYPTOPP_COMPILE_DEFIINITIONS) -o $@ $<
 
-${OBJECTDIR}/account_state/state_snapshot.o: account_state/state_snapshot.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/account_state
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account_state/state_snapshot.o account_state/state_snapshot.cpp $(CPPFLAGS)
+.PRECIOUS: $(OBJ_DIR)/%.o
 
-${OBJECTDIR}/account_state/state_registry.o: account_state/state_registry.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/account_state
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/account_state/state_registry.o account_state/state_registry.cpp $(CPPFLAGS)
+$(BIN_DIR)/%: $(NODE_OBJS) $(OBJ_DIR)/%.o
+	mkdir -p $(@D)
+	$(CXX) $(LINK_FLAGS) $(LIB_DIRS) $(LIBS) -o $@ $+
 
-${OBJECTDIR}/genesis_state.o: genesis_state.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/genesis_state.o genesis_state.cpp $(CPPFLAGS)
 
-${OBJECTDIR}/dag_block.o: dag_block.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/dag_block.o dag_block.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/util.o: util.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/util.o util.cpp $(CPPFLAGS)
+.PHONY: all main test run_test perf_test run_perf_test pdemo ct c clean
 
-${OBJECTDIR}/network.o: network.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/network.o network.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/full_node.o: full_node.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/full_node.o full_node.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/types.o: types.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/types.o types.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/dag.o: dag.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/dag.o dag.cpp $(CPPFLAGS)
-	
-${OBJECTDIR}/block_proposer.o: block_proposer.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/block_proposer.o block_proposer.cpp $(CPPFLAGS)
+all: main
 
-${OBJECTDIR}/transaction.o: transaction.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/taraxa_capability.o: taraxa_capability.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/taraxa_capability.o taraxa_capability.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/sortition.o: sortition.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/sortition.o sortition.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/pbft_manager.o: pbft_manager.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_manager.o pbft_manager.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/vote.o: vote.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vote.o vote.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/trx_engine/types.o: trx_engine/types.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/trx_engine
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trx_engine/types.o trx_engine/types.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/trx_engine/trx_engine.o: trx_engine/trx_engine.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/trx_engine
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/trx_engine/trx_engine.o trx_engine/trx_engine.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/pbft_sortition_account.o: pbft_sortition_account.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_sortition_account.o pbft_sortition_account.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/replay_protection/sender_state.o: replay_protection/sender_state.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/replay_protection
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/replay_protection/sender_state.o replay_protection/sender_state.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/replay_protection/replay_protection_service.o: replay_protection/replay_protection_service.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${MKDIR} -p ${OBJECTDIR}/replay_protection
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/replay_protection/replay_protection_service.o replay_protection/replay_protection_service.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/main.o: main.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/main.o main.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/dag_test.o: core_tests/dag_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/dag_test.o core_tests/dag_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/network_test.o: core_tests/network_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/network_test.o core_tests/network_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/dag_block_test.o: core_tests/dag_block_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/dag_block_test.o core_tests/dag_block_test.cpp $(CPPFLAGS)	
-
-${OBJECTDIR}/full_node_test.o: core_tests/full_node_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/full_node_test.o core_tests/full_node_test.cpp $(CPPFLAGS)	
-
-${OBJECTDIR}/p2p_test.o: core_tests/p2p_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/p2p_test.o core_tests/p2p_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/transaction_test.o: core_tests/transaction_test.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction_test.o core_tests/transaction_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/pbft_chain_test.o: core_tests/pbft_chain_test.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain_test.o core_tests/pbft_chain_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/crypto_test.o: core_tests/crypto_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/crypto_test.o core_tests/crypto_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/pbft_rpc_test.o: core_tests/pbft_rpc_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_rpc_test.o core_tests/pbft_rpc_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/pbft_manager_test.o: core_tests/pbft_manager_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_manager_test.o core_tests/pbft_manager_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/performance_test.o: core_tests/performance_test.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/performance_test.o core_tests/performance_test.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/prometheus_demo.o: prometheus_demo.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/prometheus_demo.o prometheus_demo.cpp $(CPPFLAGS)
-
-node_objects: $(NODE_OBJECTS)
-
-$(BUILDDIR)/main: $(NODE_OBJECTS) $(OBJECTDIR)/main.o
-	${MKDIR} -p ${BUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/main.o -o $(BUILDDIR)/main $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/dag_test: $(OBJECTDIR)/dag_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/dag_test.o -o $(TESTBUILDDIR)/dag_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
-
-$(TESTBUILDDIR)/network_test: $(OBJECTDIR)/network_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/network_test.o -o $(TESTBUILDDIR)/network_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/dag_block_test: $(OBJECTDIR)/dag_block_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/dag_block_test.o -o $(TESTBUILDDIR)/dag_block_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
-
-$(TESTBUILDDIR)/full_node_test: $(OBJECTDIR)/full_node_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/full_node_test.o -o $(TESTBUILDDIR)/full_node_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
-
-$(TESTBUILDDIR)/p2p_test: $(OBJECTDIR)/p2p_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/p2p_test.o -o $(TESTBUILDDIR)/p2p_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
-
-$(TESTBUILDDIR)/transaction_test: $(OBJECTDIR)/transaction_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}	
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/transaction_test.o -o $(TESTBUILDDIR)/transaction_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS) 
-
-$(TESTBUILDDIR)/crypto_test: $(OBJECTDIR)/crypto_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/crypto_test.o -o $(TESTBUILDDIR)/crypto_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/pbft_chain_test: $(OBJECTDIR)/pbft_chain_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/pbft_chain_test.o -o $(TESTBUILDDIR)/pbft_chain_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/pbft_rpc_test: $(OBJECTDIR)/pbft_rpc_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/pbft_rpc_test.o -o $(TESTBUILDDIR)/pbft_rpc_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/pbft_manager_test: $(OBJECTDIR)/pbft_manager_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/pbft_manager_test.o -o $(TESTBUILDDIR)/pbft_manager_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/performance_test: $(OBJECTDIR)/performance_test.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/performance_test.o -o $(TESTBUILDDIR)/performance_test  $(LDFLAGS) $(LIBS) $(CPPFLAGS)
-
-$(TESTBUILDDIR)/prometheus_demo: $(OBJECTDIR)/prometheus_demo.o $(NODE_OBJECTS)
-	${MKDIR} -p ${TESTBUILDDIR}
-	$(CXX) -std=c++17 $(OBJECTFILES) $(ALETH_OBJ) $(OBJECTDIR)/prometheus_demo.o -o $(TESTBUILDDIR)/prometheus_demo $(LDFLAGS) $(LIBS) $(CPPFLAGS)
+main: $(BIN_DIR)/main
 
 test: $(TESTS)
 
-perf_test: $(TESTBUILDDIR)/performance_test
+run_test: test
+	scripts/run_commands_long_circuit.sh $(TESTS)
+
+perf_test: $(BIN_DIR)/core_tests/performance_test
 
 run_perf_test: perf_test
-	./$(TESTBUILDDIR)/performance_test
+	$(BIN_DIR)/core_tests/performance_test
 
-run_test: test
-	./scripts/run_commands_long_circuit.sh $(TESTS)
-
-pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main
-	./$(TESTBUILDDIR)/prometheus_demo $(PUSHGATEWAY_IP) $(PUSHGATEWAY_PORT) $(PUSHGATEWAY_NAME)
+pdemo: $(BIN_DIR)/prometheus_demo
+	$< $(PUSHGATEWAY_IP) $(PUSHGATEWAY_PORT) $(PUSHGATEWAY_NAME)
 
 ct:
-	rm -rf $(TESTBUILDDIR)
+	rm -rf $(TESTS) $(TEST_OBJS)
 
 c: clean
-clean:
-	@echo CLEAN && rm -rf $(BUILDDIR) $(TESTBUILDDIR) $(OBJECTDIR)
 
-.PHONY: run_test
+clean:
+	rm -rf $(BUILD_DIR)
