@@ -46,9 +46,19 @@ ReplayProtectionService::ReplayProtectionService(decltype(range_) range,
   }
 }
 
-bool ReplayProtectionService::hasBeenExecuted(Transaction const& trx) {
-  shared_lock l(m_);
-  return hasBeenExecuted_(trx);
+bool ReplayProtectionService::hasBeenExecutedWithinRange(
+    Transaction const& trx) {
+  return !db_->lookup(trxHashKey(trx.getHash().hex())).empty();
+}
+
+bool ReplayProtectionService::hasBeenExecutedBeyondRange(
+    Transaction const& trx) {
+  auto sender_state = loadSenderState(senderStateKey(trx.sender().hex()));
+  if (!sender_state) {
+    return false;
+  }
+  auto nonce_watermark = sender_state->getNonceWatermark();
+  return nonce_watermark && trx.getNonce() <= *nonce_watermark;
 }
 
 void ReplayProtectionService::commit(round_t round,
@@ -122,18 +132,6 @@ void ReplayProtectionService::commit(round_t round,
   batch->insert(CURR_ROUND_KEY, to_string(round));
   db_->commit(move(batch));
   last_round_ = round;
-}
-
-bool ReplayProtectionService::hasBeenExecuted_(Transaction const& trx) {
-  if (!db_->lookup(trxHashKey(trx.getHash().hex())).empty()) {
-    return true;
-  }
-  auto sender_state = loadSenderState(senderStateKey(trx.sender().hex()));
-  if (!sender_state) {
-    return false;
-  }
-  auto nonce_watermark = sender_state->getNonceWatermark();
-  return nonce_watermark && trx.getNonce() <= *nonce_watermark;
 }
 
 shared_ptr<SenderState> ReplayProtectionService::loadSenderState(

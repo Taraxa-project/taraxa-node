@@ -46,3 +46,6 @@
 	path = submodules/taraxa-vrf
 	url = https://github.com/Taraxa-project/taraxa-vrf.git
 	ignore = dirty
+[submodule "submodules/googletest"]
+	path = submodules/googletest
+	url = https://github.com/google/googletest
