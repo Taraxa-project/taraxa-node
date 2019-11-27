@@ -49,13 +49,16 @@ struct VrfSortitionBase {
   bool operator==(VrfSortitionBase const &other) const {
     return pk == other.pk && proof == other.proof && output == other.output;
   }
+  virtual std::ostream &print(std::ostream &strm) const{
+    strm << "\n[VRF SortitionBase] " << std::endl;
+    strm << "  pk: " << pk << std::endl;
+    strm << "  proof: " << proof << std::endl;
+    strm << "  output: " << output << std::endl;
+    return strm;
+  }
   friend std::ostream &operator<<(std::ostream &strm,
                                   VrfSortitionBase const &vrf_sortition) {
-    strm << "[VRF SortitionBase] " << std::endl;
-    strm << "  pk: " << vrf_sortition.pk << std::endl;
-    strm << "  proof: " << vrf_sortition.proof << std::endl;
-    strm << "  output: " << vrf_sortition.output << std::endl;
-    return strm;
+    return vrf_sortition.print(strm);
   }
   vrf_pk_t pk;
   vrf_proof_t proof;

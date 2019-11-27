@@ -77,6 +77,29 @@ TEST_F(CryptoTest, vrf_proof_verify) {
               << output.value() << endl;
   }
 }
+TEST_F(CryptoTest, vrf_valid_Key) {
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  auto pk = getVrfPublicKey(sk);
+  std::cout << "VRF pk: " << pk
+            << std::endl;
+  EXPECT_TRUE(isValidVrfPublicKey(pk));
+}
+
+
+TEST_F(CryptoTest, vdf_sortition){
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  VdfMsg vdf_msg(blk_hash_t(100), 3);
+  VdfSortition vdf(sk, vdf_msg);
+  vdf.computeVdfSolution();
+  auto b = vdf.rlp();
+  VdfSortition vdf2(b);
+  EXPECT_EQ(vdf, vdf2);
+}
+
 TEST_F(CryptoTest, vdf_proof_verify) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
@@ -84,17 +107,10 @@ TEST_F(CryptoTest, vdf_proof_verify) {
   VdfMsg vdf_msg(blk_hash_t(100), 3);
   VdfSortition vdf(sk, vdf_msg);
   vdf.computeVdfSolution();
-  EXPECT_TRUE(vdf.verifyVdfSolution());
+  EXPECT_TRUE(vdf.verify());
+  VdfSortition vdf2(sk, vdf_msg);
+  EXPECT_FALSE(vdf2.verify());
 }
-// TEST_F(CryptoTest, vrf_sortition_base) {
-//   vrf_sk_t sk(
-//       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-//       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-//   VrfSortitionBase sortition_base(sk, "helloworld!");
-//   auto b = sortition_base.getRlpBytes();
-//   auto sortition_base2(b);
-//   EXPECT_EQ(sortition_base, sortition_base2);
-// }
 
 TEST_F(CryptoTest, vrf_sortition) {
   vrf_sk_t sk(
