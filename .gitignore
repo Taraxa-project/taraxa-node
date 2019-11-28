@@ -11,3 +11,4 @@ obj-d/
 dockerfiles/scripts/env_variables\.sh
 
 *.debug_dag*
+cmake-*

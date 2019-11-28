@@ -3,10 +3,10 @@ Makefile.submodules=_
 
 include Makefile.common
 
-ifneq (1, $(NO_SUBMODULES))
+ifneq (1, $(NO_INSTALL_SUBMODULES))
 SUBMODULE_DEPS := $(addsuffix /ok, $(shell scripts/submodule_list.sh))
 # Submodule update
-ifneq (1, $(NO_SUBMODULES_UPD))
+ifneq (1, $(NO_UPDATE_SUBMODULES))
 $(info Checking/updating submodules...)
 __SUBMODULE_UPDATE_LOG_FILE__ := $(shell mktemp)
 __SUBMODULE_UPDATE_EXIT_CODE__ := $(shell \
@@ -24,21 +24,21 @@ SUBMODULE_BUILD_INIT = \
 	source scripts/lib/index.sh; \
 	on_success touch $(CURDIR)/$@; \
 	cd $(@D); \
-	try_git_reset
+	try_git_reset; \
+	mkdir -p $(DEPS_INSTALL_PREFIX)
 
 # ====================================================
 
-RAPIDJSON_INCLUDE_DIR := $(CURDIR)/submodules/rapidjson/include
 submodules/rapidjson/ok:
-	touch $@
+	$(SUBMODULE_BUILD_INIT); \
+	copy . "include/*.*" $(DEPS_INSTALL_PREFIX)/; \
 
 # ====================================================
 
-PROMETHEUS_CPP_INSTALL_PREFIX := $(CURDIR)/submodules/prometheus-cpp/dist
 submodules/prometheus-cpp/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
-	cmake .. -DCMAKE_INSTALL_PREFIX=$(PROMETHEUS_CPP_INSTALL_PREFIX) \
+	cmake .. -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) \
 		-DBUILD_TESTING=OFF \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DENABLE_TESTING=OFF; \
@@ -47,59 +47,55 @@ submodules/prometheus-cpp/ok:
 
 # ====================================================
 
-TARAXA_EVM_INCLUDE_DIR := $(CURDIR)/submodules/taraxa-evm
-TARAXA_EVM_LIB_DIR := $(TARAXA_EVM_INCLUDE_DIR)
 TARAXA_EVM_LIB := taraxa_evm_cgo
 submodules/taraxa-evm/ok:
 	$(SUBMODULE_BUILD_INIT); \
+	copy . "taraxa/*.h" $(DEPS_INSTALL_PREFIX)/include; \
 	go build -tags=secp256k1_no_cgo -buildmode=c-archive \
-		-o $(TARAXA_EVM_LIB_DIR)/lib$(TARAXA_EVM_LIB).a; \
-	mv $(TARAXA_EVM_LIB_DIR)/lib$(TARAXA_EVM_LIB).h \
-		$(TARAXA_EVM_INCLUDE_DIR)/$(TARAXA_EVM_LIB).h; \
+		-o $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
+	mv $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).h \
+		$(DEPS_INSTALL_PREFIX)/include/$(TARAXA_EVM_LIB).h; \
 
 # ====================================================
 
-OPENSSL_INSTALL_PREFIX := $(CURDIR)/submodules/openssl/dist
 submodules/openssl/ok:
 	$(SUBMODULE_BUILD_INIT); \
-	./config --prefix=$(OPENSSL_INSTALL_PREFIX) \
-		--openssldir=$(OPENSSL_INSTALL_PREFIX)/ssl; \
+	./config --prefix=$(DEPS_INSTALL_PREFIX) \
+		--openssldir=$(DEPS_INSTALL_PREFIX)/ssl; \
 	$(MAKE); \
 	$(MAKE) install; \
 
 # ====================================================
 
-TARAXA_VDF_INSTALL_PREFIX := $(CURDIR)/submodules/taraxa-vdf
 submodules/taraxa-vdf/ok: submodules/openssl/ok
 	$(SUBMODULE_BUILD_INIT); \
-	$(MAKE) OPENSSL_HOME=$(OPENSSL_INSTALL_PREFIX); \
+	$(MAKE) OPENSSL_HOME=$(DEPS_INSTALL_PREFIX); \
+	copy . "include/*.*" $(DEPS_INSTALL_PREFIX)/; \
+	copy . "lib/*.*" $(DEPS_INSTALL_PREFIX)/; \
 
 # ====================================================
 
-TARAXA_VRF_INSTALL_PREFIX := $(CURDIR)/submodules/taraxa-vrf/dist
 submodules/taraxa-vrf/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	automake; \
-	./configure --prefix=$(TARAXA_VRF_INSTALL_PREFIX); \
+	./configure --prefix=$(DEPS_INSTALL_PREFIX); \
 	$(MAKE); \
 	$(MAKE) install; \
 
 # ====================================================
 
-GTEST_INSTALL_PREFIX := $(CURDIR)/submodules/googletest/dist
 submodules/googletest/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(GTEST_INSTALL_PREFIX) ..; \
+	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) ..; \
 	$(MAKE); \
 	$(MAKE) install; \
 
 # ====================================================
 
-CRYPTOPP_INSTALL_PREFIX := $(CURDIR)/submodules/cryptopp/dist
 CRYPTOPP_COMPILE_DEFIINITIONS :=
 ifneq ($(OS), Darwin)
-	CRYPTOPP_COMPILE_DEFIINITIONS := -DCRYPTOPP_DISABLE_ASM
+	CRYPTOPP_COMPILE_DEFIINITIONS := CRYPTOPP_DISABLE_ASM
 endif
 submodules/cryptopp/ok:
 	$(SUBMODULE_BUILD_INIT); \
@@ -107,17 +103,17 @@ submodules/cryptopp/ok:
 		$(MAKE); \
 	else \
 		$(MAKE) CXXFLAGS="-DNDEBUG -g2 -O3 -fPIC \
-			$(CRYPTOPP_COMPILE_DEFIINITIONS) -pthread -pipe -c"; \
+			$(addprefix -D, $(CRYPTOPP_COMPILE_DEFIINITIONS)) \
+			-pthread -pipe -c"; \
 	fi; \
-	$(MAKE) PREFIX=$(CRYPTOPP_INSTALL_PREFIX) install; \
+	$(MAKE) PREFIX=$(DEPS_INSTALL_PREFIX) install; \
 
 # ====================================================
 
-ETHASH_INSTALL_PREFIX := $(CURDIR)/submodules/ethash/dist
 submodules/ethash/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(ETHASH_INSTALL_PREFIX) .. \
+	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) .. \
 		-DBUILD_TESTING=OFF \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DETHASH_BUILD_TESTS=OFF \
@@ -127,27 +123,25 @@ submodules/ethash/ok:
 
 # ====================================================
 
-LIBFF_INSTALL_PREFIX := $(CURDIR)/submodules/libff/dist
-submodules/libff/ok:
+submodules/libff/ok: submodules/openssl/ok
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(LIBFF_INSTALL_PREFIX) .. \
+	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) .. \
 		-DBUILD_TESTING=OFF \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DWITH_PROCPS=OFF \
 		-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ \
-		-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
-		-DOPENSSL_LIBRARIES=/usr/local/opt/openssl/lib; \
+		-DOPENSSL_ROOT_DIR=$(DEPS_INSTALL_PREFIX) \
+		-DOPENSSL_LIBRARIES=$(DEPS_INSTALL_PREFIX)/lib; \
 	$(MAKE); \
 	$(MAKE) install; \
 
 # ====================================================
 
-SECP256K1_INSTALL_PREFIX := $(CURDIR)/submodules/secp256k1/dist
 submodules/secp256k1/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	./autogen.sh; \
-	./configure --prefix=$(SECP256K1_INSTALL_PREFIX) \
+	./configure --prefix=$(DEPS_INSTALL_PREFIX) \
 		--disable-shared --disable-tests \
 		--disable-coverage --disable-openssl-tests \
 		--disable-exhaustive-tests \
@@ -161,7 +155,6 @@ submodules/secp256k1/ok:
 # ====================================================
 
 ALETH_ROOT := $(CURDIR)/submodules/taraxa-aleth
-ALETH_INSTALL_PREFIX := $(ALETH_ROOT)/dist
 ALETH_BUILD_DIR := $(ALETH_ROOT)/build
 ALETH_OBJ_DIR := $(ALETH_BUILD_DIR)/obj
 ALETH_SRCS := $(shell \
@@ -169,14 +162,7 @@ ALETH_SRCS := $(shell \
 	-a ! -path "$(ALETH_ROOT)/libweb3jsonrpc/WinPipeServer.cpp" \
 )
 ALETH_OBJS = $(subst $(ALETH_ROOT),$(ALETH_OBJ_DIR),$(ALETH_SRCS:.cpp=.o))
-ALETH_TRANSITIVE_INCLUDE_DIRS := \
-	-I$(CRYPTOPP_INSTALL_PREFIX)/include \
-	-I$(LIBFF_INSTALL_PREFIX)/include \
-	-I$(LIBFF_INSTALL_PREFIX)/include/libff \
-	-I$(ETHASH_INSTALL_PREFIX)/include \
-	-I$(SECP256K1_INSTALL_PREFIX)/include \
-	-I/usr/include/jsoncpp
-ALETH_COMPILE_DEFINITIONS := -DETH_FATDB
+ALETH_COMPILE_DEFINITIONS := ETH_FATDB
 TARAXA_ALETH_LIB := taraxa-aleth
 ALETH_LIBS := \
 	evmc-loader \
@@ -186,11 +172,18 @@ ALETH_LIBS := \
 
 $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 	mkdir -p $(@D)
-	$(CXX) -c $(CXX_STD) -O3 \
-		-I$(ALETH_ROOT) -I$(ALETH_INSTALL_PREFIX)/include \
-		$(ALETH_TRANSITIVE_INCLUDE_DIRS) \
-		$(BOOST_COMPILE_DEFINITIONS) $(ALETH_COMPILE_DEFINITIONS) \
-		$(CRYPTOPP_COMPILE_DEFIINITIONS) -o $@ $<
+	$(strip \
+		$(CXX) -c -std=$(CXX_STD) -g \
+		-I$(ALETH_ROOT) \
+		-I$(DEPS_INSTALL_PREFIX)/include \
+		-I$(JSONCPP_INCLUDE_DIR) \
+		$(addprefix -D, \
+			$(BOOST_COMPILE_DEFINITIONS) \
+			$(CRYPTOPP_COMPILE_DEFIINITIONS) \
+			$(ALETH_COMPILE_DEFINITIONS) \
+		) \
+		-o $@ $< \
+	)
 
 submodules/taraxa-aleth/ok: \
 submodules/cryptopp/ok \
@@ -199,21 +192,25 @@ submodules/libff/ok \
 submodules/secp256k1/ok
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd $(ALETH_BUILD_DIR)/taraxa-aleth-buildinfo; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(ALETH_INSTALL_PREFIX) \
+	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) \
 		$(ALETH_ROOT)/taraxa-aleth-buildinfo; \
 	$(MAKE); \
 	$(MAKE) install; \
 	mkdir_cd $(ALETH_BUILD_DIR)/evmc; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(ALETH_INSTALL_PREFIX) \
+	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) \
 		$(ALETH_ROOT)/evmc; \
 	$(MAKE); \
 	$(MAKE) install; \
-	copy $(ALETH_ROOT)/utils "*.h" $(ALETH_INSTALL_PREFIX)/include; \
-	$(MAKE) -C $(CURDIR) -f Makefile.submodules NO_SUBMODULES_UPD=1 \
+	copy $(ALETH_ROOT)/utils "*.h" $(DEPS_INSTALL_PREFIX)/include; \
+	$(MAKE) -C $(CURDIR) -f Makefile.submodules NO_UPDATE_SUBMODULES=1 \
 		$(ALETH_OBJS); \
-	ar -rcs $(ALETH_INSTALL_PREFIX)/lib/lib$(TARAXA_ALETH_LIB).a $(ALETH_OBJS); \
-	copy $(ALETH_ROOT) "lib*/*.h" $(ALETH_INSTALL_PREFIX)/include; \
+	ar -rcs $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_ALETH_LIB).a $(ALETH_OBJS); \
+	copy $(ALETH_ROOT) "lib*/*.h" $(DEPS_INSTALL_PREFIX)/include; \
 
 # ====================================================
+
+.PHONY: submodules
+
+submodules: $(SUBMODULE_DEPS)
 
 endif # Makefile.submodules

@@ -1,99 +1,27 @@
 include Makefile.common
 include Makefile.submodules
 
+include $(shell find $(BUILD_DIR) -path "*.d")
+
 DEPS := $(SUBMODULE_DEPS)
 
-DEBUG = 0
-PERF = 0
-
-COMPILE_FLAGS := -O3
 ifneq ($(DEBUG), 0)
 	COMPILE_FLAGS := -g
+else
+	COMPILE_FLAGS := -O3
 endif
 ifneq ($(PERF), 0)
  	COMPILE_FLAGS += -fno-omit-frame-pointer
 endif
 
-BOOST_LIBS := \
-	-lboost_program_options \
-	-lboost_filesystem \
-	-lboost_system \
-	-lboost_thread-mt \
-	-lboost_log_setup
-ifeq ($(OS), Darwin)
-	BOOST_LIBS += -lboost_log-mt
-else
-	BOOST_LIBS += -lboost_log
-endif
+COMPILE_DEFINITIONS := \
+	$(BOOST_COMPILE_DEFINITIONS) \
+	$(ALETH_COMPILE_DEFINITIONS) \
+	$(CRYPTOPP_COMPILE_DEFIINITIONS)
 
-INCLUDE_DIRS := \
-	-I$(CURDIR) \
-	$(ALETH_TRANSITIVE_INCLUDE_DIRS) \
-	-I$(ALETH_INSTALL_PREFIX)/include \
-	-I$(OPENSSL_INSTALL_PREFIX)/include \
-	-I$(TARAXA_VRF_INSTALL_PREFIX)/include \
-	-I$(TARAXA_VDF_INSTALL_PREFIX)/include \
-	-I$(PROMETHEUS_CPP_INSTALL_PREFIX)/include \
-	-I$(RAPIDJSON_INCLUDE_DIR) \
-	-I$(TARAXA_EVM_INCLUDE_DIR) \
-	-I$(GTEST_INSTALL_PREFIX)/include
+INCLUDE_DIRS := $(CURDIR) $(DEPS_INSTALL_PREFIX)/include $(JSONCPP_INCLUDE_DIR)
 
-LIB_DIRS := \
-	-L$(OPENSSL_INSTALL_PREFIX)/lib \
-	-L$(TARAXA_VRF_INSTALL_PREFIX)/lib \
-	-L$(TARAXA_VDF_INSTALL_PREFIX)/lib \
-	-L$(CRYPTOPP_INSTALL_PREFIX)/lib \
-	-L$(ETHASH_INSTALL_PREFIX)/lib \
-	-L$(LIBFF_INSTALL_PREFIX)/lib \
-	-L$(SECP256K1_INSTALL_PREFIX)/lib \
-	-L$(ALETH_INSTALL_PREFIX)/lib \
-	-L$(TARAXA_EVM_LIB_DIR) \
-	-L$(PROMETHEUS_CPP_INSTALL_PREFIX)/lib \
-	-L$(GTEST_INSTALL_PREFIX)/lib
-
-LIBS := \
-	-lpthread \
-	-lz \
-	-lcurl \
-	-lssl \
-	-lcrypto \
-	-lgmp \
-	-lgmpxx \
-	-lmpfr \
-	$(BOOST_LIBS) \
-	-lleveldb \
-	-lrocksdb \
-	-lsodium \
-	-lvdf \
-	-lscrypt \
-	-lprometheus-cpp-core \
-	-lprometheus-cpp-push \
-	-lprometheus-cpp-pull \
-	-ljsoncpp \
-	-ljsonrpccpp-common \
-	-ljsonrpccpp-server \
-	-lff \
-	-lsecp256k1 \
-	-lcryptopp \
-	-lethash \
-	$(addprefix -l, $(ALETH_LIBS)) \
-	-l$(TARAXA_EVM_LIB) \
-	-lgtest
-# Optional linking for libatomic (part of standard library).
-# Some toolchains provide this library,
-# and assume programs using <atomic> would link against it.
-# Note: makefile translates `$$?` into `$?`
-LIBATOMIC_NOT_FOUND = $(shell \
-    $(CXX) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
-)
-ifeq ($(LIBATOMIC_NOT_FOUND), 0)
-    LIBS += -latomic
-endif
-ifeq ($(OS), Darwin)
-	LIBS += -framework CoreFoundation -framework Security
-endif
-
-LINK_FLAGS := -Wl,-rpath $(OPENSSL_INSTALL_PREFIX)/lib
+LINK_FLAGS := -Wl,-rpath $(DEPS_INSTALL_PREFIX)/lib
 ifneq ($(DEBUG), 0)
 	ifeq ($(OS),Dawrin)
 		LINK_FLAGS += -Wl,--export-dynamic
@@ -102,12 +30,60 @@ ifneq ($(DEBUG), 0)
 	endif
 endif
 
-BUILD_DIR := build
-ifneq ($(DEBUG), 0)
-	BUILD_DIR := build-d
+LIB_DIRS := $(DEPS_INSTALL_PREFIX)/lib
+
+BOOST_LIBS := \
+	boost_program_options \
+	boost_filesystem \
+	boost_system \
+	boost_thread-mt \
+	boost_log_setup
+ifeq ($(OS), Darwin)
+	BOOST_LIBS += boost_log-mt
+else
+	BOOST_LIBS += boost_log
 endif
-OBJ_DIR := $(BUILD_DIR)/obj
-BIN_DIR := $(BUILD_DIR)/bin
+LIBS := \
+	pthread \
+	z \
+	curl \
+	ssl \
+	crypto \
+	gmp \
+	gmpxx \
+	mpfr \
+	$(BOOST_LIBS) \
+	leveldb \
+	rocksdb \
+	sodium \
+	vdf \
+	scrypt \
+	prometheus-cpp-core \
+	prometheus-cpp-push \
+	prometheus-cpp-pull \
+	jsoncpp \
+	jsonrpccpp-common \
+	jsonrpccpp-server \
+	ff \
+	secp256k1 \
+	cryptopp \
+	ethash \
+	$(ALETH_LIBS) \
+	$(TARAXA_EVM_LIB) \
+	gtest
+# Optional linking for libatomic (part of standard library).
+# Some toolchains provide this library,
+# and assume programs using <atomic> would link against it.
+# Note: makefile translates `$$?` into `$?`
+LIBATOMIC_NOT_FOUND = $(shell \
+    $(CXX) $(LIB_DIRS) -latomic -shared -o /dev/null &> /dev/null; echo $$? \
+)
+ifeq ($(LIBATOMIC_NOT_FOUND), 0)
+    LIBS += atomic
+endif
+ifeq ($(OS), Darwin)
+	OSX_FRAMEWORKS := CoreFoundation Security
+endif
 
 NODE_SRCS := \
 	util.cpp \
@@ -162,21 +138,34 @@ TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 
 $(OBJ_DIR)/%.o: %.cpp $(DEPS)
 	mkdir -p $(@D)
-	$(CXX) -c $(CXX_STD) $(COMPILE_FLAGS) \
-		$(INCLUDE_DIRS) \
-		$(BOOST_COMPILE_DEFINITIONS) $(ALETH_COMPILE_DEFINITIONS) \
-		$(CRYPTOPP_COMPILE_DEFIINITIONS) -o $@ $<
+	$(strip \
+		$(CXX) -c -std=$(CXX_STD) \
+		$(COMPILE_FLAGS) \
+		$(addprefix -I, $(INCLUDE_DIRS)) \
+		-MF $@.d -MMD -MP \
+		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
+		-o $@ $< \
+	)
 
 .PRECIOUS: $(OBJ_DIR)/%.o
 
 $(BIN_DIR)/%: $(NODE_OBJS) $(OBJ_DIR)/%.o
 	mkdir -p $(@D)
-	$(CXX) $(LINK_FLAGS) $(LIB_DIRS) $(LIBS) -o $@ $+
+	$(strip \
+		$(CXX) $(LINK_FLAGS) \
+		$(addprefix -L, $(LIB_DIRS)) \
+		$(addprefix -l, $(LIBS)) \
+		$(addprefix -framework , $(OSX_FRAMEWORKS)) \
+		-o $@ $+ \
+	)
 
-
-.PHONY: all main test run_test perf_test run_perf_test pdemo ct c clean
+.PHONY: all exec main test run_test perf_test run_perf_test pdemo ct c clean
 
 all: main
+
+#exec: TARGETS :=
+#exec: $(addprefix $(BIN_DIR)/, $(TARGETS))
+#	scripts/run_commands_long_circuit.sh $+
 
 main: $(BIN_DIR)/main
 
