@@ -41,9 +41,8 @@ class TransactionStatusTable
 
   void eraseOldest() override {
     for (auto i = 0; i < delete_step_; i++) {
-      auto status_hash = expiration_.front();
+      trx_hash_t status_hash = expiration_.front();
       auto status = cache_[status_hash];
-      expiration_.pop_front();
       // Skip delete if transaction in queue or in nonce_gap and put in at back
       // of the queue
       if (status == TransactionStatus::nonce_gap ||
@@ -51,8 +50,9 @@ class TransactionStatusTable
           status == TransactionStatus::in_queue_verified) {
         expiration_.push_back(status_hash);
       } else {
-        cache_.erase(expiration_.front());
+        cache_.erase(status_hash);
       }
+      expiration_.pop_front();
     }
   }
 };
