@@ -298,6 +298,10 @@ std::vector<public_t> FullNode::getAllPeers() const {
 
 void FullNode::insertBroadcastedBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
+  if (isBlockKnown(blk.getHash())) {
+    LOG(log_debug_) << "Block known " << blk.getHash();
+    return;
+  }
   blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions),
                                 false /*critical*/);
   LOG(log_time_) << "Store ncblock " << blk.getHash()
@@ -307,6 +311,10 @@ void FullNode::insertBroadcastedBlockWithTransactions(
 }
 
 void FullNode::insertBlock(DagBlock const &blk) {
+  if (isBlockKnown(blk.getHash())) {
+    LOG(log_nf_) << "Block known " << blk.getHash();
+    return;
+  }
   blk_mgr_->pushUnverifiedBlock(std::move(blk), true /*critical*/);
   LOG(log_time_) << "Store cblock " << blk.getHash()
                  << " at: " << getCurrentTimeMilliSeconds()
