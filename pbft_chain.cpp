@@ -5,20 +5,20 @@ namespace taraxa {
 std::string TrxSchedule::getJsonStr() const {
   std::stringstream strm;
   strm << "  |TrxSchedule| " << std::endl;
-  for (auto i = 0; i < blk_order.size(); i++) {
-    strm << "  B: " << i << "  " << blk_order[i] << std::endl;
+  for (auto i = 0; i < dag_blks_order.size(); i++) {
+    strm << "  B: " << i << "  " << dag_blks_order[i] << std::endl;
   }
-  for (auto i = 0; i < vec_trx_modes.size(); i++) {
+  for (auto i = 0; i < trxs_mode.size(); i++) {
     strm << "  B: " << i << " , T: ";
-    for (auto j = 0; j < vec_trx_modes[i].size(); j++) {
-      strm << vec_trx_modes[i][j] << " ";
+    for (auto j = 0; j < trxs_mode[i].size(); j++) {
+      strm << trxs_mode[i][j].first << ", mode: " << trxs_mode[i][j].second;
     }
     strm << std::endl;
   }
   return strm.str();
 }
-std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche) {
-  strm << tr_sche.getJsonStr();
+std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche) {
+  strm << trx_sche.getJsonStr();
   return strm;
 }
 
@@ -27,22 +27,24 @@ TrxSchedule::TrxSchedule(bytes const& rlpData) {
   dev::RLP const rlp(rlpData);
   try {
     if (!rlp.isList()) {
-      assert(0);
+      assert(false);
     }
     size_t count = 0;
     auto num_blks = rlp[count++].toInt<size_t>();
     assert(num_blks >= 0);
-    blk_order.resize(num_blks);
-    vec_trx_modes.resize(num_blks);
+    dag_blks_order.resize(num_blks);
+    trxs_mode.resize(num_blks);
     // reconstruct blk order
     for (auto i = 0; i < num_blks; ++i) {
-      blk_order[i] = rlp[count++].toHash<blk_hash_t>();
+      dag_blks_order[i] = rlp[count++].toHash<blk_hash_t>();
     }
     // reconstruct trx
     for (auto i = 0; i < num_blks; ++i) {
       auto num_trx = rlp[count++].toInt<size_t>();
       for (auto j = 0; j < num_trx; ++j) {
-        vec_trx_modes[i].push_back(rlp[count++].toInt<size_t>());
+        trx_hash_t trx = rlp[count++].toHash<trx_hash_t>();
+        uint mode = rlp[count++].toInt<size_t>();
+        trxs_mode[i].emplace_back(std::make_pair(trx, mode));
       }
     }
   } catch (std::exception& e) {
@@ -52,27 +54,28 @@ TrxSchedule::TrxSchedule(bytes const& rlpData) {
 
 bytes TrxSchedule::rlp() const {
   dev::RLPStream s;
-  auto num_blk = blk_order.size();
+  auto num_blk = dag_blks_order.size();
   std::vector<size_t> trx_in_each_blk;
   size_t num_trx = 0;
-  for (auto i = 0; i < vec_trx_modes.size(); ++i) {
-    trx_in_each_blk.emplace_back(vec_trx_modes[i].size());
-    num_trx += vec_trx_modes[i].size();
+  for (auto i = 0; i < trxs_mode.size(); ++i) {
+    trx_in_each_blk.emplace_back(trxs_mode[i].size());
+    num_trx += trxs_mode[i].size();
   }
-  s.appendList(1 + num_blk + num_blk + num_trx);
+  s.appendList(1 + num_blk + num_blk + num_trx + num_trx);
 
-  // write number of blks
+  // write number of DAG blks
   s << num_blk;
-  // write blk hashes
+  // write DAG blk hashes
   for (auto i = 0; i < num_blk; ++i) {
-    s << blk_order[i];
+    s << dag_blks_order[i];
   }
   // write trx info
   for (int i = 0; i < num_blk; ++i) {
-    auto trx_size = vec_trx_modes[i].size();
+    auto trx_size = trxs_mode[i].size();
     s << trx_size;
     for (int j = 0; j < trx_size; ++j) {
-      s << vec_trx_modes[i][j];
+      s << trxs_mode[i][j].first;
+      s << trxs_mode[i][j].second;
     }
   }
   return s.out();
@@ -148,15 +151,16 @@ Json::Value ScheduleBlock::getJson() const {
   Json::Value res;
   res["prev_block_hash"] = dev::toJS(prev_block_hash_);
   Json::Value block_order = Json::Value(Json::arrayValue);
-  for (auto const& b : this->schedule_.blk_order) {
+  for (auto const& b : this->schedule_.dag_blks_order) {
     block_order.append(dev::toJS(b));
   }
   res["block_order"] = block_order;
   Json::Value trx_modes = Json::Value(Json::arrayValue);
-  for (auto const& m1 : this->schedule_.vec_trx_modes) {
+  for (auto const& m1 : this->schedule_.trxs_mode) {
     Json::Value trx_modes_row = Json::Value(Json::arrayValue);
     for (auto const& m2 : m1) {
-      trx_modes_row.append(dev::toJS(m2));
+      trx_modes_row.append(dev::toJS(m2.first));
+      trx_modes_row.append(dev::toJS(m2.second));
     }
     trx_modes.append(dev::toJS(trx_modes_row));
   }
@@ -183,39 +187,41 @@ void ScheduleBlock::setJsonTree(ptree& tree) const {
 
   tree.put_child("block_order", ptree());
   auto& block_order = tree.get_child("block_order");
-  uint32_t block_size = schedule_.blk_order.size();
+  uint32_t block_size = schedule_.dag_blks_order.size();
   for (int i = 0; i < block_size; i++) {
     block_order.push_back(
-        std::make_pair("", ptree(schedule_.blk_order[i].toString())));
+        std::make_pair("", ptree(schedule_.dag_blks_order[i].toString())));
   }
 
-  uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
+  uint32_t trx_vectors_size = schedule_.trxs_mode.size();
   if (block_size != trx_vectors_size) {
     assert(false);
   }
   for (int i = 0; i < trx_vectors_size; i++) {
-    blk_hash_t block_hash(schedule_.blk_order[i]);
+    blk_hash_t block_hash(schedule_.dag_blks_order[i]);
     tree.put_child(block_hash.toString(), ptree());
     auto& trx_modes = tree.get_child(block_hash.toString());
-    uint32_t each_block_trx_size = schedule_.vec_trx_modes[i].size();
+    uint32_t each_block_trx_size = schedule_.trxs_mode[i].size();
     for (int j = 0; j < each_block_trx_size; j++) {
       trx_modes.push_back(std::make_pair(
-          "", ptree(std::to_string(schedule_.vec_trx_modes[i][j]))));
+          schedule_.trxs_mode[i][j].first.toString(),
+          ptree(std::to_string(schedule_.trxs_mode[i][j].second))));
     }
   }
 }
 
 void ScheduleBlock::setBlockByJson(ptree const& doc) {
   prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
-  schedule_.blk_order = asVector<blk_hash_t, std::string>(doc, "block_order");
-  for (auto const& blk_hash : schedule_.blk_order) {
-    std::vector<std::string> block_trx_modes_str =
-        asVector<std::string, std::string>(doc, blk_hash.toString());
-    std::vector<uint> block_trx_modes;
-    for (auto const& mode : block_trx_modes_str) {
-      block_trx_modes.emplace_back(atoi(mode.c_str()));
+  schedule_.dag_blks_order =
+      asVector<blk_hash_t, std::string>(doc, "block_order");
+  for (auto const& blk_hash : schedule_.dag_blks_order) {
+    std::vector<std::pair<trx_hash_t, uint>> dag_trxs_mode;
+    for (auto& trx_mode : doc.get_child(blk_hash.toString())) {
+      trx_hash_t trx(trx_mode.first);
+      uint mode = atoi(trx_mode.second.get_value<std::string>().c_str());
+      dag_trxs_mode.emplace_back(std::make_pair(trx, mode));
     }
-    schedule_.vec_trx_modes.emplace_back(block_trx_modes);
+    schedule_.trxs_mode.emplace_back(dag_trxs_mode);
   }
 }
 
@@ -223,21 +229,22 @@ bool ScheduleBlock::serialize(taraxa::stream& strm) const {
   bool ok = true;
 
   ok &= write(strm, prev_block_hash_);
-  uint32_t block_size = schedule_.blk_order.size();
-  uint32_t trx_vectors_size = schedule_.vec_trx_modes.size();
+  uint32_t block_size = schedule_.dag_blks_order.size();
+  uint32_t trx_vectors_size = schedule_.trxs_mode.size();
   if (block_size != trx_vectors_size) {
-    return false;
+    assert(false);
   }
   ok &= write(strm, block_size);
   ok &= write(strm, trx_vectors_size);
   for (int i = 0; i < block_size; i++) {
-    ok &= write(strm, schedule_.blk_order[i]);
+    ok &= write(strm, schedule_.dag_blks_order[i]);
   }
   for (int i = 0; i < trx_vectors_size; i++) {
-    uint32_t each_block_trx_size = schedule_.vec_trx_modes[i].size();
-    ok &= write(strm, each_block_trx_size);
+    uint32_t each_block_trx_size = schedule_.trxs_mode[i].size();
+    ok &= write(strm, each_block_trx_size * 2);
     for (int j = 0; j < each_block_trx_size; j++) {
-      ok &= write(strm, schedule_.vec_trx_modes[i][j]);
+      ok &= write(strm, schedule_.trxs_mode[i][j].first);
+      ok &= write(strm, schedule_.trxs_mode[i][j].second);
     }
   }
   assert(ok);
@@ -254,27 +261,34 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
   ok &= read(strm, block_size);
   ok &= read(strm, trx_vectors_size);
   if (block_size != trx_vectors_size) {
-    return false;
+    assert(false);
   }
   for (int i = 0; i < block_size; i++) {
     blk_hash_t block_hash;
     ok &= read(strm, block_hash);
     if (ok) {
-      schedule_.blk_order.push_back(block_hash);
+      schedule_.dag_blks_order.push_back(block_hash);
     }
   }
   for (int i = 0; i < trx_vectors_size; i++) {
     uint32_t each_block_trx_size;
     ok &= read(strm, each_block_trx_size);
-    std::vector<uint> each_block_trxs;
+    std::vector<std::pair<trx_hash_t, uint>> each_block_trxs_mode;
     for (int j = 0; j < each_block_trx_size; j++) {
-      uint trx_mode;
-      ok &= read(strm, trx_mode);
-      if (ok) {
-        each_block_trxs.push_back(trx_mode);
+      trx_hash_t trx;
+      ok &= read(strm, trx);
+      if (!ok) {
+        assert(false);
       }
+      j++;
+      uint mode;
+      ok &= read(strm, mode);
+      if (!ok) {
+        assert(false);
+      }
+      each_block_trxs_mode.push_back(std::make_pair(trx, mode));
     }
-    schedule_.vec_trx_modes.push_back(each_block_trxs);
+    schedule_.trxs_mode.push_back(each_block_trxs_mode);
   }
   assert(ok);
 
@@ -283,12 +297,13 @@ bool ScheduleBlock::deserialize(taraxa::stream& strm) {
 
 void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
   strm << prev_block_hash_;
-  for (int i = 0; i < schedule_.blk_order.size(); i++) {
-    strm << schedule_.blk_order[i];
+  for (int i = 0; i < schedule_.dag_blks_order.size(); i++) {
+    strm << schedule_.dag_blks_order[i];
   }
-  for (int i = 0; i < schedule_.vec_trx_modes.size(); i++) {
-    for (int j = 0; j < schedule_.vec_trx_modes[i].size(); j++) {
-      strm << schedule_.vec_trx_modes[i][j];
+  for (int i = 0; i < schedule_.trxs_mode.size(); i++) {
+    for (int j = 0; j < schedule_.trxs_mode[i].size(); j++) {
+      strm << schedule_.trxs_mode[i][j].first;
+      strm << schedule_.trxs_mode[i][j].second;
     }
   }
 }
