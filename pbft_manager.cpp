@@ -139,6 +139,7 @@ void PbftManager::stop() {
   db_dag_blocks_period_ = nullptr;
   db_status_ = nullptr;
   db_trxs_ = nullptr;
+  replay_protection_service_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
