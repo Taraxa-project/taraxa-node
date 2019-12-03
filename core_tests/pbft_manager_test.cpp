@@ -232,7 +232,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   PbftBlock pbft_second_cs_block =
       pbft_chain1->getPbftBlockInChain(pbft_second_cs_block_hash);
   vec_blk_t dag_blocks_in_cs =
-      pbft_second_cs_block.getScheduleBlock().getSchedule().blk_order;
+      pbft_second_cs_block.getScheduleBlock().getSchedule().dag_blks_order;
   // due to change of trx packing change, a trx can be packed in multiple blocks
   EXPECT_GE(dag_blocks_in_cs.size(), 1);
   for (auto &dag_block_hash : dag_blocks_in_cs) {
@@ -250,7 +250,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   PbftBlock pbft_first_cs_block =
       pbft_chain1->getPbftBlockInChain(pbft_first_cs_block_hash);
   dag_blocks_in_cs =
-      pbft_first_cs_block.getScheduleBlock().getSchedule().blk_order;
+      pbft_first_cs_block.getScheduleBlock().getSchedule().dag_blks_order;
   EXPECT_EQ(dag_blocks_in_cs.size(), 1);
   ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_in_cs[0]));
 }
