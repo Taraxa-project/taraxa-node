@@ -159,6 +159,7 @@ class PbftManager {
   std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_;
   std::shared_ptr<dev::db::DatabaseFace> db_status_;
+  std::shared_ptr<DatabaseFaceCache> db_trxs_;
 
   blk_hash_t pbft_chain_last_block_hash_;
 

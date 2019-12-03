@@ -61,6 +61,7 @@ void PbftManager::start() {
   db_period_schedule_block_ = full_node->getPeriodScheduleBlockDB();
   db_dag_blocks_period_ = full_node->getDagBlocksPeriodDB();
   db_status_ = full_node->getStatusDB();
+  db_trxs_ = full_node->getTrxsDB();
   if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
@@ -137,6 +138,7 @@ void PbftManager::stop() {
   db_period_schedule_block_ = nullptr;
   db_dag_blocks_period_ = nullptr;
   db_status_ = nullptr;
+  db_trxs_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -1056,13 +1058,37 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     blk_hash_t dag_block_hash =
         last_pbft_block.getPivotBlock().getDagBlockHash();
 
-    // get dag blocks order
+    // get dag blocks hash order
     uint64_t pbft_chain_period;
     std::shared_ptr<vec_blk_t> dag_blocks_order;
     std::tie(pbft_chain_period, dag_blocks_order) =
         full_node->getDagBlockOrder(dag_block_hash);
+    // get dag blocks
+    std::vector<std::shared_ptr<DagBlock>> dag_blks;
+    for (auto const& dag_block_hash : *dag_blocks_order) {
+      auto dag_blk = full_node->getDagBlock(dag_block_hash);
+      assert(dag_blk);
+      dag_blks.emplace_back(dag_blk);
+    }
 
-    // get transactions overlap table,
+    std::vector<std::vector<std::pair<trx_hash_t, uint>>> dag_blocks_trxs_mode;
+    for (auto const& dag_blk : dag_blks) {
+      // get transactions for each DAG block
+      auto trxs_hash = dag_blk->getTrxs();
+      std::vector<std::pair<trx_hash_t, uint>> dag_blk_trxs_mode;
+      for (auto const& t_hash : trxs_hash) {
+        auto trx = std::make_shared<Transaction>(db_trxs_->lookup(t_hash));
+        if (!replay_protection_service_->hasBeenExecuted(*trx)) {
+          // TODO: Generate fake transaction schedule, will need pass to VM to
+          //  generate the transaction schedule later
+          dag_blk_trxs_mode.emplace_back(std::make_pair(t_hash, 1));
+        }
+      }
+      dag_blocks_trxs_mode.emplace_back(dag_blk_trxs_mode);
+    }
+
+    /* // TODO: Keep for now, need remove later
+    // get transactions overlap table
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
         trx_overlap_table =
             full_node->computeTransactionOverlapTable(dag_blocks_order);
@@ -1076,12 +1102,13 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
                     << " generate mock trx schedule";
       return std::make_pair(NULL_BLOCK_HASH, false);
     }
-
     // TODO: generate fake transaction schedule for now, will pass
     //  trx_overlap_table to VM
     std::vector<std::vector<uint>> dag_blocks_trx_modes =
         full_node->createMockTrxSchedule(trx_overlap_table);
-    TrxSchedule schedule(*dag_blocks_order, dag_blocks_trx_modes);
+    */
+
+    TrxSchedule schedule(*dag_blocks_order, dag_blocks_trxs_mode);
 
     // generate pbft schedule block
     ScheduleBlock schedule_block(last_block_hash, schedule);
@@ -1299,7 +1326,7 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       full_node->getDagBlockOrder(dag_block_hash);
   // compare blocks hash in CS with DAG blocks
   vec_blk_t blocks_in_cs =
-      pbft_block_cs.getScheduleBlock().getSchedule().blk_order;
+      pbft_block_cs.getScheduleBlock().getSchedule().dag_blks_order;
   if (blocks_in_cs.size() == dag_blocks_order->size()) {
     for (auto i = 0; i < blocks_in_cs.size(); i++) {
       if (blocks_in_cs[i] != (*dag_blocks_order)[i]) {
@@ -1334,10 +1361,14 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
     }
     return false;
   }
+  /*
+  // TODO: may not need to compare transactions, keep it now. If need to compare
+  //  transactions will need to compare one by one. Would cause performance
+  //  issue. Below code need to modify.
   // compare number of transactions in CS with DAG blocks
   // PBFT CS block number of transactions
   std::vector<std::vector<uint>> trx_modes =
-      pbft_block_cs.getScheduleBlock().getSchedule().vec_trx_modes;
+      pbft_block_cs.getScheduleBlock().getSchedule().trxs_mode;
   for (int i = 0; i < dag_blocks_order->size(); i++) {
     std::shared_ptr<DagBlock> dag_block =
         full_node->getDagBlock((*dag_blocks_order)[i]);
@@ -1351,6 +1382,7 @@ bool PbftManager::comparePbftCSblockWithDAGblocks_(
       return false;
     }
   }
+  */
   return true;
 }
 
@@ -1514,10 +1546,10 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
               util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
               util::eth::toSlice(num_executed_trx));
         }
-        if (pbft_block.getScheduleBlock().getSchedule().blk_order.size() > 0) {
+        if (pbft_block.getScheduleBlock().getSchedule().dag_blks_order.size() > 0) {
           auto write_batch = db_dag_blocks_period_->createWriteBatch();
           for (auto const blk_hash :
-               pbft_block.getScheduleBlock().getSchedule().blk_order) {
+               pbft_block.getScheduleBlock().getSchedule().dag_blks_order) {
             write_batch->insert(
                 taraxa::util::eth::toSlice(blk_hash),
                 dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
