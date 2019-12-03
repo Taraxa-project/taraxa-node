@@ -60,25 +60,24 @@ bool Executor::execute_main(
     TrxSchedule const& schedule, BalanceTable& sortition_account_balance_table,
     uint64_t period,
     ReplayProtectionService::transaction_batch_t& executed_trx) {
-  if (schedule.blk_order.empty()) {
+  if (schedule.dag_blks_order.empty()) {
     return true;
   }
-  for (auto blk_i(0); blk_i < schedule.blk_order.size(); ++blk_i) {
-    auto blk_hash = schedule.blk_order[blk_i];
+  for (auto blk_i(0); blk_i < schedule.dag_blks_order.size(); ++blk_i) {
+    auto blk_hash = schedule.dag_blks_order[blk_i];
     auto blk_bytes = db_blks_->lookup(blk_hash);
     if (blk_bytes.size() == 0) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
     }
     DagBlock dag_block(blk_bytes);
-    auto trx_modes = schedule.vec_trx_modes[blk_i];
-    auto trxs_hashes = dag_block.getTrxs();
-    auto num_trxs = trxs_hashes.size();
+    auto dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
+    auto num_trxs = dag_blk_trxs_mode.size();
     int num_overlapped_trx(0);
     // TODO pass by reference
     std::vector<trx_engine::Transaction> trx_to_execute;
     for (auto trx_i(0); trx_i < num_trxs; ++trx_i) {
-      auto const& trx_hash = trxs_hashes[trx_i];
+      auto const& trx_hash = dag_blk_trxs_mode[trx_i].first;
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
       auto trx = std::make_shared<Transaction>(db_trxs_->lookup(trx_hash));
@@ -94,7 +93,8 @@ bool Executor::execute_main(
             static_cast<int64_t>(period);
         sortition_account_balance_table[trx_sender].status = new_change;
       }
-      auto mode = trx_modes[trx_i];
+      auto mode = dag_blk_trxs_mode[trx_i].second;
+      // TODO: should not have overlapped transactions anymore
       if (mode == 0) {
         LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk_hash
                      << " is overlapped";
@@ -194,27 +194,28 @@ bool Executor::execute_basic(
     TrxSchedule const& sche, BalanceTable& sortition_account_balance_table,
     uint64_t period,
     ReplayProtectionService::transaction_batch_t& executed_trx) {
-  if (sche.blk_order.empty()) {
+  if (sche.dag_blks_order.empty()) {
     return true;
   }
   // TODO this state instance is reusable
   auto state = state_registry_->getCurrentState();
 
-  for (auto i(0); i < sche.blk_order.size(); ++i) {
-    auto blk = sche.blk_order[i];
-    auto trx_modes = sche.vec_trx_modes[i];
-    if (!executeBlkTrxs(state, blk, trx_modes, sortition_account_balance_table,
-                        period, executed_trx)) {
+  for (auto i(0); i < sche.dag_blks_order.size(); ++i) {
+    auto blk = sche.dag_blks_order[i];
+    auto dag_blk_trxs_mode = sche.trxs_mode[i];
+    if (!executeBlkTrxs(state, blk, dag_blk_trxs_mode,
+                        sortition_account_balance_table, period,
+                        executed_trx)) {
       return false;
     }
   }
-  state_registry_->commitAndPush(state, sche.blk_order);
+  state_registry_->commitAndPush(state, sche.dag_blks_order);
   return true;
 }
 
 bool Executor::executeBlkTrxs(
     account_state::State& state, blk_hash_t const& blk,
-    std::vector<uint> const& trx_modes,
+    std::vector<std::pair<trx_hash_t, uint>> const& dag_blk_trxs_mode,
     BalanceTable& sortition_account_balance_table, uint64_t period,
     ReplayProtectionService::transaction_batch_t& executed_trx) {
   std::string blk_json = db_blks_->lookup(blk.toString());
@@ -226,13 +227,12 @@ bool Executor::executeBlkTrxs(
 
   DagBlock dag_block(blk_bytes);
 
-  auto trxs_hash = dag_block.getTrxs();
-  auto num_trxs = trxs_hash.size();
+  auto num_trxs = dag_blk_trxs_mode.size();
   // sequential execute transaction
   int num_overlapped_trx = 0;
 
-  for (auto i(0); i < trxs_hash.size(); ++i) {
-    auto const& trx_hash = trxs_hash[i];
+  for (auto i(0); i < num_trxs; ++i) {
+    auto const& trx_hash = dag_blk_trxs_mode[i].first;
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
     auto trx = std::make_shared<Transaction>(db_trxs_->lookup(trx_hash));
@@ -248,7 +248,8 @@ bool Executor::executeBlkTrxs(
           static_cast<int64_t>(period);
       sortition_account_balance_table[trx_sender].status = new_change;
     }
-    auto mode = trx_modes[i];
+    // TODO: should not have overlapped transactions
+    auto mode = dag_blk_trxs_mode[i].second;
     if (mode == 0) {
       LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk
                    << " is overlapped";

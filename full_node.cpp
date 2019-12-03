@@ -603,9 +603,9 @@ bool FullNode::executeScheduleBlock(
   res |= executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table, period);
   uint64_t block_number = 0;
-  if (sche_blk.getSchedule().blk_order.size() > 0) {
+  if (sche_blk.getSchedule().dag_blks_order.size() > 0) {
     block_number =
-        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().blk_order[0])
+        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
             .first;
   }
   if (ws_server_)
