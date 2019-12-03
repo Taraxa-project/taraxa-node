@@ -163,6 +163,9 @@ Json::Value Test::get_num_proposed_blocks() {
 
 Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
   Json::Value res;
+  /* TODO: Miho Please modify here. Since no overlapped/invalid transations in
+   *  PBFT schedule block, will include trx hash. Please check TrxSchedule in
+   *  pbft_chain.hpp
   try {
     if (auto node = full_node_.lock()) {
       blk_hash_t prev_blk = blk_hash_t(param1["prev_pivot"].asString());
@@ -193,6 +196,7 @@ Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
   } catch (std::exception &e) {
     res["status"] = e.what();
   }
+   */
   return res;
 }
 
