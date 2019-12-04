@@ -20,13 +20,8 @@ DEPENDENCIES = \
 	submodules/prometheus-cpp/ok \
 	submodules/googletest/ok
 
-<<<<<<< HEAD
 OPENSSL_HOME = $(shell pwd)/submodules/openssl/build
 git_clean := git clean -dfx &> /dev/null || true
-=======
-OPENSSL_HOME = $(shell pwd)/submodules/openssl/build/
-git_clean := git status &> /dev/null && git clean -dfx
->>>>>>> vdf_sortition
 
 submodules/cryptopp/ok:
 	@echo Attempting to compile cryptopp, if it fails try compiling it manually
