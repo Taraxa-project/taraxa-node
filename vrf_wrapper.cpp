@@ -45,6 +45,5 @@ dev::bytes getRlpBytes(std::string const &str) {
   rlps << str;
   return rlps.out();
 }
- 
+
 }  // namespace taraxa::vrf_wrapper
- 

@@ -33,8 +33,14 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
   std::cerr << e.what() << std::endl;
   assert(false);
 }
-
-DagBlock::DagBlock(stream &strm) { deserialize(strm); }
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
+                   vec_trx_t trxs, VdfSortition const &vdf) try
+    : DagBlock(pivot, level, tips, trxs) {
+  vdf_ = vdf;
+} catch (std::exception &e) {
+  std::cerr << e.what() << std::endl;
+  assert(false);
+}
 
 DagBlock::DagBlock(string const &json) {
   Json::Value doc;
@@ -53,7 +59,6 @@ DagBlock::DagBlock(string const &json) {
   pivot_ = blk_hash_t(doc["pivot"].asString());
   timestamp_ = doc["timestamp"].asInt64();
 }
-
 DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
   level_ = level_t(doc.get<level_t>("level"));
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
@@ -64,7 +69,6 @@ DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
   pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
   timestamp_ = doc.get<int64_t>("timestamp");
 }
-
 DagBlock::DagBlock(bytes const &_rlp) {
   dev::RLP const rlp(_rlp);
   if (!rlp.isList())
@@ -74,18 +78,19 @@ DagBlock::DagBlock(bytes const &_rlp) {
   pivot_ = rlp[1].toHash<blk_hash_t>();
   level_ = rlp[2].toInt<level_t>();
   timestamp_ = rlp[3].toInt<int64_t>();
-  uint64_t num_tips = rlp[4].toInt<uint64_t>();
+  vdf_ = vdf_sortition::VdfSortition(rlp[4].toBytes());
+  uint64_t num_tips = rlp[5].toInt<uint64_t>();
   for (auto i = 0; i < num_tips; ++i) {
-    auto tip = rlp[5 + i].toHash<blk_hash_t>();
+    auto tip = rlp[6 + i].toHash<blk_hash_t>();
     tips_.push_back(tip);
   }
-  uint64_t num_trxs = rlp[5 + num_tips].toInt<uint64_t>();
+  uint64_t num_trxs = rlp[6 + num_tips].toInt<uint64_t>();
   for (auto i = 0; i < num_trxs; ++i) {
-    auto trx = rlp[6 + num_tips + i].toHash<trx_hash_t>();
+    auto trx = rlp[7 + num_tips + i].toHash<trx_hash_t>();
     trxs_.push_back(trx);
   }
-  if (rlp.itemCount() > 6 + num_tips + num_trxs)
-    sig_ = rlp[6 + num_tips + num_trxs].toHash<sig_t>();
+  if (rlp.itemCount() > 7 + num_tips + num_trxs)
+    sig_ = rlp[7 + num_tips + num_trxs].toHash<sig_t>();
 }
 
 bool DagBlock::isValid() const {
@@ -115,60 +120,6 @@ Json::Value DagBlock::getJson() const {
 std::string DagBlock::getJsonStr() const {
   Json::StreamWriterBuilder builder;
   return Json::writeString(builder, getJson());
-}
-
-bool DagBlock::serialize(stream &strm) const {
-  bool ok = true;
-  uint32_t num_tips = tips_.size();
-  uint32_t num_trxs = trxs_.size();
-  ok &= write(strm, num_tips);
-  ok &= write(strm, num_trxs);
-  ok &= write(strm, pivot_);
-  ok &= write(strm, level_);
-  for (auto i = 0; i < num_tips; ++i) {
-    ok &= write(strm, tips_[i]);
-  }
-  for (auto i = 0; i < num_trxs; ++i) {
-    ok &= write(strm, trxs_[i]);
-  }
-  ok &= write(strm, sig_);
-  ok &= write(strm, hash_);
-  ok &= write(strm, cached_sender_);
-  ok &= write(strm, timestamp_);
-  assert(ok);
-  return ok;
-}
-
-bool DagBlock::deserialize(stream &strm) {
-  uint32_t num_tips, num_trxs;
-  bool ok = true;
-
-  ok &= read(strm, num_tips);
-  ok &= read(strm, num_trxs);
-  ok &= read(strm, pivot_);
-  ok &= read(strm, level_);
-
-  for (auto i = 0; i < num_tips; ++i) {
-    blk_hash_t t;
-    ok &= read(strm, t);
-    if (ok) {
-      tips_.push_back(t);
-    }
-  }
-  for (auto i = 0; i < num_trxs; ++i) {
-    trx_hash_t t;
-    ok &= read(strm, t);
-    if (ok) {
-      trxs_.push_back(t);
-    }
-  }
-
-  ok &= read(strm, sig_);
-  ok &= read(strm, hash_);
-  ok &= read(strm, cached_sender_);
-  ok &= read(strm, timestamp_);
-  assert(ok);
-  return ok;
 }
 
 void DagBlock::sign(secret_t const &sk) {
@@ -203,12 +154,13 @@ addr_t DagBlock::sender() const {
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   auto num_tips = tips_.size();
   auto num_trxs = trxs_.size();
-  auto total = num_tips + num_trxs + 6;
+  auto total = num_tips + num_trxs + 7;
   s.appendList(include_sig ? total + 1 : total);
   s << hash_;
   s << pivot_;
   s << level_;
   s << timestamp_;
+  s << vdf_.rlp();
   s << num_tips;
   for (auto i = 0; i < num_tips; ++i) s << tips_[i];
   s << num_trxs;

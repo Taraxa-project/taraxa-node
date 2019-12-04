@@ -17,14 +17,15 @@
 #include "libdevcore/Log.h"
 #include "types.hpp"
 #include "util.hpp"
+#include "vdf_sortition.hpp"
 
 namespace taraxa {
 using std::string;
+using VdfSortition = vdf_sortition::VdfSortition;
 class DagManager;
 class Transaction;
 class TransactionManager;
 class FullNode;
-
 // Block definition
 
 /**
@@ -38,7 +39,8 @@ class DagBlock {
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
            sig_t signature, blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
-  DagBlock(stream &strm);
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
+           VdfSortition const &vdf);
   DagBlock(boost::property_tree::ptree const &doc);
   DagBlock(string const &json);
   DagBlock(dev::bytes const &_rlp);
@@ -54,7 +56,7 @@ class DagBlock {
     str << "	signature	= " << u.sig_.abridged() << std::endl;
     str << "	hash		= " << u.hash_.abridged() << std::endl;
     str << "	sender		= " << u.cached_sender_.abridged() << std::endl;
-
+    str << "  vdf = " << u.vdf_ << std::endl;
     return str;
   }
   bool operator==(DagBlock const &other) const {
@@ -72,8 +74,6 @@ class DagBlock {
   Json::Value getJson() const;
   std::string getJsonStr() const;
   bool isValid() const;
-  bool serialize(stream &strm) const;
-  bool deserialize(stream &strm);
   addr_t sender() const;
   void sign(secret_t const &sk);
   void updateHash() {
@@ -94,6 +94,7 @@ class DagBlock {
   sig_t sig_;
   blk_hash_t hash_;
   int64_t timestamp_ = -1;
+  vdf_sortition::VdfSortition vdf_;
   mutable addr_t cached_sender_;  // block creater
 };
 

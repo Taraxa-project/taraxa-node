@@ -82,22 +82,23 @@ TEST_F(CryptoTest, vrf_valid_Key) {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   auto pk = getVrfPublicKey(sk);
-  std::cout << "VRF pk: " << pk
-            << std::endl;
+  std::cout << "VRF pk: " << pk << std::endl;
   EXPECT_TRUE(isValidVrfPublicKey(pk));
 }
 
-
-TEST_F(CryptoTest, vdf_sortition){
+TEST_F(CryptoTest, vdf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   VdfMsg vdf_msg(blk_hash_t(100), 3);
   VdfSortition vdf(sk, vdf_msg);
+  VdfSortition vdf2(sk, vdf_msg);
   vdf.computeVdfSolution();
+  vdf2.computeVdfSolution();
   auto b = vdf.rlp();
-  VdfSortition vdf2(b);
+  VdfSortition vdf3(b);
   EXPECT_EQ(vdf, vdf2);
+  EXPECT_EQ(vdf, vdf3);
 }
 
 TEST_F(CryptoTest, vdf_proof_verify) {
@@ -119,11 +120,14 @@ TEST_F(CryptoTest, vrf_sortition) {
   blk_hash_t blk(123);
   VrfPbftMsg msg(blk, PbftVoteTypes::cert_vote_type, 2, 3);
   VrfPbftSortition sortition(sk, msg);
+  VrfPbftSortition sortition2(sk, msg);
+
   EXPECT_FALSE(sortition.canSpeak(10000000, 20000000));
   EXPECT_TRUE(sortition.canSpeak(1, 1));
   auto b = sortition.getRlpBytes();
-  auto sortition2(b);
+  auto sortition3(b);
   EXPECT_EQ(sortition, sortition2);
+  EXPECT_EQ(sortition, sortition3);
 }
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {

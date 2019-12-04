@@ -25,7 +25,7 @@ struct VdfMsg : public vrf_wrapper::VrfMsgFace {
     return strm;
   }
   blk_hash_t last_pbft_hash;
-  uint64_t level;
+  uint64_t level = 0;
 };
 // It includes a vrf for difficulty adjustment
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
@@ -42,16 +42,17 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
     return pk == other.pk && vdf_msg == other.vdf_msg && proof == other.proof &&
            output == other.output;
   }
-  virtual std::ostream &print(std::ostream &strm) const override{
+  virtual std::ostream& print(std::ostream& strm) const override {
     VrfSortitionBase::print(strm);
-    strm<<vdf_msg<<std::endl;
-    strm<<" Sol1: "<<dev::toHex(vdf_sol.first)<<std::endl;
-    strm<<" Sol2: "<<dev::toHex(vdf_sol.second)<<std::endl;
+    strm << vdf_msg << std::endl;
+    strm << " Sol1: " << dev::toHex(vdf_sol.first) << std::endl;
+    strm << " Sol2: " << dev::toHex(vdf_sol.second) << std::endl;
     return strm;
   }
-  friend std::ostream &operator<<(std::ostream &strm, VdfSortition const & vdf){
+  friend std::ostream& operator<<(std::ostream& strm, VdfSortition const& vdf) {
     return vdf.print(strm);
   }
+
  private:
   inline static unsigned long const lambda = 2000;
   inline static dev::bytes N = dev::asBytes(

@@ -118,4 +118,4 @@ submodules/googletest/ok:
 	$(MAKE) install && \
 	touch ../ok
 
-dependencies: $(DEPENDENCIES)
+dependencies: $(DEPENDENCIES) 

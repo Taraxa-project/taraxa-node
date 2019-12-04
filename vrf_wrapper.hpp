@@ -49,7 +49,7 @@ struct VrfSortitionBase {
   bool operator==(VrfSortitionBase const &other) const {
     return pk == other.pk && proof == other.proof && output == other.output;
   }
-  virtual std::ostream &print(std::ostream &strm) const{
+  virtual std::ostream &print(std::ostream &strm) const {
     strm << "\n[VRF SortitionBase] " << std::endl;
     strm << "  pk: " << pk << std::endl;
     strm << "  proof: " << proof << std::endl;

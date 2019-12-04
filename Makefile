@@ -92,6 +92,7 @@ MKDIR := mkdir
 RM := rm -f
 
 COMPILE = $(CXX) $(CXXFLAGS)
+DEPENDENCIES +=  $(wildcard *.hpp) $(wildcard *.h)
 
 .depcheck-impl:
 	@echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES} ))" >.dep.inc; \
@@ -462,7 +463,7 @@ perf_test: $(TESTBUILDDIR)/performance_test
 run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
-run_test: test
+run_test: test 
 	./scripts/run_commands_long_circuit.sh $(TESTS)
 
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main
