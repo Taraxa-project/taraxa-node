@@ -54,40 +54,22 @@ blk_hash_t TransactionOrderManager::getDagBlockFromTransaction(
 
 bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
   for (auto i(0); i < sche.dag_blks_order.size(); ++i) {
-    auto blk = sche.dag_blks_order[i];
+    auto blk_hash = sche.dag_blks_order[i];
     auto dag_blk_trxs_mode = sche.trxs_mode[i];
-    auto blk_bytes = db_blks_->lookup(blk);
-    if (blk_bytes.size() == 0) {
-      LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
-      return false;
-    }
-    DagBlock dag_block(blk_bytes);
-    auto trxs_hash = dag_block.getTrxs();
-
-    for (auto i(0), j(0); i < trxs_hash.size(); ++i) {
-      auto const& trx_hash_in_dag = trxs_hash[i];
-      auto const& trx_hash_in_schedule = dag_blk_trxs_mode[j].first;
-      if (trx_hash_in_dag != trx_hash_in_schedule) {
-        // overlapped/invalid transactions
-        continue;
-      } else {
-        j++;
-        auto ok = status_.insert(trx_hash_in_dag,
-                                 TransactionExecStatus::ordered);
-        if (!ok) {
-          LOG(log_er_) << "Transaction " << trx_hash_in_dag
-                       << " has been executed";
-        }
-        if (db_trxs_to_blk_) {
-          auto exists = db_trxs_to_blk_->exists(trx_hash_in_dag.toString());
-          if (!exists) {
-            db_trxs_to_blk_->insert(trx_hash_in_dag.toString(), blk.toString());
-          } else {
-            LOG(log_er_) << "Cannot insert transaction " << trx_hash_in_dag
-                         << " --> " << blk
-                         << " mapping, it has been executed in blk "
-                         << db_trxs_to_blk_->lookup(trx_hash_in_dag.toString());
-          }
+    for (auto j(0); j < dag_blk_trxs_mode.size(); ++j) {
+      auto const& trx_hash = dag_blk_trxs_mode[j].first;
+      auto ok = status_.insert(trx_hash, TransactionExecStatus::ordered);
+      if (!ok) {
+        LOG(log_er_) << "Transaction " << trx_hash << " has been executed";
+      }
+      if (db_trxs_to_blk_) {
+        auto exists = db_trxs_to_blk_->exists(trx_hash.toString());
+        if (!exists) {
+          db_trxs_to_blk_->insert(trx_hash.toString(), blk_hash.toString());
+        } else {
+          LOG(log_er_) << "Cannot insert transaction " << trx_hash << " --> "
+                       << blk_hash << " mapping, it has been executed in blk "
+                       << db_trxs_to_blk_->lookup(trx_hash.toString());
         }
       }
     }

@@ -598,6 +598,9 @@ bool FullNode::executeScheduleBlock(
     std::unordered_map<addr_t, PbftSortitionAccount>
         &sortition_account_balance_table,
     uint64_t period) {
+  // TODO: Since PBFT use replay protection serivce and no longer include
+  //  overlapped/invalid transations in schedule block. May not need transtion
+  //  overlap table anymore. CCL please check here
   // update transaction overlap table first
   auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
   res |= executor_->execute(sche_blk.getSchedule(),
@@ -608,8 +611,9 @@ bool FullNode::executeScheduleBlock(
         pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
             .first;
   }
-  if (ws_server_)
+  if (ws_server_) {
     ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
+  }
   return res;
 }
 
