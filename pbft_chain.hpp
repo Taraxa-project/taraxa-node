@@ -38,10 +38,11 @@ enum PbftVoteTypes {
 
 struct TrxSchedule {
  public:
-  enum class TrxStatus : uint8_t { sequential=1, parallel };
+  enum class TrxStatus : uint8_t { sequential = 1, parallel };
 
   TrxSchedule() = default;
-  TrxSchedule(vec_blk_t const& blks,
+  TrxSchedule(
+      vec_blk_t const& blks,
       std::vector<std::vector<std::pair<trx_hash_t, uint>>> const& modes)
       : dag_blks_order(blks), trxs_mode(modes) {}
   // Construct from RLP

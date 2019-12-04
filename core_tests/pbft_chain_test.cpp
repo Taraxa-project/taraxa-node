@@ -18,14 +18,13 @@ struct PbftChainTest : core_tests::util::DBUsingTest<> {};
 TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(32443)};
   std::vector<vec_trx_t> trxs_list{
-    {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
-    {},
-    {trx_hash_t(4), trx_hash_t(5)}
-  };
+      {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
+      {},
+      {trx_hash_t(4), trx_hash_t(5)}};
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
-  for (int i=0; i < trxs_list.size(); i++) {
+  for (int i = 0; i < trxs_list.size(); i++) {
     std::vector<std::pair<trx_hash_t, uint>> one_blk_trxs_mode;
-    for (int j=0; j < trxs_list[i].size(); j++) {
+    for (int j = 0; j < trxs_list[i].size(); j++) {
       one_blk_trxs_mode.emplace_back(std::make_pair(trxs_list[i][j], 1));
     }
     trxs_mode.emplace_back(one_blk_trxs_mode);
@@ -66,15 +65,14 @@ TEST_F(PbftChainTest, serialize_deserialize_pivot_block) {
 TEST_F(PbftChainTest, serialize_deserialize_schedule_block) {
   blk_hash_t prev_pivot(22);
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<vec_trx_t> trxs_list {
-    {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
-    {},
-    {trx_hash_t(4), trx_hash_t(5)}
-  };
+  std::vector<vec_trx_t> trxs_list{
+      {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
+      {},
+      {trx_hash_t(4), trx_hash_t(5)}};
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
-  for (int i=0; i < trxs_list.size(); i++) {
+  for (int i = 0; i < trxs_list.size(); i++) {
     std::vector<std::pair<trx_hash_t, uint>> one_blk_trxs_mode;
-    for (int j=0; j < trxs_list[i].size(); j++) {
+    for (int j = 0; j < trxs_list[i].size(); j++) {
       one_blk_trxs_mode.emplace_back(std::make_pair(trxs_list[i][j], 1));
     }
     trxs_mode.emplace_back(one_blk_trxs_mode);

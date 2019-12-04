@@ -35,7 +35,8 @@ class PbftManager {
   PbftManager(std::vector<uint> const &params, std::string const &genesis);
   ~PbftManager() { stop(); }
 
-  void setFullNode(std::shared_ptr<FullNode> node,
+  void setFullNode(
+      std::shared_ptr<FullNode> node,
       std::shared_ptr<ReplayProtectionService> replay_protection_service);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();

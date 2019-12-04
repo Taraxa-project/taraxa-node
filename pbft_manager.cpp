@@ -32,7 +32,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       RUN_COUNT_VOTES(params[4]),
       dag_genesis_(genesis) {}
 
-void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node,
+void PbftManager::setFullNode(
+    shared_ptr<taraxa::FullNode> full_node,
     shared_ptr<ReplayProtectionService> replay_protection_service) {
   node_ = full_node;
   vote_mgr_ = full_node->getVoteManager();
@@ -1066,18 +1067,18 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
         full_node->getDagBlockOrder(dag_block_hash);
     // get dag blocks
     std::vector<std::shared_ptr<DagBlock>> dag_blks;
-    for (auto const& dag_block_hash : *dag_blocks_order) {
+    for (auto const &dag_block_hash : *dag_blocks_order) {
       auto dag_blk = full_node->getDagBlock(dag_block_hash);
       assert(dag_blk);
       dag_blks.emplace_back(dag_blk);
     }
 
     std::vector<std::vector<std::pair<trx_hash_t, uint>>> dag_blocks_trxs_mode;
-    for (auto const& dag_blk : dag_blks) {
+    for (auto const &dag_blk : dag_blks) {
       // get transactions for each DAG block
       auto trxs_hash = dag_blk->getTrxs();
       std::vector<std::pair<trx_hash_t, uint>> dag_blk_trxs_mode;
-      for (auto const& t_hash : trxs_hash) {
+      for (auto const &t_hash : trxs_hash) {
         auto trx = std::make_shared<Transaction>(db_trxs_->lookup(t_hash));
         if (!replay_protection_service_->hasBeenExecuted(*trx)) {
           // TODO: Generate fake transaction schedule, will need pass to VM to
@@ -1547,7 +1548,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
               util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
               util::eth::toSlice(num_executed_trx));
         }
-        if (pbft_block.getScheduleBlock().getSchedule().dag_blks_order.size() > 0) {
+        if (pbft_block.getScheduleBlock().getSchedule().dag_blks_order.size() >
+            0) {
           auto write_batch = db_dag_blocks_period_->createWriteBatch();
           for (auto const blk_hash :
                pbft_block.getScheduleBlock().getSchedule().dag_blks_order) {
