@@ -70,7 +70,8 @@ class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(uint difficulty_bound, uint lambda_bits)
       : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits) {
-    LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound <<" lambda_bits "<<lambda_bits;
+    LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound
+                 << " lambda_bits " << lambda_bits;
   }
   ~SortitionPropose() {}
   bool propose() override;
@@ -78,6 +79,7 @@ class SortitionPropose : public ProposeModelFace {
  private:
   uint difficulty_bound_;
   uint lambda_bits_;
+  unsigned long long last_proposed_level_ = 0;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
   dev::Logger log_er_{
@@ -135,8 +137,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
     return getShardedTrxs(total_trx_shards_, frontier, my_trx_shard_,
                           sharded_trx);
   }
-  bool getLatestPivotAndTips(std::string& pivot,
-                             std::vector<std::string>& tips);
+  bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
   blk_hash_t getLatestAnchor() const;
   // debug

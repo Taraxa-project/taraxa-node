@@ -58,29 +58,35 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  std::string pivot;
-  std::vector<std::string> tips;
+  blk_hash_t pivot;
+  vec_blk_t tips;
   vec_trx_t sharded_trxs;
-  DagFrontier frontier; 
-
+  if (!proposer->getLatestPivotAndTips(pivot, tips)) {
+    return false;
+  }
+  auto propose_level = proposer->getProposeLevel(pivot, tips) + 1;
+  // TODO: check last successful proposed level
+  if (propose_level <= last_proposed_level_) {
+    return false;
+  }
+  DagFrontier frontier(pivot, tips);
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
     return false;
   }
   assert(!frontier.pivot.isZero());
-  auto propose_level =
-      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   // get sortition
   auto latest_anchor = proposer->getLatestAnchor();
   vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
-  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_, lambda_bits_);
+  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
+                                  lambda_bits_);
   vdf.computeVdfSolution();
   assert(vdf.verify());
-  LOG(log_si_) << "VDF "<< vdf;
+  LOG(log_nf_) << "VDF " << vdf;
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
   proposer_.lock()->proposeBlock(blk);
-
+  last_proposed_level_ = propose_level;
   return true;
 }
 
@@ -100,7 +106,8 @@ void BlockProposer::start() {
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
-  propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey(), full_node_.lock()->getVrfSecretKey());
+  propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey(),
+                              full_node_.lock()->getVrfSecretKey());
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       propose_model_->propose();
@@ -123,14 +130,15 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   LOG(log_nf_) << "Block proposer in " << my_trx_shard_ << " shard ...";
 }
 
-bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
-                                          std::vector<std::string>& tips) {
+bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
+  std::string pivot_string;
+  std::vector<std::string> tips_string;
   auto dag_mgr = dag_mgr_.lock();
   if (!dag_mgr) {
     LOG(log_wr_) << "DagManager expired ..." << std::endl;
     return false;
   }
-  bool ok = dag_mgr->getLatestPivotAndTips(pivot, tips);
+  bool ok = dag_mgr->getLatestPivotAndTips(pivot_string, tips_string);
   if (ok) {
     LOG(log_nf_) << "BlockProposer: pivot: " << pivot
                  << ", tip size = " << tips.size() << std::endl;
@@ -143,6 +151,11 @@ bool BlockProposer::getLatestPivotAndTips(std::string& pivot,
 
   LOG(log_time) << "Pivot and Tips retrieved at: "
                 << getCurrentTimeMilliSeconds();
+  pivot = blk_hash_t(pivot_string);
+  tips.clear();
+  for (auto const& t : tips_string) {
+    tips.emplace_back(blk_hash_t(t));
+  }
   return ok;
 }
 
@@ -176,8 +189,10 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
   }
   return true;
 }
-  
-blk_hash_t BlockProposer::getLatestAnchor() const { return full_node_.lock()->getLatestAnchor();}
+
+blk_hash_t BlockProposer::getLatestAnchor() const {
+  return full_node_.lock()->getLatestAnchor();
+}
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
                                        vec_blk_t const& tips) {
