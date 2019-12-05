@@ -9,6 +9,7 @@
 #include "boost/thread.hpp"
 #include "config.hpp"
 #include "dag_block.hpp"
+#include "vdf_sortition.hpp"
 
 namespace taraxa {
 
@@ -17,19 +18,23 @@ class TransactionManager;
 class FullNode;
 class BlockProposer;
 class DagBlock;
+using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
   virtual bool propose() = 0;
   void setProposer(std::shared_ptr<BlockProposer> proposer,
-                   secret_t const& sk) {
+                   secret_t const& sk, 
+                   vrf_sk_t const & vrf_sk) {
     proposer_ = proposer;
     sk_ = sk;
+    vrf_sk_ = vrf_sk;
   }
 
  protected:
   std::weak_ptr<BlockProposer> proposer_;
   secret_t sk_;
+  vrf_sk_t vrf_sk_;
 };
 
 class RandomPropose : public ProposeModelFace {
@@ -70,12 +75,13 @@ class SortitionPropose : public ProposeModelFace {
   }
   ~SortitionPropose() {}
   bool propose() override;
-  bool propose(blk_hash_t const& blk, uint64_t level);
 
  private:
   uint propose_interval_ = 1000;
   blk_hash_t anchor_hash_;
   uint64_t threshold_;
+  dev::Logger log_si_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
   dev::Logger log_wr_{
@@ -134,11 +140,11 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   bool getLatestPivotAndTips(std::string& pivot,
                              std::vector<std::string>& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
+  blk_hash_t getLatestAnchor() const; 
   // debug
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;
   }
-  bool winProposeSortition(level_t proposeLevel, uint64_t threshold);
   friend ProposeModelFace;
 
  private:

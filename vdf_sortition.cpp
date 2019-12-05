@@ -37,13 +37,15 @@ void VdfSortition::computeVdfSolution() {
   ProverWesolowski prover;
   vdf_sol = prover(verifier);  // this line takes time ...
   auto t2 = getCurrentTimeMilliSeconds();
-  std::cout << "Difficulty is " << getDifficulty() << " , computed in "
-            << t2 - t1 << " (ms)" << std::endl;
+  vdf_computation_time = t2-t1;
 }
 bool VdfSortition::verifyVdfSolution() {
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg.toString());
   VerifierWesolowski verifier(lambda, getDifficulty(), msg_bytes, N);
   return verifier(vdf_sol);
 }
+
+int VdfSortition::getDifficulty() const { 
+    return int(output[0]) % 27; }
 
 }  // namespace taraxa::vdf_sortition

@@ -4,10 +4,12 @@
 #include "full_node.hpp"
 #include "transaction.hpp"
 #include "types.hpp"
+
 namespace taraxa {
 
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 std::mt19937 RandomPropose::generator;
+using namespace vdf_sortition;
 
 uint posLog2(val_t val) {
   if (val <= 0) return 0;
@@ -49,7 +51,6 @@ bool RandomPropose::propose() {
 }
 
 bool SortitionPropose::propose() {
-  thisThreadSleepForMilliSeconds(propose_interval_);
   auto proposer = proposer_.lock();
   bool ret = false;
   if (!proposer) {
@@ -57,42 +58,30 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  // TODO: this part is broken now ...
   std::string pivot;
   std::vector<std::string> tips;
+  vec_trx_t sharded_trxs;
+  DagFrontier frontier; 
 
-  bool ok = proposer->getLatestPivotAndTips(pivot, tips);
-  if (ok) {
-    LOG(log_nf_) << "BlockProposer: pivot: " << pivot
-                 << ", tip size = " << tips.size() << std::endl;
-    LOG(log_nf_) << "Tips: " << tips;
-  } else {
-    LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
+  bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
+  if (!ok) {
     return false;
   }
-  vec_blk_t tip_hashes;
-  for (auto const& t : tips) {
-    tip_hashes.emplace_back(blk_hash_t(t));
-  }
-  auto pivot_hash = blk_hash_t(pivot);
-  auto propose_level = proposer->getProposeLevel(pivot_hash, tip_hashes) + 1;
+  assert(!frontier.pivot.isZero());
+  auto propose_level =
+      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   // get sortition
+  auto latest_anchor = proposer->getLatestAnchor();
+  vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg);
+  vdf.computeVdfSolution();
+  assert(vdf.verify());
+  LOG(log_si_) << "VDF "<< vdf;
+  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
+  proposer_.lock()->proposeBlock(blk);
 
-  bool win = proposer->winProposeSortition(propose_level, threshold_);
-  if (win) {
-    vec_trx_t sharded_trxs;
-    DagFrontier frontier;
-    ok = proposer->getShardedTrxs(sharded_trxs, frontier);
-    if (!ok) {
-      LOG(log_dg_) << "Cannot get transactions ... ";
-      return false;
-    }
-    DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
-    proposer_.lock()->proposeBlock(blk);
-    ret = true;
-  }
-  return ret;
+  return true;
 }
 
 std::shared_ptr<BlockProposer> BlockProposer::getShared() {
@@ -111,7 +100,7 @@ void BlockProposer::start() {
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
-  propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey());
+  propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey(), full_node_.lock()->getVrfSecretKey());
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       propose_model_->propose();
@@ -187,6 +176,8 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
   }
   return true;
 }
+  
+blk_hash_t BlockProposer::getLatestAnchor() const { return full_node_.lock()->getLatestAnchor();}
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
                                        vec_blk_t const& tips) {
@@ -215,41 +206,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
   }
   return max_level;
 }
-bool BlockProposer::winProposeSortition(level_t propose_level,
-                                        uint64_t threshold) {
-  bool ret = false;
-  auto full_node = full_node_.lock();
-  auto anchor = full_node->getLatestAnchor();
-  auto message = anchor.toString() + std::to_string(propose_level);
-  uint64_t ticket = uint64_t(
-      uint256_t(dev::sha3(full_node->signMessage(message))) >> 210);  // 46 bits
-  uint64_t beta = (full_node->getBlockProposeThresholdBeta());        // 10 bits
-  auto my_bal = full_node->getMyBalance();  //  0 ~ 2^53 - 1
-  if (my_bal == 0) {
-    LOG(log_dg_) << "Cannot win ticket, " << getFullNodeAddress()
-                 << " balance is 0 ...";
-    return false;
-  }
-  auto log_bal = posLog2(my_bal) + 1;              // 1~16, 6 bits
-  auto my_threshold = log_bal * beta * threshold;  // 46 bits
-  if (ticket < my_threshold) {
-    LOG(log_dg_) << "Win sortition at level: " << propose_level
-                 << " , ticket = " << ticket
-                 << " , threshold = " << my_threshold
-                 << " , diff (%) = " << double(my_threshold - ticket) / ticket
-                 << " , log_bal = " << log_bal << " , beta = " << beta
-                 << " , threshold = " << threshold;
-    ret = true;
-  } else {
-    LOG(log_dg_) << "Loose sortition at level: " << propose_level
-                 << " , ticket = " << ticket
-                 << " , threshold = " << my_threshold
-                 << " , diff (%) = " << double(my_threshold - ticket) / ticket
-                 << " , log_bal = " << log_bal << " , beta = " << beta
-                 << " , threshold = " << threshold;
-  }
-  return ret;
-}  // namespace taraxa
+
 void BlockProposer::proposeBlock(DagBlock& blk) {
   auto full_node = full_node_.lock();
   assert(full_node);

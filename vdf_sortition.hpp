@@ -45,6 +45,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   virtual std::ostream& print(std::ostream& strm) const override {
     VrfSortitionBase::print(strm);
     strm << vdf_msg << std::endl;
+    strm << " Difficulty: "<<getDifficulty()<<std::endl;
+    strm << " Computation Time: "<<vdf_computation_time << std::endl;
     strm << " Sol1: " << dev::toHex(vdf_sol.first) << std::endl;
     strm << " Sol2: " << dev::toHex(vdf_sol.second) << std::endl;
     return strm;
@@ -62,10 +64,11 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
   bool verifyVrf() { return VrfSortitionBase::verify(vdf_msg); }
   // use first byte as difficult for now
-  int getDifficulty() { return int(output[0]) % 27; }
+  int getDifficulty() const;
   bool verifyVdfSolution();
 
   VdfMsg vdf_msg;
   std::pair<bytes, bytes> vdf_sol;
+  unsigned long vdf_computation_time = 0;
 };
 }  // namespace taraxa::vdf_sortition
