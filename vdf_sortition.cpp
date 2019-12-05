@@ -5,6 +5,7 @@
 #include "util.hpp"
 namespace taraxa::vdf_sortition {
 VdfSortition::VdfSortition(bytes const& b) {
+  if (b.empty()) return;
   dev::RLP const rlp(b);
   if (!rlp.isList()) {
     throw std::invalid_argument("VdfSortition RLP must be a list");

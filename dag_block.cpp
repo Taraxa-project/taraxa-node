@@ -6,6 +6,7 @@
 #include "full_node.hpp"
 #include "libdevcore/CommonJS.h"
 #include "libdevcore/Log.h"
+#include "libdevcore/CommonData.h"
 
 namespace taraxa {
 
@@ -58,6 +59,10 @@ DagBlock::DagBlock(string const &json) {
   cached_sender_ = addr_t(doc["sender"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
   timestamp_ = doc["timestamp"].asInt64();
+  auto vdf_string = doc["vdf"].asString();
+  if (!vdf_string.empty()){
+    vdf_ = VdfSortition(dev::fromHex(vdf_string));
+  }
 }
 DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
   level_ = level_t(doc.get<level_t>("level"));
@@ -68,6 +73,10 @@ DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
   cached_sender_ = addr_t(doc.get<std::string>("sender"));
   pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
   timestamp_ = doc.get<int64_t>("timestamp");
+  auto vdf_string = doc.get<std::string>("vdf");
+  if (!vdf_string.empty()){
+    vdf_ = VdfSortition(dev::fromHex(vdf_string));
+  }
 }
 DagBlock::DagBlock(bytes const &_rlp) {
   dev::RLP const rlp(_rlp);
@@ -114,6 +123,7 @@ Json::Value DagBlock::getJson() const {
   res["hash"] = dev::toJS(hash_);
   res["sender"] = dev::toJS(cached_sender_);
   res["timestamp"] = dev::toJS(timestamp_);
+  res["vdf"] = dev::toJS(dev::toHex(vdf_.rlp()));
   return res;
 }
 
