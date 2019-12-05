@@ -25,8 +25,6 @@ class Test : public TestFace {
   virtual Json::Value create_test_coin_transactions(
       const Json::Value& param1) override;
   virtual Json::Value get_num_proposed_blocks() override;
-  virtual Json::Value send_pbft_schedule_block(
-      const Json::Value& param1) override;
   virtual Json::Value get_account_address() override;
   virtual Json::Value get_account_balance(const Json::Value& param1) override;
   virtual Json::Value get_peer_count() override;

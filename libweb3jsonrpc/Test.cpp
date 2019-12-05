@@ -161,45 +161,6 @@ Json::Value Test::get_num_proposed_blocks() {
   return res;
 }
 
-Json::Value Test::send_pbft_schedule_block(const Json::Value &param1) {
-  Json::Value res;
-  /* TODO: Miho Please modify here. Since no overlapped/invalid transations in
-   *  PBFT schedule block, will include trx hash. Please check TrxSchedule in
-   *  pbft_chain.hpp
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t prev_blk = blk_hash_t(param1["prev_pivot"].asString());
-      taraxa::sig_t sig = taraxa::sig_t(param1["sig"].asString());
-      vec_blk_t blk_order = asVector<blk_hash_t>(param1["blk_order"]);
-      std::vector<size_t> trx_sizes;
-      for (auto &item : param1["trx_sizes"]) {
-        trx_sizes.push_back((item.asUInt64()));
-      }
-      assert(blk_order.size() == trx_sizes.size());
-      std::vector<size_t> trx_modes;
-      for (auto &item : param1["trx_modes"]) {
-        trx_modes.push_back((item.asUInt64()));
-      }
-
-      std::vector<std::vector<uint>> vec_trx_modes(trx_sizes.size());
-      size_t count = 0;
-      for (auto i = 0; i < trx_sizes.size(); ++i) {
-        for (auto j = 0; j < trx_sizes[i]; ++j) {
-          vec_trx_modes[i].emplace_back(trx_modes[count++]);
-        }
-      }
-
-      TrxSchedule sche(blk_order, vec_trx_modes);
-      ScheduleBlock sche_blk(prev_blk, sche);
-      res = sche_blk.getJsonStr();
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-   */
-  return res;
-}
-
 Json::Value Test::get_account_address() {
   Json::Value res;
   try {
