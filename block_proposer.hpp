@@ -23,9 +23,8 @@ class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
   virtual bool propose() = 0;
-  void setProposer(std::shared_ptr<BlockProposer> proposer,
-                   secret_t const& sk, 
-                   vrf_sk_t const & vrf_sk) {
+  void setProposer(std::shared_ptr<BlockProposer> proposer, secret_t const& sk,
+                   vrf_sk_t const& vrf_sk) {
     proposer_ = proposer;
     sk_ = sk;
     vrf_sk_ = vrf_sk;
@@ -69,17 +68,16 @@ class RandomPropose : public ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(uint interval, uint threshold)
-      : propose_interval_(interval), threshold_(threshold) {
-    LOG(log_nf_) << "Set sorition block propose threshold " << threshold_;
+  SortitionPropose(uint difficulty_bound, uint lambda_bits)
+      : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits) {
+    LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound <<" lambda_bits "<<lambda_bits;
   }
   ~SortitionPropose() {}
   bool propose() override;
 
  private:
-  uint propose_interval_ = 1000;
-  blk_hash_t anchor_hash_;
-  uint64_t threshold_;
+  uint difficulty_bound_;
+  uint lambda_bits_;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
   dev::Logger log_er_{
@@ -116,10 +114,10 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
       uint max_freq = conf_.params[1];
       propose_model_ = std::make_unique<RandomPropose>(min_freq, max_freq);
     } else if (conf_.mode == 1) {
-      uint propose_rate = conf_.params[0];
-      uint threshold = conf_.params[1];
+      uint difficulty_bound = conf_.params[0];
+      uint lambda_bits = conf_.params[1];
       propose_model_ =
-          std::make_unique<SortitionPropose>(propose_rate, threshold);
+          std::make_unique<SortitionPropose>(difficulty_bound, lambda_bits);
     }
     total_trx_shards_ = std::max(conf_.shard, 1u);
 
@@ -140,7 +138,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   bool getLatestPivotAndTips(std::string& pivot,
                              std::vector<std::string>& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
-  blk_hash_t getLatestAnchor() const; 
+  blk_hash_t getLatestAnchor() const;
   // debug
   static uint64_t getNumProposedBlocks() {
     return BlockProposer::num_proposed_blocks;

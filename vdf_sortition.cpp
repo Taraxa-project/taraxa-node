@@ -12,10 +12,10 @@ VdfSortition::VdfSortition(bytes const& b) {
   }
   pk = rlp[0].toHash<vrf_pk_t>();
   proof = rlp[1].toHash<vrf_proof_t>();
-  vdf_msg.level = rlp[2].toInt<uint64_t>();
-  vdf_msg.last_pbft_hash = rlp[3].toHash<blk_hash_t>();
-  vdf_sol.first = rlp[4].toBytes();
-  vdf_sol.second = rlp[5].toBytes();
+  vdf_msg_.level = rlp[2].toInt<uint64_t>();
+  vdf_msg_.last_pbft_hash = rlp[3].toHash<blk_hash_t>();
+  vdf_sol_.first = rlp[4].toBytes();
+  vdf_sol_.second = rlp[5].toBytes();
   verify();
 }
 bytes VdfSortition::rlp() const {
@@ -23,29 +23,40 @@ bytes VdfSortition::rlp() const {
   s.appendList(6);
   s << pk;
   s << proof;
-  s << vdf_msg.level;
-  s << vdf_msg.last_pbft_hash;
-  s << vdf_sol.first;
-  s << vdf_sol.second;
+  s << vdf_msg_.level;
+  s << vdf_msg_.last_pbft_hash;
+  s << vdf_sol_.first;
+  s << vdf_sol_.second;
   return s.out();
 }
 void VdfSortition::computeVdfSolution() {
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg.toString());
+  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg_.toString());
   auto t1 = getCurrentTimeMilliSeconds();
-  VerifierWesolowski verifier(lambda, getDifficulty(), msg_bytes, N);
+  VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
 
   ProverWesolowski prover;
-  vdf_sol = prover(verifier);  // this line takes time ...
+  vdf_sol_ = prover(verifier);  // this line takes time ...
   auto t2 = getCurrentTimeMilliSeconds();
-  vdf_computation_time = t2-t1;
+  vdf_computation_time_ = t2 - t1;
 }
 bool VdfSortition::verifyVdfSolution() {
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg.toString());
-  VerifierWesolowski verifier(lambda, getDifficulty(), msg_bytes, N);
-  return verifier(vdf_sol);
+  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg_.toString());
+  VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
+  return verifier(vdf_sol_);
 }
 
-int VdfSortition::getDifficulty() const { 
-    return int(output[0]) % 27; }
+int VdfSortition::getDifficulty() const {
+  return int(output[0]) % difficulty_bound_;
+}
+
+unsigned long VdfSortition::getLambda() const {
+  unsigned long tmp = 0;
+  for (int i = 1; i < 3; ++i) {
+    tmp <<= 8;
+    tmp |= output[i];
+  }
+  tmp >>= (16 - lambda_bits_);
+  return tmp;
+}
 
 }  // namespace taraxa::vdf_sortition

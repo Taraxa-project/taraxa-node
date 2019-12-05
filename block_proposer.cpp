@@ -74,7 +74,7 @@ bool SortitionPropose::propose() {
   // get sortition
   auto latest_anchor = proposer->getLatestAnchor();
   vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
-  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg);
+  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_, lambda_bits_);
   vdf.computeVdfSolution();
   assert(vdf.verify());
   LOG(log_si_) << "VDF "<< vdf;
