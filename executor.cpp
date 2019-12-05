@@ -301,23 +301,6 @@ bool Executor::coinTransfer(account_state::State& state, Transaction const& trx,
 
     val_t nonce = trx.getNonce();
     auto [prev_nonce, exist] = accs_nonce_.get(sender);
-    if (exist) {
-      if (prev_nonce + 1 != nonce) {
-        LOG(log_er_) << "Trx: " << hash << " Sender " << sender
-                     << " nonce has gap, prev nonce " << prev_nonce
-                     << " curr nonce " << nonce << " Receiver: " << receiver
-                     << " value " << value;
-        // return false;
-      }
-    } else {
-      if (nonce != 0) {
-        LOG(log_er_) << "Trx: " << hash << " Sender " << sender
-                     << " nonce has gap, prev nonce unavailable1! (expectt 0)"
-                     << " curr nonce " << nonce << " Receiver: " << receiver
-                     << " value " << value;
-        // return false;
-      }
-    }
     accs_nonce_.update(sender, nonce);
   }
   // if sender == receiver and trx.value == 0, we should still call setBalance
