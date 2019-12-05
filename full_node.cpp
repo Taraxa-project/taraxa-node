@@ -516,16 +516,13 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
+
 bool FullNode::executePeriod(PbftBlock const &pbft_block,
                              std::unordered_map<addr_t, PbftSortitionAccount>
                                  &sortition_account_balance_table,
                              uint64_t period) {
-  auto const &sche_blk = pbft_block.getScheduleBlock();
-  // TODO: Since PBFT use replay protection serivce and no longer include
-  //  overlapped/invalid transations in schedule block. May not need transtion
-  //  overlap table anymore. CCL please check here
   // update transaction overlap table first
-  if (!trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule())) {
+  if (!trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule())) {
     return false;
   }
   auto new_eth_header =
