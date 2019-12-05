@@ -1074,11 +1074,17 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     }
 
     std::vector<std::vector<std::pair<trx_hash_t, uint>>> dag_blocks_trxs_mode;
+    std::unordered_set<trx_hash_t> unique_trxs;
     for (auto const &dag_blk : dag_blks) {
       // get transactions for each DAG block
       auto trxs_hash = dag_blk->getTrxs();
       std::vector<std::pair<trx_hash_t, uint>> dag_blk_trxs_mode;
       for (auto const &t_hash : trxs_hash) {
+        if (unique_trxs.find(t_hash) != unique_trxs.end()) {
+          // Duplicate transations
+          continue;
+        }
+        unique_trxs.insert(t_hash);
         auto trx = std::make_shared<Transaction>(db_trxs_->lookup(t_hash));
         if (!replay_protection_service_->hasBeenExecuted(*trx)) {
           // TODO: Generate fake transaction schedule, will need pass to VM to
@@ -1089,7 +1095,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       dag_blocks_trxs_mode.emplace_back(dag_blk_trxs_mode);
     }
 
-    /* // TODO: Keep for now, need remove later
+    /* TODO: Keep for now to compare, will remove later
     // get transactions overlap table
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
         trx_overlap_table =
