@@ -14,6 +14,7 @@ using dev::db::RocksDB;
 using sender_state::SenderState;
 using std::list;
 using std::optional;
+using std::shared_lock;
 using std::shared_mutex;
 using std::shared_ptr;
 using std::string;
@@ -31,11 +32,20 @@ struct ReplayProtectionService {
 
  public:
   ReplayProtectionService(decltype(range_) range, decltype(db_) const& db);
-  bool hasBeenExecuted(Transaction const& trx);
+  // is_overlapped
+  bool hasBeenExecutedWithinRange(Transaction const& trx);
+  // is_stale
+  bool hasBeenExecutedBeyondRange(Transaction const& trx);
+  bool hasBeenExecuted(Transaction const& trx) {
+    shared_lock l(m_);
+    return hasBeenExecuted_(trx);
+  }
   void commit(round_t round, transaction_batch_t const& trxs);
 
  private:
-  bool hasBeenExecuted_(Transaction const& trx);
+  bool hasBeenExecuted_(Transaction const& trx) {
+    return hasBeenExecutedWithinRange(trx) || hasBeenExecutedBeyondRange(trx);
+  }
   shared_ptr<SenderState> loadSenderState(string const& key);
 };
 

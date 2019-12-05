@@ -8,6 +8,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
   try {
     boost::property_tree::ptree doc = loadJsonFile(json_file);
     node_secret = doc.get<std::string>("node_secret");
+    vrf_secret = doc.get<std::string>("vrf_secret");
     db_path = doc.get<std::string>("db_path");
     dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
 

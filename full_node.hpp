@@ -23,6 +23,7 @@
 #include "util.hpp"
 #include "util/process_container.hpp"
 #include "vote.h"
+#include "vrf_wrapper.hpp"
 
 class Top;
 
@@ -36,8 +37,6 @@ class DagBlock;
 class BlockManager;
 class Transaction;
 class TransactionManager;
-class Vote;
-class VoteManager;
 class PbftManager;
 class NetworkConfig;
 
@@ -49,6 +48,10 @@ enum StatusDbField : uint8_t {
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
   friend class Top;
+  using vrf_pk_t = vrf_wrapper::vrf_pk_t;
+  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
+  using vrf_proof_t = vrf_wrapper::vrf_proof_t;
+  using vrf_output_t = vrf_wrapper::vrf_output_t;
 
   explicit FullNode(std::string const &conf_full_node_file,
                     bool destroy_db = false, bool rebuild_network = false);
@@ -74,6 +77,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
+  bool isSynced() const;
   std::shared_ptr<TransactionManager> getTransactionManager() const {
     return trx_mgr_;
   }
@@ -167,6 +171,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   addr_t getAddress() const;
   public_t getPublicKey() const { return node_pk_; }
   secret_t getSecretKey() const { return node_sk_; }
+  auto getVrfSecretKey() const { return vrf_sk_; }
+  auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
   bool executePeriod(PbftBlock const &pbft_block,
                      std::unordered_map<addr_t, PbftSortitionAccount>
@@ -293,6 +299,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   secret_t node_sk_;
   public_t node_pk_;
   addr_t node_addr_;
+  vrf_sk_t vrf_sk_;
+  vrf_pk_t vrf_pk_;
   addr_t master_boot_node_address_;
 
   // network

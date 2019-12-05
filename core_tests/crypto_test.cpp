@@ -10,12 +10,13 @@
 #include <libdevcrypto/Common.h>
 #include "openssl/bn.h"
 #include "pbft_manager.hpp"
-#include "sodium.h"
 #include "sortition.h"
+#include "vrf_wrapper.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using namespace vdf;
+using namespace vrf_wrapper;
 using std::string;
 struct CryptoTest : core_tests::util::DBUsingTest<> {};
 
@@ -32,32 +33,41 @@ TEST_F(CryptoTest, VerifierWesolowski) {
 }
 
 TEST_F(CryptoTest, vrf_proof_verify) {
-  std::string sk(crypto_vrf_SECRETKEYBYTES, ' '),
-      pk(crypto_vrf_PUBLICKEYBYTES, ' ');
-  crypto_vrf_keypair((unsigned char*)pk.data(), (unsigned char*)sk.data());
-  std::string message("helloworld");
-  crypto_vrf_keypair((unsigned char*)pk.data(), (unsigned char*)sk.data());
-  std::cout << "VRF pk bytes: (" << crypto_vrf_publickeybytes() << ") "
-            << toHex(pk) << std::endl;
-  std::cout << "VRF sk bytes: (" << crypto_vrf_secretkeybytes() << ") "
-            << toHex(sk) << std::endl;
-  string proof(crypto_vrf_proofbytes(), ' ');
-  crypto_vrf_prove((unsigned char*)proof.data(),
-                   (const unsigned char*)sk.data(),
-                   (const unsigned char*)message.data(), message.size());
+  auto [pk, sk] = getVrfKeyPair();
+  auto pk2 = getVrfPublicKey(sk);
+  EXPECT_EQ(pk, pk2);
+  EXPECT_TRUE(isValidVrfPublicKey(pk));
+  auto msg = getRlpBytes("helloworld!");
+  auto proof = getVrfProof(sk, msg);
+  EXPECT_TRUE(proof);
+  auto output = getVrfOutput(pk, proof.value(), msg);
+  EXPECT_TRUE(output);
 
-  std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") "
-            << toHex(proof) << std::endl;
+  std::cout << "VRF pk bytes: (" << crypto_vrf_publickeybytes() << ") " << pk
+            << std::endl;
+  std::cout << "VRF sk bytes: (" << crypto_vrf_secretkeybytes() << ") " << sk
+            << std::endl;
+  if (proof) {
+    std::cout << "VRF proof bytes: (" << crypto_vrf_proofbytes() << ") "
+              << proof.value() << std::endl;
+  }
+  if (output) {
+    std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
+              << output.value() << endl;
+  }
+}
 
-  string output(crypto_vrf_outputbytes(), ' ');
-
-  auto res = crypto_vrf_verify(
-      (unsigned char*)output.data(), (const unsigned char*)pk.data(),
-      (const unsigned char*)proof.data(), (const unsigned char*)message.data(),
-      message.size());
-  std::cout << "VRF output bytes: (" << crypto_vrf_outputbytes() << ") "
-            << toHex(output) << endl;
-  EXPECT_FALSE(res);  // means success
+TEST_F(CryptoTest, vrf_sortition) {
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  VrfSortition sortition(sk, blk_hash_t(111), PbftVoteTypes::cert_vote_type, 1,
+                         3);
+  EXPECT_FALSE(sortition.canSpeak(10000000, 20000000));
+  EXPECT_TRUE(sortition.canSpeak(1, 1));
+  auto b = sortition.getRlpBytes();
+  auto sortition2(b);
+  EXPECT_EQ(sortition, sortition2);
 }
 
 TEST_F(CryptoTest, keypair_signature_verify_hash_test) {

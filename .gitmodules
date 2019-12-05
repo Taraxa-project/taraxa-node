@@ -1,27 +1,34 @@
 [submodule "submodules/cryptopp"]
 	path = submodules/cryptopp
 	url = https://github.com/weidai11/cryptopp.git
+	ignore = dirty
 [submodule "submodules/rapidjson"]
 	path = submodules/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
 [submodule "submodules/ethash"]
 	path = submodules/ethash
 	url = https://github.com/chfast/ethash
+	ignore = dirty
 [submodule "submodules/secp256k1"]
 	path = submodules/secp256k1
 	url = https://github.com/chfast/secp256k1
+	ignore = dirty
 [submodule "submodules/libff"]
 	path = submodules/libff
 	url = https://github.com/scipr-lab/libff
+	ignore = dirty
 [submodule "submodules/prometheus-cpp"]
 	path = submodules/prometheus-cpp
 	url = https://github.com/jupp0r/prometheus-cpp.git
+	ignore = dirty
 [submodule "submodules/taraxa-evm"]
 	path = submodules/taraxa-evm
 	url = https://github.com/Taraxa-project/taraxa-evm.git
+	ignore = dirty
 [submodule "submodules/taraxa-vdf"]
 	path = submodules/taraxa-vdf
 	url = https://github.com/Taraxa-project/taraxa-vdf.git
+	ignore = dirty
 [submodule "submodules/openssl"]
 	path = submodules/openssl
 	url = https://github.com/openssl/openssl.git

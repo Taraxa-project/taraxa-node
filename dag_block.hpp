@@ -99,8 +99,7 @@ class DagBlock {
 
 enum class BlockStatus { invalid, proposed, broadcasted, verified, unseen };
 
-using BlockStatusTable = StatusTable<blk_hash_t, BlockStatus>;
-using BlockUnsafeStatusTable = BlockStatusTable::UnsafeStatusTable;
+using BlockStatusTable = ExpirationCacheMap<blk_hash_t, BlockStatus>;
 
 struct DagFrontier {
   DagFrontier() = default;
@@ -134,9 +133,6 @@ class BlockManager {
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
-  BlockUnsafeStatusTable getUnsafeBlockStatusTable() const {
-    return blk_status_.getThreadUnsafeCopy();
-  }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -153,7 +149,7 @@ class BlockManager {
   std::shared_ptr<TransactionManager> trx_mgr_;
   // seen blks
   BlockStatusTable blk_status_;
-  std::map<blk_hash_t, DagBlock> seen_blocks_;
+  ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
   mutable boost::shared_mutex
       shared_mutex_;  // shared mutex to check seen_blocks ...
   std::vector<std::thread> verifiers_;

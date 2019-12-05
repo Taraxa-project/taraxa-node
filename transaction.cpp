@@ -572,8 +572,10 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       auto trx_hash = trx.getHash();
       auto status = trx_status_.get(trx_hash);
       if (!status.second || status.first != TransactionStatus::in_block) {
-        trx_count_.fetch_add(1);
-        db_trxs_->insert(trx_hash, trx.rlp(trx.hasSig()));
+        if (!db_trxs_->exists(trx_hash)) {
+          trx_count_.fetch_add(1);
+          db_trxs_->insert(trx_hash, trx.rlp(trx.hasSig()));
+        }
         trx_status_.update(trx_hash, TransactionStatus::in_block);
       }
     }

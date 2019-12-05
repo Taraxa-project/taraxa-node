@@ -59,24 +59,6 @@ unsigned long getCurrentTimeMilliSeconds() {
       .count();
 }
 
-void Subject::subscribe(std::shared_ptr<Observer> obs) { viewers_.insert(obs); }
-
-void Subject::unsubscribe(std::shared_ptr<Observer> obs) {
-  viewers_.erase(obs);
-}
-
-void Subject::notify() {
-  for (auto const &v : viewers_) {
-    v->update();
-  }
-}
-
-Observer::Observer(std::shared_ptr<Subject> sub) : subject_(sub) {
-  subject_->subscribe(shared_from_this());
-}
-
-Observer::~Observer() { subject_->unsubscribe(shared_from_this()); }
-
 }  // namespace taraxa
 
 void abortHandler(int sig) {

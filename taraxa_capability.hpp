@@ -69,6 +69,11 @@ class TaraxaPeer : public boost::noncopyable {
     known_transactions_.insert(_hash);
   }
 
+  void clearAllKnownBlocksAndTransactions() {
+    known_transactions_.clear();
+    known_blocks_.clear();
+  }
+
   // PBFT
   bool isVoteKnown(vote_hash_t const &_hash) const {
     return known_votes_.count(_hash);
