@@ -92,7 +92,7 @@ MKDIR := mkdir
 RM := rm -f
 
 COMPILE = $(CXX) $(CXXFLAGS)
-DEPENDENCIES +=  $(wildcard *.hpp) $(wildcard *.h)
+DEPENDENCIES +=  $(wildcard *.hpp)
 
 .depcheck-impl:
 	@echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES} ))" >.dep.inc; \

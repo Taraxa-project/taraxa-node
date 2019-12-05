@@ -1,8 +1,8 @@
-#include "vote.h"
+#include "vote.hpp"
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "pbft_manager.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>

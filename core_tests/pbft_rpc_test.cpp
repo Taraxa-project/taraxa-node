@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 #include <boost/thread.hpp>
 #include "core_tests/util.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;

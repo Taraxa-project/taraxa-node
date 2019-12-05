@@ -2,7 +2,7 @@
 #include "dag.hpp"
 #include "network.hpp"
 #include "pbft_chain.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 using namespace taraxa;
 

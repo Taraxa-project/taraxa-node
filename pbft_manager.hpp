@@ -11,7 +11,7 @@
 #include "pbft_sortition_account.h"
 #include "taraxa_capability.hpp"
 #include "types.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991

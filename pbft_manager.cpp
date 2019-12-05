@@ -12,7 +12,7 @@
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "network.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 #include "util.hpp"
 #include "util/eth.hpp"
 

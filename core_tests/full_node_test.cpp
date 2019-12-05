@@ -18,7 +18,7 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 #include "string"
 #include "top.hpp"
 #include "util.hpp"

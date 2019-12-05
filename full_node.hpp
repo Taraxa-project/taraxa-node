@@ -22,7 +22,7 @@
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
 #include "util/process_container.hpp"
-#include "vote.h"
+#include "vote.hpp"
 #include "vrf_wrapper.hpp"
 
 class Top;

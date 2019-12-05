@@ -10,9 +10,9 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 #include "util/eth.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 namespace taraxa {
 
