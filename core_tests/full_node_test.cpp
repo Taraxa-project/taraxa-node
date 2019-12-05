@@ -439,7 +439,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto trx_executed3 = node3->getNumTransactionExecuted();
     auto trx_executed4 = node4->getNumTransactionExecuted();
     auto trx_executed5 = node5->getNumTransactionExecuted();
-
+    // unique trxs in DAG block
     auto trx_packed1 = node1->getPackedTrxs().size();
     auto trx_packed2 = node2->getPackedTrxs().size();
     auto trx_packed3 = node3->getPackedTrxs().size();
@@ -449,7 +449,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     if (trx_packed1 < trx_executed1) {
       std::cout << "Warning! " << trx_packed1
                 << " packed transactions is less than " << trx_executed1
-                << " executed transactions in node 1";
+                << " executed transactions in node 1" << std::endl;
     }
 
     if (trx_executed1 == issued_trx_count &&
@@ -471,9 +471,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     taraxa::thisThreadSleepForMilliSeconds(500);
     if (i % 100 == 0) {
       if (trx_executed1 != issued_trx_count) {
-        std::cout << " Node 1: executed blk= " << node2->getNumBlockExecuted()
+        std::cout << " Node 1: executed blk= " << node1->getNumBlockExecuted()
                   << " Dag size: " << node1->getNumVerticesInDag().first
-                  << " executed trx = " << trx_executed2 << "/"
+                  << " executed trx = " << trx_executed1 << "/"
                   << issued_trx_count << std::endl;
       }
       if (trx_executed2 != issued_trx_count) {

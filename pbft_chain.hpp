@@ -16,10 +16,9 @@
 #include "util.hpp"
 
 /**
- * In pbft_chain, three kinds of blocks:
- * 1. PivotBlock: pivot chain
- * 2. ScheduleBlock: determines concurrent set
- * 3. ResultBlock: computing results
+ * In pbft_chain, two kinds of blocks:
+ * 1. PivotBlock: determine DAG block in pivot chain
+ * 2. ScheduleBlock: determine sequential/concurrent set
  */
 namespace taraxa {
 using boost::property_tree::ptree;
@@ -27,8 +26,7 @@ using boost::property_tree::ptree;
 enum PbftBlockTypes {
   pbft_block_none_type = -1,
   pivot_block_type = 0,
-  schedule_block_type,
-  result_block_type
+  schedule_block_type
 };
 
 enum PbftVoteTypes {
@@ -40,28 +38,29 @@ enum PbftVoteTypes {
 
 struct TrxSchedule {
  public:
-  enum class TrxStatus : uint8_t { invalid, sequential, parallel };
+  enum class TrxStatus : uint8_t { sequential = 1, parallel };
 
   TrxSchedule() = default;
-  TrxSchedule(vec_blk_t const& blks,
-              std::vector<std::vector<uint>> const& modes)
-      : blk_order(blks), vec_trx_modes(modes) {}
+  TrxSchedule(
+      vec_blk_t const& blks,
+      std::vector<std::vector<std::pair<trx_hash_t, uint>>> const& modes)
+      : dag_blks_order(blks), trxs_mode(modes) {}
   // Construct from RLP
   TrxSchedule(bytes const& rlpData);
   ~TrxSchedule() {}
 
   bytes rlp() const;
-  // order of blocks (in hash)
-  vec_blk_t blk_order;
+  // order of DAG blocks (in hash)
+  vec_blk_t dag_blks_order;
   // It is multiple array of transactions
   // TODO: optimize trx_mode type
-  std::vector<std::vector<uint>> vec_trx_modes;
+  std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
   std::string getJsonStr() const;
   bool operator==(TrxSchedule const& other) const {
     return rlp() == other.rlp();
   }
 };
-std::ostream& operator<<(std::ostream& strm, TrxSchedule const& tr_sche);
+std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche);
 
 class FullNode;
 class Vote;

@@ -190,12 +190,11 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   vote_mgr_->setFullNode(getShared());
-  pbft_mgr_->setFullNode(getShared());
-  pbft_mgr_->start();
 
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.replay_protection_service_range, db_replay_protection_service_);
-
+  pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
+  pbft_mgr_->start();
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_blks_,
@@ -599,18 +598,22 @@ bool FullNode::executeScheduleBlock(
     std::unordered_map<addr_t, PbftSortitionAccount>
         &sortition_account_balance_table,
     uint64_t period) {
+  // TODO: Since PBFT use replay protection serivce and no longer include
+  //  overlapped/invalid transations in schedule block. May not need transtion
+  //  overlap table anymore. CCL please check here
   // update transaction overlap table first
   auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
   res |= executor_->execute(sche_blk.getSchedule(),
                             sortition_account_balance_table, period);
   uint64_t block_number = 0;
-  if (sche_blk.getSchedule().blk_order.size() > 0) {
+  if (sche_blk.getSchedule().dag_blks_order.size() > 0) {
     block_number =
-        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().blk_order[0])
+        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
             .first;
   }
-  if (ws_server_)
+  if (ws_server_) {
     ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
+  }
   return res;
 }
 
