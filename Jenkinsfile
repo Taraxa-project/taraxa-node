@@ -1,3 +1,57 @@
+def getChart(){
+        dir('taraxa-testnet') {
+                git(
+                    branch: 'development',
+                    url: 'https://github.com/Taraxa-project/taraxa-testnet.git',
+                    credentialsId: 'a9e63ab7-4c38-4644-8829-5f1144995c44'
+                )
+            }
+}
+
+// TODO: Add helm as a container
+// TODO: Configure kubeconfig with jenkins variables
+
+def helmVersion() {
+    println "Checking client/server version"
+    sh "helm version"
+}
+
+def helmInstallChart(String test_name, String image, String tag) {
+    dir ('taraxa-testnet/tests') {
+        println "Installing helm chart"
+        sh """
+            helm install --name ${test_name} taraxa-node \
+                --wait \
+                --atomic \
+                --timeout 1200 \
+                --namespace ${test_name} \
+                --set replicaCount=5 \
+                --set test.pythontester.script=jenkins.py \
+                --set image.repository=${image} \
+                --set image.tag=${tag} \
+                -f taraxa-node/values.yaml
+        """
+    }
+}
+
+def helmTestChart(String test_name) {
+    dir ('taraxa-testnet/tests') {
+        println "Running helm test"
+        sh """
+            helm test ${test_name} \
+                --timeout 3600 \
+                --cleanup
+        """
+    }
+}
+
+def helmCleanChart(String test_name) {
+    println "Cleaning helm test ${test_name}"
+    sh "helm delete --purge ${test_name} || true"
+    println "Cleaning namespace ${test_name}"
+    sh "kubectl delete ns ${test_name} || true"
+}
+
 pipeline {
     agent any
     environment {
@@ -7,6 +61,7 @@ pipeline {
         SLACK_CHANNEL = 'jenkins'
         SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
+        HELM_TEST_NAME = sh(script: 'echo ${BRANCH_NAME} | sed "s/[^A-Za-z0-9\\-]*//g" | tr "[:upper:]" "[:lower:]"', returnStdout: true).trim()
     }
     options {
       ansiColor('xterm')
@@ -84,6 +139,27 @@ pipeline {
                 always {
                     sh 'docker kill taraxa-node-smoke-test || true'
                     sh 'docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true'
+                }
+            }
+        }
+        stage('Push Docker Image For test') {
+            when { branch 'PR-*' }
+            steps {
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
+                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${HELM_TEST_NAME}-build-${BUILD_NUMBER}'
+            }
+        }
+        stage('Run kubernetes tests') {
+            when { branch 'PR-*' }
+            steps {
+                getChart()
+                helmVersion()
+                helmInstallChart("${HELM_TEST_NAME}", "${GCP_REGISTRY}/${IMAGE}", "${HELM_TEST_NAME}-build-${BUILD_NUMBER}")
+                helmTestChart("${HELM_TEST_NAME}")
+            }
+            post {
+                always {
+                    helmCleanChart("${HELM_TEST_NAME}")
                 }
             }
         }
