@@ -40,6 +40,8 @@
 [submodule "submodules/googletest"]
 	path = submodules/googletest
 	url = https://github.com/google/googletest
+	ignore = dirty
 [submodule "submodules/taraxa-aleth"]
 	path = submodules/taraxa-aleth
 	url = https://github.com/Taraxa-project/taraxa-aleth.git
+	ignore = dirty
