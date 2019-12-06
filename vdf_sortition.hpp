@@ -72,6 +72,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
     return vdf.print(strm);
   }
   auto getComputationTime() const { return vdf_computation_time_; }
+  int getDifficulty() const;
+  unsigned long getLambda() const;
 
  private:
   inline static dev::bytes N = dev::asBytes(
@@ -81,8 +83,6 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
   bool verifyVrf() { return VrfSortitionBase::verify(vdf_msg_); }
   // use first byte as difficult for now
-  int getDifficulty() const;
-  unsigned long getLambda() const;
   bool verifyVdfSolution();
   VdfMsg vdf_msg_;
   std::pair<bytes, bytes> vdf_sol_;

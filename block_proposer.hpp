@@ -77,7 +77,7 @@ class SortitionPropose : public ProposeModelFace {
   bool propose() override;
 
  private:
-  inline static uint min_propose_delay = 500;
+  inline static uint min_propose_delay = 200;
   uint difficulty_bound_;
   uint lambda_bits_;
   unsigned long long last_proposed_level_ = 0;
@@ -140,6 +140,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   }
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
+  level_t getMaxDagLevel() const;
   blk_hash_t getLatestAnchor() const;
   // debug
   static uint64_t getNumProposedBlocks() {

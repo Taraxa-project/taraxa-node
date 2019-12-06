@@ -31,8 +31,6 @@ bool RandomPropose::propose() {
   thisThreadSleepForMilliSeconds(delay);
   LOG(log_tr_) << "Add proposer delay " << delay << std::endl;
 
-  std::string pivot;
-  std::vector<std::string> tips;
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
 
@@ -59,13 +57,7 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  blk_hash_t pivot;
-  vec_blk_t tips;
-  vec_trx_t sharded_trxs;
-  if (!proposer->getLatestPivotAndTips(pivot, tips)) {
-    return false;
-  }
-  auto propose_level = proposer->getProposeLevel(pivot, tips) + 1;
+  auto propose_level = proposer->getMaxDagLevel() + 1;
 
   // TODO: check last successful proposed level
   if (propose_level <= last_proposed_level_) {
@@ -73,7 +65,10 @@ bool SortitionPropose::propose() {
   }
 
   auto latest_anchor = proposer->getLatestAnchor();
-  DagFrontier frontier(pivot, tips);
+
+  vec_trx_t sharded_trxs;
+  DagFrontier frontier;
+
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
     return false;
@@ -86,8 +81,12 @@ bool SortitionPropose::propose() {
                                   lambda_bits_);
   vdf.computeVdfSolution();
   assert(vdf.verify());
-  LOG(log_si_) << "VDF computation time " << vdf.getComputationTime();
-  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
+  LOG(log_si_) << "VDF computation time " << vdf.getComputationTime()
+               << " difficulty " << vdf.getDifficulty();
+  // DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs,
+  // vdf);
+  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
+
   proposer->proposeBlock(blk);
   last_proposed_level_ = propose_level;
   return true;
@@ -132,7 +131,13 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   my_trx_shard_ = addr % conf_.shard;
   LOG(log_nf_) << "Block proposer in " << my_trx_shard_ << " shard ...";
 }
-
+level_t BlockProposer::getMaxDagLevel() const {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    return full_node->getMaxDagLevel();
+  }
+  return 0;
+}
 bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   std::string pivot_string;
   std::vector<std::string> tips_string;
@@ -143,9 +148,9 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   }
   bool ok = dag_mgr->getLatestPivotAndTips(pivot_string, tips_string);
   if (ok) {
-    LOG(log_nf_) << "BlockProposer: pivot: " << pivot
+    LOG(log_nf_) << "BlockProposer: pivot: " << pivot.toString()
                  << ", tip size = " << tips.size() << std::endl;
-    LOG(log_nf_) << "Tips: " << tips;
+    LOG(log_tr_) << "Tips: " << tips;
   } else {
     LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
     return ok;
@@ -174,7 +179,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
   }
   trx_mgr->packTrxs(to_be_packed_trx, frontier);
   if (to_be_packed_trx.empty()) {
-    LOG(log_dg_) << "Skip block proposer, zero unpacked transactions ..."
+    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
                  << std::endl;
     return false;
   }

@@ -1037,7 +1037,7 @@ TEST_F(FullNodeTest, persist_counter) {
     EXPECT_EQ(node2->getTransactionStatusCount(), 1000);
 
     // time to make sure all transactions have been packed into block...
-    taraxa::thisThreadSleepForMilliSeconds(2000);
+    taraxa::thisThreadSleepForSeconds(10);
 
     // send dummy trx to make sure all DAGs are ordered
     try {
@@ -1158,7 +1158,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 1);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 2);
   std::cout << "First trx received ..." << std::endl;
@@ -1174,7 +1174,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 2);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 3);
 
@@ -1183,7 +1183,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 2) break;
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(trx_executed1, 2);
 }
@@ -1223,7 +1223,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
   std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 1);
   EXPECT_GE(node1->getNumVerticesInDag().first, 2);
   std::cout << "First trx received ..." << std::endl;
@@ -1233,13 +1233,13 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 1) break;
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 2);
   EXPECT_GE(node1->getNumVerticesInDag().first, 3);
 
@@ -1630,15 +1630,15 @@ int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("FULLND");
-  // logOptions.includeChannels.push_back("DAGMGR");
-  // logOptions.includeChannels.push_back("EXETOR");
-  // logOptions.includeChannels.push_back("BLK_PP");
-  // logOptions.includeChannels.push_back("PR_MDL");
-  // logOptions.includeChannels.push_back("PBFT_MGR");
-  // logOptions.includeChannels.push_back("PBFT_CHAIN");
+      // logOptions.includeChannels.push_back("FULLND");
+      // logOptions.includeChannels.push_back("DAGMGR");
+      // logOptions.includeChannels.push_back("EXETOR");
+      // logOptions.includeChannels.push_back("BLK_PP");
+      // logOptions.includeChannels.push_back("PR_MDL");
+      // logOptions.includeChannels.push_back("PBFT_MGR");
+      // logOptions.includeChannels.push_back("PBFT_CHAIN");
 
-  dev::setupLogging(logOptions);
+      dev::setupLogging(logOptions);
   dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
