@@ -501,6 +501,23 @@ TransactionManager::getVerifiedTrxSnapShot() {
   return trx_qu_.getVerifiedTrxSnapShot();
 }
 
+std::pair<size_t, size_t> TransactionManager::getTransactionQueueSize() const {
+  return trx_qu_.getTransactionQueueSize();
+}
+
+std::pair<size_t, size_t> TransactionQueue::getTransactionQueueSize() const {
+  std::pair<size_t, size_t> res;
+  {
+    uLock lock(shared_mutex_for_unverified_qu_);
+    res.first = unverified_hash_qu_.size();
+  }
+  {
+    uLock lock(shared_mutex_for_verified_qu_);
+    res.second = verified_trxs_.size();
+  }
+  return res;
+}
+
 std::vector<taraxa::bytes>
 TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();

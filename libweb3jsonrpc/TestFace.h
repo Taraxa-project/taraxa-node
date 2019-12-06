@@ -55,6 +55,10 @@ class TestFace : public ServerInterface<TestFace> {
                            jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_peer_countI);
     this->bindAndAddMethod(
+        jsonrpc::Procedure("get_node_status", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, NULL),
+        &TestFace::get_node_statusI);
+    this->bindAndAddMethod(
         jsonrpc::Procedure("get_node_count", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_node_countI);
@@ -152,6 +156,10 @@ class TestFace : public ServerInterface<TestFace> {
                                       Json::Value &response) {
     response = this->get_peer_count();
   }
+  inline virtual void get_node_statusI(const Json::Value &request,
+                                      Json::Value &response) {
+    response = this->get_node_status();
+  }
   inline virtual void get_node_countI(const Json::Value &request,
                                       Json::Value &response) {
     response = this->get_node_count();
@@ -214,6 +222,7 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_account_address() = 0;
   virtual Json::Value get_account_balance(const Json::Value &param1) = 0;
   virtual Json::Value get_peer_count() = 0;
+  virtual Json::Value get_node_status() = 0;
   virtual Json::Value get_node_count() = 0;
   virtual Json::Value get_all_peers() = 0;
   virtual Json::Value get_all_nodes() = 0;

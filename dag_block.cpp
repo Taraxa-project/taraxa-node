@@ -301,6 +301,26 @@ void BlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {
   pushUnverifiedBlock(blk, std::vector<Transaction>(), critical);
 }
 
+std::pair<size_t, size_t> BlockManager::getDagBlockQueueSize() const {
+  std::pair<size_t, size_t> res;
+  {
+    uLock lock(shared_mutex_for_unverified_qu_);
+    res.first = 0;
+    for(auto& it : unverified_qu_) {
+      res.first += it.second.size();
+    }
+  }
+
+  {
+    uLock lock(shared_mutex_for_verified_qu_);
+    res.second = 0;
+    for(auto& it : verified_qu_) {
+      res.second += it.second.size();
+    }
+  }
+  return res;
+}
+
 DagBlock BlockManager::popVerifiedBlock() {
   uLock lock(shared_mutex_for_verified_qu_);
   while (verified_qu_.empty() && !stopped_) {
