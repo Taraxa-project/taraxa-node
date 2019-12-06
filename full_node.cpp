@@ -546,6 +546,20 @@ std::vector<taraxa::bytes> FullNode::getNewVerifiedTrxSnapShotSerialized() {
   return trx_mgr_->getNewVerifiedTrxSnapShotSerialized();
 }
 
+std::pair<size_t, size_t> FullNode::getTransactionQueueSize() const {
+  if (stopped_ || !trx_mgr_) {
+    return std::pair<size_t, size_t>();
+  }
+  return trx_mgr_->getTransactionQueueSize();
+}
+
+std::pair<size_t, size_t> FullNode::getDagBlockQueueSize() const {
+  if (stopped_ || !blk_mgr_) {
+    return std::pair<size_t, size_t>();
+  }
+  return blk_mgr_->getDagBlockQueueSize();
+}
+
 void FullNode::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
     std::vector<taraxa::bytes> const &transactions) {

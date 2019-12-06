@@ -207,6 +207,31 @@ Json::Value Test::get_peer_count() {
   return res;
 }
 
+Json::Value Test::get_node_status() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      res["peer_count"] = Json::UInt64(node->getPeerCount());
+      res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
+      res["blk_executed"] = Json::UInt64(node->getNumBlockExecuted());
+      res["blk_count"] = Json::UInt64(node->getNumVerticesInDag().first);
+      res["trx_executed"] = Json::UInt64(node->getNumTransactionExecuted());
+      res["trx_count"] = Json::UInt64(node->getTransactionCount());
+      res["dag_level"] = Json::UInt64(node->getMaxDagLevel());
+      res["pbft_size"] = Json::UInt64(node->getPbftChainSize());
+      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftSyncedQueueSize());
+      res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionQueueSize().first);
+      res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionQueueSize().second);
+      res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockQueueSize().first);
+      res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockQueueSize().second);
+      res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 Json::Value Test::get_node_count() {
   Json::Value res;
   try {
