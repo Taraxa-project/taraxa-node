@@ -306,7 +306,7 @@ std::pair<size_t, size_t> BlockManager::getDagBlockQueueSize() const {
   {
     uLock lock(shared_mutex_for_unverified_qu_);
     res.first = 0;
-    for(auto& it : unverified_qu_) {
+    for (auto &it : unverified_qu_) {
       res.first += it.second.size();
     }
   }
@@ -314,7 +314,7 @@ std::pair<size_t, size_t> BlockManager::getDagBlockQueueSize() const {
   {
     uLock lock(shared_mutex_for_verified_qu_);
     res.second = 0;
-    for(auto& it : verified_qu_) {
+    for (auto &it : verified_qu_) {
       res.second += it.second.size();
     }
   }

@@ -177,6 +177,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   vector<NodeID> selectPeers(
       std::function<bool(TaraxaPeer const &)> const &_predicate);
   vector<NodeID> getAllPeers() const;
+  Json::Value getStatus() const;
   std::pair<std::vector<NodeID>, std::vector<NodeID>> randomPartitionPeers(
       std::vector<NodeID> const &_peers, std::size_t _number);
   std::pair<int, int> retrieveTestData(NodeID const &_id);
