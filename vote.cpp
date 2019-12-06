@@ -94,7 +94,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  size_t valid_sortition_players,
                                  size_t sortition_threshold) const {
   if (last_pbft_block_hash != vote.getVrfSorition().blk) {
-    LOG(log_deb_) << "Last pbft block hash does not match "
+    LOG(log_tra_) << "Last pbft block hash does not match "
                   << last_pbft_block_hash;
     return false;
   }
