@@ -71,6 +71,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   friend std::ostream& operator<<(std::ostream& strm, VdfSortition const& vdf) {
     return vdf.print(strm);
   }
+  auto getComputationTime() const { return vdf_computation_time_; }
 
  private:
   inline static dev::bytes N = dev::asBytes(
@@ -83,7 +84,6 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   int getDifficulty() const;
   unsigned long getLambda() const;
   bool verifyVdfSolution();
-
   VdfMsg vdf_msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;

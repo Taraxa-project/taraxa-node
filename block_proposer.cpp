@@ -51,6 +51,7 @@ bool RandomPropose::propose() {
 }
 
 bool SortitionPropose::propose() {
+  thisThreadSleepForMilliSeconds(min_propose_delay);
   auto proposer = proposer_.lock();
   bool ret = false;
   if (!proposer) {
@@ -65,10 +66,13 @@ bool SortitionPropose::propose() {
     return false;
   }
   auto propose_level = proposer->getProposeLevel(pivot, tips) + 1;
+
   // TODO: check last successful proposed level
   if (propose_level <= last_proposed_level_) {
     return false;
   }
+
+  auto latest_anchor = proposer->getLatestAnchor();
   DagFrontier frontier(pivot, tips);
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
@@ -77,15 +81,14 @@ bool SortitionPropose::propose() {
   assert(!frontier.pivot.isZero());
 
   // get sortition
-  auto latest_anchor = proposer->getLatestAnchor();
   vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
   vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
                                   lambda_bits_);
   vdf.computeVdfSolution();
   assert(vdf.verify());
-  LOG(log_nf_) << "VDF " << vdf;
+  LOG(log_si_) << "VDF computation time " << vdf.getComputationTime();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
-  proposer_.lock()->proposeBlock(blk);
+  proposer->proposeBlock(blk);
   last_proposed_level_ = propose_level;
   return true;
 }

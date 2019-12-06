@@ -77,6 +77,7 @@ class SortitionPropose : public ProposeModelFace {
   bool propose() override;
 
  private:
+  inline static uint min_propose_delay = 500;
   uint difficulty_bound_;
   uint lambda_bits_;
   unsigned long long last_proposed_level_ = 0;

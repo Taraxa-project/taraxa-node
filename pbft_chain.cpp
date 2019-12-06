@@ -747,9 +747,8 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(
     }
     PbftBlockTypes pbft_block_type = pbft_block.getBlockType();
     if (pbft_block_type != next_pbft_block_type) {
-      LOG(log_err_) << "Next pbft block type should be "
-                    << next_pbft_block_type_ << " Invalid pbft block type "
-                    << pbft_block.getBlockType();
+      LOG(log_err_) << "Next pbft block type should be " << next_pbft_block_type
+                    << " Invalid pbft block type " << pbft_block.getBlockType();
       return false;
     }
     if (pbft_block_type == pivot_block_type) {
