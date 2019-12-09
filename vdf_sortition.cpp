@@ -16,20 +16,24 @@ VdfSortition::VdfSortition(bytes const& b) {
   vdf_msg_.last_pbft_hash = rlp[3].toHash<blk_hash_t>();
   vdf_sol_.first = rlp[4].toBytes();
   vdf_sol_.second = rlp[5].toBytes();
-  verify();
+  difficulty_bound_ = rlp[6].toInt<uint>();
+  lambda_bits_ = rlp[7].toInt<uint>();
 }
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
-  s.appendList(6);
+  s.appendList(8);
   s << pk;
   s << proof;
   s << vdf_msg_.level;
   s << vdf_msg_.last_pbft_hash;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
+  s << difficulty_bound_;
+  s << lambda_bits_;
   return s.out();
 }
 void VdfSortition::computeVdfSolution() {
+  assert(verifyVrf());
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg_.toString());
   auto t1 = getCurrentTimeMilliSeconds();
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
@@ -40,9 +44,15 @@ void VdfSortition::computeVdfSolution() {
   vdf_computation_time_ = t2 - t1;
 }
 bool VdfSortition::verifyVdfSolution() {
+  assert(verifyVrf());
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg_.toString());
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
-  return verifier(vdf_sol_);
+  if (!verifier(vdf_sol_)) {
+    // std::cout << "Error! Vdf verify failed..." << std::endl;
+    // std::cout << *this << std::endl;
+    return false;
+  }
+  return true;
 }
 
 int VdfSortition::getDifficulty() const {

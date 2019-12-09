@@ -58,6 +58,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
   auto pk2 = getVrfPublicKey(sk);
   EXPECT_EQ(pk, pk2);
   EXPECT_TRUE(isValidVrfPublicKey(pk));
+  EXPECT_TRUE(isValidVrfPublicKey(pk2));
   auto msg = getRlpBytes("helloworld!");
   auto proof = getVrfProof(sk, msg);
   EXPECT_TRUE(proof);

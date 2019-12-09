@@ -1630,15 +1630,22 @@ int main(int argc, char **argv) {
   TaraxaStackTrace st;
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
-      // logOptions.includeChannels.push_back("FULLND");
-      // logOptions.includeChannels.push_back("DAGMGR");
-      // logOptions.includeChannels.push_back("EXETOR");
-      // logOptions.includeChannels.push_back("BLK_PP");
-      // logOptions.includeChannels.push_back("PR_MDL");
-      // logOptions.includeChannels.push_back("PBFT_MGR");
-      // logOptions.includeChannels.push_back("PBFT_CHAIN");
+  // logOptions.includeChannels.push_back("FULLND");
+  // logOptions.includeChannels.push_back("BLKQU");
+  // logOptions.includeChannels.push_back("TARCAP");
+  // logOptions.includeChannels.push_back("DAGSYNC");
+  // logOptions.includeChannels.push_back("DAGPRP");
+  // logOptions.includeChannels.push_back("TRXPRP");
+  // logOptions.includeChannels.push_back("DAGMGR");
+  // logOptions.includeChannels.push_back("TRXMGR");
 
-      dev::setupLogging(logOptions);
+  // logOptions.includeChannels.push_back("EXETOR");
+  // logOptions.includeChannels.push_back("BLK_PP");
+  // logOptions.includeChannels.push_back("PR_MDL");
+  // logOptions.includeChannels.push_back("PBFT_MGR");
+  // logOptions.includeChannels.push_back("PBFT_CHAIN");
+
+  dev::setupLogging(logOptions);
   dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

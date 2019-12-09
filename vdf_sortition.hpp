@@ -40,7 +40,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
         VrfSortitionBase(sk, vdf_msg) {}
   VdfSortition(bytes const& b);
 
-  bool verify() { return verifyVrf() && verifyVdfSolution(); }
+  bool verify() { return verifyVdfSolution(); }
   void computeVdfSolution();
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {

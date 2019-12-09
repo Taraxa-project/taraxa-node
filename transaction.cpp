@@ -624,7 +624,9 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
     delay += 10;
   }
   if (!all_transactions_saved) {
-    LOG(log_er_) << "Missing transactions " << unsaved_trx;
+    LOG(log_er_) << full_node_.lock()->getAddress()
+                 << " Missing transactions (" << unsaved_trx.size() << ") "
+                 << unsaved_trx;
   }
 
   return all_transactions_saved;

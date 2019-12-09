@@ -49,22 +49,13 @@ bool RandomPropose::propose() {
 }
 
 bool SortitionPropose::propose() {
-  thisThreadSleepForMilliSeconds(min_propose_delay);
   auto proposer = proposer_.lock();
   bool ret = false;
   if (!proposer) {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
   }
-
-  auto propose_level = proposer->getMaxDagLevel() + 1;
-
-  // TODO: check last successful proposed level
-  if (propose_level <= last_proposed_level_) {
-    return false;
-  }
-
-  auto latest_anchor = proposer->getLatestAnchor();
+  thisThreadSleepForMilliSeconds(min_propose_delay);
 
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
@@ -75,6 +66,16 @@ bool SortitionPropose::propose() {
   }
   assert(!frontier.pivot.isZero());
 
+  // auto propose_level = proposer->getMaxDagLevel() + 1;
+  auto propose_level =
+      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
+  // // TODO: check last successful proposed level
+  if (propose_level <= last_proposed_level_) {
+    return false;
+  }
+
+  auto latest_anchor = proposer->getLatestAnchor();
+
   // get sortition
   vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
   vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
@@ -83,9 +84,7 @@ bool SortitionPropose::propose() {
   assert(vdf.verify());
   LOG(log_si_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
-  // DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs,
-  // vdf);
-  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
+  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
 
   proposer->proposeBlock(blk);
   last_proposed_level_ = propose_level;
