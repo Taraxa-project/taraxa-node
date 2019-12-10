@@ -25,10 +25,10 @@
   "ws_port": 8778,
   "test_params": {
     "block_proposer": [
+      0,
       1,
-      1,
-      10,
-      12
+      100,
+      1000
     ],
     "pbft": [
       2000,
