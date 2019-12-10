@@ -4,9 +4,9 @@
 #include <utility>
 #include "dag.hpp"
 #include "full_node.hpp"
+#include "libdevcore/CommonData.h"
 #include "libdevcore/CommonJS.h"
 #include "libdevcore/Log.h"
-#include "libdevcore/CommonData.h"
 
 namespace taraxa {
 
@@ -60,7 +60,7 @@ DagBlock::DagBlock(string const &json) {
   pivot_ = blk_hash_t(doc["pivot"].asString());
   timestamp_ = doc["timestamp"].asInt64();
   auto vdf_string = doc["vdf"].asString();
-  if (!vdf_string.empty()){
+  if (!vdf_string.empty()) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));
   }
 }
@@ -74,7 +74,7 @@ DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
   pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
   timestamp_ = doc.get<int64_t>("timestamp");
   auto vdf_string = doc.get<std::string>("vdf");
-  if (!vdf_string.empty()){
+  if (!vdf_string.empty()) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));
   }
 }
