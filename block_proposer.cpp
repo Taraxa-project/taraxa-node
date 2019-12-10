@@ -66,10 +66,8 @@ bool SortitionPropose::propose() {
   }
   assert(!frontier.pivot.isZero());
 
-  // auto propose_level = proposer->getMaxDagLevel() + 1;
   auto propose_level =
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
-  // // TODO: check last successful proposed level
   if (propose_level <= last_proposed_level_) {
     return false;
   }
@@ -82,7 +80,7 @@ bool SortitionPropose::propose() {
                                   lambda_bits_);
   vdf.computeVdfSolution();
   assert(vdf.verify());
-  LOG(log_si_) << "VDF computation time " << vdf.getComputationTime()
+  LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
 

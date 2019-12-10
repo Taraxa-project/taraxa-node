@@ -48,7 +48,6 @@ dev::bytes getRlpBytes(std::string const &str) {
 
 bool VrfSortitionBase::verify(VrfMsgFace const &msg) {
   if (!isValidVrfPublicKey(pk)) {
-    // std::cout << "Not a valid VRF public key " << *this << std::endl;
     return false;
   }
   const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
@@ -57,7 +56,6 @@ bool VrfSortitionBase::verify(VrfMsgFace const &msg) {
     output = res.value();
     return true;
   }
-  // std::cout << "Not a valid VRF proof" << std::endl;
   return false;
 }
 
