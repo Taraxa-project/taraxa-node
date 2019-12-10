@@ -98,6 +98,7 @@ TEST_F(CryptoTest, vdf_sortition) {
   vdf2.computeVdfSolution();
   auto b = vdf.rlp();
   VdfSortition vdf3(b);
+  vdf3.verify();
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
   std::cout << vdf << std::endl;
