@@ -11,6 +11,7 @@
 #include <vector>
 #include "config.hpp"
 #include "database_face_cache.hpp"
+#include "db_storage.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
@@ -181,7 +182,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // get DBs
   std::shared_ptr<DatabaseFaceCache> getTrxsDB() const { return db_trxs_; }
-  std::shared_ptr<DatabaseFaceCache> getBlksDB() const { return db_blks_; }
+  std::shared_ptr<DbStorage> getDB() const { return db_; }
   std::shared_ptr<dev::db::DatabaseFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
@@ -332,8 +333,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<taraxa::WSServer> ws_server_;
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
-  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_blks_index_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;

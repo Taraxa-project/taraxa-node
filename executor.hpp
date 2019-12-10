@@ -11,6 +11,7 @@
 #include "account_state/index.hpp"
 #include "dag_block.hpp"
 #include "database_face_cache.hpp"
+#include "db_storage.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.h"
@@ -32,7 +33,7 @@ class Executor {
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
@@ -61,7 +62,7 @@ class Executor {
  public:
   Executor(uint64_t pbft_require_sortition_coins,
            decltype(log_time_) log_time,  //
-           decltype(db_blks_) db_blks,
+           decltype(db_) db,
            decltype(db_trxs_) db_trxs,                                      //
            decltype(replay_protection_service_) replay_protection_service,  //
            decltype(state_registry_) state_registry,                        //

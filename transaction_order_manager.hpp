@@ -11,6 +11,7 @@
 #include <thread>
 #include "dag_block.hpp"
 #include "database_face_cache.hpp"
+#include "db_storage.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
 #include "types.hpp"
@@ -51,7 +52,7 @@ class TransactionOrderManager {
   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   dev::Logger log_er_{
       dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
   dev::Logger log_wr_{

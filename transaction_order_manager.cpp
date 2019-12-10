@@ -14,7 +14,7 @@ void TransactionOrderManager::start() {
     return;
   }
   db_trxs_to_blk_ = node_.lock()->getTrxsToBlkDB();
-  db_blks_ = node_.lock()->getBlksDB();
+  db_ = node_.lock()->getDB();
 }
 
 void TransactionOrderManager::stop() {
@@ -22,7 +22,7 @@ void TransactionOrderManager::stop() {
     return;
   }
   db_trxs_to_blk_ = nullptr;
-  db_blks_ = nullptr;
+  db_ = nullptr;
 }
 
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(

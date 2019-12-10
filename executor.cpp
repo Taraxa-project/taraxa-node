@@ -11,7 +11,7 @@ using trx_engine::TrxEngine;
 Executor::Executor(
     uint64_t pbft_require_sortition_coins,
     decltype(log_time_) log_time,  //
-    decltype(db_blks_) db_blks,
+    decltype(db_) db,
     decltype(db_trxs_) db_trxs,                                      //
     decltype(replay_protection_service_) replay_protection_service,  //
     decltype(state_registry_) state_registry,                        //
@@ -19,7 +19,7 @@ Executor::Executor(
     bool use_basic_executor)
     : pbft_require_sortition_coins_(pbft_require_sortition_coins),
       log_time_(std::move(log_time)),
-      db_blks_(std::move(db_blks)),
+      db_(std::move(db)),
       db_trxs_(std::move(db_trxs)),
       replay_protection_service_(std::move(replay_protection_service)),
       db_status_(std::move(db_status)),
@@ -65,12 +65,11 @@ bool Executor::execute_main(
   }
   for (auto blk_i(0); blk_i < schedule.dag_blks_order.size(); ++blk_i) {
     auto blk_hash = schedule.dag_blks_order[blk_i];
-    auto blk_bytes = db_blks_->lookup(blk_hash);
-    if (blk_bytes.size() == 0) {
+    auto dag_block = db_->getDagBlock(blk_hash);
+    if (dag_block == nullptr) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
     }
-    DagBlock dag_block(blk_bytes);
     auto dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
     auto num_trxs = dag_blk_trxs_mode.size();
     int num_overlapped_trx(0);
@@ -124,8 +123,8 @@ bool Executor::execute_main(
             snapshot.state_root,
             trx_engine::Block{
                 snapshot.block_number + 1,
-                dag_block.getSender(),
-                dag_block.getTimestamp(),
+                dag_block->getSender(),
+                dag_block->getTimestamp(),
                 0,
                 // TODO unint64 is correct
                 uint64_t(MOCK_BLOCK_GAS_LIMIT),
@@ -218,14 +217,11 @@ bool Executor::executeBlkTrxs(
     std::vector<std::pair<trx_hash_t, uint>> const& dag_blk_trxs_mode,
     BalanceTable& sortition_account_balance_table, uint64_t period,
     ReplayProtectionService::transaction_batch_t& executed_trx) {
-  std::string blk_json = db_blks_->lookup(blk.toString());
-  auto blk_bytes = db_blks_->lookup(blk);
-  if (blk_bytes.size() == 0) {
+  auto dag_block = db_->getDagBlock(blk);
+  if (dag_block == nullptr) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
-
-  DagBlock dag_block(blk_bytes);
 
   auto num_trxs = dag_blk_trxs_mode.size();
   // sequential execute transaction
@@ -257,7 +253,7 @@ bool Executor::executeBlkTrxs(
       continue;
     }
     if (coinTransfer(state, *trx, sortition_account_balance_table, period,
-                     dag_block)) {
+                     *dag_block)) {
       executed_trx.push_back(trx);
       num_executed_trx_.fetch_add(1);
     }

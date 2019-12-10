@@ -132,7 +132,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/database_face_cache.o \
 	${OBJECTDIR}/replay_protection/sender_state.o \
 	${OBJECTDIR}/replay_protection/replay_protection_service.o \
-	${OBJECTDIR}/vrf_wrapper.o
+	${OBJECTDIR}/vrf_wrapper.o \
+	${OBJECTDIR}/db_storage.o
+
 
 
 NODE_OBJECTS = $(OBJECTFILES) $(ALETH_OBJ)
@@ -248,6 +250,11 @@ ${OBJECTDIR}/transaction.o: transaction.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/transaction.o transaction.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/db_storage.o: db_storage.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/db_storage.o db_storage.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/libethereum/account.o: libethereum/Account.cpp
 	${MKDIR} -p ${OBJECTDIR}
