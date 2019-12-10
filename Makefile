@@ -1,7 +1,7 @@
 include Makefile.common
 include Makefile.submodules
 
-include $(shell find $(BUILD_DIR) -path "*.d")
+include $(shell find $(BUILD_DIR) -path "*.d" 2> /dev/null)
 
 DEPS := $(SUBMODULE_DEPS)
 
@@ -22,11 +22,11 @@ COMPILE_DEFINITIONS := \
 INCLUDE_DIRS := $(CURDIR) $(DEPS_INSTALL_PREFIX)/include $(JSONCPP_INCLUDE_DIR)
 
 LINK_FLAGS := -Wl,-rpath $(DEPS_INSTALL_PREFIX)/lib
-ifneq ($(DEBUG), 0)
-	ifeq ($(OS),Dawrin)
-		LINK_FLAGS += -Wl,--export-dynamic
-	else
+ifeq ($(DEBUG), 1)
+	ifeq ($(OS), Darwin)
 		LINK_FLAGS += -rdynamic
+	else
+		LINK_FLAGS += -Wl,--export-dynamic
 	endif
 endif
 
@@ -113,6 +113,7 @@ NODE_SRCS := \
     database_face_cache.cpp \
     replay_protection/sender_state.cpp \
     replay_protection/replay_protection_service.cpp \
+    vrf_wrapper.cpp \
     net/JsonHelper.cpp \
     net/RpcServer.cpp \
     net/WSServer.cpp \

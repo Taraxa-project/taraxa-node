@@ -14,7 +14,7 @@ scripts/submodule_list.sh | while read line; do
   git submodule update --init ${line} | tee ${_log}
   [ -s ${_log} ] && (
     cd ${line}
-    try_git_clean
+    try_git_reset
   ) || true
 done
 
