@@ -599,7 +599,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto d = dags[i];
     for (auto const &t : node1->getDagBlock(d)->getTrxs()) {
       auto blk = node1->getDagBlockFromTransaction(t);
-      EXPECT_FALSE(blk.isZero());
+      EXPECT_FALSE(blk->isZero());
     }
   }
 
@@ -690,32 +690,31 @@ TEST_F(FullNodeTest, destroy_db) {
     auto node(taraxa::FullNode::make(conf,
                                      true));  // destroy DB
     node->start(false);
-    auto trx_db = node->getTrxsDB();
-    trx_db->insert(g_trx_signed_samples[0].getHash().toString(),
-                   g_trx_signed_samples[0].getJsonStr());
+    auto db = node->getDB();
+    db->saveTransaction(g_trx_signed_samples[0]);
     // Verify trx saved in db
     EXPECT_TRUE(
-        !trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
+        db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(taraxa::FullNode::make(conf,
                                      false));  // destroy DB
     node->start(false);
-    auto trx_db = node->getTrxsDB();
+    auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(
-        !trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
+        db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(taraxa::FullNode::make(conf,
                                      true));  // destroy DB
     node->start(false);
-    auto trx_db = node->getTrxsDB();
+    auto db = node->getDB();
     // Verify trx not in db after restart with destroy_db true
     EXPECT_TRUE(
-        trx_db->lookup(g_trx_signed_samples[0].getHash().toString()).empty());
+        !db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
 }
 

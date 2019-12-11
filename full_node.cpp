@@ -96,10 +96,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   db_pbft_sortition_accounts_ = std::move(
       newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
   db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
-  db_trxs_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.transactions_db_path(), genesis_hash, mode).db, 100000);
-  db_trxs_to_blk_ =
-      std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash, mode).db);
   db_pbftchain_ =
       std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash, mode).db);
   db_pbft_blocks_order_ = std::move(
@@ -114,7 +110,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash, mode).db);
   db_period_schedule_block_ = std::move(
       newDB(conf_.period_schedule_block_path(), genesis_hash, mode).db);
-  db_status_ = std::move(newDB(conf_.status_path(), genesis_hash, mode).db);
   // store genesis blk to db
   db_->saveDagBlock(genesis_block);
   // TODO add move to a StateRegistry constructor?
@@ -193,10 +188,9 @@ void FullNode::start(bool boot_node) {
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
                                          log_time_,  //
                                          db_,
-                                         db_trxs_,                    //
                                          replay_protection_service_,  //
                                          state_registry_,             //
-                                         db_status_, conf_.use_basic_executor);
+                                         conf_.use_basic_executor);
   executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
@@ -257,8 +251,6 @@ void FullNode::stop() {
   replay_protection_service_ = nullptr;
   assert(db_replay_protection_service_.use_count() == 1);
   assert(db_.use_count() == 1);
-  assert(db_trxs_.use_count() == 1);
-  assert(db_trxs_to_blk_.use_count() == 1);
   assert(db_cert_votes_.use_count() == 1);
   assert(db_pbftchain_.use_count() == 1);
   assert(db_pbft_blocks_order_.use_count() == 1);

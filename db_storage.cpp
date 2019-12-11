@@ -1,4 +1,5 @@
 #include "db_storage.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 using namespace std;
@@ -56,6 +57,10 @@ void DbStorage::checkStatus(rocksdb::Status& _status) {
                         .c_str());
 }
 
+std::unique_ptr<WriteBatch> DbStorage::createWriteBatch() {
+  return std::unique_ptr<WriteBatch>(new WriteBatch());
+}
+
 std::string DbStorage::lookup(Slice _key, Columns column) {
   std::string value;
   Status status = db_->Get(read_options_, handles_[column], _key, &value);
@@ -63,6 +68,11 @@ std::string DbStorage::lookup(Slice _key, Columns column) {
 
   checkStatus(status);
   return value;
+}
+
+void DbStorage::commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch) {
+  auto status = db_->Write(write_options_, write_batch.get());
+  checkStatus(status);
 }
 
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
@@ -97,6 +107,59 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
                             toSlice(blocks));
   checkStatus(status);
   status = db_->Write(write_options_, write_batch.get());
+  checkStatus(status);
+}
+
+void DbStorage::saveTransaction(Transaction const& trx)  {
+  auto status = db_->Put(write_options_, handles_[Columns::transactions],
+                         toSlice(trx.getHash().asBytes()), toSlice(trx.rlp(trx.hasSig())));
+  checkStatus(status);
+}
+  
+
+void DbStorage::saveTransactionToBlock(trx_hash_t const& trx_hash,
+                                       blk_hash_t const& blk_hash) {
+  auto status = db_->Put(write_options_, handles_[Columns::trx_to_blk],
+                         trx_hash.toString(), blk_hash.toString());
+  checkStatus(status);
+}
+
+std::shared_ptr<blk_hash_t> DbStorage::getTransactionToBlock(
+    trx_hash_t const& hash) {
+  auto blk_hash = lookup(hash.toString(), Columns::trx_to_blk);
+  if (!blk_hash.empty()) {
+    return make_shared<blk_hash_t>(blk_hash);
+  }
+  return nullptr;
+}
+
+bool DbStorage::transactionToBlockInDb(trx_hash_t const& hash) {
+  return !lookup(hash.toString(), Columns::trx_to_blk).empty();
+}
+
+std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
+   auto trx_bytes =
+      asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  if (trx_bytes.size() > 0) {
+    return std::make_shared<Transaction>(trx_bytes);
+  }
+  return nullptr;
+}
+
+bool DbStorage::transactionInDb(trx_hash_t const& hash) {
+  return !lookup(toSlice(hash.asBytes()), Columns::transactions).empty();
+}
+
+uint64_t DbStorage::getStatusField(StatusDbField const& field) {
+  auto status = lookup(toSlice((uint8_t)field), Columns::status);
+  if (!status.empty()) return *(uint64_t*)&status[0];
+  return 0;
+}
+
+void DbStorage::saveStatusField(StatusDbField const& field,
+                                uint64_t const& value) {
+  auto status = db_->Put(write_options_, handles_[Columns::status],
+                         toSlice((uint8_t)field), toSlice((uint8_t)value));
   checkStatus(status);
 }
 

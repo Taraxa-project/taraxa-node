@@ -61,8 +61,7 @@ void PbftManager::start() {
   db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
   db_period_schedule_block_ = full_node->getPeriodScheduleBlockDB();
   db_dag_blocks_period_ = full_node->getDagBlocksPeriodDB();
-  db_status_ = full_node->getStatusDB();
-  db_trxs_ = full_node->getTrxsDB();
+  db_ = full_node->getDB();
   if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
@@ -138,8 +137,7 @@ void PbftManager::stop() {
   db_sortition_accounts_ = nullptr;
   db_period_schedule_block_ = nullptr;
   db_dag_blocks_period_ = nullptr;
-  db_status_ = nullptr;
-  db_trxs_ = nullptr;
+  db_ = nullptr;
   replay_protection_service_ = nullptr;
 }
 
@@ -1085,7 +1083,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
           continue;
         }
         unique_trxs.insert(t_hash);
-        auto trx = std::make_shared<Transaction>(db_trxs_->lookup(t_hash));
+        auto trx = db_->getTransaction(t_hash);
         if (!replay_protection_service_->hasBeenExecuted(*trx)) {
           // TODO: Generate fake transaction schedule, will need pass to VM to
           //  generate the transaction schedule later
@@ -1547,12 +1545,10 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         auto num_executed_blk = full_node->getNumBlockExecuted();
         auto num_executed_trx = full_node->getNumTransactionExecuted();
         if (num_executed_blk > 0 && num_executed_trx > 0) {
-          db_status_->insert(
-              util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
-              util::eth::toSlice(num_executed_blk));
-          db_status_->insert(
-              util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
-              util::eth::toSlice(num_executed_trx));
+          db_->saveStatusField(StatusDbField::ExecutedBlkCount,
+                               num_executed_blk);
+          db_->saveStatusField(StatusDbField::ExecutedTrxCount,
+                               num_executed_trx);
         }
         if (pbft_block.getScheduleBlock().getSchedule().dag_blks_order.size() >
             0) {

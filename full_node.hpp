@@ -41,12 +41,6 @@ class TransactionManager;
 class PbftManager;
 class NetworkConfig;
 
-enum StatusDbField : uint8_t {
-  ExecutedBlkCount = 0,
-  ExecutedTrxCount,
-  TrxCount
-};
-
 class FullNode : public std::enable_shared_from_this<FullNode> {
   friend class Top;
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
@@ -155,7 +149,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::unordered_set<std::string> getUnOrderedDagBlks() const;
   // get transaction schecules stuff ...
   // fixme: return optional
-  blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
+  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const &trx) const {
     return trx_order_mgr_->getDagBlockFromTransaction(trx);
   }
 
@@ -181,11 +175,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                             uint64_t period);
 
   // get DBs
-  std::shared_ptr<DatabaseFaceCache> getTrxsDB() const { return db_trxs_; }
   std::shared_ptr<DbStorage> getDB() const { return db_; }
-  std::shared_ptr<dev::db::DatabaseFace> getTrxsToBlkDB() const {
-    return db_trxs_to_blk_;
-  }
   std::shared_ptr<account_state::StateRegistry> getStateRegistry() const {
     return state_registry_;
   }
@@ -250,9 +240,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   std::shared_ptr<dev::db::DatabaseFace> getDagBlocksPeriodDB() const {
     return db_dag_blocks_period_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getStatusDB() const {
-    return db_status_;
   }
 
   // PBFT RPC
@@ -334,8 +321,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<account_state::State> state_ = nullptr;
   // PBFT DB
@@ -347,7 +332,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;

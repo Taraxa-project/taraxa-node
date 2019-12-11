@@ -17,6 +17,7 @@
 #include "database_face_cache.hpp"
 #include "libdevcore/Log.h"
 #include "util.hpp"
+#include "db_storage.hpp"
 
 namespace taraxa {
 
@@ -302,10 +303,8 @@ class TransactionManager
         rlp_cache_(100000, 10000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
-  TransactionManager(std::shared_ptr<DatabaseFaceCache> db_trx,
-                     std::shared_ptr<dev::db::DatabaseFace> db_status)
-      : db_trxs_(db_trx),
-        db_status_(db_status),
+  TransactionManager(std::shared_ptr<DbStorage> db)
+      : db_(db),
         trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
@@ -375,8 +374,7 @@ class TransactionManager
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   TransactionStatusTable trx_status_;
   TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;

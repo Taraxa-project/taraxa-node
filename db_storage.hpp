@@ -14,6 +14,11 @@ using namespace std;
 using namespace dev;
 using namespace rocksdb;
 namespace fs = boost::filesystem;
+enum StatusDbField : uint8_t {
+  ExecutedBlkCount = 0,
+  ExecutedTrxCount,
+  TrxCount
+};
 
 class DbException : public exception {
  public:
@@ -31,8 +36,15 @@ class DbStorage {
     default_column = 0,
     dag_blocks,
     dag_blocks_index,
+    transactions,
+    trx_to_blk,
+    status,
     column_end
   };
+
+  static const constexpr char* const column_names[] = {
+      "default",      "dag_blocks", "dag_blocks_index",
+      "transactions", "trx_to_blk", "status"};
 
   DbStorage(fs::path const& base_path, h256 const& genesis_hash,
             bool drop_existing);
@@ -42,10 +54,27 @@ class DbStorage {
   }
   void checkStatus(rocksdb::Status& _status);
   std::string lookup(Slice _key, Columns column);
+  std::unique_ptr<WriteBatch> createWriteBatch();
+  void commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch);
+  ColumnFamilyHandle* getHandle(Columns column) {
+    if (handles_.size() > 0) return handles_[column];
+    return NULL;
+  }
 
+  void saveDagBlock(DagBlock const& blk);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   std::string getBlocksByLevel(level_t level);
-  void saveDagBlock(DagBlock const& blk);
+
+  void saveTransaction(Transaction const& trx);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  bool transactionInDb(trx_hash_t const& hash);
+
+  void saveTransactionToBlock(trx_hash_t const& trx, blk_hash_t const& hash);
+  std::shared_ptr<blk_hash_t> getTransactionToBlock(trx_hash_t const& hash);
+  bool transactionToBlockInDb(trx_hash_t const& hash);
+
+  uint64_t getStatusField(StatusDbField const& field);
+  void saveStatusField(StatusDbField const& field, uint64_t const& value);
 
   inline Slice toSlice(dev::bytes const& _b) const {
     return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
@@ -69,8 +98,6 @@ class DbStorage {
   std::vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
-  static const constexpr char* const column_names[] = {"default", "dag_blocks",
-                                                       "dag_blocks_index"};
 };
 }  // namespace taraxa
 #endif

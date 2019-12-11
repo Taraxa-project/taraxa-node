@@ -34,10 +34,8 @@ class Executor {
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
-  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   trx_engine::TrxEngine trx_engine_;
   bool use_basic_executor_;
@@ -63,10 +61,8 @@ class Executor {
   Executor(uint64_t pbft_require_sortition_coins,
            decltype(log_time_) log_time,  //
            decltype(db_) db,
-           decltype(db_trxs_) db_trxs,                                      //
            decltype(replay_protection_service_) replay_protection_service,  //
            decltype(state_registry_) state_registry,                        //
-           decltype(db_status_) db_status,                                  //
            bool use_basic_executor = false);
 
   bool execute(TrxSchedule const& schedule,
