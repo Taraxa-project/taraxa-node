@@ -1035,10 +1035,10 @@ TEST_F(FullNodeTest, persist_counter) {
     }
     EXPECT_EQ(node1->getTransactionStatusCount(), 1000);
     EXPECT_EQ(node2->getTransactionStatusCount(), 1000);
-
+    std::cout << "All 1000 trxs are received ..." << std::endl;
     // time to make sure all transactions have been packed into block...
-    taraxa::thisThreadSleepForSeconds(10);
-
+    // taraxa::thisThreadSleepForSeconds(10);
+    taraxa::thisThreadSleepForMilliSeconds(2000);
     // send dummy trx to make sure all DAGs are ordered
     try {
       send_dummy_trx();
@@ -1051,13 +1051,13 @@ TEST_F(FullNodeTest, persist_counter) {
     // add more delay if sync is not done
     for (auto i = 0; i < SYNC_TIMEOUT; i++) {
       if (num_exe_trx1 == 1001 && num_exe_trx2 == 1001) break;
-      taraxa::thisThreadSleepForMilliSeconds(500);
+      taraxa::thisThreadSleepForMilliSeconds(200);
       num_exe_trx1 = node1->getNumTransactionExecuted();
       num_exe_trx2 = node2->getNumTransactionExecuted();
     }
 
-    EXPECT_EQ(num_exe_trx1, 1001);
-    EXPECT_EQ(num_exe_trx2, 1001);
+    ASSERT_EQ(num_exe_trx1, 1001);
+    ASSERT_EQ(num_exe_trx2, 1001);
 
     num_exe_blk1 = node1->getNumBlockExecuted();
     num_exe_blk2 = node2->getNumBlockExecuted();
