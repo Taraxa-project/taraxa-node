@@ -12,6 +12,7 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <optional>
 #include <regex>
 #include <streambuf>
@@ -126,6 +127,7 @@ unsigned long getCurrentTimeMilliSeconds();
 
 /**
  * simple thread_safe hash
+ * LRU
  */
 
 template <typename K, typename V>
@@ -136,11 +138,18 @@ class StatusTable {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using UnsafeStatusTable = std::unordered_map<K, V>;
-  std::pair<V, bool> get(K const &hash) const {
-    sharedLock lock(shared_mutex_);
+  StatusTable(size_t capacity = 100000) : capacity_(capacity) {}
+  std::pair<V, bool> get(K const &hash) {
+    uLock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
-      return {iter->second, true};
+      auto kv = *(iter->second);
+      auto &k = kv.first;
+      auto &v = kv.second;
+      lru_.erase(iter->second);
+      lru_.push_front(kv);
+      status_[k] = lru_.begin();
+      return {v, true};
     } else {
       return {V(), false};
     }
@@ -150,28 +159,38 @@ class StatusTable {
     return status_.size();
   }
   bool insert(K const &hash, V status) {
-    upgradableLock lock(shared_mutex_);
+    uLock lock(shared_mutex_);
     bool ret = false;
     if (status_.count(hash)) {
       ret = false;
     } else {
-      upgradeLock locked(lock);
-      status_[hash] = status;
+      if (status_.size() == capacity_) {
+        clearOldData();
+      }
+      lru_.push_front({hash, status});
+      status_[hash] = lru_.begin();
       ret = true;
     }
     return ret;
   }
   void update(K const &hash, V status) {
     uLock lock(shared_mutex_);
-    status_[hash] = status;
+    auto iter = status_.find(hash);
+    if (iter != status_.end()) {
+      lru_.erase(iter->second);
+      lru_.push_front({hash, status});
+      status_[hash] = lru_.begin();
+    }
   }
+
   bool update(K const &hash, V status, V expected_status) {
     bool ret = false;
     uLock lock(shared_mutex_);
-    auto current_status = status_.find(hash);
-    if (current_status != status_.end() &&
-        current_status->second == expected_status) {
-      status_[hash] = status;
+    auto iter = status_.find(hash);
+    if (iter != status_.end() && iter->second == expected_status) {
+      lru_.erase(iter->second);
+      lru_.push_front({hash, status});
+      status_[hash] = lru_.begin();
       ret = true;
     }
     return ret;
@@ -180,14 +199,15 @@ class StatusTable {
   void clear() {
     uLock lock(shared_mutex_);
     status_.clear();
+    lru_.clear();
   }
   bool erase(K const &hash) {
     bool ret = false;
-    upgradableLock lock(shared_mutex_);
-    if (status_.count(hash)) {
-      upgradeLock locked(lock);
+    uLock lock(shared_mutex_);
+    auto iter = status_.find(hash);
+    if (iter != status_.end()) {
+      lru_.erase(iter->second);
       status_.erase(hash);
-      ret = true;
     }
     return ret;
   }
@@ -198,9 +218,22 @@ class StatusTable {
   }
 
  private:
+  void clearOldData() {
+    int sz = capacity_ / 10;
+    for (int i = 0; i < sz; ++i) {
+      auto kv = lru_.rend();
+      auto &k = kv->first;
+      status_.erase(k);
+      lru_.pop_back();
+      if (lru_.empty()) break;  // should not happen
+    }
+  }
+  using Element = std::list<std::pair<K, V>>;
+  size_t capacity_;
   mutable boost::shared_mutex shared_mutex_;
-  std::unordered_map<K, V> status_;
-};
+  std::unordered_map<K, typename std::list<std::pair<K, V>>::iterator> status_;
+  std::list<std::pair<K, V>> lru_;
+};  // namespace taraxa
 
 inline char *cgo_str(const std::string &str) {
   return const_cast<char *>(str.data());
