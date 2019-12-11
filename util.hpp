@@ -138,7 +138,7 @@ class StatusTable {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   using UnsafeStatusTable = std::unordered_map<K, V>;
-  StatusTable(size_t capacity = 100000) : capacity_(capacity) {}
+  StatusTable(size_t capacity = 10000) : capacity_(capacity) {}
   std::pair<V, bool> get(K const &hash) {
     uLock lock(shared_mutex_);
     auto iter = status_.find(hash);
@@ -171,6 +171,7 @@ class StatusTable {
       status_[hash] = lru_.begin();
       ret = true;
     }
+    assert(status_.size() == lru_.size());
     return ret;
   }
   void update(K const &hash, V status) {
@@ -181,6 +182,7 @@ class StatusTable {
       lru_.push_front({hash, status});
       status_[hash] = lru_.begin();
     }
+    assert(status_.size() == lru_.size());
   }
 
   bool update(K const &hash, V status, V expected_status) {
@@ -193,6 +195,7 @@ class StatusTable {
       status_[hash] = lru_.begin();
       ret = true;
     }
+    assert(status_.size() == lru_.size());
     return ret;
   }
   // clear everything
@@ -209,6 +212,7 @@ class StatusTable {
       lru_.erase(iter->second);
       status_.erase(hash);
     }
+    assert(status_.size() == lru_.size());
     return ret;
   }
 
@@ -221,11 +225,11 @@ class StatusTable {
   void clearOldData() {
     int sz = capacity_ / 10;
     for (int i = 0; i < sz; ++i) {
-      auto kv = lru_.rend();
+      auto kv = lru_.rbegin();
       auto &k = kv->first;
       status_.erase(k);
       lru_.pop_back();
-      if (lru_.empty()) break;  // should not happen
+      assert(!lru_.empty());  // should not happen
     }
   }
   using Element = std::list<std::pair<K, V>>;
