@@ -172,4 +172,64 @@ void DbStorage::saveStatusField(StatusDbField const& field,
   checkStatus(status);
 }
 
+void DbStorage::savePbftBlock(PbftBlock const& block){
+  auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks],
+                         block.getBlockHash().toString(), block.getJsonStr());
+  checkStatus(status);
+}
+
+std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash){
+  auto block = lookup(hash.toString(), Columns::pbft_blocks);
+  if (!block.empty()) return std::make_shared<PbftBlock>(block);
+  return nullptr;
+}
+
+bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
+  auto block = lookup(hash.toString(), Columns::pbft_blocks);
+  return !block.empty();
+}
+
+void DbStorage::savePbftBlockGenesis(string const& hash, string const& block){
+  auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks],
+                         hash, block);
+  checkStatus(status);
+}
+string DbStorage::getPbftBlockGenesis(string const& hash){
+  return lookup(hash, Columns::pbft_blocks);
+}
+
+void DbStorage::savePbftBlockOrder(string const& index, blk_hash_t const& hash){
+  auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks_order],
+                         index, hash.toString());
+  checkStatus(status);
+}
+
+std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(string const& index){
+  auto block = lookup(index, Columns::pbft_blocks_order);
+  if (!block.empty()) return std::make_shared<blk_hash_t>(block);
+  return nullptr;
+}
+
+void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash){
+  auto status = db_->Put(write_options_, handles_[Columns::dag_blocks_order],
+                         index, hash.toString());
+  checkStatus(status);
+}
+
+std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index){
+  auto block = lookup(index, Columns::dag_blocks_order);
+  if (!block.empty()) return std::make_shared<blk_hash_t>(block);
+  return nullptr;
+}
+
+void DbStorage::saveDagBlockHeight(blk_hash_t const& hash, string const& height){
+  auto status = db_->Put(write_options_, handles_[Columns::dag_blocks_height],
+                         hash.toString(), height);
+  checkStatus(status);
+}
+
+string DbStorage::getDagBlockHeight(blk_hash_t const& hash){
+  return lookup(hash.toString(), Columns::dag_blocks_height);
+}
+
 }  // namespace taraxa

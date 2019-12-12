@@ -96,14 +96,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   db_pbft_sortition_accounts_ = std::move(
       newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
   db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
-  db_pbftchain_ =
-      std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash, mode).db);
-  db_pbft_blocks_order_ = std::move(
-      newDB(conf_.pbft_blocks_order_db_path(), genesis_hash, mode).db);
-  db_dag_blocks_order_ =
-      std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash, mode).db);
-  db_dag_blocks_height_ =
-      std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash, mode).db);
   db_cert_votes_ = std::make_shared<DatabaseFaceCache>(
       newDB(conf_.pbft_cert_votes_db_path(), genesis_hash, mode).db, 100000);
   db_dag_blocks_period_ =
@@ -252,10 +244,6 @@ void FullNode::stop() {
   assert(db_replay_protection_service_.use_count() == 1);
   assert(db_.use_count() == 1);
   assert(db_cert_votes_.use_count() == 1);
-  assert(db_pbftchain_.use_count() == 1);
-  assert(db_pbft_blocks_order_.use_count() == 1);
-  assert(db_dag_blocks_order_.use_count() == 1);
-  assert(db_dag_blocks_height_.use_count() == 1);
   assert(db_pbft_sortition_accounts_.use_count() == 1);
   assert(db_dag_blocks_period_.use_count() == 1);
   assert(db_period_schedule_block_.use_count() == 1);

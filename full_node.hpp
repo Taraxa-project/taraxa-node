@@ -216,18 +216,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const {
-    return db_pbftchain_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftBlocksOrderDB() const {
-    return db_pbft_blocks_order_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksOrderDB() const {
-    return db_dag_blocks_order_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksHeightDB() const {
-    return db_dag_blocks_height_;
-  }
   std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
     return db_pbft_sortition_accounts_;
   }
@@ -325,10 +313,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<account_state::State> state_ = nullptr;
   // PBFT DB
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_pbft_blocks_order_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_ = nullptr;
