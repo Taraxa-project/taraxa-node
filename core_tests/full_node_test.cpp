@@ -255,6 +255,7 @@ void send_dummy_trx() {
 }
 struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
+
 TEST_F(FullNodeTest, db_test) {
   DbStorage db("/tmp/testtaraxadb", blk_hash_t(1), true);
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
@@ -376,6 +377,33 @@ TEST_F(FullNodeTest, db_test) {
             db.getSortitionAccount(account1.address).getJsonStr());
   EXPECT_EQ(account2.getJsonStr(),
             db.getSortitionAccount(account2.address).getJsonStr());
+
+TEST_F(FullNodeTest, mem_usage) {
+  Top top1(6, input1);
+  std::cout << "Top1 created ..." << std::endl;
+
+  auto node1 = top1.getNode();
+  // send 1000 trxs
+  try {
+    std::string sendtrx1 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 200, 
+                                      "number": 1000000, 
+                                      "nonce": 0, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
+
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    t1.join();
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    auto res = getMemUsage("full_node_test");
+    std::cout << "Mem usage = " << res << std::endl;
+    taraxa::thisThreadSleepForMilliSeconds(2000);
+  }
 }
 
 // fixme: flaky
