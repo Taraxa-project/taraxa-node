@@ -329,8 +329,20 @@ std::vector<Dag::vertex_hash> Dag::deletePeriod(uint64_t period) {
   upgradeLock ll(lock);
   // TODO: make sure property table are pruned as well
   for (auto const &v : vertices) {
-    clear_vertex_by_label(v, graph_);
+    // vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
+    // vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
+    // edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
+    // // clear edge properties
+    // auto v_descriptor = graph_.vertex(v);
+    // for (auto [ei, ei_end] = boost::out_edges(v_descriptor, graph_); ei !=
+    // ei_end; ++ei) {
+    //   weight_map[*ei].erase();
+    // }
+    // index_map.erase(v);
+    // epc_map.erase(v);
+    clear_vertex_by_label(v, graph_);  // will remove edges
     remove_vertex(v, graph_);
+
     periods_.erase(period);
     ret.emplace_back(v);
   }
@@ -442,8 +454,9 @@ DagManager::DagManager(std::string const &genesis) try
     : inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>(genesis)),
       pivot_tree_(std::make_shared<PivotTree>(genesis)),
-      anchors_({genesis}),
       genesis_(genesis) {
+  anchors_.push({genesis, 0});
+
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -521,7 +534,7 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
     }
     full_node->updateNonceTable(blk, frontier);
     LOG(log_dg_) << getFullNodeAddress() << " Update nonce table of blk "
-                 << blk.getHash() << "anchor " << anchors_.back()
+                 << blk.getHash() << "anchor " << anchors_.back().first
                  << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
   }
   return true;
@@ -554,7 +567,7 @@ std::pair<std::string, std::vector<std::string>> DagManager::getFrontier()
   std::vector<std::string> tips;
   std::vector<std::string> pivot_chain;
 
-  auto last_pivot = anchors_.back();
+  auto last_pivot = anchors_.back().first;
   pivot_tree_->getGhostPath(last_pivot, pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
@@ -577,7 +590,7 @@ void DagManager::getGhostPath(std::string const &source,
 }
 
 void DagManager::getGhostPath(std::vector<std::string> &ghost) const {
-  auto last_pivot = anchors_.back();
+  auto last_pivot = anchors_.back().first;
   ghost.clear();
   pivot_tree_->getGhostPath(last_pivot, ghost);
 }
@@ -604,17 +617,17 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 
   std::vector<std::string> blk_orders;
   assert(anchors_.size());
-  auto prev = anchors_.back();
+  auto prev = anchors_.back().first;
 
   // TODO: need to use the same pivot/tips that are stored in nonce map
 
   if (blk_hash_t(prev) == anchor) {
     LOG(log_wr_) << "Query period from " << blk_hash_t(prev) << " to " << anchor
                  << " not ok " << std::endl;
-    return anchors_.size() - 1;
+    return anchors_.back().second;
   }
 
-  auto new_period = anchors_.size();
+  auto new_period = anchors_.back().second + 1;
 
   auto ok = total_dag_->computeOrder(false /* finalized */, anchor.toString(),
                                      new_period, blk_orders);
@@ -633,19 +646,19 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   return new_period;
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
-  if (period != anchors_.size()) {
+  if (period != anchors_.back().second + 1) {
     LOG(log_er_) << getFullNodeAddress() << " Inserting period (" << period
                  << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
-                 << anchors_.size() - 1 << ") " << anchors_.back();
+                 << anchors_.back().second << ") " << anchors_.back().first;
     return 0;
   }
-  auto prev = anchors_.back();
+  auto prev = anchors_.back().first;
   std::vector<std::string> blk_orders;
 
   auto ok = total_dag_->computeOrder(true /* finalized */, anchor.toString(),
                                      period, blk_orders);
-  anchors_.emplace_back(anchor.toString());
+  anchors_.push({anchor.toString(), period});
 
   if (!ok) {
     LOG(log_er_) << getFullNodeAddress() << " Create epoch " << period
@@ -661,10 +674,15 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   }
 
   // clear up old DAG
-  if (period > num_cached_period_in_dag) {
-    total_dag_->deletePeriod(period - num_cached_period_in_dag);
+  if (period > num_cached_period_in_dag_) {
+    deletePeriod(period - num_cached_period_in_dag_);
   }
-
+  if (total_dag_->getNumVertices() != pivot_tree_->getNumVertices()) {
+    LOG(log_er_) << getFullNodeAddress() << " Size of total dag ( "
+                 << total_dag_->getNumVertices() << " ) and pivot tree ( "
+                 << pivot_tree_->getNumVertices() << " ) not match ";
+    assert(false);
+  }
   return blk_orders.size();
 }
 void DagManager::deletePeriod(uint64_t period) {

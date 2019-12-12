@@ -19,12 +19,12 @@
 #include <iterator>
 #include <list>
 #include <mutex>
+#include <queue>
 #include <string>
 #include "dag_block.hpp"
 #include "libdevcore/Log.h"
 #include "types.hpp"
 #include "util.hpp"
-
 namespace taraxa {
 
 /**
@@ -214,14 +214,14 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const { return max_level_; }
-  uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
-  std::string getLatestAnchor() const { return anchors_.back(); }
+  uint64_t getLatestPeriod() const { return anchors_.back().second; }
+  std::string getLatestAnchor() const { return anchors_.back().first; }
   std::unordered_set<std::string> getUnOrderedDagBlks() const {
     return total_dag_->getUnOrderedDagBlks();
   }
 
  private:
-  size_t num_cached_period_in_dag = 1000;
+  size_t num_cached_period_in_dag_ = 20;
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
@@ -234,7 +234,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
-  std::vector<std::string> anchors_;       // pivots that define periods
+  std::queue<std::pair<std::string, uint64_t>>
+      anchors_;  // pivots that define periods
   std::string genesis_;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
