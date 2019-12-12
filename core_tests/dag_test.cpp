@@ -441,27 +441,6 @@ TEST_F(DagTest, compute_epoch_2) {
   EXPECT_EQ(orders.size(), 1);
   EXPECT_EQ(period, 5);
   mgr->setDagBlockPeriod(blkK.getHash(), period);
-
-  mgr->deletePeriod(0);  // should be no op
-  mgr->deletePeriod(1);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 11);
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 11);
-
-  mgr->deletePeriod(2);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 9);
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 9);
-
-  mgr->deletePeriod(4);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 5);
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 5);
-
-  mgr->deletePeriod(3);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 2);
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 2);
-
-  mgr->deletePeriod(5);
-  EXPECT_EQ(mgr->getNumVerticesInDag().first, 1);
-  EXPECT_EQ(mgr->getNumVerticesInDag().second, 1);
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {

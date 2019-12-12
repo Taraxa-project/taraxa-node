@@ -673,8 +673,8 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
     pivot_tree_->setVertexPeriod(b, period);
   }
 
-  // clear up old DAG
-  if (period > num_cached_period_in_dag_) {
+  // clear up old DAG in continuous order!
+  if (period >= num_cached_period_in_dag_) {
     deletePeriod(period - num_cached_period_in_dag_);
   }
   if (total_dag_->getNumVertices() != pivot_tree_->getNumVertices()) {
@@ -687,8 +687,23 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
 }
 void DagManager::deletePeriod(uint64_t period) {
   auto deleted_vertices = total_dag_->deletePeriod(period);
+  auto anchor = anchors_.front();
+  if (anchor.second != period) {
+    LOG(log_er_) << getFullNodeAddress() << " Anchor front ( " << anchor.second
+                 << " " << anchor.first << " ) and deleting period ( " << period
+                 << " ) not match ";
+  }
+  assert(anchor.second == period);
+  anchors_.pop();
   for (auto const &t : deleted_vertices) {
     pivot_tree_->delVertex(t);
+  }
+  assert(pivot_tree_->periods_.size() == 0);
+  if (total_dag_->periods_.size() != anchors_.size()) {
+    LOG(log_er_) << getFullNodeAddress() << " Size of total dag periods ( "
+                 << total_dag_->periods_.size() << " ) and anchor size ( "
+                 << anchors_.size() << " ) not match ";
+    assert(false);
   }
 }
 

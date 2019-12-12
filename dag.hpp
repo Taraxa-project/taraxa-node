@@ -30,7 +30,7 @@ namespace taraxa {
 /**
  * Thread safe. Labelled graph.
  */
-
+class DagManager;
 class Dag {
  public:
   // properties
@@ -72,7 +72,7 @@ class Dag {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
+  friend DagManager;
   Dag(std::string const &genesis);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
@@ -152,6 +152,7 @@ class Dag {
 
 class PivotTree : public Dag {
  public:
+  friend DagManager;
   PivotTree(std::string const &genesis) : Dag(genesis){};
   virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
