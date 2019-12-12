@@ -146,6 +146,15 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
+   auto trx_bytes =
+      asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  if (trx_bytes.size() > 0) {
+    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes, trx_bytes);
+  }
+  return nullptr;
+}
+
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
   return !lookup(toSlice(hash.asBytes()), Columns::transactions).empty();
 }

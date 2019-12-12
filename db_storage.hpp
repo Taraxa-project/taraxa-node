@@ -67,6 +67,7 @@ class DbStorage {
 
   void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransactionExt(trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
 
   void saveTransactionToBlock(trx_hash_t const& trx, blk_hash_t const& hash);

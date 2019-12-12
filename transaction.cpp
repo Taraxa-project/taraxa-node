@@ -464,11 +464,12 @@ void TransactionManager::start() {
   }
   if (!full_node_.lock()) {
     LOG(log_wr_) << "FullNode is not set ...";
-    assert(db_);
+    assert(db_ != nullptr);
   } else {
-    assert(!db_);
+    assert(db_ == nullptr);
     auto full_node = full_node_.lock();
     assert(full_node);
+    db_ = full_node->getDB();
     auto trx_count =
         db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
     trx_count_.store(trx_count);
@@ -554,7 +555,7 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
       tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
           std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
     } else {  // search from db
-      auto tr = db_->getTransaction(hash);
+      tr = db_->getTransactionExt(hash);
     }
     thisThreadSleepForMilliSeconds(1);
     counter++;
