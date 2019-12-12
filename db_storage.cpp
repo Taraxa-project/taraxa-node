@@ -168,7 +168,7 @@ uint64_t DbStorage::getStatusField(StatusDbField const& field) {
 void DbStorage::saveStatusField(StatusDbField const& field,
                                 uint64_t const& value) {
   auto status = db_->Put(write_options_, handles_[Columns::status],
-                         toSlice((uint8_t)field), toSlice((uint8_t)value));
+                         toSlice((uint8_t)field), toSlice(value));
   checkStatus(status);
 }
 
