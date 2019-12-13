@@ -128,8 +128,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node->getPbftChainSize(), 2);
 
-  auto pbft_block2 =
-      db->getPbftBlock(pbft_block1.getBlockHash());
+  auto pbft_block2 = db->getPbftBlock(pbft_block1.getBlockHash());
 
   std::stringstream ss1, ss2;
   ss1 << pbft_block1;
@@ -153,8 +152,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node->getPbftChainSize(), 3);
 
-  auto pbft_block4 =
-      db->getPbftBlock(pbft_block3.getBlockHash());
+  auto pbft_block4 = db->getPbftBlock(pbft_block3.getBlockHash());
 
   std::stringstream ss3, ss4;
   ss3 << pbft_block3;

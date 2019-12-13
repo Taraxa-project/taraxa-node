@@ -1218,15 +1218,15 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
   if (auto full_node = full_node_.lock()) {
     auto pbftchain = full_node->getPbftChain();
     assert(pbftchain);
-    auto vote_db = full_node->getVotesDB();
-    assert(vote_db);
+    auto db_ = full_node->getDB();
+    assert(db_);
     // add cert votes for each pbftblock
     std::vector<PbftBlock> blocks =
         pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
     std::vector<PbftBlockCert> cert_blocks;
     // has some redundancy here. fix later
     for (auto const &b : blocks) {
-      auto cert_votes_rlp = vote_db->lookup(b.getBlockHash());
+      auto cert_votes_rlp = db_->getVote(b.getBlockHash());
       PbftBlockCert bk(b, cert_votes_rlp);
       cert_blocks.emplace_back(bk);
     }

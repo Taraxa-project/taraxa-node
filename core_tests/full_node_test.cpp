@@ -693,8 +693,7 @@ TEST_F(FullNodeTest, destroy_db) {
     auto db = node->getDB();
     db->saveTransaction(g_trx_signed_samples[0]);
     // Verify trx saved in db
-    EXPECT_TRUE(
-        db->getTransaction(g_trx_signed_samples[0].getHash()));
+    EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -703,8 +702,7 @@ TEST_F(FullNodeTest, destroy_db) {
     node->start(false);
     auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
-    EXPECT_TRUE(
-        db->getTransaction(g_trx_signed_samples[0].getHash()));
+    EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -713,8 +711,7 @@ TEST_F(FullNodeTest, destroy_db) {
     node->start(false);
     auto db = node->getDB();
     // Verify trx not in db after restart with destroy_db true
-    EXPECT_TRUE(
-        !db->getTransaction(g_trx_signed_samples[0].getHash()));
+    EXPECT_TRUE(!db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
 }
 

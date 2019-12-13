@@ -149,7 +149,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::unordered_set<std::string> getUnOrderedDagBlks() const;
   // get transaction schecules stuff ...
   // fixme: return optional
-  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const &trx) const {
+  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(
+      trx_hash_t const &trx) const {
     return trx_order_mgr_->getDagBlockFromTransaction(trx);
   }
 
@@ -216,19 +217,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
-    return db_pbft_sortition_accounts_;
-  }
-  std::shared_ptr<DatabaseFaceCache> getVotesDB() const {
-    return db_cert_votes_;
-  }
-
-  std::shared_ptr<dev::db::DatabaseFace> getPeriodScheduleBlockDB() const {
-    return db_period_schedule_block_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksPeriodDB() const {
-    return db_dag_blocks_period_;
-  }
 
   // PBFT RPC
   void broadcastVote(Vote const &vote);
@@ -311,11 +299,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<account_state::State> state_ = nullptr;
-  // PBFT DB
-  std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;

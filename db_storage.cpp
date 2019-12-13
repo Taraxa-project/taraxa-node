@@ -70,6 +70,11 @@ std::string DbStorage::lookup(Slice _key, Columns column) {
   return value;
 }
 
+void DbStorage::remove(Slice _key, Columns column) {
+  auto status = db_->Delete(write_options_, handles_[column], _key);
+  checkStatus(status);
+}
+
 void DbStorage::commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch) {
   auto status = db_->Write(write_options_, write_batch.get());
   checkStatus(status);
@@ -110,12 +115,12 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   checkStatus(status);
 }
 
-void DbStorage::saveTransaction(Transaction const& trx)  {
+void DbStorage::saveTransaction(Transaction const& trx) {
   auto status = db_->Put(write_options_, handles_[Columns::transactions],
-                         toSlice(trx.getHash().asBytes()), toSlice(trx.rlp(trx.hasSig())));
+                         toSlice(trx.getHash().asBytes()),
+                         toSlice(trx.rlp(trx.hasSig())));
   checkStatus(status);
 }
-  
 
 void DbStorage::saveTransactionToBlock(trx_hash_t const& trx_hash,
                                        blk_hash_t const& blk_hash) {
@@ -138,7 +143,7 @@ bool DbStorage::transactionToBlockInDb(trx_hash_t const& hash) {
 }
 
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
-   auto trx_bytes =
+  auto trx_bytes =
       asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
   if (trx_bytes.size() > 0) {
     return std::make_shared<Transaction>(trx_bytes);
@@ -146,11 +151,13 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>> DbStorage::getTransactionExt(trx_hash_t const& hash) {
-   auto trx_bytes =
+std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
+DbStorage::getTransactionExt(trx_hash_t const& hash) {
+  auto trx_bytes =
       asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
   if (trx_bytes.size() > 0) {
-    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes, trx_bytes);
+    return std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes,
+                                                                   trx_bytes);
   }
   return nullptr;
 }
@@ -172,13 +179,13 @@ void DbStorage::saveStatusField(StatusDbField const& field,
   checkStatus(status);
 }
 
-void DbStorage::savePbftBlock(PbftBlock const& block){
+void DbStorage::savePbftBlock(PbftBlock const& block) {
   auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks],
                          block.getBlockHash().toString(), block.getJsonStr());
   checkStatus(status);
 }
 
-std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash){
+std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto block = lookup(hash.toString(), Columns::pbft_blocks);
   if (!block.empty()) return std::make_shared<PbftBlock>(block);
   return nullptr;
@@ -189,47 +196,124 @@ bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
   return !block.empty();
 }
 
-void DbStorage::savePbftBlockGenesis(string const& hash, string const& block){
-  auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks],
-                         hash, block);
+void DbStorage::savePbftBlockGenesis(string const& hash, string const& block) {
+  auto status =
+      db_->Put(write_options_, handles_[Columns::pbft_blocks], hash, block);
   checkStatus(status);
 }
-string DbStorage::getPbftBlockGenesis(string const& hash){
+string DbStorage::getPbftBlockGenesis(string const& hash) {
   return lookup(hash, Columns::pbft_blocks);
 }
 
-void DbStorage::savePbftBlockOrder(string const& index, blk_hash_t const& hash){
+void DbStorage::savePbftBlockOrder(string const& index,
+                                   blk_hash_t const& hash) {
   auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks_order],
                          index, hash.toString());
   checkStatus(status);
 }
 
-std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(string const& index){
+std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(string const& index) {
   auto block = lookup(index, Columns::pbft_blocks_order);
   if (!block.empty()) return std::make_shared<blk_hash_t>(block);
   return nullptr;
 }
 
-void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash){
+void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash) {
   auto status = db_->Put(write_options_, handles_[Columns::dag_blocks_order],
                          index, hash.toString());
   checkStatus(status);
 }
 
-std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index){
+std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index) {
   auto block = lookup(index, Columns::dag_blocks_order);
   if (!block.empty()) return std::make_shared<blk_hash_t>(block);
   return nullptr;
 }
 
-void DbStorage::saveDagBlockHeight(blk_hash_t const& hash, string const& height){
+void DbStorage::saveDagBlockHeight(blk_hash_t const& hash,
+                                   string const& height) {
   auto status = db_->Put(write_options_, handles_[Columns::dag_blocks_height],
                          hash.toString(), height);
   checkStatus(status);
 }
 
-string DbStorage::getDagBlockHeight(blk_hash_t const& hash){
+string DbStorage::getDagBlockHeight(blk_hash_t const& hash) {
   return lookup(hash.toString(), Columns::dag_blocks_height);
+}
+
+string DbStorage::getSortitionAccount(string const& key) {
+  return lookup(key, Columns::sortition_accounts);
+}
+
+PbftSortitionAccount DbStorage::getSortitionAccount(addr_t const& account) {
+  return PbftSortitionAccount(
+      lookup(account.toString(), Columns::sortition_accounts));
+}
+
+bool DbStorage::sortitionAccountInDb(string const& key) {
+  return !lookup(key, Columns::sortition_accounts).empty();
+}
+
+bool DbStorage::sortitionAccountInDb(addr_t const& account) {
+  return !lookup(account.toString(), Columns::sortition_accounts).empty();
+}
+
+void DbStorage::removeSortitionAccount(addr_t const& account) {
+  remove(account.toString(), Columns::sortition_accounts);
+}
+
+void DbStorage::forEachSortitionAccount(std::function<bool(Slice, Slice)> f) {
+  std::unique_ptr<rocksdb::Iterator> itr(
+      db_->NewIterator(read_options_, handles_[Columns::sortition_accounts]));
+
+  auto keepIterating = true;
+  for (itr->SeekToFirst(); keepIterating && itr->Valid(); itr->Next()) {
+    auto const dbKey = itr->key();
+    auto const dbValue = itr->value();
+    Slice const key(dbKey.data(), dbKey.size());
+    Slice const value(dbValue.data(), dbValue.size());
+    keepIterating = f(key, value);
+  }
+}
+
+bytes DbStorage::getVote(blk_hash_t const& hash) {
+  return asBytes(lookup(toSlice(hash.asBytes()), Columns::votes));
+}
+
+void DbStorage::saveVote(blk_hash_t const& hash, bytes& value) {
+  auto status = db_->Put(write_options_, handles_[Columns::votes],
+                         toSlice(hash.asBytes()), toSlice(value));
+  checkStatus(status);
+}
+
+shared_ptr<blk_hash_t> DbStorage::getPeriodScheduleBlock(
+    uint64_t const& period) {
+  auto hash = asBytes(lookup(toSlice(period), Columns::period_schedule_block));
+  if (hash.size() > 0) return make_shared<blk_hash_t>(hash);
+  return nullptr;
+}
+
+void DbStorage::savePeriodScheduleBlock(uint64_t const& period,
+                                        blk_hash_t const& hash) {
+  auto status =
+      db_->Put(write_options_, handles_[Columns::period_schedule_block],
+               toSlice(period), toSlice(hash.asBytes()));
+  checkStatus(status);
+}
+
+std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
+  auto period =
+      asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_block_period));
+  if (period.size() > 0) {
+    return make_shared<uint64_t>(*(uint64_t*)&period[0]);
+  }
+  return nullptr;
+}
+
+void DbStorage::saveDagBlockPeriod(blk_hash_t const& hash, uint64_t& period) {
+  auto status = db_->Put(write_options_, handles_[Columns::dag_block_period],
+                         toSlice(hash.asBytes()), toSlice(period));
+  checkStatus(status);
 }
 
 }  // namespace taraxa

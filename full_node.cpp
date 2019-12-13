@@ -93,15 +93,7 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
     auto db_result = newDB(db_path, genesis_hash, mode, DatabaseKind::RocksDB);
     db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
   }
-  db_pbft_sortition_accounts_ = std::move(
-      newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
   db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
-  db_cert_votes_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.pbft_cert_votes_db_path(), genesis_hash, mode).db, 100000);
-  db_dag_blocks_period_ =
-      std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash, mode).db);
-  db_period_schedule_block_ = std::move(
-      newDB(conf_.period_schedule_block_path(), genesis_hash, mode).db);
   // store genesis blk to db
   db_->saveDagBlock(genesis_block);
   // TODO add move to a StateRegistry constructor?
@@ -243,10 +235,6 @@ void FullNode::stop() {
   replay_protection_service_ = nullptr;
   assert(db_replay_protection_service_.use_count() == 1);
   assert(db_.use_count() == 1);
-  assert(db_cert_votes_.use_count() == 1);
-  assert(db_pbft_sortition_accounts_.use_count() == 1);
-  assert(db_dag_blocks_period_.use_count() == 1);
-  assert(db_period_schedule_block_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";
@@ -715,7 +703,7 @@ void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
     s.append(v.rlp());
   }
   auto ss = s.out();
-  db_cert_votes_->insert(pbft_hash, ss);
+  db_->saveVote(pbft_hash, ss);
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
                << votes;
 }

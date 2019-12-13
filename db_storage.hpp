@@ -5,10 +5,11 @@
 #include <rocksdb/write_batch.h>
 #include <boost/filesystem.hpp>
 #include "dag_block.hpp"
+#include "pbft_chain.hpp"
+#include "pbft_sortition_account.h"
 #include "rocksdb/options.h"
 #include "rocksdb/slice.h"
 #include "util.hpp"
-#include "pbft_chain.hpp"
 
 namespace taraxa {
 using namespace std;
@@ -44,14 +45,27 @@ class DbStorage {
     pbft_blocks_order,
     dag_blocks_order,
     dag_blocks_height,
+    sortition_accounts,
+    votes,
+    period_schedule_block,
+    dag_block_period,
     column_end
   };
 
-  static const constexpr char* const column_names[] = {
-      "default",          "dag_blocks",        "dag_blocks_index",
-      "transactions",     "trx_to_blk",        "status",
-      "pbft_blocks",      "pbft_blocks_order", "dag_blocks_order",
-      "dag_blocks_height"};
+  static const constexpr char* const column_names[] = {"default",
+                                                       "dag_blocks",
+                                                       "dag_blocks_index",
+                                                       "transactions",
+                                                       "trx_to_blk",
+                                                       "status",
+                                                       "pbft_blocks",
+                                                       "pbft_blocks_order",
+                                                       "dag_blocks_order",
+                                                       "dag_blocks_height",
+                                                       "sortition_accounts",
+                                                       "votes",
+                                                       "period_schedule_block",
+                                                       "dag_block_period"};
 
   DbStorage(fs::path const& base_path, h256 const& genesis_hash,
             bool drop_existing);
@@ -61,6 +75,7 @@ class DbStorage {
   }
   void checkStatus(rocksdb::Status& _status);
   std::string lookup(Slice _key, Columns column);
+  void remove(Slice _key, Columns column);
   std::unique_ptr<WriteBatch> createWriteBatch();
   void commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch);
   ColumnFamilyHandle* getHandle(Columns column) {
@@ -83,7 +98,8 @@ class DbStorage {
   bool transactionToBlockInDb(trx_hash_t const& hash);
 
   void savePbftBlock(PbftBlock const& block);
-  //I would recommend storing this differently and not in the same db as regular blocks with real hashes
+  // I would recommend storing this differently and not in the same db as
+  // regular blocks with real hashes
   void savePbftBlockGenesis(string const& hash, string const& block);
   string getPbftBlockGenesis(string const& hash);
   std::shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
@@ -91,15 +107,32 @@ class DbStorage {
 
   void savePbftBlockOrder(string const& index, blk_hash_t const& hash);
   std::shared_ptr<blk_hash_t> getPbftBlockOrder(string const& index);
-  
+
   void saveDagBlockOrder(string const& index, blk_hash_t const& hash);
   std::shared_ptr<blk_hash_t> getDagBlockOrder(string const& index);
-  
+
   void saveDagBlockHeight(blk_hash_t const& hash, string const& height);
   string getDagBlockHeight(blk_hash_t const& hash);
-  
+
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field, uint64_t const& value);
+
+  // Avoid using different data in same db here as well
+  string getSortitionAccount(string const& key);
+  PbftSortitionAccount getSortitionAccount(addr_t const& account);
+  bool sortitionAccountInDb(string const& key);
+  bool sortitionAccountInDb(addr_t const& account);
+  void removeSortitionAccount(addr_t const& account);
+  void forEachSortitionAccount(std::function<bool(Slice, Slice)> f);
+
+  bytes getVote(blk_hash_t const& hash);
+  void saveVote(blk_hash_t const& hash, bytes& value);
+
+  shared_ptr<blk_hash_t> getPeriodScheduleBlock(uint64_t const& period);
+  void savePeriodScheduleBlock(uint64_t const& period, blk_hash_t const& hash);
+
+  std::shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
+  void saveDagBlockPeriod(blk_hash_t const& hash, uint64_t& period);
 
   inline Slice toSlice(dev::bytes const& _b) const {
     return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
