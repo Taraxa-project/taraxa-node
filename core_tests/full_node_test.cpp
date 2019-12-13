@@ -398,11 +398,15 @@ TEST_F(FullNodeTest, mem_usage) {
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
-
+  uint64_t last_num_block_proposed = 0;
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     auto res = getMemUsage("full_node_test");
-    std::cout << "Mem usage = " << res << std::endl;
-    taraxa::thisThreadSleepForMilliSeconds(2000);
+    std::cout << "Mem usage (" << i * 5 << ") in sec = " << res << " M"
+              << std::endl;
+    taraxa::thisThreadSleepForMilliSeconds(5000);
+    auto cur_num_block_proposed = node1->getNumProposedBlocks();
+    if (cur_num_block_proposed == last_num_block_proposed) break;
+    last_num_block_proposed = cur_num_block_proposed;
   }
 }
 

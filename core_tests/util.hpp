@@ -65,9 +65,15 @@ std::string SysExec(const char* cmd) {
   return result;
 }
 std::string getMemUsage(string const& proc_name) {
+#if defined(__APPLE__)
   string command = fmt(
       R"(top -l 1 -o mem | grep %s | awk '{print $8}')", proc_name);
+#else
+  string command = fmt(
+      R"(top -n 1 | grep %s | awk '{print $11}')", proc_name);
+#endif
   auto res = SysExec(command.c_str());
+
   return res.substr(0, res.find_first_of('M'));
 }
 
