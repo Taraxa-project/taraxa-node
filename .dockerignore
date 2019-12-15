@@ -3,6 +3,7 @@
 
 .git*
 .travis.yml
+Jenkinsfile
 
 dockerfiles
 unused_yet_useful

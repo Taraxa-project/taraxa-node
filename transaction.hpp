@@ -232,6 +232,7 @@ class TransactionQueue {
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
+  std::pair<size_t, size_t> getTransactionQueueSize() const;
   std::vector<Transaction> getNewVerifiedTrxSnapShot();
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
       vec_trx_t const &all_block_trxs);
@@ -340,6 +341,7 @@ class TransactionManager
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
+  std::pair<size_t, size_t> getTransactionQueueSize() const;
 
   // Verify transactions in broadcasted blocks
   bool verifyBlockTransactions(DagBlock const &blk,

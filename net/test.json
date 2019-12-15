@@ -40,13 +40,6 @@
     "returns": {}
   },
   {
-    "name": "send_pbft_schedule_block",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
     "name": "get_account_address",
     "params": [],
     "returns": {}
@@ -65,6 +58,11 @@
   },
   {
     "name": "get_peer_count",
+    "params": [],
+    "returns": {}
+  },
+  {
+    "name": "get_node_status",
     "params": [],
     "returns": {}
   },

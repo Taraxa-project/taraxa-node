@@ -88,7 +88,7 @@ class Executor {
       ReplayProtectionService::transaction_batch_t& executed_trx);
   bool executeBlkTrxs(
       account_state::State&, blk_hash_t const& blk,
-      std::vector<uint> const& trx_modes,
+      std::vector<std::pair<trx_hash_t, uint>> const& dag_blk_trxs_mode,
       BalanceTable& sortition_account_balance_table, uint64_t period,
       ReplayProtectionService::transaction_batch_t& executed_trx);
   bool coinTransfer(account_state::State&, Transaction const& trx,

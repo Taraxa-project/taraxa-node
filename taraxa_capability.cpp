@@ -1253,6 +1253,24 @@ void TaraxaCapability::sendPbftBlock(NodeID const &_id,
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
+Json::Value TaraxaCapability::getStatus() const {
+  Json::Value res;
+  res["dag_synced"] = Json::UInt64(!this->syncing_dag_);
+  res["pbft_synced"] = Json::UInt64(!this->syncing_pbft_);
+  res["pbft_synced"] = Json::UInt64(!this->syncing_pbft_);
+  res["peers"] = Json::Value(Json::arrayValue);
+  boost::unique_lock<boost::shared_mutex> lock(peers_mutex_);
+  for (auto &peer : peers_) {
+    Json::Value peer_status;
+    peer_status["node_id"] = peer.first.toString();
+    peer_status["dag_level"] = Json::UInt64(peer.second->level_);
+    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
+    peer_status["dag_synced"] = !peer.second->syncing_;
+    res["peers"].append(peer_status);
+  }
+  return res;
+}
+
 std::string TaraxaCapability::packetToPacketName(byte const &packet) {
   switch (packet) {
     case StatusPacket:

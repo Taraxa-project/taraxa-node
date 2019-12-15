@@ -17,9 +17,20 @@ struct PbftChainTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(32443)};
-  std::vector<std::vector<uint>> modes{
-      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
-  TrxSchedule sche1(blks, modes);
+  std::vector<vec_trx_t> trxs_list{
+      {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
+      {},
+      {trx_hash_t(4), trx_hash_t(5)}};
+  std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
+  for (int i = 0; i < trxs_list.size(); i++) {
+    std::vector<std::pair<trx_hash_t, uint>> one_blk_trxs_mode;
+    for (int j = 0; j < trxs_list[i].size(); j++) {
+      one_blk_trxs_mode.emplace_back(std::make_pair(trxs_list[i][j], 1));
+    }
+    trxs_mode.emplace_back(one_blk_trxs_mode);
+  }
+  EXPECT_EQ(trxs_mode.size(), blks.size());
+  TrxSchedule sche1(blks, trxs_mode);
   auto rlp = sche1.rlp();
   TrxSchedule sche2(rlp);
   EXPECT_EQ(sche1, sche2);
@@ -54,9 +65,19 @@ TEST_F(PbftChainTest, serialize_deserialize_pivot_block) {
 TEST_F(PbftChainTest, serialize_deserialize_schedule_block) {
   blk_hash_t prev_pivot(22);
   vec_blk_t blks{blk_hash_t(123), blk_hash_t(456), blk_hash_t(789)};
-  std::vector<std::vector<uint>> modes{
-      {0, 1, 2, 0, 1, 2}, {1, 1, 1, 1, 1}, {0, 0, 0}};
-  TrxSchedule schedule(blks, modes);
+  std::vector<vec_trx_t> trxs_list{
+      {trx_hash_t(1), trx_hash_t(2), trx_hash_t(3)},
+      {},
+      {trx_hash_t(4), trx_hash_t(5)}};
+  std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
+  for (int i = 0; i < trxs_list.size(); i++) {
+    std::vector<std::pair<trx_hash_t, uint>> one_blk_trxs_mode;
+    for (int j = 0; j < trxs_list[i].size(); j++) {
+      one_blk_trxs_mode.emplace_back(std::make_pair(trxs_list[i][j], 1));
+    }
+    trxs_mode.emplace_back(one_blk_trxs_mode);
+  }
+  TrxSchedule schedule(blks, trxs_mode);
   ScheduleBlock schedule_blk1(prev_pivot, schedule);
 
   std::stringstream ss1, ss2;
