@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include "./util.hpp"
+#include "taraxa_seal_engine.hpp"
 
 namespace taraxa::eth::eth_service {
 using dev::bytesConstRef;
@@ -13,16 +14,24 @@ using dev::BytesMap;
 using dev::hash256;
 using dev::Invalid256;
 using dev::rlp;
+using dev::rlpList;
 using dev::RLPStream;
 using dev::eth::Ethash;
 using dev::eth::IncludeSeal;
+using dev::eth::Nonce;
 using dev::eth::Permanence;
 using dev::eth::VerifiedBlockRef;
 using std::unique_lock;
+using taraxa_seal_engine::TaraxaSealEngine;
 
 using err = std::runtime_error;
 
-EthService::EthService(shared_ptr<FullNode> const& node,
+static auto const _ = [] {
+  TaraxaSealEngine::init();
+  return 0;
+}();
+
+EthService::EthService(weak_ptr<FullNode> const& node,
                        ChainParams const& chain_params,
                        fs::path const& db_base_path, WithExisting with_existing,
                        ProgressCallback const& progress_cb)
@@ -30,10 +39,11 @@ EthService::EthService(shared_ptr<FullNode> const& node,
       bc_(chain_params, db_base_path, with_existing, progress_cb),
       acc_state_db_(
           State::openDB(db_base_path, bc_.genesisHash(), with_existing)) {
+  assert(chain_params.sealEngineName == TaraxaSealEngine::name());
   bc_.genesisBlock(acc_state_db_);
 }
 
-Address EthService::author() const { return node_->getAddress(); }
+Address EthService::author() const { return node_.lock()->getAddress(); }
 
 TransactionSkeleton EthService::populateTransactionWithDefaults(
     TransactionSkeleton const& _t) const {
@@ -59,7 +69,7 @@ h256 EthService::submitTransaction(TransactionSkeleton const& _t,
 
 h256 EthService::importTransaction(Transaction const& _t) {
   auto taraxa_trx = util::trx_eth_2_taraxa(_t);
-  auto ok = node_->insertTransaction(taraxa_trx);
+  auto ok = node_.lock()->insertTransaction(taraxa_trx);
   if (!ok) throw err("could not insert transaction");
   return taraxa_trx.getHash();
 }
@@ -71,36 +81,44 @@ void EthService::appendBlock(Transactions const& transactions,
                              Address author) {
   unique_lock l(append_block_mu_);
   auto& chain = bc();
+
   BlockHeader header;
-  header.setNumber(chain.number());
+  header.setNumber(chain.number() + 1);
   header.setParentHash(chain.currentHash());
   header.setAuthor(author);
   header.setTimestamp(timestamp);
-  BytesMap transaction_trie;
+  BytesMap trxs_trie;
+  RLPStream trxs_rlp(transactions.size());
   for (size_t i(0); i < transactions.size(); ++i) {
-    transaction_trie[rlp(i)] = transactions[i].rlp();
+    auto const& trx_rlp = transactions[i].rlp();
+    trxs_trie[rlp(i)] = trx_rlp;
+    trxs_rlp.appendRaw(trx_rlp);
   }
   BytesMap receipts_trie;
   RLPStream receipts_rlp(receipts.size());
   for (size_t i(0); i < receipts.size(); ++i) {
-    auto const& receipt = receipts[i];
-    receipts_trie[rlp(i)] = receipt.rlp();
-    receipt.streamRLP(receipts_rlp);
+    auto const& receipt_rlp = receipts[i].rlp();
+    receipts_trie[rlp(i)] = receipt_rlp;
+    receipts_rlp.appendRaw(receipt_rlp);
   }
   bytes receipts_bytes = receipts_rlp.out();
-  header.setRoots(hash256(transaction_trie), hash256(receipts_trie),
+  header.setRoots(hash256(trxs_trie), hash256(receipts_trie),
                   dev::EmptyListSHA3, state_root);
-  header.setGasLimit(MOCK_BLOCK_GAS_LIMIT);
-  //  Ethash::setMixHash(block_header, 0);
-  //  Ethash::setNonce(block_header, 0);
-  //  block_header.setDifficulty(0);
-  RLPStream header_rlp;
-  header.streamRLP(header_rlp);
-  bytes header_bytes = header_rlp.out();
+  header.setGasLimit(chain.sealEngine()->chainParams().maxGasLimit);
+  Ethash::setMixHash(header, h256(0));
+  Ethash::setNonce(header, Nonce(0));
+  header.setDifficulty(0);
+  RLPStream block_rlp(3);
+
+  header.streamRLP(block_rlp);
+  block_rlp.appendRaw(trxs_rlp.out());
+  static auto const uncles_rlp_list = rlpList();
+  block_rlp.appendRaw(uncles_rlp_list);
+  auto block_bytes = block_rlp.out();
   chain.insert(
       VerifiedBlockRef{
-          bytesConstRef(const_cast<::byte const*>(header_bytes.data()),
-                        header_bytes.size()),
+          bytesConstRef(const_cast<::byte const*>(block_bytes.data()),
+                        block_bytes.size()),
           header,
           transactions,
       },
@@ -125,9 +143,9 @@ ExecutionResult EthService::call(Address const& _from, u256 _value,
 }
 
 Transactions EthService::pending() const {
-  auto trxs = node_->getVerifiedTrxSnapShot();
+  auto trxs = node_.lock()->getVerifiedTrxSnapShot();
   Transactions ret(trxs.size());
-  for (auto const& [_, trx] : node_->getVerifiedTrxSnapShot()) {
+  for (auto const& [_, trx] : trxs) {
     ret.push_back(util::trx_taraxa_2_eth(trx));
   }
   return ret;

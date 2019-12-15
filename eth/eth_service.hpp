@@ -46,25 +46,24 @@ using dev::eth::UncleHashes;
 using std::map;
 using std::mutex;
 using std::pair;
-using std::shared_ptr;
 using std::tuple;
+using std::weak_ptr;
 
 namespace fs = boost::filesystem;
 
 class EthService : public dev::eth::ClientBase {
-  shared_ptr<FullNode> node_;
+  weak_ptr<FullNode> node_;
   BlockChain bc_;
   OverlayDB acc_state_db_;
   mutex append_block_mu_;
 
  public:
-  EthService(shared_ptr<FullNode> const& node,  //
+  EthService(weak_ptr<FullNode> const& node,  //
              ChainParams const& chain_params,
              fs::path const& db_base_path,  //
              WithExisting with_existing = WithExisting::Trust,
              ProgressCallback const& progress_cb = ProgressCallback());
 
- public:
   h256 submitTransaction(TransactionSkeleton const& _t,
                          Secret const& _secret) override;
   h256 importTransaction(Transaction const& _t) override;
