@@ -96,7 +96,7 @@ void send_2_nodes_trxs() {
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 700, 
                                       "number": 400, 
-                                      "nonce": 0 , 
+                                      "nonce": 600 , 
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
   std::cout << "Sending trxs ..." << std::endl;
   std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
