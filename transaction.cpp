@@ -583,11 +583,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       if (!status.second || status.first != TransactionStatus::in_block) {
         if (!db_->transactionInDb(trx_hash)) {
           trx_count_.fetch_add(1);
-          auto status =
-              trx_batch->Put(db_->getHandle(DbStorage::Columns::transactions),
-                             db_->toSlice(trx_hash.asBytes()),
-                             db_->toSlice(trx.rlp(trx.hasSig())));
-          db_->checkStatus(status);
+          db_->addTransactionToBatch(trx, trx_batch);
         }
         trx_status_.update(trx_hash, TransactionStatus::in_block);
       }
@@ -703,11 +699,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     if (db_->transactionInDb(hash)) {
       continue;
     }
-    auto db_status = trx_batch->Put(
-        db_->getHandle(DbStorage::Columns::transactions),
-        db_->toSlice(hash.asBytes()),
-        exist1 ? db_->toSlice(rlp) : db_->toSlice(trx.rlp(true)));
-    db_->checkStatus(db_status);
+    db_->addTransactionToBatch(trx, trx_batch);
     trx_count_.fetch_add(1);
     changed = true;
 

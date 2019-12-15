@@ -162,6 +162,14 @@ DbStorage::getTransactionExt(trx_hash_t const& hash) {
   return nullptr;
 }
 
+void DbStorage::addTransactionToBatch(
+    Transaction const& trx, std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Put(handles_[DbStorage::Columns::transactions],
+                                 toSlice(trx.getHash().asBytes()),
+                                 toSlice(trx.rlp(trx.hasSig())));
+  checkStatus(status);
+}
+
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
   return !lookup(toSlice(hash.asBytes()), Columns::transactions).empty();
 }
@@ -276,6 +284,23 @@ void DbStorage::forEachSortitionAccount(std::function<bool(Slice, Slice)> f) {
   }
 }
 
+void DbStorage::addSortitionAccountToBatch(
+    addr_t const& address, PbftSortitionAccount& account,
+    std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status =
+      write_batch->Put(handles_[DbStorage::Columns::sortition_accounts],
+                       address.toString(), account.getJsonStr());
+  checkStatus(status);
+}
+
+void DbStorage::addSortitionAccountToBatch(
+    string const& address, string& account,
+    std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Put(
+      handles_[DbStorage::Columns::sortition_accounts], address, account);
+  checkStatus(status);
+}
+
 bytes DbStorage::getVote(blk_hash_t const& hash) {
   return asBytes(lookup(toSlice(hash.asBytes()), Columns::votes));
 }
@@ -313,6 +338,14 @@ std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
 void DbStorage::saveDagBlockPeriod(blk_hash_t const& hash, uint64_t& period) {
   auto status = db_->Put(write_options_, handles_[Columns::dag_block_period],
                          toSlice(hash.asBytes()), toSlice(period));
+  checkStatus(status);
+}
+
+void DbStorage::addDagBlockPeriodToBatch(
+    blk_hash_t const& hash, uint64_t& period,
+    std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Put(handles_[DbStorage::Columns::dag_block_period],
+                                 toSlice(hash.asBytes()), toSlice(period));
   checkStatus(status);
 }
 

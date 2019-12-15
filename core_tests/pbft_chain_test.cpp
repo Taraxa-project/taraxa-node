@@ -132,7 +132,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
 
   std::stringstream ss1, ss2;
   ss1 << pbft_block1;
-  ss2 << pbft_block2;
+  ss2 << *pbft_block2;
   EXPECT_EQ(ss1.str(), ss2.str());
 
   // generate pbft schedule block sample
@@ -156,7 +156,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
 
   std::stringstream ss3, ss4;
   ss3 << pbft_block3;
-  ss4 << pbft_block4;
+  ss4 << *pbft_block4;
   EXPECT_EQ(ss3.str(), ss4.str());
 
   // check pbft genesis update in DB

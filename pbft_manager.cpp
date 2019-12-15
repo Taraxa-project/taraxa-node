@@ -1542,9 +1542,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
           auto write_batch = db_->createWriteBatch();
           for (auto const blk_hash :
                pbft_block.getScheduleBlock().getSchedule().dag_blks_order) {
-            write_batch->Put(
-                db_->getHandle(DbStorage::Columns::dag_block_period),
-                db_->toSlice(blk_hash.asBytes()), db_->toSlice(pbft_period));
+            db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, write_batch);
           }
           db_->commitWriteBatch(write_batch);
         }
@@ -1598,8 +1596,7 @@ void PbftManager::updateSortitionAccountsDB_() {
   auto accounts = db_->createWriteBatch();
   for (auto &account : sortition_account_balance_table) {
     if (account.second.status == new_change) {
-      accounts->Put(db_->getHandle(DbStorage::Columns::sortition_accounts),
-                    account.first.toString(), account.second.getJsonStr());
+      db_->addSortitionAccountToBatch(account.first, account.second, accounts);
       account.second.status = updated;
     } else if (account.second.status == remove) {
       // Erase both from DB and cache(table)
@@ -1608,9 +1605,9 @@ void PbftManager::updateSortitionAccountsDB_() {
     }
   }
   valid_sortition_accounts_size_ = sortition_account_balance_table.size();
-  accounts->Put(db_->getHandle(DbStorage::Columns::sortition_accounts),
-                std::string("sortition_accounts_size"),
-                std::to_string(valid_sortition_accounts_size_));
+  auto account_size = std::to_string(valid_sortition_accounts_size_);
+  db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
+                                  account_size, accounts);
   db_->commitWriteBatch(accounts);
 }
 

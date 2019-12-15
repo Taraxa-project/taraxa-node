@@ -92,6 +92,8 @@ class DbStorage {
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransactionExt(
       trx_hash_t const& hash);
   bool transactionInDb(trx_hash_t const& hash);
+  void addTransactionToBatch(Transaction const& trx,
+                             std::unique_ptr<WriteBatch> const& write_batch);
 
   void saveTransactionToBlock(trx_hash_t const& trx, blk_hash_t const& hash);
   std::shared_ptr<blk_hash_t> getTransactionToBlock(trx_hash_t const& hash);
@@ -124,6 +126,12 @@ class DbStorage {
   bool sortitionAccountInDb(addr_t const& account);
   void removeSortitionAccount(addr_t const& account);
   void forEachSortitionAccount(std::function<bool(Slice, Slice)> f);
+  void addSortitionAccountToBatch(
+      addr_t const& address, PbftSortitionAccount& account,
+      std::unique_ptr<WriteBatch> const& write_batch);
+  void addSortitionAccountToBatch(
+      string const& address, string& account,
+      std::unique_ptr<WriteBatch> const& write_batch);
 
   bytes getVote(blk_hash_t const& hash);
   void saveVote(blk_hash_t const& hash, bytes& value);
@@ -133,6 +141,8 @@ class DbStorage {
 
   std::shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
   void saveDagBlockPeriod(blk_hash_t const& hash, uint64_t& period);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t& period,
+                                std::unique_ptr<WriteBatch> const& write_batch);
 
   inline Slice toSlice(dev::bytes const& _b) const {
     return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
