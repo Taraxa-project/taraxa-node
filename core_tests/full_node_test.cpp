@@ -96,8 +96,32 @@ void send_2_nodes_trxs() {
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 700, 
                                       "number": 400, 
-                                      "nonce": 0 , 
+                                      "nonce": 600 , 
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7778)";
+  std::cout << "Sending trxs ..." << std::endl;
+  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
+
+  t1.join();
+  t2.join();
+  std::cout << "All trxs sent..." << std::endl;
+}
+
+void send_2_nodes_trxs_2() {
+  std::string sendtrx1 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 500, 
+                                      "number": 600, 
+                                      "nonce": 0, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
+  std::string sendtrx2 =
+      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 700, 
+                                      "number": 400, 
+                                      "nonce": 0 , 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7778)";
   std::cout << "Sending trxs ..." << std::endl;
   std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
   std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
@@ -823,7 +847,7 @@ TEST_F(FullNodeTest, persist_counter) {
 
     // send 1000 trxs
     try {
-      send_2_nodes_trxs();
+      send_2_nodes_trxs_2();
     } catch (std::exception &e) {
       std::cerr << e.what() << std::endl;
     }

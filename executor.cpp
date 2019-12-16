@@ -259,8 +259,8 @@ bool Executor::executeBlkTrxs(
     if (coinTransfer(state, *trx, sortition_account_balance_table, period,
                      dag_block)) {
       executed_trx.push_back(trx);
+      num_executed_trx_.fetch_add(1);
     }
-    num_executed_trx_.fetch_add(1);
     LOG(log_time_) << "Transaction " << trx_hash
                    << " executed at: " << getCurrentTimeMilliSeconds();
   }
