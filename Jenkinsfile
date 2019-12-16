@@ -81,10 +81,17 @@ pipeline {
 
             }
         }
-        stage('Docker Registry Login') {
+        stage('Docker GCP Registry Login') {
             steps {
                 withCredentials([string(credentialsId: 'gcp_container_registry_key_json', variable: 'GCP_KEY')]) {
                   sh 'echo ${GCP_KEY} | docker login -u _json_key --password-stdin https://gcr.io'
+                }
+            }
+        }
+        stage('Docker-Hub Registry Login') {
+            steps {
+                withCredentials([string(credentialsId: 'docker_hub_taraxa_pass', variable: 'HUB_PASS')]) {
+                  sh 'echo ${HUB_PASS} | docker login -u taraxa --password-stdin'
                 }
             }
         }
@@ -168,8 +175,12 @@ pipeline {
             steps {
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${BUILD_NUMBER}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}'
                 sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
                 sh 'docker push ${GCP_REGISTRY}/${IMAGE}'
+                sh 'docker push taraxa/${IMAGE}:${BUILD_NUMBER}'
+                sh 'docker push taraxa/${IMAGE}'
             }
         }
     }
