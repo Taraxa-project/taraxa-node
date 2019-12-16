@@ -10,7 +10,6 @@
 #include <set>
 #include <thread>
 #include "dag_block.hpp"
-#include "database_face_cache.hpp"
 #include "db_storage.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"

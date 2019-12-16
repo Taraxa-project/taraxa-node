@@ -93,6 +93,14 @@ RM := rm -f
 
 COMPILE = $(CXX) $(CXXFLAGS)
 
+.depcheck-impl:
+	@echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES} ))" >.dep.inc; \
+	echo "DEPFILES+=\$$(wildcard \$$(addsuffix .d, \$${P2POBJECTFILES} ))" >>.dep.inc; \
+	echo "DEPFILES+=\$$(wildcard \$$(addsuffix .d, \$${MAINOBJECTFILES} ))" >>.dep.inc; \
+	echo "ifneq (\$${DEPFILES},)" >>.dep.inc; \
+	echo "include \$${DEPFILES}" >>.dep.inc; \
+	echo "endif" >>.dep.inc; \
+
 main: $(BUILDDIR)/main
 	@echo MAIN
 
@@ -129,7 +137,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/trx_engine/types.o \
 	${OBJECTDIR}/trx_engine/trx_engine.o \
 	${OBJECTDIR}/pbft_sortition_account.o \
-	${OBJECTDIR}/database_face_cache.o \
 	${OBJECTDIR}/replay_protection/sender_state.o \
 	${OBJECTDIR}/replay_protection/replay_protection_service.o \
 	${OBJECTDIR}/vrf_wrapper.o \
@@ -172,11 +179,6 @@ ${OBJECTDIR}/pbft_chain.o: pbft_chain.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/pbft_chain.o pbft_chain.cpp $(CPPFLAGS)
-
-${OBJECTDIR}/database_face_cache.o: database_face_cache.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/database_face_cache.o database_face_cache.cpp $(CPPFLAGS)	
 
 ${OBJECTDIR}/executor.o: executor.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -466,5 +468,11 @@ ct:
 c: clean
 clean:
 	@echo CLEAN && rm -rf $(BUILDDIR) $(TESTBUILDDIR) $(OBJECTDIR)
+
+# Enable dependency checking
+.dep.inc: .depcheck-impl
+
+include .dep.inc
+
 
 .PHONY: run_test

@@ -10,7 +10,6 @@
 #include <type_traits>
 #include <vector>
 #include "config.hpp"
-#include "database_face_cache.hpp"
 #include "db_storage.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"

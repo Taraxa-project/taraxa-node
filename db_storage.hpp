@@ -73,15 +73,9 @@ class DbStorage {
   ~DbStorage() {
     for (auto handle : handles_) delete handle;
   }
-  void checkStatus(rocksdb::Status& _status);
-  std::string lookup(Slice _key, Columns column);
-  void remove(Slice _key, Columns column);
+
   std::unique_ptr<WriteBatch> createWriteBatch();
   void commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch);
-  ColumnFamilyHandle* getHandle(Columns column) {
-    if (handles_.size() > 0) return handles_[column];
-    return NULL;
-  }
 
   void saveDagBlock(DagBlock const& blk);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
@@ -118,6 +112,8 @@ class DbStorage {
 
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field, uint64_t const& value);
+  void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value,
+                             std::unique_ptr<WriteBatch> const& write_batch);
 
   // Avoid using different data in same db here as well
   string getSortitionAccount(string const& key);
@@ -140,10 +136,11 @@ class DbStorage {
   void savePeriodScheduleBlock(uint64_t const& period, blk_hash_t const& hash);
 
   std::shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void saveDagBlockPeriod(blk_hash_t const& hash, uint64_t& period);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t& period,
+  void saveDagBlockPeriod(blk_hash_t const& hash, uint64_t const& period);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period,
                                 std::unique_ptr<WriteBatch> const& write_batch);
 
+ private:
   inline Slice toSlice(dev::bytes const& _b) const {
     return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
   }
@@ -161,7 +158,14 @@ class DbStorage {
     return bytes((byte const*)_b.data(), (byte const*)(_b.data() + _b.size()));
   }
 
- private:
+  void checkStatus(rocksdb::Status& _status);
+  std::string lookup(Slice _key, Columns column);
+  void remove(Slice _key, Columns column);
+  ColumnFamilyHandle* getHandle(Columns column) {
+    if (handles_.size() > 0) return handles_[column];
+    return NULL;
+  }
+
   std::unique_ptr<DB> db_;
   std::vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;

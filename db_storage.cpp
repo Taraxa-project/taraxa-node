@@ -187,6 +187,14 @@ void DbStorage::saveStatusField(StatusDbField const& field,
   checkStatus(status);
 }
 
+void DbStorage::addStatusFieldToBatch(
+    StatusDbField const& field, uint64_t const& value,
+    std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Put(handles_[DbStorage::Columns::status],
+                                 toSlice((uint8_t)field), toSlice(value));
+  checkStatus(status);
+}
+
 void DbStorage::savePbftBlock(PbftBlock const& block) {
   auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks],
                          block.getBlockHash().toString(), block.getJsonStr());
@@ -335,14 +343,15 @@ std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
   return nullptr;
 }
 
-void DbStorage::saveDagBlockPeriod(blk_hash_t const& hash, uint64_t& period) {
+void DbStorage::saveDagBlockPeriod(blk_hash_t const& hash,
+                                   uint64_t const& period) {
   auto status = db_->Put(write_options_, handles_[Columns::dag_block_period],
                          toSlice(hash.asBytes()), toSlice(period));
   checkStatus(status);
 }
 
 void DbStorage::addDagBlockPeriodToBatch(
-    blk_hash_t const& hash, uint64_t& period,
+    blk_hash_t const& hash, uint64_t const& period,
     std::unique_ptr<WriteBatch> const& write_batch) {
   auto status = write_batch->Put(handles_[DbStorage::Columns::dag_block_period],
                                  toSlice(hash.asBytes()), toSlice(period));

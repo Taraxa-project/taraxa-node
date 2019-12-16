@@ -589,10 +589,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       }
     }
     auto trx_count = trx_count_.load();
-    auto status = trx_batch->Put(db_->getHandle(DbStorage::Columns::status),
-                                 db_->toSlice((uint8_t)StatusDbField::TrxCount),
-                                 db_->toSlice(trx_count));
-    db_->checkStatus(status);
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
     db_->commitWriteBatch(trx_batch);
   }
   // Second step: Remove from the queue any transaction that is part of the
@@ -712,10 +709,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   if (changed) {
     auto trx_count = trx_count_.load();
-    auto status = trx_batch->Put(db_->getHandle(DbStorage::Columns::status),
-                                 db_->toSlice((uint8_t)StatusDbField::TrxCount),
-                                 db_->toSlice(trx_count));
-    db_->checkStatus(status);
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
     db_->commitWriteBatch(trx_batch);
   }
 
