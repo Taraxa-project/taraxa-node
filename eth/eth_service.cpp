@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include "./util.hpp"
+#include "full_node.hpp"
 #include "taraxa_seal_engine.hpp"
 
 namespace taraxa::eth::eth_service {
@@ -33,7 +34,8 @@ static auto const _ = [] {
 
 EthService::EthService(weak_ptr<FullNode> const& node,
                        ChainParams const& chain_params,
-                       fs::path const& db_base_path, WithExisting with_existing,
+                       fs::path const& db_base_path,  //
+                       WithExisting with_existing,
                        ProgressCallback const& progress_cb)
     : node_(node),
       bc_(chain_params, db_base_path, with_existing, progress_cb),
@@ -81,7 +83,6 @@ void EthService::appendBlock(Transactions const& transactions,
                              Address author) {
   unique_lock l(append_block_mu_);
   auto& chain = bc();
-
   BlockHeader header;
   header.setNumber(chain.number() + 1);
   header.setParentHash(chain.currentHash());
@@ -101,29 +102,22 @@ void EthService::appendBlock(Transactions const& transactions,
     receipts_trie[rlp(i)] = receipt_rlp;
     receipts_rlp.appendRaw(receipt_rlp);
   }
-  bytes receipts_bytes = receipts_rlp.out();
   header.setRoots(hash256(trxs_trie), hash256(receipts_trie),
                   dev::EmptyListSHA3, state_root);
   header.setGasLimit(chain.sealEngine()->chainParams().maxGasLimit);
   Ethash::setMixHash(header, h256(0));
   Ethash::setNonce(header, Nonce(0));
-  header.setDifficulty(0);
+  header.setDifficulty(header.number());
   RLPStream block_rlp(3);
-
   header.streamRLP(block_rlp);
   block_rlp.appendRaw(trxs_rlp.out());
   static auto const uncles_rlp_list = rlpList();
   block_rlp.appendRaw(uncles_rlp_list);
   auto block_bytes = block_rlp.out();
-  chain.insert(
-      VerifiedBlockRef{
-          bytesConstRef(const_cast<::byte const*>(block_bytes.data()),
-                        block_bytes.size()),
-          header,
-          transactions,
-      },
-      bytesConstRef(const_cast<::byte const*>(receipts_bytes.data()),
-                    receipts_bytes.size()));
+  auto receipts_bytes = receipts_rlp.out();
+  // TODO insert pre-verified
+  // TODO set total diffuculty correctly
+  chain.insertWithoutParent(block_bytes, &receipts_bytes, header.difficulty());
 }
 
 ExecutionResult EthService::call(Address const& _from, u256 _value,
@@ -136,9 +130,10 @@ ExecutionResult EthService::call(Address const& _from, u256 _value,
   auto gasPrice = _gasPrice == Invalid256 ? 0 : _gasPrice;
   Transaction t(_value, gasPrice, gas, _dest, _data, nonce);
   t.forceSender(_from);
-  if (_ff == FudgeFactor::Lenient)
+  if (_ff == FudgeFactor::Lenient) {
     block.mutableState().addBalance(_from,
                                     u256(t.gas() * t.gasPrice() + t.value()));
+  }
   return block.execute(bc().lastBlockHashes(), t, Permanence::Reverted);
 }
 
@@ -156,9 +151,8 @@ BlockChain& EthService::bc() { return bc_; }
 BlockChain const& EthService::bc() const { return bc_; }
 
 Block EthService::block(h256 const& _h) const {
-  Block ret(bc_, acc_state_db_);
-  ret.populateFromChain(bc_, _h);
-  return ret;
+  BlockHeader header(bc_.block(_h));
+  return Block(bc_, acc_state_db_, header.stateRoot(), header.author());
 }
 
 Block EthService::preSeal() const { return block(bc().currentHash()); }

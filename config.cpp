@@ -1,6 +1,9 @@
 #include "config.hpp"
-#include <fstream>
+
+#include <json/json.h>
 #include <libdevcore/LevelDB.h>
+
+#include <fstream>
 
 namespace taraxa {
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
@@ -46,7 +49,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
         test_params.block_proposer.push_back(i);
       }
-
       for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
         test_params.pbft.push_back(i);
       }
@@ -58,6 +60,13 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     if (auto v = doc.get_optional<round_t>("replay_protection_service_range");
         v) {
       replay_protection_service_range = *v;
+    }
+    {
+      Json::Value jsoncpp_doc(Json::objectValue);
+      std::ifstream(json_file) >> jsoncpp_doc;
+      std::stringstream ss;
+      ss << jsoncpp_doc["eth_chain_params"];
+      eth_chain_params = decltype(eth_chain_params)(ss.str());
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;

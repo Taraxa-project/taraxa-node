@@ -38,6 +38,45 @@
       0
     ]
   },
+  "eth_chain_params": {
+    "sealEngine": "TaraxaSealEngine",
+    "params": {
+      "accountStartNonce": "0x0",
+      "homesteadForkBlock": "0x0",
+      "EIP150ForkBlock": "0x0",
+      "EIP158ForkBlock": "0x0",
+      "byzantiumForkBlock": "0x0",
+      "constantinopleForkBlock": "0x0",
+      "constantinopleFixForkBlock": "0x0",
+      "networkID": "0x666",
+      "chainID": "0x666",
+      "maximumExtraDataSize": "0x20",
+      "tieBreakingGas": false,
+      "minGasLimit": "0x1388",
+      "maxGasLimit": "7fffffffffffffff",
+      "gasLimitBoundDivisor": "0x1",
+      "minimumDifficulty": "0x0",
+      "difficultyBoundDivisor": "0x0800",
+      "durationLimit": "0x0d",
+      "blockReward": "0x0",
+      "allowFutureBlocks": true
+    },
+    "genesis": {
+      "nonce": "0x0",
+      "difficulty": "0x0",
+      "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "author": "0x0000000000000000000000000000000000000000",
+      "timestamp": "0x0",
+      "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "extraData": "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa",
+      "gasLimit": "7fffffffffffffff"
+    },
+    "accounts": {
+      "8d6df209484d7b94702b03a53e56b9fb0660f6f0": {
+        "balance": 9007199254740991
+      }
+    }
+  },
   "genesis_state": {
     "account_start_nonce": 0,
     "block": {

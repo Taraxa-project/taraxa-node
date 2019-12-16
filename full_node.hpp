@@ -1,6 +1,10 @@
 #ifndef TARAXA_NODE_FULL_NODE_HPP
 #define TARAXA_NODE_FULL_NODE_HPP
 
+#include <libdevcore/Log.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+
 #include <atomic>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -9,12 +13,11 @@
 #include <thread>
 #include <type_traits>
 #include <vector>
+
 #include "config.hpp"
 #include "database_face_cache.hpp"
+#include "eth/eth_service.hpp"
 #include "executor.hpp"
-#include <libdevcore/Log.h>
-#include <libdevcore/SHA3.h>
-#include <libdevcrypto/Common.h>
 #include "net/WSServer.h"
 #include "pbft_chain.hpp"
 #include "replay_protection/index.hpp"
@@ -52,6 +55,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
   using vrf_output_t = vrf_wrapper::vrf_output_t;
+  using ReplayProtectionService = replay_protection::ReplayProtectionService;
+  using EthService = ::taraxa::eth::eth_service::EthService;
 
   explicit FullNode(std::string const &conf_full_node_file,
                     bool destroy_db = false, bool rebuild_network = false);
@@ -316,19 +321,18 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-  using ReplayProtectionService = replay_protection::ReplayProtectionService;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   // transaction executor
   std::shared_ptr<Executor> executor_ = nullptr;
-
   //
   std::vector<std::thread> block_workers_;
-
   // PBFT
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-
+  //
+  std::shared_ptr<EthService> eth_service_;
+  //
   std::shared_ptr<taraxa::net::WSServer> ws_server_;
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;

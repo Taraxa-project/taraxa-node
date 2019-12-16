@@ -129,12 +129,15 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
                            genesis_hash,  //
                            mode);
+
   state_registry_ =
       make_shared<account_state::StateRegistry>(conf_.genesis_state,
                                                 move(acc_db.db),  //
                                                 move(snapshot_db.db));
   state_ =
       make_shared<account_state::State>(state_registry_->getCurrentState());
+  eth_service_ = as_shared(new EthService(getShared(), conf_.eth_chain_params,
+                                          conf_.eth_db_path(), mode));
   LOG(log_nf_) << "DB initialized ...";
   bool boot_node_balance_initialized = false;
   // init master boot node ...

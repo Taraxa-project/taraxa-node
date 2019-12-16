@@ -6,7 +6,9 @@
 
 #include <mutex>
 
-#include "full_node.hpp"
+namespace taraxa {
+class FullNode;
+}
 
 namespace taraxa::eth::eth_service {
 using dev::Address;

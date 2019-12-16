@@ -1,6 +1,10 @@
 #ifndef TARAXA_NODE_CONFIG_HPP
 #define TARAXA_NODE_CONFIG_HPP
+
+#include <libethereum/ChainParams.h>
+
 #include <string>
+
 #include "genesis_state.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -62,7 +66,9 @@ struct FullNodeConfig {
   bool use_basic_executor;
   round_t replay_protection_service_range =
       REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT;
+  dev::eth::ChainParams eth_chain_params;
 
+  auto eth_db_path() { return db_path + "/eth"; }
   auto account_db_path() { return db_path + "/acc"; }
   auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }
   auto block_db_path() { return db_path + "/blk"; }
