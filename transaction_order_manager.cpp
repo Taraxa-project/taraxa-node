@@ -20,7 +20,6 @@ void TransactionOrderManager::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  db_ = nullptr;
 }
 
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(

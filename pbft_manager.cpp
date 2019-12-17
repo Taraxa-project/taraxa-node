@@ -129,7 +129,6 @@ void PbftManager::stop() {
   }
   daemon_->join();
   LOG(log_deb_) << "PBFT daemon terminated ...";
-  db_ = nullptr;
   replay_protection_service_ = nullptr;
 }
 

@@ -234,7 +234,6 @@ void FullNode::stop() {
   executor_ = nullptr;
   replay_protection_service_ = nullptr;
   assert(db_replay_protection_service_.use_count() == 1);
-  assert(db_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";

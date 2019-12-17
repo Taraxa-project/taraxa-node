@@ -488,7 +488,6 @@ void TransactionManager::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  db_ = nullptr;
   trx_qu_.stop();
 }
 
