@@ -48,12 +48,12 @@ DbStorage::DbStorage(fs::path const& base_path, h256 const& genesis_hash,
   checkStatus(status);
 }
 
-void DbStorage::checkStatus(rocksdb::Status& _status) {
-  if (_status.ok()) return;
+void DbStorage::checkStatus(rocksdb::Status& status) {
+  if (status.ok()) return;
   throw DbException((string("Db error. Status code: ") +
-                     to_string(_status.code()) +
-                     " SubCode: " + to_string(_status.subcode()) +
-                     " Message:" + _status.ToString())
+                     to_string(status.code()) +
+                     " SubCode: " + to_string(status.subcode()) +
+                     " Message:" + status.ToString())
                         .c_str());
 }
 
@@ -61,17 +61,17 @@ std::unique_ptr<WriteBatch> DbStorage::createWriteBatch() {
   return std::unique_ptr<WriteBatch>(new WriteBatch());
 }
 
-std::string DbStorage::lookup(Slice _key, Columns column) {
+std::string DbStorage::lookup(Slice key, Columns column) {
   std::string value;
-  Status status = db_->Get(read_options_, handles_[column], _key, &value);
+  Status status = db_->Get(read_options_, handles_[column], key, &value);
   if (status.IsNotFound()) return std::string();
 
   checkStatus(status);
   return value;
 }
 
-void DbStorage::remove(Slice _key, Columns column) {
-  auto status = db_->Delete(write_options_, handles_[column], _key);
+void DbStorage::remove(Slice key, Columns column) {
+  auto status = db_->Delete(write_options_, handles_[column], key);
   checkStatus(status);
 }
 

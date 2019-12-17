@@ -141,8 +141,8 @@ class DbStorage {
                                 std::unique_ptr<WriteBatch> const& write_batch);
 
  private:
-  inline Slice toSlice(dev::bytes const& _b) const {
-    return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
+  inline Slice toSlice(dev::bytes const& b) const {
+    return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
   }
 
   template <class N, typename = std::enable_if_t<std::is_arithmetic<N>::value>>
@@ -150,17 +150,17 @@ class DbStorage {
     return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
   }
 
-  inline Slice toSlice(string const& _str) {
-    return Slice(_str.data(), _str.size());
+  inline Slice toSlice(string const& str) {
+    return Slice(str.data(), str.size());
   }
 
-  inline bytes asBytes(std::string const& _b) {
-    return bytes((byte const*)_b.data(), (byte const*)(_b.data() + _b.size()));
+  inline bytes asBytes(std::string const& b) {
+    return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
 
-  void checkStatus(rocksdb::Status& _status);
-  std::string lookup(Slice _key, Columns column);
-  void remove(Slice _key, Columns column);
+  void checkStatus(rocksdb::Status& status);
+  std::string lookup(Slice key, Columns column);
+  void remove(Slice key, Columns column);
   ColumnFamilyHandle* getHandle(Columns column) {
     if (handles_.size() > 0) return handles_[column];
     return NULL;
