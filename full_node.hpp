@@ -106,7 +106,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void updateNonceTable(DagBlock const &dagblk, DagFrontier const &frontier);
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
-      unsigned long level, int number_of_levels);
+      level_t level, int number_of_levels);
   std::string getScheduleBlockByPeriod(uint64_t period);
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,

@@ -8,7 +8,7 @@
 #include "config.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "pbft_sortition_account.h"
+#include "pbft_sortition_account.hpp"
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"

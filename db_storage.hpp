@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 #include "dag_block.hpp"
 #include "pbft_chain.hpp"
-#include "pbft_sortition_account.h"
+#include "pbft_sortition_account.hpp"
 #include "rocksdb/options.h"
 #include "rocksdb/slice.h"
 #include "util.hpp"
