@@ -845,14 +845,14 @@ TEST_F(FullNodeTest, destroy_node) {
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(taraxa::FullNode::make(conf,
-                                      true));  // destroy DB
+                                     true));  // destroy DB
     node->start(false);
     auto db = node->getDB();
     node->stop();
-    //Once the node is stopped there should not be anyone else holding the node
+    // Once the node is stopped there should not be anyone else holding the node
     ASSERT_EQ(node.use_count(), 1);
     node = nullptr;
-    //Once node is deleted, only database reference should be our local one
+    // Once node is deleted, only database reference should be our local one
     ASSERT_EQ(db.use_count(), 1);
   }
 
@@ -863,11 +863,12 @@ TEST_F(FullNodeTest, destroy_node) {
       Top top1(6, input1);
       node = top1.getNode();
       db = node->getDB();
-    }             
-    //Once the node is stopped by Top there should not be anyone else holding the node
+    }
+    // Once the node is stopped by Top there should not be anyone else holding
+    // the node
     ASSERT_EQ(node.use_count(), 1);
     node = nullptr;
-    //Once node is deleted, only database reference should be our local one
+    // Once node is deleted, only database reference should be our local one
     ASSERT_EQ(db.use_count(), 1);
   }
 }

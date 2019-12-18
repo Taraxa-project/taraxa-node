@@ -59,9 +59,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return shared_ptr<FullNode>(new FullNode(std::forward<Arg>(args)...));
   }
 
-  virtual ~FullNode() {
-    stop();
-  };
+  virtual ~FullNode() { stop(); };
   void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
