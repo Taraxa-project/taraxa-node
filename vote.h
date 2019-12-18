@@ -157,7 +157,7 @@ class VoteManager {
 
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<PbftManager> pbft_mgr_;
+  std::weak_ptr<PbftManager> pbft_mgr_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};

@@ -19,7 +19,7 @@ struct Top {
 
  private:
   boost::asio::io_context rpc_io_context_;
-  taraxa::FullNode::container node_;
+  std::shared_ptr<taraxa::FullNode> node_;
   std::thread rpc_thread_;
 
  public:
@@ -27,7 +27,7 @@ struct Top {
   ~Top();
 
   // may return null which means there was an error in constructor
-  decltype(node_)::shared_t getNode() { return node_; }
+  std::shared_ptr<taraxa::FullNode> getNode() { return node_; }
   void join();
 };
 

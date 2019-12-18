@@ -817,6 +817,7 @@ TEST_F(FullNodeTest, destroy_db) {
     db->saveTransaction(g_trx_signed_samples[0]);
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
+    node->stop();
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -826,6 +827,7 @@ TEST_F(FullNodeTest, destroy_db) {
     auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
+    node->stop();
   }
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
@@ -835,6 +837,38 @@ TEST_F(FullNodeTest, destroy_db) {
     auto db = node->getDB();
     // Verify trx not in db after restart with destroy_db true
     EXPECT_TRUE(!db->getTransaction(g_trx_signed_samples[0].getHash()));
+    node->stop();
+  }
+}
+
+TEST_F(FullNodeTest, destroy_node) {
+  {
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(taraxa::FullNode::make(conf,
+                                      true));  // destroy DB
+    node->start(false);
+    auto db = node->getDB();
+    node->stop();
+    //Once the node is stopped there should not be anyone else holding the node
+    ASSERT_EQ(node.use_count(), 1);
+    node = nullptr;
+    //Once node is deleted, only database reference should be our local one
+    ASSERT_EQ(db.use_count(), 1);
+  }
+
+  {
+    std::shared_ptr<FullNode> node;
+    std::shared_ptr<DbStorage> db;
+    {
+      Top top1(6, input1);
+      node = top1.getNode();
+      db = node->getDB();
+    }             
+    //Once the node is stopped by Top there should not be anyone else holding the node
+    ASSERT_EQ(node.use_count(), 1);
+    node = nullptr;
+    //Once node is deleted, only database reference should be our local one
+    ASSERT_EQ(db.use_count(), 1);
   }
 }
 

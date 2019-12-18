@@ -99,5 +99,6 @@ void Top::join() {
 
 Top::~Top() {
   rpc_io_context_.stop();
+  node_->stop();
   this->join();
 }

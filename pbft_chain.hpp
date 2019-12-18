@@ -221,6 +221,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 class PbftChain {
  public:
   PbftChain(std::string const& dag_genesis_hash);
+  virtual ~PbftChain() = default;
 
   void setFullNode(std::shared_ptr<FullNode> node);
   void setPbftGenesis(std::string const& pbft_genesis_str);

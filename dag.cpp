@@ -17,7 +17,6 @@ Dag::Dag(std::string const &genesis) {
   // add genesis block
   addVEEs(genesis, pivot, tips);
 }
-Dag::~Dag() {}
 
 uint64_t Dag::getNumVertices() const {
   sharedLock lock(mutex_);

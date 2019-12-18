@@ -21,7 +21,6 @@
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
-#include "util/process_container.hpp"
 #include "vote.h"
 #include "vrf_wrapper.hpp"
 
@@ -51,18 +50,18 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                     bool destroy_db = false, bool rebuild_network = false);
   explicit FullNode(FullNodeConfig const &conf_full_node,
                     bool destroy_db = false, bool rebuild_network = false);
-  void stop();
 
  public:
-  using container = util::process_container::process_container<FullNode>;
-  friend container;
+  void stop();
 
   template <typename... Arg>
-  static container make(Arg &&... args) {
-    return new FullNode(std::forward<Arg>(args)...);
+  static shared_ptr<FullNode> make(Arg &&... args) {
+    return shared_ptr<FullNode>(new FullNode(std::forward<Arg>(args)...));
   }
 
-  //  virtual ~FullNode() = default;
+  virtual ~FullNode() {
+    stop();
+  };
   void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
