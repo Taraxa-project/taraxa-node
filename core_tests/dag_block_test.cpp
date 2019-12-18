@@ -44,7 +44,8 @@ TEST_F(DagBlockTest, serialize_deserialize) {
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   VdfMsg vdf_msg(blk_hash_t(100), 3);
   VdfSortition vdf(sk, vdf_msg);
-  vdf.computeVdfSolution();
+  blk_hash_t vdf_input(200);
+  vdf.computeVdfSolution(vdf_input.toString());
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
   auto b = blk1.rlp(true);
   DagBlock blk2(b);

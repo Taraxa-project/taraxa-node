@@ -92,13 +92,14 @@ TEST_F(CryptoTest, vdf_sortition) {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   VdfMsg vdf_msg(blk_hash_t(100), 3);
+  blk_hash_t vdf_input = blk_hash_t(200);
   VdfSortition vdf(sk, vdf_msg, 17, 9);
   VdfSortition vdf2(sk, vdf_msg, 17, 9);
-  vdf.computeVdfSolution();
-  vdf2.computeVdfSolution();
+  vdf.computeVdfSolution(vdf_input.toString());
+  vdf2.computeVdfSolution(vdf_input.toString());
   auto b = vdf.rlp();
   VdfSortition vdf3(b);
-  vdf3.verify();
+  vdf3.verify(vdf_input.toString());
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
   std::cout << vdf << std::endl;
@@ -117,8 +118,12 @@ TEST_F(CryptoTest, vdf_solution) {
       1);
   VdfSortition vdf(sk, vdf_msg, 19, 8);
   VdfSortition vdf2(sk2, vdf_msg, 19, 8);
-  std::thread th1([&vdf]() { vdf.computeVdfSolution(); });
-  std::thread th2([&vdf2]() { vdf2.computeVdfSolution(); });
+  blk_hash_t vdf_input = blk_hash_t(200);
+
+  std::thread th1(
+      [&vdf, vdf_input]() { vdf.computeVdfSolution(vdf_input.toString()); });
+  std::thread th2(
+      [&vdf2, vdf_input]() { vdf2.computeVdfSolution(vdf_input.toString()); });
   th1.join();
   th2.join();
   EXPECT_NE(vdf, vdf2);
@@ -132,10 +137,12 @@ TEST_F(CryptoTest, vdf_proof_verify) {
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   VdfMsg vdf_msg(blk_hash_t(100), 3);
   VdfSortition vdf(sk, vdf_msg);
-  vdf.computeVdfSolution();
-  EXPECT_TRUE(vdf.verify());
+  blk_hash_t vdf_input = blk_hash_t(200);
+
+  vdf.computeVdfSolution(vdf_input.toString());
+  EXPECT_TRUE(vdf.verify(vdf_input.toString()));
   VdfSortition vdf2(sk, vdf_msg);
-  EXPECT_FALSE(vdf2.verify());
+  EXPECT_FALSE(vdf2.verify(vdf_input.toString()));
 }
 
 TEST_F(CryptoTest, vrf_sortition) {

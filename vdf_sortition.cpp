@@ -4,7 +4,7 @@
 #include "libdevcore/CommonData.h"
 #include "util.hpp"
 namespace taraxa::vdf_sortition {
-VdfSortition::VdfSortition(bytes const& b) {
+VdfSortition::VdfSortition(bytes const &b) {
   if (b.empty()) return;
   dev::RLP const rlp(b);
   if (!rlp.isList()) {
@@ -32,9 +32,9 @@ bytes VdfSortition::rlp() const {
   s << lambda_bits_;
   return s.out();
 }
-void VdfSortition::computeVdfSolution() {
+void VdfSortition::computeVdfSolution(std::string const &msg) {
   assert(verifyVrf());
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg_.toString());
+  const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
   auto t1 = getCurrentTimeMilliSeconds();
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
 
@@ -43,9 +43,9 @@ void VdfSortition::computeVdfSolution() {
   auto t2 = getCurrentTimeMilliSeconds();
   vdf_computation_time_ = t2 - t1;
 }
-bool VdfSortition::verifyVdfSolution() {
+bool VdfSortition::verifyVdfSolution(std::string const &msg) {
   assert(verifyVrf());
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_msg_.toString());
+  const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {
     // std::cout << "Error! Vdf verify failed..." << std::endl;

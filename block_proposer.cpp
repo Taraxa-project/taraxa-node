@@ -78,8 +78,8 @@ bool SortitionPropose::propose() {
   vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
   vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
                                   lambda_bits_);
-  vdf.computeVdfSolution();
-  assert(vdf.verify());
+  vdf.computeVdfSolution(frontier.pivot.toString());
+  assert(vdf.verify(frontier.pivot.toString()));
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);

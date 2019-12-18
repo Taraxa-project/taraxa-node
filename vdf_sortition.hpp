@@ -40,8 +40,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
         VrfSortitionBase(sk, vdf_msg) {}
   VdfSortition(bytes const& b);
 
-  bool verify() { return verifyVdfSolution(); }
-  void computeVdfSolution();
+  bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
+  void computeVdfSolution(std::string const& msg);
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
     return pk == other.pk && vdf_msg_ == other.vdf_msg_ &&
@@ -83,7 +83,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
   bool verifyVrf() { return VrfSortitionBase::verify(vdf_msg_); }
   // use first byte as difficult for now
-  bool verifyVdfSolution();
+  bool verifyVdfSolution(std::string const& msg);
   VdfMsg vdf_msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
