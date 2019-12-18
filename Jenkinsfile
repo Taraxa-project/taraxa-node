@@ -115,12 +115,13 @@ pipeline {
                     docker network create --driver=bridge \
                       smoke-test-net-${DOCKER_BRANCH_TAG}
                 '''
-                sh 'docker run --rm -d --name taraxa-node-smoke-test --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
+                sh 'docker run --rm -d --name taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} --net smoke-test-net-${DOCKER_BRANCH_TAG} ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER}'
                 sh '''
                     mkdir -p  $PWD/test_build-d/
+                    sleep 30
                     http_code=$(docker run --rm --net smoke-test-net-${DOCKER_BRANCH_TAG}  -v $PWD/test_build-d:/data byrnedo/alpine-curl \
                                        -sS --fail -w '%{http_code}' -o /data/http.out \
-                                       --url taraxa-node-smoke-test:7777 \
+                                       --url taraxa-node-smoke-test-${DOCKER_BRANCH_TAG}:7777 \
                                        -d '{
                                             "jsonrpc": "2.0",
                                             "id":"0",
@@ -144,7 +145,7 @@ pipeline {
             }
             post {
                 always {
-                    sh 'docker kill taraxa-node-smoke-test || true'
+                    sh 'docker kill taraxa-node-smoke-test-${DOCKER_BRANCH_TAG} || true'
                     sh 'docker network rm smoke-test-net-${DOCKER_BRANCH_TAG} || true'
                 }
             }
