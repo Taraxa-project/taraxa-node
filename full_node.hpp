@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <vector>
 #include "config.hpp"
-#include "database_face_cache.hpp"
+#include "db_storage.hpp"
 #include "executor.hpp"
 #include "libdevcore/Log.h"
 #include "libdevcore/SHA3.h"
@@ -40,12 +40,6 @@ class TransactionManager;
 class PbftManager;
 class NetworkConfig;
 
-enum StatusDbField : uint8_t {
-  ExecutedBlkCount = 0,
-  ExecutedTrxCount,
-  TrxCount
-};
-
 class FullNode : public std::enable_shared_from_this<FullNode> {
   friend class Top;
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
@@ -68,7 +62,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return new FullNode(std::forward<Arg>(args)...);
   }
 
-  //  virtual ~FullNode() = default;
+  virtual ~FullNode() { stop(); };
   void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
@@ -154,7 +148,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::unordered_set<std::string> getUnOrderedDagBlks() const;
   // get transaction schecules stuff ...
   // fixme: return optional
-  blk_hash_t getDagBlockFromTransaction(trx_hash_t const &trx) const {
+  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(
+      trx_hash_t const &trx) const {
     return trx_order_mgr_->getDagBlockFromTransaction(trx);
   }
 
@@ -180,11 +175,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                             uint64_t period);
 
   // get DBs
-  std::shared_ptr<DatabaseFaceCache> getTrxsDB() const { return db_trxs_; }
-  std::shared_ptr<DatabaseFaceCache> getBlksDB() const { return db_blks_; }
-  std::shared_ptr<dev::db::DatabaseFace> getTrxsToBlkDB() const {
-    return db_trxs_to_blk_;
-  }
+  std::shared_ptr<DbStorage> getDB() const { return db_; }
   std::shared_ptr<account_state::StateRegistry> getStateRegistry() const {
     return state_registry_;
   }
@@ -225,34 +216,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftChainDB() const {
-    return db_pbftchain_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftBlocksOrderDB() const {
-    return db_pbft_blocks_order_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksOrderDB() const {
-    return db_dag_blocks_order_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksHeightDB() const {
-    return db_dag_blocks_height_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getPbftSortitionAccountsDB() const {
-    return db_pbft_sortition_accounts_;
-  }
-  std::shared_ptr<DatabaseFaceCache> getVotesDB() const {
-    return db_cert_votes_;
-  }
-
-  std::shared_ptr<dev::db::DatabaseFace> getPeriodScheduleBlockDB() const {
-    return db_period_schedule_block_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getDagBlocksPeriodDB() const {
-    return db_dag_blocks_period_;
-  }
-  std::shared_ptr<dev::db::DatabaseFace> getStatusDB() const {
-    return db_status_;
-  }
 
   // PBFT RPC
   void broadcastVote(Vote const &vote);
@@ -332,22 +295,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<taraxa::WSServer> ws_server_;
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
-  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_blks_index_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<account_state::State> state_ = nullptr;
-  // PBFT DB
-  std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_pbft_blocks_order_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_order_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_height_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_cert_votes_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_ = nullptr;
-  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;

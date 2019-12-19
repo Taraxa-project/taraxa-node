@@ -648,7 +648,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
         } else {
           syncing_pbft_ = false;
-          LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
+          LOG(log_dg_pbft_sync_) << "Syncing PBFT is completed";
+          // We are pbft synced with the node we are connected to but calling
+          // restartSyncingPbft will check if some nodes have greater pbft chain
+          // size and we should continue syncing with them
+          restartSyncingPbft();
         }
         break;
       }
@@ -730,7 +734,6 @@ void TaraxaCapability::restartSyncingPbft() {
     return;
   }
 
-  LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT";
   NodeID max_pbft_chain_nodeID;
   unsigned long max_pbft_chain_size = 0;
   {
@@ -743,10 +746,19 @@ void TaraxaCapability::restartSyncingPbft() {
     }
   }
   if (auto full_node = full_node_.lock()) {
-    if (!stopped_) {
-      syncing_pbft_ = true;
-      peer_syncing_pbft = max_pbft_chain_nodeID;
-      syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
+    if (max_pbft_chain_size > full_node->getPbftChainSize()) {
+      if (!stopped_) {
+        LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT";
+        syncing_pbft_ = true;
+        peer_syncing_pbft = max_pbft_chain_nodeID;
+        syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
+      }
+    } else {
+      LOG(log_nf_pbft_sync_)
+          << "Restarting syncing PBFT not needed since our pbft chain size: "
+          << full_node->getPbftChainSize()
+          << " is greater or equal than max node pbft chain size:"
+          << max_pbft_chain_size;
     }
   }
 }
@@ -1218,15 +1230,15 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
   if (auto full_node = full_node_.lock()) {
     auto pbftchain = full_node->getPbftChain();
     assert(pbftchain);
-    auto vote_db = full_node->getVotesDB();
-    assert(vote_db);
+    auto db_ = full_node->getDB();
+    assert(db_);
     // add cert votes for each pbftblock
     std::vector<PbftBlock> blocks =
         pbftchain->getPbftBlocks(height_to_sync, blocks_to_transfer);
     std::vector<PbftBlockCert> cert_blocks;
     // has some redundancy here. fix later
     for (auto const &b : blocks) {
-      auto cert_votes_rlp = vote_db->lookup(b.getBlockHash());
+      auto cert_votes_rlp = db_->getVote(b.getBlockHash());
       PbftBlockCert bk(b, cert_votes_rlp);
       cert_blocks.emplace_back(bk);
     }

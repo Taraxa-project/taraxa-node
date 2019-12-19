@@ -11,31 +11,21 @@ using trx_engine::TrxEngine;
 Executor::Executor(
     uint64_t pbft_require_sortition_coins,
     decltype(log_time_) log_time,  //
-    decltype(db_blks_) db_blks,
-    decltype(db_trxs_) db_trxs,                                      //
+    decltype(db_) db,
     decltype(replay_protection_service_) replay_protection_service,  //
     decltype(state_registry_) state_registry,                        //
-    decltype(db_status_) db_status,                                  //
     bool use_basic_executor)
     : pbft_require_sortition_coins_(pbft_require_sortition_coins),
       log_time_(std::move(log_time)),
-      db_blks_(std::move(db_blks)),
-      db_trxs_(std::move(db_trxs)),
+      db_(std::move(db)),
       replay_protection_service_(std::move(replay_protection_service)),
-      db_status_(std::move(db_status)),
       state_registry_(std::move(state_registry)),
       trx_engine_({state_registry_->getAccountDbRaw(), noop()}),
       use_basic_executor_(use_basic_executor) {
-  auto blk_count = db_status_->lookup(
-      util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedBlkCount));
-  if (!blk_count.empty()) {
-    num_executed_blk_.store(*(unsigned long*)&blk_count[0]);
-  }
-  auto trx_count = db_status_->lookup(
-      util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedTrxCount));
-  if (!trx_count.empty()) {
-    num_executed_trx_.store(*(unsigned long*)&trx_count[0]);
-  }
+  auto blk_count = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  num_executed_blk_.store(blk_count);
+  auto trx_count = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+  num_executed_trx_.store(trx_count);
 }
 
 bool Executor::execute(TrxSchedule const& schedule,
@@ -65,12 +55,11 @@ bool Executor::execute_main(
   }
   for (auto blk_i(0); blk_i < schedule.dag_blks_order.size(); ++blk_i) {
     auto blk_hash = schedule.dag_blks_order[blk_i];
-    auto blk_bytes = db_blks_->lookup(blk_hash);
-    if (blk_bytes.size() == 0) {
+    auto dag_block = db_->getDagBlock(blk_hash);
+    if (dag_block == nullptr) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
     }
-    DagBlock dag_block(blk_bytes);
     auto dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
     auto num_trxs = dag_blk_trxs_mode.size();
     int num_overlapped_trx(0);
@@ -80,8 +69,8 @@ bool Executor::execute_main(
       auto const& trx_hash = dag_blk_trxs_mode[trx_i].first;
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
-      auto trx = std::make_shared<Transaction>(db_trxs_->lookup(trx_hash));
-      if (!trx->getHash()) {
+      auto trx = db_->getTransaction(trx_hash);
+      if (trx == nullptr || !trx->getHash()) {
         LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
         continue;
       }
@@ -124,8 +113,8 @@ bool Executor::execute_main(
             snapshot.state_root,
             trx_engine::Block{
                 snapshot.block_number + 1,
-                dag_block.getSender(),
-                dag_block.getTimestamp(),
+                dag_block->getSender(),
+                dag_block->getTimestamp(),
                 0,
                 // TODO unint64 is correct
                 uint64_t(MOCK_BLOCK_GAS_LIMIT),
@@ -218,14 +207,11 @@ bool Executor::executeBlkTrxs(
     std::vector<std::pair<trx_hash_t, uint>> const& dag_blk_trxs_mode,
     BalanceTable& sortition_account_balance_table, uint64_t period,
     ReplayProtectionService::transaction_batch_t& executed_trx) {
-  std::string blk_json = db_blks_->lookup(blk.toString());
-  auto blk_bytes = db_blks_->lookup(blk);
-  if (blk_bytes.size() == 0) {
+  auto dag_block = db_->getDagBlock(blk);
+  if (dag_block == nullptr) {
     LOG(log_er_) << "Cannot get block from db: " << blk << std::endl;
     return false;
   }
-
-  DagBlock dag_block(blk_bytes);
 
   auto num_trxs = dag_blk_trxs_mode.size();
   // sequential execute transaction
@@ -235,8 +221,8 @@ bool Executor::executeBlkTrxs(
     auto const& trx_hash = dag_blk_trxs_mode[i].first;
     LOG(log_time_) << "Transaction " << trx_hash
                    << " read from db at: " << getCurrentTimeMilliSeconds();
-    auto trx = std::make_shared<Transaction>(db_trxs_->lookup(trx_hash));
-    if (!trx->getHash()) {
+    auto trx = db_->getTransaction(trx_hash);
+    if (trx == nullptr || !trx->getHash()) {
       LOG(log_er_) << "Transaction is invalid: " << trx << std::endl;
       continue;
     }
@@ -257,7 +243,7 @@ bool Executor::executeBlkTrxs(
       continue;
     }
     if (coinTransfer(state, *trx, sortition_account_balance_table, period,
-                     dag_block)) {
+                     *dag_block)) {
       executed_trx.push_back(trx);
       num_executed_trx_.fetch_add(1);
     }

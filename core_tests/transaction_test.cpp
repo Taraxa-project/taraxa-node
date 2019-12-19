@@ -90,14 +90,7 @@ TEST_F(TransactionTest, verifiers) {
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(
-      std::make_shared<DatabaseFaceCache>(
-          util::eth::newDB("/tmp/rocksdb/trx", blk_hash_t(),
-                           dev::WithExisting::Kill)
-              .db,
-          100000),
-      std::move(util::eth::newDB("/tmp/rocksdb/status", blk_hash_t(),
-                                 dev::WithExisting::Kill)
-                    .db));
+      std::make_shared<DbStorage>("/tmp/rocksdb/test", blk_hash_t(), true));
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

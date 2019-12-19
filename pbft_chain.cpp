@@ -470,24 +470,15 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash)
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   node_ = full_node;
   // setup pbftchain DB pointer
-  db_pbftchain_ = full_node->getPbftChainDB();
-  assert(db_pbftchain_);
-  // setup PBFT blocks order DB pointers
-  db_pbft_blocks_order_ = full_node->getPbftBlocksOrderDB();
-  assert(db_pbft_blocks_order_);
-  // setup DAG blocks order/height DB pointers
-  db_dag_blocks_order_ = full_node->getDagBlocksOrderDB();
-  assert(db_dag_blocks_order_);
-  db_dag_blocks_height_ = full_node->getDagBlocksHeightDB();
-  assert(db_dag_blocks_height_);
+  db_ = full_node->getDB();
+  assert(db_);
 
   // Get PBFT head from DB
-  std::string pbft_genesis_str =
-      db_pbftchain_->lookup(genesis_hash_.toString());
+  auto pbft_genesis_str = db_->getPbftBlockGenesis(genesis_hash_.toString());
   if (pbft_genesis_str.empty()) {
     // Store PBFT chain genesis(HEAD) block to db
     insertPbftBlockIndex_(genesis_hash_);
-    db_pbftchain_->insert(genesis_hash_.toString(), getJsonStr());
+    db_->savePbftBlockGenesis(genesis_hash_.toString(), getJsonStr());
     // Initialize DAG genesis at DAG block heigh 1
     pushDagBlockHash(dag_genesis_hash_);
   } else {
@@ -510,12 +501,7 @@ void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
       blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
 }
 
-void PbftChain::releaseDB() {
-  db_pbftchain_ = nullptr;
-  db_pbft_blocks_order_ = nullptr;
-  db_dag_blocks_order_ = nullptr;
-  db_dag_blocks_height_ = nullptr;
-}
+void PbftChain::releaseDB() { db_ = nullptr; }
 
 void PbftChain::cleanupUnverifiedPbftBlocks(
     taraxa::PbftBlock const& pbft_block) {
@@ -569,20 +555,18 @@ std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
                   << max_dag_blocks_height_;
     return std::make_pair(blk_hash_t(0), false);
   }
-  std::string dag_block_hash_str =
-      db_dag_blocks_order_->lookup(std::to_string(dag_block_height));
-  if (dag_block_hash_str.empty()) {
+  auto dag_block_hash = db_->getDagBlockOrder(std::to_string(dag_block_height));
+  if (dag_block_hash == nullptr) {
     LOG(log_err_) << "The DAG block height " << dag_block_height
                   << " is not exist in DAG blocks order DB.";
     return std::make_pair(blk_hash_t(0), false);
   }
-  return std::make_pair(blk_hash_t(dag_block_hash_str), true);
+  return std::make_pair(*dag_block_hash, true);
 }
 
 std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
     blk_hash_t const& dag_block_hash) const {
-  std::string dag_block_height_str =
-      db_dag_blocks_height_->lookup(dag_block_hash.toString());
+  std::string dag_block_height_str = db_->getDagBlockHeight(dag_block_hash);
   if (dag_block_height_str.empty()) {
     LOG(log_err_) << "Cannot find the DAG block hash " << dag_block_hash
                   << " in DAG blocks height DB";
@@ -609,13 +593,13 @@ void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
-  if (!db_pbftchain_) {
+  if (!db_) {
     LOG(log_err_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
     return false;
   }
 
-  assert(db_pbftchain_);
-  return db_pbftchain_->lookup(pbft_block_hash.toString()) != "";
+  assert(db_);
+  return db_->pbftBlockInDb(pbft_block_hash);
 }
 
 bool PbftChain::findUnverifiedPbftBlock(
@@ -631,14 +615,13 @@ bool PbftChain::findPbftBlockInSyncedSet(
 
 PbftBlock PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t& pbft_block_hash) {
-  std::string pbft_block_str =
-      db_pbftchain_->lookup(pbft_block_hash.toString());
-  if (pbft_block_str.empty()) {
+  auto pbft_block = db_->getPbftBlock(pbft_block_hash);
+  if (pbft_block == nullptr) {
     LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
                   << " in DB";
     assert(false);
   }
-  return PbftBlock(pbft_block_str);
+  return *pbft_block;
 }
 
 std::pair<PbftBlock, bool> PbftChain::getUnverifiedPbftBlock(
@@ -654,20 +637,19 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
                                                 size_t count) const {
   std::vector<PbftBlock> result;
   for (auto i = height; i < height + count; i++) {
-    std::string pbft_block_hash_str =
-        db_pbft_blocks_order_->lookup(std::to_string(i));
-    if (pbft_block_hash_str.empty()) {
+    auto pbft_block_hash = db_->getPbftBlockOrder(std::to_string(i));
+    if (pbft_block_hash == nullptr) {
       LOG(log_err_) << "PBFT block height " << i
                     << " is not exist in blocks order DB.";
       break;
     }
-    std::string pbft_block_str = db_pbftchain_->lookup(pbft_block_hash_str);
-    if (pbft_block_str.empty()) {
-      LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash_str
+    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    if (pbft_block == nullptr) {
+      LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
                     << " in PBFT chain DB.";
       break;
     }
-    result.push_back(PbftBlock(pbft_block_str));
+    result.push_back(*pbft_block);
   }
   return result;
 }
@@ -677,39 +659,37 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
                                                      bool hash) const {
   std::vector<std::string> result;
   for (auto i = height; i < height + count; i++) {
-    std::string pbft_block_hash_str =
-        db_pbft_blocks_order_->lookup(std::to_string(i));
-    if (pbft_block_hash_str.empty()) {
+    auto pbft_block_hash = db_->getPbftBlockOrder(std::to_string(i));
+    if (pbft_block_hash == nullptr) {
       LOG(log_err_) << "PBFT block height " << i
                     << " is not exist in blocks order DB.";
       break;
     }
-    std::string pbft_block_str = db_pbftchain_->lookup(pbft_block_hash_str);
-    if (pbft_block_str.empty()) {
-      LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash_str
-                    << " in PBFT chain DB.";
+    auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
+    if (pbft_block == nullptr) {
+      LOG(log_err_) << "Cannot find PBFT block hash "
+                    << pbft_block_hash->toString() << " in PBFT chain DB.";
       break;
     }
     if (hash)
-      result.push_back(pbft_block_hash_str);
+      result.push_back(pbft_block_hash->toString());
     else
-      result.push_back(pbft_block_str);
+      result.push_back(pbft_block->getJsonStr());
   }
   return result;
 }
 
 bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
-  if (db_pbftchain_->exists(pbft_block.getBlockHash().toString())) {
+  if (db_->pbftBlockInDb(pbft_block.getBlockHash())) {
     LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
                   << " into DB";
     return false;
   }
-  db_pbftchain_->insert(pbft_block.getBlockHash().toString(),
-                        pbft_block.getJsonStr());
+  db_->savePbftBlock(pbft_block);
   // To protect PBFT syncing from peers happening in the same time
   // PBFT chain DB commit first for block, and size_ increase later
   size_++;
-  db_pbftchain_->insert(genesis_hash_.toString(), getJsonStr());
+  db_->savePbftBlockGenesis(genesis_hash_.toString(), getJsonStr());
 
   return true;
 }
@@ -913,8 +893,7 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
-  std::string dag_block_height_str =
-      db_dag_blocks_height_->lookup(dag_block_hash.toString());
+  std::string dag_block_height_str = db_->getDagBlockHeight(dag_block_hash);
   if (!dag_block_height_str.empty()) {
     // The DAG block already exist
     LOG(log_inf_) << "Duplicate DAG block " << dag_block_hash
@@ -926,13 +905,13 @@ uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   }
   // push DAG block hash into DAG blocks order DB. DAG genesis at index 1
   max_dag_blocks_height_++;
-  db_dag_blocks_order_->insert(std::to_string(max_dag_blocks_height_),
-                               dag_block_hash.toString());
+  db_->saveDagBlockOrder(std::to_string(max_dag_blocks_height_),
+                         dag_block_hash);
   // push DAG block hash into DAG blocks height DB
   // key : dag block hash, value : dag block height>
   // DAG genesis is block height 1
-  db_dag_blocks_height_->insert(dag_block_hash.toString(),
-                                std::to_string(max_dag_blocks_height_));
+  db_->saveDagBlockHeight(dag_block_hash,
+                          std::to_string(max_dag_blocks_height_));
   return max_dag_blocks_height_;
 }
 
@@ -1026,8 +1005,7 @@ void PbftChain::pbftSyncedSetErase_() {
 
 void PbftChain::insertPbftBlockIndex_(
     taraxa::blk_hash_t const& pbft_block_hash) {
-  db_pbft_blocks_order_->insert(std::to_string(size_),
-                                pbft_block_hash.toString());
+  db_->savePbftBlockOrder(std::to_string(size_), pbft_block_hash);
 }
 
 void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(

@@ -1,6 +1,6 @@
 # TODO more granular submodule rebuild on update
 # For local development convenience
-submodule_update_log := $(shell git status &> /dev/null && \
+submodule_update_log := $(shell git status > /dev/null && \
 	git submodule update --recursive --init)
 ifneq (, $(submodule_update_log))
 $(info Submodules changed, resetting them...)

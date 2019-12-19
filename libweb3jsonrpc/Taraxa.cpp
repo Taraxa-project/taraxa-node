@@ -274,14 +274,14 @@ Json::Value Taraxa::taraxa_getTransactionByHash(
       return JSON_NULL;
     }
     auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
-    if (blk_hash.isZero()) {
+    if (!blk_hash) {
       return toJson(trx->first);
     }
-    auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash);
+    auto snapshot = node->getStateRegistry()->getSnapshot(*blk_hash);
     if (!snapshot) {
       return toJson(trx->first);
     }
-    auto const& trxs = node->getDagBlock(blk_hash)->getTrxs();
+    auto const& trxs = node->getDagBlock(*blk_hash)->getTrxs();
     return toJson(trx->first, {{snapshot->block_number,
                                 snapshot->block_hash,  //
                                 *find(trxs, trx_hash)}});
@@ -342,14 +342,14 @@ Json::Value Taraxa::taraxa_getTransactionReceipt(
     auto node = tryGetNode();
     trx_hash_t trx_hash(_transactionHash);
     auto blk_hash = node->getDagBlockFromTransaction(trx_hash);
-    if (blk_hash.isZero()) {
+    if (!blk_hash) {
       return JSON_NULL;
     }
-    auto snapshot = node->getStateRegistry()->getSnapshot(blk_hash);
+    auto snapshot = node->getStateRegistry()->getSnapshot(*blk_hash);
     if (!snapshot) {
       return JSON_NULL;
     }
-    auto trxs = node->getDagBlock(blk_hash)->getTrxs();
+    auto trxs = node->getDagBlock(*blk_hash)->getTrxs();
     Json::Value res;
     res["transactionHash"] = toJS(trx_hash);
     res["transactionIndex"] = toJS(*find(trxs, trx_hash));

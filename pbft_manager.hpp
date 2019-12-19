@@ -8,6 +8,7 @@
 #include "config.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
+#include "pbft_sortition_account.h"
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.h"
@@ -151,16 +152,9 @@ class PbftManager {
   std::shared_ptr<TaraxaCapability> capability_;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
 
-  // Key: account address, value: PbftSortitionAccountStatus
-  std::shared_ptr<dev::db::DatabaseFace> db_sortition_accounts_;
   size_t valid_sortition_accounts_size_;
   // Database
-  std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_;
-  std::shared_ptr<DatabaseFaceCache> db_cert_votes_;
-  std::shared_ptr<dev::db::DatabaseFace> db_period_schedule_block_;
-  std::shared_ptr<dev::db::DatabaseFace> db_dag_blocks_period_;
-  std::shared_ptr<dev::db::DatabaseFace> db_status_;
-  std::shared_ptr<DatabaseFaceCache> db_trxs_;
+  std::shared_ptr<DbStorage> db_ = nullptr;
 
   blk_hash_t pbft_chain_last_block_hash_;
 

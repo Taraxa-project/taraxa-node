@@ -17,21 +17,21 @@ using namespace dev::db;
 using namespace dev::eth;
 namespace fs = boost::filesystem;
 
-inline Slice toSlice(h256 const& _h) {
-  return Slice(reinterpret_cast<char const*>(_h.data()), _h.size);
+inline dev::db::Slice toSlice(h256 const& _h) {
+  return dev::db::Slice(reinterpret_cast<char const*>(_h.data()), _h.size);
 }
 
-inline Slice toSlice(string const& _str) {
-  return Slice(_str.data(), _str.size());
+inline dev::db::Slice toSlice(string const& _str) {
+  return dev::db::Slice(_str.data(), _str.size());
 }
 
-inline Slice toSlice(bytes const& _b) {
-  return Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
+inline dev::db::Slice toSlice(bytes const& _b) {
+  return dev::db::Slice(reinterpret_cast<char const*>(&_b[0]), _b.size());
 }
 
 template <class N, typename = std::enable_if_t<std::is_arithmetic<N>::value>>
-inline Slice toSlice(N const& n) {
-  return Slice(reinterpret_cast<char const*>(&n), sizeof(N));
+inline dev::db::Slice toSlice(N const& n) {
+  return dev::db::Slice(reinterpret_cast<char const*>(&n), sizeof(N));
 }
 
 // partially copied from /libethereum/State.cpp

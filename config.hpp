@@ -65,8 +65,6 @@ struct FullNodeConfig {
 
   auto account_db_path() { return db_path + "/acc"; }
   auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }
-  auto block_db_path() { return db_path + "/blk"; }
-  auto block_index_db_path() { return db_path + "/blk_index"; }
   auto transactions_db_path() { return db_path + "/trx"; }
   auto pbft_cert_votes_db_path() { return db_path + "/pbft_cert_votes"; }
   auto pbft_chain_db_path() { return db_path + "/pbftchain"; }

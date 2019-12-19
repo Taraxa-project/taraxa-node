@@ -464,18 +464,15 @@ void TransactionManager::start() {
   }
   if (!full_node_.lock()) {
     LOG(log_wr_) << "FullNode is not set ...";
-    assert(db_trxs_);
+    assert(db_ != nullptr);
   } else {
-    assert(!db_trxs_);
+    assert(db_ == nullptr);
     auto full_node = full_node_.lock();
     assert(full_node);
-    db_trxs_ = full_node->getTrxsDB();
-    db_status_ = full_node->getStatusDB();
-    auto trx_count = db_status_->lookup(
-        util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedTrxCount));
-    if (!trx_count.empty()) {
-      trx_count_.store(*(unsigned long *)&trx_count[0]);
-    }
+    db_ = full_node->getDB();
+    auto trx_count =
+        db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+    trx_count_.store(trx_count);
     DagBlock blk;
     string pivot;
     std::vector<std::string> tips;
@@ -491,9 +488,7 @@ void TransactionManager::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  db_trxs_ = nullptr;
   trx_qu_.stop();
-  db_status_ = nullptr;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -559,12 +554,7 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
       tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
           std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
     } else {  // search from db
-      auto trx_bytes = db_trxs_->lookup(hash);
-      if (trx_bytes.size() > 0) {
-        tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(trx_bytes,
-                                                                     trx_bytes);
-        break;
-      }
+      tr = db_->getTransactionExt(hash);
     }
     thisThreadSleepForMilliSeconds(1);
     counter++;
@@ -585,22 +575,22 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // together with the block some_trxs might not full trxs in the block (for
   // syncing purpose)
   if (!some_trxs.empty()) {
+    auto trx_batch = db_->createWriteBatch();
     for (auto const &trx : some_trxs) {
       auto trx_hash = trx.getHash();
       auto status = trx_status_.get(trx_hash);
       if (!status.second || status.first != TransactionStatus::in_block) {
-        if (!db_trxs_->exists(trx_hash)) {
+        if (!db_->transactionInDb(trx_hash)) {
           trx_count_.fetch_add(1);
-          db_trxs_->insert(trx_hash, trx.rlp(trx.hasSig()));
+          db_->addTransactionToBatch(trx, trx_batch);
         }
         trx_status_.update(trx_hash, TransactionStatus::in_block);
       }
     }
+    auto trx_count = trx_count_.load();
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+    db_->commitWriteBatch(trx_batch);
   }
-  auto trx_count = trx_count_.load();
-  db_status_->insert(util::eth::toSlice((uint8_t)StatusDbField::TrxCount),
-                     util::eth::toSlice(trx_count));
-
   // Second step: Remove from the queue any transaction that is part of the
   // block Verify that all transactions are saved in the database If all
   // transactions are not available within 10 seconds fail the block
@@ -648,7 +638,7 @@ bool TransactionManager::insertTrx(Transaction const &trx,
   auto hash = trx.getHash();
   auto status = trx_status_.get(hash);
   if (status.second == false) {  // never seen before
-    if (db_trxs_->exists(hash)) {
+    if (db_->transactionInDb(hash)) {
       LOG(log_nf_) << "Trx: " << hash << "skip, seen in db " << std::endl;
     } else {
       if (trx_qu_.insert(trx, critical)) {
@@ -696,18 +686,16 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
 
   bool changed = false;
-  auto trx_batch = db_trxs_->createWriteBatch();
+  auto trx_batch = db_->createWriteBatch();
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
     auto [rlp, exist1] = rlp_cache_.get(hash);
     // Skip if transaction is already in existing block
-    if (db_trxs_->exists(hash)) {
+    if (db_->transactionInDb(hash)) {
       continue;
     }
-    trx_batch->insert(
-        db_trxs_->toSlice(hash.asBytes()),
-        exist1 ? db_trxs_->toSlice(rlp) : db_trxs_->toSlice(trx.rlp(true)));
+    db_->addTransactionToBatch(trx, trx_batch);
     trx_count_.fetch_add(1);
     changed = true;
 
@@ -719,10 +707,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   }
 
   if (changed) {
-    db_trxs_->commit(std::move(trx_batch));
     auto trx_count = trx_count_.load();
-    db_status_->insert(util::eth::toSlice((uint8_t)StatusDbField::TrxCount),
-                       util::eth::toSlice(trx_count));
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+    db_->commitWriteBatch(trx_batch);
   }
 
   // check requeued trx
