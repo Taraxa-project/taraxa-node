@@ -30,7 +30,7 @@ TEST_F(PerformanceTest, execute_transactions) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   // //
   addr_t acc1 = addr(cfg.node_secret);
-  cfg.genesis_state.accounts[acc1] = {initbal};
+  cfg.eth_chain_params.genesisState[acc1] = {initbal};
 
   auto transactions =
       samples::createSignedTrxSamples(0, NUM_TRX, dev::Secret(cfg.node_secret));
@@ -54,7 +54,7 @@ TEST_F(PerformanceTest, execute_transactions) {
 
   // The test will form a single chain
   std::vector<std::string> ghost;
-  node->getGhostPath(cfg.genesis_state.block.getHash().toString(), ghost);
+  node->getGhostPath(cfg.dag_genesis_block.getHash().toString(), ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
   ASSERT_GT(ghost.size(), 1);

@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "genesis_state.hpp"
+#include "dag_block.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
@@ -62,7 +62,7 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
-  GenesisState genesis_state;
+  DagBlock dag_genesis_block;
   bool use_basic_executor;
   round_t replay_protection_service_range =
       REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT;

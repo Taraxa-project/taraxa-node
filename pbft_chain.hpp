@@ -8,6 +8,7 @@
 #include <libdevcore/db.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -169,7 +170,8 @@ class PbftBlock {
   PivotBlock getPivotBlock() const;
   ScheduleBlock getScheduleBlock() const;
   uint64_t getTimestamp() const;
-  std::string getJsonStr() const;
+  std::string getJsonStr(bool with_signature = true) const;
+  addr_t getAuthor() const;
   uint64_t getHeight() const;
 
   void setBlockHash();

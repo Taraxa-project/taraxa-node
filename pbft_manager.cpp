@@ -1135,7 +1135,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   pbft_block.setTimestamp(timestamp);
 
   // sign the pbft block
-  std::string pbft_block_str = pbft_block.getJsonStr();
+  std::string pbft_block_str = pbft_block.getJsonStr(false);
   sig_t signature = full_node->signMessage(pbft_block_str);
   pbft_block.setSignature(signature);
   pbft_block.setBlockHash();

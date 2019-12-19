@@ -6,7 +6,6 @@
 #include <boost/filesystem.hpp>
 #include <chrono>
 
-#include "account_state/index.hpp"
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
@@ -36,7 +35,7 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
     : num_block_workers_(conf_full_node.dag_processing_threads),
       conf_(conf_full_node),
       dag_mgr_(std::make_shared<DagManager>(
-          conf_.genesis_state.block.getHash().toString())),
+          conf_.dag_genesis_block.getHash().toString())),
       blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
                                               4 /* verifer thread*/)),
       trx_mgr_(std::make_shared<TransactionManager>()),
@@ -47,9 +46,9 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       vote_mgr_(std::make_shared<VoteManager>()),
       pbft_mgr_(std::make_shared<PbftManager>(
           conf_.test_params.pbft,
-          conf_.genesis_state.block.getHash().toString())),
+          conf_.dag_genesis_block.getHash().toString())),
       pbft_chain_(std::make_shared<PbftChain>(
-          conf_.genesis_state.block.getHash().toString())) {
+          conf_.dag_genesis_block.getHash().toString())) {
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
@@ -60,13 +59,13 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
     key = dev::KeyPair(secret);
   }
   if (rebuild_network) {
-    network_ = std::make_shared<Network>(
-        conf_full_node.network, "", key.secret(),
-        conf_.genesis_state.block.getHash().toString());
+    network_ =
+        std::make_shared<Network>(conf_full_node.network, "", key.secret(),
+                                  conf_.dag_genesis_block.getHash().toString());
   } else {
     network_ = std::make_shared<Network>(
         conf_full_node.network, conf_.db_path + "/net", key.secret(),
-        conf_.genesis_state.block.getHash().toString());
+        conf_.dag_genesis_block.getHash().toString());
   }
   node_sk_ = key.secret();
   node_pk_ = key.pub();
@@ -80,64 +79,48 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   LOG(log_si_) << "Node VRF public key: " << EthGreen << vrf_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
-  // THIS IS THE GENESIS
-  // TODO extract to a function
-  auto const &genesis_block = conf_.genesis_state.block;
+  auto const &genesis_block = conf_.dag_genesis_block;
   if (!genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
   auto const &genesis_hash = genesis_block.getHash();
-  auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
+  if (destroy_db) {
+    boost::filesystem::remove_all(conf_.db_path);
+  }
   {
     using namespace dev::db;
     auto db_path = conf_.replay_protection_service_db_path();
-    auto db_result = newDB(db_path, genesis_hash, mode, DatabaseKind::RocksDB);
+    auto db_result = newDB(db_path, genesis_hash, dev::WithExisting::Trust,
+                           DatabaseKind::RocksDB);
     db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
   }
   db_pbft_sortition_accounts_ = std::move(
-      newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash, mode).db);
+      newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash).db);
   db_blks_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.block_db_path(), genesis_hash, mode).db, 10000);
+      newDB(conf_.block_db_path(), genesis_hash).db, 10000);
   db_blks_index_ =
-      std::move(newDB(conf_.block_index_db_path(), genesis_hash, mode).db);
+      std::move(newDB(conf_.block_index_db_path(), genesis_hash).db);
   db_trxs_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.transactions_db_path(), genesis_hash, mode).db, 100000);
+      newDB(conf_.transactions_db_path(), genesis_hash).db, 100000);
   db_trxs_to_blk_ =
-      std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash, mode).db);
-  db_pbftchain_ =
-      std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash, mode).db);
-  db_pbft_blocks_order_ = std::move(
-      newDB(conf_.pbft_blocks_order_db_path(), genesis_hash, mode).db);
+      std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash).db);
+  db_pbftchain_ = std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash).db);
+  db_pbft_blocks_order_ =
+      std::move(newDB(conf_.pbft_blocks_order_db_path(), genesis_hash).db);
   db_dag_blocks_order_ =
-      std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash, mode).db);
+      std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash).db);
   db_dag_blocks_height_ =
-      std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash, mode).db);
+      std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash).db);
   db_cert_votes_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.pbft_cert_votes_db_path(), genesis_hash, mode).db, 100000);
+      newDB(conf_.pbft_cert_votes_db_path(), genesis_hash).db, 100000);
   db_dag_blocks_period_ =
-      std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash, mode).db);
-  db_period_schedule_block_ = std::move(
-      newDB(conf_.period_schedule_block_path(), genesis_hash, mode).db);
-  db_status_ = std::move(newDB(conf_.status_path(), genesis_hash, mode).db);
+      std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash).db);
+  db_period_schedule_block_ =
+      std::move(newDB(conf_.period_schedule_block_path(), genesis_hash).db);
+  db_status_ = std::move(newDB(conf_.status_path(), genesis_hash).db);
   // store genesis blk to db
   db_blks_->insert(genesis_hash, genesis_block.rlp(true));
-  // TODO add move to a StateRegistry constructor?
-  auto acc_db = newDB(conf_.account_db_path(),
-                      genesis_hash,  //
-                      mode);
-  auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
-                           genesis_hash,  //
-                           mode);
-
-  state_registry_ =
-      make_shared<account_state::StateRegistry>(conf_.genesis_state,
-                                                move(acc_db.db),  //
-                                                move(snapshot_db.db));
-  state_ =
-      make_shared<account_state::State>(state_registry_->getCurrentState());
-  eth_service_ = as_shared(new EthService(getShared(), conf_.eth_chain_params,
-                                          conf_.eth_db_path(), mode));
   LOG(log_nf_) << "DB initialized ...";
   bool boot_node_balance_initialized = false;
   // init master boot node ...
@@ -179,6 +162,19 @@ void FullNode::start(bool boot_node) {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+  replay_protection_service_ = std::make_shared<ReplayProtectionService>(
+      conf_.replay_protection_service_range, db_replay_protection_service_);
+  eth_service_ = as_shared(
+      new EthService(getShared(), conf_.eth_chain_params, conf_.eth_db_path()));
+  executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
+                                     log_time_,  //
+                                     db_blks_,
+                                     db_trxs_,                    //
+                                     replay_protection_service_,  //
+                                     eth_service_,                //
+                                     db_status_,                  //
+                                     conf_.use_basic_executor));
+  executor_->setFullNode(getShared());
   // order depend, be careful when changing the order
   // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
   // be nullptr
@@ -195,19 +191,8 @@ void FullNode::start(bool boot_node) {
   blk_proposer_->setFullNode(getShared());
   blk_proposer_->start();
   vote_mgr_->setFullNode(getShared());
-
-  replay_protection_service_ = std::make_shared<ReplayProtectionService>(
-      conf_.replay_protection_service_range, db_replay_protection_service_);
   pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
   pbft_mgr_->start();
-  executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
-                                         log_time_,  //
-                                         db_blks_,
-                                         db_trxs_,                    //
-                                         replay_protection_service_,  //
-                                         state_registry_,             //
-                                         db_status_, conf_.use_basic_executor);
-  executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
@@ -276,6 +261,7 @@ void FullNode::stop() {
     t.join();
   }
   executor_ = nullptr;
+  eth_service_ = nullptr;
   replay_protection_service_ = nullptr;
   assert(db_replay_protection_service_.use_count() == 1);
   assert(db_blks_.use_count() == 1);
@@ -290,8 +276,6 @@ void FullNode::stop() {
   assert(db_pbft_sortition_accounts_.use_count() == 1);
   assert(db_dag_blocks_period_.use_count() == 1);
   assert(db_period_schedule_block_.use_count() == 1);
-  assert(state_registry_.use_count() == 1);
-  assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";
 }
 
@@ -584,9 +568,9 @@ std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 bool FullNode::isSynced() const { return network_->isSynced(); }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  auto const &state = updateAndGetState();
-  auto bal = state->balance(acc);
-  if (bal == 0 && !state->addressInUse(acc)) {
+  auto state = eth_service_->getAccountsState();
+  auto bal = state.balance(acc);
+  if (bal == 0 && !state.addressInUse(acc)) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
     return {0, false};
   }

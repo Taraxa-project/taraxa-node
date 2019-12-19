@@ -1,11 +1,14 @@
 #ifndef TARAXA_NODE_TYPES_HPP
 #define TARAXA_NODE_TYPES_HPP
+
+#include <libdevcore/FixedHash.h>
+#include <libethereum/Transaction.h>
+
 #include <boost/asio.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <chrono>
 #include <string>
 #include <type_traits>
-#include <libdevcore/FixedHash.h>
 
 namespace taraxa {
 
@@ -101,6 +104,8 @@ using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
 using round_t = uint64_t;
 using trx_nonce_t = val_t;
+using EthTransaction = dev::eth::Transaction;
+using EthTransactions = dev::eth::Transactions;
 
 // val_t type related helper functions
 inline val_t operator+=(val_t const &val, val_t const &other) {

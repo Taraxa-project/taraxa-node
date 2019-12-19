@@ -77,9 +77,7 @@
       }
     }
   },
-  "genesis_state": {
-    "account_start_nonce": 0,
-    "block": {
+  "dag_genesis_block": {
       "level": 0,
       "tips": [],
       "trxs": [],
@@ -88,12 +86,6 @@
       "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
       "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
       "timestamp": 1564617600
-    },
-    "accounts": {
-      "de2b1203d72d3549ee2f733b00b2789414c7cea5": {
-        "balance": 9007199254740991
-      }
-    }
   },
   "use_basic_executor": 1
 }

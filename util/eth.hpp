@@ -6,6 +6,7 @@
 #include <libethcore/Exceptions.h>
 #include <libethereum/Account.h>
 #include <libethereum/SecureTrieDB.h>
+
 #include <boost/filesystem.hpp>
 #include <tuple>
 #include <type_traits>
@@ -45,22 +46,16 @@ inline bool isDiskDatabase(const DatabaseKind& kind) {
   }
 }
 
-template <typename DB>
-inline h256 calculateGenesisState(DB& db, AccountMap const& accounts) {
-  SecureTrieDB<Address, DB> state(&db);
-  state.init();
-  commit(accounts, state);
-  return state.root();
-}
-
 // partially copied from /libethereum/State.cpp
 struct DBAndMeta {
   unique_ptr<DatabaseFace> db;
   DatabaseKind kind;
   fs::path path;
 };
-inline DBAndMeta newDB(fs::path const& _basePath, h256 const& _genesisHash,
-                       WithExisting _we, DatabaseKind kind = databaseKind()) {
+inline DBAndMeta newDB(fs::path const& _basePath,
+                       h256 const& _genesisHash,                //
+                       WithExisting _we = WithExisting::Trust,  //
+                       DatabaseKind kind = databaseKind()) {
   auto isDiskDB = isDiskDatabase(kind);
   auto path = _basePath.empty() ? db::databasePath() : _basePath;
   path /= fs::path(toHex(_genesisHash.ref().cropped(0, 4)));

@@ -19,9 +19,9 @@ using dev::rlpList;
 using dev::RLPStream;
 using dev::eth::Ethash;
 using dev::eth::IncludeSeal;
-using dev::eth::Nonce;
 using dev::eth::Permanence;
 using dev::eth::VerifiedBlockRef;
+using std::move;
 using std::unique_lock;
 using taraxa_seal_engine::TaraxaSealEngine;
 
@@ -76,18 +76,35 @@ h256 EthService::importTransaction(Transaction const& _t) {
   return taraxa_trx.getHash();
 }
 
-void EthService::appendBlock(Transactions const& transactions,
+pair<PendingBlockHeader, BlockHeader> EthService::startBlock(
+    Address const& author, int64_t timestamp) {
+  auto current_header = getBlockHeader();
+  auto number = current_header.number() + 1;
+  static bytes const empty_bytes;
+  return {
+      {
+          number,
+          current_header.hash(),
+          author,
+          timestamp,
+          bc().sealEngine()->chainParams().maxGasLimit,
+          empty_bytes,
+          number,
+          h256(0),
+          Nonce(0),
+      },
+      move(current_header),
+  };
+}
+
+void EthService::commitBlock(PendingBlockHeader& header,
+                             Transactions const& transactions,
                              TransactionReceipts const& receipts,  //
-                             h256 state_root,                      //
-                             int64_t timestamp,                    //
-                             Address author) {
+                             h256 const& state_root) {
   unique_lock l(append_block_mu_);
   auto& chain = bc();
-  BlockHeader header;
-  header.setNumber(chain.number() + 1);
-  header.setParentHash(chain.currentHash());
-  header.setAuthor(author);
-  header.setTimestamp(timestamp);
+  auto number = header.number();
+  assert(number == chain.number() + 1);
   BytesMap trxs_trie;
   RLPStream trxs_rlp(transactions.size());
   for (size_t i(0); i < transactions.size(); ++i) {
@@ -102,12 +119,7 @@ void EthService::appendBlock(Transactions const& transactions,
     receipts_trie[rlp(i)] = receipt_rlp;
     receipts_rlp.appendRaw(receipt_rlp);
   }
-  header.setRoots(hash256(trxs_trie), hash256(receipts_trie),
-                  dev::EmptyListSHA3, state_root);
-  header.setGasLimit(chain.sealEngine()->chainParams().maxGasLimit);
-  Ethash::setMixHash(header, h256(0));
-  Ethash::setNonce(header, Nonce(0));
-  header.setDifficulty(header.number());
+  header.complete(hash256(trxs_trie), hash256(receipts_trie), state_root);
   RLPStream block_rlp(3);
   header.streamRLP(block_rlp);
   block_rlp.appendRaw(trxs_rlp.out());
@@ -116,8 +128,8 @@ void EthService::appendBlock(Transactions const& transactions,
   auto block_bytes = block_rlp.out();
   auto receipts_bytes = receipts_rlp.out();
   // TODO insert pre-verified
-  // TODO set total diffuculty correctly
-  chain.insertWithoutParent(block_bytes, &receipts_bytes, header.difficulty());
+  chain.insertWithoutParent(block_bytes, &receipts_bytes,
+                            number * (number + 1) / 2);
 }
 
 ExecutionResult EthService::call(Address const& _from, u256 _value,

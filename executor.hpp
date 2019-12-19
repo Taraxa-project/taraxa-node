@@ -2,16 +2,18 @@
 #define TARAXA_NODE_EXECUTOR_HPP
 
 #pragma once
+#include <libdevcore/Log.h>
+
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
 #include <memory>
 #include <set>
 #include <thread>
-#include "account_state/index.hpp"
+
 #include "dag_block.hpp"
 #include "database_face_cache.hpp"
-#include <libdevcore/Log.h>
+#include "eth/eth_service.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.h"
 #include "replay_protection/index.hpp"
@@ -34,7 +36,7 @@ class Executor {
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
-  std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
+  std::shared_ptr<eth::eth_service::EthService> eth_service_;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
   std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
@@ -64,7 +66,7 @@ class Executor {
            decltype(db_blks_) db_blks,
            decltype(db_trxs_) db_trxs,                                      //
            decltype(replay_protection_service_) replay_protection_service,  //
-           decltype(state_registry_) state_registry,                        //
+           decltype(eth_service_) eth_service,                              //
            decltype(db_status_) db_status,                                  //
            bool use_basic_executor = false);
 
@@ -78,23 +80,6 @@ class Executor {
   }
 
  private:
-  bool execute_main(TrxSchedule const& schedule,
-                    BalanceTable& sortition_account_balance_table,
-                    uint64_t period,
-                    ReplayProtectionService::transaction_batch_t& executed_trx);
-  bool execute_basic(
-      TrxSchedule const& schedule,
-      BalanceTable& sortition_account_balance_table, uint64_t period,
-      ReplayProtectionService::transaction_batch_t& executed_trx);
-  bool executeBlkTrxs(
-      account_state::State&, blk_hash_t const& blk,
-      std::vector<std::pair<trx_hash_t, uint>> const& dag_blk_trxs_mode,
-      BalanceTable& sortition_account_balance_table, uint64_t period,
-      ReplayProtectionService::transaction_batch_t& executed_trx);
-  bool coinTransfer(account_state::State&, Transaction const& trx,
-                    BalanceTable& sortition_account_balance_table,
-                    uint64_t period,  //
-                    DagBlock const& dag_block);
   addr_t getFullNodeAddress() const;
 };
 

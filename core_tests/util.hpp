@@ -7,7 +7,6 @@
 #include <string>
 #include <type_traits>
 #include "config.hpp"
-#include "genesis_state.hpp"
 
 namespace taraxa::core_tests::util {
 using namespace std;

@@ -121,7 +121,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // setup timestamp for pbft block
   pbft_block1.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block1.setSignature(node->signMessage(pbft_block1.getJsonStr()));
+  pbft_block1.setSignature(node->signMessage(pbft_block1.getJsonStr(false)));
 
   // put into pbft chain and store into DB
   bool push_block = pbft_chain->pushPbftPivotBlock(pbft_block1);
@@ -147,7 +147,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // setup timestamp for pbft block
   pbft_block3.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block3.setSignature(node->signMessage(pbft_block3.getJsonStr()));
+  pbft_block3.setSignature(node->signMessage(pbft_block3.getJsonStr(false)));
 
   // put into pbft chain and store into DB
   push_block = pbft_chain->pushPbftScheduleBlock(pbft_block3);
@@ -229,7 +229,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   // setup timestamp for pbft block
   pbft_block1.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr()));
+  pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr(false)));
 
   node1->pushUnverifiedPbftBlock(pbft_block1);
   std::pair<PbftBlock, bool> block1_from_node1 =
@@ -294,7 +294,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   // setup timestamp for pbft block
   pbft_block2.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr()));
+  pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr(false)));
 
   node1->pushUnverifiedPbftBlock(pbft_block2);
   std::pair<PbftBlock, bool> block2_from_node1 =
@@ -361,7 +361,7 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(1);
   ASSERT_TRUE(dag_genesis_hash.second);
   ASSERT_EQ(dag_genesis_hash.first,
-            node->getConfig().genesis_state.block.getHash());
+            node->getConfig().dag_genesis_block.getHash());
 
   // create a transaction
   auto nonce = val_t(0);
@@ -419,7 +419,7 @@ TEST_F(PbftChainTest, get_dag_block_height) {
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
-      node->getConfig().genesis_state.block.getHash());
+      node->getConfig().dag_genesis_block.getHash());
   ASSERT_TRUE(dag_genesis_height.second);
   ASSERT_EQ(dag_genesis_height.first, 1);
 }

@@ -6,19 +6,17 @@
 #include "transaction.hpp"
 
 namespace taraxa::eth::util {
-using TaraxaTrx = ::taraxa::Transaction;
-using EthTrx = ::dev::eth::Transaction;
 using dev::eth::CheckTransaction;
 using dev::eth::IncludeSignature;
 
-inline TaraxaTrx trx_eth_2_taraxa(EthTrx const& t) {
-  return TaraxaTrx(t.rlp(t.hasSignature()
-                             ? IncludeSignature::WithSignature
-                             : IncludeSignature::WithoutSignature));
+inline Transaction trx_eth_2_taraxa(EthTransaction const& t) {
+  return Transaction(t.rlp(t.hasSignature()
+                               ? IncludeSignature::WithSignature
+                               : IncludeSignature::WithoutSignature));
 }
 
-inline EthTrx trx_taraxa_2_eth(TaraxaTrx const& t) {
-  return EthTrx(t.rlp(t.hasSig()), CheckTransaction::None);
+inline EthTransaction trx_taraxa_2_eth(Transaction const& t) {
+  return EthTransaction(t.rlp(t.hasSig()), CheckTransaction::None);
 }
 
 }  // namespace taraxa::eth::util

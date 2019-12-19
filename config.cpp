@@ -53,7 +53,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         test_params.pbft.push_back(i);
       }
     }
-    genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
+    dag_genesis_block = DagBlock(doc.get_child("dag_genesis_block"));
     if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {
       use_basic_executor = *v;
     }
@@ -66,7 +66,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       std::ifstream(json_file) >> jsoncpp_doc;
       std::stringstream ss;
       ss << jsoncpp_doc["eth_chain_params"];
-      eth_chain_params = decltype(eth_chain_params)(ss.str());
+      eth_chain_params = dev::eth::ChainParams(ss.str());
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;

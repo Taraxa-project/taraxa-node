@@ -190,14 +190,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> getTrxsToBlkDB() const {
     return db_trxs_to_blk_;
   }
-  std::shared_ptr<account_state::StateRegistry> getStateRegistry() const {
-    return state_registry_;
-  }
-  std::shared_ptr<account_state::State> updateAndGetState() const {
-    state_registry_->rebase(*state_);
-    return state_;
-  }
-
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
@@ -292,6 +284,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
+  auto getEthService() { return eth_service_; }
 
  private:
   size_t num_block_workers_ = 2;
@@ -340,8 +333,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<dev::db::DatabaseFace> db_blks_index_ = nullptr;
   std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_trxs_to_blk_ = nullptr;
-  std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
-  std::shared_ptr<account_state::State> state_ = nullptr;
   // PBFT DB
   std::shared_ptr<dev::db::DatabaseFace> db_pbft_sortition_accounts_ = nullptr;
   std::shared_ptr<dev::db::DatabaseFace> db_pbftchain_ = nullptr;

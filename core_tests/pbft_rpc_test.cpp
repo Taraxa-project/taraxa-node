@@ -1,14 +1,15 @@
-#include "full_node.hpp"
+#include <gtest/gtest.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
+
+#include <boost/thread.hpp>
+
+#include "core_tests/util.hpp"
+#include "full_node.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "top.hpp"
-
-#include <gtest/gtest.h>
-#include <boost/thread.hpp>
-#include "core_tests/util.hpp"
 #include "vote.h"
 
 namespace taraxa {
@@ -124,7 +125,8 @@ TEST_F(PbftRpcTest, transfer_vote) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+      cfg.eth_chain_params.genesisState[addr(cfg_other.node_secret)] =
+          dev::eth::Account(0, new_balance);
     }
   }
   auto node_count = 0;
@@ -189,7 +191,8 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+      cfg.eth_chain_params.genesisState[addr(cfg_other.node_secret)] = {
+          new_balance};
     }
   }
   auto node_count = 0;

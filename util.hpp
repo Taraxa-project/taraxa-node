@@ -4,6 +4,7 @@
 #include <execinfo.h>
 #include <json/json.h>
 #include <signal.h>
+
 #include <boost/asio.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -17,6 +18,7 @@
 #include <streambuf>
 #include <string>
 #include <unordered_set>
+
 #include "types.hpp"
 
 #ifdef TARAXA_PARANOID
@@ -258,6 +260,15 @@ std::optional<Pos> find(Where const &where, What const &what) {
     }
     assert(i <= max_pos);
     ++i;
+  }
+  return std::nullopt;
+}
+
+template <typename Map>
+std::optional<typename Map::const_iterator> std_map_entry(
+    Map const &map, typename Map::key_type const &key) {
+  if (auto const &itr = map.find(key); itr != map.end()) {
+    return {itr};
   }
   return std::nullopt;
 }

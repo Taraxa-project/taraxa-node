@@ -6,6 +6,8 @@
 
 #include <mutex>
 
+#include "pending_block_header.hpp"
+
 namespace taraxa {
 class FullNode;
 }
@@ -20,6 +22,7 @@ using dev::OverlayDB;
 using dev::Secret;
 using dev::u256;
 using dev::WithExisting;
+using dev::db::DatabaseFace;
 using dev::eth::Block;
 using dev::eth::BlockChain;
 using dev::eth::BlockDetails;
@@ -30,10 +33,12 @@ using dev::eth::ExecutionResult;
 using dev::eth::FudgeFactor;
 using dev::eth::GasEstimationCallback;
 using dev::eth::ImportResult;
+using dev::eth::LatestBlock;
 using dev::eth::LocalisedLogEntries;
 using dev::eth::LocalisedTransaction;
 using dev::eth::LocalisedTransactionReceipt;
 using dev::eth::LogFilter;
+using dev::eth::Nonce;
 using dev::eth::ProgressCallback;
 using dev::eth::Reaping;
 using dev::eth::State;
@@ -45,6 +50,7 @@ using dev::eth::TransactionReceipts;
 using dev::eth::Transactions;
 using dev::eth::TransactionSkeleton;
 using dev::eth::UncleHashes;
+using pending_block_header::PendingBlockHeader;
 using std::map;
 using std::mutex;
 using std::pair;
@@ -53,7 +59,7 @@ using std::weak_ptr;
 
 namespace fs = boost::filesystem;
 
-class EthService : public dev::eth::ClientBase {
+class EthService : public virtual dev::eth::ClientBase {
   weak_ptr<FullNode> node_;
   BlockChain bc_;
   OverlayDB acc_state_db_;
@@ -75,13 +81,6 @@ class EthService : public dev::eth::ClientBase {
   Transactions pending() const override;
   TransactionSkeleton populateTransactionWithDefaults(
       TransactionSkeleton const& _t) const override;
-
-  void appendBlock(Transactions const& transactions,
-                   TransactionReceipts const& receipts,  //
-                   h256 state_root,                      //
-                   int64_t timestamp,                    //
-                   Address author);
-
   Address author() const override;
   SyncStatus syncStatus() const override;
 
@@ -91,6 +90,33 @@ class EthService : public dev::eth::ClientBase {
   void setAuthor(Address const& _us) override { assert(false); }
   tuple<h256, h256, h256> getWork() override { assert(false); }
   void flushTransactions() override { assert(false); }
+
+  pair<PendingBlockHeader, BlockHeader> startBlock(Address const& author,
+                                                   int64_t timestamp);
+
+  void commitBlock(PendingBlockHeader& header, Transactions const& transactions,
+                   TransactionReceipts const& receipts,  //
+                   h256 const& state_root);
+
+  BlockHeader getBlockHeader(h256 const& hash) {
+    return BlockHeader(bc_.block(hash));
+  }
+
+  BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) {
+    return getBlockHeader(bc_.numberHash(block_number));
+  }
+
+  auto getAccountsStateDBRaw() { return acc_state_db_.getRawDB(); }
+
+  State const getAccountsState(BlockNumber block_number = LatestBlock) {
+    // TODO split to declaration and assignment
+    return blockByNumber(block_number).state();
+  }
+
+  template <typename... Arg>
+  auto accountNonce(Arg const&... args) {
+    return countAt(args...);
+  }
 
  protected:
   BlockChain& bc() override;

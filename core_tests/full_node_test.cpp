@@ -276,7 +276,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      for (auto &[addr, acc] : nodes[0]->getConfig().genesis_state.accounts) {
+      for (auto &[addr, acc] : nodes[0]->getConfig().eth_chain_params.genesisState) {
         expected_balances[addr] = acc.balance;
       }
       for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
@@ -588,7 +588,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->start(true);  // boot node
 
   g_mock_dag0 = samples::createMockDag0(
-      node->getConfig().genesis_state.block.getHash().toString());
+      node->getConfig().dag_genesis_block.getHash().toString());
 
   auto num_blks = g_mock_dag0.size();
   for (int i = 1; i <= 9; i++) {
@@ -708,7 +708,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
                                      true));  // destroy DB
 
     g_mock_dag0 =
-        samples::createMockDag0(conf.genesis_state.block.getHash().toString());
+        samples::createMockDag0(conf.dag_genesis_block.getHash().toString());
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -933,7 +933,7 @@ TEST_F(FullNodeTest, genesis_balance) {
   val_t bal1(1000);
   addr_t addr2(200);
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  cfg.genesis_state.accounts[addr1] = {bal1};
+  cfg.eth_chain_params.genesisState[addr1] = {bal1};
   auto node(taraxa::FullNode::make(cfg));
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
@@ -1274,7 +1274,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::cout << "All transactions received ..." << std::endl;
 
   std::cout << "Compute ordered dag blocks ..." << std::endl;
-  auto block = node1->getConfig().genesis_state.block;
+  auto block = node1->getConfig().dag_genesis_block;
   std::vector<std::string> ghost;
   node1->getGhostPath(block.getHash().toString(), ghost);
   ASSERT_GT(ghost.size(), 1);
