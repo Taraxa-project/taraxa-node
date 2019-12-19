@@ -839,28 +839,55 @@ TEST_F(FullNodeTest, destroy_db) {
 }
 
 TEST_F(FullNodeTest, destroy_node) {
+  std::weak_ptr<FullNode> weak_node;
+  std::weak_ptr<Network> weak_network;
+  std::weak_ptr<PbftManager> weak_pbft_manager;
+  std::weak_ptr<PbftChain> weak_pbft_chain;
+  std::weak_ptr<TransactionManager> weak_transaction_manager;
+  std::weak_ptr<VoteManager> weak_vote_manager;
+  std::weak_ptr<DbStorage> weak_db;
   {
-    std::shared_ptr<DbStorage> db;
-    {
-      FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-      auto node(taraxa::FullNode::make(conf,
-                                       true));  // destroy DB
-      node->start(false);
-      db = node->getDB();
-    }
-    // Once node is deleted, only database reference should be our local one
-    ASSERT_EQ(db.use_count(), 1);
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(taraxa::FullNode::make(conf,
+                                     true));  // destroy DB
+    node->start(false);
+    weak_node = node->getShared();
+    weak_network = node->getNetwork();
+    weak_pbft_manager = node->getPbftManager();
+    weak_pbft_chain = node->getPbftChain();
+    weak_transaction_manager = node->getTransactionManager();
+    weak_vote_manager = node->getVoteManager();
+    weak_db = node->getDB();
   }
+  // Once node is deleted, verify all objects are deleted
+  ASSERT_EQ(weak_node.lock(), nullptr);
+  ASSERT_EQ(weak_network.lock(), nullptr);
+  ASSERT_EQ(weak_pbft_manager.lock(), nullptr);
+  ASSERT_EQ(weak_pbft_chain.lock(), nullptr);
+  ASSERT_EQ(weak_transaction_manager.lock(), nullptr);
+  ASSERT_EQ(weak_vote_manager.lock(), nullptr);
+  ASSERT_EQ(weak_db.lock(), nullptr);
 
   {
-    std::shared_ptr<DbStorage> db;
     {
       Top top1(6, input1);
       auto node = top1.getNode();
-      db = node->getDB();
+      weak_node = node->getShared();
+      weak_network = node->getNetwork();
+      weak_pbft_manager = node->getPbftManager();
+      weak_pbft_chain = node->getPbftChain();
+      weak_transaction_manager = node->getTransactionManager();
+      weak_vote_manager = node->getVoteManager();
+      weak_db = node->getDB();
     }
-    // Once node is deleted, only database reference should be our local one
-    ASSERT_EQ(db.use_count(), 1);
+    // Once node is deleted, verify all objects are deleted
+    ASSERT_EQ(weak_node.lock(), nullptr);
+    ASSERT_EQ(weak_network.lock(), nullptr);
+    ASSERT_EQ(weak_pbft_manager.lock(), nullptr);
+    ASSERT_EQ(weak_pbft_chain.lock(), nullptr);
+    ASSERT_EQ(weak_transaction_manager.lock(), nullptr);
+    ASSERT_EQ(weak_vote_manager.lock(), nullptr);
+    ASSERT_EQ(weak_db.lock(), nullptr);
   }
 }
 
