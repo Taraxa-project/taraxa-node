@@ -385,6 +385,26 @@ class ExpirationCacheMap {
     }
   }
 
+  std::pair<Value, bool> updateWithGet(Key const &key, Value value) {
+    boost::unique_lock lck(mtx_);
+    std::pair<Value, bool> ret;
+    auto it = cache_.find(key);
+    if (it == cache_.end()) {
+      ret = std::make_pair(Value(), false);
+    } else {
+      ret = std::make_pair(it->second, true);
+    }
+    cache_[key] = value;
+    expiration_.push_back(key);
+    if (cache_.size() > max_size_) {
+      for (auto i = 0; i < delete_step_; i++) {
+        cache_.erase(expiration_.front());
+        expiration_.pop_front();
+      }
+    }
+    return ret;
+  }
+
   std::unordered_map<Key, Value> getRawMap() { return cache_; }
 
   bool update(Key const &key, Value value, Value expected_value) {

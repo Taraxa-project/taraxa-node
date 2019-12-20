@@ -470,8 +470,7 @@ void TransactionManager::start() {
     auto full_node = full_node_.lock();
     assert(full_node);
     db_ = full_node->getDB();
-    auto trx_count =
-        db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+    auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
     trx_count_.store(trx_count);
     DagBlock blk;
     string pivot;
@@ -578,13 +577,13 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
     auto trx_batch = db_->createWriteBatch();
     for (auto const &trx : some_trxs) {
       auto trx_hash = trx.getHash();
-      auto status = trx_status_.get(trx_hash);
+      auto status =
+          trx_status_.updateWithGet(trx_hash, TransactionStatus::in_block);
       if (!status.second || status.first != TransactionStatus::in_block) {
         if (!db_->transactionInDb(trx_hash)) {
           trx_count_.fetch_add(1);
           db_->addTransactionToBatch(trx, trx_batch);
         }
-        trx_status_.update(trx_hash, TransactionStatus::in_block);
       }
     }
     auto trx_count = trx_count_.load();
@@ -690,19 +689,18 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
-    auto [rlp, exist1] = rlp_cache_.get(hash);
-    // Skip if transaction is already in existing block
-    if (db_->transactionInDb(hash)) {
-      continue;
+    auto status = trx_status_.updateWithGet(hash, TransactionStatus::in_block);
+    if (!status.second || status.first != TransactionStatus::in_block) {
+      // Skip if transaction is already in existing block
+      if (db_->transactionInDb(hash)) {
+        continue;
+      }
+      db_->addTransactionToBatch(trx, trx_batch);
+      trx_count_.fetch_add(1);
+      changed = true;
     }
-    db_->addTransactionToBatch(trx, trx_batch);
-    trx_count_.fetch_add(1);
-    changed = true;
-
-    auto [status, exist2] = trx_status_.get(hash);
     LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
     // update transaction_status
-    trx_status_.update(hash, TransactionStatus::in_block);
     list_trxs.push_back(trx);
   }
 
