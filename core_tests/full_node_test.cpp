@@ -277,7 +277,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
       for (auto &[addr, acc] : nodes[0]->getConfig().eth_chain_params.genesisState) {
-        expected_balances[addr] = acc.balance;
+        expected_balances[addr] = acc.balance();
       }
       for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
         auto const &backend = nodes_[(i + 1) % cnt];  // shuffle a bit
@@ -933,7 +933,7 @@ TEST_F(FullNodeTest, genesis_balance) {
   val_t bal1(1000);
   addr_t addr2(200);
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  cfg.eth_chain_params.genesisState[addr1] = {bal1};
+  cfg.eth_chain_params.genesisState[addr1] = dev::eth::Account(0, bal1);
   auto node(taraxa::FullNode::make(cfg));
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);

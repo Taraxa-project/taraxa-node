@@ -71,6 +71,7 @@ using AccountNonceTable = StatusTable<addr_t, val_t>;
  * Need to sign first then sender() and hash() is available
  */
 
+// TODO inherit from aleth trx
 class Transaction {
  public:
   enum class Type : uint8_t { Null, Create, Call };

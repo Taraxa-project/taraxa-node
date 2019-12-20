@@ -191,8 +191,8 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.eth_chain_params.genesisState[addr(cfg_other.node_secret)] = {
-          new_balance};
+      cfg.eth_chain_params.genesisState[addr(cfg_other.node_secret)] =
+          dev::eth::Account(0, new_balance);
     }
   }
   auto node_count = 0;

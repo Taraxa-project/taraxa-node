@@ -73,22 +73,25 @@ struct ReplayProtectionServiceTest : testing::Test {
   void check_history_not_replayable() {
     for (auto const& trxs : history) {
       for (auto const& t : trxs) {
-        EXPECT_TRUE(sut->hasBeenExecuted(t));
+        EXPECT_TRUE(sut->hasBeenExecuted(eth::util::trx_eth_2_taraxa(t)));
       }
     }
   }
 
   bool hasNoNonceWatermark(secret_t const& sender_sk) {
-    return !sut->hasBeenExecuted(makeTrx(0, sender_sk));
+    return !sut->hasBeenExecuted(
+        eth::util::trx_eth_2_taraxa(makeTrx(0, sender_sk)));
   }
 
   bool hasNonceWatermark(secret_t const& sender_sk, trx_nonce_t watermark) {
     for (trx_nonce_t i(0); i <= watermark; ++i) {
-      if (!sut->hasBeenExecuted(makeTrx(i, sender_sk))) {
+      if (!sut->hasBeenExecuted(
+              eth::util::trx_eth_2_taraxa(makeTrx(i, sender_sk)))) {
         return false;
       }
     }
-    return !sut->hasBeenExecuted(makeTrx(watermark + 1, sender_sk));
+    return !sut->hasBeenExecuted(
+        eth::util::trx_eth_2_taraxa(makeTrx(watermark + 1, sender_sk)));
   }
 };
 
