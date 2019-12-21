@@ -937,7 +937,9 @@ TEST_F(FullNodeTest, genesis_balance) {
   addr_t addr2(200);
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   cfg.eth_chain_params.genesisState[addr1] = dev::eth::Account(0, bal1);
+  cfg.eth_chain_params.calculateStateRoot(true);
   auto node(taraxa::FullNode::make(cfg));
+  node->start(true);
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
@@ -953,13 +955,13 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf868808502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba07659e8c7207a4b2cd96488108fed54c463b1719b438add1159beed04f6660da8a028feb0a3b44bd34e0dd608f82aeeb2cd70d1305653b5dc33678be2ffcfcac997"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf868018502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba05256492dd60623ab5a403ed1b508f845f87f631d2c2e7acd4357cd83ef5b6540a042def7cd4f3c25ce67ee25911740dab47161e096f1dd024badecec58888a890b"
                                       ]}' 0.0.0.0:7777)";
 
@@ -1018,13 +1020,13 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf86b808502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca04cef8610e05b4476673c369204899da747a9b32b0ad3769814b620281c900408a0130499a83d0b56c184c6ac518f6bbe2f8f946b65bf42b08cfc9b4dfbe2ebfd04"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf86b018502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca06644c30a23286d0de8fa107f1bded3a7a214004042b2007b2a9a62c8b313cf79a06cbb522856838b107542d8213286928500b2822584d6c7c6fee3a2c348cade4a"
                                       ]}' 0.0.0.0:7777)";
 

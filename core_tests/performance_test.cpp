@@ -1,16 +1,18 @@
 
 #include <gperftools/profiler.h>
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "dag.hpp"
 #include "full_node.hpp"
-#include <libdevcore/DBFactory.h>
-#include <libdevcore/Log.h>
 #include "net/RpcServer.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
@@ -30,8 +32,8 @@ TEST_F(PerformanceTest, execute_transactions) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   // //
   addr_t acc1 = addr(cfg.node_secret);
-  cfg.eth_chain_params.genesisState[acc1] = {initbal};
-
+  cfg.eth_chain_params.genesisState[acc1] = dev::eth::Account(0, initbal);
+  cfg.eth_chain_params.calculateStateRoot(true);
   auto transactions =
       samples::createSignedTrxSamples(0, NUM_TRX, dev::Secret(cfg.node_secret));
 
