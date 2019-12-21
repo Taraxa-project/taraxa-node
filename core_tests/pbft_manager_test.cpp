@@ -1,15 +1,18 @@
 #include "pbft_manager.hpp"
+
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "full_node.hpp"
-#include <libdevcore/DBFactory.h>
 #include "network.hpp"
 #include "top.hpp"
 #include "util.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
+using core_tests::util::constants::TEST_TX_GAS_LIMIT;
 
 const unsigned NUM_TRX = 200;
 auto g_secret = dev::Secret(
@@ -32,11 +35,11 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto nonce = val_t(0);
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
-  auto gas = val_t(1);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               gas, receiver, data, g_secret);
+                                               TEST_TX_GAS_LIMIT, receiver,
+                                               data, g_secret);
   node->insertTransaction(trx_master_boot_node_to_receiver);
 
   for (int i = 0; i < 100; i++) {
@@ -134,10 +137,10 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // create a transaction transfer coins from node1 to node2
   auto coins_value2 = val_t(100);
   auto gas_price = val_t(2);
-  auto gas = val_t(1);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, gas,
-                                            node2_addr, data, g_secret);
+  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price,
+                                            TEST_TX_GAS_LIMIT, node2_addr, data,
+                                            g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
@@ -180,8 +183,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
-  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, gas,
-                                            node3_addr, data, g_secret);
+  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price,
+                                            TEST_TX_GAS_LIMIT, node3_addr, data,
+                                            g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node3);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."

@@ -997,26 +997,11 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 2);
 }
 
-// disabled for now, need to create two trx with nonce 0!
 TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
-  FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
-  conf1.node_secret =
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
-  auto node1(taraxa::FullNode::make(conf1));
-  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
-  conf2.node_secret =
-      "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e";
-  auto node2(taraxa::FullNode::make(conf2));
-  node1->start(true);
-  node2->start(false);
-  auto rpc =
-      std::make_shared<ModularServer<net::TaraxaFace>>(new net::Taraxa(node1));
-  boost::asio::io_context context1;
-  auto rpc_server(std::make_shared<net::RpcServer>(context1, conf1.rpc));
-  rpc->addConnector(rpc_server);
-  rpc_server->StartListening();
-  boost::thread t([&context1]() { context1.run(); });
-  thisThreadSleepForSeconds(1);
+  Top top1(6, input1);
+  Top top2(6, input2);
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
@@ -1060,7 +1045,6 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
     thisThreadSleepForMilliSeconds(1000);
   }
   EXPECT_EQ(trx_executed1, 2);
-  rpc_server->StopListening();
 }
 
 TEST_F(FullNodeTest, save_network_to_file) {

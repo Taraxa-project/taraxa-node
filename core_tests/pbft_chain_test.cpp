@@ -1,17 +1,22 @@
 #include "pbft_chain.hpp"
+
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+
 #include "full_node.hpp"
-#include <libdevcore/DBFactory.h>
-#include <libdevcore/Log.h>
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "util.hpp"
+#include "util/constants.hpp"
 
 namespace taraxa {
+using core_tests::util::constants::TEST_TX_GAS_LIMIT;
 
 struct PbftChainTest : core_tests::util::DBUsingTest<> {};
 
@@ -367,14 +372,14 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   auto nonce = val_t(0);
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
-  auto gas = val_t(1);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
   auto g_secret = dev::Secret(
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               gas, receiver, data, g_secret);
+                                               TEST_TX_GAS_LIMIT, receiver,
+                                               data, g_secret);
   node->insertTransaction(trx_master_boot_node_to_receiver);
 
   for (int i = 0; i < 1000; i++) {
