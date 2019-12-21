@@ -41,7 +41,6 @@ class Executor {
   std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   trx_engine::TrxEngine trx_engine_;
-  bool use_basic_executor_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   using BalanceTable = std::unordered_map<addr_t, PbftSortitionAccount>;
@@ -67,8 +66,7 @@ class Executor {
            decltype(db_trxs_) db_trxs,                                      //
            decltype(replay_protection_service_) replay_protection_service,  //
            decltype(eth_service_) eth_service,                              //
-           decltype(db_status_) db_status,                                  //
-           bool use_basic_executor = false);
+           decltype(db_status_) db_status);
 
   bool execute(PbftBlock const& pbft_block,
                BalanceTable& sortition_account_balance_table, uint64_t period);

@@ -250,27 +250,22 @@ std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
 }
 
-template <typename Where, typename What, typename Pos = std::size_t>
-std::optional<Pos> find(Where const &where, What const &what) {
-  constexpr auto max_pos = std::numeric_limits<Pos>::max();
-  Pos i(0);
-  for (What const &e : where) {
-    if (what == e) {
-      return i;
-    }
-    assert(i <= max_pos);
-    ++i;
+template <typename Container, typename What>
+auto std_find(Container &container, What const &what) {
+  auto itr = container.find(what);
+  if (itr != container.end()) {
+    return std::optional(std::move(itr));
   }
-  return std::nullopt;
+  return static_cast<std::optional<decltype(itr)>>(std::nullopt);
 }
 
-template <typename Map>
-std::optional<typename Map::const_iterator> std_map_entry(
-    Map const &map, typename Map::key_type const &key) {
-  if (auto const &itr = map.find(key); itr != map.end()) {
-    return {itr};
+template <typename Container, typename What>
+auto std_find(Container const &container, What const &what) {
+  auto itr = container.find(what);
+  if (itr != container.end()) {
+    return std::optional(std::move(itr));
   }
-  return std::nullopt;
+  return static_cast<std::optional<decltype(itr)>>(std::nullopt);
 }
 
 inline auto noop() { return [](auto...) -> auto {}; }

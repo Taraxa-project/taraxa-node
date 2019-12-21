@@ -36,7 +36,7 @@ struct StateTransitionResult {
   u256 usedGas;
   TransactionReceipts receipts;
   vector<TransactionOutput> transactionOutputs;
-  unordered_map<Address, u256> updatedBalances;
+  unordered_map<Address, u256> touchedExternallyOwnedAccountBalances;
 
   static StateTransitionResult fromJson(Json::Value const& json);
 };

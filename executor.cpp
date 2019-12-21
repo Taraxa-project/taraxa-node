@@ -1,6 +1,7 @@
 #include "executor.hpp"
 
 #include <stdexcept>
+#include <unordered_set>
 
 #include "full_node.hpp"
 #include "transaction.hpp"
@@ -11,6 +12,7 @@ using dev::KeyPair;
 using dev::eth::CheckTransaction;
 using dev::eth::Transactions;
 using std::move;
+using std::unordered_set;
 using trx_engine::StateTransitionResult;
 using trx_engine::TrxEngine;
 
@@ -21,8 +23,7 @@ Executor::Executor(
     decltype(db_trxs_) db_trxs,                                      //
     decltype(replay_protection_service_) replay_protection_service,  //
     decltype(eth_service_) eth_service,                              //
-    decltype(db_status_) db_status,                                  //
-    bool use_basic_executor)
+    decltype(db_status_) db_status)
     : pbft_require_sortition_coins_(pbft_require_sortition_coins),
       log_time_(std::move(log_time)),
       db_blks_(std::move(db_blks)),
@@ -30,8 +31,7 @@ Executor::Executor(
       replay_protection_service_(std::move(replay_protection_service)),
       db_status_(std::move(db_status)),
       eth_service_(std::move(eth_service)),
-      trx_engine_(eth_service_->getAccountsStateDBRaw()),
-      use_basic_executor_(use_basic_executor) {
+      trx_engine_(eth_service_->getAccountsStateDBRaw()) {
   auto blk_count = db_status_->lookup(
       util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedBlkCount));
   if (!blk_count.empty()) {
@@ -49,7 +49,9 @@ bool Executor::execute(PbftBlock const& pbft_block,
                        uint64_t period) {
   auto const& schedule = pbft_block.getScheduleBlock().getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
-  EthTransactions transactions(dag_blk_count);
+  EthTransactions transactions;
+  transactions.reserve(dag_blk_count);
+  unordered_set<addr_t> senders;
   for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
     auto& blk_hash = schedule.dag_blks_order[blk_i];
     if (db_blks_->lookup(blk_hash).empty()) {
@@ -57,7 +59,7 @@ bool Executor::execute(PbftBlock const& pbft_block,
       return false;
     }
     auto& dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
-    transactions.reserve(transactions.size() + dag_blk_trxs_mode.size() - 1);
+    transactions.reserve(transactions.capacity() + dag_blk_trxs_mode.size() - 1);
     for (auto& trx_hash_and_mode : dag_blk_trxs_mode) {
       auto& [trx_hash, mode] = trx_hash_and_mode;
       // TODO: should not have overlapped transactions anymore
@@ -66,8 +68,9 @@ bool Executor::execute(PbftBlock const& pbft_block,
                      << " is overlapped";
         continue;
       }
-      transactions.emplace_back(db_trxs_->lookup(trx_hash),
-                                CheckTransaction::None);
+      auto& trx = transactions.emplace_back(db_trxs_->lookup(trx_hash),
+                                            CheckTransaction::None);
+      senders.insert(trx.sender());
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
     }
@@ -97,6 +100,50 @@ bool Executor::execute(PbftBlock const& pbft_block,
       return false;
     }
   }
+  // TODO transactional
+  eth_service_->commitBlock(pending_header,
+                            transactions,  //
+                            execution_result.receipts,
+                            execution_result.stateRoot);
+  // TODO transactional
+  replay_protection_service_->commit(period, transactions);
+  for (auto& [addr, balance] :
+       execution_result.touchedExternallyOwnedAccountBalances) {
+    auto enough_balance = balance >= pbft_require_sortition_coins_;
+    auto sortition_table_entry =
+        std_find(sortition_account_balance_table, addr);
+    auto is_sender = bool(std_find(senders, addr));
+    LOG(log_dg_) << "Externally owned account (is_sender: " << is_sender
+                 << ") balance update: " << addr << " --> " << balance
+                 << " in period " << period;
+    if (is_sender) {
+      if (sortition_table_entry) {
+        auto& v = (*sortition_table_entry)->second;
+        // fixme: weird lossy cast
+        v.last_period_seen = static_cast<int64_t>(period);
+        v.status = new_change;
+      }
+      if (enough_balance) {
+        sortition_account_balance_table[addr].balance = balance;
+      } else if (sortition_table_entry) {
+        auto& v = (*sortition_table_entry)->second;
+        v.balance = balance;
+        v.status = remove;
+      }
+      continue;
+    }
+    if (!enough_balance) {
+      continue;
+    }
+    if (sortition_table_entry) {
+      auto& v = (*sortition_table_entry)->second;
+      v.balance = balance;
+      v.status = new_change;
+    } else {
+      sortition_account_balance_table[addr] =
+          PbftSortitionAccount(addr, balance, -1, new_change);
+    }
+  }
   for (size_t i(0); i < transactions.size(); ++i) {
     auto const& trx = transactions[i];
     auto trx_hash = trx.sha3();
@@ -107,69 +154,7 @@ bool Executor::execute(PbftBlock const& pbft_block,
       LOG(log_er_) << "Trx " << trx_hash << " failed: " << trx_output.error
                    << std::endl;
     }
-
-    // TODO
-    //      auto period_int64 = static_cast<int64_t>(period);
-    //      auto const& sender = trx.sender();
-    //      auto sender_entry = std_map_entry(result.updatedBalances, sender);
-    //      // Update PBFT sortition account last period seen sending trxs
-    //      if (sender_entry) {
-    //        sender_entry.last_period_seen = static_cast<int64_t>(period);
-    //        sender_entry.status = new_change;
-    //      }
-    //      if (auto e = std_map_entry(result.updatedBalances, sender); e) {
-    //        auto const& new_sender_bal = e->second;
-    //        LOG(log_dg_) << "Update sender bal: " << sender << " --> "
-    //                     << new_sender_bal << " in period " << period;
-    //        if (new_sender_bal >= pbft_require_sortition_coins_) {
-    //          if (!sender_entry) {
-    //            sortition_account_balance_table.emplace(sender,
-    //            new_sender_bal,
-    //                                                    period_int64,
-    //                                                    new_change);
-    //          } else {
-    //            auto& v = sender_entry->second;
-    //            v.balance = new_sender_bal;
-    //            v.last_period_seen = period_int64;
-    //            v.status = updated;
-    //          }
-    //        } else if (sender_entry) {
-    //          sender_entry.balance = new_sender_bal;
-    //          sender_entry.status = remove;
-    //        }
-    //      }
-    //      if (trx.isCreation()) {
-    //        continue;
-    //      }
-    //      auto receiver = trx.to();
-    //      if (auto e = std_map_entry(result.updatedBalances, receiver); e) {
-    //        auto const& new_receiver_bal = e->second;
-    //        LOG(log_dg_) << "New receiver bal: " << receiver << " --> "
-    //                     << new_receiver_bal << " in period " << period;
-    //        if (new_receiver_bal >= pbft_require_sortition_coins_) {
-    //          if (std_map_entry(sortition_account_balance_table, receiver))
-    //          {
-    //            // update receiver account
-    //            sortition_account_balance_table[receiver].balance =
-    //                new_receiver_bal;
-    //            sortition_account_balance_table[receiver].status =
-    //            new_change;
-    //          } else {
-    //            // New receiver account
-    //            sortition_account_balance_table[receiver] =
-    //            PbftSortitionAccount(
-    //                receiver, new_receiver_bal, -1, new_change);
-    //          }
-    //        }
-    //      }
   }
-  // TODO transactional
-  eth_service_->commitBlock(pending_header,
-                            transactions,  //
-                            execution_result.receipts,
-                            execution_result.stateRoot);
-  // TODO transactional
-  replay_protection_service_->commit(period, transactions);
   if (dag_blk_count != 0) {
     num_executed_blk_.fetch_add(dag_blk_count);
     num_executed_trx_.fetch_add(transactions.size());

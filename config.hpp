@@ -9,8 +9,10 @@
 #include "types.hpp"
 #include "util.hpp"
 
-// TODO make all the classes json/ptree (ser|de)serializable and use it in
-// << operator
+// TODO don't use ptree
+// TODO: Generate configs for the tests
+// TODO: Separate configs for consensus chain params and technical params
+// TODO: Expose only certain eth chain params, encapsulate the config invariants
 namespace taraxa {
 struct RpcConfig {
   RpcConfig() = default;
@@ -63,7 +65,6 @@ struct FullNodeConfig {
   RpcConfig rpc;
   TestParamsConfig test_params;
   DagBlock dag_genesis_block;
-  bool use_basic_executor;
   round_t replay_protection_service_range =
       REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT;
   dev::eth::ChainParams eth_chain_params;

@@ -1,14 +1,17 @@
 
 #include "full_node.hpp"
+
 #include <gtest/gtest.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "core_tests/util/transaction_client.hpp"
 #include "create_samples.hpp"
@@ -18,13 +21,12 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "replay_protection/replay_protection_service_test.hpp"
 #include "sortition.h"
 #include "string"
 #include "top.hpp"
 #include "util.hpp"
 #include "util/wait.hpp"
-
-#include "replay_protection/replay_protection_service_test.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
@@ -232,7 +234,7 @@ void send_dummy_trx() {
 struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
 // fixme: flaky
-TEST_F(FullNodeTest, sync_five_nodes) {
+TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
   using namespace std;
   Top top1(5, input1);
   std::cout << "Top1 created ..." << std::endl;
@@ -276,7 +278,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      for (auto &[addr, acc] : nodes[0]->getConfig().eth_chain_params.genesisState) {
+      for (auto &[addr, acc] :
+           nodes[0]->getConfig().eth_chain_params.genesisState) {
         expected_balances[addr] = acc.balance();
       }
       for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
@@ -1398,51 +1401,46 @@ TEST_F(FullNodeTest,
        DISABLED_transaction_failure_does_not_cause_block_failure) {
   // TODO move to another file
   using namespace std;
-  for (auto i(0); i < 2; ++i) {
-    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-    conf.use_basic_executor = i % 2 == 0;
-    auto node = FullNode::make(conf);
-    node->setDebug(true);
-    node->start(true);
-    thisThreadSleepForMilliSeconds(500);
-    vector<Transaction> transactions;
-    transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
-                              bytes(), node->getSecretKey());
-    // This must cause out of balance error
-    transactions.emplace_back(1, node->getMyBalance() + 100, 0,
-                              samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
-                              node->getSecretKey());
-    for (auto const &trx : transactions) {
-      node->insertTransaction(trx);
-    }
-    auto trx_executed = node->getNumTransactionExecuted();
-    for (auto i(0); i < SYNC_TIMEOUT; ++i) {
-      if (trx_executed == transactions.size()) break;
-      thisThreadSleepForMilliSeconds(100);
-      trx_executed = node->getNumTransactionExecuted();
-    }
-    EXPECT_EQ(trx_executed, transactions.size())
-        << "use basic executor: " << conf.use_basic_executor
-        << " ,Trx executed: " << trx_executed
-        << " ,Trx size: " << transactions.size();
+  auto node = FullNode::make("./core_tests/conf/conf_taraxa1.json");
+  node->setDebug(true);
+  node->start(true);
+  thisThreadSleepForMilliSeconds(500);
+  vector<Transaction> transactions;
+  transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
+                            bytes(), node->getSecretKey());
+  // This must cause out of balance error
+  transactions.emplace_back(1, node->getMyBalance() + 100, 0,
+                            samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
+                            node->getSecretKey());
+  for (auto const &trx : transactions) {
+    node->insertTransaction(trx);
   }
+  auto trx_executed = node->getNumTransactionExecuted();
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+    if (trx_executed == transactions.size()) break;
+    thisThreadSleepForMilliSeconds(100);
+    trx_executed = node->getNumTransactionExecuted();
+  }
+  EXPECT_EQ(trx_executed, transactions.size())
+      << "Trx executed: " << trx_executed
+      << " ,Trx size: " << transactions.size();
 }
 
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
   TaraxaStackTrace st;
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("FULLND");
-  // logOptions.includeChannels.push_back("DAGMGR");
-  // logOptions.includeChannels.push_back("EXETOR");
-  // logOptions.includeChannels.push_back("BLK_PP");
-  // logOptions.includeChannels.push_back("PR_MDL");
-  // logOptions.includeChannels.push_back("PBFT_MGR");
-  // logOptions.includeChannels.push_back("PBFT_CHAIN");
-
-  dev::setupLogging(logOptions);
+//  dev::LoggingOptions logOptions;
+//  logOptions.verbosity = dev::VerbosityError;
+//  // logOptions.includeChannels.push_back("FULLND");
+//  // logOptions.includeChannels.push_back("DAGMGR");
+//  // logOptions.includeChannels.push_back("EXETOR");
+//  // logOptions.includeChannels.push_back("BLK_PP");
+//  // logOptions.includeChannels.push_back("PR_MDL");
+//  // logOptions.includeChannels.push_back("PBFT_MGR");
+//  // logOptions.includeChannels.push_back("PBFT_CHAIN");
+//
+//  dev::setupLogging(logOptions);
   dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

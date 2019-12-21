@@ -39,6 +39,7 @@ using dev::eth::LocalisedTransaction;
 using dev::eth::LocalisedTransactionReceipt;
 using dev::eth::LogFilter;
 using dev::eth::Nonce;
+using dev::eth::PendingBlock;
 using dev::eth::ProgressCallback;
 using dev::eth::Reaping;
 using dev::eth::State;
@@ -103,6 +104,9 @@ class EthService : public virtual dev::eth::ClientBase {
   }
 
   BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) {
+    if (block_number == LatestBlock || block_number == PendingBlock) {
+      return getBlockHeader(bc_.currentHash());
+    }
     return getBlockHeader(bc_.numberHash(block_number));
   }
 

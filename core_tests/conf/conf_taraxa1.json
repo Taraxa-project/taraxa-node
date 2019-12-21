@@ -38,6 +38,16 @@
       0
     ]
   },
+  "dag_genesis_block": {
+    "level": 0,
+    "tips": [],
+    "trxs": [],
+    "sig": "b7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
+    "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
+    "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
+    "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
+    "timestamp": 1564617600
+  },
   "eth_chain_params": {
     "sealEngine": "TaraxaSealEngine",
     "params": {
@@ -69,23 +79,80 @@
       "timestamp": "0x0",
       "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "extraData": "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa",
-      "gasLimit": "7fffffffffffffff"
+      "gasLimit": "0xffffffffffffffff"
     },
     "accounts": {
-      "8d6df209484d7b94702b03a53e56b9fb0660f6f0": {
-        "balance": 9007199254740991
+      "0000000000000000000000000000000000000001": {
+        "precompiled": {
+          "name": "ecrecover",
+          "linear": {
+            "base": 3000,
+            "word": 0
+          }
+        }
+      },
+      "0000000000000000000000000000000000000002": {
+        "precompiled": {
+          "name": "sha256",
+          "linear": {
+            "base": 60,
+            "word": 12
+          }
+        }
+      },
+      "0000000000000000000000000000000000000003": {
+        "precompiled": {
+          "name": "ripemd160",
+          "linear": {
+            "base": 600,
+            "word": 120
+          }
+        }
+      },
+      "0000000000000000000000000000000000000004": {
+        "precompiled": {
+          "name": "identity",
+          "linear": {
+            "base": 15,
+            "word": 3
+          }
+        }
+      },
+      "0000000000000000000000000000000000000005": {
+        "precompiled": {
+          "name": "modexp",
+          "startingBlock": "0x42ae50"
+        }
+      },
+      "0000000000000000000000000000000000000006": {
+        "precompiled": {
+          "name": "alt_bn128_G1_add",
+          "startingBlock": "0x42ae50",
+          "linear": {
+            "base": 500,
+            "word": 0
+          }
+        }
+      },
+      "0000000000000000000000000000000000000007": {
+        "precompiled": {
+          "name": "alt_bn128_G1_mul",
+          "startingBlock": "0x42ae50",
+          "linear": {
+            "base": 40000,
+            "word": 0
+          }
+        }
+      },
+      "0000000000000000000000000000000000000008": {
+        "precompiled": {
+          "name": "alt_bn128_pairing_product",
+          "startingBlock": "0x42ae50"
+        }
+      },
+      "de2b1203d72d3549ee2f733b00b2789414c7cea5": {
+        "balance": "9007199254740991"
       }
     }
-  },
-  "dag_genesis_block": {
-      "level": 0,
-      "tips": [],
-      "trxs": [],
-      "sig": "b7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
-      "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
-      "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
-      "timestamp": 1564617600
-  },
-  "use_basic_executor": 1
+  }
 }

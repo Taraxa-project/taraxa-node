@@ -1,10 +1,15 @@
 #include "top.hpp"
+
+#include <libweb3jsonrpc/AccountHolder.h>
+
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
+
 #include "config.hpp"
+#include "eth/eth.hpp"
 #include "net/RpcServer.h"
 
 using namespace std;
@@ -60,9 +65,20 @@ Top::Top(int argc, const char* argv[]) {
       auto const& node_config = node_->getConfig();
       auto rpc_server = make_shared<taraxa::net::RpcServer>(rpc_io_context_,  //
                                                             node_config.rpc);
-      auto rpc = make_shared<Rpc>(new taraxa::net::Test(node_),
-                                  new taraxa::net::Taraxa(node_),  //
-                                  new taraxa::net::Net(node_));
+      std::shared_ptr<dev::eth::AccountHolder> acc_holder(
+          new dev::eth::FixedAccountHolder(
+              [ptr = node_->getEthService().get()] { return ptr; },
+              {
+                  dev::KeyPair(node_->getSecretKey()),
+              }));
+      auto rpc = make_shared<ModularServer<taraxa::net::TestFace,
+                                           taraxa::net::TaraxaFace,  //
+                                           taraxa::net::NetFace,     //
+                                           dev::rpc::EthFace>>(
+          new taraxa::net::Test(node_),
+          new taraxa::net::Taraxa(node_),  //
+          new taraxa::net::Net(node_),
+          new taraxa::eth::eth::Eth(node_->getEthService(), acc_holder));
       rpc->addConnector(rpc_server);
       rpc_server->StartListening();
       auto ws_listener = make_shared<taraxa::net::WSServer>(

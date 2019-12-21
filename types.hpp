@@ -131,8 +131,9 @@ struct TransactionPosition {
   trx_num_t transaction_index;
 };
 
+// fixme: use the limit from chain params
 inline static const auto MOCK_BLOCK_GAS_LIMIT =
-    std::numeric_limits<val_t>::max();
+    std::numeric_limits<uint64_t>::max();
 
 }  // namespace taraxa
 

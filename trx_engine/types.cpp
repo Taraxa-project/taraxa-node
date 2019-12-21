@@ -7,10 +7,10 @@
 
 namespace taraxa::trx_engine::types {
 using dev::h256s;
-using dev::toJS;
 using dev::jsToBytes;
-using dev::jsToU256;
 using dev::jsToInt;
+using dev::jsToU256;
+using dev::toJS;
 using dev::eth::LogEntries;
 using dev::eth::TransactionReceipt;
 using std::move;
@@ -26,47 +26,53 @@ TransactionOutput TransactionOutput::fromJson(Json::Value const& json) {
 StateTransitionResult StateTransitionResult::fromJson(Json::Value const& json) {
   auto const& receipts_json = json["receipts"];
   TransactionReceipts receipts;
-//  receipts.reserve(receipts_json.size())
+  receipts.reserve(receipts_json.size());
   for (auto const& receipt_json : receipts_json) {
     auto const& logs_json = receipt_json["logs"];
-    LogEntries logs(logs_json.size());
+    LogEntries logs;
+    logs.reserve(logs_json.size());
     for (auto const& log_json : logs_json) {
       auto const& topics_json = log_json["topics"];
-      h256s topics(topics_json.size());
+      h256s topics;
+      topics.reserve(topics_json.size());
       for (auto const& topic_json : topics_json) {
         topics.emplace_back(topic_json.asString());
       }
-      logs.emplace_back(Address(receipt_json["address"].asString()),
+      logs.emplace_back(Address(log_json["address"].asString()),
                         topics,  //
-                        jsToBytes(receipt_json["data"].asString()));
+                        jsToBytes(log_json["data"].asString()));
     }
-    auto cumulative_gas_used = jsToU256(json["cumulativeGasUsed"].asString());
-    if (auto const& root_json = json["root"]; !root_json.isNull()) {
-      h256 root(root_json.asString());
-      receipts.emplace_back(root, cumulative_gas_used, logs);
+    auto cumulative_gas_used =
+        jsToU256(receipt_json["cumulativeGasUsed"].asString());
+    if (auto const& root_json = receipt_json["root"]; !root_json.isNull()) {
+      receipts.emplace_back(h256(root_json.asString()), cumulative_gas_used,
+                            logs);
     } else {
-      auto status = jsToInt(json["status"].asString());
+      auto status = jsToInt(receipt_json["status"].asString());
       receipts.emplace_back(status, cumulative_gas_used, logs);
     }
   }
   auto const& trx_outputs_json = json["transactionOutputs"];
-  vector<TransactionOutput> trx_outputs(trx_outputs_json.size());
+  vector<TransactionOutput> trx_outputs;
+  trx_outputs.reserve(trx_outputs_json.size());
   for (auto const& obj : trx_outputs_json) {
     trx_outputs.push_back(TransactionOutput::fromJson(obj));
   }
-  auto const& upd_bal_json = json["updatedBalances"];
-  unordered_map<Address, u256> updated_balances(upd_bal_json.size());
+  auto const& upd_bal_json = json["touchedExternallyOwnedAccountBalances"];
+  unordered_map<Address, u256> touched_externally_owned_account_balances;
+  touched_externally_owned_account_balances.reserve(upd_bal_json.size());
   for (auto i = upd_bal_json.begin(), end = upd_bal_json.end(); i != end; ++i) {
     auto const& key = i.key().asString();
     auto const& value = (*i).asString();
-    updated_balances[dev::Address(key)] = jsToU256(value);
+    touched_externally_owned_account_balances[dev::Address(key)] =
+        jsToU256(value);
   }
   return {
       h256(json["stateRoot"].asString()),
       jsToU256(json["usedGas"].asString()),
       move(receipts),
       move(trx_outputs),
-      move(updated_balances),
+      move(touched_externally_owned_account_balances),
   };
 }
 

@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
+#include <stdexcept>
 
 #include "block_proposer.hpp"
 #include "dag.hpp"
@@ -172,8 +173,7 @@ void FullNode::start(bool boot_node) {
                                      db_trxs_,                    //
                                      replay_protection_service_,  //
                                      eth_service_,                //
-                                     db_status_,                  //
-                                     conf_.use_basic_executor));
+                                     db_status_));
   executor_->setFullNode(getShared());
   // order depend, be careful when changing the order
   // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
@@ -317,11 +317,14 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
 }
 
 bool FullNode::insertTransaction(Transaction const &trx) {
+  if (trx.getGas() > std::numeric_limits<uint64_t>::max()) {
+    throw std::runtime_error("Gas limit is too large: " + trx.getGas().str());
+  }
   auto rlp = trx.rlp(true);
   if (conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({rlp});
   }
-  return trx_mgr_->insertTrx(trx, trx.rlp(true), true);
+  return trx_mgr_->insertTrx(trx, rlp, true);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(

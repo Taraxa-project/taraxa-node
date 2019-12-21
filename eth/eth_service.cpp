@@ -42,6 +42,7 @@ EthService::EthService(weak_ptr<FullNode> const& node,
       acc_state_db_(
           State::openDB(db_base_path, bc_.genesisHash(), with_existing)) {
   assert(chain_params.sealEngineName == TaraxaSealEngine::name());
+  assert(chain_params.gasLimit <= std::numeric_limits<uint64_t>::max());
   bc_.genesisBlock(acc_state_db_);
 }
 
