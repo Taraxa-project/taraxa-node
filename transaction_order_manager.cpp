@@ -13,16 +13,13 @@ void TransactionOrderManager::start() {
     LOG(log_er_) << "FullNode is not set ..." << std::endl;
     return;
   }
-  db_trxs_to_blk_ = node_.lock()->getTrxsToBlkDB();
-  db_blks_ = node_.lock()->getBlksDB();
+  db_ = node_.lock()->getDB();
 }
 
 void TransactionOrderManager::stop() {
   if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  db_trxs_to_blk_ = nullptr;
-  db_blks_ = nullptr;
 }
 
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(
@@ -46,10 +43,9 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
   return res;
 }
 
-blk_hash_t TransactionOrderManager::getDagBlockFromTransaction(
+std::shared_ptr<blk_hash_t> TransactionOrderManager::getDagBlockFromTransaction(
     trx_hash_t const& trx) {
-  auto blk = db_trxs_to_blk_->lookup(trx.toString());
-  return blk_hash_t(blk);
+  return db_->getTransactionToBlock(trx);
 }
 
 bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
@@ -62,14 +58,14 @@ bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
       if (!ok) {
         LOG(log_er_) << "Transaction " << trx_hash << " has been executed";
       }
-      if (db_trxs_to_blk_) {
-        auto exists = db_trxs_to_blk_->exists(trx_hash.toString());
+      if (db_) {
+        auto exists = db_->transactionToBlockInDb(trx_hash);
         if (!exists) {
-          db_trxs_to_blk_->insert(trx_hash.toString(), blk_hash.toString());
+          db_->saveTransactionToBlock(trx_hash, blk_hash);
         } else {
           LOG(log_er_) << "Cannot insert transaction " << trx_hash << " --> "
                        << blk_hash << " mapping, it has been executed in blk "
-                       << db_trxs_to_blk_->lookup(trx_hash.toString());
+                       << db_->getTransactionToBlock(trx_hash);
         }
       }
     }

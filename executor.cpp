@@ -19,29 +19,19 @@ using trx_engine::TrxEngine;
 Executor::Executor(
     uint64_t pbft_require_sortition_coins,
     decltype(log_time_) log_time,  //
-    decltype(db_blks_) db_blks,
-    decltype(db_trxs_) db_trxs,                                      //
+    decltype(db_) db,
     decltype(replay_protection_service_) replay_protection_service,  //
-    decltype(eth_service_) eth_service,                              //
-    decltype(db_status_) db_status)
+    decltype(eth_service_) eth_service)
     : pbft_require_sortition_coins_(pbft_require_sortition_coins),
       log_time_(std::move(log_time)),
-      db_blks_(std::move(db_blks)),
-      db_trxs_(std::move(db_trxs)),
+      db_(std::move(db)),
       replay_protection_service_(std::move(replay_protection_service)),
-      db_status_(std::move(db_status)),
       eth_service_(std::move(eth_service)),
       trx_engine_(eth_service_->getAccountsStateDBRaw()) {
-  auto blk_count = db_status_->lookup(
-      util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedBlkCount));
-  if (!blk_count.empty()) {
-    num_executed_blk_.store(*(unsigned long*)&blk_count[0]);
-  }
-  auto trx_count = db_status_->lookup(
-      util::eth::toSlice((uint8_t)taraxa::StatusDbField::ExecutedTrxCount));
-  if (!trx_count.empty()) {
-    num_executed_trx_.store(*(unsigned long*)&trx_count[0]);
-  }
+  auto blk_count = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  num_executed_blk_.store(blk_count);
+  auto trx_count = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+  num_executed_trx_.store(trx_count);
 }
 
 bool Executor::execute(PbftBlock const& pbft_block,
@@ -54,12 +44,13 @@ bool Executor::execute(PbftBlock const& pbft_block,
   unordered_set<addr_t> senders;
   for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
     auto& blk_hash = schedule.dag_blks_order[blk_i];
-    if (db_blks_->lookup(blk_hash).empty()) {
+    if (db_->getDagBlockRaw(blk_hash).empty()) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return false;
     }
     auto& dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
-    transactions.reserve(transactions.capacity() + dag_blk_trxs_mode.size() - 1);
+    transactions.reserve(transactions.capacity() + dag_blk_trxs_mode.size() -
+                         1);
     for (auto& trx_hash_and_mode : dag_blk_trxs_mode) {
       auto& [trx_hash, mode] = trx_hash_and_mode;
       // TODO: should not have overlapped transactions anymore
@@ -68,8 +59,8 @@ bool Executor::execute(PbftBlock const& pbft_block,
                      << " is overlapped";
         continue;
       }
-      auto& trx = transactions.emplace_back(db_trxs_->lookup(trx_hash),
-                                            CheckTransaction::None);
+      auto& trx = transactions.emplace_back(
+          db_trxs_->getTransactionRaw(trx_hash), CheckTransaction::None);
       senders.insert(trx.sender());
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();

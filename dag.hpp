@@ -74,8 +74,7 @@ class Dag {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   Dag(std::string const &genesis);
-  ~Dag();
-  static vertex_hash getGenesis();
+  virtual ~Dag() = default;
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
   bool hasVertex(vertex_hash const &v) const;
@@ -133,7 +132,7 @@ class Dag {
 
   mutable boost::shared_mutex mutex_;
 
- private:
+ protected:
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
   mutable dev::Logger log_er_{
@@ -154,24 +153,13 @@ class Dag {
 class PivotTree : public Dag {
  public:
   PivotTree(std::string const &genesis) : Dag(genesis){};
+  virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_index_map_const_t = Dag::vertex_index_map_const_t;
 
   void getGhostPath(vertex_hash const &vertex,
                     std::vector<vertex_hash> &pivot_chain) const;
-
- private:
-  mutable dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
-  mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
-  mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
-  mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
-  mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
 };
 class DagBuffer;
 /**

@@ -119,7 +119,8 @@ NODE_SRCS := \
     net/WSServer.cpp \
     net/Test.cpp \
     net/Taraxa.cpp \
-    net/Net.cpp
+    net/Net.cpp \
+    db_storage.cpp
 NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
 
 TEST_SRCS := \

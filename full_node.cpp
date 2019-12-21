@@ -96,32 +96,9 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
                            DatabaseKind::RocksDB);
     db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
   }
-  db_pbft_sortition_accounts_ = std::move(
-      newDB(conf_.pbft_sortition_accounts_db_path(), genesis_hash).db);
-  db_blks_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.block_db_path(), genesis_hash).db, 10000);
-  db_blks_index_ =
-      std::move(newDB(conf_.block_index_db_path(), genesis_hash).db);
-  db_trxs_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.transactions_db_path(), genesis_hash).db, 100000);
-  db_trxs_to_blk_ =
-      std::move(newDB(conf_.trxs_to_blk_db_path(), genesis_hash).db);
-  db_pbftchain_ = std::move(newDB(conf_.pbft_chain_db_path(), genesis_hash).db);
-  db_pbft_blocks_order_ =
-      std::move(newDB(conf_.pbft_blocks_order_db_path(), genesis_hash).db);
-  db_dag_blocks_order_ =
-      std::move(newDB(conf_.dag_blocks_order_path(), genesis_hash).db);
-  db_dag_blocks_height_ =
-      std::move(newDB(conf_.dag_blocks_height_path(), genesis_hash).db);
-  db_cert_votes_ = std::make_shared<DatabaseFaceCache>(
-      newDB(conf_.pbft_cert_votes_db_path(), genesis_hash).db, 100000);
-  db_dag_blocks_period_ =
-      std::move(newDB(conf_.dag_blocks_period_path(), genesis_hash).db);
-  db_period_schedule_block_ =
-      std::move(newDB(conf_.period_schedule_block_path(), genesis_hash).db);
-  db_status_ = std::move(newDB(conf_.status_path(), genesis_hash).db);
+  db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
   // store genesis blk to db
-  db_blks_->insert(genesis_hash, genesis_block.rlp(true));
+  db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
   bool boot_node_balance_initialized = false;
   // init master boot node ...
@@ -136,18 +113,16 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   }
   // Reconstruct DAG
   if (!destroy_db) {
-    unsigned long level = 1;
+    level_t level = 1;
     while (true) {
-      h256 level_key(level);
-      string entry = db_blks_index_->lookup(level_key.toString());
+      string entry = db_->getBlocksByLevel(level);
       if (entry.empty()) break;
       vector<string> blocks;
       boost::split(blocks, entry, boost::is_any_of(","));
       for (auto const &block : blocks) {
-        auto block_bytes = db_blks_->lookup(blk_hash_t(block));
-        if (block_bytes.size() > 0) {
-          auto blk = DagBlock(block_bytes);
-          dag_mgr_->addDagBlock(blk);
+        auto blk = db_->getDagBlock(blk_hash_t(block));
+        if (blk) {
+          dag_mgr_->addDagBlock(*blk);
         }
       }
       level++;
@@ -169,11 +144,9 @@ void FullNode::start(bool boot_node) {
       new EthService(getShared(), conf_.eth_chain_params, conf_.eth_db_path()));
   executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
                                      log_time_,  //
-                                     db_blks_,
-                                     db_trxs_,                    //
+                                     db_,
                                      replay_protection_service_,  //
-                                     eth_service_,                //
-                                     db_status_));
+                                     eth_service_));
   executor_->setFullNode(getShared());
   // order depend, be careful when changing the order
   // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
@@ -213,19 +186,7 @@ void FullNode::start(bool boot_node) {
 
         if (dag_mgr_->addDagBlock(blk)) {
           {
-            auto block_bytes = blk.rlp(true);
-            db_blks_->insert(blk.getHash(), block_bytes);
-            auto level = blk.getLevel();
-            h256 level_key(level);
-            std::string blocks = db_blks_index_->lookup(level_key.toString());
-            if (blocks == "") {
-              db_blks_index_->insert(level_key.toString(),
-                                     blk.getHash().toString());
-            } else {
-              auto newblocks = blocks + "," + blk.getHash().toString();
-              db_blks_index_->insert(level_key.toString(),
-                                     blocks + "," + blk.getHash().hex());
-            }
+            db_->saveDagBlock(blk);
             if (ws_server_) ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
@@ -264,18 +225,6 @@ void FullNode::stop() {
   eth_service_ = nullptr;
   replay_protection_service_ = nullptr;
   assert(db_replay_protection_service_.use_count() == 1);
-  assert(db_blks_.use_count() == 1);
-  assert(db_blks_index_.use_count() == 1);
-  assert(db_trxs_.use_count() == 1);
-  assert(db_trxs_to_blk_.use_count() == 1);
-  assert(db_cert_votes_.use_count() == 1);
-  assert(db_pbftchain_.use_count() == 1);
-  assert(db_pbft_blocks_order_.use_count() == 1);
-  assert(db_dag_blocks_order_.use_count() == 1);
-  assert(db_dag_blocks_height_.use_count() == 1);
-  assert(db_pbft_sortition_accounts_.use_count() == 1);
-  assert(db_dag_blocks_period_.use_count() == 1);
-  assert(db_period_schedule_block_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";
 }
 
@@ -329,11 +278,7 @@ bool FullNode::insertTransaction(Transaction const &trx) {
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
     blk_hash_t const &hash) const {
-  auto blk_bytes = db_blks_->lookup(hash);
-  if (blk_bytes.size() > 0) {
-    return std::make_shared<DagBlock>(blk_bytes);
-  }
-  return nullptr;
+  return db_->getDagBlock(hash);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
@@ -342,10 +287,7 @@ std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
   blk = blk_mgr_->getDagBlock(hash);
   // not in queue, search db
   if (!blk) {
-    auto blk_bytes = db_blks_->lookup(hash);
-    if (blk_bytes.size() > 0) {
-      blk = std::make_shared<DagBlock>(blk_bytes);
-    }
+    return db_->getDagBlock(hash);
   }
 
   return blk;
@@ -374,20 +316,18 @@ unsigned long FullNode::getTransactionCount() const {
 }
 
 std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
-    unsigned long level, int number_of_levels) {
+    level_t level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {
     if (level + i == 0) continue;  // Skip genesis
-    dev::h256 level_key(level + i);
-    string entry = db_blks_index_->lookup(level_key.toString());
-
+    string entry = db_->getBlocksByLevel(level + i);
     if (entry.empty()) break;
     vector<string> blocks;
     boost::split(blocks, entry, boost::is_any_of(","));
     for (auto const &block : blocks) {
-      auto block_bytes = db_blks_->lookup(blk_hash_t(block));
-      if (block_bytes.size() > 0) {
-        res.push_back(std::make_shared<DagBlock>(block_bytes));
+      auto blk = db_->getDagBlock(blk_hash_t(block));
+      if (blk) {
+        res.push_back(blk);
       }
     }
   }
@@ -754,7 +694,7 @@ void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
     s.append(v.rlp());
   }
   auto ss = s.out();
-  db_cert_votes_->insert(pbft_hash, ss);
+  db_->saveVote(pbft_hash, ss);
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
                << votes;
 }

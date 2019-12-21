@@ -57,13 +57,8 @@ void PbftManager::start() {
   LOG(log_deb_) << "PBFT start at GHOST size " << ghost.size()
                 << ", the last of DAG blocks is " << ghost.back();
 
-  db_cert_votes_ = full_node->getVotesDB();
-  db_sortition_accounts_ = full_node->getPbftSortitionAccountsDB();
-  db_period_schedule_block_ = full_node->getPeriodScheduleBlockDB();
-  db_dag_blocks_period_ = full_node->getDagBlocksPeriodDB();
-  db_status_ = full_node->getStatusDB();
-  db_trxs_ = full_node->getTrxsDB();
-  if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
+  db_ = full_node->getDB();
+  if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
     addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
@@ -90,13 +85,13 @@ void PbftManager::start() {
       LOG(log_err_) << "PBFT sortition accounts table should be empty";
       assert(false);
     }
-    db_sortition_accounts_->forEach([&](auto const &key, auto const &value) {
-      if (key.toString() == "sortition_accounts_size") {
-        std::stringstream sstream(value.toString());
+    db_->forEachSortitionAccount([&](auto const &key, auto const &value) {
+      if (key.ToString() == "sortition_accounts_size") {
+        std::stringstream sstream(value.ToString());
         sstream >> valid_sortition_accounts_size_;
         return true;
       }
-      PbftSortitionAccount account(value.toString());
+      PbftSortitionAccount account(value.ToString());
       sortition_account_balance_table[account.address] = account;
       return true;
     });
@@ -134,12 +129,6 @@ void PbftManager::stop() {
   }
   daemon_->join();
   LOG(log_deb_) << "PBFT daemon terminated ...";
-  db_cert_votes_ = nullptr;
-  db_sortition_accounts_ = nullptr;
-  db_period_schedule_block_ = nullptr;
-  db_dag_blocks_period_ = nullptr;
-  db_status_ = nullptr;
-  db_trxs_ = nullptr;
   replay_protection_service_ = nullptr;
 }
 
@@ -729,21 +718,20 @@ void PbftManager::run() {
 std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
     blk_hash_t const &hash) {
   std::pair<bool, uint64_t> res;
-  auto value = db_dag_blocks_period_->lookup(taraxa::util::eth::toSlice(hash));
-  if (value.empty()) {
+  auto value = db_->getDagBlockPeriod(hash);
+  if (value == nullptr) {
     res.first = false;
   } else {
     res.first = true;
-    res.second = *((uint64_t *)value.data());
+    res.second = *value;
   }
   return res;
 }
 
 std::string PbftManager::getScheduleBlockByPeriod(uint64_t period) {
-  auto value = db_period_schedule_block_->lookup(
-      dev::db::Slice(reinterpret_cast<char const *>(&period), sizeof(period)));
-  if (!value.empty()) {
-    blk_hash_t pbft_block_hash = *(blk_hash_t *)value.data();
+  auto value = db_->getPeriodScheduleBlock(period);
+  if (value) {
+    blk_hash_t pbft_block_hash = *value;
     return pbft_chain_->getPbftBlockInChain(pbft_block_hash)
         .getScheduleBlock()
         .getJsonStr();
@@ -758,7 +746,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   addr_t account_address = full_node->getAddress();
-  if (!db_sortition_accounts_->exists(account_address.toString())) {
+  if (!db_->sortitionAccountInDb(account_address)) {
     LOG(log_tra_) << "Don't have enough coins to vote";
     return false;
   }
@@ -770,8 +758,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   } else {
     since_period = last_period - SKIP_PERIODS;
   }
-  PbftSortitionAccount account(
-      db_sortition_accounts_->lookup(account_address.toString()));
+  PbftSortitionAccount account = db_->getSortitionAccount(account_address);
   if (account.last_period_seen < since_period) {
     LOG(log_tra_) << "Non-active player since period " << since_period;
     return false;
@@ -1085,7 +1072,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
           continue;
         }
         unique_trxs.insert(t_hash);
-        auto trx = std::make_shared<Transaction>(db_trxs_->lookup(t_hash));
+        auto trx = db_->getTransaction(t_hash);
         if (!replay_protection_service_->hasBeenExecuted(*trx)) {
           // TODO: Generate fake transaction schedule, will need pass to VM to
           //  generate the transaction schedule later
@@ -1539,31 +1526,23 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
                 pbft_block, sortition_account_balance_table, pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
-        db_period_schedule_block_->insert(
-            dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
-                           sizeof(pbft_period)),
-            taraxa::util::eth::toSlice(pbft_block.getBlockHash()));
+        db_->savePeriodScheduleBlock(pbft_period, pbft_block.getBlockHash());
         auto num_executed_blk = full_node->getNumBlockExecuted();
         auto num_executed_trx = full_node->getNumTransactionExecuted();
         if (num_executed_blk > 0 && num_executed_trx > 0) {
-          db_status_->insert(
-              util::eth::toSlice((uint8_t)StatusDbField::ExecutedBlkCount),
-              util::eth::toSlice(num_executed_blk));
-          db_status_->insert(
-              util::eth::toSlice((uint8_t)StatusDbField::ExecutedTrxCount),
-              util::eth::toSlice(num_executed_trx));
+          db_->saveStatusField(StatusDbField::ExecutedBlkCount,
+                               num_executed_blk);
+          db_->saveStatusField(StatusDbField::ExecutedTrxCount,
+                               num_executed_trx);
         }
         if (pbft_block.getScheduleBlock().getSchedule().dag_blks_order.size() >
             0) {
-          auto write_batch = db_dag_blocks_period_->createWriteBatch();
+          auto write_batch = db_->createWriteBatch();
           for (auto const blk_hash :
                pbft_block.getScheduleBlock().getSchedule().dag_blks_order) {
-            write_batch->insert(
-                taraxa::util::eth::toSlice(blk_hash),
-                dev::db::Slice(reinterpret_cast<char const *>(&pbft_period),
-                               sizeof(pbft_period)));
+            db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, write_batch);
           }
-          db_dag_blocks_period_->commit(std::move(write_batch));
+          db_->commitWriteBatch(write_batch);
         }
         // update sortition account balance table
         updateSortitionAccountsDB_();
@@ -1612,31 +1591,32 @@ void PbftManager::updateSortitionAccountsDB_() {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return;
   }
-  auto accounts = db_sortition_accounts_->createWriteBatch();
+  auto accounts = db_->createWriteBatch();
   for (auto &account : sortition_account_balance_table) {
     if (account.second.status == new_change) {
-      accounts->insert(account.first.toString(), account.second.getJsonStr());
+      db_->addSortitionAccountToBatch(account.first, account.second, accounts);
       account.second.status = updated;
     } else if (account.second.status == remove) {
       // Erase both from DB and cache(table)
-      db_sortition_accounts_->kill(account.first.toString());
+      db_->removeSortitionAccount(account.first);
       sortition_account_balance_table.erase(account.first);
     }
   }
   valid_sortition_accounts_size_ = sortition_account_balance_table.size();
-  accounts->insert(std::string("sortition_accounts_size"),
-                   std::to_string(valid_sortition_accounts_size_));
-  db_sortition_accounts_->commit(std::move(accounts));
+  auto account_size = std::to_string(valid_sortition_accounts_size_);
+  db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
+                                  account_size, accounts);
+  db_->commitWriteBatch(accounts);
 }
 
 size_t PbftManager::getValidPbftSortitionPlayerSize_() {
-  if (!db_sortition_accounts_->exists(std::string("sortition_accounts_size"))) {
+  if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
     // Cannot find
     LOG(log_err_) << "Cannot find sortition accounts size in DB";
     assert(false);
   }
   std::string sortition_accounts_size =
-      db_sortition_accounts_->lookup(std::string("sortition_accounts_size"));
+      db_->getSortitionAccount(std::string("sortition_accounts_size"));
   std::stringstream sstream(sortition_accounts_size);
   size_t valid_players_size;
   sstream >> valid_players_size;

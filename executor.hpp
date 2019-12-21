@@ -13,6 +13,7 @@
 
 #include "dag_block.hpp"
 #include "database_face_cache.hpp"
+#include "db_storage.hpp"
 #include "eth/eth_service.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.h"
@@ -34,11 +35,9 @@ class Executor {
   uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<DatabaseFaceCache> db_blks_ = nullptr;
-  std::shared_ptr<DatabaseFaceCache> db_trxs_ = nullptr;
+  std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<eth::eth_service::EthService> eth_service_;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
-  std::shared_ptr<dev::db::DatabaseFace> db_status_ = nullptr;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   trx_engine::TrxEngine trx_engine_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
@@ -62,11 +61,9 @@ class Executor {
  public:
   Executor(uint64_t pbft_require_sortition_coins,
            decltype(log_time_) log_time,  //
-           decltype(db_blks_) db_blks,
-           decltype(db_trxs_) db_trxs,                                      //
+           decltype(db_) db,
            decltype(replay_protection_service_) replay_protection_service,  //
-           decltype(eth_service_) eth_service,                              //
-           decltype(db_status_) db_status);
+           decltype(eth_service_) eth_service);
 
   bool execute(PbftBlock const& pbft_block,
                BalanceTable& sortition_account_balance_table, uint64_t period);

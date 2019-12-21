@@ -180,9 +180,14 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     return verified_votes;
   }
 
+  auto pbft_mgr = pbft_mgr_.lock();
+  if (!pbft_mgr) {
+    return verified_votes;
+  }
+
   blk_hash_t last_pbft_block_hash =
-      pbft_mgr_->getLastPbftBlockHashAtStartOfRound();
-  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+      pbft_mgr->getLastPbftBlockHashAtStartOfRound();
+  size_t sortition_threshold = pbft_mgr->getSortitionThreshold();
 
   std::map<uint64_t, std::vector<Vote>>::const_iterator it;
   auto votes_to_verify = getAllVotes();
@@ -225,9 +230,14 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     return verified_votes;
   }
 
+  auto pbft_mgr = pbft_mgr_.lock();
+  if (!pbft_mgr) {
+    return verified_votes;
+  }
+
   blk_hash_t last_pbft_block_hash =
-      pbft_mgr_->getLastPbftBlockHashAtStartOfRound();
-  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
+      pbft_mgr->getLastPbftBlockHashAtStartOfRound();
+  size_t sortition_threshold = pbft_mgr->getSortitionThreshold();
 
   std::map<uint64_t, std::vector<Vote>>::const_iterator it;
   auto votes_to_verify = getAllVotes();
