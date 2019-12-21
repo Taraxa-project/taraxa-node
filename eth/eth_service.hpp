@@ -5,6 +5,7 @@
 #include <libethereum/ClientBase.h>
 
 #include <mutex>
+#include <stdexcept>
 
 #include "pending_block_header.hpp"
 
@@ -60,6 +61,9 @@ using std::weak_ptr;
 
 namespace fs = boost::filesystem;
 
+static inline auto const err_not_implemented =
+    std::runtime_error("Method not implemented");
+
 class EthService : public virtual dev::eth::ClientBase {
   weak_ptr<FullNode> node_;
   BlockChain bc_;
@@ -85,12 +89,14 @@ class EthService : public virtual dev::eth::ClientBase {
   Address author() const override;
   SyncStatus syncStatus() const override;
 
-  ImportResult injectBlock(bytes const& _block) override { assert(false); }
-  bool isSyncing() const override { assert(false); }
-  bool isMajorSyncing() const override { assert(false); }
-  void setAuthor(Address const& _us) override { assert(false); }
-  tuple<h256, h256, h256> getWork() override { assert(false); }
-  void flushTransactions() override { assert(false); }
+  ImportResult injectBlock(bytes const& _block) override {
+    throw err_not_implemented;
+  }
+  bool isSyncing() const override { throw err_not_implemented; }
+  bool isMajorSyncing() const override { throw err_not_implemented; }
+  void setAuthor(Address const& _us) override { throw err_not_implemented; }
+  tuple<h256, h256, h256> getWork() override { throw err_not_implemented; }
+  void flushTransactions() override { throw err_not_implemented; }
 
   pair<PendingBlockHeader, BlockHeader> startBlock(Address const& author,
                                                    int64_t timestamp);
@@ -130,7 +136,7 @@ class EthService : public virtual dev::eth::ClientBase {
   Block preSeal() const override;
   Block postSeal() const override;
 
-  void prepareForTransaction() override { assert(false); }
+  void prepareForTransaction() override { throw err_not_implemented; }
 };
 
 }  // namespace taraxa::eth::eth_service
