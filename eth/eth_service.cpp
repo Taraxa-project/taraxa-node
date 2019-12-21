@@ -14,10 +14,12 @@ using dev::bytesConstRef;
 using dev::BytesMap;
 using dev::hash256;
 using dev::Invalid256;
+using dev::KeyPair;
 using dev::rlp;
 using dev::rlpList;
 using dev::RLPStream;
 using dev::eth::Ethash;
+using dev::eth::FixedAccountHolder;
 using dev::eth::IncludeSeal;
 using dev::eth::Permanence;
 using dev::eth::VerifiedBlockRef;
@@ -32,7 +34,7 @@ static auto const _ = [] {
   return 0;
 }();
 
-EthService::EthService(weak_ptr<FullNode> const& node,
+EthService::EthService(shared_ptr<FullNode> const& node,
                        ChainParams const& chain_params,
                        fs::path const& db_base_path,  //
                        WithExisting with_existing,
@@ -40,9 +42,15 @@ EthService::EthService(weak_ptr<FullNode> const& node,
     : node_(node),
       bc_(chain_params, db_base_path, with_existing, progress_cb),
       acc_state_db_(
-          State::openDB(db_base_path, bc_.genesisHash(), with_existing)) {
+          State::openDB(db_base_path, bc_.genesisHash(), with_existing)),
+      current_node_account_holder(new FixedAccountHolder(              //
+          [this] { return static_cast<dev::eth::Interface*>(this); },  //
+          {
+              KeyPair(node->getSecretKey()),
+          })) {
   assert(chain_params.sealEngineName == TaraxaSealEngine::name());
-  assert(chain_params.gasLimit <= std::numeric_limits<uint64_t>::max());
+  assert(chain_params.maxGasLimit <= std::numeric_limits<uint64_t>::max());
+  assert(chain_params.gasLimit <= chain_params.maxGasLimit);
   bc_.genesisBlock(acc_state_db_);
 }
 
@@ -78,7 +86,7 @@ h256 EthService::importTransaction(Transaction const& _t) {
 }
 
 pair<PendingBlockHeader, BlockHeader> EthService::startBlock(
-    Address const& author, int64_t timestamp) {
+    Address const& author, int64_t timestamp) const {
   auto current_header = getBlockHeader();
   auto number = current_header.number() + 1;
   static bytes const empty_bytes;
@@ -141,6 +149,7 @@ ExecutionResult EthService::call(Address const& _from, u256 _value,
                                  Address _dest, bytes const& _data, u256 _gas,
                                  u256 _gasPrice, BlockNumber _blockNumber,
                                  FudgeFactor _ff) {
+  // TODO use taraxa-evm
   auto block = blockByNumber(_blockNumber);
   auto nonce = block.transactionsFrom(_from);
   auto gas = _gas == Invalid256 ? block.gasLimitRemaining() : _gas;
@@ -179,6 +188,21 @@ Block EthService::postSeal() const { return preSeal(); }
 SyncStatus EthService::syncStatus() const {
   // TODO
   return {};
+}
+
+BlockHeader EthService::getBlockHeader(BlockNumber block_number) const {
+  if (block_number == LatestBlock || block_number == PendingBlock) {
+    return getBlockHeader(bc_.currentHash());
+  }
+  return getBlockHeader(bc_.numberHash(block_number));
+}
+
+BlockHeader EthService::getBlockHeader(h256 const& hash) const {
+  return BlockHeader(bc_.block(hash));
+}
+
+State const EthService::getAccountsState(BlockNumber block_number) const {
+  return blockByNumber(block_number).state();
 }
 
 }  // namespace taraxa::eth::eth_service

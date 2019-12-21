@@ -16,7 +16,7 @@ using dev::eth::BlockHeader;
 using dev::eth::Nonce;
 
 struct PendingBlockHeader : private BlockHeader {
-  friend class taraxa::eth::eth_service::EthService;
+  friend class ::taraxa::eth::eth_service::EthService;
 
   PendingBlockHeader(int64_t number, h256 const& parent_hash,
                      Address const& author, int64_t timestamp,

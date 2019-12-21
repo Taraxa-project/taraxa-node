@@ -3,6 +3,7 @@
 
 #include <libethereum/BlockChain.h>
 #include <libethereum/ClientBase.h>
+#include <libweb3jsonrpc/AccountHolder.h>
 
 #include <mutex>
 #include <stdexcept>
@@ -11,6 +12,9 @@
 
 namespace taraxa {
 class FullNode;
+}
+namespace taraxa::eth::eth {
+class Eth;
 }
 
 namespace taraxa::eth::eth_service {
@@ -24,12 +28,14 @@ using dev::Secret;
 using dev::u256;
 using dev::WithExisting;
 using dev::db::DatabaseFace;
+using dev::eth::AccountHolder;
 using dev::eth::Block;
 using dev::eth::BlockChain;
 using dev::eth::BlockDetails;
 using dev::eth::BlockHeader;
 using dev::eth::BlockNumber;
 using dev::eth::ChainParams;
+using dev::eth::ClientBase;
 using dev::eth::ExecutionResult;
 using dev::eth::FudgeFactor;
 using dev::eth::GasEstimationCallback;
@@ -56,26 +62,52 @@ using pending_block_header::PendingBlockHeader;
 using std::map;
 using std::mutex;
 using std::pair;
+using std::shared_ptr;
 using std::tuple;
 using std::weak_ptr;
 
 namespace fs = boost::filesystem;
 
-static inline auto const err_not_implemented =
-    std::runtime_error("Method not implemented");
+static inline auto const err_not_applicable =
+    std::runtime_error("Method not applicable");
 
-class EthService : public virtual dev::eth::ClientBase {
+class EthService : private virtual ClientBase {
+  friend class ::taraxa::eth::eth::Eth;
+
   weak_ptr<FullNode> node_;
   BlockChain bc_;
   OverlayDB acc_state_db_;
   mutex append_block_mu_;
 
  public:
-  EthService(weak_ptr<FullNode> const& node,  //
+  shared_ptr<AccountHolder> const current_node_account_holder;
+
+  EthService(shared_ptr<FullNode> const& node,  //
              ChainParams const& chain_params,
              fs::path const& db_base_path,  //
              WithExisting with_existing = WithExisting::Trust,
              ProgressCallback const& progress_cb = ProgressCallback());
+
+  using ClientBase::isKnownTransaction;
+  using ClientBase::sealEngine;
+
+  auto getAccountsStateDBRaw() { return acc_state_db_.getRawDB(); }
+  State const getAccountsState(BlockNumber block_number = LatestBlock) const;
+  pair<PendingBlockHeader, BlockHeader> startBlock(Address const& author,
+                                                   int64_t timestamp) const;
+  BlockHeader& commitBlock(PendingBlockHeader& header,
+                           Transactions const& transactions,
+                           TransactionReceipts const& receipts,  //
+                           h256 const& state_root);
+
+  template <typename... Arg>
+  auto accountNonce(Arg const&... args) const {
+    return countAt(args...);
+  }
+
+ private:
+  BlockHeader getBlockHeader(h256 const& hash) const;
+  BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) const;
 
   h256 submitTransaction(TransactionSkeleton const& _t,
                          Secret const& _secret) override;
@@ -90,44 +122,13 @@ class EthService : public virtual dev::eth::ClientBase {
   SyncStatus syncStatus() const override;
 
   ImportResult injectBlock(bytes const& _block) override {
-    throw err_not_implemented;
+    throw err_not_applicable;
   }
-  bool isSyncing() const override { throw err_not_implemented; }
-  bool isMajorSyncing() const override { throw err_not_implemented; }
-  void setAuthor(Address const& _us) override { throw err_not_implemented; }
-  tuple<h256, h256, h256> getWork() override { throw err_not_implemented; }
-  void flushTransactions() override { throw err_not_implemented; }
-
-  pair<PendingBlockHeader, BlockHeader> startBlock(Address const& author,
-                                                   int64_t timestamp);
-
-  BlockHeader& commitBlock(PendingBlockHeader& header,
-                           Transactions const& transactions,
-                           TransactionReceipts const& receipts,  //
-                           h256 const& state_root);
-
-  BlockHeader getBlockHeader(h256 const& hash) {
-    return BlockHeader(bc_.block(hash));
-  }
-
-  BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) {
-    if (block_number == LatestBlock || block_number == PendingBlock) {
-      return getBlockHeader(bc_.currentHash());
-    }
-    return getBlockHeader(bc_.numberHash(block_number));
-  }
-
-  auto getAccountsStateDBRaw() { return acc_state_db_.getRawDB(); }
-
-  State const getAccountsState(BlockNumber block_number = LatestBlock) {
-    // TODO split to declaration and assignment
-    return blockByNumber(block_number).state();
-  }
-
-  template <typename... Arg>
-  auto accountNonce(Arg const&... args) {
-    return countAt(args...);
-  }
+  bool isSyncing() const override { throw err_not_applicable; }
+  bool isMajorSyncing() const override { throw err_not_applicable; }
+  void setAuthor(Address const& _us) override { throw err_not_applicable; }
+  tuple<h256, h256, h256> getWork() override { throw err_not_applicable; }
+  void flushTransactions() override { throw err_not_applicable; }
 
  protected:
   BlockChain& bc() override;
@@ -136,7 +137,7 @@ class EthService : public virtual dev::eth::ClientBase {
   Block preSeal() const override;
   Block postSeal() const override;
 
-  void prepareForTransaction() override { throw err_not_implemented; }
+  void prepareForTransaction() override { throw err_not_applicable; }
 };
 
 }  // namespace taraxa::eth::eth_service
