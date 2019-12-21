@@ -34,9 +34,10 @@ Executor::Executor(
   num_executed_trx_.store(trx_count);
 }
 
-bool Executor::execute(PbftBlock const& pbft_block,
-                       BalanceTable& sortition_account_balance_table,
-                       uint64_t period) {
+std::optional<dev::eth::BlockHeader> Executor::execute(
+    PbftBlock const& pbft_block,
+    BalanceTable& sortition_account_balance_table,  //
+    uint64_t period) {
   auto const& schedule = pbft_block.getScheduleBlock().getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
   EthTransactions transactions;
@@ -46,7 +47,7 @@ bool Executor::execute(PbftBlock const& pbft_block,
     auto& blk_hash = schedule.dag_blks_order[blk_i];
     if (db_->getDagBlockRaw(blk_hash).empty()) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
-      return false;
+      return std::nullopt;
     }
     auto& dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
     transactions.reserve(transactions.capacity() + dag_blk_trxs_mode.size() -
@@ -59,8 +60,8 @@ bool Executor::execute(PbftBlock const& pbft_block,
                      << " is overlapped";
         continue;
       }
-      auto& trx = transactions.emplace_back(
-          db_->getTransactionRaw(trx_hash), CheckTransaction::None);
+      auto& trx = transactions.emplace_back(db_->getTransactionRaw(trx_hash),
+                                            CheckTransaction::None);
       senders.insert(trx.sender());
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
@@ -87,15 +88,16 @@ bool Executor::execute(PbftBlock const& pbft_block,
       });
     } catch (TrxEngine::Exception const& e) {
       // TODO more precise error handling
+      // TODO propagate the exception
       LOG(log_er_) << e.what() << std::endl;
-      return false;
+      return std::nullopt;
     }
   }
   // TODO transactional
-  eth_service_->commitBlock(pending_header,
-                            transactions,  //
-                            execution_result.receipts,
-                            execution_result.stateRoot);
+  auto& new_eth_header = eth_service_->commitBlock(pending_header,
+                                                   transactions,  //
+                                                   execution_result.receipts,
+                                                   execution_result.stateRoot);
   // TODO transactional
   replay_protection_service_->commit(period, transactions);
   for (auto& [addr, balance] :
@@ -155,7 +157,7 @@ bool Executor::execute(PbftBlock const& pbft_block,
                  << " , Efficiency: " << transactions.size() << "/"
                  << transactions.capacity();
   }
-  return true;
+  return move(new_eth_header);
 }
 
 addr_t Executor::getFullNodeAddress() const {

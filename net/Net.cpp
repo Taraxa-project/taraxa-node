@@ -5,7 +5,6 @@
 #include <libdevcore/CommonJS.h>
 #include <libethcore/Common.h>
 #include <libwebthree/WebThree.h>
-#include "JsonHelper.h"
 #include "full_node.hpp"
 #include "network.hpp"
 

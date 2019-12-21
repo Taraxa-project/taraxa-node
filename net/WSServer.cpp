@@ -1,12 +1,15 @@
 #include "WSServer.h"
+
 #include <json/json.h>
 #include <json/reader.h>
 #include <json/value.h>
 #include <json/writer.h>
 #include <libdevcore/CommonJS.h>
+#include <libweb3jsonrpc/JsonHelper.h>
+
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include "JsonHelper.h"
+
 #include "util.hpp"
 
 namespace taraxa::net {
@@ -134,13 +137,12 @@ void WSSession::on_write_no_read(beast::error_code ec,
   }
 }
 
-void WSSession::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
-                                uint64_t const &block_number) {
+void WSSession::newOrderedBlock(Json::Value const &payload) {
   if (new_heads_subscription_ != 0) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = toJson(blk, block_number);
+    params["result"] = payload;
     params["subscription"] = dev::toJS(new_heads_subscription_);
     res["params"] = params;
     Json::FastWriter fastWriter;
@@ -378,11 +380,10 @@ void WSServer::newScheduleBlockExecuted(ScheduleBlock const &sche_blk,
   }
 }
 
-void WSServer::newOrderedBlock(std::shared_ptr<taraxa::DagBlock> const &blk,
-                               uint64_t const &block_number) {
+void WSServer::newOrderedBlock(Json::Value const &payload) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newOrderedBlock(blk, block_number);
+    if (!session->is_closed()) session->newOrderedBlock(payload);
   }
 }
 
@@ -393,4 +394,4 @@ void WSServer::newPendingTransaction(trx_hash_t const &trx_hash) {
   }
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::net

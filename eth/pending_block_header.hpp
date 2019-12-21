@@ -15,7 +15,7 @@ using dev::u256;
 using dev::eth::BlockHeader;
 using dev::eth::Nonce;
 
-class PendingBlockHeader : BlockHeader {
+struct PendingBlockHeader : private BlockHeader {
   friend class taraxa::eth::eth_service::EthService;
 
   PendingBlockHeader(int64_t number, h256 const& parent_hash,
@@ -23,15 +23,15 @@ class PendingBlockHeader : BlockHeader {
                      u256 const& gas_limit, bytes const& extra_data,
                      u256 const& difficulty, h256 const& mix_hash, Nonce nonce);
 
-  void complete(h256 const& trx_root, h256 const& receipts_root,
-                h256 const& state_root);
-
- public:
   using BlockHeader::author;
   using BlockHeader::difficulty;
   using BlockHeader::gasLimit;
   using BlockHeader::number;
   using BlockHeader::timestamp;
+
+ private:
+  void complete(h256 const& trx_root, h256 const& receipts_root,
+                h256 const& state_root);
 };
 
 }  // namespace taraxa::eth::pending_block_header

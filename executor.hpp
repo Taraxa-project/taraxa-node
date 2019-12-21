@@ -64,8 +64,10 @@ class Executor {
            decltype(replay_protection_service_) replay_protection_service,  //
            decltype(eth_service_) eth_service);
 
-  bool execute(PbftBlock const& pbft_block,
-               BalanceTable& sortition_account_balance_table, uint64_t period);
+  // TODO return richer context (actual transactions, receipts, etc.)
+  std::optional<dev::eth::BlockHeader> execute(
+      PbftBlock const& pbft_block,
+      BalanceTable& sortition_account_balance_table, uint64_t period);
 
   uint64_t getNumExecutedTrx() { return num_executed_trx_; }
   uint64_t getNumExecutedBlk() { return num_executed_blk_; }

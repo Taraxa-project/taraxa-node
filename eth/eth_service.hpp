@@ -95,9 +95,10 @@ class EthService : public virtual dev::eth::ClientBase {
   pair<PendingBlockHeader, BlockHeader> startBlock(Address const& author,
                                                    int64_t timestamp);
 
-  void commitBlock(PendingBlockHeader& header, Transactions const& transactions,
-                   TransactionReceipts const& receipts,  //
-                   h256 const& state_root);
+  BlockHeader& commitBlock(PendingBlockHeader& header,
+                           Transactions const& transactions,
+                           TransactionReceipts const& receipts,  //
+                           h256 const& state_root);
 
   BlockHeader getBlockHeader(h256 const& hash) {
     return BlockHeader(bc_.block(hash));

@@ -1,5 +1,7 @@
 #include "full_node.hpp"
 
+#include <libweb3jsonrpc/JsonHelper.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/asio.hpp>
@@ -548,19 +550,28 @@ bool FullNode::executePeriod(PbftBlock const &pbft_block,
   //  overlapped/invalid transations in schedule block. May not need transtion
   //  overlap table anymore. CCL please check here
   // update transaction overlap table first
-  auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
-  res |=
+  if (!trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule())) {
+    return false;
+  }
+  auto new_eth_header =
       executor_->execute(pbft_block, sortition_account_balance_table, period);
+  if (!new_eth_header) {
+    return false;
+  }
   uint64_t block_number = 0;
   if (sche_blk.getSchedule().dag_blks_order.size() > 0) {
     block_number =
         pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
             .first;
+  } else {
+    // FIXME: Initialize `block_number`
   }
   if (ws_server_) {
     ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
+    ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,  //
+                                                 eth_service_->sealEngine()));
   }
-  return res;
+  return true;
 }
 
 std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {
@@ -607,12 +618,6 @@ void FullNode::pushUnverifiedPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
-}
-
-void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
-                               uint64_t const &block_number) {
-  auto blk = getDagBlock(dag_block_hash);
-  if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
 }
 
 void FullNode::newPendingTransaction(trx_hash_t const &trx_hash) {

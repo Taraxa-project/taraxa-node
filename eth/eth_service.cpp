@@ -98,10 +98,10 @@ pair<PendingBlockHeader, BlockHeader> EthService::startBlock(
   };
 }
 
-void EthService::commitBlock(PendingBlockHeader& header,
-                             Transactions const& transactions,
-                             TransactionReceipts const& receipts,  //
-                             h256 const& state_root) {
+BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
+                                     Transactions const& transactions,
+                                     TransactionReceipts const& receipts,  //
+                                     h256 const& state_root) {
   unique_lock l(append_block_mu_);
   auto& chain = bc();
   auto number = header.number();
@@ -131,6 +131,7 @@ void EthService::commitBlock(PendingBlockHeader& header,
   // TODO insert pre-verified
   chain.insertWithoutParent(block_bytes, &receipts_bytes,
                             number * (number + 1) / 2);
+  return header;
 }
 
 ExecutionResult EthService::call(Address const& _from, u256 _value,

@@ -8,16 +8,17 @@
 
 #include "pbft_manager.hpp"
 
+#include <libdevcore/SHA3.h>
+
+#include <chrono>
+#include <string>
+
 #include "dag.hpp"
 #include "full_node.hpp"
-#include <libdevcore/SHA3.h>
 #include "network.hpp"
 #include "sortition.h"
 #include "util.hpp"
 #include "util/eth.hpp"
-
-#include <chrono>
-#include <string>
 
 namespace taraxa {
 
@@ -1503,7 +1504,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         // update DAG blocks order and DAG blocks order/height DB
         for (auto const &dag_blk_hash : *dag_blocks_order) {
           auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
-          full_node->newOrderedBlock(dag_blk_hash, block_number);
         }
         // set DAG blocks period
         uint64_t current_pbft_chain_period =

@@ -8,8 +8,6 @@
 
 #include <csignal>
 
-#include "JsonHelper.h"
-
 using namespace std;
 using namespace jsonrpc;
 using namespace dev;
@@ -77,7 +75,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
-  return JSON_NULL;
+  return Json::Value();
 }
 
 Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(

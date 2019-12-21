@@ -114,7 +114,6 @@ NODE_SRCS := \
     replay_protection/sender_state.cpp \
     replay_protection/replay_protection_service.cpp \
     vrf_wrapper.cpp \
-    net/JsonHelper.cpp \
     net/RpcServer.cpp \
     net/WSServer.cpp \
     net/Test.cpp \
