@@ -14,14 +14,15 @@
 namespace taraxa::trx_engine::trx_engine {
 using namespace std;
 using namespace dev;
+using db::cgo::AlethDatabaseAdapter;
 using util::once_out_of_scope::OnceOutOfScope;
 
 // TODO less copy-paste
-
-TrxEngine::TrxEngine(std::shared_ptr<dev::db::DatabaseFace> db) {
+TrxEngine::TrxEngine(decltype(accs_state_db_) const& accs_state_db)
+    : accs_state_db_(accs_state_db) {
   Json::Value args(Json::arrayValue);
-  auto db_adapter = new db::cgo::AlethDatabaseAdapter(db);
-  args[0] = reinterpret_cast<Json::UInt64>(db_adapter->c_self());
+  auto db_adapter = new AlethDatabaseAdapter(accs_state_db_.get());
+  args[0] = reinterpret_cast<Json::UInt64>(&db_adapter->c_self);
   char* cgo_retval = taraxa_cgo_env_Call(nullptr,
                                          cgo_str("NewTaraxaTrxEngine"),  //
                                          cgo_str(util_json::toString(args)));

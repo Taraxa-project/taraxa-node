@@ -26,10 +26,11 @@ struct TrxEngine {
   };
 
  private:
+  shared_ptr<DatabaseFace> accs_state_db_;
   string go_address_;
 
  public:
-  explicit TrxEngine(shared_ptr<DatabaseFace> db);
+  explicit TrxEngine(decltype(accs_state_db_) const& accs_state_db);
   ~TrxEngine();
 
   StateTransitionResult transitionStateAndCommit(
