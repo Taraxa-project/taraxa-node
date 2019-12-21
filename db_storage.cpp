@@ -1,4 +1,5 @@
 #include "db_storage.hpp"
+
 #include "transaction.hpp"
 
 namespace taraxa {
@@ -80,9 +81,12 @@ void DbStorage::commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch) {
   checkStatus(status);
 }
 
+dev::bytes DbStorage::getDagBlockRaw(blk_hash_t const& hash) {
+  return asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
+}
+
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
-  auto blk_bytes =
-      asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
+  auto blk_bytes = getDagBlockRaw(hash);
   if (blk_bytes.size() > 0) {
     return std::make_shared<DagBlock>(blk_bytes);
   }
@@ -142,9 +146,12 @@ bool DbStorage::transactionToBlockInDb(trx_hash_t const& hash) {
   return !lookup(hash.toString(), Columns::trx_to_blk).empty();
 }
 
+dev::bytes DbStorage::getTransactionRaw(trx_hash_t const& hash) {
+  return asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+}
+
 std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
-  auto trx_bytes =
-      asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  auto trx_bytes = getTransactionRaw(hash);
   if (trx_bytes.size() > 0) {
     return std::make_shared<Transaction>(trx_bytes);
   }

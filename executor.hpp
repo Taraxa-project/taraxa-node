@@ -12,7 +12,6 @@
 #include <thread>
 
 #include "dag_block.hpp"
-#include "database_face_cache.hpp"
 #include "db_storage.hpp"
 #include "eth/eth_service.hpp"
 #include "pbft_chain.hpp"

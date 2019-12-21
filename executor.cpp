@@ -60,7 +60,7 @@ bool Executor::execute(PbftBlock const& pbft_block,
         continue;
       }
       auto& trx = transactions.emplace_back(
-          db_trxs_->getTransactionRaw(trx_hash), CheckTransaction::None);
+          db_->getTransactionRaw(trx_hash), CheckTransaction::None);
       senders.insert(trx.sender());
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();

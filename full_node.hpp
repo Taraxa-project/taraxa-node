@@ -111,7 +111,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void updateNonceTable(DagBlock const &dagblk, DagFrontier const &frontier);
   bool isBlockKnown(blk_hash_t const &hash);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
-      unsigned long level, int number_of_levels);
+      level_t level, int number_of_levels);
   std::string getScheduleBlockByPeriod(uint64_t period);
   std::vector<std::string> collectTotalLeaves();
   void getLatestPivotAndTips(std::string &pivot,
@@ -292,8 +292,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
-  std::shared_ptr<account_state::State> state_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;
