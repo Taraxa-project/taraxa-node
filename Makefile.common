@@ -1,6 +1,8 @@
 ifndef Makefile.common
 Makefile.common=_
 
+SHELL := /bin/bash
+
 DEBUG = 0
 PERF = 0
 

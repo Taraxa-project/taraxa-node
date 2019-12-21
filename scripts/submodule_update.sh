@@ -6,7 +6,7 @@ _home=$(pwd)
 
 source scripts/lib/index.sh
 
-if [ ! -e .git ]; then
+if ! git status &>/dev/null; then
   exit 0
 fi
 
