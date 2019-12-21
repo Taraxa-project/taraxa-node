@@ -129,6 +129,9 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
   auto block_bytes = block_rlp.out();
   auto receipts_bytes = receipts_rlp.out();
   // TODO insert pre-verified
+  // TODO set difficulty to 0 always. Currently each block has difficulty 1
+  // because dev::eth::BlockChain requires that total chain difficulty is
+  // increasing. This check should be relaxed in the fork.
   chain.insertWithoutParent(block_bytes, &receipts_bytes,
                             number * (number + 1) / 2);
   return header;
