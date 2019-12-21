@@ -6,7 +6,9 @@ _home=$(pwd)
 
 source scripts/lib/index.sh
 
-[ ! git status ] &>/dev/null && exit 0 || true
+if [ ! -e .git ]; then
+  exit 0
+fi
 
 _log=$(mktemp)
 on_exit rm ${_log}
