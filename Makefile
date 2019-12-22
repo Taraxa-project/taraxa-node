@@ -87,34 +87,38 @@ endif
 
 NODE_SRCS := \
 	util.cpp \
-    dag_block.cpp \
-    network.cpp \
-    full_node.cpp \
-    types.cpp \
-    dag.cpp \
-    block_proposer.cpp \
-    transaction.cpp \
-    executor.cpp \
-    transaction_order_manager.cpp \
-    pbft_chain.cpp \
-    taraxa_capability.cpp \
-    sortition.cpp \
-    pbft_manager.cpp \
-    vote.cpp \
-    top.cpp \
-    config.cpp \
-    trx_engine/trx_engine.cpp \
-    trx_engine/types.cpp \
-    pbft_sortition_account.cpp \
-    replay_protection/sender_state.cpp \
-    replay_protection/replay_protection_service.cpp \
-    vrf_wrapper.cpp \
-    net/RpcServer.cpp \
-    net/WSServer.cpp \
-    net/Test.cpp \
-    net/Taraxa.cpp \
-    net/Net.cpp \
-    db_storage.cpp
+	dag_block.cpp \
+	network.cpp \
+	full_node.cpp \
+	types.cpp \
+	dag.cpp \
+	block_proposer.cpp \
+	transaction.cpp \
+	executor.cpp \
+	transaction_order_manager.cpp \
+	pbft_chain.cpp \
+	taraxa_capability.cpp \
+	sortition.cpp \
+	pbft_manager.cpp \
+	vote.cpp \
+	top.cpp \
+	config.cpp \
+	trx_engine/types.cpp \
+	trx_engine/trx_engine.cpp \
+	pbft_sortition_account.cpp \
+	replay_protection/sender_state.cpp \
+	replay_protection/replay_protection_service.cpp \
+	vrf_wrapper.cpp \
+	net/RpcServer.cpp \
+	net/WSServer.cpp \
+	net/Test.cpp \
+	net/Taraxa.cpp \
+	net/Net.cpp \
+	eth/eth_service.cpp \
+	eth/eth.cpp \
+	eth/taraxa_seal_engine.cpp \
+	eth/pending_block_header.cpp \
+	db_storage.cpp
 NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
 
 TEST_SRCS := \
