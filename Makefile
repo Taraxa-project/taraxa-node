@@ -103,14 +103,9 @@ NODE_SRCS := \
     vote.cpp \
     top.cpp \
     config.cpp \
-    genesis_state.cpp \
-    account_state/state.cpp \
-    account_state/state_snapshot.cpp \
-    account_state/state_registry.cpp \
     trx_engine/trx_engine.cpp \
     trx_engine/types.cpp \
     pbft_sortition_account.cpp \
-    database_face_cache.cpp \
     replay_protection/sender_state.cpp \
     replay_protection/replay_protection_service.cpp \
     vrf_wrapper.cpp \
@@ -136,7 +131,6 @@ TEST_SRCS := \
 TEST_OBJS := $(addprefix $(OBJ_DIR)/, $(TEST_SRCS:.cpp=.o))
 TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 
-
 $(OBJ_DIR)/%.o: %.cpp $(DEPS)
 	mkdir -p $(@D)
 	$(strip \
@@ -160,13 +154,9 @@ $(BIN_DIR)/%: $(NODE_OBJS) $(OBJ_DIR)/%.o
 		-o $@ $+ \
 	)
 
-.PHONY: all exec main test run_test perf_test run_perf_test pdemo ct c clean
+.PHONY: all main test run_test perf_test run_perf_test pdemo ct c clean
 
 all: main
-
-#exec: TARGETS :=
-#exec: $(addprefix $(BIN_DIR)/, $(TARGETS))
-#	scripts/run_commands_long_circuit.sh $+
 
 main: $(BIN_DIR)/main
 

@@ -125,12 +125,6 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
-struct TransactionPosition {
-  dag_blk_num_t block_number;
-  blk_hash_t block_hash;
-  trx_num_t transaction_index;
-};
-
 // fixme: use the limit from chain params
 inline static const auto MOCK_BLOCK_GAS_LIMIT =
     std::numeric_limits<uint64_t>::max();

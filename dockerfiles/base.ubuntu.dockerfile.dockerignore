@@ -1,6 +1,5 @@
 **/*
-!submodules
-!Makefile.submodules
-!Makefile.common
 !scripts
+!Makefile.*
 !.gitmodules
+!submodules
