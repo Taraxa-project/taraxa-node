@@ -1,16 +1,19 @@
 #include <gtest/gtest.h>
-#include <iostream>
-#include <string>
-#include "ProverWesolowski.h"
-#include "core_tests/util.hpp"
-#include "full_node.hpp"
 #include <libdevcore/FixedHash.h>
 #include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
+
+#include <iostream>
+#include <string>
+
+#include "ProverWesolowski.h"
+#include "core_tests/util.hpp"
+#include "full_node.hpp"
 #include "openssl/bn.h"
 #include "pbft_manager.hpp"
 #include "sortition.h"
+#include "static_init.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa {
@@ -194,7 +197,7 @@ TEST_F(CryptoTest, sortition_rate) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("SORTITION");

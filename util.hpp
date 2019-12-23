@@ -283,16 +283,6 @@ std::shared_ptr<T> as_shared(T *ptr) {
  */
 void abortHandler(int sig);
 static inline void printStackTrace();
-class TaraxaStackTrace {
- public:
-  // TODO why constructor???
-  TaraxaStackTrace() {
-    signal(SIGABRT, abortHandler);
-    signal(SIGSEGV, abortHandler);
-    signal(SIGILL, abortHandler);
-    signal(SIGFPE, abortHandler);
-  }
-};
 
 template <class Key>
 class ExpirationCache {

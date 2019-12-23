@@ -14,6 +14,7 @@
 #include "pbft_manager.hpp"
 #include "util.hpp"
 #include "util/constants.hpp"
+#include "static_init.hpp"
 
 namespace taraxa {
 using core_tests::util::constants::TEST_TX_GAS_LIMIT;
@@ -428,7 +429,7 @@ TEST_F(PbftChainTest, get_dag_block_height) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_CHAIN");

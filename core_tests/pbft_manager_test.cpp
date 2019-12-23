@@ -7,6 +7,7 @@
 #include "create_samples.hpp"
 #include "full_node.hpp"
 #include "network.hpp"
+#include "static_init.hpp"
 #include "top.hpp"
 #include "util.hpp"
 
@@ -262,7 +263,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_CHAIN");

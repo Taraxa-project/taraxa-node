@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <thread>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "static_init.hpp"
 #include "util/eth.hpp"
 
 namespace taraxa {
@@ -123,7 +126,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 }  // namespace taraxa
 
 int main(int argc, char* argv[]) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   dev::setupLogging(logOptions);

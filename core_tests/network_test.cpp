@@ -11,6 +11,7 @@
 
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "static_init.hpp"
 
 namespace taraxa {
 
@@ -772,7 +773,7 @@ TEST_F(NetworkTest, node_full_sync) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("NETWORK");

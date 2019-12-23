@@ -9,6 +9,7 @@
 #include "full_node.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
+#include "static_init.hpp"
 #include "top.hpp"
 #include "vote.h"
 
@@ -261,7 +262,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   logOptions.includeChannels.push_back("NETWORK");

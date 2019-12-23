@@ -17,6 +17,7 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "static_init.hpp"
 #include "string"
 #include "top.hpp"
 
@@ -112,7 +113,7 @@ TEST_F(PerformanceTest, execute_transactions) {
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");

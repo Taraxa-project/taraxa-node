@@ -28,13 +28,17 @@
  * */
 
 #include <gtest/gtest.h>
-#include <string>
-#include "boost/date_time/posix_time/posix_time.hpp"
 #include <libdevcore/Log.h>
+
+#include <string>
+
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include "prometheus/gateway.h"
 #include "prometheus/registry.h"
 #include "prometheus/summary.h"
+#include "static_init.hpp"
 #include "util.hpp"
+
 using namespace std;
 
 namespace taraxa {
@@ -267,7 +271,7 @@ TEST(PrometheusDemo, prometheus_counter_multi_thread) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   dev::setupLogging(logOptions);

@@ -15,6 +15,7 @@
 #include <libp2p/Host.h>
 #include "network.hpp"
 #include "taraxa_capability.hpp"
+#include "static_init.hpp"
 
 using namespace std;
 using namespace dev;
@@ -365,7 +366,7 @@ TEST_F(P2PTest, block_propagate) {
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   LoggingOptions logOptions;
   logOptions.verbosity = VerbosityError;
   setupLogging(logOptions);

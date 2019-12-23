@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
+#include <libethcore/Precompiled.h>
 
 #include <atomic>
 #include <boost/thread.hpp>
@@ -23,6 +24,7 @@
 #include "pbft_manager.hpp"
 #include "replay_protection/replay_protection_service_test.hpp"
 #include "sortition.h"
+#include "static_init.hpp"
 #include "string"
 #include "top.hpp"
 #include "util.hpp"
@@ -1611,7 +1613,7 @@ TEST_F(FullNodeTest,
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");
