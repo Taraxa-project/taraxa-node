@@ -2,7 +2,12 @@ ARG BASE_IMAGE=gcr.io/jovial-meridian-249123/taraxa-node-base:latest
 FROM $BASE_IMAGE as builder
 
 COPY . .
-RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 run_test
+
+ARG RUN_TESTS=1
+RUN if [ $RUN_TESTS -eq 1 ]; then \
+    make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 run_test; \
+    fi
+
 RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) main
 RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 main
 
