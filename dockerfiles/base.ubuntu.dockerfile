@@ -9,18 +9,10 @@ RUN apt-get update \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
     libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl libcurl4-openssl-dev unzip pkg-config git \
     rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool \
-    libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools libmpfr-dev
+    libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools libmpfr-dev python3-pip
 
-ENV CMAKE_VERSION="3.15.2"
-RUN cd /tmp \
-    && wget -qO- --show-progress --progress=bar:force \
-    https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.tar.gz \
-    | tar xvz -C . \
-    && cd cmake-${CMAKE_VERSION} \
-    && ./bootstrap \
-    && make -j $(nproc) \
-    && make -j $(nproc) install \
-    && rm -rf /tmp/cmake-${CMAKE_VERSION}
+RUN pip3 install --upgrade pip
+RUN pip3 install cmake
 
 # After install and link for json/json.h include dir
 RUN ln -s /usr/include/jsoncpp/json /usr/include/json

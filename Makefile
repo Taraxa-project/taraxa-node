@@ -44,6 +44,9 @@ else
 	BOOST_LIBS += boost_log
 endif
 LIBS := \
+	$(ALETH_LIBS) \
+	$(TARAXA_EVM_LIB) \
+	dl \
 	pthread \
 	z \
 	curl \
@@ -52,6 +55,7 @@ LIBS := \
 	gmp \
 	gmpxx \
 	mpfr \
+	snappy \
 	$(BOOST_LIBS) \
 	leveldb \
 	rocksdb \
@@ -68,8 +72,6 @@ LIBS := \
 	secp256k1 \
 	cryptopp \
 	ethash \
-	$(ALETH_LIBS) \
-	$(TARAXA_EVM_LIB) \
 	gtest
 # Optional linking for libatomic (part of standard library).
 # Some toolchains provide this library,
@@ -151,11 +153,10 @@ $(OBJ_DIR)/%.o: %.cpp $(DEPS)
 $(BIN_DIR)/%: $(NODE_OBJS) $(OBJ_DIR)/%.o
 	mkdir -p $(@D)
 	$(strip \
-		$(CXX) $(LINK_FLAGS) \
+		$(CXX) $(LINK_FLAGS) $+ -o $@ \
 		$(addprefix -L, $(LIB_DIRS)) \
 		$(addprefix -l, $(LIBS)) \
 		$(addprefix -framework , $(OSX_FRAMEWORKS)) \
-		-o $@ $+ \
 	)
 
 .PHONY: all main test run_test perf_test run_perf_test pdemo ct c clean

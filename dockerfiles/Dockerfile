@@ -16,8 +16,8 @@ ENV LD_LIBRARY_PATH /usr/local/lib
 
 RUN mkdir -p ${APP_PATH}/config
 WORKDIR ${APP_PATH}
-COPY --from=builder ${APP_PATH}/build/main .
-COPY --from=builder ${APP_PATH}/build-d/main ./main-d
+COPY --from=builder ${APP_PATH}/build/release/bin/main .
+COPY --from=builder ${APP_PATH}/build/debug/bin/main ./main-d
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
 COPY ./core_tests/conf/*.json ./default_config/

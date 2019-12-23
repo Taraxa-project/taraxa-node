@@ -165,10 +165,10 @@ ALETH_OBJS = $(subst $(ALETH_ROOT),$(ALETH_OBJ_DIR),$(ALETH_SRCS:.cpp=.o))
 ALETH_COMPILE_DEFINITIONS := ETH_FATDB
 TARAXA_ALETH_LIB := taraxa-aleth
 ALETH_LIBS := \
+	$(TARAXA_ALETH_LIB) \
 	evmc-loader \
 	evmc-instructions \
-	aleth-buildinfo \
-	$(TARAXA_ALETH_LIB)
+	aleth-buildinfo
 
 $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 	mkdir -p $(@D)
