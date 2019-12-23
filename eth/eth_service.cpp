@@ -29,9 +29,9 @@ using taraxa_seal_engine::TaraxaSealEngine;
 
 using err = std::runtime_error;
 
-static auto const _ = [] {
+bool const EthService::_ = [] {
   TaraxaSealEngine::init();
-  return 0;
+  return true;
 }();
 
 EthService::EthService(shared_ptr<FullNode> const& node,

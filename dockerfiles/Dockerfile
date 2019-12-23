@@ -3,13 +3,14 @@ FROM $BASE_IMAGE as builder
 
 COPY . .
 
+RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 main
+
 ARG RUN_TESTS=1
 RUN if [ $RUN_TESTS -eq 1 ]; then \
     make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 run_test; \
     fi
 
 RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) main
-RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) DEBUG=1 main
 
 
 # Copy over only minimal information

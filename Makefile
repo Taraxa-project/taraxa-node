@@ -46,6 +46,8 @@ endif
 LIBS := \
 	$(ALETH_LIBS) \
 	$(TARAXA_EVM_LIB) \
+	vdf \
+	sodium \
 	dl \
 	pthread \
 	z \
@@ -59,8 +61,6 @@ LIBS := \
 	$(BOOST_LIBS) \
 	leveldb \
 	rocksdb \
-	sodium \
-	vdf \
 	scrypt \
 	prometheus-cpp-core \
 	prometheus-cpp-push \

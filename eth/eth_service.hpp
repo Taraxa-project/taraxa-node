@@ -80,6 +80,8 @@ class EthService : private virtual ClientBase {
   mutex append_block_mu_;
 
  public:
+  static bool const _;
+
   shared_ptr<AccountHolder> const current_node_account_holder;
 
   EthService(shared_ptr<FullNode> const& node,  //
