@@ -87,12 +87,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   }
   auto const &genesis_hash = genesis_block.getHash();
   auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
-  {
-    using namespace dev::db;
-    auto db_path = conf_.replay_protection_service_db_path();
-    auto db_result = newDB(db_path, genesis_hash, mode, DatabaseKind::RocksDB);
-    db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
-  }
   db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
   // store genesis blk to db
   db_->saveDagBlock(genesis_block);
@@ -166,7 +160,7 @@ void FullNode::start(bool boot_node) {
   vote_mgr_->setFullNode(getShared());
 
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
-      conf_.replay_protection_service_range, db_replay_protection_service_);
+      conf_.replay_protection_service_range, db_);
   pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
   pbft_mgr_->start();
   executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
@@ -233,7 +227,6 @@ void FullNode::stop() {
   }
   executor_ = nullptr;
   replay_protection_service_ = nullptr;
-  assert(db_replay_protection_service_.use_count() == 1);
   assert(state_registry_.use_count() == 1);
   assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";

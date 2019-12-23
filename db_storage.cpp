@@ -358,4 +358,30 @@ void DbStorage::addDagBlockPeriodToBatch(
   checkStatus(status);
 }
 
+std::string DbStorage::getReplayProtection(string const& key) {
+  return lookup(key, Columns::replay_protection);
+}
+
+void DbStorage::addReplayProtectionToBatch(
+    string const& key, string const& value,
+    std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Put(
+      handles_[DbStorage::Columns::replay_protection], key, value);
+  checkStatus(status);
+}
+
+void DbStorage::addReplayProtectionToBatch(
+    string const& key, bytes const& value,
+    std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Put(
+      handles_[DbStorage::Columns::replay_protection], key, toSlice(value));
+  checkStatus(status);
+}
+
+void DbStorage::removeReplayProtectionFromBatch(
+    string const& key, std::unique_ptr<WriteBatch> const& write_batch) {
+  auto status = write_batch->Delete(key);
+  checkStatus(status);
+}
+
 }  // namespace taraxa

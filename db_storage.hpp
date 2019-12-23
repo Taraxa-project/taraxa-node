@@ -49,23 +49,27 @@ class DbStorage {
     votes,
     period_schedule_block,
     dag_block_period,
+    replay_protection,
     column_end
   };
 
-  static const constexpr char* const column_names[] = {"default",
-                                                       "dag_blocks",
-                                                       "dag_blocks_index",
-                                                       "transactions",
-                                                       "trx_to_blk",
-                                                       "status",
-                                                       "pbft_blocks",
-                                                       "pbft_blocks_order",
-                                                       "dag_blocks_order",
-                                                       "dag_blocks_height",
-                                                       "sortition_accounts",
-                                                       "votes",
-                                                       "period_schedule_block",
-                                                       "dag_block_period"};
+  static const constexpr char* const column_names[] = {
+      "default",
+      "dag_blocks",
+      "dag_blocks_index",
+      "transactions",
+      "trx_to_blk",
+      "status",
+      "pbft_blocks",
+      "pbft_blocks_order",
+      "dag_blocks_order",
+      "dag_blocks_height",
+      "sortition_accounts",
+      "votes",
+      "period_schedule_block",
+      "dag_block_period",
+      "replay_protection",
+  };
 
   DbStorage(fs::path const& base_path, h256 const& genesis_hash,
             bool drop_existing);
@@ -106,6 +110,16 @@ class DbStorage {
 
   void saveDagBlockOrder(string const& index, blk_hash_t const& hash);
   std::shared_ptr<blk_hash_t> getDagBlockOrder(string const& index);
+
+  std::string getReplayProtection(string const& key);
+  void addReplayProtectionToBatch(
+      string const& key, string const& value,
+      std::unique_ptr<WriteBatch> const& write_batch);
+  void addReplayProtectionToBatch(
+      string const& key, bytes const& value,
+      std::unique_ptr<WriteBatch> const& write_batch);
+  void removeReplayProtectionFromBatch(
+      string const& key, std::unique_ptr<WriteBatch> const& write_batch);
 
   void saveDagBlockHeight(blk_hash_t const& hash, string const& height);
   string getDagBlockHeight(blk_hash_t const& hash);

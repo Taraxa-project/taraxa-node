@@ -2,7 +2,6 @@
 #define TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_TEST_HPP_
 
 #include <gtest/gtest.h>
-#include <libdevcore/RocksDB.h>
 #include <boost/filesystem.hpp>
 #include <optional>
 #include <vector>
@@ -10,13 +9,13 @@
 #include "replay_protection_service.hpp"
 #include "transaction.hpp"
 #include "types.hpp"
+#include "db_storage.hpp"
 
 namespace taraxa::replay_protection::replay_protection_service_test {
 using boost::filesystem::create_directories;
 using boost::filesystem::remove_all;
 using boost::filesystem::temp_directory_path;
 using dev::h64;
-using dev::db::RocksDB;
 using replay_protection_service::ReplayProtectionService;
 using std::cout;
 using std::list;
@@ -27,11 +26,12 @@ using std::shared_ptr;
 using std::vector;
 using taraxa::as_shared;
 using taraxa::Transaction;
+using taraxa::DbStorage;
 
 // TODO more tests
 struct ReplayProtectionServiceTest : testing::Test {
   round_t range = 0;
-  shared_ptr<RocksDB> db;
+  shared_ptr<DbStorage> db;
   shared_ptr<ReplayProtectionService> sut;
   vector<ReplayProtectionService::transaction_batch_t> history;
   round_t curr_round = 0;
@@ -54,7 +54,7 @@ struct ReplayProtectionServiceTest : testing::Test {
     create_directories(DB_DIR);
     this->range = range;
     this->history = history;
-    db = make_shared<RocksDB>(DB_DIR);
+    db = make_shared<DbStorage>(DB_DIR, blk_hash_t(), true);
     sut = as_shared(new ReplayProtectionService(range, db));
   }
 

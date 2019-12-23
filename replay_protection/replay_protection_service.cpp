@@ -41,14 +41,14 @@ ReplayProtectionService::ReplayProtectionService(decltype(range_) range,
                                                  decltype(db_) const& db)
     : range_(range), db_(db) {
   assert(range_ > 0);
-  if (auto v = db_->lookup(CURR_ROUND_KEY); !v.empty()) {
+  if (auto v = db_->getReplayProtection(CURR_ROUND_KEY); !v.empty()) {
     last_round_ = stoull(v);
   }
 }
 
 bool ReplayProtectionService::hasBeenExecutedWithinRange(
     Transaction const& trx) {
-  return !db_->lookup(trxHashKey(trx.getHash().hex())).empty();
+  return !db_->getReplayProtection(trxHashKey(trx.getHash().hex())).empty();
 }
 
 bool ReplayProtectionService::hasBeenExecutedBeyondRange(
@@ -92,51 +92,51 @@ void ReplayProtectionService::commit(round_t round,
     sender_state->setNonceMax(trx->getNonce());
     auto trx_hash = trx->getHash().hex();
     static string DUMMY_VALUE = "_";
-    batch->insert(trxHashKey(trx_hash), DUMMY_VALUE);
+    db_->addReplayProtectionToBatch(trxHashKey(trx_hash), DUMMY_VALUE, batch);
     round_data_keys << trx_hash << "\n";
   }
   for (auto const& [sender, state] : sender_states) {
     if (state->isNonceMaxDirty() || state->isDefaultInitialized()) {
-      batch->insert(maxNonceAtRoundKey(round, sender),
-                    toBigEndianString(state->getNonceMax()));
-      batch->insert(senderStateKey(sender), toSlice(state->rlp().out()));
+      db_->addReplayProtectionToBatch(maxNonceAtRoundKey(round, sender),
+                    toBigEndianString(state->getNonceMax()), batch);
+      db_->addReplayProtectionToBatch(senderStateKey(sender), state->rlp().out(), batch);
       round_data_keys << sender << "\n";
     }
   }
   if (auto v = round_data_keys.str(); !v.empty()) {
-    batch->insert(roundDataKeysKey(round), v);
+    db_->addReplayProtectionToBatch(roundDataKeysKey(round), v, batch);
   }
   if (round >= range_) {
     auto bottom_round = round - range_;
     auto bottom_round_data_keys_key = roundDataKeysKey(bottom_round);
-    if (auto keys = db_->lookup(bottom_round_data_keys_key); !keys.empty()) {
+    if (auto keys = db_->getReplayProtection(bottom_round_data_keys_key); !keys.empty()) {
       istringstream is(keys);
       for (string line; getline(is, line);) {
         auto line_size_bytes = line.size() / 2;
         if (addr_t::size == line_size_bytes) {
           auto nonce_max_key = maxNonceAtRoundKey(bottom_round, line);
-          if (auto v = db_->lookup(nonce_max_key); !v.empty()) {
+          if (auto v = db_->getReplayProtection(nonce_max_key); !v.empty()) {
             auto sender_state_key = senderStateKey(line);
             auto state = loadSenderState(sender_state_key);
             state->setNonceWatermark(fromBigEndian<trx_nonce_t>(v));
-            batch->insert(sender_state_key, toSlice(state->rlp().out()));
-            batch->kill(nonce_max_key);
+            db_->addReplayProtectionToBatch(sender_state_key, state->rlp().out(), batch);
+            db_->removeReplayProtectionFromBatch(nonce_max_key, batch);
           }
         } else if (trx_hash_t::size == line_size_bytes) {
-          batch->kill(trxHashKey(line));
+          db_->removeReplayProtectionFromBatch(trxHashKey(line), batch);
         }
       }
-      batch->kill(bottom_round_data_keys_key);
+      db_->removeReplayProtectionFromBatch(bottom_round_data_keys_key, batch);
     }
   }
-  batch->insert(CURR_ROUND_KEY, to_string(round));
-  db_->commit(move(batch));
+  db_->addReplayProtectionToBatch(CURR_ROUND_KEY, to_string(round), batch);
+  db_->commitWriteBatch(batch);
   last_round_ = round;
 }
 
 shared_ptr<SenderState> ReplayProtectionService::loadSenderState(
     string const& key) {
-  if (auto v = db_->lookup(key); !v.empty()) {
+  if (auto v = db_->getReplayProtection(key); !v.empty()) {
     return as_shared(new SenderState(RLP(v)));
   }
   return nullptr;

@@ -294,7 +294,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<taraxa::WSServer> ws_server_;
   // storage
-  std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
   std::shared_ptr<DbStorage> db_ = nullptr;
   std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
   std::shared_ptr<account_state::State> state_ = nullptr;

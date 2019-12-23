@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_HPP_
 #define TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_HPP_
 
-#include <libdevcore/RocksDB.h>
 #include <list>
 #include <memory>
 #include <optional>
@@ -10,7 +9,6 @@
 #include "transaction.hpp"
 
 namespace taraxa::replay_protection::replay_protection_service {
-using dev::db::RocksDB;
 using sender_state::SenderState;
 using std::list;
 using std::optional;
@@ -24,9 +22,7 @@ struct ReplayProtectionService {
 
  private:
   round_t range_ = 0;
-  // explicitly use rocksdb since WriteBatchFace may behave not as expected
-  // in other implementations
-  shared_ptr<RocksDB> db_;
+  shared_ptr<DbStorage> db_;
   optional<round_t> last_round_;
   shared_mutex m_;
 
