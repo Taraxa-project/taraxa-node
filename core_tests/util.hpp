@@ -25,7 +25,7 @@ struct DBUsingTest : T {
   DBUsingTest() {
     for (auto& entry : recursive_directory_iterator(config_dir)) {
       if (is_regular_file(entry)) {
-        ret.emplace_back(entry.path().string());
+        all_configs.emplace_back(entry.path().string());
       }
     }
   }
