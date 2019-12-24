@@ -5,24 +5,29 @@
 
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "eth/util.hpp"
 #include "full_node.hpp"
 #include "network.hpp"
 #include "static_init.hpp"
 #include "top.hpp"
 #include "util.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using core_tests::util::constants::TEST_TX_GAS_LIMIT;
+using ::taraxa::util::lazy::Lazy;
 
 const unsigned NUM_TRX = 200;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_key_pair = dev::KeyPair(g_secret);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
-auto g_mock_dag0 = samples::createMockDag0();
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 struct PbftManagerTest : core_tests::util::DBUsingTest<> {};
 

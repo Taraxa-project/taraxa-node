@@ -28,26 +28,31 @@
 #include "string"
 #include "top.hpp"
 #include "util.hpp"
+#include "util/lazy.hpp"
 #include "util/wait.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using samples::sendTrx;
+using ::taraxa::util::lazy::Lazy;
 using transaction_client::TransactionClient;
 using wait::wait;
 using wait::WaitOptions;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_key_pair = dev::KeyPair(g_secret);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
-auto g_mock_dag0 = samples::createMockDag0();
-auto g_test_account =
-    samples::createTestAccountTable("core_tests/account_table.txt");
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
+auto g_test_account = Lazy([] {
+  return samples::createTestAccountTable("core_tests/account_table.txt");
+});
 uint64_t g_init_bal = TARAXA_COINS_DECIMAL / 5;
 
 const char *input1[] = {"./build/main",
@@ -742,7 +747,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   g_mock_dag0 = samples::createMockDag0(
       node->getConfig().dag_genesis_block.getHash().toString());
 
-  auto num_blks = g_mock_dag0.size();
+  auto num_blks = g_mock_dag0->size();
   for (int i = 1; i <= 9; i++) {
     node->insertBlock(g_mock_dag0[i]);
   }
@@ -793,7 +798,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   // -------- third period ----------
 
-  for (int i = 17; i < g_mock_dag0.size(); i++) {
+  for (int i = 17; i < g_mock_dag0->size(); i++) {
     node->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -902,7 +907,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices3 = 0;
   unsigned long vertices4 = 0;
 
-  auto num_blks = g_mock_dag0.size();
+  auto num_blks = g_mock_dag0->size();
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(taraxa::FullNode::make(conf,

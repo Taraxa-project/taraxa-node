@@ -4,31 +4,37 @@
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
+#include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
-#include <libp2p/Host.h>
 #include "network.hpp"
-#include "taraxa_capability.hpp"
 #include "static_init.hpp"
+#include "taraxa_capability.hpp"
+#include "util/lazy.hpp"
 
 using namespace std;
 using namespace dev;
 using namespace dev::p2p;
 
 namespace taraxa {
+using ::taraxa::util::lazy::Lazy;
 
 const unsigned NUM_TRX = 9;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
 auto g_signed_trx_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 struct P2PTest : core_tests::util::DBUsingTest<> {};
 

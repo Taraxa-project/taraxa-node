@@ -12,28 +12,38 @@
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "static_init.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa {
+using ::taraxa::util::lazy::Lazy;
 
 const unsigned NUM_TRX = 9;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_trx_samples =
+    Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 const unsigned NUM_TRX2 = 200;
-auto g_secret2 = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_trx_samples2 = samples::createMockTrxSamples(0, NUM_TRX2);
-auto g_signed_trx_samples2 =
-    samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
-
-FullNodeConfig g_conf1("./core_tests/conf/conf_taraxa1.json");
-FullNodeConfig g_conf2("./core_tests/conf/conf_taraxa2.json");
-FullNodeConfig g_conf3("./core_tests/conf/conf_taraxa3.json");
+auto g_secret2 = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_trx_samples2 =
+    Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
+auto g_signed_trx_samples2 = Lazy(
+    [] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
+auto g_conf1 =
+    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa1.json"); });
+auto g_conf2 =
+    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa2.json"); });
+auto g_conf3 =
+    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa3.json"); });
 
 struct NetworkTest : core_tests::util::DBUsingTest<> {};
 
@@ -43,9 +53,9 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1.network, g_conf1.dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->dag_genesis_block.getHash().toString()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2.network, g_conf2.dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->dag_genesis_block.getHash().toString()));
 
   nw1->start();
   nw2->start();
@@ -83,9 +93,9 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1.network, g_conf1.dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->dag_genesis_block.getHash().toString()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2.network, g_conf2.dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->dag_genesis_block.getHash().toString()));
 
   nw1->start(true);
   nw2->start();
@@ -119,11 +129,11 @@ connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1.network, g_conf1.dag_genesis_block.getHash().toString()));
+        g_conf1->network, g_conf1->dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2.network, g_conf2.dag_genesis_block.getHash().toString()));
+        g_conf2->network, g_conf2->dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3.network, g_conf3.dag_genesis_block.getHash().toString()));
+        g_conf3->network, g_conf3->dag_genesis_block.getHash().toString()));
 
     nw1->start(true);
     nw2->start();
@@ -149,11 +159,11 @@ TEST_F(NetworkTest, save_network) {
   }
 
   std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2.network, "/tmp/nw2",
-                          g_conf2.dag_genesis_block.getHash().toString()));
+      new taraxa::Network(g_conf2->network, "/tmp/nw2",
+                          g_conf2->dag_genesis_block.getHash().toString()));
   std::shared_ptr<Network> nw3(
-      new taraxa::Network(g_conf3.network, "/tmp/nw3",
-                          g_conf2.dag_genesis_block.getHash().toString()));
+      new taraxa::Network(g_conf3->network, "/tmp/nw3",
+                          g_conf2->dag_genesis_block.getHash().toString()));
   nw2->start();
   nw3->start();
 
@@ -648,7 +658,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
   node1->start(true);
 
   std::vector<taraxa::bytes> transactions;
-  for (auto const& t : g_signed_trx_samples) {
+  for (auto const& t : *g_signed_trx_samples) {
     transactions.emplace_back(t.rlp(true));
   }
 
@@ -665,7 +675,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
-  for (auto const& t : g_signed_trx_samples) {
+  for (auto const& t : *g_signed_trx_samples) {
     EXPECT_TRUE(node2->getTransaction(t.getHash()) != nullptr);
     if (node2->getTransaction(t.getHash()) != nullptr) {
       EXPECT_EQ(t, node2->getTransaction(t.getHash())->first);
@@ -711,7 +721,7 @@ TEST_F(NetworkTest, node_full_sync) {
   int counter = 0;
   std::vector<Transaction> ts;
   for (auto i = 0; i < NUM_TRX2; ++i) {
-    ts.push_back(samples::TX_GEN.getWithRandomUniqueSender());
+    ts.push_back(samples::TX_GEN->getWithRandomUniqueSender());
   }
   for (auto i = 0; i < NUM_TRX2; ++i) {
     std::vector<taraxa::bytes> transactions;

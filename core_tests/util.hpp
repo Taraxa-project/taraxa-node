@@ -7,36 +7,46 @@
 #include <boost/filesystem.hpp>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "config.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa::core_tests::util {
-using namespace std;
-using namespace dev;
-using namespace boost::filesystem;
+using boost::filesystem::is_regular_file;
+using boost::filesystem::path;
+using boost::filesystem::recursive_directory_iterator;
+using boost::filesystem::remove_all;
+using dev::KeyPair;
+using dev::Secret;
+using std::cout;
+using std::enable_if_t;
+using std::endl;
+using std::is_base_of;
+using std::vector;
+using ::taraxa::util::lazy::Lazy;
 
 inline path const config_dir = "./core_tests/conf";
+inline auto const all_configs = Lazy([] {
+  vector<FullNodeConfig> ret;
+  for (auto& entry : recursive_directory_iterator(config_dir)) {
+    if (is_regular_file(entry)) {
+      ret.emplace_back(entry.path().string());
+    }
+  }
+  return move(ret);
+});
+
+inline void cleanAllTestDB() {
+  cout << "Removing database directories" << endl;
+  for (auto& cfg : *all_configs) {
+    remove_all(cfg.db_path);
+  }
+}
 
 template <typename T = ::testing::Test,
           typename = enable_if_t<is_base_of<::testing::Test, T>::value>>
-struct DBUsingTest : T {
-  vector<FullNodeConfig> all_configs;
-
-  DBUsingTest() {
-    for (auto& entry : recursive_directory_iterator(config_dir)) {
-      if (is_regular_file(entry)) {
-        all_configs.emplace_back(entry.path().string());
-      }
-    }
-  }
-
-  void cleanAllTestDB() {
-    cout << "Removing database directories" << endl;
-    for (auto& cfg : all_configs) {
-      remove_all(cfg.db_path);
-    }
-  }
-
+struct DBUsingTest : public T {
   void SetUp() override {
     cleanAllTestDB();
     T::SetUp();

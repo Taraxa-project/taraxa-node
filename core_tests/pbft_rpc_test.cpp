@@ -16,12 +16,16 @@
 namespace taraxa {
 using namespace core_tests::util;
 using namespace vrf_wrapper;
-vrf_sk_t g_vrf_sk(
-    "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-    "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-secret_t g_sk(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
+auto g_vrf_sk = Lazy([] {
+  return vrf_sk_t(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+});
+auto g_sk = Lazy([] {
+  return secret_t(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
 struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
