@@ -24,10 +24,10 @@ RUN mkdir -p ${APP_PATH}/config
 WORKDIR ${APP_PATH}
 COPY --from=builder ${APP_PATH}/build/release/bin/main .
 COPY --from=builder ${APP_PATH}/build/debug/bin/main ./main-d
+COPY --from=builder ${APP_PATH}/scripts/docker-entrypoint.sh ./
+COPY --from=builder ./core_tests/conf/*.json ./default_config/
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
-COPY ./core_tests/conf/*.json ./default_config/
-COPY ./scripts/docker-entrypoint.sh ./
 
 ENV DEBUG 0
 ENTRYPOINT [ "./docker-entrypoint.sh" ]
