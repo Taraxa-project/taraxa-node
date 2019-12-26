@@ -15,61 +15,69 @@ namespace taraxa {
 class FullNode;
 class PbftManager;
 
-struct VrfSortition {
+struct VrfPbftMsg : public vrf_wrapper::VrfMsgFace {
+  VrfPbftMsg() = default;
+  VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round,
+             size_t step)
+      : blk(blk), type(type), round(round), step(step) {}
+  std::string toString() const {
+    return blk.toString() + "_" + std::to_string(type) + "_" +
+           std::to_string(round) + "_" + std::to_string(step);
+  }
+  bool operator==(VrfPbftMsg const& other) const {
+    return blk == other.blk && type == other.type && round == other.round &&
+           step == other.step;
+  }
+  friend std::ostream& operator<<(std::ostream& strm,
+                                  VrfPbftMsg const& pbft_msg) {
+    strm << "  [Vrf Pbft Msg] " << std::endl;
+    strm << "    blk_hash: " << pbft_msg.blk << std::endl;
+    strm << "    type: " << pbft_msg.type << std::endl;
+    strm << "    round: " << pbft_msg.round << std::endl;
+    strm << "    step: " << pbft_msg.step << std::endl;
+    return strm;
+  }
+  blk_hash_t blk;
+  PbftVoteTypes type;
+  uint64_t round;
+  size_t step;
+};
+
+struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
   using vrf_output_t = vrf_wrapper::vrf_output_t;
   using bytes = dev::bytes;
-  VrfSortition() = default;
-  VrfSortition(vrf_sk_t const& sk, blk_hash_t const& blk, PbftVoteTypes type,
-               uint64_t round, size_t step)
-      : pk(vrf_wrapper::getVrfPublicKey(sk)),
-        blk(blk),
-        type(type),
-        round(round),
-        step(step) {
-    std::string msg = blk.toString() + std::to_string(type) + "_" +
-                      std::to_string(round) + "_" + std::to_string(step);
-    const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
-    proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();
-    output = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes).value();
-  }
-  VrfSortition(bytes const& rlp);
+  VrfPbftSortition() = default;
+  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
+      : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg) {}
+  VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
-  bool operator==(VrfSortition const& other) const {
-    return pk == other.pk && blk == other.blk && type == other.type &&
-           round == other.round && step == other.step && proof == other.proof &&
-           output == other.output;
+  bool verify() { return VrfSortitionBase::verify(pbft_msg); }
+  bool operator==(VrfPbftSortition const& other) const {
+    return pk == other.pk && pbft_msg == other.pbft_msg &&
+           proof == other.proof && output == other.output;
   }
   static inline uint512_t max512bits = std::numeric_limits<uint512_t>::max();
   bool canSpeak(size_t threshold, size_t valid_players) const;
   friend std::ostream& operator<<(std::ostream& strm,
-                                  VrfSortition const& vrf_sortition) {
+                                  VrfPbftSortition const& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
     strm << "  pk: " << vrf_sortition.pk << std::endl;
-    strm << "  blk_hash: " << vrf_sortition.blk << std::endl;
-    strm << "  type: " << vrf_sortition.type << std::endl;
-    strm << "  round: " << vrf_sortition.round << std::endl;
-    strm << "  step: " << vrf_sortition.step << std::endl;
     strm << "  proof: " << vrf_sortition.proof << std::endl;
     strm << "  output: " << vrf_sortition.output << std::endl;
+    strm << vrf_sortition.pbft_msg << std::endl;
     return strm;
   }
-  vrf_pk_t pk;
-  blk_hash_t blk;
-  PbftVoteTypes type;
-  uint64_t round;
-  size_t step;
-  vrf_proof_t proof;
-  vrf_output_t output;
+  VrfPbftMsg pbft_msg;
 };
 
 class Vote {
  public:
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   Vote() = default;
-  Vote(secret_t const& node_sk, VrfSortition const& vrf_sortition,
+  Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition,
        blk_hash_t const& blockhash);
 
   Vote(bytes const& rlp);
@@ -81,13 +89,13 @@ class Vote {
     voter();
     return cached_voter_;
   }
-  auto getVrfSorition() const { return vrf_sortition_; }
+  auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
   sig_t getVoteSignature() const { return vote_signatue_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
-  PbftVoteTypes getType() const { return vrf_sortition_.type; }
-  uint64_t getRound() const { return vrf_sortition_.round; }
-  size_t getStep() const { return vrf_sortition_.step; }
+  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
+  uint64_t getRound() const { return vrf_sortition_.pbft_msg.round; }
+  size_t getStep() const { return vrf_sortition_.pbft_msg.step; }
   bytes rlp(bool inc_sig = true) const;
   bool verifyVote() const {
     auto msg = sha3(false);
@@ -115,7 +123,7 @@ class Vote {
   vote_hash_t vote_hash_;  // hash of this vote
   blk_hash_t blockhash_;
   sig_t vote_signatue_;
-  VrfSortition vrf_sortition_;
+  VrfPbftSortition vrf_sortition_;
   mutable public_t cached_voter_;
 };
 

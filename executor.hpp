@@ -13,7 +13,7 @@
 #include "db_storage.hpp"
 #include "libdevcore/Log.h"
 #include "pbft_chain.hpp"
-#include "pbft_sortition_account.h"
+#include "pbft_sortition_account.hpp"
 #include "replay_protection/index.hpp"
 #include "trx_engine/index.hpp"
 #include "util.hpp"

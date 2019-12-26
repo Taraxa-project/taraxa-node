@@ -343,12 +343,7 @@ class ExpirationCacheMap {
     return true;
   }
 
-  virtual void eraseOldest() {
-    for (auto i = 0; i < delete_step_; i++) {
-      cache_.erase(expiration_.front());
-      expiration_.pop_front();
-    }
-  }
+  
 
   std::size_t count(Key const &key) const {
     boost::shared_lock lck(mtx_);
@@ -405,7 +400,10 @@ class ExpirationCacheMap {
     return ret;
   }
 
-  std::unordered_map<Key, Value> getRawMap() { return cache_; }
+  std::unordered_map<Key, Value> getRawMap() { 
+    boost::shared_lock lck(mtx_); 
+    return cache_; 
+  }
 
   bool update(Key const &key, Value value, Value expected_value) {
     boost::unique_lock lck(mtx_);
@@ -425,6 +423,12 @@ class ExpirationCacheMap {
   }
 
  protected:
+  virtual void eraseOldest() {
+    for (auto i = 0; i < delete_step_; i++) {
+      cache_.erase(expiration_.front());
+      expiration_.pop_front();
+    }
+  }
   std::unordered_map<Key, Value> cache_;
   std::deque<Key> expiration_;
   uint32_t max_size_;

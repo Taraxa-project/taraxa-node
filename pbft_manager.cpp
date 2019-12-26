@@ -12,7 +12,7 @@
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "network.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 #include "util.hpp"
 #include "util/eth.hpp"
 
@@ -764,9 +764,8 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   // compute sorition
-  VrfSortition vrf_sortition(full_node->getVrfSecretKey(),
-                             pbft_chain_last_block_hash_, type, round, step);
-
+  VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
+  VrfPbftSortition vrf_sortition(full_node->getVrfSecretKey(), msg);
   if (!vrf_sortition.canSpeak(sortition_threshold_,
                               valid_sortition_accounts_size_)) {
     LOG(log_tra_) << "Don't get sortition";

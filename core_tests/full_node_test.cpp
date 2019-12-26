@@ -18,7 +18,7 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 #include "string"
 #include "top.hpp"
 #include "util.hpp"
@@ -1035,10 +1035,10 @@ TEST_F(FullNodeTest, persist_counter) {
     }
     EXPECT_EQ(node1->getTransactionStatusCount(), 1000);
     EXPECT_EQ(node2->getTransactionStatusCount(), 1000);
-
+    std::cout << "All 1000 trxs are received ..." << std::endl;
     // time to make sure all transactions have been packed into block...
+    // taraxa::thisThreadSleepForSeconds(10);
     taraxa::thisThreadSleepForMilliSeconds(2000);
-
     // send dummy trx to make sure all DAGs are ordered
     try {
       send_dummy_trx();
@@ -1051,13 +1051,13 @@ TEST_F(FullNodeTest, persist_counter) {
     // add more delay if sync is not done
     for (auto i = 0; i < SYNC_TIMEOUT; i++) {
       if (num_exe_trx1 == 1001 && num_exe_trx2 == 1001) break;
-      taraxa::thisThreadSleepForMilliSeconds(500);
+      taraxa::thisThreadSleepForMilliSeconds(200);
       num_exe_trx1 = node1->getNumTransactionExecuted();
       num_exe_trx2 = node2->getNumTransactionExecuted();
     }
 
-    EXPECT_EQ(num_exe_trx1, 1001);
-    EXPECT_EQ(num_exe_trx2, 1001);
+    ASSERT_EQ(num_exe_trx1, 1001);
+    ASSERT_EQ(num_exe_trx2, 1001);
 
     num_exe_blk1 = node1->getNumBlockExecuted();
     num_exe_blk2 = node2->getNumBlockExecuted();
@@ -1158,7 +1158,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 1);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 2);
   std::cout << "First trx received ..." << std::endl;
@@ -1174,7 +1174,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 2);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 3);
 
@@ -1183,7 +1183,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 2) break;
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(trx_executed1, 2);
 }
@@ -1223,7 +1223,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 
   std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 1);
   EXPECT_GE(node1->getNumVerticesInDag().first, 2);
   std::cout << "First trx received ..." << std::endl;
@@ -1233,13 +1233,13 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();
     if (trx_executed1 == 1) break;
-    thisThreadSleepForMilliSeconds(100);
+    thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
-  thisThreadSleepForSeconds(3);
+  thisThreadSleepForSeconds(10);
   EXPECT_EQ(node1->getTransactionStatusCount(), 2);
   EXPECT_GE(node1->getNumVerticesInDag().first, 3);
 
@@ -1631,7 +1631,14 @@ int main(int argc, char **argv) {
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");
+  // logOptions.includeChannels.push_back("BLKQU");
+  // logOptions.includeChannels.push_back("TARCAP");
+  // logOptions.includeChannels.push_back("DAGSYNC");
+  // logOptions.includeChannels.push_back("DAGPRP");
+  // logOptions.includeChannels.push_back("TRXPRP");
   // logOptions.includeChannels.push_back("DAGMGR");
+  // logOptions.includeChannels.push_back("TRXMGR");
+
   // logOptions.includeChannels.push_back("EXETOR");
   // logOptions.includeChannels.push_back("BLK_PP");
   // logOptions.includeChannels.push_back("PR_MDL");

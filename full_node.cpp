@@ -10,9 +10,9 @@
 #include "dag_block.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 #include "util/eth.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 namespace taraxa {
 
@@ -635,7 +635,8 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
                             uint64_t period, size_t step,
                             blk_hash_t const &last_pbft_block_hash) {
   // sortition proof
-  VrfSortition vrf_sortition(vrf_sk_, last_pbft_block_hash, type, period, step);
+  VrfPbftMsg msg(last_pbft_block_hash, type, period, step);
+  VrfPbftSortition vrf_sortition(vrf_sk_, msg);
   Vote vote(node_sk_, vrf_sortition, blockhash);
 
   LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash

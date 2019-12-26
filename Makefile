@@ -92,6 +92,7 @@ MKDIR := mkdir
 RM := rm -f
 
 COMPILE = $(CXX) $(CXXFLAGS)
+DEPENDENCIES +=  $(wildcard *.hpp)
 
 .depcheck-impl:
 	@echo "DEPFILES=\$$(wildcard \$$(addsuffix .d, \$${OBJECTFILES} ))" >.dep.inc; \
@@ -140,7 +141,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/replay_protection/sender_state.o \
 	${OBJECTDIR}/replay_protection/replay_protection_service.o \
 	${OBJECTDIR}/vrf_wrapper.o \
-	${OBJECTDIR}/db_storage.o
+	${OBJECTDIR}/db_storage.o \
+	${OBJECTDIR}/vdf_sortition.o
 
 
 
@@ -169,6 +171,11 @@ ${OBJECTDIR}/vrf_wrapper.o: vrf_wrapper.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vrf_wrapper.o vrf_wrapper.cpp $(CPPFLAGS)
+
+${OBJECTDIR}/vdf_sortition.o: vdf_sortition.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	${COMPILE} ${CXXFLAGS} "$@.d" -o ${OBJECTDIR}/vdf_sortition.o vdf_sortition.cpp $(CPPFLAGS)
 
 ${OBJECTDIR}/top.o: top.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -456,7 +463,7 @@ perf_test: $(TESTBUILDDIR)/performance_test
 run_perf_test: perf_test
 	./$(TESTBUILDDIR)/performance_test
 
-run_test: test
+run_test: test 
 	./scripts/run_commands_long_circuit.sh $(TESTS)
 
 pdemo: ${OBJECTDIR}/prometheus_demo.o $(TESTBUILDDIR)/prometheus_demo main

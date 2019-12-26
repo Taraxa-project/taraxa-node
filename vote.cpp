@@ -1,8 +1,8 @@
-#include "vote.h"
+#include "vote.hpp"
 #include "full_node.hpp"
 #include "libdevcore/SHA3.h"
 #include "pbft_manager.hpp"
-#include "sortition.h"
+#include "sortition.hpp"
 
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
@@ -10,37 +10,37 @@
 #include <boost/property_tree/ptree.hpp>
 
 namespace taraxa {
-VrfSortition::VrfSortition(bytes const& b) {
+VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
   if (!rlp.isList())
-    throw std::invalid_argument("VrfSortition RLP must be a list");
+    throw std::invalid_argument("VrfPbftSortition RLP must be a list");
   pk = rlp[0].toHash<vrf_pk_t>();
-  blk = rlp[1].toHash<blk_hash_t>();
-  type = PbftVoteTypes(rlp[2].toInt<uint>());
-  round = rlp[3].toInt<uint64_t>();
-  step = rlp[4].toInt<size_t>();
+  pbft_msg.blk = rlp[1].toHash<blk_hash_t>();
+  pbft_msg.type = PbftVoteTypes(rlp[2].toInt<uint>());
+  pbft_msg.round = rlp[3].toInt<uint64_t>();
+  pbft_msg.step = rlp[4].toInt<size_t>();
   proof = rlp[5].toHash<vrf_proof_t>();
-  output = rlp[6].toHash<vrf_output_t>();
+  verify();
 }
-bytes VrfSortition::getRlpBytes() const {
+bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
-  s.appendList(7);
+  s.appendList(6);
   s << pk;
-  s << blk;
-  s << type;
-  s << round;
-  s << step;
+  s << pbft_msg.blk;
+  s << pbft_msg.type;
+  s << pbft_msg.round;
+  s << pbft_msg.step;
   s << proof;
-  s << output;
   return s.out();
 }
+
 /*
  * Sortition return true:
  * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
  * i.e., CREDENTIAL * VALID PLAYERS <= SORTITION THRESHOLD * SIGNATURE_HASH_MAX
  * otherwise return false
  */
-bool VrfSortition::canSpeak(size_t threshold, size_t valid_players) const {
+bool VrfPbftSortition::canSpeak(size_t threshold, size_t valid_players) const {
   uint1024_t left = (uint1024_t)((uint512_t)output) * valid_players;
   uint1024_t right = (uint1024_t)max512bits * threshold;
   return left <= right;
@@ -51,12 +51,12 @@ Vote::Vote(bytes const& b) {
   if (!rlp.isList())
     throw std::invalid_argument("transaction RLP must be a list");
   blockhash_ = rlp[0].toHash<blk_hash_t>();
-  vrf_sortition_ = VrfSortition(rlp[1].toBytes());
+  vrf_sortition_ = VrfPbftSortition(rlp[1].toBytes());
   vote_signatue_ = rlp[2].toHash<sig_t>();
   vote_hash_ = sha3(true);
 }
 
-Vote::Vote(secret_t const& node_sk, VrfSortition const& vrf_sortition,
+Vote::Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition,
            blk_hash_t const& blockhash)
     : vrf_sortition_(vrf_sortition), blockhash_(blockhash) {
   vote_signatue_ = dev::sign(node_sk, sha3(false));
@@ -93,9 +93,14 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
                                  size_t valid_sortition_players,
                                  size_t sortition_threshold) const {
-  if (last_pbft_block_hash != vote.getVrfSorition().blk) {
+  if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
     LOG(log_tra_) << "Last pbft block hash does not match "
                   << last_pbft_block_hash;
+    return false;
+  }
+
+  if (!vote.getVrfSortition().verify()) {
+    LOG(log_war_) << "Invalid vrf proof, vote hash " << vote.getHash();
     return false;
   }
   if (!vote.verifyVote()) {
