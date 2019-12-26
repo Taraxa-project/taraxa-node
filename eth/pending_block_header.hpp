@@ -13,6 +13,7 @@ using dev::bytes;
 using dev::h256;
 using dev::u256;
 using dev::eth::BlockHeader;
+using dev::eth::LogBloom;
 using dev::eth::Nonce;
 
 struct PendingBlockHeader : private BlockHeader {
@@ -30,7 +31,8 @@ struct PendingBlockHeader : private BlockHeader {
   using BlockHeader::timestamp;
 
  private:
-  void complete(h256 const& trx_root, h256 const& receipts_root,
+  void complete(u256 const& gas_used, LogBloom const& log_bloom,
+                h256 const& trx_root, h256 const& receipts_root,
                 h256 const& state_root);
 };
 

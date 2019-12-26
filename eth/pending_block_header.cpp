@@ -24,9 +24,13 @@ PendingBlockHeader::PendingBlockHeader(int64_t number, h256 const& parent_hash,
   Ethash::setNonce(*this, nonce);
 }
 
-void PendingBlockHeader::complete(h256 const& trx_root,
-                                    h256 const& receipts_root,
-                                    h256 const& state_root) {
+void PendingBlockHeader::complete(u256 const& gas_used,
+                                  LogBloom const& log_bloom,
+                                  h256 const& trx_root,
+                                  h256 const& receipts_root,
+                                  h256 const& state_root) {
+  setGasUsed(gas_used);
+  setLogBloom(log_bloom);
   setRoots(trx_root, receipts_root, dev::EmptyListSHA3, state_root);
 }
 

@@ -21,6 +21,7 @@ using dev::RLPStream;
 using dev::eth::Ethash;
 using dev::eth::FixedAccountHolder;
 using dev::eth::IncludeSeal;
+using dev::eth::LogBloom;
 using dev::eth::Permanence;
 using dev::eth::VerifiedBlockRef;
 using std::move;
@@ -118,12 +119,17 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
   }
   BytesMap receipts_trie;
   RLPStream receipts_rlp(receipts.size());
+  LogBloom log_bloom;
   for (size_t i(0); i < receipts.size(); ++i) {
-    auto const& receipt_rlp = receipts[i].rlp();
+    auto const& receipt = receipts[i];
+    auto const& receipt_rlp = receipt.rlp();
     receipts_trie[rlp(i)] = receipt_rlp;
     receipts_rlp.appendRaw(receipt_rlp);
+    log_bloom |= receipt.bloom();
   }
-  header.complete(hash256(trxs_trie), hash256(receipts_trie), state_root);
+  u256 gas_used = receipts.empty() ? 0 : receipts.back().cumulativeGasUsed();
+  header.complete(gas_used, log_bloom, hash256(trxs_trie),
+                  hash256(receipts_trie), state_root);
   RLPStream block_rlp(3);
   header.streamRLP(block_rlp);
   block_rlp.appendRaw(trxs_rlp.out());
@@ -147,7 +153,8 @@ ExecutionResult EthService::call(Address const& _from, u256 _value,
   // TODO use taraxa-evm
   auto block = blockByNumber(_blockNumber);
   auto nonce = block.transactionsFrom(_from);
-  auto gas = _gas == Invalid256 ? block.gasLimitRemaining() : _gas;
+  auto gas =
+      _gas == Invalid256 ? sealEngine()->chainParams().maxGasLimit : _gas;
   auto gasPrice = _gasPrice == Invalid256 ? 0 : _gasPrice;
   Transaction t(_value, gasPrice, gas, _dest, _data, nonce);
   t.forceSender(_from);
