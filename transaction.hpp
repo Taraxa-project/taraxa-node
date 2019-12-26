@@ -322,10 +322,7 @@ class TransactionManager
 
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> full_node) {
-    full_node_ = full_node;
-    trx_qu_.setFullNode(full_node);
-  }
+  void setFullNode(std::shared_ptr<FullNode> full_node);
   bool insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
                  bool critical);
 

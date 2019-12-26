@@ -236,12 +236,16 @@ BlockManager::BlockManager(size_t capacity, unsigned num_verifiers)
 
 BlockManager::~BlockManager() { stop(); }
 
+void BlockManager::setFullNode(std::shared_ptr<FullNode> node) {
+  node_ = node;
+  trx_mgr_ = node->getTransactionManager();
+}
+
 void BlockManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
   LOG(log_nf_) << "Create verifier threads = " << num_verifiers_ << std::endl;
-  trx_mgr_ = node_.lock()->getTransactionManager();
   verifiers_.clear();
   for (auto i = 0; i < num_verifiers_; ++i) {
     verifiers_.emplace_back([this, i]() { this->verifyBlock(); });

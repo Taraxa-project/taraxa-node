@@ -1,25 +1,12 @@
 #include "transaction_order_manager.hpp"
+
 #include "full_node.hpp"
 
 namespace taraxa {
 
-TransactionOrderManager::~TransactionOrderManager() { stop(); }
-
-void TransactionOrderManager::start() {
-  if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
-  }
-  if (!node_.lock()) {
-    LOG(log_er_) << "FullNode is not set ..." << std::endl;
-    return;
-  }
-  db_ = node_.lock()->getDB();
-}
-
-void TransactionOrderManager::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
-  }
+void TransactionOrderManager::setFullNode(std::shared_ptr<FullNode> node) {
+  db_ = node->getDB();
+  node_ = node;
 }
 
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(

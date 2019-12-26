@@ -152,7 +152,6 @@ void FullNode::start(bool boot_node) {
   network_->start(boot_node);
   blk_mgr_->start();
   trx_mgr_->start();
-  trx_order_mgr_->start();
   blk_proposer_->start();
   pbft_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
@@ -200,16 +199,10 @@ void FullNode::stop() {
   blk_proposer_->stop();
   blk_mgr_->stop();
   trx_mgr_->stop();
-  trx_order_mgr_->stop();
   pbft_mgr_->stop();
-  pbft_chain_->releaseDB();
   for (auto &t : block_workers_) {
     t.join();
   }
-  executor_ = nullptr;
-  eth_service_ = nullptr;
-  replay_protection_service_ = nullptr;
-  assert(db_replay_protection_service_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";
 }
 

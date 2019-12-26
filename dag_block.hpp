@@ -1,10 +1,13 @@
 #ifndef TARAXA_NODE_DAG_BLOCKS_HPP
 #define TARAXA_NODE_DAG_BLOCKS_HPP
 
+#include <libdevcore/CommonJS.h>
+#include <libdevcore/Log.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -13,8 +16,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <libdevcore/CommonJS.h>
-#include <libdevcore/Log.h>
+
 #include "types.hpp"
 #include "util.hpp"
 
@@ -130,7 +132,7 @@ class BlockManager {
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
+  void setFullNode(std::shared_ptr<FullNode> node);
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }

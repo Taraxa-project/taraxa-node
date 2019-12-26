@@ -1,8 +1,10 @@
 #include "transaction.hpp"
+
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <string>
 #include <utility>
+
 #include "full_node.hpp"
 #include "util/eth.hpp"
 
@@ -458,28 +460,25 @@ addr_t TransactionQueue::getFullNodeAddress() const {
   }
 }
 
+void TransactionManager::setFullNode(std::shared_ptr<FullNode> full_node) {
+  full_node_ = full_node;
+  db_ = full_node->getDB();
+  trx_qu_.setFullNode(full_node);
+}
+
 void TransactionManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  if (!full_node_.lock()) {
-    LOG(log_wr_) << "FullNode is not set ...";
-    assert(db_ != nullptr);
-  } else {
-    assert(db_ == nullptr);
-    auto full_node = full_node_.lock();
-    assert(full_node);
-    db_ = full_node->getDB();
-    auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
-    trx_count_.store(trx_count);
-    DagBlock blk;
-    string pivot;
-    std::vector<std::string> tips;
-    full_node->getLatestPivotAndTips(pivot, tips);
-    DagFrontier frontier;
-    frontier.pivot = blk_hash_t(pivot);
-    updateNonce(blk, frontier);
-  }
+  auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
+  trx_count_.store(trx_count);
+  DagBlock blk;
+  string pivot;
+  std::vector<std::string> tips;
+  full_node_.lock()->getLatestPivotAndTips(pivot, tips);
+  DagFrontier frontier;
+  frontier.pivot = blk_hash_t(pivot);
+  updateNonce(blk, frontier);
   trx_qu_.start();
 }
 

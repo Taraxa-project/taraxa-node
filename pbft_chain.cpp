@@ -508,8 +508,6 @@ void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
       blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
 }
 
-void PbftChain::releaseDB() { db_ = nullptr; }
-
 void PbftChain::cleanupUnverifiedPbftBlocks(
     taraxa::PbftBlock const& pbft_block) {
   blk_hash_t prev_block_hash;

@@ -1,5 +1,7 @@
 #include "block_proposer.hpp"
+
 #include <cmath>
+
 #include "dag.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
@@ -111,7 +113,6 @@ void BlockProposer::start() {
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
-  propose_model_->setProposer(getShared(), full_node_.lock()->getSecretKey());
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       propose_model_->propose();
@@ -127,6 +128,7 @@ void BlockProposer::stop() {
 }
 
 void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
+  propose_model_->setProposer(getShared(), full_node->getSecretKey());
   full_node_ = full_node;
   auto addr = std::stoull(
       full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);

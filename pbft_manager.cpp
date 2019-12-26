@@ -41,6 +41,7 @@ void PbftManager::setFullNode(
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
   replay_protection_service_ = replay_protection_service;
+  db_ = full_node->getDB();
 }
 
 void PbftManager::start() {
@@ -58,7 +59,6 @@ void PbftManager::start() {
   LOG(log_deb_) << "PBFT start at GHOST size " << ghost.size()
                 << ", the last of DAG blocks is " << ghost.back();
 
-  db_ = full_node->getDB();
   if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
