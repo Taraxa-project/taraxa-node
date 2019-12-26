@@ -698,7 +698,7 @@ TEST_F(NetworkTest, node_full_sync) {
   node1->setDebug(true);
   node1->start(true);  // boot node
 
-  std::vector<FullNode::container> nodes;
+  std::vector<FullNode::Handle> nodes;
   for (int i = 0; i < numberOfNodes; i++) {
     FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa2.json"));
     config.db_path += std::to_string(i + 1);

@@ -17,7 +17,7 @@
 
 class Top {
   boost::asio::io_context rpc_io_context_;
-  taraxa::FullNode::container node_;
+  taraxa::FullNode::Handle node_;
   std::thread rpc_thread_;
 
  public:
@@ -25,7 +25,7 @@ class Top {
   ~Top();
 
   // may return null which means there was an error in constructor
-  decltype(node_)::shared_t getNode() { return node_; }
+  taraxa::FullNode::shared_ptr_t getNode() { return node_; }
   void join();
 };
 

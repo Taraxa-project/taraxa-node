@@ -24,7 +24,6 @@
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
-#include "util/process_container.hpp"
 #include "vote.h"
 #include "vrf_wrapper.hpp"
 
@@ -52,22 +51,46 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
   using EthService = ::taraxa::eth::eth_service::EthService;
 
-  explicit FullNode(std::string const &conf_full_node_file,
-                    bool destroy_db = false, bool rebuild_network = false);
-  explicit FullNode(FullNodeConfig const &conf_full_node,
-                    bool destroy_db = false, bool rebuild_network = false);
+  FullNode(FullNodeConfig const &conf) : conf_(conf) {}
+  FullNode(std::string const &conf) : FullNode(FullNodeConfig(conf)) {}
+
+  void init(bool destroy_db, bool rebuild_network);
   void stop();
 
  public:
-  using container = util::process_container::process_container<FullNode>;
-  friend container;
+  using shared_ptr_t = std::shared_ptr<FullNode>;
 
-  template <typename... Arg>
-  static container make(Arg &&... args) {
-    return new FullNode(std::forward<Arg>(args)...);
+  struct Handle : shared_ptr_t {
+    Handle(FullNode *ptr) : shared_ptr_t(ptr) {}
+    // default-constructible
+    Handle() = default;
+    // not copyable
+    Handle(Handle const &) = delete;
+    Handle &operator=(Handle const &) = delete;
+    // movable
+    Handle(Handle &&) = default;
+    Handle &operator=(Handle &&) = default;
+
+    ~Handle() {
+      auto node = this->get();
+      if (!node) {
+        return;
+      }
+      node->stop();
+      this->reset();
+      assert(this->use_count() == 0);
+    }
+  };
+
+  template <typename Config>
+  static Handle make(Config const &config,
+                     bool destroy_db = false,  //
+                     bool rebuild_network = false) {
+    Handle ret(new FullNode(config));
+    ret->init(destroy_db, rebuild_network);
+    return ret;
   }
 
-  virtual ~FullNode() { stop(); };
   void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
@@ -83,9 +106,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
-  void setMasterBootNodeAddress(addr_t const &addr) {
-    master_boot_node_address_ = addr;
-  }
 
   // network stuff
   size_t getPeerCount() const;
