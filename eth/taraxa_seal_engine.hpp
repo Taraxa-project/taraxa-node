@@ -10,8 +10,10 @@ using dev::StringHashMap;
 using dev::u256;
 using dev::eth::BlockHeader;
 using dev::eth::ChainOperationParams;
+using dev::eth::ImportRequirements;
 using dev::eth::NoProof;
 using dev::eth::Strictness;
+using dev::eth::TransactionBase;
 using std::string;
 
 struct TaraxaSealEngine : NoProof {
@@ -19,6 +21,9 @@ struct TaraxaSealEngine : NoProof {
   static void init();
   void verify(Strictness _s, BlockHeader const& _bi, BlockHeader const& _parent,
               bytesConstRef _block) const override;
+  void verifyTransaction(ImportRequirements::value _ir,
+                         const TransactionBase& _t, const BlockHeader& _header,
+                         const u256& _startGasUsed) const override;
 };
 
 }  // namespace taraxa::eth::taraxa_seal_engine

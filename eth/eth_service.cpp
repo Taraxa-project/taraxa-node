@@ -91,7 +91,7 @@ pair<PendingBlockHeader, BlockHeader> EthService::startBlock(
           current_header.hash(),
           author,
           timestamp,
-          bc().sealEngine()->chainParams().maxGasLimit,
+          current_header.gasLimit(),
           empty_bytes,
           number,
           h256(0),
@@ -131,10 +131,10 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
   block_rlp.appendRaw(uncles_rlp_list);
   auto block_bytes = block_rlp.out();
   auto receipts_bytes = receipts_rlp.out();
-  // TODO insert pre-verified
   // TODO set difficulty to 0 always. Currently each block has difficulty 1
   // because dev::eth::BlockChain requires that total chain difficulty is
   // increasing. This check should be relaxed in the fork.
+  // TODO disable validations (to get a speedup) once it's all well-tested
   chain.insertWithoutParent(block_bytes, &receipts_bytes,
                             number * (number + 1) / 2);
   return header;
@@ -160,7 +160,8 @@ ExecutionResult EthService::call(Address const& _from, u256 _value,
 
 Transactions EthService::pending() const {
   auto trxs = node_.lock()->getVerifiedTrxSnapShot();
-  Transactions ret(trxs.size());
+  Transactions ret;
+  ret.reserve(trxs.size());
   for (auto const& [_, trx] : trxs) {
     ret.push_back(util::trx_taraxa_2_eth(trx));
   }
@@ -172,7 +173,7 @@ BlockChain& EthService::bc() { return bc_; }
 BlockChain const& EthService::bc() const { return bc_; }
 
 Block EthService::block(h256 const& _h) const {
-  BlockHeader header(bc_.block(_h));
+  auto header(getBlockHeader(_h));
   return Block(bc_, acc_state_db_, header.stateRoot(), header.author());
 }
 

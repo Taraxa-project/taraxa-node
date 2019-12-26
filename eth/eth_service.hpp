@@ -49,6 +49,7 @@ using dev::eth::Nonce;
 using dev::eth::PendingBlock;
 using dev::eth::ProgressCallback;
 using dev::eth::Reaping;
+using dev::eth::SealEngineFace;
 using dev::eth::State;
 using dev::eth::SyncStatus;
 using dev::eth::Transaction;
@@ -89,7 +90,7 @@ class EthService : private virtual ClientBase {
              ProgressCallback const& progress_cb = ProgressCallback());
 
   using ClientBase::isKnownTransaction;
-  using ClientBase::sealEngine;
+  SealEngineFace* sealEngine() const override { return bc().sealEngine(); }
 
   auto getAccountsStateDBRaw() { return acc_state_db_.getRawDB(); }
   State const getAccountsState(BlockNumber block_number = LatestBlock) const;
@@ -105,10 +106,10 @@ class EthService : private virtual ClientBase {
     return countAt(args...);
   }
 
- private:
   BlockHeader getBlockHeader(h256 const& hash) const;
   BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) const;
 
+ private:
   h256 submitTransaction(TransactionSkeleton const& _t,
                          Secret const& _secret) override;
   h256 importTransaction(Transaction const& _t) override;

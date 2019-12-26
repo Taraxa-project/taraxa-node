@@ -12,6 +12,7 @@
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
+#include "eth/util.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.h"
@@ -268,9 +269,11 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
 }
 
 bool FullNode::insertTransaction(Transaction const &trx) {
-  if (trx.getGas() > std::numeric_limits<uint64_t>::max()) {
-    throw std::runtime_error("Gas limit is too large: " + trx.getGas().str());
-  }
+  eth_service_->sealEngine()->verifyTransaction(
+      dev::eth::ImportRequirements::Everything,
+      eth::util::trx_taraxa_2_eth(trx),  //
+      eth_service_->getBlockHeader(),    //
+      0);
   auto rlp = trx.rlp(true);
   if (conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({rlp});
