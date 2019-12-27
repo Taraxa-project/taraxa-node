@@ -33,6 +33,7 @@ using err = std::runtime_error;
 EthService::EthService(shared_ptr<FullNode> const& node,
                        ChainParams const& chain_params,
                        fs::path const& db_base_path,  //
+                       milliseconds gc_period,        //
                        WithExisting with_existing,
                        ProgressCallback const& progress_cb)
     : node_(node),
@@ -48,6 +49,19 @@ EthService::EthService(shared_ptr<FullNode> const& node,
   assert(chain_params.maxGasLimit <= std::numeric_limits<uint64_t>::max());
   assert(chain_params.gasLimit <= chain_params.maxGasLimit);
   bc_.genesisBlock(acc_state_db_);
+  gc_thread_ = thread([this, gc_period] {
+    while (!destructor_called_) {
+      std::this_thread::sleep_for(gc_period);
+      bc_.garbageCollect(true);
+    }
+  });
+}
+
+EthService::~EthService() {
+  destructor_called_ = true;
+  if (gc_thread_.joinable()) {
+    gc_thread_.join();
+  }
 }
 
 Address EthService::author() const { return node_.lock()->getAddress(); }

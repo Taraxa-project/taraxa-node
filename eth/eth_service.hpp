@@ -5,8 +5,11 @@
 #include <libethereum/ClientBase.h>
 #include <libweb3jsonrpc/AccountHolder.h>
 
+#include <atomic>
+#include <chrono>
 #include <mutex>
 #include <stdexcept>
+#include <thread>
 
 #include "pending_block_header.hpp"
 
@@ -60,12 +63,15 @@ using dev::eth::Transactions;
 using dev::eth::TransactionSkeleton;
 using dev::eth::UncleHashes;
 using pending_block_header::PendingBlockHeader;
+using std::atomic;
 using std::map;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
+using std::thread;
 using std::tuple;
 using std::weak_ptr;
+using std::chrono::milliseconds;
 
 namespace fs = boost::filesystem;
 
@@ -79,6 +85,8 @@ class EthService : private virtual ClientBase {
   BlockChain bc_;
   OverlayDB acc_state_db_;
   mutex append_block_mu_;
+  thread gc_thread_;
+  atomic<bool> destructor_called_ = false;
 
  public:
   shared_ptr<AccountHolder> const current_node_account_holder;
@@ -86,10 +94,14 @@ class EthService : private virtual ClientBase {
   EthService(shared_ptr<FullNode> const& node,  //
              ChainParams const& chain_params,
              fs::path const& db_base_path,  //
+             milliseconds gc_period = milliseconds(10000),
              WithExisting with_existing = WithExisting::Trust,
              ProgressCallback const& progress_cb = ProgressCallback());
 
+  ~EthService();
+
   using ClientBase::isKnownTransaction;
+
   SealEngineFace* sealEngine() const override { return bc().sealEngine(); }
 
   auto getAccountsStateDBRaw() { return acc_state_db_.getRawDB(); }
