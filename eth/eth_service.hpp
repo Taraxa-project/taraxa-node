@@ -78,7 +78,7 @@ namespace fs = boost::filesystem;
 static inline auto const err_not_applicable =
     std::runtime_error("Method not applicable");
 
-class EthService : private virtual ClientBase {
+class EthService : virtual ClientBase {
   friend class ::taraxa::eth::eth::Eth;
 
   weak_ptr<FullNode> node_;

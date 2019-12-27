@@ -75,6 +75,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
   } else {
     try {
       // TODO transactional
+      // TODO op blockhash
       execution_result = trx_engine_.transitionStateAndCommit({
           current_header.stateRoot(),
           trx_engine::Block{
