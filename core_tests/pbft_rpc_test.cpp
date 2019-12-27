@@ -278,7 +278,6 @@ int main(int argc, char** argv) {
   logOptions.includeChannels.push_back("TARCAP");
   logOptions.includeChannels.push_back("VOTE_MGR");
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
