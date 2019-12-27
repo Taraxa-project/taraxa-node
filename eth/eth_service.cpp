@@ -180,8 +180,7 @@ BlockChain& EthService::bc() { return bc_; }
 BlockChain const& EthService::bc() const { return bc_; }
 
 Block EthService::block(h256 const& _h) const {
-  auto header(getBlockHeader(_h));
-  return Block(bc_, acc_state_db_, header.stateRoot(), header.author());
+  return Block(bc_, acc_state_db_, getBlockHeader(_h));
 }
 
 Block EthService::preSeal() const { return block(bc().currentHash()); }
