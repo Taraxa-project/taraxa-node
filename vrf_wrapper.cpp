@@ -46,6 +46,17 @@ dev::bytes getRlpBytes(std::string const &str) {
   return rlps.out();
 }
 
+bool VrfSortitionBase::verify(VrfMsgFace const &msg) {
+  if (!isValidVrfPublicKey(pk)) {
+    return false;
+  }
+  const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
+  auto res = vrf_wrapper::getVrfOutput(pk, proof, msg_bytes);
+  if (res != std::nullopt) {
+    output = res.value();
+    return true;
+  }
+  return false;
+}
+
 }  // namespace taraxa::vrf_wrapper
-// vrf_output_t getOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes
-// const &msg);

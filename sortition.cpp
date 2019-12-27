@@ -6,7 +6,7 @@
  * @Last Modified time: 2019-08-15
  */
 
-#include "sortition.h"
+#include "sortition.hpp"
 
 #include <libdevcore/SHA3.h>
 

@@ -2,7 +2,7 @@
 #include "dag.hpp"
 #include "network.hpp"
 #include "pbft_chain.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 using namespace taraxa;
 
@@ -891,6 +891,8 @@ void TaraxaCapability::onNewTransactions(
 
 void TaraxaCapability::onNewBlockReceived(
     DagBlock block, std::vector<Transaction> transactions) {
+  LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx"
+                       << transactions.size() << std::endl;
   if (auto full_node = full_node_.lock()) {
     if (full_node->isBlockKnown(block.getHash())) {
       LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString()
@@ -999,6 +1001,8 @@ void TaraxaCapability::sendBlocks(
         totalTransactionsCount++;
       }
       blockTransactions[block->getHash()] = transactions;
+      LOG(log_nf_dag_sync_) << "Send DagBlock " << block->getHash()
+                            << "# Trx: " << transactions.size() << std::endl;
     }
   }
   host_.capabilityHost()->prep(_id, name(), s, BlocksPacket,
@@ -1016,7 +1020,7 @@ void TaraxaCapability::sendBlocks(
 
 void TaraxaCapability::sendTransactions(
     NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
-  LOG(log_dg_trx_prp_) << "sendTransactions" << transactions.size() << " to "
+  LOG(log_nf_trx_prp_) << "sendTransactions" << transactions.size() << " to "
                        << _id;
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, TransactionPacket,
@@ -1032,10 +1036,6 @@ void TaraxaCapability::sendTransactions(
 
 void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
                                  bool newBlock) {
-  if (newBlock)
-    LOG(log_dg_dag_prp_) << "sendBlock " << block.getHash().toString();
-  else
-    LOG(log_dg_dag_sync_) << "sendBlock " << block.getHash().toString();
   RLPStream s;
   vec_trx_t transactionsToSend;
   if (newBlock) {
@@ -1070,6 +1070,14 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
   }
   s.appendRaw(trx_bytes, transactionsToSend.size());
   host_.capabilityHost()->sealAndSend(_id, s);
+  if (newBlock)
+    LOG(log_dg_dag_prp_) << "Send DagBlock " << block.getHash()
+                         << " #Trx: " << transactionsToSend.size() << std::endl;
+  else
+    LOG(log_dg_dag_sync_) << "Send DagBlock " << block.getHash()
+                          << " newBlock? " << newBlock
+                          << " #Trx: " << transactionsToSend.size()
+                          << std::endl;
 }
 
 void TaraxaCapability::sendBlockHash(NodeID const &_id,

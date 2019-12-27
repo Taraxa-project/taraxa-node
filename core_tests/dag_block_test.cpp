@@ -11,12 +11,14 @@
 #include "full_node.hpp"
 #include "static_init.hpp"
 #include "types.hpp"
+#include "vdf_sortition.hpp"
 
 namespace taraxa {
 const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
+using namespace vdf_sortition;
 
 struct DagBlockTest : core_tests::util::DBUsingTest<> {};
 
@@ -38,6 +40,20 @@ TEST_F(DagBlockTest, clear) {
   test.clear();
   ASSERT_EQ(test.toString(),
             "0000000000000000000000000000000000000000000000000000000000000000");
+}
+
+TEST_F(DagBlockTest, serialize_deserialize) {
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  VdfMsg vdf_msg(blk_hash_t(100), 3);
+  VdfSortition vdf(sk, vdf_msg);
+  blk_hash_t vdf_input(200);
+  vdf.computeVdfSolution(vdf_input.toString());
+  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
+  auto b = blk1.rlp(true);
+  DagBlock blk2(b);
+  EXPECT_EQ(blk1, blk2);
 }
 
 TEST_F(DagBlockTest, send_receive_one) {
@@ -114,49 +130,6 @@ TEST_F(DagBlockTest, send_receive_three) {
   ASSERT_EQ(outgoings, receivings);
 }
 
-TEST_F(DagBlockTest, string_format) {
-  using std::string;
-  DagBlock blk(
-      blk_hash_t(
-          "1111111111111111111111111111111111111111111111111111111111111111"),
-      level_t(0),
-      {blk_hash_t(
-           "2222222222222222222222222222222222222222222222222222222222222222"),
-       blk_hash_t(
-           "3333333333333333333333333333333333333333333333333333333333333333"),
-       blk_hash_t(
-           "4444444444444444444444444444444444444444444444444444444444444444")},
-      {trx_hash_t(
-           "5555555555555555555555555555555555555555555555555555555555555555"),
-       trx_hash_t(
-           "6666666666666666666666666666666666666666666666666666666666666666")},
-      sig_t("777777777777777777777777777777777777777777777777777777777777777777"
-            "777777"
-            "777777777777777777777777777777777777777777777777777777777"),
-      blk_hash_t(
-          "8888888888888888888888888888888888888888888888888888888888888888"),
-      addr_t("0000000000000000000000000000000000055555"));
-  std::string json = blk.getJsonStr();
-  std::stringstream ss1, ss2;
-  ss1 << blk;
-  std::vector<uint8_t> bytes;
-  // Need to put a scope of vectorstream, other bytes won't get result.
-  {
-    vectorstream strm1(bytes);
-    blk.serialize(strm1);
-  }
-  // check stream size
-  ASSERT_EQ(bytes.size(), 333);
-  bufferstream strm2(bytes.data(), bytes.size());
-  DagBlock blk2;
-  blk2.deserialize(strm2);
-  ss2 << blk2;
-  // Compare block content
-  ASSERT_EQ(ss1.str(), ss2.str());
-  // Compare json output
-  ASSERT_EQ(blk.getJsonStr(), blk2.getJsonStr());
-}
-
 TEST_F(DagBlockTest, sign_verify) {
   DagBlock blk1(blk_hash_t(111),   // pivot
                 0,                 // level
@@ -172,7 +145,7 @@ TEST_F(DagBlockTest, sign_verify) {
                   trx_hash_t(666)});
   blk1.sign(g_secret);
   blk1c.sign(g_secret);
-  EXPECT_EQ(blk1.getSig(), blk1c.getSig());
+  EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1 << std::endl << blk1c;
   EXPECT_EQ(blk1.sender(), blk1.sender());
   EXPECT_EQ(blk1.getHash(), blk1.getHash());
 

@@ -5,7 +5,7 @@
 #include "pbft_manager.hpp"
 #include "transaction.hpp"
 #include "util.hpp"
-#include "vote.h"
+#include "vote.hpp"
 
 namespace taraxa::net {
 

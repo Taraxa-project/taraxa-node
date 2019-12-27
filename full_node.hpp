@@ -24,7 +24,7 @@
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
-#include "vote.h"
+#include "vote.hpp"
 #include "vrf_wrapper.hpp"
 
 class Top;

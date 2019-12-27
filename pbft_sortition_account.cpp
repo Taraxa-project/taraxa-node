@@ -2,7 +2,7 @@
 // Created by Qi Gao on 2019-10-24.
 //
 
-#include "pbft_sortition_account.h"
+#include "pbft_sortition_account.hpp"
 
 namespace taraxa {
 using boost::property_tree::ptree;

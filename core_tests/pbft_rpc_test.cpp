@@ -11,7 +11,11 @@
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
 #include "top.hpp"
-#include "vote.h"
+
+#include <gtest/gtest.h>
+#include <boost/thread.hpp>
+#include "core_tests/util.hpp"
+#include "vote.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
@@ -113,7 +117,8 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
   PbftVoteTypes type(propose_vote_type);
   uint64_t round(999);
   size_t step(2);
-  VrfSortition vrf_sortition(g_vrf_sk, blk_hash_t(123), type, round, step);
+  VrfPbftMsg msg(blk_hash_t(123), type, round, step);
+  VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
   Vote vote1(g_sk, vrf_sortition, blk_hash);
   auto rlp = vote1.rlp();
   Vote vote2(rlp);

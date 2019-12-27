@@ -53,7 +53,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
     if (node->getNumProposedBlocks() == 1) {
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(node->getNumProposedBlocks(), 1);
 
@@ -64,7 +64,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
     if (pbft_chain->getPbftChainSize() == 3) {
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
 
@@ -77,7 +77,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
       checkpoint_passed = true;
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   if (checkpoint_passed == false) {
     ASSERT_EQ(node->getNumTransactionExecuted(), 1);
@@ -126,7 +126,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       checkpoint_passed = true;
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   if (checkpoint_passed == false) {
     std::cout << "Timeout reached after " << timeout_val << " seconds..."
@@ -161,7 +161,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       checkpoint_passed = true;
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   if (checkpoint_passed == false) {
     ASSERT_EQ(node1->getNumTransactionExecuted(), 1);
@@ -206,7 +206,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       checkpoint_passed = true;
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   if (checkpoint_passed == false) {
     ASSERT_EQ(node1->getNumTransactionExecuted(), 1);
@@ -223,7 +223,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
         pbft_chain3->getPbftChainSize() == pbft_chain_size) {
       break;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
+    taraxa::thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);

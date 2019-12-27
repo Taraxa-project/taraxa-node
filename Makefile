@@ -121,6 +121,7 @@ NODE_SRCS := \
 	eth/taraxa_seal_engine.cpp \
 	eth/pending_block_header.cpp \
 	db_storage.cpp \
+	vdf_sortition.cpp \
 	conf/chain_config.cpp \
 
 NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
