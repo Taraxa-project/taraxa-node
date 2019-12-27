@@ -1,13 +1,6 @@
 build/
-build-d/
-test_build/
-test_build-d/
 .vscode/
-google/obj
-obj/
-obj-d/
 .idea/*
 
-dockerfiles/scripts/env_variables\.sh
-
 *.debug_dag*
+cmake-*

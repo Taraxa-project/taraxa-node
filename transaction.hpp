@@ -15,7 +15,7 @@
 #include <vector>
 #include "dag_block.hpp"
 #include "db_storage.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "util.hpp"
 
 namespace taraxa {
@@ -71,6 +71,7 @@ using AccountNonceTable = StatusTable<addr_t, val_t>;
  * Need to sign first then sender() and hash() is available
  */
 
+// TODO inherit from aleth trx
 class Transaction {
  public:
   enum class Type : uint8_t { Null, Create, Call };
@@ -321,10 +322,7 @@ class TransactionManager
 
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> full_node) {
-    full_node_ = full_node;
-    trx_qu_.setFullNode(full_node);
-  }
+  void setFullNode(std::shared_ptr<FullNode> full_node);
   bool insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
                  bool critical);
 

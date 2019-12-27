@@ -3,7 +3,9 @@
 
 #include <rocksdb/db.h>
 #include <rocksdb/write_batch.h>
+
 #include <boost/filesystem.hpp>
+
 #include "dag_block.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
@@ -78,10 +80,12 @@ class DbStorage {
   void commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch);
 
   void saveDagBlock(DagBlock const& blk);
+  dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   std::string getBlocksByLevel(level_t level);
 
   void saveTransaction(Transaction const& trx);
+  dev::bytes getTransactionRaw(trx_hash_t const& hash);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransactionExt(
       trx_hash_t const& hash);

@@ -1,9 +1,15 @@
+#include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+#include <libdevcore/SHA3.h>
+
+#include <boost/thread.hpp>
+
+#include "core_tests/util.hpp"
 #include "full_node.hpp"
-#include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
-#include "libdevcore/SHA3.h"
 #include "network.hpp"
 #include "pbft_manager.hpp"
+#include "static_init.hpp"
 #include "top.hpp"
 
 #include <gtest/gtest.h>
@@ -14,12 +20,16 @@
 namespace taraxa {
 using namespace core_tests::util;
 using namespace vrf_wrapper;
-vrf_sk_t g_vrf_sk(
-    "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-    "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-secret_t g_sk(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
+auto g_vrf_sk = Lazy([] {
+  return vrf_sk_t(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+});
+auto g_sk = Lazy([] {
+  return secret_t(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
 struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
@@ -125,8 +135,10 @@ TEST_F(PbftRpcTest, transfer_vote) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+      cfg.chain.eth.genesisState[addr(cfg_other.node_secret)] =
+          dev::eth::Account(0, new_balance);
     }
+    cfg.chain.eth.calculateStateRoot(true);
   }
   auto node_count = 0;
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
@@ -190,8 +202,10 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.genesis_state.accounts[addr(cfg_other.node_secret)] = {new_balance};
+      cfg.chain.eth.genesisState[addr(cfg_other.node_secret)] =
+          dev::eth::Account(0, new_balance);
     }
+    cfg.chain.eth.calculateStateRoot(true);
   }
   auto node_count = 0;
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
@@ -257,7 +271,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   logOptions.includeChannels.push_back("NETWORK");

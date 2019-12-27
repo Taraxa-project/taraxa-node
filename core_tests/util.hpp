@@ -3,19 +3,31 @@
 
 #include <gtest/gtest.h>
 #include <libdevcrypto/Common.h>
+
 #include <boost/filesystem.hpp>
 #include <string>
 #include <type_traits>
+#include <vector>
+
 #include "config.hpp"
-#include "genesis_state.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa::core_tests::util {
-using namespace std;
-using namespace dev;
-using namespace boost::filesystem;
+using boost::filesystem::is_regular_file;
+using boost::filesystem::path;
+using boost::filesystem::recursive_directory_iterator;
+using boost::filesystem::remove_all;
+using dev::KeyPair;
+using dev::Secret;
+using std::cout;
+using std::enable_if_t;
+using std::endl;
+using std::is_base_of;
+using std::vector;
+using ::taraxa::util::lazy::Lazy;
 
 inline path const config_dir = "./core_tests/conf";
-inline auto const all_configs = []() {
+inline auto const all_configs = Lazy([] {
   vector<FullNodeConfig> ret;
   for (auto& entry : recursive_directory_iterator(config_dir)) {
     if (is_regular_file(entry)) {
@@ -23,11 +35,11 @@ inline auto const all_configs = []() {
     }
   }
   return move(ret);
-}();
+});
 
 inline void cleanAllTestDB() {
   cout << "Removing database directories" << endl;
-  for (auto& cfg : all_configs) {
+  for (auto& cfg : *all_configs) {
     remove_all(cfg.db_path);
   }
 }

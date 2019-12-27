@@ -1,49 +1,58 @@
 
 #include "full_node.hpp"
+
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+#include <libethcore/Precompiled.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "core_tests/util/transaction_client.hpp"
 #include "create_samples.hpp"
 #include "dag.hpp"
-#include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
-#include "libweb3jsonrpc/RpcServer.h"
-#include "libweb3jsonrpc/Taraxa.h"
+#include "net/RpcServer.h"
+#include "net/Taraxa.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "replay_protection/replay_protection_service_test.hpp"
 #include "sortition.hpp"
+#include "static_init.hpp"
 #include "string"
 #include "top.hpp"
 #include "util.hpp"
+#include "util/lazy.hpp"
 #include "util/wait.hpp"
-
-#include "replay_protection/replay_protection_service_test.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
 using samples::sendTrx;
+using ::taraxa::util::lazy::Lazy;
 using transaction_client::TransactionClient;
 using wait::wait;
 using wait::WaitOptions;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_key_pair = dev::KeyPair(g_secret);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
-auto g_mock_dag0 = samples::createMockDag0();
-auto g_test_account =
-    samples::createTestAccountTable("core_tests/account_table.txt");
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
+auto g_test_account = Lazy([] {
+  return samples::createTestAccountTable("core_tests/account_table.txt");
+});
 uint64_t g_init_bal = TARAXA_COINS_DECIMAL / 5;
 
 const char *input1[] = {"./build/main",
@@ -423,8 +432,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      for (auto &[addr, acc] : nodes[0]->getConfig().genesis_state.accounts) {
-        expected_balances[addr] = acc.balance;
+      for (auto &[addr, acc] : nodes[0]->getConfig().chain.eth.genesisState) {
+        expected_balances[addr] = acc.balance();
       }
       for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
         auto const &backend = nodes_[(i + 1) % cnt];  // shuffle a bit
@@ -735,9 +744,9 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->start(true);  // boot node
 
   g_mock_dag0 = samples::createMockDag0(
-      node->getConfig().genesis_state.block.getHash().toString());
+      node->getConfig().chain.dag_genesis_block.getHash().toString());
 
-  auto num_blks = g_mock_dag0.size();
+  auto num_blks = g_mock_dag0->size();
   for (int i = 1; i <= 9; i++) {
     node->insertBlock(g_mock_dag0[i]);
   }
@@ -788,7 +797,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   // -------- third period ----------
 
-  for (int i = 17; i < g_mock_dag0.size(); i++) {
+  for (int i = 17; i < g_mock_dag0->size(); i++) {
     node->insertBlock(g_mock_dag0[i]);
   }
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -897,14 +906,14 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices3 = 0;
   unsigned long vertices4 = 0;
 
-  auto num_blks = g_mock_dag0.size();
+  auto num_blks = g_mock_dag0->size();
   {
     FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
     auto node(taraxa::FullNode::make(conf,
                                      true));  // destroy DB
 
-    g_mock_dag0 =
-        samples::createMockDag0(conf.genesis_state.block.getHash().toString());
+    g_mock_dag0 = samples::createMockDag0(
+        conf.chain.dag_genesis_block.getHash().toString());
 
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -1129,8 +1138,10 @@ TEST_F(FullNodeTest, genesis_balance) {
   val_t bal1(1000);
   addr_t addr2(200);
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  cfg.genesis_state.accounts[addr1] = {bal1};
+  cfg.chain.eth.genesisState[addr1] = dev::eth::Account(0, bal1);
+  cfg.chain.eth.calculateStateRoot(true);
   auto node(taraxa::FullNode::make(cfg));
+  node->start(true);
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
@@ -1146,13 +1157,13 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf868808502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba07659e8c7207a4b2cd96488108fed54c463b1719b438add1159beed04f6660da8a028feb0a3b44bd34e0dd608f82aeeb2cd70d1305653b5dc33678be2ffcfcac997"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf868018502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba05256492dd60623ab5a403ed1b508f845f87f631d2c2e7acd4357cd83ef5b6540a042def7cd4f3c25ce67ee25911740dab47161e096f1dd024badecec58888a890b"
                                       ]}' 0.0.0.0:7777)";
 
@@ -1188,36 +1199,21 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 2);
 }
 
-// disabled for now, need to create two trx with nonce 0!
 TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
-  FullNodeConfig conf1("./core_tests/conf/conf_taraxa1.json");
-  conf1.node_secret =
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
-  auto node1(taraxa::FullNode::make(conf1));
-  FullNodeConfig conf2("./core_tests/conf/conf_taraxa2.json");
-  conf2.node_secret =
-      "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e";
-  auto node2(taraxa::FullNode::make(conf2));
-  node1->start(true);
-  node2->start(false);
-  auto rpc = std::make_shared<ModularServer<dev::rpc::TaraxaFace>>(
-      new dev::rpc::Taraxa(node1));
-  boost::asio::io_context context1;
-  auto rpc_server(std::make_shared<taraxa::RpcServer>(context1, conf1.rpc));
-  rpc->addConnector(rpc_server);
-  rpc_server->StartListening();
-  boost::thread t([&context1]() { context1.run(); });
-  thisThreadSleepForSeconds(1);
+  Top top1(6, input1);
+  Top top2(6, input2);
+  auto node1 = top1.getNode();
+  auto node2 = top2.getNode();
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf86b808502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca04cef8610e05b4476673c369204899da747a9b32b0ad3769814b620281c900408a0130499a83d0b56c184c6ac518f6bbe2f8f946b65bf42b08cfc9b4dfbe2ebfd04"
                                       ]}' 0.0.0.0:7777)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
-"taraxa_sendRawTransaction", "params":
+"eth_sendRawTransaction", "params":
 ["0xf86b018502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca06644c30a23286d0de8fa107f1bded3a7a214004042b2007b2a9a62c8b313cf79a06cbb522856838b107542d8213286928500b2822584d6c7c6fee3a2c348cade4a"
                                       ]}' 0.0.0.0:7777)";
 
@@ -1251,7 +1247,6 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
     thisThreadSleepForMilliSeconds(1000);
   }
   EXPECT_EQ(trx_executed1, 2);
-  rpc_server->StopListening();
 }
 
 TEST_F(FullNodeTest, save_network_to_file) {
@@ -1470,7 +1465,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   std::cout << "All transactions received ..." << std::endl;
 
   std::cout << "Compute ordered dag blocks ..." << std::endl;
-  auto block = node1->getConfig().genesis_state.block;
+  auto block = node1->getConfig().chain.dag_genesis_block;
   std::vector<std::string> ghost;
   node1->getGhostPath(block.getHash().toString(), ghost);
   ASSERT_GT(ghost.size(), 1);
@@ -1594,40 +1589,35 @@ TEST_F(FullNodeTest,
        DISABLED_transaction_failure_does_not_cause_block_failure) {
   // TODO move to another file
   using namespace std;
-  for (auto i(0); i < 2; ++i) {
-    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-    conf.use_basic_executor = i % 2 == 0;
-    auto node = FullNode::make(conf);
-    node->setDebug(true);
-    node->start(true);
-    thisThreadSleepForMilliSeconds(500);
-    vector<Transaction> transactions;
-    transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
-                              bytes(), node->getSecretKey());
-    // This must cause out of balance error
-    transactions.emplace_back(1, node->getMyBalance() + 100, 0,
-                              samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
-                              node->getSecretKey());
-    for (auto const &trx : transactions) {
-      node->insertTransaction(trx);
-    }
-    auto trx_executed = node->getNumTransactionExecuted();
-    for (auto i(0); i < SYNC_TIMEOUT; ++i) {
-      if (trx_executed == transactions.size()) break;
-      thisThreadSleepForMilliSeconds(100);
-      trx_executed = node->getNumTransactionExecuted();
-    }
-    EXPECT_EQ(trx_executed, transactions.size())
-        << "use basic executor: " << conf.use_basic_executor
-        << " ,Trx executed: " << trx_executed
-        << " ,Trx size: " << transactions.size();
+  auto node = FullNode::make("./core_tests/conf/conf_taraxa1.json");
+  node->setDebug(true);
+  node->start(true);
+  thisThreadSleepForMilliSeconds(500);
+  vector<Transaction> transactions;
+  transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
+                            bytes(), node->getSecretKey());
+  // This must cause out of balance error
+  transactions.emplace_back(1, node->getMyBalance() + 100, 0,
+                            samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
+                            node->getSecretKey());
+  for (auto const &trx : transactions) {
+    node->insertTransaction(trx);
   }
+  auto trx_executed = node->getNumTransactionExecuted();
+  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
+    if (trx_executed == transactions.size()) break;
+    thisThreadSleepForMilliSeconds(100);
+    trx_executed = node->getNumTransactionExecuted();
+  }
+  EXPECT_EQ(trx_executed, transactions.size())
+      << "Trx executed: " << trx_executed
+      << " ,Trx size: " << transactions.size();
 }
 
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");

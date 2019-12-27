@@ -1,17 +1,23 @@
 #include "pbft_chain.hpp"
+
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+
 #include "full_node.hpp"
-#include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "util.hpp"
+#include "util/constants.hpp"
+#include "static_init.hpp"
 
 namespace taraxa {
+using core_tests::util::constants::TEST_TX_GAS_LIMIT;
 
 struct PbftChainTest : core_tests::util::DBUsingTest<> {};
 
@@ -121,7 +127,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // setup timestamp for pbft block
   pbft_block1.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block1.setSignature(node->signMessage(pbft_block1.getJsonStr()));
+  pbft_block1.setSignature(node->signMessage(pbft_block1.getJsonStr(false)));
 
   // put into pbft chain and store into DB
   bool push_block = pbft_chain->pushPbftPivotBlock(pbft_block1);
@@ -145,7 +151,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // setup timestamp for pbft block
   pbft_block3.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block3.setSignature(node->signMessage(pbft_block3.getJsonStr()));
+  pbft_block3.setSignature(node->signMessage(pbft_block3.getJsonStr(false)));
 
   // put into pbft chain and store into DB
   push_block = pbft_chain->pushPbftScheduleBlock(pbft_block3);
@@ -225,7 +231,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   // setup timestamp for pbft block
   pbft_block1.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr()));
+  pbft_block1.setSignature(node1->signMessage(pbft_block1.getJsonStr(false)));
 
   node1->pushUnverifiedPbftBlock(pbft_block1);
   std::pair<PbftBlock, bool> block1_from_node1 =
@@ -290,7 +296,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   // setup timestamp for pbft block
   pbft_block2.setTimestamp(std::time(nullptr));
   // sign the pbft block
-  pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr()));
+  pbft_block2.setSignature(node1->signMessage(pbft_block2.getJsonStr(false)));
 
   node1->pushUnverifiedPbftBlock(pbft_block2);
   std::pair<PbftBlock, bool> block2_from_node1 =
@@ -357,20 +363,20 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(1);
   ASSERT_TRUE(dag_genesis_hash.second);
   ASSERT_EQ(dag_genesis_hash.first,
-            node->getConfig().genesis_state.block.getHash());
+            node->getConfig().chain.dag_genesis_block.getHash());
 
   // create a transaction
   auto nonce = val_t(0);
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
-  auto gas = val_t(1);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
   auto g_secret = dev::Secret(
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               gas, receiver, data, g_secret);
+                                               TEST_TX_GAS_LIMIT, receiver,
+                                               data, g_secret);
   node->insertTransaction(trx_master_boot_node_to_receiver);
 
   for (int i = 0; i < 1000; i++) {
@@ -415,7 +421,7 @@ TEST_F(PbftChainTest, get_dag_block_height) {
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
-      node->getConfig().genesis_state.block.getHash());
+      node->getConfig().chain.dag_genesis_block.getHash());
   ASSERT_TRUE(dag_genesis_height.second);
   ASSERT_EQ(dag_genesis_height.first, 1);
 }
@@ -423,7 +429,7 @@ TEST_F(PbftChainTest, get_dag_block_height) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_CHAIN");

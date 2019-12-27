@@ -1,20 +1,23 @@
 
 #include <gperftools/profiler.h>
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+#include <libdevcore/Log.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "dag.hpp"
 #include "full_node.hpp"
-#include "libdevcore/DBFactory.h"
-#include "libdevcore/Log.h"
-#include "libweb3jsonrpc/RpcServer.h"
+#include "net/RpcServer.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "static_init.hpp"
 #include "string"
 #include "top.hpp"
 
@@ -30,8 +33,8 @@ TEST_F(PerformanceTest, execute_transactions) {
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   // //
   addr_t acc1 = addr(cfg.node_secret);
-  cfg.genesis_state.accounts[acc1] = {initbal};
-
+  cfg.chain.eth.genesisState[acc1] = dev::eth::Account(0, initbal);
+  cfg.chain.eth.calculateStateRoot(true);
   auto transactions =
       samples::createSignedTrxSamples(0, NUM_TRX, dev::Secret(cfg.node_secret));
 
@@ -54,7 +57,7 @@ TEST_F(PerformanceTest, execute_transactions) {
 
   // The test will form a single chain
   std::vector<std::string> ghost;
-  node->getGhostPath(cfg.genesis_state.block.getHash().toString(), ghost);
+  node->getGhostPath(cfg.chain.dag_genesis_block.getHash().toString(), ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
   ASSERT_GT(ghost.size(), 1);
@@ -110,7 +113,7 @@ TEST_F(PerformanceTest, execute_transactions) {
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   // logOptions.includeChannels.push_back("FULLND");

@@ -5,15 +5,6 @@
 [submodule "submodules/rapidjson"]
 	path = submodules/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
-	ignore = dirty
-[submodule "submodules/bls"]
-	path = submodules/bls
-	url = https://github.com/herumi/bls.git
-	ignore = dirty
-[submodule "submodules/mcl"]
-	path = submodules/mcl
-	url = https://github.com/herumi/mcl.git
-	ignore = dirty
 [submodule "submodules/ethash"]
 	path = submodules/ethash
 	url = https://github.com/chfast/ethash
@@ -49,4 +40,8 @@
 [submodule "submodules/googletest"]
 	path = submodules/googletest
 	url = https://github.com/google/googletest
+	ignore = dirty
+[submodule "submodules/taraxa-aleth"]
+	path = submodules/taraxa-aleth
+	url = https://github.com/Taraxa-project/taraxa-aleth.git
 	ignore = dirty

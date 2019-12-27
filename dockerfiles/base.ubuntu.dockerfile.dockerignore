@@ -1,3 +1,5 @@
 **/*
+!scripts
+!Makefile.*
+!.gitmodules
 !submodules
-!Makefile.dependencies

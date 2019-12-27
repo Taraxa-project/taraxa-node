@@ -11,7 +11,7 @@
 #include <thread>
 #include "dag_block.hpp"
 #include "db_storage.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -32,10 +32,7 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 class TransactionOrderManager {
  public:
   TransactionOrderManager() = default;
-  ~TransactionOrderManager();
-  void start();
-  void setFullNode(std::shared_ptr<FullNode> node) { node_ = node; }
-  void stop();
+  void setFullNode(std::shared_ptr<FullNode> node);
   void clear() { status_.clear(); }
 
   std::vector<bool> computeOrderInBlock(

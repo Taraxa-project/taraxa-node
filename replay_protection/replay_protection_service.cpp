@@ -1,7 +1,11 @@
 #include "replay_protection_service.hpp"
+
 #include <libdevcore/RLP.h>
+
 #include <sstream>
 #include <unordered_map>
+
+#include "eth/util.hpp"
 #include "util/eth.hpp"
 
 namespace taraxa::replay_protection::replay_protection_service {
@@ -71,14 +75,14 @@ void ReplayProtectionService::commit(round_t round,
       assert(round == 0);
     }
     for (auto const& trx : trxs) {
-      assert(!hasBeenExecuted_(*trx));
+      assert(!hasBeenExecuted_(eth::util::trx_eth_2_taraxa(trx)));
     }
   }
   auto batch = db_->createWriteBatch();
   stringstream round_data_keys;
   unordered_map<string, shared_ptr<SenderState>> sender_states;
   for (auto const& trx : trxs) {
-    auto sender_addr = trx->sender().hex();
+    auto sender_addr = trx.sender().hex();
     shared_ptr<SenderState> sender_state;
     if (auto e = sender_states.find(sender_addr); e != sender_states.end()) {
       sender_state = e->second;
@@ -89,8 +93,8 @@ void ReplayProtectionService::commit(round_t round,
       }
       sender_states[sender_addr] = sender_state;
     }
-    sender_state->setNonceMax(trx->getNonce());
-    auto trx_hash = trx->getHash().hex();
+    sender_state->setNonceMax(trx.nonce());
+    auto trx_hash = trx.sha3().hex();
     static string DUMMY_VALUE = "_";
     batch->insert(trxHashKey(trx_hash), DUMMY_VALUE);
     round_data_keys << trx_hash << "\n";

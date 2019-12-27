@@ -1,6 +1,10 @@
 #ifndef TARAXA_NODE_FULL_NODE_HPP
 #define TARAXA_NODE_FULL_NODE_HPP
 
+#include <libdevcore/Log.h>
+#include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+
 #include <atomic>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -9,19 +13,17 @@
 #include <thread>
 #include <type_traits>
 #include <vector>
+
 #include "config.hpp"
 #include "db_storage.hpp"
+#include "eth/eth_service.hpp"
 #include "executor.hpp"
-#include "libdevcore/Log.h"
-#include "libdevcore/SHA3.h"
-#include "libdevcrypto/Common.h"
-#include "libweb3jsonrpc/WSServer.h"
+#include "net/WSServer.h"
 #include "pbft_chain.hpp"
 #include "replay_protection/index.hpp"
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
-#include "util/process_container.hpp"
 #include "vote.hpp"
 #include "vrf_wrapper.hpp"
 
@@ -41,28 +43,54 @@ class PbftManager;
 class NetworkConfig;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
-  friend class Top;
+  friend class ::Top;
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
   using vrf_output_t = vrf_wrapper::vrf_output_t;
+  using ReplayProtectionService = replay_protection::ReplayProtectionService;
+  using EthService = ::taraxa::eth::eth_service::EthService;
 
-  explicit FullNode(std::string const &conf_full_node_file,
-                    bool destroy_db = false, bool rebuild_network = false);
-  explicit FullNode(FullNodeConfig const &conf_full_node,
-                    bool destroy_db = false, bool rebuild_network = false);
+  FullNode(FullNodeConfig const &conf) : conf_(conf) {}
+  FullNode(std::string const &conf) : FullNode(FullNodeConfig(conf)) {}
+
+  void init(bool destroy_db, bool rebuild_network);
   void stop();
 
  public:
-  using container = util::process_container::process_container<FullNode>;
-  friend container;
+  using shared_ptr_t = std::shared_ptr<FullNode>;
 
-  template <typename... Arg>
-  static container make(Arg &&... args) {
-    return new FullNode(std::forward<Arg>(args)...);
+  struct Handle : shared_ptr_t {
+    Handle(FullNode *ptr) : shared_ptr_t(ptr) {}
+    // default-constructible
+    Handle() = default;
+    // not copyable
+    Handle(Handle const &) = delete;
+    Handle &operator=(Handle const &) = delete;
+    // movable
+    Handle(Handle &&) = default;
+    Handle &operator=(Handle &&) = default;
+
+    ~Handle() {
+      auto node = this->get();
+      if (!node) {
+        return;
+      }
+      node->stop();
+      this->reset();
+      assert(this->use_count() == 0);
+    }
+  };
+
+  template <typename Config>
+  static Handle make(Config const &config,
+                     bool destroy_db = false,  //
+                     bool rebuild_network = false) {
+    Handle ret(new FullNode(config));
+    ret->init(destroy_db, rebuild_network);
+    return ret;
   }
 
-  virtual ~FullNode() { stop(); };
   void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
@@ -78,9 +106,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
-  void setMasterBootNodeAddress(addr_t const &addr) {
-    master_boot_node_address_ = addr;
-  }
 
   // network stuff
   size_t getPeerCount() const;
@@ -169,21 +194,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
-  bool executeScheduleBlock(ScheduleBlock const &sche_blk,
-                            std::unordered_map<addr_t, PbftSortitionAccount>
-                                &sortition_account_balance_table,
-                            uint64_t period);
+  bool executePeriod(PbftBlock const &pbft_block,
+                     std::unordered_map<addr_t, PbftSortitionAccount>
+                         &sortition_account_balance_table,
+                     uint64_t period);
 
-  // get DBs
   std::shared_ptr<DbStorage> getDB() const { return db_; }
-  std::shared_ptr<account_state::StateRegistry> getStateRegistry() const {
-    return state_registry_;
-  }
-  std::shared_ptr<account_state::State> updateAndGetState() const {
-    state_registry_->rebase(*state_);
-    return state_;
-  }
-
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
@@ -202,8 +218,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint64_t getPbftChainSize() const;
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
   void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
-  void newOrderedBlock(blk_hash_t const &dag_block_hash,
-                       uint64_t const &block_number);
   void newPendingTransaction(trx_hash_t const &trx_hash);
   void storeCertVotes(blk_hash_t const &pbft_hash,
                       std::vector<Vote> const &votes);
@@ -247,9 +261,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   }
   std::vector<blk_hash_t> getLinearizedDagBlocks() const;
   std::vector<trx_hash_t> getPackedTrxs() const;
-  void setWSServer(std::shared_ptr<taraxa::WSServer> const &ws_server) {
+  void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
+  auto getEthService() { return eth_service_; }
 
  private:
   size_t num_block_workers_ = 2;
@@ -279,25 +294,22 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-  using ReplayProtectionService = replay_protection::ReplayProtectionService;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
   // transaction executor
   std::shared_ptr<Executor> executor_ = nullptr;
-
   //
   std::vector<std::thread> block_workers_;
-
   // PBFT
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-
-  std::shared_ptr<taraxa::WSServer> ws_server_;
+  //
+  std::shared_ptr<EthService> eth_service_;
+  //
+  std::shared_ptr<taraxa::net::WSServer> ws_server_;
   // storage
   std::shared_ptr<dev::db::RocksDB> db_replay_protection_service_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  std::shared_ptr<account_state::StateRegistry> state_registry_ = nullptr;
-  std::shared_ptr<account_state::State> state_ = nullptr;
 
   // debugger
   std::mutex debug_mutex_;

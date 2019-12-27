@@ -1,26 +1,36 @@
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <thread>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "static_init.hpp"
 #include "util/eth.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa {
+using ::taraxa::util::lazy::Lazy;
+
 const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_key_pair = dev::KeyPair(g_secret);
-auto g_trx_samples = samples::createMockTrxSamples(0, NUM_TRX);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
+auto g_trx_samples =
+    Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
-
-auto g_blk_samples = samples::createMockDagBlkSamples(
-    0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_blk_samples = Lazy([] {
+  return samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN,
+                                          BLK_TRX_OVERLAP);
+});
 
 struct TransactionTest : core_tests::util::DBUsingTest<> {};
 
@@ -72,19 +82,19 @@ TEST_F(TransactionTest, verifiers) {
 
   // insert trx
   std::thread t([&trx_qu]() {
-    for (auto const& t : g_trx_samples) {
+    for (auto const& t : *g_trx_samples) {
       trx_qu.insert(t, true);
     }
   });
 
   // insert trx again, should not duplicated
-  for (auto const& t : g_trx_samples) {
+  for (auto const& t : *g_trx_samples) {
     trx_qu.insert(t, false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
   auto verified_trxs = trx_qu.moveVerifiedTrxSnapShot();
-  EXPECT_EQ(verified_trxs.size(), g_trx_samples.size());
+  EXPECT_EQ(verified_trxs.size(), g_trx_samples->size());
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
@@ -94,7 +104,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {
-    for (auto const& t : g_signed_trx_samples) {
+    for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTrx(t, t.rlp(true), false);
     }
   });
@@ -123,7 +133,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 }  // namespace taraxa
 
 int main(int argc, char* argv[]) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   dev::setupLogging(logOptions);

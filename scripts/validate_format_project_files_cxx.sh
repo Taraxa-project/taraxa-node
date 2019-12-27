@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 cd ..
 
 replacements_count=$(
-  scripts/find_project_files_cxx.sh |
+  scripts/format_cxx.sh |
     xargs clang-format -style=file -fallback-style=none \
       -output-replacements-xml |
     grep -c "<replacement "

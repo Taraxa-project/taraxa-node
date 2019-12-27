@@ -1,24 +1,33 @@
 #include "pbft_manager.hpp"
+
 #include <gtest/gtest.h>
+#include <libdevcore/DBFactory.h>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "eth/util.hpp"
 #include "full_node.hpp"
-#include "libdevcore/DBFactory.h"
 #include "network.hpp"
+#include "static_init.hpp"
 #include "top.hpp"
 #include "util.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
+using core_tests::util::constants::TEST_TX_GAS_LIMIT;
+using ::taraxa::util::lazy::Lazy;
 
 const unsigned NUM_TRX = 200;
-auto g_secret = dev::Secret(
-    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-    dev::Secret::ConstructFromStringType::FromHex);
-auto g_key_pair = dev::KeyPair(g_secret);
+auto g_secret = Lazy([] {
+  return dev::Secret(
+      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+      dev::Secret::ConstructFromStringType::FromHex);
+});
+auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples =
-    samples::createSignedTrxSamples(0, NUM_TRX, g_secret);
-auto g_mock_dag0 = samples::createMockDag0();
+    Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 struct PbftManagerTest : core_tests::util::DBUsingTest<> {};
 
@@ -32,11 +41,11 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto nonce = val_t(0);
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
-  auto gas = val_t(1);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               gas, receiver, data, g_secret);
+                                               TEST_TX_GAS_LIMIT, receiver,
+                                               data, g_secret);
   node->insertTransaction(trx_master_boot_node_to_receiver);
 
   for (int i = 0; i < 100; i++) {
@@ -134,10 +143,10 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // create a transaction transfer coins from node1 to node2
   auto coins_value2 = val_t(100);
   auto gas_price = val_t(2);
-  auto gas = val_t(1);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price, gas,
-                                            node2_addr, data, g_secret);
+  Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price,
+                                            TEST_TX_GAS_LIMIT, node2_addr, data,
+                                            g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
@@ -180,8 +189,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
-  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price, gas,
-                                            node3_addr, data, g_secret);
+  Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price,
+                                            TEST_TX_GAS_LIMIT, node3_addr, data,
+                                            g_secret);
   node1->insertTransaction(trx_master_boot_node_to_node3);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."
@@ -258,7 +268,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 }  // namespace taraxa
 
 int main(int argc, char **argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   logOptions.includeChannels.push_back("PBFT_CHAIN");

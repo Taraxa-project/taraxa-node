@@ -1,12 +1,17 @@
 #ifndef TARAXA_NODE_CONFIG_HPP
 #define TARAXA_NODE_CONFIG_HPP
+
 #include <string>
-#include "genesis_state.hpp"
+
+#include "conf/chain_config.hpp"
+#include "dag_block.hpp"
 #include "types.hpp"
 #include "util.hpp"
 
-// TODO make all the classes json/ptree (ser|de)serializable and use it in
-// << operator
+// TODO don't use ptree
+// TODO: Generate configs for the tests
+// TODO: Separate configs for consensus chain params and technical params
+// TODO: Expose only certain eth chain params, encapsulate the config invariants
 namespace taraxa {
 struct RpcConfig {
   RpcConfig() = default;
@@ -47,8 +52,6 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
-  static inline round_t const REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT = 10;
-
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
@@ -58,11 +61,9 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
-  GenesisState genesis_state;
-  bool use_basic_executor;
-  round_t replay_protection_service_range =
-      REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT;
+  conf::chain_config::ChainConfig chain;
 
+  auto eth_db_path() { return db_path + "/eth"; }
   auto account_db_path() { return db_path + "/acc"; }
   auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }
   auto transactions_db_path() { return db_path + "/trx"; }

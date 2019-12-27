@@ -9,16 +9,15 @@ dockerfiles
 unused_yet_useful
 
 build
-build-d
-test_build
-test_build-d
-obj
-obj-d
 
+### These come from the base image
+scripts
+Makefile.*
+.gitmodules
 submodules
-Makefile.dependencies
+###
 
 sdk_py
 tests_integration_py
 documentation
-dopple
+cmake-*

@@ -1,6 +1,9 @@
 #include "config.hpp"
+
+#include <json/json.h>
+#include <libdevcore/LevelDB.h>
+
 #include <fstream>
-#include "libdevcore/LevelDB.h"
 
 namespace taraxa {
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
@@ -46,19 +49,14 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
         test_params.block_proposer.push_back(i);
       }
-
       for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
         test_params.pbft.push_back(i);
       }
     }
-    genesis_state = GenesisState::fromPtree(doc.get_child("genesis_state"));
-    if (auto const &v = doc.get_optional<bool>("use_basic_executor"); v) {
-      use_basic_executor = *v;
-    }
-    if (auto v = doc.get_optional<round_t>("replay_protection_service_range");
-        v) {
-      replay_protection_service_range = *v;
-    }
+    // TODO parse from json:
+    // Either a string name of a predefined config,
+    // or the full json of a custom config
+    chain = decltype(chain)::DEFAULT();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
