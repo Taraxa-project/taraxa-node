@@ -53,9 +53,9 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
 
   nw1->start();
   nw2->start();
@@ -93,9 +93,9 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
 
   nw1->start(true);
   nw2->start();
@@ -129,11 +129,11 @@ connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1->network, g_conf1->dag_genesis_block.getHash().toString()));
+        g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2->network, g_conf2->dag_genesis_block.getHash().toString()));
+        g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3->network, g_conf3->dag_genesis_block.getHash().toString()));
+        g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString()));
 
     nw1->start(true);
     nw2->start();
@@ -160,10 +160,10 @@ TEST_F(NetworkTest, save_network) {
 
   std::shared_ptr<Network> nw2(
       new taraxa::Network(g_conf2->network, "/tmp/nw2",
-                          g_conf2->dag_genesis_block.getHash().toString()));
+                          g_conf2->chain.dag_genesis_block.getHash().toString()));
   std::shared_ptr<Network> nw3(
       new taraxa::Network(g_conf3->network, "/tmp/nw3",
-                          g_conf2->dag_genesis_block.getHash().toString()));
+                          g_conf2->chain.dag_genesis_block.getHash().toString()));
   nw2->start();
   nw3->start();
 
@@ -238,7 +238,7 @@ TEST_F(NetworkTest, node_sync) {
 
   std::vector<DagBlock> blks;
 
-  DagBlock blk1(node1->getConfig().dag_genesis_block.getHash(), 1, {}, {},
+  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
                 sig_t(777), blk_hash_t(1), addr_t(999));
 
   DagBlock blk2(blk_hash_t(01), 2, {}, {}, sig_t(777), blk_hash_t(02),
@@ -445,7 +445,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   std::vector<DagBlock> blks;
 
   DagBlock blk1(
-      node1->getConfig().dag_genesis_block.getHash(), 1, {},
+      node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
       sig_t(777), blk_hash_t(1), addr_t(999));
   std::vector<Transaction> tr1(
@@ -529,12 +529,12 @@ TEST_F(NetworkTest, node_sync2) {
   std::vector<DagBlock> blks;
 
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
-  DagBlock blk1(node1->getConfig().dag_genesis_block.getHash(), 1, {},
+  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
                 {transactions[0].getHash(), transactions[1].getHash()},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
 
-  DagBlock blk2(node1->getConfig().dag_genesis_block.getHash(), 1, {},
+  DagBlock blk2(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
                 {transactions[2].getHash(), transactions[3].getHash()},
                 sig_t(777), blk_hash_t(0xB2), addr_t(999));
   std::vector<Transaction> tr2({transactions[2], transactions[3]});

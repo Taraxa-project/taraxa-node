@@ -6,6 +6,9 @@
 #include <type_traits>
 
 namespace taraxa::util::lazy {
+using std::enable_if_t;
+using std::function;
+using std::is_invocable_v;
 using std::mutex;
 using std::remove_reference;
 using std::size_t;
@@ -16,10 +19,10 @@ class Lazy {
   Provider* provider_ = nullptr;
 
  public:
-  using value_type = typename remove_reference<decltype((*provider_)())>::type;
+  using val_t = typename remove_reference<decltype((*provider_)())>::type;
 
  private:
-  value_type* val_ptr_ = nullptr;
+  val_t* val_ptr_ = nullptr;
   mutex mu_;
   bool initializing_ = false;
 
@@ -35,7 +38,7 @@ class Lazy {
     }
   }
 
-  value_type* get() {
+  val_t* get() {
     if (val_ptr_) {
       return val_ptr_;
     }
@@ -46,34 +49,44 @@ class Lazy {
     // this will persist any error that happened during initialization
     assert(!initializing_);
     initializing_ = true;
-    val_ptr_ = new value_type((*provider_)());
+    val_ptr_ = new val_t((*provider_)());
     delete provider_;
     provider_ = nullptr;
     initializing_ = false;
     return val_ptr_;
   }
 
-  value_type const* get() const {
-    return const_cast<value_type const*>(const_cast<Lazy*>(this)->get());
+  val_t const* get() const {
+    return const_cast<val_t const*>(const_cast<Lazy*>(this)->get());
   }
 
-  value_type* operator->() { return get(); }
-  value_type const* operator->() const { return get(); }
+  val_t* operator->() { return get(); }
+  val_t const* operator->() const { return get(); }
 
-  value_type& operator*() { return *operator->(); }
-  value_type const& operator*() const { return *operator->(); }
+  val_t& operator*() { return *operator->(); }
+  val_t const& operator*() const { return *operator->(); }
 
-  operator value_type&() { return operator*(); }
-  operator value_type const&() const { operator*(); }
+  operator val_t&() { return operator*(); }
+  operator val_t const&() const { operator*(); }
 
-  auto& operator[](size_t i) { return operator*()[i]; }
-  auto const& operator[](size_t i) const { return operator*()[i]; }
+  template <typename T>
+  auto& operator[](T t) {
+    return operator*()[t];
+  }
+
+  template <typename T>
+  auto const& operator[](T t) const {
+    return operator*()[t];
+  }
 
   template <typename T>
   auto& operator=(T t) {
     return operator*() = t;
   }
 };
+
+template <typename T>
+using LazyVal = Lazy<function<T()>>;
 
 }  // namespace taraxa::util::lazy
 

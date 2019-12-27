@@ -53,18 +53,10 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         test_params.pbft.push_back(i);
       }
     }
-    dag_genesis_block = DagBlock(doc.get_child("dag_genesis_block"));
-    if (auto v = doc.get_optional<round_t>("replay_protection_service_range");
-        v) {
-      replay_protection_service_range = *v;
-    }
-    {
-      Json::Value jsoncpp_doc(Json::objectValue);
-      std::ifstream(json_file) >> jsoncpp_doc;
-      std::stringstream ss;
-      ss << jsoncpp_doc["eth_chain_params"];
-      eth_chain_params = dev::eth::ChainParams(ss.str());
-    }
+    // TODO parse from json:
+    // Either a string name of a predefined config,
+    // or the full json of a custom config
+    chain = decltype(chain)::DEFAULT();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

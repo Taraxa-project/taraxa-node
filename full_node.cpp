@@ -57,7 +57,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   if (destroy_db) {
     boost::filesystem::remove_all(conf_.db_path);
   }
-  auto const &genesis_block = conf_.dag_genesis_block;
+  auto const &genesis_block = conf_.chain.dag_genesis_block;
   if (!genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
@@ -75,8 +75,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
   // ===== Create services =====
-  dag_mgr_ = std::make_shared<DagManager>(
-      conf_.dag_genesis_block.getHash().toString());
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString());
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
   trx_mgr_ = std::make_shared<TransactionManager>();
@@ -85,27 +84,25 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
       trx_mgr_->getShared());
   vote_mgr_ = std::make_shared<VoteManager>();
-  pbft_mgr_ = std::make_shared<PbftManager>(
-      conf_.test_params.pbft, conf_.dag_genesis_block.getHash().toString());
-  pbft_chain_ =
-      std::make_shared<PbftChain>(conf_.dag_genesis_block.getHash().toString());
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
+                                            genesis_hash.toString());
+  pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
-      conf_.replay_protection_service_range, db_replay_protection_service_);
+      conf_.chain.replay_protection_service_range,
+      db_replay_protection_service_);
   eth_service_ = as_shared(
-      new EthService(getShared(), conf_.eth_chain_params, conf_.eth_db_path()));
+      new EthService(getShared(), conf_.chain.eth, conf_.eth_db_path()));
   executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
                                      log_time_,  //
                                      db_,
                                      replay_protection_service_,  //
                                      eth_service_));
   if (rebuild_network) {
-    network_ =
-        std::make_shared<Network>(conf_.network, "", node_sk_,
-                                  conf_.dag_genesis_block.getHash().toString());
+    network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
+                                         genesis_hash.toString());
   } else {
-    network_ = std::make_shared<Network>(
-        conf_.network, conf_.db_path + "/net", node_sk_,
-        conf_.dag_genesis_block.getHash().toString());
+    network_ = std::make_shared<Network>(conf_.network, conf_.db_path + "/net",
+                                         node_sk_, genesis_hash.toString());
   }
   // ===== Provide self to the services (link them with each other) =====
   blk_mgr_->setFullNode(getShared());

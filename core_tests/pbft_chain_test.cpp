@@ -363,7 +363,7 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(1);
   ASSERT_TRUE(dag_genesis_hash.second);
   ASSERT_EQ(dag_genesis_hash.first,
-            node->getConfig().dag_genesis_block.getHash());
+            node->getConfig().chain.dag_genesis_block.getHash());
 
   // create a transaction
   auto nonce = val_t(0);
@@ -421,7 +421,7 @@ TEST_F(PbftChainTest, get_dag_block_height) {
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
-      node->getConfig().dag_genesis_block.getHash());
+      node->getConfig().chain.dag_genesis_block.getHash());
   ASSERT_TRUE(dag_genesis_height.second);
   ASSERT_EQ(dag_genesis_height.first, 1);
 }

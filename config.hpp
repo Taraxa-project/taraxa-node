@@ -1,10 +1,9 @@
 #ifndef TARAXA_NODE_CONFIG_HPP
 #define TARAXA_NODE_CONFIG_HPP
 
-#include <libethereum/ChainParams.h>
-
 #include <string>
 
+#include "conf/chain_config.hpp"
 #include "dag_block.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -53,8 +52,6 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
-  static inline round_t const REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT = 10;
-
   FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
@@ -64,10 +61,7 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
-  DagBlock dag_genesis_block;
-  round_t replay_protection_service_range =
-      REPLAY_PROTECTION_SERVICE_RANGE_DEFAULT;
-  dev::eth::ChainParams eth_chain_params;
+  conf::chain_config::ChainConfig chain;
 
   auto eth_db_path() { return db_path + "/eth"; }
   auto account_db_path() { return db_path + "/acc"; }
