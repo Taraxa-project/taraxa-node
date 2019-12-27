@@ -34,7 +34,8 @@ decltype(ChainConfig::PREDEF) const ChainConfig::PREDEF([] {
     "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
     "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
     "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
-    "timestamp": 1564617600
+    "timestamp": 1564617600,
+    "vdf": ""
   },
   "eth": {
     "sealEngine": "TaraxaSealEngine",
