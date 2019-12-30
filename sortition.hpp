@@ -2,8 +2,8 @@
 #define TARAXA_NODE_SORTITION_H
 
 #include <string>
-#include "libdevcore/Log.h"
-#include "libdevcrypto/Common.h"
+#include <libdevcore/Log.h>
+#include <libdevcrypto/Common.h>
 #include "types.hpp"
 
 // max signature hash 64 hex

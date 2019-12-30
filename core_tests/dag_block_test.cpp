@@ -1,11 +1,15 @@
 #include "dag_block.hpp"
+
 #include <gtest/gtest.h>
+#include <libdevcore/Log.h>
+
 #include <iostream>
 #include <vector>
+
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "full_node.hpp"
-#include "libdevcore/Log.h"
+#include "static_init.hpp"
 #include "types.hpp"
 #include "vdf_sortition.hpp"
 
@@ -211,7 +215,7 @@ TEST_F(DagBlockTest, overlap) {
 
 }  // namespace taraxa
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
   dev::setupLogging(logOptions);

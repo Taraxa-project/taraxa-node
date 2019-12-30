@@ -8,6 +8,7 @@
 #include <libdevcore/db.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -144,16 +145,6 @@ class ScheduleBlock {
 };
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
 
-class ResultBlock {
- public:
- private:
-  val_t state_root_;
-  val_t trx_root_;
-  val_t receipt_root_;
-  val_t gas_limit_;
-  val_t gas_used_;
-};
-
 class PbftBlock {
  public:
   PbftBlock() = default;
@@ -179,7 +170,8 @@ class PbftBlock {
   PivotBlock getPivotBlock() const;
   ScheduleBlock getScheduleBlock() const;
   uint64_t getTimestamp() const;
-  std::string getJsonStr() const;
+  std::string getJsonStr(bool with_signature = true) const;
+  addr_t getAuthor() const;
   uint64_t getHeight() const;
 
   void setBlockHash();
@@ -225,7 +217,6 @@ class PbftChain {
 
   void setFullNode(std::shared_ptr<FullNode> node);
   void setPbftGenesis(std::string const& pbft_genesis_str);
-  void releaseDB();
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 

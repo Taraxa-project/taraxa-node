@@ -1,14 +1,18 @@
 #ifndef TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
-#define CREATE_SAMPLES_HPP
+#define TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
+
 #include <executor.hpp>
 #include <fstream>
 #include <map>
 #include <string>
+
 #include "dag_block.hpp"
 #include "transaction.hpp"
 #include "util/constants.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa::samples {
+using ::taraxa::util::lazy::Lazy;
 
 inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK =
     core_tests::util::constants::TEST_MAX_TRANSACTIONS_IN_BLOCK;
@@ -61,7 +65,7 @@ class TxGenerator {
   mutable std::unordered_set<dev::FixedHash<secret_t::size>> used_secrets_;
 };
 
-inline const TxGenerator TX_GEN;
+inline auto const TX_GEN = Lazy([] { return TxGenerator(); });
 
 inline bool sendTrx(uint64_t count, unsigned port) {
   auto pattern = R"(
@@ -86,7 +90,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
     auto retcode = system(
         fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
             addr_t::random(),
-            samples::TX_GEN.getRandomUniqueSenderSecret().makeInsecure(), port)
+            samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
             .c_str());
     if (retcode != 0) {
       return false;

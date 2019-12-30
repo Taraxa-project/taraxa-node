@@ -2,8 +2,10 @@
 #define TARAXA_NODE_CORE_TESTS_UTIL_TRANSACTION_CLIENT_HPP_
 
 #include <libdevcrypto/Common.h>
+
 #include <chrono>
 #include <thread>
+
 #include "constants.hpp"
 #include "full_node.hpp"
 #include "types.hpp"
@@ -52,38 +54,24 @@ struct TransactionClient {
   }
 
   Context coinTransfer(addr_t const& to, val_t const& val) const {
-    auto state_registry = node_->getStateRegistry();
-    auto initial_state = state_registry->getCurrentState();
-    auto nonce = initial_state.getNonce(key_pair_.address());
+    auto eth_service = node_->getEthService();
+    auto sender_nonce = eth_service->accountNonce(key_pair_.address());
     Context ctx{
         TransactionStage::created,
-        Transaction(nonce, val, 0, constants::TEST_TX_GAS_LIMIT, to, bytes(),
-                    key_pair_.secret()),
+        Transaction(sender_nonce, val, 0, constants::TEST_TX_GAS_LIMIT, to,
+                    bytes(), key_pair_.secret()),
     };
     if (!node_->insertTransaction(ctx.trx)) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
-    auto lastSeenBlkNum = initial_state.getSnapshot().block_number;
-    auto success = wait(
-        [&] {
-          auto curr_block_num =
-              state_registry->getCurrentSnapshot().block_number;
-          while (lastSeenBlkNum < curr_block_num) {
-            ++lastSeenBlkNum;
-            auto snapshot = state_registry->getSnapshot(lastSeenBlkNum);
-            auto blk = node_->getDagBlock(snapshot->block_hash);
-            for (auto const& hash : blk->getTrxs()) {
-              if (trx_hash == hash) {
-                ctx.stage = TransactionStage::executed;
-                return true;
-              }
-            }
-          }
-          return false;
-        },
-        opts_.waitUntilExecutedOpts);
+    auto success =
+        wait([&] { return eth_service->isKnownTransaction(trx_hash); },
+             opts_.waitUntilExecutedOpts);
+    if (success) {
+      ctx.stage = TransactionStage::executed;
+    }
     return ctx;
   }
 };

@@ -1,0 +1,124 @@
+#include "Taraxa.h"
+
+#include <jsonrpccpp/common/exception.h>
+#include <libdevcore/CommonData.h>
+#include <libethcore/CommonJS.h>
+#include <libethereum/TransactionReceipt.h>
+#include <libwebthree/WebThree.h>
+
+#include <csignal>
+
+using namespace std;
+using namespace jsonrpc;
+using namespace dev;
+using namespace eth;
+using namespace shh;
+using namespace taraxa;
+
+namespace taraxa::net {
+
+Taraxa::Taraxa(std::shared_ptr<FullNode>& _full_node)
+    : full_node_(_full_node) {}
+
+string Taraxa::taraxa_protocolVersion() {
+  return toJS(dev::p2p::c_protocolVersion);
+}
+
+string Taraxa::taraxa_dagBlockLevel() {
+  try {
+    auto node = tryGetNode();
+    return toJS(node->getMaxDagLevel());
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+string Taraxa::taraxa_dagBlockPeriod() {
+  try {
+    auto node = tryGetNode();
+    return toJS(node->getLatestPeriod());
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Taraxa::NodePtr Taraxa::tryGetNode() {
+  if (auto full_node = full_node_.lock()) {
+    return full_node;
+  }
+  BOOST_THROW_EXCEPTION(
+      jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR));
+}
+
+Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
+                                             bool _includeTransactions) {
+  try {
+    auto node = tryGetNode();
+    auto block = node->getDagBlock(blk_hash_t(_blockHash));
+    if (block) {
+      auto block_json = block->getJson();
+      auto period = node->getDagBlockPeriod(blk_hash_t(block->getHash()));
+      if (period.first) {
+        block_json["period"] = toJS(period.second);
+      } else {
+        block_json["period"] = "-0x1";
+      }
+      if (_includeTransactions) {
+        block_json["transactions"] = Json::Value(Json::arrayValue);
+        for (auto const& t : block->getTrxs()) {
+          block_json["transactions"].append(
+              node->getTransaction(t)->first.getJson());
+        }
+      }
+      return block_json;
+    }
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+  return Json::Value();
+}
+
+Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(
+    std::string const& _period) {
+  try {
+    auto node = tryGetNode();
+    auto block = node->getScheduleBlockByPeriod(std::stoull(_period, 0, 16));
+    Json::Value res;
+    Json::Reader reader;
+    reader.parse(block, res);
+    return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
+                                              bool _includeTransactions) {
+  try {
+    auto node = tryGetNode();
+    auto blocks = node->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
+    auto res = Json::Value(Json::arrayValue);
+    for (auto const& b : blocks) {
+      auto block_json = b->getJson();
+      auto period = node->getDagBlockPeriod(blk_hash_t(b->getHash()));
+      if (period.first) {
+        block_json["period"] = toJS(period.second);
+      } else {
+        block_json["period"] = "-0x1";
+      }
+      if (_includeTransactions) {
+        block_json["transactions"] = Json::Value(Json::arrayValue);
+        for (auto const& t : b->getTrxs()) {
+          block_json["transactions"].append(
+              node->getTransaction(t)->first.getJson());
+        }
+      }
+      res.append(block_json);
+    }
+    return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+}  // namespace taraxa::net

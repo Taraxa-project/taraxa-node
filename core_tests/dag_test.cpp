@@ -1,8 +1,9 @@
 #include "dag.hpp"
 #include <gtest/gtest.h>
 #include "core_tests/util.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "types.hpp"
+#include "static_init.hpp"
 
 namespace taraxa {
 
@@ -479,7 +480,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
 }  // namespace taraxa
 
 int main(int argc, char** argv) {
-  TaraxaStackTrace st;
+  taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityWarning;
   dev::setupLogging(logOptions);

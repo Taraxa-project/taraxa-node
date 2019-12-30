@@ -3,10 +3,13 @@
 
 #include <gtest/gtest.h>
 #include <libdevcore/RocksDB.h>
+
 #include <boost/filesystem.hpp>
 #include <optional>
 #include <vector>
+
 #include "core_tests/util.hpp"
+#include "eth/util.hpp"
 #include "replay_protection_service.hpp"
 #include "transaction.hpp"
 #include "types.hpp"
@@ -38,13 +41,14 @@ struct ReplayProtectionServiceTest : testing::Test {
 
   static auto makeTrx(trx_nonce_t nonce,
                       secret_t const& sender_sk = secret_t::random()) {
-    return as_shared(new Transaction(nonce,                    // nonce
-                                     0,                        // value
-                                     0,                        // gas_price
-                                     0,                        // gas
-                                     addr_t::random(),         // receiver
-                                     h64::random().asBytes(),  // data
-                                     sender_sk));              // secret
+    return eth::util::trx_taraxa_2_eth(
+        Transaction(nonce,                    // nonce
+                    0,                        // value
+                    0,                        // gas_price
+                    0,                        // gas
+                    addr_t::random(),         // receiver
+                    h64::random().asBytes(),  // data
+                    sender_sk));              // secret
   }
 
   void init(decltype(range) range, decltype(history) const& history) {
@@ -67,24 +71,27 @@ struct ReplayProtectionServiceTest : testing::Test {
   }
 
   void check_history_not_replayable() {
-    for (auto& trxs : history) {
-      for (auto& t : trxs) {
-        EXPECT_TRUE(sut->hasBeenExecuted(*t));
+    for (auto const& trxs : history) {
+      for (auto const& t : trxs) {
+        EXPECT_TRUE(sut->hasBeenExecuted(eth::util::trx_eth_2_taraxa(t)));
       }
     }
   }
 
   bool hasNoNonceWatermark(secret_t const& sender_sk) {
-    return !sut->hasBeenExecuted(*makeTrx(0, sender_sk));
+    return !sut->hasBeenExecuted(
+        eth::util::trx_eth_2_taraxa(makeTrx(0, sender_sk)));
   }
 
   bool hasNonceWatermark(secret_t const& sender_sk, trx_nonce_t watermark) {
     for (trx_nonce_t i(0); i <= watermark; ++i) {
-      if (!sut->hasBeenExecuted(*makeTrx(i, sender_sk))) {
+      if (!sut->hasBeenExecuted(
+              eth::util::trx_eth_2_taraxa(makeTrx(i, sender_sk)))) {
         return false;
       }
     }
-    return !sut->hasBeenExecuted(*makeTrx(watermark + 1, sender_sk));
+    return !sut->hasBeenExecuted(
+        eth::util::trx_eth_2_taraxa(makeTrx(watermark + 1, sender_sk)));
   }
 };
 

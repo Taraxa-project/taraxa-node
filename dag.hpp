@@ -22,7 +22,7 @@
 #include <queue>
 #include <string>
 #include "dag_block.hpp"
-#include "libdevcore/Log.h"
+#include <libdevcore/Log.h>
 #include "types.hpp"
 #include "util.hpp"
 namespace taraxa {

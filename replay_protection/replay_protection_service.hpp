@@ -2,10 +2,13 @@
 #define TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_HPP_
 
 #include <libdevcore/RocksDB.h>
+#include <libethereum/Transaction.h>
+
 #include <list>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
+
 #include "sender_state.hpp"
 #include "transaction.hpp"
 
@@ -20,7 +23,7 @@ using std::shared_ptr;
 using std::string;
 
 struct ReplayProtectionService {
-  using transaction_batch_t = list<shared_ptr<Transaction>>;
+  using transaction_batch_t = dev::eth::Transactions;
 
  private:
   round_t range_ = 0;

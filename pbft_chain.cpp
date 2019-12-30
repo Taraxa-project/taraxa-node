@@ -1,4 +1,5 @@
 #include "pbft_chain.hpp"
+
 #include "pbft_manager.hpp"
 
 namespace taraxa {
@@ -358,7 +359,7 @@ bytes PbftBlock::rlp() const {
 }
 blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
 
-std::string PbftBlock::getJsonStr() const {
+std::string PbftBlock::getJsonStr(bool with_signature) const {
   ptree tree;
   tree.put("block_hash", block_hash_.toString());
   tree.put("block_type", block_type_);
@@ -371,11 +372,17 @@ std::string PbftBlock::getJsonStr() const {
     schedule_block_.setJsonTree(tree.get_child("schedule_block"));
   }  // TODO: more block types
   tree.put("timestamp", timestamp_);
-  tree.put("signature", signature_.toString());
-
+  if (with_signature) {
+    tree.put("signature", signature_.toString());
+  }
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
+}
+
+addr_t PbftBlock::getAuthor() const {
+  assert(!signature_.isZero());
+  return dev::toAddress(dev::recover(signature_, dev::sha3(getJsonStr(false))));
 }
 
 PbftBlockTypes PbftBlock::getBlockType() const { return block_type_; }
@@ -500,8 +507,6 @@ void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
   last_pbft_pivot_hash_ =
       blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
 }
-
-void PbftChain::releaseDB() { db_ = nullptr; }
 
 void PbftChain::cleanupUnverifiedPbftBlocks(
     taraxa::PbftBlock const& pbft_block) {

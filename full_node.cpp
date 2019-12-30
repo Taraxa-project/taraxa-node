@@ -1,13 +1,18 @@
 #include "full_node.hpp"
+
+#include <libweb3jsonrpc/JsonHelper.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
-#include "account_state/index.hpp"
+#include <stdexcept>
+
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
+#include "eth/util.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
@@ -21,34 +26,10 @@ using std::to_string;
 using util::eth::newDB;
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
-FullNode::FullNode(std::string const &conf_full_node_file,
-                   bool destroy_db,  //
-                   bool rebuild_network)
-    : FullNode(FullNodeConfig(conf_full_node_file),
-               destroy_db,  //
-               rebuild_network) {}
-
-FullNode::FullNode(FullNodeConfig const &conf_full_node,
-                   bool destroy_db,  //
-                   bool rebuild_network)
-    : num_block_workers_(conf_full_node.dag_processing_threads),
-      conf_(conf_full_node),
-      dag_mgr_(std::make_shared<DagManager>(
-          conf_.genesis_state.block.getHash().toString())),
-      blk_mgr_(std::make_shared<BlockManager>(1024 /*capacity*/,
-                                              4 /* verifer thread*/)),
-      trx_mgr_(std::make_shared<TransactionManager>()),
-      trx_order_mgr_(std::make_shared<TransactionOrderManager>()),
-      blk_proposer_(std::make_shared<BlockProposer>(
-          conf_.test_params.block_proposer, dag_mgr_->getShared(),
-          trx_mgr_->getShared())),
-      vote_mgr_(std::make_shared<VoteManager>()),
-      pbft_mgr_(std::make_shared<PbftManager>(
-          conf_.test_params.pbft,
-          conf_.genesis_state.block.getHash().toString())),
-      pbft_chain_(std::make_shared<PbftChain>(
-          conf_.genesis_state.block.getHash().toString())) {
+void FullNode::init(bool destroy_db, bool rebuild_network) {
+  // ===== Deal with the config =====
   LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
+  num_block_workers_ = conf_.dag_processing_threads;
   auto key = dev::KeyPair::create();
   if (conf_.node_secret.empty()) {
     LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
@@ -57,20 +38,14 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
                               dev::Secret::ConstructFromStringType::FromHex);
     key = dev::KeyPair(secret);
   }
-  if (rebuild_network) {
-    network_ = std::make_shared<Network>(
-        conf_full_node.network, "", key.secret(),
-        conf_.genesis_state.block.getHash().toString());
-  } else {
-    network_ = std::make_shared<Network>(
-        conf_full_node.network, conf_.db_path + "/net", key.secret(),
-        conf_.genesis_state.block.getHash().toString());
-  }
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
   vrf_sk_ = vrf_sk_t(conf_.vrf_secret);
   vrf_pk_ = vrf_wrapper::getVrfPublicKey(vrf_sk_);
+  // Assume only first boot node is initialized
+  master_boot_node_address_ =
+      dev::toAddress(dev::Public(conf_.network.network_boot_nodes[0].id));
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
@@ -78,49 +53,69 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
   LOG(log_si_) << "Node VRF public key: " << EthGreen << vrf_pk_.toString()
                << std::endl;
   LOG(log_si_) << "Number of block works: " << num_block_workers_;
-  // THIS IS THE GENESIS
-  // TODO extract to a function
-  auto const &genesis_block = conf_.genesis_state.block;
+  // ===== Create DBs =====
+  if (destroy_db) {
+    boost::filesystem::remove_all(conf_.db_path);
+  }
+  auto const &genesis_block = conf_.chain.dag_genesis_block;
   if (!genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
   auto const &genesis_hash = genesis_block.getHash();
-  auto mode = destroy_db ? dev::WithExisting::Kill : dev::WithExisting::Trust;
   {
     using namespace dev::db;
     auto db_path = conf_.replay_protection_service_db_path();
-    auto db_result = newDB(db_path, genesis_hash, mode, DatabaseKind::RocksDB);
+    auto db_result = newDB(db_path, genesis_hash, dev::WithExisting::Trust,
+                           DatabaseKind::RocksDB);
     db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
   }
   db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
   // store genesis blk to db
   db_->saveDagBlock(genesis_block);
-  // TODO add move to a StateRegistry constructor?
-  auto acc_db = newDB(conf_.account_db_path(),
-                      genesis_hash,  //
-                      mode);
-  auto snapshot_db = newDB(conf_.account_snapshot_db_path(),
-                           genesis_hash,  //
-                           mode);
-  state_registry_ =
-      make_shared<account_state::StateRegistry>(conf_.genesis_state,
-                                                move(acc_db.db),  //
-                                                move(snapshot_db.db));
-  state_ =
-      make_shared<account_state::State>(state_registry_->getCurrentState());
   LOG(log_nf_) << "DB initialized ...";
-  bool boot_node_balance_initialized = false;
-  // init master boot node ...
-  for (auto &node : conf_.network.network_boot_nodes) {
-    auto node_public_key = dev::Public(node.id);
-    // Assume only first boot node is initialized
-    if (boot_node_balance_initialized == false) {
-      addr_t master_boot_node_address(dev::toAddress(node_public_key));
-      boot_node_balance_initialized = true;
-      setMasterBootNodeAddress(master_boot_node_address);
-    }
+  // ===== Create services =====
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString());
+  blk_mgr_ =
+      std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
+  trx_mgr_ = std::make_shared<TransactionManager>();
+  trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
+  blk_proposer_ = std::make_shared<BlockProposer>(
+      conf_.test_params.block_proposer, dag_mgr_->getShared(),
+      trx_mgr_->getShared());
+  vote_mgr_ = std::make_shared<VoteManager>();
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
+                                            genesis_hash.toString());
+  pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
+  replay_protection_service_ = std::make_shared<ReplayProtectionService>(
+      conf_.chain.replay_protection_service_range,
+      db_replay_protection_service_);
+  eth_service_ = as_shared(
+      new EthService(getShared(), conf_.chain.eth, conf_.eth_db_path()));
+  executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
+                                     log_time_,  //
+                                     db_,
+                                     replay_protection_service_,  //
+                                     eth_service_));
+  if (rebuild_network) {
+    network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
+                                         genesis_hash.toString());
+  } else {
+    network_ = std::make_shared<Network>(conf_.network, conf_.db_path + "/net",
+                                         node_sk_, genesis_hash.toString());
   }
+  // ===== Provide self to the services (link them with each other) =====
+  blk_mgr_->setFullNode(getShared());
+  network_->setFullNode(getShared());
+  dag_mgr_->setFullNode(getShared());
+  trx_mgr_->setFullNode(getShared());
+  trx_order_mgr_->setFullNode(getShared());
+  blk_proposer_->setFullNode(getShared());
+  vote_mgr_->setFullNode(getShared());
+  pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
+  pbft_chain_->setFullNode(getShared());
+  executor_->setFullNode(getShared());
+  // ===== Post-initialization tasks =====
   // Reconstruct DAG
   if (!destroy_db) {
     level_t level = 1;
@@ -138,7 +133,6 @@ FullNode::FullNode(FullNodeConfig const &conf_full_node,
       level++;
     }
   }
-  LOG(log_wr_) << "DB initialized ... ";
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
 
@@ -148,38 +142,15 @@ void FullNode::start(bool boot_node) {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  // order depend, be careful when changing the order
-  // setFullNode pbft_chain need be before network, otherwise db_pbftchain will
-  // be nullptr
-  pbft_chain_->setFullNode(getShared());
-  network_->setFullNode(getShared());
-  network_->start(boot_node);
-  dag_mgr_->setFullNode(getShared());
-  blk_mgr_->setFullNode(getShared());
-  blk_mgr_->start();
-  trx_mgr_->setFullNode(getShared());
-  trx_mgr_->start();
-  trx_order_mgr_->setFullNode(getShared());
-  trx_order_mgr_->start();
-  blk_proposer_->setFullNode(getShared());
-  blk_proposer_->start();
-  vote_mgr_->setFullNode(getShared());
-
-  replay_protection_service_ = std::make_shared<ReplayProtectionService>(
-      conf_.replay_protection_service_range, db_replay_protection_service_);
-  pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
-  pbft_mgr_->start();
-  executor_ = std::make_shared<Executor>(pbft_mgr_->VALID_SORTITION_COINS,
-                                         log_time_,  //
-                                         db_,
-                                         replay_protection_service_,  //
-                                         state_registry_,             //
-                                         conf_.use_basic_executor);
-  executor_->setFullNode(getShared());
   i_am_boot_node_ = boot_node;
   if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
+  network_->start(boot_node);
+  blk_mgr_->start();
+  trx_mgr_->start();
+  blk_proposer_->start();
+  pbft_mgr_->start();
   for (auto i = 0; i < num_block_workers_; ++i) {
     block_workers_.emplace_back([this]() {
       while (!stopped_) {
@@ -225,17 +196,10 @@ void FullNode::stop() {
   blk_proposer_->stop();
   blk_mgr_->stop();
   trx_mgr_->stop();
-  trx_order_mgr_->stop();
   pbft_mgr_->stop();
-  pbft_chain_->releaseDB();
   for (auto &t : block_workers_) {
     t.join();
   }
-  executor_ = nullptr;
-  replay_protection_service_ = nullptr;
-  assert(db_replay_protection_service_.use_count() == 1);
-  assert(state_registry_.use_count() == 1);
-  assert(state_.use_count() == 1);
   LOG(log_nf_) << "Node stopped ... ";
 }
 
@@ -277,11 +241,16 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
 }
 
 bool FullNode::insertTransaction(Transaction const &trx) {
+  eth_service_->sealEngine()->verifyTransaction(
+      dev::eth::ImportRequirements::Everything,
+      eth::util::trx_taraxa_2_eth(trx),  //
+      eth_service_->getBlockHeader(),    //
+      0);
   auto rlp = trx.rlp(true);
   if (conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({rlp});
   }
-  return trx_mgr_->insertTrx(trx, trx.rlp(true), true);
+  return trx_mgr_->insertTrx(trx, rlp, true);
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
@@ -519,9 +488,9 @@ std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 bool FullNode::isSynced() const { return network_->isSynced(); }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  auto const &state = updateAndGetState();
-  auto bal = state->balance(acc);
-  if (bal == 0 && !state->addressInUse(acc)) {
+  auto state = eth_service_->getAccountsState();
+  auto bal = state.balance(acc);
+  if (bal == 0 && !state.addressInUse(acc)) {
     LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
     return {0, false};
   }
@@ -547,28 +516,37 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
-bool FullNode::executeScheduleBlock(
-    ScheduleBlock const &sche_blk,
-    std::unordered_map<addr_t, PbftSortitionAccount>
-        &sortition_account_balance_table,
-    uint64_t period) {
+bool FullNode::executePeriod(PbftBlock const &pbft_block,
+                             std::unordered_map<addr_t, PbftSortitionAccount>
+                                 &sortition_account_balance_table,
+                             uint64_t period) {
+  auto const &sche_blk = pbft_block.getScheduleBlock();
   // TODO: Since PBFT use replay protection serivce and no longer include
   //  overlapped/invalid transations in schedule block. May not need transtion
   //  overlap table anymore. CCL please check here
   // update transaction overlap table first
-  auto res = trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule());
-  res |= executor_->execute(sche_blk.getSchedule(),
-                            sortition_account_balance_table, period);
+  if (!trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule())) {
+    return false;
+  }
+  auto new_eth_header =
+      executor_->execute(pbft_block, sortition_account_balance_table, period);
+  if (!new_eth_header) {
+    return false;
+  }
   uint64_t block_number = 0;
   if (sche_blk.getSchedule().dag_blks_order.size() > 0) {
     block_number =
         pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
             .first;
+  } else {
+    // FIXME: Initialize `block_number`
   }
   if (ws_server_) {
     ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
+    ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,  //
+                                                 eth_service_->sealEngine()));
   }
-  return res;
+  return true;
 }
 
 std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {
@@ -615,12 +593,6 @@ void FullNode::pushUnverifiedPbftBlock(taraxa::PbftBlock const &pbft_block) {
 
 uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
-}
-
-void FullNode::newOrderedBlock(blk_hash_t const &dag_block_hash,
-                               uint64_t const &block_number) {
-  auto blk = getDagBlock(dag_block_hash);
-  if (ws_server_) ws_server_->newOrderedBlock(blk, block_number);
 }
 
 void FullNode::newPendingTransaction(trx_hash_t const &trx_hash) {

@@ -6,7 +6,9 @@ extern "C" {
 }
 #include <libdevcore/Log.h>
 #include <libdevcore/db.h>
+
 #include <cstring>
+
 #include "util/eth.hpp"
 
 namespace taraxa::trx_engine::db::cgo {
@@ -26,7 +28,7 @@ using CgoBatch = taraxa_cgo_ethdb_Batch;
 using CgoDatabase = taraxa_cgo_ethdb_Database;
 
 struct BatchAdapter {
-  const CgoBatch c_self_ = {
+  CgoBatch c_self = {
       this,
       [](auto self) { delete decltype(this)(self); },
       [](auto self, auto key, auto value) {
@@ -35,25 +37,21 @@ struct BatchAdapter {
       [](auto self) { return decltype(this)(self)->Write(); },
   };
 
-  auto c_self() { return const_cast<CgoBatch*>(&c_self_); }
-
   virtual ~BatchAdapter() = default;
   virtual Error Put(Key key, Value value) = 0;
   virtual Error Write() = 0;
 };
 
 struct DatabaseAdapter {
-  const CgoDatabase c_self_ = {
+  CgoDatabase c_self = {
       this,
       [](auto self) { delete decltype(this)(self); },
       [](auto self, auto key, auto value) {
         return decltype(this)(self)->Put(key, value);
       },
       [](auto self, auto key) { return decltype(this)(self)->Get(key); },
-      [](auto self) { return decltype(this)(self)->NewBatch()->c_self(); },
+      [](auto self) { return &decltype(this)(self)->NewBatch()->c_self; },
   };
-
-  auto c_self() { return const_cast<CgoDatabase*>(&c_self_); }
 
   virtual ~DatabaseAdapter() = default;
   virtual Error Put(Key key, Value value) = 0;
@@ -66,11 +64,11 @@ inline auto alethSlice(const Slice& s) {
 }
 
 class AlethBatchAdapter : public virtual BatchAdapter {
-  const shared_ptr<DatabaseFace> database;
+  DatabaseFace* database;
   unique_ptr<WriteBatchFace> batch;
 
  public:
-  explicit AlethBatchAdapter(const decltype(database)& db)
+  explicit AlethBatchAdapter(decltype(database) const& db)
       : database(db), batch(db->createWriteBatch()) {}
 
   Error Put(Key key, Value value) override {
@@ -85,7 +83,7 @@ class AlethBatchAdapter : public virtual BatchAdapter {
 };
 
 class AlethDatabaseAdapter : public virtual DatabaseAdapter {
-  shared_ptr<DatabaseFace> database;
+  DatabaseFace* database;
 
  public:
   explicit AlethDatabaseAdapter(decltype(database) db) : database(move(db)) {}
@@ -96,8 +94,8 @@ class AlethDatabaseAdapter : public virtual DatabaseAdapter {
   }
 
   ValueAndErr Get(Key key) override {
-    const auto& value = database->lookup(alethSlice(key));
-    const SliceSize& size = value.size();
+    auto value = database->lookup(alethSlice(key));
+    SliceSize size = value.size();
     auto offset = (char*)taraxa_cgo_malloc(sizeof(char) * size);
     memcpy(offset, value.data(), size);
     return {{offset, size}};

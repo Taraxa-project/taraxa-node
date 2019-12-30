@@ -6,6 +6,7 @@
 namespace taraxa::core_tests::util::constants {
 
 inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK = 10000;
+// TODO calculate dynamicall based on the eth chain params
 inline const val_t TEST_TX_GAS_LIMIT =
     MOCK_BLOCK_GAS_LIMIT / TEST_MAX_TRANSACTIONS_IN_BLOCK;
 

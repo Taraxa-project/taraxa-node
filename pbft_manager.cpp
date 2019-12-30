@@ -8,16 +8,17 @@
 
 #include "pbft_manager.hpp"
 
+#include <libdevcore/SHA3.h>
+
+#include <chrono>
+#include <string>
+
 #include "dag.hpp"
 #include "full_node.hpp"
-#include "libdevcore/SHA3.h"
 #include "network.hpp"
 #include "sortition.hpp"
 #include "util.hpp"
 #include "util/eth.hpp"
-
-#include <chrono>
-#include <string>
 
 namespace taraxa {
 
@@ -40,6 +41,7 @@ void PbftManager::setFullNode(
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
   replay_protection_service_ = replay_protection_service;
+  db_ = full_node->getDB();
 }
 
 void PbftManager::start() {
@@ -57,7 +59,6 @@ void PbftManager::start() {
   LOG(log_deb_) << "PBFT start at GHOST size " << ghost.size()
                 << ", the last of DAG blocks is " << ghost.back();
 
-  db_ = full_node->getDB();
   if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
@@ -1121,7 +1122,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   pbft_block.setTimestamp(timestamp);
 
   // sign the pbft block
-  std::string pbft_block_str = pbft_block.getJsonStr();
+  std::string pbft_block_str = pbft_block.getJsonStr(false);
   sig_t signature = full_node->signMessage(pbft_block_str);
   pbft_block.setSignature(signature);
   pbft_block.setBlockHash();
@@ -1502,7 +1503,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         // update DAG blocks order and DAG blocks order/height DB
         for (auto const &dag_blk_hash : *dag_blocks_order) {
           auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
-          full_node->newOrderedBlock(dag_blk_hash, block_number);
         }
         // set DAG blocks period
         uint64_t current_pbft_chain_period =
@@ -1521,9 +1521,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
         //  pairs<addr_t, val_t>.
         //  Will need update sortition_account_balance_table here
         uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-        if (!full_node->executeScheduleBlock(pbft_block.getScheduleBlock(),
-                                             sortition_account_balance_table,
-                                             pbft_period)) {
+        if (!full_node->executePeriod(
+                pbft_block, sortition_account_balance_table, pbft_period)) {
           LOG(log_err_) << "Failed to execute schedule block";
         }
         db_->savePeriodScheduleBlock(pbft_period, pbft_block.getBlockHash());
