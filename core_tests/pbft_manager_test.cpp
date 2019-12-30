@@ -59,14 +59,15 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   // Vote DAG block
+  int pbft_chain_size = 2;
   for (int i = 0; i < 600; i++) {
     // test timeout is 60 seconds
-    if (pbft_chain->getPbftChainSize() == 3) {
+    if (pbft_chain->getPbftChainSize() == pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), 3);
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
 
@@ -86,7 +87,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
             9007199254740991 - 100);
-
   EXPECT_EQ(node->getBalance(receiver).first, 100);
 }
 
@@ -173,8 +173,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
 
-  int pbft_chain_size = 3;
-
+  int pbft_chain_size = 2;
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain3->getPbftChainSize(), pbft_chain_size);
@@ -214,7 +213,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     ASSERT_EQ(node3->getNumTransactionExecuted(), 1);
   }
 
-  pbft_chain_size = 5;
+  pbft_chain_size = 3;
   // Vote DAG block
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
@@ -237,32 +236,26 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 1000);
   }
   std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
-  // PBFT second CS block
-  blk_hash_t pbft_second_cs_block_hash = pbft_chain1->getLastPbftBlockHash();
-  PbftBlock pbft_second_cs_block =
-      pbft_chain1->getPbftBlockInChain(pbft_second_cs_block_hash);
-  vec_blk_t dag_blocks_in_cs =
-      pbft_second_cs_block.getScheduleBlock().getSchedule().dag_blks_order;
+  // PBFT second block
+  blk_hash_t pbft_second_block_hash = pbft_chain1->getLastPbftBlockHash();
+  PbftBlock pbft_second_block =
+      pbft_chain1->getPbftBlockInChain(pbft_second_block_hash);
+  vec_blk_t dag_blocks_hash_in_schedule =
+      pbft_second_block.getSchedule().dag_blks_order;
   // due to change of trx packing change, a trx can be packed in multiple blocks
-  EXPECT_GE(dag_blocks_in_cs.size(), 1);
-  for (auto &dag_block_hash : dag_blocks_in_cs) {
+  EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
+  for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
     ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
     unique_dag_block_hash_set.insert(dag_block_hash);
   }
-  // PBFT second pivot block
-  blk_hash_t pbft_second_pivot_block_hash =
-      pbft_second_cs_block.getScheduleBlock().getPrevBlockHash();
-  PbftBlock pbft_second_pivot_block =
-      pbft_chain1->getPbftBlockInChain(pbft_second_pivot_block_hash);
-  // PBFT first CS block
-  blk_hash_t pbft_first_cs_block_hash =
-      pbft_second_pivot_block.getPivotBlock().getPrevBlockHash();
-  PbftBlock pbft_first_cs_block =
-      pbft_chain1->getPbftBlockInChain(pbft_first_cs_block_hash);
-  dag_blocks_in_cs =
-      pbft_first_cs_block.getScheduleBlock().getSchedule().dag_blks_order;
-  EXPECT_EQ(dag_blocks_in_cs.size(), 1);
-  ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_in_cs[0]));
+  // PBFT first block hash
+  blk_hash_t pbft_first_block_hash = pbft_second_block.getPrevBlockHash();
+  // PBFT first block
+  PbftBlock pbft_first_block =
+      pbft_chain1->getPbftBlockInChain(pbft_first_block_hash);
+  dag_blocks_hash_in_schedule = pbft_first_block.getSchedule().dag_blks_order;
+  EXPECT_EQ(dag_blocks_hash_in_schedule.size(), 1);
+  ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_hash_in_schedule[0]));
 }
 
 }  // namespace taraxa
