@@ -531,15 +531,15 @@ bool FullNode::executePeriod(PbftBlock const &pbft_block,
     return false;
   }
   uint64_t block_number = 0;
-  if (sche_blk.getSchedule().dag_blks_order.size() > 0) {
+  if (pbft_blk.getSchedule().dag_blks_order.size() > 0) {
     block_number =
-        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
+        pbft_chain_->getDagBlockHeight(pbft_blk.getSchedule().dag_blks_order[0])
             .first;
   } else {
     // FIXME: Initialize `block_number`
   }
   if (ws_server_) {
-    ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
+    ws_server_->newScheduleBlockExecuted(pbft_block, block_number, period);
     ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,  //
                                                  eth_service_->sealEngine()));
   }
