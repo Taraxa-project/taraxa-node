@@ -127,8 +127,8 @@ class PbftManager {
 
   void syncPbftChainFromPeers_();
 
-  bool comparePbftCSblockWithDAGblocks_(blk_hash_t const &cs_block_hash);
-  bool comparePbftCSblockWithDAGblocks_(PbftBlock const &pbft_block_cs);
+  bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
+  bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
   void pushSyncedPbftBlocksIntoChain_();
 
@@ -141,7 +141,7 @@ class PbftManager {
   size_t getValidPbftSortitionPlayerSize_();
 
   std::atomic<bool> stopped_ = true;
-  // Using to check if PBFT CS block has proposed already in one period
+  // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
       std::make_pair(NULL_BLOCK_HASH, false);
 
@@ -161,7 +161,7 @@ class PbftManager {
   uint64_t pbft_round_;
   uint64_t pbft_round_last_;
   size_t pbft_step_;
-  bool executed_cs_block_ = false;
+  bool executed_pbft_block_ = false;
 
   uint64_t pbft_round_last_requested_sync_;
   size_t pbft_step_last_requested_sync_;
