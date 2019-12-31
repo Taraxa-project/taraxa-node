@@ -181,7 +181,7 @@ std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche) {
   strm << trx_sche.getStr();
   return strm;
 }
-
+/*
 PivotBlock::PivotBlock(taraxa::stream& strm) { deserialize(strm); }
 
 blk_hash_t PivotBlock::getPrevPivotBlockHash() const {
@@ -408,7 +408,7 @@ void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
     }
   }
 }
-
+*/
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& r) {

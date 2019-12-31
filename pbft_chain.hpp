@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche);
 
 class FullNode;
 class Vote;
-
+/*
 class PivotBlock {
  public:
   PivotBlock() = default;
@@ -150,13 +150,13 @@ class ScheduleBlock {
   TrxSchedule schedule_;
 };
 std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
-
+*/
 class PbftBlock {
  public:
   PbftBlock() = default;
 //  PbftBlock(uint64_t height) : height_(height) {}
-//  PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-//      : block_hash_(block_hash), height_(height) {}
+  PbftBlock(blk_hash_t const& block_hash, uint64_t height)
+      : block_hash_(block_hash), height_(height) {} // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
             TrxSchedule const& schedule,  uint64_t period, uint64_t height,
@@ -184,7 +184,8 @@ class PbftBlock {
 
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
-  std::string getJsonStr() const;
+  std::string getJsonStr(bool with_signature = true) const;
+  addr_t getAuthor() const;
   void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
   void serializeRLP(dev::RLPStream& s) const;
@@ -197,8 +198,6 @@ class PbftBlock {
   uint64_t getHeight() const { return height_; }
   uint64_t getTimestamp() const { return timestamp_; }
   addr_t getBeneficiary() const { return beneficiary_; }
-  std::string getJsonStr(bool with_signature = true) const;
-  addr_t getAuthor() const;
 
   void setBlockHash();
   void setPrevBlockHash(blk_hash_t const& prev_block_hash);

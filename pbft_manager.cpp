@@ -1426,9 +1426,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       //  pairs<addr_t, val_t>.
       //  Will need update sortition_account_balance_table here
       uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-      if (!full_node->executeScheduleBlock(pbft_block,
-                                           sortition_account_balance_table,
-                                           pbft_period)) {
+      if (!full_node->executePeriod(pbft_block, sortition_account_balance_table,
+                                    pbft_period)) {
         LOG(log_err_) << "Failed to execute PBFT schedule";
       }
       db_->savePeriodScheduleBlock(pbft_period, pbft_block.getBlockHash());

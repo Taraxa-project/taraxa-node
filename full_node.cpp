@@ -531,10 +531,10 @@ bool FullNode::executePeriod(PbftBlock const &pbft_block,
     return false;
   }
   uint64_t block_number = 0;
-  if (pbft_blk.getSchedule().dag_blks_order.size() > 0) {
+  if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
     block_number =
-        pbft_chain_->getDagBlockHeight(pbft_blk.getSchedule().dag_blks_order[0])
-            .first;
+        pbft_chain_->getDagBlockHeight(
+            pbft_block.getSchedule().dag_blks_order[0]).first;
   } else {
     // FIXME: Initialize `block_number`
   }
