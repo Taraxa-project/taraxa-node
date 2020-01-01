@@ -767,7 +767,6 @@ bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
   // PBFT chain DB commit first for block, and size_ increase later
   size_++;
   db_->savePbftBlockGenesis(genesis_hash_.toString(), getJsonStr());
-
   return true;
 }
 

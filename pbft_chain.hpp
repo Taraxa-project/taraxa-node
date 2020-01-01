@@ -221,8 +221,8 @@ class PbftBlock {
 //  PbftBlockTypes block_type_ = pbft_block_none_type;
 //  PivotBlock pivot_block_;
 //  ScheduleBlock schedule_block_;
-  uint64_t period_;
-  uint64_t height_;
+  uint64_t period_; // PBFT head block is period 0, first PBFT block is period 1
+  uint64_t height_; // PBFT head block is height 1, first PBFT blick is height 2
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
