@@ -23,6 +23,7 @@
  */
 namespace taraxa {
 using boost::property_tree::ptree;
+
 class DbStorage;
 //enum PbftBlockTypes {
 //  pbft_block_none_type = -1,
@@ -314,13 +315,13 @@ class PbftChain {
   mutable boost::shared_mutex unverified_access_;
 
   blk_hash_t genesis_hash_; // pbft chain head hash
-  uint64_t size_;
-  uint64_t period_;
+  uint64_t size_; // PBFT head with size 1, first PBFT block with size 2
+  uint64_t period_; // PBFT head with period 0, first PBFT block with period 1
 //  PbftBlockTypes next_pbft_block_type_;
   blk_hash_t last_pbft_block_hash_;
 //  blk_hash_t last_pbft_pivot_hash_;
 
-  blk_hash_t dag_genesis_hash_;
+  blk_hash_t dag_genesis_hash_; // dag genesis at height 1
   uint64_t max_dag_blocks_height_ = 0;
 
   std::weak_ptr<FullNode> node_;
