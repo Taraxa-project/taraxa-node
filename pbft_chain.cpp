@@ -181,234 +181,7 @@ std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche) {
   strm << trx_sche.getStr();
   return strm;
 }
-/*
-PivotBlock::PivotBlock(taraxa::stream& strm) { deserialize(strm); }
 
-blk_hash_t PivotBlock::getPrevPivotBlockHash() const {
-  return prev_pivot_hash_;
-}
-
-blk_hash_t PivotBlock::getPrevBlockHash() const { return prev_block_hash_; }
-
-blk_hash_t PivotBlock::getDagBlockHash() const { return dag_block_hash_; }
-
-uint64_t PivotBlock::getPeriod() const { return period_; }
-
-addr_t PivotBlock::getBeneficiary() const { return beneficiary_; }
-
-void PivotBlock::setJsonTree(ptree& tree) const {
-  tree.put("prev_pivot_hash", prev_pivot_hash_.toString());
-  tree.put("prev_block_hash", prev_block_hash_.toString());
-  tree.put("dag_block_hash", dag_block_hash_.toString());
-  tree.put("period", period_);
-  tree.put("beneficiary", beneficiary_.toString());
-}
-
-void PivotBlock::setBlockByJson(ptree const& doc) {
-  prev_pivot_hash_ = blk_hash_t(doc.get<std::string>("prev_pivot_hash"));
-  prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
-  dag_block_hash_ = blk_hash_t(doc.get<std::string>("dag_block_hash"));
-  period_ = doc.get<uint64_t>("period");
-  beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
-}
-
-bool PivotBlock::serialize(stream& strm) const {
-  bool ok = true;
-
-  ok &= write(strm, prev_pivot_hash_);
-  ok &= write(strm, prev_block_hash_);
-  ok &= write(strm, dag_block_hash_);
-  ok &= write(strm, period_);
-  ok &= write(strm, beneficiary_);
-  assert(ok);
-
-  return ok;
-}
-
-bool PivotBlock::deserialize(stream& strm) {
-  bool ok = true;
-
-  ok &= read(strm, prev_pivot_hash_);
-  ok &= read(strm, prev_block_hash_);
-  ok &= read(strm, dag_block_hash_);
-  ok &= read(strm, period_);
-  ok &= read(strm, beneficiary_);
-  assert(ok);
-
-  return ok;
-}
-
-void PivotBlock::streamRLP(dev::RLPStream& strm) const {
-  strm << prev_pivot_hash_;
-  strm << prev_block_hash_;
-  strm << dag_block_hash_;
-  strm << period_;
-  strm << beneficiary_;
-}
-
-ScheduleBlock::ScheduleBlock(taraxa::stream& strm) { deserialize(strm); }
-
-Json::Value ScheduleBlock::getJson() const {
-  Json::Value res;
-  res["prev_block_hash"] = dev::toJS(prev_block_hash_);
-  Json::Value block_order = Json::Value(Json::arrayValue);
-  for (auto const& b : this->schedule_.dag_blks_order) {
-    block_order.append(dev::toJS(b));
-  }
-  res["block_order"] = block_order;
-  Json::Value trx_modes = Json::Value(Json::arrayValue);
-  for (auto const& m1 : this->schedule_.trxs_mode) {
-    Json::Value trx_modes_row = Json::Value(Json::arrayValue);
-    for (auto const& m2 : m1) {
-      trx_modes_row.append(dev::toJS(m2.first));
-      trx_modes_row.append(dev::toJS(m2.second));
-    }
-    trx_modes.append(dev::toJS(trx_modes_row));
-  }
-  res["trx_modes"] = trx_modes;
-  return res;
-}
-
-std::string ScheduleBlock::getJsonStr() const {
-  Json::StreamWriterBuilder builder;
-  return Json::writeString(builder, getJson());
-}
-
-std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk) {
-  strm << sche_blk.getJsonStr();
-  return strm;
-}
-
-TrxSchedule ScheduleBlock::getSchedule() const { return schedule_; }
-
-blk_hash_t ScheduleBlock::getPrevBlockHash() const { return prev_block_hash_; }
-
-void ScheduleBlock::setJsonTree(ptree& tree) const {
-  tree.put("prev_block_hash", prev_block_hash_.toString());
-
-  tree.put_child("block_order", ptree());
-  auto& block_order = tree.get_child("block_order");
-  uint32_t block_size = schedule_.dag_blks_order.size();
-  for (int i = 0; i < block_size; i++) {
-    block_order.push_back(
-        std::make_pair("", ptree(schedule_.dag_blks_order[i].toString())));
-  }
-
-  uint32_t trx_vectors_size = schedule_.trxs_mode.size();
-  if (block_size != trx_vectors_size) {
-    assert(false);
-  }
-  for (int i = 0; i < trx_vectors_size; i++) {
-    blk_hash_t block_hash(schedule_.dag_blks_order[i]);
-    tree.put_child(block_hash.toString(), ptree());
-    auto& trx_modes = tree.get_child(block_hash.toString());
-    uint32_t each_block_trx_size = schedule_.trxs_mode[i].size();
-    for (int j = 0; j < each_block_trx_size; j++) {
-      trx_modes.push_back(std::make_pair(
-          schedule_.trxs_mode[i][j].first.toString(),
-          ptree(std::to_string(schedule_.trxs_mode[i][j].second))));
-    }
-  }
-}
-
-void ScheduleBlock::setBlockByJson(ptree const& doc) {
-  prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
-  schedule_.dag_blks_order =
-      asVector<blk_hash_t, std::string>(doc, "block_order");
-  for (auto const& blk_hash : schedule_.dag_blks_order) {
-    std::vector<std::pair<trx_hash_t, uint>> dag_trxs_mode;
-    for (auto& trx_mode : doc.get_child(blk_hash.toString())) {
-      trx_hash_t trx(trx_mode.first);
-      uint mode = atoi(trx_mode.second.get_value<std::string>().c_str());
-      dag_trxs_mode.emplace_back(std::make_pair(trx, mode));
-    }
-    schedule_.trxs_mode.emplace_back(dag_trxs_mode);
-  }
-}
-
-bool ScheduleBlock::serialize(taraxa::stream& strm) const {
-  bool ok = true;
-
-  ok &= write(strm, prev_block_hash_);
-  uint32_t block_size = schedule_.dag_blks_order.size();
-  uint32_t trx_vectors_size = schedule_.trxs_mode.size();
-  if (block_size != trx_vectors_size) {
-    assert(false);
-  }
-  ok &= write(strm, block_size);
-  ok &= write(strm, trx_vectors_size);
-  for (int i = 0; i < block_size; i++) {
-    ok &= write(strm, schedule_.dag_blks_order[i]);
-  }
-  for (int i = 0; i < trx_vectors_size; i++) {
-    uint32_t each_block_trx_size = schedule_.trxs_mode[i].size();
-    ok &= write(strm, each_block_trx_size * 2);
-    for (int j = 0; j < each_block_trx_size; j++) {
-      ok &= write(strm, schedule_.trxs_mode[i][j].first);
-      ok &= write(strm, schedule_.trxs_mode[i][j].second);
-    }
-  }
-  assert(ok);
-
-  return ok;
-}
-
-bool ScheduleBlock::deserialize(taraxa::stream& strm) {
-  bool ok = true;
-
-  ok &= read(strm, prev_block_hash_);
-  uint32_t block_size;
-  uint32_t trx_vectors_size;
-  ok &= read(strm, block_size);
-  ok &= read(strm, trx_vectors_size);
-  if (block_size != trx_vectors_size) {
-    assert(false);
-  }
-  for (int i = 0; i < block_size; i++) {
-    blk_hash_t block_hash;
-    ok &= read(strm, block_hash);
-    if (ok) {
-      schedule_.dag_blks_order.push_back(block_hash);
-    }
-  }
-  for (int i = 0; i < trx_vectors_size; i++) {
-    uint32_t each_block_trx_size;
-    ok &= read(strm, each_block_trx_size);
-    std::vector<std::pair<trx_hash_t, uint>> each_block_trxs_mode;
-    for (int j = 0; j < each_block_trx_size; j++) {
-      trx_hash_t trx;
-      ok &= read(strm, trx);
-      if (!ok) {
-        assert(false);
-      }
-      j++;
-      uint mode;
-      ok &= read(strm, mode);
-      if (!ok) {
-        assert(false);
-      }
-      each_block_trxs_mode.push_back(std::make_pair(trx, mode));
-    }
-    schedule_.trxs_mode.push_back(each_block_trxs_mode);
-  }
-  assert(ok);
-
-  return ok;
-}
-
-void ScheduleBlock::streamRLP(dev::RLPStream& strm) const {
-  strm << prev_block_hash_;
-  for (int i = 0; i < schedule_.dag_blks_order.size(); i++) {
-    strm << schedule_.dag_blks_order[i];
-  }
-  for (int i = 0; i < schedule_.trxs_mode.size(); i++) {
-    for (int j = 0; j < schedule_.trxs_mode[i].size(); j++) {
-      strm << schedule_.trxs_mode[i][j].first;
-      strm << schedule_.trxs_mode[i][j].second;
-    }
-  }
-}
-*/
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& r) {
@@ -563,13 +336,50 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
+PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
+                             std::vector<Vote> const& cert_votes)
+    : pbft_blk(pbft_blk), cert_votes(cert_votes) {}
+
+PbftBlockCert::PbftBlockCert(bytes const& all_rlp) {
+  dev::RLP const rlp(all_rlp);
+  auto num_items = rlp.itemCount();
+  pbft_blk = PbftBlock(rlp[0].toBytes());
+  for (auto i = 1; i < num_items; ++i) {
+    cert_votes.emplace_back(Vote(rlp[i].toBytes()));
+  }
+}
+
+PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
+                             bytes const& cert_votes_rlp)
+    : pbft_blk(pbft_blk) {
+  auto rlp = dev::RLP(cert_votes_rlp);
+  auto num_votes = rlp.itemCount();
+  for (auto i = 0; i < num_votes; ++i) {
+    cert_votes.emplace_back(rlp[i].toBytes());
+  }
+}
+
+bytes PbftBlockCert::rlp() const {
+  RLPStream s;
+  s.appendList(cert_votes.size() + 1);
+  s.append(pbft_blk.rlp());
+  for (auto const& v : cert_votes) {
+    s.append(v.rlp());
+  }
+  return s.out();
+}
+
+std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
+  strm << "[PbftBlockCert] hash: " << b.pbft_blk.getBlockHash()
+       << " , num of votes " << b.cert_votes.size() << std::endl;
+  return strm;
+}
+
 PbftChain::PbftChain(std::string const& dag_genesis_hash)
     : genesis_hash_(blk_hash_t(0)),
       size_(1),
       period_(0),
-//      next_pbft_block_type_(pivot_block_type),
       last_pbft_block_hash_(genesis_hash_),
-//      last_pbft_pivot_hash_(genesis_hash_),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
@@ -598,12 +408,8 @@ void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
   genesis_hash_ = blk_hash_t(doc.get<std::string>("genesis_hash"));
   size_ = doc.get<uint64_t>("size");
   period_ = doc.get<uint64_t>("period");
-//  next_pbft_block_type_ =
-//      static_cast<PbftBlockTypes>(doc.get<int>("next_pbft_block_type"));
   last_pbft_block_hash_ =
       blk_hash_t(doc.get<std::string>("last_pbft_block_hash"));
-//  last_pbft_pivot_hash_ =
-//      blk_hash_t(doc.get<std::string>("last_pbft_pivot_hash"));
 }
 
 void PbftChain::cleanupUnverifiedPbftBlocks(
@@ -656,17 +462,12 @@ std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
 }
 
 uint64_t PbftChain::getDagBlockMaxHeight() const {
-//  assert(max_dag_blocks_height_);
   return max_dag_blocks_height_;
 }
 
 void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
   last_pbft_block_hash_ = new_pbft_block_hash;
 }
-
-//void PbftChain::setNextPbftBlockType(taraxa::PbftBlockTypes next_block_type) {
-//  next_pbft_block_type_ = next_block_type;
-//}
 
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
@@ -972,45 +773,6 @@ void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
     upgradeLock_ locked(lock);
     unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
   }
-}
-
-PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
-                             std::vector<Vote> const& cert_votes)
-    : pbft_blk(pbft_blk), cert_votes(cert_votes) {}
-
-PbftBlockCert::PbftBlockCert(bytes const& all_rlp) {
-  dev::RLP const rlp(all_rlp);
-  auto num_items = rlp.itemCount();
-  pbft_blk = PbftBlock(rlp[0].toBytes());
-  for (auto i = 1; i < num_items; ++i) {
-    cert_votes.emplace_back(Vote(rlp[i].toBytes()));
-  }
-}
-
-PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
-                             bytes const& cert_votes_rlp)
-    : pbft_blk(pbft_blk) {
-  auto rlp = dev::RLP(cert_votes_rlp);
-  auto num_votes = rlp.itemCount();
-  for (auto i = 0; i < num_votes; ++i) {
-    cert_votes.emplace_back(rlp[i].toBytes());
-  }
-}
-
-bytes PbftBlockCert::rlp() const {
-  RLPStream s;
-  s.appendList(cert_votes.size() + 1);
-  s.append(pbft_blk.rlp());
-  for (auto const& v : cert_votes) {
-    s.append(v.rlp());
-  }
-  return s.out();
-}
-
-std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
-  strm << "[PbftBlockCert] hash: " << b.pbft_blk.getBlockHash()
-       << " , num of votes " << b.cert_votes.size() << std::endl;
-  return strm;
 }
 
 }  // namespace taraxa
