@@ -75,8 +75,8 @@ bool TrxSchedule::serialize(taraxa::stream& strm) const {
     uint32_t each_block_trx_size = trxs_mode[i].size();
     ok &= write(strm, each_block_trx_size * 2);
     for (auto j(0); j < each_block_trx_size; ++j) {
-      ok &= write(strm, trxs_mode[i][j].first); // Transation hash
-      ok &= write(strm, trxs_mode[i][j].second); // Transation mode
+      ok &= write(strm, trxs_mode[i][j].first);   // Transation hash
+      ok &= write(strm, trxs_mode[i][j].second);  // Transation mode
     }
   }
   assert(ok);
@@ -141,9 +141,9 @@ void TrxSchedule::setPtree(ptree& tree) const {
     auto& each_dag_block_trxs_mode = tree.get_child(dag_block_hash.toString());
     uint32_t each_dag_block_trxs_size = trxs_mode[i].size();
     for (int j(0); j < each_dag_block_trxs_size; ++j) {
-      each_dag_block_trxs_mode.push_back(std::make_pair(
-          trxs_mode[i][j].first.toString(),
-          ptree(std::to_string(trxs_mode[i][j].second))));
+      each_dag_block_trxs_mode.push_back(
+          std::make_pair(trxs_mode[i][j].first.toString(),
+                         ptree(std::to_string(trxs_mode[i][j].second))));
     }
   }
 }
@@ -588,8 +588,7 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
   }
   insertPbftBlockIndex_(pbft_block_hash);
   LOG(log_inf_) << "Push pbft block " << pbft_block_hash
-                << " with DAG block hash "
-                << pbft_block.getPivotDagBlockHash()
+                << " with DAG block hash " << pbft_block.getPivotDagBlockHash()
                 << " into pbft chain, current pbft chain period " << period_
                 << " chain size is " << size_;
   return true;

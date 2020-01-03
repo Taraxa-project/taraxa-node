@@ -1044,25 +1044,27 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     dag_blocks_trxs_mode.emplace_back(each_dag_blk_trxs_mode);
   }
 
-//  TODO: Keep for now to compare, will remove later
-//  // get transactions overlap table
-//  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-//      trx_overlap_table =
-//          full_node->computeTransactionOverlapTable(dag_blocks_hash_order);
-//  if (!trx_overlap_table) {
-//    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock "
-//                  << "transactions schedule";
-//    return std::make_pair(NULL_BLOCK_HASH, false);
-//  }
-//  if (trx_overlap_table->empty()) {
-//    LOG(log_deb_) << "Transaction overlap table is empty, no DAG block needs "
-//                  << " generate mock trx schedule";
-//    return std::make_pair(NULL_BLOCK_HASH, false);
-//  }
-//  // TODO: generate fake transaction schedule for now, will pass
-//  //  trx_overlap_table to VM
-//  std::vector<std::vector<uint>> dag_blocks_trx_modes =
-//      full_node->createMockTrxSchedule(trx_overlap_table);
+  //  TODO: Keep for now to compare, will remove later
+  //  // get transactions overlap table
+  //  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+  //      trx_overlap_table =
+  //          full_node->computeTransactionOverlapTable(dag_blocks_hash_order);
+  //  if (!trx_overlap_table) {
+  //    LOG(log_err_) << "Transaction overlap table nullptr, cannot create mock
+  //    "
+  //                  << "transactions schedule";
+  //    return std::make_pair(NULL_BLOCK_HASH, false);
+  //  }
+  //  if (trx_overlap_table->empty()) {
+  //    LOG(log_deb_) << "Transaction overlap table is empty, no DAG block needs
+  //    "
+  //                  << " generate mock trx schedule";
+  //    return std::make_pair(NULL_BLOCK_HASH, false);
+  //  }
+  //  // TODO: generate fake transaction schedule for now, will pass
+  //  //  trx_overlap_table to VM
+  //  std::vector<std::vector<uint>> dag_blocks_trx_modes =
+  //      full_node->createMockTrxSchedule(trx_overlap_table);
 
   TrxSchedule schedule(*dag_blocks_hash_order, dag_blocks_trxs_mode);
   uint64_t propose_pbft_period = pbft_chain_->getPbftChainPeriod() + 1;
@@ -1091,11 +1093,11 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
                 << " PBFT block hash " << pbft_block_hash
                 << ", prev block hash " << last_pbft_block_hash
                 << ", DAG block hash " << dag_block_hash << " as pivot, "
-                << "transaction schedule " <<  schedule
-                << ", proposed period " << propose_pbft_period
-                << ", proposed PBFT block height " << pbft_block_height
-                << ", timestamp " << timestamp << ", beneficiary "
-                << beneficiary << ", signarure " << signature;
+                << "transaction schedule " << schedule << ", proposed period "
+                << propose_pbft_period << ", proposed PBFT block height "
+                << pbft_block_height << ", timestamp " << timestamp
+                << ", beneficiary " << beneficiary << ", signarure "
+                << signature;
   return std::make_pair(pbft_block_hash, true);
 }
 
@@ -1281,26 +1283,27 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
     return false;
   }
 
-//  // TODO: may not need to compare transactions, keep it now. If need to
-//  //  compare transactions will need to compare one by one. Would cause
-//  //  performance issue. Below code need to modify.
-//  // compare number of transactions in CS with DAG blocks
-//  // PBFT CS block number of transactions
-//  std::vector<std::vector<uint>> trx_modes =
-//      pbft_block_cs.getScheduleBlock().getSchedule().trxs_mode;
-//  for (int i = 0; i < dag_blocks_hash_order->size(); i++) {
-//    std::shared_ptr<DagBlock> dag_block =
-//        full_node->getDagBlock((*dag_blocks_hash_order)[i]);
-//    // DAG block transations
-//    vec_trx_t dag_block_trxs = dag_block->getTrxs();
-//    if (trx_modes[i].size() != dag_block_trxs.size()) {
-//      LOG(log_err_) << "In DAG block hash: " << (*dag_blocks_hash_order)[i]
-//                    << " has " << dag_block_trxs.size()
-//                    << " transactions. But the DAG block in PBFT CS block "
-//                    << "only has " << trx_modes[i].size() << " transactions.";
-//      return false;
-//    }
-//  }
+  //  // TODO: may not need to compare transactions, keep it now. If need to
+  //  //  compare transactions will need to compare one by one. Would cause
+  //  //  performance issue. Below code need to modify.
+  //  // compare number of transactions in CS with DAG blocks
+  //  // PBFT CS block number of transactions
+  //  std::vector<std::vector<uint>> trx_modes =
+  //      pbft_block_cs.getScheduleBlock().getSchedule().trxs_mode;
+  //  for (int i = 0; i < dag_blocks_hash_order->size(); i++) {
+  //    std::shared_ptr<DagBlock> dag_block =
+  //        full_node->getDagBlock((*dag_blocks_hash_order)[i]);
+  //    // DAG block transations
+  //    vec_trx_t dag_block_trxs = dag_block->getTrxs();
+  //    if (trx_modes[i].size() != dag_block_trxs.size()) {
+  //      LOG(log_err_) << "In DAG block hash: " << (*dag_blocks_hash_order)[i]
+  //                    << " has " << dag_block_trxs.size()
+  //                    << " transactions. But the DAG block in PBFT CS block "
+  //                    << "only has " << trx_modes[i].size() << "
+  //                    transactions.";
+  //      return false;
+  //    }
+  //  }
 
   return true;
 }
@@ -1418,8 +1421,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       LOG(log_deb_) << full_node->getAddress()
                     << " Finalize PBFT block in period "
                     << current_pbft_chain_period << " round " << pbft_round_
-                    << " step " << pbft_step_
-                    << " PBFT block: " << pbft_block;
+                    << " step " << pbft_step_ << " PBFT block: " << pbft_block;
       // execute pbft schedule
       // TODO: VM executor will not take sortition_account_balance_table as
       //  reference. But will return a list of modified accounts as
@@ -1434,10 +1436,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       auto num_executed_blk = full_node->getNumBlockExecuted();
       auto num_executed_trx = full_node->getNumTransactionExecuted();
       if (num_executed_blk > 0 && num_executed_trx > 0) {
-        db_->saveStatusField(StatusDbField::ExecutedBlkCount,
-                             num_executed_blk);
-        db_->saveStatusField(StatusDbField::ExecutedTrxCount,
-                             num_executed_trx);
+        db_->saveStatusField(StatusDbField::ExecutedBlkCount, num_executed_blk);
+        db_->saveStatusField(StatusDbField::ExecutedTrxCount, num_executed_trx);
       }
       if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
         auto write_batch = db_->createWriteBatch();

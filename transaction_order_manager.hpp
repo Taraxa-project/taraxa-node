@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <libdevcore/Log.h>
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
@@ -11,7 +12,6 @@
 #include <thread>
 #include "dag_block.hpp"
 #include "db_storage.hpp"
-#include <libdevcore/Log.h>
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"

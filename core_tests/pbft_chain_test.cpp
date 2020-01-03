@@ -12,9 +12,9 @@
 #include "full_node.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
+#include "static_init.hpp"
 #include "util.hpp"
 #include "util/constants.hpp"
-#include "static_init.hpp"
 
 namespace taraxa {
 using core_tests::util::constants::TEST_TX_GAS_LIMIT;

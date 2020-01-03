@@ -5,6 +5,7 @@
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
+#include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 #include <atomic>
@@ -16,7 +17,6 @@
 #include "config.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
-#include <libp2p/Host.h>
 #include "taraxa_capability.hpp"
 #include "transaction.hpp"
 #include "util.hpp"

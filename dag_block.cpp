@@ -1,12 +1,12 @@
 #include "dag_block.hpp"
+#include <libdevcore/CommonData.h>
+#include <libdevcore/CommonJS.h>
+#include <libdevcore/Log.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <utility>
 #include "dag.hpp"
 #include "full_node.hpp"
-#include <libdevcore/CommonData.h>
-#include <libdevcore/CommonJS.h>
-#include <libdevcore/Log.h>
 
 namespace taraxa {
 

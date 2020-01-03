@@ -129,11 +129,14 @@ connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+        g_conf1->network,
+        g_conf1->chain.dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+        g_conf2->network,
+        g_conf2->chain.dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString()));
+        g_conf3->network,
+        g_conf3->chain.dag_genesis_block.getHash().toString()));
 
     nw1->start(true);
     nw2->start();
@@ -158,12 +161,12 @@ TEST_F(NetworkTest, save_network) {
     nw3->saveNetwork("/tmp/nw3");
   }
 
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, "/tmp/nw2",
-                          g_conf2->chain.dag_genesis_block.getHash().toString()));
-  std::shared_ptr<Network> nw3(
-      new taraxa::Network(g_conf3->network, "/tmp/nw3",
-                          g_conf2->chain.dag_genesis_block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(
+      g_conf2->network, "/tmp/nw2",
+      g_conf2->chain.dag_genesis_block.getHash().toString()));
+  std::shared_ptr<Network> nw3(new taraxa::Network(
+      g_conf3->network, "/tmp/nw3",
+      g_conf2->chain.dag_genesis_block.getHash().toString()));
   nw2->start();
   nw3->start();
 
@@ -390,8 +393,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
-  blk_hash_t first_pbft_block_hash = pbft_chain2->getPbftBlockInChain(
-      second_pbft_block_hash).getPrevBlockHash();
+  blk_hash_t first_pbft_block_hash =
+      pbft_chain2->getPbftBlockInChain(second_pbft_block_hash)
+          .getPrevBlockHash();
   EXPECT_EQ(first_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
@@ -456,7 +460,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   bool checkpoint_passed = false;
   const int timeout_val = 60;
   for (auto i = 0; i < timeout_val; i++) {
-  // test timeout is 60 seconds
+    // test timeout is 60 seconds
     if (nw1->getPeerCount() == node_peers &&
         nw2->getPeerCount() == node_peers) {
       checkpoint_passed = true;

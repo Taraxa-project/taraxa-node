@@ -4,9 +4,9 @@
 #include <string>
 #include <thread>
 
+#include <libdevcore/Log.h>
 #include <atomic>
 #include "config.hpp"
-#include <libdevcore/Log.h>
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
 #include "taraxa_capability.hpp"
@@ -127,7 +127,8 @@ class PbftManager {
 
   void syncPbftChainFromPeers_();
 
-  bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
+  bool comparePbftBlockScheduleWithDAGblocks_(
+      blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
   void pushSyncedPbftBlocksIntoChain_();

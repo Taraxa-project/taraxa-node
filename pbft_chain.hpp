@@ -69,10 +69,10 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : block_hash_(block_hash), height_(height) {} // For unit test
+      : block_hash_(block_hash), height_(height) {}  // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
-            TrxSchedule const& schedule,  uint64_t period, uint64_t height,
+            TrxSchedule const& schedule, uint64_t period, uint64_t height,
             uint64_t timestamp, addr_t const& beneficiary)
       : prev_block_hash_(prev_blk_hash),
         dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
@@ -119,8 +119,10 @@ class PbftBlock {
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_as_pivot_;
   TrxSchedule schedule_;
-  uint64_t period_; // PBFT head block is period 0, first PBFT block is period 1
-  uint64_t height_; // PBFT head block is height 1, first PBFT blick is height 2
+  uint64_t
+      period_;  // PBFT head block is period 0, first PBFT block is period 1
+  uint64_t
+      height_;  // PBFT head block is height 1, first PBFT blick is height 2
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
@@ -204,12 +206,12 @@ class PbftChain {
   mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
 
-  blk_hash_t genesis_hash_; // pbft chain head hash
-  uint64_t size_; // PBFT head with size 1, first PBFT block with size 2
-  uint64_t period_; // PBFT head with period 0, first PBFT block with period 1
+  blk_hash_t genesis_hash_;  // pbft chain head hash
+  uint64_t size_;    // PBFT head with size 1, first PBFT block with size 2
+  uint64_t period_;  // PBFT head with period 0, first PBFT block with period 1
   blk_hash_t last_pbft_block_hash_;
 
-  blk_hash_t dag_genesis_hash_; // dag genesis at height 1
+  blk_hash_t dag_genesis_hash_;  // dag genesis at height 1
   uint64_t max_dag_blocks_height_ = 0;
 
   std::weak_ptr<FullNode> node_;

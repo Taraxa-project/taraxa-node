@@ -41,4 +41,4 @@ bool Net::net_listening() {
   BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
-}
+}  // namespace taraxa::net
