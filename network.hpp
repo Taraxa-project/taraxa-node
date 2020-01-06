@@ -5,6 +5,7 @@
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
 #include <libp2p/Common.h>
+#include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 #include <atomic>
@@ -16,7 +17,6 @@
 #include "config.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
-#include <libp2p/Host.h>
 #include "taraxa_capability.hpp"
 #include "transaction.hpp"
 #include "util.hpp"
@@ -75,7 +75,8 @@ class Network {
   void onNewPbftVote(Vote const &vote);
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
-  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block);
+  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block,
+                     uint64_t const &pbft_chain_size);
 
  private:
   std::shared_ptr<dev::p2p::Host> host_;

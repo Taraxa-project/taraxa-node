@@ -573,11 +573,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(log_dg_pbft_prp_) << "In NewPbftBlockPacket";
 
         PbftBlock pbft_block(_r[0]);
+        uint64_t pbft_chain_size = _r[1].toInt();
         LOG(log_dg_pbft_prp_)
-            << "Received PBFT Block " << pbft_block.getBlockHash();
+            << "Received PBFT Block " << pbft_block.getBlockHash()
+            << " Peer Chain size: " << pbft_chain_size;
         peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
-        if ((pbft_block.getHeight() - 1) > peer->pbft_chain_size_)
-          peer->pbft_chain_size_ = pbft_block.getHeight() - 1;
+        if (pbft_chain_size > peer->pbft_chain_size_)
+          peer->pbft_chain_size_ = pbft_chain_size;
 
         auto full_node = full_node_.lock();
         if (!full_node) {
@@ -1220,10 +1222,14 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
 }
 
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
-  boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto const &peer : peers_) {
-    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-      sendPbftBlock(peer.first, pbft_block);
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    auto my_chain_size = full_node->getPbftChainSize();
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto const &peer : peers_) {
+      if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
+        sendPbftBlock(peer.first, pbft_block, my_chain_size);
+      }
     }
   }
 }
@@ -1263,13 +1269,15 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
 }
 
 void TaraxaCapability::sendPbftBlock(NodeID const &_id,
-                                     taraxa::PbftBlock const &pbft_block) {
+                                     taraxa::PbftBlock const &pbft_block,
+                                     uint64_t const &pbft_chain_size) {
   LOG(log_dg_pbft_prp_) << "sendPbftBlock " << pbft_block.getBlockHash()
                         << " to " << _id;
 
   RLPStream s;
-  host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 1);
+  host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 2);
   pbft_block.serializeRLP(s);
+  s << pbft_chain_size;
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
