@@ -3,8 +3,6 @@ include Makefile.submodules
 
 include $(shell find $(BUILD_DIR) -path "*.d" 2> /dev/null)
 
-DEPS := $(SUBMODULE_DEPS)
-
 ifneq ($(DEBUG), 0)
 	COMPILE_FLAGS := -g
 else
@@ -19,9 +17,12 @@ COMPILE_DEFINITIONS := \
 	$(ALETH_COMPILE_DEFINITIONS) \
 	$(CRYPTOPP_COMPILE_DEFIINITIONS)
 
-INCLUDE_DIRS := $(CURDIR) $(DEPS_INSTALL_PREFIX)/include $(JSONCPP_INCLUDE_DIR)
+INCLUDE_DIRS := \
+	$(CURDIR) \
+	$(SUBMODULES_INSTALL_PREFIX)/include \
+	$(JSONCPP_INCLUDE_DIR)
 
-LINK_FLAGS := -Wl,-rpath $(DEPS_INSTALL_PREFIX)/lib
+LINK_FLAGS := -Wl,-rpath $(SUBMODULES_INSTALL_PREFIX)/lib
 ifeq ($(DEBUG), 1)
 	ifeq ($(OS), Darwin)
 		LINK_FLAGS += -rdynamic
@@ -30,7 +31,7 @@ ifeq ($(DEBUG), 1)
 	endif
 endif
 
-LIB_DIRS := $(DEPS_INSTALL_PREFIX)/lib
+LIB_DIRS := $(SUBMODULES_INSTALL_PREFIX)/lib
 
 BOOST_LIBS := \
 	boost_program_options \
@@ -140,7 +141,7 @@ TEST_SRCS := \
 TEST_OBJS := $(addprefix $(OBJ_DIR)/, $(TEST_SRCS:.cpp=.o))
 TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 
-$(OBJ_DIR)/%.o: %.cpp $(DEPS)
+$(OBJ_DIR)/%.o: %.cpp $(SUBMODULES_INSTALL_PREFIX)
 	mkdir -p $(@D)
 	$(strip \
 		$(CXX) -c -std=$(CXX_STD) \
