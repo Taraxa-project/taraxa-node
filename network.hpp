@@ -75,7 +75,8 @@ class Network {
   void onNewPbftVote(Vote const &vote);
   void sendPbftVote(NodeID const &id, Vote const &vote);
   void onNewPbftBlock(PbftBlock const &pbft_block);
-  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block);
+  void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block,
+                     uint64_t const &pbft_chain_size);
 
  private:
   std::shared_ptr<dev::p2p::Host> host_;

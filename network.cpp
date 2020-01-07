@@ -155,10 +155,11 @@ void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
 }
 
 void Network::sendPbftBlock(const NodeID &id,
-                            const taraxa::PbftBlock &pbft_block) {
+                            const taraxa::PbftBlock &pbft_block,
+                            uint64_t const &pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash()
                << " to: " << id;
-  taraxa_capability_->sendPbftBlock(id, pbft_block);
+  taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
 }  // namespace taraxa

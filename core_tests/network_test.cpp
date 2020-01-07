@@ -87,6 +87,30 @@ TEST_F(NetworkTest, transfer_block) {
   ASSERT_EQ(1, num_received);
 }
 
+TEST_F(NetworkTest, send_pbft_block) {
+  std::shared_ptr<Network> nw1(new taraxa::Network(
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+
+  nw1->start();
+  nw2->start();
+  PbftBlock pbft_block(blk_hash_t(1), 2);
+  uint64_t chain_size = 111;
+  taraxa::thisThreadSleepForSeconds(1);
+
+  nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
+  taraxa::thisThreadSleepForMilliSeconds(200);
+
+  ASSERT_EQ(1, nw1->getTaraxaCapability()->getAllPeers().size());
+  ASSERT_EQ(chain_size,
+            nw1->getTaraxaCapability()
+                ->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])
+                ->pbft_chain_size_);
+  nw2->stop();
+  nw1->stop();
+}
+
 /*
 Test creates two Network setup and verifies sending transaction
 between is successfull
