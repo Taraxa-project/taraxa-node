@@ -27,8 +27,6 @@ using TransactionExecStatusTable =
     StatusTable<trx_hash_t, TransactionExecStatus>;
 using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
-// TODO: the table need to flush out
-// Compute 1) transaction order and 2) map[transaction --> dagblock]
 class TransactionOrderManager {
  public:
   TransactionOrderManager() = default;

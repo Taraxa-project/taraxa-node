@@ -34,6 +34,25 @@ auto g_blk_samples = Lazy([] {
 
 struct TransactionTest : core_tests::util::DBUsingTest<> {};
 
+TEST_F(TransactionTest, status_table_lru) {
+  using TestStatus = StatusTable<int, int>;
+  TestStatus status_table(100);
+  for (int i = 0; i < 100; i++) {
+    status_table.insert(i, i * 10);
+  }
+  for (int i = 0; i < 50; ++i) {
+    status_table.get(i);
+  }
+  for (int i = 101; i < 150; i++) {
+    status_table.insert(i, i * 10);
+  }
+  for (int i= 50; i<100; ++i){
+    auto [exist, val] = status_table.get(51);
+    EXPECT_FALSE(exist);
+  }
+  EXPECT_LE(status_table.size(), 100);
+}
+
 TEST_F(TransactionTest, serialize_deserialize) {
   Transaction& trans1 = g_trx_samples[0];
   std::stringstream ss1, ss2;

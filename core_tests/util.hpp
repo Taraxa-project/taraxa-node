@@ -4,7 +4,12 @@
 #include <gtest/gtest.h>
 #include <libdevcrypto/Common.h>
 
+#include <array>
 #include <boost/filesystem.hpp>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -58,6 +63,32 @@ inline auto addr(Secret const& secret = Secret::random()) {
 }
 
 inline auto addr(string const& secret_str) { return addr(Secret(secret_str)); }
+
+std::string SysExec(const char* cmd) {
+  std::array<char, 128> buffer;
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
+}
+std::string getMemUsage(string const& proc_name) {
+#if defined(__APPLE__)
+  string command = fmt(
+      R"(top -l 1 -o mem | grep %s | awk '{print $8}')", proc_name);
+#else
+  // Other environment (need fix)
+  string command = fmt(
+      R"(top -n 1 | grep %s | awk '{print $11}')", proc_name);
+#endif
+  auto res = SysExec(command.c_str());
+
+  return res.substr(0, res.find_first_of('M'));
+}
 
 };  // namespace taraxa::core_tests::util
 
