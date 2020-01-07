@@ -1,6 +1,7 @@
 #ifndef TARAXA_NODE_TRANSACTION_HPP
 #define TARAXA_NODE_TRANSACTION_HPP
 
+#include <libdevcore/Log.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
@@ -15,7 +16,6 @@
 #include <vector>
 #include "dag_block.hpp"
 #include "db_storage.hpp"
-#include <libdevcore/Log.h>
 #include "util.hpp"
 
 namespace taraxa {

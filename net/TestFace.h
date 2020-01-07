@@ -159,7 +159,7 @@ class TestFace : public ServerInterface<TestFace> {
     response = this->get_peer_count();
   }
   inline virtual void get_node_statusI(const Json::Value &request,
-                                      Json::Value &response) {
+                                       Json::Value &response) {
     response = this->get_node_status();
   }
   inline virtual void get_node_countI(const Json::Value &request,

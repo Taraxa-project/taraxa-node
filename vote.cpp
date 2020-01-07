@@ -1,6 +1,6 @@
 #include "vote.hpp"
-#include "full_node.hpp"
 #include <libdevcore/SHA3.h>
+#include "full_node.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
 

@@ -1,11 +1,11 @@
 #ifndef TARAXA_NODE_VOTE_H
 #define TARAXA_NODE_VOTE_H
 
+#include <libdevcore/Log.h>
+#include <libdevcrypto/Common.h>
 #include <deque>
 #include <optional>
 #include <string>
-#include <libdevcore/Log.h>
-#include <libdevcrypto/Common.h>
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"

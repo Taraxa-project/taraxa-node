@@ -516,16 +516,13 @@ bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
+
 bool FullNode::executePeriod(PbftBlock const &pbft_block,
                              std::unordered_map<addr_t, PbftSortitionAccount>
                                  &sortition_account_balance_table,
                              uint64_t period) {
-  auto const &sche_blk = pbft_block.getScheduleBlock();
-  // TODO: Since PBFT use replay protection serivce and no longer include
-  //  overlapped/invalid transations in schedule block. May not need transtion
-  //  overlap table anymore. CCL please check here
   // update transaction overlap table first
-  if (!trx_order_mgr_->updateOrderedTrx(sche_blk.getSchedule())) {
+  if (!trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule())) {
     return false;
   }
   auto new_eth_header =
@@ -534,15 +531,16 @@ bool FullNode::executePeriod(PbftBlock const &pbft_block,
     return false;
   }
   uint64_t block_number = 0;
-  if (sche_blk.getSchedule().dag_blks_order.size() > 0) {
+  if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
     block_number =
-        pbft_chain_->getDagBlockHeight(sche_blk.getSchedule().dag_blks_order[0])
+        pbft_chain_
+            ->getDagBlockHeight(pbft_block.getSchedule().dag_blks_order[0])
             .first;
   } else {
     // FIXME: Initialize `block_number`
   }
   if (ws_server_) {
-    ws_server_->newScheduleBlockExecuted(sche_blk, block_number, period);
+    ws_server_->newScheduleBlockExecuted(pbft_block, block_number, period);
     ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,  //
                                                  eth_service_->sealEngine()));
   }

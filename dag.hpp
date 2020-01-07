@@ -1,6 +1,7 @@
 #ifndef TARAXA_NODE_DAG_HPP
 #define TARAXA_NODE_DAG_HPP
 
+#include <libdevcore/Log.h>
 #include <atomic>
 #include <bitset>
 #include <boost/function.hpp>
@@ -22,7 +23,6 @@
 #include <queue>
 #include <string>
 #include "dag_block.hpp"
-#include <libdevcore/Log.h>
 #include "types.hpp"
 #include "util.hpp"
 namespace taraxa {

@@ -376,8 +376,6 @@ class ExpirationCacheMap {
     return true;
   }
 
-  
-
   std::size_t count(Key const &key) const {
     boost::shared_lock lck(mtx_);
     return cache_.count(key);
@@ -433,9 +431,9 @@ class ExpirationCacheMap {
     return ret;
   }
 
-  std::unordered_map<Key, Value> getRawMap() { 
-    boost::shared_lock lck(mtx_); 
-    return cache_; 
+  std::unordered_map<Key, Value> getRawMap() {
+    boost::shared_lock lck(mtx_);
+    return cache_;
   }
 
   bool update(Key const &key, Value value, Value expected_value) {

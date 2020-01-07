@@ -220,11 +220,16 @@ Json::Value Test::get_node_status() {
       res["trx_count"] = Json::UInt64(node->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getMaxDagLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChainSize());
-      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftSyncedQueueSize());
-      res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionQueueSize().first);
-      res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionQueueSize().second);
-      res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockQueueSize().first);
-      res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockQueueSize().second);
+      res["pbft_sync_queue_size"] =
+          Json::UInt64(node->getPbftSyncedQueueSize());
+      res["trx_queue_unverified_size"] =
+          Json::UInt64(node->getTransactionQueueSize().first);
+      res["trx_queue_verified_size"] =
+          Json::UInt64(node->getTransactionQueueSize().second);
+      res["blk_queue_unverified_size"] =
+          Json::UInt64(node->getDagBlockQueueSize().first);
+      res["blk_queue_verified_size"] =
+          Json::UInt64(node->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
   } catch (std::exception &e) {

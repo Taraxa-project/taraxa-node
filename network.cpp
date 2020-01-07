@@ -1,10 +1,10 @@
 #include "network.hpp"
 #include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
+#include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <boost/tokenizer.hpp>
 #include "full_node.hpp"
-#include <libp2p/Host.h>
 #include "taraxa_capability.hpp"
 
 namespace taraxa {
