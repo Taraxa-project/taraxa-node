@@ -222,7 +222,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   }
 
  private:
-  size_t num_cached_period_in_dag_ = 20;
+  size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
