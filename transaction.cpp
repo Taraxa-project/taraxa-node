@@ -726,101 +726,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   // sort trx based on sender and nonce
   list_trxs.sort(trxComp);
-  // {
-  //   std::stringstream all_trxs;
-  //   for (auto const &l : list_trxs) {
-  //     all_trxs << "[ " << l.getSender().abridged() << " , " << l.getNonce()
-  //              << " ] ";
-  //   }
-  //   LOG(log_si_) << getFullNodeAddress()
-  //                << " pre-filtered trxs: " << all_trxs.str();
-  // }
   auto orig_size = list_trxs.size();
-  // auto iter = list_trxs.begin();
-  // // filter out nonce gaps (drop transctions that have gap)
-  // int outdated_trx = 0;
-  // int gapped_trx = 0;
-  // {
-  //   uLock lock(mu_for_nonce_table_);
-  //   while (iter != list_trxs.end()) {
-  //     auto curr_sender = iter->getSender();
-  //     auto curr_nonce = iter->getNonce();
-
-  //     auto [curr_sender_prev_nonce, exist] = accs_nonce_.get(curr_sender);
-
-  //     // skip if outdated
-  //     if (exist && curr_sender_prev_nonce >= curr_nonce) {
-  //       LOG(log_dg_) << getFullNodeAddress() << " Remove trx "
-  //                    << iter->getHash() << "Sender " << curr_sender << "
-  //                    Nonce "
-  //                    << curr_nonce
-  //                    << " too old, because prev sender nonce on file is "
-  //                    << curr_sender_prev_nonce;
-  //       iter = list_trxs.erase(iter);
-  //       outdated_trx++;
-  //       continue;
-  //     }
-
-  //     auto prev_iter = std::prev(iter);
-  //     bool is_first_account_seq =
-  //         (iter == list_trxs.begin() || prev_iter->getSender() !=
-  //         curr_sender);
-
-  //     if (is_first_account_seq) {
-  //       if (!exist) {
-  //         if (curr_nonce != 0) {
-  //           LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
-  //                        << iter->getHash() << " Sender " << curr_sender
-  //                        << " Nonce " << curr_nonce
-  //                        << " cannot be packed, no nonce 0 seen ";
-  //           trx_requeued_.push(*iter);
-  //           iter = list_trxs.erase(iter);
-  //           gapped_trx++;
-  //           continue;
-  //         }
-  //       } else {
-  //         if (curr_nonce != curr_sender_prev_nonce + 1) {
-  //           LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
-  //                        << iter->getHash() << " Sender " << curr_sender
-  //                        << " Nonce " << curr_nonce
-  //                        << " cannot be packed, no previous nonce available "
-  //                        << curr_sender_prev_nonce;
-  //           trx_requeued_.push(*iter);
-  //           iter = list_trxs.erase(iter);
-  //           gapped_trx++;
-  //           continue;
-  //         }
-  //       }
-  //     } else {
-  //       auto prev_nonce = prev_iter->getNonce();
-
-  //       if (curr_nonce != (prev_nonce + 1)) {
-  //         LOG(log_nf_) << getFullNodeAddress() << " Remove trx "
-  //                      << iter->getHash() << "Sender " << curr_sender
-  //                      << " Nonce " << curr_nonce << " because prev nonce is
-  //                      "
-  //                      << prev_nonce << " nonce table is "
-  //                      << accs_nonce_.get(curr_sender).first;
-  //         trx_requeued_.push(*iter);
-  //         iter = list_trxs.erase(iter);
-  //         gapped_trx++;
-  //         continue;
-  //       }
-  //     }
-
-  //     iter++;
-  //   }
-  // }
-  // if (list_trxs.empty()) {
-  //   return;
-  // }
-
-  // auto pruned_size = list_trxs.size();
-  // if (orig_size != pruned_size) {
-  //   LOG(log_dg_) << getFullNodeAddress() << " Shorten trx pack from "
-  //                << orig_size << " to " << pruned_size << " outdated "
-  //                << outdated_trx << " gapped " << gapped_trx;
-  // }
 
   for (auto const &t : list_trxs) {
     to_be_packed_trx.emplace_back(t.getHash());
@@ -855,34 +761,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
       }
     }
   }
-  // debug nonce
-  // std::map<addr_t, val_t> begin_nonce;
-  // std::map<addr_t, val_t> end_nonce;
-  // {
-  //   for (auto iter = list_trxs.begin(); iter != list_trxs.end(); iter++) {
-  //     auto sender = iter->getSender();
-  //     auto nonce = iter->getNonce();
-  //     if (!begin_nonce.count(sender)) {
-  //       begin_nonce[sender] = nonce;
-  //     }
-  //   }
-
-  //   for (auto iter = list_trxs.rbegin(); iter != list_trxs.rend(); iter++) {
-  //     auto sender = iter->getSender();
-  //     auto nonce = iter->getNonce();
-  //     if (!end_nonce.count(sender)) {
-  //       end_nonce[sender] = nonce;
-  //     }
-  //   }
-  // }
-  // std::stringstream nonce_range;
-  // for (auto iter = begin_nonce.begin(); iter != begin_nonce.end(); iter++) {
-  //   auto sender = iter->first;
-  //   nonce_range << "Sender " << sender << " : " << begin_nonce[sender] << "
-  //   -> "
-  //               << end_nonce[sender] << " | ";
-  // }
-  // LOG(log_dg_) << getFullNodeAddress() << " " << nonce_range.str();
 }
 
 bool TransactionManager::verifyBlockTransactions(

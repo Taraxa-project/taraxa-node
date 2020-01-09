@@ -54,7 +54,6 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   index_map[ret] = new_vertex;
   vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
   epc_map[ret] = 0;  // means not finalized
-  // <<std::endl;
   edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
 
   edge_t edge;
@@ -329,17 +328,6 @@ std::vector<Dag::vertex_hash> Dag::deletePeriod(uint64_t period) {
   upgradeLock ll(lock);
   // TODO: make sure property table are pruned as well
   for (auto const &v : vertices) {
-    // vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
-    // vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
-    // edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
-    // // clear edge properties
-    // auto v_descriptor = graph_.vertex(v);
-    // for (auto [ei, ei_end] = boost::out_edges(v_descriptor, graph_); ei !=
-    // ei_end; ++ei) {
-    //   weight_map[*ei].erase();
-    // }
-    // index_map.erase(v);
-    // epc_map.erase(v);
     clear_vertex_by_label(v, graph_);  // will remove edges
     remove_vertex(v, graph_);
 
