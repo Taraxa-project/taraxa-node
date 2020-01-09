@@ -113,6 +113,11 @@ class TestFace : public ServerInterface<TestFace> {
                            NULL),
         &TestFace::get_dag_sizeI);
     this->bindAndAddMethod(
+        jsonrpc::Procedure("get_dag_blk_count", jsonrpc::PARAMS_BY_POSITION,
+                           jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT,
+                           NULL),
+        &TestFace::get_dag_blk_countI);
+    this->bindAndAddMethod(
         jsonrpc::Procedure("get_pbft_chain_size", jsonrpc::PARAMS_BY_POSITION,
                            jsonrpc::JSON_OBJECT, NULL),
         &TestFace::get_pbft_chain_sizeI);
@@ -206,6 +211,10 @@ class TestFace : public ServerInterface<TestFace> {
                                     Json::Value &response) {
     response = this->get_dag_size(request[0u]);
   }
+  inline virtual void get_dag_blk_countI(const Json::Value &request,
+                                         Json::Value &response) {
+    response = this->get_dag_blk_count(request[0u]);
+  }
   inline virtual void get_pbft_chain_sizeI(const Json::Value &request,
                                            Json::Value &response) {
     response = this->get_pbft_chain_size();
@@ -237,6 +246,7 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_executed_blk_count(const Json::Value &param1) = 0;
 
   virtual Json::Value get_dag_size(const Json::Value &param1) = 0;
+  virtual Json::Value get_dag_blk_count(const Json::Value &param1) = 0;
   virtual Json::Value get_pbft_chain_size() = 0;
   virtual Json::Value get_pbft_chain_blocks(const Json::Value &param1) = 0;
 };
