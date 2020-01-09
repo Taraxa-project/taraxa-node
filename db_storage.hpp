@@ -21,7 +21,8 @@ namespace fs = boost::filesystem;
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
   ExecutedTrxCount,
-  TrxCount
+  TrxCount,
+  DagBlkCount
 };
 
 class DbException : public exception {
@@ -144,6 +145,10 @@ class DbStorage {
   void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period,
                                 std::unique_ptr<WriteBatch> const& write_batch);
 
+  uint64_t getDagBlocksCount() const {
+    return dag_blocks_count_.load();
+  }
+
  private:
   inline Slice toSlice(dev::bytes const& b) const {
     return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
@@ -174,6 +179,8 @@ class DbStorage {
   std::vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
+  std::mutex dag_blocks_mutex_;
+  std::atomic<uint64_t> dag_blocks_count_;
 };
 }  // namespace taraxa
 #endif

@@ -45,6 +45,7 @@ DbStorage::DbStorage(fs::path const& base_path, h256 const& genesis_hash,
   }
   if (db && status.ok()) {
     db_.reset(db);
+    dag_blocks_count_.store(this->getStatusField(StatusDbField::DagBlkCount));
   }
   checkStatus(status);
 }
@@ -98,6 +99,8 @@ std::string DbStorage::getBlocksByLevel(level_t level) {
 }
 
 void DbStorage::saveDagBlock(DagBlock const& blk) {
+  //Lock is needed since we are editing some fields
+  lock_guard<mutex> u_lock(dag_blocks_mutex_);
   auto write_batch = std::unique_ptr<WriteBatch>(new WriteBatch());
   auto block_bytes = blk.rlp(true);
   auto block_hash = blk.getHash();
@@ -114,6 +117,9 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   }
   status = write_batch->Put(handles_[Columns::dag_blocks_index], toSlice(level),
                             toSlice(blocks));
+  checkStatus(status);
+  dag_blocks_count_.fetch_add(1);
+  status = write_batch->Put(handles_[Columns::status], toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   checkStatus(status);
   status = db_->Write(write_options_, write_batch.get());
   checkStatus(status);

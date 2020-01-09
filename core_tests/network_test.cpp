@@ -858,6 +858,8 @@ TEST_F(NetworkTest, node_full_sync) {
     EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
               node1->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
+              nodes[i]->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
   }
