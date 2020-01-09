@@ -212,7 +212,7 @@ class TestFace : public ServerInterface<TestFace> {
     response = this->get_dag_size(request[0u]);
   }
   inline virtual void get_dag_blk_countI(const Json::Value &request,
-                                    Json::Value &response) {
+                                         Json::Value &response) {
     response = this->get_dag_blk_count(request[0u]);
   }
   inline virtual void get_pbft_chain_sizeI(const Json::Value &request,

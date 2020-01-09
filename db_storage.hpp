@@ -145,9 +145,7 @@ class DbStorage {
   void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period,
                                 std::unique_ptr<WriteBatch> const& write_batch);
 
-  uint64_t getDagBlocksCount() const {
-    return dag_blocks_count_.load();
-  }
+  uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
 
  private:
   inline Slice toSlice(dev::bytes const& b) const {
