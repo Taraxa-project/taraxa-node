@@ -480,10 +480,10 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto num_vertices5 = node5->getNumVerticesInDag();
 
     auto num_trx1 = node1->getTransactionStatusCount();
-    auto num_trx2 = node1->getTransactionStatusCount();
-    auto num_trx3 = node1->getTransactionStatusCount();
-    auto num_trx4 = node1->getTransactionStatusCount();
-    auto num_trx5 = node1->getTransactionStatusCount();
+    auto num_trx2 = node2->getTransactionStatusCount();
+    auto num_trx3 = node3->getTransactionStatusCount();
+    auto num_trx4 = node4->getTransactionStatusCount();
+    auto num_trx5 = node5->getTransactionStatusCount();
 
     auto issued_trx_count = context.getIssuedTrxCount();
 
