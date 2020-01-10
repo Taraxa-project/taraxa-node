@@ -240,7 +240,6 @@ void send_dummy_trx() {
 }
 struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
- 
 TEST_F(FullNodeTest, db_test) {
   DbStorage db("/tmp/testtaraxadb", blk_hash_t(1), true);
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
@@ -363,7 +362,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(account2.getJsonStr(),
             db.getSortitionAccount(account2.address).getJsonStr());
 }
-
 
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {

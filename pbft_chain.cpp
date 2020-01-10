@@ -370,8 +370,8 @@ bytes PbftBlockCert::rlp() const {
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
-  strm << "[PbftBlockCert] hash: " << b.pbft_blk.getBlockHash()
-       << " , num of votes " << b.cert_votes.size() << std::endl;
+  strm << "[PbftBlockCert] : " << b.pbft_blk << " , num of votes "
+       << b.cert_votes.size() << std::endl;
   return strm;
 }
 
