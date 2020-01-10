@@ -262,7 +262,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
     unique_dag_block_hash_set.insert(dag_block_hash);
   }
-
 }
 
 }  // namespace taraxa
