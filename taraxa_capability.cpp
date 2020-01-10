@@ -575,7 +575,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         PbftBlock pbft_block(_r[0]);
         uint64_t pbft_chain_size = _r[1].toInt();
         LOG(log_dg_pbft_prp_)
-            << "Received PBFT Block " << pbft_block.getBlockHash()
+            << "Receive proposed PBFT Block " << pbft_block
             << " Peer Chain size: " << pbft_chain_size;
         peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
         if (pbft_chain_size > peer->pbft_chain_size_)
@@ -619,8 +619,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               // one.
               full_node->setSyncedPbftBlock(pbft_blk_and_votes);
               LOG(log_dg_pbft_sync_)
-                  << "Receive PBFT block " << pbft_blk_hash << " with "
-                  << pbft_blk_and_votes.cert_votes.size() << " cert votes!";
+                << "Receive synced PBFT block " << pbft_blk_and_votes;
             } else {
               LOG(log_wr_pbft_sync_) << "The PBFT block " << pbft_blk_hash
                                      << " failed validation. Drop it!";
