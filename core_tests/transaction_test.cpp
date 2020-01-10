@@ -46,7 +46,7 @@ TEST_F(TransactionTest, status_table_lru) {
   for (int i = 101; i < 150; i++) {
     status_table.insert(i, i * 10);
   }
-  for (int i= 50; i<100; ++i){
+  for (int i = 50; i < 100; ++i) {
     auto [exist, val] = status_table.get(51);
     EXPECT_FALSE(exist);
   }

@@ -1088,8 +1088,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   network->onNewPbftBlock(pbft_block);
 
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  LOG(log_deb_) << full_node->getAddress()
-                << " propose PBFT block succussful! "
+  LOG(log_deb_) << full_node->getAddress() << " propose PBFT block succussful! "
                 << " in round: " << pbft_round_ << " in step: " << pbft_step_
                 << " PBFT block: " << pbft_block;
   return std::make_pair(pbft_block_hash, true);
