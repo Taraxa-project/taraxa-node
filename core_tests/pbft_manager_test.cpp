@@ -254,7 +254,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   PbftBlock pbft_first_block =
       pbft_chain1->getPbftBlockInChain(pbft_first_block_hash);
   dag_blocks_hash_in_schedule = pbft_first_block.getSchedule().dag_blks_order;
-  EXPECT_EQ(dag_blocks_hash_in_schedule.size(), 1);
+  EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
   ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_hash_in_schedule[0]));
 }
 
