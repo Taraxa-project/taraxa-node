@@ -188,7 +188,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   }
   
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  bool addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
 
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);

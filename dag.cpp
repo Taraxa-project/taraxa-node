@@ -502,7 +502,7 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   return true;
 }
 
-bool DagManager::addDagBlock(DagBlock const &blk) {
+void DagManager::addDagBlock(DagBlock const &blk) {
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
   auto p = blk.getPivot();
@@ -511,7 +511,6 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
 
   if (total_dag_->hasVertex(hash)) {
     LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
-    return true;
   }
 
   std::string pivot = blk.getPivot().toString();
@@ -551,7 +550,6 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
                  << blk.getHash() << "anchor " << anchors_.back().first
                  << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
   }
-  return true;
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
