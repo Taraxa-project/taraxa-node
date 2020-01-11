@@ -279,8 +279,16 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   }
   EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
 
-  vector<blk_hash_t> dag_blocks_hash = node->getLinearizedDagBlocks();
-  EXPECT_EQ(dag_blocks_hash.size(), 2);
+  size_t dag_blocks_size = 2;
+  for (int i = 0; i < 100; i++) {
+    // Wait up to 10 seconds to update DB
+    vector<blk_hash_t> dag_blocks_hash = node->getLinearizedDagBlocks();
+    if (dag_blocks_hash.size() == dag_blocks_size) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
+  EXPECT_EQ(node->getLinearizedDagBlocks().size(), dag_blocks_size);
 
   auto dag_max_height = node->getDagBlockMaxHeight();
   ASSERT_EQ(dag_max_height, 2);
