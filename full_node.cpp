@@ -165,9 +165,10 @@ void FullNode::start(bool boot_node) {
           }
         }
 
-        if (dag_mgr_->addDagBlock(blk)) {
+       if (dag_mgr_->pivotAndTipsAvailable(blk)) {
+          db_->saveDagBlock(blk);
+          dag_mgr_->addDagBlock(blk);
           {
-            db_->saveDagBlock(blk);
             if (ws_server_) ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);

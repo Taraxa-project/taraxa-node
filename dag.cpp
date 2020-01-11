@@ -478,17 +478,10 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
-bool DagManager::addDagBlock(DagBlock const &blk) {
-  auto hash = blk.getHash().toString();
+bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   auto h = blk.getHash();
   auto p = blk.getPivot();
-  DagFrontier frontier;
   uLock lock(mutex_);
-
-  if (total_dag_->hasVertex(hash)) {
-    LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
-    return true;
-  }
 
   std::string pivot = blk.getPivot().toString();
   if (!total_dag_->hasVertex(pivot)) {
@@ -497,7 +490,6 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
     return false;
   }
 
-  std::vector<std::string> tips;
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
@@ -505,6 +497,39 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
                    << std::endl;
       return false;
     }
+  }
+
+  return true;
+}
+
+void DagManager::addDagBlock(DagBlock const &blk) {
+  auto hash = blk.getHash().toString();
+  auto h = blk.getHash();
+  auto p = blk.getPivot();
+  DagFrontier frontier;
+  uLock lock(mutex_);
+
+  if (total_dag_->hasVertex(hash)) {
+    LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
+  }
+
+  std::string pivot = blk.getPivot().toString();
+  assert(total_dag_->hasVertex(pivot));
+  /*if (!total_dag_->hasVertex(pivot)) {
+    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
+                 << std::endl;
+    return false;
+  }*/
+
+  std::vector<std::string> tips;
+  for (auto const &t : blk.getTips()) {
+    std::string tip = t.toString();
+    assert(total_dag_->hasVertex(tip));
+    /*if (!total_dag_->hasVertex(tip)) {
+      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
+                   << std::endl;
+      return false;
+    }*/
     tips.push_back(tip);
   }
 
@@ -525,7 +550,6 @@ bool DagManager::addDagBlock(DagBlock const &blk) {
                  << blk.getHash() << "anchor " << anchors_.back().first
                  << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
   }
-  return true;
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,

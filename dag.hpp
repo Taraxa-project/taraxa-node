@@ -186,7 +186,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
-  bool addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  
+  bool pivotAndTipsAvailable(DagBlock const &blk);
+  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
 
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
