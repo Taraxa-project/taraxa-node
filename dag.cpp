@@ -478,6 +478,28 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
+bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
+  uLock lock(mutex_);
+
+  std::string pivot = blk.getPivot().toString();
+  if (!total_dag_->hasVertex(pivot)) {
+    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
+                 << std::endl;
+    return false;
+  }
+
+  for (auto const &t : blk.getTips()) {
+    std::string tip = t.toString();
+    if (!total_dag_->hasVertex(tip)) {
+      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
+                   << std::endl;
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool DagManager::addDagBlock(DagBlock const &blk) {
   auto hash = blk.getHash().toString();
   auto h = blk.getHash();
