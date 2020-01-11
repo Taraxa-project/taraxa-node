@@ -147,6 +147,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price,
                                             TEST_TX_GAS_LIMIT, node2_addr, data,
                                             g_secret);
+  // broadcast trx and insert
   node1->insertTransaction(trx_master_boot_node_to_node2);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
@@ -191,6 +192,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price,
                                             TEST_TX_GAS_LIMIT, node3_addr, data,
                                             g_secret);
+  // broadcast trx and insert
   node1->insertTransaction(trx_master_boot_node_to_node3);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."
@@ -254,8 +256,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   PbftBlock pbft_first_block =
       pbft_chain1->getPbftBlockInChain(pbft_first_block_hash);
   dag_blocks_hash_in_schedule = pbft_first_block.getSchedule().dag_blks_order;
+  // due to change of trx packing change, a trx can be packed in multiple blocks
   EXPECT_GE(dag_blocks_hash_in_schedule.size(), 1);
-  ASSERT_FALSE(unique_dag_block_hash_set.count(dag_blocks_hash_in_schedule[0]));
+  for (auto &dag_block_hash : dag_blocks_hash_in_schedule) {
+    ASSERT_FALSE(unique_dag_block_hash_set.count(dag_block_hash));
+    unique_dag_block_hash_set.insert(dag_block_hash);
+  }
 }
 
 }  // namespace taraxa
