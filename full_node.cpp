@@ -165,9 +165,9 @@ void FullNode::start(bool boot_node) {
           }
         }
 
+        db_->saveDagBlock(blk);
         if (dag_mgr_->addDagBlock(blk)) {
           {
-            db_->saveDagBlock(blk);
             if (ws_server_) ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
