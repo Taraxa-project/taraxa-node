@@ -133,6 +133,13 @@
     "returns": {}
   },
   {
+    "name": "get_dag_blk_count",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
     "name": "get_pbft_chain_size",
     "params": [],
     "returns": {}

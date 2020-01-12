@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <libdevcore/Log.h>
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
@@ -11,7 +12,6 @@
 #include <thread>
 #include "dag_block.hpp"
 #include "db_storage.hpp"
-#include <libdevcore/Log.h>
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -27,8 +27,6 @@ using TransactionExecStatusTable =
     StatusTable<trx_hash_t, TransactionExecStatus>;
 using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
-// TODO: the table need to flush out
-// Compute 1) transaction order and 2) map[transaction --> dagblock]
 class TransactionOrderManager {
  public:
   TransactionOrderManager() = default;

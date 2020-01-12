@@ -1,10 +1,10 @@
 #include "network.hpp"
 #include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
+#include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <boost/tokenizer.hpp>
 #include "full_node.hpp"
-#include <libp2p/Host.h>
 #include "taraxa_capability.hpp"
 
 namespace taraxa {
@@ -155,10 +155,11 @@ void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
 }
 
 void Network::sendPbftBlock(const NodeID &id,
-                            const taraxa::PbftBlock &pbft_block) {
+                            const taraxa::PbftBlock &pbft_block,
+                            uint64_t const &pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash()
                << " to: " << id;
-  taraxa_capability_->sendPbftBlock(id, pbft_block);
+  taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
 }  // namespace taraxa

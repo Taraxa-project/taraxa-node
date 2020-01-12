@@ -175,13 +175,13 @@ pipeline {
             when {branch 'master'}
             steps {
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} ${GCP_REGISTRY}/${IMAGE}:latest'
                 sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}'
+                sh 'docker tag ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} taraxa/${IMAGE}:latest'
                 sh 'docker push ${GCP_REGISTRY}/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker push ${GCP_REGISTRY}/${IMAGE}'
+                sh 'docker push ${GCP_REGISTRY}/${IMAGE}:latest'
                 sh 'docker push taraxa/${IMAGE}:${BUILD_NUMBER}'
-                sh 'docker push taraxa/${IMAGE}'
+                sh 'docker push taraxa/${IMAGE}:latest'
             }
         }
     }

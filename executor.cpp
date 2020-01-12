@@ -38,7 +38,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
     PbftBlock const& pbft_block,
     BalanceTable& sortition_account_balance_table,  //
     uint64_t period) {
-  auto const& schedule = pbft_block.getScheduleBlock().getSchedule();
+  auto const& schedule = pbft_block.getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
   EthTransactions transactions;
   transactions.reserve(dag_blk_count);

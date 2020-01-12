@@ -23,12 +23,10 @@
  */
 namespace taraxa {
 using boost::property_tree::ptree;
+
 class DbStorage;
-enum PbftBlockTypes {
-  pbft_block_none_type = -1,
-  pivot_block_type = 0,
-  schedule_block_type
-};
+class FullNode;
+class Vote;
 
 enum PbftVoteTypes {
   propose_vote_type = 0,
@@ -50,152 +48,84 @@ struct TrxSchedule {
   TrxSchedule(bytes const& rlpData);
   ~TrxSchedule() {}
 
-  bytes rlp() const;
   // order of DAG blocks (in hash)
   vec_blk_t dag_blks_order;
   // It is multiple array of transactions
   // TODO: optimize trx_mode type
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
-  std::string getJsonStr() const;
+  bytes rlp() const;
+  bool serialize(stream& strm) const;
+  bool deserialize(stream& strm);
+  void setPtree(ptree& tree) const;
+  void setSchedule(ptree const& tree);
   bool operator==(TrxSchedule const& other) const {
     return rlp() == other.rlp();
   }
+  std::string getStr() const;
 };
 std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche);
-
-class FullNode;
-class Vote;
-
-class PivotBlock {
- public:
-  PivotBlock() = default;
-  PivotBlock(taraxa::stream& strm);
-  PivotBlock(std::string const& json);
-
-  PivotBlock(blk_hash_t const& prev_pivot_hash,
-             blk_hash_t const& prev_block_hash,
-             blk_hash_t const& dag_block_hash, uint64_t period,
-             addr_t beneficiary)
-      : prev_pivot_hash_(prev_pivot_hash),
-        prev_block_hash_(prev_block_hash),
-        dag_block_hash_(dag_block_hash),
-        period_(period),
-        beneficiary_(beneficiary) {}
-  ~PivotBlock() {}
-
-  blk_hash_t getPrevPivotBlockHash() const;
-  blk_hash_t getPrevBlockHash() const;
-  blk_hash_t getDagBlockHash() const;
-  uint64_t getPeriod() const;
-  addr_t getBeneficiary() const;
-
-  void setJsonTree(ptree& tree) const;
-  void setBlockByJson(ptree const& doc);
-
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
-  void streamRLP(dev::RLPStream& strm) const;
-
-  friend std::ostream& operator<<(std::ostream& strm,
-                                  PivotBlock const& pivot_block) {
-    strm << "[Pivot Block]" << std::endl;
-    strm << "  previous pivot hash: " << pivot_block.prev_pivot_hash_.hex()
-         << std::endl;
-    strm << "  previous result hash: " << pivot_block.prev_block_hash_.hex()
-         << std::endl;
-    strm << "  dag hash: " << pivot_block.dag_block_hash_.hex() << std::endl;
-    strm << "  period: " << pivot_block.period_ << std::endl;
-    strm << "  beneficiary: " << pivot_block.beneficiary_.hex() << std::endl;
-    return strm;
-  }
-
- private:
-  blk_hash_t prev_pivot_hash_;
-  blk_hash_t prev_block_hash_;
-  blk_hash_t dag_block_hash_;
-  uint64_t period_;
-  addr_t beneficiary_;
-};
-
-class ScheduleBlock {
- public:
-  ScheduleBlock() = default;
-  ScheduleBlock(blk_hash_t const& prev_block_hash, TrxSchedule const& schedule)
-      : prev_block_hash_(prev_block_hash), schedule_(schedule) {}
-  ScheduleBlock(taraxa::stream& strm);
-  ~ScheduleBlock() {}
-  void streamRLP(dev::RLPStream& strm) const;
-
-  std::string getJsonStr() const;
-  Json::Value getJson() const;
-  TrxSchedule getSchedule() const;
-  blk_hash_t getPrevBlockHash() const;
-
-  void setJsonTree(ptree& tree) const;
-  void setBlockByJson(ptree const& json);
-
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
-
-  friend std::ostream;
-
- private:
-  blk_hash_t prev_block_hash_;
-  TrxSchedule schedule_;
-};
-std::ostream& operator<<(std::ostream& strm, ScheduleBlock const& sche_blk);
 
 class PbftBlock {
  public:
   PbftBlock() = default;
-  PbftBlock(uint64_t height) : height_(height) {}
   PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : block_hash_(block_hash), height_(height) {}
-  PbftBlock(PivotBlock const& pivot_block, uint64_t height)
-      : pivot_block_(pivot_block),
-        block_type_(pivot_block_type),
-        height_(height) {}
-  PbftBlock(ScheduleBlock const& schedule_block, uint64_t height)
-      : schedule_block_(schedule_block),
-        block_type_(schedule_block_type),
-        height_(height) {}
+      : block_hash_(block_hash), height_(height) {}  // For unit test
+  PbftBlock(blk_hash_t const& prev_blk_hash,
+            blk_hash_t const& dag_blk_hash_as_pivot,
+            TrxSchedule const& schedule, uint64_t period, uint64_t height,
+            uint64_t timestamp, addr_t const& beneficiary)
+      : prev_block_hash_(prev_blk_hash),
+        dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
+        schedule_(schedule),
+        period_(period),
+        height_(height),
+        timestamp_(timestamp),
+        beneficiary_(beneficiary) {}
   PbftBlock(dev::RLP const& r);
   PbftBlock(bytes const& b);
 
-  PbftBlock(std::string const& json);
+  PbftBlock(std::string const& str);
   ~PbftBlock() {}
 
-  blk_hash_t getBlockHash() const;
-  PbftBlockTypes getBlockType() const;
-  PivotBlock getPivotBlock() const;
-  ScheduleBlock getScheduleBlock() const;
-  uint64_t getTimestamp() const;
-  std::string getJsonStr(bool with_signature = true) const;
-  addr_t getAuthor() const;
-  uint64_t getHeight() const;
-
-  void setBlockHash();
-  void setBlockType(PbftBlockTypes block_type);
-  void setPivotBlock(PivotBlock const& pivot_block);
-  void setScheduleBlock(ScheduleBlock const& schedule_block);
-  void setTimestamp(uint64_t const timestamp);
-  void setSignature(sig_t const& signature);
-
-  void serializeRLP(dev::RLPStream& s) const;
   bool serialize(stream& strm) const;
   bool deserialize(stream& strm);
+  std::string getJsonStr(bool with_signature = true) const;
+  addr_t getAuthor() const;
   void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
+  void serializeRLP(dev::RLPStream& s) const;
+
+  blk_hash_t getBlockHash() const { return block_hash_; }
+  blk_hash_t getPrevBlockHash() const { return prev_block_hash_; }
+  blk_hash_t getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
+  TrxSchedule getSchedule() const { return schedule_; }
+  uint64_t getPeriod() const { return period_; }
+  uint64_t getHeight() const { return height_; }
+  uint64_t getTimestamp() const { return timestamp_; }
+  addr_t getBeneficiary() const { return beneficiary_; }
+
+  void setBlockHash();
+  void setPrevBlockHash(blk_hash_t const& prev_block_hash);
+  void setDagBlockHashAsPivot(blk_hash_t const& dag_block_hash);
+  void setSchedule(TrxSchedule const& schedule);
+  void setPeriod(uint64_t const period);
+  void setHeight(uint64_t const height);
+  void setTimestamp(uint64_t const timestamp);
+  void setBeneficiary(addr_t const& beneficiary);
+  void setSignature(sig_t const& signature);
 
  private:
   blk_hash_t block_hash_;
-  PbftBlockTypes block_type_ = pbft_block_none_type;
-  PivotBlock pivot_block_;
-  ScheduleBlock schedule_block_;
+  blk_hash_t prev_block_hash_;
+  blk_hash_t dag_block_hash_as_pivot_;
+  TrxSchedule schedule_;
+  uint64_t
+      period_;  // PBFT head block is period 0, first PBFT block is period 1
+  uint64_t
+      height_;  // PBFT head block is height 1, first PBFT blick is height 2
   uint64_t timestamp_;
+  addr_t beneficiary_;
   sig_t signature_;
-  uint64_t height_;
-  // TODO: need more pbft block type
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
@@ -220,12 +150,11 @@ class PbftChain {
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
-  uint64_t getPbftChainSize() const;
-  uint64_t getPbftChainPeriod() const;
-  blk_hash_t getGenesisHash() const;
-  blk_hash_t getLastPbftBlockHash() const;
-  blk_hash_t getLastPbftPivotHash() const;
-  PbftBlockTypes getNextPbftBlockType() const;
+  uint64_t getPbftChainSize() const { return size_; }
+  uint64_t getPbftChainPeriod() const { return period_; }
+  blk_hash_t getGenesisHash() const { return genesis_hash_; }
+  blk_hash_t getLastPbftBlockHash() const { return last_pbft_block_hash_; }
+
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
       blk_hash_t const& pbft_block_hash);
@@ -234,14 +163,12 @@ class PbftChain {
                                             bool hash) const;
   std::string getGenesisStr() const;
   std::string getJsonStr() const;
-  dev::Logger& getLoggerErr() { return log_err_; }
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
   std::pair<uint64_t, bool> getDagBlockHeight(
       blk_hash_t const& dag_block_hash) const;
   uint64_t getDagBlockMaxHeight() const;
 
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
-  void setNextPbftBlockType(PbftBlockTypes next_block_type);  // Test only
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
@@ -249,8 +176,6 @@ class PbftChain {
 
   bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
   bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
-  bool pushPbftPivotBlock(taraxa::PbftBlock const& pbft_block);
-  bool pushPbftScheduleBlock(taraxa::PbftBlock const& pbft_block);
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
 
@@ -281,14 +206,12 @@ class PbftChain {
   mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
 
-  blk_hash_t genesis_hash_;
-  uint64_t size_;
-  uint64_t period_;
-  PbftBlockTypes next_pbft_block_type_;
+  blk_hash_t genesis_hash_;  // pbft chain head hash
+  uint64_t size_;    // PBFT head with size 1, first PBFT block with size 2
+  uint64_t period_;  // PBFT head with period 0, first PBFT block with period 1
   blk_hash_t last_pbft_block_hash_;
-  blk_hash_t last_pbft_pivot_hash_;
 
-  blk_hash_t dag_genesis_hash_;
+  blk_hash_t dag_genesis_hash_;  // dag genesis at height 1
   uint64_t max_dag_blocks_height_ = 0;
 
   std::weak_ptr<FullNode> node_;

@@ -259,6 +259,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getNumBlockExecuted() const {
     return executor_ ? executor_->getNumExecutedBlk() : 0;
   }
+  uint64_t getNumDagBlocks() const {
+    return db_ ? db_->getDagBlocksCount() : 0;
+  }
   std::vector<blk_hash_t> getLinearizedDagBlocks() const;
   std::vector<trx_hash_t> getPackedTrxs() const;
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {

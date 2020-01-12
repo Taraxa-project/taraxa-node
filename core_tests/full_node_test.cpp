@@ -116,30 +116,6 @@ void send_2_nodes_trxs() {
   std::cout << "All trxs sent..." << std::endl;
 }
 
-void send_2_nodes_trxs_2() {
-  std::string sendtrx1 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 500, 
-                                      "number": 600, 
-                                      "nonce": 0, 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
-  std::string sendtrx2 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 700, 
-                                      "number": 400, 
-                                      "nonce": 0 , 
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7778)";
-  std::cout << "Sending trxs ..." << std::endl;
-  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
-
-  t1.join();
-  t2.join();
-  std::cout << "All trxs sent..." << std::endl;
-}
-
 void init_5_nodes_coin() {
   std::string node1to2 = fmt(
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
@@ -502,10 +478,10 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto num_vertices5 = node5->getNumVerticesInDag();
 
     auto num_trx1 = node1->getTransactionStatusCount();
-    auto num_trx2 = node1->getTransactionStatusCount();
-    auto num_trx3 = node1->getTransactionStatusCount();
-    auto num_trx4 = node1->getTransactionStatusCount();
-    auto num_trx5 = node1->getTransactionStatusCount();
+    auto num_trx2 = node2->getTransactionStatusCount();
+    auto num_trx3 = node3->getTransactionStatusCount();
+    auto num_trx4 = node4->getTransactionStatusCount();
+    auto num_trx5 = node5->getTransactionStatusCount();
 
     auto issued_trx_count = context.getIssuedTrxCount();
 
@@ -1028,7 +1004,7 @@ TEST_F(FullNodeTest, persist_counter) {
 
     // send 1000 trxs
     try {
-      send_2_nodes_trxs_2();
+      send_2_nodes_trxs();
     } catch (std::exception &e) {
       std::cerr << e.what() << std::endl;
     }
@@ -1612,6 +1588,38 @@ TEST_F(FullNodeTest,
   EXPECT_EQ(trx_executed, transactions.size())
       << "Trx executed: " << trx_executed
       << " ,Trx size: " << transactions.size();
+}
+
+TEST_F(FullNodeTest, DISABLED_mem_usage) {
+  Top top1(6, input1);
+  std::cout << "Top1 created ..." << std::endl;
+
+  auto node1 = top1.getNode();
+  // send 1000 trxs
+  try {
+    std::string sendtrx1 =
+        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
+                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                                      "delay": 200, 
+                                      "number": 1000000, 
+                                      "nonce": 0, 
+                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
+
+    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
+    t1.join();
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+  uint64_t last_num_block_proposed = 0;
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    auto res = getMemUsage("full_node_test");
+    std::cout << "Mem usage (" << i * 5 << ") in sec = " << res << " M"
+              << std::endl;
+    taraxa::thisThreadSleepForMilliSeconds(5000);
+    auto cur_num_block_proposed = node1->getNumProposedBlocks();
+    if (cur_num_block_proposed == last_num_block_proposed) break;
+    last_num_block_proposed = cur_num_block_proposed;
+  }
 }
 
 }  // namespace taraxa

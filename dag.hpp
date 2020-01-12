@@ -1,6 +1,7 @@
 #ifndef TARAXA_NODE_DAG_HPP
 #define TARAXA_NODE_DAG_HPP
 
+#include <libdevcore/Log.h>
 #include <atomic>
 #include <bitset>
 #include <boost/function.hpp>
@@ -19,18 +20,17 @@
 #include <iterator>
 #include <list>
 #include <mutex>
+#include <queue>
 #include <string>
 #include "dag_block.hpp"
-#include <libdevcore/Log.h>
 #include "types.hpp"
 #include "util.hpp"
-
 namespace taraxa {
 
 /**
  * Thread safe. Labelled graph.
  */
-
+class DagManager;
 class Dag {
  public:
   // properties
@@ -72,7 +72,7 @@ class Dag {
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
+  friend DagManager;
   Dag(std::string const &genesis);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
@@ -152,6 +152,7 @@ class Dag {
 
 class PivotTree : public Dag {
  public:
+  friend DagManager;
   PivotTree(std::string const &genesis) : Dag(genesis){};
   virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
@@ -185,7 +186,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
-  bool addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  
+  bool pivotAndTipsAvailable(DagBlock const &blk);
+  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
 
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
@@ -214,14 +217,14 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const { return max_level_; }
-  uint64_t getLatestPeriod() const { return anchors_.size() - 1; }
-  std::string getLatestAnchor() const { return anchors_.back(); }
+  uint64_t getLatestPeriod() const { return anchors_.back().second; }
+  std::string getLatestAnchor() const { return anchors_.back().first; }
   std::unordered_set<std::string> getUnOrderedDagBlks() const {
     return total_dag_->getUnOrderedDagBlks();
   }
 
  private:
-  size_t num_cached_period_in_dag = 1000;
+  size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
@@ -234,7 +237,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
-  std::vector<std::string> anchors_;       // pivots that define periods
+  std::queue<std::pair<std::string, uint64_t>>
+      anchors_;  // pivots that define periods
   std::string genesis_;
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};

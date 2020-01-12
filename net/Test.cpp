@@ -114,22 +114,25 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       uint number = param1["number"].asUInt();
       val_t nonce = val_t(param1["nonce"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
+      secret_t sk = node->getSecretKey();
+      if (!param1["secret"].empty() && !param1["secret"].asString().empty()) {
+        sk = secret_t(param1["secret"].asString());
+      }
       if (trx_creater_.wait_for(std::chrono::seconds(0)) !=
           std::future_status::ready) {
         res = "Busy in creating transactions ... please try later ...";
       } else {
         trx_creater_ = std::async(
             std::launch::async,
-            [this, node, &log_time, delay, number, nonce, receiver]() {
+            [this, node, &log_time, delay, number, nonce, receiver, sk]() {
               // get trx receiving time stamp
               bytes data;
               for (auto i = 0; i < number; ++i) {
                 auto now = getCurrentTimeMilliSeconds();
                 val_t value = val_t(100);
-                auto trx =
-                    taraxa::Transaction(val_t(i) + nonce, value, val_t(1000),
-                                        taraxa::samples::TEST_TX_GAS_LIMIT,
-                                        receiver, data, node->getSecretKey());
+                auto trx = taraxa::Transaction(
+                    val_t(i) + nonce, value, val_t(1000),
+                    taraxa::samples::TEST_TX_GAS_LIMIT, receiver, data, sk);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;
                 node->insertTransaction(trx);
@@ -215,16 +218,21 @@ Json::Value Test::get_node_status() {
       res["peer_count"] = Json::UInt64(node->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getNumBlockExecuted());
-      res["blk_count"] = Json::UInt64(node->getNumVerticesInDag().first);
+      res["blk_count"] = Json::UInt64(node->getNumDagBlocks());
       res["trx_executed"] = Json::UInt64(node->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getMaxDagLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChainSize());
-      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftSyncedQueueSize());
-      res["trx_queue_unverified_size"] = Json::UInt64(node->getTransactionQueueSize().first);
-      res["trx_queue_verified_size"] = Json::UInt64(node->getTransactionQueueSize().second);
-      res["blk_queue_unverified_size"] = Json::UInt64(node->getDagBlockQueueSize().first);
-      res["blk_queue_verified_size"] = Json::UInt64(node->getDagBlockQueueSize().second);
+      res["pbft_sync_queue_size"] =
+          Json::UInt64(node->getPbftSyncedQueueSize());
+      res["trx_queue_unverified_size"] =
+          Json::UInt64(node->getTransactionQueueSize().first);
+      res["trx_queue_verified_size"] =
+          Json::UInt64(node->getTransactionQueueSize().second);
+      res["blk_queue_unverified_size"] =
+          Json::UInt64(node->getDagBlockQueueSize().first);
+      res["blk_queue_verified_size"] =
+          Json::UInt64(node->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
   } catch (std::exception &e) {
@@ -397,6 +405,19 @@ Json::Value Test::get_dag_size(const Json::Value &param1) {
       auto count = node->getNumVerticesInDag();
       res["value"] =
           std::to_string(count.first) + " , " + std::to_string(count.second);
+    }
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Test::get_dag_blk_count(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      auto count = node->getNumDagBlocks();
+      res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

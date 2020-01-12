@@ -87,6 +87,30 @@ TEST_F(NetworkTest, transfer_block) {
   ASSERT_EQ(1, num_received);
 }
 
+TEST_F(NetworkTest, send_pbft_block) {
+  std::shared_ptr<Network> nw1(new taraxa::Network(
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+
+  nw1->start();
+  nw2->start();
+  PbftBlock pbft_block(blk_hash_t(1), 2);
+  uint64_t chain_size = 111;
+  taraxa::thisThreadSleepForSeconds(1);
+
+  nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
+  taraxa::thisThreadSleepForMilliSeconds(200);
+
+  ASSERT_EQ(1, nw1->getTaraxaCapability()->getAllPeers().size());
+  ASSERT_EQ(chain_size,
+            nw1->getTaraxaCapability()
+                ->getPeer(nw1->getTaraxaCapability()->getAllPeers()[0])
+                ->pbft_chain_size_);
+  nw2->stop();
+  nw1->stop();
+}
+
 /*
 Test creates two Network setup and verifies sending transaction
 between is successfull
@@ -129,11 +153,14 @@ connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+        g_conf1->network,
+        g_conf1->chain.dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+        g_conf2->network,
+        g_conf2->chain.dag_genesis_block.getHash().toString()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString()));
+        g_conf3->network,
+        g_conf3->chain.dag_genesis_block.getHash().toString()));
 
     nw1->start(true);
     nw2->start();
@@ -158,12 +185,12 @@ TEST_F(NetworkTest, save_network) {
     nw3->saveNetwork("/tmp/nw3");
   }
 
-  std::shared_ptr<Network> nw2(
-      new taraxa::Network(g_conf2->network, "/tmp/nw2",
-                          g_conf2->chain.dag_genesis_block.getHash().toString()));
-  std::shared_ptr<Network> nw3(
-      new taraxa::Network(g_conf3->network, "/tmp/nw3",
-                          g_conf2->chain.dag_genesis_block.getHash().toString()));
+  std::shared_ptr<Network> nw2(new taraxa::Network(
+      g_conf2->network, "/tmp/nw2",
+      g_conf2->chain.dag_genesis_block.getHash().toString()));
+  std::shared_ptr<Network> nw3(new taraxa::Network(
+      g_conf3->network, "/tmp/nw3",
+      g_conf2->chain.dag_genesis_block.getHash().toString()));
   nw2->start();
   nw3->start();
 
@@ -303,58 +330,81 @@ TEST_F(NetworkTest, node_pbft_sync) {
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->start(true);  // boot node
 
-  // generate pbft pivot block sample
-  blk_hash_t prev_pivot_blk(0);
-  blk_hash_t prev_block_blk(0);
-  blk_hash_t dag_blk(123456789);
+  // generate first PBFT block sample
+  blk_hash_t prev_block_hash(0);
+  blk_hash_t dag_blk(123);
+  TrxSchedule schedule;
   uint64_t period = 1;
-  addr_t beneficiary(987654321);
-  PivotBlock pivot_block(prev_pivot_blk, prev_block_blk, dag_blk, period,
-                         beneficiary);
-  PbftBlock pbft_block1(blk_hash_t(1), 2);
-  pbft_block1.setPivotBlock(pivot_block);
+  uint64_t height = 2;
   uint64_t timestamp = std::time(nullptr);
-  pbft_block1.setTimestamp(timestamp);
+  addr_t beneficiary(987);
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
+                        timestamp, beneficiary);
   sig_t signature = node1->signMessage(pbft_block1.getJsonStr(false));
   pbft_block1.setSignature(signature);
-  std::vector<Vote> votes_for_pivot_blk;
-  votes_for_pivot_blk.emplace_back(node1->generateVote(
-      pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_blk));
-  std::cout << "Generate 1 vote for pivot blk " << std::endl;
+  pbft_block1.setBlockHash();
 
-  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pivot_blk);
+  std::vector<Vote> votes_for_pbft_blk1;
+  votes_for_pbft_blk1.emplace_back(node1->generateVote(
+      pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+  std::cout << "Generate 1 vote for first PBFT block" << std::endl;
+
+  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pbft_blk1);
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   // node1 put block1 into pbft chain and store into DB
-  bool push_block = pbft_chain1->pushPbftPivotBlock(pbft_block1);
+  bool push_block = pbft_chain1->pushPbftBlock(pbft_block1);
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node1->getPbftChainSize(), 2);
 
-  // generate pbft schedule block sample
-  blk_hash_t prev_pivot(1);
-  TrxSchedule schedule;
-  ScheduleBlock schedule_blk(prev_pivot, schedule);
-  PbftBlock pbft_block2(blk_hash_t(2), 3);
-  pbft_block2.setScheduleBlock(schedule_blk);
+  // generate second PBFT block sample
+  prev_block_hash = pbft_block1.getBlockHash();
+  dag_blk = blk_hash_t(456);
+  period = 2;
+  height = 3;
   timestamp = std::time(nullptr);
-  pbft_block2.setTimestamp(timestamp);
+  beneficiary = addr_t(654);
+  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
+                        timestamp, beneficiary);
   signature = node1->signMessage(pbft_block2.getJsonStr(false));
   pbft_block2.setSignature(signature);
+  pbft_block2.setBlockHash();
 
-  std::vector<Vote> votes_for_sc_blk;
-  votes_for_sc_blk.emplace_back(node1->generateVote(
-      pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_pivot));
-  std::cout << "Generate 1 vote for cs blk " << std::endl;
+  std::vector<Vote> votes_for_pbft_blk2;
+  votes_for_pbft_blk2.emplace_back(node1->generateVote(
+      pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
+  std::cout << "Generate 1 vote for second PBFT block" << std::endl;
 
-  node1->storeCertVotes(pbft_block2.getBlockHash(), votes_for_sc_blk);
+  node1->storeCertVotes(pbft_block2.getBlockHash(), votes_for_pbft_blk2);
 
   // node1 put block2 into pbft chain and store into DB
-  push_block = pbft_chain1->pushPbftScheduleBlock(pbft_block2);
+  push_block = pbft_chain1->pushPbftBlock(pbft_block2);
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node1->getPbftChainSize(), 3);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
   node2->start(false);  // boot node
+
+  std::shared_ptr<Network> nw1 = node1->getNetwork();
+  std::shared_ptr<Network> nw2 = node2->getNetwork();
+  const int node_peers = 1;
+  bool checkpoint_passed = false;
+  const int timeout_val = 60;
+  for (auto i = 0; i < timeout_val; i++) {
+    // test timeout is 60 seconds
+    if (nw1->getPeerCount() == node_peers &&
+        nw2->getPeerCount() == node_peers) {
+      checkpoint_passed = true;
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+  }
+  if (checkpoint_passed == false) {
+    std::cout << "Timeout reached after " << timeout_val << " seconds..."
+              << std::endl;
+    ASSERT_EQ(node_peers, nw1->getPeerCount());
+    ASSERT_EQ(node_peers, nw2->getPeerCount());
+  }
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
   for (int i = 0; i < 1200; i++) {
@@ -364,6 +414,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   EXPECT_EQ(node2->getPbftChainSize(), 3);
+  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
+  blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
+  EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
+  blk_hash_t first_pbft_block_hash =
+      pbft_chain2->getPbftBlockInChain(second_pbft_block_hash)
+          .getPrevBlockHash();
+  EXPECT_EQ(first_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
@@ -371,53 +428,76 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->start(true);  // boot node
 
-  // generate pbft pivot block sample
-  blk_hash_t prev_pivot_blk(0);
-  blk_hash_t prev_block_blk(0);
-  blk_hash_t dag_blk(123456789);
+  // generate first PBFT block sample
+  blk_hash_t prev_block_hash(0);
+  blk_hash_t dag_blk(234);
+  TrxSchedule schedule;
   uint64_t period = 1;
-  addr_t beneficiary(987654321);
-  PivotBlock pivot_block(prev_pivot_blk, prev_block_blk, dag_blk, period,
-                         beneficiary);
-  PbftBlock pbft_block1(blk_hash_t(1), 2);
-  pbft_block1.setPivotBlock(pivot_block);
+  uint64_t height = 2;
   uint64_t timestamp = std::time(nullptr);
-  pbft_block1.setTimestamp(timestamp);
+  addr_t beneficiary(876);
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
+                        timestamp, beneficiary);
   sig_t signature = node1->signMessage(pbft_block1.getJsonStr(false));
   pbft_block1.setSignature(signature);
-  std::vector<Vote> votes_for_pivot_blk;
-  votes_for_pivot_blk.emplace_back(node1->generateVote(
-      pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_blk));
-  std::cout << "Generate 1 vote for pivot blk " << std::endl;
+  pbft_block1.setBlockHash();
+  std::vector<Vote> votes_for_pbft_blk1;
+  votes_for_pbft_blk1.emplace_back(node1->generateVote(
+      pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
+  std::cout << "Generate 1 vote for first PBFT block" << std::endl;
 
-  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pivot_blk);
+  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pbft_blk1);
   std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
-  // node1 put block1 into pbft chain and 1 cert vote store into DB()
-  bool push_block = pbft_chain1->pushPbftPivotBlock(pbft_block1);
+  // node1 put block1 into pbft chain and store into DB
+  bool push_block = pbft_chain1->pushPbftBlock(pbft_block1);
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node1->getPbftChainSize(), 2);
 
-  // generate pbft schedule block sample
-  blk_hash_t prev_pivot(1);
-  TrxSchedule schedule;
-  ScheduleBlock schedule_blk(prev_pivot, schedule);
-  PbftBlock pbft_block2(blk_hash_t(2), 3);
-  pbft_block2.setScheduleBlock(schedule_blk);
+  // generate second PBFT block sample
+  prev_block_hash = pbft_block1.getBlockHash();
+  dag_blk = blk_hash_t(567);
+  period = 2;
+  height = 3;
   timestamp = std::time(nullptr);
-  pbft_block2.setTimestamp(timestamp);
+  beneficiary = addr_t(543);
+  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
+                        timestamp, beneficiary);
   signature = node1->signMessage(pbft_block2.getJsonStr(false));
   pbft_block2.setSignature(signature);
-  std::cout << "There are no votes for cs blk " << std::endl;
+  pbft_block2.setBlockHash();
+
+  std::cout << "There are no votes for the second PBFT block" << std::endl;
 
   // node1 put block2 into pbft chain and no votes store into DB
   // (malicious player)
-  push_block = pbft_chain1->pushPbftScheduleBlock(pbft_block2);
+  push_block = pbft_chain1->pushPbftBlock(pbft_block2);
   EXPECT_TRUE(push_block);
   EXPECT_EQ(node1->getPbftChainSize(), 3);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa4.json"), true);
   node2->start(false);  // boot node
+
+  std::shared_ptr<Network> nw1 = node1->getNetwork();
+  std::shared_ptr<Network> nw2 = node2->getNetwork();
+  const int node_peers = 1;
+  bool checkpoint_passed = false;
+  const int timeout_val = 60;
+  for (auto i = 0; i < timeout_val; i++) {
+    // test timeout is 60 seconds
+    if (nw1->getPeerCount() == node_peers &&
+        nw2->getPeerCount() == node_peers) {
+      checkpoint_passed = true;
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(1000);
+  }
+  if (checkpoint_passed == false) {
+    std::cout << "Timeout reached after " << timeout_val << " seconds..."
+              << std::endl;
+    ASSERT_EQ(node_peers, nw1->getPeerCount());
+    ASSERT_EQ(node_peers, nw2->getPeerCount());
+  }
 
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
   for (int i = 0; i < 600; i++) {
@@ -427,6 +507,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   EXPECT_EQ(node2->getPbftChainSize(), 2);
+  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
+  blk_hash_t last_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
+  EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
 /*
@@ -775,6 +858,8 @@ TEST_F(NetworkTest, node_full_sync) {
     EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
               node1->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
+              nodes[i]->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
   }
