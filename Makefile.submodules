@@ -12,7 +12,7 @@ __SUBMODULE_UPDATE_EXIT_CODE__ := $(shell \
 	if git status &> /dev/null; then \
 		( \
 			git submodule update --init --recursive && \
-			git submodule foreach "git clean -dfx && git reset --hard" \
+			git submodule foreach "git restore . && git clean -dfx && git reset --hard" \
 		) &> $(__SUBMODULE_UPDATE_LOG_FILE__); \
 	fi; \
 	echo $$?; \
@@ -29,7 +29,10 @@ SUBMODULES := $(shell scripts/submodule_list.sh)
 SUBMODULES_BUILD_DIRS := $(addprefix $(BUILD_BASEDIR)/, $(SUBMODULES))
 SUBMODULES_BUILT_INDICATORS := $(addsuffix /ok, $(SUBMODULES_BUILD_DIRS))
 
-$(SUBMODULES_BUILT_INDICATORS): $(BUILD_BASEDIR)/%/ok: %
+.SECONDEXPANSION:
+$(SUBMODULES_BUILT_INDICATORS): $(SUBMODULES_BUILD_BASEDIR)/%/ok: \
+$$(wildcard submodules/%/*) \
+submodules/%
 
 $(SUBMODULES_INSTALL_PREFIX): $(SUBMODULES_BUILT_INDICATORS)
 	rm -rf "$@"
