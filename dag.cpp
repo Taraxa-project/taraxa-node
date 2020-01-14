@@ -693,7 +693,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
     LOG(log_er_) << getFullNodeAddress() << " Size of total dag ( "
                  << total_dag_->getNumVertices() << " ) and pivot tree ( "
                  << pivot_tree_->getNumVertices() << " ) not match ";
-    assert(false);
+    // assert(false);
   }
   return blk_orders.size();
 }
@@ -715,7 +715,7 @@ void DagManager::deletePeriod(uint64_t period) {
     LOG(log_er_) << getFullNodeAddress() << " Size of total dag periods ( "
                  << total_dag_->periods_.size() << " ) and anchor size ( "
                  << anchors_.size() << " ) not match ";
-    assert(false);
+    // assert(false);
   }
 }
 
