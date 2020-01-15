@@ -186,7 +186,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
-  
+
+  bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
 

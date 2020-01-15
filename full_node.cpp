@@ -156,7 +156,9 @@ void FullNode::start(bool boot_node) {
       while (!stopped_) {
         // will block if no verified block available
         auto blk = blk_mgr_->popVerifiedBlock();
-        if (stopped_) break;
+        if (dag_mgr_->dagHasVertex(blk.getHash())) {
+          continue;
+        }
 
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
@@ -165,11 +167,11 @@ void FullNode::start(bool boot_node) {
           }
         }
 
-       if (dag_mgr_->pivotAndTipsAvailable(blk)) {
+        if (dag_mgr_->pivotAndTipsAvailable(blk)) {
           db_->saveDagBlock(blk);
           dag_mgr_->addDagBlock(blk);
-          {
-            if (ws_server_) ws_server_->newDagBlock(blk);
+          if (ws_server_) {
+            ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
           LOG(log_time_) << "Broadcast block " << blk.getHash()
