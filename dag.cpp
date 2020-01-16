@@ -478,23 +478,30 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
+bool DagManager::dagHasVertex(blk_hash_t const &blk_hash) {
+  if (total_dag_->hasVertex(blk_hash.toString())) {
+    LOG(log_dg_) << "DAG Block " << blk_hash << " is in DAG already! ";
+    return true;
+  }
+  return false;
+}
+
 bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
-  auto h = blk.getHash();
-  auto p = blk.getPivot();
+  auto dag_blk_hash = blk.getHash();
+  auto dag_blk_pivot = blk.getPivot();
   uLock lock(mutex_);
 
-  std::string pivot = blk.getPivot().toString();
-  if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
-                 << std::endl;
+  if (!total_dag_->hasVertex(dag_blk_pivot.toString())) {
+    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot
+                 << " unavailable";
     return false;
   }
 
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     if (!total_dag_->hasVertex(tip)) {
-      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
-                   << std::endl;
+      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t
+                   << " unavailable";
       return false;
     }
   }
@@ -503,41 +510,30 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 }
 
 void DagManager::addDagBlock(DagBlock const &blk) {
-  auto hash = blk.getHash().toString();
-  auto h = blk.getHash();
-  auto p = blk.getPivot();
+  auto blk_hash = blk.getHash();
+  auto blk_hash_str = blk_hash.toString();
+  auto pivot_hash = blk.getPivot();
   DagFrontier frontier;
   uLock lock(mutex_);
 
-  if (total_dag_->hasVertex(hash)) {
-    LOG(log_dg_) << "Block is in DAG already! " << h << std::endl;
+  if (total_dag_->hasVertex(blk_hash_str)) {
+    LOG(log_dg_) << "DAG Block " << blk_hash << " is in DAG already! ";
+    return;
   }
 
-  std::string pivot = blk.getPivot().toString();
-  assert(total_dag_->hasVertex(pivot));
-  /*if (!total_dag_->hasVertex(pivot)) {
-    LOG(log_dg_) << "Block " << h << " pivot " << p << " unavailable"
-                 << std::endl;
-    return false;
-  }*/
+  assert(total_dag_->hasVertex(pivot_hash.toString()));
 
   std::vector<std::string> tips;
   for (auto const &t : blk.getTips()) {
     std::string tip = t.toString();
     assert(total_dag_->hasVertex(tip));
-    /*if (!total_dag_->hasVertex(tip)) {
-      LOG(log_dg_) << "Block " << h << " tip " << t << " unavailable"
-                   << std::endl;
-      return false;
-    }*/
     tips.push_back(tip);
   }
 
   max_level_ = std::max(max_level_, blk.getLevel());
-  addToDag(hash, pivot, tips);
+  addToDag(blk_hash_str, pivot_hash.toString(), tips);
 
   auto full_node = full_node_.lock();
-
   // full_node could be null in test
   if (full_node) {
     auto [p, ts] = getFrontier();
