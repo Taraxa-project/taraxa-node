@@ -30,7 +30,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
       DAG_BLOCKS_SIZE(params[3]),
-      RUN_COUNT_VOTES(params[4]),
+      GHOST_PATH_MOVE_BACK(params[4]),
+      RUN_COUNT_VOTES(params[5]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(
@@ -982,14 +983,28 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   std::vector<std::string> ghost;
   full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
-  blk_hash_t dag_block_hash;
+  LOG(log_deb_) << "GHOST size " << ghost.size();
+  // Looks like ghost never empty, at lease include the last period dag anchor
+  // block
   if (ghost.empty()) {
     LOG(log_deb_) << "GHOST is empty. No new DAG blocks generated, PBFT "
                      "propose NULL_BLOCK_HASH";
     return std::make_pair(NULL_BLOCK_HASH, true);
   }
+  blk_hash_t dag_block_hash;
   if (ghost.size() <= DAG_BLOCKS_SIZE) {
-    dag_block_hash = blk_hash_t(ghost.back());
+    // Move back GHOST_PATH_MOVE_BACK DAG blocks for DAG sycning
+    int ghost_index = ghost.size() - 1 - GHOST_PATH_MOVE_BACK;
+    if (ghost_index <= 0) {
+      ghost_index = 0;
+    }
+    while (ghost_index < ghost.size() - 1) {
+      if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
+        break;
+      }
+      ghost_index += 1;
+    }
+    dag_block_hash = blk_hash_t(ghost[ghost_index]);
   } else {
     dag_block_hash = blk_hash_t(ghost[DAG_BLOCKS_SIZE - 1]);
   }
