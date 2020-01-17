@@ -17,7 +17,7 @@ struct WaitOptions {
 
 inline const WaitOptions WaitOptions_DEFAULT = {
     60 * 2,
-    nanoseconds(1000 * 1000 * 1000 * 1),
+    nanoseconds(1000 * 1000 * 1000 * 2),
 };
 
 template <typename Condition>
