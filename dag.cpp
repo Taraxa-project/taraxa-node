@@ -689,11 +689,12 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
     LOG(log_er_) << getFullNodeAddress() << " Size of total dag ( "
                  << total_dag_->getNumVertices() << " ) and pivot tree ( "
                  << pivot_tree_->getNumVertices() << " ) not match ";
-    assert(false);
+    // assert(false);
   }
   return blk_orders.size();
 }
 void DagManager::deletePeriod(uint64_t period) {
+  uLock lock(mutex_);
   auto deleted_vertices = total_dag_->deletePeriod(period);
   auto anchor = anchors_.front();
   if (anchor.second != period) {
