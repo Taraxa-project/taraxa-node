@@ -1468,26 +1468,30 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
   size_t players_size = valid_sortition_accounts_size_;
   int64_t since_period;
+  
+  auto full_node = node_.lock();
+  if (!full_node) {
+    LOG(log_err_) << "Full node unavailable" << std::endl;
+    return;
+  }
+  addr_t account_address = full_node->getAddress();
+
   if (last_pbft_period < SKIP_PERIODS) {
     since_period = 0;
   } else {
     since_period = last_pbft_period - SKIP_PERIODS;
   }
   
+  is_active_player_ = false;
+
   size_t active_players = 0;
   for (auto const &account : sortition_account_balance_table) {
     if (account.second.last_period_seen >= since_period) {
       active_players++;
+      if (account.first == account_address) {
+        is_active_player_ = true;
+      }
     }
-  }
-  
-  addr_t account_address = full_node->getAddress();
-  
-  PbftSortitionAccount account = db_->getSortitionAccount(account_address);
-  if (account.last_period_seen < since_period) {
-    is_active_player_ = false;
-  } else {
-    is_active_player_ = true;
   }
   
   valid_sortition_accounts_size_ = sortition_account_balance_table.size();
