@@ -751,12 +751,13 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   } else {
     since_period = last_period - SKIP_PERIODS;
   }
-  PbftSortitionAccount account = db_->getSortitionAccount(account_address);
-  if (account.last_period_seen < since_period) {
+  
+  if (is_active_player_ == false) {
     LOG(log_tra_) << "Non-active player since period " << since_period;
     return false;
   }
-  // compute sorition
+
+  // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
   VrfPbftSortition vrf_sortition(full_node->getVrfSecretKey(), msg);
   if (!vrf_sortition.canSpeak(sortition_threshold_,
@@ -1472,12 +1473,31 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   } else {
     since_period = last_pbft_period - SKIP_PERIODS;
   }
+  
   size_t active_players = 0;
   for (auto const &account : sortition_account_balance_table) {
     if (account.second.last_period_seen >= since_period) {
       active_players++;
     }
   }
+  
+  addr_t account_address = full_node->getAddress();
+  
+  PbftSortitionAccount account = db_->getSortitionAccount(account_address);
+  if (account.last_period_seen < since_period) {
+    is_active_player_ = false;
+  } else {
+    is_active_player_ = true;
+  }
+  
+  valid_sortition_accounts_size_ = sortition_account_balance_table.size();
+  if (active_players == 0) {
+    LOG(log_err_) << "Active players was found to be 0! Will set active player count to be sortition table size of " << valid_sortition_accounts_size_ << ". Last period is " << last_pbft_period;
+    active_players = valid_sortition_accounts_size_;
+    // IF active_players count == 0 then all players should be treated as active...
+    is_active_player_ = true;
+  }
+
   if (COMMITTEE_SIZE <= active_players) {
     TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
     // round up
@@ -1510,7 +1530,6 @@ void PbftManager::updateSortitionAccountsDB_() {
       sortition_account_balance_table.erase(account.first);
     }
   }
-  valid_sortition_accounts_size_ = sortition_account_balance_table.size();
   auto account_size = std::to_string(valid_sortition_accounts_size_);
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
                                   account_size, accounts);
