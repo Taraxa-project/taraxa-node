@@ -876,19 +876,6 @@ TEST_F(NetworkTest, node_full_sync) {
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
   }
-  /*for(int i = 0; i < 1000; i++) {
-    if(node1->getDagBlocksAtLevel(i, 1).size() !=
-  nodes[5]->getDagBlocksAtLevel(i, 1).size()) { cout << "Diff" << i << " ";
-      for(auto h1 : node1->getDagBlocksAtLevel(i, 1)) {
-        cout << h1->getHash() << " ";
-      }
-      cout << " TAB ";
-      for(auto h2 : nodes[5]->getDagBlocksAtLevel(i, 1)) {
-        cout << h2->getHash() << " ";
-      }
-      cout << endl;
-    }
-  }*/
 }
 
 }  // namespace taraxa

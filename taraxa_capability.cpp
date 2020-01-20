@@ -165,8 +165,6 @@ void TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
     syncing_ = false;
     LOG(log_dg_dag_sync_) << "Syncing is stopping";
     sendSyncedMessage();
-    // Call continue Sync, just one more time to make sure that no
-    // block is missed between stopping sync and starting gossiping
   }
 }
 
@@ -373,16 +371,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           }
           auto dag_blocks = full_node->getDagBlocksAtLevel(
               level_it, full_node->getMaxDagLevel() - level_it + 1);
-          /*for(auto leave : full_node->collectTotalLeaves()) {
-            cout << "LEAVES : ";
-            auto dag_block = full_node->getDagBlockFromDb(blk_hash_t(leave));
-            cout <<  leave << " ";
-            if(dag_block) {
-              cout << " EX ";
-              dag_blocks.push_back(dag_block);
-            }
-            cout << endl;
-          }*/
           sendBlocks(_nodeID, dag_blocks);
         }
         break;
@@ -616,13 +604,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                 << " but currently syncing with peer " << peer_syncing_pbft;
           }
         } else {
-          syncing_ = false;
           LOG(log_dg_pbft_sync_) << "Syncing PBFT is completed";
           // We are pbft synced with the node we are connected to but
           // calling restartSyncingPbft will check if some nodes have
           // greater pbft chain size and we should continue syncing with
           // them
-          restartSyncingPbft();
+          restartSyncingPbft(true);
         }
         break;
       }
@@ -669,8 +656,8 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
   }
 }
 
-void TaraxaCapability::restartSyncingPbft() {
-  if (syncing_) {
+void TaraxaCapability::restartSyncingPbft(bool force) {
+  if (syncing_ && !force) {
     LOG(log_dg_pbft_sync_)
         << "restartSyncingPbft called but syncing_ already true";
     return;
@@ -715,9 +702,8 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   test_sums_.erase(_nodeID);
   erasePeer(_nodeID);
   if (syncing_ && peer_syncing_pbft == _nodeID && getPeersCount() > 0) {
-    syncing_ = false;
     LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
-    restartSyncingPbft();
+    restartSyncingPbft(true);
   }
 }
 
