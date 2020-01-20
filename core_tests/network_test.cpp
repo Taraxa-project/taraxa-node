@@ -333,6 +333,19 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
   blk_hash_t dag_blk(123);
+
+  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
+                sig_t(777), blk_hash_t(12), addr_t(999));
+  DagBlock blk2(blk_hash_t(12), 2, {}, {}, sig_t(777), blk_hash_t(123),
+                addr_t(999));
+
+  DagBlock blk3(blk_hash_t(123), 2, {}, {}, sig_t(777), blk_hash_t(456),
+                addr_t(999));
+
+  node1->getDB()->saveDagBlock(blk1);
+  node1->getDB()->saveDagBlock(blk2);
+  node1->getDB()->saveDagBlock(blk3);
+
   TrxSchedule schedule;
   uint64_t period = 1;
   uint64_t height = 2;
@@ -871,6 +884,8 @@ int main(int argc, char** argv) {
   taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
+  // logOptions.includeChannels.push_back("PBFTSYNC");
+  // logOptions.includeChannels.push_back("DAGSYNC");
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);

@@ -38,10 +38,7 @@ class Network {
   void start(bool boot_node = false);
   void stop();
   bool isStarted();
-  bool isSynced() {
-    return !(taraxa_capability_->syncing_dag_ ||
-             taraxa_capability_->syncing_pbft_);
-  }
+  bool isSynced() { return !taraxa_capability_->syncing_; }
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
