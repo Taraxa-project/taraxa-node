@@ -760,11 +760,12 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   }
   bool is_active_player =
       sortition_account_balance_table[account_address].last_period_seen >=
-          since_period;
+      since_period;
   if (!is_active_player) {
-    LOG(log_tra_) << "Account " << account_address << " last period seen at "
-      << sortition_account_balance_table[account_address].last_period_seen
-      << ", as a non-active player since period " << since_period;
+    LOG(log_tra_)
+        << "Account " << account_address << " last period seen at "
+        << sortition_account_balance_table[account_address].last_period_seen
+        << ", as a non-active player since period " << since_period;
     return false;
   }
 
@@ -1450,9 +1451,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       //  pairs<addr_t, val_t>.
       //  Will need update sortition_account_balance_table_tmp here
       uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-      if (!full_node->executePeriod(pbft_block,
-                                    sortition_account_balance_table_tmp,
-                                    pbft_period)) {
+      if (!full_node->executePeriod(
+              pbft_block, sortition_account_balance_table_tmp, pbft_period)) {
         LOG(log_err_) << "Failed to execute PBFT schedule";
       }
       db_->savePeriodScheduleBlock(pbft_period, pbft_block.getBlockHash());
@@ -1502,14 +1502,21 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   }
   if (active_players == 0) {
     // IF active_players count 0 then all players should be treated as active
-    LOG(log_war_) << "Active players was found to be 0! This should only happen at initialization, when master boot node distribute all of coins out to players. Will set active player count to be sortition table size of " << valid_sortition_accounts_size_ << ". Last period is " << last_pbft_period;
+    LOG(log_war_) << "Active players was found to be 0! This should only "
+                     "happen at initialization, when master boot node "
+                     "distribute all of coins out to players. Will set active "
+                     "player count to be sortition table size of "
+                  << valid_sortition_accounts_size_ << ". Last period is "
+                  << last_pbft_period;
     active_players = valid_sortition_accounts_size_;
   }
   // Update 2t+1 and threshold
   if (COMMITTEE_SIZE <= active_players) {
     TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
     // round up
-    sortition_threshold_ = (valid_sortition_accounts_size_ * COMMITTEE_SIZE - 1) / active_players + 1;
+    sortition_threshold_ =
+        (valid_sortition_accounts_size_ * COMMITTEE_SIZE - 1) / active_players +
+        1;
   } else {
     TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
     sortition_threshold_ = valid_sortition_accounts_size_;
@@ -1541,8 +1548,8 @@ void PbftManager::updateSortitionAccountsDB_() {
       sortition_account_balance_table_tmp.erase(account.first);
     }
   }
-  auto account_size = std::to_string(
-      sortition_account_balance_table_tmp.size());
+  auto account_size =
+      std::to_string(sortition_account_balance_table_tmp.size());
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
                                   account_size, accounts);
   db_->commitWriteBatch(accounts);
