@@ -503,7 +503,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         uint64_t pbft_block_counter = 0;
         uint64_t dag_block_counter = 0;
         uint64_t dag_block_trx_counter = 0;
-
         while (true) {
           if (pbft_block_counter + dag_block_counter + dag_block_trx_counter >=
               item_count)
@@ -514,6 +513,21 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                   .toBytes());
           LOG(log_dg_pbft_sync_) << "Received pbft block: "
                                  << pbft_blk_and_votes.pbft_blk.getBlockHash();
+          if (pbft_sync_height_ < pbft_blk_and_votes.pbft_blk.getHeight()) {
+            if (pbft_sync_height_ + 1 !=
+                pbft_blk_and_votes.pbft_blk.getHeight()) {
+              LOG(log_er_pbft_sync_)
+                  << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
+                  << pbft_blk_and_votes.pbft_blk.getHeight()
+                  << " sync_height: " << pbft_sync_height_
+                  << " chain size: " << full_node->getPbftChainSize()
+                  << " queue: " << full_node->getPbftSyncedQueueSize();
+              pbft_sync_height_ = full_node->getPbftChainSize();
+              restartSyncingPbft(true);
+              break;
+            }
+            pbft_sync_height_ = pbft_blk_and_votes.pbft_blk.getHeight();
+          }
           pbft_block_counter++;
           std::string received_dag_blocks_str;
           std::map<uint64_t,
@@ -551,8 +565,17 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                block_level != dag_blocks_per_level.end(); block_level++) {
             for (auto block : block_level->second) {
               auto status = checkTipsandPivot(block.second.first);
-              assert(status.first);  // malicious node could send invalid
-                                     // dag_blocks, improve later
+              if (!status.first) {
+                LOG(log_er_pbft_sync_)
+                    << "PBFT SYNC ERROR, DAG missing a tip/pivot: "
+                    << pbft_blk_and_votes.pbft_blk.getHeight()
+                    << " sync_height: " << pbft_sync_height_
+                    << " chain size: " << full_node->getPbftChainSize()
+                    << " queue: " << full_node->getPbftSyncedQueueSize();
+                pbft_sync_height_ = full_node->getPbftChainSize();
+                restartSyncingPbft(true);
+                break;
+              }
               LOG(log_nf_dag_sync_)
                   << "Storing block " << block.second.first.getHash().toString()
                   << " with " << block.second.second.size() << " transactions";
@@ -584,19 +607,15 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         if (item_count > 0) {
           if (syncing_ && peer_syncing_pbft == _nodeID) {
-            uint64_t max_block_height = full_node->getPbftChainSize() +
-                                        full_node->getPbftSyncedQueueSize();
-            if (max_block_height > full_node->getPbftChainSize() +
-                                       (10 * conf_.network_sync_level_size)) {
+            if (pbft_sync_height_ > full_node->getPbftChainSize() +
+                                        (10 * conf_.network_sync_level_size)) {
               LOG(log_dg_pbft_sync_)
                   << "Syncing pbft blocks faster than processing "
-                  << max_block_height << " " << full_node->getPbftChainSize();
+                  << pbft_sync_height_ << " " << full_node->getPbftChainSize();
               host_.scheduleExecution(
-                  1000, [this, _nodeID, max_block_height]() {
-                    delayedPbftSync(_nodeID, max_block_height, 1);
-                  });
+                  1000, [this, _nodeID]() { delayedPbftSync(_nodeID, 1); });
             } else {
-              syncPeerPbft(_nodeID, max_block_height + 1);
+              syncPeerPbft(_nodeID, pbft_sync_height_ + 1);
             }
           } else {
             LOG(log_dg_pbft_sync_)
@@ -624,8 +643,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
   return true;
 }
 
-void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
-                                       uint64_t max_block_height, int counter) {
+void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
   if (!stopped_) {
     auto full_node = full_node_.lock();
     if (full_node) {
@@ -633,23 +651,22 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID,
         LOG(log_er_pbft_sync_)
             << "Pbft blocks stuck in queue, no new block processed "
                "in 60 seconds "
-            << max_block_height << " " << full_node->getPbftChainSize();
+            << pbft_sync_height_ << " " << full_node->getPbftChainSize();
         syncing_ = false;
         LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
         return;
       }
       if (syncing_ && peer_syncing_pbft == _nodeID) {
-        if (max_block_height > full_node->getPbftChainSize() +
-                                   (10 * conf_.network_sync_level_size)) {
+        if (pbft_sync_height_ > full_node->getPbftChainSize() +
+                                    (10 * conf_.network_sync_level_size)) {
           LOG(log_dg_pbft_sync_)
               << "Syncing pbft blocks faster than processing "
-              << max_block_height << " " << full_node->getPbftChainSize();
-          host_.scheduleExecution(
-              1000, [this, _nodeID, max_block_height, counter]() {
-                delayedPbftSync(_nodeID, max_block_height, counter + 1);
-              });
+              << pbft_sync_height_ << " " << full_node->getPbftChainSize();
+          host_.scheduleExecution(1000, [this, _nodeID, counter]() {
+            delayedPbftSync(_nodeID, counter + 1);
+          });
         } else {
-          syncPeerPbft(_nodeID, max_block_height + 1);
+          syncPeerPbft(_nodeID, pbft_sync_height_ + 1);
         }
       }
     }
@@ -675,8 +692,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
   if (auto full_node = full_node_.lock()) {
-    if (max_pbft_chain_size >
-        full_node->getPbftChainSize() + full_node->getPbftSyncedQueueSize()) {
+    if (max_pbft_chain_size > pbft_sync_height_) {
       if (!stopped_) {
         LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT";
         syncing_ = true;
