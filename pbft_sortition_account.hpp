@@ -26,6 +26,13 @@ class PbftSortitionAccount {
         last_period_seen(pbft_period),
         status(account_status) {}
   PbftSortitionAccount(std::string const& json);
+  // Copy constructor
+  PbftSortitionAccount(PbftSortitionAccount const& account) {
+    address = account.address;
+    balance = account.balance;
+    last_period_seen = account.last_period_seen;
+    status = account.status;
+  }
   ~PbftSortitionAccount() {}
 
   std::string getJsonStr() const;

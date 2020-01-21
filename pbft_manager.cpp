@@ -77,26 +77,29 @@ void PbftManager::start() {
     PbftSortitionAccount master_boot_node(
         master_boot_node_address, master_boot_node_account_balance.first, 0,
         new_change);
-    sortition_account_balance_table[master_boot_node_address] =
+    sortition_account_balance_table_tmp[master_boot_node_address] =
         master_boot_node;
-    valid_sortition_accounts_size_ = 1;
     updateSortitionAccountsDB_();
+    updateSortitionAccountsTable_();
   } else {
     // Full node join back
     if (!sortition_account_balance_table.empty()) {
       LOG(log_err_) << "PBFT sortition accounts table should be empty";
       assert(false);
     }
+    size_t sortition_accounts_size_db = 0;
     db_->forEachSortitionAccount([&](auto const &key, auto const &value) {
       if (key.ToString() == "sortition_accounts_size") {
         std::stringstream sstream(value.ToString());
-        sstream >> valid_sortition_accounts_size_;
+        sstream >> sortition_accounts_size_db;
         return true;
       }
       PbftSortitionAccount account(value.ToString());
-      sortition_account_balance_table[account.address] = account;
+      sortition_account_balance_table_tmp[account.address] = account;
       return true;
     });
+    updateSortitionAccountsTable_();
+    assert(sortition_accounts_size_db == valid_sortition_accounts_size_);
   }
 
   // Reset round and step...
@@ -293,6 +296,8 @@ void PbftManager::run() {
       next_voted_soft_value = false;
       if (executed_pbft_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+        // Update sortition accounts table
+        updateSortitionAccountsTable_();
         // reset sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
         executed_pbft_block_ = false;
@@ -739,8 +744,10 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   addr_t account_address = full_node->getAddress();
-  if (!db_->sortitionAccountInDb(account_address)) {
-    LOG(log_tra_) << "Don't have enough coins to vote";
+  if (sortition_account_balance_table.find(account_address) ==
+      sortition_account_balance_table.end()) {
+    LOG(log_tra_) << "Cannot find account " << account_address
+                  << " in sortition table. Don't have enough coins to vote";
     return false;
   }
   // only active players are able to vote
@@ -751,9 +758,13 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   } else {
     since_period = last_period - SKIP_PERIODS;
   }
-  
-  if (is_active_player_ == false) {
-    LOG(log_tra_) << "Non-active player since period " << since_period;
+  bool is_active_player =
+      sortition_account_balance_table[account_address].last_period_seen >=
+          since_period;
+  if (!is_active_player) {
+    LOG(log_tra_) << "Account " << account_address << " last period seen at "
+      << sortition_account_balance_table[account_address].last_period_seen
+      << ", as a non-active player since period " << since_period;
     return false;
   }
 
@@ -1376,6 +1387,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
                               pbft_block_and_votes.cert_votes);
     if (executed_pbft_block_) {
       last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+      // Update sortition accounts table
+      updateSortitionAccountsTable_();
       // update sortition_threshold and TWO_T_PLUS_ONE
       updateTwoTPlusOneAndThreshold_();
       executed_pbft_block_ = false;
@@ -1432,12 +1445,13 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
                     << current_pbft_chain_period << " round " << pbft_round_
                     << " step " << pbft_step_ << " PBFT block: " << pbft_block;
       // execute pbft schedule
-      // TODO: VM executor will not take sortition_account_balance_table as
+      // TODO: VM executor will not take sortition_account_balance_table_tmp as
       //  reference. But will return a list of modified accounts as
       //  pairs<addr_t, val_t>.
-      //  Will need update sortition_account_balance_table here
+      //  Will need update sortition_account_balance_table_tmp here
       uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-      if (!full_node->executePeriod(pbft_block, sortition_account_balance_table,
+      if (!full_node->executePeriod(pbft_block,
+                                    sortition_account_balance_table_tmp,
                                     pbft_period)) {
         LOG(log_err_) << "Failed to execute PBFT schedule";
       }
@@ -1466,75 +1480,69 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
-  //size_t players_size = sortition_account_balance_table.size();
   int64_t since_period;
-  
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
-  }
-  addr_t account_address = full_node->getAddress();
-
   if (last_pbft_period < SKIP_PERIODS) {
     since_period = 0;
   } else {
     since_period = last_pbft_period - SKIP_PERIODS;
   }
-  
-  is_active_player_ = false;
-
   size_t active_players = 0;
-  for (auto const &account : sortition_account_balance_table) {
-    if (account.second.last_period_seen >= since_period) {
-      active_players++;
-      if (account.first == account_address) {
-        is_active_player_ = true;
+  while (active_players == 0 && since_period >= 0) {
+    for (auto const &account : sortition_account_balance_table) {
+      if (account.second.last_period_seen >= since_period) {
+        active_players++;
       }
     }
+    if (active_players == 0) {
+      LOG(log_war_) << "Active players was found to be 0 since period "
+                    << since_period
+                    << ". Will go back one period continue to check. ";
+      since_period--;
+    }
   }
-  
-  valid_sortition_accounts_size_ = sortition_account_balance_table.size();
   if (active_players == 0) {
-    LOG(log_err_) << "Active players was found to be 0! Will set active player count to be sortition table size of " << valid_sortition_accounts_size_ << ". Last period is " << last_pbft_period;
+    // IF active_players count 0 then all players should be treated as active
+    LOG(log_war_) << "Active players was found to be 0! This should only happen at initialization, when master boot node distribute all of coins out to players. Will set active player count to be sortition table size of " << valid_sortition_accounts_size_ << ". Last period is " << last_pbft_period;
     active_players = valid_sortition_accounts_size_;
-    // IF active_players count == 0 then all players should be treated as active...
-    is_active_player_ = true;
   }
-
+  // Update 2t+1 and threshold
   if (COMMITTEE_SIZE <= active_players) {
     TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
     // round up
-    sortition_threshold_ =
-        (valid_sortition_accounts_size_ * COMMITTEE_SIZE - 1) / active_players + 1;
+    sortition_threshold_ = (valid_sortition_accounts_size_ * COMMITTEE_SIZE - 1) / active_players + 1;
   } else {
     TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
     sortition_threshold_ = valid_sortition_accounts_size_;
   }
   LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
                 << sortition_threshold_ << ", valid voting players "
-                << valid_sortition_accounts_size_ << ", active players " << active_players
-                << " since period " << since_period;
+                << valid_sortition_accounts_size_ << ", active players "
+                << active_players << " since period " << since_period;
+}
+
+void PbftManager::updateSortitionAccountsTable_() {
+  sortition_account_balance_table.clear();
+  for (auto &account : sortition_account_balance_table_tmp) {
+    sortition_account_balance_table[account.first] = account.second;
+  }
+  // update sortition accounts size
+  valid_sortition_accounts_size_ = sortition_account_balance_table.size();
 }
 
 void PbftManager::updateSortitionAccountsDB_() {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return;
-  }
   auto accounts = db_->createWriteBatch();
-  for (auto &account : sortition_account_balance_table) {
+  for (auto &account : sortition_account_balance_table_tmp) {
     if (account.second.status == new_change) {
       db_->addSortitionAccountToBatch(account.first, account.second, accounts);
       account.second.status = updated;
     } else if (account.second.status == remove) {
       // Erase both from DB and cache(table)
       db_->removeSortitionAccount(account.first);
-      sortition_account_balance_table.erase(account.first);
+      sortition_account_balance_table_tmp.erase(account.first);
     }
   }
-  auto account_size = std::to_string(valid_sortition_accounts_size_);
+  auto account_size = std::to_string(
+      sortition_account_balance_table_tmp.size());
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
                                   account_size, accounts);
   db_->commitWriteBatch(accounts);
