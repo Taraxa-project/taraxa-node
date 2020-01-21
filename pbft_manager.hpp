@@ -145,8 +145,6 @@ class PbftManager {
 
   void updateSortitionAccountsDB_();
 
-  size_t getValidPbftSortitionPlayerSize_();
-
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =

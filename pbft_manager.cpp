@@ -1548,20 +1548,6 @@ void PbftManager::updateSortitionAccountsDB_() {
   db_->commitWriteBatch(accounts);
 }
 
-size_t PbftManager::getValidPbftSortitionPlayerSize_() {
-  if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
-    // Cannot find
-    LOG(log_err_) << "Cannot find sortition accounts size in DB";
-    assert(false);
-  }
-  std::string sortition_accounts_size =
-      db_->getSortitionAccount(std::string("sortition_accounts_size"));
-  std::stringstream sstream(sortition_accounts_size);
-  size_t valid_players_size;
-  sstream >> valid_players_size;
-  return valid_players_size;
-}
-
 void PbftManager::countVotes_() {
   while (!monitor_stop_) {
     std::vector<Vote> votes = vote_mgr_->getAllVotes();
