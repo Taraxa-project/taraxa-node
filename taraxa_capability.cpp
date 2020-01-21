@@ -503,6 +503,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         uint64_t pbft_block_counter = 0;
         uint64_t dag_block_counter = 0;
         uint64_t dag_block_trx_counter = 0;
+        if (pbft_sync_height_ < full_node->getPbftChainSize()) {
+          pbft_sync_height_ = full_node->getPbftChainSize();
+        }
         while (true) {
           if (pbft_block_counter + dag_block_counter + dag_block_trx_counter >=
               item_count)
