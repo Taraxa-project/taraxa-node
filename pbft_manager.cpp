@@ -190,7 +190,8 @@ void PbftManager::run() {
 
     // Concern can malicious node trigger excessive syncing?
     if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
-        capability_->syncing_ == false && syncRequestedAlreadyThisStep_() == false ) {
+        capability_->syncing_ == false &&
+        syncRequestedAlreadyThisStep_() == false) {
       LOG(log_sil_) << "Vote validation triggered pbft chain sync";
       syncPbftChainFromPeers_();
     }
@@ -654,7 +655,8 @@ void PbftManager::run() {
         }
       }
 
-      if (pbft_step_ > MAX_STEPS && capability_->syncing_ == false && syncRequestedAlreadyThisStep_() == false) {
+      if (pbft_step_ > MAX_STEPS && capability_->syncing_ == false &&
+          syncRequestedAlreadyThisStep_() == false) {
         LOG(log_war_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                          "to broadcast request for missing blocks";
         syncPbftChainFromPeers_();
@@ -1189,8 +1191,9 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   return true;
 }
 
-bool PbftManager::syncRequestedAlreadyThisStep_() {
-  return pbft_round_ == pbft_round_last_requested_sync_ && pbft_step_ == pbft_step_last_requested_sync_;
+bool PbftManager::syncRequestedAlreadyThisStep_() const {
+  return pbft_round_ == pbft_round_last_requested_sync_ &&
+         pbft_step_ == pbft_step_last_requested_sync_;
 }
 
 void PbftManager::syncPbftChainFromPeers_() {
