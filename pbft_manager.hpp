@@ -129,6 +129,8 @@ class PbftManager {
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
+  bool syncRequestedAlreadyThisStep_() const;
+
   void syncPbftChainFromPeers_();
 
   bool comparePbftBlockScheduleWithDAGblocks_(
