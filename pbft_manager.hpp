@@ -179,6 +179,7 @@ class PbftManager {
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
+  bool is_active_player_;
 
   std::string dag_genesis_;
 

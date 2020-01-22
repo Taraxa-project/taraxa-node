@@ -751,21 +751,11 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   // only active players are able to vote
-  uint64_t last_period = last_period_should_speak_;
-  int64_t since_period;
-  if (last_period < SKIP_PERIODS) {
-    since_period = 0;
-  } else {
-    since_period = last_period - SKIP_PERIODS;
-  }
-  bool is_active_player =
-      sortition_account_balance_table[account_address].last_period_seen >=
-      since_period;
-  if (!is_active_player) {
+  if (!is_active_player_) {
     LOG(log_tra_)
         << "Account " << account_address << " last period seen at "
         << sortition_account_balance_table[account_address].last_period_seen
-        << ", as a non-active player since period " << since_period;
+        << ", as a non-active player";
     return false;
   }
 
@@ -1500,6 +1490,11 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
       since_period--;
     }
   }
+  auto full_node = node_.lock();
+  addr_t account_address = full_node->getAddress();
+  is_active_player_ =
+      sortition_account_balance_table[account_address].last_period_seen >=
+      since_period;
   if (active_players == 0) {
     // IF active_players count 0 then all players should be treated as active
     LOG(log_war_) << "Active players was found to be 0! This should only "
@@ -1509,7 +1504,9 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                   << valid_sortition_accounts_size_ << ". Last period is "
                   << last_pbft_period;
     active_players = valid_sortition_accounts_size_;
+    is_active_player_ = true;
   }
+
   // Update 2t+1 and threshold
   if (COMMITTEE_SIZE <= active_players) {
     TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
