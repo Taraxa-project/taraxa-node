@@ -875,6 +875,9 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[i]->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
+    EXPECT_EQ(nodes[i]->getPbftChainSize(),
+              node1->getPbftChainSize());
+    EXPECT_TRUE(nodes[i]->isSynced());
   }
 }
 
