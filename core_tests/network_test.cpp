@@ -861,8 +861,13 @@ TEST_F(NetworkTest, node_full_sync) {
         finished = false;
         break;
       }
+      if(!nodes[j]->isSynced())
+      {
+        finished = false;
+      }
     }
     if (finished) break;
+    else printf("Waiting %d\n", i);
   }
 
   EXPECT_GT(node1->getNumVerticesInDag().first, 0);
@@ -875,9 +880,25 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[i]->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
-    EXPECT_EQ(nodes[i]->getPbftChainSize(),
-              node1->getPbftChainSize());
     EXPECT_TRUE(nodes[i]->isSynced());
+  }
+
+  // Write any DAG diff
+  for (int i = 0; i < numberOfNodes + 1; i++) {
+    uint64_t level = 1;
+    while (true) {
+      auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
+      auto blocks2 = nodes[i]->getDagBlocksAtLevel(level, 1);
+      if (blocks1.size() != blocks2.size()) {
+        printf("DIFF at level %lu: \n");
+        for (auto b : blocks1) printf(" %s", b->getHash().toString().c_str());
+        printf("\n");
+        for (auto b : blocks2) printf(" %s", b->getHash().toString().c_str());
+        printf("\n");
+      }
+      if (blocks1.size() == 0 && blocks2.size() == 0) break;
+      level++;
+    }
   }
 }
 

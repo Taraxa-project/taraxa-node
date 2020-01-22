@@ -162,6 +162,7 @@ void TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
                                                           block.second.second);
       }
     }
+    requesting_pending_dag_blocks_ = false;
   }
 }
 
@@ -406,7 +407,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         LOG(log_nf_dag_sync_)
             << "Received Dag Blocks: " << received_dag_blocks_str;
         processSyncDagBlocks(_nodeID);
-        requesting_pending_dag_blocks_ = false;
         break;
       }
       case TransactionPacket: {
@@ -717,9 +717,14 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
   if (auto full_node = full_node_.lock()) {
+    if (pbft_sync_height_ < full_node->getPbftChainSize()) {
+      pbft_sync_height_ = full_node->getPbftChainSize();
+    }
     if (max_pbft_chain_size > pbft_sync_height_) {
       if (!stopped_) {
-        LOG(log_nf_pbft_sync_) << "Restarting syncing PBFT";
+        LOG(log_nf_pbft_sync_)
+            << "Restarting syncing PBFT" << max_pbft_chain_size << " "
+            << pbft_sync_height_;
         syncing_ = true;
         peer_syncing_pbft = max_pbft_chain_nodeID;
         syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
@@ -728,11 +733,14 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
       LOG(log_nf_pbft_sync_)
           << "Restarting syncing PBFT not needed since our pbft chain "
              "size: "
-          << full_node->getPbftChainSize()
+          << pbft_sync_height_ << "(" << full_node->getPbftChainSize() << ")"
           << " is greater or equal than max node pbft chain size:"
           << max_pbft_chain_size;
       syncing_ = false;
-      if (!requesting_pending_dag_blocks_ && max_node_dag_level > full_node->getMaxDagLevel()) {
+      if (!requesting_pending_dag_blocks_ &&
+          max_node_dag_level > full_node->getMaxDagLevel()) {
+        LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
+                              << full_node->getMaxDagLevel();
         requesting_pending_dag_blocks_ = true;
         requesting_pending_dag_blocks_node_id_ = max_pbft_chain_nodeID;
         requestPendingDagBlocks(max_pbft_chain_nodeID);
@@ -750,7 +758,8 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
     LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
     restartSyncingPbft(true);
   }
-  if (requesting_pending_dag_blocks_  && requesting_pending_dag_blocks_node_id_ == _nodeID) {
+  if (requesting_pending_dag_blocks_ &&
+      requesting_pending_dag_blocks_node_id_ == _nodeID) {
     requesting_pending_dag_blocks_ = false;
   }
 }
@@ -1196,12 +1205,6 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
     for (auto const &peer : peers_) {
       if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
         if (!peer.second->syncing_) {
-          for (auto const &dag_hash : pbft_block.getSchedule().dag_blks_order) {
-            if (!peer.second->isBlockKnown(dag_hash)) {
-              auto dag_block = full_node->getDagBlockFromDb(dag_hash);
-              if (dag_block) sendBlock(peer.first, *dag_block, true);
-            }
-          }
           sendPbftBlock(peer.first, pbft_block, my_chain_size);
         }
       }
