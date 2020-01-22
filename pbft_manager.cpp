@@ -1229,7 +1229,7 @@ void PbftManager::syncPbftChainFromPeers_() {
   */
 
   if (capability_->syncing_ == false) {
-    LOG(log_deb_) << "Restarting pbft sync."
+    LOG(log_sil_) << "Restarting pbft sync."
                   << " In round " << pbft_round_ << ", in step " << pbft_step_
                   << " Send request to ask missing pbft blocks in chain";
     capability_->restartSyncingPbft();
