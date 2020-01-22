@@ -179,6 +179,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         peer->syncing_ = false;
         peer->clearAllKnownBlocksAndTransactions();
       } break;
+      case PbftChainSizePacket: {
+        auto chain_size = _r[0].toInt<unsigned>();
+        LOG(log_dg_dag_sync_) << "Received PbftChainSizePacket from " << _nodeID << " size: ";
+        peer->pbft_chain_size_ = chain_size;
+        restartSyncingPbft();
+      } break;
       case StatusPacket: {
         auto const peer_protocol_version = _r[0].toInt<unsigned>();
         auto const network_id = _r[1].toString();
@@ -1208,6 +1214,22 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
           sendPbftBlock(peer.first, pbft_block, my_chain_size);
         }
       }
+    }
+  }
+}
+
+void TaraxaCapability::onNewPbftBlockInChain() {
+  auto full_node = full_node_.lock();
+  if (full_node) {
+    auto chain_size = full_node->getPbftChainSize();
+    if (pbft_sync_height_ < chain_size) {
+      pbft_sync_height_ = chain_size;
+    }
+    boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
+    for (auto &peer : peers_) {
+      RLPStream s;
+      host_.capabilityHost()->sealAndSend(
+      peer.first, host_.capabilityHost()->prep(peer.first, name(), s, PbftChainSizePacket, 1) << chain_size);
     }
   }
 }

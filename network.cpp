@@ -154,6 +154,11 @@ void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
   taraxa_capability_->onNewPbftBlock(pbft_block);
 }
 
+void Network::onNewPbftBlockInChain() {
+  LOG(log_dg_) << "Network broadcast PBFT chain size";
+  taraxa_capability_->onNewPbftBlockInChain();
+}
+
 void Network::sendPbftBlock(const NodeID &id,
                             const taraxa::PbftBlock &pbft_block,
                             uint64_t const &pbft_chain_size) {

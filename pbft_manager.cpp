@@ -1156,6 +1156,11 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
     // Push PBFT block from unverified blocks table
     return false;
   }
+  auto full_node = node_.lock();
+  if(full_node) {
+    std::shared_ptr<Network> network = full_node->getNetwork();
+    network->onNewPbftBlockInChain();
+  }
   // cleanup PBFT unverified blocks table
   pbft_chain_->cleanupUnverifiedPbftBlocks(pbft_block.first);
   return true;
@@ -1221,7 +1226,7 @@ void PbftManager::syncPbftChainFromPeers_() {
       LOG(log_deb_) << "Restarting pbft sync."
                     << " In round " << pbft_round_ << ", in step " << pbft_step_
                     << " Send request to ask missing pbft blocks in chain";
-      capability_->restartSyncingPbft();
+      //capability_->restartSyncingPbft();
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
       last_pbft_syncing_height_ = height_to_sync;
