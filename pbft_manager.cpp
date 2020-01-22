@@ -188,8 +188,9 @@ void PbftManager::run() {
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
 
-    //Concern can malicious node trigger excessive syncing?
-    if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() && capability_->syncing_ == false) {
+    // Concern can malicious node trigger excessive syncing?
+    if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
+        capability_->syncing_ == false) {
       LOG(log_sil_) << "Vote validation triggered pbft chain sync";
       syncPbftChainFromPeers_();
     }
@@ -258,9 +259,10 @@ void PbftManager::run() {
     uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
-      
+
       // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > pbft_round_ + 1 && capability_->syncing_ == false) {
+      if (consensus_pbft_round > pbft_round_ + 1 &&
+          capability_->syncing_ == false) {
         LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
                       << " > 1 + " << pbft_round_
                       << " local round, need to broadcast request for missing "
@@ -450,7 +452,7 @@ void PbftManager::run() {
                 LOG(log_sil_)
                     << "Soft voted block for this round appears to be invalid, "
                        "we must be out of sync with pbft chain";
-                
+
                 if (capability_->syncing_ == false) {
                   syncPbftChainFromPeers_();
                 }
@@ -1138,7 +1140,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
     LOG(log_sil_) << "Cert voted block " << cert_voted_block_hash
                   << " is invalid, we must be out of sync with pbft chain";
     if (capability_->syncing_ == false) {
-      syncPbftChainFromPeers_();  
+      syncPbftChainFromPeers_();
     }
     return false;
   }
@@ -1192,9 +1194,9 @@ void PbftManager::syncPbftChainFromPeers_() {
     LOG(log_deb_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
   }
-  
-  //uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
-  //if (height_to_sync == last_pbft_syncing_height_) {
+
+  // uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
+  // if (height_to_sync == last_pbft_syncing_height_) {
   //  // First PBFT height to syncing should be 2
   //  return;
   //}
@@ -1229,13 +1231,16 @@ void PbftManager::syncPbftChainFromPeers_() {
   */
 
   if (capability_->syncing_ == false) {
-    LOG(log_sil_) << "Restarting pbft sync."
-                  << " In round " << pbft_round_ << ", in step " << pbft_step_
-                  << " Send request to ask missing pbft blocks in chain";
-    capability_->restartSyncingPbft();
-    pbft_round_last_requested_sync_ = pbft_round_;
-    pbft_step_last_requested_sync_ = pbft_step_;
-  }  
+    if (pbft_round_ != pbft_round_last_requested_sync_ ||
+        pbft_step_ != pbft_step_last_requested_sync_) {
+      LOG(log_sil_) << "Restarting pbft sync."
+                    << " In round " << pbft_round_ << ", in step " << pbft_step_
+                    << " Send request to ask missing pbft blocks in chain";
+      capability_->restartSyncingPbft();
+      pbft_round_last_requested_sync_ = pbft_round_;
+      pbft_step_last_requested_sync_ = pbft_step_;
+    }
+  }
 }
 
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
@@ -1401,7 +1406,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     }
     pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
   }
-  
+
   /*
   if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
