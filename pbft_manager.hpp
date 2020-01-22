@@ -72,7 +72,10 @@ class PbftManager {
 
   // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
-  // Temp table for executor to update
+  // Temporary table for executor to update
+  std::unordered_map<addr_t, PbftSortitionAccount>
+      sortition_account_balance_table_tmp;
+  // Permanent table update at beginning each of PBFT new round
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
@@ -138,9 +141,9 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
-  void updateSortitionAccountsDB_();
+  void updateSortitionAccountsTable_();
 
-  size_t getValidPbftSortitionPlayerSize_();
+  void updateSortitionAccountsDB_();
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -176,8 +179,7 @@ class PbftManager {
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
-
-  bool is_active_player_ = false;
+  bool is_active_player_;
 
   std::string dag_genesis_;
 

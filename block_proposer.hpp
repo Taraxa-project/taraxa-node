@@ -81,7 +81,7 @@ class SortitionPropose : public ProposeModelFace {
   uint difficulty_bound_;
   uint lambda_bits_;
   unsigned long long last_dag_height_ = 0;
- 
+
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
   dev::Logger log_er_{

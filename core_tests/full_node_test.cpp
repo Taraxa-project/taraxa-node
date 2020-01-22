@@ -429,7 +429,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         ++issued_trx_count;
         expected_balances[to] += amount;
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
-        std::cout << nodes_[sender_node_i]->getAddress()<< " send to " << to
+        std::cout << nodes_[sender_node_i]->getAddress() << " send to " << to
                   << " value " << amount << std::endl;
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount);
@@ -471,7 +471,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       t.join();
     }
   }
-  std::cout << "Issued transatnion count " <<  context.getIssuedTrxCount();
+  std::cout << "Issued transatnion count " << context.getIssuedTrxCount();
 
   auto TIMEOUT = SYNC_TIMEOUT;
   for (auto i = 0; i < TIMEOUT; i++) {
