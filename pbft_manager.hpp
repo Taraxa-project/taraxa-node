@@ -175,8 +175,6 @@ class PbftManager {
 
   uint64_t last_period_should_speak_ = 0;
 
-  uint64_t last_pbft_syncing_height_;
-
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
   bool is_active_player_;
