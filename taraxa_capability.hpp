@@ -264,6 +264,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   dev::Logger log_perf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "NETPER")};
 
+  dev::Logger log_si_pbft_sync_{
+      dev::createLogger(dev::Verbosity::VerbositySilent, "PBFTSYNC")};
   dev::Logger log_wr_pbft_sync_{
       dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFTSYNC")};
   dev::Logger log_nf_pbft_sync_{
