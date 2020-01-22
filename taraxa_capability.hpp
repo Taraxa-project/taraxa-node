@@ -106,7 +106,7 @@ class TaraxaPeer : public boost::noncopyable {
            std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>>
       sync_blocks_;
   bool syncing_ = false;
-  uint64_t level_ = 0;
+  uint64_t dag_level_ = 0;
   uint64_t pbft_chain_size_ = 0;
 
  private:
@@ -211,6 +211,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                   std::shared_ptr<TaraxaPeer> const &peer);
 
   bool syncing_ = false;
+  bool requesting_pending_dag_blocks_ = false;
+  NodeID requesting_pending_dag_blocks_node_id_;
 
  private:
   Host &host_;
