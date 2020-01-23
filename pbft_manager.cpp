@@ -262,24 +262,29 @@ void PbftManager::run() {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
 
       // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > pbft_round_ + 1 &&
-          capability_->syncing_ == false) {
+      if (consensus_pbft_round > pbft_round_ + 1 && capability_->syncing_ == false) {
         LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
-                      << " > 1 + " << pbft_round_
+                      << " > 1 + current round " << pbft_round_
                       << " local round, need to broadcast request for missing "
                          "certified blocks";
 
         // NOTE: Update this here before calling syncPbftChainFromPeers_
         //       to be sure this sync call won't be supressed for being too
-        //       recent
+        //       recent (ie. same round and step)
         pbft_round_ = consensus_pbft_round;
         pbft_step_ = 1;
+ 
         syncPbftChainFromPeers_();
       }
+
+      //Update round and step...
+      pbft_round_ = consensus_pbft_round;
+      pbft_step_ = 1;  // Not strictly necessary since that is done inside next if statement
+
       // Update pbft chain last block hash at start of new round...
       pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
-      pbft_round_ = consensus_pbft_round;
+
     }
     if (pbft_round_ != pbft_round_last_) {
       round_clock_initial_datetime = now;
