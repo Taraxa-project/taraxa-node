@@ -707,7 +707,7 @@ uint64_t PbftChain::pbftSyncingHeight() const {
   if (pbft_synced_queue_.empty()) {
     return size_;
   } else {
-    return pbftSyncedQueueBack().getHeight();
+    return pbftSyncedQueueBack().pbft_blk.getHeight();
   }
 }
 
