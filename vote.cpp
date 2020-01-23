@@ -255,7 +255,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     if (!account_balance.second) {
       // New node join, it doesn't have other nodes info.
       // Wait unit sync PBFT chain with peers, and execute to get states.
-      LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
+      LOG(log_err_) << "Cannot find the vote account balance. vote hash: "
                     << v.getHash() << " vote address: " << vote_address;
       sync_peers_pbft_chain = true;
       continue;
@@ -267,7 +267,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                v.getType() == next_vote_type) {
       // We know that votes in our current round should reference our latest
       // PBFT chain block This is not immune to malacious attack!!!
-      LOG(log_deb_) << "Next vote in current round " << pbft_round + 1
+      LOG(log_err_) << "Next vote in current round " << pbft_round + 1
                     << " points to different block hash "
                     << last_pbft_block_hash << " | vote hash: " << v.getHash()
                     << " vote address: " << vote_address;
