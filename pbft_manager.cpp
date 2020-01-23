@@ -279,7 +279,7 @@ void PbftManager::run() {
         LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                       << ", step 1, and resetting clock.";
 
-        pbft_round_ = round;
+        pbft_round_ = consensus_pbft_round;
         resetStep_();
 
         have_executed_this_round = false;
