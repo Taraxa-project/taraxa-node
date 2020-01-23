@@ -681,6 +681,11 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                                   DagFrontier &frontier) {
   to_be_packed_trx.clear();
 
+  frontier = dag_frontier_;
+  LOG(log_dg_) << getFullNodeAddress()
+               << " Get frontier with pivot: " << frontier.pivot
+               << " tips: " << frontier.tips;
+
   std::list<Transaction> list_trxs;
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
 
@@ -731,11 +736,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   for (auto const &t : list_trxs) {
     to_be_packed_trx.emplace_back(t.getHash());
   }
-
-  frontier = dag_frontier_;
-  LOG(log_dg_) << getFullNodeAddress()
-               << " Get frontier with pivot: " << frontier.pivot
-               << " tips: " << frontier.tips;
 
   auto full_node = full_node_.lock();
   if (full_node) {
