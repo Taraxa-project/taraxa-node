@@ -271,7 +271,42 @@ void PbftManager::run() {
       uint64_t local_round = pbft_round_;
 
       // All round start state changes are moved here...
-      advanceToRound_(consensus_pbft_round);
+      // would be nice to have this be a method but we have local 
+      // variables the run() function
+      {
+        round_clock_initial_datetime = now;
+
+        LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
+                      << ", step 1, and resetting clock.";
+
+        pbft_round_ = round;
+        resetStep_();
+
+        have_executed_this_round = false;
+        should_have_cert_voted_in_this_round = false;
+        // reset starting value to NULL_BLOCK_HASH
+        own_starting_value_for_round = NULL_BLOCK_HASH;
+        // reset next voted value since start a new round
+        next_voted_null_block_hash = false;
+        next_voted_soft_value = false;
+        if (executed_pbft_block_) {
+          last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+          // Update sortition accounts table
+          updateSortitionAccountsTable_();
+          // reset sortition_threshold and TWO_T_PLUS_ONE
+          updateTwoTPlusOneAndThreshold_();
+          executed_pbft_block_ = false;
+        }
+
+        LAMBDA_ms = LAMBDA_ms_MIN;
+
+        last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+        current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        pbft_round_last_ = pbft_round_;
+
+        // Update pbft chain last block hash at start of new round...
+        pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+      }
 
       // p2p connection syncing should cover this situation, sync here for safe
       if (consensus_pbft_round > local_round + 1 &&
@@ -760,43 +795,6 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   return true;
-}
-
-void PbftManager::advanceToRound_(uint64_t round) {
-  // CONCERN: In prior implementation we used the "now" value as set at start of
-  // while loop
-  round_clock_initial_datetime = std::chrono::system_clock::now();
-
-  LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
-                << ", step 1, and resetting clock.";
-
-  pbft_round_ = round;
-  resetStep_();
-
-  have_executed_this_round = false;
-  should_have_cert_voted_in_this_round = false;
-  // reset starting value to NULL_BLOCK_HASH
-  own_starting_value_for_round = NULL_BLOCK_HASH;
-  // reset next voted value since start a new round
-  next_voted_null_block_hash = false;
-  next_voted_soft_value = false;
-  if (executed_pbft_block_) {
-    last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
-    // Update sortition accounts table
-    updateSortitionAccountsTable_();
-    // reset sortition_threshold and TWO_T_PLUS_ONE
-    updateTwoTPlusOneAndThreshold_();
-    executed_pbft_block_ = false;
-  }
-
-  LAMBDA_ms = LAMBDA_ms_MIN;
-
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-  pbft_round_last_ = pbft_round_;
-
-  // Update pbft chain last block hash at start of new round...
-  pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 }
 
 void PbftManager::resetStep_() {

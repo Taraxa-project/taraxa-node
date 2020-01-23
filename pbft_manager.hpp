@@ -91,7 +91,6 @@ class PbftManager {
   uint64_t SKIP_PERIODS = 1;
 
  private:
-  void advanceToRound_(uint64_t round);
   void resetStep_();
 
   uint64_t roundDeterminedFromVotes_();
