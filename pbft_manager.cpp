@@ -271,7 +271,7 @@ void PbftManager::run() {
       uint64_t local_round = pbft_round_;
 
       // All round start state changes are moved here...
-      // would be nice to have this be a method but we have local 
+      // would be nice to have this be a method but we have local
       // variables the run() function
       {
         round_clock_initial_datetime = now;
@@ -300,7 +300,8 @@ void PbftManager::run() {
 
         LAMBDA_ms = LAMBDA_ms_MIN;
 
-        last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+        last_step_clock_initial_datetime_ =
+            current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
         pbft_round_last_ = pbft_round_;
 
