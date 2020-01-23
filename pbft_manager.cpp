@@ -26,7 +26,7 @@ PbftManager::PbftManager(std::string const &genesis) : dag_genesis_(genesis) {}
 PbftManager::PbftManager(std::vector<uint> const &params,
                          std::string const &genesis)
     // TODO: for debug, need remove later
-    : LAMBDA_ms(params[0]),
+    : LAMBDA_ms_MIN(params[0]),
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
       DAG_BLOCKS_SIZE(params[3]),
@@ -166,6 +166,9 @@ void PbftManager::run() {
 
   bool have_executed_this_round = false;
   bool should_have_cert_voted_in_this_round = false;
+  
+  LAMBDA_ms = LAMBDA_ms_MIN;
+
   u_long STEP_4_DELAY = 2 * LAMBDA_ms;
   while (!stopped_) {
     auto now = std::chrono::system_clock::now();
@@ -304,6 +307,9 @@ void PbftManager::run() {
         updateTwoTPlusOneAndThreshold_();
         executed_pbft_block_ = false;
       }
+      
+      LAMBDA_ms = LAMBDA_ms_MIN;
+
       // NOTE: This also sets pbft_step back to 1
       last_step_ = pbft_step_;
       pbft_step_ = 1;
@@ -611,6 +617,11 @@ void PbftManager::run() {
       last_step_ = pbft_step_;
       pbft_step_ += 1;
 
+      if (pbft_step_ > MAX_STEPS) {
+        LAMBDA_ms *= 2;
+        LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms << " ms in round " << pbft_round_ << ", step " << pbft_step_;
+      }
+
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
       if (elapsed_time_in_round_ms > (pbft_step_ + 1) * LAMBDA_ms +
@@ -650,6 +661,8 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
+        
+        /*
         if (!next_voted_soft_value && !next_voted_null_block_hash &&
             pbft_step_ >= MAX_STEPS) {
           LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS "
@@ -657,7 +670,7 @@ void PbftManager::run() {
                         << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
-        }
+        }*/
       }
 
       if (pbft_step_ > MAX_STEPS && capability_->syncing_ == false &&
