@@ -111,9 +111,6 @@ void PbftManager::start() {
   pbft_round_last_requested_sync_ = 0;
   pbft_step_last_requested_sync_ = 0;
 
-  // initial last pbft syncing height
-  last_pbft_syncing_height_ = 0;
-
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_deb_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
@@ -190,12 +187,12 @@ void PbftManager::run() {
         pbft_round_ - 1, valid_sortition_accounts_size_, sync_peers_pbft_chain);
     LOG(log_tra_) << "There are " << votes.size() << " votes since round "
                   << pbft_round_ - 1;
-    if (sync_peers_pbft_chain) {
-      if (pbft_chain_->pbftSyncedQueueEmpty() &&
-          (pbft_round_ != pbft_round_last_requested_sync_ ||
-           pbft_step_ != pbft_step_last_requested_sync_)) {
-        LOG(log_sil_) << "Vote validation triggered pbft chain sync";
-      }
+
+    // Concern can malicious node trigger excessive syncing?
+    if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
+        capability_->syncing_ == false &&
+        syncRequestedAlreadyThisStep_() == false) {
+      LOG(log_sil_) << "Vote validation triggered pbft chain sync";
       syncPbftChainFromPeers_();
     }
 
@@ -263,26 +260,31 @@ void PbftManager::run() {
     uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
+
       // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > pbft_round_ + 1) {
+      if (consensus_pbft_round > pbft_round_ + 1 && capability_->syncing_ == false) {
         LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
-                      << " > 1 + " << pbft_round_
+                      << " > 1 + current round " << pbft_round_
                       << " local round, need to broadcast request for missing "
                          "certified blocks";
 
         // NOTE: Update this here before calling syncPbftChainFromPeers_
         //       to be sure this sync call won't be supressed for being too
-        //       recent
+        //       recent (ie. same round and step)
         pbft_round_ = consensus_pbft_round;
         pbft_step_ = 1;
-        // Reset last pbft syncing height
-        last_pbft_syncing_height_ = 0;
+ 
         syncPbftChainFromPeers_();
       }
+
+      //Update round and step...
+      pbft_round_ = consensus_pbft_round;
+      pbft_step_ = 1;  // Not strictly necessary since that is done inside next if statement
+
       // Update pbft chain last block hash at start of new round...
       pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
-      pbft_round_ = consensus_pbft_round;
+
     }
     if (pbft_round_ != pbft_round_last_) {
       round_clock_initial_datetime = now;
@@ -308,8 +310,6 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
-      // Reset last pbft syncing height
-      last_pbft_syncing_height_ = 0;
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
       continue;
@@ -458,7 +458,10 @@ void PbftManager::run() {
                 LOG(log_sil_)
                     << "Soft voted block for this round appears to be invalid, "
                        "we must be out of sync with pbft chain";
-                syncPbftChainFromPeers_();
+
+                if (capability_->syncing_ == false) {
+                  syncPbftChainFromPeers_();
+                }
               }
             } else {
               LOG(log_tra_) << "Still waiting to receive the soft voted block "
@@ -657,7 +660,8 @@ void PbftManager::run() {
         }
       }
 
-      if (pbft_step_ > MAX_STEPS) {
+      if (pbft_step_ > MAX_STEPS && capability_->syncing_ == false &&
+          syncRequestedAlreadyThisStep_() == false) {
         LOG(log_war_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                          "to broadcast request for missing blocks";
         syncPbftChainFromPeers_();
@@ -1142,7 +1146,9 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
     // Get partition, need send request to get missing pbft blocks from peers
     LOG(log_sil_) << "Cert voted block " << cert_voted_block_hash
                   << " is invalid, we must be out of sync with pbft chain";
-    syncPbftChainFromPeers_();
+    if (capability_->syncing_ == false) {
+      syncPbftChainFromPeers_();
+    }
     return false;
   }
   std::pair<PbftBlock, bool> pbft_block =
@@ -1190,41 +1196,25 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   return true;
 }
 
+bool PbftManager::syncRequestedAlreadyThisStep_() const {
+  return pbft_round_ == pbft_round_last_requested_sync_ &&
+         pbft_step_ == pbft_step_last_requested_sync_;
+}
+
 void PbftManager::syncPbftChainFromPeers_() {
   if (!pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_deb_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
   }
-  uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
-  if (height_to_sync == last_pbft_syncing_height_) {
-    // First PBFT height to syncing should be 2
-    return;
-  }
 
-  vector<NodeID> peers = capability_->getAllPeers();
-  if (peers.empty()) {
-    LOG(log_inf_) << "There is no peers with connection.";
-  } else {
-    if (pbft_round_ != pbft_round_last_requested_sync_ ||
-        pbft_step_ != pbft_step_last_requested_sync_) {
-      if (pbft_round_last_requested_sync_ != 0 &&
-          pbft_step_last_requested_sync_ != 0) {
-        LOG(log_deb_) << "Last requested sync in round "
-                      << pbft_round_last_requested_sync_ << ", step "
-                      << pbft_step_last_requested_sync_;
-      } else {
-        LOG(log_deb_)
-            << "First time requesting pbft chain sync, currently in round "
-            << pbft_round_ << ", step " << pbft_step_;
-      }
-
-      LOG(log_deb_) << "Restarting pbft sync."
+  if (capability_->syncing_ == false) {
+    if (syncRequestedAlreadyThisStep_() == false) {
+      LOG(log_sil_) << "Restarting pbft sync."
                     << " In round " << pbft_round_ << ", in step " << pbft_step_
                     << " Send request to ask missing pbft blocks in chain";
       capability_->restartSyncingPbft();
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
-      last_pbft_syncing_height_ = height_to_sync;
     }
   }
 }
@@ -1392,12 +1382,15 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     }
     pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
   }
+
+  /*
   if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
                      "need to sync in round "
                   << pbft_round_;
     syncPbftChainFromPeers_();
   }
+  */
 }
 
 bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {

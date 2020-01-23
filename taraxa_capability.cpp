@@ -722,7 +722,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
     if (max_pbft_chain_size > pbft_sync_height_) {
       if (!stopped_) {
-        LOG(log_nf_pbft_sync_)
+        LOG(log_si_pbft_sync_)
             << "Restarting syncing PBFT" << max_pbft_chain_size << " "
             << pbft_sync_height_;
         syncing_ = true;
@@ -730,7 +730,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
         syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
       }
     } else {
-      LOG(log_nf_pbft_sync_)
+      LOG(log_si_pbft_sync_)
           << "Restarting syncing PBFT not needed since our pbft chain "
              "size: "
           << pbft_sync_height_ << "(" << full_node->getPbftChainSize() << ")"

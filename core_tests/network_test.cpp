@@ -861,13 +861,14 @@ TEST_F(NetworkTest, node_full_sync) {
         finished = false;
         break;
       }
-      if(!nodes[j]->isSynced())
-      {
+      if (!nodes[j]->isSynced()) {
         finished = false;
       }
     }
-    if (finished) break;
-    else printf("Waiting %d\n", i);
+    if (finished)
+      break;
+    else
+      printf("Waiting %d\n", i);
   }
 
   EXPECT_GT(node1->getNumVerticesInDag().first, 0);

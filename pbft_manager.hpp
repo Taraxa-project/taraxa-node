@@ -129,6 +129,8 @@ class PbftManager {
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
+  bool syncRequestedAlreadyThisStep_() const;
+
   void syncPbftChainFromPeers_();
 
   bool comparePbftBlockScheduleWithDAGblocks_(
@@ -174,8 +176,6 @@ class PbftManager {
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
   uint64_t last_period_should_speak_ = 0;
-
-  uint64_t last_pbft_syncing_height_;
 
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
