@@ -183,6 +183,8 @@ class PbftChain {
       taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
+  uint64_t pbftSyncingHeight() const;
+
   bool pbftSyncedQueueEmpty() const;
   PbftBlockCert pbftSyncedQueueFront() const;
   PbftBlockCert pbftSyncedQueueBack() const;

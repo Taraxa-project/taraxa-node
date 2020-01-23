@@ -215,7 +215,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
   bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
   bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
+
+  uint64_t pbftSyncingHeight() const;
   uint64_t getPbftChainSize() const;
+
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
   void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
   void newPendingTransaction(trx_hash_t const &trx_hash);
