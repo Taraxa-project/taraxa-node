@@ -80,7 +80,7 @@ class PbftManager {
       sortition_account_balance_table;
 
   u_long LAMBDA_ms_MIN;
-  u_long LAMBDA_ms;                
+  u_long LAMBDA_ms;
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later

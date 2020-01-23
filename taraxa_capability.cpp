@@ -717,9 +717,8 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
   if (auto full_node = full_node_.lock()) {
-    if (pbft_sync_height_ < full_node->getPbftChainSize()) {
-      pbft_sync_height_ = full_node->getPbftChainSize();
-    }
+    pbft_sync_height_ = full_node->pbftSyncingHeight();
+
     if (max_pbft_chain_size > pbft_sync_height_) {
       if (!stopped_) {
         LOG(log_si_pbft_sync_)

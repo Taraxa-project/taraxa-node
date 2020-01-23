@@ -166,7 +166,7 @@ void PbftManager::run() {
 
   bool have_executed_this_round = false;
   bool should_have_cert_voted_in_this_round = false;
-  
+
   LAMBDA_ms = LAMBDA_ms_MIN;
 
   u_long STEP_4_DELAY = 2 * LAMBDA_ms;
@@ -265,7 +265,8 @@ void PbftManager::run() {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
 
       // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > pbft_round_ + 1 && capability_->syncing_ == false) {
+      if (consensus_pbft_round > pbft_round_ + 1 &&
+          capability_->syncing_ == false) {
         LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
                       << " > 1 + current round " << pbft_round_
                       << " local round, need to broadcast request for missing "
@@ -276,18 +277,17 @@ void PbftManager::run() {
         //       recent (ie. same round and step)
         pbft_round_ = consensus_pbft_round;
         pbft_step_ = 1;
- 
+
         syncPbftChainFromPeers_();
       }
 
-      //Update round and step...
+      // Update round and step...
       pbft_round_ = consensus_pbft_round;
-      pbft_step_ = 1;  // Not strictly necessary since that is done inside next if statement
+      pbft_step_ = 1;  // Not strictly necessary since that is done inside next
+                       // if statement
 
       // Update pbft chain last block hash at start of new round...
       pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-
-
     }
     if (pbft_round_ != pbft_round_last_) {
       round_clock_initial_datetime = now;
@@ -307,7 +307,7 @@ void PbftManager::run() {
         updateTwoTPlusOneAndThreshold_();
         executed_pbft_block_ = false;
       }
-      
+
       LAMBDA_ms = LAMBDA_ms_MIN;
 
       // NOTE: This also sets pbft_step back to 1
@@ -619,7 +619,9 @@ void PbftManager::run() {
 
       if (pbft_step_ > MAX_STEPS) {
         LAMBDA_ms *= 2;
-        LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms << " ms in round " << pbft_round_ << ", step " << pbft_step_;
+        LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
+                      << " ms in round " << pbft_round_ << ", step "
+                      << pbft_step_;
       }
 
     } else {
@@ -661,7 +663,7 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
-        
+
         /*
         if (!next_voted_soft_value && !next_voted_null_block_hash &&
             pbft_step_ >= MAX_STEPS) {
