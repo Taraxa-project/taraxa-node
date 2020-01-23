@@ -284,12 +284,12 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   }
 
   if (missing_account_balance_count > 0) {
-    LOG(log_err_)
+    LOG(log_sil_)
         << "Get votes found " << missing_account_balance_count
         << " votes from accounts not present in account balance table";
   }
   if (next_vote_with_different_prev_block_has_count > 0) {
-    LOG(log_err_) << "Get votes found "
+    LOG(log_sil_) << "Get votes found "
                   << next_vote_with_different_prev_block_has_count
                   << " next votes for round " << pbft_round + 1
                   << " pointing to different previous pbft chain block hash";
