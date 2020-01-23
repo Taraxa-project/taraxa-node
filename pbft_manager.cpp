@@ -1207,41 +1207,6 @@ void PbftManager::syncPbftChainFromPeers_() {
     return;
   }
 
-  uint64_t height_to_sync = pbft_chain_->getPbftChainSize() + 1;
-  if (height_to_sync == last_pbft_syncing_height_) {
-   // First PBFT height to syncing should be 2
-   return;
-  }
-
-  /*
-  vector<NodeID> peers = capability_->getAllPeers();
-  if (peers.empty()) {
-    LOG(log_inf_) << "There is no peers with connection.";
-  } else {
-    if (pbft_round_ != pbft_round_last_requested_sync_ ||
-        pbft_step_ != pbft_step_last_requested_sync_) {
-      if (pbft_round_last_requested_sync_ != 0 &&
-          pbft_step_last_requested_sync_ != 0) {
-        LOG(log_deb_) << "Last requested sync in round "
-                      << pbft_round_last_requested_sync_ << ", step "
-                      << pbft_step_last_requested_sync_;
-      } else {
-        LOG(log_deb_)
-            << "First time requesting pbft chain sync, currently in round "
-            << pbft_round_ << ", step " << pbft_step_;
-      }
-
-      LOG(log_deb_) << "Restarting pbft sync."
-                    << " In round " << pbft_round_ << ", in step " << pbft_step_
-                    << " Send request to ask missing pbft blocks in chain";
-      capability_->restartSyncingPbft();
-      pbft_round_last_requested_sync_ = pbft_round_;
-      pbft_step_last_requested_sync_ = pbft_step_;
-      last_pbft_syncing_height_ = height_to_sync;
-    }
-  }
-  */
-
   if (capability_->syncing_ == false) {
     if (syncRequestedAlreadyThisStep_() == false) {
       LOG(log_sil_) << "Restarting pbft sync."
@@ -1250,7 +1215,6 @@ void PbftManager::syncPbftChainFromPeers_() {
       capability_->restartSyncingPbft();
       pbft_round_last_requested_sync_ = pbft_round_;
       pbft_step_last_requested_sync_ = pbft_step_;
-      last_pbft_syncing_height_ = height_to_sync;
     }
   }
 }
