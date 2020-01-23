@@ -27,7 +27,6 @@ PbftManager::PbftManager(std::vector<uint> const &params,
                          std::string const &genesis)
     // TODO: for debug, need remove later
     : LAMBDA_ms_MIN(params[0]),
-      LAMBDA_ms(params[0]),
       COMMITTEE_SIZE(params[1]),
       VALID_SORTITION_COINS(params[2]),
       DAG_BLOCKS_SIZE(params[3]),
