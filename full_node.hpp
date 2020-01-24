@@ -247,6 +247,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
   level_t getMaxDagLevel() const;
+  level_t getMaxDagLevelInQueue() const;
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;

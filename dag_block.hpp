@@ -131,6 +131,7 @@ class BlockManager {
   DagBlock popVerifiedBlock();              // get one verified block and pop
   void pushVerifiedBlock(DagBlock const &blk);
   std::pair<size_t, size_t> getDagBlockQueueSize() const;
+  level_t getMaxDagLevelInQueue() const;
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> node);
