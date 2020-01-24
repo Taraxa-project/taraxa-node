@@ -93,13 +93,10 @@ class PbftManager {
  private:
   void resetStep_();
 
-  uint64_t roundDeterminedFromVotes_();
+  uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
       std::vector<Vote> &votes) const;
-
-  bool nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
-                                          uint64_t round);
 
   std::map<size_t, std::vector<Vote>, std::greater<size_t>>
   getVotesOfTypeFromVotesForRoundByStep_(PbftVoteTypes vote_type,
@@ -167,6 +164,8 @@ class PbftManager {
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   blk_hash_t pbft_chain_last_block_hash_;
+
+  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
   uint64_t pbft_round_;
   uint64_t pbft_round_last_;
