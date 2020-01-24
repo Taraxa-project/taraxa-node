@@ -338,8 +338,8 @@ void PbftManager::run() {
           placeVote_(own_starting_value_for_round, propose_vote_type,
                      pbft_round_, pbft_step_);
         } else if (push_block_values_for_round.count(pbft_round_ - 1) ||
-                   (pbft_round_ >= 2 && nullBlockNextVotedForRoundAndStep_(
-                                            votes, pbft_round_ - 1))) {
+                   (pbft_round_ >= 2 && next_voted_block_from_previous_round_.second &&
+              next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
           // PBFT block only be proposed once in one period
           if (!proposed_block_hash_.second ||
               proposed_block_hash_.first == NULL_BLOCK_HASH) {
@@ -376,7 +376,8 @@ void PbftManager::run() {
             (pbft_round_ >= 2 &&
              push_block_values_for_round.count(pbft_round_ - 1)) ||
             (pbft_round_ >= 2 &&
-             nullBlockNextVotedForRoundAndStep_(votes, pbft_round_ - 1))) {
+             next_voted_block_from_previous_round_.second &&
+              next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
           // Identity leader
           std::pair<blk_hash_t, bool> leader_block =
               identifyLeaderBlock_(votes);
@@ -523,7 +524,8 @@ void PbftManager::run() {
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
-                   nullBlockNextVotedForRoundAndStep_(votes, pbft_round_ - 1)) {
+                   next_voted_block_from_previous_round_.second &&
+                   next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
         } else {
@@ -570,7 +572,8 @@ void PbftManager::run() {
           next_voted_soft_value = true;
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
-            nullBlockNextVotedForRoundAndStep_(votes, pbft_round_ - 1) &&
+            next_voted_block_from_previous_round_.second &&
+              next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_
@@ -606,7 +609,8 @@ void PbftManager::run() {
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
-                   nullBlockNextVotedForRoundAndStep_(votes, pbft_round_ - 1)) {
+                   next_voted_block_from_previous_round_.second &&
+                   next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
         } else {
@@ -660,7 +664,8 @@ void PbftManager::run() {
           next_voted_soft_value = true;
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
-            nullBlockNextVotedForRoundAndStep_(votes, pbft_round_ - 1) &&
+            next_voted_block_from_previous_round_.second &&
+            next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
@@ -887,23 +892,6 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
   }
 
   return std::make_pair(NULL_BLOCK_HASH, false);
-}
-
-bool PbftManager::nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
-                                                     uint64_t round) {
-  blk_hash_t blockhash = NULL_BLOCK_HASH;
-  std::pair<blk_hash_t, bool> blockhash_pair = std::make_pair(blockhash, true);
-  std::map<size_t, std::vector<Vote>, std::greater<size_t>>
-      null_block_votes_in_round_by_step =
-          getVotesOfTypeFromVotesForRoundByStep_(next_vote_type, votes, round,
-                                                 blockhash_pair);
-
-  for (auto const &sv : null_block_votes_in_round_by_step) {
-    if (sv.second.size() >= TWO_T_PLUS_ONE) {
-      return true;
-    }
-  }
-  return false;
 }
 
 std::map<size_t, std::vector<Vote>, std::greater<size_t>>
