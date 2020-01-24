@@ -170,6 +170,8 @@ void PbftManager::run() {
 
   LAMBDA_ms = LAMBDA_ms_MIN;
 
+  next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+
   u_long STEP_4_DELAY = 2 * LAMBDA_ms;
   while (!stopped_) {
 
@@ -193,9 +195,9 @@ void PbftManager::run() {
     // Get votes
     bool sync_peers_pbft_chain = false;
     std::vector<Vote> votes = vote_mgr_->getVotes(
-        pbft_round_ - 1, valid_sortition_accounts_size_, sync_peers_pbft_chain);
-    LOG(log_tra_) << "There are " << votes.size() << " votes since round "
-                  << pbft_round_ - 1;
+        pbft_round_, valid_sortition_accounts_size_, sync_peers_pbft_chain);
+    LOG(log_tra_) << "There are " << votes.size() << " total votes in round "
+                  << pbft_round_;
 
     // Concern can malicious node trigger excessive syncing?
     if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
@@ -266,11 +268,14 @@ void PbftManager::run() {
     }
 
     // Check if we are synced to the right step ...
-    uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
+    uint64_t consensus_pbft_round = roundDeterminedFromVotes_(votes);
 
     // This should be always true...
     assert(consensus_pbft_round >= pbft_round_);
 
+=======
+    uint64_t consensus_pbft_round = roundDeterminedFromVotes_(votes);
+>>>>>>> fix for next voted block from previous round possibly not being consistent
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
 
@@ -330,6 +335,10 @@ void PbftManager::run() {
         //       sync call won't be supressed for being too
         //       recent (ie. same round and step)
         syncPbftChainFromPeers_();
+
+        next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+      } else {
+        next_voted_block_from_previous_round_ = nextVotedBlockForRoundAndStep_(votes, pbft_round_);
       }
 
       // Restart while loop...
@@ -362,14 +371,12 @@ void PbftManager::run() {
                        pbft_round_, pbft_step_);
           }
         } else if (pbft_round_ >= 2) {
-          std::pair<blk_hash_t, bool> next_voted_block_from_previous_round =
-              nextVotedBlockForRoundAndStep_(votes, pbft_round_ - 1);
-          if (next_voted_block_from_previous_round.second &&
-              next_voted_block_from_previous_round.first != NULL_BLOCK_HASH) {
+          if (next_voted_block_from_previous_round_.second &&
+              next_voted_block_from_previous_round_.first != NULL_BLOCK_HASH) {
             LOG(log_deb_) << "Proposing next voted block "
-                          << next_voted_block_from_previous_round.first
+                          << next_voted_block_from_previous_round_.first
                           << " from previous round";
-            placeVote_(next_voted_block_from_previous_round.first,
+            placeVote_(next_voted_block_from_previous_round_.first,
                        propose_vote_type, pbft_round_, pbft_step_);
           }
         }
@@ -401,14 +408,12 @@ void PbftManager::run() {
                        pbft_step_);
           }
         } else if (pbft_round_ >= 2) {
-          std::pair<blk_hash_t, bool> next_voted_block_from_previous_round =
-              nextVotedBlockForRoundAndStep_(votes, pbft_round_ - 1);
-          if (next_voted_block_from_previous_round.second &&
-              next_voted_block_from_previous_round.first != NULL_BLOCK_HASH) {
+          if (next_voted_block_from_previous_round_.second &&
+              next_voted_block_from_previous_round_.first != NULL_BLOCK_HASH) {
             LOG(log_deb_) << "Soft voting "
-                          << next_voted_block_from_previous_round.first
+                          << next_voted_block_from_previous_round_.first
                           << " from previous round";
-            placeVote_(next_voted_block_from_previous_round.first,
+            placeVote_(next_voted_block_from_previous_round_.first,
                        soft_vote_type, pbft_round_, pbft_step_);
           }
         }
@@ -806,13 +811,13 @@ void PbftManager::resetStep_() {
 /* There is a quorum of next-votes and set determine that round p should be the
  * current round...
  */
-uint64_t PbftManager::roundDeterminedFromVotes_() {
+uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> votes) {
   // <<vote_round, vote_step>, count>, <round, step> store in reverse order
   std::map<std::pair<uint64_t, size_t>, size_t,
            std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
 
-  std::vector<Vote> votes = vote_mgr_->getAllVotes();
+  //std::vector<Vote> votes = vote_mgr_->getAllVotes();
   for (Vote &v : votes) {
     if (v.getType() != next_vote_type) {
       continue;
