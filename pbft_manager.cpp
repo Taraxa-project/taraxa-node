@@ -106,6 +106,7 @@ void PbftManager::start() {
   pbft_round_last_ = 1;
   pbft_round_ = 1;
   pbft_step_ = 1;
+  last_step_ = 0;
 
   // Reset last sync request point...
   pbft_round_last_requested_sync_ = 0;
@@ -166,11 +167,21 @@ void PbftManager::run() {
 
   bool have_executed_this_round = false;
   bool should_have_cert_voted_in_this_round = false;
-  
+
   LAMBDA_ms = LAMBDA_ms_MIN;
 
   u_long STEP_4_DELAY = 2 * LAMBDA_ms;
   while (!stopped_) {
+
+    // NOTE: PUSHING OF SYNCED BLOCKS CAN TAKE A LONG TIME
+    //       SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
+
+    // push synced pbft blocks into chain
+    pushSyncedPbftBlocksIntoChain_();
+    // update pbft chain last block hash
+    pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+
+
     auto now = std::chrono::system_clock::now();
     auto duration = now - round_clock_initial_datetime;
     auto elapsed_time_in_round_ms =
@@ -178,11 +189,6 @@ void PbftManager::run() {
 
     LOG(log_tra_) << "PBFT current round is " << pbft_round_;
     LOG(log_tra_) << "PBFT current step is " << pbft_step_;
-
-    // push synced pbft blocks into chain
-    pushSyncedPbftBlocksIntoChain_();
-    // update pbft chain last block hash
-    pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
     // Get votes
     bool sync_peers_pbft_chain = false;
@@ -261,36 +267,26 @@ void PbftManager::run() {
 
     // Check if we are synced to the right step ...
     uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
+
+    // This should be always true...
+    assert(consensus_pbft_round >= pbft_round_);
+
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
 
-      // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > pbft_round_ + 1 && capability_->syncing_ == false) {
-        LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
-                      << " > 1 + current round " << pbft_round_
-                      << " local round, need to broadcast request for missing "
-                         "certified blocks";
+      uint64_t local_round = pbft_round_;
 
-        // NOTE: Update this here before calling syncPbftChainFromPeers_
-        //       to be sure this sync call won't be supressed for being too
-        //       recent (ie. same round and step)
-        pbft_round_ = consensus_pbft_round;
-        pbft_step_ = 1;
- 
-        syncPbftChainFromPeers_();
-      }
-
-      //Update round and step...
-      pbft_round_ = consensus_pbft_round;
-      pbft_step_ = 1;  // Not strictly necessary since that is done inside next if statement
-
-      // Update pbft chain last block hash at start of new round...
-      pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-
-
-    }
-    if (pbft_round_ != pbft_round_last_) {
+      // All round start state changes are moved here...
+      // would be nice to have this be a method but we have local
+      // variables the run() function
+      
       round_clock_initial_datetime = now;
+
+      LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
+                    << ", step 1, and resetting clock.";
+
+      pbft_round_ = consensus_pbft_round;
+      resetStep_();
 
       have_executed_this_round = false;
       should_have_cert_voted_in_this_round = false;
@@ -307,19 +303,41 @@ void PbftManager::run() {
         updateTwoTPlusOneAndThreshold_();
         executed_pbft_block_ = false;
       }
-      
+
       LAMBDA_ms = LAMBDA_ms_MIN;
 
-      // NOTE: This also sets pbft_step back to 1
-      last_step_ = pbft_step_;
-      pbft_step_ = 1;
-      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+      last_step_clock_initial_datetime_ =
+          current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       pbft_round_last_ = pbft_round_;
-      LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
-                    << ", step 1, and resetting clock.";
+
+      // Update pbft chain last block hash at start of new round...
+      pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+      
+      /////////////////////
+      // END ROUND START STATE CHANGE UPDATES
+
+
+      // p2p connection syncing should cover this situation, sync here for safe
+      if (consensus_pbft_round > local_round + 1 &&
+          capability_->syncing_ == false) {
+        LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
+                      << " > 1 + current round " << local_round
+                      << " local round, need to broadcast request for missing "
+                         "certified blocks";
+
+        // NOTE: Advance round and step before calling sync to make sure
+        //       sync call won't be supressed for being too
+        //       recent (ie. same round and step)
+        syncPbftChainFromPeers_();
+      }
+
+      // Restart while loop...
       continue;
     }
+
+    // Here we handle the various possible steps/states of
+    // what should become pbft state machine...
 
     if (pbft_step_ == 1) {
       // Value Proposal
@@ -360,9 +378,7 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-      last_step_ = pbft_step_;
-      pbft_step_ += 1;
-
+      setPbftStep(pbft_step_+1);
     } else if (pbft_step_ == 2) {
       // The Filtering Step
       if (shouldSpeak(soft_vote_type, pbft_round_, pbft_step_)) {
@@ -402,8 +418,7 @@ void PbftManager::run() {
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-      last_step_ = pbft_step_;
-      pbft_step_ += 1;
+      setPbftStep(pbft_step_+1);
 
     } else if (pbft_step_ == 3) {
       // The Certifying Step
@@ -502,8 +517,7 @@ void PbftManager::run() {
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-        last_step_ = pbft_step_;
-        pbft_step_ += 1;
+        setPbftStep(pbft_step_+1);
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
@@ -532,8 +546,7 @@ void PbftManager::run() {
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-      last_step_ = pbft_step_;
-      pbft_step_ += 1;
+      setPbftStep(pbft_step_+1);
       next_step_time_ms = 4 * LAMBDA_ms + STEP_4_DELAY;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
@@ -548,7 +561,7 @@ void PbftManager::run() {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_
                         << " step 5 late without executing";
         }
-        pbft_step_ = 7;
+        setPbftStep(7);
         continue;
       }
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
@@ -582,8 +595,7 @@ void PbftManager::run() {
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-        last_step_ = pbft_step_;
-        pbft_step_ += 1;
+        setPbftStep(pbft_step_+1);
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
       } else {
@@ -614,12 +626,13 @@ void PbftManager::run() {
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-      last_step_ = pbft_step_;
-      pbft_step_ += 1;
+      setPbftStep(pbft_step_+1);
 
       if (pbft_step_ > MAX_STEPS) {
         LAMBDA_ms *= 2;
-        LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms << " ms in round " << pbft_round_ << ", step " << pbft_step_;
+        LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
+                      << " ms in round " << pbft_round_ << ", step "
+                      << pbft_step_;
       }
 
     } else {
@@ -635,7 +648,7 @@ void PbftManager::run() {
           LOG(log_deb_) << "PBFT Reached round " << pbft_round_ << " step "
                         << pbft_step_ << " late without executing";
         }
-        pbft_step_ += 2;
+        setPbftStep(pbft_step_+2);
         continue;
       }
 
@@ -661,7 +674,7 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
-        
+
         /*
         if (!next_voted_soft_value && !next_voted_null_block_hash &&
             pbft_step_ >= MAX_STEPS) {
@@ -709,8 +722,7 @@ void PbftManager::run() {
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-        last_step_ = pbft_step_;
-        pbft_step_ += 1;
+        setPbftStep(pbft_step_+1);
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
       } else {
@@ -785,6 +797,10 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
     return false;
   }
   return true;
+}
+
+void PbftManager::resetStep_() {
+  setPbftStep(1);
 }
 
 /* There is a quorum of next-votes and set determine that round p should be the
