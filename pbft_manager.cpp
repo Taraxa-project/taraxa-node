@@ -361,7 +361,7 @@ void PbftManager::run() {
         }
 
         if (pbft_round_ == 1) {
-          LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
+          LOG(log_sil_) << "Proposing value of NULL_BLOCK_HASH "
                         << NULL_BLOCK_HASH << " for round 1 by protocol";
           placeVote_(own_starting_value_for_round, propose_vote_type,
                      pbft_round_, pbft_step_);
@@ -376,15 +376,18 @@ void PbftManager::run() {
           }
           if (proposed_block_hash_.second) {
             own_starting_value_for_round = proposed_block_hash_.first;
+            LOG(log_sil_) << "Proposing own starting value "
+                          << own_starting_value_for_round
+                          << " for round " << pbft_round_;
             placeVote_(proposed_block_hash_.first, propose_vote_type,
                        pbft_round_, pbft_step_);
           }
         } else if (pbft_round_ >= 2) {
           if (next_voted_block_from_previous_round_.second &&
               next_voted_block_from_previous_round_.first != NULL_BLOCK_HASH) {
-            LOG(log_deb_) << "Proposing next voted block "
+            LOG(log_sil_) << "Proposing next voted block "
                           << next_voted_block_from_previous_round_.first
-                          << " from previous round";
+                          << " from previous round, for round " << pbft_round_;
             placeVote_(next_voted_block_from_previous_round_.first,
                        propose_vote_type, pbft_round_, pbft_step_);
           }
