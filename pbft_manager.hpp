@@ -91,7 +91,10 @@ class PbftManager {
   uint64_t SKIP_PERIODS = 1;
 
  private:
-  uint64_t roundDeterminedFromVotes_();
+  
+  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
+
+  uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
       std::vector<Vote> &votes) const;
