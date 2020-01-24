@@ -66,7 +66,7 @@ class PbftManager {
     sortition_threshold_ = threshold;
   }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
-  void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
+  void setPbftStep(size_t const pbft_step) { last_step_ = pbft_step_; pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
@@ -91,6 +91,8 @@ class PbftManager {
   uint64_t SKIP_PERIODS = 1;
 
  private:
+  void resetStep_();
+
   uint64_t roundDeterminedFromVotes_();
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
