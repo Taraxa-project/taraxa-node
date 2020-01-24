@@ -802,7 +802,6 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> votes) {
            std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
 
-  votes = vote_mgr_->getAllVotes();
   for (Vote &v : votes) {
     if (v.getType() != next_vote_type) {
       continue;
