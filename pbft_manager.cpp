@@ -273,9 +273,6 @@ void PbftManager::run() {
     // This should be always true...
     assert(consensus_pbft_round >= pbft_round_);
 
-=======
-    uint64_t consensus_pbft_round = roundDeterminedFromVotes_(votes);
->>>>>>> fix for next voted block from previous round possibly not being consistent
     if (consensus_pbft_round > pbft_round_) {
       LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
 
@@ -1402,6 +1399,9 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
                     << " synced blocks that could not be pushed.";
     }
     pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
+
+    // Since we pushed via syncing we should reset this...
+    next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
   }
 
   /*
