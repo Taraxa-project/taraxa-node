@@ -506,9 +506,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         uint64_t pbft_block_counter = 0;
         uint64_t dag_block_counter = 0;
         uint64_t dag_block_trx_counter = 0;
-        if (pbft_sync_height_ < full_node->getPbftChainSize()) {
-          pbft_sync_height_ = full_node->getPbftChainSize();
-        }
+        
+        pbft_sync_height_ = full_node->pbftSyncingHeight();
+        
         while (true) {
           if (pbft_block_counter + dag_block_counter + dag_block_trx_counter >=
               item_count)
@@ -519,20 +519,16 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                   .toBytes());
           LOG(log_dg_pbft_sync_) << "Received pbft block: "
                                  << pbft_blk_and_votes.pbft_blk.getBlockHash();
-          if (pbft_sync_height_ < pbft_blk_and_votes.pbft_blk.getHeight()) {
-            if (pbft_sync_height_ + 1 !=
-                pbft_blk_and_votes.pbft_blk.getHeight()) {
-              LOG(log_er_pbft_sync_)
-                  << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
-                  << pbft_blk_and_votes.pbft_blk.getHeight()
-                  << " sync_height: " << pbft_sync_height_
-                  << " chain size: " << full_node->getPbftChainSize()
-                  << " queue: " << full_node->getPbftSyncedQueueSize();
-              pbft_sync_height_ = full_node->getPbftChainSize();
-              restartSyncingPbft(true);
-              break;
-            }
-            pbft_sync_height_ = pbft_blk_and_votes.pbft_blk.getHeight();
+          if (pbft_sync_height_ + 1 !=
+              pbft_blk_and_votes.pbft_blk.getHeight()) {
+            LOG(log_er_pbft_sync_)
+                << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
+                << pbft_blk_and_votes.pbft_blk.getHeight()
+                << " sync_height: " << pbft_sync_height_
+                << " chain size: " << full_node->getPbftChainSize()
+                << " queue: " << full_node->getPbftSyncedQueueSize();
+            restartSyncingPbft(true);
+            break;
           }
           if (peer->pbft_chain_size_ <
               pbft_blk_and_votes.pbft_blk.getHeight()) {
@@ -583,7 +579,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                     << " sync_height: " << pbft_sync_height_
                     << " chain size: " << full_node->getPbftChainSize()
                     << " queue: " << full_node->getPbftSyncedQueueSize();
-                pbft_sync_height_ = full_node->getPbftChainSize();
                 restartSyncingPbft(true);
                 break;
               }
@@ -610,6 +605,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               // have correct account status for nodes which after the
               // first synced one.
               full_node->setSyncedPbftBlock(pbft_blk_and_votes);
+              pbft_sync_height_ = full_node->pbftSyncingHeight();
               LOG(log_dg_pbft_sync_)
                   << "Receive synced PBFT block " << pbft_blk_and_votes;
             } else {
@@ -717,9 +713,8 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
   if (auto full_node = full_node_.lock()) {
-    if (pbft_sync_height_ < full_node->getPbftChainSize()) {
-      pbft_sync_height_ = full_node->getPbftChainSize();
-    }
+    pbft_sync_height_ = full_node->pbftSyncingHeight();
+
     if (max_pbft_chain_size > pbft_sync_height_) {
       if (!stopped_) {
         LOG(log_si_pbft_sync_)

@@ -592,6 +592,10 @@ void FullNode::pushUnverifiedPbftBlock(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
 }
 
+uint64_t FullNode::pbftSyncingHeight() const {
+  return pbft_chain_->pbftSyncingHeight();
+}
+
 uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
 }
