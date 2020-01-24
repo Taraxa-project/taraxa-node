@@ -297,6 +297,10 @@ void PbftManager::run() {
       // reset next voted value since start a new round
       next_voted_null_block_hash = false;
       next_voted_soft_value = false;
+      
+      // Identify what block was next voted if any in this last round...
+      next_voted_block_from_previous_round_ = nextVotedBlockForRoundAndStep_(votes, local_round);
+      
       if (executed_pbft_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
         // Update sortition accounts table
@@ -334,9 +338,7 @@ void PbftManager::run() {
         syncPbftChainFromPeers_();
 
         next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-      } else {
-        next_voted_block_from_previous_round_ = nextVotedBlockForRoundAndStep_(votes, pbft_round_);
-      }
+      } 
 
       // Restart while loop...
       continue;
