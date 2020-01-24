@@ -348,6 +348,18 @@ void PbftManager::run() {
     if (pbft_step_ == 1) {
       // Value Proposal
       if (shouldSpeak(propose_vote_type, pbft_round_, pbft_step_)) {
+        
+        if (next_voted_block_from_previous_round_.second) {
+          LOG(log_sil_) << "We have a next voted block from previous round " <<  pbft_round_ - 1;
+          if (next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
+            LOG(log_sil_) << "Previous round next voted block is NULL_BLOCK_HASH";
+          } else {
+            LOG(log_sil_) << "Previous round next voted block is NOT NULL_BLOCK_HASH";
+          }
+        } else {
+          LOG(log_sil_) << "No next voted block from previous round " <<  pbft_round_ - 1;
+        }
+
         if (pbft_round_ == 1) {
           LOG(log_deb_) << "Proposing value of NULL_BLOCK_HASH "
                         << NULL_BLOCK_HASH << " for round 1 by protocol";
