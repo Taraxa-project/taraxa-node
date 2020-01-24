@@ -239,6 +239,20 @@ std::shared_ptr<DagBlock> BlockManager::getDagBlock(
   return ret;
 }
 
+level_t BlockManager::getMaxDagLevelInQueue() const {
+  level_t max_level = 0;
+  {
+    uLock lock(shared_mutex_for_unverified_qu_);
+    if (unverified_qu_.size() != 0) max_level = unverified_qu_.rbegin()->first;
+  }
+  {
+    uLock lock(shared_mutex_for_verified_qu_);
+    if (verified_qu_.size() != 0)
+      max_level = std::max(verified_qu_.rbegin()->first, max_level);
+  }
+  return max_level;
+}
+
 void BlockManager::pushUnverifiedBlock(
     DagBlock const &blk, std::vector<Transaction> const &transactions,
     bool critical) {

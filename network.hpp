@@ -51,7 +51,7 @@ class Network {
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);
   void saveNetwork(std::string fileName);
-  int getPeerCount() { return host_->peerCount(); }
+  int getPeerCount() { return taraxa_capability_->getPeersCount(); }
   int getNodeCount() { return host_->getNodeCount(); }
   std::list<NodeEntry> getAllNodes() const { return host_->getNodes(); }
   std::vector<NodeID> getAllPeers() const {

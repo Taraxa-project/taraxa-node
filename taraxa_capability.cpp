@@ -138,7 +138,7 @@ bool TaraxaCapability::interpretCapabilityPacket(NodeID const &_nodeID,
   return true;
 }
 
-void TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
+bool TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
   auto full_node = full_node_.lock();
   if (full_node && requesting_pending_dag_blocks_) {
     auto peer = getPeer(_nodeID);
@@ -150,7 +150,7 @@ void TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
           LOG(log_nf_dag_sync_)
               << "Missing a tip or pivot, requesting it" << status.second;
           requestBlock(_nodeID, status.second, false);
-          return;
+          return false;
         }
 
         LOG(log_nf_dag_sync_)
@@ -162,8 +162,8 @@ void TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
                                                           block.second.second);
       }
     }
-    requesting_pending_dag_blocks_ = false;
   }
+  return true;
 }
 
 bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
@@ -245,12 +245,13 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               syncPeerPbft(_nodeID, pbft_chain_size + 1);
             }
           } else {
-            if (!syncing_ && peer_level > full_node->getMaxDagLevel()) {
+            if (!syncing_ && peer_level > full_node->getMaxDagLevelInQueue()) {
               // This makes sure we have all the DAG blocks not yet in PBFT
               // block even if pbft blocks are synced
               LOG(log_dg_dag_sync_)
                   << "DAG is not synced to new node: " << peer_level
-                  << "our level: " << full_node->getMaxDagLevel();
+                  << "our level: " << full_node->getMaxDagLevelInQueue() << "("
+                  << full_node->getMaxDagLevel() << ")";
               restartSyncingPbft();
             }
           }
@@ -297,7 +298,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         peer->markBlockAsKnown(block.getHash());
         peer->sync_blocks_[block.getLevel()][block.getHash()] = {
             block, newTransactions};
-        processSyncDagBlocks(_nodeID);
+        if (processSyncDagBlocks(_nodeID)) {
+          auto level_to_sync = peer->sync_blocks_.rbegin()->first + 1;
+          peer->sync_blocks_.clear();
+          requestPendingDagBlocks(_nodeID, level_to_sync);
+        }
         break;
       }
 
@@ -350,30 +355,11 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         break;
       }
       case GetBlocksPacket: {
-        LOG(log_dg_dag_sync_) << "Received GetBlocksPacket ";
+        level_t level = _r[0].toInt();
+        LOG(log_dg_dag_sync_) << "Received GetBlocksPacket " << level;
         if (auto full_node = full_node_.lock()) {
-          auto pbft_chain = full_node->getPbftChain();
-          blk_hash_t last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
-          PbftBlock last_pbft_block;
-          std::string last_period_dag_anchor_block_hash;
-          if (last_pbft_block_hash) {
-            last_pbft_block =
-                pbft_chain->getPbftBlockInChain(last_pbft_block_hash);
-            last_period_dag_anchor_block_hash =
-                last_pbft_block.getPivotDagBlockHash().toString();
-          } else {
-            // First PBFT pivot block
-            last_period_dag_anchor_block_hash = genesis_;
-          }
-
-          auto last_period_dag_anchor_block = full_node->getDagBlock(
-              blk_hash_t(last_period_dag_anchor_block_hash));
-          level_t level_it = 0;
-          if (last_period_dag_anchor_block) {
-            level_it = last_period_dag_anchor_block->getLevel();
-          }
           auto dag_blocks = full_node->getDagBlocksAtLevel(
-              level_it, full_node->getMaxDagLevel() - level_it + 1);
+              level, conf_.network_sync_level_size);
           sendBlocks(_nodeID, dag_blocks);
         }
         break;
@@ -381,8 +367,6 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       case BlocksPacket: {
         std::string received_dag_blocks_str;
         auto itemCount = _r.itemCount();
-        peer->sync_blocks_.clear();
-
         int transactionCount = 0;
         for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
           DagBlock block(_r[iBlock + transactionCount].data().toBytes());
@@ -406,7 +390,20 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         auto full_node = full_node_.lock();
         LOG(log_nf_dag_sync_)
             << "Received Dag Blocks: " << received_dag_blocks_str;
-        processSyncDagBlocks(_nodeID);
+        if (itemCount > 0) {
+          if (processSyncDagBlocks(_nodeID)) {
+            auto level_to_sync = peer->sync_blocks_.rbegin()->first + 1;
+            peer->sync_blocks_.clear();
+            requestPendingDagBlocks(_nodeID, level_to_sync);
+          }
+        } else {
+          peer->sync_blocks_.clear();
+          requesting_pending_dag_blocks_ = false;
+          if (!syncing_) {
+            LOG(log_dg_dag_sync_) << "Syncing is stopping";
+            sendSyncedMessage();
+          }
+        }
         break;
       }
       case TransactionPacket: {
@@ -640,8 +637,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           restartSyncingPbft(true);
           // We are pbft synced, send message to other node to start gossiping
           // new blocks
-          if (!syncing_) {
-            LOG(log_dg_dag_sync_) << "Syncing is stopping";
+          if (!syncing_ && !requesting_pending_dag_blocks_) {
             sendSyncedMessage();
           }
         }
@@ -720,6 +716,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
         LOG(log_si_pbft_sync_)
             << "Restarting syncing PBFT" << max_pbft_chain_size << " "
             << pbft_sync_height_;
+        requesting_pending_dag_blocks_ = false;
         syncing_ = true;
         peer_syncing_pbft = max_pbft_chain_nodeID;
         syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
@@ -733,12 +730,14 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
           << max_pbft_chain_size;
       syncing_ = false;
       if (!requesting_pending_dag_blocks_ &&
-          max_node_dag_level > full_node->getMaxDagLevel()) {
+          max_node_dag_level > full_node->getMaxDagLevelInQueue()) {
         LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
-                              << full_node->getMaxDagLevel();
+                              << full_node->getMaxDagLevelInQueue() << "("
+                              << full_node->getMaxDagLevel() << ")";
         requesting_pending_dag_blocks_ = true;
         requesting_pending_dag_blocks_node_id_ = max_pbft_chain_nodeID;
-        requestPendingDagBlocks(max_pbft_chain_nodeID);
+        requestPendingDagBlocks(max_pbft_chain_nodeID,
+                                full_node->getMaxDagLevelInQueue() + 1);
       }
     }
   }
@@ -756,6 +755,10 @@ void TaraxaCapability::onDisconnect(NodeID const &_nodeID) {
   if (requesting_pending_dag_blocks_ &&
       requesting_pending_dag_blocks_node_id_ == _nodeID) {
     requesting_pending_dag_blocks_ = false;
+    restartSyncingPbft(true);
+    if (!syncing_ && !requesting_pending_dag_blocks_) {
+      sendSyncedMessage();
+    }
   }
 }
 
@@ -879,7 +882,7 @@ void TaraxaCapability::onNewBlockReceived(
     } else {
       auto status = checkTipsandPivot(block);
       if (!status.first) {
-        restartSyncingPbft();
+        if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
         return;
       }
       LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString()
@@ -1099,10 +1102,12 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
-void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id) {
+void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id,
+                                               level_t level) {
   RLPStream s;
   std::vector<uint8_t> bytes;
-  host_.capabilityHost()->prep(_id, name(), s, GetBlocksPacket, 0);
+  host_.capabilityHost()->prep(_id, name(), s, GetBlocksPacket, 1);
+  s << level;
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
   auto peer = getPeer(_id);
   if (peer) peer->setAsking(true);

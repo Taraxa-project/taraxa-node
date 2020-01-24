@@ -623,6 +623,10 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 
 level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
 
+level_t FullNode::getMaxDagLevelInQueue() const {
+  return std::max(dag_mgr_->getMaxLevel(), blk_mgr_->getMaxDagLevelInQueue());
+}
+
 std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
     uint64_t dag_block_height) const {
   return pbft_chain_->getDagBlockHash(dag_block_height);

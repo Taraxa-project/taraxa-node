@@ -181,10 +181,10 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                   std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
-  void requestPendingDagBlocks(NodeID const &_id);
+  void requestPendingDagBlocks(NodeID const &_id, level_t level);
   void sendTransactions(NodeID const &_id,
                         std::vector<taraxa::bytes> const &transactions);
-  void processSyncDagBlocks(NodeID const &_id);
+  bool processSyncDagBlocks(NodeID const &_id);
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
