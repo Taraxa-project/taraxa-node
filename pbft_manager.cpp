@@ -170,6 +170,8 @@ void PbftManager::run() {
 
   LAMBDA_ms = LAMBDA_ms_MIN;
 
+  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false); 
+
   next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   u_long STEP_4_DELAY = 2 * LAMBDA_ms;
@@ -298,9 +300,13 @@ void PbftManager::run() {
       next_voted_null_block_hash = false;
       next_voted_soft_value = false;
       
+      // Key thing is to set .second to false to mark that we have not
+      // identified a soft voted block in the new upcoming round... 
+      soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false); 
+
       // Identify what block was next voted if any in this last round...
       next_voted_block_from_previous_round_ = nextVotedBlockForRoundAndStep_(votes, local_round);
-      
+
       if (executed_pbft_block_) {
         last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
         // Update sortition accounts table
@@ -458,15 +464,15 @@ void PbftManager::run() {
         should_go_to_step_four = true;
       } else if (should_have_cert_voted_in_this_round == false) {
         LOG(log_tra_) << "In step 3";
-        std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
-            softVotedBlockForRound_(votes, pbft_round_);
-
-        LOG(log_tra_) << "Finished softVotedBlockForRound_";
-
-        if (soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
+        
+        if (soft_voted_block_for_this_round_.second == false) {
+          soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
+        }
+        
+        if (soft_voted_block_for_this_round_.second &&
+            soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
             comparePbftBlockScheduleWithDAGblocks_(
-                soft_voted_block_for_this_round.first)) {
+                soft_voted_block_for_this_round_.first)) {
           LOG(log_tra_) << "Finished comparePbftBlockScheduleWithDAGblocks_";
 
           // NOTE: If we have already executed this round
@@ -478,7 +484,7 @@ void PbftManager::run() {
                 << pbft_round_;
 
             if (pbft_chain_->getLastPbftBlockHash() ==
-                soft_voted_block_for_this_round.first) {
+                soft_voted_block_for_this_round_.first) {
               LOG(log_tra_) << "Having executed, last block in chain is the "
                                "soft voted block in round "
                             << pbft_round_;
@@ -489,8 +495,8 @@ void PbftManager::run() {
           bool unverified_soft_vote_block_for_this_round_is_valid = false;
           if (executed_soft_voted_block_for_this_round == false) {
             if (checkPbftBlockInUnverifiedQueue_(
-                    soft_voted_block_for_this_round.first)) {
-              if (checkPbftBlockValid_(soft_voted_block_for_this_round.first)) {
+                    soft_voted_block_for_this_round_.first)) {
+              if (checkPbftBlockValid_(soft_voted_block_for_this_round_.first)) {
                 LOG(log_tra_) << "checkPbftBlockValid_ returned true";
                 unverified_soft_vote_block_for_this_round_is_valid = true;
               } else {
@@ -506,7 +512,7 @@ void PbftManager::run() {
               }
             } else {
               LOG(log_tra_) << "Still waiting to receive the soft voted block "
-                            << soft_voted_block_for_this_round.first
+                            << soft_voted_block_for_this_round_.first
                             << " in step 3 in round " << pbft_round_;
             }
           }
@@ -514,17 +520,17 @@ void PbftManager::run() {
           if (executed_soft_voted_block_for_this_round == true ||
               unverified_soft_vote_block_for_this_round_is_valid == true) {
             cert_voted_values_for_round[pbft_round_] =
-                soft_voted_block_for_this_round.first;
+                soft_voted_block_for_this_round_.first;
 
             // NEED TO KEEP POLLING TO SEE IF WE HAVE 2t+1 cert votes...
             // Here we would cert vote if we can speak....
             should_have_cert_voted_in_this_round = true;
             if (shouldSpeak(cert_vote_type, pbft_round_, pbft_step_)) {
               LOG(log_deb_)
-                  << "Cert voting " << soft_voted_block_for_this_round.first
+                  << "Cert voting " << soft_voted_block_for_this_round_.first
                   << " for round " << pbft_round_;
               // generate cert vote
-              placeVote_(soft_voted_block_for_this_round.first, cert_vote_type,
+              placeVote_(soft_voted_block_for_this_round_.first, cert_vote_type,
                          pbft_round_, pbft_step_);
             }
           }
@@ -586,16 +592,19 @@ void PbftManager::run() {
         continue;
       }
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
-            softVotedBlockForRound_(votes, pbft_round_);
-        if (!next_voted_soft_value && soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
+        
+        if (soft_voted_block_for_this_round_.second == false) {
+          soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
+        }
+
+        if (!next_voted_soft_value && soft_voted_block_for_this_round_.second &&
+            soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
             comparePbftBlockScheduleWithDAGblocks_(
-                soft_voted_block_for_this_round.first)) {
+                soft_voted_block_for_this_round_.first)) {
           LOG(log_deb_) << "Next voting "
-                        << soft_voted_block_for_this_round.first
+                        << soft_voted_block_for_this_round_.first
                         << " for round " << pbft_round_;
-          placeVote_(soft_voted_block_for_this_round.first, next_vote_type,
+          placeVote_(soft_voted_block_for_this_round_.first, next_vote_type,
                      pbft_round_, pbft_step_);
           next_voted_soft_value = true;
         }
@@ -676,16 +685,19 @@ void PbftManager::run() {
       }
 
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        std::pair<blk_hash_t, bool> soft_voted_block_for_this_round =
-            softVotedBlockForRound_(votes, pbft_round_);
-        if (!next_voted_soft_value && soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
+        
+        if (soft_voted_block_for_this_round_.second == false) {
+          soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
+        }
+        
+        if (!next_voted_soft_value && soft_voted_block_for_this_round_.second &&
+            soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
             comparePbftBlockScheduleWithDAGblocks_(
-                soft_voted_block_for_this_round.first)) {
+                soft_voted_block_for_this_round_.first)) {
           LOG(log_deb_) << "Next voting "
-                        << soft_voted_block_for_this_round.first
+                        << soft_voted_block_for_this_round_.first
                         << " for round " << pbft_round_;
-          placeVote_(soft_voted_block_for_this_round.first, next_vote_type,
+          placeVote_(soft_voted_block_for_this_round_.first, next_vote_type,
                      pbft_round_, pbft_step_);
           next_voted_soft_value = true;
         }
@@ -1158,8 +1170,12 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
     if (v.getRound() == pbft_round_ && v.getType() == propose_vote_type) {
-      leader_candidates.emplace_back(
+      // We should not pick aa null block as leader (proposed when
+      // no new blocks found, or maliciously) if others have blocks.
+      if (pbft_round_ == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
+        leader_candidates.emplace_back(
           std::make_pair(dev::sha3(v.getVoteSignature()), v.getBlockHash()));
+      }
     }
   }
   if (leader_candidates.empty()) {
