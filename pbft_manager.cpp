@@ -1170,8 +1170,12 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
     if (v.getRound() == pbft_round_ && v.getType() == propose_vote_type) {
-      leader_candidates.emplace_back(
+      // We should not pick aa null block as leader (proposed when
+      // no new blocks found, or maliciously) if others have blocks.
+      if (pbft_round_ == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
+        leader_candidates.emplace_back(
           std::make_pair(dev::sha3(v.getVoteSignature()), v.getBlockHash()));
+      }
     }
   }
   if (leader_candidates.empty()) {
