@@ -768,7 +768,7 @@ void PbftManager::run() {
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
         
 
-        LOG(log_deb_) << "CONSENSUSDBG round " << pbft_round_ " , step " << pbft_step_ 
+        LOG(log_deb_) << "CONSENSUSDBG round " << pbft_round_  << " , step " << pbft_step_ 
                       << " | next_voted_soft_value = " << next_voted_soft_value 
                       << " soft block = " << soft_voted_block_for_this_round_
                       << " next_voted_null_block_hash = " << next_voted_null_block_hash
