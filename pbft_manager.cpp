@@ -574,6 +574,8 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       setPbftStep(pbft_step_+1);
+      next_voted_soft_value = false;
+      next_voted_null_block_hash = false;
       next_step_time_ms = 4 * LAMBDA_ms + STEP_4_DELAY;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
 
@@ -589,6 +591,8 @@ void PbftManager::run() {
                         << " step 5 late without executing";
         }
         setPbftStep(7);
+        next_voted_soft_value = false;
+        next_voted_null_block_hash = false;
         continue;
       }
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
@@ -641,23 +645,25 @@ void PbftManager::run() {
             cert_voted_values_for_round.end()) {
           LOG(log_deb_) << "Next voting value "
                         << cert_voted_values_for_round[pbft_round_]
-                        << " for round " << pbft_round_;
+                        << " for round " << pbft_round_ << " , step " << pbft_step_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
                      pbft_round_, pbft_step_);
         } else if (pbft_round_ >= 2 &&
                    next_voted_block_from_previous_round_.second &&
                    next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
-          LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
+          LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_ << " , step " << pbft_step_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
         } else {
           LOG(log_deb_) << "Next voting nodes own starting value for round "
-                        << pbft_round_;
+                        << pbft_round_ << " , step " << pbft_step_;
           placeVote_(own_starting_value_for_round, next_vote_type, pbft_round_,
                      pbft_step_);
         }
       }
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+      next_voted_soft_value = false;
+      next_voted_null_block_hash = false;
       setPbftStep(pbft_step_+1);
 
       if (pbft_step_ > MAX_STEPS) {
@@ -681,6 +687,8 @@ void PbftManager::run() {
                         << pbft_step_ << " late without executing";
         }
         setPbftStep(pbft_step_+2);
+        next_voted_soft_value = false;
+        next_voted_null_block_hash = false;
         continue;
       }
 
@@ -689,15 +697,6 @@ void PbftManager::run() {
         if (soft_voted_block_for_this_round_.second == false) {
           soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
         }
-        
-
-        LOG(log_deb_) << "CONSENSUSDBG next_voted_soft_value = " << next_voted_soft_value 
-                      << " soft block = " << soft_voted_block_for_this_round_
-                      << " next_voted_null_block_hash = " << next_voted_null_block_hash
-                      << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_
-                      << " cert voted = " << (cert_voted_values_for_round.find(pbft_round_) ==
-                                              cert_voted_values_for_round.end());
-
 
         if (!next_voted_soft_value && soft_voted_block_for_this_round_.second &&
             soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
@@ -705,7 +704,7 @@ void PbftManager::run() {
                 soft_voted_block_for_this_round_.first)) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round_.first
-                        << " for round " << pbft_round_;
+                        << " for round " << pbft_round_ << " , step " << pbft_step_;
           placeVote_(soft_voted_block_for_this_round_.first, next_vote_type,
                      pbft_round_, pbft_step_);
           next_voted_soft_value = true;
@@ -715,7 +714,7 @@ void PbftManager::run() {
             next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
-          LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_;
+          LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_ << " , step " << pbft_step_;
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
@@ -767,6 +766,16 @@ void PbftManager::run() {
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+        
+
+        LOG(log_deb_) << "CONSENSUSDBG round " << pbft_round_ " , step " << pbft_step_ 
+                      << " | next_voted_soft_value = " << next_voted_soft_value 
+                      << " soft block = " << soft_voted_block_for_this_round_
+                      << " next_voted_null_block_hash = " << next_voted_null_block_hash
+                      << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_
+                      << " cert voted = " << (cert_voted_values_for_round.find(pbft_round_) ==
+                                              cert_voted_values_for_round.end());
+
         setPbftStep(pbft_step_+1);
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
