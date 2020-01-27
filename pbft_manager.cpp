@@ -690,6 +690,15 @@ void PbftManager::run() {
           soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
         }
         
+
+        LOG(log_deb_) << "CONSENSUSDBG next_voted_soft_value = " << next_voted_soft_value 
+                      << " soft block = " << soft_voted_block_for_this_round_
+                      << " next_voted_null_block_hash = " << next_voted_null_block_hash
+                      << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_
+                      << " cert voted = " << (cert_voted_values_for_round.find(pbft_round_) ==
+                                              cert_voted_values_for_round.end());
+
+
         if (!next_voted_soft_value && soft_voted_block_for_this_round_.second &&
             soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
             comparePbftBlockScheduleWithDAGblocks_(
