@@ -667,7 +667,9 @@ void PbftManager::run() {
       setPbftStep(pbft_step_+1);
 
       if (pbft_step_ > MAX_STEPS) {
-        LAMBDA_ms *= 2;
+        // Note: We calculate the lambda for a step independently of prior steps
+        //       in case missed earlier steps.
+        LAMBDA_ms = LAMBDA_ms_MIN << (pbft_step_ - MAX_STEPS); // Multiply by 2 each step...
         LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
                       << " ms in round " << pbft_round_ << ", step "
                       << pbft_step_;
