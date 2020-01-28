@@ -553,7 +553,7 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
             cert_voted_values_for_round.end()) {
-          LOG(log_deb_) << "Next voting value "
+          LOG(log_deb_) << "Next voting cert voted value "
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
@@ -643,7 +643,7 @@ void PbftManager::run() {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
             cert_voted_values_for_round.end()) {
-          LOG(log_deb_) << "Next voting value "
+          LOG(log_deb_) << "Next voting cert voted value "
                         << cert_voted_values_for_round[pbft_round_]
                         << " for round " << pbft_round_ << " , step " << pbft_step_;
           placeVote_(cert_voted_values_for_round[pbft_round_], next_vote_type,
@@ -711,7 +711,10 @@ void PbftManager::run() {
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
             next_voted_block_from_previous_round_.second &&
-            next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+        // NOTE: Deviation from original protocal because we DO NOT START BACK AT ROUND 0
+        //       after successfully producing a cert voted value...
+        // CONCERN: Unsure about impact in presence  of malicious nodes.
+        //    next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_ << " , step " << pbft_step_;
@@ -773,7 +776,7 @@ void PbftManager::run() {
                       << " soft block = " << soft_voted_block_for_this_round_
                       << " next_voted_null_block_hash = " << next_voted_null_block_hash
                       << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_
-                      << " cert voted = " << (cert_voted_values_for_round.find(pbft_round_) ==
+                      << " cert voted = " << (cert_voted_values_for_round.find(pbft_round_) !=
                                               cert_voted_values_for_round.end());
 
         setPbftStep(pbft_step_+1);
