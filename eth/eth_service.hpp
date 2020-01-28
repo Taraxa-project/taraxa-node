@@ -7,10 +7,12 @@
 
 #include <atomic>
 #include <chrono>
+#include <list>
 #include <mutex>
 #include <stdexcept>
 #include <thread>
 
+#include "database_adapter.hpp"
 #include "pending_block_header.hpp"
 
 namespace taraxa {
@@ -21,6 +23,7 @@ class Eth;
 }
 
 namespace taraxa::eth::eth_service {
+using database_adapter::DatabaseAdapter;
 using dev::Address;
 using dev::Addresses;
 using dev::bytes;
@@ -64,16 +67,20 @@ using dev::eth::TransactionSkeleton;
 using dev::eth::UncleHashes;
 using pending_block_header::PendingBlockHeader;
 using std::atomic;
+using std::list;
 using std::map;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
 using std::thread;
 using std::tuple;
+using std::unique_ptr;
 using std::weak_ptr;
 using std::chrono::milliseconds;
 
 namespace fs = boost::filesystem;
+
+using DBTransaction = shared_ptr<rocksdb::Transaction>;
 
 static inline auto const err_not_applicable =
     std::runtime_error("Method not applicable");
@@ -81,9 +88,21 @@ static inline auto const err_not_applicable =
 class EthService : virtual ClientBase {
   friend class ::taraxa::eth::eth::Eth;
 
+ public:
+  using TransactionScope = list<DatabaseAdapter::TransactionScope>;
+
+  struct PendingBlockContext {
+    PendingBlockHeader pending_header;
+    BlockHeader current_header;
+    TransactionScope transaction_scope;
+  };
+
+ private:
   weak_ptr<FullNode> node_;
+  shared_ptr<DatabaseAdapter> db_adapter_;
+  shared_ptr<DatabaseAdapter> extras_db_adapter_;
+  shared_ptr<DatabaseAdapter> state_db_adapter_;
   BlockChain bc_;
-  OverlayDB acc_state_db_;
   mutex append_block_mu_;
   thread gc_thread_;
   atomic<bool> destructor_called_ = false;
@@ -93,10 +112,8 @@ class EthService : virtual ClientBase {
 
   EthService(shared_ptr<FullNode> const& node,  //
              ChainParams const& chain_params,
-             fs::path const& db_base_path,  //
-             milliseconds gc_period = milliseconds(10000),
-             WithExisting with_existing = WithExisting::Trust,
-             ProgressCallback const& progress_cb = ProgressCallback());
+             BlockChain::CacheConfig const& cache_config = {},
+             milliseconds gc_trigger_backoff = milliseconds(100));
 
   ~EthService();
 
@@ -104,10 +121,12 @@ class EthService : virtual ClientBase {
 
   SealEngineFace* sealEngine() const override { return bc().sealEngine(); }
 
-  auto getAccountsStateDBRaw() { return acc_state_db_.getRawDB(); }
-  State const getAccountsState(BlockNumber block_number = LatestBlock) const;
-  pair<PendingBlockHeader, BlockHeader> startBlock(Address const& author,
-                                                   int64_t timestamp) const;
+  auto getStateDB() { return state_db_adapter_; }
+  State getAccountsState(BlockNumber block_number = LatestBlock) const;
+
+  PendingBlockContext startBlock(DbStorage::BatchPtr const& batch,
+                                 Address const& author, int64_t timestamp);
+
   BlockHeader& commitBlock(PendingBlockHeader& header,
                            Transactions const& transactions,
                            TransactionReceipts const& receipts,  //
@@ -122,6 +141,8 @@ class EthService : virtual ClientBase {
   BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) const;
 
  private:
+  TransactionScope setMasterBatch(DbStorage::BatchPtr const& batch);
+
   h256 submitTransaction(TransactionSkeleton const& _t,
                          Secret const& _secret) override;
   h256 importTransaction(Transaction const& _t) override;

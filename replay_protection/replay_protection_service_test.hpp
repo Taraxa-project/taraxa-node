@@ -34,7 +34,7 @@ using taraxa::Transaction;
 // TODO more tests
 struct ReplayProtectionServiceTest : testing::Test {
   round_t range = 0;
-  shared_ptr<RocksDB> db;
+  shared_ptr<DbStorage> db;
   shared_ptr<ReplayProtectionService> sut;
   vector<ReplayProtectionService::transaction_batch_t> history;
   round_t curr_round = 0;
@@ -54,18 +54,18 @@ struct ReplayProtectionServiceTest : testing::Test {
   void init(decltype(range) range, decltype(history) const& history) {
     static auto const DB_DIR =
         temp_directory_path() / "taraxa" / "replay_protection_service_test";
-    remove_all(DB_DIR);
-    create_directories(DB_DIR);
     this->range = range;
     this->history = history;
-    db = make_shared<RocksDB>(DB_DIR);
+    db = DbStorage::make(DB_DIR, h256::random(), true);
     sut = as_shared(new ReplayProtectionService(range, db));
   }
 
   void apply_history(optional<round_t> record_count = nullopt) {
     auto cnt = record_count ? *record_count : history.size() - curr_round;
     for (round_t i(0); i < cnt; ++i) {
-      sut->commit(curr_round, history[curr_round]);
+      auto batch = db->createWriteBatch();
+      sut->commit(batch, curr_round, history[curr_round]);
+      db->commitWriteBatch(batch);
       ++curr_round;
     }
   }

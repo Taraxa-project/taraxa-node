@@ -79,7 +79,9 @@ void PbftManager::start() {
         new_change);
     sortition_account_balance_table_tmp[master_boot_node_address] =
         master_boot_node;
-    updateSortitionAccountsDB_();
+    auto batch = db_->createWriteBatch();
+    updateSortitionAccountsDB_(batch);
+    db_->commitWriteBatch(batch);
     updateSortitionAccountsTable_();
   } else {
     // Full node join back
@@ -170,7 +172,7 @@ void PbftManager::run() {
 
   LAMBDA_ms = LAMBDA_ms_MIN;
 
-  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false); 
+  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
   next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
@@ -283,7 +285,7 @@ void PbftManager::run() {
       // All round start state changes are moved here...
       // would be nice to have this be a method but we have local
       // variables the run() function
-      
+
       round_clock_initial_datetime = now;
 
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
@@ -299,10 +301,10 @@ void PbftManager::run() {
       // reset next voted value since start a new round
       next_voted_null_block_hash = false;
       next_voted_soft_value = false;
-      
+
       // Key thing is to set .second to false to mark that we have not
-      // identified a soft voted block in the new upcoming round... 
-      soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false); 
+      // identified a soft voted block in the new upcoming round...
+      soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
 
       // Identify what block was next voted if any in this last round...
       next_voted_block_from_previous_round_ = nextVotedBlockForRoundAndStep_(votes, local_round);
@@ -325,7 +327,7 @@ void PbftManager::run() {
 
       // Update pbft chain last block hash at start of new round...
       pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-      
+
       /////////////////////
       // END ROUND START STATE CHANGE UPDATES
 
@@ -344,7 +346,7 @@ void PbftManager::run() {
         syncPbftChainFromPeers_();
 
         next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-      } 
+      }
 
       // Restart while loop...
       continue;
@@ -356,7 +358,7 @@ void PbftManager::run() {
     if (pbft_step_ == 1) {
       // Value Proposal
       if (shouldSpeak(propose_vote_type, pbft_round_, pbft_step_)) {
-        
+
         if (next_voted_block_from_previous_round_.second) {
           LOG(log_sil_) << "We have a next voted block from previous round " <<  pbft_round_ - 1;
           if (next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
@@ -464,11 +466,11 @@ void PbftManager::run() {
         should_go_to_step_four = true;
       } else if (should_have_cert_voted_in_this_round == false) {
         LOG(log_tra_) << "In step 3";
-        
+
         if (soft_voted_block_for_this_round_.second == false) {
           soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
         }
-        
+
         if (soft_voted_block_for_this_round_.second &&
             soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
             comparePbftBlockScheduleWithDAGblocks_(
@@ -596,7 +598,7 @@ void PbftManager::run() {
         continue;
       }
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        
+
         if (soft_voted_block_for_this_round_.second == false) {
           soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
         }
@@ -695,7 +697,7 @@ void PbftManager::run() {
       }
 
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
-        
+
         if (soft_voted_block_for_this_round_.second == false) {
           soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, pbft_round_);
         }
@@ -771,10 +773,10 @@ void PbftManager::run() {
         last_step_clock_initial_datetime_ =
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-        
 
-        LOG(log_deb_) << "CONSENSUSDBG round " << pbft_round_  << " , step " << pbft_step_ 
-                      << " | next_voted_soft_value = " << next_voted_soft_value 
+
+        LOG(log_deb_) << "CONSENSUSDBG round " << pbft_round_  << " , step " << pbft_step_
+                      << " | next_voted_soft_value = " << next_voted_soft_value
                       << " soft block = " << soft_voted_block_for_this_round_
                       << " next_voted_null_block_hash = " << next_voted_null_block_hash
                       << " next_voted_block_from_previous_round_ = " << next_voted_block_from_previous_round_
@@ -1476,6 +1478,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return false;
   }
+  auto batch = db_->createWriteBatch();
   if (comparePbftBlockScheduleWithDAGblocks_(pbft_block)) {
     if (pbft_chain_->pushPbftBlock(pbft_block)) {
       LOG(log_inf_) << "Successful push pbft block "
@@ -1511,27 +1514,31 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       //  pairs<addr_t, val_t>.
       //  Will need update sortition_account_balance_table_tmp here
       uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-      if (!full_node->executePeriod(
-              pbft_block, sortition_account_balance_table_tmp, pbft_period)) {
+      if (!full_node->executePeriod(batch, pbft_block,
+                                    sortition_account_balance_table_tmp,
+                                    pbft_period)) {
         LOG(log_err_) << "Failed to execute PBFT schedule";
       }
-      db_->savePeriodScheduleBlock(pbft_period, pbft_block.getBlockHash());
+      db_->batch_put(batch, DbStorage::Columns::period_schedule_block,
+                     DbStorage::toSlice(pbft_period),
+                     DbStorage::toSlice(pbft_block.getBlockHash().asBytes()));
       auto num_executed_blk = full_node->getNumBlockExecuted();
       auto num_executed_trx = full_node->getNumTransactionExecuted();
       if (num_executed_blk > 0 && num_executed_trx > 0) {
-        db_->saveStatusField(StatusDbField::ExecutedBlkCount, num_executed_blk);
-        db_->saveStatusField(StatusDbField::ExecutedTrxCount, num_executed_trx);
+        db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
+                                   num_executed_blk, batch);
+        db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
+                                   num_executed_trx, batch);
       }
       if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
-        auto write_batch = db_->createWriteBatch();
         for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
-          db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, write_batch);
+          db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
         }
-        db_->commitWriteBatch(write_batch);
       }
       // update sortition account balance table
-      updateSortitionAccountsDB_();
+      updateSortitionAccountsDB_(batch);
       executed_pbft_block_ = true;
+      db_->commitWriteBatch(batch);
       return true;
     }
   }
@@ -1603,11 +1610,10 @@ void PbftManager::updateSortitionAccountsTable_() {
   valid_sortition_accounts_size_ = sortition_account_balance_table.size();
 }
 
-void PbftManager::updateSortitionAccountsDB_() {
-  auto accounts = db_->createWriteBatch();
+void PbftManager::updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch) {
   for (auto &account : sortition_account_balance_table_tmp) {
     if (account.second.status == new_change) {
-      db_->addSortitionAccountToBatch(account.first, account.second, accounts);
+      db_->addSortitionAccountToBatch(account.first, account.second, batch);
       account.second.status = updated;
     } else if (account.second.status == remove) {
       // Erase both from DB and cache(table)
@@ -1618,8 +1624,8 @@ void PbftManager::updateSortitionAccountsDB_() {
   auto account_size =
       std::to_string(sortition_account_balance_table_tmp.size());
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
-                                  account_size, accounts);
-  db_->commitWriteBatch(accounts);
+                                  account_size, batch);
+  db_->commitWriteBatch(batch);
 }
 
 void PbftManager::countVotes_() {

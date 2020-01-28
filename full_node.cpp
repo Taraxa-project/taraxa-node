@@ -63,14 +63,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
     assert(false);
   }
   auto const &genesis_hash = genesis_block.getHash();
-  {
-    using namespace dev::db;
-    auto db_path = conf_.replay_protection_service_db_path();
-    auto db_result = newDB(db_path, genesis_hash, dev::WithExisting::Trust,
-                           DatabaseKind::RocksDB);
-    db_replay_protection_service_.reset((RocksDB *)db_result.db.release());
-  }
-  db_ = std::make_shared<DbStorage>(conf_.db_path, genesis_hash, destroy_db);
+  db_ = DbStorage::make(conf_.db_path, genesis_hash, destroy_db);
   // store genesis blk to db
   db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
@@ -89,9 +82,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.chain.replay_protection_service_range,
-      db_replay_protection_service_);
-  eth_service_ = as_shared(
-      new EthService(getShared(), conf_.chain.eth, conf_.eth_db_path()));
+      db_);
+  eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
   executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
                                      log_time_,  //
                                      db_,
@@ -520,7 +512,8 @@ bool FullNode::verifySignature(dev::Signature const &signature,
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
 
-bool FullNode::executePeriod(PbftBlock const &pbft_block,
+bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
+                             PbftBlock const &pbft_block,
                              std::unordered_map<addr_t, PbftSortitionAccount>
                                  &sortition_account_balance_table,
                              uint64_t period) {
@@ -528,8 +521,8 @@ bool FullNode::executePeriod(PbftBlock const &pbft_block,
   if (!trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule())) {
     return false;
   }
-  auto new_eth_header =
-      executor_->execute(pbft_block, sortition_account_balance_table, period);
+  auto new_eth_header = executor_->execute(
+      batch, pbft_block, sortition_account_balance_table, period);
   if (!new_eth_header) {
     return false;
   }

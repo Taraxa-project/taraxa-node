@@ -1,11 +1,12 @@
 #ifndef TARAXA_NODE_PBFT_MANAGER_HPP
 #define TARAXA_NODE_PBFT_MANAGER_HPP
 
+#include <libdevcore/Log.h>
+
+#include <atomic>
 #include <string>
 #include <thread>
 
-#include <libdevcore/Log.h>
-#include <atomic>
 #include "config.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
@@ -145,7 +146,7 @@ class PbftManager {
 
   void updateSortitionAccountsTable_();
 
-  void updateSortitionAccountsDB_();
+  void updateSortitionAccountsDB_(DbStorage::BatchPtr const& batch);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
