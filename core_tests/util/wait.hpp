@@ -16,7 +16,7 @@ struct WaitOptions {
 };
 
 inline const WaitOptions WaitOptions_DEFAULT = {
-    60 * 2,
+    60 * 8,
     nanoseconds(1000 * 1000 * 1000 * 1),
 };
 

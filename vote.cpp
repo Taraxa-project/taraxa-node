@@ -227,6 +227,12 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   // Should be sure we always write a value to this pointer...
   sync_peers_pbft_chain = false;
 
+  // Track how many errant votes were found
+  // and if sufficient number in the future we will
+  // use this to trigger sync...
+  uint64_t missing_account_balance_count = 0;
+  uint64_t next_vote_with_different_prev_block_has_count = 0;
+
   std::vector<Vote> verified_votes;
 
   auto full_node = node_.lock();
@@ -258,22 +264,37 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       LOG(log_deb_) << "Cannot find the vote account balance. vote hash: "
                     << v.getHash() << " vote address: " << vote_address;
       sync_peers_pbft_chain = true;
+      missing_account_balance_count++;
       continue;
     }
     if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
-    } else if (v.getRound() == pbft_round + 1 &&
+    } else if (v.getRound() == pbft_round &&
                v.getType() == next_vote_type) {
       // We know that votes in our current round should reference our latest
       // PBFT chain block This is not immune to malacious attack!!!
-      LOG(log_deb_) << "Next vote in current round " << pbft_round + 1
+      LOG(log_deb_) << "Next vote in current round " << pbft_round
                     << " points to different block hash "
                     << last_pbft_block_hash << " | vote hash: " << v.getHash()
                     << " vote address: " << vote_address;
       sync_peers_pbft_chain = true;
+      next_vote_with_different_prev_block_has_count++;
     }
   }
+
+  if (missing_account_balance_count > 0) {
+    LOG(log_err_)
+        << "Get votes found " << missing_account_balance_count
+        << " votes from accounts not present in account balance table";
+  }
+  if (next_vote_with_different_prev_block_has_count > 0) {
+    LOG(log_err_) << "Get votes found "
+                  << next_vote_with_different_prev_block_has_count
+                  << " next votes for round " << pbft_round + 1
+                  << " pointing to different previous pbft chain block hash";
+  }
+
   return verified_votes;
 }
 

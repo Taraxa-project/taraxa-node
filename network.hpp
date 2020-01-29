@@ -38,10 +38,7 @@ class Network {
   void start(bool boot_node = false);
   void stop();
   bool isStarted();
-  bool isSynced() {
-    return !(taraxa_capability_->syncing_dag_ ||
-             taraxa_capability_->syncing_pbft_);
-  }
+  bool isSynced() { return !taraxa_capability_->syncing_; }
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
@@ -54,7 +51,7 @@ class Network {
   // no need to set full node in network testing
   void setFullNode(std::shared_ptr<FullNode> full_node);
   void saveNetwork(std::string fileName);
-  int getPeerCount() { return host_->peerCount(); }
+  int getPeerCount() { return taraxa_capability_->getPeersCount(); }
   int getNodeCount() { return host_->getNodeCount(); }
   std::list<NodeEntry> getAllNodes() const { return host_->getNodes(); }
   std::vector<NodeID> getAllPeers() const {

@@ -156,7 +156,9 @@ void FullNode::start(bool boot_node) {
       while (!stopped_) {
         // will block if no verified block available
         auto blk = blk_mgr_->popVerifiedBlock();
-        if (stopped_) break;
+        if (dag_mgr_->dagHasVertex(blk.getHash())) {
+          continue;
+        }
 
         if (debug_) {
           std::unique_lock<std::mutex> lock(debug_mutex_);
@@ -165,11 +167,11 @@ void FullNode::start(bool boot_node) {
           }
         }
 
-       if (dag_mgr_->pivotAndTipsAvailable(blk)) {
+        if (dag_mgr_->pivotAndTipsAvailable(blk)) {
           db_->saveDagBlock(blk);
           dag_mgr_->addDagBlock(blk);
-          {
-            if (ws_server_) ws_server_->newDagBlock(blk);
+          if (ws_server_) {
+            ws_server_->newDagBlock(blk);
           }
           network_->onNewBlockVerified(blk);
           LOG(log_time_) << "Broadcast block " << blk.getHash()
@@ -590,6 +592,10 @@ void FullNode::pushUnverifiedPbftBlock(taraxa::PbftBlock const &pbft_block) {
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
 }
 
+uint64_t FullNode::pbftSyncingHeight() const {
+  return pbft_chain_->pbftSyncingHeight();
+}
+
 uint64_t FullNode::getPbftChainSize() const {
   return pbft_chain_->getPbftChainSize();
 }
@@ -616,6 +622,10 @@ Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
 }
 
 level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
+
+level_t FullNode::getMaxDagLevelInQueue() const {
+  return std::max(dag_mgr_->getMaxLevel(), blk_mgr_->getMaxDagLevelInQueue());
+}
 
 std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
     uint64_t dag_block_height) const {

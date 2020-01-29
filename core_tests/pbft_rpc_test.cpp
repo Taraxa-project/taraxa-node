@@ -42,7 +42,7 @@ TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
                                 valid_sortition_coins};
 
   PbftManager pbft_manager(pbft_params, GENESIS);
-  EXPECT_EQ(lambda_ms, pbft_manager.LAMBDA_ms);
+  EXPECT_EQ(lambda_ms, pbft_manager.LAMBDA_ms_MIN);
   EXPECT_EQ(committee_size, pbft_manager.COMMITTEE_SIZE);
   EXPECT_EQ(valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);
 }
@@ -51,7 +51,7 @@ TEST_F(PbftRpcTest, full_node_lambda_input_test) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   auto pbft_mgr = node->getPbftManager();
-  EXPECT_EQ(pbft_mgr->LAMBDA_ms, 2000);
+  EXPECT_EQ(pbft_mgr->LAMBDA_ms_MIN, 2000);
   EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 1000000000);
 }
 

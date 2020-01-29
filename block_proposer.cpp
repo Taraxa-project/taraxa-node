@@ -59,6 +59,13 @@ bool SortitionPropose::propose() {
   }
   thisThreadSleepForMilliSeconds(min_propose_delay);
 
+  auto dag_height = proposer->getMaxDagLevel();
+  if (dag_height == last_dag_height_ && last_dag_height_ > 0) {
+    LOG(log_tr_) << "Skip proposing, dag not increasing, height "
+                 << last_dag_height_;
+    return false;
+  }
+
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
 
@@ -70,9 +77,6 @@ bool SortitionPropose::propose() {
 
   auto propose_level =
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
-  if (propose_level <= last_proposed_level_) {
-    return false;
-  }
 
   auto latest_anchor = proposer->getLatestAnchor();
 
@@ -87,7 +91,8 @@ bool SortitionPropose::propose() {
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
 
   proposer->proposeBlock(blk);
-  last_proposed_level_ = propose_level;
+  last_dag_height_ = dag_height;
+
   return true;
 }
 

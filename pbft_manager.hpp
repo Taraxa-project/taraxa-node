@@ -66,33 +66,37 @@ class PbftManager {
     sortition_threshold_ = threshold;
   }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
-  void setPbftStep(size_t const pbft_step) { pbft_step_ = pbft_step; }
+  void setPbftStep(size_t const pbft_step) { last_step_ = pbft_step_; pbft_step_ = pbft_step; }
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
   // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
-  // Temp table for executor to update
+  // Temporary table for executor to update
+  std::unordered_map<addr_t, PbftSortitionAccount>
+      sortition_account_balance_table_tmp;
+  // Permanent table update at beginning each of PBFT new round
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
-  u_long LAMBDA_ms;                // TODO: Only for test, need remove later
+  u_long LAMBDA_ms_MIN;
+  u_long LAMBDA_ms;
   size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
+  size_t GHOST_PATH_MOVE_BACK;     // TODO: Only for test, need remove later
   bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
   // When PBFT pivot block finalized, period = period + 1,
   // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
   uint64_t SKIP_PERIODS = 1;
 
  private:
-  uint64_t roundDeterminedFromVotes_();
+  void resetStep_();
+
+  uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
       std::vector<Vote> &votes) const;
-
-  bool nullBlockNextVotedForRoundAndStep_(std::vector<Vote> &votes,
-                                          uint64_t round);
 
   std::map<size_t, std::vector<Vote>, std::greater<size_t>>
   getVotesOfTypeFromVotesForRoundByStep_(PbftVoteTypes vote_type,
@@ -125,6 +129,8 @@ class PbftManager {
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
+  bool syncRequestedAlreadyThisStep_() const;
+
   void syncPbftChainFromPeers_();
 
   bool comparePbftBlockScheduleWithDAGblocks_(
@@ -137,9 +143,9 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
-  void updateSortitionAccountsDB_();
+  void updateSortitionAccountsTable_();
 
-  size_t getValidPbftSortitionPlayerSize_();
+  void updateSortitionAccountsDB_();
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
@@ -159,6 +165,9 @@ class PbftManager {
 
   blk_hash_t pbft_chain_last_block_hash_;
 
+  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
+  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
+
   uint64_t pbft_round_;
   uint64_t pbft_round_last_;
   size_t pbft_step_;
@@ -171,10 +180,9 @@ class PbftManager {
 
   uint64_t last_period_should_speak_ = 0;
 
-  uint64_t last_pbft_syncing_height_;
-
   size_t sortition_threshold_;
   size_t TWO_T_PLUS_ONE;  // This is 2t+1
+  bool is_active_player_;
 
   std::string dag_genesis_;
 

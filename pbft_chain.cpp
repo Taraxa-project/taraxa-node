@@ -703,6 +703,14 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
+uint64_t PbftChain::pbftSyncingHeight() const {
+  if (pbft_synced_queue_.empty()) {
+    return size_;
+  } else {
+    return pbftSyncedQueueBack().pbft_blk.getHeight();
+  }
+}
+
 size_t PbftChain::pbftSyncedQueueSize() const {
   sharedLock_ lock(sync_access_);
   return pbft_synced_queue_.size();
@@ -735,6 +743,10 @@ void PbftChain::setSyncedPbftBlockIntoQueue(
                 << pbft_block_and_votes.pbft_blk.getBlockHash()
                 << " from peer and push into synced queue";
   uniqueLock_ lock(sync_access_);
+
+  // NOTE: We have already checked that block is being added in
+  //       order, in taraxa capability
+
   pbft_synced_queue_.emplace_back(pbft_block_and_votes);
   pbft_synced_set_.insert(pbft_block_and_votes.pbft_blk.getBlockHash());
 }

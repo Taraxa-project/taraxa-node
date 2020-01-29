@@ -429,6 +429,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         ++issued_trx_count;
         expected_balances[to] += amount;
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
+        std::cout << nodes_[sender_node_i]->getAddress() << " send to " << to
+                  << " value " << amount << std::endl;
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount);
       EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
@@ -469,8 +471,10 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       t.join();
     }
   }
+  std::cout << "Issued transatnion count " << context.getIssuedTrxCount();
 
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+  auto TIMEOUT = SYNC_TIMEOUT;
+  for (auto i = 0; i < TIMEOUT; i++) {
     auto num_vertices1 = node1->getNumVerticesInDag();
     auto num_vertices2 = node2->getNumVerticesInDag();
     auto num_vertices3 = node3->getNumVerticesInDag();
@@ -489,8 +493,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5 &&
         num_trx1 == issued_trx_count && num_trx2 == issued_trx_count &&
         num_trx3 == issued_trx_count && num_trx4 == issued_trx_count &&
-        num_trx5 == issued_trx_count)
+        num_trx5 == issued_trx_count) {
       break;
+    }
 
     if (i % 10 == 0) {
       std::cout << "Still waiting for DAG vertices and transaction gossiping "
@@ -564,7 +569,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   std::cout << "All transactions received ..." << std::endl;
 
-  auto TIMEOUT = SYNC_TIMEOUT * 10;
+  TIMEOUT = SYNC_TIMEOUT * 10;
   for (auto i = 0; i < TIMEOUT; i++) {
     auto trx_executed1 = node1->getNumTransactionExecuted();
     auto trx_executed2 = node2->getNumTransactionExecuted();

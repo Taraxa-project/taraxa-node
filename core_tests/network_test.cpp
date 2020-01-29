@@ -333,6 +333,19 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
   blk_hash_t dag_blk(123);
+
+  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
+                sig_t(777), blk_hash_t(12), addr_t(999));
+  DagBlock blk2(blk_hash_t(12), 2, {}, {}, sig_t(777), blk_hash_t(123),
+                addr_t(999));
+
+  DagBlock blk3(blk_hash_t(123), 2, {}, {}, sig_t(777), blk_hash_t(456),
+                addr_t(999));
+
+  node1->getDB()->saveDagBlock(blk1);
+  node1->getDB()->saveDagBlock(blk2);
+  node1->getDB()->saveDagBlock(blk3);
+
   TrxSchedule schedule;
   uint64_t period = 1;
   uint64_t height = 2;
@@ -848,8 +861,14 @@ TEST_F(NetworkTest, node_full_sync) {
         finished = false;
         break;
       }
+      if (!nodes[j]->isSynced()) {
+        finished = false;
+      }
     }
-    if (finished) break;
+    if (finished)
+      break;
+    else
+      printf("Waiting %d\n", i);
   }
 
   EXPECT_GT(node1->getNumVerticesInDag().first, 0);
@@ -862,6 +881,25 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[i]->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
+    EXPECT_TRUE(nodes[i]->isSynced());
+  }
+
+  // Write any DAG diff
+  for (int i = 0; i < numberOfNodes + 1; i++) {
+    uint64_t level = 1;
+    while (true) {
+      auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
+      auto blocks2 = nodes[i]->getDagBlocksAtLevel(level, 1);
+      if (blocks1.size() != blocks2.size()) {
+        printf("DIFF at level %lu: \n");
+        for (auto b : blocks1) printf(" %s", b->getHash().toString().c_str());
+        printf("\n");
+        for (auto b : blocks2) printf(" %s", b->getHash().toString().c_str());
+        printf("\n");
+      }
+      if (blocks1.size() == 0 && blocks2.size() == 0) break;
+      level++;
+    }
   }
 }
 
@@ -871,6 +909,8 @@ int main(int argc, char** argv) {
   taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
+  // logOptions.includeChannels.push_back("PBFTSYNC");
+  // logOptions.includeChannels.push_back("DAGSYNC");
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
