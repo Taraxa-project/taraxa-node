@@ -676,7 +676,7 @@ void PbftManager::run() {
 
       if (pbft_step_ > MAX_STEPS) {
         u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
-        end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN + (pbft_step_ - MAX_STEPS - 1) * 2 * LAMBDA_ms_BIG + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
+        end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN + (pbft_step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
       }
 
       if (elapsed_time_in_round_ms > end_time_for_step) {
