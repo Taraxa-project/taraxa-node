@@ -164,9 +164,7 @@ class PbftManager {
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   blk_hash_t pbft_chain_last_block_hash_;
-
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
-  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
 
   uint64_t pbft_round_;
   uint64_t pbft_round_last_;

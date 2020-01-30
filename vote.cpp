@@ -284,7 +284,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   }
 
   if (missing_account_balance_count > 0) {
-    LOG(log_err_)
+    LOG(log_deb_)
         << "Get votes found " << missing_account_balance_count
         << " votes from accounts not present in account balance table";
   }
