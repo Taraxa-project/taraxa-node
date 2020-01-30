@@ -612,7 +612,7 @@ void PbftManager::run() {
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
             next_voted_block_from_previous_round_.second &&
-            next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+            //next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_
@@ -668,10 +668,15 @@ void PbftManager::run() {
       setPbftStep(pbft_step_ + 1);
 
       if (pbft_step_ > MAX_STEPS) {
+        
+        // Note: Fast nodes will execute more steps and slow down first?
+        //       THIS DOESN"T SEEM COMPLETELY SOUND...
+        LAMBDA_ms *= 2;
+
         // Note: We calculate the lambda for a step independently of prior steps
         //       in case missed earlier steps.
-        LAMBDA_ms = LAMBDA_ms_MIN
-                    << (pbft_step_ - MAX_STEPS);  // Multiply by 2 each step...
+        //LAMBDA_ms = LAMBDA_ms_MIN
+        //            << (pbft_step_ - MAX_STEPS);  // Multiply by 2 each step...
         LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
                       << " ms in round " << pbft_round_ << ", step "
                       << pbft_step_;
@@ -715,7 +720,7 @@ void PbftManager::run() {
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
             next_voted_block_from_previous_round_.second &&
-            next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+            //next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_
