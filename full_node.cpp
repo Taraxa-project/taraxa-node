@@ -130,6 +130,11 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
 std::shared_ptr<FullNode> FullNode::getShared() { return shared_from_this(); }
 
 void FullNode::start(bool boot_node) {
+  // This sleep is to avoid some flaky tests failures since in our tests we
+  // often start multiple nodes very quickly one after another which sometimes
+  // makes nodes connect to each other at the same time where both drop each
+  // other connection thinking it is a duplicate
+  thisThreadSleepForMilliSeconds(10);
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
