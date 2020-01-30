@@ -146,7 +146,7 @@ class PbftManager {
 
   void updateSortitionAccountsTable_();
 
-  void updateSortitionAccountsDB_(DbStorage::BatchPtr const& batch);
+  void updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period

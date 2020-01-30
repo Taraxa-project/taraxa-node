@@ -612,7 +612,7 @@ void PbftManager::run() {
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
             next_voted_block_from_previous_round_.second &&
-            //next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+            // next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_
@@ -669,14 +669,15 @@ void PbftManager::run() {
 
     } else {
       // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
-      
-      u_long end_time_for_step = (pbft_step_ + 1) * LAMBDA_ms +
-                                         STEP_4_DELAY +
-                                         2 * POLLING_INTERVAL_ms;
+
+      u_long end_time_for_step =
+          (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
 
       if (pbft_step_ > MAX_STEPS) {
         u_long LAMBDA_ms_BIG = 100 * LAMBDA_ms_MIN;
-        end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN + (pbft_step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
+        end_time_for_step = MAX_STEPS * LAMBDA_ms_MIN +
+                            (pbft_step_ - MAX_STEPS + 1) * LAMBDA_ms_BIG +
+                            STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
       }
 
       if (elapsed_time_in_round_ms > end_time_for_step) {
@@ -714,7 +715,7 @@ void PbftManager::run() {
         }
         if (!next_voted_null_block_hash && pbft_round_ >= 2 &&
             next_voted_block_from_previous_round_.second &&
-            //next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
+            // next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH &&
             (cert_voted_values_for_round.find(pbft_round_) ==
              cert_voted_values_for_round.end())) {
           LOG(log_deb_) << "Next voting NULL BLOCK for round " << pbft_round_
@@ -858,25 +859,22 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
 
 void PbftManager::resetStep_() { setPbftStep(1); }
 
-
 void PbftManager::setPbftStep(size_t const pbft_step) {
-    last_step_ = pbft_step_;
-    pbft_step_ = pbft_step;
-    
-    if (pbft_step_ > MAX_STEPS) {
-        
-        // Note: We calculate the lambda for a step independently of prior steps
-        //       in case missed earlier steps.
-        LAMBDA_ms = 100 * LAMBDA_ms_MIN;
-        //LAMBDA_ms = LAMBDA_ms_MIN
-        //            << (pbft_step_ - MAX_STEPS);  // Multiply by 2 each step...
-        LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
-                      << " ms in round " << pbft_round_ << ", step "
-                      << pbft_step_;
-    } else {
-        LAMBDA_ms = LAMBDA_ms_MIN;
-    }
+  last_step_ = pbft_step_;
+  pbft_step_ = pbft_step;
+
+  if (pbft_step_ > MAX_STEPS) {
+    // Note: We calculate the lambda for a step independently of prior steps
+    //       in case missed earlier steps.
+    LAMBDA_ms = 100 * LAMBDA_ms_MIN;
+    // LAMBDA_ms = LAMBDA_ms_MIN
+    //            << (pbft_step_ - MAX_STEPS);  // Multiply by 2 each step...
+    LOG(log_inf_) << "Surpassed max steps, relaxing lambda to " << LAMBDA_ms
+                  << " ms in round " << pbft_round_ << ", step " << pbft_step_;
+  } else {
+    LAMBDA_ms = LAMBDA_ms_MIN;
   }
+}
 
 /* There is a quorum of next-votes and set determine that round p should be the
  * current round...
