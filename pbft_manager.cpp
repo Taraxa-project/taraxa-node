@@ -1625,7 +1625,6 @@ void PbftManager::updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch) {
       std::to_string(sortition_account_balance_table_tmp.size());
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
                                   account_size, batch);
-  db_->commitWriteBatch(batch);
 }
 
 void PbftManager::countVotes_() {
