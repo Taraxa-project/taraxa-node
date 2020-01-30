@@ -307,9 +307,20 @@ auto std_find(Container const &container, What const &what) {
 
 inline auto noop() { return [](auto...) -> auto {}; }
 
+// TODO remove
 template <typename T>
 std::shared_ptr<T> as_shared(T *ptr) {
   return std::shared_ptr<T>(ptr);
+}
+
+template <typename T>
+auto s_ptr(T *ptr) {
+  return std::shared_ptr<T>(ptr);
+}
+
+template <typename T>
+auto u_ptr(T *ptr) {
+  return std::unique_ptr<T>(ptr);
 }
 
 }  // namespace taraxa

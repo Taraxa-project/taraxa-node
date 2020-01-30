@@ -123,6 +123,7 @@ NODE_SRCS := \
 	db_storage.cpp \
 	vdf_sortition.cpp \
 	conf/chain_config.cpp \
+	eth/database_adapter.cpp \
 
 NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
 

@@ -17,18 +17,10 @@ using namespace dev::db;
 using namespace std;
 using namespace util::eth;
 
-using SliceType = taraxa_cgo_ethdb_SliceType;
-using SliceSize = taraxa_cgo_ethdb_SliceSize;
 using Slice = taraxa_cgo_ethdb_Slice;
-using Error = taraxa_cgo_ethdb_Error;
-using Key = taraxa_cgo_ethdb_Key;
-using Value = taraxa_cgo_ethdb_Value;
-using ValueAndErr = taraxa_cgo_ethdb_ValueAndErr;
-using CgoBatch = taraxa_cgo_ethdb_Batch;
-using CgoDatabase = taraxa_cgo_ethdb_Database;
 
 struct BatchAdapter {
-  CgoBatch c_self = {
+  taraxa_cgo_ethdb_Batch c_self = {
       this,
       [](auto self) { delete decltype(this)(self); },
       [](auto self, auto key, auto value) {
@@ -38,24 +30,20 @@ struct BatchAdapter {
   };
 
   virtual ~BatchAdapter() = default;
-  virtual Error Put(Key key, Value value) = 0;
-  virtual Error Write() = 0;
+  virtual void Put(Slice key, Slice value) = 0;
+  virtual void Write() = 0;
 };
 
 struct DatabaseAdapter {
-  CgoDatabase c_self = {
+  taraxa_cgo_ethdb_Database c_self = {
       this,
       [](auto self) { delete decltype(this)(self); },
-      [](auto self, auto key, auto value) {
-        return decltype(this)(self)->Put(key, value);
-      },
       [](auto self, auto key) { return decltype(this)(self)->Get(key); },
       [](auto self) { return &decltype(this)(self)->NewBatch()->c_self; },
   };
 
   virtual ~DatabaseAdapter() = default;
-  virtual Error Put(Key key, Value value) = 0;
-  virtual ValueAndErr Get(Key key) = 0;
+  virtual Slice Get(Slice key) = 0;
   virtual BatchAdapter* NewBatch() = 0;
 };
 
@@ -71,15 +59,11 @@ class AlethBatchAdapter : public virtual BatchAdapter {
   explicit AlethBatchAdapter(decltype(database) const& db)
       : database(db), batch(db->createWriteBatch()) {}
 
-  Error Put(Key key, Value value) override {
+  void Put(Slice key, Slice value) override {
     batch->insert(alethSlice(key), alethSlice(value));
-    return {};
   }
 
-  Error Write() override {
-    database->commit(move(batch));
-    return {};
-  }
+  void Write() override { database->commit(move(batch)); }
 };
 
 class AlethDatabaseAdapter : public virtual DatabaseAdapter {
@@ -88,17 +72,12 @@ class AlethDatabaseAdapter : public virtual DatabaseAdapter {
  public:
   explicit AlethDatabaseAdapter(decltype(database) db) : database(move(db)) {}
 
-  Error Put(Key key, Value value) override {
-    database->insert(alethSlice(key), alethSlice(value));
-    return {};
-  }
-
-  ValueAndErr Get(Key key) override {
+  Slice Get(Slice key) override {
     auto value = database->lookup(alethSlice(key));
-    SliceSize size = value.size();
+    decltype(Slice::size) size = value.size();
     auto offset = (char*)taraxa_cgo_malloc(sizeof(char) * size);
     memcpy(offset, value.data(), size);
-    return {{offset, size}};
+    return {offset, size};
   }
 
   BatchAdapter* NewBatch() override { return new AlethBatchAdapter(database); }

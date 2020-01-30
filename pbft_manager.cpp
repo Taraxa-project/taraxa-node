@@ -79,7 +79,9 @@ void PbftManager::start() {
         new_change);
     sortition_account_balance_table_tmp[master_boot_node_address] =
         master_boot_node;
-    updateSortitionAccountsDB_();
+    auto batch = db_->createWriteBatch();
+    updateSortitionAccountsDB_(batch);
+    db_->commitWriteBatch(batch);
     updateSortitionAccountsTable_();
   } else {
     // Full node join back
@@ -1472,6 +1474,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return false;
   }
+  auto batch = db_->createWriteBatch();
   if (comparePbftBlockScheduleWithDAGblocks_(pbft_block)) {
     if (pbft_chain_->pushPbftBlock(pbft_block)) {
       LOG(log_inf_) << "Successful push pbft block "
@@ -1507,27 +1510,31 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
       //  pairs<addr_t, val_t>.
       //  Will need update sortition_account_balance_table_tmp here
       uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-      if (!full_node->executePeriod(
-              pbft_block, sortition_account_balance_table_tmp, pbft_period)) {
+      if (!full_node->executePeriod(batch, pbft_block,
+                                    sortition_account_balance_table_tmp,
+                                    pbft_period)) {
         LOG(log_err_) << "Failed to execute PBFT schedule";
       }
-      db_->savePeriodScheduleBlock(pbft_period, pbft_block.getBlockHash());
+      db_->batch_put(batch, DbStorage::Columns::period_schedule_block,
+                     DbStorage::toSlice(pbft_period),
+                     DbStorage::toSlice(pbft_block.getBlockHash().asBytes()));
       auto num_executed_blk = full_node->getNumBlockExecuted();
       auto num_executed_trx = full_node->getNumTransactionExecuted();
       if (num_executed_blk > 0 && num_executed_trx > 0) {
-        db_->saveStatusField(StatusDbField::ExecutedBlkCount, num_executed_blk);
-        db_->saveStatusField(StatusDbField::ExecutedTrxCount, num_executed_trx);
+        db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
+                                   num_executed_blk, batch);
+        db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
+                                   num_executed_trx, batch);
       }
       if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
-        auto write_batch = db_->createWriteBatch();
         for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
-          db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, write_batch);
+          db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
         }
-        db_->commitWriteBatch(write_batch);
       }
       // update sortition account balance table
-      updateSortitionAccountsDB_();
+      updateSortitionAccountsDB_(batch);
       executed_pbft_block_ = true;
+      db_->commitWriteBatch(batch);
       return true;
     }
   }
@@ -1599,11 +1606,10 @@ void PbftManager::updateSortitionAccountsTable_() {
   valid_sortition_accounts_size_ = sortition_account_balance_table.size();
 }
 
-void PbftManager::updateSortitionAccountsDB_() {
-  auto accounts = db_->createWriteBatch();
+void PbftManager::updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch) {
   for (auto &account : sortition_account_balance_table_tmp) {
     if (account.second.status == new_change) {
-      db_->addSortitionAccountToBatch(account.first, account.second, accounts);
+      db_->addSortitionAccountToBatch(account.first, account.second, batch);
       account.second.status = updated;
     } else if (account.second.status == remove) {
       // Erase both from DB and cache(table)
@@ -1614,8 +1620,7 @@ void PbftManager::updateSortitionAccountsDB_() {
   auto account_size =
       std::to_string(sortition_account_balance_table_tmp.size());
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
-                                  account_size, accounts);
-  db_->commitWriteBatch(accounts);
+                                  account_size, batch);
 }
 
 void PbftManager::countVotes_() {

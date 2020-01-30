@@ -41,13 +41,12 @@ string maxNonceAtRoundKey(round_t round, string const& sender_addr_hex) {
   return "max_nonce_at_" + to_string(round) + "_" + sender_addr_hex;
 }
 
-ReplayProtectionService::ReplayProtectionService(decltype(range_) range,
-                                                 decltype(db_) const& db)
-    : range_(range), db_(db) {
+ReplayProtectionService::ReplayProtectionService(
+    decltype(range_) range, shared_ptr<DbStorage> const& db_storage)
+    : range_(range),
+      db_(new DatabaseAdapter(db_storage,
+                              DbStorage::Columns::replay_protection)) {
   assert(range_ > 0);
-  if (auto v = db_->lookup(CURR_ROUND_KEY); !v.empty()) {
-    last_round_ = stoull(v);
-  }
 }
 
 bool ReplayProtectionService::hasBeenExecutedWithinRange(
@@ -65,12 +64,13 @@ bool ReplayProtectionService::hasBeenExecutedBeyondRange(
   return nonce_watermark && trx.getNonce() <= *nonce_watermark;
 }
 
-void ReplayProtectionService::commit(round_t round,
+void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
+                                     round_t round,
                                      transaction_batch_t const& trxs) {
   unique_lock l(m_);
   TARAXA_PARANOID_CHECK {
-    if (last_round_) {
-      assert(*last_round_ + 1 == round);
+    if (auto v = db_->lookup(CURR_ROUND_KEY); !v.empty()) {
+      assert(stoull(v) + 1 == round);
     } else {
       assert(round == 0);
     }
@@ -78,6 +78,7 @@ void ReplayProtectionService::commit(round_t round,
       assert(!hasBeenExecuted_(eth::util::trx_eth_2_taraxa(trx)));
     }
   }
+  auto trx_scope = db_->setMasterBatch(master_batch);
   auto batch = db_->createWriteBatch();
   stringstream round_data_keys;
   unordered_map<string, shared_ptr<SenderState>> sender_states;
@@ -135,7 +136,6 @@ void ReplayProtectionService::commit(round_t round,
   }
   batch->insert(CURR_ROUND_KEY, to_string(round));
   db_->commit(move(batch));
-  last_round_ = round;
 }
 
 shared_ptr<SenderState> ReplayProtectionService::loadSenderState(

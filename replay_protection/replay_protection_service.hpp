@@ -9,11 +9,14 @@
 #include <optional>
 #include <shared_mutex>
 
+#include "db_storage.hpp"
+#include "eth/database_adapter.hpp"
 #include "sender_state.hpp"
 #include "transaction.hpp"
 
 namespace taraxa::replay_protection::replay_protection_service {
-using dev::db::RocksDB;
+using dev::db::DatabaseFace;
+using eth::database_adapter::DatabaseAdapter;
 using sender_state::SenderState;
 using std::list;
 using std::optional;
@@ -29,12 +32,12 @@ struct ReplayProtectionService {
   round_t range_ = 0;
   // explicitly use rocksdb since WriteBatchFace may behave not as expected
   // in other implementations
-  shared_ptr<RocksDB> db_;
-  optional<round_t> last_round_;
+  shared_ptr<DatabaseAdapter> db_;
   shared_mutex m_;
 
  public:
-  ReplayProtectionService(decltype(range_) range, decltype(db_) const& db);
+  ReplayProtectionService(decltype(range_) range,
+                          shared_ptr<DbStorage> const& db_storage);
   // is_overlapped
   bool hasBeenExecutedWithinRange(Transaction const& trx);
   // is_stale
@@ -43,7 +46,8 @@ struct ReplayProtectionService {
     shared_lock l(m_);
     return hasBeenExecuted_(trx);
   }
-  void commit(round_t round, transaction_batch_t const& trxs);
+  void commit(DbStorage::BatchPtr const& master_batch, round_t round,
+              transaction_batch_t const& trxs);
 
  private:
   bool hasBeenExecuted_(Transaction const& trx) {

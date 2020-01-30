@@ -8,8 +8,9 @@ using namespace dev;
 using namespace rocksdb;
 namespace fs = boost::filesystem;
 
-DbStorage::DbStorage(fs::path const& base_path, h256 const& genesis_hash,
-                     bool drop_existing) {
+std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
+                                           h256 const& genesis_hash,
+                                           bool drop_existing) {
   auto path = base_path;
   path /= fs::path(toHex(genesis_hash.ref().cropped(0, 4)));
   if (drop_existing) {
@@ -17,40 +18,23 @@ DbStorage::DbStorage(fs::path const& base_path, h256 const& genesis_hash,
   }
   fs::create_directories(path);
   DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
-
+  TransactionDBOptions trx_db_opts;
   rocksdb::Options options;
+  options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.max_open_files = 256;
-  auto db = static_cast<rocksdb::DB*>(nullptr);
-  auto status = DB::Open(options, path.string(), &db);
-
-  if (status == Status::InvalidArgument()) {
-    // Database might exist but it contains columns
-    std::vector<ColumnFamilyDescriptor> column_families;
-    column_families.push_back(ColumnFamilyDescriptor(kDefaultColumnFamilyName,
-                                                     ColumnFamilyOptions()));
-    for (int i = 1; i < column_end; i++) {
-      column_families.push_back(
-          ColumnFamilyDescriptor(column_names[i], ColumnFamilyOptions()));
-    }
-    status =
-        DB::Open(DBOptions(), path.string(), column_families, &handles_, &db);
-  } else if (status.ok()) {
-    ColumnFamilyHandle* cf;
-    handles_.push_back(nullptr);  // Default not used
-    for (int i = 1; i < column_end; i++) {
-      db->CreateColumnFamily(ColumnFamilyOptions(), column_names[i], &cf);
-      handles_.push_back(cf);
-    }
+  TransactionDB* db_ = nullptr;
+  vector<ColumnFamilyDescriptor> descriptors;
+  for (auto& col : Columns::all) {
+    descriptors.emplace_back(col.name, ColumnFamilyOptions());
   }
-  if (db && status.ok()) {
-    db_.reset(db);
-    dag_blocks_count_.store(this->getStatusField(StatusDbField::DagBlkCount));
-  }
-  checkStatus(status);
+  decltype(handles_) handles(Columns::all.size());
+  checkStatus(TransactionDB::Open(options, trx_db_opts, path.string(),
+                                  descriptors, &handles, &db_));
+  return u_ptr(new DbStorage(db_, move(handles)));
 }
 
-void DbStorage::checkStatus(rocksdb::Status& status) {
+void DbStorage::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
   throw DbException((string("Db error. Status code: ") +
                      to_string(status.code()) +
@@ -59,26 +43,25 @@ void DbStorage::checkStatus(rocksdb::Status& status) {
                         .c_str());
 }
 
-std::unique_ptr<WriteBatch> DbStorage::createWriteBatch() {
-  return std::unique_ptr<WriteBatch>(new WriteBatch());
+DbStorage::BatchPtr DbStorage::createWriteBatch() {
+  return DbStorage::BatchPtr(new WriteBatch());
 }
 
-std::string DbStorage::lookup(Slice key, Columns column) {
+std::string DbStorage::lookup(Slice key, Column const& column) {
   std::string value;
-  Status status = db_->Get(read_options_, handles_[column], key, &value);
+  Status status = db_->Get(read_options_, handle(column), key, &value);
   if (status.IsNotFound()) return std::string();
-
   checkStatus(status);
   return value;
 }
 
-void DbStorage::remove(Slice key, Columns column) {
-  auto status = db_->Delete(write_options_, handles_[column], key);
+void DbStorage::remove(Slice key, Column const& column) {
+  auto status = db_->Delete(write_options_, handle(column), key);
   checkStatus(status);
 }
 
-void DbStorage::commitWriteBatch(std::unique_ptr<WriteBatch>& write_batch) {
-  auto status = db_->Write(write_options_, write_batch.get());
+void DbStorage::commitWriteBatch(BatchPtr const& write_batch) {
+  auto status = db_->Write(write_options_, write_batch->GetWriteBatch());
   checkStatus(status);
 }
 
@@ -101,13 +84,11 @@ std::string DbStorage::getBlocksByLevel(level_t level) {
 void DbStorage::saveDagBlock(DagBlock const& blk) {
   // Lock is needed since we are editing some fields
   lock_guard<mutex> u_lock(dag_blocks_mutex_);
-  auto write_batch = std::unique_ptr<WriteBatch>(new WriteBatch());
+  auto write_batch = createWriteBatch();
   auto block_bytes = blk.rlp(true);
   auto block_hash = blk.getHash();
-  auto status =
-      write_batch->Put(handles_[Columns::dag_blocks],
-                       toSlice(block_hash.asBytes()), toSlice(block_bytes));
-  checkStatus(status);
+  batch_put(write_batch, Columns::dag_blocks, toSlice(block_hash.asBytes()),
+            toSlice(block_bytes));
   auto level = blk.getLevel();
   std::string blocks = getBlocksByLevel(level);
   if (blocks == "") {
@@ -115,30 +96,23 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   } else {
     blocks = blocks + "," + blk.getHash().toString();
   }
-  status = write_batch->Put(handles_[Columns::dag_blocks_index], toSlice(level),
-                            toSlice(blocks));
-  checkStatus(status);
+  batch_put(write_batch, Columns::dag_blocks_index, toSlice(level),
+            toSlice(blocks));
   dag_blocks_count_.fetch_add(1);
-  status = write_batch->Put(handles_[Columns::status],
-                            toSlice((uint8_t)StatusDbField::DagBlkCount),
-                            toSlice(dag_blocks_count_.load()));
-  checkStatus(status);
-  status = db_->Write(write_options_, write_batch.get());
-  checkStatus(status);
+  batch_put(write_batch, Columns::status,
+            toSlice((uint8_t)StatusDbField::DagBlkCount),
+            toSlice(dag_blocks_count_.load()));
+  commitWriteBatch(write_batch);
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {
-  auto status = db_->Put(write_options_, handles_[Columns::transactions],
-                         toSlice(trx.getHash().asBytes()),
-                         toSlice(trx.rlp(trx.hasSig())));
-  checkStatus(status);
+  insert(Columns::transactions, toSlice(trx.getHash().asBytes()),
+         toSlice(trx.rlp(trx.hasSig())));
 }
 
 void DbStorage::saveTransactionToBlock(trx_hash_t const& trx_hash,
                                        blk_hash_t const& blk_hash) {
-  auto status = db_->Put(write_options_, handles_[Columns::trx_to_blk],
-                         trx_hash.toString(), blk_hash.toString());
-  checkStatus(status);
+  insert(Columns::trx_to_blk, trx_hash.toString(), blk_hash.toString());
 }
 
 std::shared_ptr<blk_hash_t> DbStorage::getTransactionToBlock(
@@ -177,12 +151,10 @@ DbStorage::getTransactionExt(trx_hash_t const& hash) {
   return nullptr;
 }
 
-void DbStorage::addTransactionToBatch(
-    Transaction const& trx, std::unique_ptr<WriteBatch> const& write_batch) {
-  auto status = write_batch->Put(handles_[DbStorage::Columns::transactions],
-                                 toSlice(trx.getHash().asBytes()),
-                                 toSlice(trx.rlp(trx.hasSig())));
-  checkStatus(status);
+void DbStorage::addTransactionToBatch(Transaction const& trx,
+                                      BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::transactions,
+            toSlice(trx.getHash().asBytes()), toSlice(trx.rlp(trx.hasSig())));
 }
 
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {
@@ -197,23 +169,19 @@ uint64_t DbStorage::getStatusField(StatusDbField const& field) {
 
 void DbStorage::saveStatusField(StatusDbField const& field,
                                 uint64_t const& value) {
-  auto status = db_->Put(write_options_, handles_[Columns::status],
-                         toSlice((uint8_t)field), toSlice(value));
-  checkStatus(status);
+  insert(Columns::status, toSlice((uint8_t)field), toSlice(value));
 }
 
-void DbStorage::addStatusFieldToBatch(
-    StatusDbField const& field, uint64_t const& value,
-    std::unique_ptr<WriteBatch> const& write_batch) {
-  auto status = write_batch->Put(handles_[DbStorage::Columns::status],
-                                 toSlice((uint8_t)field), toSlice(value));
-  checkStatus(status);
+void DbStorage::addStatusFieldToBatch(StatusDbField const& field,
+                                      uint64_t const& value,
+                                      BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::status, toSlice((uint8_t)field),
+            toSlice(value));
 }
 
 void DbStorage::savePbftBlock(PbftBlock const& block) {
-  auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks],
-                         block.getBlockHash().toString(), block.getJsonStr());
-  checkStatus(status);
+  insert(Columns::pbft_blocks, block.getBlockHash().toString(),
+         block.getJsonStr());
 }
 
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
@@ -223,24 +191,20 @@ std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
 }
 
 bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
-  auto block = lookup(hash.toString(), Columns::pbft_blocks);
-  return !block.empty();
+  return !lookup(hash.toString(), Columns::pbft_blocks).empty();
 }
 
 void DbStorage::savePbftBlockGenesis(string const& hash, string const& block) {
-  auto status =
-      db_->Put(write_options_, handles_[Columns::pbft_blocks], hash, block);
-  checkStatus(status);
+  insert(Columns::pbft_blocks, hash, block);
 }
+
 string DbStorage::getPbftBlockGenesis(string const& hash) {
   return lookup(hash, Columns::pbft_blocks);
 }
 
 void DbStorage::savePbftBlockOrder(string const& index,
                                    blk_hash_t const& hash) {
-  auto status = db_->Put(write_options_, handles_[Columns::pbft_blocks_order],
-                         index, hash.toString());
-  checkStatus(status);
+  insert(Columns::pbft_blocks_order, index, hash.toString());
 }
 
 std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(string const& index) {
@@ -250,9 +214,7 @@ std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(string const& index) {
 }
 
 void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash) {
-  auto status = db_->Put(write_options_, handles_[Columns::dag_blocks_order],
-                         index, hash.toString());
-  checkStatus(status);
+  insert(Columns::dag_blocks_order, index, hash.toString());
 }
 
 std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index) {
@@ -263,9 +225,7 @@ std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index) {
 
 void DbStorage::saveDagBlockHeight(blk_hash_t const& hash,
                                    string const& height) {
-  auto status = db_->Put(write_options_, handles_[Columns::dag_blocks_height],
-                         hash.toString(), height);
-  checkStatus(status);
+  insert(Columns::dag_blocks_height, hash.toString(), height);
 }
 
 string DbStorage::getDagBlockHeight(blk_hash_t const& hash) {
@@ -293,35 +253,22 @@ void DbStorage::removeSortitionAccount(addr_t const& account) {
   remove(account.toString(), Columns::sortition_accounts);
 }
 
-void DbStorage::forEachSortitionAccount(std::function<bool(Slice, Slice)> f) {
-  std::unique_ptr<rocksdb::Iterator> itr(
-      db_->NewIterator(read_options_, handles_[Columns::sortition_accounts]));
-
-  auto keepIterating = true;
-  for (itr->SeekToFirst(); keepIterating && itr->Valid(); itr->Next()) {
-    auto const dbKey = itr->key();
-    auto const dbValue = itr->value();
-    Slice const key(dbKey.data(), dbKey.size());
-    Slice const value(dbValue.data(), dbValue.size());
-    keepIterating = f(key, value);
-  }
+void DbStorage::forEachSortitionAccount(OnEntry const& f) {
+  forEach(Columns::sortition_accounts, f);
 }
 
-void DbStorage::addSortitionAccountToBatch(
-    addr_t const& address, PbftSortitionAccount& account,
-    std::unique_ptr<WriteBatch> const& write_batch) {
-  auto status =
-      write_batch->Put(handles_[DbStorage::Columns::sortition_accounts],
-                       address.toString(), account.getJsonStr());
-  checkStatus(status);
+void DbStorage::addSortitionAccountToBatch(addr_t const& address,
+                                           PbftSortitionAccount& account,
+                                           BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::sortition_accounts,
+            address.toString(), account.getJsonStr());
 }
 
-void DbStorage::addSortitionAccountToBatch(
-    string const& address, string& account,
-    std::unique_ptr<WriteBatch> const& write_batch) {
-  auto status = write_batch->Put(
-      handles_[DbStorage::Columns::sortition_accounts], address, account);
-  checkStatus(status);
+void DbStorage::addSortitionAccountToBatch(string const& address,
+                                           string& account,
+                                           BatchPtr const& write_batch) {
+  batch_put(write_batch, DbStorage::Columns::sortition_accounts, address,
+            account);
 }
 
 bytes DbStorage::getVote(blk_hash_t const& hash) {
@@ -329,9 +276,7 @@ bytes DbStorage::getVote(blk_hash_t const& hash) {
 }
 
 void DbStorage::saveVote(blk_hash_t const& hash, bytes& value) {
-  auto status = db_->Put(write_options_, handles_[Columns::votes],
-                         toSlice(hash.asBytes()), toSlice(value));
-  checkStatus(status);
+  insert(Columns::votes, toSlice(hash.asBytes()), toSlice(value));
 }
 
 shared_ptr<blk_hash_t> DbStorage::getPeriodScheduleBlock(
@@ -343,10 +288,8 @@ shared_ptr<blk_hash_t> DbStorage::getPeriodScheduleBlock(
 
 void DbStorage::savePeriodScheduleBlock(uint64_t const& period,
                                         blk_hash_t const& hash) {
-  auto status =
-      db_->Put(write_options_, handles_[Columns::period_schedule_block],
-               toSlice(period), toSlice(hash.asBytes()));
-  checkStatus(status);
+  insert(Columns::period_schedule_block, toSlice(period),
+         toSlice(hash.asBytes()));
 }
 
 std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
@@ -360,17 +303,27 @@ std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
 
 void DbStorage::saveDagBlockPeriod(blk_hash_t const& hash,
                                    uint64_t const& period) {
-  auto status = db_->Put(write_options_, handles_[Columns::dag_block_period],
-                         toSlice(hash.asBytes()), toSlice(period));
-  checkStatus(status);
+  insert(Columns::dag_block_period, toSlice(hash.asBytes()), toSlice(period));
 }
 
-void DbStorage::addDagBlockPeriodToBatch(
-    blk_hash_t const& hash, uint64_t const& period,
-    std::unique_ptr<WriteBatch> const& write_batch) {
-  auto status = write_batch->Put(handles_[DbStorage::Columns::dag_block_period],
-                                 toSlice(hash.asBytes()), toSlice(period));
-  checkStatus(status);
+void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash,
+                                         uint64_t const& period,
+                                         BatchPtr const& write_batch) {
+  batch_put(write_batch, Columns::dag_block_period, toSlice(hash.asBytes()),
+            toSlice(period));
+}
+
+void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {
+  checkStatus(db_->Put(write_options_, handle(col), k, v));
+}
+
+void DbStorage::forEach(Column const& col, OnEntry const& f) {
+  auto i = u_ptr(db_->NewIterator(read_options_, handle(col)));
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    if (!f(i->key(), i->value())) {
+      break;
+    }
+  }
 }
 
 }  // namespace taraxa

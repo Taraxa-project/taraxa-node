@@ -27,7 +27,7 @@ Executor::Executor(
       db_(std::move(db)),
       replay_protection_service_(std::move(replay_protection_service)),
       eth_service_(std::move(eth_service)),
-      trx_engine_(eth_service_->getAccountsStateDBRaw()) {
+      trx_engine_(eth_service_->getStateDB()) {
   auto blk_count = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_blk_.store(blk_count);
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -35,7 +35,7 @@ Executor::Executor(
 }
 
 std::optional<dev::eth::BlockHeader> Executor::execute(
-    PbftBlock const& pbft_block,
+    DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
     BalanceTable& sortition_account_balance_table,  //
     uint64_t period) {
   auto const& schedule = pbft_block.getSchedule();
@@ -67,14 +67,13 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
                      << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
-  auto [pending_header, current_header] = eth_service_->startBlock(
-      pbft_block.getAuthor(), pbft_block.getTimestamp());
+  auto [pending_header, current_header, trx_scope] = eth_service_->startBlock(
+      batch, pbft_block.getAuthor(), pbft_block.getTimestamp());
   StateTransitionResult execution_result;
   if (transactions.empty()) {
     execution_result.stateRoot = current_header.stateRoot();
   } else {
     try {
-      // TODO transactional
       // TODO op blockhash
       execution_result = trx_engine_.transitionStateAndCommit({
           current_header.stateRoot(),
@@ -94,13 +93,11 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
       return std::nullopt;
     }
   }
-  // TODO transactional
-  auto& new_eth_header = eth_service_->commitBlock(pending_header,
-                                                   transactions,  //
+  auto& new_eth_header = eth_service_->commitBlock(pending_header,  //
+                                                   transactions,    //
                                                    execution_result.receipts,
                                                    execution_result.stateRoot);
-  // TODO transactional
-  replay_protection_service_->commit(period, transactions);
+  replay_protection_service_->commit(batch, period, transactions);
   for (auto& [addr, balance] :
        execution_result.touchedExternallyOwnedAccountBalances) {
     auto enough_balance = balance >= pbft_require_sortition_coins_;

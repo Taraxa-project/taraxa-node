@@ -8,6 +8,7 @@
 #include "./util.hpp"
 #include "full_node.hpp"
 #include "taraxa_seal_engine.hpp"
+#include "util/once_out_of_scope.hpp"
 
 namespace taraxa::eth::eth_service {
 using dev::bytesConstRef;
@@ -26,20 +27,23 @@ using dev::eth::Permanence;
 using dev::eth::VerifiedBlockRef;
 using std::move;
 using std::unique_lock;
+using ::taraxa::util::once_out_of_scope::OnceOutOfScope;
 using taraxa_seal_engine::TaraxaSealEngine;
 
 using err = std::runtime_error;
 
-EthService::EthService(shared_ptr<FullNode> const& node,
+EthService::EthService(shared_ptr<FullNode> const& node,  //
                        ChainParams const& chain_params,
-                       fs::path const& db_base_path,  //
-                       milliseconds gc_period,        //
-                       WithExisting with_existing,
-                       ProgressCallback const& progress_cb)
+                       BlockChain::CacheConfig const& cache_config,
+                       milliseconds gc_trigger_backoff)
     : node_(node),
-      bc_(chain_params, db_base_path, with_existing, progress_cb),
-      acc_state_db_(
-          State::openDB(db_base_path, bc_.genesisHash(), with_existing)),
+      db_adapter_(
+          new DatabaseAdapter(node->getDB(), DbStorage::Columns::eth_chain)),
+      extras_db_adapter_(new DatabaseAdapter(
+          node->getDB(), DbStorage::Columns::eth_chain_extras)),
+      state_db_adapter_(
+          new DatabaseAdapter(node->getDB(), DbStorage::Columns::eth_state)),
+      bc_(chain_params, db_adapter_, extras_db_adapter_, cache_config),
       current_node_account_holder(new FixedAccountHolder(              //
           [this] { return static_cast<dev::eth::Interface*>(this); },  //
           {
@@ -48,11 +52,11 @@ EthService::EthService(shared_ptr<FullNode> const& node,
   assert(chain_params.sealEngineName == TaraxaSealEngine::name());
   assert(chain_params.maxGasLimit <= std::numeric_limits<uint64_t>::max());
   assert(chain_params.gasLimit <= chain_params.maxGasLimit);
-  bc_.genesisBlock(acc_state_db_);
-  gc_thread_ = thread([this, gc_period] {
+  bc_.genesisBlock(OverlayDB(state_db_adapter_));
+  gc_thread_ = thread([this, gc_trigger_backoff] {
     while (!destructor_called_) {
-      std::this_thread::sleep_for(gc_period);
-      bc_.garbageCollect(true);
+      std::this_thread::sleep_for(gc_trigger_backoff);
+      bc_.garbageCollect();
     }
   });
 }
@@ -95,8 +99,9 @@ h256 EthService::importTransaction(Transaction const& _t) {
   return taraxa_trx.getHash();
 }
 
-pair<PendingBlockHeader, BlockHeader> EthService::startBlock(
-    Address const& author, int64_t timestamp) const {
+EthService::PendingBlockContext EthService::startBlock(
+    DbStorage::BatchPtr const& batch, Address const& author,
+    int64_t timestamp) {
   auto current_header = getBlockHeader();
   auto number = current_header.number() + 1;
   static bytes const empty_bytes;
@@ -113,6 +118,7 @@ pair<PendingBlockHeader, BlockHeader> EthService::startBlock(
           Nonce(0),
       },
       move(current_header),
+      setMasterBatch(batch),
   };
 }
 
@@ -194,7 +200,7 @@ BlockChain& EthService::bc() { return bc_; }
 BlockChain const& EthService::bc() const { return bc_; }
 
 Block EthService::block(h256 const& _h) const {
-  return Block(bc_, acc_state_db_, getBlockHeader(_h));
+  return Block(bc_, OverlayDB(state_db_adapter_), getBlockHeader(_h));
 }
 
 Block EthService::preSeal() const { return block(bc().currentHash()); }
@@ -217,8 +223,17 @@ BlockHeader EthService::getBlockHeader(h256 const& hash) const {
   return BlockHeader(bc_.block(hash));
 }
 
-State const EthService::getAccountsState(BlockNumber block_number) const {
+State EthService::getAccountsState(BlockNumber block_number) const {
   return blockByNumber(block_number).state();
+}
+
+EthService::TransactionScope EthService::setMasterBatch(
+    DbStorage::BatchPtr const& batch) {
+  EthService::TransactionScope ret;
+  ret.emplace_back(db_adapter_->setMasterBatch(batch));
+  ret.emplace_back(extras_db_adapter_->setMasterBatch(batch));
+  ret.emplace_back(state_db_adapter_->setMasterBatch(batch));
+  return ret;
 }
 
 }  // namespace taraxa::eth::eth_service

@@ -241,7 +241,8 @@ void send_dummy_trx() {
 struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(FullNodeTest, db_test) {
-  DbStorage db("/tmp/testtaraxadb", blk_hash_t(1), true);
+  auto db_ptr = DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true);
+  auto &db = *db_ptr;
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
   DagBlock blk2(blk_hash_t(1), 1, {}, {trx_hash_t(3), trx_hash_t(4)},

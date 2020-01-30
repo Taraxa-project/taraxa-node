@@ -62,31 +62,6 @@ struct FullNodeConfig {
   RpcConfig rpc;
   TestParamsConfig test_params;
   conf::chain_config::ChainConfig chain;
-
-  auto eth_db_path() { return db_path + "/eth"; }
-  auto account_db_path() { return db_path + "/acc"; }
-  auto account_snapshot_db_path() { return db_path + "/acc_snapshots"; }
-  auto transactions_db_path() { return db_path + "/trx"; }
-  auto pbft_cert_votes_db_path() { return db_path + "/pbft_cert_votes"; }
-  auto pbft_chain_db_path() { return db_path + "/pbftchain"; }
-  auto pbft_blocks_order_db_path() { return db_path + "/pbft_blocks_order"; }
-  auto dag_blocks_order_path() { return db_path + "/dag_blocks_order"; }
-  auto dag_blocks_height_path() { return db_path + "/dag_blocks_height"; }
-  auto dag_blocks_period_path() { return db_path + "/dag_blocks_period"; }
-  auto period_schedule_block_path() {
-    return db_path + "/period_schedule_block";
-  }
-  auto pbft_sortition_accounts_db_path() {
-    return db_path + "/pbft_sortition_accounts";
-  }
-  auto trxs_to_blk_db_path() { return db_path + "/trxs_to_blk"; }
-  auto dag_blk_to_state_root_db_path() {
-    return db_path + "/blk_to_state_root";
-  }
-  auto replay_protection_service_db_path() {
-    return db_path + "/replay_protection_service";
-  }
-  auto status_path() { return db_path + "/status"; }
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
