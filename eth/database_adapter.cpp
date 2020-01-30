@@ -47,6 +47,8 @@ void DatabaseAdapter::commit(unique_ptr<WriteBatchFace> _batch) {
   auto batch = dynamic_cast<Batch*>(_batch.get());
   assert(batch);
   auto target_batch = master_batch_ ? master_batch_ : db_->createWriteBatch();
+  // TODO consider writing to the master batch right away + rollback instead
+  // of always accumulating an intermediate map of updates, and then flushing it
   for (auto& [k, v] : batch->ops_) {
     if (v.empty()) {
       db_->batch_delete(target_batch, column_, k);
