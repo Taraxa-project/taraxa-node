@@ -81,8 +81,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
                                             genesis_hash.toString());
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
-      conf_.chain.replay_protection_service_range,
-      db_);
+      conf_.chain.replay_protection_service_range, db_);
   eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
   executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
                                      log_time_,  //

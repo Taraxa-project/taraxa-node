@@ -67,10 +67,7 @@ class PbftManager {
     sortition_threshold_ = threshold;
   }
   void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
-  void setPbftStep(size_t const pbft_step) {
-    last_step_ = pbft_step_;
-    pbft_step_ = pbft_step;
-  }
+  void setPbftStep(size_t const pbft_step);
   uint64_t getPbftRound() const { return pbft_round_; }
   size_t getPbftStep() const { return pbft_step_; }
 
@@ -149,7 +146,7 @@ class PbftManager {
 
   void updateSortitionAccountsTable_();
 
-  void updateSortitionAccountsDB_(DbStorage::BatchPtr const& batch);
+  void updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch);
 
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
