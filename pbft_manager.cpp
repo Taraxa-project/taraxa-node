@@ -602,9 +602,7 @@ void PbftManager::run() {
         }
 
         if (!next_voted_soft_value && soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            comparePbftBlockScheduleWithDAGblocks_(
-                soft_voted_block_for_this_round.first)) {
+            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
                         << " for round " << pbft_round_;
@@ -704,9 +702,7 @@ void PbftManager::run() {
         }
 
         if (!next_voted_soft_value && soft_voted_block_for_this_round.second &&
-            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH &&
-            comparePbftBlockScheduleWithDAGblocks_(
-                soft_voted_block_for_this_round.first)) {
+            soft_voted_block_for_this_round.first != NULL_BLOCK_HASH) {
           LOG(log_deb_) << "Next voting "
                         << soft_voted_block_for_this_round.first
                         << " for round " << pbft_round_ << " , step "
