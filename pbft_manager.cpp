@@ -423,8 +423,7 @@ void PbftManager::run() {
           (pbft_round_ >= 2 && next_voted_block_from_previous_round_.second &&
            next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
         // Identity leader
-        std::pair<blk_hash_t, bool> leader_block =
-            identifyLeaderBlock_(votes);
+        std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes);
         if (leader_block.second) {
           own_starting_value_for_round = leader_block.first;
           LOG(log_deb_) << "Identify leader block " << leader_block.first
