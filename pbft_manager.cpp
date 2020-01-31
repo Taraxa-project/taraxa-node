@@ -418,26 +418,28 @@ void PbftManager::run() {
       setPbftStep(pbft_step_ + 1);
     } else if (pbft_step_ == 2) {
       // The Filtering Step
-      if (shouldSpeak(soft_vote_type, pbft_round_, pbft_step_)) {
-        if (pbft_round_ == 1 ||
-            (pbft_round_ >= 2 &&
-             push_block_values_for_round.count(pbft_round_ - 1)) ||
-            (pbft_round_ >= 2 && next_voted_block_from_previous_round_.second &&
-             next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
-          // Identity leader
-          std::pair<blk_hash_t, bool> leader_block =
-              identifyLeaderBlock_(votes);
-          if (leader_block.second) {
-            LOG(log_deb_) << "Identify leader block " << leader_block.first
-                          << " for round " << pbft_round_
-                          << " and soft vote the value";
+      if (pbft_round_ == 1 ||
+          push_block_values_for_round.count(pbft_round_ - 1) ||
+          (pbft_round_ >= 2 && next_voted_block_from_previous_round_.second &&
+           next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
+        // Identity leader
+        std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes);
+        if (leader_block.second) {
+          own_starting_value_for_round = leader_block.first;
+          LOG(log_deb_) << "Identify leader block " << leader_block.first
+                        << " at round " << pbft_round_;
+          if (shouldSpeak(soft_vote_type, pbft_round_, pbft_step_)) {
+            LOG(log_deb_) << "Soft voting block " << leader_block.first
+                          << " at round " << pbft_round_;
             placeVote_(leader_block.first, soft_vote_type, pbft_round_,
                        pbft_step_);
           }
-        } else if (pbft_round_ >= 2 &&
-                   next_voted_block_from_previous_round_.second &&
-                   next_voted_block_from_previous_round_.first !=
-                       NULL_BLOCK_HASH) {
+        }
+      } else if (pbft_round_ >= 2 &&
+                 next_voted_block_from_previous_round_.second &&
+                 next_voted_block_from_previous_round_.first !=
+                     NULL_BLOCK_HASH) {
+        if (shouldSpeak(soft_vote_type, pbft_round_, pbft_step_)) {
           LOG(log_deb_) << "Soft voting "
                         << next_voted_block_from_previous_round_.first
                         << " from previous round";
