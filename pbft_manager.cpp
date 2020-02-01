@@ -1246,8 +1246,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
     // TODO: roll back cert votes in DB or make atomic with pushing block and
     //  cert votes
     LOG(log_err_) << "Failed push PBFT block "
-                  << pbft_block.first.getBlockHash()
-                  << " into chain";
+                  << pbft_block.first.getBlockHash() << " into chain";
     return false;
   }
   // cleanup PBFT unverified blocks table
@@ -1432,7 +1431,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
       break;
     }
-    if (!comparePbftBlockScheduleWithDAGblocks_(pbft_block_and_votes.pbft_blk)) {
+    if (!comparePbftBlockScheduleWithDAGblocks_(
+            pbft_block_and_votes.pbft_blk)) {
       break;
     }
     // Store cert votes in DB
@@ -1470,19 +1470,18 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         std::make_pair(NULL_BLOCK_HASH, false);
   }
 
-//  if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
-//    LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
-//                     "need to sync in round "
-//                  << pbft_round_;
-//    syncPbftChainFromPeers_();
-//  }
+  //  if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
+  //    LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
+  //                     "need to sync in round "
+  //                  << pbft_round_;
+  //    syncPbftChainFromPeers_();
+  //  }
 }
 
 bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
   if (pbft_chain_->pushPbftBlock(pbft_block)) {
-    LOG(log_inf_) << "Successful push pbft block "
-                  << pbft_block.getBlockHash() << " into chain! in round "
-                  << pbft_round_;
+    LOG(log_inf_) << "Successful push pbft block " << pbft_block.getBlockHash()
+                  << " into chain! in round " << pbft_round_;
     // reset proposed PBFT block hash to False for next pbft block proposal
     proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
     // get dag blocks order
@@ -1501,8 +1500,8 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     }
     // set DAG blocks period
     uint64_t current_pbft_chain_period = last_pbft_block.getPeriod();
-    uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
-        dag_block_hash, current_pbft_chain_period);
+    uint dag_ordered_blocks_size =
+        full_node->setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
     // Finalize PBFT block
     LOG(log_deb_) << full_node->getAddress()
                   << " Finalize PBFT block in period "
