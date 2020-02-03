@@ -231,7 +231,8 @@ class TransactionQueue {
   bool insert(Transaction const &trx, bool critical);
   Transaction top();
   void pop();
-  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(
+      uint16_t max_trx_to_pack = 0);
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::pair<size_t, size_t> getTransactionQueueSize() const;
   std::vector<Transaction> getNewVerifiedTrxSnapShot();
@@ -329,7 +330,8 @@ class TransactionManager
   /**
    * The following function will require a lock for verified qu
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier);
+  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier,
+                uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);

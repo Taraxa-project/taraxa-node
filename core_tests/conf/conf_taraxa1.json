@@ -24,12 +24,19 @@
   "rpc_port": 7777,
   "ws_port": 8777,
   "test_params": {
-    "block_proposer": [
-      0,
-      1,
-      100,
-      1000
-    ],
+    "block_proposer": {
+      "mode": "random",
+      "shard": 1,
+      "transaction_limit" : 0,
+      "random_params": {
+        "min_freq":"100",
+        "max_freq":"1000"
+      },
+      "sortition_params": {
+        "difficulty_bound":"100",
+        "lambda_bits":"1000"
+      }
+    },
     "pbft": [
       2000,
       5,

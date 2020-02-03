@@ -181,7 +181,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
     LOG(log_er_) << "TransactionManager expired ..." << std::endl;
     return false;
   }
-  trx_mgr->packTrxs(to_be_packed_trx, frontier);
+  trx_mgr->packTrxs(to_be_packed_trx, frontier, conf_.transaction_limit);
   if (to_be_packed_trx.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
                  << std::endl;

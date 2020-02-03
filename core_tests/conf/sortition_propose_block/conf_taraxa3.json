@@ -27,12 +27,15 @@
     "lambda_ms": 1000
   },
   "test_params": {
-    "block_proposer": [
-      1,
-      1,
-      10,
-      12
-    ],
+    "block_proposer": {
+      "mode": "sortition",
+      "shard": 1,
+      "transaction_limit" : 0,
+      "sortition_params": {
+        "difficulty_bound":"10",
+        "lambda_bits":"12"
+      }
+    },
     "pbft": [
       1000,
       3,

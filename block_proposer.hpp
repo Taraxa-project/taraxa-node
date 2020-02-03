@@ -103,27 +103,18 @@ class SortitionPropose : public ProposeModelFace {
 
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
-  BlockProposer(std::vector<uint> const& params,
+  BlockProposer(BlockProposerConfig const& conf,
                 std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr)
-      : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr) {
-    // configure
-    conf_.mode = params[0];
-    conf_.shard = params[1];
-    conf_.params.push_back(params[2]);
-    conf_.params.push_back(params[3]);
-
-    if (conf_.mode == 0) {
-      uint min_freq = conf_.params[0];
-      uint max_freq = conf_.params[1];
-      propose_model_ = std::make_unique<RandomPropose>(min_freq, max_freq);
-    } else if (conf_.mode == 1) {
-      uint difficulty_bound = conf_.params[0];
-      uint lambda_bits = conf_.params[1];
+      : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr), conf_(conf) {
+    if (conf_.mode == "random") {
       propose_model_ =
-          std::make_unique<SortitionPropose>(difficulty_bound, lambda_bits);
+          std::make_unique<RandomPropose>(conf_.min_freq, conf_.max_freq);
+    } else if (conf_.mode == "sortition") {
+      propose_model_ = std::make_unique<SortitionPropose>(
+          conf_.difficulty_bound, conf_.lambda_bits);
     }
-    total_trx_shards_ = std::max(conf_.shard, 1u);
+    total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
 
     // setup shards
   }
@@ -150,18 +141,13 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   friend ProposeModelFace;
 
  private:
-  struct Conf {
-    uint mode;
-    uint shard;
-    std::vector<uint> params;
-  };
   bool getShardedTrxs(uint total_shard, DagFrontier& frontier, uint my_shard,
                       vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
 
   static std::atomic<uint64_t> num_proposed_blocks;
   std::atomic<bool> stopped_ = true;
-  Conf conf_;
+  BlockProposerConfig conf_;
   uint total_trx_shards_;
   uint my_trx_shard_;
   std::weak_ptr<DagManager> dag_mgr_;

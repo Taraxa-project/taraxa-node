@@ -424,14 +424,24 @@ std::shared_ptr<Transaction> TransactionQueue::getTransaction(
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionQueue::moveVerifiedTrxSnapShot() {
+TransactionQueue::moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack) {
   std::unordered_map<trx_hash_t, Transaction> res;
   {
     uLock lock(shared_mutex_for_verified_qu_);
-    for (auto const &trx : verified_trxs_) {
-      res[trx.first] = *(trx.second);
+    if (max_trx_to_pack == 0) {
+      for (auto const &trx : verified_trxs_) {
+        res[trx.first] = *(trx.second);
+      }
+      verified_trxs_.clear();
+    } else {
+      auto it = verified_trxs_.begin();
+      uint16_t counter = 0;
+      while (it != verified_trxs_.end() && max_trx_to_pack != counter) {
+        res[it->first] = *(it->second);
+        it = verified_trxs_.erase(it);
+        counter++;
+      }
     }
-    verified_trxs_.clear();
   }
   {
     uLock lock(shared_mutex_for_queued_trxs_);
@@ -682,7 +692,8 @@ bool TransactionManager::insertTrx(Transaction const &trx,
  * 4. update A, B and C status to seen_in_db
  */
 void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
-                                  DagFrontier &frontier) {
+                                  DagFrontier &frontier,
+                                  uint16_t max_trx_to_pack) {
   to_be_packed_trx.clear();
 
   frontier = dag_frontier_;
@@ -691,7 +702,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                << " tips: " << frontier.tips;
 
   std::list<Transaction> list_trxs;
-  auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot();
+  auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
 
   bool changed = false;
   auto trx_batch = db_->createWriteBatch();

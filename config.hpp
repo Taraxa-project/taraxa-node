@@ -45,10 +45,22 @@ struct NetworkConfig {
   bool network_performance_log;
 };
 
+struct BlockProposerConfig {
+  std::string mode;
+  uint16_t shard;
+  uint16_t transaction_limit;
+  // Random mode params
+  uint16_t min_freq;
+  uint16_t max_freq;
+  // Sortition mode params
+  uint16_t difficulty_bound;
+  uint16_t lambda_bits;
+};
+
 // Parameter Tuning purpose
 struct TestParamsConfig {
-  std::vector<uint> block_proposer;  // test_params.block_proposer
-  std::vector<uint> pbft;            // test_params.pbft
+  BlockProposerConfig block_proposer;  // test_params.block_proposer
+  std::vector<uint> pbft;              // test_params.pbft
 };
 
 struct FullNodeConfig {
