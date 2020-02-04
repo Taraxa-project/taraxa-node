@@ -28,6 +28,10 @@ COPY --from=builder ${APP_PATH}/scripts/docker-entrypoint.sh ./
 COPY --from=builder /usr/local/lib/* /usr/local/lib/
 COPY --from=builder /usr/lib/* /usr/lib/
 COPY ./core_tests/conf/*.json ./default_config/
+# Coping this so crypto_test can work
+# this will be removed once we have a dedicated key gen
+COPY --from=builder ${APP_PATH}/build/debug/bin/core_tests/crypto_test .
+COPY core_tests ./core_tests
 
 ENV DEBUG 0
 ENTRYPOINT [ "./docker-entrypoint.sh" ]
