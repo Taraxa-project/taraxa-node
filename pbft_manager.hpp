@@ -122,11 +122,10 @@ class PbftManager {
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> &votes);
 
   bool pushCertVotedPbftBlockIntoChain_(
-      blk_hash_t const &cert_voted_block_hash);
+      blk_hash_t const &cert_voted_block_hash,
+      std::vector<Vote> const &cert_votes_for_round);
 
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
-
-  bool checkPbftBlockInUnverifiedQueue_(blk_hash_t const &block_hash) const;
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 

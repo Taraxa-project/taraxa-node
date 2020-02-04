@@ -228,35 +228,25 @@ void PbftManager::run() {
       if (cert_voted_block_hash.second) {
         LOG(log_deb_) << "PBFT block " << cert_voted_block_hash.first
                       << " has enough certed votes";
-
         // put pbft block into chain
-        if (checkPbftBlockInUnverifiedQueue_(cert_voted_block_hash.first)) {
-          if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first)) {
-            push_block_values_for_round[pbft_round_] =
-                cert_voted_block_hash.first;
-            have_executed_this_round = true;
-            LOG(log_sil_) << "Write " << cert_votes_for_round.size()
-                          << " votes ... in round " << pbft_round_;
-            auto full_node = node_.lock();
-            full_node->storeCertVotes(cert_voted_block_hash.first,
-                                      cert_votes_for_round);
-
-            // TODO: debug remove later
-            LOG(log_deb_) << "The cert voted pbft block is "
-                          << cert_voted_block_hash.first;
-            duration = std::chrono::system_clock::now() - now;
-            auto execute_trxs_in_ms =
-                std::chrono::duration_cast<std::chrono::milliseconds>(duration)
-                    .count();
-            LOG(log_deb_) << "Pushing PBFT block and Execution spent "
-                          << execute_trxs_in_ms << " ms. in round "
-                          << pbft_round_;
-            continue;
-          }
-        } else {
-          LOG(log_tra_) << "Still waiting to receive cert voted block "
-                        << cert_voted_block_hash.first << " in round "
+        if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first,
+                                             cert_votes_for_round)) {
+          push_block_values_for_round[pbft_round_] =
+              cert_voted_block_hash.first;
+          have_executed_this_round = true;
+          LOG(log_sil_) << "Write " << cert_votes_for_round.size()
+                        << " votes ... in round " << pbft_round_;
+          // TODO: debug remove later
+          LOG(log_deb_) << "The cert voted pbft block is "
+                        << cert_voted_block_hash.first;
+          duration = std::chrono::system_clock::now() - now;
+          auto execute_trxs_in_ms =
+              std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+                  .count();
+          LOG(log_deb_) << "Pushing PBFT block and Execution spent "
+                        << execute_trxs_in_ms << " ms. in round "
                         << pbft_round_;
+          continue;
         }
       }
     }
@@ -1227,7 +1217,8 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(
-    taraxa::blk_hash_t const &cert_voted_block_hash) {
+    taraxa::blk_hash_t const &cert_voted_block_hash,
+    std::vector<Vote> const &cert_votes_for_round) {
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
     // Get partition, need send request to get missing pbft blocks from peers
     LOG(log_sil_) << "Cert voted block " << cert_voted_block_hash
@@ -1244,24 +1235,23 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
                   << cert_voted_block_hash << " in pbft queue";
     return false;
   }
+  if (!comparePbftBlockScheduleWithDAGblocks_(pbft_block.first)) {
+    return false;
+  }
+  // Store cert votes in DB
+  auto full_node = node_.lock();
+  full_node->storeCertVotes(cert_voted_block_hash, cert_votes_for_round);
+  // Push PBFT block from unverified blocks table
   if (!pushPbftBlockIntoChain_(pbft_block.first)) {
-    // Push PBFT block from unverified blocks table
+    // TODO: roll back cert votes in DB or make atomic with pushing block and
+    //  cert votes
+    LOG(log_err_) << "Failed push PBFT block "
+                  << pbft_block.first.getBlockHash() << " into chain";
     return false;
   }
   // cleanup PBFT unverified blocks table
   pbft_chain_->cleanupUnverifiedPbftBlocks(pbft_block.first);
   return true;
-}
-
-bool PbftManager::checkPbftBlockInUnverifiedQueue_(
-    blk_hash_t const &block_hash) const {
-  std::pair<PbftBlock, bool> cert_voted_block =
-      pbft_chain_->getUnverifiedPbftBlock(block_hash);
-  if (!cert_voted_block.second) {
-    LOG(log_tra_) << "Cannot find the unverified pbft block, block hash "
-                  << block_hash;
-  }
-  return cert_voted_block.second;
 }
 
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
@@ -1272,14 +1262,7 @@ bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
                   << block_hash;
     return false;
   }
-  blk_hash_t prev_block_hash = cert_voted_block.first.getPrevBlockHash();
-  if (pbft_chain_->getLastPbftBlockHash() != prev_block_hash) {
-    LOG(log_inf_) << "Pbft chain last block hash "
-                  << pbft_chain_->getLastPbftBlockHash()
-                  << " Invalid pbft prev block hash " << prev_block_hash;
-    return false;
-  }
-  return true;
+  return pbft_chain_->checkPbftBlockValidation(cert_voted_block.first);
 }
 
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
@@ -1396,11 +1379,11 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
 }
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
-  bool queue_was_full = false;
+  // bool queue_was_full = false;
   size_t pbft_synced_queue_size;
   auto full_node = node_.lock();
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
-    queue_was_full = true;
+    // queue_was_full = true;
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
     LOG(log_deb_) << "Pick pbft block "
                   << pbft_block_and_votes.pbft_blk.getBlockHash()
@@ -1435,7 +1418,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       pbft_chain_->clearSyncedPbftBlocks();
       break;
     }
-    if (!pushPbftBlockIntoChain_(pbft_block_and_votes.pbft_blk)) {
+    if (!pbft_chain_->checkPbftBlockValidation(pbft_block_and_votes.pbft_blk)) {
       // PBFT chain syncing faster than DAG syncing, wait!
       pbft_synced_queue_size = pbft_chain_->pbftSyncedQueueSize();
       if (pbft_last_observed_synced_queue_size_ != pbft_synced_queue_size) {
@@ -1448,10 +1431,24 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       pbft_last_observed_synced_queue_size_ = pbft_synced_queue_size;
       break;
     }
-    pbft_chain_->pbftSyncedQueuePopFront();
+    if (!comparePbftBlockScheduleWithDAGblocks_(
+            pbft_block_and_votes.pbft_blk)) {
+      break;
+    }
     // Store cert votes in DB
     full_node->storeCertVotes(pbft_block_and_votes.pbft_blk.getBlockHash(),
                               pbft_block_and_votes.cert_votes);
+    // Push PBFT block from synced queue
+    if (!pushPbftBlockIntoChain_(pbft_block_and_votes.pbft_blk)) {
+      // TODO: roll back cert votes in DB or make atomic with pushing block and
+      //  cert votes
+      LOG(log_err_) << "Failed push PBFT block "
+                    << pbft_block_and_votes.pbft_blk.getBlockHash()
+                    << " into chain";
+      break;
+    }
+    // Remove from PBFT synced queue
+    pbft_chain_->pbftSyncedQueuePopFront();
     if (executed_pbft_block_) {
       last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
       // Update sortition accounts table
@@ -1473,85 +1470,76 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
         std::make_pair(NULL_BLOCK_HASH, false);
   }
 
-  /*
-  if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
-    LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
-                     "need to sync in round "
-                  << pbft_round_;
-    syncPbftChainFromPeers_();
-  }
-  */
+  //  if (queue_was_full == true && pbft_chain_->pbftSyncedQueueEmpty()) {
+  //    LOG(log_inf_) << "PBFT synced queue is newly empty.  Will check if "
+  //                     "need to sync in round "
+  //                  << pbft_round_;
+  //    syncPbftChainFromPeers_();
+  //  }
 }
 
 bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable" << std::endl;
-    return false;
-  }
-  auto batch = db_->createWriteBatch();
-  if (comparePbftBlockScheduleWithDAGblocks_(pbft_block)) {
-    if (pbft_chain_->pushPbftBlock(pbft_block)) {
-      LOG(log_inf_) << "Successful push pbft block "
-                    << pbft_block.getBlockHash() << " into chain! in round "
-                    << pbft_round_;
-      // reset proposed PBFT block hash to False for next pbft block proposal
-      proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
-      // get dag blocks order
-      blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-      PbftBlock last_pbft_block =
-          pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
-      blk_hash_t dag_block_hash = last_pbft_block.getPivotDagBlockHash();
-      uint64_t current_period;
-      std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
-      std::tie(current_period, dag_blocks_hash_order) =
-          full_node->getDagBlockOrder(dag_block_hash);
-      // update DAG blocks order and DAG blocks order/height DB
-      for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
-        auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
-      }
-      // set DAG blocks period
-      uint64_t current_pbft_chain_period = last_pbft_block.getPeriod();
-      uint dag_ordered_blocks_size = full_node->setDagBlockOrder(
-          dag_block_hash, current_pbft_chain_period);
-      // Finalize PBFT block
-      LOG(log_deb_) << full_node->getAddress()
-                    << " Finalize PBFT block in period "
-                    << current_pbft_chain_period << " round " << pbft_round_
-                    << " step " << pbft_step_ << " PBFT block: " << pbft_block;
-      // execute pbft schedule
-      // TODO: VM executor will not take sortition_account_balance_table_tmp as
-      //  reference. But will return a list of modified accounts as
-      //  pairs<addr_t, val_t>.
-      //  Will need update sortition_account_balance_table_tmp here
-      uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
-      if (!full_node->executePeriod(batch, pbft_block,
-                                    sortition_account_balance_table_tmp,
-                                    pbft_period)) {
-        LOG(log_err_) << "Failed to execute PBFT schedule";
-      }
-      db_->batch_put(batch, DbStorage::Columns::period_schedule_block,
-                     DbStorage::toSlice(pbft_period),
-                     DbStorage::toSlice(pbft_block.getBlockHash().asBytes()));
-      auto num_executed_blk = full_node->getNumBlockExecuted();
-      auto num_executed_trx = full_node->getNumTransactionExecuted();
-      if (num_executed_blk > 0 && num_executed_trx > 0) {
-        db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
-                                   num_executed_blk, batch);
-        db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
-                                   num_executed_trx, batch);
-      }
-      if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
-        for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
-          db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
-        }
-      }
-      // update sortition account balance table
-      updateSortitionAccountsDB_(batch);
-      executed_pbft_block_ = true;
-      db_->commitWriteBatch(batch);
-      return true;
+  if (pbft_chain_->pushPbftBlock(pbft_block)) {
+    LOG(log_inf_) << "Successful push pbft block " << pbft_block.getBlockHash()
+                  << " into chain! in round " << pbft_round_;
+    // reset proposed PBFT block hash to False for next pbft block proposal
+    proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
+    // get dag blocks order
+    blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+    PbftBlock last_pbft_block =
+        pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+    blk_hash_t dag_block_hash = last_pbft_block.getPivotDagBlockHash();
+    uint64_t current_period;
+    std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
+    auto full_node = node_.lock();
+    std::tie(current_period, dag_blocks_hash_order) =
+        full_node->getDagBlockOrder(dag_block_hash);
+    // update DAG blocks order and DAG blocks order/height DB
+    for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
+      auto block_number = pbft_chain_->pushDagBlockHash(dag_blk_hash);
     }
+    // set DAG blocks period
+    uint64_t current_pbft_chain_period = last_pbft_block.getPeriod();
+    uint dag_ordered_blocks_size =
+        full_node->setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+    // Finalize PBFT block
+    LOG(log_deb_) << full_node->getAddress()
+                  << " Finalize PBFT block in period "
+                  << current_pbft_chain_period << " round " << pbft_round_
+                  << " step " << pbft_step_ << " PBFT block: " << pbft_block;
+    // execute pbft schedule
+    // TODO: VM executor will not take sortition_account_balance_table_tmp as
+    //  reference. But will return a list of modified accounts as
+    //  pairs<addr_t, val_t>.
+    //  Will need update sortition_account_balance_table_tmp here
+    uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
+    auto batch = db_->createWriteBatch();
+    if (!full_node->executePeriod(batch, pbft_block,
+                                  sortition_account_balance_table_tmp,
+                                  pbft_period)) {
+      LOG(log_err_) << "Failed to execute PBFT schedule";
+    }
+    db_->batch_put(batch, DbStorage::Columns::period_schedule_block,
+                   DbStorage::toSlice(pbft_period),
+                   DbStorage::toSlice(pbft_block.getBlockHash().asBytes()));
+    auto num_executed_blk = full_node->getNumBlockExecuted();
+    auto num_executed_trx = full_node->getNumTransactionExecuted();
+    if (num_executed_blk > 0 && num_executed_trx > 0) {
+      db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
+                                 num_executed_blk, batch);
+      db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
+                                 num_executed_trx, batch);
+    }
+    if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
+      for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
+        db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
+      }
+    }
+    // update sortition account balance table
+    updateSortitionAccountsDB_(batch);
+    executed_pbft_block_ = true;
+    db_->commitWriteBatch(batch);
+    return true;
   }
   return false;
 }
