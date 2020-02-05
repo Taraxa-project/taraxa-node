@@ -18,19 +18,17 @@ std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
   }
   fs::create_directories(path);
   DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
-  TransactionDBOptions trx_db_opts;
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.max_open_files = 256;
-  TransactionDB* db_ = nullptr;
+  DB* db_ = nullptr;
   vector<ColumnFamilyDescriptor> descriptors;
   for (auto& col : Columns::all) {
     descriptors.emplace_back(col.name, ColumnFamilyOptions());
   }
   decltype(handles_) handles(Columns::all.size());
-  checkStatus(TransactionDB::Open(options, trx_db_opts, path.string(),
-                                  descriptors, &handles, &db_));
+  checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db_));
   return u_ptr(new DbStorage(db_, move(handles)));
 }
 

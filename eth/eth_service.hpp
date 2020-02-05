@@ -80,8 +80,6 @@ using std::chrono::milliseconds;
 
 namespace fs = boost::filesystem;
 
-using DBTransaction = shared_ptr<rocksdb::Transaction>;
-
 static inline auto const err_not_applicable =
     std::runtime_error("Method not applicable");
 
