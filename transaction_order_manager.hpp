@@ -39,7 +39,7 @@ class TransactionOrderManager {
   std::shared_ptr<std::vector<TrxOverlapInBlock>> computeOrderInBlocks(
       std::vector<std::shared_ptr<DagBlock>> const& blks);
   std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const& t);
-  bool updateOrderedTrx(TrxSchedule const& sche);
+  void updateOrderedTrx(TrxSchedule const& sche);
 
  private:
   std::atomic<bool> stopped_ = true;

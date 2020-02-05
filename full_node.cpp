@@ -519,9 +519,8 @@ bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
                                  &sortition_account_balance_table,
                              uint64_t period) {
   // update transaction overlap table first
-  if (!trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule())) {
-    return false;
-  }
+  trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
+
   auto new_eth_header = executor_->execute(
       batch, pbft_block, sortition_account_balance_table, period);
   if (!new_eth_header) {

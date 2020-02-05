@@ -35,7 +35,7 @@ std::shared_ptr<blk_hash_t> TransactionOrderManager::getDagBlockFromTransaction(
   return db_->getTransactionToBlock(trx);
 }
 
-bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
+void TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
   for (auto i(0); i < sche.dag_blks_order.size(); ++i) {
     auto blk_hash = sche.dag_blks_order[i];
     auto dag_blk_trxs_mode = sche.trxs_mode[i];
@@ -57,7 +57,6 @@ bool TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
       }
     }
   }
-  return true;
 }
 
 std::shared_ptr<std::vector<TrxOverlapInBlock>>
