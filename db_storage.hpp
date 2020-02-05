@@ -4,7 +4,6 @@
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>
 #include <rocksdb/slice.h>
-#include <rocksdb/utilities/transaction_db.h>
 #include <rocksdb/write_batch.h>
 
 #include <boost/filesystem.hpp>
@@ -82,7 +81,7 @@ struct DbStorage {
   };
 
  private:
-  unique_ptr<TransactionDB> db_;
+  unique_ptr<DB> db_;
   vector<ColumnFamilyHandle*> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
@@ -90,7 +89,7 @@ struct DbStorage {
   atomic<uint64_t> dag_blocks_count_;
 
  public:
-  DbStorage(TransactionDB* db, decltype(move(handles_)) handles)
+  DbStorage(DB* db, decltype(move(handles_)) handles)
       : db_(db), handles_(move(handles)) {
     dag_blocks_count_.store(this->getStatusField(StatusDbField::DagBlkCount));
   }
