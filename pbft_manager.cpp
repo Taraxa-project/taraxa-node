@@ -1211,44 +1211,6 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
   return std::make_pair(leader.second, true);
 }
 
-bool PbftManager::pushCertVotedPbftBlockIntoChain_(
-    taraxa::blk_hash_t const &cert_voted_block_hash,
-    std::vector<Vote> const &cert_votes_for_round) {
-  if (!checkPbftBlockValid_(cert_voted_block_hash)) {
-    // Get partition, need send request to get missing pbft blocks from peers
-    LOG(log_sil_) << "Cert voted block " << cert_voted_block_hash
-                  << " is invalid, we must be out of sync with pbft chain";
-    if (capability_->syncing_ == false) {
-      syncPbftChainFromPeers_();
-    }
-    return false;
-  }
-  std::pair<PbftBlock, bool> pbft_block =
-      pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
-  if (!pbft_block.second) {
-    LOG(log_err_) << "Can not find the cert vote block hash "
-                  << cert_voted_block_hash << " in pbft queue";
-    return false;
-  }
-  if (!comparePbftBlockScheduleWithDAGblocks_(pbft_block.first)) {
-    return false;
-  }
-  // Store cert votes in DB
-  auto full_node = node_.lock();
-  full_node->storeCertVotes(cert_voted_block_hash, cert_votes_for_round);
-  // Push PBFT block from unverified blocks table
-  if (!pushPbftBlockIntoChain_(pbft_block.first)) {
-    // TODO: roll back cert votes in DB or make atomic with pushing block and
-    //  cert votes
-    LOG(log_err_) << "Failed push PBFT block "
-                  << pbft_block.first.getBlockHash() << " into chain";
-    return false;
-  }
-  // cleanup PBFT unverified blocks table
-  pbft_chain_->cleanupUnverifiedPbftBlocks(pbft_block.first);
-  return true;
-}
-
 bool PbftManager::checkPbftBlockValid_(blk_hash_t const &block_hash) const {
   std::pair<PbftBlock, bool> cert_voted_block =
       pbft_chain_->getUnverifiedPbftBlock(block_hash);
@@ -1373,6 +1335,44 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
   return true;
 }
 
+bool PbftManager::pushCertVotedPbftBlockIntoChain_(
+    taraxa::blk_hash_t const &cert_voted_block_hash,
+    std::vector<Vote> const &cert_votes_for_round) {
+  if (!checkPbftBlockValid_(cert_voted_block_hash)) {
+    // Get partition, need send request to get missing pbft blocks from peers
+    LOG(log_sil_) << "Cert voted block " << cert_voted_block_hash
+                  << " is invalid, we must be out of sync with pbft chain";
+    if (capability_->syncing_ == false) {
+      syncPbftChainFromPeers_();
+    }
+    return false;
+  }
+  std::pair<PbftBlock, bool> pbft_block =
+      pbft_chain_->getUnverifiedPbftBlock(cert_voted_block_hash);
+  if (!pbft_block.second) {
+    LOG(log_err_) << "Can not find the cert vote block hash "
+                  << cert_voted_block_hash << " in pbft queue";
+    return false;
+  }
+  if (!comparePbftBlockScheduleWithDAGblocks_(pbft_block.first)) {
+    return false;
+  }
+  // Store cert votes in DB
+  auto full_node = node_.lock();
+  full_node->storeCertVotes(cert_voted_block_hash, cert_votes_for_round);
+  // Push PBFT block from unverified blocks table
+  if (!pushPbftBlockIntoChain_(pbft_block.first)) {
+    // TODO: roll back cert votes in DB or make atomic with pushing block and
+    //  cert votes
+    LOG(log_err_) << "Failed push PBFT block "
+                  << pbft_block.first.getBlockHash() << " into chain";
+    return false;
+  }
+  // cleanup PBFT unverified blocks table
+  pbft_chain_->cleanupUnverifiedPbftBlocks(pbft_block.first);
+  return true;
+}
+
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   // bool queue_was_full = false;
   size_t pbft_synced_queue_size;
@@ -1471,6 +1471,25 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   //                  << pbft_round_;
   //    syncPbftChainFromPeers_();
   //  }
+}
+
+void PbftManager::pushPbftBlock_(PbftBlock const& pbft_block,
+                                 std::vector<Vote> const& cert_votes) {
+  auto batch = db_->createWriteBatch();
+  // execute pbft schedule
+  uint64_t pbft_period = pbft_chain_->getPbftChainPeriod() + 1;
+  auto full_node = node_.lock();
+  if (!full_node->executePeriod(batch, pbft_block,
+                                sortition_account_balance_table_tmp,
+                                pbft_period)) {
+    LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
+                  << pbft_block;
+    for (auto const& v : cert_votes) {
+      LOG(log_err_) << "Cert vote: " << v;
+    }
+    return;
+  }
+  // TODO: continue
 }
 
 bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
