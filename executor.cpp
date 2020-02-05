@@ -36,7 +36,7 @@ Executor::Executor(
 
 std::optional<dev::eth::BlockHeader> Executor::execute(
     DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-    BalanceTable& sortition_account_balance_table,  //
+    BalanceTable& sortition_account_balance_table,
     uint64_t period) {
   auto const& schedule = pbft_block.getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
