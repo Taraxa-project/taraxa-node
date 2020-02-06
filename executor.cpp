@@ -42,27 +42,24 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
   auto dag_blk_count = schedule.dag_blks_order.size();
   EthTransactions transactions;
   transactions.reserve(dag_blk_count);
-  unordered_set<addr_t> senders;
+  unordered_set<addr_t> dag_block_proposers;
+  unordered_set<addr_t> trx_senders;
   for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
     auto& blk_hash = schedule.dag_blks_order[blk_i];
-    if (db_->getDagBlockRaw(blk_hash).empty()) {
+    dev::bytes dag_block = db_->getDagBlockRaw(blk_hash);
+    if (dag_block.empty()) {
       LOG(log_er_) << "Cannot get block from db: " << blk_hash << std::endl;
       return std::nullopt;
     }
+    dag_block_proposers.insert(DagBlock(dag_block).getSender());
     auto& dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
     transactions.reserve(transactions.capacity() + dag_blk_trxs_mode.size() -
                          1);
     for (auto& trx_hash_and_mode : dag_blk_trxs_mode) {
       auto& [trx_hash, mode] = trx_hash_and_mode;
-      // TODO: should not have overlapped transactions anymore
-      if (mode == 0) {
-        LOG(log_dg_) << "Transaction " << trx_hash << "in block " << blk_hash
-                     << " is overlapped";
-        continue;
-      }
       auto& trx = transactions.emplace_back(db_->getTransactionRaw(trx_hash),
                                             CheckTransaction::None);
-      senders.insert(trx.sender());
+      trx_senders.insert(trx.sender());
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
     }
@@ -98,41 +95,56 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
                                                    execution_result.receipts,
                                                    execution_result.stateRoot);
   replay_protection_service_->commit(batch, period, transactions);
+
   for (auto& [addr, balance] :
        execution_result.touchedExternallyOwnedAccountBalances) {
-    auto enough_balance = balance >= pbft_require_sortition_coins_;
-    auto sortition_table_entry =
-        std_find(sortition_account_balance_table, addr);
-    auto is_sender = bool(std_find(senders, addr));
+    auto is_proposer = bool(std_find(dag_block_proposers, addr));
+    auto is_sender = bool(std_find(trx_senders, addr));
     LOG(log_dg_) << "Externally owned account (is_sender: " << is_sender
                  << ") balance update: " << addr << " --> " << balance
                  << " in period " << period;
+    auto enough_balance = balance >= pbft_require_sortition_coins_;
+    auto sortition_table_entry =
+        std_find(sortition_account_balance_table, addr);
     if (is_sender) {
+      // Transaction sender
       if (sortition_table_entry) {
-        auto& v = (*sortition_table_entry)->second;
-        // fixme: weird lossy cast
-        v.last_period_seen = static_cast<int64_t>(period);
-        v.status = new_change;
+        auto& pbft_sortition_account = (*sortition_table_entry)->second;
+        pbft_sortition_account.balance = balance;
+        if (is_proposer) {
+          // fixme: weird lossy cast
+          pbft_sortition_account.last_period_seen =
+              static_cast<int64_t>(period);
+        }
+        if (enough_balance) {
+          pbft_sortition_account.status = new_change;
+        } else {
+          // After send coins doesn't have enough for sortition
+          pbft_sortition_account.status = remove;
+        }
       }
-      if (enough_balance) {
-        sortition_account_balance_table[addr].balance = balance;
-      } else if (sortition_table_entry) {
-        auto& v = (*sortition_table_entry)->second;
-        v.balance = balance;
-        v.status = remove;
-      }
-      continue;
-    }
-    if (!enough_balance) {
-      continue;
-    }
-    if (sortition_table_entry) {
-      auto& v = (*sortition_table_entry)->second;
-      v.balance = balance;
-      v.status = new_change;
     } else {
-      sortition_account_balance_table[addr] =
-          PbftSortitionAccount(addr, balance, -1, new_change);
+      // Receiver
+      if (enough_balance) {
+        if (sortition_table_entry) {
+          auto& pbft_sortition_account = (*sortition_table_entry)->second;
+          pbft_sortition_account.balance = balance;
+          if (is_proposer) {
+            // TODO: weird lossy cast
+            pbft_sortition_account.last_period_seen =
+                static_cast<int64_t>(period);
+          }
+          pbft_sortition_account.status = new_change;
+        } else {
+          int64_t last_seen_period = -1;
+          if (is_proposer) {
+            // TODO: weird lossy cast
+            last_seen_period = static_cast<int64_t>(period);
+          }
+          sortition_account_balance_table[addr] =
+              PbftSortitionAccount(addr, balance, last_seen_period, new_change);
+        }
+      }
     }
   }
   for (size_t i(0); i < transactions.size(); ++i) {
