@@ -86,10 +86,10 @@ class PbftManager {
   uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
   size_t GHOST_PATH_MOVE_BACK;     // TODO: Only for test, need remove later
-  bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
   // When PBFT pivot block finalized, period = period + 1,
   // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
-  uint64_t SKIP_PERIODS = 1;
+  uint64_t SKIP_PERIODS;
+  bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
 
  private:
   void resetStep_();
