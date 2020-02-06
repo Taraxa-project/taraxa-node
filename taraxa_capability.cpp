@@ -364,6 +364,14 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         }
         break;
       }
+      case GetLeavesBlocksPacket: {
+        LOG(log_dg_dag_sync_) << "Received GetLeavesBlocksPacket";
+        if (auto full_node = full_node_.lock()) {
+          auto dag_blocks = full_node->collectTotalLeaves();
+          sendLeavesBlocks(_nodeID, dag_blocks);
+        }
+        break;
+      }
       case BlocksPacket: {
         std::string received_dag_blocks_str;
         auto itemCount = _r.itemCount();
@@ -397,6 +405,37 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             requestPendingDagBlocks(_nodeID, level_to_sync);
           }
         } else {
+          requestLeavesDagBlocks(_nodeID);
+        }
+        break;
+      }
+      case LeavesBlocksPacket: {
+        std::string received_dag_blocks_str;
+        auto itemCount = _r.itemCount();
+        int transactionCount = 0;
+        for (auto iBlock = 0; iBlock < itemCount; iBlock++) {
+          DagBlock block(_r[iBlock + transactionCount].data().toBytes());
+          peer->markBlockAsKnown(block.getHash());
+
+          std::vector<Transaction> newTransactions;
+          for (int i = 0; i < block.getTrxs().size(); i++) {
+            transactionCount++;
+            Transaction transaction(
+                _r[iBlock + transactionCount].data().toBytes());
+            newTransactions.push_back(transaction);
+            peer->markTransactionAsKnown(transaction.getHash());
+          }
+
+          received_dag_blocks_str += block.getHash().toString() + " ";
+          peer->sync_blocks_[block.getLevel()][block.getHash()] = {
+              block, newTransactions};
+          if (iBlock + transactionCount + 1 >= itemCount) break;
+        }
+
+        auto full_node = full_node_.lock();
+        LOG(log_nf_dag_sync_)
+            << "Received Dag Blocks: " << received_dag_blocks_str;
+        if (itemCount == 0 || processSyncDagBlocks(_nodeID)) {
           peer->sync_blocks_.clear();
           requesting_pending_dag_blocks_ = false;
           if (!syncing_) {
@@ -999,6 +1038,50 @@ void TaraxaCapability::sendBlocks(
   host_.capabilityHost()->sealAndSend(_id, s);
 }
 
+void TaraxaCapability::sendLeavesBlocks(NodeID const &_id,
+                                        std::vector<std::string> block_hashes) {
+  RLPStream s;
+  std::map<blk_hash_t, std::vector<taraxa::bytes>> blockTransactions;
+  int totalTransactionsCount = 0;
+  std::vector<std::shared_ptr<DagBlock>> blocks;
+  if (auto full_node = full_node_.lock()) {
+    for (auto &block_hash : block_hashes) {
+      auto block = full_node->getDagBlockFromDb(blk_hash_t(block_hash));
+      if (block) {
+        blocks.push_back(block);
+        std::vector<taraxa::bytes> transactions;
+        for (auto trx : block->getTrxs()) {
+          auto t = full_node->getTransaction(trx);
+          if (!t) {
+            if (!stopped_) {
+              LOG(log_er_dag_sync_)
+                  << "Transacation " << trx
+                  << " is not available. sendLeavesBlocks canceled";
+            }
+            return;
+          }
+          transactions.push_back(t->second);
+          totalTransactionsCount++;
+        }
+        blockTransactions[block->getHash()] = transactions;
+        LOG(log_nf_dag_sync_) << "Send leaf DagBlock " << block->getHash()
+                              << "# Trx: " << transactions.size() << std::endl;
+      }
+    }
+  }
+  host_.capabilityHost()->prep(_id, name(), s, LeavesBlocksPacket,
+                               blocks.size() + totalTransactionsCount);
+  for (auto &block : blocks) {
+    s.appendRaw(block->rlp(true));
+    taraxa::bytes trx_bytes;
+    for (auto &trx : blockTransactions[block->getHash()]) {
+      trx_bytes.insert(trx_bytes.end(), std::begin(trx), std::end(trx));
+    }
+    s.appendRaw(trx_bytes, blockTransactions[block->getHash()].size());
+  }
+  host_.capabilityHost()->sealAndSend(_id, s);
+}
+
 void TaraxaCapability::sendTransactions(
     NodeID const &_id, std::vector<taraxa::bytes> const &transactions) {
   LOG(log_nf_trx_prp_) << "sendTransactions" << transactions.size() << " to "
@@ -1109,6 +1192,16 @@ void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id,
   host_.capabilityHost()->prep(_id, name(), s, GetBlocksPacket, 1);
   s << level;
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
+  auto peer = getPeer(_id);
+  if (peer) peer->setAsking(true);
+  host_.capabilityHost()->sealAndSend(_id, s);
+}
+
+void TaraxaCapability::requestLeavesDagBlocks(NodeID const &_id) {
+  RLPStream s;
+  std::vector<uint8_t> bytes;
+  host_.capabilityHost()->prep(_id, name(), s, GetLeavesBlocksPacket, 0);
+  LOG(log_nf_dag_sync_) << "Sending GetLeavesBlocksPacket";
   auto peer = getPeer(_id);
   if (peer) peer->setAsking(true);
   host_.capabilityHost()->sealAndSend(_id, s);

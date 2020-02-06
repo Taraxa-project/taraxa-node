@@ -574,12 +574,13 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   // syncing purpose)
   if (!some_trxs.empty()) {
     auto trx_batch = db_->createWriteBatch();
+    std::vector<trx_hash_t> trxs_written_to_db;
     for (auto const &trx : some_trxs) {
       auto trx_hash = trx.getHash();
-      auto status =
-          trx_status_.updateWithGet(trx_hash, TransactionStatus::in_block);
+      auto status = trx_status_.get(trx_hash);
       if (!status.second || status.first != TransactionStatus::in_block) {
         if (!db_->transactionInDb(trx_hash)) {
+          trxs_written_to_db.push_back(trx_hash);
           trx_count_.fetch_add(1);
           db_->addTransactionToBatch(trx, trx_batch);
         }
@@ -588,6 +589,9 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
     auto trx_count = trx_count_.load();
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
     db_->commitWriteBatch(trx_batch);
+    for (auto const &trx : trxs_written_to_db) {
+      trx_status_.update(trx, TransactionStatus::in_block);
+    }
   }
   // Second step: Remove from the queue any transaction that is part of the
   // block Verify that all transactions are saved in the database If all
@@ -691,16 +695,18 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   bool changed = false;
   auto trx_batch = db_->createWriteBatch();
+  std::vector<trx_hash_t> trxs_written_to_db;
   for (auto const &i : verified_trx) {
     trx_hash_t const &hash = i.first;
     Transaction const &trx = i.second;
-    auto status = trx_status_.updateWithGet(hash, TransactionStatus::in_block);
+    auto status = trx_status_.get(hash);
     if (!status.second || status.first != TransactionStatus::in_block) {
       // Skip if transaction is already in existing block
       if (db_->transactionInDb(hash)) {
         continue;
       }
       db_->addTransactionToBatch(trx, trx_batch);
+      trxs_written_to_db.push_back(hash);
       trx_count_.fetch_add(1);
       changed = true;
     }
@@ -713,6 +719,9 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     auto trx_count = trx_count_.load();
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
     db_->commitWriteBatch(trx_batch);
+    for (auto const &trx : trxs_written_to_db) {
+      trx_status_.update(trx, TransactionStatus::in_block);
+    }
   }
 
   // check requeued trx
