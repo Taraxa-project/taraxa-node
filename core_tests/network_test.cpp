@@ -28,7 +28,7 @@ auto g_trx_samples =
 auto g_signed_trx_samples =
     Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
-const unsigned NUM_TRX2 = 400;
+const unsigned NUM_TRX2 = 200;
 auto g_secret2 = Lazy([] {
   return dev::Secret(
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
@@ -819,7 +819,7 @@ TEST_F(NetworkTest, node_full_sync) {
   for (auto i = 0; i < NUM_TRX2; ++i) {
     ts.push_back(samples::TX_GEN->getWithRandomUniqueSender());
   }
-  for (auto i = 0; i < NUM_TRX2/2; ++i) {
+  for (auto i = 0; i < NUM_TRX2; ++i) {
     std::vector<taraxa::bytes> transactions;
     transactions.emplace_back(ts[i].rlp(true));
     nodes[distNodes(rng)]->insertBroadcastedTransactions(transactions);
@@ -848,14 +848,6 @@ TEST_F(NetworkTest, node_full_sync) {
   nodes.push_back(taraxa::FullNode::make(config, true));
   nodes[numberOfNodes]->start(false);  // boot node
   taraxa::thisThreadSleepForMilliSeconds(50);
-
-  for (auto i = NUM_TRX2/2; i < NUM_TRX2; ++i) {
-    std::vector<taraxa::bytes> transactions;
-    transactions.emplace_back(ts[i].rlp(true));
-    nodes[distNodes(rng)]->insertBroadcastedTransactions(transactions);
-    thisThreadSleepForMilliSeconds(distTransactions(rng));
-    counter++;
-  }
 
   std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
   for (int i = 0; i < 24; i++) {

@@ -29,6 +29,8 @@ enum SubprotocolPacketType : ::byte {
   BlockPacket,
   GetBlocksPacket,
   BlocksPacket,
+  GetLeavesBlocksPacket,
+  LeavesBlocksPacket,
   TransactionPacket,
   TestPacket,
   PbftVotePacket,
@@ -179,9 +181,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendSyncedMessage();
   void sendBlocks(NodeID const &_id,
                   std::vector<std::shared_ptr<DagBlock>> blocks);
+  void sendLeavesBlocks(NodeID const &_id, std::vector<std::string> blocks);
   void sendBlockHash(NodeID const &_id, taraxa::DagBlock block);
   void requestBlock(NodeID const &_id, blk_hash_t hash, bool newBlock);
   void requestPendingDagBlocks(NodeID const &_id, level_t level);
+  void requestLeavesDagBlocks(NodeID const &_id);
   void sendTransactions(NodeID const &_id,
                         std::vector<taraxa::bytes> const &transactions);
   bool processSyncDagBlocks(NodeID const &_id);
