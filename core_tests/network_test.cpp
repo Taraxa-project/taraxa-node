@@ -815,7 +815,6 @@ TEST_F(NetworkTest, node_full_sync) {
   const int numberOfNodes = 5;
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
-
   node1->setDebug(true);
   node1->start(true);  // boot node
 
