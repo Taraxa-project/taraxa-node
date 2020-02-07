@@ -422,6 +422,170 @@ inline std::vector<DagBlock> createMockDag0(
   return blks;
 }
 
+//
+inline std::vector<DagBlock> createMockDag1(
+    std::string genesis =
+        "0000000000000000000000000000000000000000000000000000000000000000") {
+  std::vector<DagBlock> blks;
+  DagBlock dummy;
+  DagBlock blk1(blk_hash_t(genesis),  // pivot
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
+                blk_hash_t(1),        // hash
+                addr_t(123));
+
+  DagBlock blk2(blk_hash_t(genesis),  // pivot
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
+                blk_hash_t(2),        // hash
+                addr_t(123));
+  DagBlock blk3(blk_hash_t(genesis),  // pivot
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
+                blk_hash_t(3),        // hash
+                addr_t(123));
+  DagBlock blk4(blk_hash_t(1),  // pivot
+                2,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(0),       // sig
+                blk_hash_t(4),  // hash
+                addr_t(123));
+  DagBlock blk5(blk_hash_t(1),    // pivot
+                2,                // level
+                {blk_hash_t(2)},  // tips
+                {},               // trxs
+                sig_t(0),         // sig
+                blk_hash_t(5),    // hash
+                addr_t(123));
+  DagBlock blk6(blk_hash_t(3),  // pivot
+                2,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(0),       // sig
+                blk_hash_t(6),  // hash
+                addr_t(123));
+  DagBlock blk7(blk_hash_t(5),    // pivot
+                3,                // level
+                {blk_hash_t(6)},  // tips
+                {},               // trxs
+                sig_t(0),         // sig
+                blk_hash_t(7),    // hash
+                addr_t(123));
+  DagBlock blk8(blk_hash_t(5),  // pivot
+                3,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(0),       // sig
+                blk_hash_t(8),  // hash
+                addr_t(123));
+  DagBlock blk9(blk_hash_t(6),  // pivot
+                3,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(0),       // sig
+                blk_hash_t(9),  // hash
+                addr_t(123));
+  DagBlock blk10(blk_hash_t(7),   // pivot
+                 4,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(10),  // hash
+                 addr_t(123));
+  DagBlock blk11(blk_hash_t(7),   // pivot
+                 4,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(11),  // hash
+                 addr_t(123));
+  DagBlock blk12(blk_hash_t(9),   // pivot
+                 4,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(12),  // hash
+                 addr_t(123));
+  DagBlock blk13(blk_hash_t(10),  // pivot
+                 5,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(13),  // hash
+                 addr_t(123));
+  DagBlock blk14(blk_hash_t(11),    // pivot
+                 5,                 // level
+                 {blk_hash_t(12)},  // tips
+                 {},                // trxs
+                 sig_t(0),          // sig
+                 blk_hash_t(14),    // hash
+                 addr_t(123));
+  DagBlock blk15(blk_hash_t(13),    // pivot
+                 6,                 // level
+                 {blk_hash_t(14)},  // tips
+                 {},                // trxs
+                 sig_t(0),          // sig
+                 blk_hash_t(15),    // hash
+                 addr_t(123));
+  DagBlock blk16(blk_hash_t(13),  // pivot
+                 6,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(16),  // hash
+                 addr_t(123));
+  DagBlock blk17(blk_hash_t(12),  // pivot
+                 5,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(17),  // hash
+                 addr_t(123));
+  DagBlock blk18(blk_hash_t(15),                                   // pivot
+                 7,                                                // level
+                 {blk_hash_t(8), blk_hash_t(16), blk_hash_t(17)},  // tips
+                 {},                                               // trxs
+                 sig_t(0),                                         // sig
+                 blk_hash_t(18),                                   // hash
+                 addr_t(123));
+  DagBlock blk19(blk_hash_t(18),  // pivot
+                 8,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(0),        // sig
+                 blk_hash_t(19),  // hash
+                 addr_t(123));
+  blks.emplace_back(dummy);
+  blks.emplace_back(blk1);
+  blks.emplace_back(blk2);
+  blks.emplace_back(blk3);
+  blks.emplace_back(blk4);
+  blks.emplace_back(blk5);
+  blks.emplace_back(blk6);
+  blks.emplace_back(blk7);
+  blks.emplace_back(blk8);
+  blks.emplace_back(blk9);
+  blks.emplace_back(blk10);
+  blks.emplace_back(blk11);
+  blks.emplace_back(blk12);
+  blks.emplace_back(blk13);
+  blks.emplace_back(blk14);
+  blks.emplace_back(blk15);
+  blks.emplace_back(blk16);
+  blks.emplace_back(blk17);
+  blks.emplace_back(blk18);
+  blks.emplace_back(blk19);
+
+  return blks;
+}
+
 }  // namespace taraxa::samples
 
 #endif
