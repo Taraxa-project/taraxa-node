@@ -725,7 +725,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
       std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
 
-  g_mock_dag0 = samples::createMockDag0(
+  g_mock_dag0 = samples::createMockDag1(
       node->getConfig().chain.dag_genesis_block.getHash().toString());
 
   auto num_blks = g_mock_dag0->size();

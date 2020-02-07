@@ -250,6 +250,189 @@ inline std::vector<DagBlock> createMockDag0(
                 {},                   // tips
                 {},                   // trxs
                 sig_t(0),             // sig
+                blk_hash_t(0),        // hash
+                addr_t(123));
+  blk1.updateHash();
+
+  DagBlock blk2(blk_hash_t(genesis),  // pivot
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(1),             // sig
+                blk_hash_t(0),        // hash
+                addr_t(123));
+  blk2.updateHash();
+  DagBlock blk3(blk_hash_t(genesis),  // pivot
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(2),             // sig
+                blk_hash_t(0),        // hash
+                addr_t(123));
+  blk3.updateHash();
+  DagBlock blk4(blk1.getHash(),  // pivot
+                2,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(3),       // sig
+                blk_hash_t(0),  // hash
+                addr_t(123));
+  blk4.updateHash();
+  DagBlock blk5(blk1.getHash(),    // pivot
+                2,                // level
+                {blk2.getHash()},  // tips
+                {},               // trxs
+                sig_t(4),         // sig
+                blk_hash_t(0),    // hash
+                addr_t(123));
+  blk5.updateHash();
+  DagBlock blk6(blk3.getHash(),  // pivot
+                2,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(5),       // sig
+                blk_hash_t(0),  // hash
+                addr_t(123));
+  blk6.updateHash();
+  DagBlock blk7(blk5.getHash(),    // pivot
+                3,                // level
+                {blk6.getHash()},  // tips
+                {},               // trxs
+                sig_t(6),         // sig
+                blk_hash_t(0),    // hash
+                addr_t(123));
+  blk7.updateHash();
+  DagBlock blk8(blk5.getHash(),  // pivot
+                3,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(7),       // sig
+                blk_hash_t(0),  // hash
+                addr_t(123));
+  blk8.updateHash();
+  DagBlock blk9(blk6.getHash(),  // pivot
+                3,              // level
+                {},             // tips
+                {},             // trxs
+                sig_t(8),       // sig
+                blk_hash_t(0),  // hash
+                addr_t(123));
+  blk9.updateHash();
+  DagBlock blk10(blk7.getHash(),   // pivot
+                 4,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(9),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk10.updateHash();
+  DagBlock blk11(blk7.getHash(),   // pivot
+                 4,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(10),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk11.updateHash();
+  DagBlock blk12(blk9.getHash(),   // pivot
+                 4,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(11),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk12.updateHash();
+  DagBlock blk13(blk10.getHash(),  // pivot
+                 5,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(12),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk13.updateHash();
+  DagBlock blk14(blk11.getHash(),    // pivot
+                 5,                 // level
+                 {blk12.getHash()},  // tips
+                 {},                // trxs
+                 sig_t(13),          // sig
+                 blk_hash_t(0),    // hash
+                 addr_t(123));
+  blk14.updateHash();
+  DagBlock blk15(blk13.getHash(),    // pivot
+                 6,                 // level
+                 {blk14.getHash()},  // tips
+                 {},                // trxs
+                 sig_t(14),          // sig
+                 blk_hash_t(0),    // hash
+                 addr_t(123));
+  blk15.updateHash();
+  DagBlock blk16(blk13.getHash(),  // pivot
+                 6,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(15),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk16.updateHash();
+  DagBlock blk17(blk12.getHash(),  // pivot
+                 5,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(16),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk17.updateHash();
+  DagBlock blk18(blk15.getHash(),                                   // pivot
+                 7,                                                // level
+                 {blk8.getHash(), blk16.getHash(), blk17.getHash()},  // tips
+                 {},                                               // trxs
+                 sig_t(17),                                         // sig
+                 blk_hash_t(0),                                   // hash
+                 addr_t(123));
+  blk18.updateHash();
+  DagBlock blk19(blk18.getHash(),  // pivot
+                 8,               // level
+                 {},              // tips
+                 {},              // trxs
+                 sig_t(18),        // sig
+                 blk_hash_t(0),  // hash
+                 addr_t(123));
+  blk19.updateHash();
+  blks.emplace_back(dummy);
+  blks.emplace_back(blk1);
+  blks.emplace_back(blk2);
+  blks.emplace_back(blk3);
+  blks.emplace_back(blk4);
+  blks.emplace_back(blk5);
+  blks.emplace_back(blk6);
+  blks.emplace_back(blk7);
+  blks.emplace_back(blk8);
+  blks.emplace_back(blk9);
+  blks.emplace_back(blk10);
+  blks.emplace_back(blk11);
+  blks.emplace_back(blk12);
+  blks.emplace_back(blk13);
+  blks.emplace_back(blk14);
+  blks.emplace_back(blk15);
+  blks.emplace_back(blk16);
+  blks.emplace_back(blk17);
+  blks.emplace_back(blk18);
+  blks.emplace_back(blk19);
+
+  return blks;
+}
+
+//
+inline std::vector<DagBlock> createMockDag1(
+    std::string genesis =
+        "0000000000000000000000000000000000000000000000000000000000000000") {
+  std::vector<DagBlock> blks;
+  DagBlock dummy;
+  DagBlock blk1(blk_hash_t(genesis),  // pivot
+                1,                    // level
+                {},                   // tips
+                {},                   // trxs
+                sig_t(0),             // sig
                 blk_hash_t(1),        // hash
                 addr_t(123));
 
