@@ -331,13 +331,14 @@ TEST_F(P2PTest, block_propagate) {
   DagBlock blk(
       blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-      sig_t(7777), blk_hash_t(888), addr_t(999));
+      sig_t(7777), blk_hash_t(0), addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
   transactions.emplace_back(g_signed_trx_samples[0].rlp(true));
   transactions.emplace_back(g_signed_trx_samples[1].rlp(true));
   thc1->onNewTransactions(transactions, true);
   std::vector<Transaction> transactions2;
+  blk.updateHash();
   thc1->onNewBlockReceived(blk, transactions2);
 
   for (int i = 0; i < 50; i++) {
