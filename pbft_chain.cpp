@@ -527,6 +527,12 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
                     << " in PBFT chain DB.";
       break;
     }
+    if (pbft_block->getHeight() != i) {
+      LOG(log_sil_) << "DB corrupted - PBFT block hash " << pbft_block_hash
+                    << "has different height " << pbft_block->getHeight()
+                    << "in block data then in block order db: " << i;
+      assert(false);
+    }
     result.push_back(*pbft_block);
   }
   return result;
@@ -586,6 +592,7 @@ bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
     assert(false);
     // return false;
   }
+  assert(pbft_block.getHeight() == size_);
   insertPbftBlockIndex_(pbft_block_hash);
   LOG(log_inf_) << "Push pbft block " << pbft_block_hash
                 << " with DAG block hash " << pbft_block.getPivotDagBlockHash()
