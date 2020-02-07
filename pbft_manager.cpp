@@ -31,7 +31,8 @@ PbftManager::PbftManager(std::vector<uint> const &params,
       VALID_SORTITION_COINS(params[2]),
       DAG_BLOCKS_SIZE(params[3]),
       GHOST_PATH_MOVE_BACK(params[4]),
-      RUN_COUNT_VOTES(params[5]),
+      SKIP_PERIODS(params[5]),
+      RUN_COUNT_VOTES(params[6]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(
