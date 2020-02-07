@@ -89,7 +89,7 @@ class PbftManager {
   // When PBFT pivot block finalized, period = period + 1,
   // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
   uint64_t SKIP_PERIODS;
-  bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
+  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
  private:
   void resetStep_();
