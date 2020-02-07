@@ -250,135 +250,154 @@ inline std::vector<DagBlock> createMockDag0(
                 {},                   // tips
                 {},                   // trxs
                 sig_t(0),             // sig
-                blk_hash_t(1),        // hash
+                blk_hash_t(0),        // hash
                 addr_t(123));
+  blk1.updateHash();
 
   DagBlock blk2(blk_hash_t(genesis),  // pivot
                 1,                    // level
                 {},                   // tips
                 {},                   // trxs
-                sig_t(0),             // sig
-                blk_hash_t(2),        // hash
+                sig_t(1),             // sig
+                blk_hash_t(0),        // hash
                 addr_t(123));
+  blk2.updateHash();
   DagBlock blk3(blk_hash_t(genesis),  // pivot
                 1,                    // level
                 {},                   // tips
                 {},                   // trxs
-                sig_t(0),             // sig
-                blk_hash_t(3),        // hash
+                sig_t(2),             // sig
+                blk_hash_t(0),        // hash
                 addr_t(123));
-  DagBlock blk4(blk_hash_t(1),  // pivot
+  blk3.updateHash();
+  DagBlock blk4(blk1.getHash(),  // pivot
                 2,              // level
                 {},             // tips
                 {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(4),  // hash
+                sig_t(3),       // sig
+                blk_hash_t(0),  // hash
                 addr_t(123));
-  DagBlock blk5(blk_hash_t(1),    // pivot
+  blk4.updateHash();
+  DagBlock blk5(blk1.getHash(),    // pivot
                 2,                // level
-                {blk_hash_t(2)},  // tips
+                {blk2.getHash()},  // tips
                 {},               // trxs
-                sig_t(0),         // sig
-                blk_hash_t(5),    // hash
+                sig_t(4),         // sig
+                blk_hash_t(0),    // hash
                 addr_t(123));
-  DagBlock blk6(blk_hash_t(3),  // pivot
+  blk5.updateHash();
+  DagBlock blk6(blk3.getHash(),  // pivot
                 2,              // level
                 {},             // tips
                 {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(6),  // hash
+                sig_t(5),       // sig
+                blk_hash_t(0),  // hash
                 addr_t(123));
-  DagBlock blk7(blk_hash_t(5),    // pivot
+  blk6.updateHash();
+  DagBlock blk7(blk5.getHash(),    // pivot
                 3,                // level
-                {blk_hash_t(6)},  // tips
+                {blk6.getHash()},  // tips
                 {},               // trxs
-                sig_t(0),         // sig
-                blk_hash_t(7),    // hash
+                sig_t(6),         // sig
+                blk_hash_t(0),    // hash
                 addr_t(123));
-  DagBlock blk8(blk_hash_t(5),  // pivot
+  blk7.updateHash();
+  DagBlock blk8(blk5.getHash(),  // pivot
                 3,              // level
                 {},             // tips
                 {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(8),  // hash
+                sig_t(7),       // sig
+                blk_hash_t(0),  // hash
                 addr_t(123));
-  DagBlock blk9(blk_hash_t(6),  // pivot
+  blk8.updateHash();
+  DagBlock blk9(blk6.getHash(),  // pivot
                 3,              // level
                 {},             // tips
                 {},             // trxs
-                sig_t(0),       // sig
-                blk_hash_t(9),  // hash
+                sig_t(8),       // sig
+                blk_hash_t(0),  // hash
                 addr_t(123));
-  DagBlock blk10(blk_hash_t(7),   // pivot
+  blk9.updateHash();
+  DagBlock blk10(blk7.getHash(),   // pivot
                  4,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(10),  // hash
+                 sig_t(9),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
-  DagBlock blk11(blk_hash_t(7),   // pivot
+  blk10.updateHash();
+  DagBlock blk11(blk7.getHash(),   // pivot
                  4,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(11),  // hash
+                 sig_t(10),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
-  DagBlock blk12(blk_hash_t(9),   // pivot
+  blk11.updateHash();
+  DagBlock blk12(blk9.getHash(),   // pivot
                  4,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(12),  // hash
+                 sig_t(11),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
-  DagBlock blk13(blk_hash_t(10),  // pivot
+  blk12.updateHash();
+  DagBlock blk13(blk10.getHash(),  // pivot
                  5,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(13),  // hash
+                 sig_t(12),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
-  DagBlock blk14(blk_hash_t(11),    // pivot
+  blk13.updateHash();
+  DagBlock blk14(blk11.getHash(),    // pivot
                  5,                 // level
-                 {blk_hash_t(12)},  // tips
+                 {blk12.getHash()},  // tips
                  {},                // trxs
-                 sig_t(0),          // sig
-                 blk_hash_t(14),    // hash
+                 sig_t(13),          // sig
+                 blk_hash_t(0),    // hash
                  addr_t(123));
-  DagBlock blk15(blk_hash_t(13),    // pivot
+  blk14.updateHash();
+  DagBlock blk15(blk13.getHash(),    // pivot
                  6,                 // level
-                 {blk_hash_t(14)},  // tips
+                 {blk14.getHash()},  // tips
                  {},                // trxs
-                 sig_t(0),          // sig
-                 blk_hash_t(15),    // hash
+                 sig_t(14),          // sig
+                 blk_hash_t(0),    // hash
                  addr_t(123));
-  DagBlock blk16(blk_hash_t(13),  // pivot
+  blk15.updateHash();
+  DagBlock blk16(blk13.getHash(),  // pivot
                  6,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(16),  // hash
+                 sig_t(15),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
-  DagBlock blk17(blk_hash_t(12),  // pivot
+  blk16.updateHash();
+  DagBlock blk17(blk12.getHash(),  // pivot
                  5,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(17),  // hash
+                 sig_t(16),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
-  DagBlock blk18(blk_hash_t(15),                                   // pivot
+  blk17.updateHash();
+  DagBlock blk18(blk15.getHash(),                                   // pivot
                  7,                                                // level
-                 {blk_hash_t(8), blk_hash_t(16), blk_hash_t(17)},  // tips
+                 {blk8.getHash(), blk16.getHash(), blk17.getHash()},  // tips
                  {},                                               // trxs
-                 sig_t(0),                                         // sig
-                 blk_hash_t(18),                                   // hash
+                 sig_t(17),                                         // sig
+                 blk_hash_t(0),                                   // hash
                  addr_t(123));
-  DagBlock blk19(blk_hash_t(18),  // pivot
+  blk18.updateHash();
+  DagBlock blk19(blk18.getHash(),  // pivot
                  8,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),        // sig
-                 blk_hash_t(19),  // hash
+                 sig_t(18),        // sig
+                 blk_hash_t(0),  // hash
                  addr_t(123));
+  blk19.updateHash();
   blks.emplace_back(dummy);
   blks.emplace_back(blk1);
   blks.emplace_back(blk2);
