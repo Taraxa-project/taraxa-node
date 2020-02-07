@@ -83,23 +83,23 @@ DagBlock::DagBlock(bytes const &_rlp) {
   if (!rlp.isList())
     throw std::invalid_argument("transaction RLP must be a list");
 
-  hash_ = rlp[0].toHash<blk_hash_t>();
-  pivot_ = rlp[1].toHash<blk_hash_t>();
-  level_ = rlp[2].toInt<level_t>();
-  timestamp_ = rlp[3].toInt<int64_t>();
-  vdf_ = vdf_sortition::VdfSortition(rlp[4].toBytes());
-  uint64_t num_tips = rlp[5].toInt<uint64_t>();
+  pivot_ = rlp[0].toHash<blk_hash_t>();
+  level_ = rlp[1].toInt<level_t>();
+  timestamp_ = rlp[2].toInt<int64_t>();
+  vdf_ = vdf_sortition::VdfSortition(rlp[3].toBytes());
+  uint64_t num_tips = rlp[4].toInt<uint64_t>();
   for (auto i = 0; i < num_tips; ++i) {
-    auto tip = rlp[6 + i].toHash<blk_hash_t>();
+    auto tip = rlp[5 + i].toHash<blk_hash_t>();
     tips_.push_back(tip);
   }
-  uint64_t num_trxs = rlp[6 + num_tips].toInt<uint64_t>();
+  uint64_t num_trxs = rlp[5 + num_tips].toInt<uint64_t>();
   for (auto i = 0; i < num_trxs; ++i) {
-    auto trx = rlp[7 + num_tips + i].toHash<trx_hash_t>();
+    auto trx = rlp[6 + num_tips + i].toHash<trx_hash_t>();
     trxs_.push_back(trx);
   }
-  if (rlp.itemCount() > 7 + num_tips + num_trxs)
-    sig_ = rlp[7 + num_tips + num_trxs].toHash<sig_t>();
+  if (rlp.itemCount() > 6 + num_tips + num_trxs)
+    sig_ = rlp[6 + num_tips + num_trxs].toHash<sig_t>();
+  updateHash();
 }
 
 bool DagBlock::isValid() const {
@@ -164,9 +164,8 @@ addr_t DagBlock::sender() const {
 void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
   auto num_tips = tips_.size();
   auto num_trxs = trxs_.size();
-  auto total = num_tips + num_trxs + 7;
+  auto total = num_tips + num_trxs + 6;
   s.appendList(include_sig ? total + 1 : total);
-  s << hash_;
   s << pivot_;
   s << level_;
   s << timestamp_;

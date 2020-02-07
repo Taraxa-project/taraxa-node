@@ -130,6 +130,22 @@ TEST_F(DagBlockTest, send_receive_three) {
   ASSERT_EQ(outgoings, receivings);
 }
 
+TEST_F(DagBlockTest, sender_and_hash_verify) {
+  DagBlock blk1(blk_hash_t(111),   // pivot
+                0,                 // level
+                {blk_hash_t(222),  // tips
+                 blk_hash_t(333), blk_hash_t(444)},
+                {trx_hash_t(555),  // trxs
+                 trx_hash_t(666)});
+  blk1.sign(g_secret);
+  EXPECT_EQ(g_key_pair.address(), blk1.sender());
+  EXPECT_TRUE(blk1.verifySig());
+
+  DagBlock blk_from_rlp(blk1.rlp(true));
+  EXPECT_EQ(blk_from_rlp.sender(), blk1.sender());
+  EXPECT_EQ(blk_from_rlp.getHash(), blk1.getHash());
+}
+
 TEST_F(DagBlockTest, sign_verify) {
   DagBlock blk1(blk_hash_t(111),   // pivot
                 0,                 // level
@@ -146,8 +162,8 @@ TEST_F(DagBlockTest, sign_verify) {
   blk1.sign(g_secret);
   blk1c.sign(g_secret);
   EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1 << std::endl << blk1c;
-  EXPECT_EQ(blk1.sender(), blk1.sender());
-  EXPECT_EQ(blk1.getHash(), blk1.getHash());
+  EXPECT_EQ(blk1.sender(), blk1c.sender());
+  EXPECT_EQ(blk1.getHash(), blk1c.getHash());
 
   EXPECT_TRUE(blk1.verifySig());
 
