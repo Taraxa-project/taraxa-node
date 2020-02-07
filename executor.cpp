@@ -96,6 +96,16 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
                                                    execution_result.stateRoot);
   replay_protection_service_->commit(batch, period, transactions);
 
+  for (auto& addr : dag_block_proposers) {
+    auto sortition_table_entry =
+        std_find(sortition_account_balance_table, addr);
+    if (sortition_table_entry) {
+      auto& pbft_sortition_account = (*sortition_table_entry)->second;
+      // fixme: weird lossy cast
+      pbft_sortition_account.last_period_seen = static_cast<int64_t>(period);
+      pbft_sortition_account.status = new_change;
+    }
+  }
   for (auto& [addr, balance] :
        execution_result.touchedExternallyOwnedAccountBalances) {
     auto is_proposer = bool(std_find(dag_block_proposers, addr));
@@ -147,6 +157,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
       }
     }
   }
+
   for (size_t i(0); i < transactions.size(); ++i) {
     auto const& trx = transactions[i];
     auto trx_hash = trx.sha3();
