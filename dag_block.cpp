@@ -189,11 +189,13 @@ blk_hash_t DagBlock::sha3(bool include_sig) const {
   return dev::sha3(rlp(include_sig));
 }
 
-BlockManager::BlockManager(size_t capacity, unsigned num_verifiers)
+BlockManager::BlockManager(size_t capacity, unsigned num_verifiers,
+                           uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
       blk_status_(10000, 100),
-      seen_blocks_(10000, 100) {}
+      seen_blocks_(10000, 100),
+      queue_limit_(queue_limit) {}
 
 BlockManager::~BlockManager() { stop(); }
 
@@ -255,6 +257,15 @@ level_t BlockManager::getMaxDagLevelInQueue() const {
 void BlockManager::pushUnverifiedBlock(
     DagBlock const &blk, std::vector<Transaction> const &transactions,
     bool critical) {
+  if (queue_limit_ > 0) {
+    auto queue_size = getDagBlockQueueSize();
+    if (queue_limit_ > queue_size.first + queue_size.second) {
+      LOG(log_wr_) << "Warning: block queue large. Unverified queue: "
+                   << queue_size.first
+                   << "; Verified queue: " << queue_size.second
+                   << "; Limit: " << queue_limit_;
+    }
+  }
   seen_blocks_.update(blk.getHash(), blk);
   {
     uLock lock(shared_mutex_for_unverified_qu_);

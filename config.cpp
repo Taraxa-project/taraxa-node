@@ -46,6 +46,15 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.port = doc.get<uint16_t>("rpc_port");
     rpc.ws_port = doc.get<uint16_t>("ws_port");
     {  // for test experiments
+      test_params.max_transaction_queue_warn =
+          doc.get_optional<uint32_t>("test_params.max_transaction_queue_warn")
+              .value_or(0);
+      test_params.max_transaction_queue_drop =
+          doc.get_optional<uint32_t>("test_params.max_transaction_queue_drop")
+              .value_or(0);
+      test_params.max_block_queue_warn =
+          doc.get_optional<uint32_t>("test_params.max_block_queue_warn")
+              .value_or(0);
       test_params.block_proposer.mode =
           doc.get<std::string>("test_params.block_proposer.mode");
       test_params.block_proposer.shard =

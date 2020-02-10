@@ -70,8 +70,9 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   // ===== Create services =====
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString());
   blk_mgr_ =
-      std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/);
-  trx_mgr_ = std::make_shared<TransactionManager>();
+      std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
+                                     conf_.test_params.max_block_queue_warn);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),

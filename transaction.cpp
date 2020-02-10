@@ -654,6 +654,26 @@ bool TransactionManager::insertTrx(Transaction const &trx,
     if (db_->transactionInDb(hash)) {
       LOG(log_nf_) << "Trx: " << hash << "skip, seen in db " << std::endl;
     } else {
+      if (conf_.max_transaction_queue_warn > 0 ||
+          conf_.max_transaction_queue_drop > 0) {
+        auto queue_size = trx_qu_.getTransactionQueueSize();
+        if (conf_.max_transaction_queue_drop >
+            queue_size.first + queue_size.second) {
+          LOG(log_wr_) << "Trx: " << hash
+                       << "skipped, queue too large. Unverified queue: "
+                       << queue_size.first
+                       << "; Verified queue: " << queue_size.second
+                       << "; Limit: " << conf_.max_transaction_queue_drop;
+          return false;
+        } else if (conf_.max_transaction_queue_warn >
+                   queue_size.first + queue_size.second) {
+          LOG(log_wr_) << "Warning: queue large. Unverified queue: "
+                       << queue_size.first
+                       << "; Verified queue: " << queue_size.second
+                       << "; Limit: " << conf_.max_transaction_queue_drop;
+          return false;
+        }
+      }
       if (trx_qu_.insert(trx, critical)) {
         rlp_cache_.insert(trx.getHash(), trx_serialized);
         ret = true;

@@ -121,7 +121,7 @@ struct DagFrontier {
  */
 class BlockManager {
  public:
-  BlockManager(size_t capacity, unsigned verify_threads);
+  BlockManager(size_t capacity, unsigned verify_threads, uint32_t queue_limit = 0);
   ~BlockManager();
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
@@ -163,6 +163,7 @@ class BlockManager {
 
   boost::condition_variable_any cond_for_unverified_qu_;
   boost::condition_variable_any cond_for_verified_qu_;
+  uint32_t queue_limit_;
 
   std::map<uint64_t,
            std::deque<std::pair<DagBlock, std::vector<Transaction> > > >

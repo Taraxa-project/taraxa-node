@@ -17,6 +17,7 @@
 #include "dag_block.hpp"
 #include "db_storage.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 namespace taraxa {
 
@@ -299,8 +300,9 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager()
-      : trx_status_(1000000, 1000),
+  TransactionManager(TestParamsConfig conf)
+      : conf_(conf),
+        trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
@@ -381,6 +383,7 @@ class TransactionManager
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;
+  TestParamsConfig conf_;
 
   mutable std::mutex mu_for_nonce_table_;
   mutable dev::Logger log_si_{

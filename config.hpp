@@ -61,6 +61,9 @@ struct BlockProposerConfig {
 struct TestParamsConfig {
   BlockProposerConfig block_proposer;  // test_params.block_proposer
   std::vector<uint> pbft;              // test_params.pbft
+  uint32_t max_transaction_queue_warn = 0;
+  uint32_t max_transaction_queue_drop = 0;
+  uint32_t max_block_queue_warn = 0;
 };
 
 struct FullNodeConfig {
