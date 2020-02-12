@@ -237,7 +237,6 @@ bool PbftBlock::deserialize(taraxa::stream& strm) {
 
 std::string PbftBlock::getJsonStr(bool with_signature) const {
   ptree tree;
-  tree.put("block_hash", block_hash_.toString());
   tree.put("prev_block_hash", prev_block_hash_.toString());
   tree.put("dag_block_hash_as_pivot", dag_block_hash_as_pivot_.toString());
   tree.put_child("schedule", ptree());
@@ -247,6 +246,7 @@ std::string PbftBlock::getJsonStr(bool with_signature) const {
   tree.put("timestamp", timestamp_);
   tree.put("beneficiary", beneficiary_);
   if (with_signature) {
+    tree.put("block_hash", block_hash_.toString());
     tree.put("signature", signature_.toString());
   }
   std::stringstream ostrm;
@@ -300,31 +300,6 @@ void PbftBlock::setBlockHash() {
   dev::RLPStream s;
   streamRLP(s);
   block_hash_ = dev::sha3(s.out());
-}
-
-void PbftBlock::setPrevBlockHash(taraxa::blk_hash_t const& prev_block_hash) {
-  prev_block_hash_ = prev_block_hash;
-}
-
-void PbftBlock::setDagBlockHashAsPivot(
-    taraxa::blk_hash_t const& dag_block_hash) {
-  dag_block_hash_as_pivot_ = dag_block_hash;
-}
-
-void PbftBlock::setSchedule(taraxa::TrxSchedule const& schedule) {
-  schedule_ = schedule;
-}
-
-void PbftBlock::setPeriod(uint64_t const period) { period_ = period; }
-
-void PbftBlock::setHeight(uint64_t const height) { height_ = height; }
-
-void PbftBlock::setTimestamp(uint64_t const timestamp) {
-  timestamp_ = timestamp;
-}
-
-void PbftBlock::setBeneficiary(taraxa::addr_t const& beneficiary) {
-  beneficiary_ = beneficiary;
 }
 
 void PbftBlock::setSignature(taraxa::sig_t const& signature) {

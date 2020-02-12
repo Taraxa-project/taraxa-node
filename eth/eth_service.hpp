@@ -130,6 +130,10 @@ class EthService : virtual ClientBase {
                            TransactionReceipts const& receipts,  //
                            h256 const& state_root);
 
+  void update_head(BlockHeader const& h) {
+    bc_.update_head(h);
+  }
+
   template <typename... Arg>
   auto accountNonce(Arg const&... args) const {
     return countAt(args...);

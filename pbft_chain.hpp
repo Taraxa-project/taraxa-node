@@ -105,13 +105,6 @@ class PbftBlock {
   addr_t getBeneficiary() const { return beneficiary_; }
 
   void setBlockHash();
-  void setPrevBlockHash(blk_hash_t const& prev_block_hash);
-  void setDagBlockHashAsPivot(blk_hash_t const& dag_block_hash);
-  void setSchedule(TrxSchedule const& schedule);
-  void setPeriod(uint64_t const period);
-  void setHeight(uint64_t const height);
-  void setTimestamp(uint64_t const timestamp);
-  void setBeneficiary(addr_t const& beneficiary);
   void setSignature(sig_t const& signature);
 
  private:

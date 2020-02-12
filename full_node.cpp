@@ -516,19 +516,19 @@ bool FullNode::verifySignature(dev::Signature const &signature,
   return dev::verify(node_pk_, signature, dev::sha3(message));
 }
 
-bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
-                             PbftBlock const &pbft_block,
-                             std::unordered_map<addr_t, PbftSortitionAccount>
-                                 &sortition_account_balance_table,
-                             uint64_t period) {
+std::optional<dev::eth::BlockHeader> FullNode::executePeriod(
+    DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
+    std::unordered_map<addr_t, PbftSortitionAccount>
+        &sortition_account_balance_table,
+    uint64_t period) {
   // update transaction overlap table first
   if (!trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule())) {
-    return false;
+    return std::nullopt;
   }
   auto new_eth_header = executor_->execute(
       batch, pbft_block, sortition_account_balance_table, period);
   if (!new_eth_header) {
-    return false;
+    return std::nullopt;
   }
   uint64_t block_number = 0;
   if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
@@ -544,7 +544,7 @@ bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
     ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,  //
                                                  eth_service_->sealEngine()));
   }
-  return true;
+  return new_eth_header;
 }
 
 std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {

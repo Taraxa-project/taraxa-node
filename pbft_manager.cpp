@@ -1515,10 +1515,11 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     //  Will need update sortition_account_balance_table_tmp here
     uint64_t pbft_period = pbft_chain_->getPbftChainPeriod();
     auto batch = db_->createWriteBatch();
-    if (!full_node->executePeriod(batch, pbft_block,
-                                  sortition_account_balance_table_tmp,
-                                  pbft_period)) {
+    auto eth_block = full_node->executePeriod(
+        batch, pbft_block, sortition_account_balance_table_tmp, pbft_period);
+    if (!eth_block) {
       LOG(log_err_) << "Failed to execute PBFT schedule";
+      return false;
     }
     db_->batch_put(batch, DbStorage::Columns::period_schedule_block,
                    DbStorage::toSlice(pbft_period),
@@ -1540,6 +1541,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     updateSortitionAccountsDB_(batch);
     executed_pbft_block_ = true;
     db_->commitWriteBatch(batch);
+    full_node->getEthService()->update_head(*eth_block);
     return true;
   }
   return false;
