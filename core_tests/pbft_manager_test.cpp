@@ -46,7 +46,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
                                                TEST_TX_GAS_LIMIT, receiver,
                                                data, g_secret);
-  node->insertTransaction(trx_master_boot_node_to_receiver);
+  node->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (int i = 0; i < 100; i++) {
     // test timeout is 10 seconds
@@ -148,7 +148,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
                                             TEST_TX_GAS_LIMIT, node2_addr, data,
                                             g_secret);
   // broadcast trx and insert
-  node1->insertTransaction(trx_master_boot_node_to_node2);
+  node1->insertTransaction(trx_master_boot_node_to_node2, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
             << std::endl;
@@ -193,7 +193,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
                                             TEST_TX_GAS_LIMIT, node3_addr, data,
                                             g_secret);
   // broadcast trx and insert
-  node1->insertTransaction(trx_master_boot_node_to_node3);
+  node1->insertTransaction(trx_master_boot_node_to_node3, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."
             << std::endl;

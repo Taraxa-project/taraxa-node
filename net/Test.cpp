@@ -96,7 +96,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       taraxa::Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
       LOG(log_time) << "Transaction " << trx.getHash()
                     << " received at: " << now;
-      node->insertTransaction(trx);
+      node->insertTransaction(trx, true);
       res = toHex(trx.rlp(true));
     }
   } catch (std::exception &e) {
@@ -135,7 +135,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
                     taraxa::samples::TEST_TX_GAS_LIMIT, receiver, data, sk);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;
-                node->insertTransaction(trx);
+                node->insertTransaction(trx, false);
                 thisThreadSleepForMicroSeconds(delay);
               }
             });

@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 
+#include "eth/util.hpp"
 #include "full_node.hpp"
 #include "util/eth.hpp"
 
@@ -191,6 +192,25 @@ bool Transaction::verifySig() const {
   sender();
   return dev::verify(pk, sig_, msg);
 }
+
+bool TransactionQueue::verifyTransaction(Transaction const &trx) const {
+  try {
+    if (eth_service_) {
+      eth_service_->sealEngine()->verifyTransaction(
+          dev::eth::ImportRequirements::Everything,
+          eth::util::trx_taraxa_2_eth(trx),  //
+          eth_service_->getBlockHeader(),    //
+          0);
+    } else {
+      return trx.verifySig();
+    }
+    return true;
+  } catch (...) {  // Once we are sure what exception can be thrown we should
+                   // only catch those exceptions
+  }
+  return false;
+}
+
 addr_t Transaction::sender() const {
   if (!cached_sender_) {
     if (!sig_) {
@@ -259,36 +279,50 @@ void TransactionQueue::stop() {
   }
 }
 
-bool TransactionQueue::insert(Transaction const &trx, bool critical) {
+bool TransactionQueue::insert(Transaction const &trx, bool verify) {
   trx_hash_t hash = trx.getHash();
   auto status = trx_status_.get(hash);
   bool ret = false;
   listIter iter;
 
   if (status.second == false) {  // never seen before
-    ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
-    if (ret) {
-      {
-        uLock lock(shared_mutex_for_queued_trxs_);
-        iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-        assert(iter != trx_buffer_.end());
-        queued_trxs_[trx.getHash()] = iter;
+    if (verify) {
+      ret = (mode_ == VerifyMode::skip_verify_sig) || verifyTransaction(trx);
+      if (ret) {
+        {
+          uLock lock(shared_mutex_for_queued_trxs_);
+          iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+          assert(iter != trx_buffer_.end());
+          queued_trxs_[trx.getHash()] = iter;
+        }
+        trx_status_.update(trx.getHash(), TransactionStatus::in_queue_verified);
+        {
+          uLock lock(shared_mutex_for_verified_qu_);
+          verified_trxs_[trx.getHash()] = iter;
+          new_verified_transactions_ = true;
+        }
+      } else {
+        trx_status_.update(trx.getHash(), TransactionStatus::invalid);
+        LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash << "invalid. "
+                     << std::endl;
       }
-      {
-        uLock lock(shared_mutex_for_unverified_qu_);
-        if (critical) {
-          unverified_hash_qu_.emplace_front(std::make_pair(hash, iter));
-        } else {
+    } else {
+      ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
+      if (ret) {
+        {
+          uLock lock(shared_mutex_for_queued_trxs_);
+          iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+          assert(iter != trx_buffer_.end());
+          queued_trxs_[trx.getHash()] = iter;
+        }
+        {
+          uLock lock(shared_mutex_for_unverified_qu_);
           unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
         }
+        cond_for_unverified_qu_.notify_one();
+        LOG(log_nf_) << getFullNodeAddress() << " Trx: " << hash
+                     << " inserted. " << std::endl;
       }
-      cond_for_unverified_qu_.notify_one();
-      LOG(log_nf_) << getFullNodeAddress() << " Trx: " << hash << " inserted. "
-                   << std::endl;
-    } else {
-      // If ret is false status was just changed by another thread so ask for it
-      // again
-      status = trx_status_.get(hash);
     }
   }
   return ret;
@@ -318,7 +352,7 @@ void TransactionQueue::verifyQueuedTrxs() {
       if (mode_ == VerifyMode::skip_verify_sig) {
         valid = true;
       } else {
-        valid = trx.verifySig();
+        valid = verifyTransaction(trx);
       }
       // mark invalid
       if (!valid) {
@@ -646,7 +680,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
 
 bool TransactionManager::insertTrx(Transaction const &trx,
                                    taraxa::bytes const &trx_serialized,
-                                   bool critical) {
+                                   bool verify) {
   bool ret = false;
   auto hash = trx.getHash();
   auto status = trx_status_.get(hash);
@@ -674,7 +708,7 @@ bool TransactionManager::insertTrx(Transaction const &trx,
           return false;
         }
       }
-      if (trx_qu_.insert(trx, critical)) {
+      if (trx_qu_.insert(trx, verify)) {
         rlp_cache_.insert(trx.getHash(), trx_serialized);
         ret = true;
         auto node = full_node_.lock();
@@ -807,7 +841,7 @@ bool TransactionManager::verifyBlockTransactions(
     DagBlock const &blk, std::vector<Transaction> const &trxs) {
   bool invalidTransaction = false;
   for (auto const &trx : trxs) {
-    auto valid = trx.verifySig();
+    auto valid = trx_qu_.verifyTransaction(trx);
     if (!valid) {
       invalidTransaction = true;
       LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
