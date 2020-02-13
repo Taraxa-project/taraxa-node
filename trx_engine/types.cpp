@@ -44,12 +44,12 @@ StateTransitionResult StateTransitionResult::fromJson(Json::Value const& json) {
     }
     auto cumulative_gas_used =
         jsToU256(receipt_json["cumulativeGasUsed"].asString());
-    if (auto const& root_json = receipt_json["root"]; !root_json.isNull()) {
-      receipts.emplace_back(h256(root_json.asString()), cumulative_gas_used,
+    if (auto const& json_el = receipt_json["status"]; !json_el.isNull()) {
+      receipts.emplace_back(jsToInt(json_el.asString()), cumulative_gas_used,
                             logs);
     } else {
-      auto status = jsToInt(receipt_json["status"].asString());
-      receipts.emplace_back(status, cumulative_gas_used, logs);
+      receipts.emplace_back(h256(receipt_json["root"].asString()),
+                            cumulative_gas_used, logs);
     }
   }
   auto const& trx_outputs_json = json["transactionOutputs"];

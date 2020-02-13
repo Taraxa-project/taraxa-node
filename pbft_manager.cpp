@@ -1519,7 +1519,6 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
                                   sortition_account_balance_table_tmp,
                                   pbft_period)) {
       LOG(log_err_) << "Failed to execute PBFT schedule";
-      return false;
     }
     db_->batch_put(batch, DbStorage::Columns::period_schedule_block,
                    DbStorage::toSlice(pbft_period),
