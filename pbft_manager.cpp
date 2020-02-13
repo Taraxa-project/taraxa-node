@@ -1540,6 +1540,7 @@ bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
     updateSortitionAccountsDB_(batch);
     executed_pbft_block_ = true;
     db_->commitWriteBatch(batch);
+    full_node->getEthService()->update_head();
     return true;
   }
   return false;
