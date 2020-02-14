@@ -46,8 +46,35 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.port = doc.get<uint16_t>("rpc_port");
     rpc.ws_port = doc.get<uint16_t>("ws_port");
     {  // for test experiments
-      for (auto &i : asVector<uint>(doc, "test_params.block_proposer")) {
-        test_params.block_proposer.push_back(i);
+      test_params.max_transaction_queue_warn =
+          doc.get_optional<uint32_t>("test_params.max_transaction_queue_warn")
+              .value_or(0);
+      test_params.max_transaction_queue_drop =
+          doc.get_optional<uint32_t>("test_params.max_transaction_queue_drop")
+              .value_or(0);
+      test_params.max_block_queue_warn =
+          doc.get_optional<uint32_t>("test_params.max_block_queue_warn")
+              .value_or(0);
+      test_params.block_proposer.mode =
+          doc.get<std::string>("test_params.block_proposer.mode");
+      test_params.block_proposer.shard =
+          doc.get<uint16_t>("test_params.block_proposer.shard");
+      test_params.block_proposer.transaction_limit =
+          doc.get<uint16_t>("test_params.block_proposer.transaction_limit");
+      if (test_params.block_proposer.mode == "random") {
+        test_params.block_proposer.min_freq = doc.get<uint16_t>(
+            "test_params.block_proposer.random_params.min_freq");
+        test_params.block_proposer.max_freq = doc.get<uint16_t>(
+            "test_params.block_proposer.random_params.max_freq");
+      } else if (test_params.block_proposer.mode == "sortition") {
+        test_params.block_proposer.difficulty_bound = doc.get<uint16_t>(
+            "test_params.block_proposer.sortition_params.difficulty_bound");
+        test_params.block_proposer.lambda_bits = doc.get<uint16_t>(
+            "test_params.block_proposer.sortition_params.lambda_bits");
+      } else {
+        std::cerr << "Unknown propose mode: "
+                  << test_params.block_proposer.mode;
+        assert(false);
       }
       for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
         test_params.pbft.push_back(i);

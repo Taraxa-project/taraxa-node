@@ -17,6 +17,7 @@
 #include "dag_block.hpp"
 #include "db_storage.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 namespace taraxa {
 
@@ -231,7 +232,8 @@ class TransactionQueue {
   bool insert(Transaction const &trx, bool critical);
   Transaction top();
   void pop();
-  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(
+      uint16_t max_trx_to_pack = 0);
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::pair<size_t, size_t> getTransactionQueueSize() const;
   std::vector<Transaction> getNewVerifiedTrxSnapShot();
@@ -298,8 +300,9 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager()
-      : trx_status_(1000000, 1000),
+  TransactionManager(TestParamsConfig conf)
+      : conf_(conf),
+        trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
         trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
@@ -329,7 +332,8 @@ class TransactionManager
   /**
    * The following function will require a lock for verified qu
    */
-  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier);
+  void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier,
+                uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) {
     mode_ = mode;
     trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
@@ -379,6 +383,7 @@ class TransactionManager
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;
+  TestParamsConfig conf_;
 
   mutable std::mutex mu_for_nonce_table_;
   mutable dev::Logger log_si_{

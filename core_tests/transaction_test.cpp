@@ -116,6 +116,35 @@ TEST_F(TransactionTest, verifiers) {
   EXPECT_EQ(verified_trxs.size(), g_trx_samples->size());
 }
 
+TEST_F(TransactionTest, transaction_limit) {
+  TransactionStatusTable status_table(100000, 1000);
+  AccountNonceTable accs_table;
+
+  TransactionQueue trx_qu(status_table, accs_table, 2 /*num verifiers*/);
+  trx_qu.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
+  trx_qu.start();
+
+  // insert trx
+  std::thread t([&trx_qu]() {
+    for (auto const& t : *g_trx_samples) {
+      trx_qu.insert(t, true);
+    }
+  });
+
+  // insert trx again, should not duplicated
+  for (auto const& t : *g_trx_samples) {
+    trx_qu.insert(t, false);
+  }
+  t.join();
+  thisThreadSleepForMilliSeconds(100);
+  auto verified_trxs1 = trx_qu.moveVerifiedTrxSnapShot(10);
+  auto verified_trxs2 = trx_qu.moveVerifiedTrxSnapShot(20);
+  auto verified_trxs3 = trx_qu.moveVerifiedTrxSnapShot(0);
+  EXPECT_EQ(verified_trxs1.size(), 10);
+  EXPECT_EQ(verified_trxs2.size(), 20);
+  EXPECT_EQ(verified_trxs3.size(), g_trx_samples->size() - 30);
+}
+
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(
