@@ -33,9 +33,14 @@ TrxSchedule::TrxSchedule(bytes const& rlpData) {
 
 bytes TrxSchedule::rlp() const {
   dev::RLPStream s;
-  auto num_blk = dag_blks_order.size();
+  streamRLP(s);
+  return s.out();
+}
+
+void TrxSchedule::streamRLP(dev::RLPStream& s) const {
+  uint64_t num_blk = dag_blks_order.size();
   std::vector<size_t> trx_in_each_blk;
-  size_t num_trx = 0;
+  uint64_t num_trx = 0;
   for (auto i(0); i < trxs_mode.size(); ++i) {
     trx_in_each_blk.emplace_back(trxs_mode[i].size());
     num_trx += trxs_mode[i].size();
@@ -49,78 +54,38 @@ bytes TrxSchedule::rlp() const {
   }
   // write trx info
   for (int i(0); i < num_blk; ++i) {
-    auto trx_size = trxs_mode[i].size();
+    uint64_t trx_size = trxs_mode[i].size();
     s << trx_size;
     for (int j(0); j < trx_size; ++j) {
       s << trxs_mode[i][j].first;
       s << trxs_mode[i][j].second;
     }
   }
-  return s.out();
 }
 
-bool TrxSchedule::serialize(taraxa::stream& strm) const {
-  bool ok = true;
-  uint32_t dag_blk_size = dag_blks_order.size();
-  uint32_t trx_vectors_size = trxs_mode.size();
-  if (dag_blk_size != trx_vectors_size) {
-    assert(false);
-  }
-  ok &= write(strm, dag_blk_size);
-  ok &= write(strm, trx_vectors_size);
-  for (auto i(0); i < dag_blk_size; ++i) {
-    ok &= write(strm, dag_blks_order[i]);
-  }
-  for (auto i(0); i < trx_vectors_size; ++i) {
-    uint32_t each_block_trx_size = trxs_mode[i].size();
-    ok &= write(strm, each_block_trx_size * 2);
-    for (auto j(0); j < each_block_trx_size; ++j) {
-      ok &= write(strm, trxs_mode[i][j].first);   // Transation hash
-      ok &= write(strm, trxs_mode[i][j].second);  // Transation mode
-    }
-  }
-  assert(ok);
-  return ok;
-}
+TrxSchedule::TrxSchedule(dev::RLP const& r) {
+  dev::RLP const rlp(r);
+  if (!rlp.isList())
+    throw std::invalid_argument("TrxSchedule RLP must be a list");
 
-bool TrxSchedule::deserialize(taraxa::stream& strm) {
-  bool ok = true;
-  uint32_t block_size;
-  uint32_t trx_vectors_size;
-  ok &= read(strm, block_size);
-  ok &= read(strm, trx_vectors_size);
-  if (block_size != trx_vectors_size) {
-    assert(false);
+  auto num_blk = rlp[0].toInt<uint64_t>();
+  for (auto i(0); i < num_blk; ++i) {
+    dag_blks_order.push_back(rlp[i + 1].toHash<blk_hash_t>());
   }
-  for (auto i(0); i < block_size; ++i) {
-    blk_hash_t dag_blk_hash;
-    ok &= read(strm, dag_blk_hash);
-    if (ok) {
-      dag_blks_order.push_back(dag_blk_hash);
+  int counter = num_blk;
+  for (int i(0); i < num_blk; ++i) {
+    counter++;
+    auto trx_size = rlp[counter].toInt<uint64_t>();
+    std::vector<std::pair<trx_hash_t, uint>> temp_v;
+    for (int j(0); j < trx_size; ++j) {
+      counter++;
+      auto first = rlp[counter].toHash<trx_hash_t>();
+      counter++;
+      auto second = rlp[counter].toInt<int32_t>();
+      temp_v.push_back(std::make_pair(first, second));
     }
+    trxs_mode.push_back(temp_v);
   }
-  for (auto i(0); i < trx_vectors_size; ++i) {
-    uint32_t each_block_trx_size;
-    ok &= read(strm, each_block_trx_size);
-    std::vector<std::pair<trx_hash_t, uint>> each_block_trxs_mode;
-    for (auto j(0); j < each_block_trx_size; ++j) {
-      trx_hash_t trx;
-      ok &= read(strm, trx);
-      if (!ok) {
-        assert(false);
-      }
-      j++;
-      uint mode;
-      ok &= read(strm, mode);
-      if (!ok) {
-        assert(false);
-      }
-      each_block_trxs_mode.emplace_back(std::make_pair(trx, mode));
-    }
-    trxs_mode.emplace_back(each_block_trxs_mode);
-  }
-  assert(ok);
-  return ok;
 }
 
 void TrxSchedule::setPtree(ptree& tree) const {
@@ -185,9 +150,17 @@ std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche) {
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& r) {
-  auto blockbytes = r.toBytes();
-  taraxa::bufferstream strm(blockbytes.data(), blockbytes.size());
-  deserialize(strm);
+  dev::RLP const rlp(r);
+  if (!rlp.isList())
+    throw std::invalid_argument("transaction RLP must be a list");
+  prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
+  dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
+  period_ = rlp[2].toInt<int64_t>();
+  height_ = rlp[3].toInt<int64_t>();
+  timestamp_ = rlp[4].toInt<int64_t>();
+  signature_ = rlp[5].toHash<sig_t>();
+  schedule_ = TrxSchedule(rlp[6]);
+  updateHash();
 }
 
 PbftBlock::PbftBlock(std::string const& str) {
@@ -201,41 +174,23 @@ PbftBlock::PbftBlock(std::string const& str) {
   period_ = doc.get<uint64_t>("period");
   height_ = doc.get<uint64_t>("height");
   timestamp_ = doc.get<uint64_t>("timestamp");
-  beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
   signature_ = sig_t(doc.get<std::string>("signature"));
 }
 
-bool PbftBlock::serialize(stream& strm) const {
-  bool ok = true;
-  ok &= write(strm, block_hash_);
-  ok &= write(strm, prev_block_hash_);
-  ok &= write(strm, dag_block_hash_as_pivot_);
-  schedule_.serialize(strm);
-  ok &= write(strm, period_);
-  ok &= write(strm, height_);
-  ok &= write(strm, timestamp_);
-  ok &= write(strm, beneficiary_);
-  ok &= write(strm, signature_);
-  assert(ok);
-  return ok;
+void PbftBlock::sign(secret_t const& sk) {
+  if (!signature_) {
+    timestamp_ = dev::utcTime();
+    signature_ = dev::sign(sk, sha3(false));
+  }
+  getAuthor();
+  updateHash();
 }
 
-bool PbftBlock::deserialize(taraxa::stream& strm) {
-  bool ok = true;
-  ok &= read(strm, block_hash_);
-  ok &= read(strm, prev_block_hash_);
-  ok &= read(strm, dag_block_hash_as_pivot_);
-  schedule_.deserialize(strm);
-  ok &= read(strm, period_);
-  ok &= read(strm, height_);
-  ok &= read(strm, timestamp_);
-  ok &= read(strm, beneficiary_);
-  ok &= read(strm, signature_);
-  assert(ok);
-  return ok;
+blk_hash_t PbftBlock::sha3(bool include_sig) const {
+  return dev::sha3(rlp(include_sig));
 }
 
-std::string PbftBlock::getJsonStr(bool with_signature) const {
+std::string PbftBlock::getJsonStr() const {
   ptree tree;
   tree.put("prev_block_hash", prev_block_hash_.toString());
   tree.put("dag_block_hash_as_pivot", dag_block_hash_as_pivot_.toString());
@@ -244,66 +199,43 @@ std::string PbftBlock::getJsonStr(bool with_signature) const {
   tree.put("period", period_);
   tree.put("height", height_);
   tree.put("timestamp", timestamp_);
-  tree.put("beneficiary", beneficiary_);
-  if (with_signature) {
-    tree.put("block_hash", block_hash_.toString());
-    tree.put("signature", signature_.toString());
-  }
+  tree.put("block_hash", block_hash_.toString());
+  tree.put("signature", signature_.toString());
+
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
 }
 
 addr_t PbftBlock::getAuthor() const {
-  assert(!signature_.isZero());
-  return dev::toAddress(dev::recover(signature_, dev::sha3(getJsonStr(false))));
+  if (!beneficiary_) {
+    if (!signature_) {
+      return addr_t{};
+    }
+    auto p = dev::recover(signature_, sha3(false));
+    assert(p);
+    beneficiary_ =
+        dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
+  }
+  return beneficiary_;
 }
 
 // Using to setup PBFT block hash
-void PbftBlock::streamRLP(dev::RLPStream& strm) const {
+void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
+  strm.appendList(include_sig ? 7 : 6);
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
-  // Schedule RLPStream
-  for (auto const& dag_blk_hash : schedule_.dag_blks_order) {
-    strm << dag_blk_hash;
-  }
-  for (auto const& each_dag_blk_trxs_mode : schedule_.trxs_mode) {
-    for (auto const& trx_mode : each_dag_blk_trxs_mode) {
-      strm << trx_mode.first;
-      strm << trx_mode.second;
-    }
-  }
   strm << period_;
   strm << height_;
   strm << timestamp_;
-  strm << beneficiary_;
-  strm << signature_;
+  if (include_sig) strm << signature_;
+  schedule_.streamRLP(strm);
 }
 
-bytes PbftBlock::rlp() const {
+bytes PbftBlock::rlp(bool include_sig) const {
   RLPStream strm;
-  serializeRLP(
-      strm);  // CCL: to fix, this is not from real rlp, should use streamRLP
+  streamRLP(strm, include_sig);
   return strm.out();
-}
-
-void PbftBlock::serializeRLP(dev::RLPStream& s) const {
-  std::vector<uint8_t> bytes;
-  {
-    vectorstream strm(bytes);
-    serialize(strm);
-  }
-  s.append(bytes);
-}
-
-void PbftBlock::setBlockHash() {
-  dev::RLPStream s;
-  streamRLP(s);
-  block_hash_ = dev::sha3(s.out());
-}
-
-void PbftBlock::setSignature(taraxa::sig_t const& signature) {
-  signature_ = signature;
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
@@ -337,7 +269,7 @@ PbftBlockCert::PbftBlockCert(PbftBlock const& pbft_blk,
 bytes PbftBlockCert::rlp() const {
   RLPStream s;
   s.appendList(cert_votes.size() + 1);
-  s.append(pbft_blk.rlp());
+  s.append(pbft_blk.rlp(true));
   for (auto const& v : cert_votes) {
     s.append(v.rlp());
   }

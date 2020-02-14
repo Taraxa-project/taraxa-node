@@ -44,6 +44,7 @@ struct TrxSchedule {
       vec_blk_t const& blks,
       std::vector<std::vector<std::pair<trx_hash_t, uint>>> const& modes)
       : dag_blks_order(blks), trxs_mode(modes) {}
+  TrxSchedule(dev::RLP const& r);
   // Construct from RLP
   TrxSchedule(bytes const& rlpData);
   ~TrxSchedule() {}
@@ -53,9 +54,8 @@ struct TrxSchedule {
   // It is multiple array of transactions
   // TODO: optimize trx_mode type
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
+  void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
   void setPtree(ptree& tree) const;
   void setSchedule(ptree const& tree);
   bool operator==(TrxSchedule const& other) const {
@@ -87,13 +87,18 @@ class PbftBlock {
   PbftBlock(std::string const& str);
   ~PbftBlock() {}
 
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
-  std::string getJsonStr(bool with_signature = true) const;
+  std::string getJsonStr() const;
   addr_t getAuthor() const;
-  void streamRLP(dev::RLPStream& strm) const;
-  bytes rlp() const;
-  void serializeRLP(dev::RLPStream& s) const;
+  blk_hash_t sha3(bool include_sig) const;
+  void sign(secret_t const& sk);
+  void updateHash() {
+    if (!block_hash_) {
+      block_hash_ = dev::sha3(rlp(true));
+    }
+  }
+  bool verifySig() const;
+  void streamRLP(dev::RLPStream& strm, bool include_sig) const;
+  bytes rlp(bool include_sig) const;
 
   blk_hash_t getBlockHash() const { return block_hash_; }
   blk_hash_t getPrevBlockHash() const { return prev_block_hash_; }
@@ -102,10 +107,6 @@ class PbftBlock {
   uint64_t getPeriod() const { return period_; }
   uint64_t getHeight() const { return height_; }
   uint64_t getTimestamp() const { return timestamp_; }
-  addr_t getBeneficiary() const { return beneficiary_; }
-
-  void setBlockHash();
-  void setSignature(sig_t const& signature);
 
  private:
   blk_hash_t block_hash_;
@@ -117,7 +118,7 @@ class PbftBlock {
   uint64_t
       height_;  // PBFT head block is height 1, first PBFT blick is height 2
   uint64_t timestamp_;
-  addr_t beneficiary_;
+  mutable addr_t beneficiary_;
   sig_t signature_;
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);

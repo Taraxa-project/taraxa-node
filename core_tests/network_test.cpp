@@ -359,9 +359,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   addr_t beneficiary(987);
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
                         timestamp, beneficiary);
-  sig_t signature = node1->signMessage(pbft_block1.getJsonStr(false));
-  pbft_block1.setSignature(signature);
-  pbft_block1.setBlockHash();
+  pbft_block1.sign(node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(node1->generateVote(
@@ -384,9 +382,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   beneficiary = addr_t(654);
   PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
                         timestamp, beneficiary);
-  signature = node1->signMessage(pbft_block2.getJsonStr(false));
-  pbft_block2.setSignature(signature);
-  pbft_block2.setBlockHash();
+  pbft_block2.sign(node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(node1->generateVote(
@@ -457,9 +453,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   addr_t beneficiary(876);
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
                         timestamp, beneficiary);
-  sig_t signature = node1->signMessage(pbft_block1.getJsonStr(false));
-  pbft_block1.setSignature(signature);
-  pbft_block1.setBlockHash();
+  pbft_block1.sign(node1->getSecretKey());
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(node1->generateVote(
       pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
@@ -481,9 +475,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   beneficiary = addr_t(543);
   PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
                         timestamp, beneficiary);
-  signature = node1->signMessage(pbft_block2.getJsonStr(false));
-  pbft_block2.setSignature(signature);
-  pbft_block2.setBlockHash();
+  pbft_block2.sign(node1->getSecretKey());
 
   std::cout << "There are no votes for the second PBFT block" << std::endl;
 

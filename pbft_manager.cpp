@@ -1172,10 +1172,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
                        propose_pbft_period, pbft_block_height, timestamp,
                        beneficiary);
   // sign the pbft block
-  std::string pbft_block_str = pbft_block.getJsonStr(false);
-  sig_t signature = full_node->signMessage(pbft_block_str);
-  pbft_block.setSignature(signature);
-  pbft_block.setBlockHash();
+  pbft_block.sign(full_node->getSecretKey());
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block

@@ -69,11 +69,9 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   addr_t beneficiary(98765);
   PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, schedule,
                         period, height, timestamp, beneficiary);
-  sig_t signature = node->signMessage(pbft_block1.getJsonStr(false));
-  pbft_block1.setSignature(signature);
-  pbft_block1.setBlockHash();
+  pbft_block1.sign(node->getSecretKey());
 
-  auto rlp = pbft_block1.rlp();
+  auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
   EXPECT_EQ(pbft_block1.getJsonStr(), pbft_block2.getJsonStr());
 }
@@ -99,9 +97,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   addr_t beneficiary(987);
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
                         timestamp, beneficiary);
-  sig_t signature = node->signMessage(pbft_block1.getJsonStr(false));
-  pbft_block1.setSignature(signature);
-  pbft_block1.setBlockHash();
+  pbft_block1.sign(node->getSecretKey());
 
   // put into pbft chain and store into DB
   bool push_block = pbft_chain->pushPbftBlock(pbft_block1);
@@ -174,9 +170,7 @@ TEST_F(PbftChainTest, block_broadcast) {
   addr_t beneficiary(987);
   PbftBlock pbft_block(prev_block_hash, dag_blk, schedule, period, height,
                        timestamp, beneficiary);
-  sig_t signature = node1->signMessage(pbft_block.getJsonStr(false));
-  pbft_block.setSignature(signature);
-  pbft_block.setBlockHash();
+  pbft_block.sign(node1->getSecretKey());
 
   node1->pushUnverifiedPbftBlock(pbft_block);
   std::pair<PbftBlock, bool> block1_from_node1 =
