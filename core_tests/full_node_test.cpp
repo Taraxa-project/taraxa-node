@@ -1583,7 +1583,7 @@ TEST_F(FullNodeTest,
                             samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
                             node->getSecretKey());
   for (auto const &trx : transactions) {
-    node->insertTransaction(trx);
+    node->insertTransaction(trx, false);
   }
   auto trx_executed = node->getNumTransactionExecuted();
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {

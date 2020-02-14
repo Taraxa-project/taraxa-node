@@ -14,10 +14,11 @@
 #include <queue>
 #include <thread>
 #include <vector>
+#include "config.hpp"
 #include "dag_block.hpp"
 #include "db_storage.hpp"
+#include "eth/eth_service.hpp"
 #include "util.hpp"
-#include "config.hpp"
 
 namespace taraxa {
 
@@ -213,11 +214,14 @@ class Transaction {
 class TransactionQueue {
  public:
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
-  TransactionQueue(TransactionStatusTable &status,
-                   AccountNonceTable &accs_nonce, size_t num_verifiers)
+  TransactionQueue(
+      TransactionStatusTable &status, AccountNonceTable &accs_nonce,
+      size_t num_verifiers,
+      std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
       : trx_status_(status),
         accs_nonce_(accs_nonce),
-        num_verifiers_(num_verifiers) {}
+        num_verifiers_(num_verifiers),
+        eth_service_(eth_service) {}
   TransactionQueue(TransactionStatusTable &status,
                    AccountNonceTable &accs_nonce, size_t num_verifiers,
                    unsigned current_capacity, unsigned future_capacity)
@@ -229,7 +233,7 @@ class TransactionQueue {
 
   void start();
   void stop();
-  bool insert(Transaction const &trx, bool critical);
+  bool insert(Transaction const &trx, bool verify);
   Transaction top();
   void pop();
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(
@@ -245,6 +249,7 @@ class TransactionQueue {
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
+  bool verifyTransaction(Transaction const &trx) const;
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -273,6 +278,7 @@ class TransactionQueue {
   boost::condition_variable_any cond_for_unverified_qu_;
 
   std::vector<std::thread> verifiers_;
+  std::shared_ptr<eth::eth_service::EthService> eth_service_;
 
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXQU")};
@@ -300,12 +306,14 @@ class TransactionManager
   enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(TestParamsConfig conf)
+  TransactionManager(
+      TestParamsConfig conf,
+      std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
       : conf_(conf),
         trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
-        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
+        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/, eth_service) {}
   TransactionManager(std::shared_ptr<DbStorage> db)
       : db_(db),
         trx_status_(1000000, 1000),
@@ -327,7 +335,7 @@ class TransactionManager
   void stop();
   void setFullNode(std::shared_ptr<FullNode> full_node);
   bool insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
-                 bool critical);
+                 bool verify);
 
   /**
    * The following function will require a lock for verified qu

@@ -47,7 +47,7 @@ TEST_F(PerformanceTest, execute_transactions) {
   EXPECT_EQ(res.first, initbal);
 
   for (auto const &t : transactions) {
-    node->insertTransaction(t);
+    node->insertTransaction(t, false);
     // taraxa::thisThreadSleepForMilliSeconds(50);
   }
 

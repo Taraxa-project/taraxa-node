@@ -257,7 +257,7 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
                                                TEST_TX_GAS_LIMIT, receiver,
                                                data, g_secret);
-  node->insertTransaction(trx_master_boot_node_to_receiver);
+  node->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (int i = 0; i < 1000; i++) {
     // test timeout is 100 seconds

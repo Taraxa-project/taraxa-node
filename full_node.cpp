@@ -72,7 +72,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
                                      conf_.test_params.max_block_queue_warn);
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params);
+  eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -83,7 +84,6 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.chain.replay_protection_service_range, db_);
-  eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
   executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
                                      log_time_,  //
                                      db_,
@@ -240,17 +240,13 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
-bool FullNode::insertTransaction(Transaction const &trx) {
-  eth_service_->sealEngine()->verifyTransaction(
-      dev::eth::ImportRequirements::Everything,
-      eth::util::trx_taraxa_2_eth(trx),  //
-      eth_service_->getBlockHeader(),    //
-      0);
+bool FullNode::insertTransaction(Transaction const &trx, bool verify) {
   auto rlp = trx.rlp(true);
-  if (conf_.network.network_transaction_interval == 0) {
+  auto ret = trx_mgr_->insertTrx(trx, rlp, verify);
+  if (ret && conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({rlp});
   }
-  return trx_mgr_->insertTrx(trx, rlp, true);
+  return ret;
 }
 
 std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
@@ -477,7 +473,7 @@ void FullNode::insertBroadcastedTransactions(
   }
   for (auto const &t : transactions) {
     Transaction trx(t);
-    trx_mgr_->insertTrx(trx, t, false /* critical */);
+    trx_mgr_->insertTrx(trx, t, false);
     LOG(log_time_dg_) << "Transaction " << trx.getHash()
                       << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
