@@ -151,8 +151,7 @@ PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& r) {
   dev::RLP const rlp(r);
-  if (!rlp.isList())
-    throw std::invalid_argument("transaction RLP must be a list");
+  if (!rlp.isList()) throw std::invalid_argument("PBFT RLP must be a list");
   prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
   dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
   period_ = rlp[2].toInt<int64_t>();
@@ -160,7 +159,7 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   timestamp_ = rlp[4].toInt<int64_t>();
   signature_ = rlp[5].toHash<sig_t>();
   schedule_ = TrxSchedule(rlp[6]);
-  updateHash();
+  calculateHash();
 }
 
 PbftBlock::PbftBlock(std::string const& str) {
@@ -175,6 +174,21 @@ PbftBlock::PbftBlock(std::string const& str) {
   height_ = doc.get<uint64_t>("height");
   timestamp_ = doc.get<uint64_t>("timestamp");
   signature_ = sig_t(doc.get<std::string>("signature"));
+  beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
+  block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
+}
+
+void PbftBlock::calculateHash() {
+  if (!block_hash_) {
+    block_hash_ = dev::sha3(rlp(true));
+  } else {
+    // Hash sould only be calculated once
+    assert(false);
+  }
+  auto p = dev::recover(signature_, sha3(false));
+  assert(p);
+  beneficiary_ =
+      dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
 }
 
 void PbftBlock::sign(secret_t const& sk) {
@@ -182,8 +196,7 @@ void PbftBlock::sign(secret_t const& sk) {
     timestamp_ = dev::utcTime();
     signature_ = dev::sign(sk, sha3(false));
   }
-  getAuthor();
-  updateHash();
+  calculateHash();
 }
 
 blk_hash_t PbftBlock::sha3(bool include_sig) const {
@@ -201,24 +214,15 @@ std::string PbftBlock::getJsonStr() const {
   tree.put("timestamp", timestamp_);
   tree.put("block_hash", block_hash_.toString());
   tree.put("signature", signature_.toString());
+  tree.put("beneficiary", beneficiary_);
+  tree.put("block_hash", block_hash_);
 
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
   return ostrm.str();
 }
 
-addr_t PbftBlock::getAuthor() const {
-  if (!beneficiary_) {
-    if (!signature_) {
-      return addr_t{};
-    }
-    auto p = dev::recover(signature_, sha3(false));
-    assert(p);
-    beneficiary_ =
-        dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
-  }
-  return beneficiary_;
-}
+addr_t PbftBlock::getBeneficiary() const { return beneficiary_; }
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {

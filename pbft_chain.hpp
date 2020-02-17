@@ -88,14 +88,10 @@ class PbftBlock {
   ~PbftBlock() {}
 
   std::string getJsonStr() const;
-  addr_t getAuthor() const;
+  addr_t getBeneficiary() const;
   blk_hash_t sha3(bool include_sig) const;
   void sign(secret_t const& sk);
-  void updateHash() {
-    if (!block_hash_) {
-      block_hash_ = dev::sha3(rlp(true));
-    }
-  }
+  void calculateHash();
   bool verifySig() const;
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
@@ -118,7 +114,7 @@ class PbftBlock {
   uint64_t
       height_;  // PBFT head block is height 1, first PBFT blick is height 2
   uint64_t timestamp_;
-  mutable addr_t beneficiary_;
+  addr_t beneficiary_;
   sig_t signature_;
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
