@@ -645,15 +645,26 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   unsigned int delay = 0;
   vec_trx_t unsaved_trx;
   while (delay < 10000) {
-    // {
-    //   auto removed_trx =
-    //       trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
-    //   for (auto const &trx : removed_trx) {
-    //     db_trxs_->update(trx.first, trx.second.rlp(trx.second.hasSig()));
-    //     trx_status_.update(trx.first, TransactionStatus::in_block);
-    //   }
-    //   db_trxs_->commit();
-    // }
+    auto removed_trx =
+        trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
+    std::vector<trx_hash_t> trxs_written_to_db;
+    if (removed_trx.size() > 0) {
+      auto trx_batch = db_->createWriteBatch();
+      for (auto const &trx : removed_trx) {
+        if (!db_->transactionInDb(trx.first)) {
+          trxs_written_to_db.push_back(trx.first);
+          trx_count_.fetch_add(1);
+          db_->addTransactionToBatch(trx.second, trx_batch);
+        }
+      }
+      auto trx_count = trx_count_.load();
+      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+      db_->commitWriteBatch(trx_batch);
+
+      for (auto const &trx : trxs_written_to_db) {
+        trx_status_.update(trx, TransactionStatus::in_block);
+      }
+    }
     all_transactions_saved = true;
     unsaved_trx.clear();
     for (auto const &trx : all_block_trx_hashes) {

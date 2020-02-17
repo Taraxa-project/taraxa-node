@@ -923,6 +923,28 @@ TEST_F(NetworkTest, node_full_sync) {
       level++;
     }
   }
+
+  // This checks for any duplicate transaction in consecutive blocks
+  std::map<blk_hash_t, std::set<trx_hash_t>> trxHist;
+  uint64_t level = 1;
+  while (true) {
+    auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
+    for (auto b : blocks1) {
+      for (auto t : trxHist[b->getPivot()]) trxHist[b->getHash()].insert(t);
+      for (auto tip : b->getTips()) {
+        for (auto t : trxHist[tip]) trxHist[b->getHash()].insert(t);
+      }
+      for (auto t : b->getTrxs()) {
+        if (trxHist[b->getHash()].count(t) > 0) {
+          printf("FOUND DUPLICATE TRANSACTION %s\n", t.toString().c_str());
+          ASSERT_EQ(1, 2);
+        }
+        trxHist[b->getHash()].insert(t);
+      }
+    }
+    if (blocks1.size() == 0) break;
+    level++;
+  }
 }
 
 }  // namespace taraxa
