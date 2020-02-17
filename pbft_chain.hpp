@@ -69,7 +69,9 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : block_hash_(block_hash), height_(height) {}  // For unit test
+      : prev_block_hash_(block_hash), height_(height) {
+    sign(secret_t::random());
+  }  // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
             TrxSchedule const& schedule, uint64_t period, uint64_t height,
