@@ -162,6 +162,23 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   calculateHash();
 }
 
+PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash,
+                     blk_hash_t const& dag_blk_hash_as_pivot,
+                     TrxSchedule const& schedule, uint64_t period,
+                     uint64_t height, uint64_t timestamp,
+                     addr_t const& beneficiary, secret_t const& sk)
+    : prev_block_hash_(prev_blk_hash),
+      dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
+      schedule_(schedule),
+      period_(period),
+      height_(height),
+      timestamp_(timestamp),
+      beneficiary_(beneficiary) {
+  timestamp_ = dev::utcTime();
+  signature_ = dev::sign(sk, sha3(false));
+  calculateHash();
+}
+
 PbftBlock::PbftBlock(std::string const& str) {
   ptree doc = strToJson(str);
   block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
@@ -189,14 +206,6 @@ void PbftBlock::calculateHash() {
   assert(p);
   beneficiary_ =
       dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
-}
-
-void PbftBlock::sign(secret_t const& sk) {
-  if (!signature_) {
-    timestamp_ = dev::utcTime();
-    signature_ = dev::sign(sk, sha3(false));
-  }
-  calculateHash();
 }
 
 blk_hash_t PbftBlock::sha3(bool include_sig) const {

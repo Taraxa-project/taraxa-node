@@ -1170,9 +1170,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   // generate generate pbft block
   PbftBlock pbft_block(last_pbft_block_hash, dag_block_hash, schedule,
                        propose_pbft_period, pbft_block_height, timestamp,
-                       beneficiary);
-  // sign the pbft block
-  pbft_block.sign(full_node->getSecretKey());
+                       beneficiary, full_node->getSecretKey());
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block

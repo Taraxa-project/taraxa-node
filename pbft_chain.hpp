@@ -69,20 +69,12 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : prev_block_hash_(block_hash), height_(height) {
-    sign(secret_t::random());
-  }  // For unit test
+      : PbftBlock(block_hash, blk_hash_t(0), TrxSchedule(), 1, height, 0,
+                  addr_t(0), secret_t::random()) {}  // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
             TrxSchedule const& schedule, uint64_t period, uint64_t height,
-            uint64_t timestamp, addr_t const& beneficiary)
-      : prev_block_hash_(prev_blk_hash),
-        dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
-        schedule_(schedule),
-        period_(period),
-        height_(height),
-        timestamp_(timestamp),
-        beneficiary_(beneficiary) {}
+            uint64_t timestamp, addr_t const& beneficiary, secret_t const& sk);
   PbftBlock(dev::RLP const& r);
   PbftBlock(bytes const& b);
 
@@ -92,8 +84,6 @@ class PbftBlock {
   std::string getJsonStr() const;
   addr_t getBeneficiary() const;
   blk_hash_t sha3(bool include_sig) const;
-  void sign(secret_t const& sk);
-  void calculateHash();
   bool verifySig() const;
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
@@ -107,6 +97,8 @@ class PbftBlock {
   uint64_t getTimestamp() const { return timestamp_; }
 
  private:
+  void calculateHash();
+
   blk_hash_t block_hash_;
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_as_pivot_;
