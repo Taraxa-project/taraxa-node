@@ -1,6 +1,7 @@
 #include "db_storage.hpp"
 
 #include "transaction.hpp"
+#include "vote.hpp"
 
 namespace taraxa {
 using namespace std;
@@ -177,48 +178,85 @@ void DbStorage::addStatusFieldToBatch(StatusDbField const& field,
             toSlice(value));
 }
 
-void DbStorage::savePbftBlock(PbftBlock const& block) {
-  insert(Columns::pbft_blocks, block.getBlockHash().toString(),
-         block.getJsonStr());
-}
-
+// PBFT
 std::shared_ptr<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
-  auto block = lookup(hash.toString(), Columns::pbft_blocks);
-  if (!block.empty()) return std::make_shared<PbftBlock>(block);
+  auto block = lookup(toSlice(hash.asBytes()), Columns::pbft_blocks);
+  if (!block.empty()) {
+    return std::make_shared<PbftBlock>(block);
+  }
   return nullptr;
 }
 
-bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
-  return !lookup(hash.toString(), Columns::pbft_blocks).empty();
+void DbStorage::savePbftBlock(PbftBlock const& block) {
+  insert(Columns::pbft_blocks, toSlice(block.getBlockHash().asBytes()),
+         block.getJsonStr());
 }
 
-void DbStorage::savePbftBlockGenesis(string const& hash, string const& block) {
-  insert(Columns::pbft_blocks, hash, block);
+bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
+  return !lookup(toSlice(hash.asBytes()), Columns::pbft_blocks).empty();
+}
+
+void DbStorage::addPbftBlockToBatch(
+    const taraxa::PbftBlock& pbft_block,
+    const taraxa::DbStorage::BatchPtr& write_batch) {
+  batch_put(write_batch, Columns::pbft_blocks,
+            toSlice(pbft_block.getBlockHash().asBytes()),
+            pbft_block.getJsonStr());
 }
 
 string DbStorage::getPbftBlockGenesis(string const& hash) {
   return lookup(hash, Columns::pbft_blocks);
 }
 
-void DbStorage::savePbftBlockOrder(string const& index,
-                                   blk_hash_t const& hash) {
-  insert(Columns::pbft_blocks_order, index, hash.toString());
+void DbStorage::savePbftBlockGenesis(string const& hash,
+                                     string const& block) {
+  insert(Columns::pbft_blocks, hash, block);
 }
 
-std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(string const& index) {
-  auto block = lookup(index, Columns::pbft_blocks_order);
-  if (!block.empty()) return std::make_shared<blk_hash_t>(block);
+void DbStorage::addPbftChainHeadToBatch(
+    taraxa::blk_hash_t const& pbft_chain_head_hash,
+    std::string const& pbft_chain_head_str,
+    const taraxa::DbStorage::BatchPtr& write_batch) {
+  batch_put(write_batch, Columns::pbft_blocks,
+            toSlice(pbft_chain_head_hash.asBytes()), pbft_chain_head_str);
+}
+
+std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(
+    uint64_t const& index) {
+  auto block = lookup(toSlice(index), Columns::pbft_blocks_order);
+  if (!block.empty()) {
+    return std::make_shared<blk_hash_t>(block);
+  }
   return nullptr;
 }
 
-void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash) {
-  insert(Columns::dag_blocks_order, index, hash.toString());
+void DbStorage::savePbftBlockOrder(uint64_t const& index,
+                                   blk_hash_t const& hash) {
+  insert(Columns::pbft_blocks_order, toSlice(index), hash.toString());
+}
+
+void DbStorage::addPbftBlockIndexToBatch(
+    const uint64_t& pbft_block_index, const taraxa::blk_hash_t& pbft_block_hash,
+    const taraxa::DbStorage::BatchPtr& write_batch) {
+  batch_put(write_batch, Columns::pbft_blocks_order, toSlice(pbft_block_index),
+            pbft_block_hash.toString());
 }
 
 std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index) {
   auto block = lookup(index, Columns::dag_blocks_order);
-  if (!block.empty()) return std::make_shared<blk_hash_t>(block);
+  if (!block.empty()) {
+    return std::make_shared<blk_hash_t>(block);
+  }
   return nullptr;
+}
+
+void DbStorage::saveDagBlockOrder(string const& index,
+                                  blk_hash_t const& hash) {
+  insert(Columns::dag_blocks_order, index, hash.toString());
+}
+
+string DbStorage::getDagBlockHeight(blk_hash_t const& hash) {
+  return lookup(hash.toString(), Columns::dag_blocks_height);
 }
 
 void DbStorage::saveDagBlockHeight(blk_hash_t const& hash,
@@ -226,8 +264,19 @@ void DbStorage::saveDagBlockHeight(blk_hash_t const& hash,
   insert(Columns::dag_blocks_height, hash.toString(), height);
 }
 
-string DbStorage::getDagBlockHeight(blk_hash_t const& hash) {
-  return lookup(hash.toString(), Columns::dag_blocks_height);
+void DbStorage::addDagBlockOrderAndHeightToBatch(
+    taraxa::blk_hash_t const& dag_block_hash,
+    uint64_t const& max_dag_blocks_height,
+    const taraxa::DbStorage::BatchPtr& write_batch) {
+  // Add DAG block hash into DAG blocks order DB batch.
+  // DAG genesis at index 1
+  batch_put(write_batch, Columns::dag_blocks_order,
+            std::to_string(max_dag_blocks_height), dag_block_hash.toString());
+  // Add DAG block hash into DAG blocks height DB batch
+  // key : dag block hash, value : dag block height
+  // DAG genesis is block height 1
+  batch_put(write_batch, Columns::dag_blocks_height,
+            dag_block_hash.toString(), toSlice(max_dag_blocks_height));
 }
 
 string DbStorage::getSortitionAccount(string const& key) {
@@ -277,17 +326,34 @@ void DbStorage::saveVote(blk_hash_t const& hash, bytes& value) {
   insert(Columns::votes, toSlice(hash.asBytes()), toSlice(value));
 }
 
+void DbStorage::addPbftCertVotesToBatch(
+    const taraxa::blk_hash_t& pbft_block_hash,
+    const std::vector<Vote>& cert_votes,
+    const taraxa::DbStorage::BatchPtr& write_batch) {
+  RLPStream s;
+  s.appendList(cert_votes.size());
+  for (auto const &v : cert_votes) {
+    s.append(v.rlp());
+  }
+  auto ss = s.out();
+  batch_put(write_batch, Columns::votes, toSlice(pbft_block_hash.asBytes()),
+            toSlice(ss));
+}
+
 shared_ptr<blk_hash_t> DbStorage::getPeriodScheduleBlock(
     uint64_t const& period) {
   auto hash = asBytes(lookup(toSlice(period), Columns::period_schedule_block));
-  if (hash.size() > 0) return make_shared<blk_hash_t>(hash);
+  if (hash.size() > 0) {
+    return make_shared<blk_hash_t>(hash);
+  }
   return nullptr;
 }
 
-void DbStorage::savePeriodScheduleBlock(uint64_t const& period,
-                                        blk_hash_t const& hash) {
-  insert(Columns::period_schedule_block, toSlice(period),
-         toSlice(hash.asBytes()));
+void DbStorage::addPbftBlockPeriodToBatch(
+    uint64_t const& period, taraxa::blk_hash_t const& pbft_block_hash,
+    const taraxa::DbStorage::BatchPtr& write_batch) {
+  batch_put(write_batch, Columns::period_schedule_block, toSlice(period),
+            toSlice(pbft_block_hash.asBytes()));
 }
 
 std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
@@ -297,11 +363,6 @@ std::shared_ptr<uint64_t> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
     return make_shared<uint64_t>(*(uint64_t*)&period[0]);
   }
   return nullptr;
-}
-
-void DbStorage::saveDagBlockPeriod(blk_hash_t const& hash,
-                                   uint64_t const& period) {
-  insert(Columns::dag_block_period, toSlice(hash.asBytes()), toSlice(period));
 }
 
 void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash,
