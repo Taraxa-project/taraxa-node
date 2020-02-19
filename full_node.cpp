@@ -520,19 +520,19 @@ bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
   // update transaction overlap table first
   trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
 
-  auto new_eth_header = executor_->execute(batch, pbft_block,
-                                           sortition_account_balance_table);
+  auto new_eth_header =
+      executor_->execute(batch, pbft_block, sortition_account_balance_table);
   if (!new_eth_header) {
     return false;
   }
   if (ws_server_) {
-    ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,
-                                                 eth_service_->sealEngine()));
+    ws_server_->newOrderedBlock(
+        dev::eth::toJson(*new_eth_header, eth_service_->sealEngine()));
   }
   return true;
 }
 
-void FullNode::updateWsScheduleBlockExecuted(PbftBlock const& pbft_block) {
+void FullNode::updateWsScheduleBlockExecuted(PbftBlock const &pbft_block) {
   uint64_t block_number = 0;
   if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
     block_number =

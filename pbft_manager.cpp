@@ -1279,16 +1279,15 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
     for (auto i = 0; i < dag_blocks_hash_in_schedule.size(); i++) {
       if (dag_blocks_hash_in_schedule[i] != (*dag_blocks_hash_order)[i]) {
         LOG(log_inf_) << "DAG blocks have not sync yet. In period: "
-                      << last_period
-                      << ", DAG block hash " << dag_blocks_hash_in_schedule[i]
+                      << last_period << ", DAG block hash "
+                      << dag_blocks_hash_in_schedule[i]
                       << " in PBFT schedule is different with DAG block hash "
                       << (*dag_blocks_hash_order)[i];
         return false;
       }
     }
   } else {
-    LOG(log_inf_) << "DAG blocks have not sync yet. In period: "
-                  << last_period
+    LOG(log_inf_) << "DAG blocks have not sync yet. In period: " << last_period
                   << " PBFT block schedule DAG blocks size: "
                   << dag_blocks_hash_in_schedule.size()
                   << ", DAG blocks size: " << dag_blocks_hash_order->size();
@@ -1454,8 +1453,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   }
 }
 
-bool PbftManager::pushPbftBlock_(PbftBlock const& pbft_block,
-                                 std::vector<Vote> const& cert_votes) {
+bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
+                                 std::vector<Vote> const &cert_votes) {
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_err_) << "PBFT block: " << pbft_block_hash << " in DB already";
@@ -1468,7 +1467,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const& pbft_block,
                                 sortition_account_balance_table_tmp)) {
     LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
                   << pbft_block;
-    for (auto const& v : cert_votes) {
+    for (auto const &v : cert_votes) {
       LOG(log_err_) << "Cert vote: " << v;
     }
     return false;
@@ -1560,9 +1559,10 @@ bool PbftManager::pushPbftBlock_(PbftBlock const& pbft_block,
   return true;
 }
 
-//bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
+// bool PbftManager::pushPbftBlockIntoChain_(PbftBlock const &pbft_block) {
 //  if (pbft_chain_->pushPbftBlock(pbft_block)) {
-//    LOG(log_inf_) << "Successful push pbft block " << pbft_block.getBlockHash()
+//    LOG(log_inf_) << "Successful push pbft block " <<
+//    pbft_block.getBlockHash()
 //                  << " into chain! in round " << pbft_round_;
 //    // reset proposed PBFT block hash to False for next pbft block proposal
 //    proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1583,7 +1583,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const& pbft_block,
 //    // set DAG blocks period
 //    uint64_t current_pbft_chain_period = last_pbft_block.getPeriod();
 //    uint dag_ordered_blocks_size =
-//        full_node->setDagBlockOrder(dag_block_hash, current_pbft_chain_period);
+//        full_node->setDagBlockOrder(dag_block_hash,
+//        current_pbft_chain_period);
 //    // Finalize PBFT block
 //    LOG(log_deb_) << full_node->getAddress()
 //                  << " Finalize PBFT block in period "

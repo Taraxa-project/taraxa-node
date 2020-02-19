@@ -485,7 +485,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
   return result;
 }
 
-//bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
+// bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
 //  if (db_->pbftBlockInDb(pbft_block.getBlockHash())) {
 //    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
 //                  << " into DB";
@@ -499,7 +499,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
 //  return true;
 //}
 //
-//bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
+// bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
 //  if (!checkPbftBlockValidation(pbft_block)) {
 //    return false;
 //  }
@@ -517,7 +517,8 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
 //  assert(pbft_block.getHeight() == size_);
 //  insertPbftBlockIndex_(pbft_block_hash);
 //  LOG(log_inf_) << "Push pbft block " << pbft_block_hash
-//                << " with DAG block hash " << pbft_block.getPivotDagBlockHash()
+//                << " with DAG block hash " <<
+//                pbft_block.getPivotDagBlockHash()
 //                << " into pbft chain, current pbft chain period " << period_
 //                << " chain size is " << size_;
 //  return true;

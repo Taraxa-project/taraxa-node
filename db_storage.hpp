@@ -136,7 +136,7 @@ struct DbStorage {
 
   // PBFT
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
-  void savePbftBlock(PbftBlock const& block); // for unit test
+  void savePbftBlock(PbftBlock const& block);  // for unit test
   bool pbftBlockInDb(blk_hash_t const& hash);
   void addPbftBlockToBatch(PbftBlock const& pbft_block,
                            BatchPtr const& write_batch);
@@ -181,7 +181,7 @@ struct DbStorage {
                                   BatchPtr const& write_batch);
 
   bytes getVote(blk_hash_t const& hash);
-  void saveVote(blk_hash_t const& hash, bytes& value); // for unit test
+  void saveVote(blk_hash_t const& hash, bytes& value);  // for unit test
   void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash,
                                std::vector<Vote> const& cert_votes,
                                BatchPtr const& write_batch);

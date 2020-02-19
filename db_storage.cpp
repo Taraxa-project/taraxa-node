@@ -208,8 +208,7 @@ string DbStorage::getPbftBlockGenesis(string const& hash) {
   return lookup(hash, Columns::pbft_blocks);
 }
 
-void DbStorage::savePbftBlockGenesis(string const& hash,
-                                     string const& block) {
+void DbStorage::savePbftBlockGenesis(string const& hash, string const& block) {
   insert(Columns::pbft_blocks, hash, block);
 }
 
@@ -250,8 +249,7 @@ std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index) {
   return nullptr;
 }
 
-void DbStorage::saveDagBlockOrder(string const& index,
-                                  blk_hash_t const& hash) {
+void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash) {
   insert(Columns::dag_blocks_order, index, hash.toString());
 }
 
@@ -275,8 +273,8 @@ void DbStorage::addDagBlockOrderAndHeightToBatch(
   // Add DAG block hash into DAG blocks height DB batch
   // key : dag block hash, value : dag block height
   // DAG genesis is block height 1
-  batch_put(write_batch, Columns::dag_blocks_height,
-            dag_block_hash.toString(), toSlice(max_dag_blocks_height));
+  batch_put(write_batch, Columns::dag_blocks_height, dag_block_hash.toString(),
+            toSlice(max_dag_blocks_height));
 }
 
 string DbStorage::getSortitionAccount(string const& key) {
@@ -332,7 +330,7 @@ void DbStorage::addPbftCertVotesToBatch(
     const taraxa::DbStorage::BatchPtr& write_batch) {
   RLPStream s;
   s.appendList(cert_votes.size());
-  for (auto const &v : cert_votes) {
+  for (auto const& v : cert_votes) {
     s.append(v.rlp());
   }
   auto ss = s.out();

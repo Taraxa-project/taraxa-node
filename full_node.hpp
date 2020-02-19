@@ -199,7 +199,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                      PbftBlock const &pbft_block,
                      std::unordered_map<addr_t, PbftSortitionAccount>
                          &sortition_account_balance_table);
-  void updateWsScheduleBlockExecuted(PbftBlock const& pbft_block);
+  void updateWsScheduleBlockExecuted(PbftBlock const &pbft_block);
 
   std::shared_ptr<DbStorage> getDB() const { return db_; }
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
