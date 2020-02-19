@@ -242,7 +242,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               }
               syncing_ = true;
               peer_syncing_pbft = _nodeID;
-              syncPeerPbft(_nodeID, pbft_chain_size + 1);
+              pbft_sync_height_ = full_node->pbftSyncingHeight();
+              syncPeerPbft(_nodeID, pbft_sync_height_ + 1);
             }
           } else {
             if (!syncing_ && peer_level > full_node->getMaxDagLevelInQueue()) {
@@ -564,7 +565,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                 << " chain size: " << full_node->getPbftChainSize()
                 << " queue: " << full_node->getPbftSyncedQueueSize();
             restartSyncingPbft(true);
-            break;
+            return true;
           }
           if (peer->pbft_chain_size_ <
               pbft_blk_and_votes.pbft_blk.getHeight()) {
@@ -616,7 +617,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                     << " chain size: " << full_node->getPbftChainSize()
                     << " queue: " << full_node->getPbftSyncedQueueSize();
                 restartSyncingPbft(true);
-                break;
+                return true;
               }
               LOG(log_nf_dag_sync_)
                   << "Storing block " << block.second.first.getHash().toString()
@@ -758,7 +759,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
         requesting_pending_dag_blocks_ = false;
         syncing_ = true;
         peer_syncing_pbft = max_pbft_chain_nodeID;
-        syncPeerPbft(peer_syncing_pbft, full_node->getPbftChainSize() + 1);
+        syncPeerPbft(peer_syncing_pbft, pbft_sync_height_ + 1);
       }
     } else {
       LOG(log_si_pbft_sync_)
