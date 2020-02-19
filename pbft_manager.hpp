@@ -139,9 +139,8 @@ class PbftManager {
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  void pushPbftBlock_(PbftBlock const& pbft_block,
-                      std::vector<Vote> const& cert_votes);
-  bool pushPbftBlockIntoChain_(PbftBlock const &pbft_block);
+  bool pushPbftBlock_(PbftBlock const &pbft_block,
+                      std::vector<Vote> const &cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
 
