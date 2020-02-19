@@ -198,8 +198,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool executePeriod(DbStorage::BatchPtr const &batch,
                      PbftBlock const &pbft_block,
                      std::unordered_map<addr_t, PbftSortitionAccount>
-                         &sortition_account_balance_table,
-                     uint64_t period);
+                         &sortition_account_balance_table);
+  void updateWsScheduleBlockExecuted(PbftBlock const& pbft_block);
 
   std::shared_ptr<DbStorage> getDB() const { return db_; }
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
@@ -224,8 +224,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
   void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
   void newPendingTransaction(trx_hash_t const &trx_hash);
-  void storeCertVotes(blk_hash_t const &pbft_hash,
-                      std::vector<Vote> const &votes);
   bool pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
                                    std::vector<Vote> &votes) const;
   void setTwoTPlusOne(size_t val);
