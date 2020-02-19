@@ -36,8 +36,7 @@ Executor::Executor(
 
 std::optional<dev::eth::BlockHeader> Executor::execute(
     DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-    BalanceTable& sortition_account_balance_table,
-    uint64_t period) {
+    BalanceTable& sortition_account_balance_table) {
   auto const& schedule = pbft_block.getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
   EthTransactions transactions;
@@ -94,8 +93,10 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
                                                    transactions,    //
                                                    execution_result.receipts,
                                                    execution_result.stateRoot);
+  uint64_t period = pbft_block.getPeriod();
   replay_protection_service_->commit(batch, period, transactions);
-
+  // Update PBFT sortition table for DAG block proposers who don't have account
+  // balance changed (no transaction relative accounts)
   for (auto& addr : dag_block_proposers) {
     auto sortition_table_entry =
         std_find(sortition_account_balance_table, addr);
@@ -106,6 +107,8 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
       pbft_sortition_account.status = new_change;
     }
   }
+  // Update PBFT sortition table for DAG block proposers who have account
+  // balance changed
   for (auto& [addr, balance] :
        execution_result.touchedExternallyOwnedAccountBalances) {
     auto is_proposer = bool(std_find(dag_block_proposers, addr));

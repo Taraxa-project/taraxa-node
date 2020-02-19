@@ -66,7 +66,7 @@ class Executor {
 
   std::optional<dev::eth::BlockHeader> execute(
       DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-      BalanceTable& sortition_account_balance_table, uint64_t period);
+      BalanceTable& sortition_account_balance_table);
 
   uint64_t getNumExecutedTrx() { return num_executed_trx_; }
   uint64_t getNumExecutedBlk() { return num_executed_blk_; }
