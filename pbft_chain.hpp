@@ -69,12 +69,12 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : PbftBlock(block_hash, blk_hash_t(0), TrxSchedule(), 1, height, 0,
+      : PbftBlock(block_hash, blk_hash_t(0), TrxSchedule(), 1, height,
                   addr_t(0), secret_t::random()) {}  // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
             TrxSchedule const& schedule, uint64_t period, uint64_t height,
-            uint64_t timestamp, addr_t const& beneficiary, secret_t const& sk);
+            addr_t const& beneficiary, secret_t const& sk);
   PbftBlock(dev::RLP const& r);
   PbftBlock(bytes const& b);
 
@@ -97,7 +97,7 @@ class PbftBlock {
   uint64_t getTimestamp() const { return timestamp_; }
 
  private:
-  void calculateHash();
+  void calculateHash_();
 
   blk_hash_t block_hash_;
   blk_hash_t prev_block_hash_;

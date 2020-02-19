@@ -1164,13 +1164,12 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   TrxSchedule schedule(*dag_blocks_hash_order, dag_blocks_trxs_mode);
   uint64_t propose_pbft_period = pbft_chain_->getPbftChainPeriod() + 1;
   uint64_t pbft_block_height = pbft_chain_->getPbftChainSize() + 1;
-  uint64_t timestamp = std::time(nullptr);
   addr_t beneficiary = full_node->getAddress();
 
   // generate generate pbft block
   PbftBlock pbft_block(last_pbft_block_hash, dag_block_hash, schedule,
-                       propose_pbft_period, pbft_block_height, timestamp,
-                       beneficiary, full_node->getSecretKey());
+                       propose_pbft_period, pbft_block_height, beneficiary,
+                       full_node->getSecretKey());
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block

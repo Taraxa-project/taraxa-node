@@ -65,11 +65,9 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   TrxSchedule schedule(blks, trxs_mode);
   uint64_t period = 1;
   uint64_t height = 2;
-  uint64_t timestamp = std::time(nullptr);
   addr_t beneficiary(98765);
   PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, schedule,
-                        period, height, timestamp, beneficiary,
-                        node->getSecretKey());
+                        period, height, beneficiary, node->getSecretKey());
 
   auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
@@ -93,10 +91,9 @@ TEST_F(PbftChainTest, pbft_db_test) {
   TrxSchedule schedule;
   uint64_t period = 1;
   uint64_t height = 2;
-  uint64_t timestamp = std::time(nullptr);
   addr_t beneficiary(987);
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
-                        timestamp, beneficiary, node->getSecretKey());
+                        beneficiary, node->getSecretKey());
 
   // put into pbft chain and store into DB
   bool push_block = pbft_chain->pushPbftBlock(pbft_block1);
@@ -165,10 +162,9 @@ TEST_F(PbftChainTest, block_broadcast) {
   TrxSchedule schedule;
   uint64_t period = 1;
   uint64_t height = 2;
-  uint64_t timestamp = std::time(nullptr);
   addr_t beneficiary(987);
   PbftBlock pbft_block(prev_block_hash, dag_blk, schedule, period, height,
-                       timestamp, beneficiary, node1->getSecretKey());
+                       beneficiary, node1->getSecretKey());
 
   node1->pushUnverifiedPbftBlock(pbft_block);
   std::pair<PbftBlock, bool> block1_from_node1 =

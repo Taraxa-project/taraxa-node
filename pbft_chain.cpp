@@ -159,24 +159,23 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   timestamp_ = rlp[4].toInt<int64_t>();
   signature_ = rlp[5].toHash<sig_t>();
   schedule_ = TrxSchedule(rlp[6]);
-  calculateHash();
+  calculateHash_();
 }
 
 PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash,
                      blk_hash_t const& dag_blk_hash_as_pivot,
                      TrxSchedule const& schedule, uint64_t period,
-                     uint64_t height, uint64_t timestamp,
+                     uint64_t height,
                      addr_t const& beneficiary, secret_t const& sk)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       schedule_(schedule),
       period_(period),
       height_(height),
-      timestamp_(timestamp),
       beneficiary_(beneficiary) {
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
-  calculateHash();
+  calculateHash_();
 }
 
 PbftBlock::PbftBlock(std::string const& str) {
@@ -192,10 +191,9 @@ PbftBlock::PbftBlock(std::string const& str) {
   timestamp_ = doc.get<uint64_t>("timestamp");
   signature_ = sig_t(doc.get<std::string>("signature"));
   beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
-  block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
 }
 
-void PbftBlock::calculateHash() {
+void PbftBlock::calculateHash_() {
   if (!block_hash_) {
     block_hash_ = dev::sha3(rlp(true));
   } else {
@@ -224,7 +222,6 @@ std::string PbftBlock::getJsonStr() const {
   tree.put("block_hash", block_hash_.toString());
   tree.put("signature", signature_.toString());
   tree.put("beneficiary", beneficiary_);
-  tree.put("block_hash", block_hash_);
 
   std::stringstream ostrm;
   boost::property_tree::write_json(ostrm, tree);
