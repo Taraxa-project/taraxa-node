@@ -297,10 +297,10 @@ TEST_F(FullNodeTest, db_test) {
   db.savePbftBlock(pbft_block2);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
-  EXPECT_EQ(db.getPbftBlock(pbft_block1.getBlockHash())->rlp(),
-            pbft_block1.rlp());
-  EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(),
-            pbft_block2.rlp());
+  EXPECT_EQ(db.getPbftBlock(pbft_block1.getBlockHash())->rlp(false),
+            pbft_block1.rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false),
+            pbft_block2.rlp(false));
 
   db.savePbftBlockOrder("1", blk_hash_t(1));
   db.savePbftBlockOrder("2", blk_hash_t(2));

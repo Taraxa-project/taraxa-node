@@ -44,6 +44,7 @@ struct TrxSchedule {
       vec_blk_t const& blks,
       std::vector<std::vector<std::pair<trx_hash_t, uint>>> const& modes)
       : dag_blks_order(blks), trxs_mode(modes) {}
+  TrxSchedule(dev::RLP const& r);
   // Construct from RLP
   TrxSchedule(bytes const& rlpData);
   ~TrxSchedule() {}
@@ -53,9 +54,8 @@ struct TrxSchedule {
   // It is multiple array of transactions
   // TODO: optimize trx_mode type
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
+  void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
   void setPtree(ptree& tree) const;
   void setSchedule(ptree const& tree);
   bool operator==(TrxSchedule const& other) const {
@@ -69,31 +69,24 @@ class PbftBlock {
  public:
   PbftBlock() = default;
   PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : block_hash_(block_hash), height_(height) {}  // For unit test
+      : PbftBlock(block_hash, blk_hash_t(0), TrxSchedule(), 1, height,
+                  addr_t(0), secret_t::random()) {}  // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
             TrxSchedule const& schedule, uint64_t period, uint64_t height,
-            uint64_t timestamp, addr_t const& beneficiary)
-      : prev_block_hash_(prev_blk_hash),
-        dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
-        schedule_(schedule),
-        period_(period),
-        height_(height),
-        timestamp_(timestamp),
-        beneficiary_(beneficiary) {}
+            addr_t const& beneficiary, secret_t const& sk);
   PbftBlock(dev::RLP const& r);
   PbftBlock(bytes const& b);
 
   PbftBlock(std::string const& str);
   ~PbftBlock() {}
 
-  bool serialize(stream& strm) const;
-  bool deserialize(stream& strm);
-  std::string getJsonStr(bool with_signature = true) const;
-  addr_t getAuthor() const;
-  void streamRLP(dev::RLPStream& strm) const;
-  bytes rlp() const;
-  void serializeRLP(dev::RLPStream& s) const;
+  std::string getJsonStr() const;
+  addr_t getBeneficiary() const;
+  blk_hash_t sha3(bool include_sig) const;
+  bool verifySig() const;
+  void streamRLP(dev::RLPStream& strm, bool include_sig) const;
+  bytes rlp(bool include_sig) const;
 
   blk_hash_t getBlockHash() const { return block_hash_; }
   blk_hash_t getPrevBlockHash() const { return prev_block_hash_; }
@@ -102,12 +95,10 @@ class PbftBlock {
   uint64_t getPeriod() const { return period_; }
   uint64_t getHeight() const { return height_; }
   uint64_t getTimestamp() const { return timestamp_; }
-  addr_t getBeneficiary() const { return beneficiary_; }
-
-  void setBlockHash();
-  void setSignature(sig_t const& signature);
 
  private:
+  void calculateHash_();
+
   blk_hash_t block_hash_;
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_as_pivot_;

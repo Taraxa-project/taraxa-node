@@ -65,7 +65,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
     }
   }
   auto [pending_header, current_header, trx_scope] = eth_service_->startBlock(
-      batch, pbft_block.getAuthor(), pbft_block.getTimestamp());
+      batch, pbft_block.getBeneficiary(), pbft_block.getTimestamp());
   StateTransitionResult execution_result;
   if (transactions.empty()) {
     execution_result.stateRoot = current_header.stateRoot();

@@ -1366,7 +1366,7 @@ void TaraxaCapability::sendPbftBlock(NodeID const &_id,
 
   RLPStream s;
   host_.capabilityHost()->prep(_id, name(), s, NewPbftBlockPacket, 2);
-  pbft_block.serializeRLP(s);
+  pbft_block.streamRLP(s, true);
   s << pbft_chain_size;
   host_.capabilityHost()->sealAndSend(_id, s);
 }
