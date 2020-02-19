@@ -364,6 +364,7 @@ std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
   return std::make_pair(*dag_block_hash, true);
 }
 
+// TODO: should remove, full node should call db directly
 std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
     blk_hash_t const& dag_block_hash) const {
   std::string dag_block_height_str = db_->getDagBlockHeight(dag_block_hash);
@@ -380,6 +381,10 @@ std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
 
 uint64_t PbftChain::getDagBlockMaxHeight() const {
   return max_dag_blocks_height_;
+}
+
+void PbftChain::setDagBlockMaxHeight(uint64_t const& max_dag_blocks_height) {
+  max_dag_blocks_height_ = max_dag_blocks_height;
 }
 
 void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
@@ -432,7 +437,7 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
                                                 size_t count) const {
   std::vector<PbftBlock> result;
   for (auto i = height; i < height + count; i++) {
-    auto pbft_block_hash = db_->getPbftBlockOrder(std::to_string(i));
+    auto pbft_block_hash = db_->getPbftBlockOrder(i);
     if (pbft_block_hash == nullptr) {
       LOG(log_err_) << "PBFT block height " << i
                     << " is not exist in blocks order DB.";
@@ -460,7 +465,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
                                                      bool hash) const {
   std::vector<std::string> result;
   for (auto i = height; i < height + count; i++) {
-    auto pbft_block_hash = db_->getPbftBlockOrder(std::to_string(i));
+    auto pbft_block_hash = db_->getPbftBlockOrder(i);
     if (pbft_block_hash == nullptr) {
       LOG(log_err_) << "PBFT block height " << i
                     << " is not exist in blocks order DB.";
@@ -480,42 +485,48 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
   return result;
 }
 
-bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
-  if (db_->pbftBlockInDb(pbft_block.getBlockHash())) {
-    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
-                  << " into DB";
-    return false;
-  }
-  db_->savePbftBlock(pbft_block);
-  // To protect PBFT syncing from peers happening in the same time
-  // PBFT chain DB commit first for block, and size_ increase later
-  size_++;
-  db_->savePbftBlockGenesis(genesis_hash_.toString(), getJsonStr());
-  return true;
-}
+//bool PbftChain::pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block) {
+//  if (db_->pbftBlockInDb(pbft_block.getBlockHash())) {
+//    LOG(log_err_) << "Failed put pbft block: " << pbft_block.getBlockHash()
+//                  << " into DB";
+//    return false;
+//  }
+//  db_->savePbftBlock(pbft_block);
+//  // To protect PBFT syncing from peers happening in the same time
+//  // PBFT chain DB commit first for block, and size_ increase later
+//  size_++;
+//  db_->savePbftBlockGenesis(genesis_hash_.toString(), getJsonStr());
+//  return true;
+//}
+//
+//bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
+//  if (!checkPbftBlockValidation(pbft_block)) {
+//    return false;
+//  }
+//  blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
+//  setLastPbftBlockHash(pbft_block_hash);
+//  pbftSyncedSetInsert_(pbft_block.getBlockHash());
+//  period_++;
+//  if (!pushPbftBlockIntoChain(pbft_block)) {
+//    // TODO: need roll back
+//    // Roll back PBFT period
+//    period_--;
+//    assert(false);
+//    // return false;
+//  }
+//  assert(pbft_block.getHeight() == size_);
+//  insertPbftBlockIndex_(pbft_block_hash);
+//  LOG(log_inf_) << "Push pbft block " << pbft_block_hash
+//                << " with DAG block hash " << pbft_block.getPivotDagBlockHash()
+//                << " into pbft chain, current pbft chain period " << period_
+//                << " chain size is " << size_;
+//  return true;
+//}
 
-bool PbftChain::pushPbftBlock(taraxa::PbftBlock const& pbft_block) {
-  if (!checkPbftBlockValidation(pbft_block)) {
-    return false;
-  }
-  blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  setLastPbftBlockHash(pbft_block_hash);
-  pbftSyncedSetInsert_(pbft_block.getBlockHash());
+void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
+  pbftSyncedSetInsert_(pbft_block_hash);
   period_++;
-  if (!pushPbftBlockIntoChain(pbft_block)) {
-    // TODO: need roll back
-    // Roll back PBFT period
-    period_--;
-    assert(false);
-    // return false;
-  }
-  assert(pbft_block.getHeight() == size_);
-  insertPbftBlockIndex_(pbft_block_hash);
-  LOG(log_inf_) << "Push pbft block " << pbft_block_hash
-                << " with DAG block hash " << pbft_block.getPivotDagBlockHash()
-                << " into pbft chain, current pbft chain period " << period_
-                << " chain size is " << size_;
-  return true;
+  size_++;
 }
 
 bool PbftChain::checkPbftBlockValidationFromSyncing(
@@ -593,7 +604,7 @@ uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   db_->saveDagBlockOrder(std::to_string(max_dag_blocks_height_),
                          dag_block_hash);
   // push DAG block hash into DAG blocks height DB
-  // key : dag block hash, value : dag block height>
+  // key : dag block hash, value : dag block height
   // DAG genesis is block height 1
   db_->saveDagBlockHeight(dag_block_hash,
                           std::to_string(max_dag_blocks_height_));
@@ -694,7 +705,7 @@ void PbftChain::pbftSyncedSetErase_() {
 
 void PbftChain::insertPbftBlockIndex_(
     taraxa::blk_hash_t const& pbft_block_hash) {
-  db_->savePbftBlockOrder(std::to_string(size_), pbft_block_hash);
+  db_->savePbftBlockOrder(size_, pbft_block_hash);
 }
 
 void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(
