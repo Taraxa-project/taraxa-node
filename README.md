@@ -24,9 +24,9 @@ Please run your code format with `.clang-format` checking.
 
 # Installation:
 ```
-git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
+git clone https://github.com/Taraxa-project/taraxa-node.git
 ```
-**The compilation requires Go 1.11+ and a C++17-compatible compiler**
+**The compilation requires Go 1.12+ and a C++17-compatible compiler**
 
 ## Library dependency:
 
@@ -34,36 +34,24 @@ git clone https://github.com/Taraxa-project/taraxa-node.git --recursive
 cryptopp, libff, ethash, secp256k1, boost, rocksdb, rapidjson, gtest, leveldb
 ```
 
-**On a Macintosh** Installing boost, rocksdb, rapidjson, leveldb ... using brew:
+**On MacOS**:
 ```
 brew install boost
 brew install rocksdb
-brew install rapidjson
-brew install gmp
 brew install cmake
-brew install openssl
-brew install mpfr
 brew install leveldb
 brew install libscrypt
 brew install automake
-brew install libtool
-brew install pkg-config
 brew install jsoncpp
 brew install libjson-rpc-cpp
 ```
 
-Libraries cryptopp, libff, ethash and secp256k1 are in the submodules directory. These libraries should be built automatically. In case there is an issue see README files in each submodule on how to build them.
+**On Linux**:
+[Refer to the ubuntu env dockerfile 
+to find what dependecies have to be installed](dockerfiles/base.ubuntu.dockerfile)
 
-Install gtest:
-```
-git clone https://github.com/google/googletest
-cd googletest
-mkdir build
-cd build
-cmake ..
-make
-make install
-```
+Some libraries are managed as git submodules, 
+and will be installed automatically during the build
 
 ## Demo prometheus-cpp:
 /* To demo the prometheus cpp locally, follow the steps below:
