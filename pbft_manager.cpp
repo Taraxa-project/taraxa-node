@@ -1495,8 +1495,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Add DAG blocks order and DAG blocks height in DB
   uint64_t max_dag_blocks_height = pbft_chain_->getDagBlockMaxHeight();
   for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
-    std::string dag_block_height_str = db_->getDagBlockHeight(dag_blk_hash);
-    if (!dag_block_height_str.empty()) {
+    auto dag_block_height_ptr = db_->getDagBlockHeight(dag_blk_hash);
+    if (dag_block_height_ptr) {
       LOG(log_err_) << "Duplicate DAG block " << dag_blk_hash
                     << " in DAG blocks height DB already";
       continue;

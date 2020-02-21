@@ -306,11 +306,11 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   assert(db_);
 
   // Get PBFT head from DB
-  auto pbft_genesis_str = db_->getPbftBlockGenesis(genesis_hash_.toString());
+  auto pbft_genesis_str = db_->getPbftBlockGenesis(genesis_hash_);
   if (pbft_genesis_str.empty()) {
     // Store PBFT chain genesis(HEAD) block to db
     insertPbftBlockIndex_(genesis_hash_);
-    db_->savePbftBlockGenesis(genesis_hash_.toString(), getJsonStr());
+    db_->savePbftBlockGenesis(genesis_hash_, getJsonStr());
     // Initialize DAG genesis at DAG block heigh 1
     pushDagBlockHash(dag_genesis_hash_);
   } else {
@@ -355,8 +355,8 @@ std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
                   << max_dag_blocks_height_;
     return std::make_pair(blk_hash_t(0), false);
   }
-  auto dag_block_hash = db_->getDagBlockOrder(std::to_string(dag_block_height));
-  if (dag_block_hash == nullptr) {
+  auto dag_block_hash = db_->getDagBlockOrder(dag_block_height);
+  if (!dag_block_hash) {
     LOG(log_err_) << "The DAG block height " << dag_block_height
                   << " is not exist in DAG blocks order DB.";
     return std::make_pair(blk_hash_t(0), false);
@@ -367,16 +367,13 @@ std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
 // TODO: should remove, full node should call db directly
 std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
     blk_hash_t const& dag_block_hash) const {
-  std::string dag_block_height_str = db_->getDagBlockHeight(dag_block_hash);
-  if (dag_block_height_str.empty()) {
+  auto dag_block_height_ptr = db_->getDagBlockHeight(dag_block_hash);
+  if (!dag_block_height_ptr) {
     LOG(log_err_) << "Cannot find the DAG block hash " << dag_block_hash
                   << " in DAG blocks height DB";
     return std::make_pair(0, false);
   }
-  uint64_t dag_block_height;
-  std::istringstream iss(dag_block_height_str);
-  iss >> dag_block_height;
-  return std::make_pair(dag_block_height, true);
+  return std::make_pair(*dag_block_height_ptr, true);
 }
 
 uint64_t PbftChain::getDagBlockMaxHeight() const {
@@ -590,25 +587,20 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
 }
 
 uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
-  std::string dag_block_height_str = db_->getDagBlockHeight(dag_block_hash);
-  if (!dag_block_height_str.empty()) {
+  auto dag_block_height_ptr = db_->getDagBlockHeight(dag_block_hash);
+  if (dag_block_height_ptr) {
     // The DAG block already exist
     LOG(log_inf_) << "Duplicate DAG block " << dag_block_hash
                   << " in DAG blocks height DB already";
-    uint64_t dag_block_height;
-    std::istringstream iss(dag_block_height_str);
-    iss >> dag_block_height;
-    return dag_block_height;
+    return *dag_block_height_ptr;
   }
   // push DAG block hash into DAG blocks order DB. DAG genesis at index 1
   max_dag_blocks_height_++;
-  db_->saveDagBlockOrder(std::to_string(max_dag_blocks_height_),
-                         dag_block_hash);
+  db_->saveDagBlockOrder(max_dag_blocks_height_, dag_block_hash);
   // push DAG block hash into DAG blocks height DB
   // key : dag block hash, value : dag block height
   // DAG genesis is block height 1
-  db_->saveDagBlockHeight(dag_block_hash,
-                          std::to_string(max_dag_blocks_height_));
+  db_->saveDagBlockHeight(dag_block_hash, max_dag_blocks_height_);
   return max_dag_blocks_height_;
 }
 

@@ -204,12 +204,13 @@ void DbStorage::addPbftBlockToBatch(
             pbft_block.getJsonStr());
 }
 
-string DbStorage::getPbftBlockGenesis(string const& hash) {
-  return lookup(hash, Columns::pbft_blocks);
+string DbStorage::getPbftBlockGenesis(blk_hash_t const& hash) {
+  return lookup(toSlice(hash.asBytes()), Columns::pbft_blocks);
 }
 
-void DbStorage::savePbftBlockGenesis(string const& hash, string const& block) {
-  insert(Columns::pbft_blocks, hash, block);
+void DbStorage::savePbftBlockGenesis(blk_hash_t const& hash,
+                                     string const& pbft_chain_head_str) {
+  insert(Columns::pbft_blocks, toSlice(hash.asBytes()), pbft_chain_head_str);
 }
 
 void DbStorage::addPbftChainHeadToBatch(
@@ -222,59 +223,64 @@ void DbStorage::addPbftChainHeadToBatch(
 
 std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(
     uint64_t const& index) {
-  auto block = lookup(toSlice(index), Columns::pbft_blocks_order);
-  if (!block.empty()) {
-    return std::make_shared<blk_hash_t>(block);
+  auto hash = asBytes(lookup(toSlice(index), Columns::pbft_blocks_order));
+  if (hash.size()) {
+    return std::make_shared<blk_hash_t>(hash);
   }
   return nullptr;
 }
 
 void DbStorage::savePbftBlockOrder(uint64_t const& index,
                                    blk_hash_t const& hash) {
-  insert(Columns::pbft_blocks_order, toSlice(index), hash.toString());
+  insert(Columns::pbft_blocks_order, toSlice(index), toSlice(hash.asBytes()));
 }
 
 void DbStorage::addPbftBlockIndexToBatch(
-    const uint64_t& pbft_block_index, const taraxa::blk_hash_t& pbft_block_hash,
+    const uint64_t& index, const taraxa::blk_hash_t& hash,
     const taraxa::DbStorage::BatchPtr& write_batch) {
-  batch_put(write_batch, Columns::pbft_blocks_order, toSlice(pbft_block_index),
-            pbft_block_hash.toString());
+  batch_put(write_batch, Columns::pbft_blocks_order, toSlice(index),
+            toSlice(hash.asBytes()));
 }
 
-std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(string const& index) {
-  auto block = lookup(index, Columns::dag_blocks_order);
-  if (!block.empty()) {
-    return std::make_shared<blk_hash_t>(block);
+std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(uint64_t const& index) {
+  auto hash = asBytes(lookup(toSlice(index), Columns::dag_blocks_order));
+  if (hash.size()) {
+    return std::make_shared<blk_hash_t>(hash);
   }
   return nullptr;
 }
 
-void DbStorage::saveDagBlockOrder(string const& index, blk_hash_t const& hash) {
-  insert(Columns::dag_blocks_order, index, hash.toString());
+void DbStorage::saveDagBlockOrder(uint64_t const& index,
+                                  blk_hash_t const& hash) {
+  insert(Columns::dag_blocks_order, toSlice(index), toSlice(hash.asBytes()));
 }
 
-string DbStorage::getDagBlockHeight(blk_hash_t const& hash) {
-  return lookup(hash.toString(), Columns::dag_blocks_height);
+std::shared_ptr<uint64_t> DbStorage::getDagBlockHeight(blk_hash_t const& hash) {
+  auto height =
+      asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks_height));
+  if (height.size()) {
+    return make_shared<uint64_t>(*(uint64_t*)&height[0]);
+  }
+  return nullptr;
 }
 
 void DbStorage::saveDagBlockHeight(blk_hash_t const& hash,
-                                   string const& height) {
-  insert(Columns::dag_blocks_height, hash.toString(), height);
+                                   uint64_t const& height) {
+  insert(Columns::dag_blocks_height, toSlice(hash.asBytes()), toSlice(height));
 }
 
 void DbStorage::addDagBlockOrderAndHeightToBatch(
-    taraxa::blk_hash_t const& dag_block_hash,
-    uint64_t const& max_dag_blocks_height,
+    taraxa::blk_hash_t const& hash, uint64_t const& height,
     const taraxa::DbStorage::BatchPtr& write_batch) {
   // Add DAG block hash into DAG blocks order DB batch.
   // DAG genesis at index 1
   batch_put(write_batch, Columns::dag_blocks_order,
-            std::to_string(max_dag_blocks_height), dag_block_hash.toString());
+            toSlice(height), toSlice(hash.asBytes()));
   // Add DAG block hash into DAG blocks height DB batch
   // key : dag block hash, value : dag block height
   // DAG genesis is block height 1
-  batch_put(write_batch, Columns::dag_blocks_height, dag_block_hash.toString(),
-            toSlice(max_dag_blocks_height));
+  batch_put(write_batch, Columns::dag_blocks_height, toSlice(hash.asBytes()),
+            toSlice(height));
 }
 
 string DbStorage::getSortitionAccount(string const& key) {
@@ -309,11 +315,11 @@ void DbStorage::addSortitionAccountToBatch(addr_t const& address,
             address.toString(), account.getJsonStr());
 }
 
-void DbStorage::addSortitionAccountToBatch(string const& address,
-                                           string& account,
+void DbStorage::addSortitionAccountToBatch(string const& key,
+                                           string const& value,
                                            BatchPtr const& write_batch) {
-  batch_put(write_batch, DbStorage::Columns::sortition_accounts, address,
-            account);
+  batch_put(write_batch, DbStorage::Columns::sortition_accounts, key,
+            value);
 }
 
 bytes DbStorage::getVote(blk_hash_t const& hash) {

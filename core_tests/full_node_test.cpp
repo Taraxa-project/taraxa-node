@@ -27,9 +27,11 @@
 #include "static_init.hpp"
 #include "string"
 #include "top.hpp"
+#include "types.hpp"
 #include "util.hpp"
 #include "util/lazy.hpp"
 #include "util/wait.hpp"
+#include "vrf_wrapper.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
@@ -249,6 +251,7 @@ TEST_F(FullNodeTest, db_test) {
                 sig_t(777), blk_hash_t(0xB2), addr_t(999));
   DagBlock blk3(blk_hash_t(0xB1), 2, {}, {trx_hash_t(5)}, sig_t(777),
                 blk_hash_t(0xB6), addr_t(999));
+  // DAG
   db.saveDagBlock(blk1);
   db.saveDagBlock(blk2);
   db.saveDagBlock(blk3);
@@ -258,7 +261,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getBlocksByLevel(1),
             blk1.getHash().toString() + "," + blk2.getHash().toString());
   EXPECT_EQ(db.getBlocksByLevel(2), blk3.getHash().toString());
-
+  // Transaction
   db.saveTransaction(g_trx_signed_samples[0]);
   db.saveTransaction(g_trx_signed_samples[1]);
   auto batch = db.createWriteBatch();
@@ -290,78 +293,147 @@ TEST_F(FullNodeTest, db_test) {
             blk1.getHash());
   EXPECT_EQ(*db.getTransactionToBlock(g_trx_signed_samples[2].getHash()),
             blk2.getHash());
-
+  // pbft_blocks
   PbftBlock pbft_block1(blk_hash_t(1), 2);
   PbftBlock pbft_block2(blk_hash_t(2), 3);
+  PbftBlock pbft_block3(blk_hash_t(3), 4);
+  PbftBlock pbft_block4(blk_hash_t(4), 5);
   db.savePbftBlock(pbft_block1);
   db.savePbftBlock(pbft_block2);
+  batch = db.createWriteBatch();
+  db.addPbftBlockToBatch(pbft_block3, batch);
+  db.addPbftBlockToBatch(pbft_block4, batch);
+  db.commitWriteBatch(batch);
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3.getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4.getBlockHash()));
   EXPECT_EQ(db.getPbftBlock(pbft_block1.getBlockHash())->rlp(false),
             pbft_block1.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false),
             pbft_block2.rlp(false));
-
-  db.savePbftBlockOrder("1", blk_hash_t(1));
-  db.savePbftBlockOrder("2", blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftBlockOrder("1"), blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftBlockOrder("2"), blk_hash_t(2));
-
-  db.saveDagBlockOrder("1", blk_hash_t(1));
-  db.saveDagBlockOrder("3", blk_hash_t(2));
-  EXPECT_EQ(*db.getDagBlockOrder("1"), blk_hash_t(1));
-  EXPECT_EQ(*db.getDagBlockOrder("3"), blk_hash_t(2));
-
-  db.saveDagBlockHeight(blk_hash_t(1), "5");
-  db.saveDagBlockHeight(blk_hash_t(2), "6");
-  EXPECT_EQ(db.getDagBlockHeight(blk_hash_t(1)), "5");
-  EXPECT_EQ(db.getDagBlockHeight(blk_hash_t(2)), "6");
-
+  EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false),
+            pbft_block3.rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false),
+            pbft_block4.rlp(false));
+  // pbft_blocks (head)
+  PbftChain pbft_chain(blk_hash_t(0).toString());
+  db.savePbftBlockGenesis(pbft_chain.getGenesisHash(), pbft_chain.getJsonStr());
+  EXPECT_EQ(db.getPbftBlockGenesis(pbft_chain.getGenesisHash()),
+            pbft_chain.getJsonStr());
+  pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
+  batch = db.createWriteBatch();
+  db.addPbftChainHeadToBatch(pbft_chain.getGenesisHash(),
+                             pbft_chain.getJsonStr(), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftBlockGenesis(pbft_chain.getGenesisHash()),
+            pbft_chain.getJsonStr());
+  // pbft_blocks_order
+  db.savePbftBlockOrder(1, blk_hash_t(1));
+  db.savePbftBlockOrder(2, blk_hash_t(2));
+  batch = db.createWriteBatch();
+  db.addPbftBlockIndexToBatch(3, blk_hash_t(3), batch);
+  db.addPbftBlockIndexToBatch(4, blk_hash_t(4), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(*db.getPbftBlockOrder(1), blk_hash_t(1));
+  EXPECT_EQ(*db.getPbftBlockOrder(2), blk_hash_t(2));
+  EXPECT_EQ(*db.getPbftBlockOrder(3), blk_hash_t(3));
+  EXPECT_EQ(*db.getPbftBlockOrder(4), blk_hash_t(4));
+  // dag_blocks_order & dag_blocks_height
+  db.saveDagBlockOrder(1, blk_hash_t(1));
+  db.saveDagBlockOrder(3, blk_hash_t(2));
+  EXPECT_EQ(*db.getDagBlockOrder(1), blk_hash_t(1));
+  EXPECT_EQ(*db.getDagBlockOrder(3), blk_hash_t(2));
+  db.saveDagBlockHeight(blk_hash_t(1), 5);
+  db.saveDagBlockHeight(blk_hash_t(2), 6);
+  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(1)), 5);
+  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(2)), 6);
+  batch = db.createWriteBatch();
+  db.addDagBlockOrderAndHeightToBatch(blk_hash_t(11), 11, batch);
+  db.addDagBlockOrderAndHeightToBatch(blk_hash_t(12), 12, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(*db.getDagBlockOrder(11), blk_hash_t(11));
+  EXPECT_EQ(*db.getDagBlockOrder(12), blk_hash_t(12));
+  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(11)), 11);
+  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(12)), 12);
+  // status
   db.saveStatusField(StatusDbField::TrxCount, 5);
   db.saveStatusField(StatusDbField::ExecutedBlkCount, 6);
   EXPECT_EQ(db.getStatusField(StatusDbField::TrxCount), 5);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 6);
-
+  batch = db.createWriteBatch();
+  db.addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
+                           10, batch);
+  db.addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
+                           20, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
+  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
+  // votes
   bytes b1;
   b1.push_back(100);
   bytes b2;
-  b1.push_back(100);
   b2.push_back(101);
   db.saveVote(blk_hash_t(1), b1);
   db.saveVote(blk_hash_t(2), b2);
   EXPECT_EQ(db.getVote(blk_hash_t(1)), b1);
   EXPECT_EQ(db.getVote(blk_hash_t(2)), b2);
-
-  db.savePeriodScheduleBlock(1, blk_hash_t(1));
-  db.savePeriodScheduleBlock(3, blk_hash_t(2));
-  EXPECT_EQ(*db.getPeriodScheduleBlock(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getPeriodScheduleBlock(3), blk_hash_t(2));
-
-  db.saveDagBlockPeriod(blk_hash_t(1), 1);
-  db.saveDagBlockPeriod(blk_hash_t(2), 2);
+  std::vector<Vote> cert_votes;
+  blk_hash_t last_pbft_block_hash(0);
+  VrfPbftMsg msg(last_pbft_block_hash, propose_vote_type, 1, 3);
+  vrf_wrapper::vrf_sk_t vrf_sk("0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  VrfPbftSortition vrf_sortition(vrf_sk, msg);
+  blk_hash_t vote_pbft_block_hash(10);
+  Vote vote(g_secret, vrf_sortition, vote_pbft_block_hash);
+  cert_votes.emplace_back(vote);
+  cert_votes.emplace_back(vote);
   batch = db.createWriteBatch();
-  db.addDagBlockPeriodToBatch(blk_hash_t(3), 3, batch);
-  db.addDagBlockPeriodToBatch(blk_hash_t(4), 4, batch);
+  db.addPbftCertVotesToBatch(vote_pbft_block_hash, cert_votes, batch);
+  db.commitWriteBatch(batch);
+  PbftBlock pbft_block(vote_pbft_block_hash, 2);
+  PbftBlockCert pbft_block_cert_votes(pbft_block, cert_votes);
+  auto cert_votes_rlp = db.getVote(vote_pbft_block_hash);
+  PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_rlp);
+  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
+  // period_schedule_block
+  batch = db.createWriteBatch();
+  db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
+  db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
+  db.commitWriteBatch(batch);;
+  EXPECT_EQ(*db.getPeriodScheduleBlock(1), blk_hash_t(1));
+  EXPECT_EQ(*db.getPeriodScheduleBlock(2), blk_hash_t(2));
+  // dag_block_period
+  batch = db.createWriteBatch();
+  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, batch);
+  db.addDagBlockPeriodToBatch(blk_hash_t(2), 2, batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
-  EXPECT_EQ(3, *db.getDagBlockPeriod(blk_hash_t(3)));
-  EXPECT_EQ(4, *db.getDagBlockPeriod(blk_hash_t(4)));
-
-  batch = db.createWriteBatch();
+  // sortition_accounts
   PbftSortitionAccount account1(
       addr_t("123", addr_t::FromHex, addr_t::AlignLeft), 100, 1,
       PbftSortitionAccountStatus::new_change);
   PbftSortitionAccount account2(
       addr_t("345", addr_t::FromHex, addr_t::AlignLeft), 100, 2,
       PbftSortitionAccountStatus::new_change);
+  batch = db.createWriteBatch();
   db.addSortitionAccountToBatch(account1.address, account1, batch);
   db.addSortitionAccountToBatch(account2.address, account2, batch);
+  db.addSortitionAccountToBatch(std::string("sortition_accounts_size"),
+                                std::to_string(2), batch);
   db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.sortitionAccountInDb(account1.address));
+  EXPECT_TRUE(db.sortitionAccountInDb(account2.address));
+  EXPECT_TRUE(db.sortitionAccountInDb(std::string("sortition_accounts_size")));
   EXPECT_EQ(account1.getJsonStr(),
             db.getSortitionAccount(account1.address).getJsonStr());
   EXPECT_EQ(account2.getJsonStr(),
             db.getSortitionAccount(account2.address).getJsonStr());
+  EXPECT_EQ("2",
+            db.getSortitionAccount(std::string("sortition_accounts_size")));
+  db.removeSortitionAccount(account1.address);
+  EXPECT_FALSE(db.sortitionAccountInDb(account1.address));
+  EXPECT_TRUE(db.sortitionAccountInDb(account2.address));
 }
 
 // fixme: flaky
