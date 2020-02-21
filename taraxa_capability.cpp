@@ -239,7 +239,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (syncing_) {
             // If this node is more than 10 pbft blocks ahead of the node we are
             // currently syncing to force switch to new node
-            if(peer_pbft_chain_size > peer_syncing_pbft_chain_size_ + 10) {
+            if (peer_pbft_chain_size > peer_syncing_pbft_chain_size_ + 10) {
               restartSyncingPbft(true);
             }
           }
@@ -1259,9 +1259,11 @@ void TaraxaCapability::onStarting() {
   if (conf_.network_transaction_interval > 0)
     host_.scheduleExecution(conf_.network_transaction_interval,
                             [this]() { sendTransactions(); });
-  check_status_interval_ = 6 * full_node->getConfig().test_params.pbft[0];
-  host_.scheduleExecution(check_status_interval_,
-                          [this]() { doBackgroundWork(); });
+  if (full_node) {
+    check_status_interval_ = 6 * full_node->getConfig().test_params.pbft[0];
+    host_.scheduleExecution(check_status_interval_,
+                            [this]() { doBackgroundWork(); });
+  }
 }
 
 void TaraxaCapability::onNewPbftVote(taraxa::Vote const &vote) {
