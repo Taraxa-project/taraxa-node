@@ -38,6 +38,7 @@ enum SubprotocolPacketType : ::byte {
   GetPbftBlockPacket,
   PbftBlockPacket,
   SyncedPacket,
+  SyncedResponsePacket,
   PacketCount
 };
 
@@ -53,9 +54,7 @@ class TaraxaPeer : public boost::noncopyable {
         known_blocks_(10000, 1000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000),
-        known_transactions_(100000, 10000) {
-    setLastMessage();
-  }
+        known_transactions_(100000, 10000) {}
 
   bool isBlockKnown(blk_hash_t const &_hash) const {
     return known_blocks_.count(_hash);
@@ -89,20 +88,12 @@ class TaraxaPeer : public boost::noncopyable {
     known_pbft_blocks_.insert(_hash);
   }
 
-  time_t lastAsk() const { return last_ask_; }
-  time_t lastMessageTime() const { return last_message_time_; }
+  bool checkStatus(uint16_t max_check_count) {
+    status_check_count_++;
+    return status_check_count_ <= max_check_count;
+  }
 
-  bool asking() const { return asking_; }
-  void setAsking(bool asking) {
-    asking_ = asking;
-    if (asking)
-      last_ask_ =
-          std::chrono::system_clock::to_time_t(chrono::system_clock::now());
-  }
-  void setLastMessage() {
-    last_message_time_ =
-        std::chrono::system_clock::to_time_t(chrono::system_clock::now());
-  }
+  void statusReceived() { status_check_count_ = 0; }
 
   std::map<uint64_t,
            std::map<blk_hash_t, std::pair<DagBlock, std::vector<Transaction>>>>
@@ -120,11 +111,7 @@ class TaraxaPeer : public boost::noncopyable {
 
   NodeID m_id;
 
-  // Did we ask peer for something
-  bool asking_ = false;
-  // When we asked for it. Allows a time out.
-  time_t last_ask_ = 0;
-  time_t last_message_time_ = 0;
+  uint16_t status_check_count_ = 0;
 };
 
 class TaraxaCapability : public CapabilityFace, public Worker {
@@ -164,7 +151,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
                                      RLP const &_r);
   void onDisconnect(NodeID const &_nodeID) override;
   void sendTestMessage(NodeID const &_id, int _x);
-  void sendStatus(NodeID const &_id);
+  void sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block,
                           std::vector<Transaction> transactions);
   void onNewBlockVerified(DagBlock block);
@@ -179,6 +166,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::pair<int, int> retrieveTestData(NodeID const &_id);
   void sendBlock(NodeID const &_id, taraxa::DagBlock block, bool newBlock);
   void sendSyncedMessage();
+  void sendSyncedResponseMessage(NodeID const &_id);
   void sendBlocks(NodeID const &_id,
                   std::vector<std::shared_ptr<DagBlock>> blocks);
   void sendLeavesBlocks(NodeID const &_id, std::vector<std::string> blocks);
@@ -195,6 +183,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
+  void sendTransactions();
   std::string packetToPacketName(byte const &packet);
 
   // PBFT
@@ -241,8 +230,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   boost::thread_group delay_threads_;
   boost::asio::io_service io_service_;
   std::shared_ptr<boost::asio::io_service::work> io_work_;
-  unsigned long max_peer_level_ = 0;
-  unsigned long max_peer_pbft_chain_size_ = 1;
+  unsigned long peer_syncing_pbft_chain_size_ = 1;
   uint64_t pbft_sync_height_ = 1;
   NodeID peer_syncing_pbft;
   std::string genesis_;
@@ -252,6 +240,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::mt19937 delay_rng_;
   bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
+  uint16_t check_status_interval_;
 
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TARCAP")};
