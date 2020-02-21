@@ -274,8 +274,8 @@ void DbStorage::addDagBlockOrderAndHeightToBatch(
     const taraxa::DbStorage::BatchPtr& write_batch) {
   // Add DAG block hash into DAG blocks order DB batch.
   // DAG genesis at index 1
-  batch_put(write_batch, Columns::dag_blocks_order,
-            toSlice(height), toSlice(hash.asBytes()));
+  batch_put(write_batch, Columns::dag_blocks_order, toSlice(height),
+            toSlice(hash.asBytes()));
   // Add DAG block hash into DAG blocks height DB batch
   // key : dag block hash, value : dag block height
   // DAG genesis is block height 1
@@ -318,8 +318,7 @@ void DbStorage::addSortitionAccountToBatch(addr_t const& address,
 void DbStorage::addSortitionAccountToBatch(string const& key,
                                            string const& value,
                                            BatchPtr const& write_batch) {
-  batch_put(write_batch, DbStorage::Columns::sortition_accounts, key,
-            value);
+  batch_put(write_batch, DbStorage::Columns::sortition_accounts, key, value);
 }
 
 bytes DbStorage::getVote(blk_hash_t const& hash) {

@@ -165,8 +165,8 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
 PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash,
                      blk_hash_t const& dag_blk_hash_as_pivot,
                      TrxSchedule const& schedule, uint64_t period,
-                     uint64_t height,
-                     addr_t const& beneficiary, secret_t const& sk)
+                     uint64_t height, addr_t const& beneficiary,
+                     secret_t const& sk)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       schedule_(schedule),

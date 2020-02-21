@@ -362,10 +362,8 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::TrxCount), 5);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 6);
   batch = db.createWriteBatch();
-  db.addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
-                           10, batch);
-  db.addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
-                           20, batch);
+  db.addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, 10, batch);
+  db.addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, 20, batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
@@ -381,7 +379,9 @@ TEST_F(FullNodeTest, db_test) {
   std::vector<Vote> cert_votes;
   blk_hash_t last_pbft_block_hash(0);
   VrfPbftMsg msg(last_pbft_block_hash, propose_vote_type, 1, 3);
-  vrf_wrapper::vrf_sk_t vrf_sk("0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  vrf_wrapper::vrf_sk_t vrf_sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   VrfPbftSortition vrf_sortition(vrf_sk, msg);
   blk_hash_t vote_pbft_block_hash(10);
   Vote vote(g_secret, vrf_sortition, vote_pbft_block_hash);
@@ -399,7 +399,8 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
   db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
-  db.commitWriteBatch(batch);;
+  db.commitWriteBatch(batch);
+  ;
   EXPECT_EQ(*db.getPeriodScheduleBlock(1), blk_hash_t(1));
   EXPECT_EQ(*db.getPeriodScheduleBlock(2), blk_hash_t(2));
   // dag_block_period

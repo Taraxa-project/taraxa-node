@@ -121,7 +121,8 @@ struct DagFrontier {
  */
 class BlockManager {
  public:
-  BlockManager(size_t capacity, unsigned verify_threads, uint32_t queue_limit = 0);
+  BlockManager(size_t capacity, unsigned verify_threads,
+               uint32_t queue_limit = 0);
   ~BlockManager();
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue

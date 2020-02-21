@@ -165,7 +165,8 @@ struct DbStorage {
                                         BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
-  void saveStatusField(StatusDbField const& field, uint64_t const& value); // unit test
+  void saveStatusField(StatusDbField const& field,
+                       uint64_t const& value);  // unit test
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value,
                              BatchPtr const& write_batch);
   // sortition_accounts

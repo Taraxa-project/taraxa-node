@@ -73,7 +73,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
                                      conf_.test_params.max_block_queue_warn);
   eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
+  trx_mgr_ =
+      std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
