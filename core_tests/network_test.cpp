@@ -358,7 +358,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto batch = db1->createWriteBatch();
   // Add cert votes in DB
   db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1,
-                              batch);
+                               batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
   // Add PBFT block index in DB

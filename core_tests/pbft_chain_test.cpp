@@ -103,8 +103,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain->getGenesisHash();
   std::string pbft_chain_head_str = pbft_chain->getJsonStr();
-  db->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db->commitWriteBatch(batch);
   EXPECT_EQ(node->getPbftChainSize(), 2);
 
@@ -112,8 +111,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   EXPECT_EQ(pbft_block1.getJsonStr(), pbft_block2->getJsonStr());
 
   // check pbft genesis update in DB
-  pbft_genesis_from_db =
-      db->getPbftBlockGenesis(pbft_chain->getGenesisHash());
+  pbft_genesis_from_db = db->getPbftBlockGenesis(pbft_chain->getGenesisHash());
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
 
   db = nullptr;
