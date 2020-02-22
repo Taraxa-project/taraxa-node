@@ -1519,8 +1519,10 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Update period_schedule_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
   // TODO: Should remove PBFT chain head from DB
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain_->setLastPbftBlockHash(pbft_block_hash);
+  // Update pbft chain
+  // TODO: after remove PBFT chain head from DB, update pbft chain should after
+  //  DB commit
+  pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain_->getGenesisHash();
   std::string pbft_chain_head_str = pbft_chain_->getJsonStr();
@@ -1529,9 +1531,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Commit DB
   db_->commitWriteBatch(batch);
   LOG(log_deb_) << "DB write batch committed already";
-
-  // Update pbft chain
-  pbft_chain_->updatePbftChain(pbft_block_hash);
 
   // Set DAG blocks period
   uint dag_ordered_blocks_size =

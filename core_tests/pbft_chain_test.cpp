@@ -78,11 +78,10 @@ TEST_F(PbftChainTest, pbft_db_test) {
   auto node(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json")));
   node->start(true);  // boot node
-
   auto db = node->getDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   std::string pbft_genesis_from_db =
-      db->getPbftBlockGenesis(pbft_chain->getGenesisHash().toString());
+      db->getPbftBlockGenesis(pbft_chain->getGenesisHash());
   EXPECT_FALSE(pbft_genesis_from_db.empty());
 
   // generate PBFT block sample
@@ -96,8 +95,17 @@ TEST_F(PbftChainTest, pbft_db_test) {
                         beneficiary, node->getSecretKey());
 
   // put into pbft chain and store into DB
-  bool push_block = pbft_chain->pushPbftBlock(pbft_block1);
-  EXPECT_TRUE(push_block);
+  auto batch = db->createWriteBatch();
+  // Add PBFT block in DB
+  db->addPbftBlockToBatch(pbft_block1, batch);
+  // Update pbft chain
+  pbft_chain->updatePbftChain(pbft_block1.getBlockHash());
+  // Update PBFT chain head block
+  blk_hash_t pbft_chain_head_hash = pbft_chain->getGenesisHash();
+  std::string pbft_chain_head_str = pbft_chain->getJsonStr();
+  db->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db->commitWriteBatch(batch);
   EXPECT_EQ(node->getPbftChainSize(), 2);
 
   auto pbft_block2 = db->getPbftBlock(pbft_block1.getBlockHash());
@@ -105,7 +113,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
 
   // check pbft genesis update in DB
   pbft_genesis_from_db =
-      db->getPbftBlockGenesis(pbft_chain->getGenesisHash().toString());
+      db->getPbftBlockGenesis(pbft_chain->getGenesisHash());
   EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
 
   db = nullptr;
@@ -171,9 +179,19 @@ TEST_F(PbftChainTest, block_broadcast) {
       pbft_chain1->getUnverifiedPbftBlock(pbft_block.getBlockHash());
   ASSERT_TRUE(block1_from_node1.second);
   EXPECT_EQ(block1_from_node1.first.getJsonStr(), pbft_block.getJsonStr());
-  // node1 put block1 into pbft chain and store into DB
-  bool push_block = pbft_chain1->pushPbftBlock(pbft_block);
-  EXPECT_TRUE(push_block);
+  // node1 put block into pbft chain and store into DB
+  auto db1 = node1->getDB();
+  auto batch = db1->createWriteBatch();
+  // Add PBFT block in DB
+  db1->addPbftBlockToBatch(pbft_block, batch);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block.getBlockHash());
+  // Update PBFT chain head block
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db1->commitWriteBatch(batch);
   EXPECT_EQ(node1->getPbftChainSize(), 2);
   // node1 cleanup block1 in PBFT unverified blocks table
   pbft_chain1->cleanupUnverifiedPbftBlocks(pbft_block);
@@ -201,18 +219,43 @@ TEST_F(PbftChainTest, block_broadcast) {
   ASSERT_TRUE(pbft_block_from_node3.second);
   EXPECT_EQ(pbft_block_from_node2.first.getJsonStr(), pbft_block.getJsonStr());
   EXPECT_EQ(pbft_block_from_node3.first.getJsonStr(), pbft_block.getJsonStr());
-  // node2 put block1 into pbft chain and store into DB
-  push_block = pbft_chain2->pushPbftBlock(pbft_block);
-  EXPECT_TRUE(push_block);
+
+  // node2 put block into pbft chain and store into DB
+  auto db2 = node2->getDB();
+  batch = db2->createWriteBatch();
+  // Add PBFT block in DB
+  db2->addPbftBlockToBatch(pbft_block, batch);
+  // Update last pbft block hash first for updating PBFT chain head block
+  pbft_chain2->setLastPbftBlockHash(pbft_block.getBlockHash());
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain2->getGenesisHash();
+  pbft_chain_head_str = pbft_chain2->getJsonStr();
+  db2->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db2->commitWriteBatch(batch);
+  // Update pbft chain
+  pbft_chain2->updatePbftChain(pbft_block.getBlockHash());
   EXPECT_EQ(node2->getPbftChainSize(), 2);
   // node2 cleanup block1 in PBFT unverified blocks table
   pbft_chain2->cleanupUnverifiedPbftBlocks(pbft_block);
   find_erased_block =
       pbft_chain2->findUnverifiedPbftBlock(pbft_block.getBlockHash());
   ASSERT_FALSE(find_erased_block);
-  // node3 put block1 into pbft chain and store into DB
-  push_block = pbft_chain3->pushPbftBlock(pbft_block);
-  EXPECT_TRUE(push_block);
+  // node3 put block into pbft chain and store into DB
+  auto db3 = node3->getDB();
+  batch = db3->createWriteBatch();
+  // Add PBFT block in DB
+  db3->addPbftBlockToBatch(pbft_block, batch);
+  // Update last pbft block hash first for updating PBFT chain head block
+  pbft_chain3->setLastPbftBlockHash(pbft_block.getBlockHash());
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain3->getGenesisHash();
+  pbft_chain_head_str = pbft_chain3->getJsonStr();
+  db3->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db3->commitWriteBatch(batch);
+  // Update pbft chain
+  pbft_chain3->updatePbftChain(pbft_block.getBlockHash());
   EXPECT_EQ(node3->getPbftChainSize(), 2);
   // node3 cleanup block1 in PBFT unverified blocks table
   pbft_chain3->cleanupUnverifiedPbftBlocks(pbft_block);

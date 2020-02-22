@@ -525,6 +525,7 @@ void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
   pbftSyncedSetInsert_(pbft_block_hash);
   period_++;
   size_++;
+  setLastPbftBlockHash(pbft_block_hash);
 }
 
 bool PbftChain::checkPbftBlockValidationFromSyncing(
