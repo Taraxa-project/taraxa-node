@@ -544,8 +544,7 @@ void FullNode::updateWsScheduleBlockExecuted(PbftBlock const &pbft_block) {
     // FIXME: Initialize `block_number`
   }
   if (ws_server_) {
-    ws_server_->newScheduleBlockExecuted(pbft_block, block_number,
-                                         pbft_block.getPeriod());
+    ws_server_->newScheduleBlockExecuted(pbft_block, block_number);
   }
 }
 
