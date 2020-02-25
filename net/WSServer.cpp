@@ -223,15 +223,14 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
 }
 
 void WSSession::newScheduleBlockExecuted(PbftBlock const &pbft_blk,
-                                         uint32_t block_number,
-                                         uint32_t period) {
+                                         uint32_t block_number) {
   if (new_schedule_block_executed_subscription_) {
     Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
     result["schedule_block"] = pbft_blk.getSchedule().getStr();
     result["number"] = dev::toJS(block_number);
-    result["period"] = dev::toJS(period);
+    result["period"] = dev::toJS(pbft_blk.getPeriod());
     params["result"] = result;
     params["subscription"] =
         dev::toJS(new_schedule_block_executed_subscription_);
@@ -371,12 +370,11 @@ void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
 }
 
 void WSServer::newScheduleBlockExecuted(PbftBlock const &pbft_blk,
-                                        uint32_t block_number,
-                                        uint32_t period) {
+                                        uint32_t block_number) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed())
-      session->newScheduleBlockExecuted(pbft_blk, block_number, period);
+      session->newScheduleBlockExecuted(pbft_blk, block_number);
   }
 }
 

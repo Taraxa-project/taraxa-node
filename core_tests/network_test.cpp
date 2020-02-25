@@ -11,6 +11,7 @@
 
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "pbft_manager.hpp"
 #include "static_init.hpp"
 #include "util/lazy.hpp"
 
@@ -335,23 +336,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->start(true);  // boot node
+  node1->getPbftManager()->stop();
+  auto db1 = node1->getDB();
+  auto pbft_chain1 = node1->getPbftChain();
 
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
   blk_hash_t dag_blk(123);
-
-  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
-                sig_t(777), blk_hash_t(12), addr_t(999));
-  DagBlock blk2(blk_hash_t(12), 2, {}, {}, sig_t(777), blk_hash_t(123),
-                addr_t(999));
-
-  DagBlock blk3(blk_hash_t(123), 2, {}, {}, sig_t(777), blk_hash_t(456),
-                addr_t(999));
-
-  node1->getDB()->saveDagBlock(blk1);
-  node1->getDB()->saveDagBlock(blk2);
-  node1->getDB()->saveDagBlock(blk3);
-
   TrxSchedule schedule;
   uint64_t period = 1;
   uint64_t height = 2;
@@ -363,12 +354,27 @@ TEST_F(NetworkTest, node_pbft_sync) {
   votes_for_pbft_blk1.emplace_back(node1->generateVote(
       pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
-
-  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pbft_blk1);
-  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   // node1 put block1 into pbft chain and store into DB
-  bool push_block = pbft_chain1->pushPbftBlock(pbft_block1);
-  EXPECT_TRUE(push_block);
+  auto batch = db1->createWriteBatch();
+  // Add cert votes in DB
+  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1,
+                               batch);
+  // Add PBFT block in DB
+  db1->addPbftBlockToBatch(pbft_block1, batch);
+  // Add PBFT block index in DB
+  db1->addPbftBlockIndexToBatch(height, pbft_block1.getBlockHash(), batch);
+  // Update period_schedule_block in DB
+  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
+  // Update last pbft block hash first for updating PBFT chain head block
+  pbft_chain1->setLastPbftBlockHash(pbft_block1.getBlockHash());
+  // Update PBFT chain head block
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db1->commitWriteBatch(batch);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   EXPECT_EQ(node1->getPbftChainSize(), 2);
 
   // generate second PBFT block sample
@@ -384,12 +390,27 @@ TEST_F(NetworkTest, node_pbft_sync) {
   votes_for_pbft_blk2.emplace_back(node1->generateVote(
       pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
-
-  node1->storeCertVotes(pbft_block2.getBlockHash(), votes_for_pbft_blk2);
-
   // node1 put block2 into pbft chain and store into DB
-  push_block = pbft_chain1->pushPbftBlock(pbft_block2);
-  EXPECT_TRUE(push_block);
+  batch = db1->createWriteBatch();
+  // Add cert votes in DB
+  db1->addPbftCertVotesToBatch(pbft_block2.getBlockHash(), votes_for_pbft_blk2,
+                               batch);
+  // Add PBFT block in DB
+  db1->addPbftBlockToBatch(pbft_block2, batch);
+  // Add PBFT block index in DB
+  db1->addPbftBlockIndexToBatch(height, pbft_block2.getBlockHash(), batch);
+  // Update period_schedule_block in DB
+  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  // Update last pbft block hash first for updating PBFT chain head block
+  pbft_chain1->setLastPbftBlockHash(pbft_block2.getBlockHash());
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db1->commitWriteBatch(batch);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   EXPECT_EQ(node1->getPbftChainSize(), 3);
 
   auto node2 = taraxa::FullNode::make(
@@ -438,6 +459,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto node1(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa1.json"), true));
   node1->start(true);  // boot node
+  node1->getPbftManager()->stop();
+  auto db1 = node1->getDB();
+  auto pbft_chain1 = node1->getPbftChain();
 
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
@@ -452,12 +476,27 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   votes_for_pbft_blk1.emplace_back(node1->generateVote(
       pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
-
-  node1->storeCertVotes(pbft_block1.getBlockHash(), votes_for_pbft_blk1);
-  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
   // node1 put block1 into pbft chain and store into DB
-  bool push_block = pbft_chain1->pushPbftBlock(pbft_block1);
-  EXPECT_TRUE(push_block);
+  auto batch = db1->createWriteBatch();
+  // Add cert votes in DB
+  db1->addPbftCertVotesToBatch(pbft_block1.getBlockHash(), votes_for_pbft_blk1,
+                               batch);
+  // Add PBFT block in DB
+  db1->addPbftBlockToBatch(pbft_block1, batch);
+  // Add PBFT block index in DB
+  db1->addPbftBlockIndexToBatch(height, pbft_block1.getBlockHash(), batch);
+  // Update period_schedule_block in DB
+  db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
+  // Update last pbft block hash first for updating PBFT chain head block
+  pbft_chain1->setLastPbftBlockHash(pbft_block1.getBlockHash());
+  // Update PBFT chain head block
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db1->commitWriteBatch(batch);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   EXPECT_EQ(node1->getPbftChainSize(), 2);
 
   // generate second PBFT block sample
@@ -468,13 +507,26 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   beneficiary = addr_t(543);
   PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
                         beneficiary, node1->getSecretKey());
-
   std::cout << "There are no votes for the second PBFT block" << std::endl;
-
   // node1 put block2 into pbft chain and no votes store into DB
   // (malicious player)
-  push_block = pbft_chain1->pushPbftBlock(pbft_block2);
-  EXPECT_TRUE(push_block);
+  batch = db1->createWriteBatch();
+  // Add PBFT block in DB
+  db1->addPbftBlockToBatch(pbft_block2, batch);
+  // Add PBFT block index in DB
+  db1->addPbftBlockIndexToBatch(height, pbft_block2.getBlockHash(), batch);
+  // Update period_schedule_block in DB
+  db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
+  // Update last pbft block hash first for updating PBFT chain head block
+  pbft_chain1->setLastPbftBlockHash(pbft_block2.getBlockHash());
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
+                               batch);
+  db1->commitWriteBatch(batch);
+  // Update pbft chain
+  pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   EXPECT_EQ(node1->getPbftChainSize(), 3);
 
   auto node2 = taraxa::FullNode::make(

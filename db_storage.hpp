@@ -114,11 +114,13 @@ struct DbStorage {
     checkStatus(batch->Delete(handle(col), k));
   }
 
+  // DAG
   void saveDagBlock(DagBlock const& blk);
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
 
+  // Transaction
   void saveTransaction(Transaction const& trx);
   dev::bytes getTransactionRaw(trx_hash_t const& hash);
   shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
@@ -132,29 +134,44 @@ struct DbStorage {
   shared_ptr<blk_hash_t> getTransactionToBlock(trx_hash_t const& hash);
   bool transactionToBlockInDb(trx_hash_t const& hash);
 
-  void savePbftBlock(PbftBlock const& block);
-  // I would recommend storing this differently and not in the same db as
-  // regular blocks with real hashes
-  void savePbftBlockGenesis(string const& hash, string const& block);
-  string getPbftBlockGenesis(string const& hash);
+  // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);
+  void savePbftBlock(PbftBlock const& block);  // for unit test
   bool pbftBlockInDb(blk_hash_t const& hash);
-
-  void savePbftBlockOrder(string const& index, blk_hash_t const& hash);
-  shared_ptr<blk_hash_t> getPbftBlockOrder(string const& index);
-
-  void saveDagBlockOrder(string const& index, blk_hash_t const& hash);
-  shared_ptr<blk_hash_t> getDagBlockOrder(string const& index);
-
-  void saveDagBlockHeight(blk_hash_t const& hash, string const& height);
-  string getDagBlockHeight(blk_hash_t const& hash);
-
+  void addPbftBlockToBatch(PbftBlock const& pbft_block,
+                           BatchPtr const& write_batch);
+  // pbft_blocks (head)
+  // TODO: I would recommend storing this differently and not in the same db as
+  // regular blocks with real hashes. Need remove from DB
+  string getPbftBlockGenesis(blk_hash_t const& hash);
+  void savePbftBlockGenesis(blk_hash_t const& hash,
+                            string const& pbft_chain_head_str);
+  void addPbftChainHeadToBatch(taraxa::blk_hash_t const& pbft_chain_head_hash,
+                               std::string const& pbft_chain_head_str,
+                               BatchPtr const& write_batch);
+  // pbft_blocks_order
+  shared_ptr<blk_hash_t> getPbftBlockOrder(uint64_t const& index);
+  void savePbftBlockOrder(uint64_t const& index, blk_hash_t const& hash);
+  void addPbftBlockIndexToBatch(uint64_t const& index,
+                                taraxa::blk_hash_t const& hash,
+                                BatchPtr const& write_batch);
+  // dag_blocks_order & dag_blocks_height
+  shared_ptr<blk_hash_t> getDagBlockOrder(uint64_t const& index);
+  void saveDagBlockOrder(uint64_t const& index, blk_hash_t const& hash);
+  std::shared_ptr<uint64_t> getDagBlockHeight(blk_hash_t const& hash);
+  void saveDagBlockHeight(blk_hash_t const& hash, uint64_t const& height);
+  void addDagBlockOrderAndHeightToBatch(taraxa::blk_hash_t const& hash,
+                                        uint64_t const& height,
+                                        BatchPtr const& write_batch);
+  // status
   uint64_t getStatusField(StatusDbField const& field);
-  void saveStatusField(StatusDbField const& field, uint64_t const& value);
+  void saveStatusField(StatusDbField const& field,
+                       uint64_t const& value);  // unit test
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t const& value,
                              BatchPtr const& write_batch);
-
-  // Avoid using different data in same db here as well
+  // sortition_accounts
+  // TODO: Avoid using different data in same db here as well
+  //  Need move sortition_accounts_size from sortition_accounts to a new column
   string getSortitionAccount(string const& key);
   PbftSortitionAccount getSortitionAccount(addr_t const& account);
   bool sortitionAccountInDb(string const& key);
@@ -164,17 +181,21 @@ struct DbStorage {
   void addSortitionAccountToBatch(addr_t const& address,
                                   PbftSortitionAccount& account,
                                   BatchPtr const& write_batch);
-  void addSortitionAccountToBatch(string const& address, string& account,
+  void addSortitionAccountToBatch(string const& key, string const& value,
                                   BatchPtr const& write_batch);
-
+  // votes
   bytes getVote(blk_hash_t const& hash);
-  void saveVote(blk_hash_t const& hash, bytes& value);
-
+  void saveVote(blk_hash_t const& hash, bytes& value);  // for unit test
+  void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash,
+                               std::vector<Vote> const& cert_votes,
+                               BatchPtr const& write_batch);
+  // period_schedule_block
   shared_ptr<blk_hash_t> getPeriodScheduleBlock(uint64_t const& period);
-  void savePeriodScheduleBlock(uint64_t const& period, blk_hash_t const& hash);
-
+  void addPbftBlockPeriodToBatch(uint64_t const& period,
+                                 taraxa::blk_hash_t const& pbft_block_hash,
+                                 BatchPtr const& write_batch);
+  // dag_block_period
   shared_ptr<uint64_t> getDagBlockPeriod(blk_hash_t const& hash);
-  void saveDagBlockPeriod(blk_hash_t const& hash, uint64_t const& period);
   void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint64_t const& period,
                                 BatchPtr const& write_batch);
 

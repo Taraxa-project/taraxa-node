@@ -73,7 +73,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
                                      conf_.test_params.max_block_queue_warn);
   eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
+  trx_mgr_ =
+      std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -516,17 +517,23 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
                              PbftBlock const &pbft_block,
                              std::unordered_map<addr_t, PbftSortitionAccount>
-                                 &sortition_account_balance_table,
-                             uint64_t period) {
+                                 &sortition_account_balance_table) {
   // update transaction overlap table first
-  if (!trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule())) {
-    return false;
-  }
-  auto new_eth_header = executor_->execute(
-      batch, pbft_block, sortition_account_balance_table, period);
+  trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
+
+  auto new_eth_header =
+      executor_->execute(batch, pbft_block, sortition_account_balance_table);
   if (!new_eth_header) {
     return false;
   }
+  if (ws_server_) {
+    ws_server_->newOrderedBlock(
+        dev::eth::toJson(*new_eth_header, eth_service_->sealEngine()));
+  }
+  return true;
+}
+
+void FullNode::updateWsScheduleBlockExecuted(PbftBlock const &pbft_block) {
   uint64_t block_number = 0;
   if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
     block_number =
@@ -537,11 +544,8 @@ bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
     // FIXME: Initialize `block_number`
   }
   if (ws_server_) {
-    ws_server_->newScheduleBlockExecuted(pbft_block, block_number, period);
-    ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header,  //
-                                                 eth_service_->sealEngine()));
+    ws_server_->newScheduleBlockExecuted(pbft_block, block_number);
   }
-  return true;
 }
 
 std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {
@@ -669,19 +673,6 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
   return ret;
 }
 
-void FullNode::storeCertVotes(blk_hash_t const &pbft_hash,
-                              std::vector<Vote> const &votes) {
-  RLPStream s;
-  s.appendList(votes.size());
-  for (auto const &v : votes) {
-    // LOG(log_sil_) << v;
-    s.append(v.rlp());
-  }
-  auto ss = s.out();
-  db_->saveVote(pbft_hash, ss);
-  LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_hash << "\n"
-               << votes;
-}
 // Need remove later, keep it now for reuse
 bool FullNode::pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
                                            std::vector<Vote> &votes) const {

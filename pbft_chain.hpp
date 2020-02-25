@@ -152,16 +152,16 @@ class PbftChain {
       blk_hash_t const& dag_block_hash) const;
   uint64_t getDagBlockMaxHeight() const;
 
+  void setDagBlockMaxHeight(uint64_t const& max_dag_blocks_height);
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
   bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
   bool findPbftBlockInSyncedSet(blk_hash_t const& pbft_block_hash) const;
 
-  bool pushPbftBlockIntoChain(taraxa::PbftBlock const& pbft_block);
-  bool pushPbftBlock(taraxa::PbftBlock const& pbft_block);
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
   uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
+  void updatePbftChain(blk_hash_t const& pbft_block_hash);
 
   bool checkPbftBlockValidationFromSyncing(
       taraxa::PbftBlock const& pbft_block) const;

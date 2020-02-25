@@ -121,10 +121,6 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> &votes);
 
-  bool pushCertVotedPbftBlockIntoChain_(
-      blk_hash_t const &cert_voted_block_hash,
-      std::vector<Vote> const &cert_votes_for_round);
-
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
@@ -137,9 +133,14 @@ class PbftManager {
       blk_hash_t const &pbft_block_hash);
   bool comparePbftBlockScheduleWithDAGblocks_(PbftBlock const &pbft_block);
 
+  bool pushCertVotedPbftBlockIntoChain_(
+      blk_hash_t const &cert_voted_block_hash,
+      std::vector<Vote> const &cert_votes_for_round);
+
   void pushSyncedPbftBlocksIntoChain_();
 
-  bool pushPbftBlockIntoChain_(PbftBlock const &pbft_block);
+  bool pushPbftBlock_(PbftBlock const &pbft_block,
+                      std::vector<Vote> const &cert_votes);
 
   void updateTwoTPlusOneAndThreshold_();
 
