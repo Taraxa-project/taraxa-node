@@ -1518,6 +1518,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   db_->addPbftBlockIndexToBatch(pbft_block_index, pbft_block_hash, batch);
   // Update period_schedule_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
+  // Update sortition account balance table DB
+  updateSortitionAccountsDB_(batch);
   // TODO: Should remove PBFT chain head from DB
   // Update pbft chain
   // TODO: after remove PBFT chain head from DB, update pbft chain should after
@@ -1542,9 +1544,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   executed_pbft_block_ = true;
-
-  // Update sortition account balance table
-  updateSortitionAccountsDB_(batch);
 
   // Update web server
   full_node->updateWsScheduleBlockExecuted(pbft_block);
