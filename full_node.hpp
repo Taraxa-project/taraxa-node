@@ -258,10 +258,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   unsigned long getTransactionCount() const;
   TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
-    return executor_ ? executor_->getNumExecutedTrx() : 0;
+    return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
   }
   auto getNumBlockExecuted() const {
-    return executor_ ? executor_->getNumExecutedBlk() : 0;
+    return db_ ? db_->getStatusField(StatusDbField::ExecutedBlkCount) : 0;
   }
   uint64_t getNumDagBlocks() const {
     return db_ ? db_->getDagBlocksCount() : 0;
