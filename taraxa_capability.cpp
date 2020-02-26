@@ -180,19 +180,21 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
       case StatusPacket: {
         peer->statusReceived();
         if (auto full_node = full_node_.lock()) {
-          bool initial_status = _r.itemCount() == 5;
+          bool initial_status = _r.itemCount() == 6;
           uint64_t peer_level;
           uint64_t peer_pbft_chain_size;
+          auto pbft_chain_size = full_node->getPbftChainSize();
           if (initial_status) {
             auto const peer_protocol_version = _r[0].toInt<unsigned>();
             auto const network_id = _r[1].toString();
             peer_level = _r[2].toPositiveInt64();
             auto const genesis_hash = _r[3].toString();
             peer_pbft_chain_size = _r[4].toPositiveInt64();
+            peer->syncing_ = _r[5].toInt();
             LOG(log_dg_) << "Received initial status message from " << _nodeID
                          << " " << peer_protocol_version << " " << network_id
                          << " " << peer_level << " " << genesis_ << " "
-                         << peer_pbft_chain_size;
+                         << peer_pbft_chain_size << " " << peer->syncing_;
 
             if (peer_protocol_version != c_protocolVersion) {
               LOG(log_er_) << "Incorrect protocol version "
@@ -210,36 +212,35 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                            << ", host " << _nodeID << " will be disconnected";
               host_.capabilityHost()->disconnect(_nodeID, p2p::UserReason);
             }
+            // Only on the initial status message the other node might not have
+            // still started syncing so double check with pbft chain size
+            peer->syncing_ |= peer_pbft_chain_size < pbft_chain_size;
           } else {
             peer_level = _r[0].toPositiveInt64();
             peer_pbft_chain_size = _r[1].toPositiveInt64();
+            peer->syncing_ = _r[2].toInt();
             LOG(log_dg_) << "Received status message from " << _nodeID << " "
                          << peer_level << " " << peer_pbft_chain_size;
           }
           LOG(log_dg_dag_sync_) << "Received status message from " << _nodeID
                                 << " DAG level:" << peer_level;
           LOG(log_dg_pbft_sync_) << "Received status message from " << _nodeID
-                                 << " PBFT chain size:" << peer_pbft_chain_size;
-
-          auto pbft_chain_size = full_node->getPbftChainSize();
-          // Prevent gossiping if other node is behind our pbft level
-          peer->syncing_ = peer_pbft_chain_size < pbft_chain_size;
-          if (peer->syncing_) {
-            LOG(log_dg_pbft_sync_)
-                << "Other node is behind, prevent gossiping " << _nodeID
-                << "Our pbft level: " << pbft_chain_size
-                << " Peer level: " << peer_pbft_chain_size;
-          }
+                                 << " PBFT chain size:" << peer_pbft_chain_size
+                                 << " " << peer->syncing_;
           peer->pbft_chain_size_ = peer_pbft_chain_size;
           peer->dag_level_ = peer_level;
           LOG(log_dg_pbft_sync_)
               << "peer_pbft_chain_size: " << peer_pbft_chain_size
               << "peer_syncing_pbft_chain_size_: "
               << peer_syncing_pbft_chain_size_;
-          if (syncing_) {
-            // If this node is more than 10 pbft blocks ahead of the node we are
-            // currently syncing to force switch to new node
-            if (peer_pbft_chain_size > peer_syncing_pbft_chain_size_ + 10) {
+          if (peer->syncing_) {
+            LOG(log_dg_pbft_sync_)
+                << "Other node is behind, prevent gossiping " << _nodeID
+                << "Our pbft level: " << pbft_chain_size
+                << " Peer level: " << peer_pbft_chain_size;
+            if (syncing_ && peer_syncing_pbft == _nodeID) {
+              // We are currently syncing to a node that just reported it is not
+              // synced, force a switch to a new node
               restartSyncingPbft(true);
             }
           }
@@ -812,15 +813,15 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
                            << full_node->getPbftChainSize();
     if (_initial)
       host_.capabilityHost()->sealAndSend(
-          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 5)
+          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 6)
                    << c_protocolVersion << conf_.network_id
                    << full_node->getMaxDagLevel() << genesis_
-                   << full_node->getPbftChainSize());
+                   << full_node->getPbftChainSize() << syncing_);
     else {
       host_.capabilityHost()->sealAndSend(
-          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 2)
+          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 3)
                    << full_node->getMaxDagLevel()
-                   << full_node->getPbftChainSize());
+                   << full_node->getPbftChainSize() << syncing_);
     }
   }
 }
