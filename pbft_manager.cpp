@@ -277,12 +277,10 @@ void PbftManager::run() {
       // variables the run() function
 
       round_clock_initial_datetime = now;
-
-      LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
-                    << ", step 1, and resetting clock.";
-
       pbft_round_ = consensus_pbft_round;
       resetStep_();
+      LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
+                    << ", step 1, and resetting clock.";
 
       have_executed_this_round = false;
       should_have_cert_voted_in_this_round = false;
