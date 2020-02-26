@@ -1471,8 +1471,9 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     return false;
   }
   // Update number of executed DAG blocks/transactions in DB
-  auto num_executed_blk = full_node->getNumBlockExecuted();
-  auto num_executed_trx = full_node->getNumTransactionExecuted();
+  auto executor = full_node->getExecutor();
+  auto num_executed_blk = executor->getNumExecutedBlk();
+  auto num_executed_trx = executor->getNumExecutedTrx();
   if (num_executed_blk > 0 && num_executed_trx > 0) {
     db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
                                num_executed_blk, batch);

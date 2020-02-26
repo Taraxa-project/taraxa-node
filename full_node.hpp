@@ -195,6 +195,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
+  std::shared_ptr<Executor> getExecutor() const { return executor_; }
   bool executePeriod(DbStorage::BatchPtr const &batch,
                      PbftBlock const &pbft_block,
                      std::unordered_map<addr_t, PbftSortitionAccount>

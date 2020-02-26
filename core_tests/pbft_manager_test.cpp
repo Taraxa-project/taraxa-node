@@ -70,20 +70,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
-
-  bool checkpoint_passed = false;
-  for (auto i = 0; i < 600; i++) {
-    // test timeout is 60 seconds
-    if (node->getNumTransactionExecuted() == 1) {
-      checkpoint_passed = true;
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(500);
-  }
-  if (checkpoint_passed == false) {
-    ASSERT_EQ(node->getNumTransactionExecuted(), 1);
-  }
-
+  ASSERT_EQ(node->getNumTransactionExecuted(), 1);
   EXPECT_EQ(node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
             9007199254740991 - 100);
