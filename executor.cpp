@@ -5,7 +5,6 @@
 
 #include "full_node.hpp"
 #include "transaction.hpp"
-#include "util/eth.hpp"
 
 namespace taraxa {
 using dev::KeyPair;

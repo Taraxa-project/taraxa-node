@@ -7,7 +7,6 @@
 
 #include "eth/util.hpp"
 #include "full_node.hpp"
-#include "util/eth.hpp"
 
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
@@ -199,7 +198,7 @@ bool TransactionQueue::verifyTransaction(Transaction const &trx) const {
       eth_service_->sealEngine()->verifyTransaction(
           dev::eth::ImportRequirements::Everything,
           eth::util::trx_taraxa_2_eth(trx),  //
-          eth_service_->getBlockHeader(),    //
+          eth_service_->head(),              //
           0);
     } else {
       return trx.verifySig();
