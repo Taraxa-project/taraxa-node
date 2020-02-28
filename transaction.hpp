@@ -27,36 +27,11 @@ class DagBlock;
 class FullNode;
 
 enum class TransactionStatus {
-  invalid,
-  nonce_gap,  // nonce has gap, need to re-verify later
-  in_block,   // confirmed state, inside of block created by us or someone else
-  in_queue_unverified,  // not packed yet
-  in_queue_verified,    // not packed yet
-  unseen
-};
-
-class TransactionStatusTable
-    : public ExpirationCacheMap<trx_hash_t, TransactionStatus> {
- public:
-  TransactionStatusTable(uint32_t max_size, uint32_t delete_step)
-      : ExpirationCacheMap(max_size, delete_step) {}
-
-  void eraseOldest() override {
-    for (auto i = 0; i < delete_step_; i++) {
-      trx_hash_t status_hash = expiration_.front();
-      auto status = cache_[status_hash];
-      // Skip delete if transaction in queue or in nonce_gap and put in at back
-      // of the queue
-      if (status == TransactionStatus::nonce_gap ||
-          status == TransactionStatus::in_queue_unverified ||
-          status == TransactionStatus::in_queue_verified) {
-        expiration_.push_back(status_hash);
-      } else {
-        cache_.erase(status_hash);
-      }
-      expiration_.pop_front();
-    }
-  }
+  invalid = 0,
+  in_block,  // confirmed state, inside of block created by us or someone else
+  in_queue_unverified,
+  in_queue_verified,
+  not_seen
 };
 
 /**
@@ -64,8 +39,6 @@ class TransactionStatusTable
  * keep track of transaction state
  */
 using TransactionRLPTable = ExpirationCacheMap<trx_hash_t, taraxa::bytes>;
-using TransactionUnsafeStatusTable =
-    std::unordered_map<trx_hash_t, TransactionStatus>;
 using AccountNonceTable = StatusTable<addr_t, val_t>;
 
 /**
@@ -214,28 +187,20 @@ class Transaction {
 class TransactionQueue {
  public:
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
-  TransactionQueue(
-      TransactionStatusTable &status, AccountNonceTable &accs_nonce,
-      size_t num_verifiers,
-      std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
-      : trx_status_(status),
-        accs_nonce_(accs_nonce),
-        num_verifiers_(num_verifiers),
-        eth_service_(eth_service) {}
-  TransactionQueue(TransactionStatusTable &status,
-                   AccountNonceTable &accs_nonce, size_t num_verifiers,
-                   unsigned current_capacity, unsigned future_capacity)
-      : trx_status_(status),
-        accs_nonce_(accs_nonce),
-        num_verifiers_(num_verifiers) {}
+  using listIter = std::list<Transaction>::iterator;
+  TransactionQueue() {}
 
   ~TransactionQueue() { stop(); }
 
   void start();
   void stop();
-  bool insert(Transaction const &trx, bool verify);
+  void insert(Transaction const &trx, bool verify);
   Transaction top();
   void pop();
+  std::pair<trx_hash_t, listIter> getUnverifiedTransaction();
+  void removeTransactionFromBuffer(trx_hash_t const &hash);
+  void addTransactionToVerifiedQueue(trx_hash_t const &hash,
+                                     std::list<Transaction>::iterator);
   std::unordered_map<trx_hash_t, Transaction> moveVerifiedTrxSnapShot(
       uint16_t max_trx_to_pack = 0);
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
@@ -244,27 +209,19 @@ class TransactionQueue {
   std::unordered_map<trx_hash_t, Transaction> removeBlockTransactionsFromQueue(
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount();
-  void setVerifyMode(VerifyMode mode) { mode_ = mode; }
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
   void setFullNode(std::shared_ptr<FullNode> full_node) {
     full_node_ = full_node;
   }
-  bool verifyTransaction(Transaction const &trx) const;
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-  using listIter = std::list<Transaction>::iterator;
-  void verifyQueuedTrxs();
   addr_t getFullNodeAddress() const;
   std::atomic<bool> stopped_ = true;
-  VerifyMode mode_ = VerifyMode::normal;
   bool new_verified_transactions_ = true;
-  size_t num_verifiers_ = 4;
-  TransactionStatusTable &trx_status_;
-  AccountNonceTable &accs_nonce_;
   std::weak_ptr<FullNode> full_node_;
 
   std::list<Transaction> trx_buffer_;
@@ -276,9 +233,6 @@ class TransactionQueue {
   std::deque<std::pair<trx_hash_t, listIter>> unverified_hash_qu_;
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
-
-  std::vector<std::thread> verifiers_;
-  std::shared_ptr<eth::eth_service::EthService> eth_service_;
 
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXQU")};
@@ -310,16 +264,11 @@ class TransactionManager
       TestParamsConfig conf,
       std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
       : conf_(conf),
-        trx_status_(1000000, 1000),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
-        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/, eth_service) {}
+        eth_service_(eth_service) {}
   TransactionManager(std::shared_ptr<DbStorage> db)
-      : db_(db),
-        trx_status_(1000000, 1000),
-        rlp_cache_(100000, 10000),
-        accs_nonce_(),
-        trx_qu_(trx_status_, accs_nonce_, 8 /*num verifiers*/) {}
+      : db_(db), rlp_cache_(100000, 10000), accs_nonce_() {}
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -342,10 +291,9 @@ class TransactionManager
    */
   void packTrxs(vec_trx_t &to_be_packed_trx, DagFrontier &frontier,
                 uint16_t max_trx_to_pack = 0);
-  void setVerifyMode(VerifyMode mode) {
-    mode_ = mode;
-    trx_qu_.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
-  }
+  void setVerifyMode(VerifyMode mode) { mode_ = mode; }
+
+  bool verifyTransaction(Transaction const &trx) const;
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
@@ -357,43 +305,36 @@ class TransactionManager
 
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
       trx_hash_t const &hash) const;
-  unsigned long getTransactionStatusCount() const;
   unsigned long getTransactionCount() const;
-  bool isTransactionVerified(trx_hash_t const &hash) {
-    // in_block means in db, i.e., already verified
-    auto status = trx_status_.get(hash);
-    return status.second ? status.first == TransactionStatus::in_block : false;
-  }
-
   // Received block means these trxs are packed by others
-  bool saveBlockTransactionAndDeduplicate(
-      vec_trx_t const &all_block_trx_hashes,
-      std::vector<Transaction> const &some_trxs);
-  void clearTransactionStatusTable() { trx_status_.clear(); }
 
-  // debugging purpose
-  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() {
-    return trx_status_.getRawMap();
-  }
+  bool saveBlockTransactionAndDeduplicate(
+      DagBlock const &blk, std::vector<Transaction> const &some_trxs);
+
   void updateNonce(DagBlock const &blk, DagFrontier const &frontier);
 
+  TransactionQueue &getTransactionQueue() { return trx_qu_; }
+
  private:
+  void verifyQueuedTrxs();
+  size_t num_verifiers_ = 4;
   addr_t getFullNodeAddress() const;
   MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  TransactionStatusTable trx_status_;
   TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;
-  std::queue<Transaction> trx_requeued_;
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;
   TestParamsConfig conf_;
+  std::shared_ptr<eth::eth_service::EthService> eth_service_;
+  std::vector<std::thread> verifiers_;
 
   mutable std::mutex mu_for_nonce_table_;
+  mutable std::mutex mu_for_transactions_;
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};
   mutable dev::Logger log_er_{

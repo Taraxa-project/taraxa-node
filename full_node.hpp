@@ -255,9 +255,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;
-  unsigned long getTransactionStatusCount() const;
   unsigned long getTransactionCount() const;
-  TransactionUnsafeStatusTable getUnsafeTransactionStatusTable() const;
   auto getNumTransactionExecuted() const {
     return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
   }

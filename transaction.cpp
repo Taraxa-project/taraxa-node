@@ -192,7 +192,7 @@ bool Transaction::verifySig() const {
   return dev::verify(pk, sig_, msg);
 }
 
-bool TransactionQueue::verifyTransaction(Transaction const &trx) const {
+bool TransactionManager::verifyTransaction(Transaction const &trx) const {
   try {
     if (eth_service_) {
       eth_service_->sealEngine()->verifyTransaction(
@@ -260,12 +260,6 @@ void TransactionQueue::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  verifiers_.clear();
-  for (auto i = 0; i < num_verifiers_; ++i) {
-    LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
-    verifiers_.emplace_back([this]() { verifyQueuedTrxs(); });
-  }
-  assert(num_verifiers_ == verifiers_.size());
 }
 
 void TransactionQueue::stop() {
@@ -273,112 +267,92 @@ void TransactionQueue::stop() {
     return;
   }
   cond_for_unverified_qu_.notify_all();
-  for (auto &t : verifiers_) {
-    t.join();
-  }
 }
 
-bool TransactionQueue::insert(Transaction const &trx, bool verify) {
+void TransactionQueue::insert(Transaction const &trx, bool verify) {
   trx_hash_t hash = trx.getHash();
-  auto status = trx_status_.get(hash);
-  bool ret = false;
   listIter iter;
 
-  if (status.second == false) {  // never seen before
-    if (verify) {
-      ret = (mode_ == VerifyMode::skip_verify_sig) || verifyTransaction(trx);
-      if (ret) {
-        {
-          uLock lock(shared_mutex_for_queued_trxs_);
-          iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-          assert(iter != trx_buffer_.end());
-          queued_trxs_[trx.getHash()] = iter;
-        }
-        trx_status_.update(trx.getHash(), TransactionStatus::in_queue_verified);
-        {
-          uLock lock(shared_mutex_for_verified_qu_);
-          verified_trxs_[trx.getHash()] = iter;
-          new_verified_transactions_ = true;
-        }
-      } else {
-        trx_status_.update(trx.getHash(), TransactionStatus::invalid);
-        LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash << "invalid. "
-                     << std::endl;
-      }
-    } else {
-      ret = trx_status_.insert(hash, TransactionStatus::in_queue_unverified);
-      if (ret) {
-        {
-          uLock lock(shared_mutex_for_queued_trxs_);
-          iter = trx_buffer_.insert(trx_buffer_.end(), trx);
-          assert(iter != trx_buffer_.end());
-          queued_trxs_[trx.getHash()] = iter;
-        }
-        {
-          uLock lock(shared_mutex_for_unverified_qu_);
-          unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
-        }
-        cond_for_unverified_qu_.notify_one();
-        LOG(log_nf_) << getFullNodeAddress() << " Trx: " << hash
-                     << " inserted. " << std::endl;
-      }
-    }
+  {
+    uLock lock(shared_mutex_for_queued_trxs_);
+    iter = trx_buffer_.insert(trx_buffer_.end(), trx);
+    assert(iter != trx_buffer_.end());
+    queued_trxs_[trx.getHash()] = iter;
   }
-  return ret;
+  if (verify) {
+    uLock lock(shared_mutex_for_verified_qu_);
+    verified_trxs_[trx.getHash()] = iter;
+    new_verified_transactions_ = true;
+  } else {
+    uLock lock(shared_mutex_for_unverified_qu_);
+    unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
+    cond_for_unverified_qu_.notify_one();
+  }
+  LOG(log_nf_) << getFullNodeAddress() << " Trx: " << hash << " inserted. "
+               << verify << std::endl;
 }
 
-void TransactionQueue::verifyQueuedTrxs() {
-  while (!stopped_) {
-    // Transaction utrx;
-    std::pair<trx_hash_t, listIter> item;
-    {
-      uLock lock(shared_mutex_for_unverified_qu_);
-      while (unverified_hash_qu_.empty() && !stopped_) {
-        cond_for_unverified_qu_.wait(lock);
-      }
-      if (stopped_) {
-        LOG(log_nf_) << "Transaction verifier stopped ... " << std::endl;
-        return;
-      }
+std::pair<trx_hash_t, TransactionQueue::listIter>
+TransactionQueue::getUnverifiedTransaction() {
+  std::pair<trx_hash_t, listIter> item;
+  {
+    uLock lock(shared_mutex_for_unverified_qu_);
+    while (unverified_hash_qu_.empty() && !stopped_) {
+      cond_for_unverified_qu_.wait(lock);
+    }
+    if (stopped_) {
+      LOG(log_nf_) << "Transaction verifier stopped ... " << std::endl;
+    } else {
       item = unverified_hash_qu_.front();
       unverified_hash_qu_.pop_front();
     }
-    try {
-      trx_hash_t hash = item.first;
-      Transaction trx = *(item.second);
-      // verify and put the transaction to verified queue
-      bool valid = false;
-      if (mode_ == VerifyMode::skip_verify_sig) {
-        valid = true;
-      } else {
-        valid = verifyTransaction(trx);
-      }
-      // mark invalid
-      if (!valid) {
-        trx_status_.update(trx.getHash(), TransactionStatus::invalid);
-        {
-          uLock lock(shared_mutex_for_queued_trxs_);
-          trx_buffer_.erase(queued_trxs_[hash]);
-          queued_trxs_.erase(hash);
-        }
-        LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash << "invalid. "
-                     << std::endl;
-        continue;
-      }
-      bool ret = trx_status_.update(trx.getHash(),
-                                    TransactionStatus::in_queue_verified,
-                                    TransactionStatus::in_queue_unverified);
-      if (ret) {
-        {
-          uLock lock(shared_mutex_for_verified_qu_);
-          verified_trxs_[hash] = item.second;
-          new_verified_transactions_ = true;
-        }
-      }
+  }
+  return item;
+}
 
-    } catch (...) {
-      assert(false);
+void TransactionQueue::removeTransactionFromBuffer(trx_hash_t const &hash) {
+  uLock lock(shared_mutex_for_queued_trxs_);
+  trx_buffer_.erase(queued_trxs_[hash]);
+  queued_trxs_.erase(hash);
+}
+
+void TransactionQueue::addTransactionToVerifiedQueue(
+    trx_hash_t const &hash, std::list<Transaction>::iterator iter) {
+  uLock lock(shared_mutex_for_verified_qu_);
+  verified_trxs_[hash] = iter;
+  new_verified_transactions_ = true;
+}
+
+void TransactionManager::verifyQueuedTrxs() {
+  while (!stopped_) {
+    // It will wait if no transaction in unverified queue
+    auto item = trx_qu_.getUnverifiedTransaction();
+    if (stopped_) return;
+
+    bool valid = false;
+    trx_hash_t hash = item.second->getHash();
+    // verify and put the transaction to verified queue
+    if (mode_ == VerifyMode::skip_verify_sig) {
+      valid = true;
+    } else {
+      valid = verifyTransaction(*item.second);
     }
+    // mark invalid
+    if (!valid) {
+      {
+        uLock lock(mu_for_transactions_);
+        db_->saveTransactionStatus(hash, TransactionStatus::invalid);
+      }
+      trx_qu_.removeTransactionFromBuffer(hash);
+      LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash << "invalid. "
+                   << std::endl;
+      continue;
+    }
+    {
+      uLock lock(mu_for_transactions_);
+      db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+    }
+    trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
   }
 }
 
@@ -523,6 +497,12 @@ void TransactionManager::start() {
     return;
   }
   trx_qu_.start();
+  verifiers_.clear();
+  for (auto i = 0; i < num_verifiers_; ++i) {
+    LOG(log_nf_) << "Create Transaction verifier ... " << std::endl;
+    verifiers_.emplace_back([this]() { verifyQueuedTrxs(); });
+  }
+  assert(num_verifiers_ == verifiers_.size());
 }
 
 void TransactionManager::stop() {
@@ -530,6 +510,9 @@ void TransactionManager::stop() {
     return;
   }
   trx_qu_.stop();
+  for (auto &t : verifiers_) {
+    t.join();
+  }
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -569,10 +552,6 @@ TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   return ret;
 }
 
-unsigned long TransactionManager::getTransactionStatusCount() const {
-  return trx_status_.size();
-}
-
 unsigned long TransactionManager::getTransactionCount() const {
   return trx_count_.load();
 }
@@ -607,82 +586,71 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
 }
 // Received block means some trx might be packed by others
 bool TransactionManager::saveBlockTransactionAndDeduplicate(
-    vec_trx_t const &all_block_trx_hashes,
-    std::vector<Transaction> const &some_trxs) {
+    DagBlock const &blk, std::vector<Transaction> const &some_trxs) {
+  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     return true;
   }
-  // First step: Save and update status for transactions that were sent
-  // together with the block some_trxs might not full trxs in the block (for
-  // syncing purpose)
+  uint32_t saved_trx_count = 0;
+  std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(),
+                                        all_block_trx_hashes.end());
+
   if (!some_trxs.empty()) {
     auto trx_batch = db_->createWriteBatch();
-    std::vector<trx_hash_t> trxs_written_to_db;
     for (auto const &trx : some_trxs) {
-      auto trx_hash = trx.getHash();
-      auto status = trx_status_.get(trx_hash);
-      if (!status.second || status.first != TransactionStatus::in_block) {
-        if (!db_->transactionInDb(trx_hash)) {
-          trxs_written_to_db.push_back(trx_hash);
-          trx_count_.fetch_add(1);
-          db_->addTransactionToBatch(trx, trx_batch);
-        }
-      }
+      db_->addTransactionToBatch(trx, trx_batch);
+      known_trx_hashes.erase(trx.getHash());
     }
-    auto trx_count = trx_count_.load();
-    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
     db_->commitWriteBatch(trx_batch);
-    for (auto const &trx : trxs_written_to_db) {
-      trx_status_.update(trx, TransactionStatus::in_block);
-    }
   }
-  // Second step: Remove from the queue any transaction that is part of the
-  // block Verify that all transactions are saved in the database If all
-  // transactions are not available within 10 seconds fail the block
-  // verification
-  bool all_transactions_saved = true;
-  unsigned int delay = 0;
-  vec_trx_t unsaved_trx;
-  while (delay < 10000) {
-    auto removed_trx =
-        trx_qu_.removeBlockTransactionsFromQueue(all_block_trx_hashes);
-    std::vector<trx_hash_t> trxs_written_to_db;
-    if (removed_trx.size() > 0) {
-      auto trx_batch = db_->createWriteBatch();
-      for (auto const &trx : removed_trx) {
-        if (!db_->transactionInDb(trx.first)) {
-          trxs_written_to_db.push_back(trx.first);
-          trx_count_.fetch_add(1);
-          db_->addTransactionToBatch(trx.second, trx_batch);
-        }
-      }
-      auto trx_count = trx_count_.load();
-      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-      db_->commitWriteBatch(trx_batch);
 
-      for (auto const &trx : trxs_written_to_db) {
-        trx_status_.update(trx, TransactionStatus::in_block);
-      }
-    }
+  unsigned int delay = 0;
+  bool all_transactions_saved = true;
+  trx_hash_t missing_trx;
+  while (delay < 10000) {
     all_transactions_saved = true;
-    unsaved_trx.clear();
-    for (auto const &trx : all_block_trx_hashes) {
-      auto res = trx_status_.get(trx);
-      if (res.second == false || res.first != TransactionStatus::in_block) {
+    for (auto const &trx : known_trx_hashes) {
+      auto status = db_->getTransactionStatus(trx);
+      if (status == TransactionStatus::not_seen) {
         all_transactions_saved = false;
-        unsaved_trx.emplace_back(trx);
+        missing_trx = trx;
+        break;
       }
     }
     // Only if all transactions are saved in the db can we verify a new block
     if (all_transactions_saved) break;
-    // Getting here should be a very rare case where in a racing condition
-    // block was processed before the transactions
+    // Since networking messages are processes on a single thread it should be
+    // impossible to have any missing transactions, for now log an error and
+    // wait for it but we really should never get here for a valid block
+    LOG(log_er_)
+        << "Missing transactions that should have been already received";
     thisThreadSleepForMilliSeconds(10);
     delay += 10;
   }
-  if (!all_transactions_saved) {
-    LOG(log_er_) << full_node_.lock()->getAddress() << " Missing transactions ("
-                 << unsaved_trx.size() << ") " << unsaved_trx;
+  if (all_transactions_saved) {
+    uLock lock(mu_for_transactions_);
+    auto trx_batch = db_->createWriteBatch();
+    for (auto const &trx : all_block_trx_hashes) {
+      auto status = db_->getTransactionStatus(trx);
+      if (status != TransactionStatus::in_block) {
+        if (status == TransactionStatus::in_queue_unverified) {
+          if (!verifyTransaction(db_->getTransactionExt(trx)->first)) {
+            LOG(log_er_) << full_node_.lock()->getAddress()
+                         << " Block contains invalid transaction " << trx;
+            return false;
+          }
+        }
+        trx_count_.fetch_add(1);
+        db_->addTransactionStatusToBatch(trx_batch, trx,
+                                         TransactionStatus::in_block);
+      }
+      auto trx_count = trx_count_.load();
+      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+      db_->commitWriteBatch(trx_batch);
+    }
+  } else {
+    LOG(log_er_) << full_node_.lock()->getAddress() << " Missing transaction "
+                 << missing_trx;
   }
 
   return all_transactions_saved;
@@ -691,54 +659,62 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
 bool TransactionManager::insertTrx(Transaction const &trx,
                                    taraxa::bytes const &trx_serialized,
                                    bool verify) {
-  bool ret = false;
+  bool verified = false;
   auto hash = trx.getHash();
-  auto status = trx_status_.get(hash);
-  if (status.second == false) {  // never seen before
-    if (db_->transactionInDb(hash)) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in db " << std::endl;
-    } else {
-      if (conf_.max_transaction_queue_warn > 0 ||
-          conf_.max_transaction_queue_drop > 0) {
-        auto queue_size = trx_qu_.getTransactionQueueSize();
-        if (conf_.max_transaction_queue_drop >
-            queue_size.first + queue_size.second) {
-          LOG(log_wr_) << "Trx: " << hash
-                       << "skipped, queue too large. Unverified queue: "
-                       << queue_size.first
-                       << "; Verified queue: " << queue_size.second
-                       << "; Limit: " << conf_.max_transaction_queue_drop;
-          return false;
-        } else if (conf_.max_transaction_queue_warn >
-                   queue_size.first + queue_size.second) {
-          LOG(log_wr_) << "Warning: queue large. Unverified queue: "
-                       << queue_size.first
-                       << "; Verified queue: " << queue_size.second
-                       << "; Limit: " << conf_.max_transaction_queue_drop;
-          return false;
-        }
-      }
-      if (trx_qu_.insert(trx, verify)) {
-        rlp_cache_.insert(trx.getHash(), trx_serialized);
-        ret = true;
-        auto node = full_node_.lock();
-        if (node) {
-          node->newPendingTransaction(trx.getHash());
-        }
-      }
+  db_->saveTransaction(trx);
+  bool ret = false;
+
+  if (conf_.max_transaction_queue_warn > 0 ||
+      conf_.max_transaction_queue_drop > 0) {
+    auto queue_size = trx_qu_.getTransactionQueueSize();
+    if (conf_.max_transaction_queue_drop >
+        queue_size.first + queue_size.second) {
+      LOG(log_wr_) << "Trx: " << hash
+                   << "skipped, queue too large. Unverified queue: "
+                   << queue_size.first
+                   << "; Verified queue: " << queue_size.second
+                   << "; Limit: " << conf_.max_transaction_queue_drop;
+      return false;
+    } else if (conf_.max_transaction_queue_warn >
+               queue_size.first + queue_size.second) {
+      LOG(log_wr_) << "Warning: queue large. Unverified queue: "
+                   << queue_size.first
+                   << "; Verified queue: " << queue_size.second
+                   << "; Limit: " << conf_.max_transaction_queue_drop;
+      return false;
     }
-  } else {
-    if (status.first == TransactionStatus::in_queue_unverified) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (unverified). "
-                   << std::endl;
-    } else if (status.first == TransactionStatus::in_queue_verified) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue (verified). "
-                   << std::endl;
-    } else if (status.first == TransactionStatus::in_block) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
-    } else if (status.first == TransactionStatus::invalid) {
-      LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
-                   << std::endl;
+  }
+
+  if (verify) {
+    verified = (mode_ == VerifyMode::skip_verify_sig) || verifyTransaction(trx);
+  }
+  if (!verify || verified) {
+    uLock lock(mu_for_transactions_);
+    auto status = db_->getTransactionStatus(hash);
+    if (status == TransactionStatus::not_seen) {
+      if (verify) {
+        db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+      } else {
+        db_->saveTransactionStatus(hash,
+                                   TransactionStatus::in_queue_unverified);
+      }
+      lock.unlock();
+      trx_qu_.insert(trx, verify);
+      auto node = full_node_.lock();
+      if (node) {
+        node->newPendingTransaction(trx.getHash());
+      }
+      ret = true;
+    } else {
+      if (status == TransactionStatus::in_queue_verified ||
+          status == TransactionStatus::in_queue_unverified) {
+        LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
+      } else if (status == TransactionStatus::in_block) {
+        LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
+      } else if (status == TransactionStatus::invalid) {
+        LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
+                     << std::endl;
+      }
     }
   }
   return ret;
@@ -759,54 +735,41 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                                   DagFrontier &frontier,
                                   uint16_t max_trx_to_pack) {
   to_be_packed_trx.clear();
+  std::list<Transaction> list_trxs;
 
   frontier = dag_frontier_;
   LOG(log_dg_) << getFullNodeAddress()
                << " Get frontier with pivot: " << frontier.pivot
                << " tips: " << frontier.tips;
 
-  std::list<Transaction> list_trxs;
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
 
   bool changed = false;
   auto trx_batch = db_->createWriteBatch();
   std::vector<trx_hash_t> trxs_written_to_db;
-  for (auto const &i : verified_trx) {
-    trx_hash_t const &hash = i.first;
-    Transaction const &trx = i.second;
-    auto status = trx_status_.get(hash);
-    if (!status.second || status.first != TransactionStatus::in_block) {
-      // Skip if transaction is already in existing block
-      if (db_->transactionInDb(hash)) {
-        continue;
+  {
+    uLock lock(mu_for_transactions_);
+    for (auto const &i : verified_trx) {
+      trx_hash_t const &hash = i.first;
+      Transaction const &trx = i.second;
+      auto status = db_->getTransactionStatus(hash);
+      if (status == TransactionStatus::in_queue_verified) {
+        // Skip if transaction is already in existing block
+        db_->addTransactionStatusToBatch(trx_batch, hash,
+                                         TransactionStatus::in_block);
+        trx_count_.fetch_add(1);
+        changed = true;
+        LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
+        // update transaction_status
+        list_trxs.push_back(trx);
       }
-      db_->addTransactionToBatch(trx, trx_batch);
-      trxs_written_to_db.push_back(hash);
-      trx_count_.fetch_add(1);
-      changed = true;
     }
-    LOG(log_dg_) << "Trx: " << hash << " ready to pack" << std::endl;
-    // update transaction_status
-    list_trxs.push_back(trx);
-  }
 
-  if (changed) {
-    auto trx_count = trx_count_.load();
-    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
-    db_->commitWriteBatch(trx_batch);
-    for (auto const &trx : trxs_written_to_db) {
-      trx_status_.update(trx, TransactionStatus::in_block);
+    if (changed) {
+      auto trx_count = trx_count_.load();
+      db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count, trx_batch);
+      db_->commitWriteBatch(trx_batch);
     }
-  }
-
-  // check requeued trx
-  if (!trx_requeued_.empty()) {
-    LOG(log_dg_) << getFullNodeAddress() << " Number of repacked trx "
-                 << trx_requeued_.size();
-  }
-  while (!trx_requeued_.empty()) {
-    list_trxs.push_back(trx_requeued_.front());
-    trx_requeued_.pop();
   }
 
   if (list_trxs.size() == 0) {
@@ -851,7 +814,7 @@ bool TransactionManager::verifyBlockTransactions(
     DagBlock const &blk, std::vector<Transaction> const &trxs) {
   bool invalidTransaction = false;
   for (auto const &trx : trxs) {
-    auto valid = trx_qu_.verifyTransaction(trx);
+    auto valid = verifyTransaction(trx);
     if (!valid) {
       invalidTransaction = true;
       LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
@@ -864,8 +827,7 @@ bool TransactionManager::verifyBlockTransactions(
   // Save the transaction that came with the block together with the
   // transactions that are in the queue. This will update the transaction
   // status as well and remove the transactions from the queue
-  bool transactionsSave =
-      saveBlockTransactionAndDeduplicate(blk.getTrxs(), trxs);
+  bool transactionsSave = saveBlockTransactionAndDeduplicate(blk, trxs);
   if (!transactionsSave) {
     LOG(log_er_) << "Block " << blk.getHash() << " has missing transactions ";
     return false;

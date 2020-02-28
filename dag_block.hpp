@@ -26,6 +26,7 @@ using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
 class DagManager;
 class Transaction;
+enum class TransactionStatus;
 class TransactionManager;
 class FullNode;
 // Block definition

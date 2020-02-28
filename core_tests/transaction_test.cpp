@@ -91,51 +91,52 @@ TEST_F(TransactionTest, signer_signature_verify) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  TransactionStatusTable status_table(100000, 1000);
   AccountNonceTable accs_table;
 
-  TransactionQueue trx_qu(status_table, accs_table, 2 /*num verifiers*/);
-  trx_qu.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
-  trx_qu.start();
+  TransactionManager trx_mgr(
+      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true));
+  trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
+  trx_mgr.start();
 
   // insert trx
-  std::thread t([&trx_qu]() {
+  std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_qu.insert(t, true);
+      trx_mgr.insertTrx(t, t.rlp(true), true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_qu.insert(t, false);
+    trx_mgr.insertTrx(t, t.rlp(true), false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  auto verified_trxs = trx_qu.moveVerifiedTrxSnapShot();
+  auto verified_trxs = trx_mgr.getVerifiedTrxSnapShot();
   EXPECT_EQ(verified_trxs.size(), g_trx_samples->size());
 }
 
 TEST_F(TransactionTest, transaction_limit) {
-  TransactionStatusTable status_table(100000, 1000);
   AccountNonceTable accs_table;
 
-  TransactionQueue trx_qu(status_table, accs_table, 2 /*num verifiers*/);
-  trx_qu.setVerifyMode(TransactionQueue::VerifyMode::skip_verify_sig);
-  trx_qu.start();
+  TransactionManager trx_mgr(
+      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true));
+  trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
+  trx_mgr.start();
 
   // insert trx
-  std::thread t([&trx_qu]() {
+  std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_qu.insert(t, true);
+      trx_mgr.insertTrx(t, t.rlp(true), true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_qu.insert(t, false);
+    trx_mgr.insertTrx(t, t.rlp(true), false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
+  auto& trx_qu = trx_mgr.getTransactionQueue();
   auto verified_trxs1 = trx_qu.moveVerifiedTrxSnapShot(10);
   auto verified_trxs2 = trx_qu.moveVerifiedTrxSnapShot(20);
   auto verified_trxs3 = trx_qu.moveVerifiedTrxSnapShot(0);
@@ -145,7 +146,6 @@ TEST_F(TransactionTest, transaction_limit) {
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
-  TransactionStatusTable status_table(100000, 1000);
   TransactionManager trx_mgr(
       DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true));
   trx_mgr.start();
