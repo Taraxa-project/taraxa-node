@@ -101,13 +101,13 @@ TEST_F(TransactionTest, verifiers) {
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(true), true);
+      trx_mgr.insertTrx(t, t.rlp(false), true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTrx(t, t.rlp(true), false);
+    trx_mgr.insertTrx(t, t.rlp(false), false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -126,13 +126,13 @@ TEST_F(TransactionTest, transaction_limit) {
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(true), true);
+      trx_mgr.insertTrx(t, t.rlp(false), true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTrx(t, t.rlp(true), false);
+    trx_mgr.insertTrx(t, t.rlp(false), false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -152,7 +152,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(true), false);
+      trx_mgr.insertTrx(t, t.rlp(false), false);
     }
   });
 
