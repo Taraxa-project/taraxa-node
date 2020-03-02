@@ -627,7 +627,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
     // impossible to have any missing transactions, for now log an error and
     // wait for it but we really should never get here for a valid block
     LOG(log_er_)
-        << "Missing transactions that should have been already received";
+        << "Missing transactions that should have been already received " << missing_trx.toString();
     thisThreadSleepForMilliSeconds(10);
     delay += 10;
   }

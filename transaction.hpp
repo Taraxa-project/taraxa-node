@@ -257,7 +257,6 @@ class TransactionManager
     : public std::enable_shared_from_this<TransactionManager> {
  public:
   using uLock = std::unique_lock<std::mutex>;
-  enum class MgrStatus : uint8_t { idle, verifying, proposing };
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager(
@@ -319,7 +318,6 @@ class TransactionManager
   void verifyQueuedTrxs();
   size_t num_verifiers_ = 4;
   addr_t getFullNodeAddress() const;
-  MgrStatus mgr_status_ = MgrStatus::idle;
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
