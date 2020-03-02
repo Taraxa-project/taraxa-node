@@ -152,7 +152,7 @@ std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
   std::map<trx_hash_t, TransactionStatus> res;
   auto i = u_ptr(db_->NewIterator(read_options_, handle(Columns::trx_status)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    res[trx_hash_t(asBytes(i->key().data()))] =
+    res[trx_hash_t(asBytes(i->key().ToString()))] =
         (TransactionStatus) * (uint16_t*)(i->value().data());
   }
   return res;

@@ -350,9 +350,13 @@ void TransactionManager::verifyQueuedTrxs() {
     }
     {
       uLock lock(mu_for_transactions_);
-      db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+      auto status = db_->getTransactionStatus(hash);
+      if (status == TransactionStatus::in_queue_unverified) {
+        db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+        lock.unlock();
+        trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
+      }
     }
-    trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
   }
 }
 
