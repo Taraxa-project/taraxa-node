@@ -608,29 +608,17 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
     db_->commitWriteBatch(trx_batch);
   }
 
-  unsigned int delay = 0;
   bool all_transactions_saved = true;
   trx_hash_t missing_trx;
-  while (delay < 10000) {
-    all_transactions_saved = true;
-    for (auto const &trx : known_trx_hashes) {
-      auto status = db_->getTransactionStatus(trx);
-      if (status == TransactionStatus::not_seen) {
-        all_transactions_saved = false;
-        missing_trx = trx;
-        break;
-      }
+  for (auto const &trx : known_trx_hashes) {
+    auto status = db_->getTransactionStatus(trx);
+    if (status == TransactionStatus::not_seen) {
+      all_transactions_saved = false;
+      missing_trx = trx;
+      break;
     }
-    // Only if all transactions are saved in the db can we verify a new block
-    if (all_transactions_saved) break;
-    // Since networking messages are processes on a single thread it should be
-    // impossible to have any missing transactions, for now log an error and
-    // wait for it but we really should never get here for a valid block
-    LOG(log_er_)
-        << "Missing transactions that should have been already received " << missing_trx.toString();
-    thisThreadSleepForMilliSeconds(10);
-    delay += 10;
   }
+
   if (all_transactions_saved) {
     uLock lock(mu_for_transactions_);
     auto trx_batch = db_->createWriteBatch();
@@ -653,7 +641,8 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       db_->commitWriteBatch(trx_batch);
     }
   } else {
-    LOG(log_er_) << full_node_.lock()->getAddress() << " Missing transaction "
+    LOG(log_er_) << full_node_.lock()->getAddress()
+                 << " Missing transaction - FAILED block verification "
                  << missing_trx;
   }
 
