@@ -9,13 +9,10 @@ extern "C" {
 
 #include <cstring>
 
-#include "util/eth.hpp"
-
 namespace taraxa::trx_engine::db::cgo {
 using namespace dev;
 using namespace dev::db;
 using namespace std;
-using namespace util::eth;
 
 using Slice = taraxa_cgo_ethdb_Slice;
 

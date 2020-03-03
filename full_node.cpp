@@ -16,14 +16,12 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
-#include "util/eth.hpp"
 #include "vote.hpp"
 
 namespace taraxa {
 
 using std::string;
 using std::to_string;
-using util::eth::newDB;
 void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 void FullNode::init(bool destroy_db, bool rebuild_network) {

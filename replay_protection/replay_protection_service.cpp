@@ -6,12 +6,12 @@
 #include <unordered_map>
 
 #include "eth/util.hpp"
-#include "util/eth.hpp"
 
 namespace taraxa::replay_protection::replay_protection_service {
 using dev::fromBigEndian;
 using dev::RLP;
 using dev::toBigEndianString;
+using dev::db::slice_from_slice_like;
 using std::getline;
 using std::istringstream;
 using std::make_shared;
@@ -23,7 +23,6 @@ using std::to_string;
 using std::unique_lock;
 using std::unordered_map;
 using taraxa::as_shared;
-using util::eth::toSlice;
 
 string const CURR_ROUND_KEY = "curr_rnd";
 
@@ -104,7 +103,8 @@ void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
     if (state->isNonceMaxDirty() || state->isDefaultInitialized()) {
       batch->insert(maxNonceAtRoundKey(round, sender),
                     toBigEndianString(state->getNonceMax()));
-      batch->insert(senderStateKey(sender), toSlice(state->rlp().out()));
+      batch->insert(senderStateKey(sender),
+                    slice_from_slice_like(state->rlp().out()));
       round_data_keys << sender << "\n";
     }
   }
@@ -124,7 +124,8 @@ void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
             auto sender_state_key = senderStateKey(line);
             auto state = loadSenderState(sender_state_key);
             state->setNonceWatermark(fromBigEndian<trx_nonce_t>(v));
-            batch->insert(sender_state_key, toSlice(state->rlp().out()));
+            batch->insert(sender_state_key,
+                          slice_from_slice_like(state->rlp().out()));
             batch->kill(nonce_max_key);
           }
         } else if (trx_hash_t::size == line_size_bytes) {

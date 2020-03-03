@@ -7,7 +7,6 @@
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "static_init.hpp"
-#include "util/eth.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa {

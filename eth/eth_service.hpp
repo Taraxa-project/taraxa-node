@@ -101,7 +101,6 @@ class EthService : virtual ClientBase {
   shared_ptr<DatabaseAdapter> extras_db_adapter_;
   shared_ptr<DatabaseAdapter> state_db_adapter_;
   BlockChain bc_;
-  mutex append_block_mu_;
   thread gc_thread_;
   atomic<bool> destructor_called_ = false;
 
@@ -120,7 +119,7 @@ class EthService : virtual ClientBase {
   SealEngineFace* sealEngine() const override { return bc().sealEngine(); }
 
   auto getStateDB() { return state_db_adapter_; }
-  State getAccountsState(BlockNumber block_number = LatestBlock) const;
+  State getAccountsState() const;
 
   PendingBlockContext startBlock(DbStorage::BatchPtr const& batch,
                                  Address const& author, int64_t timestamp);
@@ -137,8 +136,7 @@ class EthService : virtual ClientBase {
     return countAt(args...);
   }
 
-  BlockHeader getBlockHeader(h256 const& hash) const;
-  BlockHeader getBlockHeader(BlockNumber block_number = LatestBlock) const;
+  BlockHeader head() const;
 
  private:
   TransactionScope setMasterBatch(DbStorage::BatchPtr const& batch);

@@ -27,10 +27,14 @@ using dev::eth::Permanence;
 using dev::eth::VerifiedBlockRef;
 using std::move;
 using std::unique_lock;
-using ::taraxa::util::once_out_of_scope::OnceOutOfScope;
 using taraxa_seal_engine::TaraxaSealEngine;
 
 using err = std::runtime_error;
+
+bytes const bytes_zero;
+h256 const h256_zero(0);
+u256 const u256_zero(0);
+Nonce const block_nonce_zero(0);
 
 EthService::EthService(shared_ptr<FullNode> const& node,  //
                        ChainParams const& chain_params,
@@ -104,20 +108,18 @@ h256 EthService::importTransaction(Transaction const& _t) {
 EthService::PendingBlockContext EthService::startBlock(
     DbStorage::BatchPtr const& batch, Address const& author,
     int64_t timestamp) {
-  auto current_header = getBlockHeader();
-  auto number = current_header.number() + 1;
-  static bytes const empty_bytes;
+  auto current_header = head();
   return {
       {
-          number,
+          current_header.number() + 1,
           current_header.hash(),
           author,
           timestamp,
           current_header.gasLimit(),
-          empty_bytes,
-          number,
-          h256(0),
-          Nonce(0),
+          bytes_zero,
+          u256_zero,
+          h256_zero,
+          block_nonce_zero,
       },
       move(current_header),
       setMasterBatch(batch),
@@ -128,10 +130,7 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
                                      Transactions const& transactions,
                                      TransactionReceipts const& receipts,  //
                                      h256 const& state_root) {
-  unique_lock l(append_block_mu_);
-  auto& chain = bc();
   auto number = header.number();
-  assert(number == chain.number() + 1);
   BytesMap trxs_trie;
   RLPStream trxs_rlp(transactions.size());
   for (size_t i(0); i < transactions.size(); ++i) {
@@ -159,12 +158,7 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
   block_rlp.appendRaw(uncles_rlp_list);
   auto block_bytes = block_rlp.out();
   auto receipts_bytes = receipts_rlp.out();
-  // TODO set difficulty to 0 always. Currently each block has difficulty 1
-  // because dev::eth::BlockChain requires that total chain difficulty is
-  // increasing. This check should be relaxed in the fork.
-  // TODO disable validations (to get a speedup) once it's all well-tested
-  chain.insertWithoutParent(block_bytes, &receipts_bytes,
-                            number * (number + 1) / 2);
+  bc_.append_block_without_uncles(block_bytes, &receipts_bytes, u256_zero);
   return header;
 }
 
@@ -202,7 +196,7 @@ BlockChain& EthService::bc() { return bc_; }
 BlockChain const& EthService::bc() const { return bc_; }
 
 Block EthService::block(h256 const& _h) const {
-  return Block(bc_, OverlayDB(state_db_adapter_), getBlockHeader(_h));
+  return Block(bc_, OverlayDB(state_db_adapter_), bc_.info(_h));
 }
 
 Block EthService::preSeal() const { return block(bc().currentHash()); }
@@ -214,19 +208,10 @@ SyncStatus EthService::syncStatus() const {
   return {};
 }
 
-BlockHeader EthService::getBlockHeader(BlockNumber block_number) const {
-  if (block_number == LatestBlock || block_number == PendingBlock) {
-    return getBlockHeader(bc_.currentHash());
-  }
-  return getBlockHeader(bc_.numberHash(block_number));
-}
+BlockHeader EthService::head() const { return bc_.head(); }
 
-BlockHeader EthService::getBlockHeader(h256 const& hash) const {
-  return BlockHeader(bc_.block(hash));
-}
-
-State EthService::getAccountsState(BlockNumber block_number) const {
-  return blockByNumber(block_number).state();
+State EthService::getAccountsState() const {
+  return blockByNumber(LatestBlock).state();
 }
 
 EthService::TransactionScope EthService::setMasterBatch(
