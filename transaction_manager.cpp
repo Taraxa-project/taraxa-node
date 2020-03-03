@@ -8,7 +8,6 @@
 
 #include "eth/util.hpp"
 #include "full_node.hpp"
-#include "util/eth.hpp"
 
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
