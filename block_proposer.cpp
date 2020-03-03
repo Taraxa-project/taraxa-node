@@ -5,6 +5,7 @@
 #include "dag.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
+#include "transaction_manager.hpp"
 #include "types.hpp"
 
 namespace taraxa {

@@ -8,6 +8,7 @@
 #include "create_samples.hpp"
 #include "static_init.hpp"
 #include "util/lazy.hpp"
+#include "transaction_manager.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;

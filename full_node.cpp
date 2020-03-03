@@ -16,6 +16,7 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
+#include "transaction_manager.hpp"
 #include "vote.hpp"
 
 namespace taraxa {
