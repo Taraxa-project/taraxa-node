@@ -15,13 +15,18 @@ BOOST_COMPILE_DEFINITIONS := BOOST_ALL_DYN_LINK BOOST_SPIRIT_THREADSAFE
 # This is not appropriate
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp
 
-BUILD_BASEDIR := $(CURDIR)/build
-DEPS_INSTALL_PREFIX := $(BUILD_BASEDIR)/deps
-BUILD_DIR := $(BUILD_BASEDIR)/release
+ifneq ($(APP_BUILD_BASEDIR), 0)
+	BUILD_BASEDIR := $(APP_BUILD_BASEDIR)
+else
+	BUILD_BASEDIR := $(CURDIR)/build
+endif
 ifneq ($(DEBUG), 0)
 	BUILD_DIR := $(BUILD_BASEDIR)/debug
+else
+	BUILD_DIR := $(BUILD_BASEDIR)/release
 endif
 OBJ_DIR := $(BUILD_DIR)/obj
 BIN_DIR := $(BUILD_DIR)/bin
+DEPS_INSTALL_PREFIX := $(BUILD_DIR)/deps
 
 endif # Makefile.common

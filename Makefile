@@ -102,6 +102,7 @@ NODE_SRCS := \
 	taraxa_capability.cpp \
 	sortition.cpp \
 	pbft_manager.cpp \
+	pbft_state_machine.cpp \
 	vote.cpp \
 	top.cpp \
 	config.cpp \
