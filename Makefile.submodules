@@ -1,9 +1,15 @@
 ifndef Makefile.submodules
 Makefile.submodules=_
+ifneq ($(APP_SUBMODULE_BASEDIR), 0)
+	SUBMODULE_BASEDIR := $(APP_SUBMODULE_BASEDIR)
+else
+	SUBMODULE_BASEDIR := $(CURDIR)/submodules
+endif
 
 include Makefile.common
 
 ifneq (1, $(NO_INSTALL_SUBMODULES))
+$(info Installing submodules...)
 SUBMODULE_DEPS := $(addsuffix /ok, $(shell scripts/submodule_list.sh))
 # Submodule update
 ifneq (1, $(NO_UPDATE_SUBMODULES))
@@ -154,7 +160,7 @@ submodules/secp256k1/ok:
 
 # ====================================================
 
-ALETH_ROOT := $(CURDIR)/submodules/taraxa-aleth
+ALETH_ROOT := $(SUBMODULE_BASEDIR)/taraxa-aleth
 ALETH_BUILD_DIR := $(ALETH_ROOT)/build
 ALETH_OBJ_DIR := $(ALETH_BUILD_DIR)/obj
 ALETH_SRCS := $(shell \
