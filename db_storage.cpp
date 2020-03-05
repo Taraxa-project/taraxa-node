@@ -127,6 +127,37 @@ bool DbStorage::transactionToBlockInDb(trx_hash_t const& hash) {
   return !lookup(hash.toString(), Columns::trx_to_blk).empty();
 }
 
+void DbStorage::saveTransactionStatus(trx_hash_t const& trx_hash,
+                                      TransactionStatus const& status) {
+  insert(Columns::trx_status, toSlice(trx_hash.asBytes()),
+         toSlice((uint16_t)status));
+}
+
+void DbStorage::addTransactionStatusToBatch(BatchPtr const& write_batch,
+                                            trx_hash_t const& trx,
+                                            TransactionStatus const& status) {
+  batch_put(write_batch, Columns::trx_status, toSlice(trx.asBytes()),
+            toSlice((uint16_t)status));
+}
+
+TransactionStatus DbStorage::getTransactionStatus(trx_hash_t const& hash) {
+  auto data = lookup(toSlice(hash.asBytes()), Columns::trx_status);
+  if (!data.empty()) {
+    return (TransactionStatus) * (uint16_t*)&data[0];
+  }
+  return TransactionStatus::not_seen;
+}
+
+std::map<trx_hash_t, TransactionStatus> DbStorage::getAllTransactionStatus() {
+  std::map<trx_hash_t, TransactionStatus> res;
+  auto i = u_ptr(db_->NewIterator(read_options_, handle(Columns::trx_status)));
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    res[trx_hash_t(asBytes(i->key().ToString()))] =
+        (TransactionStatus) * (uint16_t*)(i->value().data());
+  }
+  return res;
+}
+
 dev::bytes DbStorage::getTransactionRaw(trx_hash_t const& hash) {
   return asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
 }

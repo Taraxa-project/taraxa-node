@@ -884,25 +884,27 @@ void TaraxaCapability::onNewTransactions(
     }
   }
   if (!fromNetwork || conf_.network_transaction_interval == 0) {
-    std::map<NodeID, std::vector<taraxa::bytes>> transactionsToSend;
     {
       boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
       for (auto &peer : peers_) {
         if (!peer.second->syncing_) {
+          std::vector<taraxa::bytes> transactionsToSend;
+          std::vector<trx_hash_t> transactionsHashes;
           for (auto const &transaction : transactions) {
             Transaction trx(transaction);
             auto trx_hash = trx.getHash();
             if (!peer.second->isTransactionKnown(trx_hash)) {
-              peer.second->markTransactionAsKnown(trx_hash);
-              transactionsToSend[peer.first].push_back(transaction);
+              transactionsToSend.push_back(transaction);
+              transactionsHashes.push_back(trx_hash);
+            }
+          }
+          if (transactionsToSend.size() > 0) {
+            sendTransactions(peer.first, transactionsToSend);
+            for (auto &hash : transactionsHashes) {
+              peer.second->markTransactionAsKnown(hash);
             }
           }
         }
-      }
-    }
-    for (auto &t : transactionsToSend) {
-      if (t.second.size() > 0) {
-        sendTransactions(t.first, t.second);
       }
     }
   }
@@ -1234,7 +1236,8 @@ void TaraxaCapability::sendTransactions() {
 void TaraxaCapability::doBackgroundWork() {
   auto full_node = full_node_.lock();
   for (auto const &peer : peers_) {
-    // Disconnect any node that did not send any message for 3 status intervals
+    // Disconnect any node that did not send any message for 3 status
+    // intervals
     if (!peer.second->checkStatus(3)) {
       LOG(log_nf_) << "Host disconnected, no status message in "
                    << 3 * check_status_interval_ << " seconds" << peer.first;

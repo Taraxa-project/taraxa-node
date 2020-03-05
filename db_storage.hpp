@@ -63,6 +63,7 @@ struct DbStorage {
     COLUMN(dag_blocks_index);
     COLUMN(transactions);
     COLUMN(trx_to_blk);
+    COLUMN(trx_status);
     COLUMN(status);
     COLUMN(pbft_blocks);
     COLUMN(pbft_blocks_order);
@@ -133,6 +134,15 @@ struct DbStorage {
   void saveTransactionToBlock(trx_hash_t const& trx, blk_hash_t const& hash);
   shared_ptr<blk_hash_t> getTransactionToBlock(trx_hash_t const& hash);
   bool transactionToBlockInDb(trx_hash_t const& hash);
+
+  void saveTransactionStatus(trx_hash_t const& trx,
+                             TransactionStatus const& status);
+  void addTransactionStatusToBatch(BatchPtr const& write_batch,
+                                   trx_hash_t const& trx,
+                                   TransactionStatus const& status);
+  TransactionStatus getTransactionStatus(trx_hash_t const& hash);
+
+  std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // pbft_blocks
   shared_ptr<PbftBlock> getPbftBlock(blk_hash_t const& hash);

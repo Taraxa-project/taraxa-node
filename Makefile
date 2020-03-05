@@ -96,6 +96,8 @@ NODE_SRCS := \
 	dag.cpp \
 	block_proposer.cpp \
 	transaction.cpp \
+	transaction_queue.cpp \
+	transaction_manager.cpp \
 	executor.cpp \
 	transaction_order_manager.cpp \
 	pbft_chain.cpp \

@@ -555,11 +555,11 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto num_vertices4 = node4->getNumVerticesInDag();
     auto num_vertices5 = node5->getNumVerticesInDag();
 
-    auto num_trx1 = node1->getTransactionStatusCount();
-    auto num_trx2 = node2->getTransactionStatusCount();
-    auto num_trx3 = node3->getTransactionStatusCount();
-    auto num_trx4 = node4->getTransactionStatusCount();
-    auto num_trx5 = node5->getTransactionStatusCount();
+    auto num_trx1 = node1->getTransactionCount();
+    auto num_trx2 = node2->getTransactionCount();
+    auto num_trx3 = node3->getTransactionCount();
+    auto num_trx4 = node4->getTransactionCount();
+    auto num_trx5 = node5->getTransactionCount();
 
     auto issued_trx_count = context.getIssuedTrxCount();
 
@@ -598,11 +598,11 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(node2->getTransactionStatusCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(node3->getTransactionStatusCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(node4->getTransactionStatusCount(), context.getIssuedTrxCount());
-  ASSERT_EQ(node5->getTransactionStatusCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node1->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node2->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node3->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node4->getTransactionCount(), context.getIssuedTrxCount());
+  ASSERT_EQ(node5->getTransactionCount(), context.getIssuedTrxCount());
 
   // send dummy trx to make sure all DAG blocks are ordered
   // NOTE: have to wait longer than block proposer time + transaction
@@ -635,11 +635,11 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), issued_trx_count);
-  ASSERT_EQ(node2->getTransactionStatusCount(), issued_trx_count);
-  ASSERT_EQ(node3->getTransactionStatusCount(), issued_trx_count);
-  ASSERT_EQ(node4->getTransactionStatusCount(), issued_trx_count);
-  ASSERT_EQ(node5->getTransactionStatusCount(), issued_trx_count);
+  ASSERT_EQ(node1->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(node2->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(node3->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(node4->getTransactionCount(), issued_trx_count);
+  ASSERT_EQ(node5->getTransactionCount(), issued_trx_count);
 
   std::cout << "All transactions received ..." << std::endl;
 
@@ -1038,17 +1038,17 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
     std::cerr << e.what() << std::endl;
   }
 
-  auto num_trx1 = node1->getTransactionStatusCount();
-  auto num_trx2 = node2->getTransactionStatusCount();
+  auto num_trx1 = node1->getTransactionCount();
+  auto num_trx2 = node2->getTransactionCount();
   // add more delay if sync is not done
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_trx1 == 1000 && num_trx2 == 1000) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
-    num_trx1 = node1->getTransactionStatusCount();
-    num_trx2 = node2->getTransactionStatusCount();
+    num_trx1 = node1->getTransactionCount();
+    num_trx2 = node2->getTransactionCount();
   }
-  EXPECT_EQ(node1->getTransactionStatusCount(), 1000);
-  EXPECT_EQ(node2->getTransactionStatusCount(), 1000);
+  EXPECT_EQ(node1->getTransactionCount(), 1000);
+  EXPECT_EQ(node2->getTransactionCount(), 1000);
 
   auto num_vertices1 = node1->getNumVerticesInDag();
   auto num_vertices2 = node2->getNumVerticesInDag();
@@ -1088,17 +1088,17 @@ TEST_F(FullNodeTest, persist_counter) {
       std::cerr << e.what() << std::endl;
     }
 
-    num_trx1 = node1->getTransactionStatusCount();
-    num_trx2 = node2->getTransactionStatusCount();
+    num_trx1 = node1->getTransactionCount();
+    num_trx2 = node2->getTransactionCount();
     // add more delay if sync is not done
     for (auto i = 0; i < SYNC_TIMEOUT; i++) {
       if (num_trx1 == 1000 && num_trx2 == 1000) break;
       taraxa::thisThreadSleepForMilliSeconds(500);
-      num_trx1 = node1->getTransactionStatusCount();
-      num_trx2 = node2->getTransactionStatusCount();
+      num_trx1 = node1->getTransactionCount();
+      num_trx2 = node2->getTransactionCount();
     }
-    EXPECT_EQ(node1->getTransactionStatusCount(), 1000);
-    EXPECT_EQ(node2->getTransactionStatusCount(), 1000);
+    EXPECT_EQ(node1->getTransactionCount(), 1000);
+    EXPECT_EQ(node2->getTransactionCount(), 1000);
     std::cout << "All 1000 trxs are received ..." << std::endl;
     // time to make sure all transactions have been packed into block...
     // taraxa::thisThreadSleepForSeconds(10);
@@ -1225,7 +1225,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
   thisThreadSleepForSeconds(10);
-  EXPECT_EQ(node1->getTransactionStatusCount(), 1);
+  EXPECT_EQ(node1->getTransactionCount(), 1);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 2);
   std::cout << "First trx received ..." << std::endl;
 
@@ -1241,7 +1241,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
   thisThreadSleepForSeconds(10);
-  EXPECT_EQ(node1->getTransactionStatusCount(), 2);
+  EXPECT_EQ(node1->getTransactionCount(), 2);
   EXPECT_EQ(node1->getNumVerticesInDag().first, 3);
 
   trx_executed1 = node1->getNumTransactionExecuted();
@@ -1275,7 +1275,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   std::cout << "Send first trx ..." << std::endl;
   system(send_raw_trx1.c_str());
   thisThreadSleepForSeconds(10);
-  EXPECT_EQ(node1->getTransactionStatusCount(), 1);
+  EXPECT_EQ(node1->getTransactionCount(), 1);
   EXPECT_GE(node1->getNumVerticesInDag().first, 2);
   std::cout << "First trx received ..." << std::endl;
 
@@ -1291,7 +1291,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   std::cout << "Send second trx ..." << std::endl;
   system(send_raw_trx2.c_str());
   thisThreadSleepForSeconds(10);
-  EXPECT_EQ(node1->getTransactionStatusCount(), 2);
+  EXPECT_EQ(node1->getTransactionCount(), 2);
   EXPECT_GE(node1->getNumVerticesInDag().first, 3);
 
   trx_executed1 = node1->getNumTransactionExecuted();
@@ -1421,10 +1421,10 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     auto num_vertices4 = node4->getNumVerticesInDag();
     auto num_vertices5 = node5->getNumVerticesInDag();
 
-    auto trx_table = node1->getUnsafeTransactionStatusTable();
+    auto trx_table = node1->getDB()->getAllTransactionStatus();
     int packed_trx = 0;
 
-    if (trx_table.size() == 10004) {
+    if (node1->getTransactionCount() == 10004) {
       for (auto const &t : trx_table) {
         if (t.second == TransactionStatus::in_block) {
           packed_trx++;
@@ -1434,30 +1434,25 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       if (packed_trx == 10004 && num_vertices1 == num_vertices2 &&
           num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 &&
           num_vertices4 == num_vertices5 &&
-          node1->getTransactionStatusCount() == 10004 &&
-          node2->getTransactionStatusCount() == 10004 &&
-          node3->getTransactionStatusCount() == 10004 &&
-          node4->getTransactionStatusCount() == 10004 &&
-          node5->getTransactionStatusCount() == 10004) {
+          node1->getTransactionCount() == 10004 &&
+          node2->getTransactionCount() == 10004 &&
+          node3->getTransactionCount() == 10004 &&
+          node4->getTransactionCount() == 10004 &&
+          node5->getTransactionCount() == 10004) {
         break;
       }
       if (i % 10 == 0) {
         std::cout << "Wait for vertices syncing ... packed trx " << packed_trx
                   << std::endl;
-        std::cout << "Node 1 trx received: "
-                  << node1->getTransactionStatusCount()
+        std::cout << "Node 1 trx received: " << node1->getTransactionCount()
                   << " Dag size: " << num_vertices1 << std::endl;
-        std::cout << "Node 2 trx received: "
-                  << node2->getTransactionStatusCount()
+        std::cout << "Node 2 trx received: " << node2->getTransactionCount()
                   << " Dag size: " << num_vertices2 << std::endl;
-        std::cout << "Node 3 trx received: "
-                  << node3->getTransactionStatusCount()
+        std::cout << "Node 3 trx received: " << node3->getTransactionCount()
                   << " Dag size: " << num_vertices3 << std::endl;
-        std::cout << "Node 4 trx received: "
-                  << node4->getTransactionStatusCount()
+        std::cout << "Node 4 trx received: " << node4->getTransactionCount()
                   << " Dag size: " << num_vertices4 << std::endl;
-        std::cout << "Node 5 trx received: "
-                  << node5->getTransactionStatusCount()
+        std::cout << "Node 5 trx received: " << node5->getTransactionCount()
                   << " Dag size: " << num_vertices5 << std::endl;
       }
     }
@@ -1471,11 +1466,11 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   EXPECT_GT(node4->getNumProposedBlocks(), 2);
   EXPECT_GT(node5->getNumProposedBlocks(), 2);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node2->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node3->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node4->getTransactionStatusCount(), 10004);
-  ASSERT_EQ(node5->getTransactionStatusCount(), 10004);
+  ASSERT_EQ(node1->getTransactionCount(), 10004);
+  ASSERT_EQ(node2->getTransactionCount(), 10004);
+  ASSERT_EQ(node3->getTransactionCount(), 10004);
+  ASSERT_EQ(node4->getTransactionCount(), 10004);
+  ASSERT_EQ(node5->getTransactionCount(), 10004);
 
   // send dummy trx to make sure all DAG blocks are ordered
   // NOTE: have to wait longer than block proposer time + transaction
@@ -1511,11 +1506,11 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  ASSERT_EQ(node1->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node2->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node3->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node4->getTransactionStatusCount(), 10005);
-  ASSERT_EQ(node5->getTransactionStatusCount(), 10005);
+  ASSERT_EQ(node1->getTransactionCount(), 10005);
+  ASSERT_EQ(node2->getTransactionCount(), 10005);
+  ASSERT_EQ(node3->getTransactionCount(), 10005);
+  ASSERT_EQ(node4->getTransactionCount(), 10005);
+  ASSERT_EQ(node5->getTransactionCount(), 10005);
 
   std::cout << "All transactions received ..." << std::endl;
 
@@ -1557,7 +1552,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   auto overlap_table = node1->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
-  auto trx_table = node1->getUnsafeTransactionStatusTable();
+  auto trx_table = node1->getDB()->getAllTransactionStatus();
   auto trx_table2 = trx_table;
   std::unordered_set<trx_hash_t> ordered_trxs;
   std::unordered_set<trx_hash_t> packed_trxs;
@@ -1627,7 +1622,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
              trx_count, node_addr)
              .data());
   thisThreadSleepForSeconds(5);
-  EXPECT_EQ(node1->getTransactionStatusCount(), trx_count);
+  EXPECT_EQ(node1->getTransactionCount(), trx_count);
   auto trx_executed1 = node1->getNumTransactionExecuted();
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = node1->getNumTransactionExecuted();

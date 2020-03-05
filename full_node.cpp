@@ -16,6 +16,7 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
+#include "transaction_manager.hpp"
 #include "vote.hpp"
 
 namespace taraxa {
@@ -271,13 +272,6 @@ std::shared_ptr<std::pair<Transaction, taraxa::bytes>> FullNode::getTransaction(
     return nullptr;
   }
   return trx_mgr_->getTransaction(hash);
-}
-
-unsigned long FullNode::getTransactionStatusCount() const {
-  if (stopped_ || !trx_mgr_) {
-    return 0;
-  }
-  return trx_mgr_->getTransactionStatusCount();
 }
 
 unsigned long FullNode::getTransactionCount() const {
@@ -705,10 +699,6 @@ bool FullNode::checkPbftBlockValidationFromSyncing(
 
 size_t FullNode::getPbftSyncedQueueSize() const {
   return pbft_chain_->pbftSyncedQueueSize();
-}
-
-TransactionUnsafeStatusTable FullNode::getUnsafeTransactionStatusTable() const {
-  return trx_mgr_->getUnsafeTransactionStatusTable();
 }
 
 std::unordered_set<std::string> FullNode::getUnOrderedDagBlks() const {
