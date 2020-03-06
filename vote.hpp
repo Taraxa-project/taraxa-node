@@ -20,7 +20,7 @@ struct VrfPbftMsg : public vrf_wrapper::VrfMsgFace {
   VrfPbftMsg(blk_hash_t const& blk, PbftVoteTypes type, uint64_t round,
              size_t step)
       : blk(blk), type(type), round(round), step(step) {}
-  std::string toString() const {
+  std::string toString() const override {
     return blk.toString() + "_" + std::to_string(type) + "_" +
            std::to_string(round) + "_" + std::to_string(step);
   }
@@ -52,7 +52,7 @@ struct VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
   VrfPbftSortition() = default;
   VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg const& pbft_msg)
       : pbft_msg(pbft_msg), VrfSortitionBase(sk, pbft_msg) {}
-  VrfPbftSortition(bytes const& rlp);
+  explicit VrfPbftSortition(bytes const& rlp);
   bytes getRlpBytes() const;
   bool verify() { return VrfSortitionBase::verify(pbft_msg); }
   bool operator==(VrfPbftSortition const& other) const {
@@ -80,7 +80,7 @@ class Vote {
   Vote(secret_t const& node_sk, VrfPbftSortition const& vrf_sortition,
        blk_hash_t const& blockhash);
 
-  Vote(bytes const& rlp);
+  explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
   ~Vote() {}
 

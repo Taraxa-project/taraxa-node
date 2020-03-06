@@ -53,7 +53,6 @@ bool RandomPropose::propose() {
 
 bool SortitionPropose::propose() {
   auto proposer = proposer_.lock();
-  bool ret = false;
   if (!proposer) {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
@@ -166,9 +165,8 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
                 << getCurrentTimeMilliSeconds();
   pivot = blk_hash_t(pivot_string);
   tips.clear();
-  for (auto const& t : tips_string) {
-    tips.emplace_back(blk_hash_t(t));
-  }
+  std::transform(tips_string.begin(), tips_string.end(), tips.begin(),
+                 [](const std::string& item) { return blk_hash_t(item); });
   return ok;
 }
 

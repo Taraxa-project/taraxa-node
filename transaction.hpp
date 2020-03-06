@@ -87,9 +87,9 @@ class Transaction {
   }
   Transaction(Transaction &&trx) = default;
   Transaction(Transaction const &trx) = default;
-  Transaction(stream &strm);
-  Transaction(string const &json);
-  Transaction(bytes const &_rlp);
+  explicit Transaction(stream &strm);
+  explicit Transaction(string const &json);
+  explicit Transaction(bytes const &_rlp);
   trx_hash_t getHash() const { return hash_; }
   Type getType() const { return type_; }
   val_t getNonce() const { return nonce_; }

@@ -44,9 +44,9 @@ struct TrxSchedule {
       vec_blk_t const& blks,
       std::vector<std::vector<std::pair<trx_hash_t, uint>>> const& modes)
       : dag_blks_order(blks), trxs_mode(modes) {}
-  TrxSchedule(dev::RLP const& r);
+  explicit TrxSchedule(dev::RLP const& r);
   // Construct from RLP
-  TrxSchedule(bytes const& rlpData);
+  explicit TrxSchedule(bytes const& rlpData);
   ~TrxSchedule() {}
 
   // order of DAG blocks (in hash)
@@ -75,10 +75,10 @@ class PbftBlock {
             blk_hash_t const& dag_blk_hash_as_pivot,
             TrxSchedule const& schedule, uint64_t period, uint64_t height,
             addr_t const& beneficiary, secret_t const& sk);
-  PbftBlock(dev::RLP const& r);
-  PbftBlock(bytes const& b);
+  explicit PbftBlock(dev::RLP const& r);
+  explicit PbftBlock(bytes const& b);
 
-  PbftBlock(std::string const& str);
+  explicit PbftBlock(std::string const& str);
   ~PbftBlock() {}
 
   std::string getJsonStr() const;
@@ -115,7 +115,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
 struct PbftBlockCert {
   PbftBlockCert(PbftBlock const& pbft_blk, std::vector<Vote> const& cert_votes);
-  PbftBlockCert(bytes const& all_rlp);
+  explicit PbftBlockCert(bytes const& all_rlp);
   PbftBlockCert(PbftBlock const& pbft_blk, bytes const& cert_votes_rlp);
 
   PbftBlock pbft_blk;
@@ -126,7 +126,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 class PbftChain {
  public:
-  PbftChain(std::string const& dag_genesis_hash);
+  explicit PbftChain(std::string const& dag_genesis_hash);
   virtual ~PbftChain() = default;
 
   void setFullNode(std::shared_ptr<FullNode> node);

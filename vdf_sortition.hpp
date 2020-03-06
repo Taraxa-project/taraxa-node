@@ -13,7 +13,7 @@ struct VdfMsg : public vrf_wrapper::VrfMsgFace {
   VdfMsg() = default;
   VdfMsg(blk_hash_t last_pbft_hash, uint64_t level)
       : last_pbft_hash(last_pbft_hash), level(level) {}
-  std::string toString() const {
+  std::string toString() const override {
     return last_pbft_hash.toString() + "_" + std::to_string(level);
   }
   bool operator==(VdfMsg const& other) const {

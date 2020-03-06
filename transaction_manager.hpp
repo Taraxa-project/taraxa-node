@@ -27,15 +27,15 @@ class TransactionManager
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  TransactionManager(
-      TestParamsConfig conf,
+  explicit TransactionManager(
+      TestParamsConfig const &conf,
       std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
       : conf_(conf),
         rlp_cache_(100000, 10000),
         accs_nonce_(),
         eth_service_(eth_service) {}
-  TransactionManager(std::shared_ptr<DbStorage> db)
-      : db_(db), rlp_cache_(100000, 10000), accs_nonce_() {}
+  explicit TransactionManager(std::shared_ptr<DbStorage> db)
+      : db_(db), rlp_cache_(100000, 10000), accs_nonce_(), conf_() {}
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();

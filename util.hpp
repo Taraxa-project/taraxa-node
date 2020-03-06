@@ -55,18 +55,20 @@ template <typename T, typename U = T>
 std::vector<T> asVector(boost::property_tree::ptree const &pt,
                         boost::property_tree::ptree::key_type const &key) {
   std::vector<T> v;
-  for (auto &item : pt.get_child(key)) {
-    v.push_back(T(item.second.get_value<U>()));
-  }
+  auto key_child = pt.get_child(key);
+  std::transform(
+      key_child.begin(), key_child.end(), v.begin(),
+      [](const std::pair<std::string, boost::property_tree::ptree> &item) {
+        return T(item.second.get_value<U>());
+      });
   return v;
 }
 
 template <typename T>
 std::vector<T> asVector(Json::Value const &json) {
   std::vector<T> v;
-  for (auto &item : json) {
-    v.push_back(T(item.asString()));
-  }
+  std::transform(json.begin(), json.end(), v.begin(),
+                 [](const Json::Value &item) { return T(item.asString()); });
   return v;
 }
 

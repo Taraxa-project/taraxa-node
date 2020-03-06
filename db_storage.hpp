@@ -29,7 +29,7 @@ enum StatusDbField : uint8_t {
 
 class DbException : public exception {
  public:
-  DbException(string desc) : desc_(desc) {}
+  explicit DbException(string const& desc) : desc_(desc) {}
   virtual ~DbException() {}
   virtual const char* what() const noexcept { return desc_.c_str(); }
 

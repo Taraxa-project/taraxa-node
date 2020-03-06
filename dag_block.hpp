@@ -44,9 +44,9 @@ class DagBlock {
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
            VdfSortition const &vdf);
-  DagBlock(boost::property_tree::ptree const &doc);
-  DagBlock(string const &json);
-  DagBlock(dev::bytes const &_rlp);
+  explicit DagBlock(boost::property_tree::ptree const &doc);
+  explicit DagBlock(string const &json);
+  explicit DagBlock(dev::bytes const &_rlp);
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;
     str << "	level		= " << u.level_ << std::endl;

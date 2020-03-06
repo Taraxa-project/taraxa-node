@@ -29,7 +29,7 @@ bool uint_hash_t<Bytes>::decodeHex(std::string const &str) {
     typename uint_hash_t<Bytes>::Number number;
     try {
       stream >> number;
-      *this = number;
+      *this = (uint_hash_t<Bytes>)number;
       if (!stream.eof()) {
         ok = false;
       }
@@ -38,7 +38,7 @@ bool uint_hash_t<Bytes>::decodeHex(std::string const &str) {
     }
   } else if (str.size() == 0) {
     typename uint_hash_t<Bytes>::Number zero(0);
-    *this = zero;
+    *this = (uint_hash_t<Bytes>)zero;
     ok = true;
   } else {
     std::cerr << "uint_hash_t type size is " << bytes.size() * 2 << " chars, "

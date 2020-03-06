@@ -1533,8 +1533,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   LOG(log_deb_) << "DB write batch committed already";
 
   // Set DAG blocks period
-  uint dag_ordered_blocks_size =
-      full_node->setDagBlockOrder(dag_block_hash, pbft_period);
+  full_node->setDagBlockOrder(dag_block_hash, pbft_period);
 
   // Set max DAG block height
   pbft_chain_->setDagBlockMaxHeight(max_dag_blocks_height);
