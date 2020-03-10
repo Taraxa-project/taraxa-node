@@ -165,7 +165,8 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
                 << getCurrentTimeMilliSeconds();
   pivot = blk_hash_t(pivot_string);
   tips.clear();
-  std::transform(tips_string.begin(), tips_string.end(), tips.begin(),
+  std::transform(tips_string.begin(), tips_string.end(),
+                 std::back_inserter(tips),
                  [](const std::string& item) { return blk_hash_t(item); });
   return ok;
 }

@@ -33,7 +33,7 @@ class PbftManager {
  public:
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
-  PbftManager(std::string const &genesis);
+  explicit PbftManager(std::string const &genesis);
   PbftManager(std::vector<uint> const &params, std::string const &genesis);
   ~PbftManager() { stop(); }
 
@@ -80,16 +80,16 @@ class PbftManager {
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
-  u_long LAMBDA_ms_MIN;
-  u_long LAMBDA_ms;
-  size_t COMMITTEE_SIZE;           // TODO: Only for test, need remove later
-  uint64_t VALID_SORTITION_COINS;  // TODO: Only for test, need remove later
-  size_t DAG_BLOCKS_SIZE;          // TODO: Only for test, need remove later
-  size_t GHOST_PATH_MOVE_BACK;     // TODO: Only for test, need remove later
+  u_long LAMBDA_ms_MIN = 0;
+  u_long LAMBDA_ms = 0;
+  size_t COMMITTEE_SIZE = 0;           // TODO: Only for test, need remove later
+  uint64_t VALID_SORTITION_COINS = 0;  // TODO: Only for test, need remove later
+  size_t DAG_BLOCKS_SIZE = 0;          // TODO: Only for test, need remove later
+  size_t GHOST_PATH_MOVE_BACK = 0;     // TODO: Only for test, need remove later
   // When PBFT pivot block finalized, period = period + 1,
   // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
-  uint64_t SKIP_PERIODS;
-  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
+  uint64_t SKIP_PERIODS = 0;
+  bool RUN_COUNT_VOTES = 0;  // TODO: Only for test, need remove later
 
  private:
   void resetStep_();
@@ -97,7 +97,7 @@ class PbftManager {
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
-      std::vector<Vote> &votes) const;
+      std::vector<Vote> const &votes) const;
 
   std::map<size_t, std::vector<Vote>, std::greater<size_t>>
   getVotesOfTypeFromVotesForRoundByStep_(PbftVoteTypes vote_type,
@@ -119,7 +119,8 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_(std::vector<Vote> &votes);
+  std::pair<blk_hash_t, bool> identifyLeaderBlock_(
+      std::vector<Vote> const &votes);
 
   bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
@@ -160,28 +161,28 @@ class PbftManager {
   std::shared_ptr<TaraxaCapability> capability_;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
 
-  size_t valid_sortition_accounts_size_;
+  size_t valid_sortition_accounts_size_ = 0;
   // Database
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   blk_hash_t pbft_chain_last_block_hash_;
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
-  uint64_t pbft_round_;
-  uint64_t pbft_round_last_;
-  size_t pbft_step_;
+  uint64_t pbft_round_ = 0;
+  uint64_t pbft_round_last_ = 0;
+  size_t pbft_step_ = 0;
   bool executed_pbft_block_ = false;
 
-  uint64_t pbft_round_last_requested_sync_;
-  size_t pbft_step_last_requested_sync_;
+  uint64_t pbft_round_last_requested_sync_ = 0;
+  size_t pbft_step_last_requested_sync_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
   uint64_t last_period_should_speak_ = 0;
 
-  size_t sortition_threshold_;
-  size_t TWO_T_PLUS_ONE;  // This is 2t+1
-  bool is_active_player_;
+  size_t sortition_threshold_ = 0;
+  size_t TWO_T_PLUS_ONE = 0;  // This is 2t+1
+  bool is_active_player_ = false;
 
   std::string dag_genesis_;
 

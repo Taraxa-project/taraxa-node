@@ -11,10 +11,10 @@ namespace taraxa {
 
 Network::Network(NetworkConfig const &config, std::string const &genesis)
     : Network(config, "", secret_t(), genesis) {}
-Network::Network(NetworkConfig const &config, std::string network_file,
+Network::Network(NetworkConfig const &config, std::string const &network_file,
                  std::string const &genesis)
     : Network(config, network_file, secret_t(), genesis) {}
-Network::Network(NetworkConfig const &config, std::string network_file,
+Network::Network(NetworkConfig const &config, std::string const &network_file,
                  secret_t const &sk, std::string const &genesis) try
     : conf_(config) {
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
@@ -80,7 +80,7 @@ void Network::start(bool boot_node) {
       LOG(log_wr_) << "Boot node ip is empty:" << node.ip << ":" << node.port;
       continue;
     }
-    if (node.port <= 0 || node.port > 65535) {
+    if (node.port == 0 || node.port > 65535) {
       LOG(log_wr_) << "Boot node port invalid: " << node.port;
       continue;
     }

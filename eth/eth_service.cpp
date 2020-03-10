@@ -130,7 +130,6 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
                                      Transactions const& transactions,
                                      TransactionReceipts const& receipts,  //
                                      h256 const& state_root) {
-  auto number = header.number();
   BytesMap trxs_trie;
   RLPStream trxs_rlp(transactions.size());
   for (size_t i(0); i < transactions.size(); ++i) {

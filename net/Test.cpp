@@ -127,7 +127,8 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
             [this, node, &log_time, delay, number, nonce, receiver, sk]() {
               // get trx receiving time stamp
               bytes data;
-              for (auto i = 0; i < number; ++i) {
+              uint i = 0;
+              while (i < number) {
                 auto now = getCurrentTimeMilliSeconds();
                 val_t value = val_t(100);
                 auto trx = taraxa::Transaction(
@@ -137,6 +138,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
                               << " received at: " << now;
                 node->insertTransaction(trx, false);
                 thisThreadSleepForMicroSeconds(delay);
+                i++;
               }
             });
 

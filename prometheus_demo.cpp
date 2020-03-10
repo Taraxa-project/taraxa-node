@@ -164,7 +164,8 @@ TEST(PrometheusDemo, prometheus_timer) {
           {{"another_label", "value"}, {"yet_another_label", "value"}},
           prometheus::Summary::Quantiles{
               {0.5, 0.05}, {0.90, 0.01}, {0.99, 0.001}});
-      for (int delay = 10; delay <= max_delay; delay += 10) {
+      int delay = 10;
+      while (delay <= max_delay) {
         // record the local time before our Timer-Test-Target starts; note the
         // precision is set to microsecond
         boost::posix_time::ptime t1 =
@@ -182,6 +183,7 @@ TEST(PrometheusDemo, prometheus_timer) {
         // record the summary in ms
         second_summary.Observe(diff.total_milliseconds());
         EXPECT_EQ(gateway.Push(), 200);
+        delay += 10;
       }
     });
 
@@ -193,7 +195,8 @@ TEST(PrometheusDemo, prometheus_timer) {
               {{"another_label", "value"}, {"yet_another_label", "value"}},
               prometheus::Summary::Quantiles{
                   {0.5, 0.05}, {0.90, 0.01}, {0.99, 0.001}});
-          for (int delay = 10; delay <= max_delay; delay += 10) {
+          int delay = 10;
+          while (delay <= max_delay) {
             // record the local time before our Timer-Test-Target starts; note
             // the precision is set to microsecond
             boost::posix_time::ptime t1 =
@@ -211,6 +214,7 @@ TEST(PrometheusDemo, prometheus_timer) {
             // record the summary in ms
             second_summary.Observe(diff.total_milliseconds());
             EXPECT_EQ(gateway.Push(), 200);
+            delay += 10;
           }
         });
   }
@@ -253,11 +257,13 @@ TEST(PrometheusDemo, prometheus_counter_multi_thread) {
     gateways.emplace_back([&gateway, &labels, &counter_family, idx, this]() {
       auto& second_counter = counter_family.Add(
           {{"another_label", "value"}, {"yet_another_label", "value"}});
-      for (int j = 0; j < cnt; j++) {
+      int j = 0;
+      while (j < cnt) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         // increment the counter by one
         second_counter.Increment();
         EXPECT_EQ(gateway.Push(), 200);
+        j++;
       }
     });
   }

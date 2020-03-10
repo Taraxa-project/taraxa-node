@@ -130,9 +130,13 @@ std::vector<Transaction> TransactionQueue::getNewVerifiedTrxSnapShot() {
   if (new_verified_transactions_) {
     new_verified_transactions_ = false;
     sharedLock lock(shared_mutex_for_verified_qu_);
-    for (auto const &trx : verified_trxs_) {
-      verified_trxs.emplace_back(*(trx.second));
-    }
+    std::transform(
+        verified_trxs_.begin(), verified_trxs_.end(),
+        std::back_inserter(verified_trxs),
+        [](std::pair<const taraxa::trx_hash_t,
+                     taraxa::TransactionQueue::listIter> const &trx) {
+          return *(trx.second);
+        });
     LOG(log_dg_) << "Get: " << verified_trxs.size()
                  << "verified trx out for gossiping " << std::endl;
   }

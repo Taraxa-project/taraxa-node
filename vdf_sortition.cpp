@@ -33,7 +33,8 @@ bytes VdfSortition::rlp() const {
   return s.out();
 }
 void VdfSortition::computeVdfSolution(std::string const &msg) {
-  assert(verifyVrf());
+  bool verified = verifyVrf();
+  assert(verified);
   const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
   auto t1 = getCurrentTimeMilliSeconds();
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
@@ -44,7 +45,8 @@ void VdfSortition::computeVdfSolution(std::string const &msg) {
   vdf_computation_time_ = t2 - t1;
 }
 bool VdfSortition::verifyVdfSolution(std::string const &msg) {
-  assert(verifyVrf());
+  bool verified = verifyVrf();
+  assert(verified);
   const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {

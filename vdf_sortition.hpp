@@ -32,13 +32,13 @@ struct VdfMsg : public vrf_wrapper::VrfMsgFace {
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
-  VdfSortition(vrf_sk_t const& sk, VdfMsg const& vdf_msg,
+  explicit VdfSortition(vrf_sk_t const& sk, VdfMsg const& vdf_msg,
                uint difficulty_bound = 29, uint lambda_bits = 13)
       : vdf_msg_(vdf_msg),
         difficulty_bound_(difficulty_bound),
         lambda_bits_(lambda_bits),
         VrfSortitionBase(sk, vdf_msg) {}
-  VdfSortition(bytes const& b);
+  explicit VdfSortition(bytes const& b);
 
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);

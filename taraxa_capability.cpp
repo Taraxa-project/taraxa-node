@@ -35,7 +35,7 @@ void TaraxaCapability::insertPeer(NodeID const &node_id,
 
 void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID,
                                     unsigned long height_to_sync) {
-  if (auto full_node = full_node_.lock()) {
+  if (full_node_.lock()) {
     LOG(log_nf_pbft_sync_) << "Sync peer node " << _nodeID
                            << " from pbft chain height " << height_to_sync;
     requestPbftBlocks(_nodeID, height_to_sync);
@@ -839,9 +839,7 @@ vector<NodeID> TaraxaCapability::selectPeers(
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  for (auto const &peer : peers_) {
-    peers.push_back(peer.first);
-  }
+  std::copy(peers_.begin(), peers_.end(), std::back_inserter(peers));
   return peers;
 }
 
@@ -954,7 +952,7 @@ void TaraxaCapability::sendSyncedMessage() {
   }
 }
 
-void TaraxaCapability::onNewBlockVerified(DagBlock block) {
+void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
   LOG(log_dg_dag_prp_) << "Verified NewBlock " << block.getHash().toString();
   verified_blocks_.insert(block.getHash());
   {
@@ -1149,7 +1147,6 @@ void TaraxaCapability::sendBlockHash(NodeID const &_id,
                                      taraxa::DagBlock block) {
   LOG(log_dg_dag_prp_) << "sendBlockHash " << block.getHash().toString();
   RLPStream s;
-  std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, NewBlockHashPacket, 1);
   s.append(block.getHash());
   host_.capabilityHost()->sealAndSend(_id, s);
@@ -1162,7 +1159,6 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
   else
     LOG(log_dg_dag_sync_) << "requestBlock " << hash.toString();
   RLPStream s;
-  std::vector<uint8_t> bytes;
   if (newBlock)
     host_.capabilityHost()->prep(_id, name(), s, GetNewBlockPacket, 1);
   else
@@ -1174,7 +1170,7 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
 void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
                                          size_t height_to_sync) {
   RLPStream s;
-  std::vector<uint8_t> bytes;
+  int x = 0;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
   LOG(log_dg_pbft_sync_) << "Sending GetPbftBlockPacket with height: "
@@ -1185,7 +1181,6 @@ void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
 void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id,
                                                level_t level) {
   RLPStream s;
-  std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetBlocksPacket, 1);
   s << level;
   LOG(log_nf_dag_sync_) << "Sending GetBlocksPacket";
@@ -1194,7 +1189,6 @@ void TaraxaCapability::requestPendingDagBlocks(NodeID const &_id,
 
 void TaraxaCapability::requestLeavesDagBlocks(NodeID const &_id) {
   RLPStream s;
-  std::vector<uint8_t> bytes;
   host_.capabilityHost()->prep(_id, name(), s, GetLeavesBlocksPacket, 0);
   LOG(log_nf_dag_sync_) << "Sending GetLeavesBlocksPacket";
   host_.capabilityHost()->sealAndSend(_id, s);

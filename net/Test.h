@@ -12,7 +12,7 @@ namespace taraxa::net {
 
 class Test : public TestFace {
  public:
-  Test(std::shared_ptr<taraxa::FullNode>& _full_node);
+  explicit Test(std::shared_ptr<taraxa::FullNode>& _full_node);
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"test", "1.0"}};
   }

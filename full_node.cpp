@@ -659,9 +659,7 @@ std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
     }
   }
   std::vector<trx_hash_t> ret;
-  for (auto const &t : packed_trxs) {
-    ret.emplace_back(t);
-  }
+  std::copy(packed_trxs.begin(), packed_trxs.end(), ret.begin());
   return ret;
 }
 

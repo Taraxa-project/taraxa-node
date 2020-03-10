@@ -184,7 +184,7 @@ PbftBlock::PbftBlock(std::string const& str) {
   prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
   dag_block_hash_as_pivot_ =
       blk_hash_t(doc.get<std::string>("dag_block_hash_as_pivot"));
-  ptree& schedule = doc.get_child("schedule");
+  const ptree& schedule = doc.get_child("schedule");
   schedule_.setSchedule(schedule);
   period_ = doc.get<uint64_t>("period");
   height_ = doc.get<uint64_t>("height");

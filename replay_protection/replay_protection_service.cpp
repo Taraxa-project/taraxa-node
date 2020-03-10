@@ -74,10 +74,11 @@ void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
       assert(round == 0);
     }
     for (auto const& trx : trxs) {
-      assert(!hasBeenExecuted_(eth::util::trx_eth_2_taraxa(trx)));
+      auto executed = hasBeenExecuted_(eth::util::trx_eth_2_taraxa(trx));
+      assert(!executed);
     }
   }
-  auto trx_scope = db_->setMasterBatch(master_batch);
+  db_->setMasterBatch(master_batch);
   auto batch = db_->createWriteBatch();
   stringstream round_data_keys;
   unordered_map<string, shared_ptr<SenderState>> sender_states;

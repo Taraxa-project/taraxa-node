@@ -49,7 +49,7 @@ class TaraxaPeer : public boost::noncopyable {
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000),
         known_transactions_(100000, 10000) {}
-  TaraxaPeer(NodeID id)
+  explicit TaraxaPeer(NodeID id)
       : m_id(id),
         known_blocks_(10000, 1000),
         known_pbft_blocks_(10000, 1000),
@@ -122,13 +122,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         host_(_host),
         conf_(_conf),
         genesis_(genesis),
-        performance_log_(performance_log) {
-    std::random_device seed;
-    urng_ = std::mt19937_64(seed());
-    delay_rng_ = std::mt19937(seed());
-    random_dist_ =
-        std::uniform_int_distribution<std::mt19937::result_type>(90, 110);
-  }
+        performance_log_(performance_log),
+        urng_(std::mt19937_64(std::random_device()())),
+        delay_rng_(std::mt19937(std::random_device()())),
+        random_dist_(std::uniform_int_distribution<std::mt19937::result_type>(
+            90, 110)) {}
   virtual ~TaraxaCapability() = default;
   std::string name() const override { return "taraxa"; }
   unsigned version() const override { return 1; }
@@ -154,7 +152,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void sendStatus(NodeID const &_id, bool _initial);
   void onNewBlockReceived(DagBlock block,
                           std::vector<Transaction> transactions);
-  void onNewBlockVerified(DagBlock block);
+  void onNewBlockVerified(DagBlock const &block);
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions,
                          bool fromNetwork);
   vector<NodeID> selectPeers(
@@ -240,7 +238,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   std::mt19937 delay_rng_;
   bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
-  uint16_t check_status_interval_;
+  uint16_t check_status_interval_ = 0;
 
   dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TARCAP")};

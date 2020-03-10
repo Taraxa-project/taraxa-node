@@ -8,7 +8,7 @@ namespace taraxa::net {
 
 class Net : public NetFace {
  public:
-  Net(std::shared_ptr<taraxa::FullNode>& _full_node);
+  explicit Net(std::shared_ptr<taraxa::FullNode>& _full_node);
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"net", "1.0"}};
   }

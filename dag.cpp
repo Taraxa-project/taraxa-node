@@ -48,9 +48,9 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
 
   // add vertex
   auto now(std::chrono::system_clock::now());
-  vertex_t ret = add_vertex(new_vertex, graph_);
-  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
-  index_map[ret] = new_vertex;
+  /*vertex_t ret = */add_vertex(new_vertex, graph_);
+  //vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
+  //index_map[ret] = new_vertex;
   //vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
   //epc_map[ret] = 0;  // means not finalized
   edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
@@ -210,7 +210,6 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   while (iter != recent_added_blks_.end()) {
     auto v = graph_.vertex(*iter);
     if (ep_map[v] > 0) {
-      iter++;
       LOG(log_er_) << "The vertex " << index_map[v]
                    << " has been included in other period " << ep_map[v]
                    << std::endl;
@@ -559,7 +558,6 @@ bool DagManager::getLatestPivotAndTips(std::string &pivot,
                                        std::vector<std::string> &tips) const {
   // make sure the state of dag is the same when collection pivot and tips
   sharedLock lock(mutex_);
-  std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
   std::tie(pivot, tips) = getFrontier();

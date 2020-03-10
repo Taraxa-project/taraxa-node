@@ -906,7 +906,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> votes) {
 
 // Assumption is that all votes are in the same round and of same type...
 std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
-    std::vector<Vote> &votes) const {
+    std::vector<Vote> const &votes) const {
   bool is_first_block = true;
   PbftVoteTypes vote_type;
   uint64_t vote_round;
@@ -984,14 +984,13 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(
     PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
     size_t step, std::pair<blk_hash_t, bool> blockhash) {
   std::vector<Vote> votes_of_requested_type;
-
-  for (Vote &v : votes) {
-    if (v.getType() == vote_type && v.getRound() == round &&
-        v.getStep() == step &&
-        (blockhash.second == false || blockhash.first == v.getBlockHash())) {
-      votes_of_requested_type.emplace_back(v);
-    }
-  }
+  std::copy_if(votes.begin(), votes.end(), votes_of_requested_type.begin(),
+               [vote_type, round, step, blockhash](Vote const&v) {
+                 return (v.getType() == vote_type && v.getRound() == round &&
+                         v.getStep() == step &&
+                         (blockhash.second == false ||
+                          blockhash.first == v.getBlockHash()));
+               });
 
   return votes_of_requested_type;
 }
@@ -1181,7 +1180,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 }
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
-    std::vector<Vote> &votes) {
+    std::vector<Vote> const &votes) {
   LOG(log_deb_) << "Into identify leader block, in round " << pbft_round_;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
   std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
@@ -1199,12 +1198,13 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
     // no eligible leader
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
-  std::pair<blk_hash_t, blk_hash_t> leader = leader_candidates[0];
-  for (auto const &candinate : leader_candidates) {
-    if (candinate.first < leader.first) {
-      leader = candinate;
-    }
-  }
+  std::pair<blk_hash_t, blk_hash_t> leader =
+      *std::min_element(leader_candidates.begin(), leader_candidates.end(),
+                        [](std::pair<blk_hash_t, blk_hash_t> const &i,
+                           std::pair<blk_hash_t, blk_hash_t> const &j) {
+                          return i.first < j.first;
+                        });
+
   return std::make_pair(leader.second, true);
 }
 
@@ -1564,11 +1564,13 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   }
   size_t active_players = 0;
   while (active_players == 0 && since_period >= 0) {
-    for (auto const &account : sortition_account_balance_table) {
-      if (account.second.last_period_seen >= since_period) {
-        active_players++;
-      }
-    }
+    active_players += std::count_if(
+        sortition_account_balance_table.begin(),
+        sortition_account_balance_table.end(),
+        [since_period](std::pair<const taraxa::addr_t,
+                                 taraxa::PbftSortitionAccount> const &account) {
+          return (account.second.last_period_seen >= since_period);
+        });
     if (active_players == 0) {
       LOG(log_war_) << "Active players was found to be 0 since period "
                     << since_period

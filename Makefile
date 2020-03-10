@@ -173,6 +173,9 @@ main: $(BIN_DIR)/main
 
 test: $(TESTS)
 
+cppcheck_test:
+	cppcheck --enable=warning,style,performance,portability,information --error-exitcode=1 -i submodules -i core_tests -i unused_yet_useful -i prometheus_demo.cpp --suppress=missingIncludeSystem .
+
 run_test: test
 	scripts/run_commands_long_circuit.sh $(TESTS)
 

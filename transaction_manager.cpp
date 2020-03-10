@@ -26,7 +26,7 @@ bool TransactionManager::verifyTransaction(Transaction const &trx) const {
       eth_service_->sealEngine()->verifyTransaction(
           dev::eth::ImportRequirements::Everything,
           eth::util::trx_taraxa_2_eth(trx),  //
-          eth_service_->head(),    //
+          eth_service_->head(),              //
           0);
     } else {
       return trx.verifySig();
@@ -126,7 +126,8 @@ std::vector<taraxa::bytes>
 TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   auto verified_trxs = trx_qu_.getNewVerifiedTrxSnapShot();
   std::vector<Transaction> vec_trxs;
-  for (auto const &t : verified_trxs) vec_trxs.emplace_back(t);
+  std::copy(verified_trxs.begin(), verified_trxs.end(),
+            std::back_inserter(vec_trxs));
   sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
   std::vector<taraxa::bytes> ret;
   for (auto const &t : vec_trxs) {
@@ -176,7 +177,6 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   if (all_block_trx_hashes.empty()) {
     return true;
   }
-  uint32_t saved_trx_count = 0;
   std::set<trx_hash_t> known_trx_hashes(all_block_trx_hashes.begin(),
                                         all_block_trx_hashes.end());
 
@@ -320,7 +320,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   bool changed = false;
   auto trx_batch = db_->createWriteBatch();
-  std::vector<trx_hash_t> trxs_written_to_db;
   {
     uLock lock(mu_for_transactions_);
     for (auto const &i : verified_trx) {
@@ -352,11 +351,10 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   // sort trx based on sender and nonce
   list_trxs.sort(trxComp);
-  auto orig_size = list_trxs.size();
-
-  for (auto const &t : list_trxs) {
-    to_be_packed_trx.emplace_back(t.getHash());
-  }
+  
+  std::transform(list_trxs.begin(), list_trxs.end(),
+                 std::back_inserter(to_be_packed_trx),
+                 [](Transaction const &t) { return t.getHash(); });
 
   auto full_node = full_node_.lock();
   if (full_node) {
@@ -364,21 +362,18 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
     std::vector<std::string> ghost;
     full_node->getGhostPath(ghost);
     vec_blk_t gg;
-    for (auto const &t : ghost) {
-      gg.emplace_back(blk_hash_t(t));
-    }
+    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
+                   [](std::string const &t) { return blk_hash_t(t); });
     for (auto const &g : gg) {
       if (g == frontier.pivot) {  // pivot does not change
         break;
       }
-      for (auto &t : frontier.tips) {
-        if (g == t) {
-          std::swap(frontier.pivot, t);
+      auto iter = std::find_if(frontier.tips.begin(), frontier.tips.end(), g);
+      if(iter != std::end(frontier.tips)) {
+        std::swap(frontier.pivot, *iter);
           LOG(log_si_) << getFullNodeAddress()
                        << " Swap frontier with pivot: " << dag_frontier_.pivot
                        << " tips: " << frontier.pivot;
-          break;
-        }
       }
     }
   }

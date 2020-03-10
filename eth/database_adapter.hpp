@@ -43,7 +43,7 @@ struct DatabaseAdapter : virtual DatabaseFace {
   DbStorage::BatchPtr master_batch_;
 
  public:
-  DatabaseAdapter(decltype(db_) const& db, decltype(column_) column)
+  explicit DatabaseAdapter(decltype(db_) const& db, decltype(column_) column)
       : db_(db), column_(column) {}
 
   using TransactionScope = unique_ptr<OnceOutOfScope>;

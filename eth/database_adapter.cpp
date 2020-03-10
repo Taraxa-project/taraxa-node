@@ -62,7 +62,7 @@ void DatabaseAdapter::commit(unique_ptr<WriteBatchFace> _batch) {
 }
 
 void DatabaseAdapter::forEach(function<bool(Slice, Slice)> f) const {
-  db_->forEach(column_, [&](auto& k, auto& v) {
+  db_->forEach(column_, [&](auto const& k, auto const& v) {
     return f(aleth_slice(k), aleth_slice(v));
   });
 }
