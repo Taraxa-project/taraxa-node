@@ -35,9 +35,10 @@ StateTransitionResult StateTransitionResult::fromJson(Json::Value const& json) {
       auto const& topics_json = log_json["topics"];
       h256s topics;
       topics.reserve(topics_json.size());
-      std::transform(
-          topics_json.begin(), topics_json.end(), topics.begin(),
-          [](Json::Value const& topic_json) { return topic_json.asString(); });
+      std::transform(topics_json.begin(), topics_json.end(), topics.begin(),
+                     [](Json::Value const& topic_json) {
+                       return dev::h256(topic_json.asString());
+                     });
       logs.emplace_back(Address(log_json["address"].asString()),
                         topics,  //
                         jsToBytes(log_json["data"].asString()));

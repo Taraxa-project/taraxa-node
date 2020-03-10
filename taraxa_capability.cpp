@@ -839,7 +839,12 @@ vector<NodeID> TaraxaCapability::selectPeers(
 vector<NodeID> TaraxaCapability::getAllPeers() const {
   vector<NodeID> peers;
   boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
-  std::copy(peers_.begin(), peers_.end(), std::back_inserter(peers));
+  std::transform(
+      peers_.begin(), peers_.end(), std::back_inserter(peers),
+      [](std::pair<const dev::p2p::NodeID,
+                   std::shared_ptr<taraxa::TaraxaPeer>> const &peer) {
+        return peer.first;
+      });
   return peers;
 }
 
@@ -1170,7 +1175,6 @@ void TaraxaCapability::requestBlock(NodeID const &_id, blk_hash_t hash,
 void TaraxaCapability::requestPbftBlocks(NodeID const &_id,
                                          size_t height_to_sync) {
   RLPStream s;
-  int x = 0;
   host_.capabilityHost()->prep(_id, name(), s, GetPbftBlockPacket, 1);
   s << height_to_sync;
   LOG(log_dg_pbft_sync_) << "Sending GetPbftBlockPacket with height: "

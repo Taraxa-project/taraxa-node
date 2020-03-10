@@ -368,7 +368,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
       if (g == frontier.pivot) {  // pivot does not change
         break;
       }
-      auto iter = std::find_if(frontier.tips.begin(), frontier.tips.end(), g);
+      auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
       if(iter != std::end(frontier.tips)) {
         std::swap(frontier.pivot, *iter);
           LOG(log_si_) << getFullNodeAddress()

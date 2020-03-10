@@ -16,7 +16,7 @@ namespace taraxa::net {
 
 class Taraxa : public TaraxaFace {
  public:
-  explicit Taraxa(std::shared_ptr<taraxa::FullNode>& _full_node);
+  explicit Taraxa(std::shared_ptr<taraxa::FullNode> const& _full_node);
 
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"taraxa", "1.0"}};
