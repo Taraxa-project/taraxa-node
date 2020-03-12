@@ -984,8 +984,9 @@ std::vector<Vote> PbftManager::getVotesOfTypeFromVotesForRoundAndStep_(
     PbftVoteTypes vote_type, std::vector<Vote> &votes, uint64_t round,
     size_t step, std::pair<blk_hash_t, bool> blockhash) {
   std::vector<Vote> votes_of_requested_type;
-  std::copy_if(votes.begin(), votes.end(), votes_of_requested_type.begin(),
-               [vote_type, round, step, blockhash](Vote const&v) {
+  std::copy_if(votes.begin(), votes.end(),
+               std::back_inserter(votes_of_requested_type),
+               [vote_type, round, step, blockhash](Vote const &v) {
                  return (v.getType() == vote_type && v.getRound() == round &&
                          v.getStep() == step &&
                          (blockhash.second == false ||
