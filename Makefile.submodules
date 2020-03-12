@@ -1,6 +1,6 @@
 ifndef Makefile.submodules
 Makefile.submodules=_
-ifneq ($(APP_SUBMODULE_BASEDIR), 0)
+ifneq ($(APP_SUBMODULE_BASEDIR),)
 	SUBMODULE_BASEDIR := $(APP_SUBMODULE_BASEDIR)
 else
 	SUBMODULE_BASEDIR := $(CURDIR)/submodules
