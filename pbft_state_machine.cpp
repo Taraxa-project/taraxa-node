@@ -54,6 +54,8 @@ void PbftStateMachine::run() {
     pbft_mgr_->syncChain();
     pbft_mgr_->setState(getNextState());
     pbft_mgr_->executeState();
+    // Check for stop requested during step execution
+    if (stop_) break;
     // Sleep until end of state
     auto sleep_time_ms = pbft_mgr_->getNextStateCheckTimeMs();
     if (sleep_time_ms) {
