@@ -59,7 +59,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
   // Vote DAG block
-  int pbft_chain_size = 2;
+  int pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {
     // test timeout is 60 seconds
     if (pbft_chain->getPbftChainSize() == pbft_chain_size) {
@@ -161,7 +161,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
 
-  int pbft_chain_size = 2;
+  int pbft_chain_size = 1;
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain2->getPbftChainSize(), pbft_chain_size);
   EXPECT_EQ(pbft_chain3->getPbftChainSize(), pbft_chain_size);
@@ -202,7 +202,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     ASSERT_EQ(node3->getNumTransactionExecuted(), 1);
   }
 
-  pbft_chain_size = 3;
+  pbft_chain_size = 2;
   // Vote DAG block
   for (auto i = 0; i < 600; i++) {
     // test timeout is 60 seconds
