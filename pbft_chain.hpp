@@ -130,13 +130,13 @@ class PbftChain {
   virtual ~PbftChain() = default;
 
   void setFullNode(std::shared_ptr<FullNode> node);
-  void setPbftGenesis(std::string const& pbft_genesis_str);
+  void setPbftHead(std::string const& pbft_head_str);
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
   uint64_t getPbftChainSize() const { return size_; }
   uint64_t getPbftChainPeriod() const { return period_; }
-  blk_hash_t getGenesisHash() const { return genesis_hash_; }
+  blk_hash_t getHeadHash() const { return head_hash_; }
   blk_hash_t getLastPbftBlockHash() const { return last_pbft_block_hash_; }
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
@@ -145,7 +145,7 @@ class PbftChain {
   std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
   std::vector<std::string> getPbftBlocksStr(size_t height, size_t count,
                                             bool hash) const;
-  std::string getGenesisStr() const;
+  std::string getHeadStr() const;
   std::string getJsonStr() const;
   std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
   std::pair<uint64_t, bool> getDagBlockHeight(
@@ -180,7 +180,6 @@ class PbftChain {
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
   void pbftSyncedSetErase_();
-  void insertPbftBlockIndex_(blk_hash_t const& pbft_block_hash);
   void insertUnverifiedPbftBlockIntoParentMap_(
       blk_hash_t const& prev_block_hash, blk_hash_t const& block_hash);
 
@@ -192,9 +191,9 @@ class PbftChain {
   mutable boost::shared_mutex sync_access_;
   mutable boost::shared_mutex unverified_access_;
 
-  blk_hash_t genesis_hash_;  // pbft chain head hash
-  uint64_t size_;    // PBFT head with size 1, first PBFT block with size 2
-  uint64_t period_;  // PBFT head with period 0, first PBFT block with period 1
+  blk_hash_t head_hash_;  // pbft head hash
+  uint64_t size_;
+  uint64_t period_;
   blk_hash_t last_pbft_block_hash_;
 
   blk_hash_t dag_genesis_hash_;  // dag genesis at height 1

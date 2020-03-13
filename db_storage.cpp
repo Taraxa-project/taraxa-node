@@ -235,16 +235,16 @@ void DbStorage::addPbftBlockToBatch(
             pbft_block.getJsonStr());
 }
 
-string DbStorage::getPbftBlockGenesis(blk_hash_t const& hash) {
-  return lookup(toSlice(hash.asBytes()), Columns::pbft_blocks);
+string DbStorage::getPbftHead(blk_hash_t const& hash) {
+  return lookup(toSlice(hash.asBytes()), Columns::pbft_head);
 }
 
-void DbStorage::savePbftBlockGenesis(blk_hash_t const& hash,
-                                     string const& pbft_chain_head_str) {
-  insert(Columns::pbft_blocks, toSlice(hash.asBytes()), pbft_chain_head_str);
+void DbStorage::savePbftHead(blk_hash_t const& hash,
+                             string const& pbft_chain_head_str) {
+  insert(Columns::pbft_head, toSlice(hash.asBytes()), pbft_chain_head_str);
 }
 
-void DbStorage::addPbftChainHeadToBatch(
+void DbStorage::addPbftHeadToBatch(
     taraxa::blk_hash_t const& pbft_chain_head_hash,
     std::string const& pbft_chain_head_str,
     const taraxa::DbStorage::BatchPtr& write_batch) {
