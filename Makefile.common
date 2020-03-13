@@ -20,6 +20,7 @@ ifneq ($(APP_BUILD_BASEDIR),)
 else
 	BUILD_BASEDIR := $(CURDIR)/build
 endif
+DEPS_INSTALL_PREFIX := $(BUILD_BASEDIR)/deps
 ifneq ($(DEBUG), 0)
 	BUILD_DIR := $(BUILD_BASEDIR)/debug
 else
@@ -27,6 +28,5 @@ else
 endif
 OBJ_DIR := $(BUILD_DIR)/obj
 BIN_DIR := $(BUILD_DIR)/bin
-DEPS_INSTALL_PREFIX := $(BUILD_DIR)/deps
 
 endif # Makefile.common
