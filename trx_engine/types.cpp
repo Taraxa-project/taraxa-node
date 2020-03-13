@@ -35,7 +35,7 @@ StateTransitionResult StateTransitionResult::fromJson(Json::Value const& json) {
       auto const& topics_json = log_json["topics"];
       h256s topics;
       topics.reserve(topics_json.size());
-      std::transform(topics_json.begin(), topics_json.end(), topics.begin(),
+      std::transform(topics_json.begin(), topics_json.end(), std::back_inserter(topics),
                      [](Json::Value const& topic_json) {
                        return dev::h256(topic_json.asString());
                      });
@@ -57,7 +57,7 @@ StateTransitionResult StateTransitionResult::fromJson(Json::Value const& json) {
   vector<TransactionOutput> trx_outputs;
   trx_outputs.reserve(trx_outputs_json.size());
   std::transform(
-      trx_outputs_json.begin(), trx_outputs_json.end(), trx_outputs.begin(),
+      trx_outputs_json.begin(), trx_outputs_json.end(), std::back_inserter(trx_outputs),
       [](Json::Value const& obj) { return TransactionOutput::fromJson(obj); });
   auto const& upd_bal_json = json["touchedExternallyOwnedAccountBalances"];
   unordered_map<Address, u256> touched_externally_owned_account_balances;
