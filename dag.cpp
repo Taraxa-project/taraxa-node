@@ -48,11 +48,9 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
 
   // add vertex
   auto now(std::chrono::system_clock::now());
-  /*vertex_t ret = */add_vertex(new_vertex, graph_);
-  //vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
-  //index_map[ret] = new_vertex;
-  //vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
-  //epc_map[ret] = 0;  // means not finalized
+  vertex_t ret = add_vertex(new_vertex, graph_);
+  boost::get(boost::vertex_index, graph_)[ret] = new_vertex;
+  boost::get(boost::vertex_index1, graph_)[ret] = 0;  // means not finalized
   edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
 
   edge_t edge;
