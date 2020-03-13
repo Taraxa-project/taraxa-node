@@ -19,7 +19,6 @@
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
 #include "util.hpp"
-#include "util/eth.hpp"
 
 namespace taraxa {
 
