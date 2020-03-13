@@ -318,16 +318,14 @@ TEST_F(FullNodeTest, db_test) {
             pbft_block4.rlp(false));
   // pbft_blocks (head)
   PbftChain pbft_chain(blk_hash_t(0).toString());
-  db.savePbftBlockGenesis(pbft_chain.getGenesisHash(), pbft_chain.getJsonStr());
-  EXPECT_EQ(db.getPbftBlockGenesis(pbft_chain.getGenesisHash()),
-            pbft_chain.getJsonStr());
+  db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
+  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
   batch = db.createWriteBatch();
-  db.addPbftChainHeadToBatch(pbft_chain.getGenesisHash(),
-                             pbft_chain.getJsonStr(), batch);
+  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(),
+                        batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftBlockGenesis(pbft_chain.getGenesisHash()),
-            pbft_chain.getJsonStr());
+  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   // pbft_blocks_order
   db.savePbftBlockOrder(1, blk_hash_t(1));
   db.savePbftBlockOrder(2, blk_hash_t(2));

@@ -368,10 +368,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Update last pbft block hash first for updating PBFT chain head block
   pbft_chain1->setLastPbftBlockHash(pbft_block1.getBlockHash());
   // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -404,10 +403,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Update last pbft block hash first for updating PBFT chain head block
   pbft_chain1->setLastPbftBlockHash(pbft_block2.getBlockHash());
   // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
@@ -490,10 +488,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Update last pbft block hash first for updating PBFT chain head block
   pbft_chain1->setLastPbftBlockHash(pbft_block1.getBlockHash());
   // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -520,10 +517,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Update last pbft block hash first for updating PBFT chain head block
   pbft_chain1->setLastPbftBlockHash(pbft_block2.getBlockHash());
   // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
