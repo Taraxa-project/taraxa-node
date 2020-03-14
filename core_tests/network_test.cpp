@@ -268,7 +268,7 @@ TEST_F(NetworkTest, node_sync) {
 
   DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
                 sig_t(777), blk_hash_t(0), addr_t(999));
-  blk1.sign(g_secret2); 
+  blk1.sign(g_secret2);
 
   DagBlock blk2(blk1.getHash(), 2, {}, {}, sig_t(7771), blk_hash_t(0),
                 addr_t(999));

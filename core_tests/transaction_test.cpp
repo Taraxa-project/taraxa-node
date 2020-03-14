@@ -7,8 +7,8 @@
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
 #include "static_init.hpp"
-#include "util/lazy.hpp"
 #include "transaction_manager.hpp"
+#include "util/lazy.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
