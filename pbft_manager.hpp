@@ -40,10 +40,11 @@ enum PbftStates {
   soft_vote_block_from_prev_round_state,
   // Step 3
   cert_vote_block_polling_state,
-  // Step 4
+  // Non-step
   chain_block_state,
-  // Step 5...
+  // Step 4
   vote_next_block_state,
+  // Step 5
   vote_next_block_polling_state,
   num_pbft_states
 };
@@ -232,9 +233,9 @@ class PbftManager {
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
+  bool have_cert_voted_this_round_;
   bool have_next_voted_soft_value_;
   bool have_next_voted_null_block_hash_;
-  bool have_cert_voted_this_round_;
 
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
@@ -268,7 +269,9 @@ class PbftManager {
 
   void executeState();  // Execute the current state
 
-  static bool isPollingState(int state);
+  static bool isStepState(int state);    // Is a "step"
+
+  static bool isPollingState(int state); // Is state requiring polling time
 
   // End state machine methods
 

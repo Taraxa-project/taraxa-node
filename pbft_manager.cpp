@@ -967,8 +967,12 @@ void PbftManager::countVotes_() {
     size_t num_votes = 0;
     size_t num_last_votes = 0;
     for (auto const &v : votes) {
-      if (v.getRound() == round_ && v.getStep() == step_) {
-        num_votes++;
+      if (v.getRound() == round_) {
+        if (v.getStep() == step_) {
+          num_votes++;
+        } else if (v.getStep() == last_step_) {
+          num_last_votes++;
+        }
       } else if (v.getRound() == last_round_ && v.getStep() == last_step_) {
         num_last_votes++;
       }
@@ -1007,7 +1011,8 @@ u_long PbftManager::getLastStateElapsedTimeMs() const {
 }
 
 u_long PbftManager::getNextStateCheckTimeMs() const {
-  if (state_ == chain_block_state) {
+  // Only "steps" have wait times.
+  if (!isStepState(state_)) {
     return 0;
   }
   u_long elapsed_time = getStateElapsedTimeMs();
@@ -1054,6 +1059,7 @@ void PbftManager::resetRound() {
 void PbftManager::setRound(uint64_t round) {
   last_round_ = round_;
   round_ = round;
+  step_ = 0;
   resetState();
 
   last_round_start_clock_time_ = round_start_clock_time_;
@@ -1061,9 +1067,9 @@ void PbftManager::setRound(uint64_t round) {
 
   own_starting_value_for_round_ = NULL_BLOCK_HASH;
 
+  have_cert_voted_this_round_ = false;
   have_next_voted_soft_value_ = false;
   have_next_voted_null_block_hash_ = false;
-  have_cert_voted_this_round_ = false;
 
   // Key thing is to set .second to false to mark that we have not
   // identified a soft voted block in the new upcoming round...
@@ -1087,7 +1093,7 @@ void PbftManager::setRound(uint64_t round) {
   // END ROUND START STATE CHANGE UPDATES
 
   // p2p connection syncing should cover this situation, sync here for safe
-  if (round_ > last_round_ + 1 && capability_->syncing_ == false) {
+  if ((round_ > (last_round_ + 1)) && (capability_->syncing_ == false)) {
     LOG(log_sil_) << "Quorum determined round " << round_
                   << " > 1 + current round " << last_round_
                   << " local round, need to broadcast request for missing "
@@ -1108,7 +1114,6 @@ void PbftManager::setRound(uint64_t round) {
 }
 
 void PbftManager::resetState() {
-  step_ = 0;
   setState(reset_state);
 }
 
@@ -1116,8 +1121,10 @@ void PbftManager::setState(int state) {
   if ((state != reset_state) && (state == state_)) {
     return;
   }
-  last_step_ = step_;
-  step_ = (state == reset_state) ? 0 : step_ + 1;
+  if (isStepState(state)) {
+    if (step_) last_step_ = step_;
+    step_++;
+  }
   last_state_ = (state == reset_state) ? reset_state : state_;
   state_ = state;
   last_state_start_clock_time_ = state_start_clock_time_;
@@ -1163,8 +1170,8 @@ void PbftManager::syncChain() {
 
   // Concern can malicious node trigger excessive syncing?
   if (sync_peers_pbft_chain_ && pbft_chain_->pbftSyncedQueueEmpty() &&
-      capability_->syncing_ == false &&
-      syncRequestedAlreadyThisStep_() == false) {
+      (capability_->syncing_ == false) &&
+      (syncRequestedAlreadyThisStep_() == false)) {
     LOG(log_sil_) << "Vote validation triggered pbft chain sync";
     syncPbftChainFromPeers_();
   }
@@ -1176,6 +1183,11 @@ void PbftManager::syncChain() {
   assert(consensus_pbft_round >= round_);
 
   if (consensus_pbft_round > round_) {
+    // Check for chainable block
+    if (pbft_state_machine_->getNextState() == chain_block_state) {
+      setState(chain_block_state);
+      executeState();
+    }
     LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
     setRound(consensus_pbft_round);
     LOG(log_deb_) << "Advancing clock to pbft round " << round_
@@ -1331,7 +1343,7 @@ void PbftManager::executeState() {
               std::make_pair(NULL_BLOCK_HASH, false));
       // TODO: debug remove later
       LOG(log_tra_) << "Get cert votes for round " << round_ << " step "
-                    << state_;
+                    << step_;
       std::pair<blk_hash_t, bool> cert_voted_block_hash =
           blockWithEnoughVotes_(cert_votes_for_round);
       if (cert_voted_block_hash.second) {
@@ -1413,6 +1425,11 @@ void PbftManager::executeState() {
                      "to broadcast request for missing blocks";
     syncPbftChainFromPeers_();
   }
+}
+
+bool PbftManager::isStepState(int state) {
+  return (state != reset_state) &&
+         (state != chain_block_state);
 }
 
 bool PbftManager::isPollingState(int state) {

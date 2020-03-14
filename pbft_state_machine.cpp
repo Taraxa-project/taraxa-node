@@ -22,8 +22,8 @@
 
 namespace taraxa {
 
-PbftStateMachine::PbftStateMachine(PbftManager* pbft_mgr)
-    : pbft_mgr_(pbft_mgr) {}
+PbftStateMachine::PbftStateMachine(PbftManager* pbft_mgr_)
+    : pbft_mgr_(pbft_mgr_) {}
 
 void PbftStateMachine::start() {
   if (bool b = true; !stop_.compare_exchange_strong(b, !b)) {
@@ -100,7 +100,7 @@ int PbftStateMachine::getNextState() {
         return chain_block_state;
       }
       return cert_vote_block_polling_state;
-    // Step 4
+    // Not a step
     case chain_block_state:
       if (pbft_mgr_->getStateElapsedTimeMs() > pbft_mgr_->state_max_time_ms_) {
         LOG(log_deb_) << "Pushing Block state time expired in round: "
@@ -110,9 +110,10 @@ int PbftStateMachine::getNextState() {
         return vote_next_block_polling_state;
       }
       return vote_next_block_state;
-    // Step 5...
+    // Step 4
     case vote_next_block_state:
       return vote_next_block_polling_state;
+    // Step 5
     case vote_next_block_polling_state:
       if (pbft_mgr_->getStateElapsedTimeMs() > pbft_mgr_->state_max_time_ms_) {
         LOG(log_deb_) << "CONSENSUSDBG round " << pbft_mgr_->round_
