@@ -231,7 +231,7 @@ class PbftManager {
   blk_hash_t own_starting_value_for_round_;
 
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
-  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
+  std::pair<blk_hash_t, bool> next_voted_block_from_last_round_;
 
   bool have_cert_voted_this_round_;
   bool have_next_voted_soft_value_;
