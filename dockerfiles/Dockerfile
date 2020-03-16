@@ -14,7 +14,7 @@ RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) main
 
 
 # Copy over only minimal information
-FROM ubuntu:18.10
+FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 ENV APP_PATH /opt/taraxa/taraxa-node

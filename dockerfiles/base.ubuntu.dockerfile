@@ -1,4 +1,4 @@
-FROM ubuntu:18.10 as builder
+FROM ubuntu:20.04 as builder
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
