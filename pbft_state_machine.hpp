@@ -16,7 +16,6 @@ class PbftStateMachine {
   friend class PbftManager;
 
  public:
-
   PbftStateMachine(PbftManager* pbft_mgr);
 
   void start();
@@ -36,8 +35,8 @@ class PbftStateMachine {
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_STATE_MACHINE")};
   mutable dev::Logger log_err_{
       dev::createLogger(dev::Verbosity::VerbosityError, "PBFT_STATE_MACHINE")};
-  mutable dev::Logger log_war_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFT_STATE_MACHINE")};
+  mutable dev::Logger log_war_{dev::createLogger(
+      dev::Verbosity::VerbosityWarning, "PBFT_STATE_MACHINE")};
   mutable dev::Logger log_inf_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_STATE_MACHINE")};
   mutable dev::Logger log_deb_{

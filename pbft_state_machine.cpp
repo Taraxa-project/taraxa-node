@@ -124,8 +124,8 @@ int PbftStateMachine::getNextState() {
                       << pbft_mgr_->soft_voted_block_for_this_round_
                       << " have_next_voted_soft_value_ = "
                       << pbft_mgr_->have_next_voted_soft_value_
-                      << " next_voted_block_from_previous_round_ = "
-                      << pbft_mgr_->next_voted_block_from_previous_round_
+                      << " next_voted_block_from_last_round_ = "
+                      << pbft_mgr_->next_voted_block_from_last_round_
                       << " cert voted = "
                       << (pbft_mgr_->cert_voted_values_for_round_.find(
                               pbft_mgr_->round_) !=
