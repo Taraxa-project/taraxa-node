@@ -165,7 +165,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
 
   sharedLock_ lock(access_);
   std::map<uint64_t, std::map<vote_hash_t, Vote>>::const_iterator it;
-  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); it++) {
+  for (it = unverified_votes_.begin(); it != unverified_votes_.end(); ++it) {
     size += it->second.size();
   }
 
@@ -194,7 +194,6 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       pbft_mgr->getLastPbftBlockHashAtStartOfRound();
   size_t sortition_threshold = pbft_mgr->getSortitionThreshold();
 
-  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
@@ -250,7 +249,6 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       pbft_mgr->getLastPbftBlockHashAtStartOfRound();
   size_t sortition_threshold = pbft_mgr->getSortitionThreshold();
 
-  std::map<uint64_t, std::vector<Vote>>::const_iterator it;
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
@@ -297,7 +295,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   return verified_votes;
 }
 
-std::string VoteManager::getJsonStr(std::vector<Vote>& votes) {
+std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
   using boost::property_tree::ptree;
   ptree ptroot;
   ptree ptvotes;
@@ -328,9 +326,12 @@ std::vector<Vote> VoteManager::getAllVotes() {
 
   sharedLock_ lock(access_);
   for (auto const& round_votes : unverified_votes_) {
-    for (auto const& v : round_votes.second) {
-      votes.emplace_back(v.second);
-    }
+    std::transform(
+        round_votes.second.begin(), round_votes.second.end(),
+        std::back_inserter(votes),
+        [](std::pair<const taraxa::vote_hash_t, taraxa::Vote> const& v) {
+          return v.second;
+        });
   }
 
   return votes;

@@ -15,7 +15,7 @@
 namespace taraxa {
 struct RpcConfig {
   RpcConfig() = default;
-  RpcConfig(std::string const &json_file);
+  explicit RpcConfig(std::string const &json_file);
   std::string json_file_name;
   uint16_t port;
   uint16_t ws_port;
@@ -67,7 +67,7 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
-  FullNodeConfig(std::string const &json_file);
+  explicit FullNodeConfig(std::string const &json_file);
   std::string json_file_name;
   std::string node_secret;
   std::string vrf_secret;

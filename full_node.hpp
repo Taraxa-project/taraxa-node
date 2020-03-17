@@ -51,8 +51,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
   using EthService = ::taraxa::eth::eth_service::EthService;
 
-  FullNode(FullNodeConfig const &conf) : conf_(conf) {}
-  FullNode(std::string const &conf) : FullNode(FullNodeConfig(conf)) {}
+  explicit FullNode(FullNodeConfig const &conf) : conf_(conf) {}
+  explicit FullNode(std::string const &conf) : FullNode(FullNodeConfig(conf)) {}
 
   void init(bool destroy_db, bool rebuild_network);
   void stop();
@@ -61,7 +61,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using shared_ptr_t = std::shared_ptr<FullNode>;
 
   struct Handle : shared_ptr_t {
-    Handle(FullNode *ptr) : shared_ptr_t(ptr) {}
+    explicit Handle(FullNode *ptr) : shared_ptr_t(ptr) {}
     // default-constructible
     Handle() = default;
     // not copyable

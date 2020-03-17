@@ -19,7 +19,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
                   public jsonrpc::AbstractServerConnector {
  public:
   RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc);
-  virtual ~RpcServer() { StopListening(); }
+  virtual ~RpcServer() { RpcServer::StopListening(); }
 
   virtual bool StartListening() override;
   virtual bool StopListening() override;
@@ -55,7 +55,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
 
 class RpcConnection : public std::enable_shared_from_this<RpcConnection> {
  public:
-  RpcConnection(std::shared_ptr<RpcServer> rpc);
+  explicit RpcConnection(std::shared_ptr<RpcServer> rpc);
   virtual ~RpcConnection() = default;
   virtual void read();
   virtual void write_response(std::string const &msg);

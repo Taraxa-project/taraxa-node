@@ -41,9 +41,9 @@ struct uint_hash_t {
       Bytes == 16, uint128_t,
       typename std::conditional<Bytes == 32, uint256_t, uint512_t>::type>::type;
   uint_hash_t() = default;  // Must be a trivial type for std::is_pod_v<>=true
-  uint_hash_t(Number const &number);
-  uint_hash_t(std::string const &str);
-  uint_hash_t(const char *cstr);
+  explicit uint_hash_t(Number const &number);
+  explicit uint_hash_t(std::string const &str);
+  explicit uint_hash_t(const char *cstr);
   void encodeHex(std::string &str) const;
   bool decodeHex(std::string const &str);
 

@@ -25,9 +25,11 @@ std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
   options.max_open_files = 256;
   DB* db_ = nullptr;
   vector<ColumnFamilyDescriptor> descriptors;
-  for (auto& col : Columns::all) {
-    descriptors.emplace_back(col.name, ColumnFamilyOptions());
-  }
+  std::transform(Columns::all.begin(), Columns::all.end(),
+                 std::back_inserter(descriptors), [](const Column& col) {
+                   return ColumnFamilyDescriptor(col.name,
+                                                 ColumnFamilyOptions());
+                 });
   decltype(handles_) handles(Columns::all.size());
   checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db_));
   return u_ptr(new DbStorage(db_, move(handles)));

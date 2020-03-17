@@ -73,7 +73,7 @@ class Dag {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   friend DagManager;
-  Dag(std::string const &genesis);
+  explicit Dag(std::string const &genesis);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
@@ -153,7 +153,7 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  PivotTree(std::string const &genesis) : Dag(genesis){};
+  explicit PivotTree(std::string const &genesis) : Dag(genesis){};
   virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
@@ -180,7 +180,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  DagManager(std::string const &genesis);
+  explicit DagManager(std::string const &genesis);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void setFullNode(std::shared_ptr<FullNode> full_node) {
@@ -275,7 +275,7 @@ class vertex_label_writer {
 template <class Property>
 class edge_label_writer {
  public:
-  edge_label_writer(Property weight) : weight(weight) {}
+  explicit edge_label_writer(Property weight) : weight(weight) {}
   template <class Edge>
   void operator()(std::ostream &out, const Edge &e) const {
     if (weight[e] == 0) {

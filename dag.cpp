@@ -37,9 +37,8 @@ void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
   vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
   std::vector<vertex_t> leaves;
   collectLeafVertices(leaves);
-  for (auto const &leaf : leaves) {
-    tips.emplace_back(index_map[leaf]);
-  }
+  std::transform(leaves.begin(), leaves.end(), std::back_inserter(tips),
+                 [index_map](const vertex_t &leaf) { return index_map[leaf]; });
 }
 
 bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
@@ -50,10 +49,8 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   // add vertex
   auto now(std::chrono::system_clock::now());
   vertex_t ret = add_vertex(new_vertex, graph_);
-  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
-  index_map[ret] = new_vertex;
-  vertex_period_map_t epc_map = boost::get(boost::vertex_index1, graph_);
-  epc_map[ret] = 0;  // means not finalized
+  boost::get(boost::vertex_index, graph_)[ret] = new_vertex;
+  boost::get(boost::vertex_index1, graph_)[ret] = 0;  // means not finalized
   edge_index_map_t weight_map = boost::get(boost::edge_index, graph_);
 
   edge_t edge;
@@ -211,7 +208,6 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   while (iter != recent_added_blks_.end()) {
     auto v = graph_.vertex(*iter);
     if (ep_map[v] > 0) {
-      iter++;
       LOG(log_er_) << "The vertex " << index_map[v]
                    << " has been included in other period " << ep_map[v]
                    << std::endl;
@@ -298,8 +294,8 @@ void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
                  << " to set period\n";
     return;
   }
-  auto ep = boost::get(boost::vertex_index1, graph_);
-  ep[current] = period;
+  //auto ep = boost::get(boost::vertex_index1, graph_);
+  //ep[current] = period;
 }
 
 uint64_t Dag::getVertexPeriod(vertex_hash const &vertex) const {
@@ -558,10 +554,8 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
 
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
                                        std::vector<std::string> &tips) const {
-  bool ret = false;
   // make sure the state of dag is the same when collection pivot and tips
   sharedLock lock(mutex_);
-  std::vector<std::string> pivot_chain;
   pivot.clear();
   tips.clear();
   std::tie(pivot, tips) = getFrontier();
@@ -645,9 +639,9 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
     return 0;
   }
 
-  for (auto const &i : blk_orders) {
-    orders.emplace_back(blk_hash_t(i));
-  }
+  std::transform(blk_orders.begin(), blk_orders.end(),
+                 std::back_inserter(orders),
+                 [](const std::string &i) { return blk_hash_t(i); });
   LOG(log_dg_) << "Get period " << new_period << " from " << blk_hash_t(prev)
                << " to " << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
