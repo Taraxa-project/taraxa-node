@@ -1,4 +1,4 @@
-FROM ubuntu:18.10 as builder
+FROM ubuntu:20.04 as builder
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
@@ -8,8 +8,8 @@ RUN apt-get update \
     && apt-get install -y \
     libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
     libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl libcurl4-openssl-dev unzip pkg-config git \
-    rapidjson-dev python-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool \
-    libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools libmpfr-dev python3-pip
+    rapidjson-dev python2-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool \
+    libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools libmpfr-dev python3-pip python3-dev
 
 RUN pip3 install --upgrade pip
 RUN pip3 install cmake
