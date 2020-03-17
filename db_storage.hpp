@@ -156,8 +156,8 @@ struct DbStorage {
   // regular blocks with real hashes. Need remove from DB
   string getPbftHead(blk_hash_t const& hash);
   void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
-  void addPbftHeadToBatch(taraxa::blk_hash_t const& pbft_chain_head_hash,
-                          std::string const& pbft_chain_head_str,
+  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash,
+                          std::string const& head_str,
                           BatchPtr const& write_batch);
   // pbft_blocks_order
   shared_ptr<blk_hash_t> getPbftBlockOrder(uint64_t const& index);

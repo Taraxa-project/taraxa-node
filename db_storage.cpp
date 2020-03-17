@@ -245,11 +245,11 @@ void DbStorage::savePbftHead(blk_hash_t const& hash,
 }
 
 void DbStorage::addPbftHeadToBatch(
-    taraxa::blk_hash_t const& pbft_chain_head_hash,
-    std::string const& pbft_chain_head_str,
+    taraxa::blk_hash_t const& head_hash,
+    std::string const& head_str,
     const taraxa::DbStorage::BatchPtr& write_batch) {
-  batch_put(write_batch, Columns::pbft_blocks,
-            toSlice(pbft_chain_head_hash.asBytes()), pbft_chain_head_str);
+  batch_put(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()),
+            head_str);
 }
 
 std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(
