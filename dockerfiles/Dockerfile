@@ -12,6 +12,8 @@ RUN if [ $RUN_TESTS -eq 1 ]; then \
 
 RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) main
 
+# Remove .a files to avoid it ben copied at final image
+RUN find /usr/ -iname '*.a' -delete
 
 # Copy over only minimal information
 FROM ubuntu:20.04
