@@ -15,6 +15,11 @@ RUN make DEPS_INSTALL_PREFIX=${APP_LIBRARY_HOME} -j $(nproc) main
 # Remove .a files to avoid it ben copied at final image
 RUN find /usr/ -iname '*.a' -delete
 
+# HACK: Remove all .so symlinks
+RUN find -L /usr/local/lib/ -xtype l -iname '*.so*' -delete
+# HACK: Remove duplicated librocksdb
+RUN rm -rf /usr/local/lib/librocksdb.so.*
+
 # Copy over only minimal information
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND noninteractive
@@ -34,6 +39,9 @@ COPY ./core_tests/conf/*.json ./default_config/
 # this will be removed once we have a dedicated key gen
 COPY --from=builder ${APP_PATH}/build/debug/bin/core_tests/crypto_test .
 COPY core_tests ./core_tests
+
+# HACK: Because we removed symlinks before
+RUN ldconfig
 
 ENV DEBUG 0
 ENTRYPOINT [ "./docker-entrypoint.sh" ]
