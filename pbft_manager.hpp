@@ -189,20 +189,10 @@ class PbftManager {
 
   blk_hash_t pbft_chain_last_block_hash_;
 
-<<<<<<< HEAD
-  uint64_t pbft_round_ = 0;
-  uint64_t pbft_round_last_ = 0;
-  size_t pbft_step_ = 0;
-  bool executed_pbft_block_ = false;
-
-  uint64_t pbft_round_last_requested_sync_ = 0;
-  size_t pbft_step_last_requested_sync_ = 0;
-=======
   bool have_chained_block_;
 
   uint64_t last_sync_round_;
   uint64_t last_sync_step_;
->>>>>>> Added PBFT state machine
 
   size_t last_chain_synced_queue_size_ = 0;
 
