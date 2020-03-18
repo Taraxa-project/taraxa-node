@@ -53,6 +53,8 @@ class PbftManager {
   friend class PbftStateMachine;
 
  public:
+  u_long LAMBDA_ms_MIN;
+
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
   explicit PbftManager(std::string const &genesis);
