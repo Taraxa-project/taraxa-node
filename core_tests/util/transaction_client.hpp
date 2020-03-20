@@ -61,7 +61,7 @@ struct TransactionClient {
         Transaction(sender_nonce, val, 0, constants::TEST_TX_GAS_LIMIT, to,
                     bytes(), key_pair_.secret()),
     };
-    if (!node_->insertTransaction(ctx.trx, false)) {
+    if (!node_->insertTransaction(ctx.trx, false).first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;

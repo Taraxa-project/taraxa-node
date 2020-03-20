@@ -240,10 +240,10 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
-bool FullNode::insertTransaction(Transaction const &trx, bool verify) {
+std::pair<bool, std::string> FullNode::insertTransaction(Transaction const &trx, bool verify) {
   auto rlp = trx.rlp(true);
   auto ret = trx_mgr_->insertTrx(trx, rlp, verify);
-  if (ret && conf_.network.network_transaction_interval == 0) {
+  if (ret.first && conf_.network.network_transaction_interval == 0) {
     network_->onNewTransactions({rlp});
   }
   return ret;
