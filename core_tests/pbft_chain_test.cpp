@@ -80,9 +80,9 @@ TEST_F(PbftChainTest, pbft_db_test) {
   node->start(true);  // boot node
   auto db = node->getDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  std::string pbft_genesis_from_db =
-      db->getPbftBlockGenesis(pbft_chain->getGenesisHash());
-  EXPECT_FALSE(pbft_genesis_from_db.empty());
+  blk_hash_t pbft_chain_head_hash = pbft_chain->getHeadHash();
+  std::string pbft_head_from_db = db->getPbftHead(pbft_chain_head_hash);
+  EXPECT_FALSE(pbft_head_from_db.empty());
 
   // generate PBFT block sample
   blk_hash_t prev_block_hash(0);
@@ -101,18 +101,18 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // Update pbft chain
   pbft_chain->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain->getGenesisHash();
   std::string pbft_chain_head_str = pbft_chain->getJsonStr();
-  db->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db->commitWriteBatch(batch);
-  EXPECT_EQ(node->getPbftChainSize(), 2);
+  int expect_pbft_chain_size = 1;
+  EXPECT_EQ(node->getPbftChainSize(), expect_pbft_chain_size);
 
   auto pbft_block2 = db->getPbftBlock(pbft_block1.getBlockHash());
   EXPECT_EQ(pbft_block1.getJsonStr(), pbft_block2->getJsonStr());
 
   // check pbft genesis update in DB
-  pbft_genesis_from_db = db->getPbftBlockGenesis(pbft_chain->getGenesisHash());
-  EXPECT_EQ(pbft_genesis_from_db, pbft_chain->getJsonStr());
+  pbft_head_from_db = db->getPbftHead(pbft_chain_head_hash);
+  EXPECT_EQ(pbft_head_from_db, pbft_chain->getJsonStr());
 
   db = nullptr;
 }
@@ -185,12 +185,12 @@ TEST_F(PbftChainTest, block_broadcast) {
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block.getBlockHash());
   // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
-  EXPECT_EQ(node1->getPbftChainSize(), 2);
+  int expect_pbft_chain_size = 1;
+  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
   // node1 cleanup block1 in PBFT unverified blocks table
   pbft_chain1->cleanupUnverifiedPbftBlocks(pbft_block);
   bool find_erased_block =
@@ -223,17 +223,14 @@ TEST_F(PbftChainTest, block_broadcast) {
   batch = db2->createWriteBatch();
   // Add PBFT block in DB
   db2->addPbftBlockToBatch(pbft_block, batch);
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain2->setLastPbftBlockHash(pbft_block.getBlockHash());
-  // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain2->getGenesisHash();
-  pbft_chain_head_str = pbft_chain2->getJsonStr();
-  db2->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
-  db2->commitWriteBatch(batch);
-  // Update pbft chain
+  // Update PBFT chain
   pbft_chain2->updatePbftChain(pbft_block.getBlockHash());
-  EXPECT_EQ(node2->getPbftChainSize(), 2);
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain2->getHeadHash();
+  pbft_chain_head_str = pbft_chain2->getJsonStr();
+  db2->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db2->commitWriteBatch(batch);
+  EXPECT_EQ(node2->getPbftChainSize(), expect_pbft_chain_size);
   // node2 cleanup block1 in PBFT unverified blocks table
   pbft_chain2->cleanupUnverifiedPbftBlocks(pbft_block);
   find_erased_block =
@@ -244,17 +241,14 @@ TEST_F(PbftChainTest, block_broadcast) {
   batch = db3->createWriteBatch();
   // Add PBFT block in DB
   db3->addPbftBlockToBatch(pbft_block, batch);
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain3->setLastPbftBlockHash(pbft_block.getBlockHash());
-  // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain3->getGenesisHash();
-  pbft_chain_head_str = pbft_chain3->getJsonStr();
-  db3->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
-  db3->commitWriteBatch(batch);
-  // Update pbft chain
+  // Update PBFT chain
   pbft_chain3->updatePbftChain(pbft_block.getBlockHash());
-  EXPECT_EQ(node3->getPbftChainSize(), 2);
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain3->getHeadHash();
+  pbft_chain_head_str = pbft_chain3->getJsonStr();
+  db3->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db3->commitWriteBatch(batch);
+  EXPECT_EQ(node3->getPbftChainSize(), expect_pbft_chain_size);
   // node3 cleanup block1 in PBFT unverified blocks table
   pbft_chain3->cleanupUnverifiedPbftBlocks(pbft_block);
   find_erased_block =
@@ -298,15 +292,15 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   EXPECT_EQ(node->getNumProposedBlocks(), 1);
 
   // Vote DAG block
-  uint64_t pbft_chain_size = 2;
+  uint64_t expect_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {
     // test timeout is 60 seconds
-    if (pbft_chain->getPbftChainSize() == pbft_chain_size) {
+    if (pbft_chain->getPbftChainSize() == expect_pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
+  EXPECT_EQ(pbft_chain->getPbftChainSize(), expect_pbft_chain_size);
 
   size_t dag_blocks_size = 2;
   for (int i = 0; i < 100; i++) {

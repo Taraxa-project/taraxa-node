@@ -268,7 +268,7 @@ TEST_F(NetworkTest, node_sync) {
 
   DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
                 sig_t(777), blk_hash_t(0), addr_t(999));
-  blk1.sign(g_secret2); 
+  blk1.sign(g_secret2);
 
   DagBlock blk2(blk1.getHash(), 2, {}, {}, sig_t(7771), blk_hash_t(0),
                 addr_t(999));
@@ -345,7 +345,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   blk_hash_t dag_blk(123);
   TrxSchedule schedule;
   uint64_t period = 1;
-  uint64_t height = 2;
+  uint64_t height = 1;
   addr_t beneficiary(987);
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
                         beneficiary, node1->getSecretKey());
@@ -365,23 +365,21 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->addPbftBlockIndexToBatch(height, pbft_block1.getBlockHash(), batch);
   // Update period_schedule_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain1->setLastPbftBlockHash(pbft_block1.getBlockHash());
-  // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
-  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
-  db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
-  EXPECT_EQ(node1->getPbftChainSize(), 2);
+  // Update PBFT chain head block
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
+  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db1->commitWriteBatch(batch);
+  int expect_pbft_chain_size = 1;
+  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
   dag_blk = blk_hash_t(456);
   period = 2;
-  height = 3;
+  height = 2;
   beneficiary = addr_t(654);
   PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
                         beneficiary, node1->getSecretKey());
@@ -401,17 +399,15 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->addPbftBlockIndexToBatch(height, pbft_block2.getBlockHash(), batch);
   // Update period_schedule_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain1->setLastPbftBlockHash(pbft_block2.getBlockHash());
-  // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain1->getGenesisHash();
-  pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
-  db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
-  EXPECT_EQ(node1->getPbftChainSize(), 3);
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain1->getHeadHash();
+  pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db1->commitWriteBatch(batch);
+  expect_pbft_chain_size = 2;
+  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
@@ -440,12 +436,12 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
   for (int i = 0; i < 1200; i++) {
-    if (node2->getPbftChainSize() == 3) {
+    if (node2->getPbftChainSize() == expect_pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftChainSize(), 3);
+  EXPECT_EQ(node2->getPbftChainSize(), expect_pbft_chain_size);
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
@@ -468,7 +464,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   blk_hash_t dag_blk(234);
   TrxSchedule schedule;
   uint64_t period = 1;
-  uint64_t height = 2;
+  uint64_t height = 1;
   addr_t beneficiary(876);
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
                         beneficiary, node1->getSecretKey());
@@ -487,23 +483,21 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   db1->addPbftBlockIndexToBatch(height, pbft_block1.getBlockHash(), batch);
   // Update period_schedule_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain1->setLastPbftBlockHash(pbft_block1.getBlockHash());
-  // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain1->getGenesisHash();
-  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
-  db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
-  EXPECT_EQ(node1->getPbftChainSize(), 2);
+  // Update PBFT chain head block
+  blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
+  std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db1->commitWriteBatch(batch);
+  int expect_pbft_chain_size = 1;
+  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
   dag_blk = blk_hash_t(567);
   period = 2;
-  height = 3;
+  height = 2;
   beneficiary = addr_t(543);
   PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
                         beneficiary, node1->getSecretKey());
@@ -517,17 +511,15 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   db1->addPbftBlockIndexToBatch(height, pbft_block2.getBlockHash(), batch);
   // Update period_schedule_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
-  // Update last pbft block hash first for updating PBFT chain head block
-  pbft_chain1->setLastPbftBlockHash(pbft_block2.getBlockHash());
-  // Update PBFT chain head block
-  pbft_chain_head_hash = pbft_chain1->getGenesisHash();
-  pbft_chain_head_str = pbft_chain1->getJsonStr();
-  db1->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
-  db1->commitWriteBatch(batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
-  EXPECT_EQ(node1->getPbftChainSize(), 3);
+  // Update PBFT chain head block
+  pbft_chain_head_hash = pbft_chain1->getHeadHash();
+  pbft_chain_head_str = pbft_chain1->getJsonStr();
+  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  db1->commitWriteBatch(batch);
+  expect_pbft_chain_size = 2;
+  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa4.json"), true);
@@ -555,13 +547,14 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   }
 
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
+  int sync_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {
-    if (node2->getPbftChainSize() >= 2) {
+    if (node2->getPbftChainSize() >= sync_pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftChainSize(), 2);
+  EXPECT_EQ(node2->getPbftChainSize(), sync_pbft_chain_size);
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t last_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
@@ -989,6 +982,7 @@ int main(int argc, char** argv) {
   taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
+  logOptions.includeChannels.push_back("PBFT_CHAIN");
   // logOptions.includeChannels.push_back("PBFTSYNC");
   // logOptions.includeChannels.push_back("DAGSYNC");
   // logOptions.includeChannels.push_back("NETWORK");

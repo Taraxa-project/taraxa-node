@@ -293,10 +293,10 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
 }
 
 PbftChain::PbftChain(std::string const& dag_genesis_hash)
-    : genesis_hash_(blk_hash_t(0)),
-      size_(1),
+    : head_hash_(blk_hash_t(0)),
+      size_(0),
       period_(0),
-      last_pbft_block_hash_(genesis_hash_),
+      last_pbft_block_hash_(head_hash_),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
@@ -306,23 +306,22 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   assert(db_);
 
   // Get PBFT head from DB
-  auto pbft_genesis_str = db_->getPbftBlockGenesis(genesis_hash_);
-  if (pbft_genesis_str.empty()) {
-    // Store PBFT chain genesis(HEAD) block to db
-    insertPbftBlockIndex_(genesis_hash_);
-    db_->savePbftBlockGenesis(genesis_hash_, getJsonStr());
+  auto pbft_head_str = db_->getPbftHead(head_hash_);
+  if (pbft_head_str.empty()) {
+    // Store PBFT HEAD to db
+    db_->savePbftHead(head_hash_, getJsonStr());
     // Initialize DAG genesis at DAG block heigh 1
     pushDagBlockHash(dag_genesis_hash_);
   } else {
-    // set PBFT genesis from DB
-    setPbftGenesis(pbft_genesis_str);
+    // set PBFT HEAD from DB
+    setPbftHead(pbft_head_str);
   }
 }
 
-void PbftChain::setPbftGenesis(std::string const& pbft_genesis_str) {
-  ptree doc = strToJson(pbft_genesis_str);
+void PbftChain::setPbftHead(std::string const& pbft_head_str) {
+  ptree doc = strToJson(pbft_head_str);
 
-  genesis_hash_ = blk_hash_t(doc.get<std::string>("genesis_hash"));
+  head_hash_ = blk_hash_t(doc.get<std::string>("head_hash"));
   size_ = doc.get<uint64_t>("size");
   period_ = doc.get<uint64_t>("period");
   last_pbft_block_hash_ =
@@ -566,10 +565,10 @@ uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
   return max_dag_blocks_height_;
 }
 
-std::string PbftChain::getGenesisStr() const {
+std::string PbftChain::getHeadStr() const {
   std::stringstream strm;
   strm << "[PbftChain]" << std::endl;
-  strm << "genesis hash: " << genesis_hash_.toString() << std::endl;
+  strm << "head hash: " << head_hash_.toString() << std::endl;
   strm << "size: " << size_ << std::endl;
   strm << "period: " << period_ << std::endl;
   strm << "last pbft block hash: " << last_pbft_block_hash_.toString()
@@ -579,7 +578,7 @@ std::string PbftChain::getGenesisStr() const {
 
 std::string PbftChain::getJsonStr() const {
   ptree tree;
-  tree.put("genesis_hash", genesis_hash_.toString());
+  tree.put("head_hash", head_hash_.toString());
   tree.put("size", size_);
   tree.put("period", period_);
   tree.put("last_pbft_block_hash", last_pbft_block_hash_.toString());
@@ -589,7 +588,7 @@ std::string PbftChain::getJsonStr() const {
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
-  strm << pbft_chain.getGenesisStr();
+  strm << pbft_chain.getHeadStr();
   return strm;
 }
 
@@ -656,11 +655,6 @@ void PbftChain::pbftSyncedSetErase_() {
   PbftBlock pbft_block = pbftSyncedQueueFront().pbft_blk;
   uniqueLock_ lock(sync_access_);
   pbft_synced_set_.erase(pbft_block.getBlockHash());
-}
-
-void PbftChain::insertPbftBlockIndex_(
-    taraxa::blk_hash_t const& pbft_block_hash) {
-  db_->savePbftBlockOrder(size_, pbft_block_hash);
 }
 
 void PbftChain::insertUnverifiedPbftBlockIntoParentMap_(

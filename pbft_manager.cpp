@@ -1525,10 +1525,9 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   //  DB commit
   pbft_chain_->updatePbftChain(pbft_block_hash);
   // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain_->getGenesisHash();
+  blk_hash_t pbft_chain_head_hash = pbft_chain_->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain_->getJsonStr();
-  db_->addPbftChainHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str,
-                               batch);
+  db_->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   // Commit DB
   db_->commitWriteBatch(batch);
   LOG(log_deb_) << "DB write batch committed already";

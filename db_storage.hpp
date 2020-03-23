@@ -65,6 +65,7 @@ struct DbStorage {
     COLUMN(trx_to_blk);
     COLUMN(trx_status);
     COLUMN(status);
+    COLUMN(pbft_head);
     COLUMN(pbft_blocks);
     COLUMN(pbft_blocks_order);
     COLUMN(dag_blocks_order);
@@ -153,12 +154,11 @@ struct DbStorage {
   // pbft_blocks (head)
   // TODO: I would recommend storing this differently and not in the same db as
   // regular blocks with real hashes. Need remove from DB
-  string getPbftBlockGenesis(blk_hash_t const& hash);
-  void savePbftBlockGenesis(blk_hash_t const& hash,
-                            string const& pbft_chain_head_str);
-  void addPbftChainHeadToBatch(taraxa::blk_hash_t const& pbft_chain_head_hash,
-                               std::string const& pbft_chain_head_str,
-                               BatchPtr const& write_batch);
+  string getPbftHead(blk_hash_t const& hash);
+  void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
+  void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash,
+                          std::string const& head_str,
+                          BatchPtr const& write_batch);
   // pbft_blocks_order
   shared_ptr<blk_hash_t> getPbftBlockOrder(uint64_t const& index);
   void savePbftBlockOrder(uint64_t const& index, blk_hash_t const& hash);
