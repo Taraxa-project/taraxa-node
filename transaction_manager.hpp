@@ -50,7 +50,7 @@ class TransactionManager
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> full_node);
-  bool insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
+  std::pair<bool, std::string> insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
                  bool verify);
 
   /**
@@ -60,7 +60,7 @@ class TransactionManager
                 uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
-  bool verifyTransaction(Transaction const &trx) const;
+  std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();

@@ -1,5 +1,6 @@
 #include "transaction_manager.hpp"
-#include "transaction.hpp"
+
+#include <libethcore/Exceptions.h>
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -8,6 +9,7 @@
 
 #include "eth/util.hpp"
 #include "full_node.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
@@ -20,7 +22,9 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   }
 };
 
-bool TransactionManager::verifyTransaction(Transaction const &trx) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(
+    Transaction const &trx) const {
+  std::string error_message;
   try {
     if (eth_service_) {
       eth_service_->sealEngine()->verifyTransaction(
@@ -29,13 +33,23 @@ bool TransactionManager::verifyTransaction(Transaction const &trx) const {
           eth_service_->head(),              //
           0);
     } else {
-      return trx.verifySig();
+      return std::make_pair(trx.verifySig(), "");
     }
-    return true;
-  } catch (...) {  // Once we are sure what exception can be thrown we should
-                   // only catch those exceptions
+    return std::make_pair(true, "");
+  } catch (dev::eth::InvalidSignature) {
+    error_message = "InvalidSignature";
+  } catch (dev::eth::InvalidZeroSignatureTransaction) {
+    error_message = "InvalidZeroSignatureTransaction";
+  } catch (dev::eth::OutOfGasIntrinsic) {
+    error_message = "OutOfGasIntrinsic";
+  } catch (dev::eth::BlockGasLimitReached) {
+    error_message = "BlockGasLimitReached";
+  } catch (dev::eth::TransactionIsUnsigned) {
+    error_message = "TransactionIsUnsigned";
+  } catch (...) {
+    error_message = "unknown";
   }
-  return false;
+  return std::make_pair(false, error_message);
 }
 
 void TransactionManager::verifyQueuedTrxs() {
@@ -44,23 +58,23 @@ void TransactionManager::verifyQueuedTrxs() {
     auto item = trx_qu_.getUnverifiedTransaction();
     if (stopped_) return;
 
-    bool valid = false;
+    std::pair<bool, std::string> valid;
     trx_hash_t hash = item.second->getHash();
     // verify and put the transaction to verified queue
     if (mode_ == VerifyMode::skip_verify_sig) {
-      valid = true;
+      valid.first = true;
     } else {
       valid = verifyTransaction(*item.second);
     }
     // mark invalid
-    if (!valid) {
+    if (!valid.first) {
       {
         uLock lock(mu_for_transactions_);
         db_->saveTransactionStatus(hash, TransactionStatus::invalid);
       }
       trx_qu_.removeTransactionFromBuffer(hash);
-      LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash << "invalid. "
-                   << std::endl;
+      LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash
+                   << "invalid: " << valid.second << std::endl;
       continue;
     }
     {
@@ -207,9 +221,11 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       auto status = db_->getTransactionStatus(trx);
       if (status != TransactionStatus::in_block) {
         if (status == TransactionStatus::in_queue_unverified) {
-          if (!verifyTransaction(db_->getTransactionExt(trx)->first)) {
+          auto valid = verifyTransaction(db_->getTransactionExt(trx)->first);
+          if (!valid.first) {
             LOG(log_er_) << full_node_.lock()->getAddress()
-                         << " Block contains invalid transaction " << trx;
+                         << " Block contains invalid transaction " << trx << " "
+                         << valid.second;
             return false;
           }
         }
@@ -230,13 +246,10 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
   return all_transactions_saved;
 }
 
-bool TransactionManager::insertTrx(Transaction const &trx,
-                                   taraxa::bytes const &trx_serialized,
-                                   bool verify) {
-  bool verified = false;
+std::pair<bool, std::string> TransactionManager::insertTrx(
+    Transaction const &trx, taraxa::bytes const &trx_serialized, bool verify) {
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
-  bool ret = false;
 
   if (conf_.max_transaction_queue_warn > 0 ||
       conf_.max_transaction_queue_drop > 0) {
@@ -248,51 +261,63 @@ bool TransactionManager::insertTrx(Transaction const &trx,
                    << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.max_transaction_queue_drop;
-      return false;
+      return std::make_pair(false, "Queue overlfow");
     } else if (conf_.max_transaction_queue_warn >
                queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Warning: queue large. Unverified queue: "
                    << queue_size.first
                    << "; Verified queue: " << queue_size.second
                    << "; Limit: " << conf_.max_transaction_queue_drop;
-      return false;
+      return std::make_pair(false, "Queue overlfow");
     }
   }
 
-  if (verify) {
-    verified = (mode_ == VerifyMode::skip_verify_sig) || verifyTransaction(trx);
+  std::pair<bool, std::string> verified;
+  verified.first = true;
+  if (verify && mode_ != VerifyMode::skip_verify_sig) {
+    verified = verifyTransaction(trx);
   }
-  if (!verify || verified) {
+
+  if (verified.first) {
     uLock lock(mu_for_transactions_);
     auto status = db_->getTransactionStatus(hash);
     if (status == TransactionStatus::not_seen) {
       if (verify) {
-        db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+        status = TransactionStatus::in_queue_verified;
       } else {
-        db_->saveTransactionStatus(hash,
-                                   TransactionStatus::in_queue_unverified);
+        status = TransactionStatus::in_queue_unverified;
       }
+      db_->saveTransactionStatus(hash, status);
       lock.unlock();
       trx_qu_.insert(trx, verify);
       auto node = full_node_.lock();
       if (node) {
         node->newPendingTransaction(trx.getHash());
       }
-      ret = true;
+      return std::make_pair(true, "");
     } else {
-      if (status == TransactionStatus::in_queue_verified ||
-          status == TransactionStatus::in_queue_unverified) {
-        LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. " << std::endl;
-      } else if (status == TransactionStatus::in_block) {
-        LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
-      } else if (status == TransactionStatus::invalid) {
-        LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
-                     << std::endl;
+      switch (status) {
+        case TransactionStatus::in_queue_verified:
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. "
+                       << std::endl;
+          return std::make_pair(false, "in verified queue");
+        case TransactionStatus::in_queue_unverified:
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen in queue. "
+                       << std::endl;
+          return std::make_pair(false, "in unverified queue");
+        case TransactionStatus::in_block:
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen in db. " << std::endl;
+          return std::make_pair(false, "in block");
+        case TransactionStatus::invalid:
+          LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
+                       << std::endl;
+          return std::make_pair(false, "already invalid");
       }
+      return std::make_pair(false, "unknown");
     }
   }
-  return ret;
-}
+  return verified;
+}  // namespace taraxa
 
 /**
  * This is for block proposer
@@ -351,7 +376,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   // sort trx based on sender and nonce
   list_trxs.sort(trxComp);
-  
+
   std::transform(list_trxs.begin(), list_trxs.end(),
                  std::back_inserter(to_be_packed_trx),
                  [](Transaction const &t) { return t.getHash(); });
@@ -369,11 +394,11 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
         break;
       }
       auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
-      if(iter != std::end(frontier.tips)) {
+      if (iter != std::end(frontier.tips)) {
         std::swap(frontier.pivot, *iter);
-          LOG(log_si_) << getFullNodeAddress()
-                       << " Swap frontier with pivot: " << dag_frontier_.pivot
-                       << " tips: " << frontier.pivot;
+        LOG(log_si_) << getFullNodeAddress()
+                     << " Swap frontier with pivot: " << dag_frontier_.pivot
+                     << " tips: " << frontier.pivot;
       }
     }
   }
@@ -384,9 +409,10 @@ bool TransactionManager::verifyBlockTransactions(
   bool invalidTransaction = false;
   for (auto const &trx : trxs) {
     auto valid = verifyTransaction(trx);
-    if (!valid) {
+    if (!valid.first) {
       invalidTransaction = true;
-      LOG(log_er_) << "Invalid transaction " << trx.getHash().toString();
+      LOG(log_er_) << "Invalid transaction " << trx.getHash().toString() << " "
+                   << valid.second;
     }
   }
   if (invalidTransaction) {

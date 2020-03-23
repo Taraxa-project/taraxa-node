@@ -120,7 +120,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       DagBlock const &blk, std::vector<Transaction> const &transactions);
   // Insert new transaction to unverified queue or if verify flag true
   // synchronously verify and insert into verified queue
-  bool insertTransaction(Transaction const &trx, bool verify);
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify);
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
       std::vector<taraxa::bytes> const &transactions);

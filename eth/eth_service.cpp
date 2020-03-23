@@ -99,8 +99,8 @@ h256 EthService::submitTransaction(TransactionSkeleton const& _t,
 h256 EthService::importTransaction(Transaction const& _t) {
   auto taraxa_trx = util::trx_eth_2_taraxa(_t);
   auto ok = node_.lock()->insertTransaction(taraxa_trx, true);
-  if (!ok) {
-    BOOST_THROW_EXCEPTION(err("could not insert transaction"));
+  if (!ok.first) {
+    throw(err("could not insert transaction - " + ok.second));
   }
   return taraxa_trx.getHash();
 }
