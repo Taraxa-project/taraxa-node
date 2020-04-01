@@ -78,6 +78,7 @@ struct DbStorage {
     COLUMN(eth_chain);
     COLUMN(eth_chain_extras);
     COLUMN(eth_state);
+    COLUMN(pending_transactions);
 
 #undef COLUMN
   };
@@ -142,6 +143,12 @@ struct DbStorage {
                                    trx_hash_t const& trx,
                                    TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
+
+  void addPendingTransaction(trx_hash_t const& trx);
+  void removePendingTransaction(trx_hash_t const& trx);
+  void removePendingTransactionToBatch(BatchPtr const& write_batch,
+                                       trx_hash_t const& trx);
+  std::unordered_map<trx_hash_t, Transaction> getPendingTransactions();
 
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 

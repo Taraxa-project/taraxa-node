@@ -204,6 +204,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   std::shared_ptr<DbStorage> getDB() const { return db_; }
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getPendingTransactions();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
   // PBFT

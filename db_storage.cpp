@@ -407,6 +407,35 @@ void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash,
             toSlice(period));
 }
 
+void DbStorage::addPendingTransaction(trx_hash_t const& trx) {
+  insert(Columns::pending_transactions, toSlice(trx.asBytes()), Slice());
+}
+
+void DbStorage::removePendingTransaction(trx_hash_t const& trx) {
+  remove(toSlice(trx.asBytes()), Columns::pending_transactions);
+}
+
+void DbStorage::removePendingTransactionToBatch(BatchPtr const& write_batch,
+                                                trx_hash_t const& trx) {
+  batch_delete(write_batch, Columns::pending_transactions,
+               toSlice(trx.asBytes()));
+}
+
+std::unordered_map<trx_hash_t, Transaction>
+DbStorage::getPendingTransactions() {
+  std::unordered_map<trx_hash_t, Transaction> res;
+  auto i = u_ptr(
+      db_->NewIterator(read_options_, handle(Columns::pending_transactions)));
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    auto trx_hash = trx_hash_t(asBytes(i->key().ToString()));
+    auto trx = getTransaction(trx_hash);
+    if (trx) {
+      res[trx_hash] = *trx;
+    }
+  }
+  return res;
+}
+
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {
   checkStatus(db_->Put(write_options_, handle(col), k, v));
 }

@@ -181,7 +181,7 @@ ExecutionResult EthService::call(Address const& _from, u256 _value,
 }
 
 Transactions EthService::pending() const {
-  auto trxs = node_.lock()->getVerifiedTrxSnapShot();
+  auto trxs = node_.lock()->getPendingTransactions();
   Transactions ret;
   ret.reserve(trxs.size());
   for (auto const& [_, trx] : trxs) {

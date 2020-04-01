@@ -58,6 +58,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
       auto& trx = transactions.emplace_back(db_->getTransactionRaw(trx_hash),
                                             CheckTransaction::None);
       trx_senders.insert(trx.sender());
+      db_->removePendingTransactionToBatch(batch, trx_hash);
       LOG(log_time_) << "Transaction " << trx_hash
                      << " read from db at: " << getCurrentTimeMilliSeconds();
     }

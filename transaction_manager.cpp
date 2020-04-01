@@ -82,6 +82,7 @@ void TransactionManager::verifyQueuedTrxs() {
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_unverified) {
         db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
+        db_->addPendingTransaction(hash);
         lock.unlock();
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
@@ -228,6 +229,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
                          << valid.second;
             return false;
           }
+          db_->addPendingTransaction(trx);
         }
         trx_count_.fetch_add(1);
         db_->addTransactionStatusToBatch(trx_batch, trx,
@@ -288,6 +290,7 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
         status = TransactionStatus::in_queue_unverified;
       }
       db_->saveTransactionStatus(hash, status);
+      db_->addPendingTransaction(hash);
       lock.unlock();
       trx_qu_.insert(trx, verify);
       auto node = full_node_.lock();

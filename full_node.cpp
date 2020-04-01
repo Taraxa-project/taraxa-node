@@ -125,6 +125,19 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       level++;
     }
   }
+  // Check pending transaction and reconstruct queues
+  if (!destroy_db) {
+    for (auto const &trx : db_->getPendingTransactions()) {
+      auto status = db_->getTransactionStatus(trx.first);
+      if (status == TransactionStatus::in_queue_unverified ||
+          status == TransactionStatus::in_queue_verified) {
+        if (!trx_mgr_->insertTrx(trx.second, trx.second.rlp(true), true)
+                 .first) {
+          LOG(log_er_) << "Pending transaction not valid";
+        }
+      }
+    }
+  }
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 }
 
@@ -240,7 +253,8 @@ bool FullNode::isBlockKnown(blk_hash_t const &hash) {
   return true;
 }
 
-std::pair<bool, std::string> FullNode::insertTransaction(Transaction const &trx, bool verify) {
+std::pair<bool, std::string> FullNode::insertTransaction(Transaction const &trx,
+                                                         bool verify) {
   auto rlp = trx.rlp(true);
   auto ret = trx_mgr_->insertTrx(trx, rlp, verify);
   if (ret.first && conf_.network.network_transaction_interval == 0) {
@@ -435,6 +449,13 @@ std::unordered_map<trx_hash_t, Transaction> FullNode::getVerifiedTrxSnapShot() {
     return std::unordered_map<trx_hash_t, Transaction>();
   }
   return trx_mgr_->getVerifiedTrxSnapShot();
+}
+
+std::unordered_map<trx_hash_t, Transaction> FullNode::getPendingTransactions() {
+  if (stopped_ || !trx_mgr_) {
+    return std::unordered_map<trx_hash_t, Transaction>();
+  }
+  return db_->getPendingTransactions();
 }
 
 std::vector<taraxa::bytes> FullNode::getNewVerifiedTrxSnapShotSerialized() {
