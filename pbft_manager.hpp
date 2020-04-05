@@ -29,6 +29,16 @@
 namespace taraxa {
 class FullNode;
 
+enum PbftStates {
+  value_proposal = 1,
+  filter,
+  certify,
+  first_finish,
+  second_finish,
+  post_first_finish,
+  post_second_finish
+};
+
 class PbftManager {
  public:
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
@@ -171,6 +181,8 @@ class PbftManager {
   uint64_t pbft_round_ = 0;
   uint64_t pbft_round_last_ = 0;
   size_t pbft_step_ = 0;
+  PbftStates state_;
+
   bool executed_pbft_block_ = false;
 
   uint64_t pbft_round_last_requested_sync_ = 0;

@@ -109,6 +109,7 @@ void PbftManager::start() {
   pbft_round_ = 1;
   pbft_step_ = 1;
   last_step_ = 0;
+  state_ = value_proposal;
 
   // Reset last sync request point...
   pbft_round_last_requested_sync_ = 0;
@@ -213,7 +214,7 @@ void PbftManager::run() {
     // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
     // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
     // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
-    if ((pbft_step_ == 3 || pbft_step_ == 4) &&
+    if ((state_ == certify || state_ == first_finish) &&
         have_executed_this_round == false) {
       std::vector<Vote> cert_votes_for_round =
           getVotesOfTypeFromVotesForRoundAndStep_(
@@ -250,14 +251,14 @@ void PbftManager::run() {
       }
     }
     // We skip step 4 due to having missed it while executing....
-    if (have_executed_this_round &&
+    if (state_ == certify && have_executed_this_round &&
         elapsed_time_in_round_ms >
-            4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms &&
-        pbft_step_ == 3) {
+            4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
       LOG(log_deb_)
           << "Skipping step 4 due to execution, will go to step 5 in round "
           << pbft_round_;
       pbft_step_ = 5;
+      state_ = second_finish;
     }
 
     // Check if we are synced to the right step ...
@@ -278,6 +279,7 @@ void PbftManager::run() {
       round_clock_initial_datetime = now;
       pbft_round_ = consensus_pbft_round;
       resetStep_();
+      state_ = value_proposal;
       LOG(log_deb_) << "Advancing clock to pbft round " << pbft_round_
                     << ", step 1, and resetting clock.";
 
@@ -340,7 +342,7 @@ void PbftManager::run() {
     // Here we handle the various possible steps/states of
     // what should become pbft state machine...
 
-    if (pbft_step_ == 1) {
+    if (state_ == value_proposal) {
       // Value Proposal
       if (next_voted_block_from_previous_round_.second) {
         LOG(log_sil_) << "We have a next voted block from previous round "
@@ -403,7 +405,8 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       setPbftStep(pbft_step_ + 1);
-    } else if (pbft_step_ == 2) {
+      state_ = filter;
+    } else if (state_ == filter) {
       // The Filtering Step
       if (pbft_round_ == 1 ||
           push_block_values_for_round.count(pbft_round_ - 1) ||
@@ -440,8 +443,8 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       setPbftStep(pbft_step_ + 1);
-
-    } else if (pbft_step_ == 3) {
+      state_ = certify;
+    } else if (state_ == certify) {
       // The Certifying Step
       if (elapsed_time_in_round_ms < 2 * LAMBDA_ms) {
         // Should not happen, add log here for safety checking
@@ -530,12 +533,12 @@ void PbftManager::run() {
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
         setPbftStep(pbft_step_ + 1);
+        state_ = first_finish;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
-
-    } else if (pbft_step_ == 4) {
+    } else if (state_ == first_finish) {
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
             cert_voted_values_for_round.end()) {
@@ -561,12 +564,12 @@ void PbftManager::run() {
       last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
       current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
       setPbftStep(pbft_step_ + 1);
+      state_ = second_finish;
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
       next_step_time_ms = 4 * LAMBDA_ms + STEP_4_DELAY;
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
-
-    } else if (pbft_step_ == 5) {
+    } else if (state_ == second_finish) {
       if (elapsed_time_in_round_ms >
           6 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
         // Should not happen, add log here for safety checking
@@ -578,6 +581,7 @@ void PbftManager::run() {
                         << " step 5 late without executing";
         }
         setPbftStep(7);
+        state_ = post_second_finish;
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
         continue;
@@ -616,15 +620,15 @@ void PbftManager::run() {
             current_step_clock_initial_datetime_;
         current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
         setPbftStep(pbft_step_ + 1);
+        state_ = post_first_finish;
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
       } else {
         next_step_time_ms += POLLING_INTERVAL_ms;
       }
       LOG(log_tra_) << "next step time(ms): " << next_step_time_ms;
-
-    } else if (pbft_step_ % 2 == 0) {
-      // Even number steps 6, 8, 10... < MAX_STEPS are a repeat of step 4...
+    } else if (state_ == post_first_finish) {
+      // Even number steps 6, 8, 10... < MAX_STEPS are in post first finish
       if (shouldSpeak(next_vote_type, pbft_round_, pbft_step_)) {
         if (cert_voted_values_for_round.find(pbft_round_) !=
             cert_voted_values_for_round.end()) {
@@ -653,10 +657,9 @@ void PbftManager::run() {
       next_voted_soft_value = false;
       next_voted_null_block_hash = false;
       setPbftStep(pbft_step_ + 1);
-
+      state_ = post_second_finish;
     } else {
-      // Odd number steps 7, 9, 11... < MAX_STEPS are a repeat of step 5...
-
+      // Odd number steps 7, 9, 11... < MAX_STEPS are in post second finish
       u_long end_time_for_step =
           (pbft_step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
 
@@ -677,6 +680,7 @@ void PbftManager::run() {
                         << pbft_step_ << " late without executing";
         }
         setPbftStep(pbft_step_ + 2);
+        state_ = post_second_finish;
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
         continue;
@@ -708,15 +712,14 @@ void PbftManager::run() {
           placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
           next_voted_null_block_hash = true;
         }
-        /*
-        if (!next_voted_soft_value && !next_voted_null_block_hash &&
-            pbft_step_ >= MAX_STEPS) {
-          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS "
-                           "for round "
-                        << pbft_round_;
-          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
-          next_voted_null_block_hash = true;
-        }*/
+//        if (!next_voted_soft_value && !next_voted_null_block_hash &&
+//            pbft_step_ >= MAX_STEPS) {
+//          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX STEPS "
+//                           "for round "
+//                        << pbft_round_;
+//          placeVote_(NULL_BLOCK_HASH, next_vote_type, pbft_round_, pbft_step_);
+//          next_voted_null_block_hash = true;
+//        }
       }
       if (pbft_step_ > MAX_STEPS && capability_->syncing_ == false &&
           syncRequestedAlreadyThisStep_() == false) {
@@ -766,6 +769,7 @@ void PbftManager::run() {
                       << (cert_voted_values_for_round.find(pbft_round_) !=
                           cert_voted_values_for_round.end());
         setPbftStep(pbft_step_ + 1);
+        state_ = post_first_finish;
         next_voted_soft_value = false;
         next_voted_null_block_hash = false;
       } else {
