@@ -41,6 +41,7 @@ enum PbftStates {
 
 class PbftManager {
  public:
+  using time_point = std::chrono::system_clock::time_point;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
   explicit PbftManager(std::string const &genesis);
@@ -103,6 +104,15 @@ class PbftManager {
 
  private:
   void resetStep_();
+
+  void proposeBlock_();
+  void identifyBlock_(std::vector<Vote> &votes);
+  void certifyBlock_(std::vector<Vote> &votes);
+  void firstFinish_();
+  void secondFinish_(std::vector<Vote> &votes);
+  void postFirstFinish_();
+  void postSecondFinish_(std::vector<Vote> &votes);
+
 
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
 
@@ -183,7 +193,23 @@ class PbftManager {
   size_t step_ = 0;
   PbftStates state_;
 
+  blk_hash_t own_starting_value_for_round_;
+  // <round, cert_voted_block_hash>
+  std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
+  // <round, block_hash_added_into_chain>
+  std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
+  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
+
+  long next_step_time_ms_;
+  long elapsed_time_in_round_ms_;
+  u_long STEP_4_DELAY; // constant
+
+  bool next_voted_soft_value_;
+  bool next_voted_null_block_hash_;
+  bool have_executed_this_round_;
+  bool should_have_cert_voted_in_this_round_;
   bool executed_pbft_block_ = false;
+  bool skip_post_first_finish_;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
@@ -204,8 +230,8 @@ class PbftManager {
   std::shared_ptr<std::thread> monitor_votes_;
   std::atomic<bool> monitor_stop_ = true;
   size_t last_step_ = 0;
-  std::chrono::system_clock::time_point last_step_clock_initial_datetime_;
-  std::chrono::system_clock::time_point current_step_clock_initial_datetime_;
+  time_point last_step_clock_initial_datetime_;
+  time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
   mutable dev::Logger log_sil_{
