@@ -76,10 +76,10 @@ class PbftManager {
   void setPbftThreshold(size_t const threshold) {
     sortition_threshold_ = threshold;
   }
-  void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
+  void setPbftRound(uint64_t const pbft_round) { round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step);
-  uint64_t getPbftRound() const { return pbft_round_; }
-  size_t getPbftStep() const { return pbft_step_; }
+  uint64_t getPbftRound() const { return round_; }
+  size_t getPbftStep() const { return step_; }
 
   // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
@@ -178,9 +178,9 @@ class PbftManager {
   blk_hash_t pbft_chain_last_block_hash_;
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
-  uint64_t pbft_round_ = 0;
-  uint64_t pbft_round_last_ = 0;
-  size_t pbft_step_ = 0;
+  uint64_t round_ = 0;
+  uint64_t last_round_ = 0;
+  size_t step_ = 0;
   PbftStates state_;
 
   bool executed_pbft_block_ = false;
