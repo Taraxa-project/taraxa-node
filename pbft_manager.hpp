@@ -24,7 +24,7 @@
 #define VALID_SORTITION_COINS 10000  // TODO: the value may change later
 #undef LAMBDA_ms                     // TODO: undef for test, need remove later
 #undef COMMITTEE_SIZE                // TODO: undef for test, need remove later
-#undef VALID_SORTITION_COINS  // // TODO: undef for test, need remove later
+#undef VALID_SORTITION_COINS         // TODO: undef for test, need remove later
 
 namespace taraxa {
 class FullNode;
@@ -91,8 +91,8 @@ class PbftManager {
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
-  u_long LAMBDA_ms_MIN = 0;
-  u_long LAMBDA_ms = 0;
+  u_long LAMBDA_ms_MIN;
+  u_long LAMBDA_ms;
   size_t COMMITTEE_SIZE = 0;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS = 0;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE = 0;          // TODO: Only for test, need remove later
@@ -105,6 +105,17 @@ class PbftManager {
  private:
   void resetStep_();
 
+  void initialState_();
+  void setNextState_();
+  void setFilterState_();
+  void setCertifyState_();
+  void setFirstFinishState_();
+  void setSecondFinishState_();
+  void setPostFirstFinishState_();
+  void setPostSecondFinishState_();
+  void jumpPostSecondFinishState_(size_t step);
+  void loopBackPostFirstFinishState_();
+
   void proposeBlock_();
   void identifyBlock_(std::vector<Vote> &votes);
   void certifyBlock_(std::vector<Vote> &votes);
@@ -112,7 +123,6 @@ class PbftManager {
   void secondFinish_(std::vector<Vote> &votes);
   void postFirstFinish_();
   void postSecondFinish_(std::vector<Vote> &votes);
-
 
   uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
 
@@ -188,10 +198,11 @@ class PbftManager {
   blk_hash_t pbft_chain_last_block_hash_;
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
-  uint64_t round_ = 0;
-  uint64_t last_round_ = 0;
-  size_t step_ = 0;
+  uint64_t round_;
+  uint64_t last_round_;
+  size_t step_;
   PbftStates state_;
+  u_long STEP_4_DELAY; // constant
 
   blk_hash_t own_starting_value_for_round_;
   // <round, cert_voted_block_hash>
@@ -202,7 +213,6 @@ class PbftManager {
 
   long next_step_time_ms_;
   long elapsed_time_in_round_ms_;
-  u_long STEP_4_DELAY; // constant
 
   bool next_voted_soft_value_;
   bool next_voted_null_block_hash_;
@@ -210,6 +220,8 @@ class PbftManager {
   bool should_have_cert_voted_in_this_round_;
   bool executed_pbft_block_ = false;
   bool skip_post_first_finish_;
+  bool go_first_finish_state_;
+  bool go_post_first_finish_state_;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
@@ -229,7 +241,7 @@ class PbftManager {
 
   std::shared_ptr<std::thread> monitor_votes_;
   std::atomic<bool> monitor_stop_ = true;
-  size_t last_step_ = 0;
+  size_t last_step_;
   time_point last_step_clock_initial_datetime_;
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
