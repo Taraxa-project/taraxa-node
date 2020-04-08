@@ -8,7 +8,6 @@
 #include "types.hpp"
 #include "util.hpp"
 
-// TODO don't use ptree
 // TODO: Generate configs for the tests
 // TODO: Separate configs for consensus chain params and technical params
 // TODO: Expose only certain eth chain params, encapsulate the config invariants

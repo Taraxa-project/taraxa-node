@@ -22,7 +22,6 @@
  * 2. ScheduleBlock: determine sequential/concurrent set
  */
 namespace taraxa {
-using boost::property_tree::ptree;
 
 class DbStorage;
 class FullNode;
@@ -56,8 +55,8 @@ struct TrxSchedule {
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
   void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
-  void setPtree(ptree& tree) const;
-  void setSchedule(ptree const& tree);
+  void setJson(Json::Value& json) const;
+  void setSchedule(Json::Value const& tree);
   bool operator==(TrxSchedule const& other) const {
     return rlp() == other.rlp();
   }

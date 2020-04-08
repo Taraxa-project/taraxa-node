@@ -9,75 +9,76 @@ namespace taraxa {
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
     : json_file_name(json_file) {
   try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    node_secret = doc.get<std::string>("node_secret");
-    vrf_secret = doc.get<std::string>("vrf_secret");
-    db_path = doc.get<std::string>("db_path");
-    dag_processing_threads = doc.get<uint16_t>("dag_processing_threads");
+    Json::Value root;
+    std::ifstream config_doc(json_file, std::ifstream::binary);
+    config_doc >> root;
 
-    network.network_address = doc.get<std::string>("network_address");
-    network.network_id = doc.get<std::string>("network_id");
-    network.network_listen_port = doc.get<uint16_t>("network_listen_port");
-    network.network_simulated_delay =
-        doc.get<uint16_t>("network_simulated_delay");
+    node_secret = root["node_secret"].asString();
+    vrf_secret = root["vrf_secret"].asString();
+    db_path = root["db_path"].asString();
+    dag_processing_threads = root["dag_processing_threads"].asUInt();
+
+    network.network_address = root["network_address"].asString();
+    network.network_id = root["network_id"].asString();
+    network.network_listen_port = root["network_listen_port"].asUInt();
+    network.network_simulated_delay = root["network_simulated_delay"].asUInt();
     network.network_transaction_interval =
-        doc.get<uint16_t>("network_transaction_interval");
-    network.network_bandwidth = doc.get<uint16_t>("network_bandwidth");
+        root["network_transaction_interval"].asUInt();
+    network.network_bandwidth = root["network_bandwidth"].asUInt();
     network.network_ideal_peer_count =
-        doc.get<uint16_t>("network_ideal_peer_count");
-    network.network_max_peer_count =
-        doc.get<uint16_t>("network_max_peer_count");
-    network.network_sync_level_size =
-        doc.get<uint16_t>("network_sync_level_size");
-    network.network_encrypted = doc.get<uint16_t>("network_encrypted") != 0;
+        root["network_ideal_peer_count"].asUInt();
+    network.network_max_peer_count = root["network_max_peer_count"].asUInt();
+    network.network_sync_level_size = root["network_sync_level_size"].asUInt();
+    network.network_encrypted = root["network_encrypted"].asUInt() != 0;
     network.network_performance_log =
-        doc.get<uint16_t>("network_performance_log") & 1;
-    if (doc.get<uint16_t>("network_performance_log") & 2)
+        root["network_performance_log"].asUInt() & 1;
+    if (root["network_performance_log"].asUInt() & 2)
       dev::db::LevelDB::setPerf(true);
-    for (auto &item : doc.get_child("network_boot_nodes")) {
+    for (auto &item : root["network_boot_nodes"]) {
       NodeConfig node;
-      node.id = item.second.get<std::string>("id");
-      node.ip = item.second.get<std::string>("ip");
-      node.port = item.second.get<uint16_t>("port");
+      node.id = item["id"].asString();
+      node.ip = item["ip"].asString();
+      node.port = item["port"].asUInt();
       network.network_boot_nodes.push_back(node);
     }
     rpc.address =
         boost::asio::ip::address::from_string(network.network_address);
-    rpc.port = doc.get<uint16_t>("rpc_port");
-    rpc.ws_port = doc.get<uint16_t>("ws_port");
+    rpc.port = root["rpc_port"].asUInt();
+    rpc.ws_port = root["ws_port"].asUInt();
     {  // for test experiments
       test_params.max_transaction_queue_warn =
-          doc.get_optional<uint32_t>("test_params.max_transaction_queue_warn")
-              .value_or(0);
+          root.get("test_params.max_transaction_queue_warn", Json::Value(0))
+              .asUInt();
       test_params.max_transaction_queue_drop =
-          doc.get_optional<uint32_t>("test_params.max_transaction_queue_drop")
-              .value_or(0);
+          root.get("test_params.max_transaction_queue_drop", Json::Value(0))
+              .asUInt();
       test_params.max_block_queue_warn =
-          doc.get_optional<uint32_t>("test_params.max_block_queue_warn")
-              .value_or(0);
+          root.get("test_params.max_block_queue_warn", Json::Value(0)).asUInt();
       test_params.block_proposer.mode =
-          doc.get<std::string>("test_params.block_proposer.mode");
+          root["test_params.block_proposer.mode"].asString();
       test_params.block_proposer.shard =
-          doc.get<uint16_t>("test_params.block_proposer.shard");
+          root["test_params.block_proposer.shard"].asUInt();
       test_params.block_proposer.transaction_limit =
-          doc.get<uint16_t>("test_params.block_proposer.transaction_limit");
+          root["test_params.block_proposer.transaction_limit"].asUInt();
       if (test_params.block_proposer.mode == "random") {
-        test_params.block_proposer.min_freq = doc.get<uint16_t>(
-            "test_params.block_proposer.random_params.min_freq");
-        test_params.block_proposer.max_freq = doc.get<uint16_t>(
-            "test_params.block_proposer.random_params.max_freq");
+        test_params.block_proposer.min_freq =
+            root["test_params.block_proposer.random_params.min_freq"].asUInt();
+        test_params.block_proposer.max_freq =
+            root["test_params.block_proposer.random_params.max_freq"].asUInt();
       } else if (test_params.block_proposer.mode == "sortition") {
-        test_params.block_proposer.difficulty_bound = doc.get<uint16_t>(
-            "test_params.block_proposer.sortition_params.difficulty_bound");
-        test_params.block_proposer.lambda_bits = doc.get<uint16_t>(
-            "test_params.block_proposer.sortition_params.lambda_bits");
+        test_params.block_proposer.difficulty_bound =
+            root["test_params.block_proposer.sortition_params.difficulty_bound"]
+                .asUInt();
+        test_params.block_proposer.lambda_bits =
+            root["test_params.block_proposer.sortition_params.lambda_bits"]
+                .asUInt();
       } else {
         std::cerr << "Unknown propose mode: "
                   << test_params.block_proposer.mode;
         assert(false);
       }
-      for (auto &i : asVector<uint>(doc, "test_params.pbft")) {
-        test_params.pbft.push_back(i);
+      for (auto &i : root["test_params.pbft"]) {
+        test_params.pbft.push_back(i.asInt());
       }
     }
     // TODO parse from json:
@@ -91,11 +92,12 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   try {
-    boost::property_tree::ptree doc = loadJsonFile(json_file);
-    port = doc.get<uint16_t>("port");
-    ws_port = doc.get<uint16_t>("ws_port");
-    address =
-        boost::asio::ip::address::from_string(doc.get<std::string>("address"));
+    Json::Value root;
+    std::ifstream config_doc(json_file, std::ifstream::binary);
+    config_doc >> root;
+    port = root["port"].asUInt();
+    ws_port = root["ws_port"].asUInt();
+    address = boost::asio::ip::address::from_string(root["address"].asString());
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
