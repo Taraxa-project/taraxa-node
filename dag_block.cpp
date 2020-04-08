@@ -1,10 +1,11 @@
 #include "dag_block.hpp"
+
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 #include <libdevcore/Log.h>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
+
 #include <utility>
+
 #include "dag.hpp"
 #include "full_node.hpp"
 #include "transaction_manager.hpp"
@@ -65,16 +66,16 @@ DagBlock::DagBlock(string const &json) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));
   }
 }
-DagBlock::DagBlock(boost::property_tree::ptree const &doc) {
-  level_ = level_t(doc.get<level_t>("level"));
+DagBlock::DagBlock(Json::Value const &doc) {
+  level_ = doc["level"].asUInt64();
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
   trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
-  sig_ = sig_t(doc.get<std::string>("sig"));
-  hash_ = blk_hash_t(doc.get<std::string>("hash"));
-  cached_sender_ = addr_t(doc.get<std::string>("sender"));
-  pivot_ = blk_hash_t(doc.get<std::string>("pivot"));
-  timestamp_ = doc.get<int64_t>("timestamp");
-  auto vdf_string = doc.get<std::string>("vdf");
+  sig_ = sig_t(doc["sig"].asString());
+  hash_ = blk_hash_t(doc["hash"].asString());
+  cached_sender_ = addr_t(doc["sender"].asString());
+  pivot_ = blk_hash_t(doc["pivot"].asString());
+  timestamp_ = doc["timestamp"].asInt64();
+  auto vdf_string = doc["vdf"].asString();
   if (!vdf_string.empty()) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));
   }
