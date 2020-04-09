@@ -122,8 +122,8 @@ void TrxSchedule::setSchedule(Json::Value const& json) {
         uint mode = atoi(it->asString().c_str());
         each_dag_blk_trxs_mode.emplace_back(std::make_pair(trx, mode));
       }
-      trxs_mode.emplace_back(each_dag_blk_trxs_mode);
     }
+    trxs_mode.emplace_back(each_dag_blk_trxs_mode);
   }
 }
 

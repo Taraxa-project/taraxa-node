@@ -66,10 +66,10 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
           root["test_params"]["block_proposer"]["transaction_limit"].asUInt();
       if (test_params.block_proposer.mode == "random") {
         test_params.block_proposer.min_freq =
-            root["test_params"]["block_proposer"]["random_params.min_freq"]
+            root["test_params"]["block_proposer"]["random_params"]["min_freq"]
                 .asUInt();
         test_params.block_proposer.max_freq =
-            root["test_params"]["block_proposer"]["random_params.max_freq"]
+            root["test_params"]["block_proposer"]["random_params"]["max_freq"]
                 .asUInt();
       } else if (test_params.block_proposer.mode == "sortition") {
         test_params.block_proposer.difficulty_bound =
