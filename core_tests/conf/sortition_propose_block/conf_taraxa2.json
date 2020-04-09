@@ -32,8 +32,8 @@
       "shard": 1,
       "transaction_limit" : 0,
       "sortition_params": {
-        "difficulty_bound":"10",
-        "lambda_bits":"12"
+        "difficulty_bound":10,
+        "lambda_bits":12
       }
     },
     "pbft": [

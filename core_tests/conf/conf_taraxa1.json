@@ -36,8 +36,8 @@
         "max_freq":"1000"
       },
       "sortition_params": {
-        "difficulty_bound":"100",
-        "lambda_bits":"1000"
+        "difficulty_bound":100,
+        "lambda_bits":1000
       }
     },
     "pbft": [
