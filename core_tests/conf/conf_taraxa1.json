@@ -32,8 +32,8 @@
       "shard": 1,
       "transaction_limit" : 0,
       "random_params": {
-        "min_freq":"100",
-        "max_freq":"1000"
+        "min_freq":100,
+        "max_freq":1000
       },
       "sortition_params": {
         "difficulty_bound":100,
