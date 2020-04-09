@@ -115,14 +115,15 @@ void TrxSchedule::setSchedule(Json::Value const& json) {
   dag_blks_order = asVector<blk_hash_t, std::string>(json, "dag_blocks_order");
   for (auto const& dag_blk_hash : dag_blks_order) {
     std::vector<std::pair<trx_hash_t, uint>> each_dag_blk_trxs_mode;
-    for (Json::Value::const_iterator trx_mode =
-             json[dag_blk_hash.toString()].begin();
-         trx_mode != json[dag_blk_hash.toString()].end(); trx_mode++) {
-      trx_hash_t trx(trx_mode.key().asString());
-      uint mode = atoi(trx_mode->asString().c_str());
-      each_dag_blk_trxs_mode.emplace_back(std::make_pair(trx, mode));
+    for (auto const& trx_mode : json[dag_blk_hash.toString()]) {
+      for (Json::Value::const_iterator it = trx_mode.begin();
+           it != trx_mode.end(); it++) {
+        trx_hash_t trx(it.key().asString());
+        uint mode = atoi(it->asString().c_str());
+        each_dag_blk_trxs_mode.emplace_back(std::make_pair(trx, mode));
+      }
+      trxs_mode.emplace_back(each_dag_blk_trxs_mode);
     }
-    trxs_mode.emplace_back(each_dag_blk_trxs_mode);
   }
 }
 
@@ -186,7 +187,7 @@ PbftBlock::PbftBlock(std::string const& str) {
   prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
   dag_block_hash_as_pivot_ =
       blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
-  const Json::Value& schedule = doc["schedule"].asString();
+  const Json::Value& schedule = doc["schedule"];
   schedule_.setSchedule(schedule);
   period_ = doc["period"].asUInt64();
   height_ = doc["height"].asUInt64();

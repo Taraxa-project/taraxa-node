@@ -47,37 +47,45 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     rpc.ws_port = root["ws_port"].asUInt();
     {  // for test experiments
       test_params.max_transaction_queue_warn =
-          root.get("test_params.max_transaction_queue_warn", Json::Value(0))
+          root["test_params"]
+              .get("max_transaction_queue_warn", Json::Value(0))
               .asUInt();
       test_params.max_transaction_queue_drop =
-          root.get("test_params.max_transaction_queue_drop", Json::Value(0))
+          root["test_params"]
+              .get("max_transaction_queue_drop", Json::Value(0))
               .asUInt();
       test_params.max_block_queue_warn =
-          root.get("test_params.max_block_queue_warn", Json::Value(0)).asUInt();
+          root["test_params"]
+              .get("max_block_queue_warn", Json::Value(0))
+              .asUInt();
       test_params.block_proposer.mode =
-          root["test_params.block_proposer.mode"].asString();
+          root["test_params"]["block_proposer"]["mode"].asString();
       test_params.block_proposer.shard =
-          root["test_params.block_proposer.shard"].asUInt();
+          root["test_params"]["block_proposer"]["shard"].asUInt();
       test_params.block_proposer.transaction_limit =
-          root["test_params.block_proposer.transaction_limit"].asUInt();
+          root["test_params"]["block_proposer"]["transaction_limit"].asUInt();
       if (test_params.block_proposer.mode == "random") {
         test_params.block_proposer.min_freq =
-            root["test_params.block_proposer.random_params.min_freq"].asUInt();
+            root["test_params"]["block_proposer"]["random_params.min_freq"]
+                .asUInt();
         test_params.block_proposer.max_freq =
-            root["test_params.block_proposer.random_params.max_freq"].asUInt();
+            root["test_params"]["block_proposer"]["random_params.max_freq"]
+                .asUInt();
       } else if (test_params.block_proposer.mode == "sortition") {
         test_params.block_proposer.difficulty_bound =
-            root["test_params.block_proposer.sortition_params.difficulty_bound"]
-                .asUInt();
+            root["test_params"]["block_proposer"]["sortition_params"]
+                ["difficulty_bound"]
+                    .asUInt();
         test_params.block_proposer.lambda_bits =
-            root["test_params.block_proposer.sortition_params.lambda_bits"]
-                .asUInt();
+            root["test_params"]["block_proposer"]["sortition_params"]
+                ["lambda_bits"]
+                    .asUInt();
       } else {
         std::cerr << "Unknown propose mode: "
                   << test_params.block_proposer.mode;
         assert(false);
       }
-      for (auto &i : root["test_params.pbft"]) {
+      for (auto &i : root["test_params"]["pbft"]) {
         test_params.pbft.push_back(i.asInt());
       }
     }
