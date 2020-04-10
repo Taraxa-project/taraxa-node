@@ -85,9 +85,19 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
                   << test_params.block_proposer.mode;
         assert(false);
       }
-      for (auto &i : root["test_params"]["pbft"]) {
-        test_params.pbft.push_back(i.asInt());
-      }
+      test_params.pbft.lambda_ms_min = root["test_params"]["pbft"][""].asUInt();
+      test_params.pbft.committee_size =
+          root["test_params"]["pbft"][""].asUInt();
+      test_params.pbft.valid_sortition_coins =
+          root["test_params"]["pbft"][""].asUInt64();
+      test_params.pbft.dag_blocks_size =
+          root["test_params"]["pbft"][""].asUInt();
+      test_params.pbft.ghost_path_move_back =
+          root["test_params"]["pbft"][""].asUInt();
+      test_params.pbft.skip_periods =
+          root["test_params"]["pbft"][""].asUInt64();
+      test_params.pbft.run_count_votes =
+          root["test_params"]["pbft"][""].asUInt();
     }
     // TODO parse from json:
     // Either a string name of a predefined config,

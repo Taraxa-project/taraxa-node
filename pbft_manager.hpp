@@ -39,7 +39,7 @@ class PbftManager {
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
   explicit PbftManager(std::string const &genesis);
-  PbftManager(std::vector<uint> const &params, std::string const &genesis);
+  PbftManager(PbftConfig const &conf, std::string const &genesis);
   ~PbftManager() { stop(); }
 
   void setFullNode(
