@@ -85,7 +85,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
                   << test_params.block_proposer.mode;
         assert(false);
       }
-      test_params.pbft.lambda_ms_min = root["test_params"]["pbft"][""].asUInt();
+      test_params.pbft.lambda_ms_min =
+          root["test_params"]["pbft"]["lambda_ms_min"].asUInt();
       test_params.pbft.committee_size =
           root["test_params"]["pbft"]["committee_size"].asUInt();
       test_params.pbft.valid_sortition_coins =
