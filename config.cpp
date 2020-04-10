@@ -87,17 +87,17 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       }
       test_params.pbft.lambda_ms_min = root["test_params"]["pbft"][""].asUInt();
       test_params.pbft.committee_size =
-          root["test_params"]["pbft"][""].asUInt();
+          root["test_params"]["pbft"]["committee_size"].asUInt();
       test_params.pbft.valid_sortition_coins =
-          root["test_params"]["pbft"][""].asUInt64();
+          root["test_params"]["pbft"]["valid_sortition_coins"].asUInt64();
       test_params.pbft.dag_blocks_size =
-          root["test_params"]["pbft"][""].asUInt();
+          root["test_params"]["pbft"]["dag_blocks_size"].asUInt();
       test_params.pbft.ghost_path_move_back =
-          root["test_params"]["pbft"][""].asUInt();
+          root["test_params"]["pbft"]["ghost_path_move_back"].asUInt();
       test_params.pbft.skip_periods =
-          root["test_params"]["pbft"][""].asUInt64();
+          root["test_params"]["pbft"]["skip_periods"].asUInt64();
       test_params.pbft.run_count_votes =
-          root["test_params"]["pbft"][""].asUInt();
+          root["test_params"]["pbft"]["run_count_votes"].asUInt();
     }
     // TODO parse from json:
     // Either a string name of a predefined config,
