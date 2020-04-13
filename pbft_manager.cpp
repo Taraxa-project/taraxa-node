@@ -141,162 +141,7 @@ void PbftManager::run() {
   initialState_();
 
   while (!stopped_) {
-    skip_post_first_finish_ = false;
-
-    // NOTE: PUSHING OF SYNCED BLOCKS CAN TAKE A LONG TIME
-    //       SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
-    // push synced pbft blocks into chain
-    pushSyncedPbftBlocksIntoChain_();
-    // update pbft chain last block hash
-    pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-
-    now_ = std::chrono::system_clock::now();
-    duration_ = now_ - round_clock_initial_datetime_;
-    elapsed_time_in_round_ms_ =
-        std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-
-    LOG(log_tra_) << "PBFT current round is " << round_;
-    LOG(log_tra_) << "PBFT current step is " << step_;
-
-    // Get votes
-    bool sync_peers_pbft_chain = false;
-    std::vector<Vote> votes = vote_mgr_->getVotes(
-        round_, valid_sortition_accounts_size_, sync_peers_pbft_chain);
-    LOG(log_tra_) << "There are " << votes.size() << " total votes in round "
-                  << round_;
-
-    // Concern can malicious node trigger excessive syncing?
-    if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
-        capability_->syncing_ == false &&
-        syncRequestedAlreadyThisStep_() == false) {
-      LOG(log_sil_) << "Vote validation triggered pbft chain sync";
-      syncPbftChainFromPeers_();
-    }
-
-    // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
-    // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
-    // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
-    if ((state_ == certify || state_ == first_finish) &&
-        have_executed_this_round_ == false) {
-      std::vector<Vote> cert_votes_for_round =
-          getVotesOfTypeFromVotesForRoundAndStep_(
-              cert_vote_type, votes, round_, 3,
-              std::make_pair(NULL_BLOCK_HASH, false));
-      // TODO: debug remove later
-      LOG(log_tra_) << "Get cert votes for round " << round_ << " step "
-                    << step_;
-      std::pair<blk_hash_t, bool> cert_voted_block_hash =
-          blockWithEnoughVotes_(cert_votes_for_round);
-      if (cert_voted_block_hash.second) {
-        LOG(log_deb_) << "PBFT block " << cert_voted_block_hash.first
-                      << " has enough certed votes";
-        // put pbft block into chain
-        if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first,
-                                             cert_votes_for_round)) {
-          push_block_values_for_round_[round_] =
-              cert_voted_block_hash.first;
-          have_executed_this_round_ = true;
-          LOG(log_sil_) << "Write " << cert_votes_for_round.size()
-                        << " votes ... in round " << round_;
-          // TODO: debug remove later
-          LOG(log_deb_) << "The cert voted pbft block is "
-                        << cert_voted_block_hash.first;
-          duration_ = std::chrono::system_clock::now() - now_;
-          auto execute_trxs_in_ms =
-              std::chrono::duration_cast<std::chrono::milliseconds>(duration_)
-                  .count();
-          LOG(log_deb_) << "Pushing PBFT block and Execution spent "
-                        << execute_trxs_in_ms << " ms. in round "
-                        << round_;
-          continue;
-        }
-      }
-    }
-    // We skip step 4 due to having missed it while executing....
-    if (state_ == certify && have_executed_this_round_ &&
-        elapsed_time_in_round_ms_ >
-            4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
-      LOG(log_deb_)
-          << "Skipping step 4 due to execution, will go to step 5 in round "
-          << round_;
-      step_ = 5;
-      state_ = second_finish;
-    }
-
-    // Check if we are synced to the right step ...
-    uint64_t consensus_pbft_round = roundDeterminedFromVotes_(votes);
-
-    // This should be always true...
-    assert(consensus_pbft_round >= round_);
-
-    if (consensus_pbft_round > round_) {
-      LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
-
-      uint64_t local_round = round_;
-
-      // All round start state changes are moved here...
-      // would be nice to have this be a method but we have local
-      // variables the run() function
-
-      round_clock_initial_datetime_ = now_;
-      round_ = consensus_pbft_round;
-      resetStep_();
-      state_ = value_proposal;
-      LOG(log_deb_) << "Advancing clock to pbft round " << round_
-                    << ", step 1, and resetting clock.";
-
-      have_executed_this_round_ = false;
-      should_have_cert_voted_in_this_round_ = false;
-      // reset starting value to NULL_BLOCK_HASH
-      own_starting_value_for_round_ = NULL_BLOCK_HASH;
-      // reset next voted value since start a new round
-      next_voted_null_block_hash_ = false;
-      next_voted_soft_value_ = false;
-
-      // Key thing is to set .second to false to mark that we have not
-      // identified a soft voted block in the new upcoming round...
-      soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-
-      // Identify what block was next voted if any in this last round...
-      next_voted_block_from_previous_round_ =
-          nextVotedBlockForRoundAndStep_(votes, local_round);
-
-      if (executed_pbft_block_) {
-        last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
-        // Update sortition accounts table
-        updateSortitionAccountsTable_();
-        // reset sortition_threshold and TWO_T_PLUS_ONE
-        updateTwoTPlusOneAndThreshold_();
-        executed_pbft_block_ = false;
-      }
-
-      LAMBDA_ms = LAMBDA_ms_MIN;
-
-      last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-      current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-      last_round_ = round_;
-
-      // Update pbft chain last block hash at start of new round...
-      pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-      // END ROUND START STATE CHANGE UPDATES
-
-      // p2p connection syncing should cover this situation, sync here for safe
-      if (consensus_pbft_round > local_round + 1 &&
-          capability_->syncing_ == false) {
-        LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
-                      << " > 1 + current round " << local_round
-                      << " local round, need to broadcast request for missing "
-                         "certified blocks";
-
-        // NOTE: Advance round and step before calling sync to make sure
-        //       sync call won't be supressed for being too
-        //       recent (ie. same round and step)
-        syncPbftChainFromPeers_();
-
-        next_voted_block_from_previous_round_ =
-            std::make_pair(NULL_BLOCK_HASH, false);
-      }
-      // Restart while loop...
+    if (stateOperations_()) {
       continue;
     }
 
@@ -307,11 +152,11 @@ void PbftManager::run() {
         setNextState_();
         break;
       case filter:
-        identifyBlock_(votes);
+        identifyBlock_();
         setNextState_();
         break;
       case certify:
-        certifyBlock_(votes);
+        certifyBlock_();
         setNextState_();
         break;
       case first_finish:
@@ -319,7 +164,7 @@ void PbftManager::run() {
         setNextState_();
         break;
       case second_finish:
-        secondFinish_(votes);
+        secondFinish_();
         setNextState_();
         if (skip_post_first_finish_) {
           continue;
@@ -330,7 +175,7 @@ void PbftManager::run() {
         setNextState_();
         break;
       case post_second_finish:
-        postSecondFinish_(votes);
+        postSecondFinish_();
         setNextState_();
         if (skip_post_first_finish_) {
           continue;
@@ -417,6 +262,77 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
 }
 
 void PbftManager::resetStep_() { setPbftStep(1); }
+
+bool PbftManager::resetRound_() {
+  bool restart = false;
+  // Check if we are synced to the right step ...
+  uint64_t consensus_pbft_round = roundDeterminedFromVotes_();
+  // Check should be always true...
+  assert(consensus_pbft_round >= round_);
+
+  if (consensus_pbft_round > round_) {
+    LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
+    round_clock_initial_datetime_ = now_;
+    uint64_t local_round = round_;
+    last_round_ = round_;
+    round_ = consensus_pbft_round;
+    resetStep_();
+    state_ = value_proposal;
+    LOG(log_deb_) << "Advancing clock to pbft round " << round_
+                  << ", step 1, and resetting clock.";
+
+    have_executed_this_round_ = false;
+    should_have_cert_voted_in_this_round_ = false;
+    // reset starting value to NULL_BLOCK_HASH
+    own_starting_value_for_round_ = NULL_BLOCK_HASH;
+    // reset next voted value since start a new round
+    next_voted_null_block_hash_ = false;
+    next_voted_soft_value_ = false;
+
+    // Key thing is to set .second to false to mark that we have not
+    // identified a soft voted block in the new upcoming round...
+    soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+
+    // Identify what block was next voted if any in this last round...
+    next_voted_block_from_previous_round_ =
+        nextVotedBlockForRoundAndStep_(votes_, local_round);
+
+    if (executed_pbft_block_) {
+      last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
+      // Update sortition accounts table
+      updateSortitionAccountsTable_();
+      // reset sortition_threshold and TWO_T_PLUS_ONE
+      updateTwoTPlusOneAndThreshold_();
+      executed_pbft_block_ = false;
+    }
+
+    LAMBDA_ms = LAMBDA_ms_MIN;
+    last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
+    current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+
+    // Update pbft chain last block hash at start of new round...
+    pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+    // END ROUND START STATE CHANGE UPDATES
+
+    // p2p connection syncing should cover this situation, sync here for safe
+    if (consensus_pbft_round > local_round + 1 &&
+        capability_->syncing_ == false) {
+      LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
+                    << " > 1 + current round " << local_round
+                    << " local round, need to broadcast request for missing "
+                       "certified blocks";
+      // NOTE: Advance round and step before calling sync to make sure
+      //       sync call won't be supressed for being too
+      //       recent (ie. same round and step)
+      syncPbftChainFromPeers_();
+      next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH,
+                                                             false);
+    }
+    // Restart while loop...
+    restart = true;
+  }
+  return restart;
+}
 
 void PbftManager::sleep_() {
   now_ = std::chrono::system_clock::now();
@@ -599,6 +515,87 @@ void PbftManager::loopBackPostFirstFinishState_() {
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
+bool PbftManager::stateOperations_() {
+  // Reset skipping post first finish state
+  skip_post_first_finish_ = false;
+
+  // NOTE: PUSHING OF SYNCED BLOCKS CAN TAKE A LONG TIME
+  //       SHOULD DO BEFORE WE SET THE ELAPSED TIME IN ROUND
+  // push synced pbft blocks into chain
+  pushSyncedPbftBlocksIntoChain_();
+  // update pbft chain last block hash
+  pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
+
+  now_ = std::chrono::system_clock::now();
+  duration_ = now_ - round_clock_initial_datetime_;
+  elapsed_time_in_round_ms_ =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
+
+  LOG(log_tra_) << "PBFT current round is " << round_;
+  LOG(log_tra_) << "PBFT current step is " << step_;
+
+  // Get votes
+  bool sync_peers_pbft_chain = false;
+  votes_ = vote_mgr_->getVotes(round_, valid_sortition_accounts_size_,
+                              sync_peers_pbft_chain);
+  LOG(log_tra_) << "There are " << votes_.size() << " total votes in round "
+                << round_;
+
+  // Concern can malicious node trigger excessive syncing?
+  if (sync_peers_pbft_chain &&
+      pbft_chain_->pbftSyncedQueueEmpty() &&
+      !capability_->syncing_ &&
+      !syncRequestedAlreadyThisStep_()) {
+    LOG(log_sil_) << "Vote validation triggered PBFT chain sync";
+    syncPbftChainFromPeers_();
+  }
+
+  // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
+  // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
+  // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
+  if ((state_ == certify || state_ == first_finish) &&
+      !have_executed_this_round_) {
+    std::vector<Vote> cert_votes_for_round =
+        getVotesOfTypeFromVotesForRoundAndStep_(
+            cert_vote_type, votes_, round_, 3,
+            std::make_pair(NULL_BLOCK_HASH, false));
+    std::pair<blk_hash_t, bool> cert_voted_block_hash =
+        blockWithEnoughVotes_(cert_votes_for_round);
+    if (cert_voted_block_hash.second) {
+      LOG(log_deb_) << "PBFT block " << cert_voted_block_hash.first
+                    << " has enough certed votes";
+      // put pbft block into chain
+      if (pushCertVotedPbftBlockIntoChain_(cert_voted_block_hash.first,
+                                           cert_votes_for_round)) {
+        push_block_values_for_round_[round_] = cert_voted_block_hash.first;
+        have_executed_this_round_ = true;
+        LOG(log_sil_) << "Write " << cert_votes_for_round.size()
+                      << " votes ... in round " << round_;
+        duration_ = std::chrono::system_clock::now() - now_;
+        auto execute_trxs_in_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration_)
+                .count();
+        LOG(log_deb_) << "Pushing PBFT block and Execution spent "
+                      << execute_trxs_in_ms << " ms. in round " << round_;
+        // Restart while loop
+        return true;
+      }
+    }
+  }
+  // We skip step 4 due to having missed it while executing....
+  if (state_ == certify && have_executed_this_round_ &&
+      elapsed_time_in_round_ms_ >
+          4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
+    LOG(log_deb_)
+        << "Skipping step 4 due to execution, will go to step 5 in round "
+        << round_;
+    step_ = 5;
+    state_ = second_finish;
+  }
+
+  return resetRound_();
+}
+
 void PbftManager::proposeBlock_() {
   // Value Proposal
   LOG(log_tra_) << "PBFT value proposal state in round " << round_;
@@ -656,14 +653,14 @@ void PbftManager::proposeBlock_() {
   }
 }
 
-void PbftManager::identifyBlock_(std::vector<Vote> &votes) {
+void PbftManager::identifyBlock_() {
   // The Filtering Step
   LOG(log_tra_) << "PBFT filtering state in round " << round_;
   if (round_ == 1 || push_block_values_for_round_.count(round_ - 1) ||
       (round_ >= 2 && next_voted_block_from_previous_round_.second &&
        next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH)) {
     // Identity leader
-    std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes);
+    std::pair<blk_hash_t, bool> leader_block = identifyLeaderBlock_(votes_);
     if (leader_block.second) {
       own_starting_value_for_round_ = leader_block.first;
       LOG(log_deb_) << "Identify leader block " << leader_block.first
@@ -686,7 +683,7 @@ void PbftManager::identifyBlock_(std::vector<Vote> &votes) {
   }
 }
 
-void PbftManager::certifyBlock_(std::vector<Vote> &votes) {
+void PbftManager::certifyBlock_() {
   // The Certifying Step
   LOG(log_tra_) << "PBFT certifying state in round " << round_;
   if (elapsed_time_in_round_ms_ < 2 * LAMBDA_ms) {
@@ -702,7 +699,8 @@ void PbftManager::certifyBlock_(std::vector<Vote> &votes) {
   } else if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tra_) << "In step 3";
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, round_);
+      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
+                                                                 round_);
     }
     if (soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
@@ -786,7 +784,7 @@ void PbftManager::firstFinish_() {
   }
 }
 
-void PbftManager::secondFinish_(std::vector<Vote> &votes) {
+void PbftManager::secondFinish_() {
   LOG(log_tra_) << "PBFT second finishing state in round " << round_;
   if (elapsed_time_in_round_ms_ >
       6 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
@@ -804,7 +802,8 @@ void PbftManager::secondFinish_(std::vector<Vote> &votes) {
 
   if (shouldSpeak(next_vote_type, round_, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, round_);
+      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
+                                                                 round_);
     }
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
@@ -856,7 +855,7 @@ void PbftManager::postFirstFinish_() {
   }
 }
 
-void PbftManager::postSecondFinish_(std::vector<Vote> &votes) {
+void PbftManager::postSecondFinish_() {
   // Odd number steps 7, 9, 11... < MAX_STEPS are in post second finish
   LOG(log_tra_) << "PBFT post second finishing state at step " << step_
                 << " in round " << round_;
@@ -885,7 +884,8 @@ void PbftManager::postSecondFinish_(std::vector<Vote> &votes) {
 
   if (shouldSpeak(next_vote_type, round_, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes, round_);
+      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
+                                                                 round_);
     }
 
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
@@ -932,7 +932,7 @@ void PbftManager::postSecondFinish_(std::vector<Vote> &votes) {
   own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // I added this as a way of seeing if we were even getting votes during
   // testnet -Justin
-  LOG(log_deb_) << "There are " << votes.size() << " votes since round "
+  LOG(log_deb_) << "There are " << votes_.size() << " votes since round "
                 << round_ - 2;
   // NOTE: This also sets pbft_step back to 1
   last_step_clock_initial_datetime_ =
@@ -954,13 +954,13 @@ void PbftManager::postSecondFinish_(std::vector<Vote> &votes) {
 /* There is a quorum of next-votes and set determine that round p should be the
  * current round...
  */
-uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> votes) {
+uint64_t PbftManager::roundDeterminedFromVotes_() {
   // <<vote_round, vote_step>, count>, <round, step> store in reverse order
   std::map<std::pair<uint64_t, size_t>, size_t,
            std::greater<std::pair<uint64_t, size_t>>>
       next_votes_tally_by_round_step;
 
-  for (Vote &v : votes) {
+  for (Vote &v : votes_) {
     if (v.getType() != next_vote_type) {
       continue;
     }
@@ -981,7 +981,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_(std::vector<Vote> votes) {
     if (rs_votes.second >= TWO_T_PLUS_ONE) {
       std::vector<Vote> next_votes_for_round_step =
           getVotesOfTypeFromVotesForRoundAndStep_(
-              next_vote_type, votes, rs_votes.first.first,
+              next_vote_type, votes_, rs_votes.first.first,
               rs_votes.first.second, std::make_pair(NULL_BLOCK_HASH, false));
       if (blockWithEnoughVotes_(next_votes_for_round_step).second) {
         LOG(log_deb_) << "Found sufficient next votes in round "

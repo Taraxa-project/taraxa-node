@@ -104,6 +104,7 @@ class PbftManager {
 
  private:
   void resetStep_();
+  bool resetRound_();
   void sleep_();
 
   void initialState_();
@@ -117,15 +118,16 @@ class PbftManager {
   void jumpPostSecondFinishState_(size_t step);
   void loopBackPostFirstFinishState_();
 
+  bool stateOperations_();
   void proposeBlock_();
-  void identifyBlock_(std::vector<Vote> &votes);
-  void certifyBlock_(std::vector<Vote> &votes);
+  void identifyBlock_();
+  void certifyBlock_();
   void firstFinish_();
-  void secondFinish_(std::vector<Vote> &votes);
+  void secondFinish_();
   void postFirstFinish_();
-  void postSecondFinish_(std::vector<Vote> &votes);
+  void postSecondFinish_();
 
-  uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
+  uint64_t roundDeterminedFromVotes_();
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
       std::vector<Vote> const &votes) const;
@@ -211,6 +213,7 @@ class PbftManager {
   // <round, block_hash_added_into_chain>
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
+  std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;
