@@ -31,7 +31,7 @@ git clone https://github.com/Taraxa-project/taraxa-node.git
 ## Library dependency:
 
 ```
-cryptopp, libff, ethash, secp256k1, boost, rocksdb, rapidjson, gtest, leveldb
+cryptopp, libff, ethash, secp256k1, boost, rocksdb, gtest, leveldb
 ```
 
 **On MacOS**:
