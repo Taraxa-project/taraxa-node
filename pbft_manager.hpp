@@ -104,6 +104,7 @@ class PbftManager {
 
  private:
   void resetStep_();
+  void sleep_();
 
   void initialState_();
   void setNextState_();
@@ -212,6 +213,8 @@ class PbftManager {
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
 
   time_point round_clock_initial_datetime_;
+  time_point now_;
+  std::chrono::duration<double> duration_;
   long next_step_time_ms_;
   long elapsed_time_in_round_ms_;
 

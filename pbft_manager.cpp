@@ -150,10 +150,10 @@ void PbftManager::run() {
     // update pbft chain last block hash
     pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
-    auto now = std::chrono::system_clock::now();
-    auto duration = now - round_clock_initial_datetime_;
+    now_ = std::chrono::system_clock::now();
+    duration_ = now_ - round_clock_initial_datetime_;
     elapsed_time_in_round_ms_ =
-        std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
 
     LOG(log_tra_) << "PBFT current round is " << round_;
     LOG(log_tra_) << "PBFT current step is " << step_;
@@ -201,9 +201,9 @@ void PbftManager::run() {
           // TODO: debug remove later
           LOG(log_deb_) << "The cert voted pbft block is "
                         << cert_voted_block_hash.first;
-          duration = std::chrono::system_clock::now() - now;
+          duration_ = std::chrono::system_clock::now() - now_;
           auto execute_trxs_in_ms =
-              std::chrono::duration_cast<std::chrono::milliseconds>(duration)
+              std::chrono::duration_cast<std::chrono::milliseconds>(duration_)
                   .count();
           LOG(log_deb_) << "Pushing PBFT block and Execution spent "
                         << execute_trxs_in_ms << " ms. in round "
@@ -238,7 +238,7 @@ void PbftManager::run() {
       // would be nice to have this be a method but we have local
       // variables the run() function
 
-      round_clock_initial_datetime_ = now;
+      round_clock_initial_datetime_ = now_;
       round_ = consensus_pbft_round;
       resetStep_();
       state_ = value_proposal;
@@ -340,17 +340,7 @@ void PbftManager::run() {
         LOG(log_err_) << "Unknown PBFT state " << state_;
         assert(false);
     }
-
-    now = std::chrono::system_clock::now();
-    duration = now - round_clock_initial_datetime_;
-    elapsed_time_in_round_ms_ =
-        std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-    auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
-    if (time_to_sleep_for_ms > 0) {
-      LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms
-                    << " in round " << round_ << ", step " << step_;
-      thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
-    }
+    sleep_();
   }
 }
 
@@ -409,8 +399,6 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   return true;
 }
 
-void PbftManager::resetStep_() { setPbftStep(1); }
-
 void PbftManager::setPbftStep(size_t const pbft_step) {
   last_step_ = step_;
   step_ = pbft_step;
@@ -425,6 +413,21 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
                   << " ms in round " << round_ << ", step " << step_;
   } else {
     LAMBDA_ms = LAMBDA_ms_MIN;
+  }
+}
+
+void PbftManager::resetStep_() { setPbftStep(1); }
+
+void PbftManager::sleep_() {
+  now_ = std::chrono::system_clock::now();
+  duration_ = now_ - round_clock_initial_datetime_;
+  elapsed_time_in_round_ms_ =
+      std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
+  auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
+  if (time_to_sleep_for_ms > 0) {
+    LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms
+                  << " in round " << round_ << ", step " << step_;
+    thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
   }
 }
 
