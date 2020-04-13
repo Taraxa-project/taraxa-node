@@ -104,10 +104,6 @@ void PbftManager::start() {
     assert(sortition_accounts_size_db == valid_sortition_accounts_size_);
   }
 
-  // Reset last sync request point...
-  pbft_round_last_requested_sync_ = 0;
-  pbft_step_last_requested_sync_ = 0;
-
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_deb_) << "PBFT daemon initiated ...";
   if (RUN_COUNT_VOTES) {
@@ -141,25 +137,8 @@ void PbftManager::stop() {
 void PbftManager::run() {
   LOG(log_inf_) << "PBFT running ...";
 
-  // Initialize PBFT state
+  // Initialize PBFT status
   initialState_();
-
-  // Initialize TWO_T_PLUS_ONE and sortition_threshold
-  updateTwoTPlusOneAndThreshold_();
-
-  // Initialize last block hash (PBFT genesis block in beginning)
-  pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
-
-  auto round_clock_initial_datetime = std::chrono::system_clock::now();
-
-  own_starting_value_for_round_ = NULL_BLOCK_HASH;
-
-  have_executed_this_round_ = false;
-  should_have_cert_voted_in_this_round_ = false;
-
-  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
-  next_voted_block_from_previous_round_ =
-      std::make_pair(NULL_BLOCK_HASH, false);
 
   while (!stopped_) {
     skip_post_first_finish_ = false;
@@ -172,7 +151,7 @@ void PbftManager::run() {
     pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 
     auto now = std::chrono::system_clock::now();
-    auto duration = now - round_clock_initial_datetime;
+    auto duration = now - round_clock_initial_datetime_;
     elapsed_time_in_round_ms_ =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
@@ -259,7 +238,7 @@ void PbftManager::run() {
       // would be nice to have this be a method but we have local
       // variables the run() function
 
-      round_clock_initial_datetime = now;
+      round_clock_initial_datetime_ = now;
       round_ = consensus_pbft_round;
       resetStep_();
       state_ = value_proposal;
@@ -363,7 +342,7 @@ void PbftManager::run() {
     }
 
     now = std::chrono::system_clock::now();
-    duration = now - round_clock_initial_datetime;
+    duration = now - round_clock_initial_datetime_;
     elapsed_time_in_round_ms_ =
         std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
@@ -451,6 +430,8 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
 
 void PbftManager::initialState_() {
   // Initial PBFT state
+  state_ = value_proposal;
+
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
 
@@ -458,14 +439,29 @@ void PbftManager::initialState_() {
   round_ = 1;
   step_ = 1;
   last_step_ = 0;
-  state_ = value_proposal;
+  // Initial last sync request
+  pbft_round_last_requested_sync_ = 0;
+  pbft_step_last_requested_sync_ = 0;
 
+  own_starting_value_for_round_ = NULL_BLOCK_HASH;
+  soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
+  next_voted_block_from_previous_round_ =
+      std::make_pair(NULL_BLOCK_HASH, false);
+  have_executed_this_round_ = false;
+  should_have_cert_voted_in_this_round_ = false;
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
 
+  round_clock_initial_datetime_ = std::chrono::system_clock::now();
+  current_step_clock_initial_datetime_ = round_clock_initial_datetime_;
+  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   next_step_time_ms_ = 0;
-  last_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+
+  // Initialize TWO_T_PLUS_ONE and sortition_threshold
+  updateTwoTPlusOneAndThreshold_();
+
+  // Initialize last block hash (PBFT genesis block in beginning)
+  pbft_chain_last_block_hash_ = pbft_chain_->getLastPbftBlockHash();
 }
 
 void PbftManager::setNextState_() {
@@ -943,7 +939,7 @@ void PbftManager::postSecondFinish_(std::vector<Vote> &votes) {
   step_ = 1;
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
-  round_clock_initial_datetime = std::chrono::system_clock::now();
+  round_clock_initial_datetime_ = std::chrono::system_clock::now();
   */
   //  continue;
   //} else

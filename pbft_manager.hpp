@@ -198,10 +198,10 @@ class PbftManager {
   blk_hash_t pbft_chain_last_block_hash_;
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
+  PbftStates state_;
   uint64_t round_;
   uint64_t last_round_;
   size_t step_;
-  PbftStates state_;
   u_long STEP_4_DELAY; // constant
 
   blk_hash_t own_starting_value_for_round_;
@@ -211,6 +211,7 @@ class PbftManager {
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
 
+  time_point round_clock_initial_datetime_;
   long next_step_time_ms_;
   long elapsed_time_in_round_ms_;
 
