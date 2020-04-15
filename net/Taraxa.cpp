@@ -17,7 +17,7 @@ using namespace taraxa;
 
 namespace taraxa::net {
 
-Taraxa::Taraxa(std::shared_ptr<FullNode>const& _full_node)
+Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node)
     : full_node_(_full_node) {}
 
 string Taraxa::taraxa_protocolVersion() {

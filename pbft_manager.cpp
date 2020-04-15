@@ -323,8 +323,8 @@ bool PbftManager::resetRound_() {
       //       sync call won't be supressed for being too
       //       recent (ie. same round and step)
       syncPbftChainFromPeers_();
-      next_voted_block_from_previous_round_ = std::make_pair(NULL_BLOCK_HASH,
-                                                             false);
+      next_voted_block_from_previous_round_ =
+          std::make_pair(NULL_BLOCK_HASH, false);
     }
     // Restart while loop...
     restart = true;
@@ -535,15 +535,13 @@ bool PbftManager::stateOperations_() {
   // Get votes
   bool sync_peers_pbft_chain = false;
   votes_ = vote_mgr_->getVotes(round_, valid_sortition_accounts_size_,
-                              sync_peers_pbft_chain);
+                               sync_peers_pbft_chain);
   LOG(log_tra_) << "There are " << votes_.size() << " total votes in round "
                 << round_;
 
   // Concern can malicious node trigger excessive syncing?
-  if (sync_peers_pbft_chain &&
-      pbft_chain_->pbftSyncedQueueEmpty() &&
-      !capability_->syncing_ &&
-      !syncRequestedAlreadyThisStep_()) {
+  if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
+      !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
     LOG(log_sil_) << "Vote validation triggered PBFT chain sync";
     syncPbftChainFromPeers_();
   }
@@ -697,8 +695,8 @@ void PbftManager::certifyBlock_() {
   } else if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tra_) << "In step 3";
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
-                                                                 round_);
+      soft_voted_block_for_this_round_ =
+          softVotedBlockForRound_(votes_, round_);
     }
     if (soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH &&
@@ -800,8 +798,8 @@ void PbftManager::secondFinish_() {
 
   if (shouldSpeak(next_vote_type, round_, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
-                                                                 round_);
+      soft_voted_block_for_this_round_ =
+          softVotedBlockForRound_(votes_, round_);
     }
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
@@ -882,8 +880,8 @@ void PbftManager::postSecondFinish_() {
 
   if (shouldSpeak(next_vote_type, round_, step_)) {
     if (!soft_voted_block_for_this_round_.second) {
-      soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
-                                                                 round_);
+      soft_voted_block_for_this_round_ =
+          softVotedBlockForRound_(votes_, round_);
     }
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
@@ -1734,9 +1732,9 @@ void PbftManager::countVotes_() {
     LOG(log_inf_test_) << "Round " << round_ << " step " << last_step_
                        << " time " << elapsed_last_step_time_in_ms
                        << "(ms) has " << last_step_votes << " votes";
-    LOG(log_inf_test_) << "Round " << round_ << " step " << step_
-                       << " time " << elapsed_current_step_time_in_ms
-                       << "(ms) has " << current_step_votes << " votes";
+    LOG(log_inf_test_) << "Round " << round_ << " step " << step_ << " time "
+                       << elapsed_current_step_time_in_ms << "(ms) has "
+                       << current_step_votes << " votes";
     thisThreadSleepForMilliSeconds(100);
   }
 }

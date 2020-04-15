@@ -197,7 +197,7 @@ class PbftManager {
   PbftStates state_;
   uint64_t round_;
   size_t step_;
-  u_long STEP_4_DELAY; // constant
+  u_long STEP_4_DELAY;  // constant
 
   blk_hash_t own_starting_value_for_round_;
   // <round, cert_voted_block_hash>
