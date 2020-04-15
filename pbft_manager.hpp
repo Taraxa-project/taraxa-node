@@ -17,14 +17,8 @@
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define LAMBDA_ms 1000           // milliseconds
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 50
-#define COMMITTEE_SIZE 3  // TODO: The value for local test, need to change
-#define VALID_SORTITION_COINS 10000  // TODO: the value may change later
-#undef LAMBDA_ms                     // TODO: undef for test, need remove later
-#undef COMMITTEE_SIZE                // TODO: undef for test, need remove later
-#undef VALID_SORTITION_COINS         // TODO: undef for test, need remove later
 
 namespace taraxa {
 class FullNode;
@@ -82,7 +76,6 @@ class PbftManager {
   uint64_t getPbftRound() const { return round_; }
   size_t getPbftStep() const { return step_; }
 
-  // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
   // Temporary table for executor to update
   std::unordered_map<addr_t, PbftSortitionAccount>
@@ -203,7 +196,6 @@ class PbftManager {
 
   PbftStates state_;
   uint64_t round_;
-  uint64_t last_round_;
   size_t step_;
   u_long STEP_4_DELAY; // constant
 
@@ -221,11 +213,11 @@ class PbftManager {
   long next_step_time_ms_;
   long elapsed_time_in_round_ms_;
 
-  bool next_voted_soft_value_;
-  bool next_voted_null_block_hash_;
+  bool executed_pbft_block_;
   bool have_executed_this_round_;
   bool should_have_cert_voted_in_this_round_;
-  bool executed_pbft_block_ = false;
+  bool next_voted_soft_value_;
+  bool next_voted_null_block_hash_;
   bool skip_post_first_finish_;
   bool go_first_finish_state_;
   bool go_post_first_finish_state_;

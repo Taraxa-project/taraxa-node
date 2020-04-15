@@ -144,7 +144,6 @@ void PbftManager::run() {
     if (stateOperations_()) {
       continue;
     }
-
     // PBFT states
     switch (state_) {
       case value_proposal:
@@ -274,7 +273,6 @@ bool PbftManager::resetRound_() {
     LOG(log_inf_) << "From votes determined round " << consensus_pbft_round;
     round_clock_initial_datetime_ = now_;
     uint64_t local_round = round_;
-    last_round_ = round_;
     round_ = consensus_pbft_round;
     resetStep_();
     state_ = value_proposal;
@@ -354,7 +352,6 @@ void PbftManager::initialState_() {
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
 
-  last_round_ = 1;
   round_ = 1;
   step_ = 1;
   last_step_ = 0;
@@ -366,6 +363,7 @@ void PbftManager::initialState_() {
   soft_voted_block_for_this_round_ = std::make_pair(NULL_BLOCK_HASH, false);
   next_voted_block_from_previous_round_ =
       std::make_pair(NULL_BLOCK_HASH, false);
+  executed_pbft_block_ = false;
   have_executed_this_round_ = false;
   should_have_cert_voted_in_this_round_ = false;
   next_voted_soft_value_ = false;
@@ -859,7 +857,7 @@ void PbftManager::postSecondFinish_() {
   // Odd number steps 7, 9, 11... < MAX_STEPS are in post second finish
   LOG(log_tra_) << "PBFT post second finishing state at step " << step_
                 << " in round " << round_;
-  u_long end_time_for_step =
+  long end_time_for_step =
       (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
 
   if (step_ > MAX_STEPS) {
@@ -887,7 +885,6 @@ void PbftManager::postSecondFinish_() {
       soft_voted_block_for_this_round_ = softVotedBlockForRound_(votes_,
                                                                  round_);
     }
-
     if (!next_voted_soft_value_ && soft_voted_block_for_this_round_.second &&
         soft_voted_block_for_this_round_.first != NULL_BLOCK_HASH) {
       LOG(log_deb_) << "Next voting " << soft_voted_block_for_this_round_.first
@@ -906,46 +903,15 @@ void PbftManager::postSecondFinish_() {
       placeVote_(NULL_BLOCK_HASH, next_vote_type, round_, step_);
       next_voted_null_block_hash_ = true;
     }
-    //        if (!next_voted_soft_value_ && !next_voted_null_block_hash_ &&
-    //            step_ >= MAX_STEPS) {
-    //          LOG(log_deb_) << "Next voting NULL BLOCK HAVING REACHED MAX
-    //          STEPS "
-    //                           "for round "
-    //                        << round_;
-    //          placeVote_(NULL_BLOCK_HASH, next_vote_type, round_, step_);
-    //          next_voted_null_block_hash_ = true;
-    //        }
   }
-  if (step_ > MAX_STEPS && capability_->syncing_ == false &&
-      syncRequestedAlreadyThisStep_() == false) {
+
+  if (step_ > MAX_STEPS && !capability_->syncing_ &&
+      !syncRequestedAlreadyThisStep_()) {
     LOG(log_war_) << "Suspect pbft chain behind, inaccurate 2t+1, need "
                      "to broadcast request for missing blocks";
     syncPbftChainFromPeers_();
   }
 
-  // if (step_ >= MAX_STEPS) {
-  /*
-  round_ += 1;
-  LOG(log_deb_) << "Having next voted, advancing clock to pbft round "
-                << round_ << ", step 1, and resetting clock.";
-  // reset starting value to NULL_BLOCK_HASH
-  own_starting_value_for_round_ = NULL_BLOCK_HASH;
-  // I added this as a way of seeing if we were even getting votes during
-  // testnet -Justin
-  LOG(log_deb_) << "There are " << votes_.size() << " votes since round "
-                << round_ - 2;
-  // NOTE: This also sets pbft_step back to 1
-  last_step_clock_initial_datetime_ =
-      current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
-  last_step_ = step_;
-  step_ = 1;
-  next_voted_soft_value_ = false;
-  next_voted_null_block_hash_ = false;
-  round_clock_initial_datetime_ = std::chrono::system_clock::now();
-  */
-  //  continue;
-  //} else
   go_post_first_finish_state_ =
       elapsed_time_in_round_ms_ >
       (step_ + 1) * LAMBDA_ms + STEP_4_DELAY - POLLING_INTERVAL_ms;
