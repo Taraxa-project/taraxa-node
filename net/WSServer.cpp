@@ -7,9 +7,6 @@
 #include <libdevcore/CommonJS.h>
 #include <libweb3jsonrpc/JsonHelper.h>
 
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-
 #include "util.hpp"
 
 namespace taraxa::net {

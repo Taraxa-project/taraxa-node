@@ -2,9 +2,6 @@
 	path = submodules/cryptopp
 	url = https://github.com/weidai11/cryptopp.git
 	ignore = dirty
-[submodule "submodules/rapidjson"]
-	path = submodules/rapidjson
-	url = https://github.com/Tencent/rapidjson.git
 [submodule "submodules/ethash"]
 	path = submodules/ethash
 	url = https://github.com/chfast/ethash
