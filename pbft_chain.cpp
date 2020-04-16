@@ -88,11 +88,13 @@ TrxSchedule::TrxSchedule(dev::RLP const& r) {
   }
 }
 
-void TrxSchedule::setJson(Json::Value& json) const {
-  json["dag_blocks_order"] = Json::Value(Json::arrayValue);
+void TrxSchedule::setPtree(ptree& tree) const {
+  tree.put_child("dag_blocks_order", ptree());
+  auto& dag_blocks_order = tree.get_child("dag_blocks_order");
   uint32_t dag_blocks_size = dag_blks_order.size();
   for (auto i(0); i < dag_blocks_size; ++i) {
-    json["dag_blocks_order"].append(Json::Value(dag_blks_order[i].toString()));
+    dag_blocks_order.push_back(
+        std::make_pair("", ptree(dag_blks_order[i].toString())));
   }
   uint32_t trx_vectors_size = trxs_mode.size();
   if (dag_blocks_size != trx_vectors_size) {
@@ -100,28 +102,25 @@ void TrxSchedule::setJson(Json::Value& json) const {
   }
   for (auto i(0); i < trx_vectors_size; ++i) {
     blk_hash_t dag_block_hash(dag_blks_order[i]);
-    json[dag_block_hash.toString()] = Json::Value(Json::arrayValue);
+    tree.put_child(dag_block_hash.toString(), ptree());
+    auto& each_dag_block_trxs_mode = tree.get_child(dag_block_hash.toString());
     uint32_t each_dag_block_trxs_size = trxs_mode[i].size();
     for (int j(0); j < each_dag_block_trxs_size; ++j) {
-      Json::Value value;
-      value[trxs_mode[i][j].first.toString()] =
-          Json::Value(std::to_string(trxs_mode[i][j].second));
-      json[dag_block_hash.toString()].append(value);
+      each_dag_block_trxs_mode.push_back(
+          std::make_pair(trxs_mode[i][j].first.toString(),
+                         ptree(std::to_string(trxs_mode[i][j].second))));
     }
   }
 }
 
-void TrxSchedule::setSchedule(Json::Value const& json) {
-  dag_blks_order = asVector<blk_hash_t, std::string>(json, "dag_blocks_order");
+void TrxSchedule::setSchedule(ptree const& tree) {
+  dag_blks_order = asVector<blk_hash_t, std::string>(tree, "dag_blocks_order");
   for (auto const& dag_blk_hash : dag_blks_order) {
     std::vector<std::pair<trx_hash_t, uint>> each_dag_blk_trxs_mode;
-    for (auto const& trx_mode : json[dag_blk_hash.toString()]) {
-      for (Json::Value::const_iterator it = trx_mode.begin();
-           it != trx_mode.end(); it++) {
-        trx_hash_t trx(it.key().asString());
-        uint mode = atoi(it->asString().c_str());
-        each_dag_blk_trxs_mode.emplace_back(std::make_pair(trx, mode));
-      }
+    for (auto& trx_mode : tree.get_child(dag_blk_hash.toString())) {
+      trx_hash_t trx(trx_mode.first);
+      uint mode = atoi(trx_mode.second.get_value<std::string>().c_str());
+      each_dag_blk_trxs_mode.emplace_back(std::make_pair(trx, mode));
     }
     trxs_mode.emplace_back(each_dag_blk_trxs_mode);
   }
@@ -180,20 +179,18 @@ PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash,
 }
 
 PbftBlock::PbftBlock(std::string const& str) {
-  Json::Value doc;
-  Json::Reader reader;
-  reader.parse(str, doc);
-  block_hash_ = blk_hash_t(doc["block_hash"].asString());
-  prev_block_hash_ = blk_hash_t(doc["prev_block_hash"].asString());
+  ptree doc = strToJson(str);
+  block_hash_ = blk_hash_t(doc.get<std::string>("block_hash"));
+  prev_block_hash_ = blk_hash_t(doc.get<std::string>("prev_block_hash"));
   dag_block_hash_as_pivot_ =
-      blk_hash_t(doc["dag_block_hash_as_pivot"].asString());
-  const Json::Value& schedule = doc["schedule"];
+      blk_hash_t(doc.get<std::string>("dag_block_hash_as_pivot"));
+  const ptree& schedule = doc.get_child("schedule");
   schedule_.setSchedule(schedule);
-  period_ = doc["period"].asUInt64();
-  height_ = doc["height"].asUInt64();
-  timestamp_ = doc["timestamp"].asUInt64();
-  signature_ = sig_t(doc["signature"].asString());
-  beneficiary_ = addr_t(doc["beneficiary"].asString());
+  period_ = doc.get<uint64_t>("period");
+  height_ = doc.get<uint64_t>("height");
+  timestamp_ = doc.get<uint64_t>("timestamp");
+  signature_ = sig_t(doc.get<std::string>("signature"));
+  beneficiary_ = addr_t(doc.get<std::string>("beneficiary"));
 }
 
 void PbftBlock::calculateHash_() {
@@ -214,18 +211,21 @@ blk_hash_t PbftBlock::sha3(bool include_sig) const {
 }
 
 std::string PbftBlock::getJsonStr() const {
-  Json::Value json;
-  json["prev_block_hash"] = prev_block_hash_.toString();
-  json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
-  json["schedule"] = Json::Value();
-  schedule_.setJson(json["schedule"]);
-  json["period"] = (Json::Value::UInt64)period_;
-  json["height"] = (Json::Value::UInt64)height_;
-  json["timestamp"] = (Json::Value::UInt64)timestamp_;
-  json["block_hash"] = block_hash_.toString();
-  json["signature"] = signature_.toString();
-  json["beneficiary"] = beneficiary_.toString();
-  return json.toStyledString();
+  ptree tree;
+  tree.put("prev_block_hash", prev_block_hash_.toString());
+  tree.put("dag_block_hash_as_pivot", dag_block_hash_as_pivot_.toString());
+  tree.put_child("schedule", ptree());
+  schedule_.setPtree(tree.get_child("schedule"));
+  tree.put("period", period_);
+  tree.put("height", height_);
+  tree.put("timestamp", timestamp_);
+  tree.put("block_hash", block_hash_.toString());
+  tree.put("signature", signature_.toString());
+  tree.put("beneficiary", beneficiary_);
+
+  std::stringstream ostrm;
+  boost::property_tree::write_json(ostrm, tree);
+  return ostrm.str();
 }
 
 addr_t PbftBlock::getBeneficiary() const { return beneficiary_; }
@@ -319,14 +319,13 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
 }
 
 void PbftChain::setPbftHead(std::string const& pbft_head_str) {
-  Json::Value doc;
-  Json::Reader reader;
-  reader.parse(pbft_head_str, doc);
+  ptree doc = strToJson(pbft_head_str);
 
-  head_hash_ = blk_hash_t(doc["head_hash"].asString());
-  size_ = doc["size"].asUInt64();
-  period_ = doc["period"].asUInt64();
-  last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
+  head_hash_ = blk_hash_t(doc.get<std::string>("head_hash"));
+  size_ = doc.get<uint64_t>("size");
+  period_ = doc.get<uint64_t>("period");
+  last_pbft_block_hash_ =
+      blk_hash_t(doc.get<std::string>("last_pbft_block_hash"));
 }
 
 void PbftChain::cleanupUnverifiedPbftBlocks(
@@ -578,12 +577,14 @@ std::string PbftChain::getHeadStr() const {
 }
 
 std::string PbftChain::getJsonStr() const {
-  Json::Value json;
-  json["head_hash"] = head_hash_.toString();
-  json["size"] = (Json::Value::UInt64)size_;
-  json["period"] = (Json::Value::UInt64)period_;
-  json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
-  return json.toStyledString();
+  ptree tree;
+  tree.put("head_hash", head_hash_.toString());
+  tree.put("size", size_);
+  tree.put("period", period_);
+  tree.put("last_pbft_block_hash", last_pbft_block_hash_.toString());
+  std::stringstream ostrm;
+  boost::property_tree::write_json(ostrm, tree);
+  return ostrm.str();
 }
 
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {

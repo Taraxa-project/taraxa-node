@@ -32,22 +32,22 @@
       "shard": 1,
       "transaction_limit" : 0,
       "random_params": {
-        "min_freq":100,
-        "max_freq":1000
+        "min_freq":"100",
+        "max_freq":"1000"
       },
       "sortition_params": {
-        "difficulty_bound":100,
-        "lambda_bits":1000
+        "difficulty_bound":"100",
+        "lambda_bits":"1000"
       }
     },
-    "pbft": {
-      "lambda_ms_min" : 2000,
-      "committee_size" : 5,
-      "valid_sortition_coins" : 1000000000,
-      "dag_blocks_size" : 100,
-      "ghost_path_move_back" : 1,
-      "skip_periods" : 1,
-      "run_count_votes" : 0
-    }
+    "pbft": [
+      2000,
+      5,
+      1000000000,
+      100,
+      1,
+      1,
+      0
+    ]
   }
 }

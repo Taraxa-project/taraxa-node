@@ -9,8 +9,8 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/thread.hpp>
-#include <boost/format.hpp>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -30,6 +30,14 @@
 
 namespace taraxa {
 
+boost::property_tree::ptree strToJson(const std::string_view &str);
+
+inline boost::property_tree::ptree strToJson(const std::string &str) {
+  return strToJson(std::string_view(str));
+}
+// load file and convert to json doc
+boost::property_tree::ptree loadJsonFile(std::string json_file_name);
+
 struct ProcessReturn {
   enum class Result {
     PROGRESS,
@@ -44,11 +52,15 @@ struct ProcessReturn {
 };
 
 template <typename T, typename U = T>
-std::vector<T> asVector(Json::Value const &json, std::string const & key) {
+std::vector<T> asVector(boost::property_tree::ptree const &pt,
+                        boost::property_tree::ptree::key_type const &key) {
   std::vector<T> v;
-  auto key_child = json[key];
-  std::transform(key_child.begin(), key_child.end(), std::back_inserter(v),
-                 [](const Json::Value &item) { return T(item.asString()); });
+  auto key_child = pt.get_child(key);
+  std::transform(
+      key_child.begin(), key_child.end(), std::back_inserter(v),
+      [](const std::pair<std::string, boost::property_tree::ptree> &item) {
+        return T(item.second.get_value<U>());
+      });
   return v;
 }
 
@@ -241,6 +253,36 @@ inline std::string unquote_non_str_literals(const std::string &json_str) {
   return std::regex_replace(json_str, re, "$1");
 }
 
+inline std::string toJsonObjectString(const boost::property_tree::ptree &p) {
+  if (p.empty()) {
+    return "{}";
+  }
+  std::stringstream stream;
+  // Note: boost appends a newline
+  write_json(stream, p, false);
+  return unquote_non_str_literals(stream.str());
+}
+
+// Boost can't handle top-level arrays
+inline std::string toJsonArrayString(const boost::property_tree::ptree &p) {
+  std::stringstream ss;
+  ss << "[";
+  auto addComma = false;
+  for (const auto &child : p) {
+    if (addComma) {
+      ss << ",";
+    }
+    addComma = true;
+    ss << toJsonObjectString(child.second);
+  }
+  ss << "]";
+  return ss.str();
+}
+
+template <typename T>
+void append(boost::property_tree::ptree &ptree, const T &value) {
+  ptree.push_back(std::make_pair("", value));
+}
 
 template <typename... TS>
 std::string fmt(const std::string &pattern, const TS &... args) {
