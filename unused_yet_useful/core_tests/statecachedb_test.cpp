@@ -1,0 +1,195 @@
+/*
+        This file is a modified version of cpp-ethereum unit-test for
+   StateCacheDB.
+*/
+
+#include <gtest/gtest.h>
+#include <libdevcore/StateCacheDB.h>
+#include "libdevcore/Log.h"
+#include "util.hpp"
+
+using namespace std;
+using namespace dev;
+
+namespace taraxa {
+TEST(StateCacheDB, kill) {
+  StateCacheDB myDB;
+  EXPECT_TRUE(myDB.get().empty());
+  bytes value = fromHex("43");
+  myDB.insert(h256(42), &value);
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.get().size(), 1);
+  EXPECT_TRUE(!myDB.kill(h256(43)));
+  EXPECT_TRUE(myDB.kill(h256(42)));
+}
+
+TEST(StateCacheDB, purgeMainMem) {
+  StateCacheDB myDB;
+  EXPECT_TRUE(myDB.get().empty());
+  string const value = "\x43";
+
+  myDB.insert(h256(42), &value);
+  StateCacheDB copy;
+  copy = myDB;
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.lookup(h256(42)), value);
+  EXPECT_EQ(myDB.get().size(), 1);
+  EXPECT_TRUE(myDB.kill(h256(42)));
+
+  EXPECT_TRUE(myDB.get() == copy.get());
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.lookup(h256(42)), value);
+
+  EXPECT_EQ(myDB.get().size(), 1);
+  myDB.purge();
+  EXPECT_EQ(myDB.get().size(), 0);
+  myDB.insert(h256(43), &value);
+  EXPECT_EQ(myDB.get().size(), 1);
+  myDB.clear();
+  EXPECT_EQ(myDB.get().size(), 0);
+}
+
+TEST(StateCacheDB, purgeMainMem_Refs) {
+  StateCacheDB myDB;
+  {
+    EnforceRefs enforceRefs(myDB, true);
+
+    EXPECT_TRUE(myDB.get().empty());
+    string const value = "\x43";
+
+    myDB.insert(h256(42), &value);
+    StateCacheDB copy;
+    copy = myDB;
+    EXPECT_TRUE(myDB.exists(h256(42)));
+    EXPECT_EQ(myDB.lookup(h256(42)), value);
+    EXPECT_EQ(myDB.get().size(), 1);
+    EXPECT_TRUE(myDB.kill(h256(42)));
+
+    EXPECT_TRUE(myDB.get() != copy.get());
+    EXPECT_TRUE(!myDB.exists(h256(42)));
+    EXPECT_EQ(myDB.lookup(h256(42)), std::string());
+
+    EXPECT_EQ(myDB.get().size(), 0);
+    myDB.purge();
+    EXPECT_EQ(myDB.get().size(), 0);
+    myDB.insert(h256(43), &value);
+    EXPECT_EQ(myDB.get().size(), 1);
+    myDB.clear();
+    EXPECT_EQ(myDB.get().size(), 0);
+    // call EnforceRefs destructor
+  }
+
+  // do same tests again without EnforceRefs
+  EXPECT_TRUE(myDB.get().empty());
+  string const value = "\x43";
+
+  myDB.insert(h256(42), &value);
+  StateCacheDB copy;
+  copy = myDB;
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.lookup(h256(42)), value);
+  EXPECT_EQ(myDB.get().size(), 1);
+  EXPECT_TRUE(myDB.kill(h256(42)));
+
+  EXPECT_TRUE(myDB.get() == copy.get());
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.lookup(h256(42)), value);
+
+  EXPECT_EQ(myDB.get().size(), 1);
+  myDB.purge();
+  EXPECT_EQ(myDB.get().size(), 0);
+  myDB.insert(h256(43), &value);
+  EXPECT_EQ(myDB.get().size(), 1);
+  myDB.clear();
+  EXPECT_EQ(myDB.get().size(), 0);
+}
+
+TEST(StateCacheDB, purgeAuxMem) {
+  class AuxStateCacheDB : public StateCacheDB {
+   public:
+    std::unordered_map<h256, std::pair<bytes, bool>> getAux() { return m_aux; }
+  };
+
+  AuxStateCacheDB myDB;
+  EXPECT_TRUE(myDB.get().empty());
+  bytes value = fromHex("43");
+
+  myDB.insertAux(h256(42), &value);
+  EXPECT_TRUE(myDB.lookupAux(h256(42)) == value);
+  EXPECT_EQ(myDB.get().size(), 0);
+  myDB.removeAux(h256(42));
+  EXPECT_TRUE(myDB.lookupAux(h256(42)) == value);
+  EXPECT_EQ(myDB.getAux().size(), 1);
+  myDB.purge();
+  EXPECT_TRUE(myDB.lookupAux(h256(42)) == bytes());
+  EXPECT_EQ(myDB.getAux().size(), 0);
+  myDB.insertAux(h256(43), &value);
+  EXPECT_EQ(myDB.getAux().size(), 1);
+  myDB.clear();
+  EXPECT_EQ(myDB.getAux().size(), 0);
+}
+
+TEST(StateCacheDB, copy) {
+  StateCacheDB myDB;
+  EXPECT_TRUE(myDB.get().empty());
+  bytes value = fromHex("43");
+  myDB.insert(h256(42), &value);
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.get().size(), 1);
+
+  StateCacheDB copyToDB;
+  copyToDB = myDB;
+  EXPECT_TRUE(copyToDB.exists(h256(42)));
+  EXPECT_EQ(copyToDB.get().size(), 1);
+  EXPECT_TRUE(myDB.keys() == copyToDB.keys());
+  EXPECT_TRUE(myDB.get() == copyToDB.get());
+  myDB.insert(h256(43), &value);
+  EXPECT_TRUE(myDB.keys() != copyToDB.keys());
+}
+
+TEST(StateCacheDB, lookUp) {
+  StateCacheDB myDB;
+  EXPECT_TRUE(myDB.get().empty());
+  string const value = "\x43";
+
+  myDB.insert(h256(42), &value);
+  EXPECT_TRUE(myDB.exists(h256(42)));
+  EXPECT_EQ(myDB.lookup(h256(42)), value);
+  EXPECT_EQ(myDB.get().size(), 1);
+
+  myDB.insert(h256(0), &value);
+  EXPECT_TRUE(myDB.exists(h256(0)));
+  EXPECT_EQ(myDB.lookup(h256(0)), value);
+
+  myDB.insert(h256(std::numeric_limits<u256>::max()), &value);
+  EXPECT_TRUE(myDB.exists(h256(std::numeric_limits<u256>::max())));
+  EXPECT_EQ(myDB.lookup(h256(std::numeric_limits<u256>::max())), value);
+
+  EXPECT_EQ(myDB.get().size(), 3);
+}
+
+TEST(StateCacheDB, stream) {
+  StateCacheDB myDB;
+  EXPECT_TRUE(myDB.get().empty());
+  bytes value = fromHex("43");
+  myDB.insert(h256(42), &value);
+  myDB.insert(h256(43), &value);
+  std::ostringstream stream;
+  stream << myDB;
+  EXPECT_EQ(
+      stream.str(),
+      "000000000000000000000000000000000000000000000000000000000000002a: 0x43 "
+      "43\n000000000000000000000000000000000000000000000000000000000000002b: "
+      "0x43 43\n");
+}
+
+}  // namespace taraxa
+
+int main(int argc, char** argv) {
+  TaraxaStackTrace st;
+  dev::LoggingOptions logOptions;
+  logOptions.verbosity = dev::VerbositySilent;
+  dev::setupLogging(logOptions);
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

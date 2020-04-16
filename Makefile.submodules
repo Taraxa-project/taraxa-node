@@ -29,6 +29,12 @@ SUBMODULE_BUILD_INIT = \
 
 # ====================================================
 
+submodules/rapidjson/ok:
+	$(SUBMODULE_BUILD_INIT); \
+	copy . "include/*.*" $(DEPS_INSTALL_PREFIX)/; \
+
+# ====================================================
+
 submodules/prometheus-cpp/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \

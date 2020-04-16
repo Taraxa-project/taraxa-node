@@ -6,6 +6,7 @@
 #include <atomic>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <string>
 #include "config.hpp"
 

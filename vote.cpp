@@ -6,6 +6,8 @@
 
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 namespace taraxa {
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
@@ -294,24 +296,28 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 }
 
 std::string VoteManager::getJsonStr(std::vector<Vote> const& votes) {
-  Json::Value ptroot;
-  Json::Value ptvotes(Json::arrayValue);
+  using boost::property_tree::ptree;
+  ptree ptroot;
+  ptree ptvotes;
 
   for (Vote const& v : votes) {
-    Json::Value ptvote;
-    ptvote["vote_hash"] = v.getHash().toString();
-    ptvote["accounthash"] = v.getVoter().toString();
-    ptvote["sortition_proof"] = v.getSortitionProof().toString();
-    ptvote["vote_signature"] = v.getVoteSignature().toString();
-    ptvote["blockhash"] = v.getBlockHash().toString();
-    ptvote["type"] = v.getType();
-    ptvote["round"] = Json::Value::UInt64(v.getRound());
-    ptvote["step"] = Json::Value::UInt64(v.getStep());
-    ptvotes.append(ptvote);
+    ptree ptvote;
+    ptvote.put("vote_hash", v.getHash());
+    ptvote.put("accounthash", v.getVoter());
+    ptvote.put("sortition_proof", v.getSortitionProof());
+    ptvote.put("vote_signature", v.getVoteSignature());
+    ptvote.put("blockhash", v.getBlockHash());
+    ptvote.put("type", v.getType());
+    ptvote.put("round", v.getRound());
+    ptvote.put("step", v.getStep());
+    ptvotes.push_back(std::make_pair("", ptvote));
   }
-  ptroot["votes"] = ptvotes;
+  ptroot.add_child("votes", ptvotes);
 
-  return ptroot.toStyledString();
+  std::stringstream output;
+  boost::property_tree::write_json(output, ptroot);
+
+  return output.str();
 }
 
 // Return all votes in map unverified_votes_

@@ -22,15 +22,16 @@
 namespace taraxa {
 
 PbftManager::PbftManager(std::string const &genesis) : dag_genesis_(genesis) {}
-PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
+PbftManager::PbftManager(std::vector<uint> const &params,
+                         std::string const &genesis)
     // TODO: for debug, need remove later
-    : LAMBDA_ms_MIN(conf.lambda_ms_min),
-      COMMITTEE_SIZE(conf.committee_size),
-      VALID_SORTITION_COINS(conf.valid_sortition_coins),
-      DAG_BLOCKS_SIZE(conf.dag_blocks_size),
-      GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
-      SKIP_PERIODS(conf.skip_periods),
-      RUN_COUNT_VOTES(conf.run_count_votes),
+    : LAMBDA_ms_MIN(params[0]),
+      COMMITTEE_SIZE(params[1]),
+      VALID_SORTITION_COINS(params[2]),
+      DAG_BLOCKS_SIZE(params[3]),
+      GHOST_PATH_MOVE_BACK(params[4]),
+      SKIP_PERIODS(params[5]),
+      RUN_COUNT_VOTES(params[6]),
       dag_genesis_(genesis) {}
 
 void PbftManager::setFullNode(
