@@ -44,7 +44,7 @@ class DagBlock {
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs,
            VdfSortition const &vdf);
-  explicit DagBlock(Json::Value const &doc);
+  explicit DagBlock(boost::property_tree::ptree const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::bytes const &_rlp);
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
