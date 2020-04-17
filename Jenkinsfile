@@ -62,7 +62,7 @@ pipeline {
         SLACK_TEAM_DOMAIN = 'phragmites'
         DOCKER_BRANCH_TAG = sh(script: './dockerfiles/scripts/docker_tag_from_branch.sh "${BRANCH_NAME}"', , returnStdout: true).trim()
         HELM_TEST_NAME = sh(script: 'echo ${BRANCH_NAME} | sed "s/[^A-Za-z0-9\\-]*//g" | tr "[:upper:]" "[:lower:]"', returnStdout: true).trim()
-        KIBANA_URL=kibana.gcp.taraxa.io
+        KIBANA_URL='kibana.gcp.taraxa.io'
     }
     options {
       ansiColor('xterm')
