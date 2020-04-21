@@ -47,23 +47,21 @@ submodules/prometheus-cpp/ok:
 
 # ====================================================
 
-TARAXA_EVM_LIB := taraxa_evm_cgo
+TARAXA_EVM_LIB := taraxa-evm
 submodules/taraxa-evm/ok:
 	$(SUBMODULE_BUILD_INIT); \
-	copy . "taraxa/*.h" $(DEPS_INSTALL_PREFIX)/include; \
-	go build -tags=secp256k1_no_cgo -buildmode=c-archive \
-		-o $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
-	mv $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).h \
-		$(DEPS_INSTALL_PREFIX)/include/$(TARAXA_EVM_LIB).h; \
+	cd taraxa/C; \
+	go build -buildmode=c-archive -o $(TARAXA_EVM_LIB).a; \
+	copy . "*.h" $(DEPS_INSTALL_PREFIX)/include/taraxa-evm/; \
+	cp $(TARAXA_EVM_LIB).a $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
 
 # ====================================================
 
 submodules/openssl/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	./config --prefix=$(DEPS_INSTALL_PREFIX) \
-		--openssldir=$(DEPS_INSTALL_PREFIX)/ssl; \
-	$(MAKE); \
-	$(MAKE) install; \
+	--openssldir=$(DEPS_INSTALL_PREFIX)/ssl no-tests; \
+	$(MAKE) install_sw; \
 
 # ====================================================
 
