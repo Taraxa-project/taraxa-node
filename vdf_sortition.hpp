@@ -33,7 +33,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
   explicit VdfSortition(vrf_sk_t const& sk, VdfMsg const& vdf_msg,
-               uint difficulty_bound = 29, uint lambda_bits = 13)
+                        uint difficulty_bound = 29, uint lambda_bits = 13)
       : vdf_msg_(vdf_msg),
         difficulty_bound_(difficulty_bound),
         lambda_bits_(lambda_bits),

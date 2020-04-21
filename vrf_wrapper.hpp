@@ -30,7 +30,8 @@ struct VrfMsgFace {
 
 struct VrfSortitionBase {
   VrfSortitionBase() = default;
-  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg) : pk(vrf_wrapper::getVrfPublicKey(sk)) {
+  VrfSortitionBase(vrf_sk_t const &sk, VrfMsgFace const &msg)
+      : pk(vrf_wrapper::getVrfPublicKey(sk)) {
     assert(isValidVrfPublicKey(pk));
     const auto msg_bytes = vrf_wrapper::getRlpBytes(msg.toString());
     proof = vrf_wrapper::getVrfProof(sk, msg_bytes).value();

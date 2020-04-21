@@ -37,7 +37,7 @@ struct ReplayProtectionService {
 
  public:
   explicit ReplayProtectionService(decltype(range_) range,
-                          shared_ptr<DbStorage> const& db_storage);
+                                   shared_ptr<DbStorage> const& db_storage);
   // is_overlapped
   bool hasBeenExecutedWithinRange(Transaction const& trx);
   // is_stale
