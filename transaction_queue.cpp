@@ -1,8 +1,6 @@
 #include "transaction_queue.hpp"
 #include "transaction.hpp"
 
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
 #include <string>
 #include <utility>
 

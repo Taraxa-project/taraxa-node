@@ -32,18 +32,18 @@
       "shard": 1,
       "transaction_limit" : 0,
       "sortition_params": {
-        "difficulty_bound":"10",
-        "lambda_bits":"12"
+        "difficulty_bound":10,
+        "lambda_bits":12
       }
     },
-    "pbft": [
-      1000,
-      3,
-      10000,
-      100,
-      2,
-      1,
-      0
-    ]
+    "pbft": {
+      "lambda_ms_min" : 1000,
+      "committee_size" : 3,
+      "valid_sortition_coins" : 10000,
+      "dag_blocks_size" : 100,
+      "ghost_path_move_back" : 2,
+      "skip_periods" : 1,
+      "run_count_votes" : 0
+    }
   }
 }
