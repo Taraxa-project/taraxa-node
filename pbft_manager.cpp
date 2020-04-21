@@ -145,23 +145,23 @@ void PbftManager::run() {
     }
     // PBFT states
     switch (state_) {
-      case value_proposal:
+      case value_proposal_state:
         proposeBlock_();
         setNextState_();
         break;
-      case filter:
+      case filter_state:
         identifyBlock_();
         setNextState_();
         break;
-      case certify:
+      case certify_state:
         certifyBlock_();
         setNextState_();
         break;
-      case first_finish:
+      case finish_state:
         firstFinish_();
         setNextState_();
         break;
-      case second_finish:
+      case finish_polling_state:
         secondFinish_();
         setNextState_();
         if (skip_post_first_finish_) {
@@ -274,7 +274,7 @@ bool PbftManager::resetRound_() {
     uint64_t local_round = round_;
     round_ = consensus_pbft_round;
     resetStep_();
-    state_ = value_proposal;
+    state_ = value_proposal_state;
     LOG(log_deb_) << "Advancing clock to pbft round " << round_
                   << ", step 1, and resetting clock.";
 
@@ -346,7 +346,7 @@ void PbftManager::sleep_() {
 
 void PbftManager::initialState_() {
   // Initial PBFT state
-  state_ = value_proposal;
+  state_ = value_proposal_state;
 
   LAMBDA_ms = LAMBDA_ms_MIN;
   STEP_4_DELAY = 2 * LAMBDA_ms;
@@ -382,23 +382,23 @@ void PbftManager::initialState_() {
 
 void PbftManager::setNextState_() {
   switch (state_) {
-    case value_proposal:
+    case value_proposal_state:
       setFilterState_();
       break;
-    case filter:
+    case filter_state:
       setCertifyState_();
       break;
-    case certify:
+    case certify_state:
       if (go_first_finish_state_) {
         setFirstFinishState_();
       } else {
         next_step_time_ms_ += POLLING_INTERVAL_ms;
       }
       break;
-    case first_finish:
+    case finish_state:
       setSecondFinishState_();
       break;
-    case second_finish:
+    case finish_polling_state:
       if (skip_post_first_finish_) {
         jumpPostSecondFinishState_(7);
       } else {
@@ -433,7 +433,7 @@ void PbftManager::setNextState_() {
 }
 
 void PbftManager::setFilterState_() {
-  state_ = filter;
+  state_ = filter_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -441,7 +441,7 @@ void PbftManager::setFilterState_() {
 }
 
 void PbftManager::setCertifyState_() {
-  state_ = certify;
+  state_ = certify_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * LAMBDA_ms;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -450,7 +450,7 @@ void PbftManager::setCertifyState_() {
 
 void PbftManager::setFirstFinishState_() {
   LOG(log_deb_) << "Will go to first finish State";
-  state_ = first_finish;
+  state_ = finish_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 4 * LAMBDA_ms + STEP_4_DELAY;
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
@@ -458,7 +458,7 @@ void PbftManager::setFirstFinishState_() {
 }
 
 void PbftManager::setSecondFinishState_() {
-  state_ = second_finish;
+  state_ = finish_polling_state;
   setPbftStep(step_ + 1);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
@@ -548,7 +548,7 @@ bool PbftManager::stateOperations_() {
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
-  if ((state_ == certify || state_ == first_finish) &&
+  if ((state_ == certify_state || state_ == finish_state) &&
       !have_executed_this_round_) {
     std::vector<Vote> cert_votes_for_round =
         getVotesOfTypeFromVotesForRoundAndStep_(
@@ -578,14 +578,14 @@ bool PbftManager::stateOperations_() {
     }
   }
   // We skip step 4 due to having missed it while executing....
-  if (state_ == certify && have_executed_this_round_ &&
+  if (state_ == certify_state && have_executed_this_round_ &&
       elapsed_time_in_round_ms_ >
           4 * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms) {
     LOG(log_deb_)
         << "Skipping step 4 due to execution, will go to step 5 in round "
         << round_;
     step_ = 5;
-    state_ = second_finish;
+    state_ = finish_polling_state;
   }
 
   return resetRound_();

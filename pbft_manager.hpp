@@ -24,13 +24,11 @@ namespace taraxa {
 class FullNode;
 
 enum PbftStates {
-  value_proposal = 1,
-  filter,
-  certify,
-  first_finish,
-  second_finish,
-  post_first_finish,
-  post_second_finish
+  value_proposal_state = 1,
+  filter_state,
+  certify_state,
+  finish_state,
+  finish_polling_state
 };
 
 class PbftManager {
