@@ -1514,9 +1514,13 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   }
   auto batch = db_->createWriteBatch();
   // execute PBFT schedule
+  unordered_set<addr_t> dag_block_proposers;
+  unordered_set<addr_t> trx_senders;
+  unordered_map<addr_t, val_t> execution_touched_account_balances;
   auto full_node = node_.lock();
-  if (!full_node->executePeriod(batch, pbft_block,
-                                sortition_account_balance_table_tmp)) {
+  if (!full_node->executePeriod(batch, pbft_block, dag_block_proposers,
+                                trx_senders,
+                                execution_touched_account_balances)) {
     LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
                   << pbft_block;
     for (auto const &v : cert_votes) {
@@ -1524,6 +1528,12 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     }
     return false;
   }
+  // Update temp sortition accounts table
+  uint64_t pbft_period = pbft_block.getPeriod();
+  updateTempSortitionAccountsTable_(pbft_period, dag_block_proposers,
+                                    trx_senders,
+                                    execution_touched_account_balances);
+
   // Update number of executed DAG blocks/transactions in DB
   auto executor = full_node->getExecutor();
   auto num_executed_blk = executor->getNumExecutedBlk();
@@ -1535,7 +1545,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                                num_executed_trx, batch);
   }
   // Add dag_block_period in DB
-  uint64_t pbft_period = pbft_block.getPeriod();
   for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
   }
@@ -1664,6 +1673,77 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << sortition_threshold_ << ", valid voting players "
                 << valid_sortition_accounts_size_ << ", active players "
                 << active_players << " since period " << since_period;
+}
+
+void PbftManager::updateTempSortitionAccountsTable_(uint64_t period,
+    unordered_set<addr_t> const &dag_block_proposers,
+    unordered_set<addr_t> const &trx_senders,
+    unordered_map<addr_t, val_t> const
+        &execution_touched_account_balances) {
+  // Update temp PBFT sortition table for DAG block proposers who don't have
+  // account balance changed (no transaction relative accounts)
+  for (auto &addr : dag_block_proposers) {
+    auto sortition_table_entry =
+        std_find(sortition_account_balance_table_tmp, addr);
+    if (sortition_table_entry) {
+      auto &pbft_sortition_account = (*sortition_table_entry)->second;
+      // fixme: weird lossy cast
+      pbft_sortition_account.last_period_seen = static_cast<int64_t>(period);
+      pbft_sortition_account.status = new_change;
+    }
+  }
+  // Update PBFT sortition table for DAG block proposers who have account
+  // balance changed
+  for (auto &[addr, balance] : execution_touched_account_balances) {
+    auto is_proposer = bool(std_find(dag_block_proposers, addr));
+    auto is_sender = bool(std_find(trx_senders, addr));
+    LOG(log_deb_) << "Externally owned account (is_sender: " << is_sender
+                  << ") balance update: " << addr << " --> " << balance
+                  << " in period " << period;
+    auto enough_balance = balance >= VALID_SORTITION_COINS;
+    auto sortition_table_entry =
+        std_find(sortition_account_balance_table_tmp, addr);
+    if (is_sender) {
+      // Transaction sender
+      if (sortition_table_entry) {
+        auto &pbft_sortition_account = (*sortition_table_entry)->second;
+        pbft_sortition_account.balance = balance;
+        if (is_proposer) {
+          // fixme: weird lossy cast
+          pbft_sortition_account.last_period_seen =
+              static_cast<int64_t>(period);
+        }
+        if (enough_balance) {
+          pbft_sortition_account.status = new_change;
+        } else {
+          // After send coins doesn't have enough for sortition
+          pbft_sortition_account.status = remove;
+        }
+      }
+    } else {
+      // Receiver
+      if (enough_balance) {
+        if (sortition_table_entry) {
+          auto &pbft_sortition_account = (*sortition_table_entry)->second;
+          pbft_sortition_account.balance = balance;
+          if (is_proposer) {
+            // TODO: weird lossy cast
+            pbft_sortition_account.last_period_seen =
+                static_cast<int64_t>(period);
+          }
+          pbft_sortition_account.status = new_change;
+        } else {
+          int64_t last_seen_period = -1;
+          if (is_proposer) {
+            // TODO: weird lossy cast
+            last_seen_period = static_cast<int64_t>(period);
+          }
+          sortition_account_balance_table_tmp[addr] =
+              PbftSortitionAccount(addr, balance, last_seen_period, new_change);
+        }
+      }
+    }
+  }
 }
 
 void PbftManager::updateSortitionAccountsTable_() {

@@ -31,7 +31,6 @@ class FullNode;
 
 class Executor {
  private:
-  uint64_t pbft_require_sortition_coins_;
   dev::Logger log_time_;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
@@ -41,7 +40,6 @@ class Executor {
   trx_engine::TrxEngine trx_engine_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using BalanceTable = std::unordered_map<addr_t, PbftSortitionAccount>;
   using AccountNonceTable = StatusTable<addr_t, val_t>;
   AccountNonceTable accs_nonce_;
 
@@ -58,15 +56,16 @@ class Executor {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "EXETOR")};
 
  public:
-  Executor(uint64_t pbft_require_sortition_coins,
-           decltype(log_time_) log_time,  //
+  Executor(decltype(log_time_) log_time,
            decltype(db_) db,
-           decltype(replay_protection_service_) replay_protection_service,  //
+           decltype(replay_protection_service_) replay_protection_service,
            decltype(eth_service_) eth_service);
 
   std::optional<dev::eth::BlockHeader> execute(
       DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-      BalanceTable& sortition_account_balance_table);
+      unordered_set<addr_t>& dag_block_proposers,
+      unordered_set<addr_t>& trx_senders,
+      unordered_map<addr_t, val_t>& execution_touched_account_balances);
 
   uint64_t getNumExecutedTrx() { return num_executed_trx_; }
   uint64_t getNumExecutedBlk() { return num_executed_blk_; }

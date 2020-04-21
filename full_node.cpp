@@ -84,10 +84,9 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.chain.replay_protection_service_range, db_);
-  executor_ = as_shared(new Executor(pbft_mgr_->VALID_SORTITION_COINS,
-                                     log_time_,  //
+  executor_ = as_shared(new Executor(log_time_,
                                      db_,
-                                     replay_protection_service_,  //
+                                     replay_protection_service_,
                                      eth_service_));
   if (rebuild_network) {
     network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
@@ -529,13 +528,16 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 
 bool FullNode::executePeriod(DbStorage::BatchPtr const &batch,
                              PbftBlock const &pbft_block,
-                             std::unordered_map<addr_t, PbftSortitionAccount>
-                                 &sortition_account_balance_table) {
+                             unordered_set<addr_t> &dag_block_proposers,
+                             unordered_set<addr_t> &trx_senders,
+                             unordered_map<addr_t, val_t>
+                                 &execution_touched_account_balances) {
   // update transaction overlap table first
   trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
 
   auto new_eth_header =
-      executor_->execute(batch, pbft_block, sortition_account_balance_table);
+      executor_->execute(batch, pbft_block, dag_block_proposers, trx_senders,
+                         execution_touched_account_balances);
   if (!new_eth_header) {
     return false;
   }
