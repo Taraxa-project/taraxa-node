@@ -56,8 +56,7 @@ class Executor {
       dev::createLogger(dev::Verbosity::VerbosityDebug, "EXETOR")};
 
  public:
-  Executor(decltype(log_time_) log_time,
-           decltype(db_) db,
+  Executor(decltype(log_time_) log_time, decltype(db_) db,
            decltype(replay_protection_service_) replay_protection_service,
            decltype(eth_service_) eth_service);
 

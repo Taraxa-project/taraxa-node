@@ -16,8 +16,7 @@ using trx_engine::StateTransitionResult;
 using trx_engine::TrxEngine;
 
 Executor::Executor(
-    decltype(log_time_) log_time,
-    decltype(db_) db,
+    decltype(log_time_) log_time, decltype(db_) db,
     decltype(replay_protection_service_) replay_protection_service,
     decltype(eth_service_) eth_service)
     : log_time_(std::move(log_time)),

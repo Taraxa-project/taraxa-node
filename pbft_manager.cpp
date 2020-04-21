@@ -1675,11 +1675,10 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << active_players << " since period " << since_period;
 }
 
-void PbftManager::updateTempSortitionAccountsTable_(uint64_t period,
-    unordered_set<addr_t> const &dag_block_proposers,
+void PbftManager::updateTempSortitionAccountsTable_(
+    uint64_t period, unordered_set<addr_t> const &dag_block_proposers,
     unordered_set<addr_t> const &trx_senders,
-    unordered_map<addr_t, val_t> const
-        &execution_touched_account_balances) {
+    unordered_map<addr_t, val_t> const &execution_touched_account_balances) {
   // Update temp PBFT sortition table for DAG block proposers who don't have
   // account balance changed (no transaction relative accounts)
   for (auto &addr : dag_block_proposers) {
