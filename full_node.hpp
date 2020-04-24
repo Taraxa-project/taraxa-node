@@ -120,7 +120,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
       DagBlock const &blk, std::vector<Transaction> const &transactions);
   // Insert new transaction to unverified queue or if verify flag true
   // synchronously verify and insert into verified queue
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx, bool verify);
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx,
+                                                 bool verify);
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
       std::vector<taraxa::bytes> const &transactions);
@@ -196,10 +197,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
   std::shared_ptr<Executor> getExecutor() const { return executor_; }
-  bool executePeriod(DbStorage::BatchPtr const &batch,
-                     PbftBlock const &pbft_block,
-                     std::unordered_map<addr_t, PbftSortitionAccount>
-                         &sortition_account_balance_table);
+  bool executePeriod(
+      DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
+      unordered_set<addr_t> &dag_block_proposers,
+      unordered_set<addr_t> &trx_senders,
+      unordered_map<addr_t, val_t> &execution_touched_account_balances);
   void updateWsScheduleBlockExecuted(PbftBlock const &pbft_block);
 
   std::shared_ptr<DbStorage> getDB() const { return db_; }

@@ -145,7 +145,7 @@ class VoteManager {
                              size_t valid_sortiton_players);
   std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
                              bool& sync_peers_pbft_chain);
-  std::string getJsonStr(std::vector<Vote>const& votes);
+  std::string getJsonStr(std::vector<Vote> const& votes);
   std::vector<Vote> getAllVotes();
   bool pbftBlockHasEnoughValidCertVotes(
       PbftBlockCert const& pbft_block_and_votes, size_t valid_sortition_players,

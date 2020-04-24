@@ -17,20 +17,25 @@
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define LAMBDA_ms 1000           // milliseconds
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 50
-#define COMMITTEE_SIZE 3  // TODO: The value for local test, need to change
-#define VALID_SORTITION_COINS 10000  // TODO: the value may change later
-#undef LAMBDA_ms                     // TODO: undef for test, need remove later
-#undef COMMITTEE_SIZE                // TODO: undef for test, need remove later
-#undef VALID_SORTITION_COINS  // // TODO: undef for test, need remove later
 
 namespace taraxa {
 class FullNode;
 
+enum PbftStates {
+  value_proposal = 1,
+  filter,
+  certify,
+  first_finish,
+  second_finish,
+  post_first_finish,
+  post_second_finish
+};
+
 class PbftManager {
  public:
+  using time_point = std::chrono::system_clock::time_point;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
   explicit PbftManager(std::string const &genesis);
@@ -66,12 +71,11 @@ class PbftManager {
   void setPbftThreshold(size_t const threshold) {
     sortition_threshold_ = threshold;
   }
-  void setPbftRound(uint64_t const pbft_round) { pbft_round_ = pbft_round; }
+  void setPbftRound(uint64_t const pbft_round) { round_ = pbft_round; }
   void setPbftStep(size_t const pbft_step);
-  uint64_t getPbftRound() const { return pbft_round_; }
-  size_t getPbftStep() const { return pbft_step_; }
+  uint64_t getPbftRound() const { return round_; }
+  size_t getPbftStep() const { return step_; }
 
-  // TODO: Maybe don't need account balance in the table
   // <account address, PbftSortitionAccount>
   // Temporary table for executor to update
   std::unordered_map<addr_t, PbftSortitionAccount>
@@ -80,8 +84,8 @@ class PbftManager {
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
-  u_long LAMBDA_ms_MIN = 0;
-  u_long LAMBDA_ms = 0;
+  u_long LAMBDA_ms_MIN;
+  u_long LAMBDA_ms;
   size_t COMMITTEE_SIZE = 0;           // TODO: Only for test, need remove later
   uint64_t VALID_SORTITION_COINS = 0;  // TODO: Only for test, need remove later
   size_t DAG_BLOCKS_SIZE = 0;          // TODO: Only for test, need remove later
@@ -93,8 +97,30 @@ class PbftManager {
 
  private:
   void resetStep_();
+  bool resetRound_();
+  void sleep_();
 
-  uint64_t roundDeterminedFromVotes_(std::vector<Vote> votes);
+  void initialState_();
+  void setNextState_();
+  void setFilterState_();
+  void setCertifyState_();
+  void setFirstFinishState_();
+  void setSecondFinishState_();
+  void setPostFirstFinishState_();
+  void setPostSecondFinishState_();
+  void jumpPostSecondFinishState_(size_t step);
+  void loopBackPostFirstFinishState_();
+
+  bool stateOperations_();
+  void proposeBlock_();
+  void identifyBlock_();
+  void certifyBlock_();
+  void firstFinish_();
+  void secondFinish_();
+  void postFirstFinish_();
+  void postSecondFinish_();
+
+  uint64_t roundDeterminedFromVotes_();
 
   std::pair<blk_hash_t, bool> blockWithEnoughVotes_(
       std::vector<Vote> const &votes) const;
@@ -145,6 +171,10 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
+  void updateTempSortitionAccountsTable_(
+      uint64_t period, unordered_set<addr_t> const &dag_block_proposers,
+      unordered_set<addr_t> const &trx_senders,
+      unordered_map<addr_t, val_t> const &execution_touched_account_balances);
   void updateSortitionAccountsTable_();
 
   void updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch);
@@ -168,10 +198,33 @@ class PbftManager {
   blk_hash_t pbft_chain_last_block_hash_;
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
 
-  uint64_t pbft_round_ = 0;
-  uint64_t pbft_round_last_ = 0;
-  size_t pbft_step_ = 0;
-  bool executed_pbft_block_ = false;
+  PbftStates state_;
+  uint64_t round_;
+  size_t step_;
+  u_long STEP_4_DELAY;  // constant
+
+  blk_hash_t own_starting_value_for_round_;
+  // <round, cert_voted_block_hash>
+  std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
+  // <round, block_hash_added_into_chain>
+  std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
+  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
+  std::vector<Vote> votes_;
+
+  time_point round_clock_initial_datetime_;
+  time_point now_;
+  std::chrono::duration<double> duration_;
+  long next_step_time_ms_;
+  long elapsed_time_in_round_ms_;
+
+  bool executed_pbft_block_;
+  bool have_executed_this_round_;
+  bool should_have_cert_voted_in_this_round_;
+  bool next_voted_soft_value_;
+  bool next_voted_null_block_hash_;
+  bool skip_post_first_finish_;
+  bool go_first_finish_state_;
+  bool go_post_first_finish_state_;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
@@ -191,9 +244,9 @@ class PbftManager {
 
   std::shared_ptr<std::thread> monitor_votes_;
   std::atomic<bool> monitor_stop_ = true;
-  size_t last_step_ = 0;
-  std::chrono::system_clock::time_point last_step_clock_initial_datetime_;
-  std::chrono::system_clock::time_point current_step_clock_initial_datetime_;
+  size_t last_step_;
+  time_point last_step_clock_initial_datetime_;
+  time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
   mutable dev::Logger log_sil_{

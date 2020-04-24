@@ -50,8 +50,9 @@ class TransactionManager
   void start();
   void stop();
   void setFullNode(std::shared_ptr<FullNode> full_node);
-  std::pair<bool, std::string> insertTrx(Transaction const &trx, taraxa::bytes const &trx_serialized,
-                 bool verify);
+  std::pair<bool, std::string> insertTrx(Transaction const &trx,
+                                         taraxa::bytes const &trx_serialized,
+                                         bool verify);
 
   /**
    * The following function will require a lock for verified qu

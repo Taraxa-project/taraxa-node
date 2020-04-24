@@ -294,8 +294,8 @@ void Dag::setVertexPeriod(vertex_hash const &vertex, uint64_t period) {
                  << " to set period\n";
     return;
   }
-  //auto ep = boost::get(boost::vertex_index1, graph_);
-  //ep[current] = period;
+  // auto ep = boost::get(boost::vertex_index1, graph_);
+  // ep[current] = period;
 }
 
 uint64_t Dag::getVertexPeriod(vertex_hash const &vertex) const {
