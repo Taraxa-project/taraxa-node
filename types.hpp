@@ -90,6 +90,7 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 using sig_hash_t = uint256_hash_t;
 
+using gas_t = uint64_t;
 using key_t = std::string;
 using level_t = uint64_t;
 using val_t = dev::u256;
@@ -103,6 +104,7 @@ using byte = uint8_t;
 using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
 using round_t = uint64_t;
+using ETHBlockNum = round_t;
 using trx_nonce_t = val_t;
 using EthTransaction = dev::eth::Transaction;
 using EthTransactions = dev::eth::Transactions;

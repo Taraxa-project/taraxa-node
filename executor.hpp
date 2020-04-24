@@ -17,7 +17,6 @@
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
 #include "replay_protection/index.hpp"
-#include "trx_engine/index.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -37,7 +36,6 @@ class Executor {
   std::shared_ptr<eth::eth_service::EthService> eth_service_;
   using ReplayProtectionService = replay_protection::ReplayProtectionService;
   std::shared_ptr<ReplayProtectionService> replay_protection_service_;
-  trx_engine::TrxEngine trx_engine_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
   using AccountNonceTable = StatusTable<addr_t, val_t>;

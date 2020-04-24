@@ -12,8 +12,6 @@ using dev::eth::CheckTransaction;
 using dev::eth::Transactions;
 using std::move;
 using std::unordered_set;
-using trx_engine::StateTransitionResult;
-using trx_engine::TrxEngine;
 
 Executor::Executor(
     decltype(log_time_) log_time, decltype(db_) db,
@@ -22,8 +20,7 @@ Executor::Executor(
     : log_time_(std::move(log_time)),
       db_(std::move(db)),
       replay_protection_service_(std::move(replay_protection_service)),
-      eth_service_(std::move(eth_service)),
-      trx_engine_(eth_service_->getStateDB()) {
+      eth_service_(std::move(eth_service)) {
   auto blk_count = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_blk_.store(blk_count);
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -37,7 +34,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
     unordered_map<addr_t, val_t>& execution_touched_account_balances) {
   auto const& schedule = pbft_block.getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
-  EthTransactions transactions;
+  Transactions transactions;
   transactions.reserve(dag_blk_count);
   for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
     auto& blk_hash = schedule.dag_blks_order[blk_i];
@@ -60,54 +57,27 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
                      << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
-  auto [pending_header, current_header, trx_scope] = eth_service_->startBlock(
-      batch, pbft_block.getBeneficiary(), pbft_block.getTimestamp());
-  StateTransitionResult execution_result;
-  if (transactions.empty()) {
-    execution_result.stateRoot = current_header.stateRoot();
-  } else {
-    try {
-      // TODO op blockhash
-      execution_result = trx_engine_.transitionStateAndCommit({
-          current_header.stateRoot(),
-          trx_engine::Block{
-              pending_header.number(),
-              pending_header.author(),
-              pending_header.timestamp(),
-              pending_header.difficulty(),
-              uint64_t(pending_header.gasLimit()),
-              transactions,
-          },
-      });
-    } catch (TrxEngine::Exception const& e) {
-      // TODO more precise error handling
-      // TODO propagate the exception
-      LOG(log_er_) << e.what() << std::endl;
-      return std::nullopt;
-    }
-  }
-  auto& new_eth_header = eth_service_->commitBlock(pending_header,  //
-                                                   transactions,    //
-                                                   execution_result.receipts,
-                                                   execution_result.stateRoot);
+  auto new_eth_header =
+      eth_service_->commitBlock(batch, pbft_block.getBeneficiary(),
+                                pbft_block.getTimestamp(), transactions);
   uint64_t period = pbft_block.getPeriod();
   replay_protection_service_->commit(batch, period, transactions);
 
   // Copy the period execution touched account balances
-  execution_touched_account_balances =
-      execution_result.touchedExternallyOwnedAccountBalances;
+  //  execution_touched_account_balances = TODO
 
-  for (size_t i(0); i < transactions.size(); ++i) {
-    auto const& trx = transactions[i];
-    auto trx_hash = trx.sha3();
-    LOG(log_time_) << "Transaction " << trx_hash
-                   << " executed at: " << getCurrentTimeMilliSeconds();
-    auto const& trx_output = execution_result.transactionOutputs[i];
-    if (!trx_output.error.empty()) {
-      LOG(log_er_) << "Trx " << trx_hash << " failed: " << trx_output.error
-                   << std::endl;
-    }
-  }
+  // TODO
+  //  for (size_t i(0); i < transactions.size(); ++i) {
+  //    auto const& trx = transactions[i];
+  //    auto trx_hash = trx.sha3();
+  //    LOG(log_time_) << "Transaction " << trx_hash
+  //                   << " executed at: " << getCurrentTimeMilliSeconds();
+  //    auto const& trx_output = execution_result.transactionOutputs[i];
+  //    if (!trx_output.error.empty()) {
+  //      LOG(log_er_) << "Trx " << trx_hash << " failed: " << trx_output.error
+  //                   << std::endl;
+  //    }
+  //  }
   if (dag_blk_count != 0) {
     num_executed_blk_.fetch_add(dag_blk_count);
     num_executed_trx_.fetch_add(transactions.size());

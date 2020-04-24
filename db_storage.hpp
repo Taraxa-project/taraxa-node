@@ -77,8 +77,15 @@ struct DbStorage {
     COLUMN(replay_protection);
     COLUMN(eth_chain);
     COLUMN(eth_chain_extras);
-    COLUMN(eth_state);
+    COLUMN(eth_state);  // TODO remove
     COLUMN(pending_transactions);
+    COLUMN(code);
+    COLUMN(eth_state_main_trie_node);
+    COLUMN(eth_state_main_trie_value);
+    COLUMN(eth_state_main_trie_value_latest);
+    COLUMN(eth_state_acc_trie_node);
+    COLUMN(eth_state_acc_trie_value);
+    COLUMN(eth_state_acc_trie_value_latest);
 
 #undef COLUMN
   };

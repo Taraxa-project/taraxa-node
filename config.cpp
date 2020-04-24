@@ -1,7 +1,6 @@
 #include "config.hpp"
 
 #include <json/json.h>
-#include <libdevcore/LevelDB.h>
 
 #include <fstream>
 
@@ -32,8 +31,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     network.network_encrypted = doc.get<uint16_t>("network_encrypted") != 0;
     network.network_performance_log =
         doc.get<uint16_t>("network_performance_log") & 1;
-    if (doc.get<uint16_t>("network_performance_log") & 2)
-      dev::db::LevelDB::setPerf(true);
     for (auto &item : doc.get_child("network_boot_nodes")) {
       NodeConfig node;
       node.id = item.second.get<std::string>("id");

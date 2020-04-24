@@ -13,7 +13,6 @@
 #include <thread>
 
 #include "database_adapter.hpp"
-#include "pending_block_header.hpp"
 
 namespace taraxa {
 class FullNode;
@@ -65,7 +64,6 @@ using dev::eth::TransactionReceipts;
 using dev::eth::Transactions;
 using dev::eth::TransactionSkeleton;
 using dev::eth::UncleHashes;
-using pending_block_header::PendingBlockHeader;
 using std::atomic;
 using std::list;
 using std::map;
@@ -86,20 +84,9 @@ static inline auto const err_not_applicable =
 class EthService : virtual ClientBase {
   friend class ::taraxa::eth::eth::Eth;
 
- public:
-  using TransactionScope = list<DatabaseAdapter::TransactionScope>;
-
-  struct PendingBlockContext {
-    PendingBlockHeader pending_header;
-    BlockHeader current_header;
-    TransactionScope transaction_scope;
-  };
-
- private:
   weak_ptr<FullNode> node_;
   shared_ptr<DatabaseAdapter> db_adapter_;
   shared_ptr<DatabaseAdapter> extras_db_adapter_;
-  shared_ptr<DatabaseAdapter> state_db_adapter_;
   BlockChain bc_;
   thread gc_thread_;
   atomic<bool> destructor_called_ = false;
@@ -118,16 +105,10 @@ class EthService : virtual ClientBase {
 
   SealEngineFace* sealEngine() const override { return bc().sealEngine(); }
 
-  auto getStateDB() { return state_db_adapter_; }
   State getAccountsState() const;
 
-  PendingBlockContext startBlock(DbStorage::BatchPtr const& batch,
-                                 Address const& author, int64_t timestamp);
-
-  BlockHeader& commitBlock(PendingBlockHeader& header,
-                           Transactions const& transactions,
-                           TransactionReceipts const& receipts,  //
-                           h256 const& state_root);
+  BlockHeader commitBlock(DbStorage::BatchPtr batch, Address const& author,
+                          int64_t timestamp, Transactions const& transactions);
 
   void update_head() { bc_.update_head(); }
 
@@ -139,8 +120,6 @@ class EthService : virtual ClientBase {
   BlockHeader head() const;
 
  private:
-  TransactionScope setMasterBatch(DbStorage::BatchPtr const& batch);
-
   h256 submitTransaction(TransactionSkeleton const& _t,
                          Secret const& _secret) override;
   h256 importTransaction(Transaction const& _t) override;

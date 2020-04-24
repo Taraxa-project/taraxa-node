@@ -16,6 +16,7 @@
 
 namespace taraxa::replay_protection::replay_protection_service {
 using dev::db::DatabaseFace;
+using dev::eth::Transactions;
 using eth::database_adapter::DatabaseAdapter;
 using sender_state::SenderState;
 using std::list;
@@ -26,13 +27,11 @@ using std::shared_ptr;
 using std::string;
 
 struct ReplayProtectionService {
-  using transaction_batch_t = dev::eth::Transactions;
-
  private:
   round_t range_ = 0;
-  // explicitly use rocksdb since WriteBatchFace may behave not as expected
-  // in other implementations
+  // TODO use DbStorage
   shared_ptr<DatabaseAdapter> db_;
+  // TODO optimistic lock
   shared_mutex m_;
 
  public:
@@ -46,8 +45,8 @@ struct ReplayProtectionService {
     shared_lock l(m_);
     return hasBeenExecuted_(trx);
   }
-  void commit(DbStorage::BatchPtr const& master_batch, round_t round,
-              transaction_batch_t const& trxs);
+  void commit(DbStorage::BatchPtr batch, round_t round,
+              Transactions const& trxs);
 
  private:
   bool hasBeenExecuted_(Transaction const& trx) {

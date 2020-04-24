@@ -9,21 +9,24 @@ Slice aleth_slice(rocksdb::Slice const& s) { return {s.data(), s.size()}; }
 
 rocksdb::Slice db_slice(Slice const& s) { return {s.begin(), s.size()}; }
 
-void DatabaseAdapter::Batch::insert(Slice _key, Slice _value) {
-  ops_[_key.toString()] = _value.toString();
+OnceOutOfScope DatabaseAdapter::setBatch(DbStorage::BatchPtr batch) {
+  unique_lock l(batch_mu_);
+  assert(!batch_);
+  batch_ = batch;
+  return OnceOutOfScope([this] {
+    unique_lock l(batch_mu_);
+    batch_ = nullptr;
+  });
 }
 
-void DatabaseAdapter::Batch::kill(Slice _key) { ops_[_key.toString()] = ""; }
+void DatabaseAdapter::insert(Slice k, Slice v) {
+  unique_lock l(batch_mu_);
+  db_->batch_put(batch_, column_, db_slice(k), db_slice(v));
+}
 
-DatabaseAdapter::TransactionScope DatabaseAdapter::setMasterBatch(
-    DbStorage::BatchPtr const& master_batch) {
-  unique_lock l(set_master_batch_mu_);
-  assert(!master_batch_);
-  master_batch_ = master_batch;
-  return u_ptr(new OnceOutOfScope([this] {
-    unique_lock l(set_master_batch_mu_);
-    master_batch_ = nullptr;
-  }));
+void DatabaseAdapter::kill(Slice k) {
+  unique_lock l(batch_mu_);
+  db_->batch_delete(batch_, column_, db_slice(k));
 }
 
 string DatabaseAdapter::lookup(Slice _key) const {
@@ -31,35 +34,6 @@ string DatabaseAdapter::lookup(Slice _key) const {
 }
 
 bool DatabaseAdapter::exists(Slice _key) const { return !lookup(_key).empty(); }
-
-void DatabaseAdapter::insert(Slice _key, Slice _value) {
-  db_->insert(column_, db_slice(_key), db_slice(_value));
-}
-
-void DatabaseAdapter::kill(Slice _key) { db_->remove(db_slice(_key), column_); }
-
-unique_ptr<WriteBatchFace> DatabaseAdapter::createWriteBatch() const {
-  return u_ptr(new Batch);
-}
-
-void DatabaseAdapter::commit(unique_ptr<WriteBatchFace> _batch) {
-  shared_lock l(set_master_batch_mu_);
-  auto batch = dynamic_cast<Batch*>(_batch.get());
-  assert(batch);
-  auto target_batch = master_batch_ ? master_batch_ : db_->createWriteBatch();
-  // TODO consider writing to the master batch right away + rollback instead
-  // of always accumulating an intermediate map of updates, and then flushing it
-  for (auto& [k, v] : batch->ops_) {
-    if (v.empty()) {
-      db_->batch_delete(target_batch, column_, k);
-    } else {
-      db_->batch_put(target_batch, column_, k, v);
-    }
-  }
-  if (!master_batch_) {
-    db_->commitWriteBatch(target_batch);
-  }
-}
 
 void DatabaseAdapter::forEach(function<bool(Slice, Slice)> f) const {
   db_->forEach(column_, [&](auto const& k, auto const& v) {

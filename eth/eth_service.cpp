@@ -45,8 +45,6 @@ EthService::EthService(shared_ptr<FullNode> const& node,  //
           new DatabaseAdapter(node->getDB(), DbStorage::Columns::eth_chain)),
       extras_db_adapter_(new DatabaseAdapter(
           node->getDB(), DbStorage::Columns::eth_chain_extras)),
-      state_db_adapter_(
-          new DatabaseAdapter(node->getDB(), DbStorage::Columns::eth_state)),
       bc_(chain_params, db_adapter_, extras_db_adapter_, cache_config),
       current_node_account_holder(new FixedAccountHolder(              //
           [this] { return static_cast<dev::eth::Interface*>(this); },  //
@@ -56,7 +54,6 @@ EthService::EthService(shared_ptr<FullNode> const& node,  //
   assert(chain_params.sealEngineName == TaraxaSealEngine::name());
   assert(chain_params.maxGasLimit <= std::numeric_limits<uint64_t>::max());
   assert(chain_params.gasLimit <= chain_params.maxGasLimit);
-  bc_.genesisBlock(OverlayDB(state_db_adapter_));
   gc_thread_ = thread([this, gc_trigger_backoff] {
     while (!destructor_called_) {
       std::this_thread::sleep_for(gc_trigger_backoff);
@@ -105,31 +102,20 @@ h256 EthService::importTransaction(Transaction const& _t) {
   return taraxa_trx.getHash();
 }
 
-EthService::PendingBlockContext EthService::startBlock(
-    DbStorage::BatchPtr const& batch, Address const& author,
-    int64_t timestamp) {
+BlockHeader EthService::commitBlock(DbStorage::BatchPtr batch,
+                                    Address const& author, int64_t timestamp,
+                                    Transactions const& transactions) {
   auto current_header = head();
-  return {
-      {
-          current_header.number() + 1,
-          current_header.hash(),
-          author,
-          timestamp,
-          current_header.gasLimit(),
-          bytes_zero,
-          u256_zero,
-          h256_zero,
-          block_nonce_zero,
-      },
-      move(current_header),
-      setMasterBatch(batch),
-  };
-}
+  BlockHeader ret;
+  ret.setNumber(current_header.number() + 1);
+  ret.setParentHash(current_header.hash());
+  ret.setAuthor(author);
+  ret.setTimestamp(timestamp);
+  ret.setGasLimit(current_header.gasLimit());
+  ret.setDifficulty(0);
+  Ethash::setMixHash(ret, {});
+  Ethash::setNonce(ret, {});
 
-BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
-                                     Transactions const& transactions,
-                                     TransactionReceipts const& receipts,  //
-                                     h256 const& state_root) {
   BytesMap trxs_trie;
   RLPStream trxs_rlp(transactions.size());
   for (size_t i(0); i < transactions.size(); ++i) {
@@ -137,6 +123,8 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
     trxs_trie[rlp(i)] = trx_rlp;
     trxs_rlp.appendRaw(trx_rlp);
   }
+  TransactionReceipts receipts;  // TODO
+  h256 state_root;               // TODO
   BytesMap receipts_trie;
   RLPStream receipts_rlp(receipts.size());
   LogBloom log_bloom;
@@ -148,17 +136,20 @@ BlockHeader& EthService::commitBlock(PendingBlockHeader& header,
     log_bloom |= receipt.bloom();
   }
   u256 gas_used = receipts.empty() ? 0 : receipts.back().cumulativeGasUsed();
-  header.complete(gas_used, log_bloom, hash256(trxs_trie),
-                  hash256(receipts_trie), state_root);
+  ret.setGasUsed(gas_used);
+  ret.setLogBloom(log_bloom);
+  ret.setRoots(hash256(trxs_trie), hash256(receipts_trie), dev::EmptyListSHA3,
+               state_root);
   RLPStream block_rlp(3);
-  header.streamRLP(block_rlp);
+  ret.streamRLP(block_rlp);
   block_rlp.appendRaw(trxs_rlp.out());
   static auto const uncles_rlp_list = rlpList();
   block_rlp.appendRaw(uncles_rlp_list);
   auto block_bytes = block_rlp.out();
   auto receipts_bytes = receipts_rlp.out();
+  auto _ = {db_adapter_->setBatch(batch), extras_db_adapter_->setBatch(batch)};
   bc_.append_block_without_uncles(block_bytes, &receipts_bytes, u256_zero);
-  return header;
+  return ret;
 }
 
 ExecutionResult EthService::call(Address const& _from, u256 _value,
@@ -195,7 +186,7 @@ BlockChain& EthService::bc() { return bc_; }
 BlockChain const& EthService::bc() const { return bc_; }
 
 Block EthService::block(h256 const& _h) const {
-  return Block(bc_, OverlayDB(state_db_adapter_), bc_.info(_h));
+  return Block(bc_, OverlayDB(nullptr), bc_.info(_h));
 }
 
 Block EthService::preSeal() const { return block(bc().currentHash()); }
@@ -211,15 +202,6 @@ BlockHeader EthService::head() const { return bc_.head(); }
 
 State EthService::getAccountsState() const {
   return blockByNumber(LatestBlock).state();
-}
-
-EthService::TransactionScope EthService::setMasterBatch(
-    DbStorage::BatchPtr const& batch) {
-  EthService::TransactionScope ret;
-  ret.emplace_back(db_adapter_->setMasterBatch(batch));
-  ret.emplace_back(extras_db_adapter_->setMasterBatch(batch));
-  ret.emplace_back(state_db_adapter_->setMasterBatch(batch));
-  return ret;
 }
 
 }  // namespace taraxa::eth::eth_service

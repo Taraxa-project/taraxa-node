@@ -24,8 +24,6 @@ using std::unique_lock;
 using std::unordered_map;
 using taraxa::as_shared;
 
-string const CURR_ROUND_KEY = "curr_rnd";
-
 string senderStateKey(string const& sender_addr_hex) {
   return "sender_" + sender_addr_hex;
 }
@@ -63,23 +61,10 @@ bool ReplayProtectionService::hasBeenExecutedBeyondRange(
   return nonce_watermark && trx.getNonce() <= *nonce_watermark;
 }
 
-void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
-                                     round_t round,
-                                     transaction_batch_t const& trxs) {
+void ReplayProtectionService::commit(DbStorage::BatchPtr batch, round_t round,
+                                     Transactions const& trxs) {
   unique_lock l(m_);
-  TARAXA_PARANOID_CHECK {
-    if (auto v = db_->lookup(CURR_ROUND_KEY); !v.empty()) {
-      assert(stoull(v) + 1 == round);
-    } else {
-      assert(round == 0);
-    }
-    for (auto const& trx : trxs) {
-      auto executed = hasBeenExecuted_(eth::util::trx_eth_2_taraxa(trx));
-      assert(!executed);
-    }
-  }
-  db_->setMasterBatch(master_batch);
-  auto batch = db_->createWriteBatch();
+  auto _ = db_->setBatch(batch);
   stringstream round_data_keys;
   unordered_map<string, shared_ptr<SenderState>> sender_states;
   for (auto const& trx : trxs) {
@@ -97,20 +82,20 @@ void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
     sender_state->setNonceMax(trx.nonce());
     auto trx_hash = trx.sha3().hex();
     static string DUMMY_VALUE = "_";
-    batch->insert(trxHashKey(trx_hash), DUMMY_VALUE);
+    db_->insert(trxHashKey(trx_hash), DUMMY_VALUE);
     round_data_keys << trx_hash << "\n";
   }
   for (auto const& [sender, state] : sender_states) {
     if (state->isNonceMaxDirty() || state->isDefaultInitialized()) {
-      batch->insert(maxNonceAtRoundKey(round, sender),
-                    toBigEndianString(state->getNonceMax()));
-      batch->insert(senderStateKey(sender),
-                    slice_from_slice_like(state->rlp().out()));
+      db_->insert(maxNonceAtRoundKey(round, sender),
+                  toBigEndianString(state->getNonceMax()));
+      db_->insert(senderStateKey(sender),
+                  slice_from_slice_like(state->rlp().out()));
       round_data_keys << sender << "\n";
     }
   }
   if (auto v = round_data_keys.str(); !v.empty()) {
-    batch->insert(roundDataKeysKey(round), v);
+    db_->insert(roundDataKeysKey(round), v);
   }
   if (round >= range_) {
     auto bottom_round = round - range_;
@@ -125,19 +110,17 @@ void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
             auto sender_state_key = senderStateKey(line);
             auto state = loadSenderState(sender_state_key);
             state->setNonceWatermark(fromBigEndian<trx_nonce_t>(v));
-            batch->insert(sender_state_key,
-                          slice_from_slice_like(state->rlp().out()));
-            batch->kill(nonce_max_key);
+            db_->insert(sender_state_key,
+                        slice_from_slice_like(state->rlp().out()));
+            db_->kill(nonce_max_key);
           }
         } else if (trx_hash_t::size == line_size_bytes) {
-          batch->kill(trxHashKey(line));
+          db_->kill(trxHashKey(line));
         }
       }
-      batch->kill(bottom_round_data_keys_key);
+      db_->kill(bottom_round_data_keys_key);
     }
   }
-  batch->insert(CURR_ROUND_KEY, to_string(round));
-  db_->commit(move(batch));
 }
 
 shared_ptr<SenderState> ReplayProtectionService::loadSenderState(
