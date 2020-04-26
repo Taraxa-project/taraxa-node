@@ -197,10 +197,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
   std::shared_ptr<Executor> getExecutor() const { return executor_; }
-  bool executePeriod(DbStorage::BatchPtr const &batch,
-                     PbftBlock const &pbft_block,
-                     std::unordered_map<addr_t, PbftSortitionAccount>
-                         &sortition_account_balance_table);
+  bool executePeriod(
+      DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
+      unordered_set<addr_t> &dag_block_proposers,
+      unordered_set<addr_t> &trx_senders,
+      unordered_map<addr_t, val_t> &execution_touched_account_balances);
   void updateWsScheduleBlockExecuted(PbftBlock const &pbft_block);
 
   std::shared_ptr<DbStorage> getDB() const { return db_; }

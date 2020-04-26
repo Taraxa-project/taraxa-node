@@ -171,6 +171,10 @@ class PbftManager {
 
   void updateTwoTPlusOneAndThreshold_();
 
+  void updateTempSortitionAccountsTable_(
+      uint64_t period, unordered_set<addr_t> const &dag_block_proposers,
+      unordered_set<addr_t> const &trx_senders,
+      unordered_map<addr_t, val_t> const &execution_touched_account_balances);
   void updateSortitionAccountsTable_();
 
   void updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch);

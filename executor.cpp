@@ -16,13 +16,10 @@ using trx_engine::StateTransitionResult;
 using trx_engine::TrxEngine;
 
 Executor::Executor(
-    uint64_t pbft_require_sortition_coins,
-    decltype(log_time_) log_time,  //
-    decltype(db_) db,
-    decltype(replay_protection_service_) replay_protection_service,  //
+    decltype(log_time_) log_time, decltype(db_) db,
+    decltype(replay_protection_service_) replay_protection_service,
     decltype(eth_service_) eth_service)
-    : pbft_require_sortition_coins_(pbft_require_sortition_coins),
-      log_time_(std::move(log_time)),
+    : log_time_(std::move(log_time)),
       db_(std::move(db)),
       replay_protection_service_(std::move(replay_protection_service)),
       eth_service_(std::move(eth_service)),
@@ -35,13 +32,13 @@ Executor::Executor(
 
 std::optional<dev::eth::BlockHeader> Executor::execute(
     DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-    BalanceTable& sortition_account_balance_table) {
+    unordered_set<addr_t>& dag_block_proposers,
+    unordered_set<addr_t>& trx_senders,
+    unordered_map<addr_t, val_t>& execution_touched_account_balances) {
   auto const& schedule = pbft_block.getSchedule();
   auto dag_blk_count = schedule.dag_blks_order.size();
   EthTransactions transactions;
   transactions.reserve(dag_blk_count);
-  unordered_set<addr_t> dag_block_proposers;
-  unordered_set<addr_t> trx_senders;
   for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
     auto& blk_hash = schedule.dag_blks_order[blk_i];
     dev::bytes dag_block = db_->getDagBlockRaw(blk_hash);
@@ -95,71 +92,10 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
                                                    execution_result.stateRoot);
   uint64_t period = pbft_block.getPeriod();
   replay_protection_service_->commit(batch, period, transactions);
-  // Update PBFT sortition table for DAG block proposers who don't have account
-  // balance changed (no transaction relative accounts)
-  for (auto& addr : dag_block_proposers) {
-    auto sortition_table_entry =
-        std_find(sortition_account_balance_table, addr);
-    if (sortition_table_entry) {
-      auto& pbft_sortition_account = (*sortition_table_entry)->second;
-      // fixme: weird lossy cast
-      pbft_sortition_account.last_period_seen = static_cast<int64_t>(period);
-      pbft_sortition_account.status = new_change;
-    }
-  }
-  // Update PBFT sortition table for DAG block proposers who have account
-  // balance changed
-  for (auto& [addr, balance] :
-       execution_result.touchedExternallyOwnedAccountBalances) {
-    auto is_proposer = bool(std_find(dag_block_proposers, addr));
-    auto is_sender = bool(std_find(trx_senders, addr));
-    LOG(log_dg_) << "Externally owned account (is_sender: " << is_sender
-                 << ") balance update: " << addr << " --> " << balance
-                 << " in period " << period;
-    auto enough_balance = balance >= pbft_require_sortition_coins_;
-    auto sortition_table_entry =
-        std_find(sortition_account_balance_table, addr);
-    if (is_sender) {
-      // Transaction sender
-      if (sortition_table_entry) {
-        auto& pbft_sortition_account = (*sortition_table_entry)->second;
-        pbft_sortition_account.balance = balance;
-        if (is_proposer) {
-          // fixme: weird lossy cast
-          pbft_sortition_account.last_period_seen =
-              static_cast<int64_t>(period);
-        }
-        if (enough_balance) {
-          pbft_sortition_account.status = new_change;
-        } else {
-          // After send coins doesn't have enough for sortition
-          pbft_sortition_account.status = remove;
-        }
-      }
-    } else {
-      // Receiver
-      if (enough_balance) {
-        if (sortition_table_entry) {
-          auto& pbft_sortition_account = (*sortition_table_entry)->second;
-          pbft_sortition_account.balance = balance;
-          if (is_proposer) {
-            // TODO: weird lossy cast
-            pbft_sortition_account.last_period_seen =
-                static_cast<int64_t>(period);
-          }
-          pbft_sortition_account.status = new_change;
-        } else {
-          int64_t last_seen_period = -1;
-          if (is_proposer) {
-            // TODO: weird lossy cast
-            last_seen_period = static_cast<int64_t>(period);
-          }
-          sortition_account_balance_table[addr] =
-              PbftSortitionAccount(addr, balance, last_seen_period, new_change);
-        }
-      }
-    }
-  }
+
+  // Copy the period execution touched account balances
+  execution_touched_account_balances =
+      execution_result.touchedExternallyOwnedAccountBalances;
 
   for (size_t i(0); i < transactions.size(); ++i) {
     auto const& trx = transactions[i];
