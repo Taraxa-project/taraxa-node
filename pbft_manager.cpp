@@ -1815,7 +1815,7 @@ bool PbftManager::collectTransactions(
       trx_senders.insert(trx.sender());
       db_->removePendingTransactionToBatch(batch, trx_hash);
       LOG(log_tra_) << "Transaction " << trx_hash
-                     << " read from db at: " << getCurrentTimeMilliSeconds();
+                    << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
   return true;

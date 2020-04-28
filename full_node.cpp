@@ -529,9 +529,8 @@ bool FullNode::executePeriod(
   // update transaction overlap table first
   trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
 
-  auto new_eth_header =
-      executor_->execute(batch, pbft_block, transactions,
-                         execution_touched_account_balances);
+  auto new_eth_header = executor_->execute(batch, pbft_block, transactions,
+                                           execution_touched_account_balances);
   if (!new_eth_header) {
     return false;
   }

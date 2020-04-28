@@ -30,7 +30,7 @@ class Executor {
 
   std::optional<dev::eth::BlockHeader> execute(
       DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-      EthTransactions &transactions,
+      EthTransactions& transactions,
       unordered_map<addr_t, val_t>& execution_touched_account_balances);
 };
 

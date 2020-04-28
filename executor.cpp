@@ -4,15 +4,15 @@ namespace taraxa {
 using trx_engine::StateTransitionResult;
 using trx_engine::TrxEngine;
 
-Executor::Executor(
-    decltype(log_time_) log_time, decltype(eth_service_) eth_service)
+Executor::Executor(decltype(log_time_) log_time,
+                   decltype(eth_service_) eth_service)
     : log_time_(std::move(log_time)),
       eth_service_(std::move(eth_service)),
       trx_engine_(eth_service_->getStateDB()) {}
 
 std::optional<dev::eth::BlockHeader> Executor::execute(
     DbStorage::BatchPtr const& batch, PbftBlock const& pbft_block,
-    EthTransactions &transactions,
+    EthTransactions& transactions,
     unordered_map<addr_t, val_t>& execution_touched_account_balances) {
   auto [pending_header, current_header, trx_scope] = eth_service_->startBlock(
       batch, pbft_block.getBeneficiary(), pbft_block.getTimestamp());
@@ -40,8 +40,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
       return std::nullopt;
     }
   }
-  auto& new_eth_header = eth_service_->commitBlock(pending_header,
-                                                   transactions,
+  auto& new_eth_header = eth_service_->commitBlock(pending_header, transactions,
                                                    execution_result.receipts,
                                                    execution_result.stateRoot);
 
