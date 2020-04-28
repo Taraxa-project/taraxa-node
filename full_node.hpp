@@ -199,8 +199,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Executor> getExecutor() const { return executor_; }
   bool executePeriod(
       DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
-      unordered_set<addr_t> &dag_block_proposers,
-      unordered_set<addr_t> &trx_senders,
+      EthTransactions &transactions,
       unordered_map<addr_t, val_t> &execution_touched_account_balances);
   void updateWsScheduleBlockExecuted(PbftBlock const &pbft_block);
 

@@ -179,6 +179,12 @@ class PbftManager {
 
   void updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch);
 
+  bool collectTransactions(DbStorage::BatchPtr const &batch,
+                           PbftBlock const &pbft_block,
+                           EthTransactions &transactions,
+                           unordered_set<addr_t> &dag_block_proposers,
+                           unordered_set<addr_t> &trx_senders);
+
   std::atomic<bool> stopped_ = true;
   // Using to check if PBFT block has been proposed already in one period
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
@@ -236,6 +242,9 @@ class PbftManager {
   size_t sortition_threshold_ = 0;
   size_t TWO_T_PLUS_ONE = 0;  // This is 2t+1
   bool is_active_player_ = false;
+
+  std::atomic<uint64_t> num_executed_blk_ = 0;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
 
   std::string dag_genesis_;
 

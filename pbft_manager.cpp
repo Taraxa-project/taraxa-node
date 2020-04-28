@@ -42,6 +42,10 @@ void PbftManager::setFullNode(
   capability_ = full_node->getNetwork()->getTaraxaCapability();
   replay_protection_service_ = replay_protection_service;
   db_ = full_node->getDB();
+  auto blk_count = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  num_executed_blk_.store(blk_count);
+  auto trx_count = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+  num_executed_trx_.store(trx_count);
 }
 
 void PbftManager::start() {
@@ -1512,14 +1516,30 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     return false;
   }
   auto batch = db_->createWriteBatch();
-  // execute PBFT schedule
+  // Collect transactions
+  EthTransactions transactions;
   unordered_set<addr_t> dag_block_proposers;
   unordered_set<addr_t> trx_senders;
+  if (!collectTransactions(batch, pbft_block, transactions, dag_block_proposers,
+                           trx_senders)) {
+    return false;
+  }
+  // execute PBFT schedule
   unordered_map<addr_t, val_t> execution_touched_account_balances;
   auto full_node = node_.lock();
-  if (!full_node->executePeriod(batch, pbft_block, dag_block_proposers,
-                                trx_senders,
-                                execution_touched_account_balances)) {
+  if (full_node->executePeriod(batch, pbft_block, transactions,
+                               execution_touched_account_balances)) {
+    auto dag_blk_count = pbft_block.getSchedule().dag_blks_order.size();
+    if (dag_blk_count != 0) {
+      num_executed_blk_.fetch_add(dag_blk_count);
+      num_executed_trx_.fetch_add(transactions.size());
+      LOG(log_deb_) << full_node->getAddress() << " : Executed dag blocks #"
+                    << num_executed_blk_ - dag_blk_count << "-"
+                    << num_executed_blk_ - 1
+                    << " , Efficiency: " << transactions.size() << "/"
+                    << transactions.capacity();
+    }
+  } else {
     LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
                   << pbft_block;
     for (auto const &v : cert_votes) {
@@ -1527,21 +1547,21 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     }
     return false;
   }
-  // Update temp sortition accounts table
+
+  // Replay protection service commit
   uint64_t pbft_period = pbft_block.getPeriod();
+  replay_protection_service_->commit(batch, pbft_period, transactions);
+
+  // Update temp sortition accounts table
   updateTempSortitionAccountsTable_(pbft_period, dag_block_proposers,
                                     trx_senders,
                                     execution_touched_account_balances);
-
   // Update number of executed DAG blocks/transactions in DB
-  auto executor = full_node->getExecutor();
-  auto num_executed_blk = executor->getNumExecutedBlk();
-  auto num_executed_trx = executor->getNumExecutedTrx();
-  if (num_executed_blk > 0 && num_executed_trx > 0) {
+  if (num_executed_blk_ > 0 && num_executed_trx_ > 0) {
     db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
-                               num_executed_blk, batch);
+                               num_executed_blk_, batch);
     db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
-                               num_executed_trx, batch);
+                               num_executed_trx_, batch);
   }
   // Add dag_block_period in DB
   for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
@@ -1768,6 +1788,37 @@ void PbftManager::updateSortitionAccountsDB_(DbStorage::BatchPtr const &batch) {
       std::to_string(sortition_account_balance_table_tmp.size());
   db_->addSortitionAccountToBatch(std::string("sortition_accounts_size"),
                                   account_size, batch);
+}
+
+bool PbftManager::collectTransactions(
+    DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
+    EthTransactions &transactions, unordered_set<addr_t> &dag_block_proposers,
+    unordered_set<addr_t> &trx_senders) {
+  auto const &schedule = pbft_block.getSchedule();
+  auto dag_blk_count = schedule.dag_blks_order.size();
+  transactions.reserve(dag_blk_count);
+  for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
+    auto &blk_hash = schedule.dag_blks_order[blk_i];
+    dev::bytes dag_block = db_->getDagBlockRaw(blk_hash);
+    if (dag_block.empty()) {
+      LOG(log_err_) << "Cannot get DAG block " << blk_hash << " from DB";
+      return false;
+    }
+    dag_block_proposers.insert(DagBlock(dag_block).getSender());
+    auto &dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
+    transactions.reserve(transactions.capacity() + dag_blk_trxs_mode.size() -
+                         1);
+    for (auto &trx_hash_and_mode : dag_blk_trxs_mode) {
+      auto &[trx_hash, mode] = trx_hash_and_mode;
+      auto &trx = transactions.emplace_back(db_->getTransactionRaw(trx_hash),
+                                            dev::eth::CheckTransaction::None);
+      trx_senders.insert(trx.sender());
+      db_->removePendingTransactionToBatch(batch, trx_hash);
+      LOG(log_tra_) << "Transaction " << trx_hash
+                     << " read from db at: " << getCurrentTimeMilliSeconds();
+    }
+  }
+  return true;
 }
 
 void PbftManager::countVotes_() {

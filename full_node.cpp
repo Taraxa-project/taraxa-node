@@ -84,8 +84,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.chain.replay_protection_service_range, db_);
-  executor_ = as_shared(
-      new Executor(log_time_, db_, replay_protection_service_, eth_service_));
+  executor_ = as_shared(new Executor(log_time_, eth_service_));
   if (rebuild_network) {
     network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
                                          genesis_hash.toString());
@@ -103,7 +102,6 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   vote_mgr_->setFullNode(getShared());
   pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
   pbft_chain_->setFullNode(getShared());
-  executor_->setFullNode(getShared());
   // ===== Post-initialization tasks =====
   // Reconstruct DAG
   if (!destroy_db) {
@@ -526,14 +524,13 @@ bool FullNode::verifySignature(dev::Signature const &signature,
 
 bool FullNode::executePeriod(
     DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
-    unordered_set<addr_t> &dag_block_proposers,
-    unordered_set<addr_t> &trx_senders,
+    EthTransactions &transactions,
     unordered_map<addr_t, val_t> &execution_touched_account_balances) {
   // update transaction overlap table first
   trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
 
   auto new_eth_header =
-      executor_->execute(batch, pbft_block, dag_block_proposers, trx_senders,
+      executor_->execute(batch, pbft_block, transactions,
                          execution_touched_account_balances);
   if (!new_eth_header) {
     return false;
