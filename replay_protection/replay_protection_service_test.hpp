@@ -2,7 +2,6 @@
 #define TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_TEST_HPP_
 
 #include <gtest/gtest.h>
-#include <libdevcore/RocksDB.h>
 
 #include <boost/filesystem.hpp>
 #include <optional>
@@ -28,7 +27,7 @@ using std::nullopt;
 using std::optional;
 using std::shared_ptr;
 using std::vector;
-using taraxa::as_shared;
+using taraxa::s_ptr;
 using taraxa::Transaction;
 
 // TODO more tests
@@ -57,7 +56,7 @@ struct ReplayProtectionServiceTest : testing::Test {
     this->range = range;
     this->history = history;
     db = DbStorage::make(DB_DIR, h256::random(), true);
-    sut = as_shared(new ReplayProtectionService(range, db));
+    sut = s_ptr(new ReplayProtectionService(range, db));
   }
 
   void apply_history(optional<round_t> record_count = nullopt) {

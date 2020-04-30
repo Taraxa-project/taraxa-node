@@ -75,11 +75,10 @@ struct DbStorage {
     COLUMN(period_schedule_block);
     COLUMN(dag_block_period);
     COLUMN(replay_protection);
-    COLUMN(eth_chain);
-    COLUMN(eth_chain_extras);
-    COLUMN(eth_state);  // TODO remove
     COLUMN(pending_transactions);
-    COLUMN(code);
+    COLUMN(aleth_chain);
+    COLUMN(aleth_chain_extras);
+    COLUMN(eth_state_code);
     COLUMN(eth_state_main_trie_node);
     COLUMN(eth_state_main_trie_value);
     COLUMN(eth_state_main_trie_value_latest);

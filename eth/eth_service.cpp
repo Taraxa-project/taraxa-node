@@ -37,60 +37,46 @@ u256 const u256_zero(0);
 Nonce const block_nonce_zero(0);
 
 EthService::EthService(shared_ptr<FullNode> const& node,  //
-                       ChainParams const& chain_params,
                        BlockChain::CacheConfig const& cache_config,
                        milliseconds gc_trigger_backoff)
     : node_(node),
       db_adapter_(
-          new DatabaseAdapter(node->getDB(), DbStorage::Columns::eth_chain)),
+          new DatabaseAdapter(node->getDB(), DbStorage::Columns::aleth_chain)),
       extras_db_adapter_(new DatabaseAdapter(
-          node->getDB(), DbStorage::Columns::eth_chain_extras)),
-      bc_(chain_params, db_adapter_, extras_db_adapter_, cache_config),
-      current_node_account_holder(new FixedAccountHolder(              //
-          [this] { return static_cast<dev::eth::Interface*>(this); },  //
-          {
-              KeyPair(node->getSecretKey()),
-          })) {
-  assert(chain_params.sealEngineName == TaraxaSealEngine::name());
-  assert(chain_params.maxGasLimit <= std::numeric_limits<uint64_t>::max());
-  assert(chain_params.gasLimit <= chain_params.maxGasLimit);
-  gc_thread_ = thread([this, gc_trigger_backoff] {
-    while (!destructor_called_) {
-      std::this_thread::sleep_for(gc_trigger_backoff);
-      bc_.garbageCollect();
-    }
-  });
-}
+          node->getDB(), DbStorage::Columns::aleth_chain_extras)),
+      bc_(db_adapter_, extras_db_adapter_, cache_config),
+      bc_gc_thread_([this, gc_trigger_backoff] {
+        while (!destructor_called_) {
+          std::this_thread::sleep_for(gc_trigger_backoff);
+          bc_.garbageCollect();
+        }
+      }) {}
 
 EthService::~EthService() {
   destructor_called_ = true;
-  if (gc_thread_.joinable()) {
-    gc_thread_.join();
-  }
+  gc_thread_.join();
 }
 
-Address EthService::author() const { return node_.lock()->getAddress(); }
 
-TransactionSkeleton EthService::populateTransactionWithDefaults(
-    TransactionSkeleton const& _t) const {
-  TransactionSkeleton ret(_t);
-  //  https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendtransaction
-  static const u256 defaultTransactionGas = 90000;
+void EthService::populateTransactionWithDefaults(
+    TransactionSkeleton& ret) const {
+  if (!ret.from) {
+    ret.from = author();
+  }
   if (ret.nonce == Invalid256) {
-    ret.nonce = postSeal().transactionsFrom(ret.from);
+    ret.nonce = nonceAt(ret.from);
   }
   if (ret.gasPrice == Invalid256) {
     ret.gasPrice = gasBidPrice();
   }
   if (ret.gas == Invalid256) {
+    static const u256 defaultTransactionGas = 90000;
     ret.gas = defaultTransactionGas;
   }
-  return ret;
 }
 
-h256 EthService::submitTransaction(TransactionSkeleton const& _t,
-                                   Secret const& _secret) {
-  return importTransaction({populateTransactionWithDefaults(_t), _secret});
+Transaction EthService::sign(TransactionSkeleton const& _t) {
+  return {_t, node_.lock()->getSecretKey()};
 }
 
 h256 EthService::importTransaction(Transaction const& _t) {
@@ -112,9 +98,6 @@ BlockHeader EthService::commitBlock(DbStorage::BatchPtr batch,
   ret.setAuthor(author);
   ret.setTimestamp(timestamp);
   ret.setGasLimit(current_header.gasLimit());
-  ret.setDifficulty(0);
-  Ethash::setMixHash(ret, {});
-  Ethash::setNonce(ret, {});
 
   BytesMap trxs_trie;
   RLPStream trxs_rlp(transactions.size());
@@ -148,30 +131,11 @@ BlockHeader EthService::commitBlock(DbStorage::BatchPtr batch,
   auto block_bytes = block_rlp.out();
   auto receipts_bytes = receipts_rlp.out();
   auto _ = {db_adapter_->setBatch(batch), extras_db_adapter_->setBatch(batch)};
-  bc_.append_block_without_uncles(block_bytes, &receipts_bytes, u256_zero);
+  bc_.append_block(block_bytes, &receipts_bytes, u256_zero);
   return ret;
 }
 
-ExecutionResult EthService::call(Address const& _from, u256 _value,
-                                 Address _dest, bytes const& _data, u256 _gas,
-                                 u256 _gasPrice, BlockNumber _blockNumber,
-                                 FudgeFactor _ff) {
-  // TODO use taraxa-evm
-  auto block = blockByNumber(_blockNumber);
-  auto nonce = block.transactionsFrom(_from);
-  auto gas =
-      _gas == Invalid256 ? sealEngine()->chainParams().maxGasLimit : _gas;
-  auto gasPrice = _gasPrice == Invalid256 ? 0 : _gasPrice;
-  Transaction t(_value, gasPrice, gas, _dest, _data, nonce);
-  t.forceSender(_from);
-  if (_ff == FudgeFactor::Lenient) {
-    block.mutableState().addBalance(_from,
-                                    u256(t.gas() * t.gasPrice() + t.value()));
-  }
-  return block.execute(bc().lastBlockHashes(), t, Permanence::Reverted);
-}
-
-Transactions EthService::pending() const {
+Transactions EthService::pendingTransactions() const {
   auto trxs = node_.lock()->getPendingTransactions();
   Transactions ret;
   ret.reserve(trxs.size());
@@ -185,23 +149,11 @@ BlockChain& EthService::bc() { return bc_; }
 
 BlockChain const& EthService::bc() const { return bc_; }
 
-Block EthService::block(h256 const& _h) const {
-  return Block(bc_, OverlayDB(nullptr), bc_.info(_h));
-}
-
-Block EthService::preSeal() const { return block(bc().currentHash()); }
-
-Block EthService::postSeal() const { return preSeal(); }
-
 SyncStatus EthService::syncStatus() const {
   // TODO
   return {};
 }
 
 BlockHeader EthService::head() const { return bc_.head(); }
-
-State EthService::getAccountsState() const {
-  return blockByNumber(LatestBlock).state();
-}
 
 }  // namespace taraxa::eth::eth_service

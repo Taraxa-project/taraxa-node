@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_HPP_
 #define TARAXA_NODE_REPLAY_PROTECTION_REPLAY_PROTECTION_SERVICE_HPP_
 
-#include <libdevcore/RocksDB.h>
 #include <libethereum/Transaction.h>
 
 #include <list>

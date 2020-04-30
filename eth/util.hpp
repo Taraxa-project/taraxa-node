@@ -19,10 +19,6 @@ inline EthTransaction trx_taraxa_2_eth(Transaction const& t) {
   return EthTransaction(t.rlp(t.hasSig()), CheckTransaction::None);
 }
 
-inline string to_json(dev::eth::AccountMap const& accs) {
-  assert(false);  // TODO
-}
-
 }  // namespace taraxa::eth::util
 
 #endif  // TARAXA_NODE_ETH_UTIL_HPP_

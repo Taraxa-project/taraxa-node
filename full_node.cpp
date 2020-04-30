@@ -71,7 +71,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
                                      conf_.test_params.max_block_queue_warn);
-  eth_service_ = as_shared(new EthService(getShared(), conf_.chain.eth));
+  eth_service_ = s_ptr(new EthService(getShared(), conf_.chain.eth));
   trx_mgr_ =
       std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
@@ -84,7 +84,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
   replay_protection_service_ = std::make_shared<ReplayProtectionService>(
       conf_.chain.replay_protection_service_range, db_);
-  executor_ = as_shared(
+  executor_ = s_ptr(
       new Executor(log_time_, db_, replay_protection_service_, eth_service_));
   if (rebuild_network) {
     network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
@@ -539,8 +539,7 @@ bool FullNode::executePeriod(
     return false;
   }
   if (ws_server_) {
-    ws_server_->newOrderedBlock(
-        dev::eth::toJson(*new_eth_header, eth_service_->sealEngine()));
+    ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header));
   }
   return true;
 }

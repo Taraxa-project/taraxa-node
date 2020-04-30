@@ -6,11 +6,11 @@
 #include <signal.h>
 
 #include <boost/asio.hpp>
+#include <boost/format.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/thread.hpp>
-#include <boost/format.hpp>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -44,7 +44,7 @@ struct ProcessReturn {
 };
 
 template <typename T, typename U = T>
-std::vector<T> asVector(Json::Value const &json, std::string const & key) {
+std::vector<T> asVector(Json::Value const &json, std::string const &key) {
   std::vector<T> v;
   auto key_child = json[key];
   std::transform(key_child.begin(), key_child.end(), std::back_inserter(v),
@@ -241,7 +241,6 @@ inline std::string unquote_non_str_literals(const std::string &json_str) {
   return std::regex_replace(json_str, re, "$1");
 }
 
-
 template <typename... TS>
 std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
@@ -266,12 +265,6 @@ auto std_find(Container const &container, What const &what) {
 }
 
 inline auto noop() { return [](auto...) -> auto {}; }
-
-// TODO remove
-template <typename T>
-std::shared_ptr<T> as_shared(T *ptr) {
-  return std::shared_ptr<T>(ptr);
-}
 
 template <typename T>
 auto s_ptr(T *ptr) {
