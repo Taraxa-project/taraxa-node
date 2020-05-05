@@ -13,10 +13,12 @@
 #include "create_samples.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
+#include "util.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
+using namespace core_tests::util;
 
 const unsigned NUM_TRX = 10;
 auto g_secret = Lazy([] {
@@ -39,12 +41,9 @@ auto g_trx_samples2 =
     Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
 auto g_signed_trx_samples2 = Lazy(
     [] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
-auto g_conf1 =
-    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa1.json"); });
-auto g_conf2 =
-    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa2.json"); });
-auto g_conf3 =
-    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa3.json"); });
+auto g_conf1 = Lazy([] { return FullNodeConfig(conf_file[0]); });
+auto g_conf2 = Lazy([] { return FullNodeConfig(conf_file[1]); });
+auto g_conf3 = Lazy([] { return FullNodeConfig(conf_file[2]); });
 
 struct NetworkTest : core_tests::util::DBUsingTest<> {};
 
@@ -210,14 +209,14 @@ verifies that connection fails
 */
 TEST_F(NetworkTest, node_network_id) {
   {
-    FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
+    FullNodeConfig conf1(conf_file[0]);
     conf1.network.network_id = "main";
     auto node1(taraxa::FullNode::make(conf1, true));
 
     node1->setDebug(true);
     node1->start(true);
 
-    FullNodeConfig conf2(std::string("./core_tests/conf/conf_taraxa2.json"));
+    FullNodeConfig conf2(conf_file[1]);
     conf2.network.network_id = "main";
     auto node2 = taraxa::FullNode::make(conf2, true);
 
@@ -229,14 +228,14 @@ TEST_F(NetworkTest, node_network_id) {
     EXPECT_EQ(node2->getPeerCount(), 1);
   }
   {
-    FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
+    FullNodeConfig conf1(conf_file[0]);
     conf1.network.network_id = "main";
     auto node1(taraxa::FullNode::make(conf1, true));
 
     node1->setDebug(true);
     node1->start(true);
 
-    FullNodeConfig conf2(std::string("./core_tests/conf/conf_taraxa2.json"));
+    FullNodeConfig conf2(conf_file[1]);
     conf2.network.network_id = "testnet";
     auto node2 = taraxa::FullNode::make(conf2, true);
 
@@ -255,8 +254,7 @@ that the second node syncs with it and that the resulting
 DAG on the other end is the same
 */
 TEST_F(NetworkTest, node_sync) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -333,8 +331,7 @@ that the second node syncs with it and that the resulting
 chain on the other end is the same
 */
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->start(true);  // boot node
   node1->getPbftManager()->stop();
   auto db1 = node1->getDB();
@@ -452,8 +449,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->start(true);  // boot node
   node1->getPbftManager()->stop();
   auto db1 = node1->getDB();
@@ -568,8 +564,7 @@ Unlike the previous tests, this DAG contains blocks with transactions
 and verifies that the sync containing transactions is successful
 */
 TEST_F(NetworkTest, node_sync_with_transactions) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -659,8 +654,7 @@ DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -801,8 +795,7 @@ Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
 TEST_F(NetworkTest, node_transaction_sync) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -844,14 +837,13 @@ resulting DAG is the same on all nodes
 // fixme: flaky
 TEST_F(NetworkTest, node_full_sync) {
   const int numberOfNodes = 5;
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->setDebug(true);
   node1->start(true);  // boot node
 
   std::vector<FullNode::Handle> nodes;
   for (int i = 0; i < numberOfNodes; i++) {
-    FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa2.json"));
+    FullNodeConfig config(conf_file[1]);
     config.db_path += std::to_string(i + 1);
     config.network.network_listen_port += i + 1;
     config.node_secret = "";

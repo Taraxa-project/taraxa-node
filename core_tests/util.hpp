@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "config.hpp"
+#include "top.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::core_tests::util {
@@ -30,6 +31,25 @@ using std::endl;
 using std::is_base_of;
 using std::vector;
 using ::taraxa::util::lazy::Lazy;
+
+inline vector<const char*> const conf_file = {
+    "./core_tests/conf/conf_taraxa1.json",
+    "./core_tests/conf/conf_taraxa2.json",
+    "./core_tests/conf/conf_taraxa3.json",
+    "./core_tests/conf/conf_taraxa4.json",
+    "./core_tests/conf/conf_taraxa5.json"};
+
+inline vector<vector<const char*>> const conf_input = {
+    {"./build/main", "--conf_taraxa", conf_file[0], "-v", "4", "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[1], "-v", "-2", "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[2], "-v", "-2", "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[3], "-v", "-2", "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[4], "-v", "-2",
+     "--destroy_db"}};
+
+inline vector<vector<const char*>> const conf_input_persist_db = {
+    {"./build/main", "--conf_taraxa", conf_file[0], "-v", "4"},
+    {"./build/main", "--conf_taraxa", conf_file[1], "-v", "-2"}};
 
 inline path const config_dir = "./core_tests/conf";
 inline auto const all_configs = Lazy([] {
@@ -47,6 +67,47 @@ inline void cleanAllTestDB() {
   for (auto& cfg : *all_configs) {
     remove_all(cfg.db_path);
   }
+}
+
+pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>>
+createNodesAndVerifyConnection(int count, bool persist = false) {
+  pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>> result;
+  vector<unique_ptr<Top>>& tops = result.first;
+  vector<shared_ptr<FullNode>>& nodes = result.second;
+  assert(count > 0);
+  vector<vector<const char*>> conf;
+  if (persist) {
+    conf = conf_input_persist_db;
+  } else {
+    conf = conf_input;
+  }
+  assert(count <= conf.size());
+  for (int i = 0; i < count; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(200);
+    tops.emplace_back(
+        make_unique<Top>(conf[i].size(), (const char**)&conf[i][0]));
+    nodes.emplace_back(tops[i]->getNode());
+  }
+  taraxa::thisThreadSleepForMilliSeconds(200);
+  if (count > 1) {
+    for (int retries = 0; retries < 3; retries++) {
+      bool allConnected = true;
+      for (int i = 0; i < 10; i++) {
+        taraxa::thisThreadSleepForMilliSeconds(100);
+        allConnected = true;
+        for (int j = 0; j < count; j++) {
+          allConnected &= (nodes[j]->getPeerCount() > 0);
+        }
+        if (allConnected) break;
+      }
+      if (allConnected) break;
+    }
+
+    for (int i = 0; i < count; i++) {
+      EXPECT_GT(nodes[i]->getPeerCount(), 0);
+    }
+  }
+  return result;
 }
 
 template <typename T = ::testing::Test,

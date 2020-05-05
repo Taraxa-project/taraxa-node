@@ -18,6 +18,7 @@
 
 namespace taraxa {
 using core_tests::util::constants::TEST_TX_GAS_LIMIT;
+using namespace core_tests::util;
 
 struct PbftChainTest : core_tests::util::DBUsingTest<> {};
 
@@ -43,8 +44,7 @@ TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
 }
 
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
-  auto node(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node(taraxa::FullNode::make(FullNodeConfig(conf_file[0]), true));
   // Generate PBFT block sample
   blk_hash_t prev_block_hash(12345);
   blk_hash_t dag_block_hash_as_pivot(45678);
@@ -75,8 +75,7 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
 }
 
 TEST_F(PbftChainTest, pbft_db_test) {
-  auto node(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
   node->start(true);  // boot node
   auto db = node->getDB();
   std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
@@ -118,12 +117,9 @@ TEST_F(PbftChainTest, pbft_db_test) {
 }
 
 TEST_F(PbftChainTest, block_broadcast) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json")));
-  auto node2(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json")));
-  auto node3(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa3.json")));
+  auto node1(taraxa::FullNode::make(conf_file[0]));
+  auto node2(taraxa::FullNode::make(conf_file[1]));
+  auto node3(taraxa::FullNode::make(conf_file[2]));
 
   std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
@@ -257,8 +253,7 @@ TEST_F(PbftChainTest, block_broadcast) {
 }
 
 TEST_F(PbftChainTest, get_dag_block_hash) {
-  auto node(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
   node->setDebug(true);
   node->start(true);  // boot_node
 
@@ -326,8 +321,7 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
 }
 
 TEST_F(PbftChainTest, get_dag_block_height) {
-  auto node(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
   node->setDebug(true);
   node->start(true);  // boot_node
 

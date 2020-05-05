@@ -215,7 +215,7 @@ TEST_F(CryptoTest, sortition_test) {
 }
 
 TEST_F(CryptoTest, sortition_rate) {
-  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  FullNodeConfig cfg(conf_file[0]);
   auto node(FullNode::make(cfg, true));
 
   size_t valid_sortition_players;
