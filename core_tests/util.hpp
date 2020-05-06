@@ -96,7 +96,7 @@ createNodesAndVerifyConnection(int count, bool persist = false) {
         taraxa::thisThreadSleepForMilliSeconds(100);
         allConnected = true;
         for (int j = 0; j < count; j++) {
-          allConnected &= (nodes[j]->getPeerCount() > 0);
+          allConnected &= (nodes[j]->getPeerCount() == count);
         }
         if (allConnected) break;
       }
