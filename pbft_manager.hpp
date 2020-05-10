@@ -102,12 +102,10 @@ class PbftManager {
   void setNextState_();
   void setFilterState_();
   void setCertifyState_();
-  void setFirstFinishState_();
-  void setSecondFinishState_();
-  void setPostFirstFinishState_();
-  void setPostSecondFinishState_();
-  void jumpPostSecondFinishState_(size_t step);
-  void loopBackPostFirstFinishState_();
+  void setFinishState_();
+  void setFinishPollingState_();
+  void continueFinishPollingState_(size_t step);
+  void loopBackFinishState_();
 
   bool stateOperations_();
   void proposeBlock_();
@@ -115,8 +113,6 @@ class PbftManager {
   void certifyBlock_();
   void firstFinish_();
   void secondFinish_();
-  void postFirstFinish_();
-  void postSecondFinish_();
 
   uint64_t roundDeterminedFromVotes_();
 
@@ -145,8 +141,6 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(
       std::vector<Vote> const &votes);
-
-  bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
@@ -220,9 +214,9 @@ class PbftManager {
   bool should_have_cert_voted_in_this_round_;
   bool next_voted_soft_value_;
   bool next_voted_null_block_hash_;
-  bool skip_post_first_finish_;
-  bool go_first_finish_state_;
-  bool go_post_first_finish_state_;
+  bool continue_finish_polling_state_;
+  bool go_finish_state_;
+  bool loop_back_finish_state_;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
