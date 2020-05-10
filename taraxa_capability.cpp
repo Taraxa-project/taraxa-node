@@ -1262,7 +1262,8 @@ void TaraxaCapability::onStarting() {
     host_.scheduleExecution(conf_.network_transaction_interval,
                             [this]() { sendTransactions(); });
   if (full_node) {
-    check_status_interval_ = 6 * full_node->getConfig().test_params.pbft.lambda_ms_min;
+    check_status_interval_ =
+        6 * full_node->getConfig().test_params.pbft.lambda_ms_min;
     host_.scheduleExecution(check_status_interval_,
                             [this]() { doBackgroundWork(); });
   }

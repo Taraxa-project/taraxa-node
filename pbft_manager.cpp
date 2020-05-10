@@ -468,7 +468,7 @@ void PbftManager::loopBackFinishState_() {
 }
 
 bool PbftManager::stateOperations_() {
-  // Reset skipping post first finish state
+  // Reset continue finish polling state
   continue_finish_polling_state_ = false;
 
   // NOTE: PUSHING OF SYNCED BLOCKS CAN TAKE A LONG TIME

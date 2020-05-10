@@ -39,11 +39,12 @@ TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
   pbft_params.lambda_ms_min = 1000;
   pbft_params.committee_size = 3;
   pbft_params.valid_sortition_coins = 10000;
-  
+
   PbftManager pbft_manager(pbft_params, GENESIS);
   EXPECT_EQ(pbft_params.lambda_ms_min, pbft_manager.LAMBDA_ms_MIN);
   EXPECT_EQ(pbft_params.committee_size, pbft_manager.COMMITTEE_SIZE);
-  EXPECT_EQ(pbft_params.valid_sortition_coins, pbft_manager.VALID_SORTITION_COINS);
+  EXPECT_EQ(pbft_params.valid_sortition_coins,
+            pbft_manager.VALID_SORTITION_COINS);
 }
 
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
