@@ -87,7 +87,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                      bool destroy_db = false,  //
                      bool rebuild_network = false) {
     Handle ret(new FullNode(config));
-    ret->init(destroy_db, rebuild_network);
+    if (ret->getConfig().configured) {
+      ret->init(destroy_db, rebuild_network);
+    }
     return ret;
   }
 

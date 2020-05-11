@@ -86,6 +86,7 @@ struct FullNodeConfig {
   RpcConfig rpc;
   TestParamsConfig test_params;
   conf::chain_config::ChainConfig chain;
+  bool configured = false;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

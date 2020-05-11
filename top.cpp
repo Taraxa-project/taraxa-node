@@ -56,6 +56,10 @@ Top::Top(int argc, const char* argv[]) {
   node_ = taraxa::FullNode::make(conf_taraxa,
                                  destroy_db,  //
                                  rebuild_network);
+  if (!node_->getConfig().configured) {
+    std::cerr << "Node not configured correctly. Node stopped" << std::endl;
+    return;
+  }
   node_->start(boot_node);
   auto rpc_init_done = make_shared<condition_variable>();
   rpc_thread_ = thread([this, rpc_init_done] {
@@ -101,7 +105,7 @@ Top::Top(int argc, const char* argv[]) {
 }
 
 void Top::join() {
-  if (node_) {
+  if (node_ && node_->getConfig().configured) {
     rpc_thread_.join();
   }
 }
