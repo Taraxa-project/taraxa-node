@@ -7,46 +7,45 @@
 
 namespace taraxa {
 
-std::string getConfigDataAsString(Json::Value root, std::vector<string> path) {
+Json::Value getConfigData(Json::Value root, std::vector<string> const &path) {
+  for (auto i = 0; i < path.size(); i++) {
+    root = root[path[i]];
+  }
+  return root;
+}
+
+void writeConfigErr(std::vector<string> path) {
+  std::cerr << "Error in processing configuration file on param: ";
+  for (auto i = 0; i < path.size(); i++) std::cerr << path[i] << ".";
+  std::cerr << std::endl;
+}
+
+std::string getConfigDataAsString(Json::Value &root,
+                                  std::vector<string> const &path) {
   try {
-    for (auto i = 0; i < path.size(); i++) {
-      root = root[path[i]];
-    }
-    return root.asString();
+    return getConfigData(root, path).asString();
   } catch (...) {
-    std::cerr << "Error in processing configuration file on param: ";
-    for (auto i = 0; i < path.size(); i++) std::cerr << path[i] << ".";
-    std::cerr << std::endl;
+    writeConfigErr(path);
     throw;
   }
 }
 
-uint32_t getConfigDataAsUInt(Json::Value root, std::vector<string> path,
+uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
                              bool optional = false) {
   try {
-    for (auto i = 0; i < path.size(); i++) {
-      if (optional && root.isNull()) return 0;
-      root = root[path[i]];
-    }
-    return root.asUInt();
+    return getConfigData(root, path).asUInt();
   } catch (...) {
-    std::cerr << "Error in processing configuration file on param: ";
-    for (auto i = 0; i < path.size(); i++) std::cerr << path[i] << ".";
-    std::cerr << std::endl;
+    writeConfigErr(path);
     throw;
   }
 }
 
-uint64_t getConfigDataAsUInt64(Json::Value root, std::vector<string> path) {
+uint64_t getConfigDataAsUInt64(Json::Value &root,
+                               std::vector<string> const &path) {
   try {
-    for (auto i = 0; i < path.size(); i++) {
-      root = root[path[i]];
-    }
-    return root.asUInt();
+    return getConfigData(root, path).asUInt();
   } catch (...) {
-    std::cerr << "Error in processing configuration file on param: ";
-    for (auto i = 0; i < path.size(); i++) std::cerr << path[i] << ".";
-    std::cerr << std::endl;
+    writeConfigErr(path);
     throw;
   }
 }
