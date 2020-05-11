@@ -526,7 +526,7 @@ bool PbftManager::stateOperations_() {
   // Concern can malicious node trigger excessive syncing?
   if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
       !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_sil_) << "Vote validation triggered PBFT chain sync";
+    LOG(log_inf_) << "Vote validation triggered PBFT chain sync";
     syncPbftChainFromPeers_();
   }
 
@@ -580,15 +580,15 @@ void PbftManager::proposeBlock_() {
   // Value Proposal
   LOG(log_tra_) << "PBFT value proposal state in round " << round_;
   if (next_voted_block_from_previous_round_.second) {
-    LOG(log_sil_) << "We have a next voted block from previous round "
+    LOG(log_inf_) << "We have a next voted block from previous round "
                   << round_ - 1;
     if (next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
-      LOG(log_sil_) << "Previous round next voted block is NULL_BLOCK_HASH";
+      LOG(log_inf_) << "Previous round next voted block is NULL_BLOCK_HASH";
     } else {
-      LOG(log_sil_) << "Previous round next voted block is NOT NULL_BLOCK_HASH";
+      LOG(log_inf_) << "Previous round next voted block is NOT NULL_BLOCK_HASH";
     }
   } else {
-    LOG(log_sil_) << "No next voted block from previous round " << round_ - 1;
+    LOG(log_inf_) << "No next voted block from previous round " << round_ - 1;
   }
 
   if (round_ == 1) {
@@ -610,7 +610,7 @@ void PbftManager::proposeBlock_() {
       }
       if (proposed_block_hash_.second) {
         own_starting_value_for_round_ = proposed_block_hash_.first;
-        LOG(log_sil_) << "Proposing own starting value "
+        LOG(log_inf_) << "Proposing own starting value "
                       << own_starting_value_for_round_ << " for round "
                       << round_;
         placeVote_(proposed_block_hash_.first, propose_vote_type, round_,
@@ -1201,7 +1201,7 @@ void PbftManager::syncPbftChainFromPeers_() {
 
   if (capability_->syncing_ == false) {
     if (syncRequestedAlreadyThisStep_() == false) {
-      LOG(log_sil_) << "Restarting pbft sync."
+      LOG(log_inf_) << "Restarting pbft sync."
                     << " In round " << round_ << ", in step " << step_
                     << " Send request to ask missing pbft blocks in chain";
       capability_->restartSyncingPbft();

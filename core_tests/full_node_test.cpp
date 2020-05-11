@@ -1488,7 +1488,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {
-  auto tops = createNodesAndVerifyConnection(1);
+  auto tops = createNodesAndVerifyConnection(3);
   auto &nodes = tops.second;
   std::cout << "Send first trx ..." << std::endl;
   auto node_addr = nodes[0]->getAddress();
@@ -1508,12 +1508,13 @@ TEST_F(FullNodeTest, transfer_to_self) {
   thisThreadSleepForSeconds(5);
   EXPECT_EQ(nodes[0]->getTransactionCount(), trx_count);
   auto trx_executed1 = nodes[0]->getNumTransactionExecuted();
+  send_dummy_trx();
   for (auto i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = nodes[0]->getNumTransactionExecuted();
-    if (trx_executed1 == trx_count) break;
+    if (trx_executed1 == trx_count + 1) break;
     thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(trx_executed1, trx_count);
+  EXPECT_EQ(trx_executed1, trx_count + 1);
   auto const bal = nodes[0]->getBalance(node_addr);
   EXPECT_TRUE(bal.second);
   EXPECT_EQ(bal.first, initial_bal.first);
