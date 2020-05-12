@@ -7,154 +7,157 @@
 
 namespace taraxa {
 
-Json::Value getConfigData(Json::Value root, std::vector<string> const &path) {
-  for (auto i = 0; i < path.size(); i++) {
-    root = root[path[i]];
-  }
-  return root;
+std::string getConfigErr(std::vector<string> path) {
+  std::string res = "Error in processing configuration file on param: ";
+  for (auto i = 0; i < path.size(); i++) res += path[i] + ".";
+  res += " ";
+  return res;
 }
 
-void writeConfigErr(std::vector<string> path) {
-  std::cerr << "Error in processing configuration file on param: ";
-  for (auto i = 0; i < path.size(); i++) std::cerr << path[i] << ".";
-  std::cerr << std::endl;
+Json::Value getConfigData(Json::Value root, std::vector<string> const &path,
+                          bool optional = false) {
+  for (auto i = 0; i < path.size(); i++) {
+    root = root[path[i]];
+    if (root.isNull() && !optional) {
+      throw ConfigException(getConfigErr(path) + "Element missing");
+    }
+  }
+  return root;
 }
 
 std::string getConfigDataAsString(Json::Value &root,
                                   std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asString();
-  } catch (...) {
-    writeConfigErr(path);
-    throw;
+  } catch (Json::Exception &e) {
+    throw ConfigException(getConfigErr(path) + e.what());
   }
 }
 
 uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
                              bool optional = false) {
   try {
-    return getConfigData(root, path).asUInt();
-  } catch (...) {
-    writeConfigErr(path);
-    throw;
+    return getConfigData(root, path, optional).asUInt();
+  } catch (Json::Exception &e) {
+    if (optional) {
+      return 0;
+    }
+    throw ConfigException(getConfigErr(path) + e.what());
   }
 }
 
 uint64_t getConfigDataAsUInt64(Json::Value &root,
                                std::vector<string> const &path) {
   try {
-    return getConfigData(root, path).asUInt();
-  } catch (...) {
-    writeConfigErr(path);
-    throw;
+    return getConfigData(root, path).asUInt64();
+  } catch (Json::Exception &e) {
+    throw ConfigException(getConfigErr(path) + e.what());
   }
 }
 
 FullNodeConfig::FullNodeConfig(std::string const &json_file)
     : json_file_name(json_file) {
-  try {
-    Json::Value root;
-    std::ifstream config_doc(json_file, std::ifstream::binary);
-    config_doc >> root;
-
-    node_secret = getConfigDataAsString(root, {"node_secret"});
-    vrf_secret = getConfigDataAsString(root, {"vrf_secret"});
-    db_path = getConfigDataAsString(root, {"db_path"});
-    dag_processing_threads =
-        getConfigDataAsUInt(root, {"dag_processing_threads"});
-
-    network.network_address = getConfigDataAsString(root, {"network_address"});
-    network.network_id = getConfigDataAsString(root, {"network_id"});
-    network.network_listen_port =
-        getConfigDataAsUInt(root, {"network_listen_port"});
-    network.network_simulated_delay =
-        getConfigDataAsUInt(root, {"network_simulated_delay"});
-    network.network_transaction_interval =
-        getConfigDataAsUInt(root, {"network_transaction_interval"});
-    network.network_bandwidth =
-        getConfigDataAsUInt(root, {"network_bandwidth"});
-    network.network_ideal_peer_count =
-        getConfigDataAsUInt(root, {"network_ideal_peer_count"});
-    network.network_max_peer_count =
-        getConfigDataAsUInt(root, {"network_max_peer_count"});
-    network.network_sync_level_size =
-        getConfigDataAsUInt(root, {"network_sync_level_size"});
-    network.network_encrypted =
-        getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
-    network.network_performance_log =
-        getConfigDataAsUInt(root, {"network_performance_log"}) & 1;
-    if (getConfigDataAsUInt(root, {"network_performance_log"}) & 2)
-      dev::db::LevelDB::setPerf(true);
-    for (auto &item : root["network_boot_nodes"]) {
-      NodeConfig node;
-      node.id = getConfigDataAsString(item, {"id"});
-      node.ip = getConfigDataAsString(item, {"ip"});
-      node.port = getConfigDataAsUInt(item, {"port"});
-      network.network_boot_nodes.push_back(node);
-    }
-    rpc.address =
-        boost::asio::ip::address::from_string(network.network_address);
-    rpc.port = getConfigDataAsUInt(root, {"rpc_port"});
-    rpc.ws_port = getConfigDataAsUInt(root, {"ws_port"});
-    {  // for test experiments
-      test_params.max_transaction_queue_warn = getConfigDataAsUInt(
-          root, {"test_params", "max_transaction_queue_warn"}, true);
-      test_params.max_transaction_queue_drop = getConfigDataAsUInt(
-          root, {"test_params", "max_transaction_queue_drop"}, true);
-
-      test_params.max_block_queue_warn = getConfigDataAsUInt(
-          root, {"test_params", "max_block_queue_warn"}, true);
-
-      test_params.block_proposer.mode = getConfigDataAsString(
-          root, {"test_params", "block_proposer", "mode"});
-      test_params.block_proposer.shard =
-          getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
-      test_params.block_proposer.transaction_limit = getConfigDataAsUInt(
-          root, {"test_params", "block_proposer", "transaction_limit"});
-      if (test_params.block_proposer.mode == "random") {
-        test_params.block_proposer.min_freq = getConfigDataAsUInt(
-            root,
-            {"test_params", "block_proposer", "random_params", "min_freq"});
-        test_params.block_proposer.max_freq = getConfigDataAsUInt(
-            root,
-            {"test_params", "block_proposer", "random_params", "max_freq"});
-      } else if (test_params.block_proposer.mode == "sortition") {
-        test_params.block_proposer.difficulty_bound =
-            getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                       "sortition_params", "difficulty_bound"});
-        test_params.block_proposer.lambda_bits =
-            getConfigDataAsUInt(root, {"test_params", "block_proposer",
-                                       "sortition_params", "lambda_bits"});
-      } else {
-        std::cerr << "Unknown propose mode: "
-                  << test_params.block_proposer.mode;
-        assert(false);
-      }
-      test_params.pbft.lambda_ms_min =
-          getConfigDataAsUInt(root, {"test_params", "pbft", "lambda_ms_min"});
-      test_params.pbft.committee_size =
-          getConfigDataAsUInt(root, {"test_params", "pbft", "committee_size"});
-      test_params.pbft.valid_sortition_coins = getConfigDataAsUInt64(
-          root, {"test_params", "pbft", "valid_sortition_coins"});
-      test_params.pbft.dag_blocks_size =
-          getConfigDataAsUInt(root, {"test_params", "pbft", "dag_blocks_size"});
-      test_params.pbft.ghost_path_move_back = getConfigDataAsUInt(
-          root, {"test_params", "pbft", "ghost_path_move_back"});
-      test_params.pbft.skip_periods =
-          getConfigDataAsUInt64(root, {"test_params", "pbft", "skip_periods"});
-      test_params.pbft.run_count_votes =
-          getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
-    }
-    // TODO parse from json:
-    // Either a string name of a predefined config,
-    // or the full json of a custom config
-    chain = decltype(chain)::DEFAULT();
-    configured = true;
-  } catch (std::exception &e) {
-    std::cerr << "Error in processing configuration file: " << std::endl
-              << json_file << " Exception:" << e.what() << std::endl;
+  Json::Value root;
+  std::ifstream config_doc(json_file, std::ifstream::binary);
+  if (!config_doc.is_open()) {
+    throw ConfigException(string("Could not open configuration file: ") +
+                          json_file);
   }
-}
+  try {
+    config_doc >> root;
+  } catch (Json::Exception &e) {
+    throw ConfigException(string("Could not parse json configuration file: ") +
+                          json_file + e.what());
+  }
+
+  node_secret = getConfigDataAsString(root, {"node_secret"});
+  vrf_secret = getConfigDataAsString(root, {"vrf_secret"});
+  db_path = getConfigDataAsString(root, {"db_path"});
+  dag_processing_threads =
+      getConfigDataAsUInt(root, {"dag_processing_threads"});
+
+  network.network_address = getConfigDataAsString(root, {"network_address"});
+  network.network_id = getConfigDataAsString(root, {"network_id"});
+  network.network_listen_port =
+      getConfigDataAsUInt(root, {"network_listen_port"});
+  network.network_simulated_delay =
+      getConfigDataAsUInt(root, {"network_simulated_delay"});
+  network.network_transaction_interval =
+      getConfigDataAsUInt(root, {"network_transaction_interval"});
+  network.network_bandwidth = getConfigDataAsUInt(root, {"network_bandwidth"});
+  network.network_ideal_peer_count =
+      getConfigDataAsUInt(root, {"network_ideal_peer_count"});
+  network.network_max_peer_count =
+      getConfigDataAsUInt(root, {"network_max_peer_count"});
+  network.network_sync_level_size =
+      getConfigDataAsUInt(root, {"network_sync_level_size"});
+  network.network_encrypted =
+      getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
+  network.network_performance_log =
+      getConfigDataAsUInt(root, {"network_performance_log"}) & 1;
+  if (getConfigDataAsUInt(root, {"network_performance_log"}) & 2)
+    dev::db::LevelDB::setPerf(true);
+  for (auto &item : root["network_boot_nodes"]) {
+    NodeConfig node;
+    node.id = getConfigDataAsString(item, {"id"});
+    node.ip = getConfigDataAsString(item, {"ip"});
+    node.port = getConfigDataAsUInt(item, {"port"});
+    network.network_boot_nodes.push_back(node);
+  }
+  rpc.address = boost::asio::ip::address::from_string(network.network_address);
+  rpc.port = getConfigDataAsUInt(root, {"rpc_port"});
+  rpc.ws_port = getConfigDataAsUInt(root, {"ws_port"});
+  {  // for test experiments
+    test_params.max_transaction_queue_warn = getConfigDataAsUInt(
+        root, {"test_params", "max_transaction_queue_warn"}, true);
+    test_params.max_transaction_queue_drop = getConfigDataAsUInt(
+        root, {"test_params", "max_transaction_queue_drop"}, true);
+
+    test_params.max_block_queue_warn = getConfigDataAsUInt(
+        root, {"test_params", "max_block_queue_warn"}, true);
+
+    test_params.block_proposer.mode =
+        getConfigDataAsString(root, {"test_params", "block_proposer", "mode"});
+    test_params.block_proposer.shard =
+        getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
+    test_params.block_proposer.transaction_limit = getConfigDataAsUInt(
+        root, {"test_params", "block_proposer", "transaction_limit"});
+    if (test_params.block_proposer.mode == "random") {
+      test_params.block_proposer.min_freq = getConfigDataAsUInt(
+          root, {"test_params", "block_proposer", "random_params", "min_freq"});
+      test_params.block_proposer.max_freq = getConfigDataAsUInt(
+          root, {"test_params", "block_proposer", "random_params", "max_freq"});
+    } else if (test_params.block_proposer.mode == "sortition") {
+      test_params.block_proposer.difficulty_bound =
+          getConfigDataAsUInt(root, {"test_params", "block_proposer",
+                                     "sortition_params", "difficulty_bound"});
+      test_params.block_proposer.lambda_bits = getConfigDataAsUInt(
+          root,
+          {"test_params", "block_proposer", "sortition_params", "lambda_bits"});
+    } else {
+      std::cerr << "Unknown propose mode: " << test_params.block_proposer.mode;
+      assert(false);
+    }
+    test_params.pbft.lambda_ms_min =
+        getConfigDataAsUInt(root, {"test_params", "pbft", "lambda_ms_min"});
+    test_params.pbft.committee_size =
+        getConfigDataAsUInt(root, {"test_params", "pbft", "committee_size"});
+    test_params.pbft.valid_sortition_coins = getConfigDataAsUInt64(
+        root, {"test_params", "pbft", "valid_sortition_coins"});
+    test_params.pbft.dag_blocks_size =
+        getConfigDataAsUInt(root, {"test_params", "pbft", "dag_blocks_size"});
+    test_params.pbft.ghost_path_move_back = getConfigDataAsUInt(
+        root, {"test_params", "pbft", "ghost_path_move_back"});
+    test_params.pbft.skip_periods =
+        getConfigDataAsUInt64(root, {"test_params", "pbft", "skip_periods"});
+    test_params.pbft.run_count_votes =
+        getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
+  }
+  // TODO parse from json:
+  // Either a string name of a predefined config,
+  // or the full json of a custom config
+  chain = decltype(chain)::DEFAULT();
+}  // namespace taraxa
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   try {

@@ -12,6 +12,16 @@
 // TODO: Separate configs for consensus chain params and technical params
 // TODO: Expose only certain eth chain params, encapsulate the config invariants
 namespace taraxa {
+
+class ConfigException : public std::exception {
+ public:
+  ConfigException(std::string msg) : msg(msg) {}
+  const char *what() const throw() { return msg.c_str(); }
+
+ private:
+  std::string msg;
+};
+
 struct RpcConfig {
   RpcConfig() = default;
   explicit RpcConfig(std::string const &json_file);
@@ -86,7 +96,6 @@ struct FullNodeConfig {
   RpcConfig rpc;
   TestParamsConfig test_params;
   conf::chain_config::ChainConfig chain;
-  bool configured = false;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
