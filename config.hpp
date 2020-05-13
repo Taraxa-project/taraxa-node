@@ -13,13 +13,8 @@
 // TODO: Expose only certain eth chain params, encapsulate the config invariants
 namespace taraxa {
 
-class ConfigException : public std::exception {
- public:
-  ConfigException(std::string msg) : msg(msg) {}
-  const char *what() const throw() { return msg.c_str(); }
-
- private:
-  std::string msg;
+struct ConfigException : public std::runtime_error {
+  using std::runtime_error::runtime_error;
 };
 
 struct RpcConfig {

@@ -19,7 +19,7 @@ Json::Value getConfigData(Json::Value root, std::vector<string> const &path,
   for (auto i = 0; i < path.size(); i++) {
     root = root[path[i]];
     if (root.isNull() && !optional) {
-      throw ConfigException(getConfigErr(path) + "Element missing");
+      throw ConfigException(getConfigErr(path) + "Element missing: " + path[i]);
     }
   }
   return root;
