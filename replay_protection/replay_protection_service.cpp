@@ -78,7 +78,7 @@ void ReplayProtectionService::commit(DbStorage::BatchPtr const& master_batch,
       assert(!executed);
     }
   }
-  db_->setMasterBatch(master_batch);
+  auto batch_scope = db_->setMasterBatch(master_batch);
   auto batch = db_->createWriteBatch();
   stringstream round_data_keys;
   unordered_map<string, shared_ptr<SenderState>> sender_states;
