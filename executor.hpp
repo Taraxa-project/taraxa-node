@@ -40,8 +40,7 @@ class Executor {
   trx_engine::TrxEngine trx_engine_;
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  using AccountNonceTable = StatusTable<addr_t, val_t>;
-  AccountNonceTable accs_nonce_;
+  using BalanceTable = std::unordered_map<addr_t, PbftSortitionAccount>;
 
   // for debug purpose
   dev::Logger log_si_{
