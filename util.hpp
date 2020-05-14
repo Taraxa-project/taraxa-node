@@ -6,11 +6,11 @@
 #include <signal.h>
 
 #include <boost/asio.hpp>
+#include <boost/format.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/thread.hpp>
-#include <boost/format.hpp>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -44,7 +44,7 @@ struct ProcessReturn {
 };
 
 template <typename T, typename U = T>
-std::vector<T> asVector(Json::Value const &json, std::string const & key) {
+std::vector<T> asVector(Json::Value const &json, std::string const &key) {
   std::vector<T> v;
   auto key_child = json[key];
   std::transform(key_child.begin(), key_child.end(), std::back_inserter(v),
@@ -240,7 +240,6 @@ inline std::string unquote_non_str_literals(const std::string &json_str) {
   std::regex re(R"(\"(true|false|[0-9]+\.{0,1}[0-9]*)\")");
   return std::regex_replace(json_str, re, "$1");
 }
-
 
 template <typename... TS>
 std::string fmt(const std::string &pattern, const TS &... args) {
