@@ -55,7 +55,7 @@ struct TrxSchedule {
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
   void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
-  void setJson(Json::Value& json) const;
+  Json::Value getJson() const;
   void setSchedule(Json::Value const& tree);
   bool operator==(TrxSchedule const& other) const {
     return rlp() == other.rlp();

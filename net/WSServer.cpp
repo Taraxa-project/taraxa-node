@@ -225,7 +225,7 @@ void WSSession::newScheduleBlockExecuted(PbftBlock const &pbft_blk,
     Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    result["schedule_block"] = pbft_blk.getSchedule().getStr();
+    result["schedule_block"] = pbft_blk.getSchedule().getJson();
     result["number"] = dev::toJS(block_number);
     result["period"] = dev::toJS(pbft_blk.getPeriod());
     params["result"] = result;

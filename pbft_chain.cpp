@@ -88,7 +88,8 @@ TrxSchedule::TrxSchedule(dev::RLP const& r) {
   }
 }
 
-void TrxSchedule::setJson(Json::Value& json) const {
+Json::Value TrxSchedule::getJson() const {
+  Json::Value json;
   json["dag_blocks_order"] = Json::Value(Json::arrayValue);
   uint32_t dag_blocks_size = dag_blks_order.size();
   for (auto i(0); i < dag_blocks_size; ++i) {
@@ -109,6 +110,7 @@ void TrxSchedule::setJson(Json::Value& json) const {
       json[dag_block_hash.toString()].append(value);
     }
   }
+  return json;
 }
 
 void TrxSchedule::setSchedule(Json::Value const& json) {
@@ -217,8 +219,7 @@ std::string PbftBlock::getJsonStr() const {
   Json::Value json;
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
-  json["schedule"] = Json::Value();
-  schedule_.setJson(json["schedule"]);
+  json["schedule"] = schedule_.getJson();
   json["period"] = (Json::Value::UInt64)period_;
   json["height"] = (Json::Value::UInt64)height_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
