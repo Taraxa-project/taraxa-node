@@ -229,8 +229,6 @@ std::string PbftBlock::getJsonStr() const {
   return json.toStyledString();
 }
 
-addr_t PbftBlock::getBeneficiary() const { return beneficiary_; }
-
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
   strm.appendList(include_sig ? 7 : 6);
@@ -248,6 +246,24 @@ bytes PbftBlock::rlp(bool include_sig) const {
   streamRLP(strm, include_sig);
   return strm.out();
 }
+
+blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
+
+blk_hash_t PbftBlock::getPrevBlockHash() const { return prev_block_hash_; }
+
+blk_hash_t PbftBlock::getPivotDagBlockHash() const {
+  return dag_block_hash_as_pivot_;
+}
+
+TrxSchedule PbftBlock::getSchedule() const { return schedule_; }
+
+uint64_t PbftBlock::getPeriod() const { return period_; }
+
+uint64_t PbftBlock::getHeight() const { return height_; }
+
+uint64_t PbftBlock::getTimestamp() const { return timestamp_; }
+
+addr_t PbftBlock::getBeneficiary() const { return beneficiary_; }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   strm << pbft_blk.getJsonStr();
@@ -346,6 +362,16 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
   }
   // cleanup PBFT blocks hash in unverified_blocks_map_ table
   unverified_blocks_map_.erase(prev_block_hash);
+}
+
+uint64_t PbftChain::getPbftChainSize() const { return size_; }
+
+uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
+
+blk_hash_t PbftChain::getHeadHash() const { return head_hash_; }
+
+blk_hash_t PbftChain::getLastPbftBlockHash() const {
+  return last_pbft_block_hash_;
 }
 
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
