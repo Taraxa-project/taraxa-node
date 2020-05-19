@@ -317,7 +317,6 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash)
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
-  node_ = full_node;
   // setup pbftchain DB pointer
   db_ = full_node->getDB();
   assert(db_);
@@ -548,12 +547,6 @@ bool PbftChain::checkPbftBlockValidation(
 }
 
 void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable";
-    assert(false);
-  }
-
   blk_hash_t block_hash = pbft_block.getBlockHash();
   blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
   if (prev_block_hash != last_pbft_block_hash_) {

@@ -198,7 +198,6 @@ class PbftChain {
   blk_hash_t dag_genesis_hash_;  // dag genesis at height 1
   uint64_t max_dag_blocks_height_ = 0;
 
-  std::weak_ptr<FullNode> node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
