@@ -84,7 +84,7 @@ class PbftBlock {
   std::string getJsonStr() const;
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
-  bool verifySig() const; // TODO
+  bool verifySig() const;  // TODO
 
   blk_hash_t getBlockHash() const;
   blk_hash_t getPrevBlockHash() const;
