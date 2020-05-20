@@ -2,6 +2,7 @@
 #define TARAXA_NODE_DAG_HPP
 
 #include <libdevcore/Log.h>
+
 #include <atomic>
 #include <bitset>
 #include <boost/function.hpp>
@@ -22,6 +23,7 @@
 #include <mutex>
 #include <queue>
 #include <string>
+
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "pbft_chain.hpp"
@@ -223,9 +225,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::unordered_set<std::string> getUnOrderedDagBlks() const {
     return total_dag_->getUnOrderedDagBlks();
   }
+  std::queue<std::pair<std::string, uint64_t>> getAnchors() const {
+    return anchors_;
+  }
+  void recoverAnchors(uint64_t pbft_chain_size);
+
 
  private:
-  void recoverAnchors(uint64_t pbft_chain_size);
   size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
@@ -234,7 +240,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
   std::weak_ptr<FullNode> full_node_;
-  std::shared_ptr<PbftChain> pbft_chain_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
