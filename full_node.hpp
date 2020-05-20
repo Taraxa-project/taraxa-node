@@ -103,6 +103,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionManager> getTransactionManager() const {
     return trx_mgr_;
   }
+  std::shared_ptr<DagManager> getDagManager() const { return dag_mgr_; }
 
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }

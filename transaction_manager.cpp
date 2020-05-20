@@ -127,7 +127,7 @@ void TransactionManager::stop() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionManager::getVerifiedTrxSnapShot() const{
+TransactionManager::getVerifiedTrxSnapShot() const {
   return trx_qu_.getVerifiedTrxSnapShot();
 }
 

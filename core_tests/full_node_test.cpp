@@ -953,6 +953,42 @@ TEST_F(FullNodeTest, destroy_node) {
   }
 }
 
+TEST_F(FullNodeTest, reconstruct_anchors) {
+  std::queue<std::pair<std::string, uint64_t>> anchors;
+  {
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(taraxa::FullNode::make(conf,
+                                     true));  // destroy DB
+
+    node->start(false);
+    taraxa::thisThreadSleepForMilliSeconds(500);
+
+    TransactionClient trx_client(node->getSecretKey(), node);
+
+    for (auto i = 0; i < 3; i++) {
+      auto result = trx_client.coinTransfer(KeyPair::create().address(), 10);
+      EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+    }
+
+    taraxa::thisThreadSleepForMilliSeconds(500);
+    anchors = node->getDagManager()->getAnchors();
+    cout << "ANC " << anchors.size() << endl;
+  }
+  {
+    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
+    auto node(taraxa::FullNode::make(conf,
+                                     false));  // no destroy DB
+
+    node->start(false);
+    taraxa::thisThreadSleepForMilliSeconds(500);
+
+    EXPECT_GT(anchors.size(), 1);
+    EXPECT_EQ(anchors.size(), node->getDagManager()->getAnchors().size());
+    EXPECT_EQ(anchors.front(), node->getDagManager()->getAnchors().front());
+    EXPECT_EQ(anchors.back(), node->getDagManager()->getAnchors().back());
+  }
+}  // namespace taraxa
+
 TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;

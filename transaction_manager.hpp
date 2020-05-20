@@ -30,9 +30,7 @@ class TransactionManager
   explicit TransactionManager(
       TestParamsConfig const &conf,
       std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
-      : conf_(conf),
-        accs_nonce_(),
-        eth_service_(eth_service) {}
+      : conf_(conf), accs_nonce_(), eth_service_(eth_service) {}
   explicit TransactionManager(std::shared_ptr<DbStorage> db)
       : db_(db), accs_nonce_(), conf_() {}
   std::shared_ptr<TransactionManager> getShared() {
