@@ -401,7 +401,7 @@ TEST_F(FullNodeTest, db_test) {
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
-  auto tops = createNodesAndVerifyConnection(5);
+  auto tops = createNodesAndVerifyConnection(5, false, 20);
   auto &nodes = tops.second;
 
   EXPECT_EQ(nodes[0]->getDagBlockMaxHeight(), 1);  // genesis block
@@ -429,18 +429,29 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       return issued_trx_count;
     }
 
-    void coin_transfer(int sender_node_i, addr_t const &to,
-                       val_t const &amount) {
+    void dummy_transaction() {
+      {
+        unique_lock l(m);
+        ++issued_trx_count;
+      }
+      auto result = trx_clients[0].coinTransfer(
+          KeyPair::create(), KeyPair::create().address(), 0, false);
+    }
+
+    void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount,
+                       bool verify_executed = true) {
       {
         unique_lock l(m);
         ++issued_trx_count;
         expected_balances[to] += amount;
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
-        std::cout << nodes_[sender_node_i]->getAddress() << " send to " << to
-                  << " value " << amount << std::endl;
       }
-      auto result = trx_clients[sender_node_i].coinTransfer(to, amount);
-      EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+      auto result =
+          trx_clients[sender_node_i].coinTransfer(to, amount, verify_executed);
+      if (verify_executed)
+        EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+      else
+        EXPECT_EQ(result.stage, TransactionClient::TransactionStage::inserted);
     }
 
     void assert_balances_synced() {
@@ -456,27 +467,68 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   // transfer some coins to your friends ...
   auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
-  for (auto i(1); i < nodes.size(); ++i) {
-    context.coin_transfer(0, nodes[i]->getAddress(), init_bal);
+
+  {
+    vector<thread> threads;
+    vector<bool> thread_completed;
+    for (auto i(1); i < nodes.size(); ++i) thread_completed.push_back(false);
+    for (auto i(1); i < nodes.size(); ++i) {
+      threads.emplace_back([i, &context, &nodes, &thread_completed, &init_bal] {
+        context.coin_transfer(0, nodes[i]->getAddress(), init_bal, true);
+        thread_completed[i - 1] = true;
+      });
+    }
+    auto success = wait::wait(
+        [&thread_completed, &context] {
+          for (auto t : thread_completed) {
+            if (!t) {
+              context.dummy_transaction();
+              return false;
+            }
+          }
+          return true;
+        },
+        {
+            120,
+            std::chrono::nanoseconds(1000 * 1000 * 500),
+        });
+    for (auto &t : threads) t.join();
   }
 
   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
     vector<thread> threads;
+    vector<bool> thread_completed;
+    for (auto i(0); i < nodes.size(); ++i) thread_completed.push_back(false);
     for (auto i(0); i < nodes.size(); ++i) {
       auto to = i < nodes.size() - 1
                     ? nodes[i + 1]->getAddress()
                     : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
-      threads.emplace_back([i, to, &context] {
+      threads.emplace_back([i, to, &context, &thread_completed] {
         for (auto _(0); _ < 10; ++_) {
+          std::cout << "Send from node " << i << " #" << _ << " value 100"
+                    << std::endl;
           context.coin_transfer(i, to, 100);
         }
+        thread_completed[i] = true;
       });
     }
-    for (auto &t : threads) {
-      t.join();
-    }
+    auto success = wait::wait(
+        [&thread_completed, &context] {
+          for (auto t : thread_completed) {
+            if (!t) {
+              context.dummy_transaction();
+              return false;
+            }
+          }
+          return true;
+        },
+        {
+            120,
+            std::chrono::nanoseconds(1000 * 1000 * 500),
+        });
+    for (auto &t : threads) t.join();
   }
   std::cout << "Issued transatnion count " << context.getIssuedTrxCount();
 
@@ -522,7 +574,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
                 << std::endl;
     }
 
-    taraxa::thisThreadSleepForMilliSeconds(500);
+    taraxa::thisThreadSleepForMilliSeconds(2000);
   }
 
   EXPECT_GT(nodes[0]->getNumProposedBlocks(), 2);
@@ -537,25 +589,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   ASSERT_EQ(nodes[3]->getTransactionCount(), context.getIssuedTrxCount());
   ASSERT_EQ(nodes[4]->getTransactionCount(), context.getIssuedTrxCount());
 
-  // send dummy trx to make sure all DAG blocks are ordered
-  // NOTE: have to wait longer than block proposer time + transaction
-  // propogation time to ensure
-  //       all transacations have already been packed into other blocks and that
-  //       this new transaction will get packed into a unique block that will
-  //       reference all outstanding tips
-  std::cout << "Sleep 2 seconds before sending dummy transaction ... "
-            << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(2000);
-  std::cout << "Send dummy transaction ... " << std::endl;
-  context.coin_transfer(0, addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
-                        0);
-
   auto issued_trx_count = context.getIssuedTrxCount();
-
-  std::cout << "Wait 2 seconds before checking all nodes have seen a new DAG "
-               "block (containing dummy transaction) ... "
-            << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(2000);
 
   auto num_vertices1 = nodes[0]->getNumVerticesInDag();
   auto num_vertices2 = nodes[1]->getNumVerticesInDag();
@@ -1359,9 +1393,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // send dummy trx to make sure all DAG blocks are ordered
   // NOTE: have to wait longer than block proposer time + transaction
   // propogation time to ensure
-  //       all transacations have already been packed into other blocks and that
-  //       this new transaction will get packed into a unique block that will
-  //       reference all outstanding tips
+  //       all transacations have already been packed into other blocks and
+  //       that this new transaction will get packed into a unique block that
+  //       will reference all outstanding tips
   std::cout << "Sleep 2 seconds before sending dummy transaction ... "
             << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);

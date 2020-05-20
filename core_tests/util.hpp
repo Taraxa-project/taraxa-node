@@ -70,7 +70,8 @@ inline void cleanAllTestDB() {
 }
 
 pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>>
-createNodesAndVerifyConnection(int count, bool persist = false) {
+createNodesAndVerifyConnection(int count, bool persist = false,
+                               float tests_speed = 1) {
   pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>> result;
   vector<unique_ptr<Top>>& tops = result.first;
   vector<shared_ptr<FullNode>>& nodes = result.second;
@@ -80,6 +81,15 @@ createNodesAndVerifyConnection(int count, bool persist = false) {
     conf = conf_input_persist_db;
   } else {
     conf = conf_input;
+  }
+  string tests_speed_conf = "--tests_speed";
+  string tests_speed_val = to_string(tests_speed);
+
+  if (tests_speed != 1) {
+    for (auto& conf_it : conf) {
+      conf_it.push_back(tests_speed_conf.c_str());
+      conf_it.push_back(tests_speed_val.c_str());
+    }
   }
   assert(count <= conf.size());
   for (int i = 0; i < count; i++) {

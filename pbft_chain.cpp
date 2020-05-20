@@ -473,7 +473,7 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
       break;
     }
     if (pbft_block->getHeight() != i) {
-      LOG(log_sil_) << "DB corrupted - PBFT block hash " << pbft_block_hash
+      LOG(log_err_) << "DB corrupted - PBFT block hash " << pbft_block_hash
                     << "has different height " << pbft_block->getHeight()
                     << "in block data then in block order db: " << i;
       assert(false);

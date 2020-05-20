@@ -49,28 +49,37 @@ struct TransactionClient {
                         })
       : key_pair_(secret), node_(node), opts_(opts) {}
 
-  Context coinTransfer(string const& to, val_t const& val) const {
-    return coinTransfer(addr_t(to), val);
+  Context coinTransfer(string const& to, val_t const& val,
+                       bool verify_executed = true) const {
+    return coinTransfer(addr_t(to), val, verify_executed);
   }
 
-  Context coinTransfer(addr_t const& to, val_t const& val) const {
+  Context coinTransfer(addr_t const& to, val_t const& val,
+                       bool verify_executed = true) const {
+    return coinTransfer(key_pair_, to, val, verify_executed);
+  }
+
+  Context coinTransfer(KeyPair const& from, addr_t const& to, val_t const& val,
+                       bool verify_executed = true) const {
     auto eth_service = node_->getEthService();
-    auto sender_nonce = eth_service->accountNonce(key_pair_.address());
+    auto sender_nonce = eth_service->accountNonce(from.address());
     Context ctx{
         TransactionStage::created,
         Transaction(sender_nonce, val, 0, constants::TEST_TX_GAS_LIMIT, to,
-                    bytes(), key_pair_.secret()),
+                    bytes(), from.secret()),
     };
     if (!node_->insertTransaction(ctx.trx, false).first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
-    auto success =
-        wait([&] { return eth_service->isKnownTransaction(trx_hash); },
-             opts_.waitUntilExecutedOpts);
-    if (success) {
-      ctx.stage = TransactionStage::executed;
+    if (verify_executed) {
+      auto success =
+          wait([&] { return eth_service->isKnownTransaction(trx_hash); },
+               opts_.waitUntilExecutedOpts);
+      if (success) {
+        ctx.stage = TransactionStage::executed;
+      }
     }
     return ctx;
   }
