@@ -982,15 +982,12 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
-    EXPECT_GT(anchors.size() > 1)
+    EXPECT_GT(anchors.size(), 1);
     EXPECT_EQ(anchors.size(), node->getDagManager()->getAnchors().size());
-    for (auto i = 0; i < anchors.size(); i++) {
-      EXPECT_EQ(anchors[i].first, node->getDagManager()->getAnchors()[i].first);
-      EXPECT_EQ(anchors[i].second,
-                node->getDagManager()->getAnchors()[i].second);
-    }
+    EXPECT_EQ(anchors.front(), node->getDagManager()->getAnchors().front());
+    EXPECT_EQ(anchors.back(), node->getDagManager()->getAnchors().back());
   }
-}
+}  // namespace taraxa
 
 TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices1 = 0;

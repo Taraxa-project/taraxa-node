@@ -230,7 +230,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   }
   void recoverAnchors(uint64_t pbft_chain_size);
 
-
  private:
   size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
