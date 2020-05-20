@@ -440,7 +440,6 @@ DagManager::DagManager(std::string const &genesis) try
       pivot_tree_(std::make_shared<PivotTree>(genesis)),
       genesis_(genesis) {
   anchors_.push({genesis, 0});
-
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -451,6 +450,16 @@ std::shared_ptr<DagManager> DagManager::getShared() {
   } catch (std::bad_weak_ptr &e) {
     std::cerr << "DagManager: " << e.what() << std::endl;
     return nullptr;
+  }
+}
+
+void DagManager::setFullNode(std::shared_ptr<FullNode> full_node) {
+  full_node_ = full_node;
+  pbft_chain_ = full_node->getPbftChain();
+  uint64_t pbft_chain_size = pbft_chain_->getPbftChainSize();
+  if (pbft_chain_size) {
+    // Recover DAG anchors
+    recoverAnchors(pbft_chain_size);
   }
 }
 
@@ -716,6 +725,29 @@ addr_t DagManager::getFullNodeAddress() const {
     return full_node->getAddress();
   } else {
     return addr_t();
+  }
+}
+
+void DagManager::recoverAnchors(uint64_t pbft_chain_size) {
+  std::vector<blk_hash_t> anchors;
+  // Use index to save period, so index 0 is empty
+  anchors.reserve(pbft_chain_size + 1);
+
+  blk_hash_t pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+  blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+  uint64_t period = pbft_block.getPeriod();
+  anchors[period] = dag_block_hash_as_anchor;
+  for (auto i = pbft_chain_size - 1; i > 0; --i) {
+    pbft_block_hash = pbft_block.getPrevBlockHash();
+    PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+    blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+    uint64_t period = pbft_block.getPeriod();
+    assert(i == period);
+    anchors[period] = dag_block_hash_as_anchor;
+  }
+  for (auto i = 1; i < anchors.size(); ++i) {
+    anchors_.push({anchors[i].toString(), i});
   }
 }
 

@@ -23,6 +23,8 @@
 #include <queue>
 #include <string>
 #include "dag_block.hpp"
+#include "full_node.hpp"
+#include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
 namespace taraxa {
@@ -183,9 +185,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   explicit DagManager(std::string const &genesis);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
-  void setFullNode(std::shared_ptr<FullNode> full_node) {
-    full_node_ = full_node;
-  }
+  void setFullNode(std::shared_ptr<FullNode> full_node);
 
   bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
@@ -225,6 +225,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   }
 
  private:
+  void recoverAnchors(uint64_t pbft_chain_size);
   size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
@@ -233,6 +234,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
   std::weak_ptr<FullNode> full_node_;
+  std::shared_ptr<PbftChain> pbft_chain_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
