@@ -32,6 +32,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
       SKIP_PERIODS(conf.skip_periods),
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis) {}
+PbftManager::~PbftManager() { stop(); }
 
 void PbftManager::setFullNode(
     shared_ptr<taraxa::FullNode> full_node,
@@ -176,6 +177,10 @@ void PbftManager::run() {
   }
 }
 
+blk_hash_t PbftManager::getLastPbftBlockHashAtStartOfRound() const {
+  return pbft_chain_last_block_hash_;
+}
+
 std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
     blk_hash_t const &hash) {
   std::pair<bool, uint64_t> res;
@@ -189,7 +194,7 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
   return res;
 }
 
-std::string PbftManager::getScheduleBlockByPeriod(uint64_t period) {
+std::string PbftManager::getScheduleBlockByPeriod(uint64_t const period) {
   auto value = db_->getPeriodScheduleBlock(period);
   if (value) {
     blk_hash_t pbft_block_hash = *value;
@@ -197,6 +202,31 @@ std::string PbftManager::getScheduleBlockByPeriod(uint64_t period) {
   }
   return "";
 }
+
+size_t PbftManager::getSortitionThreshold() const {
+  return sortition_threshold_;
+}
+
+void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
+  sortition_threshold_ = sortition_threshold;
+}
+
+size_t PbftManager::getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
+
+void PbftManager::setTwoTPlusOne(size_t const two_t_plus_one) {
+  TWO_T_PLUS_ONE = two_t_plus_one;
+}
+
+// Notice: Test purpose
+void PbftManager::setPbftThreshold(size_t const threshold) {
+  sortition_threshold_ = threshold;
+}
+void PbftManager::setPbftRound(uint64_t const pbft_round) {
+  round_ = pbft_round;
+}
+uint64_t PbftManager::getPbftRound() const { return round_; }
+size_t PbftManager::getPbftStep() const { return step_; }
+// End Test
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
   auto full_node = node_.lock();

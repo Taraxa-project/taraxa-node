@@ -38,41 +38,33 @@ class PbftManager {
 
   explicit PbftManager(std::string const &genesis);
   PbftManager(PbftConfig const &conf, std::string const &genesis);
-  ~PbftManager() { stop(); }
+  ~PbftManager();
 
   void setFullNode(
       std::shared_ptr<FullNode> node,
       std::shared_ptr<ReplayProtectionService> replay_protection_service);
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();
   void stop();
   void run();
 
-  blk_hash_t getLastPbftBlockHashAtStartOfRound() const {
-    return pbft_chain_last_block_hash_;
-  }
-
-  std::string getScheduleBlockByPeriod(uint64_t period);
-
+  blk_hash_t getLastPbftBlockHashAtStartOfRound() const;
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
+  std::string getScheduleBlockByPeriod(uint64_t const period);
 
-  size_t getSortitionThreshold() const { return sortition_threshold_; }
-  void setSortitionThreshold(size_t const sortition_threshold) {
-    sortition_threshold_ = sortition_threshold;
-  }
-  void setTwoTPlusOne(size_t const two_t_plus_one) {
-    TWO_T_PLUS_ONE = two_t_plus_one;
-  }
-  size_t getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
-
-  // TODO: only for test
-  void setPbftThreshold(size_t const threshold) {
-    sortition_threshold_ = threshold;
-  }
-  void setPbftRound(uint64_t const pbft_round) { round_ = pbft_round; }
+  size_t getSortitionThreshold() const;
+  void setSortitionThreshold(size_t const sortition_threshold);
+  size_t getTwoTPlusOne() const;
+  void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
-  uint64_t getPbftRound() const { return round_; }
-  size_t getPbftStep() const { return step_; }
+
+  // Notice: Test purpose
+  void setPbftThreshold(size_t const threshold);
+  void setPbftRound(uint64_t const pbft_round);
+  uint64_t getPbftRound() const;
+  size_t getPbftStep() const;
+  // End Test
+
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
   // <account address, PbftSortitionAccount>
   // Temporary table for executor to update
