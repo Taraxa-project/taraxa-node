@@ -105,8 +105,6 @@ Top::Top(int argc, const char* argv[]) {
     unique_lock l(m);
     rpc_init_done->wait(l);
   }
-  // TODO remove after fixing the tests
-  taraxa::thisThreadSleepForMilliSeconds(200);
 }
 
 void Top::join() {

@@ -70,54 +70,58 @@ inline void cleanAllTestDB() {
 }
 
 pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>>
-createNodesAndVerifyConnection(int count, bool persist = false,
-                               float tests_speed = 1) {
-  pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>> result;
-  vector<unique_ptr<Top>>& tops = result.first;
-  vector<shared_ptr<FullNode>>& nodes = result.second;
-  assert(count > 0);
-  vector<vector<const char*>> conf;
-  if (persist) {
-    conf = conf_input_persist_db;
-  } else {
-    conf = conf_input;
-  }
-  string tests_speed_conf = "--tests_speed";
-  string tests_speed_val = to_string(tests_speed);
-
-  if (tests_speed != 1) {
-    for (auto& conf_it : conf) {
-      conf_it.push_back(tests_speed_conf.c_str());
-      conf_it.push_back(tests_speed_val.c_str());
+createNodesAndVerifyConnection(int count, int min_connections = 1,
+                               bool persist = false, float tests_speed = 1) {
+  for (int retries = 0; retries < 3; retries++) {
+    pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>> result;
+    vector<unique_ptr<Top>>& tops = result.first;
+    vector<shared_ptr<FullNode>>& nodes = result.second;
+    assert(count > 0);
+    vector<vector<const char*>> conf;
+    if (persist) {
+      conf = conf_input_persist_db;
+    } else {
+      conf = conf_input;
     }
-  }
-  assert(count <= conf.size());
-  for (int i = 0; i < count; i++) {
+    string tests_speed_conf = "--tests_speed";
+    string tests_speed_val = to_string(tests_speed);
+
+    if (tests_speed != 1) {
+      for (auto& conf_it : conf) {
+        conf_it.push_back(tests_speed_conf.c_str());
+        conf_it.push_back(tests_speed_val.c_str());
+      }
+    }
+    assert(count <= conf.size());
+    for (int i = 0; i < count; i++) {
+      taraxa::thisThreadSleepForMilliSeconds(50);
+      tops.emplace_back(
+          make_unique<Top>(conf[i].size(), (const char**)&conf[i][0]));
+      nodes.emplace_back(tops[i]->getNode());
+    }
     taraxa::thisThreadSleepForMilliSeconds(200);
-    tops.emplace_back(
-        make_unique<Top>(conf[i].size(), (const char**)&conf[i][0]));
-    nodes.emplace_back(tops[i]->getNode());
-  }
-  taraxa::thisThreadSleepForMilliSeconds(200);
-  if (count > 1) {
-    for (int retries = 0; retries < 3; retries++) {
+    if (count > 1) {
       bool allConnected = true;
-      for (int i = 0; i < 10; i++) {
-        taraxa::thisThreadSleepForMilliSeconds(100);
+      for (int i = 0; i < 100; i++) {
+        taraxa::thisThreadSleepForMilliSeconds(200);
         allConnected = true;
         for (int j = 0; j < count; j++) {
-          allConnected &= (nodes[j]->getPeerCount() == count);
+          allConnected &= (nodes[j]->getPeerCount() >= min_connections);
         }
         if (allConnected) break;
       }
-      if (allConnected) break;
-    }
-
-    for (int i = 0; i < count; i++) {
-      EXPECT_GT(nodes[i]->getPeerCount(), 0);
-    }
+      if (allConnected) {
+        std::cout << "All connected";
+        for (int i = 0; i < count; i++)
+          std::cout << " " << nodes[i]->getPeerCount();
+        std::cout << std::endl;
+        return result;
+      }
+    } else
+      return result;
   }
-  return result;
+  EXPECT_TRUE(false);
+  return pair<vector<unique_ptr<Top>>, vector<shared_ptr<FullNode>>>();
 }
 
 template <typename T = ::testing::Test,

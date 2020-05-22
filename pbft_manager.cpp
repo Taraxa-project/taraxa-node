@@ -122,7 +122,12 @@ void PbftManager::stop() {
     monitor_votes_->join();
     LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
   }
+  {
+    std::unique_lock<std::mutex> lock(stop_mtx_);
+    stop_cv_.notify_all();
+  }
   daemon_->join();
+
   LOG(log_deb_) << "PBFT daemon terminated ...";
   replay_protection_service_ = nullptr;
 }
@@ -359,7 +364,8 @@ void PbftManager::sleep_() {
   if (time_to_sleep_for_ms > 0) {
     LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms
                   << " in round " << round_ << ", step " << step_;
-    thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
+    std::unique_lock<std::mutex> lock(stop_mtx_);
+    stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
   }
 }
 
