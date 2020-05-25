@@ -88,7 +88,8 @@ TrxSchedule::TrxSchedule(dev::RLP const& r) {
   }
 }
 
-void TrxSchedule::setJson(Json::Value& json) const {
+Json::Value TrxSchedule::getJson() const {
+  Json::Value json;
   json["dag_blocks_order"] = Json::Value(Json::arrayValue);
   uint32_t dag_blocks_size = dag_blks_order.size();
   for (auto i(0); i < dag_blocks_size; ++i) {
@@ -109,6 +110,7 @@ void TrxSchedule::setJson(Json::Value& json) const {
       json[dag_block_hash.toString()].append(value);
     }
   }
+  return json;
 }
 
 void TrxSchedule::setSchedule(Json::Value const& json) {
@@ -217,8 +219,7 @@ std::string PbftBlock::getJsonStr() const {
   Json::Value json;
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
-  json["schedule"] = Json::Value();
-  schedule_.setJson(json["schedule"]);
+  json["schedule"] = schedule_.getJson();
   json["period"] = (Json::Value::UInt64)period_;
   json["height"] = (Json::Value::UInt64)height_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
@@ -227,8 +228,6 @@ std::string PbftBlock::getJsonStr() const {
   json["beneficiary"] = beneficiary_.toString();
   return json.toStyledString();
 }
-
-addr_t PbftBlock::getBeneficiary() const { return beneficiary_; }
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
@@ -247,6 +246,24 @@ bytes PbftBlock::rlp(bool include_sig) const {
   streamRLP(strm, include_sig);
   return strm.out();
 }
+
+blk_hash_t PbftBlock::getBlockHash() const { return block_hash_; }
+
+blk_hash_t PbftBlock::getPrevBlockHash() const { return prev_block_hash_; }
+
+blk_hash_t PbftBlock::getPivotDagBlockHash() const {
+  return dag_block_hash_as_pivot_;
+}
+
+TrxSchedule PbftBlock::getSchedule() const { return schedule_; }
+
+uint64_t PbftBlock::getPeriod() const { return period_; }
+
+uint64_t PbftBlock::getHeight() const { return height_; }
+
+uint64_t PbftBlock::getTimestamp() const { return timestamp_; }
+
+addr_t PbftBlock::getBeneficiary() const { return beneficiary_; }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   strm << pbft_blk.getJsonStr();
@@ -300,7 +317,6 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash)
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
-  node_ = full_node;
   // setup pbftchain DB pointer
   db_ = full_node->getDB();
   assert(db_);
@@ -345,6 +361,16 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
   }
   // cleanup PBFT blocks hash in unverified_blocks_map_ table
   unverified_blocks_map_.erase(prev_block_hash);
+}
+
+uint64_t PbftChain::getPbftChainSize() const { return size_; }
+
+uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
+
+blk_hash_t PbftChain::getHeadHash() const { return head_hash_; }
+
+blk_hash_t PbftChain::getLastPbftBlockHash() const {
+  return last_pbft_block_hash_;
 }
 
 std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
@@ -521,12 +547,6 @@ bool PbftChain::checkPbftBlockValidation(
 }
 
 void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_err_) << "Full node unavailable";
-    assert(false);
-  }
-
   blk_hash_t block_hash = pbft_block.getBlockHash();
   blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
   if (prev_block_hash != last_pbft_block_hash_) {

@@ -117,7 +117,7 @@ void TransactionManager::stop() {
 }
 
 std::unordered_map<trx_hash_t, Transaction>
-TransactionManager::getVerifiedTrxSnapShot() {
+TransactionManager::getVerifiedTrxSnapShot() const {
   return trx_qu_.getVerifiedTrxSnapShot();
 }
 
@@ -134,9 +134,7 @@ TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
   std::vector<taraxa::bytes> ret;
   for (auto const &t : vec_trxs) {
-    auto [trx_rlp, exist] = rlp_cache_.get(t.getHash());
-    // if cached miss, compute on the fly
-    ret.emplace_back(exist ? trx_rlp : t.rlp(true));
+    ret.emplace_back(t.rlp(true));
   }
   return ret;
 }
@@ -147,29 +145,13 @@ unsigned long TransactionManager::getTransactionCount() const {
 
 std::shared_ptr<std::pair<Transaction, taraxa::bytes>>
 TransactionManager::getTransaction(trx_hash_t const &hash) const {
-  // Check the status
   std::shared_ptr<std::pair<Transaction, taraxa::bytes>> tr;
-  // Loop needed because moving transactions from queue to database is not
-  // secure Probably a better fix is to have transactions saved to the
-  // database first and only then removed from the queue
-  uint counter = 0;
-  while (tr == nullptr) {
-    auto t = trx_qu_.getTransaction(hash);
-    if (t) {  // find in queue
-      auto [trx_rlp, exist] = rlp_cache_.get(t->getHash());
-      if (!exist) {
-        LOG(log_dg_) << "Cannot find rlp in cache ";
-      }
-      tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-          std::make_pair(*t, exist ? trx_rlp : t->rlp(true)));
-    } else {  // search from db
-      tr = db_->getTransactionExt(hash);
-    }
-    thisThreadSleepForMilliSeconds(1);
-    counter++;
-    if (counter % 10000 == 0) {
-      LOG(log_wr_) << "Keep waiting transaction " << hash;
-    }
+  auto t = trx_qu_.getTransaction(hash);
+  if (t) {  // find in queue
+    tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
+        std::make_pair(*t, t->rlp(true)));
+  } else {  // search from db
+    tr = db_->getTransactionExt(hash);
   }
   return tr;
 }
@@ -328,7 +310,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   to_be_packed_trx.clear();
   std::list<Transaction> list_trxs;
 
-  frontier = dag_frontier_;
+  frontier = getDagFrontier();
   LOG(log_dg_) << getFullNodeAddress()
                << " Get frontier with pivot: " << frontier.pivot
                << " tips: " << frontier.tips;
@@ -440,7 +422,7 @@ void TransactionManager::updateNonce(DagBlock const &blk,
     accs_nonce_.update(trx_sender, new_nonce);
   }
 
-  dag_frontier_ = frontier;
+  setDagFrontier(frontier);
   LOG(log_dg_) << getFullNodeAddress() << " Update nonce of block "
                << blk.getHash() << " frontier: " << frontier.pivot
                << " tips: " << frontier.tips
@@ -455,6 +437,16 @@ addr_t TransactionManager::getFullNodeAddress() const {
   } else {
     return addr_t();
   }
+}
+
+DagFrontier TransactionManager::getDagFrontier() {
+  std::shared_lock l(mu_for_dag_frontier_);
+  return dag_frontier_;
+}
+
+void TransactionManager::setDagFrontier(DagFrontier const &frontier) {
+  std::unique_lock l(mu_for_dag_frontier_);
+  dag_frontier_ = frontier;
 }
 
 }  // namespace taraxa

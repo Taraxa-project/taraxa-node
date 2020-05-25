@@ -31,9 +31,9 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   explicit TransactionManager(TestParamsConfig const &conf)
-      : conf_(conf), rlp_cache_(100000, 10000), accs_nonce_() {}
+      : conf_(conf), accs_nonce_() {}
   explicit TransactionManager(std::shared_ptr<DbStorage> db)
-      : db_(db), rlp_cache_(100000, 10000), accs_nonce_(), conf_() {}
+      : db_(db), accs_nonce_(), conf_() {}
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -61,7 +61,7 @@ class TransactionManager
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
-  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
+  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
   std::pair<size_t, size_t> getTransactionQueueSize() const;
 
@@ -82,6 +82,8 @@ class TransactionManager
   TransactionQueue &getTransactionQueue() { return trx_qu_; }
 
  private:
+  DagFrontier getDagFrontier();
+  void setDagFrontier(DagFrontier const &frontier);
   void verifyQueuedTrxs();
   size_t num_verifiers_ = 4;
   addr_t getFullNodeAddress() const;
@@ -89,7 +91,6 @@ class TransactionManager
   std::atomic<bool> stopped_ = true;
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  TransactionRLPTable rlp_cache_;
   AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
@@ -99,6 +100,7 @@ class TransactionManager
 
   mutable std::mutex mu_for_nonce_table_;
   mutable std::mutex mu_for_transactions_;
+  mutable std::shared_mutex mu_for_dag_frontier_;
   mutable dev::Logger log_si_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};
   mutable dev::Logger log_er_{

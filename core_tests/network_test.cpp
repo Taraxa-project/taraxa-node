@@ -811,8 +811,6 @@ TEST_F(NetworkTest, node_transaction_sync) {
     transactions.emplace_back(t.rlp(true));
   }
 
-  node1->insertBroadcastedTransactions(transactions);
-
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   auto node2 = taraxa::FullNode::make(
@@ -820,6 +818,10 @@ TEST_F(NetworkTest, node_transaction_sync) {
 
   node2->setDebug(true);
   node2->start(false);  // boot node
+
+  taraxa::thisThreadSleepForMilliSeconds(1000);
+
+  node1->insertBroadcastedTransactions(transactions);
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);

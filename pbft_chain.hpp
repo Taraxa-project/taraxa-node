@@ -55,7 +55,7 @@ struct TrxSchedule {
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> trxs_mode;
   void streamRLP(dev::RLPStream& strm) const;
   bytes rlp() const;
-  void setJson(Json::Value& json) const;
+  Json::Value getJson() const;
   void setSchedule(Json::Value const& tree);
   bool operator==(TrxSchedule const& other) const {
     return rlp() == other.rlp();
@@ -80,20 +80,20 @@ class PbftBlock {
   explicit PbftBlock(std::string const& str);
   ~PbftBlock() {}
 
-  std::string getJsonStr() const;
-  addr_t getBeneficiary() const;
   blk_hash_t sha3(bool include_sig) const;
-  bool verifySig() const;
+  std::string getJsonStr() const;
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
+  bool verifySig() const;  // TODO
 
-  blk_hash_t getBlockHash() const { return block_hash_; }
-  blk_hash_t getPrevBlockHash() const { return prev_block_hash_; }
-  blk_hash_t getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
-  TrxSchedule getSchedule() const { return schedule_; }
-  uint64_t getPeriod() const { return period_; }
-  uint64_t getHeight() const { return height_; }
-  uint64_t getTimestamp() const { return timestamp_; }
+  blk_hash_t getBlockHash() const;
+  blk_hash_t getPrevBlockHash() const;
+  blk_hash_t getPivotDagBlockHash() const;
+  TrxSchedule getSchedule() const;
+  uint64_t getPeriod() const;
+  uint64_t getHeight() const;
+  uint64_t getTimestamp() const;
+  addr_t getBeneficiary() const;
 
  private:
   void calculateHash_();
@@ -133,10 +133,10 @@ class PbftChain {
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
-  uint64_t getPbftChainSize() const { return size_; }
-  uint64_t getPbftChainPeriod() const { return period_; }
-  blk_hash_t getHeadHash() const { return head_hash_; }
-  blk_hash_t getLastPbftBlockHash() const { return last_pbft_block_hash_; }
+  uint64_t getPbftChainSize() const;
+  uint64_t getPbftChainPeriod() const;
+  blk_hash_t getHeadHash() const;
+  blk_hash_t getLastPbftBlockHash() const;
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
@@ -198,7 +198,6 @@ class PbftChain {
   blk_hash_t dag_genesis_hash_;  // dag genesis at height 1
   uint64_t max_dag_blocks_height_ = 0;
 
-  std::weak_ptr<FullNode> node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>

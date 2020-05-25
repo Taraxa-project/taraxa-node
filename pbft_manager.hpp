@@ -24,13 +24,11 @@ namespace taraxa {
 class FullNode;
 
 enum PbftStates {
-  value_proposal = 1,
-  filter,
-  certify,
-  first_finish,
-  second_finish,
-  post_first_finish,
-  post_second_finish
+  value_proposal_state = 1,
+  filter_state,
+  certify_state,
+  finish_state,
+  finish_polling_state
 };
 
 class PbftManager {
@@ -39,39 +37,31 @@ class PbftManager {
 
   explicit PbftManager(std::string const &genesis);
   PbftManager(PbftConfig const &conf, std::string const &genesis);
-  ~PbftManager() { stop(); }
+  ~PbftManager();
 
   void setFullNode(std::shared_ptr<FullNode> node);
-  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();
   void stop();
   void run();
 
-  blk_hash_t getLastPbftBlockHashAtStartOfRound() const {
-    return pbft_chain_last_block_hash_;
-  }
-
-  std::string getScheduleBlockByPeriod(uint64_t period);
-
+  blk_hash_t getLastPbftBlockHashAtStartOfRound() const;
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
+  std::string getScheduleBlockByPeriod(uint64_t const period);
 
-  size_t getSortitionThreshold() const { return sortition_threshold_; }
-  void setSortitionThreshold(size_t const sortition_threshold) {
-    sortition_threshold_ = sortition_threshold;
-  }
-  void setTwoTPlusOne(size_t const two_t_plus_one) {
-    TWO_T_PLUS_ONE = two_t_plus_one;
-  }
-  size_t getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
-
-  // TODO: only for test
-  void setPbftThreshold(size_t const threshold) {
-    sortition_threshold_ = threshold;
-  }
-  void setPbftRound(uint64_t const pbft_round) { round_ = pbft_round; }
+  size_t getSortitionThreshold() const;
+  void setSortitionThreshold(size_t const sortition_threshold);
+  size_t getTwoTPlusOne() const;
+  void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
-  uint64_t getPbftRound() const { return round_; }
-  size_t getPbftStep() const { return step_; }
+
+  // Notice: Test purpose
+  void setPbftThreshold(size_t const threshold);
+  void setPbftRound(uint64_t const pbft_round);
+  uint64_t getPbftRound() const;
+  size_t getPbftStep() const;
+  // End Test
+
+  bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
 
   // <account address, PbftSortitionAccount>
   // Temporary table for executor to update
@@ -101,12 +91,10 @@ class PbftManager {
   void setNextState_();
   void setFilterState_();
   void setCertifyState_();
-  void setFirstFinishState_();
-  void setSecondFinishState_();
-  void setPostFirstFinishState_();
-  void setPostSecondFinishState_();
-  void jumpPostSecondFinishState_(size_t step);
-  void loopBackPostFirstFinishState_();
+  void setFinishState_();
+  void setFinishPollingState_();
+  void continueFinishPollingState_(size_t step);
+  void loopBackFinishState_();
 
   bool stateOperations_();
   void proposeBlock_();
@@ -114,8 +102,6 @@ class PbftManager {
   void certifyBlock_();
   void firstFinish_();
   void secondFinish_();
-  void postFirstFinish_();
-  void postSecondFinish_();
 
   uint64_t roundDeterminedFromVotes_();
 
@@ -144,8 +130,6 @@ class PbftManager {
 
   std::pair<blk_hash_t, bool> identifyLeaderBlock_(
       std::vector<Vote> const &votes);
-
-  bool updatePbftChainDB_(PbftBlock const &pbft_block);
 
   bool checkPbftBlockValid_(blk_hash_t const &block_hash) const;
 
@@ -218,9 +202,9 @@ class PbftManager {
   bool should_have_cert_voted_in_this_round_;
   bool next_voted_soft_value_;
   bool next_voted_null_block_hash_;
-  bool skip_post_first_finish_;
-  bool go_first_finish_state_;
-  bool go_post_first_finish_state_;
+  bool continue_finish_polling_state_;
+  bool go_finish_state_;
+  bool loop_back_finish_state_;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;

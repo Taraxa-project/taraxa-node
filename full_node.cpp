@@ -123,6 +123,11 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       }
       level++;
     }
+    uint64_t pbft_chain_size = pbft_chain_->getPbftChainSize();
+    if (pbft_chain_size) {
+      // Recover DAG anchors
+      dag_mgr_->recoverAnchors(pbft_chain_size);
+    }
   }
   // Check pending transaction and reconstruct queues
   if (!destroy_db) {
