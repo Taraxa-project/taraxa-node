@@ -1,7 +1,6 @@
 #include "pbft_chain.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
 
 #include <atomic>
@@ -278,8 +277,8 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
   Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               TEST_TX_GAS_LIMIT, receiver,
-                                               data, g_secret);
+                                               TEST_TX_GAS_LIMIT, data,
+                                               g_secret, receiver);
   node->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (int i = 0; i < 1000; i++) {
@@ -349,7 +348,6 @@ int main(int argc, char** argv) {
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

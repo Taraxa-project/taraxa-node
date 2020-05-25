@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
+#include "util/simple_event.hpp"
 
 namespace taraxa {
 
@@ -24,16 +25,13 @@ using AccountNonceTable = StatusTable<addr_t, val_t>;
 class TransactionManager
     : public std::enable_shared_from_this<TransactionManager> {
  public:
+  util::SimpleEvent<trx_hash_t> const event_transaction_accepted;
+
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  explicit TransactionManager(
-      TestParamsConfig const &conf,
-      std::shared_ptr<eth::eth_service::EthService> eth_service = nullptr)
-      : conf_(conf),
-        rlp_cache_(100000, 10000),
-        accs_nonce_(),
-        eth_service_(eth_service) {}
+  explicit TransactionManager(TestParamsConfig const &conf)
+      : conf_(conf), rlp_cache_(100000, 10000), accs_nonce_() {}
   explicit TransactionManager(std::shared_ptr<DbStorage> db)
       : db_(db), rlp_cache_(100000, 10000), accs_nonce_(), conf_() {}
   std::shared_ptr<TransactionManager> getShared() {
@@ -97,7 +95,6 @@ class TransactionManager
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;
   TestParamsConfig conf_;
-  std::shared_ptr<eth::eth_service::EthService> eth_service_;
   std::vector<std::thread> verifiers_;
 
   mutable std::mutex mu_for_nonce_table_;

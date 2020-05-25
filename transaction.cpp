@@ -3,7 +3,6 @@
 #include <string>
 #include <utility>
 
-#include "eth/util.hpp"
 #include "full_node.hpp"
 
 namespace taraxa {

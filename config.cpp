@@ -97,10 +97,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       test_params.pbft.run_count_votes =
           root["test_params"]["pbft"]["run_count_votes"].asUInt();
     }
-    // TODO parse from json:
-    // Either a string name of a predefined config,
-    // or the full json of a custom config
-    chain = decltype(chain)::DEFAULT();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

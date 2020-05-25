@@ -12,7 +12,6 @@
 #include "block_proposer.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
-#include "eth/util.hpp"
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
@@ -71,9 +70,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   blk_mgr_ =
       std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
                                      conf_.test_params.max_block_queue_warn);
-  eth_service_ = s_ptr(new EthService(getShared(), conf_.chain.eth));
-  trx_mgr_ =
-      std::make_shared<TransactionManager>(conf_.test_params, eth_service_);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
@@ -82,10 +79,16 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
                                             genesis_hash.toString());
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
-  replay_protection_service_ = std::make_shared<ReplayProtectionService>(
-      conf_.chain.replay_protection_service_range, db_);
-  executor_ = s_ptr(
-      new Executor(log_time_, db_, replay_protection_service_, eth_service_));
+  final_chain_ = s_ptr(new FinalChain(db_, conf_.chain.final_chain));
+  auto final_chain_head_ = final_chain_->get_last_block();
+  pending_block_ =
+      s_ptr(new aleth::PendingBlock(final_chain_head_->number(), getAddress(),
+                                    final_chain_head_->hash(), db_));
+  filter_api_ = s_ptr(new aleth::FilterAPI());
+  trx_mgr_->event_transaction_accepted.sub([=](auto const &h) {
+    pending_block_->add_transactions(vector{h});
+    filter_api_->note_pending_transactions(vector{h});
+  });
   if (rebuild_network) {
     network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
                                          genesis_hash.toString());
@@ -101,9 +104,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   trx_order_mgr_->setFullNode(getShared());
   blk_proposer_->setFullNode(getShared());
   vote_mgr_->setFullNode(getShared());
-  pbft_mgr_->setFullNode(getShared(), replay_protection_service_);
+  pbft_mgr_->setFullNode(getShared());
   pbft_chain_->setFullNode(getShared());
-  executor_->setFullNode(getShared());
   // ===== Post-initialization tasks =====
   // Reconstruct DAG
   if (!destroy_db) {
@@ -124,12 +126,12 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   }
   // Check pending transaction and reconstruct queues
   if (!destroy_db) {
-    for (auto const &trx : db_->getPendingTransactions()) {
-      auto status = db_->getTransactionStatus(trx.first);
+    for (auto const &h : pending_block_->transactionHashes()) {
+      auto status = db_->getTransactionStatus(h);
       if (status == TransactionStatus::in_queue_unverified ||
           status == TransactionStatus::in_queue_verified) {
-        if (!trx_mgr_->insertTrx(trx.second, trx.second.rlp(true), true)
-                 .first) {
+        auto trx = db_->getTransaction(h);
+        if (!trx_mgr_->insertTrx(*trx, trx->rlp(true), true).first) {
           LOG(log_er_) << "Pending transaction not valid";
         }
       }
@@ -448,13 +450,6 @@ std::unordered_map<trx_hash_t, Transaction> FullNode::getVerifiedTrxSnapShot() {
   return trx_mgr_->getVerifiedTrxSnapShot();
 }
 
-std::unordered_map<trx_hash_t, Transaction> FullNode::getPendingTransactions() {
-  if (stopped_ || !trx_mgr_) {
-    return std::unordered_map<trx_hash_t, Transaction>();
-  }
-  return db_->getPendingTransactions();
-}
-
 std::vector<taraxa::bytes> FullNode::getNewVerifiedTrxSnapShotSerialized() {
   if (stopped_ || !trx_mgr_) {
     return {};
@@ -494,15 +489,16 @@ FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 bool FullNode::isSynced() const { return network_->isSynced(); }
 
-std::pair<val_t, bool> FullNode::getBalance(addr_t const &acc) const {
-  auto state = eth_service_->getAccountsState();
-  auto bal = state.balance(acc);
-  if (bal == 0 && !state.addressInUse(acc)) {
-    LOG(log_tr_) << "Account " << acc << " not exist ..." << std::endl;
+std::pair<val_t, bool> FullNode::getBalance(addr_t const &addr) const {
+  auto state_api = final_chain_->get_state_api();
+  auto acc = state_api->Historical_GetAccount(0, addr);  // TODO
+  if (!acc) {
+    LOG(log_tr_) << "Account " << addr << " not exist ..." << std::endl;
     return {0, false};
   }
-  LOG(log_tr_) << "Account " << acc << "balance: " << bal << std::endl;
-  return {bal, true};
+  LOG(log_tr_) << "Account " << addr << "balance: " << acc->Balance
+               << std::endl;
+  return {acc->Balance, true};
 }
 val_t FullNode::getMyBalance() const {
   auto my_bal = getBalance(node_addr_);
@@ -513,8 +509,6 @@ val_t FullNode::getMyBalance() const {
   }
 }
 
-addr_t FullNode::getAddress() const { return node_addr_; }
-
 dev::Signature FullNode::signMessage(std::string message) {
   return dev::sign(node_sk_, dev::sha3(message));
 }
@@ -522,26 +516,6 @@ dev::Signature FullNode::signMessage(std::string message) {
 bool FullNode::verifySignature(dev::Signature const &signature,
                                std::string &message) {
   return dev::verify(node_pk_, signature, dev::sha3(message));
-}
-
-bool FullNode::executePeriod(
-    DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
-    unordered_set<addr_t> &dag_block_proposers,
-    unordered_set<addr_t> &trx_senders,
-    unordered_map<addr_t, val_t> &execution_touched_account_balances) {
-  // update transaction overlap table first
-  trx_order_mgr_->updateOrderedTrx(pbft_block.getSchedule());
-
-  auto new_eth_header =
-      executor_->execute(batch, pbft_block, dag_block_proposers, trx_senders,
-                         execution_touched_account_balances);
-  if (!new_eth_header) {
-    return false;
-  }
-  if (ws_server_) {
-    ws_server_->newOrderedBlock(dev::eth::toJson(*new_eth_header));
-  }
-  return true;
 }
 
 void FullNode::updateWsScheduleBlockExecuted(PbftBlock const &pbft_block) {

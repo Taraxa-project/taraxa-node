@@ -6,6 +6,7 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
+
 #include <atomic>
 #include <boost/thread/condition_variable.hpp>
 #include <condition_variable>
@@ -14,10 +15,9 @@
 #include <queue>
 #include <thread>
 #include <vector>
-#include "config.hpp"
+
 #include "dag_block.hpp"
 #include "db_storage.hpp"
-#include "eth/eth_service.hpp"
 #include "util.hpp"
 
 namespace taraxa {
@@ -57,34 +57,21 @@ class Transaction {
 
   // sign message call
   Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
-              val_t const &gas, addr_t const &receiver, bytes const &data,
-              secret_t const &sk) try : type_(Transaction::Type::Call),
-                                        nonce_(nonce),
-                                        value_(value),
-                                        gas_price_(gas_price),
-                                        gas_(gas),
-                                        receiver_(receiver),
-                                        data_(data) {
-    sign(sk);
-    updateHash();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-
-  // sign contract create
-  Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
-              val_t const &gas, bytes const &data, secret_t const &sk) try
-      : type_(Transaction::Type::Create),
+              val_t const &gas, bytes const &data, secret_t const &sk,
+              optional<addr_t> const &receiver = std::nullopt) try
+      : type_(receiver ? Transaction::Type::Call : Transaction::Type::Create),
         nonce_(nonce),
         value_(value),
         gas_price_(gas_price),
         gas_(gas),
+        receiver_(receiver ? *receiver : addr_t()),
         data_(data) {
     sign(sk);
     updateHash();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
+
   Transaction(Transaction &&trx) = default;
   Transaction(Transaction const &trx) = default;
   explicit Transaction(stream &strm);

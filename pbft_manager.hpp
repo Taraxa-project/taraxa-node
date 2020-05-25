@@ -36,15 +36,12 @@ enum PbftStates {
 class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
-  using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
   explicit PbftManager(std::string const &genesis);
   PbftManager(PbftConfig const &conf, std::string const &genesis);
   ~PbftManager() { stop(); }
 
-  void setFullNode(
-      std::shared_ptr<FullNode> node,
-      std::shared_ptr<ReplayProtectionService> replay_protection_service);
+  void setFullNode(std::shared_ptr<FullNode> node);
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
   void start();
   void stop();
@@ -189,7 +186,6 @@ class PbftManager {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<TaraxaCapability> capability_;
-  std::shared_ptr<ReplayProtectionService> replay_protection_service_;
 
   size_t valid_sortition_accounts_size_ = 0;
   // Database
@@ -248,6 +244,15 @@ class PbftManager {
   time_point last_step_clock_initial_datetime_;
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
+
+  std::atomic<uint64_t> num_executed_trx_ = 0;
+  std::atomic<uint64_t> num_executed_blk_ = 0;
+  unordered_set<addr_t> dag_block_proposers_tmp_ =
+      stl_container_prealloc<decltype(dag_block_proposers_tmp_)>(128);
+  dev::eth::Transactions transactions_tmp_ =
+      stl_container_prealloc<decltype(transactions_tmp_)>(1042);
+  unordered_set<addr_t> trx_senders_tmp_ =
+      stl_container_prealloc<decltype(trx_senders_tmp_)>(1042);
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

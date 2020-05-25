@@ -134,12 +134,12 @@ void WSSession::on_write_no_read(beast::error_code ec,
   }
 }
 
-void WSSession::newOrderedBlock(Json::Value const &payload) {
+void WSSession::newOrderedBlock(dev::eth::BlockHeader const &payload) {
   if (new_heads_subscription_ != 0) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = payload;
+    params["result"] = dev::eth::toJson(payload);
     params["subscription"] = dev::toJS(new_heads_subscription_);
     res["params"] = params;
     Json::FastWriter fastWriter;
@@ -375,7 +375,7 @@ void WSServer::newScheduleBlockExecuted(PbftBlock const &pbft_blk,
   }
 }
 
-void WSServer::newOrderedBlock(Json::Value const &payload) {
+void WSServer::newOrderedBlock(dev::eth::BlockHeader const &payload) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newOrderedBlock(payload);

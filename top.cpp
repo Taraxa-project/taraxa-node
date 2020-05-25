@@ -7,11 +7,14 @@
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
+#include <stdexcept>
 
+#include "aleth/node_api.hpp"
 #include "config.hpp"
 #include "net/RpcServer.h"
 
 using namespace std;
+using namespace taraxa;
 
 Top::Top(int argc, const char* argv[]) {
   std::string conf_taraxa;
@@ -54,27 +57,42 @@ Top::Top(int argc, const char* argv[]) {
     // TODO this should be handled by the caller
     return;
   }
-  node_ = taraxa::FullNode::make(conf_taraxa,
-                                 destroy_db,  //
-                                 rebuild_network);
+  node_ = FullNode::make(conf_taraxa,
+                         destroy_db,  //
+                         rebuild_network);
   node_->start(boot_node);
   auto rpc_init_done = make_shared<condition_variable>();
   rpc_thread_ = thread([this, rpc_init_done] {
     try {
       auto const& node_config = node_->getConfig();
-      auto rpc_server = make_shared<taraxa::net::RpcServer>(rpc_io_context_,  //
-                                                            node_config.rpc);
-      auto rpc = make_shared<ModularServer<taraxa::net::TestFace,
-                                           taraxa::net::TaraxaFace,  //
-                                           taraxa::net::NetFace,     //
+      auto rpc_server = make_shared<net::RpcServer>(rpc_io_context_,  //
+                                                    node_config.rpc);
+      auto rpc = make_shared<ModularServer<net::TestFace,
+                                           net::TaraxaFace,  //
+                                           net::NetFace,     //
                                            dev::rpc::EthFace>>(
-          new taraxa::net::Test(node_),
-          new taraxa::net::Taraxa(node_),  //
-          new taraxa::net::Net(node_),
-          new dev::rpc::Eth(node_->getEthService());
+          new net::Test(node_),
+          new net::Taraxa(node_),  //
+          new net::Net(node_),
+          new dev::rpc::Eth(
+              node_config.chain.chain_id,
+              s_ptr(new aleth::NodeAPI(
+                  node_->getSecretKey(),
+                  [=](auto const& trx) {
+                    auto result = node_->insertTransaction(trx, true);
+                    if (!result.first) {
+                      throw runtime_error(
+                          fmt("Transaction is rejected.\n"
+                              "Payload: %s\n"
+                              "Reason: %s",
+                              trx.getJsonStr(), result.second));
+                    }
+                  })),
+              node_->getFilterAPI(), nullptr, node_->getPendingBlock(), nullptr,
+              [] { return 0; }));
       rpc->addConnector(rpc_server);
       rpc_server->StartListening();
-      auto ws_listener = make_shared<taraxa::net::WSServer>(
+      auto ws_listener = make_shared<net::WSServer>(
           rpc_io_context_,  //
           boost::asio::ip::tcp::endpoint{
               boost::asio::ip::make_address(
@@ -96,7 +114,7 @@ Top::Top(int argc, const char* argv[]) {
     rpc_init_done->wait(l);
   }
   // TODO remove after fixing the tests
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  thisThreadSleepForMilliSeconds(2000);
 }
 
 void Top::join() {

@@ -1,7 +1,9 @@
 #include "Test.h"
+
 #include <jsonrpccpp/common/errors.h>
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
+
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
 #include "core_tests/create_samples.hpp"
@@ -93,7 +95,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       bytes data;
       // get trx receiving time stamp
       auto now = getCurrentTimeMilliSeconds();
-      taraxa::Transaction trx(nonce, value, gas_price, gas, receiver, data, sk);
+      taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
       LOG(log_time) << "Transaction " << trx.getHash()
                     << " received at: " << now;
       node->insertTransaction(trx, true);
@@ -133,7 +135,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
                 val_t value = val_t(100);
                 auto trx = taraxa::Transaction(
                     val_t(i) + nonce, value, val_t(1000),
-                    taraxa::samples::TEST_TX_GAS_LIMIT, receiver, data, sk);
+                    taraxa::samples::TEST_TX_GAS_LIMIT, data, sk, receiver);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;
                 node->insertTransaction(trx, false);

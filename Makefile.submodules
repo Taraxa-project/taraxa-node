@@ -73,6 +73,8 @@ submodules/taraxa-vdf/ok: submodules/openssl/ok
 
 submodules/taraxa-vrf/ok:
 	$(SUBMODULE_BUILD_INIT); \
+	autoreconf; \
+	automake; \
 	./configure --prefix=$(DEPS_INSTALL_PREFIX); \
 	$(MAKE); \
 	$(MAKE) install; \
@@ -166,7 +168,10 @@ $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 		-I$(ALETH_ROOT) \
 		-I$(DEPS_INSTALL_PREFIX)/include \
 		-I$(JSONCPP_INCLUDE_DIR) \
-		$(addprefix -D, $(COMPILE_DEFINITIONS)) \
+		$(addprefix -D, \
+			$(BOOST_COMPILE_DEFINITIONS) \
+			$(CRYPTOPP_COMPILE_DEFIINITIONS) \
+		) \
 		-o $@ $< \
 	)
 

@@ -90,26 +90,23 @@ struct DbStorage {
   };
 
  private:
-  unique_ptr<DB> db_;
-  vector<ColumnFamilyHandle*> handles_;
+  shared_ptr<DB> db_;
+  vector<shared_ptr<ColumnFamilyHandle>> handles_;
   ReadOptions read_options_;
   WriteOptions write_options_;
   mutex dag_blocks_mutex_;
   atomic<uint64_t> dag_blocks_count_;
 
+  DbStorage() = default;
+
  public:
-  DbStorage(DB* db, decltype(move(handles_)) handles)
-      : db_(db), handles_(move(handles)) {
-    dag_blocks_count_.store(this->getStatusField(StatusDbField::DagBlkCount));
-  }
-
-  ~DbStorage() {
-    for (auto h : handles_) delete h;
-  }
-
   static unique_ptr<DbStorage> make(fs::path const& base_path,
                                     h256 const& genesis_hash,
                                     bool drop_existing);
+
+  auto unwrap() const { return db_; }
+  auto unwrap_handle(Column const& col) const { return handles_[col.ordinal]; }
+  auto handle(Column const& col) const { return unwrap_handle(col).get(); }
 
   BatchPtr createWriteBatch();
   void commitWriteBatch(BatchPtr const& write_batch);
@@ -149,13 +146,6 @@ struct DbStorage {
                                    trx_hash_t const& trx,
                                    TransactionStatus const& status);
   TransactionStatus getTransactionStatus(trx_hash_t const& hash);
-
-  void addPendingTransaction(trx_hash_t const& trx);
-  void removePendingTransaction(trx_hash_t const& trx);
-  void removePendingTransactionToBatch(BatchPtr const& write_batch,
-                                       trx_hash_t const& trx);
-  std::unordered_map<trx_hash_t, Transaction> getPendingTransactions();
-
   std::map<trx_hash_t, TransactionStatus> getAllTransactionStatus();
 
   // pbft_blocks
@@ -229,9 +219,11 @@ struct DbStorage {
   void remove(Slice key, Column const& column);
   void forEach(Column const& col, OnEntry const& f);
 
-  inline static Slice toSlice(dev::bytes const& b) {
+  inline static Slice toSlice(dev::bytesConstRef const& b) {
     return Slice(reinterpret_cast<char const*>(&b[0]), b.size());
   }
+
+  inline static Slice toSlice(dev::bytes const& b) { return toSlice(&b); }
 
   template <class N, typename = enable_if_t<is_arithmetic<N>::value>>
   inline static Slice toSlice(N const& n) {
@@ -246,12 +238,7 @@ struct DbStorage {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
 
- private:
   static void checkStatus(rocksdb::Status const& status);
-
-  ColumnFamilyHandle* handle(Column const& col) {
-    return handles_[col.ordinal];
-  }
 };
 }  // namespace taraxa
 #endif

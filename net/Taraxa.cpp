@@ -4,7 +4,7 @@
 #include <libdevcore/CommonData.h>
 #include <libethcore/CommonJS.h>
 #include <libethereum/TransactionReceipt.h>
-#include <libwebthree/WebThree.h>
+#include <libp2p/Common.h>
 
 #include <csignal>
 
@@ -12,7 +12,6 @@ using namespace std;
 using namespace jsonrpc;
 using namespace dev;
 using namespace eth;
-using namespace shh;
 using namespace taraxa;
 
 namespace taraxa::net {

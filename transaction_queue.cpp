@@ -1,11 +1,10 @@
 #include "transaction_queue.hpp"
-#include "transaction.hpp"
 
 #include <string>
 #include <utility>
 
-#include "eth/util.hpp"
 #include "full_node.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 

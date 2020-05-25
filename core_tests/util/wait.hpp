@@ -2,6 +2,7 @@
 #define TARAXA_NODE_CORE_TESTS_UTIL_WAIT_HPP_
 
 #include <chrono>
+#include <functional>
 #include <optional>
 #include <thread>
 
@@ -20,8 +21,7 @@ inline const WaitOptions WaitOptions_DEFAULT = {
     nanoseconds(1000 * 1000 * 1000 * 1),
 };
 
-template <typename Condition>
-bool wait(Condition const& condition,
+bool wait(function<bool()> condition,
           WaitOptions const& opts = WaitOptions_DEFAULT) {
   for (uint i(0); i < opts.attempts; ++i) {
     if (condition()) {
@@ -33,5 +33,11 @@ bool wait(Condition const& condition,
 }
 
 }  // namespace taraxa::core_tests::util::wait
+
+namespace taraxa::core_tests::util {
+using wait::wait;
+using wait::WaitOptions;
+using wait::WaitOptions_DEFAULT;
+}  // namespace taraxa::core_tests::util
 
 #endif  // TARAXA_NODE_CORE_TESTS_UTIL_WAIT_HPP_

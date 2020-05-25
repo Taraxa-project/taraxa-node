@@ -2,6 +2,7 @@
 #define TARAXA_NODE_NET_WS_SERVER_H_
 
 #include <libdevcore/Log.h>
+#include <libethcore/BlockHeader.h>
 
 #include <algorithm>
 #include <atomic>
@@ -41,7 +42,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
   void on_write(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
-  void newOrderedBlock(Json::Value const& payload);
+  void newOrderedBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newScheduleBlockExecuted(PbftBlock const& pbft_blk,
@@ -81,7 +82,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
 
   // Start accepting incoming connections
   void run();
-  void newOrderedBlock(Json::Value const& payload);
+  void newOrderedBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newScheduleBlockExecuted(PbftBlock const& sche_blk,

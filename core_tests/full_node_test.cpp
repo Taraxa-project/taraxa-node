@@ -2,9 +2,7 @@
 #include "full_node.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
-#include <libethcore/Precompiled.h>
 
 #include <atomic>
 #include <boost/thread.hpp>
@@ -22,7 +20,6 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
-#include "replay_protection/replay_protection_service_test.hpp"
 #include "sortition.hpp"
 #include "static_init.hpp"
 #include "string"
@@ -480,12 +477,12 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      for (auto &[addr, acc] : nodes[0]->getConfig().chain.eth.genesisState) {
-        expected_balances[addr] = acc.balance();
+      for (auto &[addr, acc] :
+           nodes[0]->getConfig().chain.final_chain.state.genesis_accounts) {
+        expected_balances[addr] = acc.Balance;
       }
-      for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
-        auto const &backend = nodes_[(i + 1) % cnt];  // shuffle a bit
-        trx_clients.emplace_back(nodes_[i]->getSecretKey(), backend);
+      for (auto node : nodes_) {
+        trx_clients.emplace_back(node);
       }
     }
 
@@ -1191,8 +1188,7 @@ TEST_F(FullNodeTest, genesis_balance) {
   val_t bal1(1000);
   addr_t addr2(200);
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  cfg.chain.eth.genesisState[addr1] = dev::eth::Account(0, bal1);
-  cfg.chain.eth.calculateStateRoot(true);
+  cfg.chain.final_chain.state.genesis_accounts[addr1].Balance = bal1;
   auto node(taraxa::FullNode::make(cfg));
   node->start(true);
   auto res = node->getBalance(addr1);
@@ -1633,35 +1629,6 @@ TEST_F(FullNodeTest, transfer_to_self) {
   EXPECT_EQ(bal.first, initial_bal.first);
 }
 
-TEST_F(FullNodeTest,
-       DISABLED_transaction_failure_does_not_cause_block_failure) {
-  // TODO move to another file
-  using namespace std;
-  auto node = FullNode::make("./core_tests/conf/conf_taraxa1.json");
-  node->setDebug(true);
-  node->start(true);
-  thisThreadSleepForMilliSeconds(500);
-  vector<Transaction> transactions;
-  transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
-                            bytes(), node->getSecretKey());
-  // This must cause out of balance error
-  transactions.emplace_back(1, node->getMyBalance() + 100, 0,
-                            samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
-                            node->getSecretKey());
-  for (auto const &trx : transactions) {
-    node->insertTransaction(trx, false);
-  }
-  auto trx_executed = node->getNumTransactionExecuted();
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
-    if (trx_executed == transactions.size()) break;
-    thisThreadSleepForMilliSeconds(100);
-    trx_executed = node->getNumTransactionExecuted();
-  }
-  EXPECT_EQ(trx_executed, transactions.size())
-      << "Trx executed: " << trx_executed
-      << " ,Trx size: " << transactions.size();
-}
-
 TEST_F(FullNodeTest, DISABLED_mem_usage) {
   Top top1(6, input1);
   std::cout << "Top1 created ..." << std::endl;
@@ -1716,7 +1683,6 @@ int main(int argc, char **argv) {
   // logOptions.includeChannels.push_back("PBFT_CHAIN");
 
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
