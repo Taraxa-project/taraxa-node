@@ -71,6 +71,7 @@ submodules/taraxa-vdf/ok: submodules/openssl/ok
 
 submodules/taraxa-vrf/ok:
 	$(SUBMODULE_BUILD_INIT); \
+	autoreconf; \
 	automake; \
 	./configure --prefix=$(DEPS_INSTALL_PREFIX); \
 	$(MAKE); \
