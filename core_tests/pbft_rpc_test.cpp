@@ -176,6 +176,8 @@ TEST_F(PbftRpcTest, transfer_vote) {
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
+  taraxa::thisThreadSleepForMilliSeconds(100);
+
   // fixme stopping before asserts
   pbft_mgr1->stop();
   pbft_mgr2->stop();
@@ -249,6 +251,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
 
   nw1->onNewPbftVote(vote);
 
+  taraxa::thisThreadSleepForMilliSeconds(100);
   pbft_mgr1->stop();
   pbft_mgr2->stop();
   pbft_mgr3->stop();
