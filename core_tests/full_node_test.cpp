@@ -922,10 +922,9 @@ TEST_F(FullNodeTest, destroy_node) {
 TEST_F(FullNodeTest, reconstruct_anchors) {
   std::queue<std::pair<std::string, uint64_t>> anchors;
   {
-    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-    auto node(taraxa::FullNode::make(conf,
-                                     true));  // destroy DB
-
+    auto tops = createNodesAndVerifyConnection(1, 1, false, 20);
+    auto node = tops.second[0];
+    
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -938,13 +937,11 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
 
     taraxa::thisThreadSleepForMilliSeconds(500);
     anchors = node->getDagManager()->getAnchors();
-    cout << "ANC " << anchors.size() << endl;
   }
   {
-    FullNodeConfig conf("./core_tests/conf/conf_taraxa1.json");
-    auto node(taraxa::FullNode::make(conf,
-                                     false));  // no destroy DB
-
+    auto tops = createNodesAndVerifyConnection(1, 1, true);
+    auto node = tops.second[0];
+    
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
