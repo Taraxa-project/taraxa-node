@@ -21,7 +21,7 @@ inline const val_t TEST_TX_GAS_LIMIT =
 
 class TxGenerator {
  public:
-  // this function guarantees uniqueness for generated values
+  // this function     guarantees uniqueness for generated values
   // scoped to the class instance
   auto getRandomUniqueSenderSecret() const {
     std::unique_lock l(mutex_);
