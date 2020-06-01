@@ -97,7 +97,6 @@ NODE_SRCS := \
 	transaction.cpp \
 	transaction_queue.cpp \
 	transaction_manager.cpp \
-	executor.cpp \
 	transaction_order_manager.cpp \
 	pbft_chain.cpp \
 	taraxa_capability.cpp \
@@ -106,25 +105,24 @@ NODE_SRCS := \
 	vote.cpp \
 	top.cpp \
 	config.cpp \
-	trx_engine/types.cpp \
-	trx_engine/trx_engine.cpp \
 	pbft_sortition_account.cpp \
-	replay_protection/sender_state.cpp \
-	replay_protection/replay_protection_service.cpp \
 	vrf_wrapper.cpp \
 	net/RpcServer.cpp \
 	net/WSServer.cpp \
 	net/Test.cpp \
 	net/Taraxa.cpp \
 	net/Net.cpp \
-	eth/eth_service.cpp \
-	eth/eth.cpp \
-	eth/taraxa_seal_engine.cpp \
-	eth/pending_block_header.cpp \
 	db_storage.cpp \
 	vdf_sortition.cpp \
-	conf/chain_config.cpp \
-	eth/database_adapter.cpp \
+	replay_protection_service.cpp \
+	chain_config.cpp \
+	state_api.cpp \
+	aleth/filter_api.cpp \
+	aleth/database.cpp \
+	aleth/node_api.cpp \
+	aleth/pending_block.cpp \
+	aleth/state_api.cpp \
+	final_chain.cpp \
 
 NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
 
@@ -138,7 +136,11 @@ TEST_SRCS := \
 	core_tests/crypto_test.cpp \
     core_tests/pbft_chain_test.cpp \
 	core_tests/pbft_rpc_test.cpp \
-	core_tests/pbft_manager_test.cpp
+	core_tests/pbft_manager_test.cpp \
+	replay_protection_service_test.cpp \
+	state_api_test.cpp \
+	final_chain_test.cpp \
+
 TEST_OBJS := $(addprefix $(OBJ_DIR)/, $(TEST_SRCS:.cpp=.o))
 TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 

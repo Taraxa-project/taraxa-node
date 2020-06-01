@@ -38,7 +38,6 @@ on_exit rm ${_child_exit_codes}
 (
   trap 'echo $? >> ${_child_exit_codes}' EXIT
   cd submodules/taraxa-aleth
-  git submodule update --init --recursive evmc
   git submodule update --init --recursive cmake/cable
 ) &
 wait

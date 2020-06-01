@@ -58,9 +58,6 @@ submodules/openssl/ok:
 	$(MAKE); \
 	$(MAKE) install; \
 
-#--openssldir=$(DEPS_INSTALL_PREFIX)/ssl no-tests; \
-#$(MAKE) install_sw;
-
 # ====================================================
 
 submodules/taraxa-vdf/ok: submodules/openssl/ok
