@@ -37,15 +37,14 @@ struct ReplayProtectionServiceTest : testing::Test {
     this->range = range;
     this->history = history;
     db = DbStorage::make(DB_DIR, h256::random(), true);
-    SUT = s_ptr(new ReplayProtectionService(range, db));
+    SUT = NewReplayProtectionService({range}, db);
   }
 
   void apply_history(optional<round_t> record_count = nullopt) {
     auto cnt = record_count ? *record_count : history.size() - curr_round;
     for (round_t i(0); i < cnt; ++i) {
       auto batch = db->createWriteBatch();
-      SUT->register_executed_transactions(batch, curr_round,
-                                          history[curr_round]);
+      SUT->update(batch, curr_round, history[curr_round]);
       db->commitWriteBatch(batch);
       ++curr_round;
     }

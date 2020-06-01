@@ -10,6 +10,7 @@
 #include <stdexcept>
 
 #include "aleth/node_api.hpp"
+#include "aleth/state_api.hpp"
 #include "config.hpp"
 #include "net/RpcServer.h"
 
@@ -67,6 +68,7 @@ Top::Top(int argc, const char* argv[]) {
       auto const& node_config = node_->getConfig();
       auto rpc_server = make_shared<net::RpcServer>(rpc_io_context_,  //
                                                     node_config.rpc);
+      auto final_chain = node_->getFinalChain();
       auto rpc = make_shared<ModularServer<net::TestFace,
                                            net::TaraxaFace,  //
                                            net::NetFace,     //
@@ -76,19 +78,22 @@ Top::Top(int argc, const char* argv[]) {
           new net::Net(node_),
           new dev::rpc::Eth(
               node_config.chain.chain_id,
-              s_ptr(new aleth::NodeAPI(
-                  node_->getSecretKey(),
-                  [=](auto const& trx) {
-                    auto result = node_->insertTransaction(trx, true);
-                    if (!result.first) {
-                      throw runtime_error(
-                          fmt("Transaction is rejected.\n"
-                              "Payload: %s\n"
-                              "Reason: %s",
-                              trx.getJsonStr(), result.second));
-                    }
-                  })),
-              node_->getFilterAPI(), nullptr, node_->getPendingBlock(), nullptr,
+              aleth::NewNodeAPI(node_->getSecretKey(),
+                                [=](auto const& trx) {
+                                  auto result =
+                                      node_->insertTransaction(trx, true);
+                                  if (!result.first) {
+                                    BOOST_THROW_EXCEPTION(runtime_error(
+                                        fmt("Transaction is rejected.\n"
+                                            "Payload: %s\n"
+                                            "Reason: %s",
+                                            trx.getJsonStr(), result.second)));
+                                  }
+                                }),
+              node_->getFilterAPI(),
+              aleth::NewStateAPI(final_chain),  //
+              node_->getPendingBlock(),
+              final_chain,  //
               [] { return 0; }));
       rpc->addConnector(rpc_server);
       rpc_server->StartListening();

@@ -943,7 +943,7 @@ TEST_F(NetworkTest, node_full_sync) {
       auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
       auto blocks2 = nodes[i]->getDagBlocksAtLevel(level, 1);
       if (blocks1.size() != blocks2.size()) {
-        printf("DIFF at level %lu: \n", level);
+        std::cout << "DIFF at level %lu: " << level << std::endl;
         for (auto b : blocks1) printf(" %s", b->getHash().toString().c_str());
         printf("\n");
         for (auto b : blocks2) printf(" %s", b->getHash().toString().c_str());

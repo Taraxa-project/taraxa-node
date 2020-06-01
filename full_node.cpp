@@ -79,12 +79,12 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
                                             genesis_hash.toString());
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
-  final_chain_ = s_ptr(new FinalChain(db_, conf_.chain.final_chain));
+  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain);
   auto final_chain_head_ = final_chain_->get_last_block();
   pending_block_ =
-      s_ptr(new aleth::PendingBlock(final_chain_head_->number(), getAddress(),
-                                    final_chain_head_->hash(), db_));
-  filter_api_ = s_ptr(new aleth::FilterAPI());
+      aleth::NewPendingBlock(final_chain_head_->number(), getAddress(),
+                             final_chain_head_->hash(), db_);
+  filter_api_ = aleth::NewFilterAPI();
   trx_mgr_->event_transaction_accepted.sub([=](auto const &h) {
     pending_block_->add_transactions(vector{h});
     filter_api_->note_pending_transactions(vector{h});
@@ -495,15 +495,13 @@ std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
 bool FullNode::isSynced() const { return network_->isSynced(); }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &addr) const {
-  auto state_api = final_chain_->get_state_api();
-  auto acc = state_api->Historical_GetAccount(0, addr);  // TODO
-  if (!acc) {
-    LOG(log_tr_) << "Account " << addr << " not exist ..." << std::endl;
-    return {0, false};
+  if (auto acc = final_chain_->get_account(addr)) {
+    LOG(log_tr_) << "Account " << addr << "balance: " << acc->Balance
+                 << std::endl;
+    return {acc->Balance, true};
   }
-  LOG(log_tr_) << "Account " << addr << "balance: " << acc->Balance
-               << std::endl;
-  return {acc->Balance, true};
+  LOG(log_tr_) << "Account " << addr << " not exist ..." << std::endl;
+  return {0, false};
 }
 val_t FullNode::getMyBalance() const {
   auto my_bal = getBalance(node_addr_);

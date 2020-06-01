@@ -87,10 +87,10 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
     if (auto node = full_node_.lock()) {
       auto &log_time = node->getTimeLogger();
       secret_t sk = secret_t(param1["secret"].asString());
-      val_t nonce = val_t(param1["nonce"].asString());
+      auto nonce = dev::jsToInt(param1["nonce"].asString());
       val_t value = val_t(param1["value"].asString());
       val_t gas_price = val_t(param1["gas_price"].asString());
-      val_t gas = val_t(param1["gas"].asString());
+      auto gas = dev::jsToInt(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
       bytes data;
       // get trx receiving time stamp
@@ -114,7 +114,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
       auto &log_time = node->getTimeLogger();
       uint delay = param1["delay"].asUInt();
       uint number = param1["number"].asUInt();
-      val_t nonce = val_t(param1["nonce"].asString());
+      auto nonce = dev::jsToInt(param1["nonce"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
       secret_t sk = node->getSecretKey();
       if (!param1["secret"].empty() && !param1["secret"].asString().empty()) {
@@ -134,7 +134,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
                 auto now = getCurrentTimeMilliSeconds();
                 val_t value = val_t(100);
                 auto trx = taraxa::Transaction(
-                    val_t(i) + nonce, value, val_t(1000),
+                    i + nonce, value, 1000,
                     taraxa::samples::TEST_TX_GAS_LIMIT, data, sk, receiver);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;

@@ -960,7 +960,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
-    TransactionClient trx_client(node->getSecretKey(), node);
+    TransactionClient trx_client(node);
 
     for (auto i = 0; i < 3; i++) {
       auto result = trx_client.coinTransfer(KeyPair::create().address(), 10);

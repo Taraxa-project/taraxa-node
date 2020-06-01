@@ -1,6 +1,7 @@
 #include "final_chain.hpp"
 
-#include <boost/filesystem.hpp>
+#include <libdevcore/TrieHash.h>
+
 #include <fstream>
 #include <optional>
 #include <vector>
@@ -9,39 +10,260 @@
 #include "util/gtest.hpp"
 
 namespace taraxa::final_chain {
-using boost::filesystem::create_directories;
-using boost::filesystem::path;
-using boost::filesystem::remove_all;
-using boost::filesystem::temp_directory_path;
 using namespace std;
 
 struct FinalChainTest : testing::Test, WithTestDataDir {
   shared_ptr<DbStorage> db = DbStorage::make(data_dir, h256::random(), true);
+  FinalChain::Config cfg = ChainConfig::Default->final_chain;
+  unique_ptr<FinalChain> SUT;
+  bool assume_only_toplevel_transfers = true;
+  unordered_map<addr_t, u256> expected_balances;
+  uint64_t expected_blk_num = 0;
+
+  void init() {
+    SUT = NewFinalChain(db, cfg);
+    for (auto const& [addr, acc_expected] : cfg.state.genesis_accounts) {
+      auto acc_actual = SUT->get_account(addr);
+      ASSERT_TRUE(acc_actual);
+      ASSERT_EQ(acc_actual->Balance, acc_expected.Balance);
+      ASSERT_EQ(acc_actual->Nonce, acc_expected.Nonce);
+      auto code = SUT->get_code(addr);
+      ASSERT_EQ(code, acc_expected.Code);
+      ASSERT_EQ(acc_actual->code_hash_eth(), sha3(code));
+      ASSERT_EQ(acc_actual->CodeSize, code.size());
+      for (auto const& [k, v_expected] : acc_expected.Storage) {
+        ASSERT_EQ(SUT->get_account_storage(addr, k), v_expected);
+      }
+      expected_balances[addr] = acc_expected.Balance;
+    }
+  }
+
+  struct advance_check_opts {
+    bool dont_assume_no_logs;
+    bool dont_assume_all_trx_success;
+  };
+  auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
+    auto batch = db->createWriteBatch();
+    auto author = addr_t::random();
+    uint64_t timestamp =
+        chrono::high_resolution_clock::now().time_since_epoch().count();
+    auto result = SUT->advance(batch, author, timestamp, trxs);
+    db->commitWriteBatch(batch);
+    SUT->advance_confirm();
+    ++expected_blk_num;
+    auto const& blk_h = result.new_header;
+    EXPECT_EQ(blk_h.hash(), SUT->get_last_block()->hash());
+    EXPECT_EQ(blk_h.parentHash(),
+              SUT->blockHeader(expected_blk_num - 1).hash());
+    EXPECT_EQ(blk_h.number(), expected_blk_num);
+    EXPECT_EQ(blk_h.author(), author);
+    EXPECT_EQ(blk_h.timestamp(), timestamp);
+    EXPECT_EQ(result.receipts.size(), trxs.size());
+    EXPECT_EQ(blk_h.transactionsRoot(),
+              trieRootOver(
+                  trxs.size(), [&](auto i) { return rlp(i); },
+                  [&](auto i) { return trxs[i].rlp(); }));
+    EXPECT_EQ(blk_h.receiptsRoot(),
+              trieRootOver(
+                  trxs.size(), [&](auto i) { return rlp(i); },
+                  [&](auto i) { return result.receipts[i].rlp(); }));
+    EXPECT_EQ(blk_h.gasLimit(), std::numeric_limits<uint64_t>::max());
+    EXPECT_EQ(blk_h.extraData(), bytes());
+    EXPECT_EQ(blk_h.nonce(), Nonce());
+    EXPECT_EQ(blk_h.difficulty(), 0);
+    EXPECT_EQ(blk_h.mixHash(), h256());
+    EXPECT_EQ(blk_h.sha3Uncles(), EmptyListSHA3);
+    EXPECT_EQ(blk_h.gasUsed(),
+              result.receipts.empty()
+                  ? 0
+                  : result.receipts.back().cumulativeGasUsed());
+    LogBloom expected_block_log_bloom;
+    unordered_map<addr_t, u256> expected_balance_changes;
+    unordered_set<addr_t> all_addrs_w_changed_balance;
+    for (size_t i = 0; i < trxs.size(); ++i) {
+      auto const& trx = trxs[i];
+      auto const& r = result.receipts[i];
+      if (assume_only_toplevel_transfers && trx.value() != 0 &&
+          r.statusCode() == 1) {
+        auto const& sender = trx.from();
+        auto const& sender_bal = expected_balances[sender] -= trx.value();
+        auto const& receiver =
+            trx.isCreation() ? r.contractAddress() : trx.to();
+        all_addrs_w_changed_balance.insert(sender);
+        all_addrs_w_changed_balance.insert(receiver);
+        auto const& receiver_bal = expected_balances[receiver] += trx.value();
+        if (SUT->get_account(sender)->CodeSize == 0) {
+          expected_balance_changes[sender] = sender_bal;
+        }
+        if (SUT->get_account(receiver)->CodeSize == 0) {
+          expected_balance_changes[receiver] = receiver_bal;
+        }
+      }
+      EXPECT_TRUE(r.hasStatusCode());
+      if (!opts.dont_assume_all_trx_success) {
+        EXPECT_EQ(r.statusCode(), 1);
+      }
+      if (!opts.dont_assume_no_logs) {
+        EXPECT_EQ(r.log().size(), 0);
+        EXPECT_EQ(r.bloom(), LogBloom());
+      }
+      expected_block_log_bloom |= r.bloom();
+      auto r_from_db = SUT->localisedTransactionReceipt(trxs[i].sha3());
+      EXPECT_EQ(
+          r_from_db.contractAddress(),
+          result.state_transition_result.ExecutionResults[i].NewContractAddr);
+      EXPECT_EQ(r_from_db.from(), trx.from());
+      EXPECT_EQ(r_from_db.blockHash(), blk_h.hash());
+      EXPECT_EQ(r_from_db.blockNumber(), blk_h.number());
+      EXPECT_EQ(r_from_db.transactionIndex(), i);
+      EXPECT_EQ(r_from_db.hash(), trx.sha3());
+      EXPECT_EQ(r_from_db.to(), trx.to());
+      EXPECT_EQ(r_from_db.bloom(), r.bloom());
+      EXPECT_TRUE(r_from_db.hasStatusCode());
+      EXPECT_EQ(r_from_db.statusCode(), r.statusCode());
+      EXPECT_EQ(r_from_db.gasUsed(),
+                i == 0 ? r.cumulativeGasUsed()
+                       : r.cumulativeGasUsed() -
+                             result.receipts[i - 1].cumulativeGasUsed());
+    }
+    expected_block_log_bloom.shiftBloom<3>(sha3(blk_h.author().ref()));
+    EXPECT_EQ(blk_h.logBloom(), expected_block_log_bloom);
+    EXPECT_EQ(blk_h.stateRoot(), result.state_transition_result.StateRoot);
+    if (assume_only_toplevel_transfers) {
+      EXPECT_EQ(result.state_transition_result.NonContractBalanceChanges,
+                expected_balance_changes);
+      for (auto const& addr : all_addrs_w_changed_balance) {
+        EXPECT_EQ(SUT->get_account(addr)->Balance, expected_balances[addr]);
+      }
+    }
+    return result;
+  }
 };
 
+TEST_F(FinalChainTest, genesis_accounts) {
+  cfg.state.genesis_accounts = {};
+  cfg.state.genesis_accounts[addr_t(1)].Balance = 1000;
+  cfg.state.genesis_accounts[addr_t(2)].Code = {1, 2, 3};
+  cfg.state.genesis_accounts[addr_t(3)].Nonce = 55;
+  cfg.state.genesis_accounts[addr_t(4)].Storage[16] = 32;
+  init();
+}
+
+TEST_F(FinalChainTest, contract) {
+  auto sender_keys = KeyPair::create();
+  auto const& addr = sender_keys.address();
+  auto const& sk = sender_keys.secret();
+  cfg.state.genesis_accounts = {};
+  cfg.state.genesis_accounts[addr].Balance = 100000;
+  init();
+  static string const contract_deploy_code =
+      // pragma solidity ^0.6.8;
+      // contract Greeter {
+      //    string public greeting;
+      //
+      //    constructor() public payable {
+      //       greeting = 'Hello';
+      //    }
+      //
+      //    function setGreeting(string memory _greeting) public payable {
+      //       greeting = _greeting;
+      //    }
+      //
+      //    function greet() view public returns (string memory) {
+      //       return greeting;
+      //    }
+      //}
+      "0x60806040526040518060400160405280600581526020017f48656c6c6f000000000000"
+      "000000000000000000000000000000000000000000815250600090805190602001906100"
+      "4f929190610055565b506100fa565b828054600181600116156101000203166002900490"
+      "600052602060002090601f016020900481019282601f1061009657805160ff1916838001"
+      "1785556100c4565b828001600101855582156100c4579182015b828111156100c3578251"
+      "8255916020019190600101906100a8565b5b5090506100d191906100d5565b5090565b61"
+      "00f791905b808211156100f35760008160009055506001016100db565b5090565b90565b"
+      "610449806101096000396000f3fe6080604052600436106100345760003560e01c8063a4"
+      "13686214610039578063cfae3217146100f4578063ef690cc014610184575b600080fd5b"
+      "6100f26004803603602081101561004f57600080fd5b8101908080359060200190640100"
+      "00000081111561006c57600080fd5b82018360208201111561007e57600080fd5b803590"
+      "602001918460018302840111640100000000831117156100a057600080fd5b9190808060"
+      "1f0160208091040260200160405190810160405280939291908181526020018383808284"
+      "37600081840152601f19601f820116905080830192505050505050509192919290505050"
+      "610214565b005b34801561010057600080fd5b5061010961022e565b6040518080602001"
+      "828103825283818151815260200191508051906020019080838360005b83811015610149"
+      "57808201518184015260208101905061012e565b50505050905090810190601f16801561"
+      "01765780820380516001836020036101000a031916815260200191505b50925050506040"
+      "5180910390f35b34801561019057600080fd5b506101996102d0565b6040518080602001"
+      "828103825283818151815260200191508051906020019080838360005b838110156101d9"
+      "5780820151818401526020810190506101be565b50505050905090810190601f16801561"
+      "02065780820380516001836020036101000a031916815260200191505b50925050506040"
+      "5180910390f35b806000908051906020019061022a92919061036e565b5050565b606060"
+      "008054600181600116156101000203166002900480601f01602080910402602001604051"
+      "908101604052809291908181526020018280546001816001161561010002031660029004"
+      "80156102c65780601f1061029b576101008083540402835291602001916102c6565b8201"
+      "91906000526020600020905b8154815290600101906020018083116102a957829003601f"
+      "168201915b5050505050905090565b600080546001816001161561010002031660029004"
+      "80601f016020809104026020016040519081016040528092919081815260200182805460"
+      "0181600116156101000203166002900480156103665780601f1061033b57610100808354"
+      "040283529160200191610366565b820191906000526020600020905b8154815290600101"
+      "9060200180831161034957829003601f168201915b505050505081565b82805460018160"
+      "0116156101000203166002900490600052602060002090601f016020900481019282601f"
+      "106103af57805160ff19168380011785556103dd565b828001600101855582156103dd57"
+      "9182015b828111156103dc5782518255916020019190600101906103c1565b5b50905061"
+      "03ea91906103ee565b5090565b61041091905b8082111561040c57600081600090555060"
+      "01016103f4565b5090565b9056fea264697066735822122004585b83cf41cfb8af886165"
+      "0679892acca0561c1a8ab45ce31c7fdb15a67b7764736f6c63430006080033";
+  dev::eth::Transaction trx(100, 0, 0, dev::fromHex(contract_deploy_code), 0,
+                            sk);
+  auto result = advance({trx});
+  auto contract_addr =
+      result.state_transition_result.ExecutionResults[0].NewContractAddr;
+  auto greet = [&] {
+    auto ret = SUT->call({
+        addr,
+        0,
+        contract_addr,
+        0,
+        0,
+        0,
+        // greet()
+        dev::fromHex("0xcfae3217"),
+    });
+    return dev::toHexPrefixed(ret.CodeRet);
+  };
+  ASSERT_EQ(greet(),
+            // "Hello"
+            "0x0000000000000000000000000000000000000000000000000000000000000020"
+            "000000000000000000000000000000000000000000000000000000000000000548"
+            "656c6c6f000000000000000000000000000000000000000000000000000000");
+  {
+    dev::eth::Transaction trx(
+        11, 0, 0, contract_addr,
+        // setGreeting("Hola")
+        dev::fromHex(
+            "0xa4136862000000000000000000000000000000000000000000000000"
+            "00000000000000200000000000000000000000000000000000000000000"
+            "000000000000000000004486f6c61000000000000000000000000000000"
+            "00000000000000000000000000"),
+        0, sk);
+    advance({trx});
+  }
+  ASSERT_EQ(
+      greet(),
+      // "Hola"
+      "0x000000000000000000000000000000000000000000000000000000000000002000"
+      "00000000000000000000000000000000000000000000000000000000000004486f"
+      "6c6100000000000000000000000000000000000000000000000000000000");
+}
+
 TEST_F(FinalChainTest, test_1) {
-  auto cfg = ChainConfig::Default->final_chain;
   auto sender_keys = KeyPair::create();
   auto sender_addr = sender_keys.address();
-  auto sender_init_bal = 1000;
   cfg.state.genesis_accounts = {};
-  cfg.state.genesis_accounts[sender_addr].Balance = sender_init_bal;
-  FinalChain SUT(db, cfg);
-  auto acc = SUT.get_state_api()->Historical_GetAccount(0, sender_addr);
-  ASSERT_EQ(acc->Balance, sender_init_bal);
-  auto genesis_block = SUT.get_block_db()->blockHeader(0);
-  auto batch = db->createWriteBatch();
-  uint64_t timestamp = 1000;
+  cfg.state.genesis_accounts[sender_addr].Balance = 1000;
+  init();
   auto val = 100;
   auto receiver = addr_t::random();
-  dev::eth::Transaction trx(val, 0, 19000, receiver, {}, 0,
-                            sender_keys.secret());
-  auto result = SUT.advance(batch, sender_addr, timestamp, vector{trx});
-  SUT.advance_confirm();
-  ASSERT_EQ(result.new_header.author(), sender_addr);
-  ASSERT_EQ(result.new_header.timestamp(), timestamp);
-  ASSERT_EQ(result.new_header.number(), 1);
-  ASSERT_EQ(result.new_header.parentHash(), genesis_block.hash());
+  dev::eth::Transaction trx(val, 0, 0, receiver, {}, 0, sender_keys.secret());
+  auto result = advance({trx});
 }
 
 }  // namespace taraxa::final_chain

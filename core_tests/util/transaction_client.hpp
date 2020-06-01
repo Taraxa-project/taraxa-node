@@ -47,11 +47,11 @@ struct TransactionClient {
 
   Context coinTransfer(addr_t const& to, val_t const& val) const {
     auto final_chain = node_->getFinalChain();
-    auto sender_nonce = final_chain->accountNonce(node_->getAddress());
+    auto acc = final_chain->get_account(node_->getAddress());
     Context ctx{
         TransactionStage::created,
-        Transaction(sender_nonce, val, 0, constants::TEST_TX_GAS_LIMIT, bytes(),
-                    node_->getSecretKey(), to),
+        Transaction(acc ? acc->Nonce : 0, val, 0, constants::TEST_TX_GAS_LIMIT,
+                    bytes(), node_->getSecretKey(), to),
     };
     if (!node_->insertTransaction(ctx.trx, false).first) {
       return ctx;
@@ -59,7 +59,7 @@ struct TransactionClient {
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     auto success =
-        wait::wait([&] { return final_chain->has_been_executed(trx_hash); },
+        wait::wait([&] { return final_chain->isKnownTransaction(trx_hash); },
                    opts_.waitUntilExecutedOpts);
     if (success) {
       ctx.stage = TransactionStage::executed;

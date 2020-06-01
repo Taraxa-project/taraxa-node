@@ -124,7 +124,6 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
-// fixme: use the limit from chain params
 inline static const auto MOCK_BLOCK_GAS_LIMIT =
     std::numeric_limits<uint64_t>::max();
 

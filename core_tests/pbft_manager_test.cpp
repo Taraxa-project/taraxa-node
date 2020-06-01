@@ -36,12 +36,11 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node = top.getNode();
 
   // create a transaction
-  auto nonce = val_t(0);
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
-  Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
+  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price,
                                                TEST_TX_GAS_LIMIT, data,
                                                g_secret, receiver);
   node->insertTransaction(trx_master_boot_node_to_receiver, false);

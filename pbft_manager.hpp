@@ -10,6 +10,7 @@
 #include "config.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
+#include "replay_protection_service.hpp"
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"
@@ -32,6 +33,8 @@ enum PbftStates {
 };
 
 class PbftManager {
+  unique_ptr<ReplayProtectionService> replay_protection_service;
+
  public:
   using time_point = std::chrono::system_clock::time_point;
 

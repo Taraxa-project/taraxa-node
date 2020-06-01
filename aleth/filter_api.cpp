@@ -1,32 +1,35 @@
 #include "filter_api.hpp"
 
-namespace taraxa::aleth::filter_api {
+#include "../util.hpp"
 
-optional<LogFilter> FilterAPI::getLogFilter(FilterAPI::FilterID id) const {
-  return std::nullopt;
-}
+namespace taraxa::aleth {
+using namespace std;
+using namespace dev;
+using namespace eth;
+using namespace util;
 
-FilterAPI::FilterID FilterAPI::newBlockFilter() { return 0; }
+struct FilterAPIImpl : virtual FilterAPI {
+  optional<LogFilter> getLogFilter(FilterID id) const override {
+    return std::nullopt;
+  }
 
-FilterAPI::FilterID FilterAPI::newPendingTransactionFilter() { return 0; }
+  FilterID newBlockFilter() override { return 0; }
 
-FilterAPI::FilterID FilterAPI::newLogFilter(LogFilter const& _filter) {
-  return 0;
-}
+  FilterID newPendingTransactionFilter() override { return 0; }
 
-bool FilterAPI::uninstallFilter(FilterAPI::FilterID id) { return false; }
+  FilterID newLogFilter(LogFilter const& _filter) override { return 0; }
 
-void FilterAPI::poll(FilterAPI::FilterID id,
-                     FilterAPI::Consumer const& consumer) {}
+  bool uninstallFilter(FilterID id) override { return false; }
 
-void FilterAPI::note_block(h256 const& blk_hash) {
-  //
-}
-void FilterAPI::note_pending_transactions(RangeView<h256> const& trx_hashes) {
-  //
-}
-void FilterAPI::note_receipts(RangeView<TransactionReceipt> const& receipts) {
-  //
-}
+  void poll(FilterID id, Consumer const& consumer) override {}
 
-}  // namespace taraxa::aleth::filter_api
+  void note_block(h256 const& blk_hash) override {}
+
+  void note_pending_transactions(RangeView<h256> const& trx_hashes) override {}
+
+  void note_receipts(RangeView<TransactionReceipt> const& receipts) override {}
+};
+
+unique_ptr<FilterAPI> NewFilterAPI() { return u_ptr(new FilterAPIImpl); }
+
+}  // namespace taraxa::aleth

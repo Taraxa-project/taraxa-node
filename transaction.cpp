@@ -21,10 +21,10 @@ Transaction::Transaction(string const &json) {
 
     hash_ = trx_hash_t(root["hash"].asString());
     type_ = toEnum<Transaction::Type>(root["type"].asUInt());
-    nonce_ = val_t(root["nonce"].asString());
+    nonce_ = dev::jsToInt(root["nonce"].asString());
     value_ = val_t(root["value"].asString());
     gas_price_ = val_t(root["gas_price"].asString());
-    gas_ = val_t(root["gas"].asString());
+    gas_ = dev::jsToInt(root["gas"].asString());
     sig_ = sig_t(root["sig"].asString());
     receiver_ = addr_t(root["receiver"].asString());
     string data = root["data"].asString();
@@ -49,9 +49,9 @@ Transaction::Transaction(bytes const &_rlp) {
   if (!rlp.isList())
     throw std::invalid_argument("transaction RLP must be a list");
 
-  nonce_ = rlp[0].toInt<dev::u256>();
+  nonce_ = rlp[0].toInt<uint64_t>();
   gas_price_ = rlp[1].toInt<dev::u256>();
-  gas_ = rlp[2].toInt<dev::u256>();
+  gas_ = rlp[2].toInt<uint64_t>();
   type_ = rlp[3].isEmpty() ? taraxa::Transaction::Type::Create
                            : taraxa::Transaction::Type::Call;
   receiver_ = rlp[3].isEmpty()
@@ -180,10 +180,10 @@ bool Transaction::verifySig() const {
   return dev::verify(pk, sig_, msg);
 }
 
-addr_t Transaction::sender() const {
+addr_t const &Transaction::sender() const {
   if (!cached_sender_) {
     if (!sig_) {
-      return addr_t{};
+      return cached_sender_;
     }
     auto p = dev::recover(sig_, sha3(false));
     assert(p);

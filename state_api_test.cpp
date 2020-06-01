@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 
+#include "util/encoding_rlp.hpp"
 #include "util/gtest.hpp"
 
 namespace taraxa::state_api {
@@ -22,9 +23,9 @@ struct StateAPITest : testing::Test, WithTestDataDir {
 struct TestBlock {
   h256 Hash;
   h256 StateRoot;
-  StateAPI::EVMBlock EVMBlock;
-  vector<StateAPI::EVMTransaction> Transactions;
-  vector<StateAPI::UncleBlock> UncleBlocks;
+  EVMBlock EVMBlock;
+  vector<EVMTransaction> Transactions;
+  vector<UncleBlock> UncleBlocks;
 };
 
 void dec_rlp(RLP const& rlp, TestBlock& target) {
@@ -44,12 +45,12 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   static auto const test_data_dir = path(__FILE__).parent_path() /
                                     "submodules" / "taraxa-evm" / "taraxa" /
                                     "data";
-  auto genesis_accs = parse_rlp_file<StateAPI::InputAccounts>(
+  auto genesis_accs = parse_rlp_file<InputAccounts>(
       test_data_dir / "eth_mainnet_genesis_accounts.rlp");
   auto test_blocks = parse_rlp_file<vector<TestBlock>>(
       test_data_dir / "eth_mainnet_blocks_0_300000.rlp");
 
-  StateAPI::ChainConfig chain_config;
+  ChainConfig chain_config;
   auto& eth_chain_cfg = chain_config.EVMChainConfig.ETHChainConfig;
   eth_chain_cfg.HomesteadBlock = 1150000;
   eth_chain_cfg.DAOForkBlock = 1920000;
@@ -59,13 +60,13 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   eth_chain_cfg.ConstantinopleBlock = 7280000;
   eth_chain_cfg.PetersburgBlock = 7280000;
 
-  auto sut = StateAPI::New(
+  StateAPI SUT(
       *db, [&](auto n) { return test_blocks[n].Hash; }, chain_config);
   auto batch = db->createWriteBatch();
-  auto state_root = sut->StateTransition_ApplyAccounts(*batch, genesis_accs);
+  auto state_root = SUT.StateTransition_ApplyAccounts(*batch, genesis_accs);
   ASSERT_EQ(test_blocks[0].StateRoot, state_root);
   db->commitWriteBatch(batch);
-  sut->NotifyStateTransitionCommitted();
+  SUT.NotifyStateTransitionCommitted();
   auto progress_pct = numeric_limits<int>::min();
   for (size_t blk_num = 1; blk_num < test_blocks.size(); ++blk_num) {
     if (int n = 100 * blk_num / test_blocks.size(); n >= progress_pct + 10) {
@@ -74,12 +75,12 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
     }
     auto const& test_block = test_blocks[blk_num];
     auto batch = db->createWriteBatch();
-    auto result = sut->StateTransition_ApplyBlock(*batch, test_block.EVMBlock,
-                                                  test_block.Transactions,
-                                                  test_block.UncleBlocks, {});
+    auto result = SUT.StateTransition_ApplyBlock(*batch, test_block.EVMBlock,
+                                                 test_block.Transactions,
+                                                 test_block.UncleBlocks, {});
     ASSERT_EQ(result.StateRoot, test_block.StateRoot);
     db->commitWriteBatch(batch);
-    sut->NotifyStateTransitionCommitted();
+    SUT.NotifyStateTransitionCommitted();
   }
 }
 

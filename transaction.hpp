@@ -39,8 +39,8 @@ class Transaction {
   enum class Type : uint8_t { Null, Create, Call };
   Transaction() = default;
   // default constructor
-  Transaction(trx_hash_t const &hash, Type type, val_t const &nonce,
-              val_t const &value, val_t const &gas_price, val_t const &gas,
+  Transaction(trx_hash_t const &hash, Type type, uint64_t nonce,
+              val_t const &value, val_t const &gas_price, uint64_t gas,
               addr_t const &receiver, sig_t const &sig, bytes const &data) try
       : hash_(hash),
         type_(type),
@@ -56,8 +56,8 @@ class Transaction {
   }
 
   // sign message call
-  Transaction(val_t const &nonce, val_t const &value, val_t const &gas_price,
-              val_t const &gas, bytes const &data, secret_t const &sk,
+  Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price,
+              uint64_t gas, bytes const &data, secret_t const &sk,
               optional<addr_t> const &receiver = std::nullopt) try
       : type_(receiver ? Transaction::Type::Call : Transaction::Type::Create),
         nonce_(nonce),
@@ -77,16 +77,16 @@ class Transaction {
   explicit Transaction(stream &strm);
   explicit Transaction(string const &json);
   explicit Transaction(bytes const &_rlp);
-  trx_hash_t getHash() const { return hash_; }
-  Type getType() const { return type_; }
-  val_t getNonce() const { return nonce_; }
-  val_t getValue() const { return value_; }
-  val_t getGasPrice() const { return gas_price_; }
-  val_t getGas() const { return gas_; }
-  addr_t getSender() const { return sender(); }
-  addr_t getReceiver() const { return receiver_; }
-  sig_t getSig() const { return sig_; }
-  bytes getData() const { return data_; }
+  auto const &getHash() const { return hash_; }
+  auto getType() const { return type_; }
+  auto getNonce() const { return nonce_; }
+  auto const &getValue() const { return value_; }
+  auto const &getGasPrice() const { return gas_price_; }
+  auto getGas() const { return gas_; }
+  auto const &getSender() const { return sender(); }
+  auto const &getReceiver() const { return receiver_; }
+  auto const &getSig() const { return sig_; }
+  auto const &getData() const { return data_; }
 
   friend std::ostream &operator<<(std::ostream &strm,
                                   Transaction const &trans) {
@@ -117,7 +117,7 @@ class Transaction {
   bool operator<(Transaction const &other) const { return hash_ < other.hash_; }
   void sign(secret_t const &sk);
   // @returns sender of the transaction from the signature (and hash).
-  addr_t sender() const;
+  addr_t const& sender() const;
   void updateHash() {
     if (!hash_) {
       hash_ = dev::sha3(rlp(true));
@@ -138,10 +138,10 @@ class Transaction {
   blk_hash_t sha3(bool include_sig) const;
   trx_hash_t hash_;
   Type type_ = Type::Null;
-  val_t nonce_ = 0;
+  uint64_t nonce_ = 0;
   val_t value_ = 0;
   val_t gas_price_;
-  val_t gas_;
+  uint64_t gas_ = 0;
   addr_t receiver_;
   sig_t sig_;
   bytes data_;

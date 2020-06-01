@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../util.hpp"
 #include "range_view.hpp"
 
 namespace taraxa::util::encoding_rlp {
@@ -22,18 +23,27 @@ auto enc_rlp(RLPStream& rlp, Param const& target)
   rlp.append(target);
 }
 
+template <typename T>
+struct RLPNull {};
+
+template <typename Param>
+void enc_rlp(RLPStream& rlp, RLPNull<Param>) {
+  rlp.append(unsigned(0));
+}
+
 template <typename Param>
 void enc_rlp(RLPStream& rlp, optional<Param> const& target) {
   if (target) {
     enc_rlp(rlp, *target);
   } else {
-    rlp.append(0);
+    static const RLPNull<Param> null;
+    enc_rlp(rlp, null);
   }
 }
 
 template <typename Param>
 void enc_rlp(RLPStream& rlp, Param* target) {
-  rlp.append(reinterpret_cast<uintptr_t>(target));
+  rlp.append(bigint(reinterpret_cast<uintptr_t>(target)));
 }
 
 template <typename Param>
@@ -74,8 +84,10 @@ auto dec_rlp(RLP const& rlp, Param& target) -> decltype(Param(rlp), void()) {
 
 template <typename Param>
 void dec_rlp(RLP const& rlp, optional<Param>& target) {
-  if (!rlp.isEmpty()) {
-    dec_rlp(rlp, target ? *target : target.emplace());
+  if (rlp.isNull() || rlp.isEmpty()) {
+    target = nullopt;
+  } else {
+    dec_rlp(rlp, target.emplace());
   }
 }
 
@@ -127,6 +139,7 @@ using encoding_rlp::dec_rlp_sequence;
 using encoding_rlp::dec_rlp_tuple;
 using encoding_rlp::enc_rlp;
 using encoding_rlp::enc_rlp_tuple;
+using encoding_rlp::RLPNull;
 }  // namespace taraxa::util
 
 #endif  // TARAXA_NODE_UTIL_ENCODING_RLP_HPP_

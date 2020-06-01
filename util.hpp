@@ -273,6 +273,21 @@ auto stl_container_prealloc(size_t cap) {
   return move(ret);
 }
 
+template <typename T>
+static constexpr auto __is_iterable__(int)
+    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++),
+                bool()) {
+  return true;
+}
+
+template <typename T, typename Dummy>
+static constexpr auto __is_iterable__(Dummy) {
+  return false;
+}
+
+template <typename T>
+constexpr bool is_iterable = __is_iterable__<T>(0);
+
 }  // namespace taraxa
 
 /**

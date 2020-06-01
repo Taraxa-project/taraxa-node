@@ -97,8 +97,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
-    node.ip = getConfigDataAsStri
-        ng(item, {"ip"});
+    node.ip = getConfigDataAsString(item, {"ip"});
     node.port = getConfigDataAsUInt(item, {"port"});
     network.network_boot_nodes.push_back(node);
   }
