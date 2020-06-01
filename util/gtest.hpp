@@ -25,6 +25,7 @@ struct WithTestInfo {
 
 struct WithTestDataDir : virtual WithTestInfo {
   boost::filesystem::path data_dir = boost::filesystem::temp_directory_path() /
+                                     "taraxa_node" /
                                      current_test_info->test_suite_name() /
                                      current_test_info->test_case_name();
 

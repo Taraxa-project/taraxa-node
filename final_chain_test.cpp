@@ -83,6 +83,8 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
       auto const& r = result.receipts[i];
+      EXPECT_EQ(r.rlp(), SUT->transactionReceipt(trx.sha3()).rlp());
+      EXPECT_EQ(trx.rlp(), SUT->transaction(trx.sha3()).rlp());
       if (assume_only_toplevel_transfers && trx.value() != 0 &&
           r.statusCode() == 1) {
         auto const& sender = trx.from();
@@ -142,10 +144,19 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
 
 TEST_F(FinalChainTest, genesis_accounts) {
   cfg.state.genesis_accounts = {};
-  cfg.state.genesis_accounts[addr_t(1)].Balance = 1000;
-  cfg.state.genesis_accounts[addr_t(2)].Code = {1, 2, 3};
-  cfg.state.genesis_accounts[addr_t(3)].Nonce = 55;
-  cfg.state.genesis_accounts[addr_t(4)].Storage[16] = 32;
+  cfg.state.genesis_accounts[addr_t::random()].Balance = 0;
+  cfg.state.genesis_accounts[addr_t::random()].Balance = 1000;
+  cfg.state.genesis_accounts[addr_t::random()].Balance = 100000;
+  cfg.state.genesis_accounts[addr_t::random()].Code = {1, 2, 3};
+  cfg.state.genesis_accounts[addr_t::random()].Code = {0};
+  cfg.state.genesis_accounts[addr_t::random()].Nonce = 1;
+  cfg.state.genesis_accounts[addr_t::random()].Nonce = 55;
+  cfg.state.genesis_accounts[addr_t::random()].Storage[16] = 32;
+  cfg.state.genesis_accounts[addr_t::random()].Storage = {
+      {1, 2},
+      {3, 4},
+      {5, 6},
+  };
   init();
 }
 
@@ -254,16 +265,42 @@ TEST_F(FinalChainTest, contract) {
       "6c6100000000000000000000000000000000000000000000000000000000");
 }
 
-TEST_F(FinalChainTest, test_1) {
-  auto sender_keys = KeyPair::create();
-  auto sender_addr = sender_keys.address();
+TEST_F(FinalChainTest, coin_transfers) {
+  constexpr size_t NUM_ACCS = 500;
   cfg.state.genesis_accounts = {};
-  cfg.state.genesis_accounts[sender_addr].Balance = 1000;
+  vector<KeyPair> keys;
+  keys.reserve(NUM_ACCS);
+  for (size_t i = 0; i < NUM_ACCS; ++i) {
+    auto const& k = keys.emplace_back(KeyPair::create());
+    cfg.state.genesis_accounts[k.address()].Balance =
+        numeric_limits<u256>::max() / NUM_ACCS;
+  }
   init();
-  auto val = 100;
-  auto receiver = addr_t::random();
-  dev::eth::Transaction trx(val, 0, 0, receiver, {}, 0, sender_keys.secret());
-  auto result = advance({trx});
+  advance({
+      {13, 0, 0, keys[10].address(), {}, 0, keys[10].secret()},
+      {11300, 0, 0, keys[44].address(), {}, 0, keys[102].secret()},
+      {1040, 0, 0, keys[50].address(), {}, 0, keys[122].secret()},
+  });
+  advance({});
+  advance({
+      {0, 0, 0, keys[1].address(), {}, 0, keys[2].secret()},
+      {131, 0, 0, keys[133].address(), {}, 0, keys[133].secret()},
+  });
+  advance({
+      {100441, 0, 0, keys[431].address(), {}, 0, keys[177].secret()},
+      {2300, 0, 0, keys[343].address(), {}, 0, keys[131].secret()},
+      {130, 0, 0, keys[23].address(), {}, 0, keys[11].secret()},
+  });
+  advance({});
+  advance({
+      {100431, 0, 0, keys[232].address(), {}, 0, keys[135].secret()},
+      {13411, 0, 0, keys[34].address(), {}, 0, keys[112].secret()},
+      {130, 0, 0, keys[233].address(), {}, 0, keys[133].secret()},
+      {343434, 0, 0, keys[213].address(), {}, 0, keys[13].secret()},
+      {131313, 0, 0, keys[344].address(), {}, 0, keys[405].secret()},
+      {143430, 0, 0, keys[420].address(), {}, 0, keys[331].secret()},
+      {1313145, 0, 0, keys[134].address(), {}, 0, keys[345].secret()},
+  });
 }
 
 }  // namespace taraxa::final_chain

@@ -10,33 +10,18 @@
 #include "util/gtest.hpp"
 
 namespace taraxa::replay_protection_service {
-using boost::filesystem::create_directories;
-using boost::filesystem::remove_all;
-using boost::filesystem::temp_directory_path;
-using std::cout;
-using std::list;
-using std::make_shared;
-using std::nullopt;
-using std::optional;
-using std::shared_ptr;
-using std::vector;
-using taraxa::s_ptr;
+using namespace taraxa;
 
-// TODO more tests
-struct ReplayProtectionServiceTest : testing::Test {
+struct ReplayProtectionServiceTest : testing::Test, WithTestDataDir {
   round_t range = 0;
-  shared_ptr<DbStorage> db;
+  shared_ptr<DbStorage> db = DbStorage::make(data_dir, h256::random(), true);
   shared_ptr<ReplayProtectionService> SUT;
   vector<vector<ReplayProtectionService::TransactionInfo>> history;
   round_t curr_round = 0;
 
   void init(decltype(range) range, decltype(history) const& history) {
-    static auto const DB_DIR =
-        temp_directory_path() / "taraxa" / "replay_protection_service_test";
-    remove_all(DB_DIR);
     this->range = range;
     this->history = history;
-    db = DbStorage::make(DB_DIR, h256::random(), true);
     SUT = NewReplayProtectionService({range}, db);
   }
 
