@@ -60,7 +60,7 @@ DagBlock::DagBlock(string const &json) {
   hash_ = blk_hash_t(doc["hash"].asString());
   cached_sender_ = addr_t(doc["sender"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
-  timestamp_ = doc["timestamp"].asInt64();
+  timestamp_ = doc["timestamp"].asUInt64();
   auto vdf_string = doc["vdf"].asString();
   if (!vdf_string.empty()) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));
@@ -74,7 +74,7 @@ DagBlock::DagBlock(Json::Value const &doc) {
   hash_ = blk_hash_t(doc["hash"].asString());
   cached_sender_ = addr_t(doc["sender"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
-  timestamp_ = doc["timestamp"].asInt64();
+  timestamp_ = doc["timestamp"].asUInt64();
   auto vdf_string = doc["vdf"].asString();
   if (!vdf_string.empty()) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));
@@ -87,7 +87,7 @@ DagBlock::DagBlock(bytes const &_rlp) {
 
   pivot_ = rlp[0].toHash<blk_hash_t>();
   level_ = rlp[1].toInt<level_t>();
-  timestamp_ = rlp[2].toInt<int64_t>();
+  timestamp_ = rlp[2].toInt<uint64_t>();
   vdf_ = vdf_sortition::VdfSortition(rlp[3].toBytes());
   uint64_t num_tips = rlp[4].toInt<uint64_t>();
   for (auto i = 0; i < num_tips; ++i) {
