@@ -12,6 +12,11 @@
 namespace taraxa::final_chain {
 using namespace std;
 
+struct advance_check_opts {
+  bool dont_assume_no_logs = 0;
+  bool dont_assume_all_trx_success = 0;
+};
+
 struct FinalChainTest : testing::Test, WithTestDataDir {
   shared_ptr<DbStorage> db = DbStorage::make(data_dir, h256::random(), true);
   FinalChain::Config cfg = ChainConfig::Default->final_chain;
@@ -38,10 +43,6 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
     }
   }
 
-  struct advance_check_opts {
-    bool dont_assume_no_logs = 0;
-    bool dont_assume_all_trx_success = 0;
-  };
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
     auto batch = db->createWriteBatch();
     auto author = addr_t::random();
