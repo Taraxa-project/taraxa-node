@@ -6,7 +6,7 @@ ENV TERM xterm
 # fixme: we have multiple openssl
 RUN apt-get update \
     && apt-get install -y \
-    libgflags-dev libsnappy-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
+    libgflags-dev zlib1g-dev libicu-dev libbz2-dev libzstd-dev liblz4-dev gcc-8 g++-8 clang \
     libblkid-dev e2fslibs-dev libaudit-dev wget build-essential xz-utils curl libcurl4-openssl-dev unzip pkg-config git \
     python2-dev libxml2-dev libxslt-dev libscrypt-dev libssl-dev openssl libgmp3-dev autoconf libtool \
     libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools libmpfr-dev python3-pip python3-dev
@@ -45,21 +45,8 @@ RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
     && cp librocksdb.so* /usr/local/lib \
     && cp -r ./include/* /usr/local/include
 
-FROM rocksdb-layer as leveldb-layer
-WORKDIR /tmp/
-ENV LEVELDB_VERSION="1.20"
-RUN wget https://github.com/google/leveldb/archive/v${LEVELDB_VERSION}.tar.gz \
-  && tar xvf v${LEVELDB_VERSION}.tar.gz \
-  && rm -f v${LEVELDB_VERSION}.tar.gz
-
-WORKDIR /tmp/leveldb-${LEVELDB_VERSION}
-RUN make -j $(nproc)
-RUN scp -r out-static/lib* out-shared/lib* "/usr/local/lib"
-RUN scp -r include/leveldb /usr/local/include
-RUN ldconfig
-
-FROM leveldb-layer as go-layer
-ARG go_version=1.13
+FROM rocksdb-layer as go-layer
+ARG go_version=1.13.7
 RUN wget -qO- --show-progress --progress=bar:force \
     https://dl.google.com/go/go$go_version.linux-amd64.tar.gz \
     | tar xvz -C /usr/local

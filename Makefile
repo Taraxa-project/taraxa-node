@@ -56,9 +56,7 @@ LIBS := \
 	gmp \
 	gmpxx \
 	mpfr \
-	snappy \
 	$(BOOST_LIBS) \
-	leveldb \
 	rocksdb \
 	scrypt \
 	prometheus-cpp-core \
