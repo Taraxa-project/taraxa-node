@@ -13,10 +13,12 @@
 #include "create_samples.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
+#include "util.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
+using namespace core_tests::util;
 
 const unsigned NUM_TRX = 10;
 auto g_secret = Lazy([] {
@@ -39,12 +41,9 @@ auto g_trx_samples2 =
     Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
 auto g_signed_trx_samples2 = Lazy(
     [] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
-auto g_conf1 =
-    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa1.json"); });
-auto g_conf2 =
-    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa2.json"); });
-auto g_conf3 =
-    Lazy([] { return FullNodeConfig("./core_tests/conf/conf_taraxa3.json"); });
+auto g_conf1 = Lazy([] { return FullNodeConfig(conf_file[0]); });
+auto g_conf2 = Lazy([] { return FullNodeConfig(conf_file[1]); });
+auto g_conf3 = Lazy([] { return FullNodeConfig(conf_file[2]); });
 
 struct NetworkTest : core_tests::util::DBUsingTest<> {};
 
@@ -78,9 +77,9 @@ TEST_F(NetworkTest, transfer_block) {
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     if (nw1->getReceivedBlocksCount()) break;
-    taraxa::thisThreadSleepForSeconds(1);
+    taraxa::thisThreadSleepForMilliSeconds(100);
   }
   nw2->stop();
   nw1->stop();
@@ -181,7 +180,6 @@ TEST_F(NetworkTest, save_network) {
     nw1->stop();
     nw2->stop();
     nw3->stop();
-    taraxa::thisThreadSleepForSeconds(1);
     nw2->saveNetwork("/tmp/nw2");
     nw3->saveNetwork("/tmp/nw3");
   }
@@ -210,14 +208,14 @@ verifies that connection fails
 */
 TEST_F(NetworkTest, node_network_id) {
   {
-    FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
+    FullNodeConfig conf1(conf_file[0]);
     conf1.network.network_id = "main";
     auto node1(taraxa::FullNode::make(conf1, true));
 
     node1->setDebug(true);
     node1->start(true);
 
-    FullNodeConfig conf2(std::string("./core_tests/conf/conf_taraxa2.json"));
+    FullNodeConfig conf2(conf_file[1]);
     conf2.network.network_id = "main";
     auto node2 = taraxa::FullNode::make(conf2, true);
 
@@ -229,14 +227,14 @@ TEST_F(NetworkTest, node_network_id) {
     EXPECT_EQ(node2->getPeerCount(), 1);
   }
   {
-    FullNodeConfig conf1(std::string("./core_tests/conf/conf_taraxa1.json"));
+    FullNodeConfig conf1(conf_file[0]);
     conf1.network.network_id = "main";
     auto node1(taraxa::FullNode::make(conf1, true));
 
     node1->setDebug(true);
     node1->start(true);
 
-    FullNodeConfig conf2(std::string("./core_tests/conf/conf_taraxa2.json"));
+    FullNodeConfig conf2(conf_file[1]);
     conf2.network.network_id = "testnet";
     auto node2 = taraxa::FullNode::make(conf2, true);
 
@@ -255,8 +253,7 @@ that the second node syncs with it and that the resulting
 DAG on the other end is the same
 */
 TEST_F(NetworkTest, node_sync) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -267,27 +264,27 @@ TEST_F(NetworkTest, node_sync) {
   std::vector<DagBlock> blks;
 
   DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk1.sign(g_secret2);
 
-  DagBlock blk2(blk1.getHash(), 2, {}, {}, sig_t(7771), blk_hash_t(0),
+  DagBlock blk2(blk1.getHash(), 2, {}, {}, sig_t(0), blk_hash_t(0),
                 addr_t(999));
   blk2.sign(g_secret2);
 
-  DagBlock blk3(blk2.getHash(), 3, {}, {}, sig_t(7772), blk_hash_t(0),
+  DagBlock blk3(blk2.getHash(), 3, {}, {}, sig_t(0), blk_hash_t(0),
                 addr_t(999));
   blk3.sign(g_secret2);
 
-  DagBlock blk4(blk3.getHash(), 4, {}, {}, sig_t(7773), blk_hash_t(0),
+  DagBlock blk4(blk3.getHash(), 4, {}, {}, sig_t(0), blk_hash_t(0),
                 addr_t(999));
   blk4.sign(g_secret2);
 
-  DagBlock blk5(blk4.getHash(), 5, {}, {}, sig_t(7774), blk_hash_t(0),
+  DagBlock blk5(blk4.getHash(), 5, {}, {}, sig_t(0), blk_hash_t(0),
                 addr_t(999));
   blk5.sign(g_secret2);
 
   DagBlock blk6(blk5.getHash(), 6, {blk4.getHash(), blk3.getHash()}, {},
-                sig_t(7775), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk6.sign(g_secret2);
 
   blks.push_back(blk6);
@@ -301,7 +298,7 @@ TEST_F(NetworkTest, node_sync) {
     node1->insertBlock(blks[i]);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(1000);
+  taraxa::thisThreadSleepForMilliSeconds(100);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
@@ -310,8 +307,8 @@ TEST_F(NetworkTest, node_sync) {
   node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 20; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(1000);
+  for (int i = 0; i < 200; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(100);
     if (node2->getNumVerticesInDag().first == 7 &&
         node2->getNumEdgesInDag().first == 8)
       break;
@@ -333,8 +330,7 @@ that the second node syncs with it and that the resulting
 chain on the other end is the same
 */
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->start(true);  // boot node
   node1->getPbftManager()->stop();
   auto db1 = node1->getDB();
@@ -452,8 +448,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->start(true);  // boot node
   node1->getPbftManager()->stop();
   auto db1 = node1->getDB();
@@ -568,8 +563,7 @@ Unlike the previous tests, this DAG contains blocks with transactions
 and verifies that the sync containing transactions is successful
 */
 TEST_F(NetworkTest, node_sync_with_transactions) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -578,17 +572,17 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   DagBlock blk1(
       node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-      sig_t(777), blk_hash_t(0), addr_t(999));
+      sig_t(0), blk_hash_t(0), addr_t(999));
   std::vector<Transaction> tr1(
       {g_signed_trx_samples[0], g_signed_trx_samples[1]});
   blk1.sign(g_secret2);
 
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk2.sign(g_secret2);
   std::vector<Transaction> tr2({g_signed_trx_samples[2]});
 
-  DagBlock blk3(blk2.getHash(), 3, {}, {}, sig_t(777), blk_hash_t(0),
+  DagBlock blk3(blk2.getHash(), 3, {}, {}, sig_t(0), blk_hash_t(0),
                 addr_t(999));
   blk3.sign(g_secret2);
   std::vector<Transaction> tr3;
@@ -596,7 +590,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   DagBlock blk4(
       blk3.getHash(), 4, {},
       {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()},
-      sig_t(777), blk_hash_t(0), addr_t(999));
+      sig_t(0), blk_hash_t(0), addr_t(999));
   blk4.sign(g_secret2);
   std::vector<Transaction> tr4(
       {g_signed_trx_samples[3], g_signed_trx_samples[4]});
@@ -605,14 +599,14 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       blk4.getHash(), 5, {},
       {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(),
        g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
-      sig_t(777), blk_hash_t(0), addr_t(999));
+      sig_t(0), blk_hash_t(0), addr_t(999));
   blk5.sign(g_secret2);
   std::vector<Transaction> tr5(
       {g_signed_trx_samples[5], g_signed_trx_samples[6],
        g_signed_trx_samples[7], g_signed_trx_samples[8]});
 
   DagBlock blk6(blk5.getHash(), 6, {blk4.getHash(), blk3.getHash()},
-                {g_signed_trx_samples[9].getHash()}, sig_t(777), blk_hash_t(0),
+                {g_signed_trx_samples[9].getHash()}, sig_t(0), blk_hash_t(0),
                 addr_t(999));
   blk6.sign(g_secret2);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
@@ -659,8 +653,7 @@ DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -669,73 +662,73 @@ TEST_F(NetworkTest, node_sync2) {
   auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
   DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
                 {transactions[0].getHash(), transactions[1].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk1.sign(g_secret2);
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
 
   DagBlock blk2(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
                 {transactions[2].getHash(), transactions[3].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk2.sign(g_secret2);
   std::vector<Transaction> tr2({transactions[2], transactions[3]});
 
   DagBlock blk3(blk1.getHash(), 2, {},
                 {transactions[4].getHash(), transactions[5].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk3.sign(g_secret2);
   std::vector<Transaction> tr3({transactions[4], transactions[5]});
 
   DagBlock blk4(blk3.getHash(), 7, {},
                 {transactions[6].getHash(), transactions[7].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk4.sign(g_secret2);
   std::vector<Transaction> tr4({transactions[6], transactions[7]});
 
   DagBlock blk5(blk2.getHash(), 3, {},
                 {transactions[8].getHash(), transactions[9].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk5.sign(g_secret2);
   std::vector<Transaction> tr5({transactions[8], transactions[9]});
 
   DagBlock blk6(blk1.getHash(), 2, {},
                 {transactions[10].getHash(), transactions[11].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk6.sign(g_secret2);
   std::vector<Transaction> tr6({transactions[10], transactions[11]});
 
   DagBlock blk7(blk6.getHash(), 4, {},
                 {transactions[12].getHash(), transactions[13].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk7.sign(g_secret2);
   std::vector<Transaction> tr7({transactions[12], transactions[13]});
 
   DagBlock blk8(blk1.getHash(), 5, {blk7.getHash()},
                 {transactions[14].getHash(), transactions[15].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk8.sign(g_secret2);
   std::vector<Transaction> tr8({transactions[14], transactions[15]});
 
   DagBlock blk9(blk1.getHash(), 2, {},
                 {transactions[16].getHash(), transactions[17].getHash()},
-                sig_t(777), blk_hash_t(0), addr_t(999));
+                sig_t(0), blk_hash_t(0), addr_t(999));
   blk9.sign(g_secret2);
   std::vector<Transaction> tr9({transactions[16], transactions[17]});
 
   DagBlock blk10(blk8.getHash(), 6, {},
                  {transactions[18].getHash(), transactions[19].getHash()},
-                 sig_t(777), blk_hash_t(0), addr_t(999));
+                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk10.sign(g_secret2);
   std::vector<Transaction> tr10({transactions[18], transactions[19]});
 
   DagBlock blk11(blk3.getHash(), 7, {},
                  {transactions[20].getHash(), transactions[21].getHash()},
-                 sig_t(777), blk_hash_t(0), addr_t(999));
+                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk11.sign(g_secret2);
   std::vector<Transaction> tr11({transactions[20], transactions[21]});
 
   DagBlock blk12(blk5.getHash(), 8, {},
                  {transactions[22].getHash(), transactions[23].getHash()},
-                 sig_t(777), blk_hash_t(0), addr_t(999));
+                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk12.sign(g_secret2);
   std::vector<Transaction> tr12({transactions[22], transactions[23]});
 
@@ -770,7 +763,7 @@ TEST_F(NetworkTest, node_sync2) {
     node1->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  taraxa::thisThreadSleepForMilliSeconds(200);
 
   auto node2(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true));
@@ -779,8 +772,8 @@ TEST_F(NetworkTest, node_sync2) {
   node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 20; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(1000);
+  for (int i = 0; i < 200; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(100);
     if (node2->getNumVerticesInDag().first == 13 &&
         node2->getNumEdgesInDag().first == 13)
       break;
@@ -801,8 +794,7 @@ Test creates new transactions on one node and verifies
 that the second node receives the transactions
 */
 TEST_F(NetworkTest, node_transaction_sync) {
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->setDebug(true);
   node1->start(true);
@@ -844,14 +836,13 @@ resulting DAG is the same on all nodes
 // fixme: flaky
 TEST_F(NetworkTest, node_full_sync) {
   const int numberOfNodes = 5;
-  auto node1(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json"), true));
+  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->setDebug(true);
   node1->start(true);  // boot node
 
   std::vector<FullNode::Handle> nodes;
   for (int i = 0; i < numberOfNodes; i++) {
-    FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa2.json"));
+    FullNodeConfig config(conf_file[1]);
     config.db_path += std::to_string(i + 1);
     config.network.network_listen_port += i + 1;
     config.node_secret = "";
@@ -883,8 +874,8 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
-  for (int i = 0; i < 24; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(5000);
+  for (int i = 0; i < 240; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(500);
     bool finished = true;
     for (int j = 0; j < numberOfNodes; j++) {
       if (nodes[j]->getNumVerticesInDag().first !=
@@ -905,8 +896,8 @@ TEST_F(NetworkTest, node_full_sync) {
   taraxa::thisThreadSleepForMilliSeconds(50);
 
   std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
-  for (int i = 0; i < 24; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(5000);
+  for (int i = 0; i < 240; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(500);
     bool finished = true;
     for (int j = 0; j < numberOfNodes + 1; j++) {
       if (nodes[j]->getNumVerticesInDag().first !=

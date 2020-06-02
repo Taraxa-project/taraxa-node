@@ -1,4 +1,5 @@
 #include "RpcServer.h"
+
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "pbft_chain.hpp"
@@ -11,7 +12,7 @@ namespace taraxa::net {
 
 RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc)
     : conf_(conf_rpc), io_context_(io), acceptor_(io) {
-  LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port << std::endl;
+  LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port;
 }
 std::shared_ptr<RpcServer> RpcServer::getShared() {
   try {

@@ -223,6 +223,9 @@ class PbftManager {
 
   std::string dag_genesis_;
 
+  std::condition_variable stop_cv_;
+  std::mutex stop_mtx_;
+
   // TODO: will remove later, TEST CODE
   void countVotes_();
 

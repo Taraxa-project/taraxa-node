@@ -46,12 +46,11 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   master_boot_node_address_ =
       dev::toAddress(dev::Public(conf_.network.network_boot_nodes[0].id));
   LOG(log_si_) << "Node public key: " << EthGreen << node_pk_.toString()
-               << std::endl;
-  LOG(log_si_) << "Node address: " << EthRed << node_addr_.toString()
-               << std::endl;
-  LOG(log_si_) << "Node VRF public key: " << EthGreen << vrf_pk_.toString()
-               << std::endl;
-  LOG(log_si_) << "Number of block works: " << num_block_workers_;
+               << std::endl
+               << "Node address: " << EthRed << node_addr_.toString()
+               << std::endl
+               << "Node VRF public key: " << EthGreen << vrf_pk_.toString();
+  LOG(log_info_) << "Number of block works: " << num_block_workers_;
   // ===== Create DBs =====
   if (destroy_db) {
     boost::filesystem::remove_all(conf_.db_path);

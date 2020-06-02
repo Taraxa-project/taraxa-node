@@ -252,7 +252,7 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   LOG(log_time) << "Propose block " << blk.getHash() << " at: " << now
                 << " ,trxs: " << blk.getTrxs()
                 << " , tips: " << blk.getTips().size();
-  LOG(log_si_) << getFullNodeAddress() << " Propose block :" << blk.getHash()
+  LOG(log_nf_) << getFullNodeAddress() << " Propose block :" << blk.getHash()
                << " pivot: " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);

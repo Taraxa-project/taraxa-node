@@ -111,7 +111,7 @@ std::optional<dev::eth::BlockHeader> Executor::execute(
   if (dag_blk_count != 0) {
     num_executed_blk_.fetch_add(dag_blk_count);
     num_executed_trx_.fetch_add(transactions.size());
-    LOG(log_si_) << getFullNodeAddress() << " : Executed dag blocks #"
+    LOG(log_nf_) << getFullNodeAddress() << " : Executed dag blocks #"
                  << num_executed_blk_ - dag_blk_count << "-"
                  << num_executed_blk_ - 1
                  << " , Efficiency: " << transactions.size() << "/"

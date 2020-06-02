@@ -751,7 +751,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
         syncPeerPbft(peer_syncing_pbft, pbft_sync_height_ + 1);
       }
     } else {
-      LOG(log_si_pbft_sync_)
+      LOG(log_nf_pbft_sync_)
           << "Restarting syncing PBFT not needed since our pbft chain "
              "size: "
           << pbft_sync_height_ << "(" << full_node->getPbftChainSize() << ")"
