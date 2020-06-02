@@ -50,17 +50,28 @@ template <typename Result,                            //
                      taraxa_evm_BytesCallback,
                      taraxa_evm_BytesCallback),  //
           typename... Params>
-Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c,
-                         Params const&... args) {
-  RLPStream rlp;
+void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, RLPStream& rlp,
+                       Result& ret, Params const&... args) {
   enc_rlp_tuple(rlp, args...);
-  Result ret;
   fn(this_c, map_bytes(rlp.out()),
      {
          &ret,
          [](auto receiver, auto b) { decode(b, *(Result*)receiver); },
      },
      err_handler_c);
+}
+
+template <typename Result,                            //
+          void (*decode)(taraxa_evm_Bytes, Result&),  //
+          void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes,
+                     taraxa_evm_BytesCallback,
+                     taraxa_evm_BytesCallback),  //
+          typename... Params>
+Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c,
+                         Params const&... args) {
+  RLPStream rlp;
+  Result ret;
+  c_method_args_rlp<Result, decode, fn, Params...>(this_c, rlp, ret, args...);
   return ret;
 }
 
@@ -90,6 +101,13 @@ StateAPI::StateAPI(decltype(db) db, decltype(cols) cols,
             return ret_c;
           },
       } {
+  StateTransition_ApplyBlock_ret.ExecutionResults.reserve(
+      cache_opts.ExpectedMaxNumTrxPerBlock);
+  StateTransition_ApplyBlock_ret.NonContractBalanceChanges.reserve(
+      cache_opts.ExpectedMaxNumTrxPerBlock * 2);
+  StateTransition_ApplyBlock_rlp_strm.reserve(
+      cache_opts.ExpectedMaxNumTrxPerBlock * 1024,
+      cache_opts.ExpectedMaxNumTrxPerBlock * 128);
   RLPStream rlp;
   enc_rlp_tuple(rlp, &db_c,
                 make_range_view(this->cols).map([this](auto const& el, auto i) {
@@ -168,7 +186,7 @@ h256 StateAPI::StateTransition_ApplyAccounts(WriteBatch& batch,
       this_c, &batch_c, accounts);
 }
 
-StateTransitionResult StateAPI::StateTransition_ApplyBlock(
+StateTransitionResult const& StateAPI::StateTransition_ApplyBlock(
     WriteBatch& batch,
     EVMBlock const& block,  //
     RangeView<EVMTransaction> const& transactions,
@@ -176,9 +194,15 @@ StateTransitionResult StateAPI::StateTransition_ApplyBlock(
     ConcurrentSchedule const& concurrent_schedule) {
   rocksdb_writebatch_t batch_c{move(batch)};
   util::ExitStack exit_stack = [&] { batch = move(batch_c.rep); };
-  return c_method_args_rlp<StateTransitionResult, from_rlp,
-                           taraxa_evm_state_API_StateTransition_ApplyBlock>(
-      this_c, &batch_c, block, transactions, uncles, concurrent_schedule);
+  StateTransition_ApplyBlock_ret.ExecutionResults.clear();
+  StateTransition_ApplyBlock_ret.NonContractBalanceChanges.clear();
+  StateTransition_ApplyBlock_rlp_strm.clear();
+  c_method_args_rlp<StateTransitionResult, from_rlp,
+                    taraxa_evm_state_API_StateTransition_ApplyBlock>(
+      this_c, StateTransition_ApplyBlock_rlp_strm,
+      StateTransition_ApplyBlock_ret, &batch_c, block, transactions, uncles,
+      concurrent_schedule);
+  return StateTransition_ApplyBlock_ret;
 }
 
 void StateAPI::NotifyStateTransitionCommitted() {

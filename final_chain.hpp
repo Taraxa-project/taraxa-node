@@ -28,13 +28,18 @@ struct FinalChain : virtual ChainDB {
       uint64_t timestamp;
     } genesis_block_fields;
   };
-  struct AdvanceResult {
-    BlockHeader new_header;
-    TransactionReceipts receipts;
-    state_api::StateTransitionResult state_transition_result;
+
+  struct Opts {
+    state_api::CacheOpts state_api;
   };
 
   virtual ~FinalChain() {}
+
+  struct AdvanceResult {
+    BlockHeader new_header;
+    TransactionReceipts const& receipts;
+    state_api::StateTransitionResult const& state_transition_result;
+  };
   virtual AdvanceResult advance(DbStorage::BatchPtr batch,
                                 Address const& author, uint64_t timestamp,
                                 Transactions const& transactions) = 0;
@@ -54,7 +59,8 @@ struct FinalChain : virtual ChainDB {
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
-                                     FinalChain::Config const& config);
+                                     FinalChain::Config const& config,
+                                     FinalChain::Opts const& opts = {});
 
 }  // namespace taraxa::final_chain
 

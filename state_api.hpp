@@ -203,6 +203,8 @@ class StateAPI {
   array<rocksdb_column_family_handle_t, DBColumn::COUNT> cols_c;
   taraxa_evm_GetBlockHash get_blk_hash_c;
   taraxa_evm_state_API_ptr this_c;
+  RLPStream StateTransition_ApplyBlock_rlp_strm;
+  StateTransitionResult StateTransition_ApplyBlock_ret;
 
  public:
   StateAPI(shared_ptr<rocksdb::DB> db, DBColumns cols,
@@ -231,7 +233,7 @@ class StateAPI {
 
   h256 StateTransition_ApplyAccounts(rocksdb::WriteBatch& batch,
                                      InputAccounts const& accounts);
-  StateTransitionResult StateTransition_ApplyBlock(
+  StateTransitionResult const& StateTransition_ApplyBlock(
       rocksdb::WriteBatch& batch, EVMBlock const& block,
       RangeView<EVMTransaction> const& transactions,  //
       RangeView<UncleBlock> const& uncles,

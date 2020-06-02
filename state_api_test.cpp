@@ -60,8 +60,16 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
   eth_chain_cfg.ConstantinopleBlock = 7280000;
   eth_chain_cfg.PetersburgBlock = 7280000;
 
+  CacheOpts cache_opts;
+  cache_opts.ExpectedMaxNumTrxPerBlock = 200;
+  cache_opts.MainTrieWriterOpts.ExpectedDepth = 64;  // TODO constant
+  cache_opts.MainTrieWriterOpts.FullNodeLevelsToCache = 5;
+  cache_opts.AccTrieWriterOpts.ExpectedDepth = 16;
+
   StateAPI SUT(
-      *db, [&](auto n) { return test_blocks[n].Hash; }, chain_config);
+      *db, [&](auto n) { return test_blocks[n].Hash; },  //
+      chain_config, 0, {}, cache_opts);
+
   auto batch = db->createWriteBatch();
   auto state_root = SUT.StateTransition_ApplyAccounts(*batch, genesis_accs);
   ASSERT_EQ(test_blocks[0].StateRoot, state_root);
@@ -75,9 +83,9 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
     }
     auto const& test_block = test_blocks[blk_num];
     auto batch = db->createWriteBatch();
-    auto result = SUT.StateTransition_ApplyBlock(*batch, test_block.EVMBlock,
-                                                 test_block.Transactions,
-                                                 test_block.UncleBlocks, {});
+    auto const& result = SUT.StateTransition_ApplyBlock(
+        *batch, test_block.EVMBlock, test_block.Transactions,
+        test_block.UncleBlocks, {});
     ASSERT_EQ(result.StateRoot, test_block.StateRoot);
     db->commitWriteBatch(batch);
     SUT.NotifyStateTransitionCommitted();

@@ -6,11 +6,13 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
   shared_ptr<aleth::Database> blk_db;
   shared_ptr<aleth::Database> ext_db;
   StateAPI state_api;
+  TransactionReceipts receipts_buf;
 
   FinalChainImpl(shared_ptr<DbStorage> db,
                  Config const& config,     //
                  decltype(blk_db) blk_db,  //
-                 decltype(ext_db) ext_db)
+                 decltype(ext_db) ext_db,  //
+                 FinalChain::Opts const& opts)
       : ChainDBImpl(blk_db, ext_db),
         blk_db(move(blk_db)),
         ext_db(move(ext_db)),
@@ -22,6 +24,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
               last_block ? last_block->number() : 0,
               last_block ? last_block->stateRoot() : h256());  //
         }()) {
+    receipts_buf.reserve(opts.state_api.ExpectedMaxNumTrxPerBlock);
     if (get_last_block()) {
       return;
     }
@@ -52,9 +55,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
   AdvanceResult advance(DbStorage::BatchPtr batch, Address const& author,
                         uint64_t timestamp,
                         Transactions const& transactions) override {
-    auto blk_num = last_block_number() + 1;
     constexpr auto gas_limit = std::numeric_limits<uint64_t>::max();
-    auto state_transition_result = state_api.StateTransition_ApplyBlock(
+    auto const& state_transition_result = state_api.StateTransition_ApplyBlock(
         *batch,
         {
             author,
@@ -77,23 +79,24 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
         }),
         {},  //
         {});
-    TransactionReceipts receipts;
-    receipts.reserve(state_transition_result.ExecutionResults.size());
+    receipts_buf.clear();
+    receipts_buf.reserve(state_transition_result.ExecutionResults.size());
     for (auto const& r : state_transition_result.ExecutionResults) {
       LogEntries logs;
       logs.reserve(r.Logs.size());
       for (auto const& l : r.Logs) {
         logs.emplace_back(l.Address, l.Topics, l.Data);
       }
-      receipts.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(),
-                            r.GasUsed, move(logs), r.NewContractAddr);
+      receipts_buf.emplace_back(r.CodeErr.empty() && r.ConsensusErr.empty(),
+                                r.GasUsed, move(logs), r.NewContractAddr);
     }
     auto exit_stack = append_block_prepare(batch);
     return {
         append_block(author, timestamp, gas_limit,
-                     state_transition_result.StateRoot, transactions, receipts),
-        move(receipts),
-        move(state_transition_result),
+                     state_transition_result.StateRoot, transactions,
+                     receipts_buf),
+        receipts_buf,
+        state_transition_result,
     };
   }
 
@@ -139,10 +142,11 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
-                                     FinalChain::Config const& config) {
+                                     FinalChain::Config const& config,
+                                     FinalChain::Opts const& opts) {
   return u_ptr(new FinalChainImpl(
       db, config, aleth::NewDatabase(db, DbStorage::Columns::aleth_chain),
-      aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras)));
+      aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras), opts));
 }
 
 }  // namespace taraxa::final_chain

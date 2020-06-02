@@ -1474,7 +1474,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                     << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
-  auto [new_eth_header, trx_receipts, state_transition_result] =
+  auto const &[new_eth_header, trx_receipts, state_transition_result] =
       full_node->getFinalChain()->advance(batch, pbft_block.getBeneficiary(),
                                           pbft_block.getTimestamp(),
                                           transactions_tmp_);
