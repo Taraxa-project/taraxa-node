@@ -16,6 +16,8 @@
 #include "util/encoding_rlp.hpp"
 #include "util/range_view.hpp"
 
+// TODO revert to the C++ naming convention
+
 extern "C" {
 struct rocksdb_t {
   rocksdb::DB* rep;
@@ -67,14 +69,14 @@ struct ETHChainConfig {
 void enc_rlp(RLPStream&, ETHChainConfig const&);
 
 struct EVMChainConfig {
-  ETHChainConfig ETHChainConfig;
-  ExecutionOptions ExecutionOptions;
+  ETHChainConfig eth_chain_config;
+  ExecutionOptions execution_options;
 };
 void enc_rlp(RLPStream&, EVMChainConfig const&);
 
 struct ChainConfig {
-  EVMChainConfig EVMChainConfig;
-  bool DisableBlockRewards;
+  EVMChainConfig evm_chain_config;
+  bool disable_block_rewards;
 };
 void enc_rlp(RLPStream&, ChainConfig const&);
 

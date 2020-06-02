@@ -244,11 +244,11 @@ void enc_rlp(RLPStream& rlp, ETHChainConfig const& target) {
 }
 
 void enc_rlp(RLPStream& rlp, EVMChainConfig const& target) {
-  enc_rlp_tuple(rlp, target.ETHChainConfig, target.ExecutionOptions);
+  enc_rlp_tuple(rlp, target.eth_chain_config, target.execution_options);
 }
 
 void enc_rlp(RLPStream& rlp, ChainConfig const& target) {
-  enc_rlp_tuple(rlp, target.EVMChainConfig, target.DisableBlockRewards);
+  enc_rlp_tuple(rlp, target.evm_chain_config, target.disable_block_rewards);
 }
 
 void enc_rlp(RLPStream& rlp, EVMBlock const& target) {

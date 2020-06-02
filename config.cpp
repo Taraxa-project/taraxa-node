@@ -150,6 +150,12 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     test_params.pbft.run_count_votes =
         getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
   }
+  // TODO configurable
+  opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock = 400;
+  // TODO constant
+  opts_final_chain.state_api.MainTrieWriterOpts.ExpectedDepth = 64;
+  opts_final_chain.state_api.MainTrieWriterOpts.FullNodeLevelsToCache = 5;
+  opts_final_chain.state_api.AccTrieWriterOpts.ExpectedDepth = 16;
 }
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {

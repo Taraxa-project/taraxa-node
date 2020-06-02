@@ -94,6 +94,7 @@ struct FullNodeConfig {
   // either a string name of a predefined config,
   // or the full json of a custom config
   ChainConfig chain = ChainConfig::Default;
+  FinalChain::Opts opts_final_chain;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

@@ -51,7 +51,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
       test_data_dir / "eth_mainnet_blocks_0_300000.rlp");
 
   ChainConfig chain_config;
-  auto& eth_chain_cfg = chain_config.EVMChainConfig.ETHChainConfig;
+  auto& eth_chain_cfg = chain_config.evm_chain_config.eth_chain_config;
   eth_chain_cfg.HomesteadBlock = 1150000;
   eth_chain_cfg.DAOForkBlock = 1920000;
   eth_chain_cfg.EIP150Block = 2463000;

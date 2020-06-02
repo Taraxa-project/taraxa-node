@@ -20,12 +20,12 @@ LazyVal<ChainConfig> const ChainConfig::Default([] {
       "vdf": ""
   })"));
   ret.replay_protection_service.range = 10;
-  ret.final_chain.state.chain_config.DisableBlockRewards = true;
-  ret.final_chain.state.chain_config.EVMChainConfig.ETHChainConfig
+  ret.final_chain.state.chain_config.disable_block_rewards = true;
+  ret.final_chain.state.chain_config.evm_chain_config.eth_chain_config
       .DAOForkBlock = state_api::BlockNumberNIL;
-  ret.final_chain.state.chain_config.EVMChainConfig.ExecutionOptions
+  ret.final_chain.state.chain_config.evm_chain_config.execution_options
       .DisableNonceCheck = true;
-  ret.final_chain.state.chain_config.EVMChainConfig.ExecutionOptions
+  ret.final_chain.state.chain_config.evm_chain_config.execution_options
       .DisableGasFee = true;
   ret.final_chain.state
       .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]

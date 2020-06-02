@@ -79,7 +79,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
                                             genesis_hash.toString());
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
-  final_chain_ = NewFinalChain(db_, conf_.chain.final_chain);
+  final_chain_ =
+      NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
   auto final_chain_head_ = final_chain_->get_last_block();
   pending_block_ =
       aleth::NewPendingBlock(final_chain_head_->number(), getAddress(),
