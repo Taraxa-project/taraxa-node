@@ -21,7 +21,7 @@ inline const WaitOptions WaitOptions_DEFAULT = {
     nanoseconds(1000 * 1000 * 1000 * 1),
 };
 
-bool wait(function<bool()> condition,
+bool Wait(function<bool()> condition,
           WaitOptions const& opts = WaitOptions_DEFAULT) {
   for (uint i(0); i < opts.attempts; ++i) {
     if (condition()) {
@@ -35,7 +35,7 @@ bool wait(function<bool()> condition,
 }  // namespace taraxa::core_tests::util::wait
 
 namespace taraxa::core_tests::util {
-using wait::wait;
+using wait::Wait;
 using wait::WaitOptions;
 using wait::WaitOptions_DEFAULT;
 }  // namespace taraxa::core_tests::util

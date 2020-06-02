@@ -35,8 +35,6 @@ using namespace core_tests::util;
 using samples::sendTrx;
 using ::taraxa::util::lazy::Lazy;
 using transaction_client::TransactionClient;
-using wait::wait;
-using wait::WaitOptions;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;

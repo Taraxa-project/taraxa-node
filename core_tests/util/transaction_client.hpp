@@ -59,8 +59,8 @@ struct TransactionClient {
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
     auto success =
-        wait::wait([&] { return final_chain->isKnownTransaction(trx_hash); },
-                   opts_.waitUntilExecutedOpts);
+        Wait([&] { return final_chain->isKnownTransaction(trx_hash); },
+             opts_.waitUntilExecutedOpts);
     if (success) {
       ctx.stage = TransactionStage::executed;
     }
