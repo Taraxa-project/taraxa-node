@@ -87,59 +87,9 @@ ifeq ($(OS), Darwin)
 	OSX_FRAMEWORKS := CoreFoundation Security
 endif
 
-NODE_SRCS := \
-	util.cpp \
-	dag_block.cpp \
-	network.cpp \
-	full_node.cpp \
-	types.cpp \
-	dag.cpp \
-	block_proposer.cpp \
-	transaction.cpp \
-	transaction_queue.cpp \
-	transaction_manager.cpp \
-	executor.cpp \
-	transaction_order_manager.cpp \
-	pbft_chain.cpp \
-	taraxa_capability.cpp \
-	sortition.cpp \
-	pbft_manager.cpp \
-	vote.cpp \
-	top.cpp \
-	config.cpp \
-	trx_engine/types.cpp \
-	trx_engine/trx_engine.cpp \
-	pbft_sortition_account.cpp \
-	replay_protection/sender_state.cpp \
-	replay_protection/replay_protection_service.cpp \
-	vrf_wrapper.cpp \
-	net/RpcServer.cpp \
-	net/WSServer.cpp \
-	net/Test.cpp \
-	net/Taraxa.cpp \
-	net/Net.cpp \
-	eth/eth_service.cpp \
-	eth/eth.cpp \
-	eth/taraxa_seal_engine.cpp \
-	eth/pending_block_header.cpp \
-	db_storage.cpp \
-	vdf_sortition.cpp \
-	conf/chain_config.cpp \
-	eth/database_adapter.cpp \
-
+NODE_SRCS := $(shell scripts/find_files_cxx_node_main.sh)
 NODE_OBJS := $(addprefix $(OBJ_DIR)/, $(NODE_SRCS:.cpp=.o))
-
-TEST_SRCS := \
-	core_tests/full_node_test.cpp \
-	core_tests/dag_block_test.cpp \
-	core_tests/network_test.cpp \
-	core_tests/dag_test.cpp \
-	core_tests/transaction_test.cpp \
-	core_tests/p2p_test.cpp \
-	core_tests/crypto_test.cpp \
-    core_tests/pbft_chain_test.cpp \
-	core_tests/pbft_rpc_test.cpp \
-	core_tests/pbft_manager_test.cpp
+TEST_SRCS := $(shell scripts/find_files_cxx_node_tests.sh)
 TEST_OBJS := $(addprefix $(OBJ_DIR)/, $(TEST_SRCS:.cpp=.o))
 TESTS := $(addprefix $(BIN_DIR)/, $(basename $(TEST_SRCS)))
 
@@ -165,7 +115,8 @@ $(BIN_DIR)/%: $(NODE_OBJS) $(OBJ_DIR)/%.o
 		$(addprefix -framework , $(OSX_FRAMEWORKS)) \
 	)
 
-.PHONY: all main test run_test perf_test run_perf_test pdemo ct c clean
+.PHONY: all main test run_test perf_test run_perf_test pdemo ct c clean \
+	print_var
 
 all: main
 
@@ -194,3 +145,8 @@ c: clean
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+# Can be used to borrow configuration from this build
+# to another build e.g. Cmake
+print_var:
+	@echo $($(ARG))
