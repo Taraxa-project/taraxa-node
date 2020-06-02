@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"
 cd ..
 
-find $(git ls-files) \
+find . \
   -type f \
   -and \( \
   -path "*.cpp" \
@@ -13,6 +13,9 @@ find $(git ls-files) \
   -or -path "*.h" \
   \) \
   -and ! \( \
-  -path "submodules/*" \
-  -or -path "unused_yet_useful/*" \
-  \)
+  -path "./submodules/*" \
+  -or -path "./unused_yet_useful/*" \
+  -or -path "./build/*" \
+  -or -path "./cmake-*" \
+  \) |
+  cut -c3-
