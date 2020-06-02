@@ -52,19 +52,19 @@ enum DBColumn {
 using DBColumns = array<shared_ptr<ColumnFamilyHandle>, DBColumn::COUNT>;
 
 struct ExecutionOptions {
-  bool DisableNonceCheck;
-  bool DisableGasFee;
+  bool DisableNonceCheck = 0;
+  bool DisableGasFee = 0;
 };
 void enc_rlp(RLPStream&, ExecutionOptions const&);
 
 struct ETHChainConfig {
-  BlockNumber HomesteadBlock;
-  BlockNumber DAOForkBlock;
-  BlockNumber EIP150Block;
-  BlockNumber EIP158Block;
-  BlockNumber ByzantiumBlock;
-  BlockNumber ConstantinopleBlock;
-  BlockNumber PetersburgBlock;
+  BlockNumber HomesteadBlock = 0;
+  BlockNumber DAOForkBlock = 0;
+  BlockNumber EIP150Block = 0;
+  BlockNumber EIP158Block = 0;
+  BlockNumber ByzantiumBlock = 0;
+  BlockNumber ConstantinopleBlock = 0;
+  BlockNumber PetersburgBlock = 0;
 };
 void enc_rlp(RLPStream&, ETHChainConfig const&);
 
@@ -76,14 +76,14 @@ void enc_rlp(RLPStream&, EVMChainConfig const&);
 
 struct ChainConfig {
   EVMChainConfig evm_chain_config;
-  bool disable_block_rewards;
+  bool disable_block_rewards = 0;
 };
 void enc_rlp(RLPStream&, ChainConfig const&);
 
 struct EVMBlock {
   addr_t Author;
-  gas_t GasLimit;
-  uint64_t Time;
+  gas_t GasLimit = 0;
+  uint64_t Time = 0;
   u256 Difficulty;
 };
 void enc_rlp(RLPStream&, EVMBlock const&);
@@ -93,9 +93,9 @@ struct EVMTransaction {
   addr_t From;
   u256 GasPrice;
   optional<addr_t> To;
-  uint64_t Nonce;
+  uint64_t Nonce = 0;
   u256 Value;
-  gas_t Gas;
+  gas_t Gas = 0;
   bytes Input;
 };
 void enc_rlp(RLPStream&, EVMTransaction const&);
@@ -108,7 +108,7 @@ struct EVMTransactionWithHash {
 void enc_rlp(RLPStream&, EVMTransactionWithHash const&);
 
 struct UncleBlock {
-  BlockNumber Number;
+  BlockNumber Number = 0;
   addr_t Author;
 };
 void enc_rlp(RLPStream&, UncleBlock const&);
@@ -131,7 +131,7 @@ struct ExecutionResult {
   bytes CodeRet;
   addr_t NewContractAddr;
   vector<LogRecord> Logs;
-  gas_t GasUsed;
+  gas_t GasUsed = 0;
   string CodeErr;
   string ConsensusErr;
 };
@@ -145,11 +145,11 @@ struct StateTransitionResult {
 void dec_rlp(RLP const&, StateTransitionResult&);
 
 struct Account {
-  uint64_t Nonce;
+  uint64_t Nonce = 0;
   u256 Balance;
   h256 StorageRootHash;
   h256 CodeHash;
-  uint64_t CodeSize;
+  uint64_t CodeSize = 0;
 
   auto const& storage_root_eth() {
     return StorageRootHash ? StorageRootHash : dev::EmptyListSHA3;
@@ -162,7 +162,7 @@ struct InputAccount {
   bytes Code;
   std::unordered_map<u256, u256> Storage;
   u256 Balance;
-  uint64_t Nonce;
+  uint64_t Nonce = 0;
 };
 using InputAccounts = unordered_map<addr_t, InputAccount>;
 void enc_rlp(RLPStream&, InputAccount const&);
@@ -181,15 +181,15 @@ struct Proof {
 void dec_rlp(RLP const&, Proof&);
 
 struct TrieWriterCacheOpts {
-  uint8_t FullNodeLevelsToCache;
-  uint8_t ExpectedDepth;
+  uint8_t FullNodeLevelsToCache = 0;
+  uint8_t ExpectedDepth = 0;
 };
 void enc_rlp(RLPStream&, TrieWriterCacheOpts const&);
 
 struct CacheOpts {
   TrieWriterCacheOpts MainTrieWriterOpts;
   TrieWriterCacheOpts AccTrieWriterOpts;
-  uint32_t ExpectedMaxNumTrxPerBlock;
+  uint32_t ExpectedMaxNumTrxPerBlock = 0;
 };
 void enc_rlp(RLPStream&, CacheOpts const&);
 

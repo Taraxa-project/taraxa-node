@@ -266,13 +266,6 @@ auto u_ptr(T *ptr) {
   return std::unique_ptr<T>(ptr);
 }
 
-template <typename Container>
-auto stl_container_prealloc(size_t cap) {
-  Container ret;
-  ret.reserve(cap);
-  return move(ret);
-}
-
 template <typename T>
 static constexpr auto __is_iterable__(int)
     -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++),

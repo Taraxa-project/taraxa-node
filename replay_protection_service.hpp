@@ -19,7 +19,7 @@ struct ReplayProtectionService {
 
   struct TransactionInfo {
     addr_t sender;
-    uint64_t nonce;
+    uint64_t nonce = 0;
   };
   virtual void update(DbStorage::BatchPtr batch, round_t round,
                       util::RangeView<TransactionInfo> const& trxs) = 0;

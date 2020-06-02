@@ -25,7 +25,7 @@ struct FinalChain : virtual ChainDB {
     } state;
     struct GenesisBlockFields {
       addr_t author;
-      uint64_t timestamp;
+      uint64_t timestamp = 0;
     } genesis_block_fields;
   };
 

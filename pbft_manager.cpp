@@ -58,6 +58,12 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
       db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ =
       db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+  auto expected_max_trx_per_block =
+      full_node->getConfig()
+          .opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock;
+  dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
+  transactions_tmp_.reserve(expected_max_trx_per_block);
+  trx_senders_tmp_.reserve(expected_max_trx_per_block);
 }
 
 void PbftManager::start() {

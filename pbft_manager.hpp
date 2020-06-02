@@ -234,12 +234,9 @@ class PbftManager {
 
   std::atomic<uint64_t> num_executed_trx_ = 0;
   std::atomic<uint64_t> num_executed_blk_ = 0;
-  unordered_set<addr_t> dag_block_proposers_tmp_ =
-      stl_container_prealloc<decltype(dag_block_proposers_tmp_)>(128);
-  dev::eth::Transactions transactions_tmp_ =
-      stl_container_prealloc<decltype(transactions_tmp_)>(1042);
-  unordered_set<addr_t> trx_senders_tmp_ =
-      stl_container_prealloc<decltype(trx_senders_tmp_)>(1042);
+  unordered_set<addr_t> dag_block_proposers_tmp_;
+  dev::eth::Transactions transactions_tmp_;
+  unordered_set<addr_t> trx_senders_tmp_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

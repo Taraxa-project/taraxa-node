@@ -41,12 +41,14 @@ submodules/prometheus-cpp/ok:
 
 # ====================================================
 
-# TODO explore cgo compiler optimization flags
+# TODO explore more cgo compiler optimization flags
 TARAXA_EVM_LIB := taraxa-evm
 submodules/taraxa-evm/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	cd taraxa/C; \
-	go build -buildmode=c-archive -o $(TARAXA_EVM_LIB).a; \
+	CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' \
+		CGO_CFLAGS="-O3" CGO_CXXFLAGS="-O3" \
+		go build -buildmode=c-archive -o $(TARAXA_EVM_LIB).a; \
 	copy . "*.h" $(DEPS_INSTALL_PREFIX)/include/taraxa-evm/; \
 	cp $(TARAXA_EVM_LIB).a $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
 

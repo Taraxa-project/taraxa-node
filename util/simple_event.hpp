@@ -12,7 +12,7 @@ template <typename... Ts>
 class SimpleEvent {
   using handler_t = function<void(Ts const &... ts)>;
 
-  mutable uint64_t next_id;
+  mutable uint64_t next_id = 0;
   mutable unordered_map<uint64_t, handler_t> handlers;
   mutable shared_mutex mu;
 

@@ -20,7 +20,7 @@ using ::taraxa::util::lazy::Lazy;
 using ::taraxa::util::lazy::LazyVal;
 
 struct ChainConfig {
-  int chain_id;
+  int chain_id = 0;
   DagBlock dag_genesis_block;
   ReplayProtectionService::Config replay_protection_service;
   FinalChain::Config final_chain;
