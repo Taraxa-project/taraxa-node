@@ -39,8 +39,8 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
   }
 
   struct advance_check_opts {
-    bool dont_assume_no_logs;
-    bool dont_assume_all_trx_success;
+    bool dont_assume_no_logs = 0;
+    bool dont_assume_all_trx_success = 0;
   };
   auto advance(Transactions const& trxs, advance_check_opts opts = {}) {
     auto batch = db->createWriteBatch();
