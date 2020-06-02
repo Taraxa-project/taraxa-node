@@ -65,8 +65,6 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
             0,
         },
         make_range_view(transactions).map([](auto const& trx) {
-          assert(trx.nonce() <= numeric_limits<uint64_t>::max());
-          assert(trx.gas() <= numeric_limits<uint64_t>::max());
           return state_api::EVMTransaction{
               trx.from(),
               trx.gasPrice(),
