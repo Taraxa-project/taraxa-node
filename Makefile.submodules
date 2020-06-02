@@ -41,12 +41,12 @@ submodules/prometheus-cpp/ok:
 
 # ====================================================
 
+# In case of strange evm behavior, try removing CGO_CFLAGS from this recipe
 TARAXA_EVM_LIB := taraxa-evm
 submodules/taraxa-evm/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	cd taraxa/C; \
-	CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' \
-		CGO_CFLAGS="-O3" CGO_CXXFLAGS="-O3" \
+	CGO_CFLAGS_ALLOW='.*' CGO_CFLAGS="-O3" \
 		go build -buildmode=c-archive -o $(TARAXA_EVM_LIB).a; \
 	copy . "*.h" $(DEPS_INSTALL_PREFIX)/include/taraxa-evm/; \
 	cp $(TARAXA_EVM_LIB).a $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
