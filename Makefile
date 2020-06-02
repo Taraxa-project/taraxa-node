@@ -125,7 +125,7 @@ cppcheck_test:
 	cppcheck --enable=warning,style,performance,portability,information --error-exitcode=1 -i submodules -i core_tests -i unused_yet_useful -i prometheus_demo.cpp --suppress=missingInclude .
 
 run_test: test
-	scripts/run_commands_long_circuit.sh $(TESTS)
+	GODEBUG=cgocheck=0 scripts/run_commands_long_circuit.sh $(TESTS)
 
 perf_test: $(BIN_DIR)/core_tests/performance_test
 
