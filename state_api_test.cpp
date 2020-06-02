@@ -23,13 +23,13 @@ struct StateAPITest : testing::Test, WithTestDataDir {
 struct TestBlock {
   h256 Hash;
   h256 StateRoot;
-  EVMBlock EVMBlock;
+  EVMBlock evm_block;
   vector<EVMTransaction> Transactions;
   vector<UncleBlock> UncleBlocks;
 };
 
 void dec_rlp(RLP const& rlp, TestBlock& target) {
-  dec_rlp_tuple(rlp, target.Hash, target.StateRoot, target.EVMBlock,
+  dec_rlp_tuple(rlp, target.Hash, target.StateRoot, target.evm_block,
                 target.Transactions, target.UncleBlocks);
 }
 
@@ -84,7 +84,7 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
     auto const& test_block = test_blocks[blk_num];
     auto batch = db->createWriteBatch();
     auto const& result = SUT.StateTransition_ApplyBlock(
-        *batch, test_block.EVMBlock, test_block.Transactions,
+        *batch, test_block.evm_block, test_block.Transactions,
         test_block.UncleBlocks, {});
     ASSERT_EQ(result.StateRoot, test_block.StateRoot);
     db->commitWriteBatch(batch);
