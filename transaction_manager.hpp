@@ -25,7 +25,7 @@ using AccountNonceTable = StatusTable<addr_t, val_t>;
 class TransactionManager
     : public std::enable_shared_from_this<TransactionManager> {
  public:
-  util::SimpleEvent<trx_hash_t> const event_transaction_accepted;
+  util::SimpleEvent<trx_hash_t> const event_transaction_accepted{};
 
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
