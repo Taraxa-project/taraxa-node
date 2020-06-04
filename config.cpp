@@ -1,7 +1,6 @@
 #include "config.hpp"
 
 #include <json/json.h>
-#include <libdevcore/LevelDB.h>
 
 #include <fstream>
 
@@ -95,8 +94,6 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       getConfigDataAsUInt(root, {"network_encrypted"}) != 0;
   network.network_performance_log =
       getConfigDataAsUInt(root, {"network_performance_log"}) & 1;
-  if (getConfigDataAsUInt(root, {"network_performance_log"}) & 2)
-    dev::db::LevelDB::setPerf(true);
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
@@ -153,11 +150,13 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     test_params.pbft.run_count_votes =
         getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
   }
-  // TODO parse from json:
-  // Either a string name of a predefined config,
-  // or the full json of a custom config
-  chain = decltype(chain)::DEFAULT();
-}  // namespace taraxa
+  // TODO configurable
+  opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock = 400;
+  // TODO constant
+  opts_final_chain.state_api.MainTrieWriterOpts.ExpectedDepth = 64;
+  opts_final_chain.state_api.MainTrieWriterOpts.FullNodeLevelsToCache = 5;
+  opts_final_chain.state_api.AccTrieWriterOpts.ExpectedDepth = 16;
+}
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {
   try {

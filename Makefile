@@ -16,7 +16,6 @@ endif
 
 COMPILE_DEFINITIONS := \
 	$(BOOST_COMPILE_DEFINITIONS) \
-	$(ALETH_COMPILE_DEFINITIONS) \
 	$(CRYPTOPP_COMPILE_DEFIINITIONS)
 
 INCLUDE_DIRS := $(CURDIR) $(DEPS_INSTALL_PREFIX)/include $(JSONCPP_INCLUDE_DIR)
@@ -44,7 +43,7 @@ else
 	BOOST_LIBS += boost_log
 endif
 LIBS := \
-	$(ALETH_LIBS) \
+	$(TARAXA_ALETH_LIB) \
 	$(TARAXA_EVM_LIB) \
 	vdf \
 	sodium \
@@ -57,9 +56,7 @@ LIBS := \
 	gmp \
 	gmpxx \
 	mpfr \
-	snappy \
 	$(BOOST_LIBS) \
-	leveldb \
 	rocksdb \
 	scrypt \
 	prometheus-cpp-core \
@@ -128,7 +125,7 @@ cppcheck_test:
 	cppcheck --enable=warning,style,performance,portability,information --error-exitcode=1 -i submodules -i core_tests -i unused_yet_useful -i prometheus_demo.cpp --suppress=missingInclude .
 
 run_test: test
-	scripts/run_commands_long_circuit.sh $(TESTS)
+	GODEBUG=cgocheck=0 scripts/run_commands_long_circuit.sh $(TESTS)
 
 perf_test: $(BIN_DIR)/core_tests/performance_test
 

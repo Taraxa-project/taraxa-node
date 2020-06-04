@@ -1,11 +1,9 @@
 #include "pbft_manager.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/DBFactory.h>
 
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
-#include "eth/util.hpp"
 #include "full_node.hpp"
 #include "network.hpp"
 #include "static_init.hpp"
@@ -36,14 +34,13 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node = tops.second[0];
 
   // create a transaction
-  auto nonce = val_t(0);
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   auto data = bytes();
-  Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               TEST_TX_GAS_LIMIT, receiver,
-                                               data, g_secret);
+  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price,
+                                               TEST_TX_GAS_LIMIT, data,
+                                               g_secret, receiver);
   node->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (int i = 0; i < 100; i++) {
@@ -88,8 +85,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   auto gas_price = val_t(2);
   auto data = bytes();
   Transaction trx_master_boot_node_to_node2(0, coins_value2, gas_price,
-                                            TEST_TX_GAS_LIMIT, node2_addr, data,
-                                            g_secret);
+                                            TEST_TX_GAS_LIMIT, data, g_secret,
+                                            node2_addr);
   // broadcast trx and insert
   nodes[0]->insertTransaction(trx_master_boot_node_to_node2, false);
 
@@ -131,8 +128,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // create a transaction transfer coins from node1 to node3
   auto coins_value3 = val_t(1000);
   Transaction trx_master_boot_node_to_node3(1, coins_value3, gas_price,
-                                            TEST_TX_GAS_LIMIT, node3_addr, data,
-                                            g_secret);
+                                            TEST_TX_GAS_LIMIT, data, g_secret,
+                                            node3_addr);
   // broadcast trx and insert
   nodes[0]->insertTransaction(trx_master_boot_node_to_node3, false);
 
@@ -225,7 +222,6 @@ int main(int argc, char **argv) {
   logOptions.includeChannels.push_back("TRXQU");
   logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

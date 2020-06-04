@@ -1,16 +1,21 @@
 #include "top.hpp"
 
+#include <libweb3jsonrpc/Eth.h>
+
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
+#include <stdexcept>
 
+#include "aleth/node_api.hpp"
+#include "aleth/state_api.hpp"
 #include "config.hpp"
-#include "eth/eth.hpp"
 #include "net/RpcServer.h"
 
 using namespace std;
+using namespace taraxa;
 
 Top::Top(int argc, const char* argv[]) {
   std::string conf_taraxa;
@@ -70,21 +75,38 @@ Top::Top(int argc, const char* argv[]) {
   rpc_thread_ = thread([this, rpc_init_done] {
     try {
       auto const& node_config = node_->getConfig();
-      auto rpc_server = make_shared<taraxa::net::RpcServer>(rpc_io_context_,  //
-                                                            node_config.rpc);
-      auto eth_service = node_->getEthService();
-      auto rpc = make_shared<ModularServer<taraxa::net::TestFace,
-                                           taraxa::net::TaraxaFace,  //
-                                           taraxa::net::NetFace,     //
+      auto rpc_server = make_shared<net::RpcServer>(rpc_io_context_,  //
+                                                    node_config.rpc);
+      auto final_chain = node_->getFinalChain();
+      auto rpc = make_shared<ModularServer<net::TestFace,
+                                           net::TaraxaFace,  //
+                                           net::NetFace,     //
                                            dev::rpc::EthFace>>(
-          new taraxa::net::Test(node_),
-          new taraxa::net::Taraxa(node_),  //
-          new taraxa::net::Net(node_),
-          new taraxa::eth::eth::Eth(eth_service,
-                                    eth_service->current_node_account_holder));
+          new net::Test(node_),
+          new net::Taraxa(node_),  //
+          new net::Net(node_),
+          new dev::rpc::Eth(
+              node_config.chain.chain_id,
+              aleth::NewNodeAPI(node_->getSecretKey(),
+                                [=](auto const& trx) {
+                                  auto result =
+                                      node_->insertTransaction(trx, true);
+                                  if (!result.first) {
+                                    BOOST_THROW_EXCEPTION(runtime_error(
+                                        fmt("Transaction is rejected.\n"
+                                            "Payload: %s\n"
+                                            "Reason: %s",
+                                            trx.getJsonStr(), result.second)));
+                                  }
+                                }),
+              node_->getFilterAPI(),
+              aleth::NewStateAPI(final_chain),  //
+              node_->getPendingBlock(),
+              final_chain,  //
+              [] { return 0; }));
       rpc->addConnector(rpc_server);
       rpc_server->StartListening();
-      auto ws_listener = make_shared<taraxa::net::WSServer>(
+      auto ws_listener = make_shared<net::WSServer>(
           rpc_io_context_,  //
           boost::asio::ip::tcp::endpoint{
               boost::asio::ip::make_address(

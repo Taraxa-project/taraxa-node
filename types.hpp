@@ -90,6 +90,7 @@ using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
 using sig_hash_t = uint256_hash_t;
 
+using gas_t = uint64_t;
 using key_t = std::string;
 using level_t = uint64_t;
 using val_t = dev::u256;
@@ -104,8 +105,6 @@ using bytes = std::vector<byte>;
 using node_id_t = uint512_hash_t;
 using round_t = uint64_t;
 using trx_nonce_t = val_t;
-using EthTransaction = dev::eth::Transaction;
-using EthTransactions = dev::eth::Transactions;
 
 // val_t type related helper functions
 inline val_t operator+=(val_t const &val, val_t const &other) {
@@ -125,7 +124,6 @@ unsigned long getTimePoint2Long(time_point_t tp);
 bytes str2bytes(std::string const &str);
 std::string bytes2str(bytes const &data);
 
-// fixme: use the limit from chain params
 inline static const auto MOCK_BLOCK_GAS_LIMIT =
     std::numeric_limits<uint64_t>::max();
 

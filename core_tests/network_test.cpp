@@ -1,7 +1,6 @@
 #include "network.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
 
 #include <atomic>
@@ -935,7 +934,7 @@ TEST_F(NetworkTest, node_full_sync) {
       auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
       auto blocks2 = nodes[i]->getDagBlocksAtLevel(level, 1);
       if (blocks1.size() != blocks2.size()) {
-        printf("DIFF at level %lu: \n", level);
+        std::cout << "DIFF at level %lu: " << level << std::endl;
         for (auto b : blocks1) printf(" %s", b->getHash().toString().c_str());
         printf("\n");
         for (auto b : blocks2) printf(" %s", b->getHash().toString().c_str());
@@ -981,7 +980,6 @@ int main(int argc, char** argv) {
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

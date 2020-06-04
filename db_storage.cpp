@@ -23,16 +23,23 @@ std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.max_open_files = 256;
-  DB* db_ = nullptr;
+  DB* db = nullptr;
   vector<ColumnFamilyDescriptor> descriptors;
   std::transform(Columns::all.begin(), Columns::all.end(),
                  std::back_inserter(descriptors), [](const Column& col) {
                    return ColumnFamilyDescriptor(col.name,
                                                  ColumnFamilyOptions());
                  });
-  decltype(handles_) handles(Columns::all.size());
-  checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db_));
-  return u_ptr(new DbStorage(db_, move(handles)));
+  vector<ColumnFamilyHandle*> handles(Columns::all.size());
+  checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db));
+  auto ret = u_ptr(new DbStorage);
+  ret->db_ = s_ptr(db);
+  ret->handles_.reserve(handles.size());
+  for (auto h : handles) {
+    ret->handles_.emplace_back(h);
+  }
+  ret->dag_blocks_count_.store(ret->getStatusField(StatusDbField::DagBlkCount));
+  return ret;
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
@@ -405,35 +412,6 @@ void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash,
                                          BatchPtr const& write_batch) {
   batch_put(write_batch, Columns::dag_block_period, toSlice(hash.asBytes()),
             toSlice(period));
-}
-
-void DbStorage::addPendingTransaction(trx_hash_t const& trx) {
-  insert(Columns::pending_transactions, toSlice(trx.asBytes()), Slice());
-}
-
-void DbStorage::removePendingTransaction(trx_hash_t const& trx) {
-  remove(toSlice(trx.asBytes()), Columns::pending_transactions);
-}
-
-void DbStorage::removePendingTransactionToBatch(BatchPtr const& write_batch,
-                                                trx_hash_t const& trx) {
-  batch_delete(write_batch, Columns::pending_transactions,
-               toSlice(trx.asBytes()));
-}
-
-std::unordered_map<trx_hash_t, Transaction>
-DbStorage::getPendingTransactions() {
-  std::unordered_map<trx_hash_t, Transaction> res;
-  auto i = u_ptr(
-      db_->NewIterator(read_options_, handle(Columns::pending_transactions)));
-  for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    auto trx_hash = trx_hash_t(asBytes(i->key().ToString()));
-    auto trx = getTransaction(trx_hash);
-    if (trx) {
-      res[trx_hash] = *trx;
-    }
-  }
-  return res;
 }
 
 void DbStorage::insert(Column const& col, Slice const& k, Slice const& v) {

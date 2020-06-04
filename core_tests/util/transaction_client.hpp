@@ -3,6 +3,7 @@
 
 #include <libdevcrypto/Common.h>
 
+#include <atomic>
 #include <chrono>
 #include <thread>
 
@@ -15,9 +16,6 @@ namespace taraxa::core_tests::util::transaction_client {
 using namespace dev;
 using namespace std;
 using namespace std::chrono;
-using wait::wait;
-using wait::WaitOptions;
-using wait::WaitOptions_DEFAULT;
 
 struct TransactionClient {
   struct Options {
@@ -34,12 +32,11 @@ struct TransactionClient {
   };
 
  private:
-  KeyPair key_pair_;
   shared_ptr<FullNode> node_;
   Options opts_;
 
  public:
-  TransactionClient(secret_t const& secret, decltype(node_) const& node,
+  TransactionClient(decltype(node_) const& node,
                     Options const& opts =
                         {
                             {
@@ -47,26 +44,24 @@ struct TransactionClient {
                                 nanoseconds(1000 * 1000 * 1000 * 2),
                             },
                         })
-      : key_pair_(secret), node_(node), opts_(opts) {}
-
-  Context coinTransfer(string const& to, val_t const& val,
-                       bool verify_executed = true) const {
-    return coinTransfer(addr_t(to), val, verify_executed);
-  }
+      : node_(node), opts_(opts) {}
 
   Context coinTransfer(addr_t const& to, val_t const& val,
+                       optional<KeyPair> const& from_k = {},
                        bool verify_executed = true) const {
-    return coinTransfer(key_pair_, to, val, verify_executed);
-  }
-
-  Context coinTransfer(KeyPair const& from, addr_t const& to, val_t const& val,
-                       bool verify_executed = true) const {
-    auto eth_service = node_->getEthService();
-    auto sender_nonce = eth_service->accountNonce(from.address());
+    auto final_chain = node_->getFinalChain();
+    // As long as nonce rules are completely disabled, this hack allows to
+    // generate unique nonces that contribute to transaction uniqueness.
+    // Without this, it's very possible in these tests to have hash collisions,
+    // if you just use a constant value like 0 or even get the nonce from the
+    // account state. The latter won't work in general because in some tests
+    // we don't wait for previous transactions for a sender to complete before
+    // sending a new one
+    static atomic<uint64_t> nonce = 100000;
     Context ctx{
         TransactionStage::created,
-        Transaction(sender_nonce, val, 0, constants::TEST_TX_GAS_LIMIT, to,
-                    bytes(), from.secret()),
+        Transaction(++nonce, val, 0, constants::TEST_TX_GAS_LIMIT, bytes(),
+                    from_k ? from_k->secret() : node_->getSecretKey(), to),
     };
     if (!node_->insertTransaction(ctx.trx, false).first) {
       return ctx;
@@ -75,7 +70,7 @@ struct TransactionClient {
     auto trx_hash = ctx.trx.getHash();
     if (verify_executed) {
       auto success =
-          wait([&] { return eth_service->isKnownTransaction(trx_hash); },
+          Wait([&] { return final_chain->isKnownTransaction(trx_hash); },
                opts_.waitUntilExecutedOpts);
       if (success) {
         ctx.stage = TransactionStage::executed;
@@ -86,5 +81,9 @@ struct TransactionClient {
 };
 
 }  // namespace taraxa::core_tests::util::transaction_client
+
+namespace taraxa::core_tests::util {
+using transaction_client::TransactionClient;
+}  // namespace taraxa::core_tests::util
 
 #endif  // TARAXA_NODE_CORE_TESTS_UTIL_TRANSACTION_CLIENT_HPP_

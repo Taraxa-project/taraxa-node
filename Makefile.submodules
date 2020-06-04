@@ -41,14 +41,16 @@ submodules/prometheus-cpp/ok:
 
 # ====================================================
 
-TARAXA_EVM_LIB := taraxa_evm_cgo
+# TODO explore more cgo compiler optimization flags
+TARAXA_EVM_LIB := taraxa-evm
 submodules/taraxa-evm/ok:
 	$(SUBMODULE_BUILD_INIT); \
-	copy . "taraxa/*.h" $(DEPS_INSTALL_PREFIX)/include; \
-	go build -tags=secp256k1_no_cgo -buildmode=c-archive \
-		-o $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
-	mv $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).h \
-		$(DEPS_INSTALL_PREFIX)/include/$(TARAXA_EVM_LIB).h; \
+	cd taraxa/C; \
+	CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' \
+		CGO_CFLAGS="-O3" CGO_CXXFLAGS="-O3" \
+		go build -buildmode=c-archive -o $(TARAXA_EVM_LIB).a; \
+	copy . "*.h" $(DEPS_INSTALL_PREFIX)/include/taraxa-evm/; \
+	cp $(TARAXA_EVM_LIB).a $(DEPS_INSTALL_PREFIX)/lib/lib$(TARAXA_EVM_LIB).a; \
 
 # ====================================================
 
@@ -157,13 +159,7 @@ ALETH_SRCS := $(shell \
 	-a ! -path "$(ALETH_ROOT)/libweb3jsonrpc/WinPipeServer.cpp" \
 )
 ALETH_OBJS = $(subst $(ALETH_ROOT),$(ALETH_OBJ_DIR),$(ALETH_SRCS:.cpp=.o))
-ALETH_COMPILE_DEFINITIONS := ETH_FATDB
 TARAXA_ALETH_LIB := taraxa-aleth
-ALETH_LIBS := \
-	$(TARAXA_ALETH_LIB) \
-	evmc-loader \
-	evmc-instructions \
-	aleth-buildinfo
 
 $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 	mkdir -p $(@D)
@@ -175,7 +171,6 @@ $(ALETH_OBJ_DIR)/%.o: $(ALETH_ROOT)/%.cpp
 		$(addprefix -D, \
 			$(BOOST_COMPILE_DEFINITIONS) \
 			$(CRYPTOPP_COMPILE_DEFIINITIONS) \
-			$(ALETH_COMPILE_DEFINITIONS) \
 		) \
 		-o $@ $< \
 	)
@@ -186,16 +181,6 @@ submodules/ethash/ok \
 submodules/libff/ok \
 submodules/secp256k1/ok
 	$(SUBMODULE_BUILD_INIT); \
-	mkdir_cd $(ALETH_BUILD_DIR)/taraxa-aleth-buildinfo; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) \
-		$(ALETH_ROOT)/taraxa-aleth-buildinfo; \
-	$(MAKE); \
-	$(MAKE) install; \
-	mkdir_cd $(ALETH_BUILD_DIR)/evmc; \
-	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) \
-		$(ALETH_ROOT)/evmc; \
-	$(MAKE); \
-	$(MAKE) install; \
 	copy $(ALETH_ROOT)/utils "*.h" $(DEPS_INSTALL_PREFIX)/include; \
 	$(MAKE) -C $(CURDIR) -f Makefile.submodules NO_UPDATE_SUBMODULES=1 \
 		$(ALETH_OBJS); \

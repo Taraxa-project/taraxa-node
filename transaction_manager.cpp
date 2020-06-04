@@ -5,7 +5,6 @@
 #include <string>
 #include <utility>
 
-#include "eth/util.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
 
@@ -24,16 +23,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(
     Transaction const &trx) const {
   std::string error_message;
   try {
-    if (eth_service_) {
-      eth_service_->sealEngine()->verifyTransaction(
-          dev::eth::ImportRequirements::Everything,
-          eth::util::trx_taraxa_2_eth(trx),  //
-          eth_service_->head(),              //
-          0);
-    } else {
-      return std::make_pair(trx.verifySig(), "");
-    }
-    return std::make_pair(true, "");
+    return std::make_pair(trx.verifySig(), "");
   } catch (dev::eth::InvalidSignature) {
     error_message = "InvalidSignature";
   } catch (dev::eth::InvalidZeroSignatureTransaction) {
@@ -80,7 +70,7 @@ void TransactionManager::verifyQueuedTrxs() {
       auto status = db_->getTransactionStatus(hash);
       if (status == TransactionStatus::in_queue_unverified) {
         db_->saveTransactionStatus(hash, TransactionStatus::in_queue_verified);
-        db_->addPendingTransaction(hash);
+        event_transaction_accepted.pub(hash);
         lock.unlock();
         trx_qu_.addTransactionToVerifiedQueue(hash, item.second);
       }
@@ -209,7 +199,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
                          << valid.second;
             return false;
           }
-          db_->addPendingTransaction(trx);
+          event_transaction_accepted.pub(trx);
         }
         trx_count_.fetch_add(1);
         db_->addTransactionStatusToBatch(trx_batch, trx,
@@ -270,7 +260,7 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
         status = TransactionStatus::in_queue_unverified;
       }
       db_->saveTransactionStatus(hash, status);
-      db_->addPendingTransaction(hash);
+      event_transaction_accepted.pub(hash);
       lock.unlock();
       trx_qu_.insert(trx, verify);
       auto node = full_node_.lock();
@@ -295,8 +285,9 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
           LOG(log_nf_) << "Trx: " << hash << "skip, seen but invalid. "
                        << std::endl;
           return std::make_pair(false, "already invalid");
+        default:
+          return std::make_pair(false, "unknown");
       }
-      return std::make_pair(false, "unknown");
     }
   }
   return verified;

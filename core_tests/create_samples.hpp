@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
 #define TARAXA_NODE_CORE_TESTS_CREATE_SAMPLES_HPP
 
-#include <executor.hpp>
 #include <fstream>
 #include <map>
 #include <string>
@@ -14,9 +13,9 @@
 namespace taraxa::samples {
 using ::taraxa::util::lazy::Lazy;
 
-inline const val_t TEST_MAX_TRANSACTIONS_IN_BLOCK =
+inline auto const TEST_MAX_TRANSACTIONS_IN_BLOCK =
     core_tests::util::constants::TEST_MAX_TRANSACTIONS_IN_BLOCK;
-inline const val_t TEST_TX_GAS_LIMIT =
+inline auto const TEST_TX_GAS_LIMIT =
     core_tests::util::constants::TEST_TX_GAS_LIMIT;
 
 class TxGenerator {
@@ -35,27 +34,17 @@ class TxGenerator {
   auto getWithRandomUniqueSender(
       val_t const &value = 0, addr_t const &to = addr_t::random(),
       bytes const &data = str2bytes("00FEDCBA9876543210000000")) const {
-    return Transaction(0,                               // nonce
-                       value,                           // value
-                       val_t(0),                        // gas_price
-                       TEST_TX_GAS_LIMIT,               // gas
-                       to,                              // receiver
-                       data,                            // data
-                       getRandomUniqueSenderSecret());  // secret
+    return Transaction(0, value, 0, TEST_TX_GAS_LIMIT, data,
+                       getRandomUniqueSenderSecret(), to);
   }
   auto getSerialTrxWithSameSender(
-      uint trx_num, val_t const &start_nonce, val_t const &value,
+      uint trx_num, uint64_t const &start_nonce, val_t const &value,
       addr_t const &receiver = addr_t::random()) const {
     std::vector<Transaction> trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
-      trxs.emplace_back(
-          Transaction(val_t(i),                               // nonce
-                      value,                                  // value
-                      val_t(0),                               // gas_price
-                      TEST_TX_GAS_LIMIT,                      // gas
-                      receiver,                               // receiver
-                      str2bytes("00FEDCBA9876543210000000"),  // data
-                      getRandomUniqueSenderSecret()));        // secret
+      trxs.emplace_back(Transaction(i, value, 0, TEST_TX_GAS_LIMIT,
+                                    str2bytes("00FEDCBA9876543210000000"),
+                                    getRandomUniqueSenderSecret(), receiver));
     }
     return trxs;
   }
@@ -151,8 +140,8 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start,
                     Transaction::Type::Call,  // type
                     i,                        // nonce
                     3,                        // value
-                    val_t(4),                 // gas_price
-                    val_t(5),                 // gas
+                    4,                        // gas_price
+                    5,                        // gas
                     addr_t(i * 1000),         // receiver
                     sig_t(),                  // sig
                     str2bytes("00FEDCBA9876543210000000"));
@@ -168,15 +157,9 @@ inline std::vector<Transaction> createSignedTrxSamples(unsigned start,
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
     blk_hash_t hash(i);
-    Transaction trx(i,               // nonce
-                    i * 100,         // value
-                    val_t(0),        // gas_price
-                    val_t(1000000),  // gas
-                    // (i + 1) - because zero address is reserved
-                    addr_t((i + 1) * 100),                  // receiver
-                    str2bytes("00FEDCBA9876543210000000"),  // data
-                    sk);                                    // secret
-    trxs.emplace_back(trx);
+    trxs.emplace_back(Transaction(i, i * 100, 0, 1000000,
+                                  str2bytes("00FEDCBA9876543210000000"), sk,
+                                  addr_t((i + 1) * 100)));
   }
   return trxs;
 }

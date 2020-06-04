@@ -1,10 +1,11 @@
 #include "Net.h"
+
 #include <jsonrpccpp/common/exception.h>
 #include <jsonrpccpp/server.h>
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 #include <libethcore/Common.h>
-#include <libwebthree/WebThree.h>
+
 #include "full_node.hpp"
 #include "network.hpp"
 
@@ -13,7 +14,6 @@ using namespace std;
 using namespace jsonrpc;
 using namespace dev;
 using namespace eth;
-using namespace shh;
 
 namespace taraxa::net {
 

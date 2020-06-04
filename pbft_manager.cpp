@@ -21,10 +21,21 @@
 
 namespace taraxa {
 
-PbftManager::PbftManager(std::string const &genesis) : dag_genesis_(genesis) {}
+struct ReplayProtectionServiceDummy : ReplayProtectionService {
+  bool is_nonce_stale(addr_t const &addr, uint64_t nonce) const override {
+    return false;
+  }
+  void update(DbStorage::BatchPtr batch, round_t round,
+              util::RangeView<TransactionInfo> const &trxs) override {}
+};
+
+PbftManager::PbftManager(std::string const &genesis)
+    : replay_protection_service(new ReplayProtectionServiceDummy),
+      dag_genesis_(genesis) {}
 PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
     // TODO: for debug, need remove later
-    : LAMBDA_ms_MIN(conf.lambda_ms_min),
+    : replay_protection_service(new ReplayProtectionServiceDummy),
+      LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
       VALID_SORTITION_COINS(conf.valid_sortition_coins),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
@@ -34,15 +45,25 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
       dag_genesis_(genesis) {}
 PbftManager::~PbftManager() { stop(); }
 
-void PbftManager::setFullNode(
-    shared_ptr<taraxa::FullNode> full_node,
-    shared_ptr<ReplayProtectionService> replay_protection_service) {
+void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
   node_ = full_node;
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
-  replay_protection_service_ = replay_protection_service;
   db_ = full_node->getDB();
+  //  TODO enable replay_protection_service once everything is ready for it
+  //  replay_protection_service = NewReplayProtectionService(
+  //      full_node->getConfig().chain.replay_protection_service, db_);
+  num_executed_blk_ =
+      db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+  num_executed_trx_ =
+      db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+  auto expected_max_trx_per_block =
+      full_node->getConfig()
+          .opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock;
+  dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
+  transactions_tmp_.reserve(expected_max_trx_per_block);
+  trx_senders_tmp_.reserve(expected_max_trx_per_block);
 }
 
 void PbftManager::start() {
@@ -129,7 +150,6 @@ void PbftManager::stop() {
   daemon_->join();
 
   LOG(log_deb_) << "PBFT daemon terminated ...";
-  replay_protection_service_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -1089,6 +1109,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> dag_blocks_trxs_mode;
   std::unordered_set<trx_hash_t> unique_trxs;
+  auto final_chain = full_node->getFinalChain();
   for (auto const &dag_blk : dag_blocks) {
     // get transactions for each DAG block
     auto trxs_hash = dag_blk->getTrxs();
@@ -1100,7 +1121,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
       }
       unique_trxs.insert(t_hash);
       auto trx = db_->getTransaction(t_hash);
-      if (!replay_protection_service_->hasBeenExecuted(*trx)) {
+      if (!final_chain->isKnownTransaction(t_hash) &&
+          !replay_protection_service->is_nonce_stale(trx->getSender(),
+                                                     trx->getNonce())) {
         // TODO: Generate fake transaction schedule, will need pass to VM to
         //  generate the transaction schedule later
         each_dag_blk_trxs_mode.emplace_back(std::make_pair(t_hash, 1));
@@ -1427,43 +1450,73 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
 
 bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                                  std::vector<Vote> const &cert_votes) {
+  dag_block_proposers_tmp_.clear();
+  transactions_tmp_.clear();
+  trx_senders_tmp_.clear();
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_err_) << "PBFT block: " << pbft_block_hash << " in DB already";
     return false;
   }
   auto batch = db_->createWriteBatch();
-  // execute PBFT schedule
-  unordered_set<addr_t> dag_block_proposers;
-  unordered_set<addr_t> trx_senders;
-  unordered_map<addr_t, val_t> execution_touched_account_balances;
   auto full_node = node_.lock();
-  if (!full_node->executePeriod(batch, pbft_block, dag_block_proposers,
-                                trx_senders,
-                                execution_touched_account_balances)) {
-    LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
-                  << pbft_block;
-    for (auto const &v : cert_votes) {
-      LOG(log_err_) << "Cert vote: " << v;
+  full_node->getTrxOrderMgr()->updateOrderedTrx(pbft_block.getSchedule());
+  auto const &schedule = pbft_block.getSchedule();
+  auto dag_blk_count = schedule.dag_blks_order.size();
+  for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
+    auto &blk_hash = schedule.dag_blks_order[blk_i];
+    auto dag_block = db_->getDagBlockRaw(blk_hash);
+    if (dag_block.empty()) {
+      LOG(log_err_) << "Cannot get block from db: " << blk_hash << std::endl;
+      LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
+                    << pbft_block;
+      for (auto const &v : cert_votes) {
+        LOG(log_err_) << "Cert vote: " << v;
+      }
+      return false;
     }
-    return false;
+    dag_block_proposers_tmp_.insert(DagBlock(dag_block).getSender());
+    auto &dag_blk_trxs_mode = schedule.trxs_mode[blk_i];
+    for (auto &[trx_hash, _] : dag_blk_trxs_mode) {
+      auto const &trx_rlp = db_->getTransactionRaw(trx_hash);
+      auto &trx = transactions_tmp_.emplace_back(
+          trx_rlp, dev::eth::CheckTransaction::None, true, trx_hash);
+      trx_senders_tmp_.insert(trx.sender());
+      LOG(log_tra_) << "Transaction " << trx_hash
+                    << " read from db at: " << getCurrentTimeMilliSeconds();
+    }
   }
+  auto const &[new_eth_header, trx_receipts, state_transition_result] =
+      full_node->getFinalChain()->advance(batch, pbft_block.getBeneficiary(),
+                                          pbft_block.getTimestamp(),
+                                          transactions_tmp_);
+  replay_protection_service->update(
+      batch, pbft_block.getPeriod(),
+      util::make_range_view(transactions_tmp_).map([](auto const &trx) {
+        return ReplayProtectionService::TransactionInfo{
+            trx.from(),
+            trx.nonce(),
+        };
+      }));
+  if (dag_blk_count != 0) {
+    num_executed_blk_.fetch_add(dag_blk_count);
+    num_executed_trx_.fetch_add(transactions_tmp_.size());
+    db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
+                               num_executed_blk_, batch);
+    db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
+                               num_executed_trx_, batch);
+    LOG(log_sil_) << full_node->getAddress() << " :   Executed dag blocks #"
+                  << num_executed_blk_ - dag_blk_count << "-"
+                  << num_executed_blk_ - 1
+                  << " , Transactions count: " << transactions_tmp_.size();
+  }
+
   // Update temp sortition accounts table
   uint64_t pbft_period = pbft_block.getPeriod();
-  updateTempSortitionAccountsTable_(pbft_period, dag_block_proposers,
-                                    trx_senders,
-                                    execution_touched_account_balances);
+  updateTempSortitionAccountsTable_(
+      pbft_period, dag_block_proposers_tmp_, trx_senders_tmp_,
+      state_transition_result.NonContractBalanceChanges);
 
-  // Update number of executed DAG blocks/transactions in DB
-  auto executor = full_node->getExecutor();
-  auto num_executed_blk = executor->getNumExecutedBlk();
-  auto num_executed_trx = executor->getNumExecutedTrx();
-  if (num_executed_blk > 0 && num_executed_trx > 0) {
-    db_->addStatusFieldToBatch(StatusDbField::ExecutedBlkCount,
-                               num_executed_blk, batch);
-    db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
-                               num_executed_trx, batch);
-  }
   // Add dag_block_period in DB
   for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
@@ -1525,11 +1578,19 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   executed_pbft_block_ = true;
 
+  full_node->getFinalChain()->advance_confirm();
+  full_node->getPendingBlock()->advance(
+      batch, new_eth_header.hash(),
+      util::make_range_view(transactions_tmp_).map([](auto const &trx) {
+        return trx.sha3();
+      }));
+  full_node->getFilterAPI()->note_block(new_eth_header.hash());
+  full_node->getFilterAPI()->note_receipts(trx_receipts);
   // Update web server
   full_node->updateWsScheduleBlockExecuted(pbft_block);
-
-  // Update Eth service head
-  full_node->getEthService()->update_head();
+  if (auto ws_server = full_node->getWSServer()) {
+    ws_server->newOrderedBlock(new_eth_header);
+  }
 
   LOG(log_inf_) << full_node->getAddress() << " successful push pbft block "
                 << pbft_block_hash << " in period " << pbft_period

@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "conf/chain_config.hpp"
+#include "chain_config.hpp"
 #include "dag_block.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -90,7 +90,11 @@ struct FullNodeConfig {
   NetworkConfig network;
   RpcConfig rpc;
   TestParamsConfig test_params;
-  conf::chain_config::ChainConfig chain;
+  // TODO parse from json:
+  // either a string name of a predefined config,
+  // or the full json of a custom config
+  ChainConfig chain = ChainConfig::Default;
+  FinalChain::Opts opts_final_chain;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

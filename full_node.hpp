@@ -14,13 +14,12 @@
 #include <type_traits>
 #include <vector>
 
+#include "aleth/filter_api.hpp"
+#include "aleth/pending_block.hpp"
 #include "config.hpp"
 #include "db_storage.hpp"
-#include "eth/eth_service.hpp"
-#include "executor.hpp"
 #include "net/WSServer.h"
 #include "pbft_chain.hpp"
-#include "replay_protection/index.hpp"
 #include "transaction.hpp"
 #include "transaction_order_manager.hpp"
 #include "util.hpp"
@@ -48,8 +47,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
   using vrf_output_t = vrf_wrapper::vrf_output_t;
-  using ReplayProtectionService = replay_protection::ReplayProtectionService;
-  using EthService = ::taraxa::eth::eth_service::EthService;
 
   explicit FullNode(FullNodeConfig const &conf) : conf_(conf) {}
   explicit FullNode(std::string const &conf) : FullNode(FullNodeConfig(conf)) {}
@@ -191,23 +188,16 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
-  addr_t getAddress() const;
+  auto const &getAddress() const { return node_addr_; }
   public_t getPublicKey() const { return node_pk_; }
-  secret_t getSecretKey() const { return node_sk_; }
+  auto const &getSecretKey() const { return node_sk_; }
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
   // pbft stuff
-  std::shared_ptr<Executor> getExecutor() const { return executor_; }
-  bool executePeriod(
-      DbStorage::BatchPtr const &batch, PbftBlock const &pbft_block,
-      unordered_set<addr_t> &dag_block_proposers,
-      unordered_set<addr_t> &trx_senders,
-      unordered_map<addr_t, val_t> &execution_touched_account_balances);
   void updateWsScheduleBlockExecuted(PbftBlock const &pbft_block);
 
   std::shared_ptr<DbStorage> getDB() const { return db_; }
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::unordered_map<trx_hash_t, Transaction> getPendingTransactions();
   std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
 
   // PBFT
@@ -274,7 +264,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
-  auto getEthService() { return eth_service_; }
+  auto getFinalChain() const { return final_chain_; }
+  auto getPendingBlock() const { return pending_block_; }
+  auto getFilterAPI() const { return filter_api_; }
+  auto getTrxOrderMgr() const { return trx_order_mgr_; }
+  auto getWSServer() const { return ws_server_; }
 
  private:
   size_t num_block_workers_ = 2;
@@ -304,9 +298,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<TransactionOrderManager> trx_order_mgr_;
   // block proposer (multi processing)
   std::shared_ptr<BlockProposer> blk_proposer_;
-  std::shared_ptr<ReplayProtectionService> replay_protection_service_;
-  // transaction executor
-  std::shared_ptr<Executor> executor_ = nullptr;
   //
   std::vector<std::thread> block_workers_;
   // PBFT
@@ -314,7 +305,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   //
-  std::shared_ptr<EthService> eth_service_;
+  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<aleth::PendingBlock> pending_block_;
+  std::shared_ptr<aleth::FilterAPI> filter_api_;
   //
   std::shared_ptr<taraxa::net::WSServer> ws_server_;
   // storage

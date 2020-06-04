@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 
@@ -128,10 +127,9 @@ TEST_F(PbftRpcTest, transfer_vote) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.chain.eth.genesisState[addr(cfg_other.node_secret)] =
-          dev::eth::Account(0, new_balance);
+      cfg.chain.final_chain.state.genesis_accounts[addr(cfg_other.node_secret)]
+          .Balance = new_balance;
     }
-    cfg.chain.eth.calculateStateRoot(true);
   }
   auto node_count = 0;
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
@@ -197,10 +195,9 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   }
   for (auto& cfg : cfgs) {
     for (auto& cfg_other : cfgs) {
-      cfg.chain.eth.genesisState[addr(cfg_other.node_secret)] =
-          dev::eth::Account(0, new_balance);
+      cfg.chain.final_chain.state.genesis_accounts[addr(cfg_other.node_secret)]
+          .Balance = new_balance;
     }
-    cfg.chain.eth.calculateStateRoot(true);
   }
   auto node_count = 0;
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
@@ -274,7 +271,6 @@ int main(int argc, char** argv) {
   logOptions.includeChannels.push_back("TARCAP");
   logOptions.includeChannels.push_back("VOTE_MGR");
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

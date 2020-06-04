@@ -10,6 +10,7 @@
 #include "config.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
+#include "replay_protection_service.hpp"
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"
@@ -32,17 +33,16 @@ enum PbftStates {
 };
 
 class PbftManager {
+  unique_ptr<ReplayProtectionService> replay_protection_service;
+
  public:
   using time_point = std::chrono::system_clock::time_point;
-  using ReplayProtectionService = replay_protection::ReplayProtectionService;
 
   explicit PbftManager(std::string const &genesis);
   PbftManager(PbftConfig const &conf, std::string const &genesis);
   ~PbftManager();
 
-  void setFullNode(
-      std::shared_ptr<FullNode> node,
-      std::shared_ptr<ReplayProtectionService> replay_protection_service);
+  void setFullNode(std::shared_ptr<FullNode> node);
   void start();
   void stop();
   void run();
@@ -173,7 +173,6 @@ class PbftManager {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<TaraxaCapability> capability_;
-  std::shared_ptr<ReplayProtectionService> replay_protection_service_;
 
   size_t valid_sortition_accounts_size_ = 0;
   // Database
@@ -235,6 +234,12 @@ class PbftManager {
   time_point last_step_clock_initial_datetime_;
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
+
+  std::atomic<uint64_t> num_executed_trx_ = 0;
+  std::atomic<uint64_t> num_executed_blk_ = 0;
+  unordered_set<addr_t> dag_block_proposers_tmp_;
+  dev::eth::Transactions transactions_tmp_;
+  unordered_set<addr_t> trx_senders_tmp_;
 
   mutable dev::Logger log_sil_{
       dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};

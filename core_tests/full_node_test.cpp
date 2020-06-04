@@ -2,9 +2,7 @@
 #include "full_node.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/DBFactory.h>
 #include <libdevcore/Log.h>
-#include <libethcore/Precompiled.h>
 
 #include <atomic>
 #include <boost/thread.hpp>
@@ -22,7 +20,6 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
-#include "replay_protection/replay_protection_service_test.hpp"
 #include "sortition.hpp"
 #include "static_init.hpp"
 #include "string"
@@ -38,8 +35,6 @@ using namespace core_tests::util;
 using samples::sendTrx;
 using ::taraxa::util::lazy::Lazy;
 using transaction_client::TransactionClient;
-using wait::wait;
-using wait::WaitOptions;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
@@ -149,28 +144,28 @@ void send_5_nodes_trxs() {
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
                                       "delay": 7, 
-                                      "number": 500, 
+                                      "number": 500,
                                       "nonce": 0,
                                       "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778 > /dev/null)";
   std::string sendtrx3 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
                                       "delay": 3, 
-                                      "number": 500, 
+                                      "number": 500,
                                       "nonce": 0,
                                       "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779 > /dev/null)";
   std::string sendtrx4 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
                                       "delay": 10, 
-                                      "number": 500, 
+                                      "number": 500,
                                       "nonce": 0,
                                       "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780 > /dev/null)";
   std::string sendtrx5 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
                                       "delay": 2,
-                                      "number": 500, 
+                                      "number": 500,
                                       "nonce": 0,
                                       "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781 > /dev/null)";
   std::cout << "Sending trxs ..." << std::endl;
@@ -407,7 +402,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   EXPECT_EQ(nodes[0]->getDagBlockMaxHeight(), 1);  // genesis block
 
   class context {
-    decltype(nodes) const &nodes_;
+    decltype(nodes) &nodes_;
     vector<TransactionClient> trx_clients;
     uint64_t issued_trx_count = 0;
     unordered_map<addr_t, val_t> expected_balances;
@@ -415,12 +410,12 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      for (auto &[addr, acc] : nodes[0]->getConfig().chain.eth.genesisState) {
-        expected_balances[addr] = acc.balance();
+      for (auto &[addr, acc] :
+           nodes[0]->getConfig().chain.final_chain.state.genesis_accounts) {
+        expected_balances[addr] = acc.Balance;
       }
-      for (uint i(0), cnt(nodes_.size()); i < cnt; ++i) {
-        auto const &backend = nodes_[(i + 1) % cnt];  // shuffle a bit
-        trx_clients.emplace_back(nodes_[i]->getSecretKey(), backend);
+      for (auto node : nodes_) {
+        trx_clients.emplace_back(node);
       }
     }
 
@@ -434,8 +429,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         unique_lock l(m);
         ++issued_trx_count;
       }
-      auto result = trx_clients[0].coinTransfer(
-          KeyPair::create(), KeyPair::create().address(), 0, false);
+      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0,
+                                                KeyPair::create(), false);
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount,
@@ -446,8 +441,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         expected_balances[to] += amount;
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
-      auto result =
-          trx_clients[sender_node_i].coinTransfer(to, amount, verify_executed);
+      auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {},
+                                                            verify_executed);
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -478,7 +473,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         thread_completed[i - 1] = true;
       });
     }
-    auto success = wait::wait(
+    auto success = wait::Wait(
         [&thread_completed, &context] {
           for (auto t : thread_completed) {
             if (!t) {
@@ -514,7 +509,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         thread_completed[i] = true;
       });
     }
-    auto success = wait::wait(
+    auto success = wait::Wait(
         [&thread_completed, &context] {
           for (auto t : thread_completed) {
             if (!t) {
@@ -924,11 +919,11 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
   {
     auto tops = createNodesAndVerifyConnection(1, 1, false, 20);
     auto node = tops.second[0];
-    
+
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
-    TransactionClient trx_client(node->getSecretKey(), node);
+    TransactionClient trx_client(node);
 
     for (auto i = 0; i < 3; i++) {
       auto result = trx_client.coinTransfer(KeyPair::create().address(), 10);
@@ -941,7 +936,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
   {
     auto tops = createNodesAndVerifyConnection(1, 1, true);
     auto node = tops.second[0];
-    
+
     node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
@@ -1148,10 +1143,10 @@ TEST_F(FullNodeTest, genesis_balance) {
   addr_t addr1(100);
   val_t bal1(1000);
   addr_t addr2(200);
-  FullNodeConfig cfg = createNodesAndVerifyConnection(1).second[0]->getConfig();
-  cfg.chain.eth.genesisState[addr1] = dev::eth::Account(0, bal1);
-  cfg.chain.eth.calculateStateRoot(true);
+  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  cfg.chain.final_chain.state.genesis_accounts[addr1].Balance = bal1;
   auto node(taraxa::FullNode::make(cfg));
+  node->start(true);
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
@@ -1543,35 +1538,6 @@ TEST_F(FullNodeTest, transfer_to_self) {
   EXPECT_EQ(bal.first, initial_bal.first);
 }
 
-TEST_F(FullNodeTest,
-       DISABLED_transaction_failure_does_not_cause_block_failure) {
-  // TODO move to another file
-  using namespace std;
-  auto tops = createNodesAndVerifyConnection(1);
-  auto node = tops.second[0];
-  node->setDebug(true);
-  thisThreadSleepForMilliSeconds(500);
-  vector<Transaction> transactions;
-  transactions.emplace_back(0, 100, 0, samples::TEST_TX_GAS_LIMIT, addr(),
-                            bytes(), node->getSecretKey());
-  // This must cause out of balance error
-  transactions.emplace_back(1, node->getMyBalance() + 100, 0,
-                            samples::TEST_TX_GAS_LIMIT, addr(), bytes(),
-                            node->getSecretKey());
-  for (auto const &trx : transactions) {
-    node->insertTransaction(trx, false);
-  }
-  auto trx_executed = node->getNumTransactionExecuted();
-  for (auto i(0); i < SYNC_TIMEOUT; ++i) {
-    if (trx_executed == transactions.size()) break;
-    thisThreadSleepForMilliSeconds(100);
-    trx_executed = node->getNumTransactionExecuted();
-  }
-  EXPECT_EQ(trx_executed, transactions.size())
-      << "Trx executed: " << trx_executed
-      << " ,Trx size: " << transactions.size();
-}
-
 TEST_F(FullNodeTest, DISABLED_mem_usage) {
   auto tops = createNodesAndVerifyConnection(1);
   auto &nodes = tops.second;
@@ -1624,7 +1590,6 @@ int main(int argc, char **argv) {
   // logOptions.includeChannels.push_back("PBFT_CHAIN");
 
   dev::setupLogging(logOptions);
-  dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

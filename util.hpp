@@ -231,16 +231,6 @@ class StatusTable {
   std::list<std::pair<K, V>> lru_;
 };  // namespace taraxa
 
-inline char *cgo_str(const std::string &str) {
-  return const_cast<char *>(str.data());
-}
-
-// Boost serializes everything as string
-inline std::string unquote_non_str_literals(const std::string &json_str) {
-  std::regex re(R"(\"(true|false|[0-9]+\.{0,1}[0-9]*)\")");
-  return std::regex_replace(json_str, re, "$1");
-}
-
 template <typename... TS>
 std::string fmt(const std::string &pattern, const TS &... args) {
   return (boost::format(pattern) % ... % args).str();
@@ -266,12 +256,6 @@ auto std_find(Container const &container, What const &what) {
 
 inline auto noop() { return [](auto...) -> auto {}; }
 
-// TODO remove
-template <typename T>
-std::shared_ptr<T> as_shared(T *ptr) {
-  return std::shared_ptr<T>(ptr);
-}
-
 template <typename T>
 auto s_ptr(T *ptr) {
   return std::shared_ptr<T>(ptr);
@@ -281,6 +265,21 @@ template <typename T>
 auto u_ptr(T *ptr) {
   return std::unique_ptr<T>(ptr);
 }
+
+template <typename T>
+static constexpr auto __is_iterable__(int)
+    -> decltype((++std::declval<T>().begin() == std::declval<T>().end()++),
+                bool()) {
+  return true;
+}
+
+template <typename T, typename Dummy>
+static constexpr auto __is_iterable__(Dummy) {
+  return false;
+}
+
+template <typename T>
+constexpr bool is_iterable = __is_iterable__<T>(0);
 
 }  // namespace taraxa
 
