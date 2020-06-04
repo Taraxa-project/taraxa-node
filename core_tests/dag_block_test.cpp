@@ -11,6 +11,7 @@
 #include "full_node.hpp"
 #include "static_init.hpp"
 #include "types.hpp"
+#include "util.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
@@ -19,6 +20,7 @@ const unsigned NUM_BLK = 4;
 const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
 using namespace vdf_sortition;
+using namespace core_tests::util;
 
 struct DagBlockTest : core_tests::util::DBUsingTest<> {};
 
@@ -181,8 +183,7 @@ TEST_F(DagBlockTest, sign_verify) {
 }
 
 TEST_F(DagBlockTest, push_and_pop) {
-  auto node(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
   BlockManager blk_qu(1024, 2);
   blk_qu.setFullNode(node->getShared());
   blk_qu.start();

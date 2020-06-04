@@ -302,7 +302,7 @@ WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint)
     if (!stopped_) LOG(log_er_) << ec << " listen";
     return;
   }
-  LOG(log_si_) << "Taraxa WS started at port: " << endpoint << std::endl;
+  LOG(log_si_) << "Taraxa WS started at port: " << endpoint;
 }
 
 // Start accepting incoming connections

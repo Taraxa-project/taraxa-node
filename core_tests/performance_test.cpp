@@ -30,7 +30,7 @@ struct PerformanceTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(PerformanceTest, execute_transactions) {
   val_t initbal(1000000000);  // disable pbft sortition
-  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
+  FullNodeConfig cfg(conf_file[0]);
   // //
   addr_t acc1 = addr(cfg.node_secret);
   cfg.chain.eth.genesisState[acc1] = dev::eth::Account(0, initbal);

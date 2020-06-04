@@ -143,7 +143,12 @@ void PbftManager::stop() {
     monitor_votes_->join();
     LOG(log_inf_test_) << "PBFT monitor vote logs terminated";
   }
+  {
+    std::unique_lock<std::mutex> lock(stop_mtx_);
+    stop_cv_.notify_all();
+  }
   daemon_->join();
+
   LOG(log_deb_) << "PBFT daemon terminated ...";
 }
 
@@ -353,7 +358,7 @@ bool PbftManager::resetRound_() {
     // p2p connection syncing should cover this situation, sync here for safe
     if (consensus_pbft_round > local_round + 1 &&
         capability_->syncing_ == false) {
-      LOG(log_sil_) << "Quorum determined round " << consensus_pbft_round
+      LOG(log_inf_) << "Quorum determined round " << consensus_pbft_round
                     << " > 1 + current round " << local_round
                     << " local round, need to broadcast request for missing "
                        "certified blocks";
@@ -379,7 +384,8 @@ void PbftManager::sleep_() {
   if (time_to_sleep_for_ms > 0) {
     LOG(log_tra_) << "Time to sleep(ms): " << time_to_sleep_for_ms
                   << " in round " << round_ << ", step " << step_;
-    thisThreadSleepForMilliSeconds(time_to_sleep_for_ms);
+    std::unique_lock<std::mutex> lock(stop_mtx_);
+    stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
   }
 }
 
@@ -546,7 +552,7 @@ bool PbftManager::stateOperations_() {
   // Concern can malicious node trigger excessive syncing?
   if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
       !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_sil_) << "Vote validation triggered PBFT chain sync";
+    LOG(log_inf_) << "Vote validation triggered PBFT chain sync";
     syncPbftChainFromPeers_();
   }
 
@@ -569,7 +575,7 @@ bool PbftManager::stateOperations_() {
                                            cert_votes_for_round)) {
         push_block_values_for_round_[round_] = cert_voted_block_hash.first;
         have_executed_this_round_ = true;
-        LOG(log_sil_) << "Write " << cert_votes_for_round.size()
+        LOG(log_inf_) << "Write " << cert_votes_for_round.size()
                       << " votes ... in round " << round_;
         duration_ = std::chrono::system_clock::now() - now_;
         auto execute_trxs_in_ms =
@@ -600,20 +606,20 @@ void PbftManager::proposeBlock_() {
   // Value Proposal
   LOG(log_tra_) << "PBFT value proposal state in round " << round_;
   if (next_voted_block_from_previous_round_.second) {
-    LOG(log_sil_) << "We have a next voted block from previous round "
+    LOG(log_inf_) << "We have a next voted block from previous round "
                   << round_ - 1;
     if (next_voted_block_from_previous_round_.first == NULL_BLOCK_HASH) {
-      LOG(log_sil_) << "Previous round next voted block is NULL_BLOCK_HASH";
+      LOG(log_inf_) << "Previous round next voted block is NULL_BLOCK_HASH";
     } else {
-      LOG(log_sil_) << "Previous round next voted block is NOT NULL_BLOCK_HASH";
+      LOG(log_inf_) << "Previous round next voted block is NOT NULL_BLOCK_HASH";
     }
   } else {
-    LOG(log_sil_) << "No next voted block from previous round " << round_ - 1;
+    LOG(log_inf_) << "No next voted block from previous round " << round_ - 1;
   }
 
   if (round_ == 1) {
     if (shouldSpeak(propose_vote_type, round_, step_)) {
-      LOG(log_sil_) << "Proposing value of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
+      LOG(log_inf_) << "Proposing value of NULL_BLOCK_HASH " << NULL_BLOCK_HASH
                     << " for round 1 by protocol";
       placeVote_(own_starting_value_for_round_, propose_vote_type, round_,
                  step_);
@@ -630,7 +636,7 @@ void PbftManager::proposeBlock_() {
       }
       if (proposed_block_hash_.second) {
         own_starting_value_for_round_ = proposed_block_hash_.first;
-        LOG(log_sil_) << "Proposing own starting value "
+        LOG(log_inf_) << "Proposing own starting value "
                       << own_starting_value_for_round_ << " for round "
                       << round_;
         placeVote_(proposed_block_hash_.first, propose_vote_type, round_,
@@ -643,7 +649,7 @@ void PbftManager::proposeBlock_() {
       own_starting_value_for_round_ =
           next_voted_block_from_previous_round_.first;
       if (shouldSpeak(propose_vote_type, round_, step_)) {
-        LOG(log_sil_) << "Proposing next voted block "
+        LOG(log_inf_) << "Proposing next voted block "
                       << next_voted_block_from_previous_round_.first
                       << " from previous round, for round " << round_;
         placeVote_(next_voted_block_from_previous_round_.first,
@@ -732,7 +738,7 @@ void PbftManager::certifyBlock_() {
         } else {
           // Get partition, need send request to get missing pbft blocks
           // from peers
-          LOG(log_sil_)
+          LOG(log_err_)
               << "Soft voted block for this round appears to be invalid, "
                  "we must be out of sync with pbft chain";
           if (!capability_->syncing_) {
@@ -1224,7 +1230,7 @@ void PbftManager::syncPbftChainFromPeers_() {
 
   if (capability_->syncing_ == false) {
     if (syncRequestedAlreadyThisStep_() == false) {
-      LOG(log_sil_) << "Restarting pbft sync."
+      LOG(log_inf_) << "Restarting pbft sync."
                     << " In round " << round_ << ", in step " << step_
                     << " Send request to ask missing pbft blocks in chain";
       capability_->restartSyncingPbft();
@@ -1329,7 +1335,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
     std::vector<Vote> const &cert_votes_for_round) {
   if (!checkPbftBlockValid_(cert_voted_block_hash)) {
     // Get partition, need send request to get missing pbft blocks from peers
-    LOG(log_sil_) << "Cert voted block " << cert_voted_block_hash
+    LOG(log_err_) << "Cert voted block " << cert_voted_block_hash
                   << " is invalid, we must be out of sync with pbft chain";
     if (capability_->syncing_ == false) {
       syncPbftChainFromPeers_();

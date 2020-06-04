@@ -22,6 +22,7 @@ Top::Top(int argc, const char* argv[]) {
   bool boot_node = false;
   bool destroy_db = false;
   bool rebuild_network = false;
+  float tests_speed = 1;
   // loggin options
   dev::LoggingOptions loggingOptions;
   boost::program_options::options_description loggingProgramOptions(
@@ -36,7 +37,9 @@ Top::Top(int argc, const char* argv[]) {
       "Destroys all the existing data in the database")(
       "rebuild_network", boost::program_options::bool_switch(&rebuild_network),
       "Delete all saved network/nodes information and rebuild network "
-      "from boot nodes");
+      "from boot nodes")("tests_speed",
+                         boost::program_options::value<float>(&tests_speed),
+                         "Ignore - used for running tests");
   boost::program_options::options_description allowed_options(
       "Allowed options");
   allowed_options.add(main_options).add(loggingProgramOptions);
@@ -58,9 +61,15 @@ Top::Top(int argc, const char* argv[]) {
     // TODO this should be handled by the caller
     return;
   }
-  node_ = FullNode::make(conf_taraxa,
-                         destroy_db,  //
-                         rebuild_network);
+  taraxa::FullNodeConfig conf(conf_taraxa);
+  if (tests_speed != 1) {
+    conf.test_params.block_proposer.min_freq /= tests_speed;
+    conf.test_params.block_proposer.max_freq /= tests_speed;
+    conf.test_params.pbft.lambda_ms_min /= tests_speed;
+  }
+  node_ = taraxa::FullNode::make(conf,
+                                 destroy_db,  //
+                                 rebuild_network);
   node_->start(boot_node);
   auto rpc_init_done = make_shared<condition_variable>();
   rpc_thread_ = thread([this, rpc_init_done] {
@@ -118,8 +127,6 @@ Top::Top(int argc, const char* argv[]) {
     unique_lock l(m);
     rpc_init_done->wait(l);
   }
-  // TODO remove after fixing the tests
-  thisThreadSleepForMilliSeconds(2000);
 }
 
 void Top::join() {

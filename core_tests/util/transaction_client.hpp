@@ -45,7 +45,8 @@ struct TransactionClient {
                         })
       : node_(node), opts_(opts) {}
 
-  Context coinTransfer(addr_t const& to, val_t const& val) const {
+  Context coinTransfer(addr_t const& to, val_t const& val,
+                       bool verify_executed = true) const {
     auto final_chain = node_->getFinalChain();
     auto acc = final_chain->get_account(node_->getAddress());
     Context ctx{
@@ -58,11 +59,13 @@ struct TransactionClient {
     }
     ctx.stage = TransactionStage::inserted;
     auto trx_hash = ctx.trx.getHash();
-    auto success =
-        Wait([&] { return final_chain->isKnownTransaction(trx_hash); },
-             opts_.waitUntilExecutedOpts);
-    if (success) {
-      ctx.stage = TransactionStage::executed;
+    if (verify_executed) {
+      auto success =
+          Wait([&] { return final_chain->isKnownTransaction(trx_hash); },
+               opts_.waitUntilExecutedOpts);
+      if (success) {
+        ctx.stage = TransactionStage::executed;
+      }
     }
     return ctx;
   }

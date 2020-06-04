@@ -43,8 +43,7 @@ TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
 }
 
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
-  auto node(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa1.json")));
+  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
   auto pbft_mgr = node->getPbftManager();
   EXPECT_EQ(pbft_mgr->LAMBDA_ms_MIN, 2000);
   EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 1000000000);
@@ -54,10 +53,8 @@ TEST_F(PbftRpcTest, full_node_lambda_input_test) {
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3
 // votes
 TEST_F(PbftRpcTest, add_cleanup_get_votes) {
-  const char* input[] = {"./build/main", "--conf_taraxa",
-                         "./core_tests/conf/conf_taraxa1.json", "-v", "0"};
-  Top top(5, input);
-  auto node = top.getNode();
+  auto tops = createNodesAndVerifyConnection(1);
+  auto& node = tops.second[0];
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
@@ -177,6 +174,8 @@ TEST_F(PbftRpcTest, transfer_vote) {
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
+  taraxa::thisThreadSleepForMilliSeconds(100);
+
   // fixme stopping before asserts
   pbft_mgr1->stop();
   pbft_mgr2->stop();
@@ -249,6 +248,7 @@ TEST_F(PbftRpcTest, vote_broadcast) {
 
   nw1->onNewPbftVote(vote);
 
+  taraxa::thisThreadSleepForMilliSeconds(100);
   pbft_mgr1->stop();
   pbft_mgr2->stop();
   pbft_mgr3->stop();
