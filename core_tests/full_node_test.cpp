@@ -402,7 +402,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   EXPECT_EQ(nodes[0]->getDagBlockMaxHeight(), 1);  // genesis block
 
   class context {
-    decltype(nodes) const &nodes_;
+    decltype(nodes) &nodes_;
     vector<TransactionClient> trx_clients;
     uint64_t issued_trx_count = 0;
     unordered_map<addr_t, val_t> expected_balances;
@@ -429,8 +429,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         unique_lock l(m);
         ++issued_trx_count;
       }
-      auto result = trx_clients[0].coinTransfer(
-          KeyPair::create(), KeyPair::create().address(), 0, false);
+      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0,
+                                                KeyPair::create(), false);
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount,
@@ -441,8 +441,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         expected_balances[to] += amount;
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
-      auto result =
-          trx_clients[sender_node_i].coinTransfer(to, amount, verify_executed);
+      auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {},
+                                                            verify_executed);
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -473,7 +473,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         thread_completed[i - 1] = true;
       });
     }
-    auto success = wait::wait(
+    auto success = wait::Wait(
         [&thread_completed, &context] {
           for (auto t : thread_completed) {
             if (!t) {
@@ -509,7 +509,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         thread_completed[i] = true;
       });
     }
-    auto success = wait::wait(
+    auto success = wait::Wait(
         [&thread_completed, &context] {
           for (auto t : thread_completed) {
             if (!t) {
