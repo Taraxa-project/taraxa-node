@@ -3,6 +3,7 @@
 
 #include <libdevcrypto/Common.h>
 
+#include <atomic>
 #include <chrono>
 #include <thread>
 
@@ -49,9 +50,17 @@ struct TransactionClient {
                        optional<KeyPair> const& from_k = {},
                        bool verify_executed = true) const {
     auto final_chain = node_->getFinalChain();
+    // As long as nonce rules are completely disabled, this hack allows to
+    // generate unique nonces that contribute to transaction uniqueness.
+    // Without this, it's very possible in these tests to have hash collisions,
+    // if you just use a constant value like 0 or even get the nonce from the
+    // account state. The latter won't work in general because in some tests
+    // we don't wait for previous transactions for a sender to complete before
+    // sending a new one
+    static atomic<uint64_t> nonce = 100000;
     Context ctx{
         TransactionStage::created,
-        Transaction(0, val, 0, constants::TEST_TX_GAS_LIMIT, bytes(),
+        Transaction(++nonce, val, 0, constants::TEST_TX_GAS_LIMIT, bytes(),
                     from_k ? from_k->secret() : node_->getSecretKey(), to),
     };
     if (!node_->insertTransaction(ctx.trx, false).first) {
