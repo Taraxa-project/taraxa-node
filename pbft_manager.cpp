@@ -33,7 +33,6 @@ PbftManager::PbftManager(std::string const &genesis)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       dag_genesis_(genesis) {}
 PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
-    // TODO: for debug, need remove later
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -51,9 +50,6 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
   db_ = full_node->getDB();
-  //  TODO enable replay_protection_service once everything is ready for it
-  //  replay_protection_service = NewReplayProtectionService(
-  //      full_node->getConfig().chain.replay_protection_service, db_);
   num_executed_blk_ =
       db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ =
@@ -1458,16 +1454,19 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     LOG(log_err_) << "PBFT block: " << pbft_block_hash << " in DB already";
     return false;
   }
-  auto batch = db_->createWriteBatch();
-  auto full_node = node_.lock();
-  full_node->getTrxOrderMgr()->updateOrderedTrx(pbft_block.getSchedule());
+
   auto const &schedule = pbft_block.getSchedule();
+  auto full_node = node_.lock();
+  // Update transaction overlap table (still use the table?)
+  full_node->getTrxOrderMgr()->updateOrderedTrx(schedule);
+
+  // Execute PBFT schedule
   auto dag_blk_count = schedule.dag_blks_order.size();
   for (auto blk_i(0); blk_i < dag_blk_count; ++blk_i) {
     auto &blk_hash = schedule.dag_blks_order[blk_i];
     auto dag_block = db_->getDagBlockRaw(blk_hash);
     if (dag_block.empty()) {
-      LOG(log_err_) << "Cannot get block from db: " << blk_hash << std::endl;
+      LOG(log_err_) << "Cannot get block from db: " << blk_hash;
       LOG(log_err_) << "Failed to execute PBFT schedule. PBFT Block: "
                     << pbft_block;
       for (auto const &v : cert_votes) {
@@ -1486,14 +1485,16 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                     << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
+  auto batch = db_->createWriteBatch();
   auto const &[new_eth_header, trx_receipts, state_transition_result] =
       full_node->getFinalChain()->advance(batch, pbft_block.getBeneficiary(),
                                           pbft_block.getTimestamp(),
                                           transactions_tmp_);
+  uint64_t pbft_period = pbft_block.getPeriod();
   replay_protection_service->update(
-      batch, pbft_block.getPeriod(),
+      batch, pbft_period,
       util::make_range_view(transactions_tmp_).map([](auto const &trx) {
-        return ReplayProtectionService::TransactionInfo{
+        return ReplayProtectionService::TransactionInfo {
             trx.from(),
             trx.nonce(),
         };
@@ -1505,20 +1506,19 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                                num_executed_blk_, batch);
     db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
                                num_executed_trx_, batch);
-    LOG(log_sil_) << full_node->getAddress() << " :   Executed dag blocks #"
+    LOG(log_inf_) << full_node->getAddress() << " :   Executed dag blocks #"
                   << num_executed_blk_ - dag_blk_count << "-"
                   << num_executed_blk_ - 1
                   << " , Transactions count: " << transactions_tmp_.size();
   }
 
   // Update temp sortition accounts table
-  uint64_t pbft_period = pbft_block.getPeriod();
   updateTempSortitionAccountsTable_(
       pbft_period, dag_block_proposers_tmp_, trx_senders_tmp_,
       state_transition_result.NonContractBalanceChanges);
 
   // Add dag_block_period in DB
-  for (auto const blk_hash : pbft_block.getSchedule().dag_blks_order) {
+  for (auto const blk_hash : schedule.dag_blks_order) {
     db_->addDagBlockPeriodToBatch(blk_hash, pbft_period, batch);
   }
   // Get dag blocks order
