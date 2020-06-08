@@ -44,8 +44,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newOrderedBlock(Json::Value const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newScheduleBlockExecuted(PbftBlock const& pbft_blk,
-                                uint32_t block_number);
+  void newScheduleBlockExecuted(PbftBlock const& pbft_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
   dev::Logger log_si_{
@@ -84,8 +83,7 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   void newOrderedBlock(Json::Value const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newScheduleBlockExecuted(PbftBlock const& sche_blk,
-                                uint32_t block_number);
+  void newScheduleBlockExecuted(PbftBlock const& sche_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
  private:

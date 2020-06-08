@@ -550,17 +550,8 @@ bool FullNode::executePeriod(
 }
 
 void FullNode::updateWsScheduleBlockExecuted(PbftBlock const &pbft_block) {
-  uint64_t block_number = 0;
-  if (pbft_block.getSchedule().dag_blks_order.size() > 0) {
-    block_number =
-        pbft_chain_
-            ->getDagBlockHeight(pbft_block.getSchedule().dag_blks_order[0])
-            .first;
-  } else {
-    // FIXME: Initialize `block_number`
-  }
   if (ws_server_) {
-    ws_server_->newScheduleBlockExecuted(pbft_block, block_number);
+    ws_server_->newScheduleBlockExecuted(pbft_block);
   }
 }
 
@@ -641,50 +632,9 @@ level_t FullNode::getMaxDagLevelInQueue() const {
   return std::max(dag_mgr_->getMaxLevel(), blk_mgr_->getMaxDagLevelInQueue());
 }
 
-std::pair<blk_hash_t, bool> FullNode::getDagBlockHash(
-    uint64_t dag_block_height) const {
-  return pbft_chain_->getDagBlockHash(dag_block_height);
-}
-
-std::pair<uint64_t, bool> FullNode::getDagBlockHeight(
-    blk_hash_t const &dag_block_hash) const {
-  return pbft_chain_->getDagBlockHeight(dag_block_hash);
-}
-
-uint64_t FullNode::getDagBlockMaxHeight() const {
-  return pbft_chain_->getDagBlockMaxHeight();
-}
-
-std::vector<blk_hash_t> FullNode::getLinearizedDagBlocks() const {
-  std::vector<blk_hash_t> ret;
-  auto max_height = getDagBlockMaxHeight();
-  for (auto i(1); i <= max_height; ++i) {
-    auto blk = getDagBlockHash(i);
-    assert(blk.second);
-    ret.emplace_back(blk.first);
-  }
-  return ret;
-}
 void FullNode::updateNonceTable(DagBlock const &blk,
                                 DagFrontier const &frontier) {
   trx_mgr_->updateNonce(blk, frontier);
-}
-
-std::vector<trx_hash_t> FullNode::getPackedTrxs() const {
-  std::unordered_set<trx_hash_t> packed_trxs;
-  auto max_height = getDagBlockMaxHeight();
-  for (auto i(1); i <= max_height; ++i) {
-    auto blk = getDagBlockHash(i);
-    assert(blk.second);
-    auto dag_blk = getDagBlock(blk.first);
-    assert(dag_blk);
-    for (auto const &t : dag_blk->getTrxs()) {
-      packed_trxs.insert(t);
-    }
-  }
-  std::vector<trx_hash_t> ret;
-  std::copy(packed_trxs.begin(), packed_trxs.end(), std::back_inserter(ret));
-  return ret;
 }
 
 // Need remove later, keep it now for reuse

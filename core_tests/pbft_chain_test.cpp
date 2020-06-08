@@ -64,10 +64,9 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   EXPECT_EQ(trxs_mode.size(), blks.size());
   TrxSchedule schedule(blks, trxs_mode);
   uint64_t period = 1;
-  uint64_t height = 2;
   addr_t beneficiary(98765);
   PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, schedule,
-                        period, height, beneficiary, node->getSecretKey());
+                        period, beneficiary, node->getSecretKey());
 
   auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
@@ -88,10 +87,9 @@ TEST_F(PbftChainTest, pbft_db_test) {
   blk_hash_t dag_blk(123);
   TrxSchedule schedule;
   uint64_t period = 1;
-  uint64_t height = 2;
   addr_t beneficiary(987);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
-                        beneficiary, node->getSecretKey());
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, beneficiary,
+                        node->getSecretKey());
 
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
@@ -163,10 +161,9 @@ TEST_F(PbftChainTest, block_broadcast) {
   blk_hash_t dag_blk(123);
   TrxSchedule schedule;
   uint64_t period = 1;
-  uint64_t height = 2;
   addr_t beneficiary(987);
-  PbftBlock pbft_block(prev_block_hash, dag_blk, schedule, period, height,
-                       beneficiary, node1->getSecretKey());
+  PbftBlock pbft_block(prev_block_hash, dag_blk, schedule, period, beneficiary,
+                       node1->getSecretKey());
 
   node1->pushUnverifiedPbftBlock(pbft_block);
   std::pair<PbftBlock, bool> block1_from_node1 =
@@ -250,86 +247,6 @@ TEST_F(PbftChainTest, block_broadcast) {
   find_erased_block =
       pbft_chain3->findUnverifiedPbftBlock(pbft_block.getBlockHash());
   ASSERT_FALSE(find_erased_block);
-}
-
-TEST_F(PbftChainTest, get_dag_block_hash) {
-  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  node->setDebug(true);
-  node->start(true);  // boot_node
-
-  std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  std::pair<blk_hash_t, bool> dag_genesis_hash = pbft_chain->getDagBlockHash(1);
-  ASSERT_TRUE(dag_genesis_hash.second);
-  ASSERT_EQ(dag_genesis_hash.first,
-            node->getConfig().chain.dag_genesis_block.getHash());
-
-  // create a transaction
-  auto nonce = val_t(0);
-  auto coins_value = val_t(100);
-  auto gas_price = val_t(2);
-  auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
-  auto data = bytes();
-  auto g_secret = dev::Secret(
-      "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-      dev::Secret::ConstructFromStringType::FromHex);
-  Transaction trx_master_boot_node_to_receiver(nonce, coins_value, gas_price,
-                                               TEST_TX_GAS_LIMIT, receiver,
-                                               data, g_secret);
-  node->insertTransaction(trx_master_boot_node_to_receiver, false);
-
-  for (int i = 0; i < 1000; i++) {
-    // test timeout is 100 seconds
-    if (node->getNumProposedBlocks() == 1) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(node->getNumProposedBlocks(), 1);
-
-  // Vote DAG block
-  uint64_t expect_pbft_chain_size = 1;
-  for (int i = 0; i < 600; i++) {
-    // test timeout is 60 seconds
-    if (pbft_chain->getPbftChainSize() == expect_pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(pbft_chain->getPbftChainSize(), expect_pbft_chain_size);
-
-  size_t dag_blocks_size = 2;
-  for (int i = 0; i < 100; i++) {
-    // Wait up to 10 seconds to update DB
-    vector<blk_hash_t> dag_blocks_hash = node->getLinearizedDagBlocks();
-    if (dag_blocks_hash.size() == dag_blocks_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(node->getLinearizedDagBlocks().size(), dag_blocks_size);
-
-  auto dag_max_height = node->getDagBlockMaxHeight();
-  ASSERT_EQ(dag_max_height, 2);
-
-  std::pair<blk_hash_t, bool> last_dag_block_hash =
-      pbft_chain->getDagBlockHash(2);
-  ASSERT_TRUE(last_dag_block_hash.second);
-  std::pair<uint64_t, bool> last_dag_block_height =
-      pbft_chain->getDagBlockHeight(last_dag_block_hash.first);
-  ASSERT_TRUE(last_dag_block_height.second);
-  ASSERT_EQ(last_dag_block_height.first, 2);
-}
-
-TEST_F(PbftChainTest, get_dag_block_height) {
-  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  node->setDebug(true);
-  node->start(true);  // boot_node
-
-  std::shared_ptr<PbftChain> pbft_chain = node->getPbftChain();
-  std::pair<uint64_t, bool> dag_genesis_height = pbft_chain->getDagBlockHeight(
-      node->getConfig().chain.dag_genesis_block.getHash());
-  ASSERT_TRUE(dag_genesis_height.second);
-  ASSERT_EQ(dag_genesis_height.first, 1);
 }
 
 }  // namespace taraxa

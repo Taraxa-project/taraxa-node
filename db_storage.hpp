@@ -67,12 +67,9 @@ struct DbStorage {
     COLUMN(status);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
-    COLUMN(pbft_blocks_order);
-    COLUMN(dag_blocks_order);
-    COLUMN(dag_blocks_height);
     COLUMN(sortition_accounts);
     COLUMN(votes);
-    COLUMN(period_schedule_block);
+    COLUMN(period_pbft_block);
     COLUMN(dag_block_period);
     COLUMN(replay_protection);
     COLUMN(eth_chain);
@@ -166,20 +163,6 @@ struct DbStorage {
   void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash,
                           std::string const& head_str,
                           BatchPtr const& write_batch);
-  // pbft_blocks_order
-  shared_ptr<blk_hash_t> getPbftBlockOrder(uint64_t const& index);
-  void savePbftBlockOrder(uint64_t const& index, blk_hash_t const& hash);
-  void addPbftBlockIndexToBatch(uint64_t const& index,
-                                taraxa::blk_hash_t const& hash,
-                                BatchPtr const& write_batch);
-  // dag_blocks_order & dag_blocks_height
-  shared_ptr<blk_hash_t> getDagBlockOrder(uint64_t const& index);
-  void saveDagBlockOrder(uint64_t const& index, blk_hash_t const& hash);
-  std::shared_ptr<uint64_t> getDagBlockHeight(blk_hash_t const& hash);
-  void saveDagBlockHeight(blk_hash_t const& hash, uint64_t const& height);
-  void addDagBlockOrderAndHeightToBatch(taraxa::blk_hash_t const& hash,
-                                        uint64_t const& height,
-                                        BatchPtr const& write_batch);
   // status
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field,
@@ -206,8 +189,8 @@ struct DbStorage {
   void addPbftCertVotesToBatch(taraxa::blk_hash_t const& pbft_block_hash,
                                std::vector<Vote> const& cert_votes,
                                BatchPtr const& write_batch);
-  // period_schedule_block
-  shared_ptr<blk_hash_t> getPeriodScheduleBlock(uint64_t const& period);
+  // period_pbft_block
+  shared_ptr<blk_hash_t> getPeriodPbftBlock(uint64_t const& period);
   void addPbftBlockPeriodToBatch(uint64_t const& period,
                                  taraxa::blk_hash_t const& pbft_block_hash,
                                  BatchPtr const& write_batch);
@@ -217,6 +200,8 @@ struct DbStorage {
                                 BatchPtr const& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
+
+  vector<blk_hash_t> getOrderedDagBlocks();
 
   string lookup(Slice key, Column const& column);
   void insert(Column const& col, Slice const& k, Slice const& v);

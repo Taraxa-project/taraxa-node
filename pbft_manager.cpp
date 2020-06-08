@@ -200,7 +200,7 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(
 }
 
 std::string PbftManager::getScheduleBlockByPeriod(uint64_t const period) {
-  auto value = db_->getPeriodScheduleBlock(period);
+  auto value = db_->getPeriodPbftBlock(period);
   if (value) {
     blk_hash_t pbft_block_hash = *value;
     return pbft_chain_->getPbftBlockInChain(pbft_block_hash).getJsonStr();
@@ -1139,7 +1139,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   // generate generate pbft block
   PbftBlock pbft_block(last_pbft_block_hash, dag_block_hash, schedule,
-                       propose_pbft_period, pbft_block_height, beneficiary,
+                       propose_pbft_period, beneficiary,
                        full_node->getSecretKey());
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
@@ -1474,31 +1474,13 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(current_period, dag_blocks_hash_order) =
       full_node->getDagBlockOrder(dag_block_hash);
-  // Add DAG blocks order and DAG blocks height in DB
-  uint64_t max_dag_blocks_height = pbft_chain_->getDagBlockMaxHeight();
-  for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
-    auto dag_block_height_ptr = db_->getDagBlockHeight(dag_blk_hash);
-    if (dag_block_height_ptr) {
-      LOG(log_err_) << "Duplicate DAG block " << dag_blk_hash
-                    << " in DAG blocks height DB already";
-      continue;
-    }
-    max_dag_blocks_height++;
-    db_->addDagBlockOrderAndHeightToBatch(dag_blk_hash, max_dag_blocks_height,
-                                          batch);
-    LOG(log_deb_) << "Add dag block " << dag_blk_hash << " with height "
-                  << max_dag_blocks_height << " in DB write batch";
-  }
   // Add cert votes in DB
   db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
   LOG(log_deb_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n"
                 << cert_votes;
   // Add PBFT block in DB
   db_->addPbftBlockToBatch(pbft_block, batch);
-  // Add PBFT block index in DB
-  auto pbft_block_index = pbft_block.getHeight();
-  db_->addPbftBlockIndexToBatch(pbft_block_index, pbft_block_hash, batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
   // Update sortition account balance table DB
   updateSortitionAccountsDB_(batch);
@@ -1517,9 +1499,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
 
   // Set DAG blocks period
   full_node->setDagBlockOrder(dag_block_hash, pbft_period);
-
-  // Set max DAG block height
-  pbft_chain_->setDagBlockMaxHeight(max_dag_blocks_height);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);

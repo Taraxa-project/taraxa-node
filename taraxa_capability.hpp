@@ -42,6 +42,10 @@ enum SubprotocolPacketType : ::byte {
   PacketCount
 };
 
+struct InvalidDataException : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
 class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer()

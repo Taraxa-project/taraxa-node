@@ -290,33 +290,18 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   // pbft_blocks_order
-  db.savePbftBlockOrder(1, blk_hash_t(1));
-  db.savePbftBlockOrder(2, blk_hash_t(2));
+  db.savePbftBlock(pbft_block1);
+  db.savePbftBlock(pbft_block2);
   batch = db.createWriteBatch();
-  db.addPbftBlockIndexToBatch(3, blk_hash_t(3), batch);
-  db.addPbftBlockIndexToBatch(4, blk_hash_t(4), batch);
+  db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
+  db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
+  db.addPbftBlockPeriodToBatch(3, blk_hash_t(3), batch);
+  db.addPbftBlockPeriodToBatch(4, blk_hash_t(4), batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftBlockOrder(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftBlockOrder(2), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftBlockOrder(3), blk_hash_t(3));
-  EXPECT_EQ(*db.getPbftBlockOrder(4), blk_hash_t(4));
-  // dag_blocks_order & dag_blocks_height
-  db.saveDagBlockOrder(1, blk_hash_t(1));
-  db.saveDagBlockOrder(3, blk_hash_t(2));
-  EXPECT_EQ(*db.getDagBlockOrder(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getDagBlockOrder(3), blk_hash_t(2));
-  db.saveDagBlockHeight(blk_hash_t(1), 5);
-  db.saveDagBlockHeight(blk_hash_t(2), 6);
-  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(1)), 5);
-  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(2)), 6);
-  batch = db.createWriteBatch();
-  db.addDagBlockOrderAndHeightToBatch(blk_hash_t(11), 11, batch);
-  db.addDagBlockOrderAndHeightToBatch(blk_hash_t(12), 12, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getDagBlockOrder(11), blk_hash_t(11));
-  EXPECT_EQ(*db.getDagBlockOrder(12), blk_hash_t(12));
-  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(11)), 11);
-  EXPECT_EQ(*db.getDagBlockHeight(blk_hash_t(12)), 12);
+  EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
+  EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
+  EXPECT_EQ(*db.getPeriodPbftBlock(3), blk_hash_t(3));
+  EXPECT_EQ(*db.getPeriodPbftBlock(4), blk_hash_t(4));
   // status
   db.saveStatusField(StatusDbField::TrxCount, 5);
   db.saveStatusField(StatusDbField::ExecutedBlkCount, 6);
@@ -356,14 +341,14 @@ TEST_F(FullNodeTest, db_test) {
   auto cert_votes_rlp = db.getVote(vote_pbft_block_hash);
   PbftBlockCert pbft_block_cert_votes_from_db(pbft_block, cert_votes_rlp);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
-  // period_schedule_block
+  // period_pbft_block
   batch = db.createWriteBatch();
   db.addPbftBlockPeriodToBatch(1, blk_hash_t(1), batch);
   db.addPbftBlockPeriodToBatch(2, blk_hash_t(2), batch);
   db.commitWriteBatch(batch);
   ;
-  EXPECT_EQ(*db.getPeriodScheduleBlock(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getPeriodScheduleBlock(2), blk_hash_t(2));
+  EXPECT_EQ(*db.getPeriodPbftBlock(1), blk_hash_t(1));
+  EXPECT_EQ(*db.getPeriodPbftBlock(2), blk_hash_t(2));
   // dag_block_period
   batch = db.createWriteBatch();
   db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, batch);
@@ -403,8 +388,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
   auto tops = createNodesAndVerifyConnection(5, 2, false, 20);
   auto &nodes = tops.second;
-
-  EXPECT_EQ(nodes[0]->getDagBlockMaxHeight(), 1);  // genesis block
 
   class context {
     decltype(nodes) const &nodes_;
@@ -618,11 +601,11 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     auto trx_executed4 = nodes[3]->getNumTransactionExecuted();
     auto trx_executed5 = nodes[4]->getNumTransactionExecuted();
     // unique trxs in DAG block
-    auto trx_packed1 = nodes[0]->getPackedTrxs().size();
-    auto trx_packed2 = nodes[1]->getPackedTrxs().size();
-    auto trx_packed3 = nodes[2]->getPackedTrxs().size();
-    auto trx_packed4 = nodes[3]->getPackedTrxs().size();
-    auto trx_packed5 = nodes[4]->getPackedTrxs().size();
+    auto trx_packed1 = nodes[0]->getNumTransactionInDag();
+    auto trx_packed2 = nodes[1]->getNumTransactionInDag();
+    auto trx_packed3 = nodes[2]->getNumTransactionInDag();
+    auto trx_packed4 = nodes[3]->getNumTransactionInDag();
+    auto trx_packed5 = nodes[4]->getNumTransactionInDag();
 
     if (trx_packed1 < trx_executed1) {
       std::cout << "Warning! " << trx_packed1
@@ -698,9 +681,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     if (vertices_diff >= nodes.size()                             //
         || vertices_diff < 0                                      //
         || node->getNumTransactionExecuted() != issued_trx_count  //
-        || node->getPackedTrxs().size() != issued_trx_count) {
+        || node->getNumTransactionInDag() != issued_trx_count) {
       std::cout << "Node " << k
-                << " :Number of trx packed = " << node->getPackedTrxs().size()
+                << " :Number of trx packed = " << node->getNumTransactionInDag()
                 << std::endl;
       std::cout << "Node " << k << " :Number of trx executed = "
                 << node->getNumTransactionExecuted() << std::endl;
@@ -711,7 +694,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       std::cout << "Node " << k
                 << " :Number of vertices in Dag = " << num_vertices.first
                 << " , " << num_vertices.second << std::endl;
-      auto dags = node->getLinearizedDagBlocks();
+      auto dags = node->getDB()->getOrderedDagBlocks();
       for (auto i(0); i < dags.size(); ++i) {
         auto d = dags[i];
         std::cout << i << " " << d
@@ -730,7 +713,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     EXPECT_EQ(node->getNumTransactionExecuted(), issued_trx_count)
         << " \nNum executed in node " << k << " node " << node
         << " is : " << node->getNumTransactionExecuted()
-        << " \nNum linearized blks: " << node->getLinearizedDagBlocks().size()
+        << " \nNum linearized blks: " << node->getDB()->getOrderedDagBlocks().size()
         << " \nNum executed blks: " << node->getNumBlockExecuted()
         << " \nNum vertices in DAG: " << node->getNumVerticesInDag().first
         << " " << node->getNumVerticesInDag().second << "\n";
@@ -750,10 +733,10 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         << " Number of vertices: " << node->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getNumBlockExecuted()
         << std::endl;
-    EXPECT_EQ(node->getPackedTrxs().size(), issued_trx_count);
+    EXPECT_EQ(node->getNumTransactionInDag(), issued_trx_count);
   }
 
-  auto dags = nodes[0]->getLinearizedDagBlocks();
+  auto dags = nodes[0]->getDB()->getOrderedDagBlocks();
   for (auto i(0); i < dags.size(); ++i) {
     auto d = dags[i];
     for (auto const &t : nodes[0]->getDagBlock(d)->getTrxs()) {

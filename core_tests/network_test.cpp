@@ -341,9 +341,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   blk_hash_t dag_blk(123);
   TrxSchedule schedule;
   uint64_t period = 1;
-  uint64_t height = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period,
                         beneficiary, node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk1;
@@ -357,9 +356,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                                batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
-  // Add PBFT block index in DB
-  db1->addPbftBlockIndexToBatch(height, pbft_block1.getBlockHash(), batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -375,9 +372,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   prev_block_hash = pbft_block1.getBlockHash();
   dag_blk = blk_hash_t(456);
   period = 2;
-  height = 2;
   beneficiary = addr_t(654);
-  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
+  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period,
                         beneficiary, node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk2;
@@ -391,9 +387,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                                batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
-  // Add PBFT block index in DB
-  db1->addPbftBlockIndexToBatch(height, pbft_block2.getBlockHash(), batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
@@ -459,9 +453,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   blk_hash_t dag_blk(234);
   TrxSchedule schedule;
   uint64_t period = 1;
-  uint64_t height = 1;
   addr_t beneficiary(876);
-  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, height,
+  PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period,
                         beneficiary, node1->getSecretKey());
   std::vector<Vote> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(node1->generateVote(
@@ -474,9 +467,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                                batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
-  // Add PBFT block index in DB
-  db1->addPbftBlockIndexToBatch(height, pbft_block1.getBlockHash(), batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -492,9 +483,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   prev_block_hash = pbft_block1.getBlockHash();
   dag_blk = blk_hash_t(567);
   period = 2;
-  height = 2;
   beneficiary = addr_t(543);
-  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, height,
+  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period,
                         beneficiary, node1->getSecretKey());
   std::cout << "There are no votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and no votes store into DB
@@ -502,9 +492,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   batch = db1->createWriteBatch();
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
-  // Add PBFT block index in DB
-  db1->addPbftBlockIndexToBatch(height, pbft_block2.getBlockHash(), batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());

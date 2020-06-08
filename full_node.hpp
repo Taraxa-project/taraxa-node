@@ -245,12 +245,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
                     uint64_t period, size_t step,
                     blk_hash_t const &last_pbft_block_hash);
 
-  // get dag block for rpc
-  std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
-  std::pair<uint64_t, bool> getDagBlockHeight(
-      blk_hash_t const &dag_block_hash) const;
-  uint64_t getDagBlockMaxHeight() const;
-
   // For Debug
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
@@ -263,14 +257,15 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto getNumTransactionExecuted() const {
     return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
   }
+  auto getNumTransactionInDag() const {
+    return db_ ? db_->getStatusField(StatusDbField::TrxCount) : 0;
+  }
   auto getNumBlockExecuted() const {
     return db_ ? db_->getStatusField(StatusDbField::ExecutedBlkCount) : 0;
   }
   uint64_t getNumDagBlocks() const {
     return db_ ? db_->getDagBlocksCount() : 0;
   }
-  std::vector<blk_hash_t> getLinearizedDagBlocks() const;
-  std::vector<trx_hash_t> getPackedTrxs() const;
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
