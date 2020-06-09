@@ -62,6 +62,9 @@ class PbftManager {
   void setPbftRound(uint64_t const pbft_round);
   uint64_t getPbftRound() const;
   size_t getPbftStep() const;
+  size_t getValidSortitionAccountsSize() const {
+    return valid_sortition_accounts_size_;
+  }
   // End Test
 
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
@@ -84,6 +87,7 @@ class PbftManager {
   // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
   uint64_t SKIP_PERIODS = 0;
   bool RUN_COUNT_VOTES = 0;  // TODO: Only for test, need remove later
+  size_t active_nodes = 0; // TODO: Only for test, need remove later
 
  private:
   void resetStep_();

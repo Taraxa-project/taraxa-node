@@ -1486,11 +1486,15 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
     }
   }
   auto batch = db_->createWriteBatch();
+  // Execute transactions in EVM(GO trx engine) and update Ethereum block
   auto const &[new_eth_header, trx_receipts, state_transition_result] =
       full_node->getFinalChain()->advance(batch, pbft_block.getBeneficiary(),
                                           pbft_block.getTimestamp(),
                                           transactions_tmp_);
+
   uint64_t pbft_period = pbft_block.getPeriod();
+  // Update replay protection service, like nonce watermark. Nonce watermark has
+  // been disabled
   replay_protection_service->update(
       batch, pbft_period,
       util::make_range_view(transactions_tmp_).map([](auto const &trx) {
@@ -1578,12 +1582,16 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   executed_pbft_block_ = true;
 
+  // After DB commit, confirm in final chain(Ethereum)
   full_node->getFinalChain()->advance_confirm();
+  // Remove executed transactions at Ethereum pending block. The Ethereum
+  // pending block is same with latest block at Taraxa
   full_node->getPendingBlock()->advance(
       batch, new_eth_header.hash(),
       util::make_range_view(transactions_tmp_).map([](auto const &trx) {
         return trx.sha3();
       }));
+  // Ethereum filter
   full_node->getFilterAPI()->note_block(new_eth_header.hash());
   full_node->getFilterAPI()->note_receipts(trx_receipts);
   // Update web server
@@ -1654,6 +1662,7 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << sortition_threshold_ << ", valid voting players "
                 << valid_sortition_accounts_size_ << ", active players "
                 << active_players << " since period " << since_period;
+  active_nodes = active_players; // TODO for test only
 }
 
 void PbftManager::updateTempSortitionAccountsTable_(
