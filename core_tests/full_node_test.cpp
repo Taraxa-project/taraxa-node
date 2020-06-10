@@ -517,6 +517,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
               return false;
             }
           }
+          return true;
         },
         {
             120,
