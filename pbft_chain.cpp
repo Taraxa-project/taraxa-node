@@ -157,9 +157,9 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   if (!rlp.isList()) throw std::invalid_argument("PBFT RLP must be a list");
   prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
   dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
-  period_ = rlp[2].toInt<int64_t>();
-  height_ = rlp[3].toInt<int64_t>();
-  timestamp_ = rlp[4].toInt<int64_t>();
+  period_ = rlp[2].toInt<uint64_t>();
+  height_ = rlp[3].toInt<uint64_t>();
+  timestamp_ = rlp[4].toInt<uint64_t>();
   signature_ = rlp[5].toHash<sig_t>();
   schedule_ = TrxSchedule(rlp[6]);
   calculateHash_();
