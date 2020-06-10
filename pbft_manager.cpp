@@ -1392,7 +1392,8 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
       LOG(log_err_)
           << "Synced PBFT block "
           << pbft_block_and_votes.pbft_blk.getBlockHash()
-          << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
+          << " doesn't have enough valid cert votes. Clear synced PBFT blocks!"
+          << " Active players " << active_nodes;
       pbft_chain_->clearSyncedPbftBlocks();
       break;
     }
@@ -1658,10 +1659,12 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
     TWO_T_PLUS_ONE = active_players * 2 / 3 + 1;
     sortition_threshold_ = valid_sortition_accounts_size_;
   }
-  LOG(log_inf_) << "Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
-                << sortition_threshold_ << ", valid voting players "
-                << valid_sortition_accounts_size_ << ", active players "
-                << active_players << " since period " << since_period;
+  LOG(log_inf_) << "Committee size " << COMMITTEE_SIZE << ", active players "
+                << active_players << " since period " << since_period
+                << ", valid voting players " << valid_sortition_accounts_size_
+                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
+                << sortition_threshold_;
+  ;
   active_nodes = active_players; // TODO for test only
 }
 

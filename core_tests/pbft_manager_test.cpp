@@ -49,11 +49,14 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
   auto &nodes = tops.second;
 
-  auto pbft_mgr = nodes[0]->getPbftManager();
-  pbft_mgr->COMMITTEE_SIZE = committee_size;
-  // Set PBFT skip periods to a large number, in order to count all nodes as
-  // active players (not guarantee)
-  pbft_mgr->SKIP_PERIODS = 100;
+  std::shared_ptr<PbftManager> pbft_mgr;
+  for (auto i(0); i < nodes.size(); ++i) {
+    pbft_mgr = nodes[i]->getPbftManager();
+    pbft_mgr->COMMITTEE_SIZE = committee_size;
+    // Set PBFT skip periods to a large number, in order to count all nodes as
+    // active players (not guarantee)
+    pbft_mgr->SKIP_PERIODS = 100;
+  }
 
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
@@ -93,7 +96,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         return true;
       },
       {
-          20,                       // send times
+          10,                       // send times
           std::chrono::seconds(2),  // each sending
       });
   for (auto i(0); i < nodes.size(); ++i) {
@@ -111,21 +114,26 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     }
   }
 
-  size_t committee = pbft_mgr->COMMITTEE_SIZE;
-  size_t active_players = pbft_mgr->active_nodes;
-  size_t valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
-  size_t two_t_plus_one = pbft_mgr->getTwoTPlusOne();
-  size_t threshold = pbft_mgr->getSortitionThreshold();
-  std::cout << "committee " << committee << ", active players "
-            << active_players << ", valid voting players "
-            << valid_voting_players << ", 2t+1 " << two_t_plus_one
-            << ", sortition threshold " << threshold << std::endl;
-  EXPECT_EQ(valid_voting_players, nodes.size());
-  size_t expected_2tPlus1, expected_threshold;
-  tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
-      committee, active_players, valid_voting_players);
-  EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
-  EXPECT_EQ(threshold, expected_threshold);
+  size_t committee, active_players, valid_voting_players, two_t_plus_one,
+      threshold, expected_2tPlus1, expected_threshold;
+  for (auto i(0); i < nodes.size(); ++i) {
+    pbft_mgr = nodes[i]->getPbftManager();
+    committee = pbft_mgr->COMMITTEE_SIZE;
+    active_players = pbft_mgr->active_nodes;
+    valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
+    two_t_plus_one = pbft_mgr->getTwoTPlusOne();
+    threshold = pbft_mgr->getSortitionThreshold();
+    std::cout << "Node" << i << " committee " << committee
+              << ", active players " << active_players
+              << ", valid voting players " << valid_voting_players << ", 2t+1 "
+              << two_t_plus_one << ", sortition threshold " << threshold
+              << std::endl;
+    EXPECT_EQ(valid_voting_players, nodes.size());
+    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
+        committee, active_players, valid_voting_players);
+    EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
+    EXPECT_EQ(threshold, expected_threshold);
+  }
 
   auto send_coins = 1;
   for (auto i(0); i < nodes.size(); ++i) {
@@ -161,7 +169,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         return true;
       },
       {
-          20,                       // send times
+          10,                       // send times
           std::chrono::seconds(2),  // each sending
       });
   for (auto i = 0; i < nodes.size(); i++) {
@@ -179,20 +187,23 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     }
   }
 
-  committee = pbft_mgr->COMMITTEE_SIZE;
-  active_players = pbft_mgr->active_nodes;
-  valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
-  two_t_plus_one = pbft_mgr->getTwoTPlusOne();
-  threshold = pbft_mgr->getSortitionThreshold();
-  std::cout << "committee " << committee << ", active players "
-            << active_players << ", valid voting players "
-            << valid_voting_players << ", 2t+1 " << two_t_plus_one
-            << ", sortition threshold " << threshold << std::endl;
-  EXPECT_EQ(valid_voting_players, nodes.size());
-  tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
-      committee, active_players, valid_voting_players);
-  EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
-  EXPECT_EQ(threshold, expected_threshold);
+  for (auto i(0); i < nodes.size(); ++i) {
+    pbft_mgr = nodes[i]->getPbftManager();
+    committee = pbft_mgr->COMMITTEE_SIZE;
+    active_players = pbft_mgr->active_nodes;
+    valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
+    two_t_plus_one = pbft_mgr->getTwoTPlusOne();
+    threshold = pbft_mgr->getSortitionThreshold();
+    std::cout << "Node" << i << " committee " << committee << ", active players "
+              << active_players << ", valid voting players "
+              << valid_voting_players << ", 2t+1 " << two_t_plus_one
+              << ", sortition threshold " << threshold << std::endl;
+    EXPECT_EQ(valid_voting_players, nodes.size());
+    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
+        committee, active_players, valid_voting_players);
+    EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
+    EXPECT_EQ(threshold, expected_threshold);
+  }
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
@@ -372,9 +383,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
-  // Set committee size to 2, most of times will be committee <= active_players
-  // in Robin cycle sending transactions
-  check_2tPlus1_validVotingPlayers_activePlayers_threshold(2);
+  // Set committee size to 1, make sure to be committee <= active_players
+  check_2tPlus1_validVotingPlayers_activePlayers_threshold(1);
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
