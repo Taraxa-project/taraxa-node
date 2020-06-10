@@ -51,6 +51,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 
   auto pbft_mgr = nodes[0]->getPbftManager();
   pbft_mgr->COMMITTEE_SIZE = committee_size;
+  // Set PBFT skip periods to a large number, in order to count all nodes as
+  // active players (not guarantee)
+  pbft_mgr->SKIP_PERIODS = 100;
 
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
@@ -123,10 +126,6 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
       committee, active_players, valid_voting_players);
   EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
   EXPECT_EQ(threshold, expected_threshold);
-
-  // Set PBFT skip periods to a large number, in order to count all nodes as
-  // active players (not guarantee)
-  pbft_mgr->SKIP_PERIODS = 100;
 
   auto send_coins = 1;
   for (auto i(0); i < nodes.size(); ++i) {
@@ -373,9 +372,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
-  // Set committee size to 3, most of times will be committee <= active_players
+  // Set committee size to 2, most of times will be committee <= active_players
   // in Robin cycle sending transactions
-  check_2tPlus1_validVotingPlayers_activePlayers_threshold(3);
+  check_2tPlus1_validVotingPlayers_activePlayers_threshold(2);
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
