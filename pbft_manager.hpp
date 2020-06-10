@@ -58,12 +58,7 @@ class PbftManager {
 
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
-  void setPbftRound(uint64_t const pbft_round);
-  uint64_t getPbftRound() const;
-  size_t getPbftStep() const;
-  size_t getValidSortitionAccountsSize() const {
-    return valid_sortition_accounts_size_;
-  }
+  size_t getValidSortitionAccountsSize() const;
   // End Test
 
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);

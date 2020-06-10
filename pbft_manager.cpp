@@ -235,11 +235,10 @@ void PbftManager::setTwoTPlusOne(size_t const two_t_plus_one) {
 void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
   sortition_threshold_ = sortition_threshold;
 }
-void PbftManager::setPbftRound(uint64_t const pbft_round) {
-  round_ = pbft_round;
+
+size_t PbftManager::getValidSortitionAccountsSize() const {
+  return valid_sortition_accounts_size_;
 }
-uint64_t PbftManager::getPbftRound() const { return round_; }
-size_t PbftManager::getPbftStep() const { return step_; }
 // End Test
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
