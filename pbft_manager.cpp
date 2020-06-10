@@ -17,7 +17,6 @@
 #include "full_node.hpp"
 #include "network.hpp"
 #include "sortition.hpp"
-#include "util.hpp"
 
 namespace taraxa {
 
@@ -29,9 +28,6 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
               util::RangeView<TransactionInfo> const &trxs) override {}
 };
 
-PbftManager::PbftManager(std::string const &genesis)
-    : replay_protection_service(new ReplayProtectionServiceDummy),
-      dag_genesis_(genesis) {}
 PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
@@ -42,6 +38,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis)
       SKIP_PERIODS(conf.skip_periods),
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis) {}
+
 PbftManager::~PbftManager() { stop(); }
 
 void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
@@ -228,10 +225,6 @@ size_t PbftManager::getSortitionThreshold() const {
   return sortition_threshold_;
 }
 
-void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
-  sortition_threshold_ = sortition_threshold;
-}
-
 size_t PbftManager::getTwoTPlusOne() const { return TWO_T_PLUS_ONE; }
 
 void PbftManager::setTwoTPlusOne(size_t const two_t_plus_one) {
@@ -239,8 +232,8 @@ void PbftManager::setTwoTPlusOne(size_t const two_t_plus_one) {
 }
 
 // Notice: Test purpose
-void PbftManager::setPbftThreshold(size_t const threshold) {
-  sortition_threshold_ = threshold;
+void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
+  sortition_threshold_ = sortition_threshold;
 }
 void PbftManager::setPbftRound(uint64_t const pbft_round) {
   round_ = pbft_round;
@@ -335,7 +328,6 @@ bool PbftManager::resetRound_() {
         nextVotedBlockForRoundAndStep_(votes_, local_round);
 
     if (executed_pbft_block_) {
-      last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
       // Update sortition accounts table
       updateSortitionAccountsTable_();
       // reset sortition_threshold and TWO_T_PLUS_ONE
@@ -1424,7 +1416,6 @@ void PbftManager::pushSyncedPbftBlocksIntoChain_() {
     // Remove from PBFT synced queue
     pbft_chain_->pbftSyncedQueuePopFront();
     if (executed_pbft_block_) {
-      last_period_should_speak_ = pbft_chain_->getPbftChainPeriod();
       // Update sortition accounts table
       updateSortitionAccountsTable_();
       // update sortition_threshold and TWO_T_PLUS_ONE

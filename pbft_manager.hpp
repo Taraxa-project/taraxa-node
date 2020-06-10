@@ -52,13 +52,12 @@ class PbftManager {
   std::string getScheduleBlockByPeriod(uint64_t const period);
 
   size_t getSortitionThreshold() const;
-  void setSortitionThreshold(size_t const sortition_threshold);
   size_t getTwoTPlusOne() const;
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
   // Notice: Test purpose
-  void setPbftThreshold(size_t const threshold);
+  void setSortitionThreshold(size_t const sortition_threshold);
   void setPbftRound(uint64_t const pbft_round);
   uint64_t getPbftRound() const;
   size_t getPbftStep() const;
@@ -77,16 +76,14 @@ class PbftManager {
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
-  u_long LAMBDA_ms_MIN;
-  u_long LAMBDA_ms;
-  size_t COMMITTEE_SIZE = 0;           // TODO: Only for test, need remove later
-  uint64_t VALID_SORTITION_COINS = 0;  // TODO: Only for test, need remove later
-  size_t DAG_BLOCKS_SIZE = 0;          // TODO: Only for test, need remove later
-  size_t GHOST_PATH_MOVE_BACK = 0;     // TODO: Only for test, need remove later
-  // When PBFT pivot block finalized, period = period + 1,
-  // but last_seen = period. SKIP_PERIODS = 1 means not skip any periods.
-  uint64_t SKIP_PERIODS = 0;
-  bool RUN_COUNT_VOTES = 0;  // TODO: Only for test, need remove later
+  u_long LAMBDA_ms_MIN;            // TODO: Should be on define
+  u_long LAMBDA_ms = 0;
+  size_t COMMITTEE_SIZE;           // TODO: Should be on define
+  uint64_t VALID_SORTITION_COINS;  // TODO: Should be on define
+  size_t DAG_BLOCKS_SIZE;          // TODO: Should be on define
+  size_t GHOST_PATH_MOVE_BACK;     // TODO: Should be on define
+  uint64_t SKIP_PERIODS;           // TODO: Should be on define
+  bool RUN_COUNT_VOTES;    // TODO: Only for test, need remove later
   size_t active_nodes = 0; // TODO: Only for test, need remove later
 
  private:
@@ -173,55 +170,56 @@ class PbftManager {
       std::make_pair(NULL_BLOCK_HASH, false);
 
   std::weak_ptr<FullNode> node_;
-  std::unique_ptr<std::thread> daemon_;
-  std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<TaraxaCapability> capability_;
+  std::unique_ptr<std::thread> daemon_ = nullptr;
+  std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
+  std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
+  std::shared_ptr<TaraxaCapability> capability_ = nullptr;
 
-  size_t valid_sortition_accounts_size_ = 0;
   // Database
   std::shared_ptr<DbStorage> db_ = nullptr;
 
-  blk_hash_t pbft_chain_last_block_hash_;
-  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_;
+  size_t valid_sortition_accounts_size_ = 0;
+  blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
+  std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ =
+      std::make_pair(NULL_BLOCK_HASH, false);;
 
-  PbftStates state_;
-  uint64_t round_;
-  size_t step_;
-  u_long STEP_4_DELAY;  // constant
+  PbftStates state_ = value_proposal_state;
+  uint64_t round_ = 1;
+  size_t step_ = 1;
+  u_long STEP_4_DELAY = 0;  // constant
 
-  blk_hash_t own_starting_value_for_round_;
+  blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   // <round, cert_voted_block_hash>
   std::unordered_map<size_t, blk_hash_t> cert_voted_values_for_round_;
   // <round, block_hash_added_into_chain>
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
-  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_;
+  std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ =
+      std::make_pair(NULL_BLOCK_HASH, false);;
   std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;
   std::chrono::duration<double> duration_;
-  long next_step_time_ms_;
-  long elapsed_time_in_round_ms_;
+  long next_step_time_ms_ = 0;
+  long elapsed_time_in_round_ms_ = 0;
 
-  bool executed_pbft_block_;
-  bool have_executed_this_round_;
-  bool should_have_cert_voted_in_this_round_;
-  bool next_voted_soft_value_;
-  bool next_voted_null_block_hash_;
-  bool continue_finish_polling_state_;
-  bool go_finish_state_;
-  bool loop_back_finish_state_;
+  bool executed_pbft_block_ = false;
+  bool have_executed_this_round_ = false;
+  bool should_have_cert_voted_in_this_round_ = false;
+  bool next_voted_soft_value_ = false;
+  bool next_voted_null_block_hash_ = false;
+  bool continue_finish_polling_state_ = false;
+  bool go_finish_state_ = false;
+  bool loop_back_finish_state_ = false;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
 
   size_t pbft_last_observed_synced_queue_size_ = 0;
 
-  uint64_t last_period_should_speak_ = 0;
-
   size_t sortition_threshold_ = 0;
-  size_t TWO_T_PLUS_ONE = 0;  // This is 2t+1
+  // 2t+1 minimum number of votes for consensus
+  size_t TWO_T_PLUS_ONE = 0;
   bool is_active_player_ = false;
 
   std::string dag_genesis_;
@@ -232,9 +230,9 @@ class PbftManager {
   // TODO: will remove later, TEST CODE
   void countVotes_();
 
-  std::shared_ptr<std::thread> monitor_votes_;
+  std::shared_ptr<std::thread> monitor_votes_ = nullptr;
   std::atomic<bool> monitor_stop_ = true;
-  size_t last_step_;
+  size_t last_step_ = 0;
   time_point last_step_clock_initial_datetime_;
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE

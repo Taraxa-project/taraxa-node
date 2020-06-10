@@ -84,7 +84,7 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   // Test get votes
   // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
   size_t valid_sortition_players = 1;
-  pbft_mgr->setPbftThreshold(valid_sortition_players);
+  pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
   std::vector<Vote> votes =
       vote_mgr->getVotes(pbft_round, valid_sortition_players);
