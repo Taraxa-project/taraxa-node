@@ -158,9 +158,9 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
   dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
   period_ = rlp[2].toInt<uint64_t>();
-  timestamp_ = rlp[4].toInt<uint64_t>();
-  signature_ = rlp[5].toHash<sig_t>();
-  schedule_ = TrxSchedule(rlp[6]);
+  timestamp_ = rlp[3].toInt<uint64_t>();
+  signature_ = rlp[4].toHash<sig_t>();
+  schedule_ = TrxSchedule(rlp[5]);
   calculateHash_();
 }
 
@@ -226,12 +226,14 @@ std::string PbftBlock::getJsonStr() const {
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
-  strm.appendList(include_sig ? 7 : 6);
+  strm.appendList(include_sig ? 6 : 5);
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
   strm << period_;
   strm << timestamp_;
-  if (include_sig) strm << signature_;
+  if (include_sig) {
+    strm << signature_;
+  }
   schedule_.streamRLP(strm);
 }
 
