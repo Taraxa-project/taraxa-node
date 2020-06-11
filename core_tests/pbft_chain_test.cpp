@@ -267,9 +267,8 @@ TEST_F(PbftChainTest, get_dag_block_hash) {
   auto g_secret = dev::Secret(
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
-  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price,
-                                               TEST_TX_GAS_LIMIT, data,
-                                               g_secret, receiver);
+  Transaction trx_master_boot_node_to_receiver(
+      0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, g_secret, receiver);
   node->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (int i = 0; i < 1000; i++) {

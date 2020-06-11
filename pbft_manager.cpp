@@ -1486,7 +1486,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   replay_protection_service->update(
       batch, pbft_period,
       util::make_range_view(transactions_tmp_).map([](auto const &trx) {
-        return ReplayProtectionService::TransactionInfo {
+        return ReplayProtectionService::TransactionInfo{
             trx.from(),
             trx.nonce(),
         };
@@ -1649,7 +1649,7 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
                 << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
                 << sortition_threshold_;
   ;
-  active_nodes = active_players; // TODO for test only
+  active_nodes = active_players;  // TODO for test only
 }
 
 void PbftManager::updateTempSortitionAccountsTable_(

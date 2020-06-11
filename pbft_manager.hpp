@@ -71,15 +71,15 @@ class PbftManager {
   std::unordered_map<addr_t, PbftSortitionAccount>
       sortition_account_balance_table;
 
-  u_long LAMBDA_ms_MIN;            // TODO: Should be on define
+  u_long LAMBDA_ms_MIN;  // TODO: Should be on define
   u_long LAMBDA_ms = 0;
   size_t COMMITTEE_SIZE;           // TODO: Should be on define
   uint64_t VALID_SORTITION_COINS;  // TODO: Should be on define
   size_t DAG_BLOCKS_SIZE;          // TODO: Should be on define
   size_t GHOST_PATH_MOVE_BACK;     // TODO: Should be on define
   uint64_t SKIP_PERIODS;           // TODO: Should be on define
-  bool RUN_COUNT_VOTES;    // TODO: Only for test, need remove later
-  size_t active_nodes = 0; // TODO: Only for test, need remove later
+  bool RUN_COUNT_VOTES;            // TODO: Only for test, need remove later
+  size_t active_nodes = 0;         // TODO: Only for test, need remove later
 
  private:
   void resetStep_();
@@ -176,7 +176,8 @@ class PbftManager {
   size_t valid_sortition_accounts_size_ = 0;
   blk_hash_t pbft_chain_last_block_hash_ = blk_hash_t(0);
   std::pair<blk_hash_t, bool> next_voted_block_from_previous_round_ =
-      std::make_pair(NULL_BLOCK_HASH, false);;
+      std::make_pair(NULL_BLOCK_HASH, false);
+  ;
 
   PbftStates state_ = value_proposal_state;
   uint64_t round_ = 1;
@@ -189,7 +190,8 @@ class PbftManager {
   // <round, block_hash_added_into_chain>
   std::unordered_map<size_t, blk_hash_t> push_block_values_for_round_;
   std::pair<blk_hash_t, bool> soft_voted_block_for_this_round_ =
-      std::make_pair(NULL_BLOCK_HASH, false);;
+      std::make_pair(NULL_BLOCK_HASH, false);
+  ;
   std::vector<Vote> votes_;
 
   time_point round_clock_initial_datetime_;

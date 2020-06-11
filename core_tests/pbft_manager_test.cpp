@@ -194,10 +194,11 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
-    std::cout << "Node" << i << " committee " << committee << ", active players "
-              << active_players << ", valid voting players "
-              << valid_voting_players << ", 2t+1 " << two_t_plus_one
-              << ", sortition threshold " << threshold << std::endl;
+    std::cout << "Node" << i << " committee " << committee
+              << ", active players " << active_players
+              << ", valid voting players " << valid_voting_players << ", 2t+1 "
+              << two_t_plus_one << ", sortition threshold " << threshold
+              << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
     tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
         committee, active_players, valid_voting_players);

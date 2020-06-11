@@ -483,8 +483,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   dag_blk = blk_hash_t(567);
   period = 2;
   beneficiary = addr_t(543);
-  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period,
-                        beneficiary, node1->getSecretKey());
+  PbftBlock pbft_block2(prev_block_hash, dag_blk, schedule, period, beneficiary,
+                        node1->getSecretKey());
   std::cout << "There are no votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and no votes store into DB
   // (malicious player)
