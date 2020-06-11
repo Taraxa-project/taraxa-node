@@ -260,27 +260,6 @@ void DbStorage::addPbftHeadToBatch(
             head_str);
 }
 
-std::shared_ptr<blk_hash_t> DbStorage::getPbftBlockOrder(
-    uint64_t const& index) {
-  auto hash = asBytes(lookup(toSlice(index), Columns::pbft_blocks_order));
-  if (hash.size()) {
-    return std::make_shared<blk_hash_t>(hash);
-  }
-  return nullptr;
-}
-
-void DbStorage::savePbftBlockOrder(uint64_t const& index,
-                                   blk_hash_t const& hash) {
-  insert(Columns::pbft_blocks_order, toSlice(index), toSlice(hash.asBytes()));
-}
-
-void DbStorage::addPbftBlockIndexToBatch(
-    const uint64_t& index, const taraxa::blk_hash_t& hash,
-    const taraxa::DbStorage::BatchPtr& write_batch) {
-  batch_put(write_batch, Columns::pbft_blocks_order, toSlice(index),
-            toSlice(hash.asBytes()));
-}
-
 std::shared_ptr<blk_hash_t> DbStorage::getDagBlockOrder(uint64_t const& index) {
   auto hash = asBytes(lookup(toSlice(index), Columns::dag_blocks_order));
   if (hash.size()) {

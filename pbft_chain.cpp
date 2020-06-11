@@ -158,7 +158,6 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
   prev_block_hash_ = rlp[0].toHash<blk_hash_t>();
   dag_block_hash_as_pivot_ = rlp[1].toHash<blk_hash_t>();
   period_ = rlp[2].toInt<uint64_t>();
-  height_ = rlp[3].toInt<uint64_t>();
   timestamp_ = rlp[4].toInt<uint64_t>();
   signature_ = rlp[5].toHash<sig_t>();
   schedule_ = TrxSchedule(rlp[6]);
@@ -167,14 +166,14 @@ PbftBlock::PbftBlock(dev::RLP const& r) {
 
 PbftBlock::PbftBlock(blk_hash_t const& prev_blk_hash,
                      blk_hash_t const& dag_blk_hash_as_pivot,
-                     TrxSchedule const& schedule, uint64_t period,
-                     uint64_t height, addr_t const& beneficiary,
+                     TrxSchedule const& schedule,
+                     uint64_t period,
+                     addr_t const& beneficiary,
                      secret_t const& sk)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       schedule_(schedule),
       period_(period),
-      height_(height),
       beneficiary_(beneficiary) {
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
@@ -192,7 +191,6 @@ PbftBlock::PbftBlock(std::string const& str) {
   const Json::Value& schedule = doc["schedule"];
   schedule_.setSchedule(schedule);
   period_ = doc["period"].asUInt64();
-  height_ = doc["height"].asUInt64();
   timestamp_ = doc["timestamp"].asUInt64();
   signature_ = sig_t(doc["signature"].asString());
   beneficiary_ = addr_t(doc["beneficiary"].asString());
@@ -221,7 +219,6 @@ std::string PbftBlock::getJsonStr() const {
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
   json["schedule"] = schedule_.getJson();
   json["period"] = (Json::Value::UInt64)period_;
-  json["height"] = (Json::Value::UInt64)height_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
   json["block_hash"] = block_hash_.toString();
   json["signature"] = signature_.toString();
@@ -235,7 +232,6 @@ void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
   strm << period_;
-  strm << height_;
   strm << timestamp_;
   if (include_sig) strm << signature_;
   schedule_.streamRLP(strm);
@@ -258,8 +254,6 @@ blk_hash_t PbftBlock::getPivotDagBlockHash() const {
 TrxSchedule PbftBlock::getSchedule() const { return schedule_; }
 
 uint64_t PbftBlock::getPeriod() const { return period_; }
-
-uint64_t PbftBlock::getHeight() const { return height_; }
 
 uint64_t PbftBlock::getTimestamp() const { return timestamp_; }
 
@@ -312,7 +306,6 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
 PbftChain::PbftChain(std::string const& dag_genesis_hash)
     : head_hash_(blk_hash_t(0)),
       size_(0),
-      period_(0),
       last_pbft_block_hash_(head_hash_),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
 
@@ -341,7 +334,6 @@ void PbftChain::setPbftHead(std::string const& pbft_head_str) {
 
   head_hash_ = blk_hash_t(doc["head_hash"].asString());
   size_ = doc["size"].asUInt64();
-  period_ = doc["period"].asUInt64();
   last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
 }
 
@@ -364,8 +356,6 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
 }
 
 uint64_t PbftChain::getPbftChainSize() const { return size_; }
-
-uint64_t PbftChain::getPbftChainPeriod() const { return period_; }
 
 blk_hash_t PbftChain::getHeadHash() const { return head_hash_; }
 
@@ -456,13 +446,13 @@ std::pair<PbftBlock, bool> PbftChain::getUnverifiedPbftBlock(
   return std::make_pair(PbftBlock(), false);
 }
 
-std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
+std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t period,
                                                 size_t count) const {
   std::vector<PbftBlock> result;
-  for (auto i = height; i < height + count; i++) {
-    auto pbft_block_hash = db_->getPbftBlockOrder(i);
+  for (auto i = period; i < period + count; i++) {
+    auto pbft_block_hash = db_->getPeriodScheduleBlock(i);
     if (pbft_block_hash == nullptr) {
-      LOG(log_err_) << "PBFT block height " << i
+      LOG(log_err_) << "PBFT block period " << i
                     << " is not exist in blocks order DB.";
       break;
     }
@@ -472,9 +462,9 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
                     << " in PBFT chain DB.";
       break;
     }
-    if (pbft_block->getHeight() != i) {
+    if (pbft_block->getPeriod() != i) {
       LOG(log_err_) << "DB corrupted - PBFT block hash " << pbft_block_hash
-                    << "has different height " << pbft_block->getHeight()
+                    << "has different period " << pbft_block->getPeriod()
                     << "in block data then in block order db: " << i;
       assert(false);
     }
@@ -483,14 +473,14 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t height,
   return result;
 }
 
-std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
+std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period,
                                                      size_t count,
                                                      bool hash) const {
   std::vector<std::string> result;
-  for (auto i = height; i < height + count; i++) {
-    auto pbft_block_hash = db_->getPbftBlockOrder(i);
+  for (auto i = period; i < period + count; i++) {
+    auto pbft_block_hash = db_->getPeriodScheduleBlock(i);
     if (pbft_block_hash == nullptr) {
-      LOG(log_err_) << "PBFT block height " << i
+      LOG(log_err_) << "PBFT block period " << i
                     << " is not exist in blocks order DB.";
       break;
     }
@@ -510,7 +500,6 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t height,
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash) {
   pbftSyncedSetInsert_(pbft_block_hash);
-  period_++;
   size_++;
   setLastPbftBlockHash(pbft_block_hash);
 }
@@ -591,7 +580,6 @@ std::string PbftChain::getHeadStr() const {
   strm << "[PbftChain]" << std::endl;
   strm << "head hash: " << head_hash_.toString() << std::endl;
   strm << "size: " << size_ << std::endl;
-  strm << "period: " << period_ << std::endl;
   strm << "last pbft block hash: " << last_pbft_block_hash_.toString()
        << std::endl;
   return strm.str();
@@ -601,7 +589,6 @@ std::string PbftChain::getJsonStr() const {
   Json::Value json;
   json["head_hash"] = head_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
-  json["period"] = (Json::Value::UInt64)period_;
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
   return json.toStyledString();
 }
@@ -611,11 +598,11 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
-uint64_t PbftChain::pbftSyncingHeight() const {
+uint64_t PbftChain::pbftSyncingPeriod() const {
   if (pbft_synced_queue_.empty()) {
     return size_;
   } else {
-    return pbftSyncedQueueBack().pbft_blk.getHeight();
+    return pbftSyncedQueueBack().pbft_blk.getPeriod();
   }
 }
 

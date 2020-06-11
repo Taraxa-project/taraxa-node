@@ -1082,9 +1082,9 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
     return std::make_pair(NULL_BLOCK_HASH, true);
   }
   // get dag blocks hash order
-  uint64_t pbft_chain_period;
+  uint64_t period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
-  std::tie(pbft_chain_period, dag_blocks_hash_order) =
+  std::tie(period, dag_blocks_hash_order) =
       full_node->getDagBlockOrder(dag_block_hash);
   // get dag blocks
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
@@ -1142,14 +1142,11 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   //      full_node->createMockTrxSchedule(trx_overlap_table);
 
   TrxSchedule schedule(*dag_blocks_hash_order, dag_blocks_trxs_mode);
-  uint64_t propose_pbft_period = pbft_chain_->getPbftChainPeriod() + 1;
-  // PBFT chain size as same as last PBFT block height
-  uint64_t pbft_block_height = pbft_chain_->getPbftChainSize() + 1;
+  uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
   addr_t beneficiary = full_node->getAddress();
-
   // generate generate pbft block
   PbftBlock pbft_block(last_pbft_block_hash, dag_block_hash, schedule,
-                       propose_pbft_period, pbft_block_height, beneficiary,
+                       propose_pbft_period, beneficiary,
                        full_node->getSecretKey());
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
@@ -1247,12 +1244,12 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
     LOG(log_err_) << "Full node unavailable" << std::endl;
     return false;
   }
-  uint64_t last_period = pbft_chain_->getPbftChainPeriod();
+  uint64_t last_period = pbft_chain_->getPbftChainSize();
   // get DAG blocks order
   blk_hash_t dag_block_hash = pbft_block.getPivotDagBlockHash();
-  uint64_t pbft_chain_period;
+  uint64_t period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
-  std::tie(pbft_chain_period, dag_blocks_hash_order) =
+  std::tie(period, dag_blocks_hash_order) =
       full_node->getDagBlockOrder(dag_block_hash);
   // compare DAG blocks hash in PBFT schedule with DAG blocks
   vec_blk_t dag_blocks_hash_in_schedule =
@@ -1543,9 +1540,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                 << cert_votes;
   // Add PBFT block in DB
   db_->addPbftBlockToBatch(pbft_block, batch);
-  // Add PBFT block index in DB
-  auto pbft_block_index = pbft_block.getHeight();
-  db_->addPbftBlockIndexToBatch(pbft_block_index, pbft_block_hash, batch);
   // Update period_schedule_block in DB
   db_->addPbftBlockPeriodToBatch(pbft_period, pbft_block_hash, batch);
   // Update sortition account balance table DB
@@ -1598,7 +1592,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
 }
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
-  uint64_t last_pbft_period = pbft_chain_->getPbftChainPeriod();
+  uint64_t last_pbft_period = pbft_chain_->getPbftChainSize();
   int64_t since_period;
   if (last_pbft_period < SKIP_PERIODS) {
     since_period = 0;

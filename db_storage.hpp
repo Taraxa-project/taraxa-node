@@ -67,7 +67,6 @@ struct DbStorage {
     COLUMN(status);
     COLUMN(pbft_head);
     COLUMN(pbft_blocks);
-    COLUMN(pbft_blocks_order);
     COLUMN(dag_blocks_order);
     COLUMN(dag_blocks_height);
     COLUMN(sortition_accounts);
@@ -162,12 +161,6 @@ struct DbStorage {
   void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash,
                           std::string const& head_str,
                           BatchPtr const& write_batch);
-  // pbft_blocks_order
-  shared_ptr<blk_hash_t> getPbftBlockOrder(uint64_t const& index);
-  void savePbftBlockOrder(uint64_t const& index, blk_hash_t const& hash);
-  void addPbftBlockIndexToBatch(uint64_t const& index,
-                                taraxa::blk_hash_t const& hash,
-                                BatchPtr const& write_batch);
   // dag_blocks_order & dag_blocks_height
   shared_ptr<blk_hash_t> getDagBlockOrder(uint64_t const& index);
   void saveDagBlockOrder(uint64_t const& index, blk_hash_t const& hash);
