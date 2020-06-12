@@ -236,7 +236,7 @@ inline std::vector<DagBlock> createMockDag0(
                 blk_hash_t(0),        // hash
                 addr_t(123));
   blk1.sign(secret_t::random());
-  
+
   DagBlock blk2(blk_hash_t(genesis),  // pivot
                 1,                    // level
                 {},                   // tips
@@ -313,7 +313,7 @@ inline std::vector<DagBlock> createMockDag0(
                  4,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),       // sig
+                 sig_t(0),        // sig
                  blk_hash_t(0),   // hash
                  addr_t(123));
   blk11.sign(secret_t::random());
@@ -321,7 +321,7 @@ inline std::vector<DagBlock> createMockDag0(
                  4,               // level
                  {},              // tips
                  {},              // trxs
-                 sig_t(0),       // sig
+                 sig_t(0),        // sig
                  blk_hash_t(0),   // hash
                  addr_t(123));
   blk12.sign(secret_t::random());
@@ -329,7 +329,7 @@ inline std::vector<DagBlock> createMockDag0(
                  5,                // level
                  {},               // tips
                  {},               // trxs
-                 sig_t(0),        // sig
+                 sig_t(0),         // sig
                  blk_hash_t(0),    // hash
                  addr_t(123));
   blk13.sign(secret_t::random());
@@ -337,7 +337,7 @@ inline std::vector<DagBlock> createMockDag0(
                  5,                  // level
                  {blk12.getHash()},  // tips
                  {},                 // trxs
-                 sig_t(0),          // sig
+                 sig_t(0),           // sig
                  blk_hash_t(0),      // hash
                  addr_t(123));
   blk14.sign(secret_t::random());
@@ -345,7 +345,7 @@ inline std::vector<DagBlock> createMockDag0(
                  6,                  // level
                  {blk14.getHash()},  // tips
                  {},                 // trxs
-                 sig_t(0),          // sig
+                 sig_t(0),           // sig
                  blk_hash_t(0),      // hash
                  addr_t(123));
   blk15.sign(secret_t::random());
@@ -353,7 +353,7 @@ inline std::vector<DagBlock> createMockDag0(
                  6,                // level
                  {},               // tips
                  {},               // trxs
-                 sig_t(0),        // sig
+                 sig_t(0),         // sig
                  blk_hash_t(0),    // hash
                  addr_t(123));
   blk16.sign(secret_t::random());
@@ -361,7 +361,7 @@ inline std::vector<DagBlock> createMockDag0(
                  5,                // level
                  {},               // tips
                  {},               // trxs
-                 sig_t(0),        // sig
+                 sig_t(0),         // sig
                  blk_hash_t(0),    // hash
                  addr_t(123));
   blk17.sign(secret_t::random());
@@ -369,7 +369,7 @@ inline std::vector<DagBlock> createMockDag0(
                  7,                                                   // level
                  {blk8.getHash(), blk16.getHash(), blk17.getHash()},  // tips
                  {},                                                  // trxs
-                 sig_t(0),                                           // sig
+                 sig_t(0),                                            // sig
                  blk_hash_t(0),                                       // hash
                  addr_t(123));
   blk18.sign(secret_t::random());
@@ -377,7 +377,7 @@ inline std::vector<DagBlock> createMockDag0(
                  8,                // level
                  {},               // tips
                  {},               // trxs
-                 sig_t(0),        // sig
+                 sig_t(0),         // sig
                  blk_hash_t(0),    // hash
                  addr_t(123));
   blk19.sign(secret_t::random());

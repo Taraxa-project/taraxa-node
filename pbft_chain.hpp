@@ -67,12 +67,12 @@ std::ostream& operator<<(std::ostream& strm, TrxSchedule const& trx_sche);
 class PbftBlock {
  public:
   PbftBlock() = default;
-  PbftBlock(blk_hash_t const& block_hash, uint64_t height)
-      : PbftBlock(block_hash, blk_hash_t(0), TrxSchedule(), 1, height,
-                  addr_t(0), secret_t::random()) {}  // For unit test
+  PbftBlock(blk_hash_t const& block_hash, uint64_t period)
+      : PbftBlock(block_hash, blk_hash_t(0), TrxSchedule(), period, addr_t(0),
+                  secret_t::random()) {}  // For unit test
   PbftBlock(blk_hash_t const& prev_blk_hash,
             blk_hash_t const& dag_blk_hash_as_pivot,
-            TrxSchedule const& schedule, uint64_t period, uint64_t height,
+            TrxSchedule const& schedule, uint64_t period,
             addr_t const& beneficiary, secret_t const& sk);
   explicit PbftBlock(dev::RLP const& r);
   explicit PbftBlock(bytes const& b);
@@ -91,7 +91,6 @@ class PbftBlock {
   blk_hash_t getPivotDagBlockHash() const;
   TrxSchedule getSchedule() const;
   uint64_t getPeriod() const;
-  uint64_t getHeight() const;
   uint64_t getTimestamp() const;
   addr_t getBeneficiary() const;
 
@@ -102,10 +101,8 @@ class PbftBlock {
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_as_pivot_;
   TrxSchedule schedule_;
-  uint64_t
-      period_;  // PBFT head block is period 0, first PBFT block is period 1
-  uint64_t
-      height_;  // PBFT head block is height 1, first PBFT blick is height 2
+  // PBFT head block is period 0, first PBFT block is period 1
+  uint64_t period_;  // Block index
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
@@ -134,15 +131,14 @@ class PbftChain {
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
   uint64_t getPbftChainSize() const;
-  uint64_t getPbftChainPeriod() const;
   blk_hash_t getHeadHash() const;
   blk_hash_t getLastPbftBlockHash() const;
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::pair<PbftBlock, bool> getUnverifiedPbftBlock(
       blk_hash_t const& pbft_block_hash);
-  std::vector<PbftBlock> getPbftBlocks(size_t height, size_t count) const;
-  std::vector<std::string> getPbftBlocksStr(size_t height, size_t count,
+  std::vector<PbftBlock> getPbftBlocks(size_t period, size_t count) const;
+  std::vector<std::string> getPbftBlocksStr(size_t period, size_t count,
                                             bool hash) const;
   std::string getHeadStr() const;
   std::string getJsonStr() const;
@@ -166,7 +162,7 @@ class PbftChain {
       taraxa::PbftBlock const& pbft_block) const;
   bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
 
-  uint64_t pbftSyncingHeight() const;
+  uint64_t pbftSyncingPeriod() const;
 
   bool pbftSyncedQueueEmpty() const;
   PbftBlockCert pbftSyncedQueueFront() const;
@@ -192,7 +188,6 @@ class PbftChain {
 
   blk_hash_t head_hash_;  // pbft head hash
   uint64_t size_;
-  uint64_t period_;
   blk_hash_t last_pbft_block_hash_;
 
   blk_hash_t dag_genesis_hash_;  // dag genesis at height 1

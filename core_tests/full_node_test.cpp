@@ -284,17 +284,6 @@ TEST_F(FullNodeTest, db_test) {
                         batch);
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-  // pbft_blocks_order
-  db.savePbftBlockOrder(1, blk_hash_t(1));
-  db.savePbftBlockOrder(2, blk_hash_t(2));
-  batch = db.createWriteBatch();
-  db.addPbftBlockIndexToBatch(3, blk_hash_t(3), batch);
-  db.addPbftBlockIndexToBatch(4, blk_hash_t(4), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftBlockOrder(1), blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftBlockOrder(2), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftBlockOrder(3), blk_hash_t(3));
-  EXPECT_EQ(*db.getPbftBlockOrder(4), blk_hash_t(4));
   // dag_blocks_order & dag_blocks_height
   db.saveDagBlockOrder(1, blk_hash_t(1));
   db.saveDagBlockOrder(3, blk_hash_t(2));

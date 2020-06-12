@@ -134,8 +134,8 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
                 auto now = getCurrentTimeMilliSeconds();
                 val_t value = val_t(100);
                 auto trx = taraxa::Transaction(
-                    i + nonce, value, 1000,
-                    taraxa::samples::TEST_TX_GAS_LIMIT, data, sk, receiver);
+                    i + nonce, value, 1000, taraxa::samples::TEST_TX_GAS_LIMIT,
+                    data, sk, receiver);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;
                 node->insertTransaction(trx, false);

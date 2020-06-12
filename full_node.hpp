@@ -213,7 +213,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
   bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
 
-  uint64_t pbftSyncingHeight() const;
+  uint64_t pbftSyncingPeriod() const;
   uint64_t getPbftChainSize() const;
 
   void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);

@@ -117,7 +117,7 @@ class Transaction {
   bool operator<(Transaction const &other) const { return hash_ < other.hash_; }
   void sign(secret_t const &sk);
   // @returns sender of the transaction from the signature (and hash).
-  addr_t const& sender() const;
+  addr_t const &sender() const;
   void updateHash() {
     if (!hash_) {
       hash_ = dev::sha3(rlp(true));
