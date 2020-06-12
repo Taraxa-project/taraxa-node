@@ -319,8 +319,6 @@ void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   if (pbft_head_str.empty()) {
     // Store PBFT HEAD to db
     db_->savePbftHead(head_hash_, getJsonStr());
-    // Initialize DAG genesis at DAG block heigh 1
-    pushDagBlockHash(dag_genesis_hash_);
   } else {
     // set PBFT HEAD from DB
     setPbftHead(pbft_head_str);
@@ -361,43 +359,6 @@ blk_hash_t PbftChain::getHeadHash() const { return head_hash_; }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
   return last_pbft_block_hash_;
-}
-
-std::pair<blk_hash_t, bool> PbftChain::getDagBlockHash(
-    uint64_t dag_block_height) const {
-  if (dag_block_height > max_dag_blocks_height_) {
-    LOG(log_err_) << "The DAG block height " << dag_block_height
-                  << " is greater than current max dag blocks height "
-                  << max_dag_blocks_height_;
-    return std::make_pair(blk_hash_t(0), false);
-  }
-  auto dag_block_hash = db_->getDagBlockOrder(dag_block_height);
-  if (!dag_block_hash) {
-    LOG(log_err_) << "The DAG block height " << dag_block_height
-                  << " is not exist in DAG blocks order DB.";
-    return std::make_pair(blk_hash_t(0), false);
-  }
-  return std::make_pair(*dag_block_hash, true);
-}
-
-// TODO: should remove, full node should call db directly
-std::pair<uint64_t, bool> PbftChain::getDagBlockHeight(
-    blk_hash_t const& dag_block_hash) const {
-  auto dag_block_height_ptr = db_->getDagBlockHeight(dag_block_hash);
-  if (!dag_block_height_ptr) {
-    LOG(log_err_) << "Cannot find the DAG block hash " << dag_block_hash
-                  << " in DAG blocks height DB";
-    return std::make_pair(0, false);
-  }
-  return std::make_pair(*dag_block_height_ptr, true);
-}
-
-uint64_t PbftChain::getDagBlockMaxHeight() const {
-  return max_dag_blocks_height_;
-}
-
-void PbftChain::setDagBlockMaxHeight(uint64_t const& max_dag_blocks_height) {
-  max_dag_blocks_height_ = max_dag_blocks_height;
 }
 
 void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
@@ -450,7 +411,7 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t period,
                                                 size_t count) const {
   std::vector<PbftBlock> result;
   for (auto i = period; i < period + count; i++) {
-    auto pbft_block_hash = db_->getPeriodScheduleBlock(i);
+    auto pbft_block_hash = db_->getPeriodPbftBlock(i);
     if (pbft_block_hash == nullptr) {
       LOG(log_err_) << "PBFT block period " << i
                     << " is not exist in blocks order DB.";
@@ -478,7 +439,7 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period,
                                                      bool hash) const {
   std::vector<std::string> result;
   for (auto i = period; i < period + count; i++) {
-    auto pbft_block_hash = db_->getPeriodScheduleBlock(i);
+    auto pbft_block_hash = db_->getPeriodPbftBlock(i);
     if (pbft_block_hash == nullptr) {
       LOG(log_err_) << "PBFT block period " << i
                     << " is not exist in blocks order DB.";
@@ -555,24 +516,6 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
   LOG(log_deb_) << "Push unverified block " << block_hash
                 << ". Pbft unverified blocks size: "
                 << unverified_blocks_.size();
-}
-
-uint64_t PbftChain::pushDagBlockHash(const taraxa::blk_hash_t& dag_block_hash) {
-  auto dag_block_height_ptr = db_->getDagBlockHeight(dag_block_hash);
-  if (dag_block_height_ptr) {
-    // The DAG block already exist
-    LOG(log_inf_) << "Duplicate DAG block " << dag_block_hash
-                  << " in DAG blocks height DB already";
-    return *dag_block_height_ptr;
-  }
-  // push DAG block hash into DAG blocks order DB. DAG genesis at index 1
-  max_dag_blocks_height_++;
-  db_->saveDagBlockOrder(max_dag_blocks_height_, dag_block_hash);
-  // push DAG block hash into DAG blocks height DB
-  // key : dag block hash, value : dag block height
-  // DAG genesis is block height 1
-  db_->saveDagBlockHeight(dag_block_hash, max_dag_blocks_height_);
-  return max_dag_blocks_height_;
 }
 
 std::string PbftChain::getHeadStr() const {

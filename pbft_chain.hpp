@@ -142,12 +142,6 @@ class PbftChain {
                                             bool hash) const;
   std::string getHeadStr() const;
   std::string getJsonStr() const;
-  std::pair<blk_hash_t, bool> getDagBlockHash(uint64_t dag_block_height) const;
-  std::pair<uint64_t, bool> getDagBlockHeight(
-      blk_hash_t const& dag_block_hash) const;
-  uint64_t getDagBlockMaxHeight() const;
-
-  void setDagBlockMaxHeight(uint64_t const& max_dag_blocks_height);
   void setLastPbftBlockHash(blk_hash_t const& new_pbft_block);
 
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash) const;
@@ -155,7 +149,6 @@ class PbftChain {
   bool findPbftBlockInSyncedSet(blk_hash_t const& pbft_block_hash) const;
 
   void pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block);
-  uint64_t pushDagBlockHash(blk_hash_t const& dag_block_hash);
   void updatePbftChain(blk_hash_t const& pbft_block_hash);
 
   bool checkPbftBlockValidationFromSyncing(

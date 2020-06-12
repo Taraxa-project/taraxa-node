@@ -81,8 +81,8 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
       new_dag_blocks_subscription_ = subscription_id_;
     } else if (params[0].asString() == "newDagBlocksFinalized") {
       new_dag_block_finalized_subscription_ = subscription_id_;
-    } else if (params[0].asString() == "newScheduleBlocks") {
-      new_schedule_block_executed_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newPbftBlocks") {
+      new_pbft_block_executed_subscription_ = subscription_id_;
     }
   }
   json_response["result"] = dev::toJS(subscription_id_);
@@ -134,7 +134,7 @@ void WSSession::on_write_no_read(beast::error_code ec,
   }
 }
 
-void WSSession::newOrderedBlock(dev::eth::BlockHeader const &payload) {
+void WSSession::newEthBlock(dev::eth::BlockHeader const &payload) {
   if (new_heads_subscription_ != 0) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
@@ -219,18 +219,15 @@ void WSSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSSession::newScheduleBlockExecuted(PbftBlock const &pbft_blk,
-                                         uint32_t block_number) {
-  if (new_schedule_block_executed_subscription_) {
+void WSSession::newPbftBlockExecuted(PbftBlock const &pbft_blk) {
+  if (new_pbft_block_executed_subscription_) {
     Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    result["schedule_block"] = pbft_blk.getSchedule().getJson();
-    result["number"] = dev::toJS(block_number);
-    result["period"] = dev::toJS(pbft_blk.getPeriod());
+    result["pbft_block"] = pbft_blk.getJsonStr();
     params["result"] = result;
     params["subscription"] =
-        dev::toJS(new_schedule_block_executed_subscription_);
+        dev::toJS(new_pbft_block_executed_subscription_);
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);
@@ -366,19 +363,17 @@ void WSServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
   }
 }
 
-void WSServer::newScheduleBlockExecuted(PbftBlock const &pbft_blk,
-                                        uint32_t block_number) {
+void WSServer::newPbftBlockExecuted(PbftBlock const &pbft_blk) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
-    if (!session->is_closed())
-      session->newScheduleBlockExecuted(pbft_blk, block_number);
+    if (!session->is_closed()) session->newPbftBlockExecuted(pbft_blk);
   }
 }
 
-void WSServer::newOrderedBlock(dev::eth::BlockHeader const &payload) {
+void WSServer::newEthBlock(dev::eth::BlockHeader const &payload) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newOrderedBlock(payload);
+    if (!session->is_closed()) session->newEthBlock(payload);
   }
 }
 

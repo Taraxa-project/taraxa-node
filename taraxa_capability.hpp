@@ -5,9 +5,11 @@
 #include <libp2p/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Session.h>
+
 #include <chrono>
 #include <set>
 #include <thread>
+
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
@@ -40,6 +42,10 @@ enum SubprotocolPacketType : ::byte {
   SyncedPacket,
   SyncedResponsePacket,
   PacketCount
+};
+
+struct InvalidDataException : public std::runtime_error {
+  using std::runtime_error::runtime_error;
 };
 
 class TaraxaPeer : public boost::noncopyable {

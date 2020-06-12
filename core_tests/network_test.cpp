@@ -355,7 +355,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                                batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -386,7 +386,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                                batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
@@ -466,7 +466,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                                batch);
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block1, batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block1.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -491,7 +491,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   batch = db1->createWriteBatch();
   // Add PBFT block in DB
   db1->addPbftBlockToBatch(pbft_block2, batch);
-  // Update period_schedule_block in DB
+  // Update period_pbft_block in DB
   db1->addPbftBlockPeriodToBatch(period, pbft_block2.getBlockHash(), batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
