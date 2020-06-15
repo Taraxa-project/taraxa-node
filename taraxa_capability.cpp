@@ -54,22 +54,22 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
                               << " has a missing tip " << tip.toString();
         return std::make_pair(false, tip);
       }
-      auto pivot = block.getPivot();
-      auto pivot_block = full_node->getDagBlock(pivot);
-      if (!pivot_block) {
-        LOG(log_nf_) << "Block " << block.getHash().toString()
-                     << " has a missing pivot " << pivot.toString();
-        return std::make_pair(false, pivot);
-      }
-      expected_level = std::max(pivot_block->getLevel(), expected_level);
-      expected_level++;
-      if (expected_level != block.getLevel()) {
-        throw InvalidDataException(std::string("Invalid block level") +
-                                   std::to_string(block.getLevel()) +
-                                   " for block " + block.getHash().toString() +
-                                   ". Expected level " +
-                                   std::to_string(expected_level));
-      }
+    }
+    auto pivot = block.getPivot();
+    auto pivot_block = full_node->getDagBlock(pivot);
+    if (!pivot_block) {
+      LOG(log_nf_) << "Block " << block.getHash().toString()
+                   << " has a missing pivot " << pivot.toString();
+      return std::make_pair(false, pivot);
+    }
+    expected_level = std::max(pivot_block->getLevel(), expected_level);
+    expected_level++;
+    if (expected_level != block.getLevel()) {
+      throw InvalidDataException(std::string("Invalid block level ") +
+                                 std::to_string(block.getLevel()) +
+                                 " for block " + block.getHash().toString() +
+                                 ". Expected level " +
+                                 std::to_string(expected_level));
     }
     return std::make_pair(true, blk_hash_t());
   }
