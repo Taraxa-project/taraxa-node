@@ -665,13 +665,13 @@ TEST_F(NetworkTest, node_sync2) {
   blk3.sign(g_secret2);
   std::vector<Transaction> tr3({transactions[4], transactions[5]});
 
-  DagBlock blk4(blk3.getHash(), 7, {},
+  DagBlock blk4(blk3.getHash(), 3, {},
                 {transactions[6].getHash(), transactions[7].getHash()},
                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk4.sign(g_secret2);
   std::vector<Transaction> tr4({transactions[6], transactions[7]});
 
-  DagBlock blk5(blk2.getHash(), 3, {},
+  DagBlock blk5(blk2.getHash(), 2, {},
                 {transactions[8].getHash(), transactions[9].getHash()},
                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk5.sign(g_secret2);
@@ -683,13 +683,13 @@ TEST_F(NetworkTest, node_sync2) {
   blk6.sign(g_secret2);
   std::vector<Transaction> tr6({transactions[10], transactions[11]});
 
-  DagBlock blk7(blk6.getHash(), 4, {},
+  DagBlock blk7(blk6.getHash(), 3, {},
                 {transactions[12].getHash(), transactions[13].getHash()},
                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk7.sign(g_secret2);
   std::vector<Transaction> tr7({transactions[12], transactions[13]});
 
-  DagBlock blk8(blk1.getHash(), 5, {blk7.getHash()},
+  DagBlock blk8(blk1.getHash(), 4, {blk7.getHash()},
                 {transactions[14].getHash(), transactions[15].getHash()},
                 sig_t(0), blk_hash_t(0), addr_t(999));
   blk8.sign(g_secret2);
@@ -701,19 +701,19 @@ TEST_F(NetworkTest, node_sync2) {
   blk9.sign(g_secret2);
   std::vector<Transaction> tr9({transactions[16], transactions[17]});
 
-  DagBlock blk10(blk8.getHash(), 6, {},
+  DagBlock blk10(blk8.getHash(), 5, {},
                  {transactions[18].getHash(), transactions[19].getHash()},
                  sig_t(0), blk_hash_t(0), addr_t(999));
   blk10.sign(g_secret2);
   std::vector<Transaction> tr10({transactions[18], transactions[19]});
 
-  DagBlock blk11(blk3.getHash(), 7, {},
+  DagBlock blk11(blk3.getHash(), 3, {},
                  {transactions[20].getHash(), transactions[21].getHash()},
                  sig_t(0), blk_hash_t(0), addr_t(999));
   blk11.sign(g_secret2);
   std::vector<Transaction> tr11({transactions[20], transactions[21]});
 
-  DagBlock blk12(blk5.getHash(), 8, {},
+  DagBlock blk12(blk5.getHash(), 3, {},
                  {transactions[22].getHash(), transactions[23].getHash()},
                  sig_t(0), blk_hash_t(0), addr_t(999));
   blk12.sign(g_secret2);
@@ -962,7 +962,7 @@ int main(int argc, char** argv) {
   taraxa::static_init();
   dev::LoggingOptions logOptions;
   logOptions.verbosity = dev::VerbosityError;
-  logOptions.includeChannels.push_back("PBFT_CHAIN");
+  // logOptions.includeChannels.push_back("PBFT_CHAIN");
   // logOptions.includeChannels.push_back("PBFTSYNC");
   // logOptions.includeChannels.push_back("DAGSYNC");
   // logOptions.includeChannels.push_back("NETWORK");

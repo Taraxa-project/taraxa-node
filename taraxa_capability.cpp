@@ -54,6 +54,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
                               << " has a missing tip " << tip.toString();
         return std::make_pair(false, tip);
       }
+      expected_level = std::max(tip_block->getLevel(), expected_level);
     }
     auto pivot = block.getPivot();
     auto pivot_block = full_node->getDagBlock(pivot);
@@ -65,6 +66,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
     expected_level = std::max(pivot_block->getLevel(), expected_level);
     expected_level++;
     if (expected_level != block.getLevel()) {
+
       throw InvalidDataException(std::string("Invalid block level ") +
                                  std::to_string(block.getLevel()) +
                                  " for block " + block.getHash().toString() +
