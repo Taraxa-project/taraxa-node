@@ -224,7 +224,7 @@ void WSSession::newPbftBlockExecuted(PbftBlock const &pbft_blk) {
     Json::Value res, params, result;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    result["pbft_block"] = pbft_blk.getJsonStr();
+    result["pbft_block"] = pbft_blk.getJson();
     params["result"] = result;
     params["subscription"] =
         dev::toJS(new_pbft_block_executed_subscription_);

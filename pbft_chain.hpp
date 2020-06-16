@@ -82,6 +82,7 @@ class PbftBlock {
 
   blk_hash_t sha3(bool include_sig) const;
   std::string getJsonStr() const;
+  Json::Value getJson() const;
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
   bool verifySig() const;  // TODO

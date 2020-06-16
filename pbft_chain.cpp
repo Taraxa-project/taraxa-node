@@ -212,6 +212,10 @@ blk_hash_t PbftBlock::sha3(bool include_sig) const {
 }
 
 std::string PbftBlock::getJsonStr() const {
+  return getJson().toStyledString();
+}
+
+Json::Value PbftBlock::getJson() const {
   Json::Value json;
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
@@ -221,7 +225,7 @@ std::string PbftBlock::getJsonStr() const {
   json["block_hash"] = block_hash_.toString();
   json["signature"] = signature_.toString();
   json["beneficiary"] = beneficiary_.toString();
-  return json.toStyledString();
+  return json;
 }
 
 // Using to setup PBFT block hash
