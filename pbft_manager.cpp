@@ -17,8 +17,10 @@
 #include "full_node.hpp"
 #include "network.hpp"
 #include "sortition.hpp"
+#include "vrf_wrapper.hpp"
 
 namespace taraxa {
+using vrf_output_t = vrf_wrapper::vrf_output_t;
 
 struct ReplayProtectionServiceDummy : ReplayProtectionService {
   bool is_nonce_stale(addr_t const &addr, uint64_t nonce) const override {
@@ -1165,14 +1167,14 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
     std::vector<Vote> const &votes) {
   LOG(log_deb_) << "Into identify leader block, in round " << round_;
   // each leader candidate with <vote_signature_hash, pbft_block_hash>
-  std::vector<std::pair<blk_hash_t, blk_hash_t>> leader_candidates;
+  std::vector<std::pair<vrf_output_t, blk_hash_t>> leader_candidates;
   for (auto const &v : votes) {
     if (v.getRound() == round_ && v.getType() == propose_vote_type) {
-      // We should not pick aa null block as leader (proposed when
+      // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
       if (round_ == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
-        leader_candidates.emplace_back(
-            std::make_pair(dev::sha3(v.getVoteSignature()), v.getBlockHash()));
+        leader_candidates.emplace_back(std::make_pair(v.getCredential(),
+                                                      v.getBlockHash()));
       }
     }
   }
@@ -1180,10 +1182,10 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
     // no eligible leader
     return std::make_pair(NULL_BLOCK_HASH, false);
   }
-  std::pair<blk_hash_t, blk_hash_t> leader =
+  std::pair<vrf_output_t, blk_hash_t> leader =
       *std::min_element(leader_candidates.begin(), leader_candidates.end(),
-                        [](std::pair<blk_hash_t, blk_hash_t> const &i,
-                           std::pair<blk_hash_t, blk_hash_t> const &j) {
+                        [](std::pair<vrf_output_t, blk_hash_t> const &i,
+                           std::pair<vrf_output_t, blk_hash_t> const &j) {
                           return i.first < j.first;
                         });
 
