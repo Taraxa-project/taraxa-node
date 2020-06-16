@@ -595,10 +595,10 @@ void FullNode::setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes) {
 }
 
 Vote FullNode::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                            uint64_t period, size_t step,
+                            uint64_t round, size_t step,
                             blk_hash_t const &last_pbft_block_hash) {
   // sortition proof
-  VrfPbftMsg msg(last_pbft_block_hash, type, period, step);
+  VrfPbftMsg msg(last_pbft_block_hash, type, round, step);
   VrfPbftSortition vrf_sortition(vrf_sk_, msg);
   Vote vote(node_sk_, vrf_sortition, blockhash);
 
