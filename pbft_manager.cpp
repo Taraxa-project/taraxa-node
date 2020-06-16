@@ -1173,8 +1173,8 @@ std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
       // We should not pick any null block as leader (proposed when
       // no new blocks found, or maliciously) if others have blocks.
       if (round_ == 1 || v.getBlockHash() != NULL_BLOCK_HASH) {
-        leader_candidates.emplace_back(std::make_pair(v.getCredential(),
-                                                      v.getBlockHash()));
+        leader_candidates.emplace_back(
+            std::make_pair(v.getCredential(), v.getBlockHash()));
       }
     }
   }
