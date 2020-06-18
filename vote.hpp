@@ -91,6 +91,7 @@ class Vote {
   }
   auto getVrfSortition() const { return vrf_sortition_; }
   auto getSortitionProof() const { return vrf_sortition_.proof; }
+  auto getCredential() const { return vrf_sortition_.output; }
   sig_t getVoteSignature() const { return vote_signatue_; }
   blk_hash_t getBlockHash() const { return blockhash_; }
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg.type; }
