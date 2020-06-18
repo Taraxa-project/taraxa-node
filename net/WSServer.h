@@ -42,11 +42,10 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
   void on_write(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
-  void newOrderedBlock(dev::eth::BlockHeader const& payload);
+  void newEthBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newScheduleBlockExecuted(PbftBlock const& pbft_blk,
-                                uint32_t block_number);
+  void newPbftBlockExecuted(PbftBlock const& pbft_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
   dev::Logger log_si_{
@@ -68,7 +67,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   int new_dag_blocks_subscription_ = 0;
   int new_transactions_subscription_ = 0;
   int new_dag_block_finalized_subscription_ = 0;
-  int new_schedule_block_executed_subscription_ = 0;
+  int new_pbft_block_executed_subscription_ = 0;
   std::atomic<bool> closed_ = false;
 };
 
@@ -82,11 +81,10 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
 
   // Start accepting incoming connections
   void run();
-  void newOrderedBlock(dev::eth::BlockHeader const& payload);
+  void newEthBlock(dev::eth::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
-  void newScheduleBlockExecuted(PbftBlock const& sche_blk,
-                                uint32_t block_number);
+  void newPbftBlockExecuted(PbftBlock const& sche_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
  private:
