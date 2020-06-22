@@ -12,7 +12,7 @@ RUN apt-get update \
     libjsoncpp-dev libjsonrpccpp-dev libjsonrpccpp-tools libmpfr-dev python3-pip python3-dev
 
 RUN pip3 install --upgrade pip
-RUN pip3 install cmake
+RUN pip3 install cmake==3.17.2
 
 # After install and link for json/json.h include dir
 RUN ln -s /usr/include/jsoncpp/json /usr/include/json
