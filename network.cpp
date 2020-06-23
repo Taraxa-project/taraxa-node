@@ -9,14 +9,15 @@
 
 namespace taraxa {
 
-Network::Network(NetworkConfig const &config, std::string const &genesis)
-    : Network(config, "", secret_t(), genesis) {}
+Network::Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr)
+    : Network(config, "", secret_t(), genesis, node_addr) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file,
-                 std::string const &genesis)
-    : Network(config, network_file, secret_t(), genesis) {}
+                 std::string const &genesis, addr_t node_addr)
+    : Network(config, network_file, secret_t(), genesis, node_addr) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file,
-                 secret_t const &sk, std::string const &genesis) try
+                 secret_t const &sk, std::string const &genesis, addr_t node_addr) try
     : conf_(config) {
+  LOG_OBJECTS_CREATE(NETWORK);
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {
@@ -46,7 +47,7 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
         conf_.network_max_peer_count);
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
-      *host_.get(), conf_, genesis, conf_.network_performance_log);
+      *host_.get(), conf_, genesis, conf_.network_performance_log, node_addr);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";

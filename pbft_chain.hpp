@@ -123,7 +123,7 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 class PbftChain {
  public:
-  explicit PbftChain(std::string const& dag_genesis_hash);
+  explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr);
   virtual ~PbftChain() = default;
 
   void setFullNode(std::shared_ptr<FullNode> node);
@@ -198,18 +198,7 @@ class PbftChain {
   std::deque<PbftBlockCert> pbft_synced_queue_;
   std::unordered_set<blk_hash_t> pbft_synced_set_;
 
-  mutable dev::Logger log_sil_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_CHAIN")};
-  mutable dev::Logger log_err_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "PBFT_CHAIN")};
-  mutable dev::Logger log_war_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFT_CHAIN")};
-  mutable dev::Logger log_inf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_CHAIN")};
-  mutable dev::Logger log_deb_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFT_CHAIN")};
-  mutable dev::Logger log_tra_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_CHAIN")};
+  LOG_OBJECTS_DEFINE;
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 

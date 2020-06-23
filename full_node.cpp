@@ -26,12 +26,9 @@ void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 void FullNode::init(bool destroy_db, bool rebuild_network) {
   // ===== Deal with the config =====
-  LOG(log_nf_) << "Read FullNode Config: " << std::endl << conf_ << std::endl;
   num_block_workers_ = conf_.dag_processing_threads;
   auto key = dev::KeyPair::create();
-  if (conf_.node_secret.empty()) {
-    LOG(log_si_) << "New key generated " << toHex(key.secret().ref());
-  } else {
+  if (!conf_.node_secret.empty()) {
     auto secret = dev::Secret(conf_.node_secret,
                               dev::Secret::ConstructFromStringType::FromHex);
     key = dev::KeyPair(secret);
@@ -39,6 +36,19 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   node_sk_ = key.secret();
   node_pk_ = key.pub();
   node_addr_ = key.address();
+
+  // Initialize logging
+  for (auto &logging : conf_.log_configs) {
+    logging.setupLoggingConfiguration(node_addr_);
+  }
+
+  auto &node_addr = node_addr_;
+  LOG_OBJECTS_CREATE(FULLND);
+  log_time_ =
+      createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr_);
+  log_time_dg_ =
+      createTaraxaLogger(dev::Verbosity::VerbosityDebug, "TMSTM", node_addr_);
+
   vrf_sk_ = vrf_sk_t(conf_.vrf_secret);
   vrf_pk_ = vrf_wrapper::getVrfPublicKey(vrf_sk_);
   // Assume only first boot node is initialized
@@ -49,7 +59,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
                << "Node address: " << EthRed << node_addr_.toString()
                << std::endl
                << "Node VRF public key: " << EthGreen << vrf_pk_.toString();
-  LOG(log_info_) << "Number of block works: " << num_block_workers_;
+  LOG(log_nf_) << "Number of block works: " << num_block_workers_;
   // ===== Create DBs =====
   if (destroy_db) {
     boost::filesystem::remove_all(conf_.db_path);
@@ -65,19 +75,19 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
   // ===== Create services =====
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString());
-  blk_mgr_ =
-      std::make_shared<BlockManager>(1024 /*capacity*/, 4 /* verifer thread*/,
-                                     conf_.test_params.max_block_queue_warn);
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params);
-  trx_order_mgr_ = std::make_shared<TransactionOrderManager>();
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr);
+  blk_mgr_ = std::make_shared<BlockManager>(
+      1024 /*capacity*/, 4 /* verifer thread*/, node_addr,
+      conf_.test_params.max_block_queue_warn);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params, node_addr);
+  trx_order_mgr_ = std::make_shared<TransactionOrderManager>(node_addr);
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
-      trx_mgr_->getShared());
-  vote_mgr_ = std::make_shared<VoteManager>();
+      trx_mgr_->getShared(), node_addr_);
+  vote_mgr_ = std::make_shared<VoteManager>(node_addr);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
-                                            genesis_hash.toString());
-  pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString());
+                                            genesis_hash.toString(), node_addr);
+  pbft_chain_ = std::make_shared<PbftChain>(genesis_hash.toString(), node_addr);
   final_chain_ =
       NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
   auto final_chain_head_ = final_chain_->get_last_block();
@@ -91,10 +101,11 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   });
   if (rebuild_network) {
     network_ = std::make_shared<Network>(conf_.network, "", node_sk_,
-                                         genesis_hash.toString());
+                                         genesis_hash.toString(), node_addr);
   } else {
-    network_ = std::make_shared<Network>(conf_.network, conf_.db_path + "/net",
-                                         node_sk_, genesis_hash.toString());
+    network_ =
+        std::make_shared<Network>(conf_.network, conf_.db_path + "/net",
+                                  node_sk_, genesis_hash.toString(), node_addr);
   }
   // ===== Provide self to the services (link them with each other) =====
   blk_mgr_->setFullNode(getShared());
@@ -217,7 +228,11 @@ void FullNode::stop() {
   for (auto &t : block_workers_) {
     t.join();
   }
+
   LOG(log_nf_) << "Node stopped ... ";
+  for (auto &logging : conf_.log_configs) {
+    logging.removeLogging();
+  }
 }
 
 size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }
@@ -228,7 +243,7 @@ std::vector<public_t> FullNode::getAllPeers() const {
 void FullNode::insertBroadcastedBlockWithTransactions(
     DagBlock const &blk, std::vector<Transaction> const &transactions) {
   if (isBlockKnown(blk.getHash())) {
-    LOG(log_debug_) << "Block known " << blk.getHash();
+    LOG(log_dg_) << "Block known " << blk.getHash();
     return;
   }
   blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions),

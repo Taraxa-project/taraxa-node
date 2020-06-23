@@ -1,6 +1,21 @@
 #ifndef TARAXA_NODE_CONFIG_HPP
 #define TARAXA_NODE_CONFIG_HPP
 
+#include <boost/log/attributes/clock.hpp>
+#include <boost/log/attributes/function.hpp>
+#include <boost/log/detail/sink_init_helpers.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/log/sources/channel_feature.hpp>
+#include <boost/log/sources/channel_logger.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/utility/exception_handler.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/file.hpp>
 #include <string>
 
 #include "chain_config.hpp"
@@ -12,6 +27,13 @@
 // TODO: Separate configs for consensus chain params and technical params
 // TODO: Expose only certain eth chain params, encapsulate the config invariants
 namespace taraxa {
+
+using Logger = boost::log::sources::severity_channel_logger<>;
+template <class T>
+using log_sink = boost::log::sinks::synchronous_sink<T>;
+
+Logger createTaraxaLogger(int _severity, std::string const &_channel,
+                          addr_t node_id);
 
 struct ConfigException : public std::runtime_error {
   using std::runtime_error::runtime_error;
@@ -47,6 +69,31 @@ struct NetworkConfig {
   std::string network_id;
   bool network_encrypted;
   bool network_performance_log;
+};
+
+struct LoggingOutputConfig {
+  LoggingOutputConfig() = default;
+  std::string type;
+  std::string file_name;
+  uint64_t rotation_size;
+  std::string time_based_rotation;
+  std::string format;
+  uint64_t max_size;
+};
+
+struct LoggingConfig {
+  LoggingConfig() = default;
+  void setupLoggingConfiguration(addr_t node);
+  void removeLogging();
+  std::string name;
+  uint16_t verbosity;
+  std::map<std::string, uint16_t> channels;
+  std::vector<LoggingOutputConfig> outputs;
+  std::vector<
+      boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>>
+      console_sinks;
+  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>>
+      file_sinks;
 };
 
 struct BlockProposerConfig {
@@ -95,6 +142,7 @@ struct FullNodeConfig {
   // or the full json of a custom config
   ChainConfig chain = ChainConfig::Default;
   FinalChain::Opts opts_final_chain;
+  std::vector<LoggingConfig> log_configs;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

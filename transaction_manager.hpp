@@ -30,10 +30,14 @@ class TransactionManager
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  explicit TransactionManager(TestParamsConfig const &conf)
-      : conf_(conf), accs_nonce_() {}
-  explicit TransactionManager(std::shared_ptr<DbStorage> db)
-      : db_(db), accs_nonce_(), conf_() {}
+  explicit TransactionManager(TestParamsConfig const &conf, addr_t node_addr)
+      : conf_(conf), accs_nonce_(), trx_qu_(node_addr) {
+    LOG_OBJECTS_CREATE(TRXMGR);
+  }
+  explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
+      : db_(db), accs_nonce_(), conf_(), trx_qu_(node_addr) {
+    LOG_OBJECTS_CREATE(TRXMGR);
+  }
   std::shared_ptr<TransactionManager> getShared() {
     try {
       return shared_from_this();
@@ -101,16 +105,7 @@ class TransactionManager
   mutable std::mutex mu_for_nonce_table_;
   mutable std::mutex mu_for_transactions_;
   mutable std::shared_mutex mu_for_dag_frontier_;
-  mutable dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "TRXMGR")};
-  mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "TRXMGR")};
-  mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXMGR")};
-  mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXMGR")};
-  mutable dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXMGR")};
+  LOG_OBJECTS_DEFINE;
 };
 }  // namespace taraxa
 

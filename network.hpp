@@ -29,11 +29,11 @@ namespace taraxa {
 
 class Network {
  public:
-  Network(NetworkConfig const &config, std::string const &genesis);
+  Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr);
   Network(NetworkConfig const &config, std::string const &networkFile,
-          std::string const &genesis);
+          std::string const &genesis, addr_t node_addr);
   Network(NetworkConfig const &config, std::string const &networkFile,
-          secret_t const &sk, std::string const &genesis);
+          secret_t const &sk, std::string const &genesis, addr_t node_addr);
   ~Network();
   void start(bool boot_node = false);
   void stop();
@@ -84,16 +84,7 @@ class Network {
   std::string network_file_;
 
   std::weak_ptr<FullNode> full_node_;
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "NETWORK")};
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "NETWORK")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "NETWORK")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "NETWORK")};
-  dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "NETWORK")};
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

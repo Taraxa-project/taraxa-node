@@ -3,7 +3,9 @@
 
 #include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
+
 #include <string>
+
 #include "types.hpp"
 
 // max signature hash 64 hex
@@ -26,18 +28,8 @@ string hexToDecimal(string hex);
 
 string bigNumberMultiplication(string num1, string num2);
 
-static dev::Logger log_silent_{
-    dev::createLogger(dev::Verbosity::VerbositySilent, "SORTI")};
 static dev::Logger log_error_{
     dev::createLogger(dev::Verbosity::VerbosityError, "SORTI")};
-static dev::Logger log_warning_{
-    dev::createLogger(dev::Verbosity::VerbosityWarning, "SORTI")};
-static dev::Logger log_info_{
-    dev::createLogger(dev::Verbosity::VerbosityInfo, "SORTI")};
-static dev::Logger log_debug_{
-    dev::createLogger(dev::Verbosity::VerbosityDebug, "SORTI")};
-static dev::Logger log_trace_{
-    dev::createLogger(dev::Verbosity::VerbosityTrace, "SORTI")};
 
 }  // namespace taraxa
 

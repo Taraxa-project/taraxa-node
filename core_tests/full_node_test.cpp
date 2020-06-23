@@ -198,7 +198,11 @@ void send_dummy_trx() {
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
 }
-struct FullNodeTest : core_tests::util::DBUsingTest<> {};
+struct FullNodeTest : core_tests::util::DBUsingTest<> {
+  virtual void SetUp() { 
+    //boost::log::core::get()->remove_all_sinks(); 
+  }
+};
 
 TEST_F(FullNodeTest, db_test) {
   auto db_ptr = DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true);
@@ -275,7 +279,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false),
             pbft_block4.rlp(false));
   // pbft_blocks (head)
-  PbftChain pbft_chain(blk_hash_t(0).toString());
+  PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t());
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
@@ -1543,24 +1547,6 @@ TEST_F(FullNodeTest, DISABLED_mem_usage) {
 
 int main(int argc, char **argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("FULLND");
-  // logOptions.includeChannels.push_back("BLKQU");
-  // logOptions.includeChannels.push_back("TARCAP");
-  // logOptions.includeChannels.push_back("DAGSYNC");
-  // logOptions.includeChannels.push_back("DAGPRP");
-  // logOptions.includeChannels.push_back("TRXPRP");
-  // logOptions.includeChannels.push_back("DAGMGR");
-  // logOptions.includeChannels.push_back("TRXMGR");
-
-  // logOptions.includeChannels.push_back("EXETOR");
-  // logOptions.includeChannels.push_back("BLK_PP");
-  // logOptions.includeChannels.push_back("PR_MDL");
-  // logOptions.includeChannels.push_back("PBFT_MGR");
-  // logOptions.includeChannels.push_back("PBFT_CHAIN");
-
-  dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
