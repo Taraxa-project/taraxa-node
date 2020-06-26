@@ -1523,24 +1523,6 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(current_period, dag_blocks_hash_order) =
       full_node->getDagBlockOrder(dag_block_hash);
-<<<<<<< HEAD
-=======
-  // Add DAG blocks order and DAG blocks height in DB
-  uint64_t max_dag_blocks_height = pbft_chain_->getDagBlockMaxHeight();
-  for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
-    auto dag_block_height_ptr = db_->getDagBlockHeight(dag_blk_hash);
-    if (dag_block_height_ptr) {
-      LOG(log_er_) << "Duplicate DAG block " << dag_blk_hash
-                   << " in DAG blocks height DB already";
-      continue;
-    }
-    max_dag_blocks_height++;
-    db_->addDagBlockOrderAndHeightToBatch(dag_blk_hash, max_dag_blocks_height,
-                                          batch);
-    LOG(log_dg_) << "Add dag block " << dag_blk_hash << " with height "
-                 << max_dag_blocks_height << " in DB write batch";
-  }
->>>>>>> logging improvements
   // Add cert votes in DB
   db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n"
