@@ -1120,7 +1120,7 @@ TEST_F(FullNodeTest, genesis_balance) {
   addr_t addr2(200);
   FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
   cfg.chain.final_chain.state.genesis_accounts[addr1].Balance = bal1;
-  auto node(taraxa::FullNode::make(cfg));
+  auto node(taraxa::FullNode::make(cfg, true));
   node->start(true);
   auto res = node->getBalance(addr1);
   EXPECT_TRUE(res.second);
