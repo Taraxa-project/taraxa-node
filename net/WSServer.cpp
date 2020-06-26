@@ -272,7 +272,7 @@ void WSSession::close() {
 WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint,
                    addr_t node_addr)
     : ioc_(ioc), acceptor_(ioc), node_addr_(node_addr) {
-  LOG_OBJECTS_CREATE(RPC);
+  LOG_OBJECTS_CREATE("RPC");
   beast::error_code ec;
 
   // Open the acceptor

@@ -18,7 +18,7 @@ class TransactionQueue {
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
   using listIter = std::list<Transaction>::iterator;
   TransactionQueue(addr_t node_addr) {
-    LOG_OBJECTS_CREATE(TRXQU);
+    LOG_OBJECTS_CREATE("TRXQU");
   }
   ~TransactionQueue() { stop(); }
 

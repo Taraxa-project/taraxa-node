@@ -39,11 +39,11 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
 
   // Initialize logging
   for (auto &logging : conf_.log_configs) {
-    logging.setupLoggingConfiguration(node_addr_);
+    setupLoggingConfiguration(node_addr_, logging);
   }
 
   auto &node_addr = node_addr_;
-  LOG_OBJECTS_CREATE(FULLND);
+  LOG_OBJECTS_CREATE("FULLND");
   log_time_ =
       createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr_);
   log_time_dg_ =
@@ -231,7 +231,7 @@ void FullNode::stop() {
 
   LOG(log_nf_) << "Node stopped ... ";
   for (auto &logging : conf_.log_configs) {
-    logging.removeLogging();
+    removeLogging(logging);
   }
 }
 

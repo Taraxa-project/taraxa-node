@@ -132,7 +132,7 @@ class Vote {
 class VoteManager {
  public:
   VoteManager(addr_t node_addr) {
-    LOG_OBJECTS_CREATE(VOTE_MGR);
+    LOG_OBJECTS_CREATE("VOTE_MGR");
   }
   ~VoteManager() {}
 

@@ -198,7 +198,7 @@ BlockManager::BlockManager(size_t capacity, unsigned num_verifiers,
       blk_status_(10000, 100),
       seen_blocks_(10000, 100),
       queue_limit_(queue_limit) {
-  LOG_OBJECTS_CREATE(BLKQU);
+  LOG_OBJECTS_CREATE("BLKQU");
 }
 
 BlockManager::~BlockManager() { stop(); }

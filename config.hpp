@@ -22,6 +22,7 @@
 #include "dag_block.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include "log.hpp"
 
 // TODO: Generate configs for the tests
 // TODO: Separate configs for consensus chain params and technical params
@@ -31,9 +32,6 @@ namespace taraxa {
 using Logger = boost::log::sources::severity_channel_logger<>;
 template <class T>
 using log_sink = boost::log::sinks::synchronous_sink<T>;
-
-Logger createTaraxaLogger(int _severity, std::string const &_channel,
-                          addr_t node_id);
 
 struct ConfigException : public std::runtime_error {
   using std::runtime_error::runtime_error;
@@ -83,8 +81,6 @@ struct LoggingOutputConfig {
 
 struct LoggingConfig {
   LoggingConfig() = default;
-  void setupLoggingConfiguration(addr_t node);
-  void removeLogging();
   std::string name;
   uint16_t verbosity;
   std::map<std::string, uint16_t> channels;

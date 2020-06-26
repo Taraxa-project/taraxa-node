@@ -41,7 +41,7 @@ class ProposeModelFace {
 class RandomPropose : public ProposeModelFace {
  public:
   RandomPropose(int min, int max, addr_t node_addr) : distribution_(min, max) {
-    LOG_OBJECTS_CREATE(PR_MDL);
+    LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set random block propose threshold " << min << " ~ " << max
                  << " milli seconds.";
   }
@@ -62,7 +62,7 @@ class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(uint difficulty_bound, uint lambda_bits, addr_t node_addr)
       : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits) {
-    LOG_OBJECTS_CREATE(PR_MDL);
+    LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound
                  << " lambda_bits " << lambda_bits;
   }
@@ -89,7 +89,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
                 std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr, addr_t node_addr)
       : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr), conf_(conf) {
-    LOG_OBJECTS_CREATE(PR_MDL);
+    LOG_OBJECTS_CREATE("PR_MDL");
     if (conf_.mode == "random") {
       propose_model_ = std::make_unique<RandomPropose>(
           conf_.min_freq, conf_.max_freq, node_addr);

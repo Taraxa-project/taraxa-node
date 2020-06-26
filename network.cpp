@@ -17,7 +17,7 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
 Network::Network(NetworkConfig const &config, std::string const &network_file,
                  secret_t const &sk, std::string const &genesis, addr_t node_addr) try
     : conf_(config) {
-  LOG_OBJECTS_CREATE(NETWORK);
+  LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
   if (!sk) {

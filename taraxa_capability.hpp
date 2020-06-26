@@ -135,13 +135,13 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         delay_rng_(std::mt19937(std::random_device()())),
         random_dist_(
             std::uniform_int_distribution<std::mt19937::result_type>(90, 110)) {
-    LOG_OBJECTS_CREATE(TARCAP);
-    LOG_OBJECTS_CREATE_SUB(PBFTSYNC, pbft_sync);
-    LOG_OBJECTS_CREATE_SUB(DAGSYNC, dag_sync);
-    LOG_OBJECTS_CREATE_SUB(DAGPRP, dag_prp);
-    LOG_OBJECTS_CREATE_SUB(TRXPRP, trx_prp);
-    LOG_OBJECTS_CREATE_SUB(PBFTPRP, pbft_prp);
-    LOG_OBJECTS_CREATE_SUB(VOTEPRP, vote_prp);
+    LOG_OBJECTS_CREATE("TARCAP");
+    LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
+    LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
+    LOG_OBJECTS_CREATE_SUB("DAGPRP", dag_prp);
+    LOG_OBJECTS_CREATE_SUB("TRXPRP", trx_prp);
+    LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
+    LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
     log_perf_ = taraxa::createTaraxaLogger(dev::Verbosity::VerbosityInfo, "NETPER", node_addr);
   }
   virtual ~TaraxaCapability() = default;

@@ -31,7 +31,7 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 class TransactionOrderManager {
  public:
   TransactionOrderManager(addr_t node_addr) {
-    LOG_OBJECTS_CREATE(TRXORD);
+    LOG_OBJECTS_CREATE("TRXORD");
   }
   void setFullNode(std::shared_ptr<FullNode> node);
   void clear() { status_.clear(); }

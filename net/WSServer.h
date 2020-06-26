@@ -34,7 +34,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   // Take ownership of the socket
   explicit WSSession(tcp::socket&& socket, addr_t node_addr)
       : ws_(std::move(socket)) {
-    LOG_OBJECTS_CREATE(RPC);
+    LOG_OBJECTS_CREATE("RPC");
   }
 
   // Start the asynchronous operation

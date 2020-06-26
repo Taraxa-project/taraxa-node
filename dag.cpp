@@ -14,7 +14,7 @@
 namespace taraxa {
 
 Dag::Dag(std::string const &genesis, addr_t node_addr) {
-  LOG_OBJECTS_CREATE(DAGMGR);
+  LOG_OBJECTS_CREATE("DAGMGR");
   vertex_hash pivot = "";
   std::vector<vertex_hash> tips;
   // add genesis block
@@ -442,7 +442,7 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr) try
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
       genesis_(genesis) {
-  LOG_OBJECTS_CREATE(DAGMGR);
+  LOG_OBJECTS_CREATE("DAGMGR");
   anchors_.push({genesis, 0});
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;

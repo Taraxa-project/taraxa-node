@@ -45,20 +45,20 @@
   mutable boost::log::sources::severity_channel_logger<> log_tr_##group##_;\
    
 #define LOG_OBJECTS_CREATE(channel) \
-  log_si_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, "channel", node_addr);\
-  log_er_ = createTaraxaLogger(dev::Verbosity::VerbosityError, "channel", node_addr);\
-  log_wr_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, "channel", node_addr);\
-  log_nf_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, "channel", node_addr);\
-  log_tr_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, "channel", node_addr);\
-  log_dg_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, "channel", node_addr);\
+  log_si_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr);\
+  log_er_ = createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);\
+  log_wr_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel, node_addr);\
+  log_nf_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);\
+  log_tr_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);\
+  log_dg_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);\
    
-#define LOG_OBJECTS_CREATE_SUB(channel, g) \
-  log_si_##g##_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, "channel", node_addr);\
-  log_er_##g##_ = createTaraxaLogger(dev::Verbosity::VerbosityError, "channel", node_addr);\
-  log_wr_##g##_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, "channel", node_addr);\
-  log_nf_##g##_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, "channel", node_addr);\
-  log_tr_##g##_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, "channel", node_addr);\
-  log_dg_##g##_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, "channel", node_addr);\
+#define LOG_OBJECTS_CREATE_SUB(channel, group) \
+  log_si_##group##_ = createTaraxaLogger(dev::Verbosity::VerbositySilent, channel, node_addr);\
+  log_er_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityError, channel, node_addr);\
+  log_wr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityWarning, channel, node_addr);\
+  log_nf_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityInfo, channel, node_addr);\
+  log_tr_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);\
+  log_dg_##group##_ = createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);\
    
 namespace taraxa {
 

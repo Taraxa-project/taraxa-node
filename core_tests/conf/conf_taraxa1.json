@@ -58,25 +58,51 @@
         "verbosity": "ERROR",
         "channels": [
           {
-            "name": "FULLND"
-          },
-          {
-            "name": "DAGMGR",
-            "verbosity": "DEBUG"
+            "name": "FULLND",
+            "verbosity": "ERROR"
           }
         ],
         "outputs": [
           {
             "type": "console",
-            "format": "N1 %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
           },
           {
             "type": "file",
-            "file_name": "Standard%m%d%Y_%H%M%S_%5N.log",
+            "file_name": "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log",
             "rotation_size": 10000000,
             "time_based_rotation": "0,0,0",
-            "format": "[%TimeStamp%]: %Message%",
-            "max_size": 100000000
+            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "pbft",
+        "on": false,
+        "verbosity": "TRACE",
+        "channels": [
+          {
+            "name": "PBFT_CHAIN",
+            "verbosity": "TRACE"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "TRACE"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "Pbft_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
           }
         ]
       }

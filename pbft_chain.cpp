@@ -312,7 +312,7 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr)
       size_(0),
       last_pbft_block_hash_(head_hash_),
       dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {
-        LOG_OBJECTS_CREATE(PBFT_CHAIN);
+        LOG_OBJECTS_CREATE("PBFT_CHAIN");
       }
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {

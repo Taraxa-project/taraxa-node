@@ -41,7 +41,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       SKIP_PERIODS(conf.skip_periods),
       RUN_COUNT_VOTES(conf.run_count_votes),
       dag_genesis_(genesis) {
-  LOG_OBJECTS_CREATE(PBFT_MGR);
+  LOG_OBJECTS_CREATE("PBFT_MGR");
 }
 
 PbftManager::~PbftManager() { stop(); }

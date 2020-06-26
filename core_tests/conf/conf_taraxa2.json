@@ -47,25 +47,26 @@
     "configurations": [
       {
         "name": "standard",
-        "on": false,
-        "verbosity": "INFO",
+        "on": true,
+        "verbosity": "ERROR",
         "channels": [
           {
-            "name": "FULLND"
+            "name": "FULLND",
+            "verbosity": "ERROR"
           }
         ],
         "outputs": [
           {
             "type": "console",
-            "format": "N2 [%TimeStamp%]: %Message%"
+            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
           },
           {
             "type": "file",
-            "file_name": "Standard%m%d%Y_%H%M%S_%5N.log",
+            "file_name": "Taraxa_N2_%m%d%Y_%H%M%S_%5N.log",
             "rotation_size": 10000000,
             "time_based_rotation": "0,0,0",
-            "format": "N2 [%TimeStamp%]: %Message%",
-            "max_size": 100000000
+            "format": "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
           }
         ]
       }

@@ -32,11 +32,11 @@ class TransactionManager
 
   explicit TransactionManager(TestParamsConfig const &conf, addr_t node_addr)
       : conf_(conf), accs_nonce_(), trx_qu_(node_addr) {
-    LOG_OBJECTS_CREATE(TRXMGR);
+    LOG_OBJECTS_CREATE("TRXMGR");
   }
   explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
       : db_(db), accs_nonce_(), conf_(), trx_qu_(node_addr) {
-    LOG_OBJECTS_CREATE(TRXMGR);
+    LOG_OBJECTS_CREATE("TRXMGR");
   }
   std::shared_ptr<TransactionManager> getShared() {
     try {
