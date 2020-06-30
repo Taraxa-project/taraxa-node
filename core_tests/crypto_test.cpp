@@ -62,6 +62,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
   EXPECT_EQ(pk, pk2);
   EXPECT_TRUE(isValidVrfPublicKey(pk));
   EXPECT_TRUE(isValidVrfPublicKey(pk2));
+
   auto msg = getRlpBytes("helloworld!");
   auto proof = getVrfProof(sk, msg);
   EXPECT_TRUE(proof);
@@ -81,6 +82,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
               << output.value() << endl;
   }
 }
+
 TEST_F(CryptoTest, vrf_valid_Key) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
