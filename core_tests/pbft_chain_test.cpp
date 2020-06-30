@@ -44,6 +44,7 @@ TEST_F(PbftChainTest, serialize_deserialize_trx_schedule) {
 
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   auto node(taraxa::FullNode::make(FullNodeConfig(conf_file[0]), true));
+  node->start(false);
   // Generate PBFT block sample
   blk_hash_t prev_block_hash(12345);
   blk_hash_t dag_block_hash_as_pivot(45678);

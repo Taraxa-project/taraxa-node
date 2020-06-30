@@ -95,7 +95,7 @@ TEST_F(TransactionTest, verifiers) {
   AccountNonceTable accs_table;
 
   TransactionManager trx_mgr(
-      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true));
+      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true), addr_t());
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
@@ -120,7 +120,7 @@ TEST_F(TransactionTest, transaction_limit) {
   AccountNonceTable accs_table;
 
   TransactionManager trx_mgr(
-      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true));
+      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true), addr_t());
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
@@ -148,7 +148,7 @@ TEST_F(TransactionTest, transaction_limit) {
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   TransactionManager trx_mgr(
-      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true));
+      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true), addr_t());
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {

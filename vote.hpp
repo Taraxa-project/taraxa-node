@@ -10,6 +10,7 @@
 #include "types.hpp"
 #include "util.hpp"
 #include "vrf_wrapper.hpp"
+#include "config.hpp"
 
 namespace taraxa {
 class FullNode;
@@ -130,7 +131,9 @@ class Vote {
 
 class VoteManager {
  public:
-  VoteManager() = default;
+  VoteManager(addr_t node_addr) {
+    LOG_OBJECTS_CREATE("VOTE_MGR");
+  }
   ~VoteManager() {}
 
   void setFullNode(std::shared_ptr<FullNode> node);
@@ -168,18 +171,7 @@ class VoteManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::weak_ptr<PbftManager> pbft_mgr_;
 
-  mutable dev::Logger log_sil_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "VOTE_MGR")};
-  mutable dev::Logger log_err_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "VOTE_MGR")};
-  mutable dev::Logger log_war_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "VOTE_MGR")};
-  mutable dev::Logger log_inf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "VOTE_MGR")};
-  mutable dev::Logger log_deb_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "VOTE_MGR")};
-  mutable dev::Logger log_tra_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "VOTE_MGR")};
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

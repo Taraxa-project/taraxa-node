@@ -2,10 +2,12 @@
 #define TARAXA_NODE_BLOCK_PROPOSER_HPP
 
 #include <libdevcore/Log.h>
+
 #include <atomic>
 #include <random>
 #include <thread>
 #include <vector>
+
 #include "boost/thread.hpp"
 #include "config.hpp"
 #include "dag_block.hpp"
@@ -38,7 +40,8 @@ class ProposeModelFace {
 
 class RandomPropose : public ProposeModelFace {
  public:
-  RandomPropose(int min, int max) : distribution_(min, max) {
+  RandomPropose(int min, int max, addr_t node_addr) : distribution_(min, max) {
+    LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set random block propose threshold " << min << " ~ " << max
                  << " milli seconds.";
   }
@@ -48,18 +51,7 @@ class RandomPropose : public ProposeModelFace {
  private:
   std::uniform_int_distribution<std::mt19937::result_type> distribution_;
   static std::mt19937 generator;
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
-  dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "PR_MDL")};
-  dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "PR_MDL")};
+  LOG_OBJECTS_DEFINE;
 };
 
 /**
@@ -68,8 +60,9 @@ class RandomPropose : public ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(uint difficulty_bound, uint lambda_bits)
+  SortitionPropose(uint difficulty_bound, uint lambda_bits, addr_t node_addr)
       : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits) {
+    LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound
                  << " lambda_bits " << lambda_bits;
   }
@@ -82,18 +75,7 @@ class SortitionPropose : public ProposeModelFace {
   uint lambda_bits_;
   unsigned long long last_dag_height_ = 0;
 
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "PR_MDL")};
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "PR_MDL")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PR_MDL")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PR_MDL")};
-  dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "PR_MDL")};
-  dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "PR_MDL")};
+  LOG_OBJECTS_DEFINE;
 };
 
 /**
@@ -105,14 +87,15 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& conf,
                 std::shared_ptr<DagManager> dag_mgr,
-                std::shared_ptr<TransactionManager> trx_mgr)
+                std::shared_ptr<TransactionManager> trx_mgr, addr_t node_addr)
       : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr), conf_(conf) {
+    LOG_OBJECTS_CREATE("PR_MDL");
     if (conf_.mode == "random") {
-      propose_model_ =
-          std::make_unique<RandomPropose>(conf_.min_freq, conf_.max_freq);
+      propose_model_ = std::make_unique<RandomPropose>(
+          conf_.min_freq, conf_.max_freq, node_addr);
     } else if (conf_.mode == "sortition") {
       propose_model_ = std::make_unique<SortitionPropose>(
-          conf_.difficulty_bound, conf_.lambda_bits);
+          conf_.difficulty_bound, conf_.lambda_bits, node_addr);
     }
     total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
 
@@ -155,18 +138,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "BLK_PP")};
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "BLK_PP")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "BLK_PP")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "BLK_PP")};
-  dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "BLK_PP")};
-  dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "BLK_PP")};
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

@@ -12,7 +12,7 @@ struct DagTest : core_tests::util::DBUsingTest<> {};
 TEST_F(DagTest, build_dag) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  taraxa::Dag graph(GENESIS);
+  taraxa::Dag graph(GENESIS, addr_t());
 
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
@@ -43,7 +43,7 @@ TEST_F(DagTest, build_dag) {
 TEST_F(DagTest, dag_traverse_get_children_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  taraxa::Dag graph(GENESIS);
+  taraxa::Dag graph(GENESIS, addr_t());
 
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
@@ -94,7 +94,7 @@ TEST_F(DagTest, dag_traverse_get_children_tips) {
 TEST_F(DagTest, dag_traverse2_get_children_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  taraxa::Dag graph(GENESIS);
+  taraxa::Dag graph(GENESIS, addr_t());
 
   // a genesis vertex
   EXPECT_EQ(1, graph.getNumVertices());
@@ -124,7 +124,7 @@ TEST_F(DagTest, dag_traverse2_get_children_tips) {
 TEST_F(DagTest, dag_traverse3_get_ordered_blks) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  taraxa::Dag graph(GENESIS);
+  taraxa::Dag graph(GENESIS, addr_t());
   auto vA = "0000000000000000000000000000000000000000000000000000000000000001";
   auto vB = "0000000000000000000000000000000000000000000000000000000000000002";
   auto vC = "0000000000000000000000000000000000000000000000000000000000000003";
@@ -235,7 +235,7 @@ TEST_F(DagTest, dag_traverse3_get_ordered_blks) {
 TEST_F(DagTest, genesis_get_pivot) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  taraxa::PivotTree graph(GENESIS);
+  taraxa::PivotTree graph(GENESIS, addr_t());
 
   std::vector<std::string> pivot_chain, leaves;
   graph.getGhostPath(GENESIS, pivot_chain);
@@ -248,7 +248,7 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t());
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -328,7 +328,7 @@ TEST_F(DagTest, compute_epoch) {
 TEST_F(DagTest, receive_block_in_order) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t());
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(1),
                 addr_t(15));
@@ -367,7 +367,7 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t());
   DagBlock blkA(blk_hash_t(0), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(1),
                 addr_t(1));
   DagBlock blkB(blk_hash_t(0), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
@@ -447,7 +447,7 @@ TEST_F(DagTest, compute_epoch_2) {
 TEST_F(DagTest, get_latest_pivot_tips) {
   const std::string GENESIS =
       "0000000000000000000000000000000000000000000000000000000000000000";
-  auto mgr = std::make_shared<DagManager>(GENESIS);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t());
 
   // mgr.setVerbose(true);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));

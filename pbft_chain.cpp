@@ -307,11 +307,13 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b) {
   return strm;
 }
 
-PbftChain::PbftChain(std::string const& dag_genesis_hash)
+PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr)
     : head_hash_(blk_hash_t(0)),
       size_(0),
       last_pbft_block_hash_(head_hash_),
-      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {}
+      dag_genesis_hash_(blk_hash_t(dag_genesis_hash)) {
+        LOG_OBJECTS_CREATE("PBFT_CHAIN");
+      }
 
 void PbftChain::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
   // setup pbftchain DB pointer
@@ -345,7 +347,7 @@ void PbftChain::cleanupUnverifiedPbftBlocks(
   upgradableLock_ lock(unverified_access_);
   if (unverified_blocks_map_.find(prev_block_hash) ==
       unverified_blocks_map_.end()) {
-    LOG(log_err_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
+    LOG(log_er_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
     assert(false);
   }
   // cleanup PBFT blocks in unverified_blocks_ table
@@ -372,7 +374,7 @@ void PbftChain::setLastPbftBlockHash(blk_hash_t const& new_pbft_block_hash) {
 bool PbftChain::findPbftBlockInChain(
     taraxa::blk_hash_t const& pbft_block_hash) const {
   if (!db_) {
-    LOG(log_err_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
+    LOG(log_er_) << "Pbft chain DB unavailable in findPbftBlockInChain!";
     return false;
   }
 
@@ -395,7 +397,7 @@ PbftBlock PbftChain::getPbftBlockInChain(
     const taraxa::blk_hash_t& pbft_block_hash) {
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
   if (pbft_block == nullptr) {
-    LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
+    LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash
                   << " in DB";
     assert(false);
   }
@@ -417,18 +419,18 @@ std::vector<PbftBlock> PbftChain::getPbftBlocks(size_t period,
   for (auto i = period; i < period + count; i++) {
     auto pbft_block_hash = db_->getPeriodPbftBlock(i);
     if (pbft_block_hash == nullptr) {
-      LOG(log_err_) << "PBFT block period " << i
+      LOG(log_er_) << "PBFT block period " << i
                     << " is not exist in blocks order DB.";
       break;
     }
     auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
     if (pbft_block == nullptr) {
-      LOG(log_err_) << "Cannot find PBFT block hash " << pbft_block_hash
+      LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash
                     << " in PBFT chain DB.";
       break;
     }
     if (pbft_block->getPeriod() != i) {
-      LOG(log_err_) << "DB corrupted - PBFT block hash " << pbft_block_hash
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << pbft_block_hash
                     << "has different period " << pbft_block->getPeriod()
                     << "in block data then in block order db: " << i;
       assert(false);
@@ -445,13 +447,13 @@ std::vector<std::string> PbftChain::getPbftBlocksStr(size_t period,
   for (auto i = period; i < period + count; i++) {
     auto pbft_block_hash = db_->getPeriodPbftBlock(i);
     if (pbft_block_hash == nullptr) {
-      LOG(log_err_) << "PBFT block period " << i
+      LOG(log_er_) << "PBFT block period " << i
                     << " is not exist in blocks order DB.";
       break;
     }
     auto pbft_block = db_->getPbftBlock(*pbft_block_hash);
     if (pbft_block == nullptr) {
-      LOG(log_err_) << "Cannot find PBFT block hash "
+      LOG(log_er_) << "Cannot find PBFT block hash "
                     << pbft_block_hash->toString() << " in PBFT chain DB.";
       break;
     }
@@ -478,7 +480,7 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(
     // The last PBFT block in the synced queue
     PbftBlock last_pbft_block = pbftSyncedQueueBack().pbft_blk;
     if (pbft_block.getPrevBlockHash() != last_pbft_block.getBlockHash()) {
-      LOG(log_err_) << "Last PBFT block hash " << last_pbft_block.getBlockHash()
+      LOG(log_er_) << "Last PBFT block hash " << last_pbft_block.getBlockHash()
                     << " Invalid PBFT prev block hash "
                     << pbft_block.getPrevBlockHash();
       return false;
@@ -491,7 +493,7 @@ bool PbftChain::checkPbftBlockValidationFromSyncing(
 bool PbftChain::checkPbftBlockValidation(
     taraxa::PbftBlock const& pbft_block) const {
   if (pbft_block.getPrevBlockHash() != last_pbft_block_hash_) {
-    LOG(log_err_) << "PBFT chain last block hash " << last_pbft_block_hash_
+    LOG(log_er_) << "PBFT chain last block hash " << last_pbft_block_hash_
                   << " Invalid PBFT prev block hash "
                   << pbft_block.getPrevBlockHash();
     return false;
@@ -517,7 +519,7 @@ void PbftChain::pushUnverifiedPbftBlock(taraxa::PbftBlock const& pbft_block) {
   // Store in unverified_blocks_ table
   uniqueLock_ lock(unverified_access_);
   unverified_blocks_[pbft_block.getBlockHash()] = pbft_block;
-  LOG(log_deb_) << "Push unverified block " << block_hash
+  LOG(log_dg_) << "Push unverified block " << block_hash
                 << ". Pbft unverified blocks size: "
                 << unverified_blocks_.size();
 }
@@ -581,7 +583,7 @@ void PbftChain::pbftSyncedQueuePopFront() {
 
 void PbftChain::setSyncedPbftBlockIntoQueue(
     PbftBlockCert const& pbft_block_and_votes) {
-  LOG(log_inf_) << "Receive pbft block "
+  LOG(log_nf_) << "Receive pbft block "
                 << pbft_block_and_votes.pbft_blk.getBlockHash()
                 << " from peer and push into synced queue";
   uniqueLock_ lock(sync_access_);

@@ -2,6 +2,7 @@
 #define TARAXA_NODE_TRANSACTION_QUEUE_HPP
 
 #include "transaction.hpp"
+#include "config.hpp"
 
 namespace taraxa {
 
@@ -16,8 +17,9 @@ class TransactionQueue {
  public:
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
   using listIter = std::list<Transaction>::iterator;
-  TransactionQueue() {}
-
+  TransactionQueue(addr_t node_addr) {
+    LOG_OBJECTS_CREATE("TRXQU");
+  }
   ~TransactionQueue() { stop(); }
 
   void start();
@@ -62,16 +64,7 @@ class TransactionQueue {
   mutable boost::shared_mutex shared_mutex_for_unverified_qu_;
   boost::condition_variable_any cond_for_unverified_qu_;
 
-  mutable dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "TRXQU")};
-  mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "TRXQU")};
-  mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXQU")};
-  mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXQU")};
-  mutable dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "TRXQU")};
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

@@ -15,6 +15,7 @@
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 namespace taraxa {
 
@@ -29,7 +30,9 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
 class TransactionOrderManager {
  public:
-  TransactionOrderManager() = default;
+  TransactionOrderManager(addr_t node_addr) {
+    LOG_OBJECTS_CREATE("TRXORD");
+  }
   void setFullNode(std::shared_ptr<FullNode> node);
   void clear() { status_.clear(); }
 
@@ -46,12 +49,7 @@ class TransactionOrderManager {
   std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<DbStorage> db_ = nullptr;
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "TRXODR")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "TRXODR")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "TRXODR")};
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

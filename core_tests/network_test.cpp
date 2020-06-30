@@ -52,9 +52,9 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start();
   nw2->start();
@@ -88,9 +88,9 @@ TEST_F(NetworkTest, transfer_block) {
 
 TEST_F(NetworkTest, send_pbft_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start();
   nw2->start();
@@ -116,9 +116,9 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
   nw1->start(true);
   nw2->start();
@@ -153,13 +153,13 @@ TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
         g_conf1->network,
-        g_conf1->chain.dag_genesis_block.getHash().toString()));
+        g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
         g_conf2->network,
-        g_conf2->chain.dag_genesis_block.getHash().toString()));
+        g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
         g_conf3->network,
-        g_conf3->chain.dag_genesis_block.getHash().toString()));
+        g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
 
     nw1->start(true);
     nw2->start();
@@ -185,10 +185,10 @@ TEST_F(NetworkTest, save_network) {
 
   std::shared_ptr<Network> nw2(new taraxa::Network(
       g_conf2->network, "/tmp/nw2",
-      g_conf2->chain.dag_genesis_block.getHash().toString()));
+      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
   std::shared_ptr<Network> nw3(new taraxa::Network(
       g_conf3->network, "/tmp/nw3",
-      g_conf2->chain.dag_genesis_block.getHash().toString()));
+      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
   nw2->start();
   nw3->start();
 

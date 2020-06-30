@@ -40,16 +40,16 @@ inline vector<const char*> const conf_file = {
     "./core_tests/conf/conf_taraxa5.json"};
 
 inline vector<vector<const char*>> const conf_input = {
-    {"./build/main", "--conf_taraxa", conf_file[0], "-v", "4", "--destroy_db"},
-    {"./build/main", "--conf_taraxa", conf_file[1], "-v", "-2", "--destroy_db"},
-    {"./build/main", "--conf_taraxa", conf_file[2], "-v", "-2", "--destroy_db"},
-    {"./build/main", "--conf_taraxa", conf_file[3], "-v", "-2", "--destroy_db"},
-    {"./build/main", "--conf_taraxa", conf_file[4], "-v", "-2",
+    {"./build/main", "--conf_taraxa", conf_file[0], "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[1], "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[2], "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[3], "--destroy_db"},
+    {"./build/main", "--conf_taraxa", conf_file[4],
      "--destroy_db"}};
 
 inline vector<vector<const char*>> const conf_input_persist_db = {
-    {"./build/main", "--conf_taraxa", conf_file[0], "-v", "4"},
-    {"./build/main", "--conf_taraxa", conf_file[1], "-v", "-2"}};
+    {"./build/main", "--conf_taraxa", conf_file[0]},
+    {"./build/main", "--conf_taraxa", conf_file[1]}};
 
 inline path const config_dir = "./core_tests/conf";
 inline auto const all_configs = Lazy([] {

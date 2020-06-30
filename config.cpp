@@ -1,10 +1,15 @@
 #include "config.hpp"
 
+//#include <Log.h>
 #include <json/json.h>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/core/null_deleter.hpp>
 #include <fstream>
 
 namespace taraxa {
+
+using Logger = boost::log::sources::severity_channel_logger<>;
 
 std::string getConfigErr(std::vector<string> path) {
   std::string res = "Error in processing configuration file on param: ";
@@ -49,6 +54,15 @@ uint64_t getConfigDataAsUInt64(Json::Value &root,
                                std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asUInt64();
+  } catch (Json::Exception &e) {
+    throw ConfigException(getConfigErr(path) + e.what());
+  }
+}
+
+bool getConfigDataAsBoolean(Json::Value &root,
+                            std::vector<string> const &path) {
+  try {
+    return getConfigData(root, path).asBool();
   } catch (Json::Exception &e) {
     throw ConfigException(getConfigErr(path) + e.what());
   }
@@ -150,6 +164,45 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
     test_params.pbft.run_count_votes =
         getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
   }
+
+  if (!root["logging"].isNull()) {
+    for (auto &item : root["logging"]["configurations"]) {
+      auto on = getConfigDataAsBoolean(item, {"on"});
+      if (on) {
+        LoggingConfig logging;
+        logging.name = getConfigDataAsString(item, {"name"});
+        logging.verbosity =
+            stringToVerbosity(getConfigDataAsString(item, {"verbosity"}));
+        for (auto &ch : item["channels"]) {
+          std::pair<std::string, uint16_t> channel;
+          channel.first = getConfigDataAsString(ch, {"name"});
+          if (ch["verbosity"].isNull()) {
+            channel.second = logging.verbosity;
+          } else {
+            channel.second =
+                stringToVerbosity(getConfigDataAsString(ch, {"verbosity"}));
+          }
+          logging.channels[channel.first] = channel.second;
+        }
+        for (auto &o : item["outputs"]) {
+          LoggingOutputConfig output;
+          output.type = getConfigDataAsString(o, {"type"});
+          output.format = getConfigDataAsString(o, {"format"});
+          if (output.type == "file") {
+            output.file_name = db_path + getConfigDataAsString(o, {"file_name"});
+            output.format = getConfigDataAsString(o, {"format"});
+            output.max_size = getConfigDataAsUInt64(o, {"max_size"});
+            output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
+            output.time_based_rotation =
+                getConfigDataAsString(o, {"time_based_rotation"});
+          }
+          logging.outputs.push_back(output);
+        }
+        log_configs.push_back(logging);
+      }
+    }
+  }
+
   // TODO configurable
   opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock = 400;
   // TODO constant

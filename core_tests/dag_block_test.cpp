@@ -184,7 +184,7 @@ TEST_F(DagBlockTest, sign_verify) {
 
 TEST_F(DagBlockTest, push_and_pop) {
   auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  BlockManager blk_qu(1024, 2);
+  BlockManager blk_qu(1024, 2, addr_t());
   blk_qu.setFullNode(node->getShared());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0),
@@ -216,7 +216,8 @@ TEST_F(DagBlockTest, overlap) {
       {trx_hash_t(100), trx_hash_t(2000), trx_hash_t(3000), trx_hash_t(1000)},
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
-  TransactionOrderManager detector;
+  addr_t addr;
+  TransactionOrderManager detector(addr);
   TransactionExecStatusTable table;
   auto overlap1 = detector.computeOrderInBlock(blk1, table);
   auto overlap2 = detector.computeOrderInBlock(blk2, table);

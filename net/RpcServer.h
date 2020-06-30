@@ -17,7 +17,7 @@ class RpcHandler;
 class RpcServer : public std::enable_shared_from_this<RpcServer>,
                   public jsonrpc::AbstractServerConnector {
  public:
-  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc);
+  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc, addr_t node_addr);
   virtual ~RpcServer() { RpcServer::StopListening(); }
 
   virtual bool StartListening() override;
@@ -34,13 +34,7 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
   RpcConfig conf_;
   boost::asio::io_context &io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
-  dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "RPC")};
-  dev::Logger log_nf_{dev::createLogger(dev::Verbosity::VerbosityInfo, "RPC")};
-  dev::Logger log_tr_{dev::createLogger(dev::Verbosity::VerbosityTrace, "RPC")};
+  LOG_OBJECTS_DEFINE;
 };
 // QQ:
 // Why RpcConnection and Rpc use different io_context?

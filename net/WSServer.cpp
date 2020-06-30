@@ -7,6 +7,7 @@
 #include <libdevcore/CommonJS.h>
 #include <libweb3jsonrpc/JsonHelper.h>
 
+#include "config.hpp"
 #include "util.hpp"
 
 namespace taraxa::net {
@@ -268,8 +269,10 @@ void WSSession::close() {
   ws_.close("close");
 }
 
-WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint)
-    : ioc_(ioc), acceptor_(ioc) {
+WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint,
+                   addr_t node_addr)
+    : ioc_(ioc), acceptor_(ioc), node_addr_(node_addr) {
+  LOG_OBJECTS_CREATE("RPC");
   beast::error_code ec;
 
   // Open the acceptor
@@ -341,7 +344,8 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
       }
     }
     // Create the session and run it
-    sessions.push_back(std::make_shared<WSSession>(std::move(socket)));
+    sessions.push_back(
+        std::make_shared<WSSession>(std::move(socket), node_addr_));
     sessions.back()->run();
   }
 

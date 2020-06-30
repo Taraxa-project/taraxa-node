@@ -77,7 +77,7 @@ class Dag {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   friend DagManager;
-  explicit Dag(std::string const &genesis);
+  explicit Dag(std::string const &genesis, addr_t node_addr);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
@@ -137,16 +137,7 @@ class Dag {
   mutable boost::shared_mutex mutex_;
 
  protected:
-  mutable dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
-  mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
-  mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
-  mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
-  mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
+  LOG_OBJECTS_DEFINE;
 };
 
 /**
@@ -157,7 +148,8 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(std::string const &genesis) : Dag(genesis){};
+  explicit PivotTree(std::string const &genesis, addr_t node_addr)
+      : Dag(genesis, node_addr){};
   virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
@@ -184,7 +176,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  explicit DagManager(std::string const &genesis);
+  explicit DagManager(std::string const &genesis, addr_t node_addr);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void setFullNode(std::shared_ptr<FullNode> full_node);
@@ -247,18 +239,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::queue<std::pair<std::string, uint64_t>>
       anchors_;  // pivots that define periods
   std::string genesis_;
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "DAGMGR")};
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "DAGMGR")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "DAGMGR")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "DAGMGR")};
-  dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "DAGMGR")};
-  dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "DAGMGR")};
+  LOG_OBJECTS_DEFINE;
 };
 
 // for graphviz

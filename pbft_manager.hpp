@@ -38,8 +38,9 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  explicit PbftManager(std::string const &genesis);
-  PbftManager(PbftConfig const &conf, std::string const &genesis);
+  explicit PbftManager(std::string const &genesis, addr_t node_addr);
+  PbftManager(PbftConfig const &conf, std::string const &genesis,
+              addr_t node_addr);
   ~PbftManager();
 
   void setFullNode(std::shared_ptr<FullNode> node);
@@ -240,21 +241,10 @@ class PbftManager {
   dev::eth::Transactions transactions_tmp_;
   unordered_set<addr_t> trx_senders_tmp_;
 
-  mutable dev::Logger log_sil_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "PBFT_MGR")};
-  mutable dev::Logger log_err_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "PBFT_MGR")};
-  mutable dev::Logger log_war_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "PBFT_MGR")};
-  mutable dev::Logger log_inf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_MGR")};
-  mutable dev::Logger log_deb_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "PBFT_MGR")};
-  mutable dev::Logger log_tra_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "PBFT_MGR")};
-
-  mutable dev::Logger log_inf_test_{
+  LOG_OBJECTS_DEFINE;
+  mutable dev::Logger log_nf_test_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
+
 };
 
 }  // namespace taraxa

@@ -312,22 +312,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::mutex debug_mutex_;
   uint64_t received_blocks_ = 0;
   uint64_t received_trxs_ = 0;
-  mutable dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "FULLND")};
-  mutable dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "FULLND")};
-  mutable dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "FULLND")};
-  mutable dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "FULLND")};
-  mutable dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "FULLND")};
-  mutable dev::Logger log_tr_{
-      dev::createLogger(dev::Verbosity::VerbosityTrace, "FULLND")};
-  mutable dev::Logger log_time_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "TMSTM")};
-  mutable dev::Logger log_time_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "TMSTM")};
+  LOG_OBJECTS_DEFINE;
+  mutable taraxa::Logger log_time_;
+  mutable taraxa::Logger log_time_dg_;
 };
 
 }  // namespace taraxa

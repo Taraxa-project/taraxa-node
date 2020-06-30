@@ -122,7 +122,7 @@ struct DagFrontier {
  */
 class BlockManager {
  public:
-  BlockManager(size_t capacity, unsigned verify_threads,
+  BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr,
                uint32_t queue_limit = 0);
   ~BlockManager();
   void pushUnverifiedBlock(DagBlock const &block,
@@ -171,14 +171,8 @@ class BlockManager {
            std::deque<std::pair<DagBlock, std::vector<Transaction> > > >
       unverified_qu_;
   std::map<uint64_t, std::deque<DagBlock> > verified_qu_;
-  dev::Logger log_er_{
-      dev::createLogger(dev::Verbosity::VerbosityError, "BLKQU")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "BLKQU")};
-  dev::Logger log_nf_{
-      dev::createLogger(dev::Verbosity::VerbosityInfo, "BLKQU")};
-  dev::Logger log_dg_{
-      dev::createLogger(dev::Verbosity::VerbosityDebug, "BLKQU")};
+
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa

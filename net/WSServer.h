@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "config.hpp"
 #include "dag_block.hpp"
 #include "pbft_chain.hpp"
 
@@ -31,7 +32,10 @@ using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 class WSSession : public std::enable_shared_from_this<WSSession> {
  public:
   // Take ownership of the socket
-  explicit WSSession(tcp::socket&& socket) : ws_(std::move(socket)) {}
+  explicit WSSession(tcp::socket&& socket, addr_t node_addr)
+      : ws_(std::move(socket)) {
+    LOG_OBJECTS_CREATE("RPC");
+  }
 
   // Start the asynchronous operation
   void run();
@@ -48,13 +52,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void newPbftBlockExecuted(PbftBlock const& pbft_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
   bool is_closed() { return closed_; }
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
-  dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "RPC")};
-  dev::Logger log_nf_{dev::createLogger(dev::Verbosity::VerbosityInfo, "RPC")};
-  dev::Logger log_tr_{dev::createLogger(dev::Verbosity::VerbosityTrace, "RPC")};
+  LOG_OBJECTS_DEFINE;
 
  private:
   void writeImpl(const std::string& message);
@@ -76,7 +74,8 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 // Accepts incoming connections and launches the sessions
 class WSServer : public std::enable_shared_from_this<WSServer> {
  public:
-  WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint);
+  WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint,
+           addr_t node_addr);
   ~WSServer();
 
   // Start accepting incoming connections
@@ -90,19 +89,13 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
  private:
   void do_accept();
   void on_accept(beast::error_code ec, tcp::socket socket);
-  dev::Logger log_si_{
-      dev::createLogger(dev::Verbosity::VerbositySilent, "RPC")};
-  dev::Logger log_er_{dev::createLogger(dev::Verbosity::VerbosityError, "RPC")};
-  dev::Logger log_wr_{
-      dev::createLogger(dev::Verbosity::VerbosityWarning, "RPC")};
-  dev::Logger log_nf_{dev::createLogger(dev::Verbosity::VerbosityInfo, "RPC")};
-  dev::Logger log_tr_{dev::createLogger(dev::Verbosity::VerbosityTrace, "RPC")};
-
+  LOG_OBJECTS_DEFINE;
   boost::asio::io_context& ioc_;
   tcp::acceptor acceptor_;
   std::list<std::shared_ptr<WSSession>> sessions;
   std::atomic<bool> stopped_ = false;
   boost::shared_mutex sessions_mtx_;
+  addr_t node_addr_;
 };
 
 }  // namespace taraxa::net

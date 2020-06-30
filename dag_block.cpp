@@ -192,12 +192,14 @@ blk_hash_t DagBlock::sha3(bool include_sig) const {
 }
 
 BlockManager::BlockManager(size_t capacity, unsigned num_verifiers,
-                           uint32_t queue_limit)
+                           addr_t node_addr, uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
       blk_status_(10000, 100),
       seen_blocks_(10000, 100),
-      queue_limit_(queue_limit) {}
+      queue_limit_(queue_limit) {
+  LOG_OBJECTS_CREATE("BLKQU");
+}
 
 BlockManager::~BlockManager() { stop(); }
 
