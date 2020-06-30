@@ -1,4 +1,6 @@
-#pragma once
+#ifndef TARAXA_NODE_VDF_SORTITION_H
+#define TARAXA_NODE_VDF_SORTITION_H
+
 #include <algorithm>
 #include "ProverWesolowski.h"
 #include "libdevcore/CommonData.h"
@@ -95,3 +97,5 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 };
 
 }  // namespace taraxa::vdf_sortition
+
+#endif // TARAXA_NODE_VDF_SORTITION_H
