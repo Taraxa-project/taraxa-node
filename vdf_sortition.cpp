@@ -5,11 +5,14 @@
 #include "util.hpp"
 namespace taraxa::vdf_sortition {
 VdfSortition::VdfSortition(bytes const &b) {
-  if (b.empty()) return;
+  if (b.empty()) {
+    return;
+  }
   dev::RLP const rlp(b);
   if (!rlp.isList()) {
     throw std::invalid_argument("VdfSortition RLP must be a list");
   }
+
   pk = rlp[0].toHash<vrf_pk_t>();
   proof = rlp[1].toHash<vrf_proof_t>();
   vdf_msg_.level = rlp[2].toInt<uint64_t>();
@@ -19,6 +22,7 @@ VdfSortition::VdfSortition(bytes const &b) {
   difficulty_bound_ = rlp[6].toInt<uint>();
   lambda_bits_ = rlp[7].toInt<uint>();
 }
+
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
   s.appendList(8);
@@ -32,9 +36,10 @@ bytes VdfSortition::rlp() const {
   s << lambda_bits_;
   return s.out();
 }
+
 void VdfSortition::computeVdfSolution(std::string const &msg) {
-  bool verified = verifyVrf();
-  assert(verified);
+//  bool verified = verifyVrf();
+//  assert(verified);
   const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
   auto t1 = getCurrentTimeMilliSeconds();
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
@@ -44,6 +49,7 @@ void VdfSortition::computeVdfSolution(std::string const &msg) {
   auto t2 = getCurrentTimeMilliSeconds();
   vdf_computation_time_ = t2 - t1;
 }
+
 bool VdfSortition::verifyVdfSolution(std::string const &msg) {
   bool verified = verifyVrf();
   assert(verified);
