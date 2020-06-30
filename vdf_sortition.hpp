@@ -7,8 +7,10 @@
 #include "vrf_wrapper.hpp"
 
 namespace taraxa::vdf_sortition {
+
 using namespace vdf;
 using namespace vrf_wrapper;
+
 struct VdfMsg : public vrf_wrapper::VrfMsgFace {
   VdfMsg() = default;
   VdfMsg(blk_hash_t last_pbft_hash, uint64_t level)
@@ -28,6 +30,7 @@ struct VdfMsg : public vrf_wrapper::VrfMsgFace {
   blk_hash_t last_pbft_hash;
   uint64_t level = 0;
 };
+
 // It includes a vrf for difficulty adjustment
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
@@ -90,4 +93,5 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   uint difficulty_bound_ = 29;
   uint lambda_bits_ = 13;
 };
+
 }  // namespace taraxa::vdf_sortition
