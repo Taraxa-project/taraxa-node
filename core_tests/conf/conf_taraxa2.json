@@ -25,7 +25,7 @@
   "ws_port": 8778,
   "test_params": {
     "block_proposer": {
-      "mode": "random",
+      "mode": "sortition",
       "shard": 1,
       "transaction_limit": 0,
       "random_params": {

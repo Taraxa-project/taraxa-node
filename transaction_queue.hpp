@@ -10,9 +10,6 @@ using std::string;
 class DagBlock;
 class FullNode;
 
-/**
- */
-
 class TransactionQueue {
  public:
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };

@@ -28,7 +28,7 @@
     "max_transaction_queue_drop": 0,
     "max_block_queue_warn": 0,
     "block_proposer": {
-      "mode": "random",
+      "mode": "sortition",
       "shard": 1,
       "transaction_limit": 0,
       "random_params": {
