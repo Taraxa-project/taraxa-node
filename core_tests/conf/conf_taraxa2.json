@@ -24,6 +24,9 @@
   "rpc_port": 7778,
   "ws_port": 8778,
   "test_params": {
+    "max_transaction_queue_warn" : 0,
+    "max_transaction_queue_drop" : 0,
+    "max_block_queue_warn" : 0,
     "block_proposer": {
       "mode": "sortition",
       "shard": 1,
@@ -31,6 +34,10 @@
       "random_params": {
         "min_freq": 100,
         "max_freq": 1000
+      },
+      "sortition_params": {
+        "difficulty_bound": 15,
+        "lambda_bound": 1500
       }
     },
     "pbft": {
