@@ -58,7 +58,6 @@ class RandomPropose : public ProposeModelFace {
 /**
  * sortition = sign({anchor_blk_hash, level}, secret_key) < threshold
  */
-
 class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(uint difficulty_bound, uint lambda_bits, addr_t node_addr,
@@ -85,7 +84,6 @@ class SortitionPropose : public ProposeModelFace {
  * Single thread
  * Block proproser request for unpacked transaction
  */
-
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& conf,

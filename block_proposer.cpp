@@ -6,23 +6,12 @@
 #include "full_node.hpp"
 #include "transaction.hpp"
 #include "transaction_manager.hpp"
-#include "types.hpp"
 
 namespace taraxa {
 
 std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 std::mt19937 RandomPropose::generator;
 using namespace vdf_sortition;
-
-uint posLog2(val_t val) {
-  if (val <= 0) return 0;
-  int count = 0;
-  while (val) {
-    val >>= 1;
-    count += 1;
-  }
-  return count - 1;
-}
 
 bool RandomPropose::propose() {
   auto proposer = proposer_.lock();
@@ -36,7 +25,6 @@ bool RandomPropose::propose() {
 
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
-
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
     return false;
@@ -46,8 +34,8 @@ bool RandomPropose::propose() {
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
-
   proposer_.lock()->proposeBlock(blk);
+
   return true;
 }
 
@@ -68,13 +56,11 @@ bool SortitionPropose::propose() {
 
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
-
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
     return false;
   }
   assert(!frontier.pivot.isZero());
-
   auto propose_level =
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
@@ -85,11 +71,9 @@ bool SortitionPropose::propose() {
   vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
                                   lambda_bits_);
   vdf.computeVdfSolution(frontier.pivot.toString());
-  assert(vdf.verify(frontier.pivot.toString()));
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
-
   proposer->proposeBlock(blk);
   last_dag_height_ = dag_height;
 
