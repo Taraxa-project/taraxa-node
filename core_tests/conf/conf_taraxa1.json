@@ -37,7 +37,7 @@
       },
       "sortition_params": {
         "difficulty_bound": 15,
-        "lambda_bound": 1500,
+        "lambda_bound": 1500
       }
     },
     "pbft": {
