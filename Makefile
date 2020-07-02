@@ -41,7 +41,7 @@ ifeq ($(OS), Darwin)
 	boost_log_setup-mt
 else
 	BOOST_LIBS += boost_log \
-        boost_log_setup
+	boost_log_setup
 endif
 LIBS := \
 	$(TARAXA_ALETH_LIB) \
