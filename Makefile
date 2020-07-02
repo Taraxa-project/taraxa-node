@@ -35,12 +35,13 @@ BOOST_LIBS := \
 	boost_program_options \
 	boost_filesystem \
 	boost_system \
-	boost_thread-mt \
-	boost_log_setup
+	boost_thread-mt
 ifeq ($(OS), Darwin)
-	BOOST_LIBS += boost_log-mt
+	BOOST_LIBS += boost_log-mt \
+	boost_log_setup-mt
 else
-	BOOST_LIBS += boost_log
+	BOOST_LIBS += boost_log \
+	boost_log_setup
 endif
 LIBS := \
 	$(TARAXA_ALETH_LIB) \
