@@ -24,9 +24,9 @@
   "rpc_port": 7781,
   "ws_port": 8781,
   "test_params": {
-    "max_transaction_queue_warn" : 0,
-    "max_transaction_queue_drop" : 0,
-    "max_block_queue_warn" : 0,
+    "max_transaction_queue_warn": 0,
+    "max_transaction_queue_drop": 0,
+    "max_block_queue_warn": 0,
     "block_proposer": {
       "mode": "sortition",
       "shard": 1,
