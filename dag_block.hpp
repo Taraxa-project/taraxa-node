@@ -74,6 +74,7 @@ class DagBlock {
   vec_trx_t getTrxs() const { return trxs_; }
   sig_t getSig() const { return sig_; }
   blk_hash_t getHash() const { return hash_; }
+  vdf_sortition::VdfSortition getVdf() const { return vdf_; }
   addr_t getSender() const { return sender(); }
   Json::Value getJson() const;
   std::string getJsonStr() const;

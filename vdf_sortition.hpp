@@ -76,6 +76,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   friend std::ostream& operator<<(std::ostream& strm, VdfSortition const& vdf) {
     return vdf.print(strm);
   }
+
   auto getComputationTime() const { return vdf_computation_time_; }
   int getDifficulty() const;
   unsigned long getLambda() const;
