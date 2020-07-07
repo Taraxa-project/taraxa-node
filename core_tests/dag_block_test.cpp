@@ -48,8 +48,8 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VdfMsg vdf_msg(blk_hash_t(100), 3);
-  VdfSortition vdf(sk, vdf_msg);
+  Message msg(blk_hash_t(100), 3);
+  VdfSortition vdf(sk, msg);
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(vdf_input.toString());
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf);
