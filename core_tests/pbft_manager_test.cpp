@@ -8,6 +8,7 @@
 #include "static_init.hpp"
 #include "util/lazy.hpp"
 #include "util/wait.hpp"
+#include "transaction_manager.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
@@ -71,7 +72,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->insertTransaction(master_boot_node_send_coins, false);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
     trxs_count++;
   }
 
@@ -88,7 +89,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
                                   nodes[0]->getSecretKey(),
                                   nodes[0]->getAddress());
             // broadcast dummy transaction
-            nodes[0]->insertTransaction(dummy_trx, false);
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
             trxs_count++;
             return false;
           }
@@ -144,7 +145,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->insertTransaction(send_coins_in_robin_cycle, false);
+    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
     trxs_count++;
   }
 
@@ -161,7 +162,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
                                   nodes[0]->getSecretKey(),
                                   nodes[0]->getAddress());
             // broadcast dummy transaction
-            nodes[0]->insertTransaction(dummy_trx, false);
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
             trxs_count++;
             return false;
           }
@@ -219,7 +220,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price,
                                                TEST_TX_GAS_LIMIT, data,
                                                node->getSecretKey(), receiver);
-  node->insertTransaction(trx_master_boot_node_to_receiver, false);
+  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
@@ -266,7 +267,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
       nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
-  nodes[0]->insertTransaction(trx_master_boot_node_to_node2, false);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
             << std::endl;
@@ -309,7 +310,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
       nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
-  nodes[0]->insertTransaction(trx_master_boot_node_to_node3, false);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."
             << std::endl;

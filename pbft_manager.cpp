@@ -51,6 +51,7 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
+  ws_server_ = full_node->getWSServer();
   db_ = full_node->getDB();
   num_executed_blk_ =
       db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -70,7 +71,7 @@ void PbftManager::start() {
   }
   auto full_node = node_.lock();
   std::vector<std::string> ghost;
-  full_node->getGhostPath(dag_genesis_, ghost);
+  full_node->getDagManager()->getGhostPath(dag_genesis_, ghost);
   while (ghost.empty()) {
     LOG(log_dg_)
         << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
@@ -1043,7 +1044,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   }
 
   std::vector<std::string> ghost;
-  full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
+  full_node->getDagManager()->getGhostPath(last_period_dag_anchor_block_hash, ghost);
   LOG(log_dg_) << "GHOST size " << ghost.size();
   // Looks like ghost never empty, at lease include the last period dag anchor
   // block
@@ -1089,11 +1090,11 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   uint64_t period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(period, dag_blocks_hash_order) =
-      full_node->getDagBlockOrder(dag_block_hash);
+      full_node->getDagManager()->getDagBlockOrder(dag_block_hash);
   // get dag blocks
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
-    auto dag_blk = full_node->getDagBlock(dag_blk_hash);
+    auto dag_blk = full_node->getBlockManager()->getDagBlock(dag_blk_hash);
     assert(dag_blk);
     dag_blocks.emplace_back(dag_blk);
   }
@@ -1254,7 +1255,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
   uint64_t period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(period, dag_blocks_hash_order) =
-      full_node->getDagBlockOrder(dag_block_hash);
+      full_node->getDagManager()->getDagBlockOrder(dag_block_hash);
   // compare DAG blocks hash in PBFT schedule with DAG blocks
   vec_blk_t dag_blocks_hash_in_schedule =
       pbft_block.getSchedule().dag_blks_order;
@@ -1522,7 +1523,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   uint64_t current_period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(current_period, dag_blocks_hash_order) =
-      full_node->getDagBlockOrder(dag_block_hash);
+      full_node->getDagManager()->getDagBlockOrder(dag_block_hash);
   // Add cert votes in DB
   db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n"
@@ -1547,7 +1548,9 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   LOG(log_dg_) << "DB write batch committed already";
 
   // Set DAG blocks period
-  full_node->setDagBlockOrder(dag_block_hash, pbft_period);
+  full_node->getDagManager()->setDagBlockOrder(dag_block_hash, pbft_period);
+
+  if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);

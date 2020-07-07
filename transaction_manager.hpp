@@ -11,6 +11,7 @@ namespace taraxa {
 using std::string;
 class DagBlock;
 class FullNode;
+class Network;
 
 using TransactionRLPTable = ExpirationCacheMap<trx_hash_t, taraxa::bytes>;
 using AccountNonceTable = StatusTable<addr_t, val_t>;
@@ -30,7 +31,7 @@ class TransactionManager
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  explicit TransactionManager(TestParamsConfig const &conf, addr_t node_addr)
+  explicit TransactionManager(FullNodeConfig const &conf, addr_t node_addr)
       : conf_(conf), accs_nonce_(), trx_qu_(node_addr) {
     LOG_OBJECTS_CREATE("TRXMGR");
   }
@@ -63,6 +64,14 @@ class TransactionManager
                 uint16_t max_trx_to_pack = 0);
   void setVerifyMode(VerifyMode mode) { mode_ = mode; }
 
+  // Insert new transaction to unverified queue or if verify flag true
+  // synchronously verify and insert into verified queue
+  std::pair<bool, std::string> insertTransaction(Transaction const &trx,
+                                                 bool verify);
+  // Transactions coming from broadcasting is less critical
+  void insertBroadcastedTransactions(
+      std::vector<taraxa::bytes> const &transactions);
+  
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
@@ -99,8 +108,10 @@ class TransactionManager
   TransactionQueue trx_qu_;
   DagFrontier dag_frontier_;  // Dag boundary seen up to now
   std::atomic<unsigned long> trx_count_ = 0;
-  TestParamsConfig conf_;
+  FullNodeConfig conf_;
   std::vector<std::thread> verifiers_;
+  std::shared_ptr<Network> network_;
+  dev::Logger log_time_;
 
   mutable std::mutex mu_for_nonce_table_;
   mutable std::mutex mu_for_transactions_;

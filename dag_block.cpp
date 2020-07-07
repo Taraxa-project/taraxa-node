@@ -206,6 +206,8 @@ BlockManager::~BlockManager() { stop(); }
 void BlockManager::setFullNode(std::shared_ptr<FullNode> node) {
   node_ = node;
   trx_mgr_ = node->getTransactionManager();
+  db_ = node->getDB();
+  log_time_ = node->getTimeLogger();
 }
 
 void BlockManager::start() {
@@ -231,7 +233,9 @@ void BlockManager::stop() {
 }
 
 bool BlockManager::isBlockKnown(blk_hash_t const &hash) {
-  return seen_blocks_.count(hash);
+  auto known = seen_blocks_.count(hash);
+  if (!known) return getDagBlock(hash) != nullptr;
+  return true;
 }
 
 std::shared_ptr<DagBlock> BlockManager::getDagBlock(
@@ -240,6 +244,9 @@ std::shared_ptr<DagBlock> BlockManager::getDagBlock(
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
     ret = std::make_shared<DagBlock>(blk.first);
+  }
+  if (!ret) {
+    return db_->getDagBlock(hash);
   }
   return ret;
 }
@@ -256,6 +263,18 @@ level_t BlockManager::getMaxDagLevelInQueue() const {
       max_level = std::max(verified_qu_.rbegin()->first, max_level);
   }
   return max_level;
+}
+
+void BlockManager::insertBlock(DagBlock const &blk) {
+  if (isBlockKnown(blk.getHash())) {
+    LOG(log_nf_) << "Block known " << blk.getHash();
+    return;
+  }
+  pushUnverifiedBlock(std::move(blk), true /*critical*/);
+  LOG(log_time_) << "Store cblock " << blk.getHash()
+                 << " at: " << getCurrentTimeMilliSeconds()
+                 << " ,trxs: " << blk.getTrxs().size()
+                 << " , tips: " << blk.getTips().size();
 }
 
 void BlockManager::pushUnverifiedBlock(
@@ -289,6 +308,20 @@ void BlockManager::pushUnverifiedBlock(
     }
   }
   cond_for_unverified_qu_.notify_one();
+}
+
+void BlockManager::insertBroadcastedBlockWithTransactions(
+    DagBlock const &blk, std::vector<Transaction> const &transactions) {
+  if (isBlockKnown(blk.getHash())) {
+    LOG(log_dg_) << "Block known " << blk.getHash();
+    return;
+  }
+  pushUnverifiedBlock(std::move(blk), std::move(transactions),
+                                false /*critical*/);
+  LOG(log_time_) << "Store ncblock " << blk.getHash()
+                 << " at: " << getCurrentTimeMilliSeconds()
+                 << " ,trxs: " << blk.getTrxs().size()
+                 << " , tips: " << blk.getTips().size();
 }
 
 void BlockManager::pushUnverifiedBlock(DagBlock const &blk, bool critical) {

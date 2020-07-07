@@ -5,6 +5,7 @@
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
 #include "vote.hpp"
+#include "transaction_manager.hpp"
 
 using namespace taraxa;
 
@@ -48,7 +49,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
   level_t expected_level = 0;
   if (auto full_node = full_node_.lock()) {
     for (auto const &tip : block.getTips()) {
-      auto tip_block = full_node->getDagBlock(tip);
+      auto tip_block = full_node->getBlockManager()->getDagBlock(tip);
       if (!tip_block) {
         LOG(log_nf_dag_sync_) << "Block " << block.getHash().toString()
                               << " has a missing tip " << tip.toString();
@@ -57,7 +58,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
       expected_level = std::max(tip_block->getLevel(), expected_level);
     }
     auto pivot = block.getPivot();
-    auto pivot_block = full_node->getDagBlock(pivot);
+    auto pivot_block = full_node->getBlockManager()->getDagBlock(pivot);
     if (!pivot_block) {
       LOG(log_nf_) << "Block " << block.getHash().toString()
                    << " has a missing pivot " << pivot.toString();
@@ -73,8 +74,8 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
                                  ". Expected level " +
                                  std::to_string(expected_level));
     }
-    return std::make_pair(true, blk_hash_t());
   }
+  return std::make_pair(true, blk_hash_t()); 
 }
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
@@ -173,7 +174,7 @@ bool TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
             << " with " << block.second.second.size() << " transactions";
         if (block.second.first.getLevel() > peer->dag_level_)
           peer->dag_level_ = block.second.first.getLevel();
-        full_node->insertBroadcastedBlockWithTransactions(block.second.first,
+        full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(block.second.first,
                                                           block.second.second);
       }
     }
@@ -319,7 +320,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               << "Received NewBlockHashPacket" << hash.toString();
           peer->markBlockAsKnown(hash);
           if (auto full_node = full_node_.lock()) {
-            if (!full_node->isBlockKnown(hash) &&
+            if (!full_node->getBlockManager()->isBlockKnown(hash) &&
                 block_requestes_set_.count(hash) == 0) {
               block_requestes_set_.insert(hash);
               requestBlock(_nodeID, hash, true);
@@ -336,7 +337,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           LOG(log_dg_dag_sync_) << "Received GetBlockPacket" << hash.toString();
           peer->markBlockAsKnown(hash);
           if (auto full_node = full_node_.lock()) {
-            auto block = full_node->getDagBlockFromDb(hash);
+            auto block = full_node->getDB()->getDagBlock(hash);
             if (block) {
               sendBlock(_nodeID, *block, false);
             } else
@@ -352,7 +353,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
               << "Received GetNewBlockPacket" << hash.toString();
 
           if (auto full_node = full_node_.lock()) {
-            auto block = full_node->getDagBlockFromDb(hash);
+            auto block = full_node->getDB()->getDagBlock(hash);
             if (block) {
               sendBlock(_nodeID, *block, true);
             } else
@@ -366,7 +367,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           level_t level = _r[0].toInt();
           LOG(log_dg_dag_sync_) << "Received GetBlocksPacket " << level;
           if (auto full_node = full_node_.lock()) {
-            auto dag_blocks = full_node->getDagBlocksAtLevel(
+            auto dag_blocks = full_node->getDB()->getDagBlocksAtLevel(
                 level, conf_.network_sync_level_size);
             sendBlocks(_nodeID, dag_blocks);
           }
@@ -375,7 +376,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         case GetLeavesBlocksPacket: {
           LOG(log_dg_dag_sync_) << "Received GetLeavesBlocksPacket";
           if (auto full_node = full_node_.lock()) {
-            auto dag_blocks = full_node->collectTotalLeaves();
+            std::vector<std::string> dag_blocks;
+            full_node->getDagManager()->collectTotalLeaves(dag_blocks);
             sendLeavesBlocks(_nodeID, dag_blocks);
           }
           break;
@@ -637,7 +639,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                     << block.second.second.size() << " transactions";
                 if (block.second.first.getLevel() > peer->dag_level_)
                   peer->dag_level_ = block.second.first.getLevel();
-                full_node->insertBroadcastedBlockWithTransactions(
+                full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(
                     block.second.first, block.second.second);
               }
             }
@@ -903,7 +905,7 @@ void TaraxaCapability::onNewTransactions(
     if (auto full_node = full_node_.lock()) {
       LOG(log_nf_trx_prp_) << "Storing " << transactions.size()
                            << " transactions";
-      full_node->insertBroadcastedTransactions(transactions);
+      full_node->getTransactionManager()->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
         Transaction trx(transaction);
@@ -950,7 +952,7 @@ void TaraxaCapability::onNewBlockReceived(
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx"
                        << transactions.size() << std::endl;
   if (auto full_node = full_node_.lock()) {
-    if (full_node->isBlockKnown(block.getHash())) {
+    if (full_node->getBlockManager()->isBlockKnown(block.getHash())) {
       LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString()
                            << "that is already known";
       return;
@@ -963,7 +965,7 @@ void TaraxaCapability::onNewBlockReceived(
       LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString()
                            << " with " << transactions.size()
                            << " transactions";
-      full_node->insertBroadcastedBlockWithTransactions(block, transactions);
+      full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(block, transactions);
     }
   } else if (test_blocks_.find(block.getHash()) == test_blocks_.end()) {
     test_blocks_[block.getHash()] = block;
@@ -1042,7 +1044,7 @@ void TaraxaCapability::sendBlocks(
     for (auto &block : blocks) {
       std::vector<taraxa::bytes> transactions;
       for (auto trx : block->getTrxs()) {
-        auto t = full_node->getTransaction(trx);
+        auto t = full_node->getTransactionManager()->getTransaction(trx);
         if (!t) {
           if (!stopped_) {
             LOG(log_er_dag_sync_) << "Transacation " << trx
@@ -1082,12 +1084,12 @@ void TaraxaCapability::sendLeavesBlocks(NodeID const &_id,
   std::vector<std::shared_ptr<DagBlock>> blocks;
   if (auto full_node = full_node_.lock()) {
     for (auto &block_hash : block_hashes) {
-      auto block = full_node->getDagBlockFromDb(blk_hash_t(block_hash));
+      auto block = full_node->getDB()->getDagBlock(blk_hash_t(block_hash));
       if (block) {
         blocks.push_back(block);
         std::vector<taraxa::bytes> transactions;
         for (auto trx : block->getTrxs()) {
-          auto t = full_node->getTransaction(trx);
+          auto t = full_node->getTransactionManager()->getTransaction(trx);
           if (!t) {
             if (!stopped_) {
               LOG(log_er_dag_sync_)
@@ -1157,7 +1159,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
   for (auto trx : transactionsToSend) {
     std::shared_ptr<std::pair<Transaction, taraxa::bytes>> transaction;
     if (auto full_node = full_node_.lock()) {
-      transaction = full_node->getTransaction(trx);
+      transaction = full_node->getTransactionManager()->getTransaction(trx);
     } else {
       assert(test_transactions_.find(trx) != test_transactions_.end());
       transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
@@ -1362,7 +1364,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
       PbftBlockCert bk(b, cert_votes_rlp);
       cert_blocks.emplace_back(bk);
       for (auto const &hash : b.getSchedule().dag_blks_order) {
-        auto dag_block = full_node->getDagBlockFromDb(hash);
+        auto dag_block = full_node->getDB()->getDagBlock(hash);
         pbft_dag_blocks[b.getBlockHash()].push_back(dag_block);
         dag_blocks_counter++;
         dag_blocks_transaction_counter += dag_block->getTrxs().size();
@@ -1378,7 +1380,7 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
       for (auto const &dag_block : pbft_dag_blocks[b.pbft_blk.getBlockHash()]) {
         s.appendRaw(dag_block->rlp(true));
         for (auto const &trx_hash : dag_block->getTrxs()) {
-          s.appendRaw(full_node->getTransaction(trx_hash)->second);
+          s.appendRaw(full_node->getTransactionManager()->getTransaction(trx_hash)->second);
         }
       }
     }

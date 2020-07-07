@@ -127,9 +127,6 @@ TEST_F(PbftChainTest, block_broadcast) {
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
 
-  node1->setDebug(true);
-  node2->setDebug(true);
-  node3->setDebug(true);
   node1->start(true);  // boot_node
   node2->start(false);
   node3->start(false);

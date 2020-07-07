@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "config.hpp"
+#include "network.hpp"
 #include "top.hpp"
 #include "util/lazy.hpp"
 
@@ -106,14 +107,14 @@ createNodesAndVerifyConnection(int count, int min_connections = 1,
         taraxa::thisThreadSleepForMilliSeconds(200);
         allConnected = true;
         for (int j = 0; j < count; j++) {
-          allConnected &= (nodes[j]->getPeerCount() >= min_connections);
+          allConnected &= (nodes[j]->getNetwork()->getPeerCount() >= min_connections);
         }
         if (allConnected) break;
       }
       if (allConnected) {
         std::cout << "All connected";
         for (int i = 0; i < count; i++)
-          std::cout << " " << nodes[i]->getPeerCount();
+          std::cout << " " << nodes[i]->getNetwork()->getPeerCount();
         std::cout << std::endl;
         return result;
       }

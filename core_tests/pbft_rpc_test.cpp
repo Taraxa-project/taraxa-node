@@ -136,8 +136,6 @@ TEST_F(PbftRpcTest, transfer_vote) {
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
   auto node2(taraxa::FullNode::make(cfgs[node_count++]));
 
-  node1->setDebug(true);
-  node2->setDebug(true);
   node1->start(true);  // boot node
   node2->start(false);
 
@@ -204,9 +202,6 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
   auto node2(taraxa::FullNode::make(cfgs[node_count++]));
   auto node3(taraxa::FullNode::make(cfgs[node_count++]));
-  node1->setDebug(true);
-  node2->setDebug(true);
-  node3->setDebug(true);
   node1->start(true);  // boot node
   node2->start(false);
   node3->start(false);

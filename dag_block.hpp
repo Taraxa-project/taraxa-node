@@ -29,6 +29,7 @@ class Transaction;
 enum class TransactionStatus;
 class TransactionManager;
 class FullNode;
+class DbStorage;
 // Block definition
 
 /**
@@ -125,6 +126,11 @@ class BlockManager {
   BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr,
                uint32_t queue_limit = 0);
   ~BlockManager();
+  void insertBlock(DagBlock const &blk);
+  // Only used in initial syncs when blocks are received with full list of
+  // transactions
+  void insertBroadcastedBlockWithTransactions(
+      DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
   void pushUnverifiedBlock(DagBlock const &block,
@@ -154,6 +160,8 @@ class BlockManager {
 
   std::weak_ptr<FullNode> node_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<DbStorage> db_;
+  dev::Logger log_time_;
   // seen blks
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;

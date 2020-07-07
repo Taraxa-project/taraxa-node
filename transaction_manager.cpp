@@ -7,6 +7,8 @@
 
 #include "full_node.hpp"
 #include "transaction.hpp"
+#include "network.hpp"
+#include "dag.hpp"
 
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
@@ -38,6 +40,30 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(
     error_message = "unknown";
   }
   return std::make_pair(false, error_message);
+}
+
+std::pair<bool, std::string> TransactionManager::insertTransaction(Transaction const &trx,
+                                                         bool verify) {
+  auto rlp = trx.rlp(true);
+  auto ret = insertTrx(trx, rlp, verify);
+  if (ret.first && conf_.network.network_transaction_interval == 0) {
+    network_->onNewTransactions({rlp});
+  }
+  return ret;
+}
+
+void TransactionManager::insertBroadcastedTransactions(
+    // transactions coming from broadcastin is less critical
+    std::vector<taraxa::bytes> const &transactions) {
+  if (stopped_) {
+    return;
+  }
+  for (auto const &t : transactions) {
+    Transaction trx(t);
+    insertTrx(trx, t, false);
+    LOG(log_time_) << "Transaction " << trx.getHash()
+                      << " brkreceived at: " << getCurrentTimeMilliSeconds();
+  }
 }
 
 void TransactionManager::verifyQueuedTrxs() {
@@ -80,6 +106,8 @@ void TransactionManager::verifyQueuedTrxs() {
 
 void TransactionManager::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
+  network_ = full_node->getNetwork();
+  log_time_ = full_node->getTimeLogger();
   db_ = full_node->getDB();
   trx_qu_.setFullNode(full_node);
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
@@ -87,7 +115,7 @@ void TransactionManager::setFullNode(std::shared_ptr<FullNode> full_node) {
   DagBlock blk;
   string pivot;
   std::vector<std::string> tips;
-  full_node->getLatestPivotAndTips(pivot, tips);
+  full_node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   DagFrontier frontier;
   frontier.pivot = blk_hash_t(pivot);
   updateNonce(blk, frontier);
@@ -223,23 +251,23 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
 
-  if (conf_.max_transaction_queue_warn > 0 ||
-      conf_.max_transaction_queue_drop > 0) {
+  if (conf_.test_params.max_transaction_queue_warn > 0 ||
+      conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
-    if (conf_.max_transaction_queue_drop >
+    if (conf_.test_params.max_transaction_queue_drop >
         queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Trx: " << hash
                    << "skipped, queue too large. Unverified queue: "
                    << queue_size.first
                    << "; Verified queue: " << queue_size.second
-                   << "; Limit: " << conf_.max_transaction_queue_drop;
+                   << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
-    } else if (conf_.max_transaction_queue_warn >
+    } else if (conf_.test_params.max_transaction_queue_warn >
                queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Warning: queue large. Unverified queue: "
                    << queue_size.first
                    << "; Verified queue: " << queue_size.second
-                   << "; Limit: " << conf_.max_transaction_queue_drop;
+                   << "; Limit: " << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
     }
   }
@@ -359,7 +387,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   if (full_node) {
     // Need to update pivot incase a new period is confirmed
     std::vector<std::string> ghost;
-    full_node->getGhostPath(ghost);
+    full_node->getDagManager()->getGhostPath(ghost);
     vec_blk_t gg;
     std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
                    [](std::string const &t) { return blk_hash_t(t); });

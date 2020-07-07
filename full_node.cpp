@@ -22,7 +22,6 @@ namespace taraxa {
 
 using std::string;
 using std::to_string;
-void FullNode::setDebug(bool debug) { debug_ = debug; }
 
 void FullNode::init(bool destroy_db, bool rebuild_network) {
   // ===== Deal with the config =====
@@ -79,11 +78,11 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   blk_mgr_ = std::make_shared<BlockManager>(
       1024 /*capacity*/, 4 /* verifer thread*/, node_addr,
       conf_.test_params.max_block_queue_warn);
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_.test_params, node_addr);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_, node_addr);
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>(node_addr);
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
-      trx_mgr_->getShared(), node_addr_);
+      trx_mgr_->getShared(), network_, node_addr_);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
                                             genesis_hash.toString(), node_addr);
@@ -185,11 +184,8 @@ void FullNode::start(bool boot_node) {
           continue;
         }
 
-        if (debug_) {
-          std::unique_lock<std::mutex> lock(debug_mutex_);
-          if (!stopped_) {
-            received_blocks_++;
-          }
+        if (!stopped_) {
+          received_blocks_++;
         }
 
         if (dag_mgr_->pivotAndTipsAvailable(blk)) {
@@ -235,159 +231,6 @@ void FullNode::stop() {
   }
 }
 
-size_t FullNode::getPeerCount() const { return network_->getPeerCount(); }
-std::vector<public_t> FullNode::getAllPeers() const {
-  return network_->getAllPeers();
-}
-
-void FullNode::insertBroadcastedBlockWithTransactions(
-    DagBlock const &blk, std::vector<Transaction> const &transactions) {
-  if (isBlockKnown(blk.getHash())) {
-    LOG(log_dg_) << "Block known " << blk.getHash();
-    return;
-  }
-  blk_mgr_->pushUnverifiedBlock(std::move(blk), std::move(transactions),
-                                false /*critical*/);
-  LOG(log_time_) << "Store ncblock " << blk.getHash()
-                 << " at: " << getCurrentTimeMilliSeconds()
-                 << " ,trxs: " << blk.getTrxs().size()
-                 << " , tips: " << blk.getTips().size();
-}
-
-void FullNode::insertBlock(DagBlock const &blk) {
-  if (isBlockKnown(blk.getHash())) {
-    LOG(log_nf_) << "Block known " << blk.getHash();
-    return;
-  }
-  blk_mgr_->pushUnverifiedBlock(std::move(blk), true /*critical*/);
-  LOG(log_time_) << "Store cblock " << blk.getHash()
-                 << " at: " << getCurrentTimeMilliSeconds()
-                 << " ,trxs: " << blk.getTrxs().size()
-                 << " , tips: " << blk.getTips().size();
-}
-
-bool FullNode::isBlockKnown(blk_hash_t const &hash) {
-  auto known = blk_mgr_->isBlockKnown(hash);
-  if (!known) return getDagBlock(hash) != nullptr;
-  return true;
-}
-
-std::pair<bool, std::string> FullNode::insertTransaction(Transaction const &trx,
-                                                         bool verify) {
-  auto rlp = trx.rlp(true);
-  auto ret = trx_mgr_->insertTrx(trx, rlp, verify);
-  if (ret.first && conf_.network.network_transaction_interval == 0) {
-    network_->onNewTransactions({rlp});
-  }
-  return ret;
-}
-
-std::shared_ptr<DagBlock> FullNode::getDagBlockFromDb(
-    blk_hash_t const &hash) const {
-  return db_->getDagBlock(hash);
-}
-
-std::shared_ptr<DagBlock> FullNode::getDagBlock(blk_hash_t const &hash) const {
-  std::shared_ptr<DagBlock> blk;
-  // find if in block queue
-  blk = blk_mgr_->getDagBlock(hash);
-  // not in queue, search db
-  if (!blk) {
-    return db_->getDagBlock(hash);
-  }
-
-  return blk;
-}
-
-std::shared_ptr<std::pair<Transaction, taraxa::bytes>> FullNode::getTransaction(
-    trx_hash_t const &hash) const {
-  if (stopped_ || !trx_mgr_) {
-    return nullptr;
-  }
-  return trx_mgr_->getTransaction(hash);
-}
-
-unsigned long FullNode::getTransactionCount() const {
-  if (stopped_ || !trx_mgr_) {
-    return 0;
-  }
-  return trx_mgr_->getTransactionCount();
-}
-
-std::vector<std::shared_ptr<DagBlock>> FullNode::getDagBlocksAtLevel(
-    level_t level, int number_of_levels) {
-  std::vector<std::shared_ptr<DagBlock>> res;
-  for (int i = 0; i < number_of_levels; i++) {
-    if (level + i == 0) continue;  // Skip genesis
-    string entry = db_->getBlocksByLevel(level + i);
-    if (entry.empty()) break;
-    vector<string> blocks;
-    boost::split(blocks, entry, boost::is_any_of(","));
-    for (auto const &block : blocks) {
-      auto blk = db_->getDagBlock(blk_hash_t(block));
-      if (blk) {
-        res.push_back(blk);
-      }
-    }
-  }
-  return res;
-}
-
-std::vector<std::string> FullNode::collectTotalLeaves() {
-  std::vector<std::string> leaves;
-  dag_mgr_->collectTotalLeaves(leaves);
-  return leaves;
-}
-
-void FullNode::getLatestPivotAndTips(std::string &pivot,
-                                     std::vector<std::string> &tips) {
-  dag_mgr_->getLatestPivotAndTips(pivot, tips);
-}
-
-void FullNode::getGhostPath(std::string const &source,
-                            std::vector<std::string> &ghost) {
-  dag_mgr_->getGhostPath(source, ghost);
-}
-
-void FullNode::getGhostPath(std::vector<std::string> &ghost) {
-  dag_mgr_->getGhostPath(ghost);
-}
-
-std::vector<std::string> FullNode::getDagBlockPivotChain(
-    blk_hash_t const &hash) {
-  std::vector<std::string> pivot_chain =
-      dag_mgr_->getPivotChain(hash.toString());
-  return pivot_chain;
-}
-
-std::vector<std::string> FullNode::getDagBlockEpFriend(blk_hash_t const &from,
-                                                       blk_hash_t const &to) {
-  std::vector<std::string> epfriend =
-      dag_mgr_->getEpFriendBetweenPivots(from.toString(), to.toString());
-  return epfriend;
-}
-
-std::pair<bool, uint64_t> FullNode::getDagBlockPeriod(blk_hash_t const &hash) {
-  return pbft_mgr_->getDagBlockPeriod(hash);
-}
-
-// return {period, block order}, for pbft-pivot-blk proposing
-std::pair<uint64_t, std::shared_ptr<vec_blk_t>> FullNode::getDagBlockOrder(
-    blk_hash_t const &anchor) {
-  LOG(log_dg_) << "getDagBlockOrder called with anchor " << anchor;
-  vec_blk_t orders;
-  auto period = dag_mgr_->getDagBlockOrder(anchor, orders);
-  return {period, std::make_shared<vec_blk_t>(orders)};
-}
-// receive pbft-povit-blk, update periods
-uint FullNode::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
-  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor
-               << " and period " << period;
-  auto res = dag_mgr_->setDagBlockPeriod(anchor, period);
-  if (ws_server_) ws_server_->newDagBlockFinalized(anchor, period);
-  return res;
-}
-
 uint64_t FullNode::getLatestPeriod() const {
   return dag_mgr_->getLatestPeriod();
 }
@@ -400,7 +243,7 @@ FullNode::computeTransactionOverlapTable(
     std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
   std::vector<std::shared_ptr<DagBlock>> blks;
   for (auto const &b : *ordered_dag_blocks) {
-    auto dagblk = getDagBlock(b);
+    auto dagblk = blk_mgr_->getDagBlock(b);
     assert(dagblk);
     blks.emplace_back(dagblk);
   }
@@ -420,7 +263,7 @@ std::vector<std::vector<uint>> FullNode::createMockTrxSchedule(
 
   for (auto i = 0; i < trx_overlap_table->size(); i++) {
     blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
-    auto blk = getDagBlock(dag_block_hash);
+    auto blk = blk_mgr_->getDagBlock(dag_block_hash);
     if (!blk) {
       LOG(log_er_) << "Cannot create schedule block, DAG block missing "
                    << dag_block_hash;
@@ -491,23 +334,8 @@ std::pair<size_t, size_t> FullNode::getDagBlockQueueSize() const {
   return blk_mgr_->getDagBlockQueueSize();
 }
 
-void FullNode::insertBroadcastedTransactions(
-    // transactions coming from broadcastin is less critical
-    std::vector<taraxa::bytes> const &transactions) {
-  if (stopped_ || !trx_mgr_) {
-    return;
-  }
-  for (auto const &t : transactions) {
-    Transaction trx(t);
-    trx_mgr_->insertTrx(trx, t, false);
-    LOG(log_time_dg_) << "Transaction " << trx.getHash()
-                      << " brkreceived at: " << getCurrentTimeMilliSeconds();
-  }
-}
-
 FullNodeConfig const &FullNode::getConfig() const { return conf_; }
 std::shared_ptr<Network> FullNode::getNetwork() const { return network_; }
-bool FullNode::isSynced() const { return network_->isSynced(); }
 
 std::pair<val_t, bool> FullNode::getBalance(addr_t const &addr) const {
   if (auto acc = final_chain_->get_account(addr)) {
@@ -540,10 +368,6 @@ void FullNode::updateWsPbftBlockExecuted(PbftBlock const &pbft_block) {
   if (ws_server_) {
     ws_server_->newPbftBlockExecuted(pbft_block);
   }
-}
-
-std::string FullNode::getScheduleBlockByPeriod(uint64_t period) {
-  return pbft_mgr_->getScheduleBlockByPeriod(period);
 }
 
 std::vector<Vote> FullNode::getAllVotes() { return vote_mgr_->getAllVotes(); }
@@ -617,11 +441,6 @@ level_t FullNode::getMaxDagLevel() const { return dag_mgr_->getMaxLevel(); }
 
 level_t FullNode::getMaxDagLevelInQueue() const {
   return std::max(dag_mgr_->getMaxLevel(), blk_mgr_->getMaxDagLevelInQueue());
-}
-
-void FullNode::updateNonceTable(DagBlock const &blk,
-                                DagFrontier const &frontier) {
-  trx_mgr_->updateNonce(blk, frontier);
 }
 
 // Need remove later, keep it now for reuse

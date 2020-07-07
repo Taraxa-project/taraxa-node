@@ -88,71 +88,21 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return ret;
   }
 
-  void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
-  boost::asio::io_context &getIoContext();
-
+  
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
-  bool isSynced() const;
   std::shared_ptr<TransactionManager> getTransactionManager() const {
     return trx_mgr_;
   }
   std::shared_ptr<DagManager> getDagManager() const { return dag_mgr_; }
+  std::shared_ptr<BlockManager> getBlockManager() const { return blk_mgr_; }
 
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
 
-  // network stuff
-  size_t getPeerCount() const;
-  std::vector<public_t> getAllPeers() const;
-
-  // Insert a block in persistent storage and build in dag
-  void insertBlock(DagBlock const &blk);
-
-  // Only used in initial syncs when blocks are received with full list of
-  // transactions
-  void insertBroadcastedBlockWithTransactions(
-      DagBlock const &blk, std::vector<Transaction> const &transactions);
-  // Insert new transaction to unverified queue or if verify flag true
-  // synchronously verify and insert into verified queue
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx,
-                                                 bool verify);
-  // Transactions coming from broadcasting is less critical
-  void insertBroadcastedTransactions(
-      std::vector<taraxa::bytes> const &transactions);
-  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
-      trx_hash_t const &hash) const;
-
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
-  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
-  void updateNonceTable(DagBlock const &dagblk, DagFrontier const &frontier);
-  bool isBlockKnown(blk_hash_t const &hash);
-  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
-      level_t level, int number_of_levels);
-  std::string getScheduleBlockByPeriod(uint64_t period);
-  std::vector<std::string> collectTotalLeaves();
-  void getLatestPivotAndTips(std::string &pivot,
-                             std::vector<std::string> &tips);
-  void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
-  void getGhostPath(std::vector<std::string> &ghost);
-
-  std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk);
-  // Note: returned block hashes does not have order
-  // Epoch friends : dag blocks in the same epoch/period
-  std::vector<std::string> getDagBlockEpFriend(blk_hash_t const &from,
-                                               blk_hash_t const &to);
-
-  // return {period, block order}, for pbft-pivot-blk proposing (does not
-  // finialize)
-  std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
-      blk_hash_t const &anchor);
-  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
-  // receive pbft-povit-blk, update periods and finalized, return size of
-  // ordered blocks
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
   uint64_t getLatestPeriod() const;
   blk_hash_t getLatestAnchor() const;
   uint getBlockProposeThresholdBeta()
@@ -243,7 +193,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   void drawGraph(std::string const &dotfile) const;
-  unsigned long getTransactionCount() const;
   auto getNumTransactionExecuted() const {
     return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
   }
@@ -271,7 +220,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::atomic<bool> stopped_ = true;
   // configuration
   FullNodeConfig conf_;
-  bool debug_ = false;
   uint64_t propose_threshold_ = 512;
   bool i_am_boot_node_ = false;
   // node secrets
@@ -309,9 +257,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   // debugger
-  std::mutex debug_mutex_;
-  uint64_t received_blocks_ = 0;
-  uint64_t received_trxs_ = 0;
+  std::atomic_uint64_t received_blocks_ = 0;
   LOG_OBJECTS_DEFINE;
   mutable taraxa::Logger log_time_;
   mutable taraxa::Logger log_time_dg_;

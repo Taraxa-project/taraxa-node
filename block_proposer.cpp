@@ -216,7 +216,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
     return 0;
   }
   // get current level
-  auto pivot_blk = full_node->getDagBlock(pivot);
+  auto pivot_blk = full_node->getBlockManager()->getDagBlock(pivot);
   if (!pivot_blk) {
     LOG(log_er_) << "Cannot find pivot dag block " << pivot;
     return 0;
@@ -224,7 +224,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
   max_level = std::max(pivot_blk->getLevel(), max_level);
 
   for (auto const& t : tips) {
-    auto tip_blk = full_node->getDagBlock(t);
+    auto tip_blk = full_node->getBlockManager()->getDagBlock(t);
     if (!tip_blk) {
       LOG(log_er_) << "Cannot find tip dag block " << blk_hash_t(t);
       return 0;
@@ -239,12 +239,12 @@ void BlockProposer::proposeBlock(DagBlock& blk) {
   assert(full_node);
 
   // Blocks are not proposed if we are behind the network and still syncing
-  if (!full_node->isSynced()) {
+  if (!network_->isSynced()) {
     return;
   }
 
   blk.sign(full_node->getSecretKey());
-  full_node_.lock()->insertBlock(blk);
+  full_node_.lock()->getBlockManager()->insertBlock(blk);
 
   auto& log_time = full_node->getTimeLogger();
   auto now = getCurrentTimeMilliSeconds();

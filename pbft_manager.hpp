@@ -23,6 +23,7 @@
 
 namespace taraxa {
 class FullNode;
+class WSServer;
 
 enum PbftStates {
   value_proposal_state = 1,
@@ -170,6 +171,7 @@ class PbftManager {
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
   std::shared_ptr<TaraxaCapability> capability_ = nullptr;
+  std::shared_ptr<taraxa::net::WSServer> ws_server_ = nullptr;
 
   // Database
   std::shared_ptr<DbStorage> db_ = nullptr;

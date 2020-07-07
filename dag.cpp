@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include "transaction_manager.hpp"
 
 #include "full_node.hpp"
 
@@ -459,6 +460,7 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 
 void DagManager::setFullNode(std::shared_ptr<FullNode> full_node) {
   full_node_ = full_node;
+  trx_mgr_ = full_node->getTransactionManager();
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
@@ -544,7 +546,7 @@ void DagManager::addDagBlock(DagBlock const &blk) {
     for (auto const &t : ts) {
       frontier.tips.emplace_back(blk_hash_t(t));
     }
-    full_node->updateNonceTable(blk, frontier);
+    trx_mgr_->updateNonce(blk, frontier);
     LOG(log_dg_) << getFullNodeAddress() << " Update nonce table of blk "
                  << blk.getHash() << "anchor " << anchors_.back().first
                  << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
@@ -616,6 +618,22 @@ std::vector<std::string> DagManager::getPivotChain(
   std::vector<std::string> ret;
   pivot_tree_->getGhostPath(vertex, ret);
   return ret;
+}
+
+// return {period, block order}, for pbft-pivot-blk proposing
+std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(
+    blk_hash_t const &anchor) {
+  LOG(log_dg_) << "getDagBlockOrder called with anchor " << anchor;
+  vec_blk_t orders;
+  auto period = getDagBlockOrder(anchor, orders);
+  return {period, std::make_shared<vec_blk_t>(orders)};
+}
+// receive pbft-povit-blk, update periods
+uint DagManager::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
+  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor
+               << " and period " << period;
+  auto res = setDagBlockPeriod(anchor, period);
+  return res;
 }
 
 uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,

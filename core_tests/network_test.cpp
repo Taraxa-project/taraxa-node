@@ -14,6 +14,7 @@
 #include "static_init.hpp"
 #include "util.hpp"
 #include "util/lazy.hpp"
+#include "transaction_manager.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
@@ -211,38 +212,34 @@ TEST_F(NetworkTest, node_network_id) {
     conf1.network.network_id = "main";
     auto node1(taraxa::FullNode::make(conf1, true));
 
-    node1->setDebug(true);
     node1->start(true);
 
     FullNodeConfig conf2(conf_file[1]);
     conf2.network.network_id = "main";
     auto node2 = taraxa::FullNode::make(conf2, true);
 
-    node2->setDebug(true);
     node2->start(false);  // boot node
 
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    EXPECT_EQ(node1->getPeerCount(), 1);
-    EXPECT_EQ(node2->getPeerCount(), 1);
+    EXPECT_EQ(node1->getNetwork()->getPeerCount(), 1);
+    EXPECT_EQ(node2->getNetwork()->getPeerCount(), 1);
   }
   {
     FullNodeConfig conf1(conf_file[0]);
     conf1.network.network_id = "main";
     auto node1(taraxa::FullNode::make(conf1, true));
 
-    node1->setDebug(true);
     node1->start(true);
 
     FullNodeConfig conf2(conf_file[1]);
     conf2.network.network_id = "testnet";
     auto node2 = taraxa::FullNode::make(conf2, true);
 
-    node2->setDebug(true);
     node2->start(false);  // boot node
 
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    EXPECT_EQ(node1->getPeerCount(), 0);
-    EXPECT_EQ(node2->getPeerCount(), 0);
+    EXPECT_EQ(node1->getNetwork()->getPeerCount(), 0);
+    EXPECT_EQ(node2->getNetwork()->getPeerCount(), 0);
   }
 }
 
@@ -254,7 +251,6 @@ DAG on the other end is the same
 TEST_F(NetworkTest, node_sync) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
-  node1->setDebug(true);
   node1->start(true);
 
   // Allow node to start up
@@ -294,7 +290,7 @@ TEST_F(NetworkTest, node_sync) {
   blks.push_back(blk1);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->insertBlock(blks[i]);
+    node1->getBlockManager()->insertBlock(blks[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(100);
@@ -302,7 +298,6 @@ TEST_F(NetworkTest, node_sync) {
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
-  node2->setDebug(true);
   node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
@@ -552,7 +547,6 @@ and verifies that the sync containing transactions is successful
 TEST_F(NetworkTest, node_sync_with_transactions) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
-  node1->setDebug(true);
   node1->start(true);
   std::vector<DagBlock> blks;
 
@@ -598,12 +592,12 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   blk6.sign(g_secret2);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
 
-  node1->insertBroadcastedBlockWithTransactions(blk6, tr6);
-  node1->insertBroadcastedBlockWithTransactions(blk5, tr5);
-  node1->insertBroadcastedBlockWithTransactions(blk4, tr4);
-  node1->insertBroadcastedBlockWithTransactions(blk3, tr3);
-  node1->insertBroadcastedBlockWithTransactions(blk2, tr2);
-  node1->insertBroadcastedBlockWithTransactions(blk1, tr1);
+  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk6, tr6);
+  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk5, tr5);
+  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk4, tr4);
+  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk3, tr3);
+  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk2, tr2);
+  node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk1, tr1);
 
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -611,7 +605,6 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
-  node2->setDebug(true);
   node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
@@ -642,7 +635,6 @@ TEST_F(NetworkTest, node_sync2) {
 
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
-  node1->setDebug(true);
   node1->start(true);
   std::vector<DagBlock> blks;
 
@@ -747,7 +739,7 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
+    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -755,7 +747,6 @@ TEST_F(NetworkTest, node_sync2) {
   auto node2(taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true));
 
-  node2->setDebug(true);
   node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
@@ -783,7 +774,6 @@ that the second node receives the transactions
 TEST_F(NetworkTest, node_transaction_sync) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
-  node1->setDebug(true);
   node1->start(true);
 
   std::vector<taraxa::bytes> transactions;
@@ -796,20 +786,19 @@ TEST_F(NetworkTest, node_transaction_sync) {
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
 
-  node2->setDebug(true);
   node2->start(false);  // boot node
 
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  node1->insertBroadcastedTransactions(transactions);
+  node1->getTransactionManager()->insertBroadcastedTransactions(transactions);
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   for (auto const& t : *g_signed_trx_samples) {
-    EXPECT_TRUE(node2->getTransaction(t.getHash()) != nullptr);
-    if (node2->getTransaction(t.getHash()) != nullptr) {
-      EXPECT_EQ(t, node2->getTransaction(t.getHash())->first);
+    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr);
+    if (node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr) {
+      EXPECT_EQ(t, node2->getTransactionManager()->getTransaction(t.getHash())->first);
     }
   }
 }
@@ -824,7 +813,6 @@ resulting DAG is the same on all nodes
 TEST_F(NetworkTest, node_full_sync) {
   const int numberOfNodes = 5;
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-  node1->setDebug(true);
   node1->start(true);  // boot node
 
   std::vector<FullNode::Handle> nodes;
@@ -855,7 +843,7 @@ TEST_F(NetworkTest, node_full_sync) {
   for (auto i = 0; i < NUM_TRX2; ++i) {
     std::vector<taraxa::bytes> transactions;
     transactions.emplace_back(ts[i].rlp(true));
-    nodes[distNodes(rng)]->insertBroadcastedTransactions(transactions);
+    nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
   }
@@ -892,7 +880,7 @@ TEST_F(NetworkTest, node_full_sync) {
         finished = false;
         break;
       }
-      if (!nodes[j]->isSynced()) {
+      if (!nodes[j]->getNetwork()->isSynced()) {
         finished = false;
       }
     }
@@ -912,15 +900,15 @@ TEST_F(NetworkTest, node_full_sync) {
               nodes[i]->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
               node1->getNumEdgesInDag().first);
-    EXPECT_TRUE(nodes[i]->isSynced());
+    EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());
   }
 
   // Write any DAG diff
   for (int i = 0; i < numberOfNodes + 1; i++) {
     uint64_t level = 1;
     while (true) {
-      auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
-      auto blocks2 = nodes[i]->getDagBlocksAtLevel(level, 1);
+      auto blocks1 = node1->getDB()->getDagBlocksAtLevel(level, 1);
+      auto blocks2 = nodes[i]->getDB()->getDagBlocksAtLevel(level, 1);
       if (blocks1.size() != blocks2.size()) {
         std::cout << "DIFF at level %lu: " << level << std::endl;
         for (auto b : blocks1) printf(" %s", b->getHash().toString().c_str());
@@ -937,7 +925,7 @@ TEST_F(NetworkTest, node_full_sync) {
   std::map<blk_hash_t, std::set<trx_hash_t>> trxHist;
   uint64_t level = 1;
   while (true) {
-    auto blocks1 = node1->getDagBlocksAtLevel(level, 1);
+    auto blocks1 = node1->getDB()->getDagBlocksAtLevel(level, 1);
     for (auto b : blocks1) {
       for (auto t : trxHist[b->getPivot()]) trxHist[b->getHash()].insert(t);
       for (auto tip : b->getTips()) {

@@ -1,5 +1,8 @@
 #include "db_storage.hpp"
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+
 #include "transaction.hpp"
 #include "vote.hpp"
 
@@ -87,6 +90,25 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
 
 std::string DbStorage::getBlocksByLevel(level_t level) {
   return lookup(toSlice(level), Columns::dag_blocks_index);
+}
+
+std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(
+    level_t level, int number_of_levels) {
+  std::vector<std::shared_ptr<DagBlock>> res;
+  for (int i = 0; i < number_of_levels; i++) {
+    if (level + i == 0) continue;  // Skip genesis
+    string entry = getBlocksByLevel(level + i);
+    if (entry.empty()) break;
+    vector<string> blocks;
+    boost::split(blocks, entry, boost::is_any_of(","));
+    for (auto const& block : blocks) {
+      auto blk = getDagBlock(blk_hash_t(block));
+      if (blk) {
+        res.push_back(blk);
+      }
+    }
+  }
+  return res;
 }
 
 void DbStorage::saveDagBlock(DagBlock const& blk) {

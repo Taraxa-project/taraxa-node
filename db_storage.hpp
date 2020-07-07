@@ -122,6 +122,9 @@ struct DbStorage {
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
+  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
+      level_t level, int number_of_levels);
+  
 
   // Transaction
   void saveTransaction(Transaction const& trx);

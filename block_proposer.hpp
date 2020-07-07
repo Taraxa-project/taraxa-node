@@ -12,6 +12,7 @@
 #include "config.hpp"
 #include "dag_block.hpp"
 #include "vdf_sortition.hpp"
+#include "network.hpp"
 
 namespace taraxa {
 
@@ -87,8 +88,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& conf,
                 std::shared_ptr<DagManager> dag_mgr,
-                std::shared_ptr<TransactionManager> trx_mgr, addr_t node_addr)
-      : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr), conf_(conf) {
+                std::shared_ptr<TransactionManager> trx_mgr,
+                std::shared_ptr<Network> network, addr_t node_addr)
+      : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr), conf_(conf), network_(network) {
     LOG_OBJECTS_CREATE("PR_MDL");
     if (conf_.mode == "random") {
       propose_model_ = std::make_unique<RandomPropose>(
@@ -138,6 +140,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
+  std::shared_ptr<Network> network_;
   LOG_OBJECTS_DEFINE;
 };
 
