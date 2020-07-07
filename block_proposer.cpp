@@ -66,8 +66,8 @@ bool SortitionPropose::propose() {
   auto latest_anchor = proposer->getLatestAnchor();
 
   // get sortition
-  vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
-  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
+  vdf_sortition::Message msg(latest_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf(vrf_sk_, msg, difficulty_bound_,
                                   lambda_bits_);
   vdf.computeVdfSolution(frontier.pivot.toString());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
