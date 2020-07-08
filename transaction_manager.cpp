@@ -293,7 +293,8 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
       trx_qu_.insert(trx, verify);
       auto node = full_node_.lock();
       if (node) {
-        node->newPendingTransaction(trx.getHash());
+        auto ws_server_ = node->getWSServer();
+        if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
       }
       return std::make_pair(true, "");
     } else {

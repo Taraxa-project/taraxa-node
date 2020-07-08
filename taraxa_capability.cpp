@@ -4,8 +4,8 @@
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
-#include "vote.hpp"
 #include "transaction_manager.hpp"
+#include "vote.hpp"
 
 using namespace taraxa;
 
@@ -67,7 +67,6 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
     expected_level = std::max(pivot_block->getLevel(), expected_level);
     expected_level++;
     if (expected_level != block.getLevel()) {
-
       throw InvalidDataException(std::string("Invalid block level ") +
                                  std::to_string(block.getLevel()) +
                                  " for block " + block.getHash().toString() +
@@ -75,7 +74,7 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
                                  std::to_string(expected_level));
     }
   }
-  return std::make_pair(true, blk_hash_t()); 
+  return std::make_pair(true, blk_hash_t());
 }
 
 void TaraxaCapability::onConnect(NodeID const &_nodeID, u256 const &) {
@@ -174,8 +173,8 @@ bool TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
             << " with " << block.second.second.size() << " transactions";
         if (block.second.first.getLevel() > peer->dag_level_)
           peer->dag_level_ = block.second.first.getLevel();
-        full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(block.second.first,
-                                                          block.second.second);
+        full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(
+            block.second.first, block.second.second);
       }
     }
   }
@@ -200,7 +199,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             bool initial_status = _r.itemCount() == 6;
             uint64_t peer_level;
             uint64_t peer_pbft_chain_size;
-            auto pbft_chain_size = full_node->getPbftChainSize();
+            auto pbft_chain_size = full_node->getPbftChain()->getPbftChainSize();
             if (initial_status) {
               auto const peer_protocol_version = _r[0].toInt<unsigned>();
               auto const network_id = _r[1].toString();
@@ -491,7 +490,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             return false;
           }
 
-          if (full_node->addVote(vote)) {
+          if (full_node->getVoteManager()->addVote(vote)) {
             onNewPbftVote(vote);
           }
 
@@ -502,7 +501,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           auto full_node = full_node_.lock();
           if (full_node) {
             size_t height_to_sync = _r[0].toInt();
-            size_t my_chain_size = full_node->getPbftChainSize();
+            size_t my_chain_size = full_node->getPbftChain()->getPbftChainSize();
             size_t blocks_to_transfer = 0;
             if (my_chain_size >= height_to_sync) {
               blocks_to_transfer =
@@ -531,12 +530,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             LOG(log_er_pbft_sync_) << "PbftBlock full node weak pointer empty";
             return false;
           }
-          if (!full_node->isKnownUnverifiedPbftBlock(
+          if (!full_node->getPbftChain()->findUnverifiedPbftBlock(
                   pbft_block.getBlockHash())) {
             // TODO: need to check block validation, like proposed
             // vote(maybe
             //  come later), if get sortition etc
-            full_node->pushUnverifiedPbftBlock(pbft_block);
+            full_node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
             onNewPbftBlock(pbft_block);
           }
           break;
@@ -555,7 +554,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           uint64_t dag_block_counter = 0;
           uint64_t dag_block_trx_counter = 0;
 
-          pbft_sync_period_ = full_node->pbftSyncingPeriod();
+          pbft_sync_period_ = full_node->getPbftChain()->pbftSyncingPeriod();
 
           while (true) {
             if (pbft_block_counter + dag_block_counter +
@@ -576,8 +575,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                   << "PBFT SYNC ERROR, UNEXPECTED PBFT BLOCK HEIGHT: "
                   << pbft_blk_and_votes.pbft_blk.getPeriod()
                   << " sync_period: " << pbft_sync_period_
-                  << " chain size: " << full_node->getPbftChainSize()
-                  << " queue: " << full_node->getPbftSyncedQueueSize();
+                  << " chain size: " << full_node->getPbftChain()->getPbftChainSize()
+                  << " queue: " << full_node->getPbftChain()->pbftSyncedQueueSize();
               restartSyncingPbft(true);
               return true;
             }
@@ -628,8 +627,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                       << "PBFT SYNC ERROR, DAG missing a tip/pivot: "
                       << pbft_blk_and_votes.pbft_blk.getPeriod()
                       << " sync_period: " << pbft_sync_period_
-                      << " chain size: " << full_node->getPbftChainSize()
-                      << " queue: " << full_node->getPbftSyncedQueueSize();
+                      << " chain size: " << full_node->getPbftChain()->getPbftChainSize()
+                      << " queue: " << full_node->getPbftChain()->pbftSyncedQueueSize();
                   restartSyncingPbft(true);
                   return true;
                 }
@@ -639,8 +638,9 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
                     << block.second.second.size() << " transactions";
                 if (block.second.first.getLevel() > peer->dag_level_)
                   peer->dag_level_ = block.second.first.getLevel();
-                full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(
-                    block.second.first, block.second.second);
+                full_node->getBlockManager()
+                    ->insertBroadcastedBlockWithTransactions(
+                        block.second.first, block.second.second);
               }
             }
 
@@ -649,15 +649,15 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
 
             // Check the PBFT block whether in the chain or in the synced
             // queue
-            if (!full_node->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
+            if (!full_node->getPbftChain()->isKnownPbftBlockForSyncing(pbft_blk_hash)) {
               // Check the PBFT block validation
-              if (full_node->checkPbftBlockValidationFromSyncing(
+              if (full_node->getPbftChain()->checkPbftBlockValidationFromSyncing(
                       pbft_blk_and_votes.pbft_blk)) {
                 // Notice: cannot verify 2t+1 cert votes here. Since don't
                 // have correct account status for nodes which after the
                 // first synced one.
-                full_node->setSyncedPbftBlock(pbft_blk_and_votes);
-                pbft_sync_period_ = full_node->pbftSyncingPeriod();
+                full_node->getPbftChain()->setSyncedPbftBlockIntoQueue(pbft_blk_and_votes);
+                pbft_sync_period_ = full_node->getPbftChain()->pbftSyncingPeriod();
                 LOG(log_dg_pbft_sync_)
                     << "Receive synced PBFT block " << pbft_blk_and_votes;
               } else {
@@ -669,12 +669,12 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (item_count > 0) {
             if (syncing_ && peer_syncing_pbft == _nodeID) {
               if (pbft_sync_period_ >
-                  full_node->getPbftChainSize() +
+                  full_node->getPbftChain()->getPbftChainSize() +
                       (10 * conf_.network_sync_level_size)) {
                 LOG(log_dg_pbft_sync_)
                     << "Syncing pbft blocks faster than processing "
                     << pbft_sync_period_ << " "
-                    << full_node->getPbftChainSize();
+                    << full_node->getPbftChain()->getPbftChainSize();
                 host_.scheduleExecution(
                     1000, [this, _nodeID]() { delayedPbftSync(_nodeID, 1); });
               } else {
@@ -724,17 +724,17 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
         LOG(log_er_pbft_sync_)
             << "Pbft blocks stuck in queue, no new block processed "
                "in 60 seconds "
-            << pbft_sync_period_ << " " << full_node->getPbftChainSize();
+            << pbft_sync_period_ << " " << full_node->getPbftChain()->getPbftChainSize();
         syncing_ = false;
         LOG(log_dg_pbft_sync_) << "Syncing PBFT is stopping";
         return;
       }
       if (syncing_ && peer_syncing_pbft == _nodeID) {
-        if (pbft_sync_period_ > full_node->getPbftChainSize() +
+        if (pbft_sync_period_ > full_node->getPbftChain()->getPbftChainSize() +
                                     (10 * conf_.network_sync_level_size)) {
           LOG(log_dg_pbft_sync_)
               << "Syncing pbft blocks faster than processing "
-              << pbft_sync_period_ << " " << full_node->getPbftChainSize();
+              << pbft_sync_period_ << " " << full_node->getPbftChain()->getPbftChainSize();
           host_.scheduleExecution(1000, [this, _nodeID, counter]() {
             delayedPbftSync(_nodeID, counter + 1);
           });
@@ -771,7 +771,7 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
     }
   }
   if (auto full_node = full_node_.lock()) {
-    pbft_sync_period_ = full_node->pbftSyncingPeriod();
+    pbft_sync_period_ = full_node->getPbftChain()->pbftSyncingPeriod();
 
     if (max_pbft_chain_size > pbft_sync_period_) {
       if (!stopped_) {
@@ -788,19 +788,26 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
       LOG(log_nf_pbft_sync_)
           << "Restarting syncing PBFT not needed since our pbft chain "
              "size: "
-          << pbft_sync_period_ << "(" << full_node->getPbftChainSize() << ")"
+          << pbft_sync_period_ << "(" << full_node->getPbftChain()->getPbftChainSize() << ")"
           << " is greater or equal than max node pbft chain size:"
           << max_pbft_chain_size;
       syncing_ = false;
       if (!requesting_pending_dag_blocks_ &&
-          max_node_dag_level > full_node->getMaxDagLevelInQueue()) {
-        LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
-                              << full_node->getMaxDagLevelInQueue() << "("
-                              << full_node->getMaxDagLevel() << ")";
+          max_node_dag_level >
+              std::max(full_node->getDagManager()->getMaxLevel(),
+                       full_node->getBlockManager()->getMaxDagLevelInQueue())) {
+        LOG(log_nf_dag_sync_)
+            << "Request pending " << max_node_dag_level << " "
+            << std::max(full_node->getDagManager()->getMaxLevel(),
+                        full_node->getBlockManager()->getMaxDagLevelInQueue())
+            << "(" << full_node->getDagManager()->getMaxLevel() << ")";
         requesting_pending_dag_blocks_ = true;
         requesting_pending_dag_blocks_node_id_ = max_pbft_chain_nodeID;
-        requestPendingDagBlocks(max_pbft_chain_nodeID,
-                                full_node->getMaxDagLevelInQueue() + 1);
+        requestPendingDagBlocks(
+            max_pbft_chain_nodeID,
+            std::max(full_node->getDagManager()->getMaxLevel(),
+                     full_node->getBlockManager()->getMaxDagLevelInQueue()) +
+                1);
       }
     }
   }
@@ -837,25 +844,26 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
     if (_initial) {
       LOG(log_dg_) << "Sending initial status message to " << _id << " "
                    << c_protocolVersion << " " << conf_.network_id << " "
-                   << full_node->getMaxDagLevel() << " " << genesis_ << " "
-                   << full_node->getPbftChainSize();
+                   << full_node->getDagManager()->getMaxLevel() << " "
+                   << genesis_ << " " << full_node->getPbftChain()->getPbftChainSize();
     }
     LOG(log_dg_dag_sync_) << "Sending status message to " << _id
-                          << " with dag level:" << full_node->getMaxDagLevel();
+                          << " with dag level:"
+                          << full_node->getDagManager()->getMaxLevel();
     LOG(log_dg_pbft_sync_) << "Sending status message to " << _id
                            << " with pbft chain size:"
-                           << full_node->getPbftChainSize();
+                           << full_node->getPbftChain()->getPbftChainSize();
     if (_initial)
       host_.capabilityHost()->sealAndSend(
           _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 6)
                    << c_protocolVersion << conf_.network_id
-                   << full_node->getMaxDagLevel() << genesis_
-                   << full_node->getPbftChainSize() << syncing_);
+                   << full_node->getDagManager()->getMaxLevel() << genesis_
+                   << full_node->getPbftChain()->getPbftChainSize() << syncing_);
     else {
       host_.capabilityHost()->sealAndSend(
           _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 3)
-                   << full_node->getMaxDagLevel()
-                   << full_node->getPbftChainSize() << syncing_);
+                   << full_node->getDagManager()->getMaxLevel()
+                   << full_node->getPbftChain()->getPbftChainSize() << syncing_);
     }
   }
 }
@@ -905,7 +913,8 @@ void TaraxaCapability::onNewTransactions(
     if (auto full_node = full_node_.lock()) {
       LOG(log_nf_trx_prp_) << "Storing " << transactions.size()
                            << " transactions";
-      full_node->getTransactionManager()->insertBroadcastedTransactions(transactions);
+      full_node->getTransactionManager()->insertBroadcastedTransactions(
+          transactions);
     } else {
       for (auto const &transaction : transactions) {
         Transaction trx(transaction);
@@ -965,7 +974,8 @@ void TaraxaCapability::onNewBlockReceived(
       LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString()
                            << " with " << transactions.size()
                            << " transactions";
-      full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(block, transactions);
+      full_node->getBlockManager()->insertBroadcastedBlockWithTransactions(
+          block, transactions);
     }
   } else if (test_blocks_.find(block.getHash()) == test_blocks_.end()) {
     test_blocks_[block.getHash()] = block;
@@ -1259,7 +1269,9 @@ void TaraxaCapability::setFullNode(std::shared_ptr<FullNode> full_node) {
 void TaraxaCapability::sendTransactions() {
   auto full_node = full_node_.lock();
   if (full_node) {
-    onNewTransactions(full_node->getNewVerifiedTrxSnapShotSerialized(), false);
+    onNewTransactions(full_node->getTransactionManager()
+                          ->getNewVerifiedTrxSnapShotSerialized(),
+                      false);
   }
   host_.scheduleExecution(conf_.network_transaction_interval,
                           [this]() { sendTransactions(); });
@@ -1326,7 +1338,7 @@ void TaraxaCapability::sendPbftVote(NodeID const &_id,
 void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
   auto full_node = full_node_.lock();
   if (full_node) {
-    auto my_chain_size = full_node->getPbftChainSize();
+    auto my_chain_size = full_node->getPbftChain()->getPbftChainSize();
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto const &peer : peers_) {
       if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
@@ -1380,7 +1392,9 @@ void TaraxaCapability::sendPbftBlocks(NodeID const &_id, size_t height_to_sync,
       for (auto const &dag_block : pbft_dag_blocks[b.pbft_blk.getBlockHash()]) {
         s.appendRaw(dag_block->rlp(true));
         for (auto const &trx_hash : dag_block->getTrxs()) {
-          s.appendRaw(full_node->getTransactionManager()->getTransaction(trx_hash)->second);
+          s.appendRaw(full_node->getTransactionManager()
+                          ->getTransaction(trx_hash)
+                          ->second);
         }
       }
     }

@@ -8,6 +8,7 @@
 #include "dag_block.hpp"
 #include "transaction_manager.hpp"
 #include "pbft_manager.hpp"
+#include "dag.hpp"
 
 #include <csignal>
 
@@ -29,7 +30,7 @@ string Taraxa::taraxa_protocolVersion() {
 string Taraxa::taraxa_dagBlockLevel() {
   try {
     auto node = tryGetNode();
-    return toJS(node->getMaxDagLevel());
+    return toJS(node->getDagManager()->getMaxLevel());
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -38,7 +39,7 @@ string Taraxa::taraxa_dagBlockLevel() {
 string Taraxa::taraxa_dagBlockPeriod() {
   try {
     auto node = tryGetNode();
-    return toJS(node->getLatestPeriod());
+    return toJS(node->getDagManager()->getLatestPeriod());
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

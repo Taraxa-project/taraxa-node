@@ -15,6 +15,7 @@
 #include "util.hpp"
 #include "util/lazy.hpp"
 #include "transaction_manager.hpp"
+#include "dag.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
@@ -303,19 +304,19 @@ TEST_F(NetworkTest, node_sync) {
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 200; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getNumVerticesInDag().first == 7 &&
-        node2->getNumEdgesInDag().first == 8)
+    if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
+        node2->getDagManager()->getNumEdgesInDag().first == 8)
       break;
   }
 
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node1->getNumEdgesInDag().first, 8);
+  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
 
   EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node2->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node2->getNumEdgesInDag().first, 8);
+  EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
 }
 
 /*
@@ -340,7 +341,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->generateVote(
+  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
       pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // node1 put block1 into pbft chain and store into DB
@@ -360,7 +361,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   int expect_pbft_chain_size = 1;
-  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
@@ -371,7 +372,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey());
 
   std::vector<Vote> votes_for_pbft_blk2;
-  votes_for_pbft_blk2.emplace_back(node1->generateVote(
+  votes_for_pbft_blk2.emplace_back(node1->getPbftManager()->generateVote(
       pbft_block2.getBlockHash(), cert_vote_type, 2, 3, prev_block_hash));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
@@ -391,7 +392,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   expect_pbft_chain_size = 2;
-  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
@@ -420,12 +421,12 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
   for (int i = 0; i < 1200; i++) {
-    if (node2->getPbftChainSize() == expect_pbft_chain_size) {
+    if (node2->getPbftChain()->getPbftChainSize() == expect_pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
@@ -451,7 +452,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   PbftBlock pbft_block1(prev_block_hash, dag_blk, schedule, period, beneficiary,
                         node1->getSecretKey());
   std::vector<Vote> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->generateVote(
+  votes_for_pbft_blk1.emplace_back(node1->getPbftManager()->generateVote(
       pbft_block1.getBlockHash(), cert_vote_type, 1, 3, prev_block_hash));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // node1 put block1 into pbft chain and store into DB
@@ -471,7 +472,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   int expect_pbft_chain_size = 1;
-  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
@@ -496,7 +497,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   expect_pbft_chain_size = 2;
-  EXPECT_EQ(node1->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa4.json"), true);
@@ -526,12 +527,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
   int sync_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {
-    if (node2->getPbftChainSize() >= sync_pbft_chain_size) {
+    if (node2->getPbftChain()->getPbftChainSize() >= sync_pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftChainSize(), sync_pbft_chain_size);
+  EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), sync_pbft_chain_size);
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t last_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
@@ -610,19 +611,19 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 20; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
-    if (node2->getNumVerticesInDag().first == 7 &&
-        node2->getNumEdgesInDag().first == 8)
+    if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
+        node2->getDagManager()->getNumEdgesInDag().first == 8)
       break;
   }
 
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), 6);
-  EXPECT_EQ(node1->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node1->getNumEdgesInDag().first, 8);
+  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
 
   EXPECT_EQ(node2->getNumReceivedBlocks(), 6);
-  EXPECT_EQ(node2->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node2->getNumEdgesInDag().first, 8);
+  EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
 }
 
 /*
@@ -752,19 +753,19 @@ TEST_F(NetworkTest, node_sync2) {
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 200; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getNumVerticesInDag().first == 13 &&
-        node2->getNumEdgesInDag().first == 13)
+    if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
+        node2->getDagManager()->getNumEdgesInDag().first == 13)
       break;
   }
 
   // node1->drawGraph("dot.txt");
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getNumVerticesInDag().first, 13);
-  EXPECT_EQ(node1->getNumEdgesInDag().first, 13);
+  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 13);
+  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 13);
 
   EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node2->getNumVerticesInDag().first, 13);
-  EXPECT_EQ(node2->getNumEdgesInDag().first, 13);
+  EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 13);
+  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 13);
 }
 
 /*
@@ -853,8 +854,8 @@ TEST_F(NetworkTest, node_full_sync) {
     taraxa::thisThreadSleepForMilliSeconds(500);
     bool finished = true;
     for (int j = 0; j < numberOfNodes; j++) {
-      if (nodes[j]->getNumVerticesInDag().first !=
-          node1->getNumVerticesInDag().first) {
+      if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
+          node1->getDagManager()->getNumVerticesInDag().first) {
         finished = false;
         break;
       }
@@ -875,8 +876,8 @@ TEST_F(NetworkTest, node_full_sync) {
     taraxa::thisThreadSleepForMilliSeconds(500);
     bool finished = true;
     for (int j = 0; j < numberOfNodes + 1; j++) {
-      if (nodes[j]->getNumVerticesInDag().first !=
-          node1->getNumVerticesInDag().first) {
+      if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
+          node1->getDagManager()->getNumVerticesInDag().first) {
         finished = false;
         break;
       }
@@ -890,16 +891,16 @@ TEST_F(NetworkTest, node_full_sync) {
       printf("Waiting %d\n", i);
   }
 
-  EXPECT_GT(node1->getNumVerticesInDag().first, 0);
-  EXPECT_GT(10, node1->getVerifiedTrxSnapShot().size());
+  EXPECT_GT(node1->getDagManager()->getNumVerticesInDag().first, 0);
+  EXPECT_GT(10, node1->getTransactionManager()->getVerifiedTrxSnapShot().size());
   for (int i = 0; i < numberOfNodes + 1; i++) {
-    EXPECT_GT(nodes[i]->getNumVerticesInDag().first, 0);
-    EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
-              node1->getNumVerticesInDag().first);
-    EXPECT_EQ(nodes[i]->getNumVerticesInDag().first,
+    EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
+              node1->getDagManager()->getNumVerticesInDag().first);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
               nodes[i]->getNumDagBlocks());
-    EXPECT_EQ(nodes[i]->getNumEdgesInDag().first,
-              node1->getNumEdgesInDag().first);
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first,
+              node1->getDagManager()->getNumEdgesInDag().first);
     EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());
   }
 

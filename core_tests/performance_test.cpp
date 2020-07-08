@@ -74,7 +74,7 @@ TEST_F(PerformanceTest, execute_transactions) {
     EXPECT_EQ(cur_period, cur_period2);
     EXPECT_EQ(cur_period, ++period);
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-        trx_overlap_table = node->computeTransactionOverlapTable(order);
+        trx_overlap_table = node->getTrxOrderMgr()->computeTransactionOverlapTable(order);
     EXPECT_NE(trx_overlap_table, nullptr);
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);
@@ -93,7 +93,7 @@ TEST_F(PerformanceTest, execute_transactions) {
         node->getDagManager()->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-        trx_overlap_table = node->computeTransactionOverlapTable(order);
+        trx_overlap_table = node->getTrxOrderMgr()->computeTransactionOverlapTable(order);
     EXPECT_NE(trx_overlap_table, nullptr);
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);

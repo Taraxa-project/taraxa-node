@@ -103,38 +103,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
 
-  uint64_t getLatestPeriod() const;
-  blk_hash_t getLatestAnchor() const;
-  uint getBlockProposeThresholdBeta()
-      const { /*TODO: should receive it from pbft-block, use threshold from
-                 0 ~ 1024 */
-    return propose_threshold_;
-  }
-  void setBlockProposeThresholdBeta(
-      uint threshold) { /*TODO: should receive it from pbft-block, use threshold
-                           from 0 ~ 1024, if larger than 4096, should always
-                           success */
-    if (threshold >= (1u << 20)) {
-      threshold = (1u << 20);
-    }
-    propose_threshold_ = threshold;
-    LOG(log_wr_) << "Set propose threshold beta to " << threshold;
-  }
-  std::unordered_set<std::string> getUnOrderedDagBlks() const;
-  // get transaction schecules stuff ...
-  // fixme: return optional
-  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(
-      trx_hash_t const &trx) const {
-    return trx_order_mgr_->getDagBlockFromTransaction(trx);
-  }
-
-  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-  computeTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
-
-  std::vector<std::vector<uint>> createMockTrxSchedule(
-      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-          trx_overlap_table);
-
   // account stuff
   std::pair<val_t, bool> getBalance(addr_t const &acc) const;
   val_t getMyBalance() const;
@@ -143,56 +111,23 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getSecretKey() const { return node_sk_; }
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
-  // pbft stuff
-  void updateWsPbftBlockExecuted(PbftBlock const &pbft_block);
-
+  
   std::shared_ptr<DbStorage> getDB() const { return db_; }
-  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
-
+  
   // PBFT
-  bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   std::vector<Vote> getAllVotes();
-  bool addVote(Vote const &vote);
-  void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
-  bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
-
-  uint64_t pbftSyncingPeriod() const;
-  uint64_t getPbftChainSize() const;
-
-  void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
-  void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
-  void newPendingTransaction(trx_hash_t const &trx_hash);
-  bool pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
-                                   std::vector<Vote> &votes) const;
-  void setTwoTPlusOne(size_t val);
-  bool checkPbftBlockValidationFromSyncing(PbftBlock const &pbft_block) const;
-  size_t getPbftSyncedQueueSize() const;
-  std::pair<size_t, size_t> getTransactionQueueSize() const;
-  std::pair<size_t, size_t> getDagBlockQueueSize() const;
+  
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-
-  // PBFT RPC
-  void broadcastVote(Vote const &vote);
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                    uint64_t period, size_t step,
-                    blk_hash_t const &last_pbft_block_hash);
 
   // For Debug
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
-  level_t getMaxDagLevel() const;
-  level_t getMaxDagLevelInQueue() const;
-  std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
-  std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  void drawGraph(std::string const &dotfile) const;
   auto getNumTransactionExecuted() const {
     return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
   }

@@ -217,6 +217,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // can return self as pivot chain
   std::vector<std::string> getPivotChain(std::string const &vertex) const;
   void drawPivotGraph(std::string const &str) const;
+  void drawGraph(std::string const &dotfile) const;
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const { return max_level_; }

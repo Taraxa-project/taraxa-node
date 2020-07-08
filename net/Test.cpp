@@ -228,18 +228,18 @@ Json::Value Test::get_node_status() {
       res["blk_count"] = Json::UInt64(node->getNumDagBlocks());
       res["trx_executed"] = Json::UInt64(node->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
-      res["dag_level"] = Json::UInt64(node->getMaxDagLevel());
-      res["pbft_size"] = Json::UInt64(node->getPbftChainSize());
+      res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
+      res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
       res["pbft_sync_queue_size"] =
-          Json::UInt64(node->getPbftSyncedQueueSize());
+          Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
       res["trx_queue_unverified_size"] =
-          Json::UInt64(node->getTransactionQueueSize().first);
+          Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
       res["trx_queue_verified_size"] =
-          Json::UInt64(node->getTransactionQueueSize().second);
+          Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
       res["blk_queue_unverified_size"] =
-          Json::UInt64(node->getDagBlockQueueSize().first);
+          Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().first);
       res["blk_queue_verified_size"] =
-          Json::UInt64(node->getDagBlockQueueSize().second);
+          Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
   } catch (std::exception &e) {
@@ -301,7 +301,7 @@ Json::Value Test::should_speak(const Json::Value &param1) {
       PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
       uint64_t period = param1["period"].asUInt64();
       size_t step = param1["step"].asUInt();
-      if (node->shouldSpeak(type, period, step)) {
+      if (node->getPbftManager()->shouldSpeak(type, period, step)) {
         res = "True";
       } else {
         res = "False";
@@ -357,7 +357,7 @@ Json::Value Test::draw_graph(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       std::string filename = param1["filename"].asString();
-      node->drawGraph(filename);
+      node->getDagManager()->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";
     }
   } catch (std::exception &e) {
@@ -409,7 +409,7 @@ Json::Value Test::get_dag_size(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumVerticesInDag();
+      auto count = node->getDagManager()->getNumVerticesInDag();
       res["value"] =
           std::to_string(count.first) + " , " + std::to_string(count.second);
     }
@@ -436,7 +436,7 @@ Json::Value Test::get_pbft_chain_size() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getPbftChainSize();
+      auto count = node->getPbftChain()->getPbftChainSize();
       res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {
@@ -457,11 +457,11 @@ Json::Value Test::get_pbft_chain_blocks(const Json::Value &param1) {
       if (!count_json.isNull())
         count = std::stoi(count_json.asString());
       else
-        count = node->getPbftChainSize();
+        count = node->getPbftChain()->getPbftChainSize();
       if (!height_json.isNull())
         height = std::stoi(height_json.asString());
       else
-        height = node->getPbftChainSize() - count + 1;
+        height = node->getPbftChain()->getPbftChainSize() - count + 1;
 
       auto blocks = node->getPbftChain()->getPbftBlocksStr(
           height, count, include_json.isNull());

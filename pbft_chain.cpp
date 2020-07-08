@@ -547,6 +547,13 @@ std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain) {
   return strm;
 }
 
+bool PbftChain::isKnownPbftBlockForSyncing(
+    taraxa::blk_hash_t const &pbft_block_hash) const {
+  return findPbftBlockInSyncedSet(pbft_block_hash) ||
+         findPbftBlockInChain(pbft_block_hash);
+}
+
+
 uint64_t PbftChain::pbftSyncingPeriod() const {
   if (pbft_synced_queue_.empty()) {
     return size_;

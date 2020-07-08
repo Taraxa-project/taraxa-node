@@ -58,9 +58,17 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+                    uint64_t period, size_t step,
+                    blk_hash_t const &last_pbft_block_hash);
+
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
   size_t getValidSortitionAccountsSize() const;
+  std::vector<std::vector<uint>> createMockTrxSchedule(
+      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+          trx_overlap_table);
+
   // End Test
 
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
@@ -246,7 +254,6 @@ class PbftManager {
   LOG_OBJECTS_DEFINE;
   mutable dev::Logger log_nf_test_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
-
 };
 
 }  // namespace taraxa

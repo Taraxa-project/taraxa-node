@@ -553,6 +553,11 @@ void DagManager::addDagBlock(DagBlock const &blk) {
   }
 }
 
+void DagManager::drawGraph(std::string const &dotfile) const {
+  drawPivotGraph("pivot." + dotfile);
+  drawTotalGraph("total." + dotfile);
+}
+
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips) {
   total_dag_->addVEEs(hash, pivot, tips);

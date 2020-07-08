@@ -138,7 +138,7 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
 level_t BlockProposer::getMaxDagLevel() const {
   auto full_node = full_node_.lock();
   if (full_node) {
-    return full_node->getMaxDagLevel();
+    return full_node->getDagManager()->getMaxLevel();
   }
   return 0;
 }
@@ -203,7 +203,7 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
 }
 
 blk_hash_t BlockProposer::getLatestAnchor() const {
-  return full_node_.lock()->getLatestAnchor();
+  return blk_hash_t(full_node_.lock()->getDagManager()->getLatestAnchor());
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
@@ -237,6 +237,8 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
 void BlockProposer::proposeBlock(DagBlock& blk) {
   auto full_node = full_node_.lock();
   assert(full_node);
+
+  if (stopped_) return;
 
   // Blocks are not proposed if we are behind the network and still syncing
   if (!network_->isSynced()) {

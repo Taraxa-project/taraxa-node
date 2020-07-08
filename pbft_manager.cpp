@@ -1000,18 +1000,32 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForRoundAndStep_(
   return next_vote_block_hash;
 }
 
+Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+                            uint64_t round, size_t step,
+                            blk_hash_t const &last_pbft_block_hash) {
+  auto full_node = node_.lock();
+  // sortition proof
+  VrfPbftMsg msg(last_pbft_block_hash, type, round, step);
+  VrfPbftSortition vrf_sortition(full_node->getVrfSecretKey(), msg);
+  Vote vote(full_node->getSecretKey(), vrf_sortition, blockhash);
+
+  LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
+               << " vote: " << vote.getHash();
+  return vote;
+}
+
 void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
                              PbftVoteTypes vote_type, uint64_t round,
                              size_t step) {
   auto full_node = node_.lock();
-  Vote vote = full_node->generateVote(blockhash, vote_type, round, step,
+  Vote vote = generateVote(blockhash, vote_type, round, step,
                                       pbft_chain_last_block_hash_);
   vote_mgr_->addVote(vote);
   LOG(log_dg_) << "vote block hash: " << blockhash
                << " vote type: " << vote_type << " round: " << round
                << " step: " << step << " vote hash " << vote.getHash();
   // pbft vote broadcast
-  full_node->broadcastVote(vote);
+  full_node->getNetwork()->onNewPbftVote(vote);
 }
 
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(
@@ -1166,6 +1180,43 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   return std::make_pair(pbft_block_hash, true);
 }
 
+std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+        trx_overlap_table) {
+  std::vector<std::vector<uint>> blocks_trx_modes;
+
+  if (!trx_overlap_table) {
+    LOG(log_er_) << "Transaction overlap table nullptr, cannot create mock "
+                 << "transactions schedule";
+    return blocks_trx_modes;
+  }
+
+  for (auto i = 0; i < trx_overlap_table->size(); i++) {
+    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
+    auto blk = node_.lock()->getBlockManager()->getDagBlock(dag_block_hash);
+    if (!blk) {
+      LOG(log_er_) << "Cannot create schedule block, DAG block missing "
+                   << dag_block_hash;
+      continue;
+    }
+
+    auto num_trx = blk->getTrxs().size();
+    std::vector<uint> block_trx_modes;
+    for (auto j = 0; j < num_trx; j++) {
+      if ((*trx_overlap_table)[i].second[j]) {
+        // trx sequential mode
+        block_trx_modes.emplace_back(1);
+      } else {
+        // trx invalid mode
+        block_trx_modes.emplace_back(0);
+      }
+    }
+    blocks_trx_modes.emplace_back(block_trx_modes);
+  }
+
+  return blocks_trx_modes;
+}
+
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
     std::vector<Vote> const &votes) {
   LOG(log_dg_) << "Into identify leader block, in round " << round_;
@@ -1288,7 +1339,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
       std::string filename = "unmatched_pbft_schedule_order_in_period_" +
                              std::to_string(last_period);
       auto addr = full_node->getAddress();
-      full_node->drawGraph(addr.toString() + "_" + filename);
+      full_node->getDagManager()->drawGraph(addr.toString() + "_" + filename);
       // assert(false);
     }
     return false;
@@ -1569,8 +1620,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   full_node->getFilterAPI()->note_block(new_eth_header.hash());
   full_node->getFilterAPI()->note_receipts(trx_receipts);
   // Update web server
-  full_node->updateWsPbftBlockExecuted(pbft_block);
   if (auto ws_server = full_node->getWSServer()) {
+    ws_server_->newPbftBlockExecuted(pbft_block);
     ws_server->newEthBlock(new_eth_header);
   }
 

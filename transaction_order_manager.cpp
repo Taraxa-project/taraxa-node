@@ -59,6 +59,18 @@ void TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
   }
 }
 
+std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+TransactionOrderManager::computeTransactionOverlapTable(
+    std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
+  std::vector<std::shared_ptr<DagBlock>> blks;
+  for (auto const& b : *ordered_dag_blocks) {
+    auto dagblk = node_.lock()->getBlockManager()->getDagBlock(b);
+    assert(dagblk);
+    blks.emplace_back(dagblk);
+  }
+  return computeOrderInBlocks(blks);
+}
+
 std::shared_ptr<std::vector<TrxOverlapInBlock>>
 TransactionOrderManager::computeOrderInBlocks(
     std::vector<std::shared_ptr<DagBlock>> const& blks) {

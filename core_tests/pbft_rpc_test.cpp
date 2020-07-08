@@ -62,7 +62,7 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   pbft_mgr->stop();
 
   std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
-  node->clearUnverifiedVotesTable();
+  node->getVoteManager()->clearUnverifiedVotesTable();
 
   // generate 6 votes, each round has 2 votes
   for (int i = 1; i <= 3; i++) {
@@ -74,12 +74,12 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
       uint64_t round = i;
       size_t step = j;
       Vote vote =
-          node->generateVote(blockhash, type, round, step, pbft_blockhash);
-      node->addVote(vote);
+          node->getPbftManager()->generateVote(blockhash, type, round, step, pbft_blockhash);
+      node->getVoteManager()->addVote(vote);
     }
   }
   // Test add vote
-  size_t votes_size = node->getUnverifiedVotesSize();
+  size_t votes_size = node->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 6);
 
   // Test get votes
@@ -95,10 +95,10 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   }
 
   // Test cleanup votes
-  votes_size = node->getUnverifiedVotesSize();
+  votes_size = node->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 4);
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
-  votes_size = node->getUnverifiedVotesSize();
+  votes_size = node->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(votes_size, 0);
 }
 
@@ -166,10 +166,10 @@ TEST_F(PbftRpcTest, transfer_vote) {
   size_t step = 1;
 
   Vote vote =
-      node2->generateVote(blockhash, type, period, step, pbft_blockhash);
+      node2->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
 
-  node1->clearUnverifiedVotesTable();
-  node2->clearUnverifiedVotesTable();
+  node1->getVoteManager()->clearUnverifiedVotesTable();
+  node2->getVoteManager()->clearUnverifiedVotesTable();
 
   nw2->sendPbftVote(nw1->getNodeId(), vote);
 
@@ -179,9 +179,9 @@ TEST_F(PbftRpcTest, transfer_vote) {
   pbft_mgr1->stop();
   pbft_mgr2->stop();
 
-  size_t vote_queue_size_in_node1 = node1->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node1 = node1->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node1, 1);
-  size_t vote_queue_size_in_node2 = node2->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node2 = node2->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
@@ -236,11 +236,11 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   uint64_t period = 1;
   size_t step = 1;
   Vote vote =
-      node1->generateVote(blockhash, type, period, step, pbft_blockhash);
+      node1->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
 
-  node1->clearUnverifiedVotesTable();
-  node2->clearUnverifiedVotesTable();
-  node3->clearUnverifiedVotesTable();
+  node1->getVoteManager()->clearUnverifiedVotesTable();
+  node2->getVoteManager()->clearUnverifiedVotesTable();
+  node3->getVoteManager()->clearUnverifiedVotesTable();
 
   nw1->onNewPbftVote(vote);
 
@@ -249,9 +249,9 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   pbft_mgr2->stop();
   pbft_mgr3->stop();
 
-  size_t vote_queue_size1 = node1->getUnverifiedVotesSize();
-  size_t vote_queue_size2 = node2->getUnverifiedVotesSize();
-  size_t vote_queue_size3 = node3->getUnverifiedVotesSize();
+  size_t vote_queue_size1 = node1->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size2 = node2->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size3 = node3->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size1, 0);
   EXPECT_EQ(vote_queue_size2, 1);
   EXPECT_EQ(vote_queue_size3, 1);

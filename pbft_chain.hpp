@@ -165,6 +165,7 @@ class PbftChain {
   void setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes);
   void clearSyncedPbftBlocks();
   size_t pbftSyncedQueueSize() const;
+  bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
 
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);
