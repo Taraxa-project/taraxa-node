@@ -51,7 +51,6 @@ void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
   vote_mgr_ = full_node->getVoteManager();
   pbft_chain_ = full_node->getPbftChain();
   capability_ = full_node->getNetwork()->getTaraxaCapability();
-  ws_server_ = full_node->getWSServer();
   db_ = full_node->getDB();
   num_executed_blk_ =
       db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -1601,7 +1600,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   // Set DAG blocks period
   full_node->getDagManager()->setDagBlockOrder(dag_block_hash, pbft_period);
 
-  if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
+  auto ws_server = full_node->getWSServer();
+  if (ws_server) ws_server->newDagBlockFinalized(dag_block_hash, pbft_period);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
@@ -1620,8 +1620,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   full_node->getFilterAPI()->note_block(new_eth_header.hash());
   full_node->getFilterAPI()->note_receipts(trx_receipts);
   // Update web server
-  if (auto ws_server = full_node->getWSServer()) {
-    ws_server_->newPbftBlockExecuted(pbft_block);
+  if (ws_server) {
+    ws_server->newPbftBlockExecuted(pbft_block);
     ws_server->newEthBlock(new_eth_header);
   }
 
