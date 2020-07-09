@@ -128,18 +128,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // For Debug
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
-  auto getNumTransactionExecuted() const {
-    return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
-  }
-  auto getNumTransactionInDag() const {
-    return db_ ? db_->getStatusField(StatusDbField::TrxCount) : 0;
-  }
-  auto getNumBlockExecuted() const {
-    return db_ ? db_->getStatusField(StatusDbField::ExecutedBlkCount) : 0;
-  }
-  uint64_t getNumDagBlocks() const {
-    return db_ ? db_->getDagBlocksCount() : 0;
-  }
+  
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }

@@ -81,9 +81,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   auto success = wait::Wait(
       [&nodes, &trxs_count, &nonce] {
         for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getNumTransactionExecuted() != trxs_count) {
+          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
-                      << nodes[i]->getNumTransactionExecuted()
+                      << nodes[i]->getDB()->getNumTransactionExecuted()
                       << " transactions, expected " << trxs_count << std::endl;
             Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
                                   nodes[0]->getSecretKey(),
@@ -101,7 +101,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
           std::chrono::seconds(2),  // each sending
       });
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getNumTransactionExecuted(), trxs_count);
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
@@ -154,9 +154,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   success = wait::Wait(
       [&nodes, &trxs_count, &nonce] {
         for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getNumTransactionExecuted() != trxs_count) {
+          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
-                      << nodes[i]->getNumTransactionExecuted()
+                      << nodes[i]->getDB()->getNumTransactionExecuted()
                       << " transactions. Expected " << trxs_count << std::endl;
             Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
                                   nodes[0]->getSecretKey(),
@@ -174,7 +174,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
           std::chrono::seconds(2),  // each sending
       });
   for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getNumTransactionExecuted(), trxs_count);
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
   // Account balances should not change in robin cycle
   for (auto i(0); i < nodes.size(); ++i) {
@@ -244,7 +244,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
-  ASSERT_EQ(node->getNumTransactionExecuted(), 1);
+  ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
   EXPECT_EQ(node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
             9007199254740991 - 100);
@@ -277,7 +277,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     checkpoint_passed = true;
     // test timeout is 60 seconds
     for (auto i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getNumTransactionExecuted() == 0) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() == 0) {
         checkpoint_passed = false;
       }
     }
@@ -287,7 +287,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   if (checkpoint_passed == false) {
     for (auto i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getNumTransactionExecuted(), 1);
+      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
     }
   }
 
@@ -320,7 +320,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     checkpoint_passed = true;
     // test timeout is 60 seconds
     for (auto i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getNumTransactionExecuted() != 2) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != 2) {
         checkpoint_passed = false;
       }
     }
@@ -330,7 +330,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   if (checkpoint_passed == false) {
     for (auto i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getNumTransactionExecuted(), 1);
+      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
     }
   }
 

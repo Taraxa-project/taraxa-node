@@ -202,6 +202,19 @@ struct DbStorage {
 
   vector<blk_hash_t> getOrderedDagBlocks();
 
+  auto getNumTransactionExecuted() {
+    return getStatusField(StatusDbField::ExecutedTrxCount);
+  }
+  auto getNumTransactionInDag() {
+    return getStatusField(StatusDbField::TrxCount);
+  }
+  auto getNumBlockExecuted() {
+    return getStatusField(StatusDbField::ExecutedBlkCount);
+  }
+  uint64_t getNumDagBlocks() {
+    return getDagBlocksCount();
+  }
+  
   string lookup(Slice key, Column const& column);
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);

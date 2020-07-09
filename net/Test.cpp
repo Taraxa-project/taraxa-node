@@ -224,9 +224,9 @@ Json::Value Test::get_node_status() {
     if (auto node = full_node_.lock()) {
       res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
-      res["blk_executed"] = Json::UInt64(node->getNumBlockExecuted());
-      res["blk_count"] = Json::UInt64(node->getNumDagBlocks());
-      res["trx_executed"] = Json::UInt64(node->getNumTransactionExecuted());
+      res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
+      res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
+      res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
@@ -383,7 +383,7 @@ Json::Value Test::get_executed_trx_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumTransactionExecuted();
+      auto count = node->getDB()->getNumTransactionExecuted();
       res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {
@@ -396,7 +396,7 @@ Json::Value Test::get_executed_blk_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumBlockExecuted();
+      auto count = node->getDB()->getNumBlockExecuted();
       res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {
@@ -423,7 +423,7 @@ Json::Value Test::get_dag_blk_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumDagBlocks();
+      auto count = node->getDB()->getNumDagBlocks();
       res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {
