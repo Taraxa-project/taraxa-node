@@ -130,6 +130,7 @@ void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
   propose_model_->setProposer(getShared(), full_node->getSecretKey(),
                               full_node->getVrfSecretKey());
   full_node_ = full_node;
+  network_ = full_node->getNetwork();
   auto addr = std::stoull(
       full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);
   my_trx_shard_ = addr % conf_.shard;

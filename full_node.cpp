@@ -82,7 +82,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   trx_order_mgr_ = std::make_shared<TransactionOrderManager>(node_addr);
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_->getShared(),
-      trx_mgr_->getShared(), network_, node_addr_);
+      trx_mgr_->getShared(), node_addr_);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.test_params.pbft,
                                             genesis_hash.toString(), node_addr);
