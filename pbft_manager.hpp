@@ -14,6 +14,7 @@
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"
+#include "block_proposer.hpp"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991
@@ -41,10 +42,20 @@ class PbftManager {
 
   explicit PbftManager(std::string const &genesis, addr_t node_addr);
   PbftManager(PbftConfig const &conf, std::string const &genesis,
-              addr_t node_addr);
+              addr_t node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<BlockManager> blk_mgr,
+              std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr,
+              addr_t master_boot_node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
+              uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
-  void setFullNode(std::shared_ptr<FullNode> node);
+  void setNetwork(std::shared_ptr<Network> network);
+  void setWSServer(std::shared_ptr<net::WSServer> ws_server);
   void start();
   void stop();
   void run();
@@ -174,12 +185,22 @@ class PbftManager {
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
       std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::weak_ptr<FullNode> node_;
   std::unique_ptr<std::thread> daemon_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
+  std::shared_ptr<DagManager> dag_mgr_ = nullptr;
+  std::shared_ptr<Network> network_ = nullptr;
   std::shared_ptr<TaraxaCapability> capability_ = nullptr;
-  
+  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<net::WSServer> ws_server_;
+  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<TransactionOrderManager> trx_ord_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  addr_t master_boot_node_addr_;
+  addr_t node_addr_;
+  secret_t node_sk_;
+  vrf_sk_t vrf_sk_;
+
   // Database
   std::shared_ptr<DbStorage> db_ = nullptr;
 

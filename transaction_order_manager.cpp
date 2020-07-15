@@ -4,11 +4,6 @@
 
 namespace taraxa {
 
-void TransactionOrderManager::setFullNode(std::shared_ptr<FullNode> node) {
-  db_ = node->getDB();
-  node_ = node;
-}
-
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(
     DagBlock const& blk,
     TransactionExecStatusTable& status_for_proposing_blocks) {
@@ -64,7 +59,7 @@ TransactionOrderManager::computeTransactionOverlapTable(
     std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
   std::vector<std::shared_ptr<DagBlock>> blks;
   for (auto const& b : *ordered_dag_blocks) {
-    auto dagblk = node_.lock()->getBlockManager()->getDagBlock(b);
+    auto dagblk = blk_mgr_->getDagBlock(b);
     assert(dagblk);
     blks.emplace_back(dagblk);
   }

@@ -1,22 +1,49 @@
 #include "network.hpp"
+
 #include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>
+
 #include <boost/tokenizer.hpp>
+
 #include "full_node.hpp"
 #include "taraxa_capability.hpp"
 
 namespace taraxa {
 
-Network::Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr)
-    : Network(config, "", secret_t(), genesis, node_addr) {}
+Network::Network(NetworkConfig const &config, std::string const &genesis,
+                 addr_t node_addr)
+    : Network(config, "", secret_t(), genesis, node_addr, nullptr, nullptr,
+              nullptr, nullptr, nullptr, nullptr, public_t(), 2000) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file,
-                 std::string const &genesis, addr_t node_addr)
-    : Network(config, network_file, secret_t(), genesis, node_addr) {}
+                 std::string const &genesis, addr_t node_addr,
+                 std::shared_ptr<DbStorage> db,
+                 std::shared_ptr<PbftChain> pbft_chain,
+                 std::shared_ptr<VoteManager> vote_mgr,
+                 std::shared_ptr<DagManager> dag_mgr,
+                 std::shared_ptr<BlockManager> blk_mgr,
+                 std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
+                 uint32_t lambda_ms_min)
+    : Network(config, network_file, secret_t(), genesis, node_addr, db,
+              pbft_chain, vote_mgr, dag_mgr, blk_mgr, trx_mgr, node_pk,
+              lambda_ms_min) {}
 Network::Network(NetworkConfig const &config, std::string const &network_file,
-                 secret_t const &sk, std::string const &genesis, addr_t node_addr) try
-    : conf_(config) {
+                 secret_t const &sk, std::string const &genesis,
+                 addr_t node_addr, std::shared_ptr<DbStorage> db,
+                 std::shared_ptr<PbftChain> pbft_chain,
+                 std::shared_ptr<VoteManager> vote_mgr,
+                 std::shared_ptr<DagManager> dag_mgr,
+                 std::shared_ptr<BlockManager> blk_mgr,
+                 std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
+                 uint32_t lambda_ms_min) try : conf_(config),
+                                               db_(db),
+                                               pbft_chain_(pbft_chain),
+                                               vote_mgr_(vote_mgr),
+                                               dag_mgr_(dag_mgr),
+                                               blk_mgr_(blk_mgr),
+                                               trx_mgr_(trx_mgr),
+                                               node_pk_(node_pk) {
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
@@ -47,7 +74,8 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
         conf_.network_max_peer_count);
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
-      *host_.get(), conf_, genesis, conf_.network_performance_log, node_addr);
+      *host_.get(), conf_, genesis, conf_.network_performance_log, node_addr,
+      db, pbft_chain, vote_mgr, dag_mgr, blk_mgr, trx_mgr, lambda_ms_min);
   host_->registerCapability(taraxa_capability_);
 } catch (std::exception &e) {
   std::cerr << "Construct Network Error ... " << e.what() << "\n";
@@ -55,11 +83,6 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
 }
 
 Network::~Network() { stop(); }
-
-void Network::setFullNode(std::shared_ptr<FullNode> full_node) {
-  full_node_ = full_node;
-  taraxa_capability_->setFullNode(full_node);
-}
 
 NetworkConfig Network::getConfig() { return conf_; }
 
@@ -72,9 +95,7 @@ void Network::start(bool boot_node) {
   assert(!host_->isStarted());
   size_t boot_node_added = 0;
   for (auto &node : conf_.network_boot_nodes) {
-    if (auto full_node = full_node_.lock()) {
-      if (Public(node.id) == full_node->getPublicKey()) continue;
-    }
+    if (Public(node.id) == node_pk_) continue;
 
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;
     if (node.ip.empty()) {

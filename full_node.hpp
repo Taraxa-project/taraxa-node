@@ -103,9 +103,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
 
-  // account stuff
-  std::pair<val_t, bool> getBalance(addr_t const &acc) const;
-  val_t getMyBalance() const;
   auto const &getAddress() const { return node_addr_; }
   public_t getPublicKey() const { return node_pk_; }
   auto const &getSecretKey() const { return node_sk_; }
@@ -133,8 +130,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     ws_server_ = ws_server;
   }
   auto getFinalChain() const { return final_chain_; }
-  auto getPendingBlock() const { return pending_block_; }
-  auto getFilterAPI() const { return filter_api_; }
   auto getTrxOrderMgr() const { return trx_order_mgr_; }
   auto getWSServer() const { return ws_server_; }
 
@@ -173,8 +168,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftChain> pbft_chain_;
   //
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<aleth::PendingBlock> pending_block_;
-  std::shared_ptr<aleth::FilterAPI> filter_api_;
   //
   std::shared_ptr<taraxa::net::WSServer> ws_server_;
   // storage

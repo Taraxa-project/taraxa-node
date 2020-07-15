@@ -40,9 +40,6 @@ class TransactionQueue {
       vec_trx_t const &all_block_trxs);
   unsigned long getVerifiedTrxCount() const;
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
-  void setFullNode(std::shared_ptr<FullNode> full_node) {
-    full_node_ = full_node;
-  }
 
  private:
   using uLock = boost::unique_lock<boost::shared_mutex>;
@@ -52,7 +49,6 @@ class TransactionQueue {
   addr_t getFullNodeAddress() const;
   std::atomic<bool> stopped_ = true;
   bool new_verified_transactions_ = true;
-  std::weak_ptr<FullNode> full_node_;
 
   std::list<Transaction> trx_buffer_;
   std::unordered_map<trx_hash_t, listIter> queued_trxs_;  // all trx

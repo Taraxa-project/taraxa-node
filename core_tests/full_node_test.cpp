@@ -280,7 +280,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false),
             pbft_block4.rlp(false));
   // pbft_blocks (head)
-  PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t());
+  PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), nullptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
@@ -428,7 +428,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       shared_lock l(m);
       for (auto &[addr, val] : expected_balances) {
         for (auto &node : nodes_) {
-          ASSERT_EQ(val, node->getBalance(addr).first);
+          ASSERT_EQ(val, node->getFinalChain()->getBalance(addr).first);
         }
       }
     }
@@ -1137,10 +1137,10 @@ TEST_F(FullNodeTest, genesis_balance) {
   cfg.chain.final_chain.state.genesis_accounts[addr1].Balance = bal1;
   auto node(taraxa::FullNode::make(cfg, true));
   node->start(true);
-  auto res = node->getBalance(addr1);
+  auto res = node->getFinalChain()->getBalance(addr1);
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, bal1);
-  res = node->getBalance(addr2);
+  res = node->getFinalChain()->getBalance(addr2);
   EXPECT_FALSE(res.second);
 }
 
@@ -1524,7 +1524,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
   auto &nodes = tops.second;
   std::cout << "Send first trx ..." << std::endl;
   auto node_addr = nodes[0]->getAddress();
-  auto initial_bal = nodes[0]->getBalance(node_addr);
+  auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   auto trx_count(100);
   EXPECT_TRUE(initial_bal.second);
   system(fmt(R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0",
@@ -1548,7 +1548,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
     thisThreadSleepForMilliSeconds(100);
   }
   EXPECT_EQ(trx_executed1, trx_count + 1);
-  auto const bal = nodes[0]->getBalance(node_addr);
+  auto const bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   EXPECT_TRUE(bal.second);
   EXPECT_EQ(bal.first, initial_bal.first);
 }

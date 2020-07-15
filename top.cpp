@@ -96,9 +96,9 @@ Top::Top(int argc, const char* argv[]) {
                                             trx.getJsonStr(), result.second)));
                                   }
                                 }),
-              node_->getFilterAPI(),
+              node_->getTransactionManager()->getFilterAPI(),
               aleth::NewStateAPI(final_chain),  //
-              node_->getPendingBlock(),
+              node_->getTransactionManager()->getPendingBlock(),
               final_chain,  //
               [] { return 0; }));
       rpc->addConnector(rpc_server);

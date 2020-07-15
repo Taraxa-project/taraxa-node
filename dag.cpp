@@ -8,9 +8,9 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include "transaction_manager.hpp"
 
 #include "full_node.hpp"
+#include "transaction_manager.hpp"
 
 namespace taraxa {
 
@@ -458,9 +458,14 @@ std::shared_ptr<DagManager> DagManager::getShared() {
   }
 }
 
-void DagManager::setFullNode(std::shared_ptr<FullNode> full_node) {
-  full_node_ = full_node;
-  trx_mgr_ = full_node->getTransactionManager();
+void DagManager::setTransactionManager(
+    std::shared_ptr<TransactionManager> trx_mgr) {
+  trx_mgr_ = trx_mgr;
+}
+
+void DagManager::setPbftChain(
+    std::shared_ptr<PbftChain> pbft_chain) {
+  pbft_chain_ = pbft_chain;
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
@@ -538,19 +543,15 @@ void DagManager::addDagBlock(DagBlock const &blk) {
   max_level_ = std::max(max_level_, blk.getLevel());
   addToDag(blk_hash_str, pivot_hash.toString(), tips);
 
-  auto full_node = full_node_.lock();
-  // full_node could be null in test
-  if (full_node) {
-    auto [p, ts] = getFrontier();
-    frontier.pivot = blk_hash_t(p);
-    for (auto const &t : ts) {
-      frontier.tips.emplace_back(blk_hash_t(t));
-    }
-    trx_mgr_->updateNonce(blk, frontier);
-    LOG(log_dg_) << getFullNodeAddress() << " Update nonce table of blk "
-                 << blk.getHash() << "anchor " << anchors_.back().first
-                 << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
+  auto [p, ts] = getFrontier();
+  frontier.pivot = blk_hash_t(p);
+  for (auto const &t : ts) {
+    frontier.tips.emplace_back(blk_hash_t(t));
   }
+  trx_mgr_->updateNonce(blk, frontier);
+  LOG(log_dg_) << " Update nonce table of blk "
+               << blk.getHash() << "anchor " << anchors_.back().first
+               << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
@@ -563,7 +564,7 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
   total_dag_->addVEEs(hash, pivot, tips);
   total_dag_->addRecentDagBlks(hash);
   pivot_tree_->addVEEs(hash, pivot, {});
-  LOG(log_dg_) << getFullNodeAddress() << " Insert block to DAG : " << hash;
+  LOG(log_dg_) << " Insert block to DAG : " << hash;
 }
 
 bool DagManager::getLatestPivotAndTips(std::string &pivot,
@@ -664,7 +665,7 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   auto ok = total_dag_->computeOrder(false /* finalized */, anchor.toString(),
                                      new_period, blk_orders);
   if (!ok) {
-    LOG(log_er_) << getFullNodeAddress() << " Create period " << new_period
+    LOG(log_er_) << " Create period " << new_period
                  << " anchor: " << anchor << " failed " << std::endl;
     return 0;
   }
@@ -679,7 +680,7 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.back().second + 1) {
-    LOG(log_er_) << getFullNodeAddress() << " Inserting period (" << period
+    LOG(log_er_) << " Inserting period (" << period
                  << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
                  << anchors_.back().second << ") " << anchors_.back().first;
@@ -693,7 +694,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   anchors_.push({anchor.toString(), period});
 
   if (!ok) {
-    LOG(log_er_) << getFullNodeAddress() << " Create epoch " << period
+    LOG(log_er_) << " Create epoch " << period
                  << " from " << blk_hash_t(prev) << " to " << anchor
                  << " failed ";
     return 0;
@@ -710,7 +711,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
     deletePeriod(period - num_cached_period_in_dag_);
   }
   if (total_dag_->getNumVertices() != pivot_tree_->getNumVertices()) {
-    LOG(log_er_) << getFullNodeAddress() << " Size of total dag ( "
+    LOG(log_er_) << " Size of total dag ( "
                  << total_dag_->getNumVertices() << " ) and pivot tree ( "
                  << pivot_tree_->getNumVertices() << " ) not match ";
     // assert(false);
@@ -722,7 +723,7 @@ void DagManager::deletePeriod(uint64_t period) {
   auto deleted_vertices = total_dag_->deletePeriod(period);
   auto anchor = anchors_.front();
   if (anchor.second != period) {
-    LOG(log_er_) << getFullNodeAddress() << " Anchor front ( " << anchor.second
+    LOG(log_er_) << " Anchor front ( " << anchor.second
                  << " " << anchor.first << " ) and deleting period ( " << period
                  << " ) not match ";
   }
@@ -733,46 +734,33 @@ void DagManager::deletePeriod(uint64_t period) {
   }
   assert(pivot_tree_->periods_.size() == 0);
   if (total_dag_->periods_.size() != anchors_.size()) {
-    LOG(log_er_) << getFullNodeAddress() << " Size of total dag periods ( "
+    LOG(log_er_) << " Size of total dag periods ( "
                  << total_dag_->periods_.size() << " ) and anchor size ( "
                  << anchors_.size() << " ) not match ";
     assert(false);
   }
 }
 
-addr_t DagManager::getFullNodeAddress() const {
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    return full_node->getAddress();
-  } else {
-    return addr_t();
-  }
-}
-
 void DagManager::recoverAnchors(uint64_t pbft_chain_size) {
   std::vector<blk_hash_t> anchors;
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    auto pbft_chain = full_node->getPbftChain();
-    // Use index to save period, so index 0 is empty
-    anchors.resize(pbft_chain_size + 1);
+  // Use index to save period, so index 0 is empty
+  anchors.resize(pbft_chain_size + 1);
 
-    blk_hash_t pbft_block_hash = pbft_chain->getLastPbftBlockHash();
-    PbftBlock pbft_block = pbft_chain->getPbftBlockInChain(pbft_block_hash);
-    blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-    uint64_t period = pbft_block.getPeriod();
+  blk_hash_t pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+  blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+  uint64_t period = pbft_block.getPeriod();
+  anchors[period] = dag_block_hash_as_anchor;
+  for (auto i = pbft_chain_size - 1; i > 0; --i) {
+    pbft_block_hash = pbft_block.getPrevBlockHash();
+    pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+    dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+    period = pbft_block.getPeriod();
+    assert(i == period);
     anchors[period] = dag_block_hash_as_anchor;
-    for (auto i = pbft_chain_size - 1; i > 0; --i) {
-      pbft_block_hash = pbft_block.getPrevBlockHash();
-      pbft_block = pbft_chain->getPbftBlockInChain(pbft_block_hash);
-      dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-      period = pbft_block.getPeriod();
-      assert(i == period);
-      anchors[period] = dag_block_hash_as_anchor;
-    }
-    for (auto i = 1; i < anchors.size(); ++i) {
-      anchors_.push({anchors[i].toString(), i});
-    }
+  }
+  for (auto i = 1; i < anchors.size(); ++i) {
+    anchors_.push({anchors[i].toString(), i});
   }
 }
 

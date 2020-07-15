@@ -8,12 +8,14 @@
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
+
 #include <atomic>
 #include <boost/thread.hpp>
 #include <condition_variable>
 #include <iostream>
 #include <mutex>
 #include <string>
+
 #include "config.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
@@ -29,16 +31,31 @@ namespace taraxa {
 
 class Network {
  public:
-  Network(NetworkConfig const &config, std::string const &genesis, addr_t node_addr);
+  Network(NetworkConfig const &config, std::string const &genesis,
+          addr_t node_addr);
   Network(NetworkConfig const &config, std::string const &networkFile,
-          std::string const &genesis, addr_t node_addr);
+          std::string const &genesis, addr_t node_addr,
+          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<VoteManager> vote_mgr,
+          std::shared_ptr<DagManager> dag_mgr,
+          std::shared_ptr<BlockManager> blk_mgr,
+          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
+          uint32_t lambda_ms_min);
   Network(NetworkConfig const &config, std::string const &networkFile,
-          secret_t const &sk, std::string const &genesis, addr_t node_addr);
+          secret_t const &sk, std::string const &genesis, addr_t node_addr,
+          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<VoteManager> vote_mgr,
+          std::shared_ptr<DagManager> dag_mgr,
+          std::shared_ptr<BlockManager> blk_mgr,
+          std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
+          uint32_t lambda_ms_min);
   ~Network();
   void start(bool boot_node = false);
   void stop();
   bool isStarted();
-  bool isSynced() { return taraxa_capability_ && !taraxa_capability_->syncing_; }
+  bool isSynced() {
+    return taraxa_capability_ && !taraxa_capability_->syncing_;
+  }
   void rpcAction(boost::system::error_code const &ec, size_t size);
   void sendTest(dev::p2p::NodeID const &id);
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk,
@@ -49,7 +66,6 @@ class Network {
   void onNewTransactions(std::vector<taraxa::bytes> const &transactions);
   NetworkConfig getConfig();
   // no need to set full node in network testing
-  void setFullNode(std::shared_ptr<FullNode> full_node);
   void saveNetwork(std::string fileName);
   int getPeerCount() { return taraxa_capability_->getPeersCount(); }
   int getNodeCount() { return host_->getNodeCount(); }
@@ -83,7 +99,13 @@ class Network {
   std::atomic<bool> stopped_ = true;
   std::string network_file_;
 
-  std::weak_ptr<FullNode> full_node_;
+  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  public_t node_pk_;
   LOG_OBJECTS_DEFINE;
 };
 

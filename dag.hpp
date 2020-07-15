@@ -179,7 +179,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   explicit DagManager(std::string const &genesis, addr_t node_addr);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
-  void setFullNode(std::shared_ptr<FullNode> full_node);
+  void setTransactionManager(std::shared_ptr<TransactionManager> trx_mgr);
+  void setPbftChain(std::shared_ptr<PbftChain> pbft_chain);
 
   bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
@@ -236,16 +237,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
-  addr_t getFullNodeAddress() const;
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
-  std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<PbftChain> pbft_chain_;
   std::queue<std::pair<std::string, uint64_t>>
       anchors_;  // pivots that define periods
   std::string genesis_;

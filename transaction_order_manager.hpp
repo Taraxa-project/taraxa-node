@@ -32,8 +32,11 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
 class TransactionOrderManager {
  public:
-  TransactionOrderManager(addr_t node_addr) { LOG_OBJECTS_CREATE("TRXORD"); }
-  void setFullNode(std::shared_ptr<FullNode> node);
+  TransactionOrderManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
+                          std::shared_ptr<BlockManager> blk_mgr)
+      : db_(db), blk_mgr_(blk_mgr) {
+    LOG_OBJECTS_CREATE("TRXORD");
+  }
   void clear() { status_.clear(); }
 
   std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
@@ -48,9 +51,9 @@ class TransactionOrderManager {
 
  private:
   std::atomic<bool> stopped_ = true;
-  std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<DbStorage> db_ = nullptr;
+  std::shared_ptr<BlockManager> blk_mgr_;
   LOG_OBJECTS_DEFINE;
 };
 

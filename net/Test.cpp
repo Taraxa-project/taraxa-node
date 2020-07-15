@@ -190,7 +190,7 @@ Json::Value Test::get_account_balance(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       addr_t addr = addr_t(param1["address"].asString());
-      auto bal = node->getBalance(addr);
+      auto bal = node->getFinalChain()->getBalance(addr);
       if (!bal.second) {
         res["found"] = false;
         res["value"] = 0;

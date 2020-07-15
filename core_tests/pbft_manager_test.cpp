@@ -107,11 +107,11 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(nodes[0]->getAddress()).first,
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
               9007199254740991 - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
-      EXPECT_EQ(nodes[i]->getBalance(nodes[j]->getAddress()).first, init_bal);
+      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
 
@@ -180,11 +180,11 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(nodes[0]->getAddress()).first,
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
               9007199254740991 - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
-      EXPECT_EQ(nodes[i]->getBalance(nodes[j]->getAddress()).first, init_bal);
+      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
 
@@ -245,10 +245,10 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
   ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
-  EXPECT_EQ(node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
+  EXPECT_EQ(node->getFinalChain()->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
             9007199254740991 - 100);
-  EXPECT_EQ(node->getBalance(receiver).first, 100);
+  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
@@ -299,9 +299,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(node1_addr).first, 9007199254740991 - 100);
-    EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 0);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, 9007199254740991 - 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
   }
 
   // create a transaction transfer coins from node1 to node3
@@ -352,9 +352,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(node1_addr).first, 9007199254740991 - 1100);
-    EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 1000);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, 9007199254740991 - 1100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }
   std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
   // PBFT second block

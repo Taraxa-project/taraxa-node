@@ -5,6 +5,8 @@
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "util/simple_event.hpp"
+#include "aleth/pending_block.hpp"
+#include "aleth/filter_api.hpp"
 
 namespace taraxa {
 
@@ -12,6 +14,9 @@ using std::string;
 class DagBlock;
 class FullNode;
 class Network;
+namespace net {
+class WSServer;
+}
 
 using TransactionRLPTable = ExpirationCacheMap<trx_hash_t, taraxa::bytes>;
 using AccountNonceTable = StatusTable<addr_t, val_t>;
@@ -31,12 +36,16 @@ class TransactionManager
   using uLock = std::unique_lock<std::mutex>;
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
-  explicit TransactionManager(FullNodeConfig const &conf, addr_t node_addr)
-      : conf_(conf), accs_nonce_(), trx_qu_(node_addr) {
-    LOG_OBJECTS_CREATE("TRXMGR");
-  }
+  TransactionManager(FullNodeConfig const &conf, addr_t node_addr,
+                     std::shared_ptr<DbStorage> db, dev::Logger log_time,
+                     std::shared_ptr<DagManager> dag_mgr,
+                     std::shared_ptr<BlockManager> blk_mgr);
   explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
-      : db_(db), accs_nonce_(), conf_(), trx_qu_(node_addr) {
+      : db_(db),
+        accs_nonce_(),
+        conf_(),
+        trx_qu_(node_addr),
+        node_addr_(node_addr) {
     LOG_OBJECTS_CREATE("TRXMGR");
   }
   std::shared_ptr<TransactionManager> getShared() {
@@ -52,10 +61,22 @@ class TransactionManager
 
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> full_node);
+  void setNetwork(std::shared_ptr<Network> network);
+  void setWsServer(std::shared_ptr<net::WSServer> ws_server);
   std::pair<bool, std::string> insertTrx(Transaction const &trx,
                                          taraxa::bytes const &trx_serialized,
                                          bool verify);
+
+  void setPendingBlock(std::shared_ptr<aleth::PendingBlock> pending_block) {
+    pending_block_ = pending_block;
+    filter_api_ = aleth::NewFilterAPI();
+    event_transaction_accepted.sub([=](auto const &h) {
+      pending_block_->add_transactions(vector{h});
+      filter_api_->note_pending_transactions(vector{h});
+    });
+  }
+  auto getPendingBlock() const { return pending_block_; }
+  auto getFilterAPI() const { return filter_api_; }
 
   /**
    * The following function will require a lock for verified qu
@@ -71,7 +92,7 @@ class TransactionManager
   // Transactions coming from broadcasting is less critical
   void insertBroadcastedTransactions(
       std::vector<taraxa::bytes> const &transactions);
-  
+
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;
 
   std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot() const;
@@ -102,7 +123,6 @@ class TransactionManager
   addr_t getFullNodeAddress() const;
   VerifyMode mode_ = VerifyMode::normal;
   std::atomic<bool> stopped_ = true;
-  std::weak_ptr<FullNode> full_node_;
   std::shared_ptr<DbStorage> db_ = nullptr;
   AccountNonceTable accs_nonce_;
   TransactionQueue trx_qu_;
@@ -111,7 +131,12 @@ class TransactionManager
   FullNodeConfig conf_;
   std::vector<std::thread> verifiers_;
   std::shared_ptr<Network> network_;
+  std::shared_ptr<net::WSServer> ws_server_;
+  addr_t node_addr_;
+  std::shared_ptr<DagManager> dag_mgr_;
   dev::Logger log_time_;
+  std::shared_ptr<aleth::PendingBlock> pending_block_;
+  std::shared_ptr<aleth::FilterAPI> filter_api_;
 
   mutable std::mutex mu_for_nonce_table_;
   mutable std::mutex mu_for_transactions_;
