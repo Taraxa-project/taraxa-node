@@ -46,8 +46,6 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf,
   DagFrontier frontier;
   frontier.pivot = blk_hash_t(pivot);
   updateNonce(blk, frontier);
-  dag_mgr->setTransactionManager(shared_from_this());
-  blk_mgr->setTransactionManager(shared_from_this());
 }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(
@@ -155,13 +153,14 @@ void TransactionManager::start() {
 }
 
 void TransactionManager::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    trx_qu_.stop();
+    for (auto &t : verifiers_) {
+      t.join();
+    }
   }
-  trx_qu_.stop();
-  for (auto &t : verifiers_) {
-    t.join();
-  }
+  network_ = nullptr;
+  dag_mgr_ = nullptr;
 }
 
 std::unordered_map<trx_hash_t, Transaction>

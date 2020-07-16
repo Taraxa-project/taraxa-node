@@ -109,7 +109,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
           conf_.difficulty_bound, conf_.lambda_bits, node_addr, dag_mgr);
     }
     total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
-    propose_model_->setProposer(getShared(), node_sk, vrf_sk_);
     auto addr =
         std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
     my_trx_shard_ = addr % conf_.shard;

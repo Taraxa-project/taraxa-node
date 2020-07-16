@@ -48,6 +48,7 @@ class TransactionOrderManager {
       std::vector<std::shared_ptr<DagBlock>> const& blks);
   std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const& t);
   void updateOrderedTrx(TrxSchedule const& sche);
+  void stop();
 
  private:
   std::atomic<bool> stopped_ = true;

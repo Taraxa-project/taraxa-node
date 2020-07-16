@@ -181,6 +181,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<DagManager> getShared();
   void setTransactionManager(std::shared_ptr<TransactionManager> trx_mgr);
   void setPbftChain(std::shared_ptr<PbftChain> pbft_chain);
+  void stop();
 
   bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);

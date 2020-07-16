@@ -167,6 +167,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onStopping() override {
     stopped_ = true;
     if (conf_.network_simulated_delay > 0) io_service_.stop();
+    blk_mgr_ = nullptr;
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;

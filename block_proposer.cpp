@@ -110,6 +110,7 @@ void BlockProposer::start() {
     return;
   }
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
+  propose_model_->setProposer(getShared(), node_sk_, vrf_sk_);
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
   proposer_worker_ = std::make_shared<std::thread>([this]() {
@@ -120,10 +121,13 @@ void BlockProposer::start() {
 }
 
 void BlockProposer::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    proposer_worker_->join();
   }
-  proposer_worker_->join();
+  network_ = nullptr;
+  blk_mgr_ = nullptr;
+  trx_mgr_ = nullptr;
+  dag_mgr_ = nullptr;
 }
 
 bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {

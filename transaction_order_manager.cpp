@@ -25,6 +25,12 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
   return res;
 }
 
+void TransactionOrderManager::stop() {
+  bool b = false; 
+  stopped_.compare_exchange_strong(b, !b);
+  blk_mgr_ = nullptr;
+}
+
 std::shared_ptr<blk_hash_t> TransactionOrderManager::getDagBlockFromTransaction(
     trx_hash_t const& trx) {
   return db_->getTransactionToBlock(trx);

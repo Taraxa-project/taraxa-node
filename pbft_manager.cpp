@@ -76,6 +76,7 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
 PbftManager::~PbftManager() { stop(); }
 
 void PbftManager::setNetwork(std::shared_ptr<Network> network) {
+  network_ = network;
   capability_ = network->getTaraxaCapability();
 }
 
@@ -150,21 +151,30 @@ void PbftManager::start() {
 }
 
 void PbftManager::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
-  }
-  if (RUN_COUNT_VOTES) {
-    monitor_stop_ = true;
-    monitor_votes_->join();
-    LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
-  }
-  {
-    std::unique_lock<std::mutex> lock(stop_mtx_);
-    stop_cv_.notify_all();
-  }
-  daemon_->join();
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    if (RUN_COUNT_VOTES) {
+      monitor_stop_ = true;
+      monitor_votes_->join();
+      LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
+    }
+    {
+      std::unique_lock<std::mutex> lock(stop_mtx_);
+      stop_cv_.notify_all();
+    }
+    daemon_->join();
 
-  LOG(log_dg_) << "PBFT daemon terminated ...";
+    LOG(log_dg_) << "PBFT daemon terminated ...";
+  }
+  vote_mgr_ = nullptr;
+  pbft_chain_ = nullptr;
+  dag_mgr_ = nullptr;
+  network_ = nullptr;
+  capability_ = nullptr;
+  blk_mgr_ = nullptr;
+  ws_server_ = nullptr;
+  final_chain_ = nullptr;
+  trx_ord_mgr_ = nullptr;
+  trx_mgr_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block

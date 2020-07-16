@@ -121,11 +121,17 @@ void Network::start(bool boot_node) {
 }
 
 void Network::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    host_->stop();
+    if (network_file_ != "") saveNetwork(network_file_);
   }
-  host_->stop();
-  if (network_file_ != "") saveNetwork(network_file_);
+  db_ = nullptr;
+  pbft_chain_ = nullptr;
+  vote_mgr_ = nullptr;
+  dag_mgr_ = nullptr;
+  blk_mgr_ = nullptr;
+  trx_mgr_ = nullptr;
+  taraxa_capability_ = nullptr;
 }
 
 void Network::sendTest(NodeID const &id) {
@@ -162,6 +168,8 @@ void Network::saveNetwork(std::string fileName) {
 }
 
 void Network::onNewPbftVote(Vote const &vote) {
+  if(stopped_)
+    return;
   LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
   taraxa_capability_->onNewPbftVote(vote);
 }

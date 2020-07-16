@@ -463,6 +463,11 @@ void DagManager::setTransactionManager(
   trx_mgr_ = trx_mgr;
 }
 
+void DagManager::stop() {
+  trx_mgr_ = nullptr;
+  pbft_chain_ = nullptr;
+}
+
 void DagManager::setPbftChain(
     std::shared_ptr<PbftChain> pbft_chain) {
   pbft_chain_ = pbft_chain;

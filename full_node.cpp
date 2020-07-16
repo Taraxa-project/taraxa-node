@@ -80,21 +80,26 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       conf_.test_params.max_block_queue_warn);
   trx_mgr_ = std::make_shared<TransactionManager>(
       conf_, node_addr, db_, log_time_, dag_mgr_, blk_mgr_);
+  dag_mgr_->setTransactionManager(trx_mgr_);
+  blk_mgr_->setTransactionManager(trx_mgr_);
   trx_order_mgr_ =
       std::make_shared<TransactionOrderManager>(node_addr, db_, blk_mgr_);
   blk_proposer_ = std::make_shared<BlockProposer>(
       conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, blk_mgr_,
       node_addr_, getSecretKey(), getVrfSecretKey(), log_time_);
+  final_chain_ =
+      NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, final_chain_);
   pbft_chain_ =
       std::make_shared<PbftChain>(genesis_hash.toString(), node_addr, db_);
+  dag_mgr_->setPbftChain(pbft_chain_);
+  vote_mgr_->setPbftChain(pbft_chain_);
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, genesis_hash.toString(), node_addr, db_,
       pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,
       trx_mgr_, master_boot_node_address_, node_sk_, vrf_sk_,
       conf_.opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock);
-  final_chain_ =
-      NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
+  vote_mgr_->setPbftManager(pbft_mgr_);
   auto final_chain_head_ = final_chain_->get_last_block();
   trx_mgr_->setPendingBlock(
       aleth::NewPendingBlock(final_chain_head_->number(), getAddress(),
@@ -111,6 +116,9 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
                                          dag_mgr_, blk_mgr_, trx_mgr_, node_pk_,
                                          conf_.test_params.pbft.lambda_ms_min);
   }
+  blk_proposer_->setNetwork(network_);
+  pbft_mgr_->setNetwork(network_);
+  trx_mgr_->setNetwork(network_);
   // ===== Post-initialization tasks =====
   // Reconstruct DAG
   if (!destroy_db) {
@@ -216,6 +224,9 @@ void FullNode::stop() {
   blk_mgr_->stop();
   trx_mgr_->stop();
   pbft_mgr_->stop();
+  trx_order_mgr_->stop();
+  trx_mgr_->stop();
+
   for (auto &t : block_workers_) {
     t.join();
   }

@@ -145,6 +145,9 @@ class VoteManager {
   bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
+  void stop() {
+    pbft_mgr_ = nullptr;
+  };
   uint64_t getUnverifiedVotesSize() const;
   std::vector<Vote> getVotes(uint64_t pbft_round,
                              size_t valid_sortiton_players);
