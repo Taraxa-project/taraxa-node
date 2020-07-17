@@ -83,8 +83,8 @@ TEST_F(NetworkTest, transfer_block) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
   nw2->stop();
-  nw1->stop();
   unsigned long long num_received = nw1->getReceivedBlocksCount();
+  nw1->stop();
   ASSERT_EQ(1, num_received);
 }
 
@@ -141,8 +141,8 @@ TEST_F(NetworkTest, transfer_transaction) {
   }
 
   nw2->stop();
-  nw1->stop();
   unsigned long long num_received = nw1->getReceivedTransactionsCount();
+  nw1->stop();
   ASSERT_EQ(3, num_received);
 }
 

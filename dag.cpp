@@ -468,8 +468,7 @@ void DagManager::stop() {
   pbft_chain_ = nullptr;
 }
 
-void DagManager::setPbftChain(
-    std::shared_ptr<PbftChain> pbft_chain) {
+void DagManager::setPbftChain(std::shared_ptr<PbftChain> pbft_chain) {
   pbft_chain_ = pbft_chain;
 }
 
@@ -553,10 +552,10 @@ void DagManager::addDagBlock(DagBlock const &blk) {
   for (auto const &t : ts) {
     frontier.tips.emplace_back(blk_hash_t(t));
   }
-  trx_mgr_->updateNonce(blk, frontier);
-  LOG(log_dg_) << " Update nonce table of blk "
-               << blk.getHash() << "anchor " << anchors_.back().first
-               << " pivot = " << frontier.pivot << " tips: " << frontier.tips;
+  if (trx_mgr_) trx_mgr_->updateNonce(blk, frontier);
+  LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor "
+               << anchors_.back().first << " pivot = " << frontier.pivot
+               << " tips: " << frontier.tips;
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
@@ -670,8 +669,8 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   auto ok = total_dag_->computeOrder(false /* finalized */, anchor.toString(),
                                      new_period, blk_orders);
   if (!ok) {
-    LOG(log_er_) << " Create period " << new_period
-                 << " anchor: " << anchor << " failed " << std::endl;
+    LOG(log_er_) << " Create period " << new_period << " anchor: " << anchor
+                 << " failed " << std::endl;
     return 0;
   }
 
@@ -685,8 +684,7 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   if (period != anchors_.back().second + 1) {
-    LOG(log_er_) << " Inserting period (" << period
-                 << ") anchor " << anchor
+    LOG(log_er_) << " Inserting period (" << period << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
                  << anchors_.back().second << ") " << anchors_.back().first;
     return 0;
@@ -699,9 +697,8 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
   anchors_.push({anchor.toString(), period});
 
   if (!ok) {
-    LOG(log_er_) << " Create epoch " << period
-                 << " from " << blk_hash_t(prev) << " to " << anchor
-                 << " failed ";
+    LOG(log_er_) << " Create epoch " << period << " from " << blk_hash_t(prev)
+                 << " to " << anchor << " failed ";
     return 0;
   }
   LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
@@ -716,9 +713,9 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
     deletePeriod(period - num_cached_period_in_dag_);
   }
   if (total_dag_->getNumVertices() != pivot_tree_->getNumVertices()) {
-    LOG(log_er_) << " Size of total dag ( "
-                 << total_dag_->getNumVertices() << " ) and pivot tree ( "
-                 << pivot_tree_->getNumVertices() << " ) not match ";
+    LOG(log_er_) << " Size of total dag ( " << total_dag_->getNumVertices()
+                 << " ) and pivot tree ( " << pivot_tree_->getNumVertices()
+                 << " ) not match ";
     // assert(false);
   }
   return blk_orders.size();
@@ -728,9 +725,8 @@ void DagManager::deletePeriod(uint64_t period) {
   auto deleted_vertices = total_dag_->deletePeriod(period);
   auto anchor = anchors_.front();
   if (anchor.second != period) {
-    LOG(log_er_) << " Anchor front ( " << anchor.second
-                 << " " << anchor.first << " ) and deleting period ( " << period
-                 << " ) not match ";
+    LOG(log_er_) << " Anchor front ( " << anchor.second << " " << anchor.first
+                 << " ) and deleting period ( " << period << " ) not match ";
   }
   assert(anchor.second == period);
   anchors_.pop();

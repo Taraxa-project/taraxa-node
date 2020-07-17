@@ -499,8 +499,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (pbft_chain_size > peer->pbft_chain_size_)
             peer->pbft_chain_size_ = pbft_chain_size;
 
-          if (!pbft_chain_->findUnverifiedPbftBlock(
-                  pbft_block.getBlockHash())) {
+          if (pbft_chain_ && !pbft_chain_->findUnverifiedPbftBlock(
+                                 pbft_block.getBlockHash())) {
             // TODO: need to check block validation, like proposed
             // vote(maybe
             //  come later), if get sortition etc
@@ -707,6 +707,7 @@ void TaraxaCapability::delayedPbftSync(NodeID _nodeID, int counter) {
 }
 
 void TaraxaCapability::restartSyncingPbft(bool force) {
+  if (stopped_) return;
   if (syncing_ && !force) {
     LOG(log_dg_pbft_sync_)
         << "restartSyncingPbft called but syncing_ already true";
@@ -805,17 +806,19 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   LOG(log_dg_pbft_sync_) << "Sending status message to " << _id
                          << " with pbft chain size:"
                          << pbft_chain_->getPbftChainSize();
-  if (_initial)
-    host_.capabilityHost()->sealAndSend(
-        _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 6)
-                 << c_protocolVersion << conf_.network_id
-                 << dag_mgr_->getMaxLevel() << genesis_
-                 << pbft_chain_->getPbftChainSize() << syncing_);
-  else {
-    host_.capabilityHost()->sealAndSend(
-        _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 3)
-                 << dag_mgr_->getMaxLevel() << pbft_chain_->getPbftChainSize()
-                 << syncing_);
+  if (dag_mgr_) {
+    if (_initial)
+      host_.capabilityHost()->sealAndSend(
+          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 6)
+                   << c_protocolVersion << conf_.network_id
+                   << dag_mgr_->getMaxLevel() << genesis_
+                   << pbft_chain_->getPbftChainSize() << syncing_);
+    else {
+      host_.capabilityHost()->sealAndSend(
+          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 3)
+                   << dag_mgr_->getMaxLevel() << pbft_chain_->getPbftChainSize()
+                   << syncing_);
+    }
   }
 }
 
@@ -1210,9 +1213,11 @@ std::map<trx_hash_t, taraxa::Transaction> TaraxaCapability::getTransactions() {
 }
 
 void TaraxaCapability::sendTransactions() {
-  onNewTransactions(trx_mgr_->getNewVerifiedTrxSnapShotSerialized(), false);
-  host_.scheduleExecution(conf_.network_transaction_interval,
-                          [this]() { sendTransactions(); });
+  if (trx_mgr_) {
+    onNewTransactions(trx_mgr_->getNewVerifiedTrxSnapShotSerialized(), false);
+    host_.scheduleExecution(conf_.network_transaction_interval,
+                            [this]() { sendTransactions(); });
+  }
 }
 
 void TaraxaCapability::doBackgroundWork() {

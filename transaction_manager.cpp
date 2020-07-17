@@ -398,19 +398,21 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
 
   // Need to update pivot incase a new period is confirmed
   std::vector<std::string> ghost;
-  dag_mgr_->getGhostPath(ghost);
-  vec_blk_t gg;
-  std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
-                 [](std::string const &t) { return blk_hash_t(t); });
-  for (auto const &g : gg) {
-    if (g == frontier.pivot) {  // pivot does not change
-      break;
-    }
-    auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
-    if (iter != std::end(frontier.tips)) {
-      std::swap(frontier.pivot, *iter);
-      LOG(log_si_) << " Swap frontier with pivot: " << dag_frontier_.pivot
-                   << " tips: " << frontier.pivot;
+  if(dag_mgr_) {
+    dag_mgr_->getGhostPath(ghost);
+    vec_blk_t gg;
+    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
+                  [](std::string const &t) { return blk_hash_t(t); });
+    for (auto const &g : gg) {
+      if (g == frontier.pivot) {  // pivot does not change
+        break;
+      }
+      auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
+      if (iter != std::end(frontier.tips)) {
+        std::swap(frontier.pivot, *iter);
+        LOG(log_si_) << " Swap frontier with pivot: " << dag_frontier_.pivot
+                    << " tips: " << frontier.pivot;
+      }
     }
   }
 }

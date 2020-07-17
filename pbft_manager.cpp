@@ -17,8 +17,8 @@
 #include "full_node.hpp"
 #include "network.hpp"
 #include "sortition.hpp"
-#include "vrf_wrapper.hpp"
 #include "transaction_manager.hpp"
+#include "vrf_wrapper.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
@@ -64,13 +64,15 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       node_sk_(node_sk),
       vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  num_executed_blk_ =
-      db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
-  num_executed_trx_ =
-      db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
-  dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
-  transactions_tmp_.reserve(expected_max_trx_per_block);
-  trx_senders_tmp_.reserve(expected_max_trx_per_block);
+  if (db_) {
+    num_executed_blk_ =
+        db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+    num_executed_trx_ =
+        db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+    dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
+    transactions_tmp_.reserve(expected_max_trx_per_block);
+    trx_senders_tmp_.reserve(expected_max_trx_per_block);
+  }
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -1275,6 +1277,7 @@ bool PbftManager::syncRequestedAlreadyThisStep_() const {
 }
 
 void PbftManager::syncPbftChainFromPeers_() {
+  if (stopped_) return;
   if (!pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
