@@ -175,11 +175,15 @@ void Network::onNewPbftVote(Vote const &vote) {
 }
 
 void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
+  if(stopped_)
+    return;
   LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
 
 void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
+  if(stopped_)
+    return;
   LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block.getBlockHash();
   taraxa_capability_->onNewPbftBlock(pbft_block);
 }

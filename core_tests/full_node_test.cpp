@@ -206,7 +206,7 @@ struct FullNodeTest : core_tests::util::DBUsingTest<> {
 };
 
 TEST_F(FullNodeTest, db_test) {
-  auto db_ptr = DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true);
+  auto db_ptr = std::shared_ptr<DbStorage>(std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true)));
   auto &db = *db_ptr;
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
@@ -280,7 +280,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false),
             pbft_block4.rlp(false));
   // pbft_blocks (head)
-  PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), nullptr);
+  PbftChain pbft_chain(blk_hash_t(0).toString(), addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   pbft_chain.setLastPbftBlockHash(blk_hash_t(123));
