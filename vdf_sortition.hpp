@@ -17,6 +17,7 @@ struct Message : public vrf_wrapper::VrfMsgFace {
   Message() = default;
   Message(blk_hash_t last_anchor_hash, uint64_t level)
       : last_anchor_hash(last_anchor_hash), level(level) {}
+
   std::string toString() const override {
     return last_anchor_hash.toString() + "_" + std::to_string(level);
   }
@@ -29,6 +30,7 @@ struct Message : public vrf_wrapper::VrfMsgFace {
     strm << "    level: " << msg.level << std::endl;
     return strm;
   }
+
   blk_hash_t last_anchor_hash;
   uint64_t level = 0;
 };
