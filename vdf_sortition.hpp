@@ -26,7 +26,7 @@ struct Message : public vrf_wrapper::VrfMsgFace {
   }
   friend std::ostream& operator<<(std::ostream& strm, Message const& msg) {
     strm << "  [Vdf Msg] " << std::endl;
-    strm << "    last_pbft_hash: " << msg.last_anchor_hash << std::endl;
+    strm << "    last_anchor_hash: " << msg.last_anchor_hash << std::endl;
     strm << "    level: " << msg.level << std::endl;
     return strm;
   }
@@ -89,14 +89,13 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "9aee2a207e5173a7ee8f90ee9ab9b6a745d27c6e850e7ca7332388dfef7e5bbe6267d1f7"
       "9f9330e44715b3f2066f903081836c1c83ca29126f8fdc5f5922bf3f9ddb4540171691ac"
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
-  bool verifyVrf() { return VrfSortitionBase::verify(msg_); }
-  // use first byte as difficult for now
-  bool verifyVdfSolution(std::string const& msg);
+  bool verifyVrf();
+  bool verifyVdfSolution(std::string const& vdf_msg);
   Message msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
-  uint difficulty_bound_ = 29;
-  uint lambda_bits_ = 13;
+  uint difficulty_bound_ = 15;
+  uint lambda_bits_ = 1500; // lambda upper bound
 };
 
 }  // namespace taraxa::vdf_sortition
