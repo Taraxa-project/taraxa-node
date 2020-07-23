@@ -50,31 +50,51 @@ void VdfSortition::computeVdfSolution(std::string const &msg) {
   vdf_computation_time_ = t2 - t1;
 }
 
-bool VdfSortition::verifyVdfSolution(std::string const &msg) {
+bool VdfSortition::verifyVrf() {
+  return VrfSortitionBase::verify(msg_);
+}
+
+bool VdfSortition::verifyVdfSolution(std::string const &vdf_input) {
+  // TODO: Nodes propose a valid DAG block, peers may fail on validation since
+  //  message = last anchor hash(not at same time) + proposal level.
+  //  Because nodes don't finalize at the same time, there have a PBFT lambda
+  //  time difference. That will cause some nodes failed validation on a valid
+  //  DAG block. Use proposal block VRF message to verify for now
+  // Verify VRF output
   bool verified = verifyVrf();
   assert(verified);
-  const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
+  // Verify VDF solution
+  const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_input);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {
     // std::cout << "Error! Vdf verify failed..." << std::endl;
     // std::cout << *this << std::endl;
     return false;
   }
+
   return true;
 }
 
 int VdfSortition::getDifficulty() const {
-  return int(output[0]) % difficulty_bound_;
+  // return difficulty_bound_;
+  return uint(output[0]) % difficulty_bound_;
 }
 
 unsigned long VdfSortition::getLambda() const {
-  unsigned long tmp = 0;
-  for (int i = 1; i < 3; ++i) {
-    tmp <<= 8;
-    tmp |= output[i];
+//  unsigned long tmp = 0;
+//  for (int i = 1; i < 3; ++i) {
+//    tmp <<= 8;
+//    tmp |= output[i];
+//  }
+//  tmp >>= (16 - lambda_bits_);
+//  return tmp;
+  uint output_sum = 0;
+  // one byte in uint max is 255, 12 bytes max 255 * 12 = 3060
+  // Set lambda bound to 1500, kind of half of that
+  for (auto i = 0; i < 12; i++) {
+    output_sum += uint(output[i]);
   }
-  tmp >>= (16 - lambda_bits_);
-  return tmp;
+  return std::min(output_sum, lambda_bits_);
 }
 
 }  // namespace taraxa::vdf_sortition
