@@ -71,7 +71,6 @@ class SortitionPropose : public ProposeModelFace {
   bool propose() override;
 
  private:
-  inline static uint min_propose_delay = 200;
   uint difficulty_bound_;
   uint lambda_bits_;
   unsigned long long last_dag_height_ = 0;
@@ -138,6 +137,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
                       vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
 
+  inline static uint min_propose_delay = 100;
   static std::atomic<uint64_t> num_proposed_blocks;
   std::atomic<bool> stopped_ = true;
   BlockProposerConfig conf_;

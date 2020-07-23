@@ -44,7 +44,6 @@ bool SortitionPropose::propose() {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
   }
-  thisThreadSleepForMilliSeconds(min_propose_delay);
 
   auto dag_height = dag_mgr_->getMaxLevel();
   if (dag_height == last_dag_height_ && last_dag_height_ > 0) {
@@ -99,6 +98,7 @@ void BlockProposer::start() {
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       propose_model_->propose();
+      thisThreadSleepForMilliSeconds(min_propose_delay);
     }
   });
 }
