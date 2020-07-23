@@ -44,15 +44,6 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID,
 
 std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
     DagBlock const &block) {
-  // Verify VDF solution
-  vdf_sortition::VdfSortition vdf = block.getVdf();
-  if (!block.getVdf().verify(block.getPivot().toString())) {
-    LOG(log_er_) << "DAG block " << block.getHash()
-                 << " failed on VDF verification with pivot hash "
-                 << block.getPivot();
-    return std::make_pair(false, blk_hash_t());
-  }
-
   level_t expected_level = 0;
   for (auto const &tip : block.getTips()) {
     auto tip_block = blk_mgr_->getDagBlock(tip);
@@ -78,6 +69,16 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
         " for block " + block.getHash().toString() + ". Expected level " +
         std::to_string(expected_level));
   }
+
+  // Verify VDF solution
+  vdf_sortition::VdfSortition vdf = block.getVdf();
+  if (!vdf.verify(block.getPivot().toString())) {
+    LOG(log_er_) << "DAG block " << block.getHash()
+                 << " failed on VDF verification with pivot hash "
+                 << block.getPivot();
+    return std::make_pair(false, blk_hash_t());
+  }
+
   return std::make_pair(true, blk_hash_t());
 }
 
