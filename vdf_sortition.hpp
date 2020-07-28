@@ -40,10 +40,10 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
   explicit VdfSortition(vrf_sk_t const& sk, Message const& msg,
-                        uint difficulty_bound = 29, uint lambda_bits = 13)
+                        uint difficulty_bound = 15, uint lambda_bound = 1500)
       : msg_(msg),
         difficulty_bound_(difficulty_bound),
-        lambda_bits_(lambda_bits),
+        lambda_bound_(lambda_bound),
         VrfSortitionBase(sk, msg) {}
   explicit VdfSortition(bytes const& b);
 
@@ -63,7 +63,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
     difficulty_bound_ = std::min(100u, std::max(10u, bound));
   }
   void setLambdaBits(uint bits) {
-    lambda_bits_ = std::min(10u, std::max(16u, bits));
+    lambda_bound_ = std::min(10u, std::max(16u, bits));
   }
   virtual std::ostream& print(std::ostream& strm) const override {
     VrfSortitionBase::print(strm);
@@ -95,7 +95,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
   uint difficulty_bound_ = 15;
-  uint lambda_bits_ = 1500; // lambda upper bound
+  uint lambda_bound_ = 1500; // lambda upper bound
 };
 
 }  // namespace taraxa::vdf_sortition
