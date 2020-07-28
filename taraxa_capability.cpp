@@ -42,7 +42,7 @@ void TaraxaCapability::syncPeerPbft(NodeID const &_nodeID,
   requestPbftBlocks(_nodeID, height_to_sync);
 }
 
-std::pair<bool, blk_hash_t> TaraxaCapability::checkTipsandPivot(
+std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(
     DagBlock const &block) {
   level_t expected_level = 0;
   for (auto const &tip : block.getTips()) {
@@ -164,7 +164,7 @@ bool TaraxaCapability::processSyncDagBlocks(NodeID const &_nodeID) {
     for (auto block_level = peer->sync_blocks_.begin();
          block_level != peer->sync_blocks_.end(); block_level++) {
       for (auto block : block_level->second) {
-        auto status = checkTipsandPivot(block.second.first);
+        auto status = checkDagBlockValidation(block.second.first);
         if (!status.first) {
           LOG(log_nf_dag_sync_)
               << "Missing a tip or pivot, requesting it" << status.second;
@@ -595,7 +595,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             for (auto block_level = dag_blocks_per_level.begin();
                  block_level != dag_blocks_per_level.end(); block_level++) {
               for (auto block : block_level->second) {
-                auto status = checkTipsandPivot(block.second.first);
+                auto status = checkDagBlockValidation(block.second.first);
                 if (!status.first) {
                   LOG(log_er_pbft_sync_)
                       << "PBFT SYNC ERROR, DAG missing a tip/pivot: "
@@ -929,7 +929,7 @@ void TaraxaCapability::onNewBlockReceived(
                            << "that is already known";
       return;
     } else {
-      auto status = checkTipsandPivot(block);
+      auto status = checkDagBlockValidation(block);
       if (!status.first) {
         if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
         return;
