@@ -20,7 +20,7 @@ VdfSortition::VdfSortition(bytes const &b) {
   vdf_sol_.first = rlp[4].toBytes();
   vdf_sol_.second = rlp[5].toBytes();
   difficulty_bound_ = rlp[6].toInt<uint>();
-  lambda_bits_ = rlp[7].toInt<uint>();
+  lambda_bound_ = rlp[7].toInt<uint>();
 }
 
 bytes VdfSortition::rlp() const {
@@ -33,7 +33,7 @@ bytes VdfSortition::rlp() const {
   s << vdf_sol_.first;
   s << vdf_sol_.second;
   s << difficulty_bound_;
-  s << lambda_bits_;
+  s << lambda_bound_;
   return s.out();
 }
 
@@ -81,20 +81,13 @@ int VdfSortition::getDifficulty() const {
 }
 
 unsigned long VdfSortition::getLambda() const {
-//  unsigned long tmp = 0;
-//  for (int i = 1; i < 3; ++i) {
-//    tmp <<= 8;
-//    tmp |= output[i];
-//  }
-//  tmp >>= (16 - lambda_bits_);
-//  return tmp;
   uint output_sum = 0;
   // one byte in uint max is 255, 12 bytes max 255 * 12 = 3060
   // Set lambda bound to 1500, kind of half of that
   for (auto i = 0; i < 12; i++) {
     output_sum += uint(output[i]);
   }
-  return std::min(output_sum, lambda_bits_);
+  return std::min(output_sum, lambda_bound_);
 }
 
 }  // namespace taraxa::vdf_sortition
