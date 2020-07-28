@@ -220,7 +220,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price,
                                                TEST_TX_GAS_LIMIT, data,
                                                node->getSecretKey(), receiver);
-  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false);
+  node->getTransactionManager()->insertTransaction(
+      trx_master_boot_node_to_receiver, false);
 
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
@@ -411,6 +412,7 @@ int main(int argc, char **argv) {
   logOptions.includeChannels.push_back("TRXMGR");
   logOptions.includeChannels.push_back("TRXQU");
   logOptions.includeChannels.push_back("TARCAP");
+  logOptions.includeChannels.push_back("PR_MDL");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
