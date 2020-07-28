@@ -63,7 +63,7 @@ class SortitionPropose : public ProposeModelFace {
   SortitionPropose(uint difficulty_bound, uint lambda_bound, addr_t node_addr,
                    std::shared_ptr<DagManager> dag_mgr)
       : difficulty_bound_(difficulty_bound),
-        lambda_bound_(lambda_bits),
+        lambda_bound_(lambda_bound),
         dag_mgr_(dag_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound

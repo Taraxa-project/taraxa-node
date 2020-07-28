@@ -133,6 +133,10 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
     test_params.block_proposer.transaction_limit = getConfigDataAsUInt(
         root, {"test_params", "block_proposer", "transaction_limit"});
+    // TODO: fix read min_proposal_delay from config file
+    test_params.block_proposer.min_proposal_delay = 100;
+//    test_params.block_proposer.min_proposal_delay = getConfigDataAsUInt(
+//        root, {"test_params", "block_proposer", "min_proposal_delay"});
     if (test_params.block_proposer.mode == "random") {
       test_params.block_proposer.min_freq = getConfigDataAsUInt(
           root, {"test_params", "block_proposer", "random_params", "min_freq"});
@@ -142,9 +146,11 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       test_params.block_proposer.difficulty_bound =
           getConfigDataAsUInt(root, {"test_params", "block_proposer",
                                      "sortition_params", "difficulty_bound"});
-      test_params.block_proposer.lambda_bits = getConfigDataAsUInt(
-          root,
-          {"test_params", "block_proposer", "sortition_params", "lambda_bits"});
+      // TODO: fix read lambda_bound from config file
+      test_params.block_proposer.lambda_bound = 1500;
+//      test_params.block_proposer.lambda_bound =
+//          getConfigDataAsUInt(root, {"test_params", "block_proposer",
+//                                     "sortition_params", "lambda_bound"});
     } else {
       std::cerr << "Unknown propose mode: " << test_params.block_proposer.mode;
       assert(false);

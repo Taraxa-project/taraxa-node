@@ -60,7 +60,7 @@ Top::Top(int argc, const char* argv[]) {
   taraxa::FullNodeConfig conf(conf_taraxa);
   if (tests_speed != 1) {
     conf.test_params.block_proposer.difficulty_bound = 5;
-    conf.test_params.block_proposer.lambda_bits = 100;
+    conf.test_params.block_proposer.lambda_bound = 100;
     conf.test_params.pbft.lambda_ms_min /= tests_speed;
   }
   node_ = taraxa::FullNode::make(conf,

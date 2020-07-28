@@ -31,6 +31,7 @@
       "mode": "sortition",
       "shard": 1,
       "transaction_limit": 0,
+      "min_proposal_delay": 100,
       "random_params": {
         "min_freq": 100,
         "max_freq": 1000
