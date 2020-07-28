@@ -1286,7 +1286,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto tops = createNodesAndVerifyConnection(5, 2, false, 5);
+  auto tops = createNodesAndVerifyConnection(5, 4, false, 2);
   auto &nodes = tops.second;
 
   nodes[0]->getPbftManager()->stop();
