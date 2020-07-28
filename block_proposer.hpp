@@ -60,19 +60,21 @@ class RandomPropose : public ProposeModelFace {
  */
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(uint difficulty_bound, uint lambda_bits, addr_t node_addr,
+  SortitionPropose(uint difficulty_bound, uint lambda_bound, addr_t node_addr,
                    std::shared_ptr<DagManager> dag_mgr)
-      : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits), dag_mgr_(dag_mgr) {
+      : difficulty_bound_(difficulty_bound),
+        lambda_bound_(lambda_bits),
+        dag_mgr_(dag_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound
-                 << " lambda_bits " << lambda_bits;
+                 << " lambda_bound " << lambda_bound;
   }
   ~SortitionPropose() {}
   bool propose() override;
 
  private:
   uint difficulty_bound_;
-  uint lambda_bits_;
+  uint lambda_bound_;
   unsigned long long last_dag_height_ = 0;
   std::shared_ptr<DagManager> dag_mgr_;
 
@@ -103,9 +105,10 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
           conf_.min_freq, conf_.max_freq, node_addr);
     } else if (conf_.mode == "sortition") {
       propose_model_ = std::make_unique<SortitionPropose>(
-          conf_.difficulty_bound, conf_.lambda_bits, node_addr, dag_mgr);
+          conf_.difficulty_bound, conf_.lambda_bound, node_addr, dag_mgr);
     }
     total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
+    min_proposal_delay = conf_.min_proposal_delay;
     auto addr =
         std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
     my_trx_shard_ = addr % conf_.shard;
@@ -137,7 +140,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
                       vec_trx_t& sharded_trx);
   addr_t getFullNodeAddress() const;
 
-  inline static uint min_propose_delay = 100;
+  inline static uint min_proposal_delay;
   static std::atomic<uint64_t> num_proposed_blocks;
   std::atomic<bool> stopped_ = true;
   BlockProposerConfig conf_;

@@ -68,7 +68,7 @@ bool SortitionPropose::propose() {
   // get sortition
   vdf_sortition::Message msg(latest_anchor, propose_level);
   vdf_sortition::VdfSortition vdf(vrf_sk_, msg, difficulty_bound_,
-                                  lambda_bits_);
+                                  lambda_bound_);
   vdf.computeVdfSolution(frontier.pivot.toString());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
@@ -99,7 +99,7 @@ void BlockProposer::start() {
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       propose_model_->propose();
-      thisThreadSleepForMilliSeconds(min_propose_delay);
+      thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
   });
 }
