@@ -3,7 +3,6 @@
 #include <string>
 #include <utility>
 
-#include "full_node.hpp"
 #include "transaction.hpp"
 
 namespace taraxa {
@@ -40,7 +39,7 @@ void TransactionQueue::insert(Transaction const &trx, bool verify) {
     unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
     cond_for_unverified_qu_.notify_one();
   }
-  LOG(log_nf_) << getFullNodeAddress() << " Trx: " << hash << " inserted. "
+  LOG(log_nf_) << " Trx: " << hash << " inserted. "
                << verify << std::endl;
 }
 
@@ -191,15 +190,6 @@ TransactionQueue::moveVerifiedTrxSnapShot(uint16_t max_trx_to_pack) {
 unsigned long TransactionQueue::getVerifiedTrxCount() const {
   sharedLock lock(shared_mutex_for_verified_qu_);
   return verified_trxs_.size();
-}
-
-addr_t TransactionQueue::getFullNodeAddress() const {
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    return full_node->getAddress();
-  } else {
-    return addr_t();
-  }
 }
 
 std::pair<size_t, size_t> TransactionQueue::getTransactionQueueSize() const {

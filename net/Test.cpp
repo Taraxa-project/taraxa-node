@@ -8,6 +8,9 @@
 #include "../pbft_manager.hpp"
 #include "core_tests/create_samples.hpp"
 #include "types.hpp"
+#include "dag_block.hpp"
+#include "transaction_manager.hpp"
+#include "dag.hpp"
 
 using namespace std;
 using namespace dev;
@@ -36,7 +39,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
 
       DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
       res = blk.getJsonStr();
-      node->insertBlock(std::move(blk));
+      node->getBlockManager()->insertBlock(std::move(blk));
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -49,11 +52,11 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      auto blk = node->getDagBlock(hash);
+      auto blk = node->getBlockManager()->getDagBlock(hash);
       if (!blk) {
         res = "Block not available \n";
       } else {
-        res = node->getDagBlock(hash)->getJsonStr();
+        res = node->getBlockManager()->getDagBlock(hash)->getJsonStr();
       }
     }
   } catch (std::exception &e) {
@@ -70,7 +73,7 @@ Json::Value Test::get_dag_block_epfriend(const Json::Value &param1) {
       blk_hash_t to_hash = blk_hash_t(param1["to_hash"].asString());
 
       std::vector<std::string> epfriend;
-      epfriend = node->getDagBlockEpFriend(from_hash, to_hash);
+      epfriend = node->getDagManager()->getEpFriendBetweenPivots(from_hash.toString(), to_hash.toString());
       for (auto const &v : epfriend) {
         res = res.asString() + (v + '\n');
       }
@@ -98,7 +101,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
       LOG(log_time) << "Transaction " << trx.getHash()
                     << " received at: " << now;
-      node->insertTransaction(trx, true);
+      node->getTransactionManager()->insertTransaction(trx, true);
       res = toHex(trx.rlp(true));
     }
   } catch (std::exception &e) {
@@ -138,7 +141,7 @@ Json::Value Test::create_test_coin_transactions(const Json::Value &param1) {
                     data, sk, receiver);
                 LOG(log_time) << "Transaction " << trx.getHash()
                               << " received at: " << now;
-                node->insertTransaction(trx, false);
+                node->getTransactionManager()->insertTransaction(trx, false);
                 thisThreadSleepForMicroSeconds(delay);
                 i++;
               }
@@ -187,7 +190,7 @@ Json::Value Test::get_account_balance(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       addr_t addr = addr_t(param1["address"].asString());
-      auto bal = node->getBalance(addr);
+      auto bal = node->getFinalChain()->getBalance(addr);
       if (!bal.second) {
         res["found"] = false;
         res["value"] = 0;
@@ -206,7 +209,7 @@ Json::Value Test::get_peer_count() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto peer = node->getPeerCount();
+      auto peer = node->getNetwork()->getPeerCount();
       res["value"] = Json::UInt64(peer);
     }
   } catch (std::exception &e) {
@@ -219,24 +222,24 @@ Json::Value Test::get_node_status() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      res["peer_count"] = Json::UInt64(node->getPeerCount());
+      res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
-      res["blk_executed"] = Json::UInt64(node->getNumBlockExecuted());
-      res["blk_count"] = Json::UInt64(node->getNumDagBlocks());
-      res["trx_executed"] = Json::UInt64(node->getNumTransactionExecuted());
-      res["trx_count"] = Json::UInt64(node->getTransactionCount());
-      res["dag_level"] = Json::UInt64(node->getMaxDagLevel());
-      res["pbft_size"] = Json::UInt64(node->getPbftChainSize());
+      res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
+      res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
+      res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
+      res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
+      res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
+      res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
       res["pbft_sync_queue_size"] =
-          Json::UInt64(node->getPbftSyncedQueueSize());
+          Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
       res["trx_queue_unverified_size"] =
-          Json::UInt64(node->getTransactionQueueSize().first);
+          Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
       res["trx_queue_verified_size"] =
-          Json::UInt64(node->getTransactionQueueSize().second);
+          Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
       res["blk_queue_unverified_size"] =
-          Json::UInt64(node->getDagBlockQueueSize().first);
+          Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().first);
       res["blk_queue_verified_size"] =
-          Json::UInt64(node->getDagBlockQueueSize().second);
+          Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().second);
       res["network"] = node->getNetwork()->getTaraxaCapability()->getStatus();
     }
   } catch (std::exception &e) {
@@ -262,7 +265,7 @@ Json::Value Test::get_all_peers() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto peers = node->getAllPeers();
+      auto peers = node->getNetwork()->getAllPeers();
       for (auto const &peer : peers) {
         res = res.asString() + peer.toString() + "\n";
       }
@@ -298,7 +301,7 @@ Json::Value Test::should_speak(const Json::Value &param1) {
       PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
       uint64_t period = param1["period"].asUInt64();
       size_t step = param1["step"].asUInt();
-      if (node->shouldSpeak(type, period, step)) {
+      if (node->getPbftManager()->shouldSpeak(type, period, step)) {
         res = "True";
       } else {
         res = "False";
@@ -354,7 +357,7 @@ Json::Value Test::draw_graph(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       std::string filename = param1["filename"].asString();
-      node->drawGraph(filename);
+      node->getDagManager()->drawGraph(filename);
       res = "Dag is drwan as " + filename + " on the server side ...";
     }
   } catch (std::exception &e) {
@@ -367,7 +370,7 @@ Json::Value Test::get_transaction_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getTransactionCount();
+      auto count = node->getTransactionManager()->getTransactionCount();
       res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {
@@ -380,7 +383,7 @@ Json::Value Test::get_executed_trx_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumTransactionExecuted();
+      auto count = node->getDB()->getNumTransactionExecuted();
       res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {
@@ -393,7 +396,7 @@ Json::Value Test::get_executed_blk_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumBlockExecuted();
+      auto count = node->getDB()->getNumBlockExecuted();
       res["value"] = Json::UInt64(count);
     }
   } catch (std::exception &e) {
@@ -406,7 +409,7 @@ Json::Value Test::get_dag_size(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumVerticesInDag();
+      auto count = node->getDagManager()->getNumVerticesInDag();
       res["value"] =
           std::to_string(count.first) + " , " + std::to_string(count.second);
     }
@@ -420,7 +423,7 @@ Json::Value Test::get_dag_blk_count(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getNumDagBlocks();
+      auto count = node->getDB()->getNumDagBlocks();
       res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {
@@ -433,7 +436,7 @@ Json::Value Test::get_pbft_chain_size() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto count = node->getPbftChainSize();
+      auto count = node->getPbftChain()->getPbftChainSize();
       res["value"] = std::to_string(count);
     }
   } catch (std::exception &e) {
@@ -454,11 +457,11 @@ Json::Value Test::get_pbft_chain_blocks(const Json::Value &param1) {
       if (!count_json.isNull())
         count = std::stoi(count_json.asString());
       else
-        count = node->getPbftChainSize();
+        count = node->getPbftChain()->getPbftChainSize();
       if (!height_json.isNull())
         height = std::stoi(height_json.asString());
       else
-        height = node->getPbftChainSize() - count + 1;
+        height = node->getPbftChain()->getPbftChainSize() - count + 1;
 
       auto blocks = node->getPbftChain()->getPbftBlocksStr(
           height, count, include_json.isNull());

@@ -5,9 +5,13 @@
 #include <string>
 #include <utility>
 
+#include "dag.hpp"
 #include "full_node.hpp"
+#include "net/WSServer.h"
+#include "network.hpp"
 #include "transaction.hpp"
 
+using namespace taraxa::net;
 namespace taraxa {
 auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   if (t1.getSender() < t2.getSender())
@@ -18,6 +22,31 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
     return false;
   }
 };
+
+TransactionManager::TransactionManager(FullNodeConfig const &conf,
+                                       addr_t node_addr,
+                                       std::shared_ptr<DbStorage> db,
+                                       dev::Logger log_time,
+                                       std::shared_ptr<DagManager> dag_mgr,
+                                       std::shared_ptr<BlockManager> blk_mgr)
+    : conf_(conf),
+      accs_nonce_(),
+      trx_qu_(node_addr),
+      node_addr_(node_addr),
+      db_(db),
+      log_time_(log_time),
+      dag_mgr_(dag_mgr) {
+  LOG_OBJECTS_CREATE("TRXMGR");
+  auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
+  trx_count_.store(trx_count);
+  DagBlock blk;
+  string pivot;
+  std::vector<std::string> tips;
+  dag_mgr->getLatestPivotAndTips(pivot, tips);
+  DagFrontier frontier;
+  frontier.pivot = blk_hash_t(pivot);
+  updateNonce(blk, frontier);
+}
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(
     Transaction const &trx) const {
@@ -38,6 +67,30 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(
     error_message = "unknown";
   }
   return std::make_pair(false, error_message);
+}
+
+std::pair<bool, std::string> TransactionManager::insertTransaction(
+    Transaction const &trx, bool verify) {
+  auto rlp = trx.rlp(true);
+  auto ret = insertTrx(trx, rlp, verify);
+  if (ret.first && conf_.network.network_transaction_interval == 0) {
+    network_->onNewTransactions({rlp});
+  }
+  return ret;
+}
+
+void TransactionManager::insertBroadcastedTransactions(
+    // transactions coming from broadcastin is less critical
+    std::vector<taraxa::bytes> const &transactions) {
+  if (stopped_) {
+    return;
+  }
+  for (auto const &t : transactions) {
+    Transaction trx(t);
+    insertTrx(trx, t, false);
+    LOG(log_time_) << "Transaction " << trx.getHash()
+                   << " brkreceived at: " << getCurrentTimeMilliSeconds();
+  }
 }
 
 void TransactionManager::verifyQueuedTrxs() {
@@ -61,8 +114,8 @@ void TransactionManager::verifyQueuedTrxs() {
         db_->saveTransactionStatus(hash, TransactionStatus::invalid);
       }
       trx_qu_.removeTransactionFromBuffer(hash);
-      LOG(log_wr_) << getFullNodeAddress() << " Trx: " << hash
-                   << "invalid: " << valid.second << std::endl;
+      LOG(log_wr_) << " Trx: " << hash << "invalid: " << valid.second
+                   << std::endl;
       continue;
     }
     {
@@ -78,19 +131,12 @@ void TransactionManager::verifyQueuedTrxs() {
   }
 }
 
-void TransactionManager::setFullNode(std::shared_ptr<FullNode> full_node) {
-  full_node_ = full_node;
-  db_ = full_node->getDB();
-  trx_qu_.setFullNode(full_node);
-  auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
-  trx_count_.store(trx_count);
-  DagBlock blk;
-  string pivot;
-  std::vector<std::string> tips;
-  full_node->getLatestPivotAndTips(pivot, tips);
-  DagFrontier frontier;
-  frontier.pivot = blk_hash_t(pivot);
-  updateNonce(blk, frontier);
+void TransactionManager::setNetwork(std::shared_ptr<Network> network) {
+  network_ = network;
+}
+
+void TransactionManager::setWsServer(std::shared_ptr<WSServer> ws_server) {
+  ws_server_ = ws_server;
 }
 
 void TransactionManager::start() {
@@ -107,13 +153,14 @@ void TransactionManager::start() {
 }
 
 void TransactionManager::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    trx_qu_.stop();
+    for (auto &t : verifiers_) {
+      t.join();
+    }
   }
-  trx_qu_.stop();
-  for (auto &t : verifiers_) {
-    t.join();
-  }
+  network_ = nullptr;
+  dag_mgr_ = nullptr;
 }
 
 std::unordered_map<trx_hash_t, Transaction>
@@ -194,8 +241,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
         if (status == TransactionStatus::in_queue_unverified) {
           auto valid = verifyTransaction(db_->getTransactionExt(trx)->first);
           if (!valid.first) {
-            LOG(log_er_) << full_node_.lock()->getAddress()
-                         << " Block contains invalid transaction " << trx << " "
+            LOG(log_er_) << " Block contains invalid transaction " << trx << " "
                          << valid.second;
             return false;
           }
@@ -210,8 +256,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
       db_->commitWriteBatch(trx_batch);
     }
   } else {
-    LOG(log_er_) << full_node_.lock()->getAddress()
-                 << " Missing transaction - FAILED block verification "
+    LOG(log_er_) << " Missing transaction - FAILED block verification "
                  << missing_trx;
   }
 
@@ -223,23 +268,23 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
 
-  if (conf_.max_transaction_queue_warn > 0 ||
-      conf_.max_transaction_queue_drop > 0) {
+  if (conf_.test_params.max_transaction_queue_warn > 0 ||
+      conf_.test_params.max_transaction_queue_drop > 0) {
     auto queue_size = trx_qu_.getTransactionQueueSize();
-    if (conf_.max_transaction_queue_drop >
+    if (conf_.test_params.max_transaction_queue_drop >
         queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Trx: " << hash
                    << "skipped, queue too large. Unverified queue: "
                    << queue_size.first
-                   << "; Verified queue: " << queue_size.second
-                   << "; Limit: " << conf_.max_transaction_queue_drop;
+                   << "; Verified queue: " << queue_size.second << "; Limit: "
+                   << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
-    } else if (conf_.max_transaction_queue_warn >
+    } else if (conf_.test_params.max_transaction_queue_warn >
                queue_size.first + queue_size.second) {
       LOG(log_wr_) << "Warning: queue large. Unverified queue: "
                    << queue_size.first
-                   << "; Verified queue: " << queue_size.second
-                   << "; Limit: " << conf_.max_transaction_queue_drop;
+                   << "; Verified queue: " << queue_size.second << "; Limit: "
+                   << conf_.test_params.max_transaction_queue_drop;
       return std::make_pair(false, "Queue overlfow");
     }
   }
@@ -263,10 +308,7 @@ std::pair<bool, std::string> TransactionManager::insertTrx(
       event_transaction_accepted.pub(hash);
       lock.unlock();
       trx_qu_.insert(trx, verify);
-      auto node = full_node_.lock();
-      if (node) {
-        node->newPendingTransaction(trx.getHash());
-      }
+      if (ws_server_) ws_server_->newPendingTransaction(trx.getHash());
       return std::make_pair(true, "");
     } else {
       switch (status) {
@@ -311,8 +353,7 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   std::list<Transaction> list_trxs;
 
   frontier = getDagFrontier();
-  LOG(log_dg_) << getFullNodeAddress()
-               << " Get frontier with pivot: " << frontier.pivot
+  LOG(log_dg_) << " Get frontier with pivot: " << frontier.pivot
                << " tips: " << frontier.tips;
 
   auto verified_trx = trx_qu_.moveVerifiedTrxSnapShot(max_trx_to_pack);
@@ -355,14 +396,13 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
                  std::back_inserter(to_be_packed_trx),
                  [](Transaction const &t) { return t.getHash(); });
 
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    // Need to update pivot incase a new period is confirmed
-    std::vector<std::string> ghost;
-    full_node->getGhostPath(ghost);
+  // Need to update pivot incase a new period is confirmed
+  std::vector<std::string> ghost;
+  if(dag_mgr_) {
+    dag_mgr_->getGhostPath(ghost);
     vec_blk_t gg;
     std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
-                   [](std::string const &t) { return blk_hash_t(t); });
+                  [](std::string const &t) { return blk_hash_t(t); });
     for (auto const &g : gg) {
       if (g == frontier.pivot) {  // pivot does not change
         break;
@@ -370,9 +410,8 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
       auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
       if (iter != std::end(frontier.tips)) {
         std::swap(frontier.pivot, *iter);
-        LOG(log_si_) << getFullNodeAddress()
-                     << " Swap frontier with pivot: " << dag_frontier_.pivot
-                     << " tips: " << frontier.pivot;
+        LOG(log_si_) << " Swap frontier with pivot: " << dag_frontier_.pivot
+                    << " tips: " << frontier.pivot;
       }
     }
   }
@@ -406,10 +445,6 @@ bool TransactionManager::verifyBlockTransactions(
 
 void TransactionManager::updateNonce(DagBlock const &blk,
                                      DagFrontier const &frontier) {
-  auto full_node = full_node_.lock();
-  if (!full_node) {
-    return;
-  }
   uLock lock(mu_for_nonce_table_);
   for (auto const &t : blk.getTrxs()) {
     auto trx = getTransaction(t);
@@ -423,20 +458,10 @@ void TransactionManager::updateNonce(DagBlock const &blk,
   }
 
   setDagFrontier(frontier);
-  LOG(log_dg_) << getFullNodeAddress() << " Update nonce of block "
-               << blk.getHash() << " frontier: " << frontier.pivot
-               << " tips: " << frontier.tips
+  LOG(log_dg_) << " Update nonce of block " << blk.getHash()
+               << " frontier: " << frontier.pivot << " tips: " << frontier.tips
                << " dag_frontier: " << dag_frontier_.pivot
                << " dag_tips: " << dag_frontier_.tips;
-}
-
-addr_t TransactionManager::getFullNodeAddress() const {
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    return full_node->getAddress();
-  } else {
-    return addr_t();
-  }
 }
 
 DagFrontier TransactionManager::getDagFrontier() {

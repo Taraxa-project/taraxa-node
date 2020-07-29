@@ -4,11 +4,6 @@
 
 namespace taraxa {
 
-void TransactionOrderManager::setFullNode(std::shared_ptr<FullNode> node) {
-  db_ = node->getDB();
-  node_ = node;
-}
-
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(
     DagBlock const& blk,
     TransactionExecStatusTable& status_for_proposing_blocks) {
@@ -28,6 +23,12 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
   }
   assert(trxs.size() == res.size());
   return res;
+}
+
+void TransactionOrderManager::stop() {
+  bool b = false; 
+  stopped_.compare_exchange_strong(b, !b);
+  blk_mgr_ = nullptr;
 }
 
 std::shared_ptr<blk_hash_t> TransactionOrderManager::getDagBlockFromTransaction(
@@ -57,6 +58,18 @@ void TransactionOrderManager::updateOrderedTrx(TrxSchedule const& sche) {
       }
     }
   }
+}
+
+std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+TransactionOrderManager::computeTransactionOverlapTable(
+    std::shared_ptr<vec_blk_t> ordered_dag_blocks) {
+  std::vector<std::shared_ptr<DagBlock>> blks;
+  for (auto const& b : *ordered_dag_blocks) {
+    auto dagblk = blk_mgr_->getDagBlock(b);
+    assert(dagblk);
+    blks.emplace_back(dagblk);
+  }
+  return computeOrderInBlocks(blks);
 }
 
 std::shared_ptr<std::vector<TrxOverlapInBlock>>

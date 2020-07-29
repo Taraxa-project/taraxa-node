@@ -13,6 +13,7 @@
 #include "aleth/state_api.hpp"
 #include "config.hpp"
 #include "net/RpcServer.h"
+#include "transaction_manager.hpp"
 
 using namespace std;
 using namespace taraxa;
@@ -86,7 +87,7 @@ Top::Top(int argc, const char* argv[]) {
               aleth::NewNodeAPI(node_->getSecretKey(),
                                 [=](auto const& trx) {
                                   auto result =
-                                      node_->insertTransaction(trx, true);
+                                      node_->getTransactionManager()->insertTransaction(trx, true);
                                   if (!result.first) {
                                     BOOST_THROW_EXCEPTION(runtime_error(
                                         fmt("Transaction is rejected.\n"
@@ -95,9 +96,9 @@ Top::Top(int argc, const char* argv[]) {
                                             trx.getJsonStr(), result.second)));
                                   }
                                 }),
-              node_->getFilterAPI(),
+              node_->getTransactionManager()->getFilterAPI(),
               aleth::NewStateAPI(final_chain),  //
-              node_->getPendingBlock(),
+              node_->getTransactionManager()->getPendingBlock(),
               final_chain,  //
               [] { return 0; }));
       rpc->addConnector(rpc_server);

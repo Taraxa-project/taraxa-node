@@ -80,13 +80,6 @@ void Vote::voter() const {
   assert(cached_voter_);
 }
 
-// Vote Manager
-void VoteManager::setFullNode(std::shared_ptr<taraxa::FullNode> full_node) {
-  node_ = full_node;
-  pbft_chain_ = full_node->getPbftChain();
-  pbft_mgr_ = full_node->getPbftManager();
-}
-
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
                                  size_t valid_sortition_players,
@@ -170,6 +163,16 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
+void VoteManager::setPbftChain(
+    std::shared_ptr<PbftChain> pbft_chain) {
+  pbft_chain_ = pbft_chain;
+}
+
+void VoteManager::setPbftManager(
+    std::shared_ptr<PbftManager> pbft_mgr) {
+  pbft_mgr_ = pbft_mgr;
+}
+
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                                         size_t valid_sortition_players) {
@@ -177,20 +180,9 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 
   std::vector<Vote> verified_votes;
 
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "Vote Manager full node weak pointer empty";
-    return verified_votes;
-  }
-
-  auto pbft_mgr = pbft_mgr_.lock();
-  if (!pbft_mgr) {
-    return verified_votes;
-  }
-
   blk_hash_t last_pbft_block_hash =
-      pbft_mgr->getLastPbftBlockHashAtStartOfRound();
-  size_t sortition_threshold = pbft_mgr->getSortitionThreshold();
+      pbft_mgr_->getLastPbftBlockHashAtStartOfRound();
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
@@ -198,7 +190,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     // TODO: or search in PBFT sortition_account_balance_table?
     addr_t vote_address = dev::toAddress(v.getVoter());
     std::pair<val_t, bool> account_balance =
-        full_node->getBalance(vote_address);
+        final_chain_->getBalance(vote_address);
     if (!account_balance.second) {
       // New node join, it doesn't have other nodes info.
       // Wait unit sync PBFT chain with peers, and execute to get states.
@@ -232,20 +224,9 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 
   std::vector<Vote> verified_votes;
 
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "Vote Manager full node weak pointer empty";
-    return verified_votes;
-  }
-
-  auto pbft_mgr = pbft_mgr_.lock();
-  if (!pbft_mgr) {
-    return verified_votes;
-  }
-
   blk_hash_t last_pbft_block_hash =
-      pbft_mgr->getLastPbftBlockHashAtStartOfRound();
-  size_t sortition_threshold = pbft_mgr->getSortitionThreshold();
+      pbft_mgr_->getLastPbftBlockHashAtStartOfRound();
+  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
@@ -253,7 +234,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
     // TODO: or search in PBFT sortition_account_balance_table?
     addr_t vote_address = dev::toAddress(v.getVoter());
     std::pair<val_t, bool> account_balance =
-        full_node->getBalance(vote_address);
+        final_chain_->getBalance(vote_address);
     if (!account_balance.second) {
       // New node join, it doesn't have other nodes info.
       // Wait unit sync PBFT chain with peers, and execute to get states.

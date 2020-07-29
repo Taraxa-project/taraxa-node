@@ -4,18 +4,20 @@
 #pragma once
 
 #include <libdevcore/Log.h>
+
 #include <atomic>
 #include <condition_variable>
 #include <iostream>
 #include <memory>
 #include <set>
 #include <thread>
+
+#include "config.hpp"
 #include "dag_block.hpp"
 #include "db_storage.hpp"
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
-#include "config.hpp"
 
 namespace taraxa {
 
@@ -30,12 +32,15 @@ using TrxOverlapInBlock = std::pair<blk_hash_t, std::vector<bool>>;
 
 class TransactionOrderManager {
  public:
-  TransactionOrderManager(addr_t node_addr) {
+  TransactionOrderManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
+                          std::shared_ptr<BlockManager> blk_mgr)
+      : db_(db), blk_mgr_(blk_mgr) {
     LOG_OBJECTS_CREATE("TRXORD");
   }
-  void setFullNode(std::shared_ptr<FullNode> node);
   void clear() { status_.clear(); }
 
+  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+  computeTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
   std::vector<bool> computeOrderInBlock(
       DagBlock const& blk,
       TransactionExecStatusTable& status_for_proposing_blocks);
@@ -43,12 +48,13 @@ class TransactionOrderManager {
       std::vector<std::shared_ptr<DagBlock>> const& blks);
   std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(trx_hash_t const& t);
   void updateOrderedTrx(TrxSchedule const& sche);
+  void stop();
 
  private:
   std::atomic<bool> stopped_ = true;
-  std::weak_ptr<FullNode> node_;
   TransactionExecStatusTable status_;
   std::shared_ptr<DbStorage> db_ = nullptr;
+  std::shared_ptr<BlockManager> blk_mgr_;
   LOG_OBJECTS_DEFINE;
 };
 

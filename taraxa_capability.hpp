@@ -10,11 +10,11 @@
 #include <set>
 #include <thread>
 
+#include "config.hpp"
 #include "dag_block.hpp"
 #include "full_node.hpp"
 #include "transaction.hpp"
 #include "util.hpp"
-#include "config.hpp"
 
 using namespace std;
 using namespace dev;
@@ -125,7 +125,13 @@ class TaraxaCapability : public CapabilityFace, public Worker {
  public:
   TaraxaCapability(Host &_host, NetworkConfig &_conf,
                    std::string const &genesis, bool const &performance_log,
-                   addr_t node_addr)
+                   addr_t node_addr, std::shared_ptr<DbStorage> db,
+                   std::shared_ptr<PbftChain> pbft_chain,
+                   std::shared_ptr<VoteManager> vote_mgr,
+                   std::shared_ptr<DagManager> dag_mgr,
+                   std::shared_ptr<BlockManager> blk_mgr,
+                   std::shared_ptr<TransactionManager> trx_mgr,
+                   uint32_t lambda_ms_min)
       : Worker("taraxa"),
         host_(_host),
         conf_(_conf),
@@ -134,7 +140,14 @@ class TaraxaCapability : public CapabilityFace, public Worker {
         urng_(std::mt19937_64(std::random_device()())),
         delay_rng_(std::mt19937(std::random_device()())),
         random_dist_(
-            std::uniform_int_distribution<std::mt19937::result_type>(90, 110)) {
+            std::uniform_int_distribution<std::mt19937::result_type>(90, 110)),
+        db_(db),
+        pbft_chain_(pbft_chain),
+        vote_mgr_(vote_mgr),
+        dag_mgr_(dag_mgr),
+        blk_mgr_(blk_mgr),
+        trx_mgr_(trx_mgr),
+        lambda_ms_min_(lambda_ms_min) {
     LOG_OBJECTS_CREATE("TARCAP");
     LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
     LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
@@ -142,7 +155,8 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     LOG_OBJECTS_CREATE_SUB("TRXPRP", trx_prp);
     LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
     LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
-    log_perf_ = taraxa::createTaraxaLogger(dev::Verbosity::VerbosityInfo, "NETPER", node_addr);
+    log_perf_ = taraxa::createTaraxaLogger(dev::Verbosity::VerbosityInfo,
+                                           "NETPER", node_addr);
   }
   virtual ~TaraxaCapability() = default;
   std::string name() const override { return "taraxa"; }
@@ -153,6 +167,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void onStopping() override {
     stopped_ = true;
     if (conf_.network_simulated_delay > 0) io_service_.stop();
+    blk_mgr_ = nullptr;
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;
@@ -195,7 +210,6 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::map<blk_hash_t, taraxa::DagBlock> getBlocks();
   std::map<trx_hash_t, taraxa::Transaction> getTransactions();
-  void setFullNode(std::shared_ptr<FullNode> full_node);
 
   void doBackgroundWork();
   void sendTransactions();
@@ -237,7 +251,13 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   std::set<blk_hash_t> block_requestes_set_;
 
-  std::weak_ptr<FullNode> full_node_;
+  std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  uint32_t lambda_ms_min_;
 
   std::unordered_map<NodeID, std::shared_ptr<TaraxaPeer>> peers_;
   mutable boost::shared_mutex peers_mutex_;

@@ -14,6 +14,7 @@
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"
+#include "block_proposer.hpp"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991
@@ -23,6 +24,7 @@
 
 namespace taraxa {
 class FullNode;
+class WSServer;
 
 enum PbftStates {
   value_proposal_state = 1,
@@ -40,10 +42,20 @@ class PbftManager {
 
   explicit PbftManager(std::string const &genesis, addr_t node_addr);
   PbftManager(PbftConfig const &conf, std::string const &genesis,
-              addr_t node_addr);
+              addr_t node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<BlockManager> blk_mgr,
+              std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr,
+              addr_t master_boot_node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
+              uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
-  void setFullNode(std::shared_ptr<FullNode> node);
+  void setNetwork(std::shared_ptr<Network> network);
+  void setWSServer(std::shared_ptr<net::WSServer> ws_server);
   void start();
   void stop();
   void run();
@@ -57,9 +69,17 @@ class PbftManager {
   void setTwoTPlusOne(size_t const two_t_plus_one);
   void setPbftStep(size_t const pbft_step);
 
+  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+                    uint64_t period, size_t step,
+                    blk_hash_t const &last_pbft_block_hash);
+
   // Notice: Test purpose
   void setSortitionThreshold(size_t const sortition_threshold);
   size_t getValidSortitionAccountsSize() const;
+  std::vector<std::vector<uint>> createMockTrxSchedule(
+      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+          trx_overlap_table);
+
   // End Test
 
   bool shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step);
@@ -165,11 +185,21 @@ class PbftManager {
   std::pair<blk_hash_t, bool> proposed_block_hash_ =
       std::make_pair(NULL_BLOCK_HASH, false);
 
-  std::weak_ptr<FullNode> node_;
   std::unique_ptr<std::thread> daemon_ = nullptr;
   std::shared_ptr<VoteManager> vote_mgr_ = nullptr;
   std::shared_ptr<PbftChain> pbft_chain_ = nullptr;
+  std::shared_ptr<DagManager> dag_mgr_ = nullptr;
+  std::shared_ptr<Network> network_ = nullptr;
   std::shared_ptr<TaraxaCapability> capability_ = nullptr;
+  std::shared_ptr<BlockManager> blk_mgr_;
+  std::shared_ptr<net::WSServer> ws_server_;
+  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<TransactionOrderManager> trx_ord_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  addr_t master_boot_node_addr_;
+  addr_t node_addr_;
+  secret_t node_sk_;
+  vrf_sk_t vrf_sk_;
 
   // Database
   std::shared_ptr<DbStorage> db_ = nullptr;
@@ -244,7 +274,6 @@ class PbftManager {
   LOG_OBJECTS_DEFINE;
   mutable dev::Logger log_nf_test_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
-
 };
 
 }  // namespace taraxa

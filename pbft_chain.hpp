@@ -123,10 +123,9 @@ std::ostream& operator<<(std::ostream& strm, PbftBlockCert const& b);
 
 class PbftChain {
  public:
-  explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr);
+  explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
   virtual ~PbftChain() = default;
 
-  void setFullNode(std::shared_ptr<FullNode> node);
   void setPbftHead(std::string const& pbft_head_str);
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
@@ -165,6 +164,7 @@ class PbftChain {
   void setSyncedPbftBlockIntoQueue(PbftBlockCert const& pbft_block_and_votes);
   void clearSyncedPbftBlocks();
   size_t pbftSyncedQueueSize() const;
+  bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
 
  private:
   void pbftSyncedSetInsert_(blk_hash_t const& pbft_block_hash);

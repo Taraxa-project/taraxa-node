@@ -39,6 +39,14 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     advance_confirm();
   }
 
+  std::pair<val_t, bool> getBalance(addr_t const &addr) const {
+    if (auto acc = get_account(addr)) {
+      return {acc->Balance, true};
+    }
+    return {0, false};
+  }
+
+
   util::ExitStack append_block_prepare(DbStorage::BatchPtr const& batch) {
     blk_db->setBatch(batch);
     ext_db->setBatch(batch);

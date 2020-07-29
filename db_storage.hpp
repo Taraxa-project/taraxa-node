@@ -122,6 +122,9 @@ struct DbStorage {
   dev::bytes getDagBlockRaw(blk_hash_t const& hash);
   shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   string getBlocksByLevel(level_t level);
+  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
+      level_t level, int number_of_levels);
+  
 
   // Transaction
   void saveTransaction(Transaction const& trx);
@@ -199,6 +202,19 @@ struct DbStorage {
 
   vector<blk_hash_t> getOrderedDagBlocks();
 
+  auto getNumTransactionExecuted() {
+    return getStatusField(StatusDbField::ExecutedTrxCount);
+  }
+  auto getNumTransactionInDag() {
+    return getStatusField(StatusDbField::TrxCount);
+  }
+  auto getNumBlockExecuted() {
+    return getStatusField(StatusDbField::ExecutedBlkCount);
+  }
+  uint64_t getNumDagBlocks() {
+    return getDagBlocksCount();
+  }
+  
   string lookup(Slice key, Column const& column);
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);

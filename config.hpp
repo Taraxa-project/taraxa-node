@@ -124,7 +124,9 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
+  explicit FullNodeConfig() = default;
   explicit FullNodeConfig(std::string const &json_file);
+  explicit FullNodeConfig(const FullNodeConfig &conf) = default;
   std::string json_file_name;
   std::string node_secret;
   std::string vrf_secret;

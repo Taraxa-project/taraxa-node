@@ -29,6 +29,7 @@ class Transaction;
 enum class TransactionStatus;
 class TransactionManager;
 class FullNode;
+class DbStorage;
 // Block definition
 
 /**
@@ -123,8 +124,14 @@ struct DagFrontier {
 class BlockManager {
  public:
   BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr,
+               std::shared_ptr<DbStorage> db, dev::Logger log_time_,
                uint32_t queue_limit = 0);
   ~BlockManager();
+  void insertBlock(DagBlock const &blk);
+  // Only used in initial syncs when blocks are received with full list of
+  // transactions
+  void insertBroadcastedBlockWithTransactions(
+      DagBlock const &blk, std::vector<Transaction> const &transactions);
   void pushUnverifiedBlock(DagBlock const &block,
                            bool critical);  // add to unverified queue
   void pushUnverifiedBlock(DagBlock const &block,
@@ -136,7 +143,7 @@ class BlockManager {
   level_t getMaxDagLevelInQueue() const;
   void start();
   void stop();
-  void setFullNode(std::shared_ptr<FullNode> node);
+  void setTransactionManager(std::shared_ptr<TransactionManager> trx_mgr);
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }
@@ -152,8 +159,9 @@ class BlockManager {
   size_t capacity_ = 2048;
   size_t num_verifiers_ = 4;
 
-  std::weak_ptr<FullNode> node_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<DbStorage> db_;
+  dev::Logger log_time_;
   // seen blks
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;

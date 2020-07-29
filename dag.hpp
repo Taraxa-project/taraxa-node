@@ -179,11 +179,21 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   explicit DagManager(std::string const &genesis, addr_t node_addr);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
-  void setFullNode(std::shared_ptr<FullNode> full_node);
+  void setTransactionManager(std::shared_ptr<TransactionManager> trx_mgr);
+  void setPbftChain(std::shared_ptr<PbftChain> pbft_chain);
+  void stop();
 
   bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+
+  // return {period, block order}, for pbft-pivot-blk proposing (does not
+  // finialize)
+  std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
+      blk_hash_t const &anchor);
+  // receive pbft-povit-blk, update periods and finalized, return size of
+  // ordered blocks
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
 
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
@@ -209,6 +219,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   // can return self as pivot chain
   std::vector<std::string> getPivotChain(std::string const &vertex) const;
   void drawPivotGraph(std::string const &str) const;
+  void drawGraph(std::string const &dotfile) const;
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const { return max_level_; }
@@ -227,15 +238,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips);
   unsigned getBlockInsertingIndex();  // add to block to different array
-  addr_t getFullNodeAddress() const;
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
-  std::weak_ptr<FullNode> full_node_;
   level_t max_level_ = 0;
   mutable boost::shared_mutex mutex_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<PbftChain> pbft_chain_;
   std::queue<std::pair<std::string, uint64_t>>
       anchors_;  // pivots that define periods
   std::string genesis_;

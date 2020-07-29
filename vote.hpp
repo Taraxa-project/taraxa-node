@@ -3,14 +3,16 @@
 
 #include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
+
 #include <deque>
 #include <optional>
 #include <string>
+
+#include "config.hpp"
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
 #include "vrf_wrapper.hpp"
-#include "config.hpp"
 
 namespace taraxa {
 class FullNode;
@@ -131,12 +133,11 @@ class Vote {
 
 class VoteManager {
  public:
-  VoteManager(addr_t node_addr) {
-    LOG_OBJECTS_CREATE("VOTE_MGR");
-  }
+  VoteManager(addr_t node_addr, std::shared_ptr<FinalChain> final_chain):final_chain_(final_chain) { LOG_OBJECTS_CREATE("VOTE_MGR"); }
   ~VoteManager() {}
 
-  void setFullNode(std::shared_ptr<FullNode> node);
+  void setPbftChain(std::shared_ptr<PbftChain> pbft_chain);
+  void setPbftManager(std::shared_ptr<PbftManager> pbft_manager);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
                       size_t valid_sortition_players,
                       size_t sortition_threshold) const;
@@ -144,6 +145,9 @@ class VoteManager {
   bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
+  void stop() {
+    pbft_mgr_ = nullptr;
+  };
   uint64_t getUnverifiedVotesSize() const;
   std::vector<Vote> getVotes(uint64_t pbft_round,
                              size_t valid_sortiton_players);
@@ -167,9 +171,9 @@ class VoteManager {
 
   mutable boost::shared_mutex access_;
 
-  std::weak_ptr<FullNode> node_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::weak_ptr<PbftManager> pbft_mgr_;
+  std::shared_ptr<PbftManager> pbft_mgr_;
+  std::shared_ptr<FinalChain> final_chain_;
 
   LOG_OBJECTS_DEFINE;
 };

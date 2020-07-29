@@ -11,6 +11,7 @@
 #include "boost/thread.hpp"
 #include "config.hpp"
 #include "dag_block.hpp"
+#include "network.hpp"
 #include "vdf_sortition.hpp"
 
 namespace taraxa {
@@ -60,8 +61,9 @@ class RandomPropose : public ProposeModelFace {
 
 class SortitionPropose : public ProposeModelFace {
  public:
-  SortitionPropose(uint difficulty_bound, uint lambda_bits, addr_t node_addr)
-      : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits) {
+  SortitionPropose(uint difficulty_bound, uint lambda_bits, addr_t node_addr,
+                   std::shared_ptr<DagManager> dag_mgr)
+      : difficulty_bound_(difficulty_bound), lambda_bits_(lambda_bits), dag_mgr_(dag_mgr) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sorition block propose difficulty " << difficulty_bound
                  << " lambda_bits " << lambda_bits;
@@ -74,6 +76,7 @@ class SortitionPropose : public ProposeModelFace {
   uint difficulty_bound_;
   uint lambda_bits_;
   unsigned long long last_dag_height_ = 0;
+  std::shared_ptr<DagManager> dag_mgr_;
 
   LOG_OBJECTS_DEFINE;
 };
@@ -87,27 +90,37 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& conf,
                 std::shared_ptr<DagManager> dag_mgr,
-                std::shared_ptr<TransactionManager> trx_mgr, addr_t node_addr)
-      : dag_mgr_(dag_mgr), trx_mgr_(trx_mgr), conf_(conf) {
+                std::shared_ptr<TransactionManager> trx_mgr,
+                std::shared_ptr<BlockManager> blk_mgr, addr_t node_addr,
+                secret_t node_sk, vrf_sk_t vrf_sk, dev::Logger log_time)
+      : dag_mgr_(dag_mgr),
+        trx_mgr_(trx_mgr),
+        blk_mgr_(blk_mgr),
+        conf_(conf),
+        log_time_(log_time),
+        node_sk_(node_sk),
+        vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
     if (conf_.mode == "random") {
       propose_model_ = std::make_unique<RandomPropose>(
           conf_.min_freq, conf_.max_freq, node_addr);
     } else if (conf_.mode == "sortition") {
       propose_model_ = std::make_unique<SortitionPropose>(
-          conf_.difficulty_bound, conf_.lambda_bits, node_addr);
+          conf_.difficulty_bound, conf_.lambda_bits, node_addr, dag_mgr);
     }
     total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
-
-    // setup shards
+    auto addr =
+        std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
+    my_trx_shard_ = addr % conf_.shard;
+    LOG(log_nf_) << "Block proposer in " << my_trx_shard_ << " shard ...";
   }
 
   ~BlockProposer() { stop(); }
 
-  void setFullNode(std::shared_ptr<FullNode> full_node);
   void start();
   void stop();
   std::shared_ptr<BlockProposer> getShared();
+  void setNetwork(std::shared_ptr<Network> network) { network_ = network; }
   void proposeBlock(DagBlock& blk);
   bool getShardedTrxs(vec_trx_t& sharded_trx, DagFrontier& frontier) {
     return getShardedTrxs(total_trx_shards_, frontier, my_trx_shard_,
@@ -115,7 +128,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   }
   bool getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips);
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
-  level_t getMaxDagLevel() const;
   blk_hash_t getLatestAnchor() const;
   // debug
   static uint64_t getNumProposedBlocks() {
@@ -133,11 +145,15 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   BlockProposerConfig conf_;
   uint total_trx_shards_;
   uint my_trx_shard_;
-  std::weak_ptr<DagManager> dag_mgr_;
-  std::weak_ptr<TransactionManager> trx_mgr_;
-  std::weak_ptr<FullNode> full_node_;
+  std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<BlockManager> blk_mgr_;
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
+  std::shared_ptr<Network> network_;
+  dev::Logger log_time_;
+  secret_t node_sk_;
+  vrf_sk_t vrf_sk_;
   LOG_OBJECTS_DEFINE;
 };
 

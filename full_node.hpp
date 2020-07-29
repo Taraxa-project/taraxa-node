@@ -88,180 +88,48 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
     return ret;
   }
 
-  void setDebug(bool debug);
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
-  boost::asio::io_context &getIoContext();
-
+  
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
-  bool isSynced() const;
   std::shared_ptr<TransactionManager> getTransactionManager() const {
     return trx_mgr_;
   }
   std::shared_ptr<DagManager> getDagManager() const { return dag_mgr_; }
+  std::shared_ptr<BlockManager> getBlockManager() const { return blk_mgr_; }
 
   // master boot node
   addr_t getMasterBootNodeAddress() const { return master_boot_node_address_; }
 
-  // network stuff
-  size_t getPeerCount() const;
-  std::vector<public_t> getAllPeers() const;
-
-  // Insert a block in persistent storage and build in dag
-  void insertBlock(DagBlock const &blk);
-
-  // Only used in initial syncs when blocks are received with full list of
-  // transactions
-  void insertBroadcastedBlockWithTransactions(
-      DagBlock const &blk, std::vector<Transaction> const &transactions);
-  // Insert new transaction to unverified queue or if verify flag true
-  // synchronously verify and insert into verified queue
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx,
-                                                 bool verify);
-  // Transactions coming from broadcasting is less critical
-  void insertBroadcastedTransactions(
-      std::vector<taraxa::bytes> const &transactions);
-  std::shared_ptr<std::pair<Transaction, taraxa::bytes>> getTransaction(
-      trx_hash_t const &hash) const;
-
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
-  std::shared_ptr<DagBlock> getDagBlockFromDb(blk_hash_t const &hash) const;
-  void updateNonceTable(DagBlock const &dagblk, DagFrontier const &frontier);
-  bool isBlockKnown(blk_hash_t const &hash);
-  std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
-      level_t level, int number_of_levels);
-  std::string getScheduleBlockByPeriod(uint64_t period);
-  std::vector<std::string> collectTotalLeaves();
-  void getLatestPivotAndTips(std::string &pivot,
-                             std::vector<std::string> &tips);
-  void getGhostPath(std::string const &source, std::vector<std::string> &ghost);
-  void getGhostPath(std::vector<std::string> &ghost);
-
-  std::vector<std::string> getDagBlockPivotChain(blk_hash_t const &blk);
-  // Note: returned block hashes does not have order
-  // Epoch friends : dag blocks in the same epoch/period
-  std::vector<std::string> getDagBlockEpFriend(blk_hash_t const &from,
-                                               blk_hash_t const &to);
-
-  // return {period, block order}, for pbft-pivot-blk proposing (does not
-  // finialize)
-  std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
-      blk_hash_t const &anchor);
-  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
-  // receive pbft-povit-blk, update periods and finalized, return size of
-  // ordered blocks
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
-  uint64_t getLatestPeriod() const;
-  blk_hash_t getLatestAnchor() const;
-  uint getBlockProposeThresholdBeta()
-      const { /*TODO: should receive it from pbft-block, use threshold from
-                 0 ~ 1024 */
-    return propose_threshold_;
-  }
-  void setBlockProposeThresholdBeta(
-      uint threshold) { /*TODO: should receive it from pbft-block, use threshold
-                           from 0 ~ 1024, if larger than 4096, should always
-                           success */
-    if (threshold >= (1u << 20)) {
-      threshold = (1u << 20);
-    }
-    propose_threshold_ = threshold;
-    LOG(log_wr_) << "Set propose threshold beta to " << threshold;
-  }
-  std::unordered_set<std::string> getUnOrderedDagBlks() const;
-  // get transaction schecules stuff ...
-  // fixme: return optional
-  std::shared_ptr<blk_hash_t> getDagBlockFromTransaction(
-      trx_hash_t const &trx) const {
-    return trx_order_mgr_->getDagBlockFromTransaction(trx);
-  }
-
-  std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-  computeTransactionOverlapTable(std::shared_ptr<vec_blk_t> ordered_dag_blocks);
-
-  std::vector<std::vector<uint>> createMockTrxSchedule(
-      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-          trx_overlap_table);
-
-  // account stuff
-  std::pair<val_t, bool> getBalance(addr_t const &acc) const;
-  val_t getMyBalance() const;
   auto const &getAddress() const { return node_addr_; }
   public_t getPublicKey() const { return node_pk_; }
   auto const &getSecretKey() const { return node_sk_; }
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
-  // pbft stuff
-  void updateWsPbftBlockExecuted(PbftBlock const &pbft_block);
-
+  
   std::shared_ptr<DbStorage> getDB() const { return db_; }
-  std::unordered_map<trx_hash_t, Transaction> getVerifiedTrxSnapShot();
-  std::vector<taraxa::bytes> getNewVerifiedTrxSnapShotSerialized();
-
+  
   // PBFT
-  bool shouldSpeak(PbftVoteTypes type, uint64_t period, size_t step);
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
   std::vector<Vote> getAllVotes();
-  bool addVote(Vote const &vote);
-  void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  bool isKnownPbftBlockForSyncing(blk_hash_t const &pbft_block_hash) const;
-  bool isKnownUnverifiedPbftBlock(blk_hash_t const &pbft_block_hash) const;
-
-  uint64_t pbftSyncingPeriod() const;
-  uint64_t getPbftChainSize() const;
-
-  void pushUnverifiedPbftBlock(PbftBlock const &pbft_block);
-  void setSyncedPbftBlock(PbftBlockCert const &pbft_block_and_votes);
-  void newPendingTransaction(trx_hash_t const &trx_hash);
-  bool pbftBlockHasEnoughCertVotes(blk_hash_t const &blk_hash,
-                                   std::vector<Vote> &votes) const;
-  void setTwoTPlusOne(size_t val);
-  bool checkPbftBlockValidationFromSyncing(PbftBlock const &pbft_block) const;
-  size_t getPbftSyncedQueueSize() const;
-  std::pair<size_t, size_t> getTransactionQueueSize() const;
-  std::pair<size_t, size_t> getDagBlockQueueSize() const;
+  
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
-
-  // PBFT RPC
-  void broadcastVote(Vote const &vote);
-  Vote generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
-                    uint64_t period, size_t step,
-                    blk_hash_t const &last_pbft_block_hash);
 
   // For Debug
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
-  level_t getMaxDagLevel() const;
-  level_t getMaxDagLevelInQueue() const;
-  std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
-  std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  void drawGraph(std::string const &dotfile) const;
-  unsigned long getTransactionCount() const;
-  auto getNumTransactionExecuted() const {
-    return db_ ? db_->getStatusField(StatusDbField::ExecutedTrxCount) : 0;
-  }
-  auto getNumTransactionInDag() const {
-    return db_ ? db_->getStatusField(StatusDbField::TrxCount) : 0;
-  }
-  auto getNumBlockExecuted() const {
-    return db_ ? db_->getStatusField(StatusDbField::ExecutedBlkCount) : 0;
-  }
-  uint64_t getNumDagBlocks() const {
-    return db_ ? db_->getDagBlocksCount() : 0;
-  }
+  
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
   auto getFinalChain() const { return final_chain_; }
-  auto getPendingBlock() const { return pending_block_; }
-  auto getFilterAPI() const { return filter_api_; }
   auto getTrxOrderMgr() const { return trx_order_mgr_; }
   auto getWSServer() const { return ws_server_; }
 
@@ -271,7 +139,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::atomic<bool> stopped_ = true;
   // configuration
   FullNodeConfig conf_;
-  bool debug_ = false;
   uint64_t propose_threshold_ = 512;
   bool i_am_boot_node_ = false;
   // node secrets
@@ -301,17 +168,13 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftChain> pbft_chain_;
   //
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<aleth::PendingBlock> pending_block_;
-  std::shared_ptr<aleth::FilterAPI> filter_api_;
   //
   std::shared_ptr<taraxa::net::WSServer> ws_server_;
   // storage
   std::shared_ptr<DbStorage> db_ = nullptr;
 
   // debugger
-  std::mutex debug_mutex_;
-  uint64_t received_blocks_ = 0;
-  uint64_t received_trxs_ = 0;
+  std::atomic_uint64_t received_blocks_ = 0;
   LOG_OBJECTS_DEFINE;
   mutable taraxa::Logger log_time_;
   mutable taraxa::Logger log_time_dg_;

@@ -59,7 +59,7 @@ bool SortitionPropose::propose() {
   }
   thisThreadSleepForMilliSeconds(min_propose_delay);
 
-  auto dag_height = proposer->getMaxDagLevel();
+  auto dag_height = dag_mgr_->getMaxLevel();
   if (dag_height == last_dag_height_ && last_dag_height_ > 0) {
     LOG(log_tr_) << "Skip proposing, dag not increasing, height "
                  << last_dag_height_;
@@ -110,6 +110,7 @@ void BlockProposer::start() {
     return;
   }
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
+  propose_model_->setProposer(getShared(), node_sk_, vrf_sk_);
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
   proposer_worker_ = std::make_shared<std::thread>([this]() {
@@ -120,37 +121,19 @@ void BlockProposer::start() {
 }
 
 void BlockProposer::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    proposer_worker_->join();
   }
-  proposer_worker_->join();
+  network_ = nullptr;
+  blk_mgr_ = nullptr;
+  trx_mgr_ = nullptr;
+  dag_mgr_ = nullptr;
 }
 
-void BlockProposer::setFullNode(std::shared_ptr<FullNode> full_node) {
-  propose_model_->setProposer(getShared(), full_node->getSecretKey(),
-                              full_node->getVrfSecretKey());
-  full_node_ = full_node;
-  auto addr = std::stoull(
-      full_node->getAddress().toString().substr(0, 6).c_str(), NULL, 16);
-  my_trx_shard_ = addr % conf_.shard;
-  LOG(log_nf_) << "Block proposer in " << my_trx_shard_ << " shard ...";
-}
-level_t BlockProposer::getMaxDagLevel() const {
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    return full_node->getMaxDagLevel();
-  }
-  return 0;
-}
 bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
   std::string pivot_string;
   std::vector<std::string> tips_string;
-  auto dag_mgr = dag_mgr_.lock();
-  if (!dag_mgr) {
-    LOG(log_wr_) << "DagManager expired ..." << std::endl;
-    return false;
-  }
-  bool ok = dag_mgr->getLatestPivotAndTips(pivot_string, tips_string);
+  bool ok = dag_mgr_->getLatestPivotAndTips(pivot_string, tips_string);
   if (ok) {
     LOG(log_nf_) << "BlockProposer: pivot: " << pivot.toString()
                  << ", tip size = " << tips.size() << std::endl;
@@ -159,10 +142,9 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
     LOG(log_er_) << "Pivot and tips unavailable ..." << std::endl;
     return ok;
   }
-  auto& log_time = full_node_.lock()->getTimeLogger();
 
-  LOG(log_time) << "Pivot and Tips retrieved at: "
-                << getCurrentTimeMilliSeconds();
+  LOG(log_time_) << "Pivot and Tips retrieved at: "
+                 << getCurrentTimeMilliSeconds();
   pivot = blk_hash_t(pivot_string);
   tips.clear();
   std::transform(tips_string.begin(), tips_string.end(),
@@ -173,15 +155,8 @@ bool BlockProposer::getLatestPivotAndTips(blk_hash_t& pivot, vec_blk_t& tips) {
 
 bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
                                    uint my_shard, vec_trx_t& sharded_trxs) {
-  auto full_node = full_node_.lock();
-  auto& log_time = full_node->getTimeLogger();
   vec_trx_t to_be_packed_trx;
-  auto trx_mgr = trx_mgr_.lock();
-  if (!trx_mgr) {
-    LOG(log_er_) << "TransactionManager expired ..." << std::endl;
-    return false;
-  }
-  trx_mgr->packTrxs(to_be_packed_trx, frontier, conf_.transaction_limit);
+  trx_mgr_->packTrxs(to_be_packed_trx, frontier, conf_.transaction_limit);
   if (to_be_packed_trx.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..."
                  << std::endl;
@@ -203,20 +178,14 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
 }
 
 blk_hash_t BlockProposer::getLatestAnchor() const {
-  return full_node_.lock()->getLatestAnchor();
+  return blk_hash_t(dag_mgr_->getLatestAnchor());
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
                                        vec_blk_t const& tips) {
   level_t max_level = 0;
-  auto full_node = full_node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "FullNode expired, cannot get propose level ..."
-                 << std::endl;
-    return 0;
-  }
   // get current level
-  auto pivot_blk = full_node->getDagBlock(pivot);
+  auto pivot_blk = blk_mgr_->getDagBlock(pivot);
   if (!pivot_blk) {
     LOG(log_er_) << "Cannot find pivot dag block " << pivot;
     return 0;
@@ -224,7 +193,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
   max_level = std::max(pivot_blk->getLevel(), max_level);
 
   for (auto const& t : tips) {
-    auto tip_blk = full_node->getDagBlock(t);
+    auto tip_blk = blk_mgr_->getDagBlock(t);
     if (!tip_blk) {
       LOG(log_er_) << "Cannot find tip dag block " << blk_hash_t(t);
       return 0;
@@ -235,36 +204,25 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,
 }
 
 void BlockProposer::proposeBlock(DagBlock& blk) {
-  auto full_node = full_node_.lock();
-  assert(full_node);
+  if (stopped_) return;
 
   // Blocks are not proposed if we are behind the network and still syncing
-  if (!full_node->isSynced()) {
+  if (!network_->isSynced()) {
     return;
   }
 
-  blk.sign(full_node->getSecretKey());
-  full_node_.lock()->insertBlock(blk);
+  blk.sign(node_sk_);
+  blk_mgr_->insertBlock(blk);
 
-  auto& log_time = full_node->getTimeLogger();
   auto now = getCurrentTimeMilliSeconds();
 
-  LOG(log_time) << "Propose block " << blk.getHash() << " at: " << now
-                << " ,trxs: " << blk.getTrxs()
-                << " , tips: " << blk.getTips().size();
-  LOG(log_nf_) << getFullNodeAddress() << " Propose block :" << blk.getHash()
+  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now
+                 << " ,trxs: " << blk.getTrxs()
+                 << " , tips: " << blk.getTips().size();
+  LOG(log_nf_) << " Propose block :" << blk.getHash()
                << " pivot: " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
   BlockProposer::num_proposed_blocks.fetch_add(1);
-}
-
-addr_t BlockProposer::getFullNodeAddress() const {
-  auto full_node = full_node_.lock();
-  if (full_node) {
-    return full_node->getAddress();
-  } else {
-    return addr_t();
-  }
 }
 
 }  // namespace taraxa

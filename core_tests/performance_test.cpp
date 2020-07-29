@@ -47,7 +47,7 @@ TEST_F(PerformanceTest, execute_transactions) {
   EXPECT_EQ(res.first, initbal);
 
   for (auto const &t : transactions) {
-    node->insertTransaction(t, false);
+    node->getTransactionManager()->insertTransaction(t, false);
     // taraxa::thisThreadSleepForMilliSeconds(50);
   }
 
@@ -57,7 +57,7 @@ TEST_F(PerformanceTest, execute_transactions) {
 
   // The test will form a single chain
   std::vector<std::string> ghost;
-  node->getGhostPath(cfg.chain.dag_genesis_block.getHash().toString(), ghost);
+  node->getDagManager()->getGhostPath(cfg.chain.dag_genesis_block.getHash().toString(), ghost);
   vec_blk_t blks;
   std::vector<std::vector<uint>> modes;
   ASSERT_GT(ghost.size(), 1);
@@ -68,20 +68,20 @@ TEST_F(PerformanceTest, execute_transactions) {
   ProfilerStart("my_prof.txt");
   for (int i = 1; i < ghost.size(); i += 2) {
     auto anchor = blk_hash_t(ghost[i]);
-    std::tie(cur_period, order) = node->getDagBlockOrder(anchor);
+    std::tie(cur_period, order) = node->getDagManager()->getDagBlockOrder(anchor);
     // call twice should not change states
-    std::tie(cur_period2, order) = node->getDagBlockOrder(anchor);
+    std::tie(cur_period2, order) = node->getDagManager()->getDagBlockOrder(anchor);
     EXPECT_EQ(cur_period, cur_period2);
     EXPECT_EQ(cur_period, ++period);
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-        trx_overlap_table = node->computeTransactionOverlapTable(order);
+        trx_overlap_table = node->getTrxOrderMgr()->computeTransactionOverlapTable(order);
     EXPECT_NE(trx_overlap_table, nullptr);
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);
     TrxSchedule sche(*order, blocks_trx_modes);
     ScheduleBlock sche_blk(blk_hash_t(100), sche);
     // set period
-    node->setDagBlockOrder(anchor, cur_period);
+    node->getDagManager()->setDagBlockOrder(anchor, cur_period);
     bool ret = node->executeScheduleBlock(
         sche_blk, pbft_mgr->sortition_account_balance_table);
     EXPECT_TRUE(ret);
@@ -90,10 +90,10 @@ TEST_F(PerformanceTest, execute_transactions) {
   // pickup the last period when dag (chain) size is odd number
   if (ghost.size() % 2 == 1) {
     std::tie(cur_period, order) =
-        node->getDagBlockOrder(blk_hash_t(ghost.back()));
+        node->getDagManager()->getDagBlockOrder(blk_hash_t(ghost.back()));
     EXPECT_EQ(cur_period, ++period);
     std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
-        trx_overlap_table = node->computeTransactionOverlapTable(order);
+        trx_overlap_table = node->getTrxOrderMgr()->computeTransactionOverlapTable(order);
     EXPECT_NE(trx_overlap_table, nullptr);
     std::vector<std::vector<uint>> blocks_trx_modes =
         node->createMockTrxSchedule(trx_overlap_table);

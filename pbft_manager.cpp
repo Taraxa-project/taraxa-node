@@ -17,6 +17,7 @@
 #include "full_node.hpp"
 #include "network.hpp"
 #include "sortition.hpp"
+#include "transaction_manager.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa {
@@ -31,7 +32,16 @@ struct ReplayProtectionServiceDummy : ReplayProtectionService {
 };
 
 PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
-                         addr_t node_addr)
+                         addr_t node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain,
+                         std::shared_ptr<VoteManager> vote_mgr,
+                         std::shared_ptr<DagManager> dag_mgr,
+                         std::shared_ptr<BlockManager> blk_mgr,
+                         std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
+                         std::shared_ptr<TransactionManager> trx_mgr,
+                         addr_t master_boot_node_addr, secret_t node_sk,
+                         vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -40,37 +50,48 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       SKIP_PERIODS(conf.skip_periods),
       RUN_COUNT_VOTES(conf.run_count_votes),
-      dag_genesis_(genesis) {
+      dag_genesis_(genesis),
+      db_(db),
+      pbft_chain_(pbft_chain),
+      vote_mgr_(vote_mgr),
+      dag_mgr_(dag_mgr),
+      blk_mgr_(blk_mgr),
+      final_chain_(final_chain),
+      trx_ord_mgr_(trx_ord_mgr),
+      trx_mgr_(trx_mgr),
+      node_addr_(node_addr),
+      master_boot_node_addr_(master_boot_node_addr),
+      node_sk_(node_sk),
+      vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
+  if (db_) {
+    num_executed_blk_ =
+        db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
+    num_executed_trx_ =
+        db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
+    dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
+    transactions_tmp_.reserve(expected_max_trx_per_block);
+    trx_senders_tmp_.reserve(expected_max_trx_per_block);
+  }
 }
 
 PbftManager::~PbftManager() { stop(); }
 
-void PbftManager::setFullNode(shared_ptr<taraxa::FullNode> full_node) {
-  node_ = full_node;
-  vote_mgr_ = full_node->getVoteManager();
-  pbft_chain_ = full_node->getPbftChain();
-  capability_ = full_node->getNetwork()->getTaraxaCapability();
-  db_ = full_node->getDB();
-  num_executed_blk_ =
-      db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
-  num_executed_trx_ =
-      db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
-  auto expected_max_trx_per_block =
-      full_node->getConfig()
-          .opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock;
-  dag_block_proposers_tmp_.reserve(expected_max_trx_per_block / 4);
-  transactions_tmp_.reserve(expected_max_trx_per_block);
-  trx_senders_tmp_.reserve(expected_max_trx_per_block);
+void PbftManager::setNetwork(std::shared_ptr<Network> network) {
+  network_ = network;
+  capability_ = network->getTaraxaCapability();
+}
+
+void PbftManager::setWSServer(std::shared_ptr<net::WSServer> ws_server) {
+  ws_server_ = ws_server;
 }
 
 void PbftManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  auto full_node = node_.lock();
   std::vector<std::string> ghost;
-  full_node->getGhostPath(dag_genesis_, ghost);
+  dag_mgr_->getGhostPath(dag_genesis_, ghost);
   while (ghost.empty()) {
     LOG(log_dg_)
         << "GHOST is empty. DAG initialization has not done. Sleep 100ms";
@@ -82,9 +103,8 @@ void PbftManager::start() {
   if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
     // New node
     // Initialize master boot node account balance
-    addr_t master_boot_node_address = full_node->getMasterBootNodeAddress();
     std::pair<val_t, bool> master_boot_node_account_balance =
-        full_node->getBalance(master_boot_node_address);
+        final_chain_->getBalance(master_boot_node_addr_);
     if (!master_boot_node_account_balance.second) {
       LOG(log_er_) << "Failed initial master boot node account balance."
                    << " Master boot node balance is not exist.";
@@ -94,9 +114,9 @@ void PbftManager::start() {
           << master_boot_node_account_balance.first;
     }
     PbftSortitionAccount master_boot_node(
-        master_boot_node_address, master_boot_node_account_balance.first, 0,
+        master_boot_node_addr_, master_boot_node_account_balance.first, 0,
         new_change);
-    sortition_account_balance_table_tmp[master_boot_node_address] =
+    sortition_account_balance_table_tmp[master_boot_node_addr_] =
         master_boot_node;
     auto batch = db_->createWriteBatch();
     updateSortitionAccountsDB_(batch);
@@ -133,21 +153,30 @@ void PbftManager::start() {
 }
 
 void PbftManager::stop() {
-  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
-    return;
-  }
-  if (RUN_COUNT_VOTES) {
-    monitor_stop_ = true;
-    monitor_votes_->join();
-    LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
-  }
-  {
-    std::unique_lock<std::mutex> lock(stop_mtx_);
-    stop_cv_.notify_all();
-  }
-  daemon_->join();
+  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
+    if (RUN_COUNT_VOTES) {
+      monitor_stop_ = true;
+      monitor_votes_->join();
+      LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
+    }
+    {
+      std::unique_lock<std::mutex> lock(stop_mtx_);
+      stop_cv_.notify_all();
+    }
+    daemon_->join();
 
-  LOG(log_dg_) << "PBFT daemon terminated ...";
+    LOG(log_dg_) << "PBFT daemon terminated ...";
+  }
+  vote_mgr_ = nullptr;
+  pbft_chain_ = nullptr;
+  dag_mgr_ = nullptr;
+  network_ = nullptr;
+  capability_ = nullptr;
+  blk_mgr_ = nullptr;
+  ws_server_ = nullptr;
+  final_chain_ = nullptr;
+  trx_ord_mgr_ = nullptr;
+  trx_mgr_ = nullptr;
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -247,16 +276,11 @@ size_t PbftManager::getValidSortitionAccountsSize() const {
 // End Test
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "Full node unavailable";
-    return false;
-  }
-  addr_t account_address = full_node->getAddress();
+  addr_t account_address = node_addr_;
   if (sortition_account_balance_table.find(account_address) ==
       sortition_account_balance_table.end()) {
     LOG(log_tr_) << "Cannot find account " << account_address
-                  << " in sortition table. Don't have enough coins to vote";
+                 << " in sortition table. Don't have enough coins to vote";
     return false;
   }
   // only active players are able to vote
@@ -270,7 +294,7 @@ bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
 
   // compute sortition
   VrfPbftMsg msg(pbft_chain_last_block_hash_, type, round, step);
-  VrfPbftSortition vrf_sortition(full_node->getVrfSecretKey(), msg);
+  VrfPbftSortition vrf_sortition(vrf_sk_, msg);
   if (!vrf_sortition.canSpeak(sortition_threshold_,
                               valid_sortition_accounts_size_)) {
     LOG(log_tr_) << "Don't get sortition";
@@ -375,7 +399,7 @@ void PbftManager::sleep_() {
   auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
   if (time_to_sleep_for_ms > 0) {
     LOG(log_tr_) << "Time to sleep(ms): " << time_to_sleep_for_ms
-                  << " in round " << round_ << ", step " << step_;
+                 << " in round " << round_ << ", step " << step_;
     std::unique_lock<std::mutex> lock(stop_mtx_);
     stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
   }
@@ -539,7 +563,7 @@ bool PbftManager::stateOperations_() {
   votes_ = vote_mgr_->getVotes(round_, valid_sortition_accounts_size_,
                                sync_peers_pbft_chain);
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round "
-                << round_;
+               << round_;
 
   // Concern can malicious node trigger excessive syncing?
   if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
@@ -716,8 +740,8 @@ void PbftManager::certifyBlock_() {
         if (pbft_chain_->getLastPbftBlockHash() ==
             soft_voted_block_for_this_round_.first) {
           LOG(log_tr_) << "Having executed, last block in chain is the "
-                           "soft voted block in round "
-                        << round_;
+                          "soft voted block in round "
+                       << round_;
           executed_soft_voted_block_for_this_round = true;
         }
       }
@@ -762,8 +786,8 @@ void PbftManager::certifyBlock_() {
 
 void PbftManager::firstFinish_() {
   // Even number steps from 4 are in first finish
-  LOG(log_tr_) << "PBFT first finishing state at step " << step_
-                << " in round " << round_;
+  LOG(log_tr_) << "PBFT first finishing state at step " << step_ << " in round "
+               << round_;
   if (shouldSpeak(next_vote_type, round_, step_)) {
     if (cert_voted_values_for_round_.find(round_) !=
         cert_voted_values_for_round_.end()) {
@@ -789,7 +813,7 @@ void PbftManager::firstFinish_() {
 void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   LOG(log_tr_) << "PBFT second finishing state at step " << step_
-                << " in round " << round_;
+               << " in round " << round_;
   long end_time_for_step =
       (step_ + 1) * LAMBDA_ms + STEP_4_DELAY + 2 * POLLING_INTERVAL_ms;
   if (step_ > MAX_STEPS) {
@@ -839,7 +863,7 @@ void PbftManager::secondFinish_() {
   if (step_ > MAX_STEPS && !capability_->syncing_ &&
       !syncRequestedAlreadyThisStep_()) {
     LOG(log_wr_) << "Suspect PBFT chain behind, inaccurate 2t+1, need "
-                     "to broadcast request for missing blocks";
+                    "to broadcast request for missing blocks";
     syncPbftChainFromPeers_();
   }
 
@@ -931,10 +955,10 @@ std::pair<blk_hash_t, bool> PbftManager::blockWithEnoughVotes_(
         return std::make_pair(blockhash_pair.first, true);
       } else {
         LOG(log_tr_) << "Don't have enough votes. block hash "
-                      << blockhash_pair.first << " vote type " << vote_type
-                      << " in round " << vote_round << " has "
-                      << blockhash_pair.second << " votes"
-                      << " (2TP1 = " << TWO_T_PLUS_ONE << ")";
+                     << blockhash_pair.first << " vote type " << vote_type
+                     << " in round " << vote_round << " has "
+                     << blockhash_pair.second << " votes"
+                     << " (2TP1 = " << TWO_T_PLUS_ONE << ")";
       }
     }
   }
@@ -999,18 +1023,30 @@ std::pair<blk_hash_t, bool> PbftManager::nextVotedBlockForRoundAndStep_(
   return next_vote_block_hash;
 }
 
+Vote PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type,
+                               uint64_t round, size_t step,
+                               blk_hash_t const &last_pbft_block_hash) {
+  // sortition proof
+  VrfPbftMsg msg(last_pbft_block_hash, type, round, step);
+  VrfPbftSortition vrf_sortition(vrf_sk_, msg);
+  Vote vote(node_sk_, vrf_sortition, blockhash);
+
+  LOG(log_dg_) << "last pbft block hash " << last_pbft_block_hash
+               << " vote: " << vote.getHash();
+  return vote;
+}
+
 void PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash,
                              PbftVoteTypes vote_type, uint64_t round,
                              size_t step) {
-  auto full_node = node_.lock();
-  Vote vote = full_node->generateVote(blockhash, vote_type, round, step,
-                                      pbft_chain_last_block_hash_);
+  Vote vote = generateVote(blockhash, vote_type, round, step,
+                           pbft_chain_last_block_hash_);
   vote_mgr_->addVote(vote);
   LOG(log_dg_) << "vote block hash: " << blockhash
                << " vote type: " << vote_type << " round: " << round
                << " step: " << step << " vote hash " << vote.getHash();
   // pbft vote broadcast
-  full_node->broadcastVote(vote);
+  network_->onNewPbftVote(vote);
 }
 
 std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(
@@ -1024,11 +1060,6 @@ std::pair<blk_hash_t, bool> PbftManager::softVotedBlockForRound_(
 }
 
 std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "Full node unavailable" << std::endl;
-    return std::make_pair(NULL_BLOCK_HASH, false);
-  }
   LOG(log_dg_) << "Into propose PBFT block";
   blk_hash_t last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   PbftBlock last_pbft_block;
@@ -1043,7 +1074,7 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   }
 
   std::vector<std::string> ghost;
-  full_node->getGhostPath(last_period_dag_anchor_block_hash, ghost);
+  dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash, ghost);
   LOG(log_dg_) << "GHOST size " << ghost.size();
   // Looks like ghost never empty, at lease include the last period dag anchor
   // block
@@ -1089,18 +1120,18 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
   uint64_t period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(period, dag_blocks_hash_order) =
-      full_node->getDagBlockOrder(dag_block_hash);
+      dag_mgr_->getDagBlockOrder(dag_block_hash);
   // get dag blocks
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   for (auto const &dag_blk_hash : *dag_blocks_hash_order) {
-    auto dag_blk = full_node->getDagBlock(dag_blk_hash);
+    auto dag_blk = blk_mgr_->getDagBlock(dag_blk_hash);
     assert(dag_blk);
     dag_blocks.emplace_back(dag_blk);
   }
 
   std::vector<std::vector<std::pair<trx_hash_t, uint>>> dag_blocks_trxs_mode;
   std::unordered_set<trx_hash_t> unique_trxs;
-  auto final_chain = full_node->getFinalChain();
+  auto final_chain = final_chain_;
   for (auto const &dag_blk : dag_blocks) {
     // get transactions for each DAG block
     auto trxs_hash = dag_blk->getTrxs();
@@ -1147,22 +1178,57 @@ std::pair<blk_hash_t, bool> PbftManager::proposeMyPbftBlock_() {
 
   TrxSchedule schedule(*dag_blocks_hash_order, dag_blocks_trxs_mode);
   uint64_t propose_pbft_period = pbft_chain_->getPbftChainSize() + 1;
-  addr_t beneficiary = full_node->getAddress();
+  addr_t beneficiary = node_addr_;
   // generate generate pbft block
   PbftBlock pbft_block(last_pbft_block_hash, dag_block_hash, schedule,
-                       propose_pbft_period, beneficiary,
-                       full_node->getSecretKey());
+                       propose_pbft_period, beneficiary, node_sk_);
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
   // broadcast pbft block
-  std::shared_ptr<Network> network = full_node->getNetwork();
-  network->onNewPbftBlock(pbft_block);
+  network_->onNewPbftBlock(pbft_block);
 
   blk_hash_t pbft_block_hash = pbft_block.getBlockHash();
-  LOG(log_dg_) << full_node->getAddress() << " propose PBFT block succussful! "
+  LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! "
                << " in round: " << round_ << " in step: " << step_
                << " PBFT block: " << pbft_block;
   return std::make_pair(pbft_block_hash, true);
+}
+
+std::vector<std::vector<uint>> PbftManager::createMockTrxSchedule(
+    std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>>
+        trx_overlap_table) {
+  std::vector<std::vector<uint>> blocks_trx_modes;
+
+  if (!trx_overlap_table) {
+    LOG(log_er_) << "Transaction overlap table nullptr, cannot create mock "
+                 << "transactions schedule";
+    return blocks_trx_modes;
+  }
+
+  for (auto i = 0; i < trx_overlap_table->size(); i++) {
+    blk_hash_t &dag_block_hash = (*trx_overlap_table)[i].first;
+    auto blk = blk_mgr_->getDagBlock(dag_block_hash);
+    if (!blk) {
+      LOG(log_er_) << "Cannot create schedule block, DAG block missing "
+                   << dag_block_hash;
+      continue;
+    }
+
+    auto num_trx = blk->getTrxs().size();
+    std::vector<uint> block_trx_modes;
+    for (auto j = 0; j < num_trx; j++) {
+      if ((*trx_overlap_table)[i].second[j]) {
+        // trx sequential mode
+        block_trx_modes.emplace_back(1);
+      } else {
+        // trx invalid mode
+        block_trx_modes.emplace_back(0);
+      }
+    }
+    blocks_trx_modes.emplace_back(block_trx_modes);
+  }
+
+  return blocks_trx_modes;
 }
 
 std::pair<blk_hash_t, bool> PbftManager::identifyLeaderBlock_(
@@ -1211,6 +1277,7 @@ bool PbftManager::syncRequestedAlreadyThisStep_() const {
 }
 
 void PbftManager::syncPbftChainFromPeers_() {
+  if (stopped_) return;
   if (!pbft_chain_->pbftSyncedQueueEmpty()) {
     LOG(log_dg_) << "DAG has not synced yet. PBFT chain skips syncing";
     return;
@@ -1243,18 +1310,13 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
 
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
     PbftBlock const &pbft_block) {
-  auto full_node = node_.lock();
-  if (!full_node) {
-    LOG(log_er_) << "Full node unavailable" << std::endl;
-    return false;
-  }
   uint64_t last_period = pbft_chain_->getPbftChainSize();
   // get DAG blocks order
   blk_hash_t dag_block_hash = pbft_block.getPivotDagBlockHash();
   uint64_t period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(period, dag_blocks_hash_order) =
-      full_node->getDagBlockOrder(dag_block_hash);
+      dag_mgr_->getDagBlockOrder(dag_block_hash);
   // compare DAG blocks hash in PBFT schedule with DAG blocks
   vec_blk_t dag_blocks_hash_in_schedule =
       pbft_block.getSchedule().dag_blks_order;
@@ -1286,8 +1348,7 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
       }
       std::string filename = "unmatched_pbft_schedule_order_in_period_" +
                              std::to_string(last_period);
-      auto addr = full_node->getAddress();
-      full_node->drawGraph(addr.toString() + "_" + filename);
+      dag_mgr_->drawGraph(node_addr_.toString() + "_" + filename);
       // assert(false);
     }
     return false;
@@ -1352,7 +1413,6 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(
 
 void PbftManager::pushSyncedPbftBlocksIntoChain_() {
   size_t pbft_synced_queue_size;
-  auto full_node = node_.lock();
   while (!pbft_chain_->pbftSyncedQueueEmpty()) {
     PbftBlockCert pbft_block_and_votes = pbft_chain_->pbftSyncedQueueFront();
     LOG(log_dg_) << "Pick pbft block "
@@ -1448,9 +1508,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   }
 
   auto const &schedule = pbft_block.getSchedule();
-  auto full_node = node_.lock();
   // Update transaction overlap table (still use the table?)
-  full_node->getTrxOrderMgr()->updateOrderedTrx(schedule);
+  trx_ord_mgr_->updateOrderedTrx(schedule);
 
   // Execute PBFT schedule
   auto dag_blk_count = schedule.dag_blks_order.size();
@@ -1474,15 +1533,14 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
           trx_rlp, dev::eth::CheckTransaction::None, true, trx_hash);
       trx_senders_tmp_.insert(trx.sender());
       LOG(log_tr_) << "Transaction " << trx_hash
-                    << " read from db at: " << getCurrentTimeMilliSeconds();
+                   << " read from db at: " << getCurrentTimeMilliSeconds();
     }
   }
   auto batch = db_->createWriteBatch();
   // Execute transactions in EVM(GO trx engine) and update Ethereum block
   auto const &[new_eth_header, trx_receipts, state_transition_result] =
-      full_node->getFinalChain()->advance(batch, pbft_block.getBeneficiary(),
-                                          pbft_block.getTimestamp(),
-                                          transactions_tmp_);
+      final_chain_->advance(batch, pbft_block.getBeneficiary(),
+                            pbft_block.getTimestamp(), transactions_tmp_);
 
   uint64_t pbft_period = pbft_block.getPeriod();
   // Update replay protection service, like nonce watermark. Nonce watermark has
@@ -1502,7 +1560,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
                                num_executed_blk_, batch);
     db_->addStatusFieldToBatch(StatusDbField::ExecutedTrxCount,
                                num_executed_trx_, batch);
-    LOG(log_nf_) << full_node->getAddress() << " :   Executed dag blocks #"
+    LOG(log_nf_) << node_addr_ << " :   Executed dag blocks #"
                  << num_executed_blk_ - dag_blk_count << "-"
                  << num_executed_blk_ - 1
                  << " , Transactions count: " << transactions_tmp_.size();
@@ -1522,7 +1580,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   uint64_t current_period;
   std::shared_ptr<vec_blk_t> dag_blocks_hash_order;
   std::tie(current_period, dag_blocks_hash_order) =
-      full_node->getDagBlockOrder(dag_block_hash);
+      dag_mgr_->getDagBlockOrder(dag_block_hash);
   // Add cert votes in DB
   db_->addPbftCertVotesToBatch(pbft_block_hash, cert_votes, batch);
   LOG(log_dg_) << "Storing cert votes of pbft blk " << pbft_block_hash << "\n"
@@ -1547,31 +1605,33 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   LOG(log_dg_) << "DB write batch committed already";
 
   // Set DAG blocks period
-  full_node->setDagBlockOrder(dag_block_hash, pbft_period);
+  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period);
+
+  if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal
   proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
   executed_pbft_block_ = true;
 
   // After DB commit, confirm in final chain(Ethereum)
-  full_node->getFinalChain()->advance_confirm();
+  final_chain_->advance_confirm();
   // Remove executed transactions at Ethereum pending block. The Ethereum
   // pending block is same with latest block at Taraxa
-  full_node->getPendingBlock()->advance(
+  trx_mgr_->getPendingBlock()->advance(
       batch, new_eth_header.hash(),
       util::make_range_view(transactions_tmp_).map([](auto const &trx) {
         return trx.sha3();
       }));
   // Ethereum filter
-  full_node->getFilterAPI()->note_block(new_eth_header.hash());
-  full_node->getFilterAPI()->note_receipts(trx_receipts);
+  trx_mgr_->getFilterAPI()->note_block(new_eth_header.hash());
+  trx_mgr_->getFilterAPI()->note_receipts(trx_receipts);
   // Update web server
-  full_node->updateWsPbftBlockExecuted(pbft_block);
-  if (auto ws_server = full_node->getWSServer()) {
-    ws_server->newEthBlock(new_eth_header);
+  if (ws_server_) {
+    ws_server_->newPbftBlockExecuted(pbft_block);
+    ws_server_->newEthBlock(new_eth_header);
   }
 
-  LOG(log_nf_) << full_node->getAddress() << " successful push pbft block "
+  LOG(log_nf_) << node_addr_ << " successful push pbft block "
                << pbft_block_hash << " in period " << pbft_period
                << " into chain! In round " << round_;
   return true;
@@ -1596,24 +1656,23 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
         });
     if (active_players == 0) {
       LOG(log_wr_) << "Active players was found to be 0 since period "
-                    << since_period
-                    << ". Will go back one period continue to check. ";
+                   << since_period
+                   << ". Will go back one period continue to check. ";
       since_period--;
     }
   }
-  auto full_node = node_.lock();
-  addr_t account_address = full_node->getAddress();
+  addr_t account_address = node_addr_;
   is_active_player_ =
       sortition_account_balance_table[account_address].last_period_seen >=
       since_period;
   if (active_players == 0) {
     // IF active_players count 0 then all players should be treated as active
     LOG(log_wr_) << "Active players was found to be 0! This should only "
-                     "happen at initialization, when master boot node "
-                     "distribute all of coins out to players. Will set active "
-                     "player count to be sortition table size of "
-                  << valid_sortition_accounts_size_ << ". Last period is "
-                  << last_pbft_period;
+                    "happen at initialization, when master boot node "
+                    "distribute all of coins out to players. Will set active "
+                    "player count to be sortition table size of "
+                 << valid_sortition_accounts_size_ << ". Last period is "
+                 << last_pbft_period;
     active_players = valid_sortition_accounts_size_;
     is_active_player_ = true;
   }

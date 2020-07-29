@@ -8,6 +8,7 @@
 #include "static_init.hpp"
 #include "util/lazy.hpp"
 #include "util/wait.hpp"
+#include "transaction_manager.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
@@ -71,7 +72,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->insertTransaction(master_boot_node_send_coins, false);
+    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
     trxs_count++;
   }
 
@@ -80,15 +81,15 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   auto success = wait::Wait(
       [&nodes, &trxs_count, &nonce] {
         for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getNumTransactionExecuted() != trxs_count) {
+          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
-                      << nodes[i]->getNumTransactionExecuted()
+                      << nodes[i]->getDB()->getNumTransactionExecuted()
                       << " transactions, expected " << trxs_count << std::endl;
             Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
                                   nodes[0]->getSecretKey(),
                                   nodes[0]->getAddress());
             // broadcast dummy transaction
-            nodes[0]->insertTransaction(dummy_trx, false);
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
             trxs_count++;
             return false;
           }
@@ -100,17 +101,17 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
           std::chrono::seconds(2),  // each sending
       });
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getNumTransactionExecuted(), trxs_count);
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(nodes[0]->getAddress()).first,
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
               9007199254740991 - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
-      EXPECT_EQ(nodes[i]->getBalance(nodes[j]->getAddress()).first, init_bal);
+      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
 
@@ -144,7 +145,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->insertTransaction(send_coins_in_robin_cycle, false);
+    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
     trxs_count++;
   }
 
@@ -153,15 +154,15 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   success = wait::Wait(
       [&nodes, &trxs_count, &nonce] {
         for (auto i(0); i < nodes.size(); ++i) {
-          if (nodes[i]->getNumTransactionExecuted() != trxs_count) {
+          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
-                      << nodes[i]->getNumTransactionExecuted()
+                      << nodes[i]->getDB()->getNumTransactionExecuted()
                       << " transactions. Expected " << trxs_count << std::endl;
             Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
                                   nodes[0]->getSecretKey(),
                                   nodes[0]->getAddress());
             // broadcast dummy transaction
-            nodes[0]->insertTransaction(dummy_trx, false);
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
             trxs_count++;
             return false;
           }
@@ -173,17 +174,17 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
           std::chrono::seconds(2),  // each sending
       });
   for (auto i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getNumTransactionExecuted(), trxs_count);
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
   // Account balances should not change in robin cycle
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(nodes[0]->getAddress()).first,
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
               9007199254740991 - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
-      EXPECT_EQ(nodes[i]->getBalance(nodes[j]->getAddress()).first, init_bal);
+      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
     }
   }
 
@@ -219,7 +220,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price,
                                                TEST_TX_GAS_LIMIT, data,
                                                node->getSecretKey(), receiver);
-  node->insertTransaction(trx_master_boot_node_to_receiver, false);
+  node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver, false);
 
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
@@ -243,11 +244,11 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(pbft_chain->getPbftChainSize(), pbft_chain_size);
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
-  ASSERT_EQ(node->getNumTransactionExecuted(), 1);
-  EXPECT_EQ(node->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
+  ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
+  EXPECT_EQ(node->getFinalChain()->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
             9007199254740991 - 100);
-  EXPECT_EQ(node->getBalance(receiver).first, 100);
+  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
@@ -266,7 +267,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
       nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
-  nodes[0]->insertTransaction(trx_master_boot_node_to_node2, false);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
             << std::endl;
@@ -276,7 +277,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     checkpoint_passed = true;
     // test timeout is 60 seconds
     for (auto i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getNumTransactionExecuted() == 0) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() == 0) {
         checkpoint_passed = false;
       }
     }
@@ -286,21 +287,21 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   if (checkpoint_passed == false) {
     for (auto i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getNumTransactionExecuted(), 1);
+      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
     }
   }
 
   int pbft_chain_size = 1;
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getPbftChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftChainSize(), pbft_chain_size);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(node1_addr).first, 9007199254740991 - 100);
-    EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 0);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, 9007199254740991 - 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
   }
 
   // create a transaction transfer coins from node1 to node3
@@ -309,7 +310,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
       nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
-  nodes[0]->insertTransaction(trx_master_boot_node_to_node3, false);
+  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."
             << std::endl;
@@ -319,7 +320,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     checkpoint_passed = true;
     // test timeout is 60 seconds
     for (auto i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getNumTransactionExecuted() != 2) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != 2) {
         checkpoint_passed = false;
       }
     }
@@ -329,7 +330,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   if (checkpoint_passed == false) {
     for (auto i(0); i < nodes.size(); ++i) {
-      ASSERT_EQ(nodes[i]->getNumTransactionExecuted(), 1);
+      ASSERT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), 1);
     }
   }
 
@@ -337,23 +338,23 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   // Vote DAG block
   for (auto _(0); _ < 120; ++_) {
     // test timeout is 60 seconds
-    if (nodes[0]->getPbftChainSize() == pbft_chain_size &&
-        nodes[1]->getPbftChainSize() == pbft_chain_size &&
-        nodes[2]->getPbftChainSize() == pbft_chain_size) {
+    if (nodes[0]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
+        nodes[1]->getPbftChain()->getPbftChainSize() == pbft_chain_size &&
+        nodes[2]->getPbftChain()->getPbftChainSize() == pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
   for (auto i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getPbftChainSize(), pbft_chain_size);
+    EXPECT_EQ(nodes[i]->getPbftChain()->getPbftChainSize(), pbft_chain_size);
   }
 
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getBalance(node1_addr).first, 9007199254740991 - 1100);
-    EXPECT_EQ(nodes[i]->getBalance(node2_addr).first, 100);
-    EXPECT_EQ(nodes[i]->getBalance(node3_addr).first, 1000);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, 9007199254740991 - 1100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }
   std::unordered_set<blk_hash_t> unique_dag_block_hash_set;
   // PBFT second block
