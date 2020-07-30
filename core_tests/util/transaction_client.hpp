@@ -9,9 +9,9 @@
 
 #include "constants.hpp"
 #include "full_node.hpp"
+#include "transaction_manager.hpp"
 #include "types.hpp"
 #include "wait.hpp"
-#include "transaction_manager.hpp"
 
 namespace taraxa::core_tests::util::transaction_client {
 using namespace dev;
@@ -64,7 +64,9 @@ struct TransactionClient {
         Transaction(++nonce, val, 0, constants::TEST_TX_GAS_LIMIT, bytes(),
                     from_k ? from_k->secret() : node_->getSecretKey(), to),
     };
-    if (!node_->getTransactionManager()->insertTransaction(ctx.trx, false).first) {
+    if (!node_->getTransactionManager()
+             ->insertTransaction(ctx.trx, false)
+             .first) {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;

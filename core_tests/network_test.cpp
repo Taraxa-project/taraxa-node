@@ -11,12 +11,12 @@
 #include "block_proposer.hpp"
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "dag.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
+#include "transaction_manager.hpp"
 #include "util.hpp"
 #include "util/lazy.hpp"
-#include "transaction_manager.hpp"
-#include "dag.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
@@ -55,9 +55,11 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
 
   nw1->start();
   nw2->start();
@@ -91,9 +93,11 @@ TEST_F(NetworkTest, transfer_block) {
 
 TEST_F(NetworkTest, send_pbft_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
 
   nw1->start();
   nw2->start();
@@ -119,9 +123,11 @@ between is successfull
 */
 TEST_F(NetworkTest, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
 
   nw1->start(true);
   nw2->start();
@@ -155,14 +161,14 @@ connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1->network,
-        g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+        g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+        addr_t()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2->network,
-        g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+        g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+        addr_t()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3->network,
-        g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
+        g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(),
+        addr_t()));
 
     nw1->start(true);
     nw2->start();
@@ -188,10 +194,12 @@ TEST_F(NetworkTest, save_network) {
 
   std::shared_ptr<Network> nw2(new taraxa::Network(
       g_conf2->network, "/tmp/nw2",
-      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
+      nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   std::shared_ptr<Network> nw3(new taraxa::Network(
       g_conf3->network, "/tmp/nw3",
-      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
+      nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   nw2->start();
   nw3->start();
 
@@ -890,7 +898,8 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
+    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i],
+                                                                     trxs[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -947,9 +956,13 @@ TEST_F(NetworkTest, node_transaction_sync) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   for (auto const& t : *g_signed_trx_samples) {
-    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr);
-    if (node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr) {
-      EXPECT_EQ(t, node2->getTransactionManager()->getTransaction(t.getHash())->first);
+    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) !=
+                nullptr);
+    if (node2->getTransactionManager()->getTransaction(t.getHash()) !=
+        nullptr) {
+      EXPECT_EQ(
+          t,
+          node2->getTransactionManager()->getTransaction(t.getHash())->first);
     }
   }
 }
@@ -994,7 +1007,9 @@ TEST_F(NetworkTest, node_full_sync) {
   for (auto i = 0; i < NUM_TRX2; ++i) {
     std::vector<taraxa::bytes> transactions;
     transactions.emplace_back(ts[i].rlp(true));
-    nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions(transactions);
+    nodes[distNodes(rng)]
+        ->getTransactionManager()
+        ->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
   }
@@ -1042,7 +1057,8 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   EXPECT_GT(node1->getDagManager()->getNumVerticesInDag().first, 0);
-  EXPECT_GT(10, node1->getTransactionManager()->getVerifiedTrxSnapShot().size());
+  EXPECT_GT(10,
+            node1->getTransactionManager()->getVerifiedTrxSnapShot().size());
   for (int i = 0; i < numberOfNodes + 1; i++) {
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,

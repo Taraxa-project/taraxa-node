@@ -10,7 +10,8 @@
 
 namespace taraxa::net {
 
-RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc, addr_t node_addr)
+RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
+                     addr_t node_addr)
     : conf_(conf_rpc), io_context_(io), acceptor_(io) {
   LOG_OBJECTS_CREATE("RPC");
   LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port;

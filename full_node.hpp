@@ -91,7 +91,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
-  
+
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
   std::shared_ptr<TransactionManager> getTransactionManager() const {
@@ -108,9 +108,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getSecretKey() const { return node_sk_; }
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
-  
+
   std::shared_ptr<DbStorage> getDB() const { return db_; }
-  
+
   // PBFT
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
@@ -118,14 +118,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint64_t getUnverifiedVotesSize() const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  
+
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
 
   // For Debug
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
-  
+
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }

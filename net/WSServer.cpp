@@ -227,8 +227,7 @@ void WSSession::newPbftBlockExecuted(PbftBlock const &pbft_blk) {
     res["method"] = "eth_subscription";
     result["pbft_block"] = pbft_blk.getJson();
     params["result"] = result;
-    params["subscription"] =
-        dev::toJS(new_pbft_block_executed_subscription_);
+    params["subscription"] = dev::toJS(new_pbft_block_executed_subscription_);
     res["params"] = params;
     Json::FastWriter fastWriter;
     std::string response = fastWriter.write(res);

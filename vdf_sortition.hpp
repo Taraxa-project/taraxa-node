@@ -51,9 +51,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   void computeVdfSolution(std::string const& msg);
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
-    return pk == other.pk && msg_ == other.msg_ &&
-           proof == other.proof && output == other.output &&
-           vdf_sol_.first == other.vdf_sol_.first &&
+    return pk == other.pk && msg_ == other.msg_ && proof == other.proof &&
+           output == other.output && vdf_sol_.first == other.vdf_sol_.first &&
            vdf_sol_.second == other.vdf_sol_.second;
   }
   bool operator!=(VdfSortition const& other) const {
@@ -95,9 +94,9 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
   uint difficulty_bound_ = 15;
-  uint lambda_bound_ = 1500; // lambda upper bound
+  uint lambda_bound_ = 1500;  // lambda upper bound
 };
 
 }  // namespace taraxa::vdf_sortition
 
-#endif // TARAXA_NODE_VDF_SORTITION_H
+#endif  // TARAXA_NODE_VDF_SORTITION_H

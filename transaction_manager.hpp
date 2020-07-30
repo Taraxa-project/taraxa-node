@@ -1,12 +1,12 @@
 #ifndef TARAXA_NODE_TRANSACTION_MANAGER_HPP
 #define TARAXA_NODE_TRANSACTION_MANAGER_HPP
 
+#include "aleth/filter_api.hpp"
+#include "aleth/pending_block.hpp"
 #include "config.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "util/simple_event.hpp"
-#include "aleth/pending_block.hpp"
-#include "aleth/filter_api.hpp"
 
 namespace taraxa {
 

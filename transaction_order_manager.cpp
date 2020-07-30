@@ -26,7 +26,7 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
 }
 
 void TransactionOrderManager::stop() {
-  bool b = false; 
+  bool b = false;
   stopped_.compare_exchange_strong(b, !b);
   blk_mgr_ = nullptr;
 }

@@ -56,7 +56,7 @@ struct FinalChain : virtual ChainDB {
       state_api::EVMTransaction const& trx,
       optional<BlockNumber> blk_n = nullopt,
       optional<state_api::ExecutionOptions> const& opts = nullopt) const = 0;
-  virtual std::pair<val_t, bool> getBalance(addr_t const &acc) const = 0;
+  virtual std::pair<val_t, bool> getBalance(addr_t const& acc) const = 0;
 };
 
 unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,

@@ -6,9 +6,9 @@
 #include "create_samples.hpp"
 #include "network.hpp"
 #include "static_init.hpp"
+#include "transaction_manager.hpp"
 #include "util/lazy.hpp"
 #include "util/wait.hpp"
-#include "transaction_manager.hpp"
 
 namespace taraxa {
 using namespace core_tests::util;
@@ -72,7 +72,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
-    nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins, false);
+    nodes[0]->getTransactionManager()->insertTransaction(
+        master_boot_node_send_coins, false);
     trxs_count++;
   }
 
@@ -89,7 +90,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
                                   nodes[0]->getSecretKey(),
                                   nodes[0]->getAddress());
             // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                                 false);
             trxs_count++;
             return false;
           }
@@ -107,11 +109,14 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-              9007199254740991 - 4 * init_bal);
+    EXPECT_EQ(
+        nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
+        9007199254740991 - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
-      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
+      EXPECT_EQ(
+          nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
+          init_bal);
     }
   }
 
@@ -145,7 +150,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
         nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
-    nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle, false);
+    nodes[i]->getTransactionManager()->insertTransaction(
+        send_coins_in_robin_cycle, false);
     trxs_count++;
   }
 
@@ -162,7 +168,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
                                   nodes[0]->getSecretKey(),
                                   nodes[0]->getAddress());
             // broadcast dummy transaction
-            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                                 false);
             trxs_count++;
             return false;
           }
@@ -180,11 +187,14 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-              9007199254740991 - 4 * init_bal);
+    EXPECT_EQ(
+        nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
+        9007199254740991 - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
-      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, init_bal);
+      EXPECT_EQ(
+          nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
+          init_bal);
     }
   }
 
@@ -246,7 +256,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   std::cout << "Checking nodes sees 1 transaction..." << std::endl;
   ASSERT_EQ(node->getDB()->getNumTransactionExecuted(), 1);
-  EXPECT_EQ(node->getFinalChain()->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
+  EXPECT_EQ(node->getFinalChain()
+                ->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
             9007199254740991 - 100);
   EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
@@ -268,7 +279,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       0, coins_value2, gas_price, TEST_TX_GAS_LIMIT, data,
       nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
-  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2, false);
+  nodes[0]->getTransactionManager()->insertTransaction(
+      trx_master_boot_node_to_node2, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 2..."
             << std::endl;
@@ -300,7 +312,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, 9007199254740991 - 100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
+              9007199254740991 - 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
   }
@@ -311,7 +324,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
       1, coins_value3, gas_price, TEST_TX_GAS_LIMIT, data,
       nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
-  nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3, false);
+  nodes[0]->getTransactionManager()->insertTransaction(
+      trx_master_boot_node_to_node3, false);
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..."
             << std::endl;
@@ -353,7 +367,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first, 9007199254740991 - 1100);
+    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
+              9007199254740991 - 1100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }

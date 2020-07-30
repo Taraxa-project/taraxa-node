@@ -20,9 +20,9 @@
 
 #include "chain_config.hpp"
 #include "dag_block.hpp"
+#include "log.hpp"
 #include "types.hpp"
 #include "util.hpp"
-#include "log.hpp"
 
 // TODO: Generate configs for the tests
 // TODO: Separate configs for consensus chain params and technical params
