@@ -1415,20 +1415,36 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
   auto num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
   auto num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
-
+  for (auto _ = 0; _ < SYNC_TIMEOUT; _++) {
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+    num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
+    num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
+    num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
+    num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
+    num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
+  }
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
-  total_trx_count += 1; // Dummy transaction
+  total_trx_count += 1;  // Dummy transaction
   std::cout << "Detect dummy transaction receiving... " << std::endl;
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    auto node0_trx_count = nodes[0]->getTransactionManager()->getTransactionCount();
-    auto node1_trx_count = nodes[1]->getTransactionManager()->getTransactionCount();
-    auto node2_trx_count = nodes[2]->getTransactionManager()->getTransactionCount();
-    auto node3_trx_count = nodes[3]->getTransactionManager()->getTransactionCount();
-    auto node4_trx_count = nodes[4]->getTransactionManager()->getTransactionCount();
+    auto node0_trx_count =
+        nodes[0]->getTransactionManager()->getTransactionCount();
+    auto node1_trx_count =
+        nodes[1]->getTransactionManager()->getTransactionCount();
+    auto node2_trx_count =
+        nodes[2]->getTransactionManager()->getTransactionCount();
+    auto node3_trx_count =
+        nodes[3]->getTransactionManager()->getTransactionCount();
+    auto node4_trx_count =
+        nodes[4]->getTransactionManager()->getTransactionCount();
     if (node0_trx_count == total_trx_count &&
         node1_trx_count == total_trx_count &&
         node2_trx_count == total_trx_count &&
