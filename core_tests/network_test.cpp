@@ -989,7 +989,6 @@ TEST_F(NetworkTest, node_full_sync) {
     nodes[i]->start(false);  // boot node
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
-
   taraxa::thisThreadSleepForMilliSeconds(10000);
 
   std::random_device dev;
@@ -1038,7 +1037,7 @@ TEST_F(NetworkTest, node_full_sync) {
 
   std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
   for (int i = 0; i < 240; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(500);
+    taraxa::thisThreadSleepForMilliSeconds(1000);
     bool finished = true;
     for (int j = 0; j < numberOfNodes + 1; j++) {
       if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
@@ -1060,6 +1059,7 @@ TEST_F(NetworkTest, node_full_sync) {
   EXPECT_GT(10,
             node1->getTransactionManager()->getVerifiedTrxSnapShot().size());
   for (int i = 0; i < numberOfNodes + 1; i++) {
+    std::cout << "Index i " << i << std::endl;
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
               node1->getDagManager()->getNumVerticesInDag().first);
