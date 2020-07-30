@@ -124,7 +124,6 @@ struct DbStorage {
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       level_t level, int number_of_levels);
-  
 
   // Transaction
   void saveTransaction(Transaction const& trx);
@@ -211,10 +210,8 @@ struct DbStorage {
   auto getNumBlockExecuted() {
     return getStatusField(StatusDbField::ExecutedBlkCount);
   }
-  uint64_t getNumDagBlocks() {
-    return getDagBlocksCount();
-  }
-  
+  uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
+
   string lookup(Slice key, Column const& column);
   void insert(Column const& col, Slice const& k, Slice const& v);
   void remove(Slice key, Column const& column);

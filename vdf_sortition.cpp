@@ -38,8 +38,8 @@ bytes VdfSortition::rlp() const {
 }
 
 void VdfSortition::computeVdfSolution(std::string const &msg) {
-//  bool verified = verifyVrf();
-//  assert(verified);
+  //  bool verified = verifyVrf();
+  //  assert(verified);
   const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
   auto t1 = getCurrentTimeMilliSeconds();
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
@@ -50,9 +50,7 @@ void VdfSortition::computeVdfSolution(std::string const &msg) {
   vdf_computation_time_ = t2 - t1;
 }
 
-bool VdfSortition::verifyVrf() {
-  return VrfSortitionBase::verify(msg_);
-}
+bool VdfSortition::verifyVrf() { return VrfSortitionBase::verify(msg_); }
 
 bool VdfSortition::verifyVdfSolution(std::string const &vdf_input) {
   // TODO: Nodes propose a valid DAG block, peers may fail on validation since

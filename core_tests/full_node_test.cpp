@@ -206,7 +206,8 @@ struct FullNodeTest : core_tests::util::DBUsingTest<> {
 };
 
 TEST_F(FullNodeTest, db_test) {
-  auto db_ptr = std::shared_ptr<DbStorage>(std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true)));
+  auto db_ptr = std::shared_ptr<DbStorage>(
+      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true)));
   auto &db = *db_ptr;
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
@@ -630,36 +631,36 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     if (i % 100 == 0) {
       if (trx_executed1 != issued_trx_count) {
         std::cout << " Node 1: executed blk= "
-                  << nodes[0]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[0]->getDagManager()->getNumVerticesInDag().first
+                  << nodes[0]->getDB()->getNumBlockExecuted() << " Dag size: "
+                  << nodes[0]->getDagManager()->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed1 << "/"
                   << issued_trx_count << std::endl;
       }
       if (trx_executed2 != issued_trx_count) {
         std::cout << " Node 2: executed blk= "
-                  << nodes[1]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[1]->getDagManager()->getNumVerticesInDag().first
+                  << nodes[1]->getDB()->getNumBlockExecuted() << " Dag size: "
+                  << nodes[1]->getDagManager()->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed2 << "/"
                   << issued_trx_count << std::endl;
       }
       if (trx_executed3 != issued_trx_count) {
         std::cout << " Node 3: executed blk= "
-                  << nodes[2]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[2]->getDagManager()->getNumVerticesInDag().first
+                  << nodes[2]->getDB()->getNumBlockExecuted() << " Dag size: "
+                  << nodes[2]->getDagManager()->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed3 << "/"
                   << issued_trx_count << std::endl;
       }
       if (trx_executed4 != issued_trx_count) {
         std::cout << " Node 4: executed blk= "
-                  << nodes[3]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[3]->getDagManager()->getNumVerticesInDag().first
+                  << nodes[3]->getDB()->getNumBlockExecuted() << " Dag size: "
+                  << nodes[3]->getDagManager()->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed4 << "/"
                   << issued_trx_count << std::endl;
       }
       if (trx_executed5 != issued_trx_count) {
         std::cout << " Node 5: executed blk= "
-                  << nodes[4]->getDB()->getNumBlockExecuted()
-                  << " Dag size: " << nodes[4]->getDagManager()->getNumVerticesInDag().first
+                  << nodes[4]->getDB()->getNumBlockExecuted() << " Dag size: "
+                  << nodes[4]->getDagManager()->getNumVerticesInDag().first
                   << " executed trx = " << trx_executed5 << "/"
                   << issued_trx_count << std::endl;
       }
@@ -673,15 +674,14 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   auto k = 0;
   for (auto const &node : nodes) {
     k++;
-    auto vertices_diff =
-        node->getDagManager()->getNumVerticesInDag().first - 1 - node->getDB()->getNumBlockExecuted();
-    if (vertices_diff >= nodes.size()                             //
-        || vertices_diff < 0                                      //
+    auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first -
+                         1 - node->getDB()->getNumBlockExecuted();
+    if (vertices_diff >= nodes.size()                                      //
+        || vertices_diff < 0                                               //
         || node->getDB()->getNumTransactionExecuted() != issued_trx_count  //
         || node->getDB()->getNumTransactionInDag() != issued_trx_count) {
-      std::cout << "Node " << k
-                << " :Number of trx packed = " << node->getDB()->getNumTransactionInDag()
-                << std::endl;
+      std::cout << "Node " << k << " :Number of trx packed = "
+                << node->getDB()->getNumTransactionInDag() << std::endl;
       std::cout << "Node " << k << " :Number of trx executed = "
                 << node->getDB()->getNumTransactionExecuted() << std::endl;
 
@@ -714,22 +714,23 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         << " \nNum linearized blks: "
         << node->getDB()->getOrderedDagBlocks().size()
         << " \nNum executed blks: " << node->getDB()->getNumBlockExecuted()
-        << " \nNum vertices in DAG: " << node->getDagManager()->getNumVerticesInDag().first
-        << " " << node->getDagManager()->getNumVerticesInDag().second << "\n";
+        << " \nNum vertices in DAG: "
+        << node->getDagManager()->getNumVerticesInDag().first << " "
+        << node->getDagManager()->getNumVerticesInDag().second << "\n";
 
-    auto vertices_diff =
-        node->getDagManager()->getNumVerticesInDag().first - 1 - node->getDB()->getNumBlockExecuted();
+    auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first -
+                         1 - node->getDB()->getNumBlockExecuted();
 
     // diff should be larger than 0 but smaller than number of nodes
     // genesis block won't be executed
     EXPECT_LT(vertices_diff, nodes.size())
-        << "Failed in node " << k << "node " << node
-        << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
+        << "Failed in node " << k << "node " << node << " Number of vertices: "
+        << node->getDagManager()->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getDB()->getNumBlockExecuted()
         << std::endl;
     EXPECT_GE(vertices_diff, 0)
-        << "Failed in node " << k << "node " << node
-        << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
+        << "Failed in node " << k << "node " << node << " Number of vertices: "
+        << node->getDagManager()->getNumVerticesInDag().first
         << " Number of executed blks: " << node->getDB()->getNumBlockExecuted()
         << std::endl;
     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
@@ -768,7 +769,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
   uint64_t period;
   std::shared_ptr<vec_blk_t> order;
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) =
+      node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 1);
   EXPECT_EQ(order->size(), 6);
 
@@ -780,7 +782,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[4], blk_hash_t(5));
     EXPECT_EQ((*order)[5], blk_hash_t(7));
   }
-  auto num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
+  auto num_blks_set =
+      node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
   EXPECT_EQ(num_blks_set, 6);
   // -------- second period ----------
 
@@ -790,7 +793,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) =
+      node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 2);
   if (order->size() == 7) {
     EXPECT_EQ((*order)[0], blk_hash_t(11));
@@ -801,7 +805,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[5], blk_hash_t(14));
     EXPECT_EQ((*order)[6], blk_hash_t(15));
   }
-  num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
+  num_blks_set =
+      node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
   EXPECT_EQ(num_blks_set, 7);
 
   // -------- third period ----------
@@ -812,7 +817,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   taraxa::thisThreadSleepForMilliSeconds(200);
 
   node->getDagManager()->getLatestPivotAndTips(pivot, tips);
-  std::tie(period, order) = node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
+  std::tie(period, order) =
+      node->getDagManager()->getDagBlockOrder(blk_hash_t(pivot));
   EXPECT_EQ(period, 3);
   if (order->size() == 5) {
     EXPECT_EQ((*order)[0], blk_hash_t(17));
@@ -821,7 +827,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
     EXPECT_EQ((*order)[3], blk_hash_t(18));
     EXPECT_EQ((*order)[4], blk_hash_t(19));
   }
-  num_blks_set = node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
+  num_blks_set =
+      node->getDagManager()->setDagBlockOrder(blk_hash_t(pivot), period);
   EXPECT_EQ(num_blks_set, 5);
 }
 
@@ -1436,7 +1443,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   uint64_t period = 0, cur_period;
   std::shared_ptr<vec_blk_t> order;
   auto anchor = blk_hash_t(ghost.back());
-  std::tie(cur_period, order) = nodes[0]->getDagManager()->getDagBlockOrder(anchor);
+  std::tie(cur_period, order) =
+      nodes[0]->getDagManager()->getDagBlockOrder(anchor);
   ASSERT_TRUE(order);
   EXPECT_GT(order->size(), 5);
   std::cout << "Ordered dag block chain size: " << order->size() << std::endl;
@@ -1444,8 +1452,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto dag_size = nodes[0]->getDagManager()->getNumVerticesInDag();
 
   // can have multiple dummy blocks
-  auto vertices_diff =
-      nodes[0]->getDagManager()->getNumVerticesInDag().first - 1 - order->size();
+  auto vertices_diff = nodes[0]->getDagManager()->getNumVerticesInDag().first -
+                       1 - order->size();
   if (vertices_diff < 0 || vertices_diff >= 5) {
     nodes[0]->getDagManager()->drawGraph("debug_dag");
     for (auto i(0); i < order->size(); ++i) {
@@ -1461,13 +1469,16 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // diff should be larger than 0 but smaller than number of nodes
   // genesis block won't be executed
   EXPECT_LT(vertices_diff, 5)
-      << " Number of vertices: " << nodes[0]->getDagManager()->getNumVerticesInDag().first
+      << " Number of vertices: "
+      << nodes[0]->getDagManager()->getNumVerticesInDag().first
       << " Number of ordered blks: " << order->size() << std::endl;
   EXPECT_GE(vertices_diff, 0)
-      << " Number of vertices: " << nodes[0]->getDagManager()->getNumVerticesInDag().first
+      << " Number of vertices: "
+      << nodes[0]->getDagManager()->getNumVerticesInDag().first
       << " Number of ordered blks: " << order->size() << std::endl;
 
-  auto overlap_table = nodes[0]->getTrxOrderMgr()->computeTransactionOverlapTable(order);
+  auto overlap_table =
+      nodes[0]->getTrxOrderMgr()->computeTransactionOverlapTable(order);
   // check transaction overlapping ...
   auto trx_table = nodes[0]->getDB()->getAllTransactionStatus();
   auto trx_table2 = trx_table;

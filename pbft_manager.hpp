@@ -7,6 +7,7 @@
 #include <string>
 #include <thread>
 
+#include "block_proposer.hpp"
 #include "config.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
@@ -15,7 +16,6 @@
 #include "types.hpp"
 #include "vote.hpp"
 #include "transaction_order_manager.hpp"
-#include "block_proposer.hpp"
 #include "net/WSServer.h"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"

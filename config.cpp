@@ -135,8 +135,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
         root, {"test_params", "block_proposer", "transaction_limit"});
     // TODO: fix read min_proposal_delay from config file
     test_params.block_proposer.min_proposal_delay = 100;
-//    test_params.block_proposer.min_proposal_delay = getConfigDataAsUInt(
-//        root, {"test_params", "block_proposer", "min_proposal_delay"});
+    //    test_params.block_proposer.min_proposal_delay = getConfigDataAsUInt(
+    //        root, {"test_params", "block_proposer", "min_proposal_delay"});
     if (test_params.block_proposer.mode == "random") {
       test_params.block_proposer.min_freq = getConfigDataAsUInt(
           root, {"test_params", "block_proposer", "random_params", "min_freq"});
@@ -148,9 +148,10 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
                                      "sortition_params", "difficulty_bound"});
       // TODO: fix read lambda_bound from config file
       test_params.block_proposer.lambda_bound = 1500;
-//      test_params.block_proposer.lambda_bound =
-//          getConfigDataAsUInt(root, {"test_params", "block_proposer",
-//                                     "sortition_params", "lambda_bound"});
+      //      test_params.block_proposer.lambda_bound =
+      //          getConfigDataAsUInt(root, {"test_params", "block_proposer",
+      //                                     "sortition_params",
+      //                                     "lambda_bound"});
     } else {
       std::cerr << "Unknown propose mode: " << test_params.block_proposer.mode;
       assert(false);
@@ -195,7 +196,8 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
           output.type = getConfigDataAsString(o, {"type"});
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
-            output.file_name = db_path + getConfigDataAsString(o, {"file_name"});
+            output.file_name =
+                db_path + getConfigDataAsString(o, {"file_name"});
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});

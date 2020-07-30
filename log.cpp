@@ -79,8 +79,8 @@ void setupLoggingConfiguration(addr_t &node, LoggingConfig &logging) {
   boost::log::core::get()->add_sink(
       boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>());
   for (auto &output : logging.outputs) {
-    auto filter = [&logging,
-                   short_node_id_conf](boost::log::attribute_value_set const &_set) {
+    auto filter = [&logging, short_node_id_conf](
+                      boost::log::attribute_value_set const &_set) {
       if (logging.channels.count(*_set[channel])) {
         if (short_node_id_conf == _set[short_node_id]) {
           auto channel_name = _set[channel].get();
