@@ -996,7 +996,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes1) {
-  auto tops = createNodesAndVerifyConnection(2);
+  auto tops = createNodesAndVerifyConnection(2, 1, false, 2);
   auto &nodes = tops.second;
 
   // send 1000 trxs
