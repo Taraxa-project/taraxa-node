@@ -1037,7 +1037,7 @@ TEST_F(FullNodeTest, persist_counter) {
   unsigned long num_exe_trx1 = 0, num_exe_trx2 = 0, num_exe_blk1 = 0,
                 num_exe_blk2 = 0, num_trx1 = 0, num_trx2 = 0;
   {
-    auto tops = createNodesAndVerifyConnection(2, 1, false, 10);
+    auto tops = createNodesAndVerifyConnection(2, 1, false, 2);
     auto &nodes = tops.second;
 
     // send 1000 trxs
