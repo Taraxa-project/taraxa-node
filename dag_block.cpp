@@ -193,6 +193,7 @@ blk_hash_t DagBlock::sha3(bool include_sig) const {
 
 BlockManager::BlockManager(size_t capacity, unsigned num_verifiers,
                            addr_t node_addr, std::shared_ptr<DbStorage> db,
+                           std::shared_ptr<TransactionManager> trx_mgr,
                            dev::Logger log_time, uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
@@ -200,16 +201,12 @@ BlockManager::BlockManager(size_t capacity, unsigned num_verifiers,
       seen_blocks_(10000, 100),
       queue_limit_(queue_limit),
       db_(db),
+      trx_mgr_(trx_mgr),
       log_time_(log_time) {
   LOG_OBJECTS_CREATE("BLKQU");
 }
 
 BlockManager::~BlockManager() { stop(); }
-
-void BlockManager::setTransactionManager(
-    std::shared_ptr<TransactionManager> trx_mgr) {
-  trx_mgr_ = trx_mgr;
-}
 
 void BlockManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {

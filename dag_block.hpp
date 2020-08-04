@@ -124,8 +124,9 @@ struct DagFrontier {
 class BlockManager {
  public:
   BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr,
-               std::shared_ptr<DbStorage> db, dev::Logger log_time_,
-               uint32_t queue_limit = 0);
+               std::shared_ptr<DbStorage> db,
+               std::shared_ptr<TransactionManager> trx_mgr,
+               dev::Logger log_time_, uint32_t queue_limit = 0);
   ~BlockManager();
   void insertBlock(DagBlock const &blk);
   // Only used in initial syncs when blocks are received with full list of
@@ -143,7 +144,6 @@ class BlockManager {
   level_t getMaxDagLevelInQueue() const;
   void start();
   void stop();
-  void setTransactionManager(std::shared_ptr<TransactionManager> trx_mgr);
   bool isBlockKnown(blk_hash_t const &hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   void clearBlockStatausTable() { blk_status_.clear(); }

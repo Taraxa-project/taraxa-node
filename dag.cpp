@@ -438,13 +438,22 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
   }
 }
 
-DagManager::DagManager(std::string const &genesis, addr_t node_addr) try
+DagManager::DagManager(std::string const &genesis, addr_t node_addr,
+                       std::shared_ptr<TransactionManager> trx_mgr) try
     : inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
-      genesis_(genesis) {
+      genesis_(genesis),
+      trx_mgr_(trx_mgr) {
   LOG_OBJECTS_CREATE("DAGMGR");
   anchors_.push({genesis, 0});
+  DagBlock blk;
+  string pivot;
+  std::vector<std::string> tips;
+  getLatestPivotAndTips(pivot, tips);
+  DagFrontier frontier;
+  frontier.pivot = blk_hash_t(pivot);
+  if (trx_mgr) trx_mgr->updateNonce(blk, frontier);
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -456,11 +465,6 @@ std::shared_ptr<DagManager> DagManager::getShared() {
     std::cerr << "DagManager: " << e.what() << std::endl;
     return nullptr;
   }
-}
-
-void DagManager::setTransactionManager(
-    std::shared_ptr<TransactionManager> trx_mgr) {
-  trx_mgr_ = trx_mgr;
 }
 
 void DagManager::stop() {

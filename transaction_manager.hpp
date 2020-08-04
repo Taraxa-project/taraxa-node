@@ -1,12 +1,12 @@
 #ifndef TARAXA_NODE_TRANSACTION_MANAGER_HPP
 #define TARAXA_NODE_TRANSACTION_MANAGER_HPP
 
+#include "aleth/filter_api.hpp"
+#include "aleth/pending_block.hpp"
 #include "config.hpp"
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "util/simple_event.hpp"
-#include "aleth/pending_block.hpp"
-#include "aleth/filter_api.hpp"
 
 namespace taraxa {
 
@@ -37,9 +37,7 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr,
-                     std::shared_ptr<DbStorage> db, dev::Logger log_time,
-                     std::shared_ptr<DagManager> dag_mgr,
-                     std::shared_ptr<BlockManager> blk_mgr);
+                     std::shared_ptr<DbStorage> db, dev::Logger log_time);
   explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
       : db_(db),
         accs_nonce_(),

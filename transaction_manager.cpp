@@ -26,26 +26,16 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
 TransactionManager::TransactionManager(FullNodeConfig const &conf,
                                        addr_t node_addr,
                                        std::shared_ptr<DbStorage> db,
-                                       dev::Logger log_time,
-                                       std::shared_ptr<DagManager> dag_mgr,
-                                       std::shared_ptr<BlockManager> blk_mgr)
+                                       dev::Logger log_time)
     : conf_(conf),
       accs_nonce_(),
       trx_qu_(node_addr),
       node_addr_(node_addr),
       db_(db),
-      log_time_(log_time),
-      dag_mgr_(dag_mgr) {
+      log_time_(log_time) {
   LOG_OBJECTS_CREATE("TRXMGR");
   auto trx_count = db_->getStatusField(taraxa::StatusDbField::TrxCount);
   trx_count_.store(trx_count);
-  DagBlock blk;
-  string pivot;
-  std::vector<std::string> tips;
-  dag_mgr->getLatestPivotAndTips(pivot, tips);
-  DagFrontier frontier;
-  frontier.pivot = blk_hash_t(pivot);
-  updateNonce(blk, frontier);
 }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(
@@ -395,26 +385,6 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   std::transform(list_trxs.begin(), list_trxs.end(),
                  std::back_inserter(to_be_packed_trx),
                  [](Transaction const &t) { return t.getHash(); });
-
-  // Need to update pivot incase a new period is confirmed
-  std::vector<std::string> ghost;
-  if(dag_mgr_) {
-    dag_mgr_->getGhostPath(ghost);
-    vec_blk_t gg;
-    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
-                  [](std::string const &t) { return blk_hash_t(t); });
-    for (auto const &g : gg) {
-      if (g == frontier.pivot) {  // pivot does not change
-        break;
-      }
-      auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
-      if (iter != std::end(frontier.tips)) {
-        std::swap(frontier.pivot, *iter);
-        LOG(log_si_) << " Swap frontier with pivot: " << dag_frontier_.pivot
-                    << " tips: " << frontier.pivot;
-      }
-    }
-  }
 }
 
 bool TransactionManager::verifyBlockTransactions(

@@ -74,14 +74,12 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
   // ===== Create services =====
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr);
-  blk_mgr_ = std::make_shared<BlockManager>(
-      1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, log_time_,
-      conf_.test_params.max_block_queue_warn);
   trx_mgr_ = std::make_shared<TransactionManager>(
-      conf_, node_addr, db_, log_time_, dag_mgr_, blk_mgr_);
-  dag_mgr_->setTransactionManager(trx_mgr_);
-  blk_mgr_->setTransactionManager(trx_mgr_);
+      conf_, node_addr, db_, log_time_);
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr, trx_mgr_);
+  blk_mgr_ = std::make_shared<BlockManager>(
+      1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_,
+      conf_.test_params.max_block_queue_warn);
   trx_order_mgr_ =
       std::make_shared<TransactionOrderManager>(node_addr, db_, blk_mgr_);
   blk_proposer_ = std::make_shared<BlockProposer>(
