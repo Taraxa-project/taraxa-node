@@ -163,11 +163,6 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
-void VoteManager::setPbftChain(
-    std::shared_ptr<PbftChain> pbft_chain) {
-  pbft_chain_ = pbft_chain;
-}
-
 void VoteManager::setPbftManager(
     std::shared_ptr<PbftManager> pbft_mgr) {
   pbft_mgr_ = pbft_mgr;

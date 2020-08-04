@@ -74,12 +74,15 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
   // ===== Create services =====
-  trx_mgr_ = std::make_shared<TransactionManager>(
-      conf_, node_addr, db_, log_time_);
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr, trx_mgr_);
+  trx_mgr_ =
+      std::make_shared<TransactionManager>(conf_, node_addr, db_, log_time_);
+  pbft_chain_ =
+      std::make_shared<PbftChain>(genesis_hash.toString(), node_addr, db_);
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr,
+                                          trx_mgr_, pbft_chain_);
   blk_mgr_ = std::make_shared<BlockManager>(
-      1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_, log_time_,
-      conf_.test_params.max_block_queue_warn);
+      1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_,
+      log_time_, conf_.test_params.max_block_queue_warn);
   trx_order_mgr_ =
       std::make_shared<TransactionOrderManager>(node_addr, db_, blk_mgr_);
   blk_proposer_ = std::make_shared<BlockProposer>(
@@ -87,11 +90,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       node_addr_, getSecretKey(), getVrfSecretKey(), log_time_);
   final_chain_ =
       NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
-  vote_mgr_ = std::make_shared<VoteManager>(node_addr, final_chain_);
-  pbft_chain_ =
-      std::make_shared<PbftChain>(genesis_hash.toString(), node_addr, db_);
-  dag_mgr_->setPbftChain(pbft_chain_);
-  vote_mgr_->setPbftChain(pbft_chain_);
+  vote_mgr_ = std::make_shared<VoteManager>(node_addr, final_chain_, pbft_chain_);
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, genesis_hash.toString(), node_addr, db_,
       pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,

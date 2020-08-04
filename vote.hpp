@@ -133,10 +133,13 @@ class Vote {
 
 class VoteManager {
  public:
-  VoteManager(addr_t node_addr, std::shared_ptr<FinalChain> final_chain):final_chain_(final_chain) { LOG_OBJECTS_CREATE("VOTE_MGR"); }
+  VoteManager(addr_t node_addr, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<PbftChain> pbft_chain)
+      : final_chain_(final_chain), pbft_chain_(pbft_chain) {
+    LOG_OBJECTS_CREATE("VOTE_MGR");
+  }
   ~VoteManager() {}
 
-  void setPbftChain(std::shared_ptr<PbftChain> pbft_chain);
   void setPbftManager(std::shared_ptr<PbftManager> pbft_manager);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
                       size_t valid_sortition_players,
@@ -145,9 +148,7 @@ class VoteManager {
   bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
-  void stop() {
-    pbft_mgr_ = nullptr;
-  };
+  void stop() { pbft_mgr_ = nullptr; };
   uint64_t getUnverifiedVotesSize() const;
   std::vector<Vote> getVotes(uint64_t pbft_round,
                              size_t valid_sortiton_players);
