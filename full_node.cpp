@@ -96,7 +96,6 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,
       trx_mgr_, master_boot_node_address_, node_sk_, vrf_sk_,
       conf_.opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock);
-  vote_mgr_->setPbftManager(pbft_mgr_);
   auto final_chain_head_ = final_chain_->get_last_block();
   trx_mgr_->setPendingBlock(
       aleth::NewPendingBlock(final_chain_head_->number(), getAddress(),
@@ -222,7 +221,6 @@ void FullNode::stop() {
   trx_mgr_->stop();
   pbft_mgr_->stop();
   trx_order_mgr_->stop();
-  trx_mgr_->stop();
 
   for (auto &t : block_workers_) {
     t.join();

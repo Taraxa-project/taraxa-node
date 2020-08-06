@@ -7,10 +7,10 @@
 #include "../network.hpp"
 #include "../pbft_manager.hpp"
 #include "core_tests/create_samples.hpp"
-#include "types.hpp"
+#include "dag.hpp"
 #include "dag_block.hpp"
 #include "transaction_manager.hpp"
-#include "dag.hpp"
+#include "types.hpp"
 
 using namespace std;
 using namespace dev;
@@ -73,7 +73,8 @@ Json::Value Test::get_dag_block_epfriend(const Json::Value &param1) {
       blk_hash_t to_hash = blk_hash_t(param1["to_hash"].asString());
 
       std::vector<std::string> epfriend;
-      epfriend = node->getDagManager()->getEpFriendBetweenPivots(from_hash.toString(), to_hash.toString());
+      epfriend = node->getDagManager()->getEpFriendBetweenPivots(
+          from_hash.toString(), to_hash.toString());
       for (auto const &v : epfriend) {
         res = res.asString() + (v + '\n');
       }
@@ -226,16 +227,18 @@ Json::Value Test::get_node_status() {
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
       res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
-      res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
-      res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
+      res["trx_executed"] =
+          Json::UInt64(node->getDB()->getNumTransactionExecuted());
+      res["trx_count"] =
+          Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
       res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
       res["pbft_sync_queue_size"] =
           Json::UInt64(node->getPbftChain()->pbftSyncedQueueSize());
-      res["trx_queue_unverified_size"] =
-          Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().first);
-      res["trx_queue_verified_size"] =
-          Json::UInt64(node->getTransactionManager()->getTransactionQueueSize().second);
+      res["trx_queue_unverified_size"] = Json::UInt64(
+          node->getTransactionManager()->getTransactionQueueSize().first);
+      res["trx_queue_verified_size"] = Json::UInt64(
+          node->getTransactionManager()->getTransactionQueueSize().second);
       res["blk_queue_unverified_size"] =
           Json::UInt64(node->getBlockManager()->getDagBlockQueueSize().first);
       res["blk_queue_verified_size"] =
@@ -343,7 +346,9 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
       std::vector<Vote> votes = vote_mgr->getVotes(
-          pbft_round, pbft_mgr->sortition_account_balance_table.size());
+          pbft_round, pbft_mgr->sortition_account_balance_table.size(),
+          pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+          pbft_mgr->getSortitionThreshold());
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {

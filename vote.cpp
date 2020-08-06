@@ -1,11 +1,12 @@
 #include "vote.hpp"
+
 #include <libdevcore/SHA3.h>
+#include <libdevcrypto/Common.h>
+#include <libethcore/Common.h>
+
 #include "full_node.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
-
-#include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
 
 namespace taraxa {
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
@@ -86,7 +87,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  size_t sortition_threshold) const {
   if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
     LOG(log_tr_) << "Last pbft block hash does not match "
-                  << last_pbft_block_hash;
+                 << last_pbft_block_hash;
     return false;
   }
 
@@ -100,7 +101,7 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
   }
   if (!vote.verifyCanSpeak(sortition_threshold, valid_sortition_players)) {
     LOG(log_wr_) << "Vote sortition failed, sortition proof "
-                  << vote.getSortitionProof();
+                 << vote.getSortitionProof();
     return false;
   }
   return true;
@@ -129,8 +130,8 @@ bool VoteManager::addVote(taraxa::Vote const& vote) {
     }
   }
   LOG(log_dg_) << "Add vote " << hash << ", block hash " << vote.getBlockHash()
-                << ", vote type " << vote.getType() << ", in round "
-                << pbft_round << ", for step " << vote.getStep();
+               << ", vote type " << vote.getType() << ", in round "
+               << pbft_round << ", for step " << vote.getStep();
   return true;
 }
 
@@ -163,21 +164,14 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
   return size;
 }
 
-void VoteManager::setPbftManager(
-    std::shared_ptr<PbftManager> pbft_mgr) {
-  pbft_mgr_ = pbft_mgr;
-}
-
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
-                                        size_t valid_sortition_players) {
+                                        size_t valid_sortition_players,
+                                        blk_hash_t last_pbft_block_hash,
+                                        size_t sortition_threshold) {
   cleanupVotes(pbft_round);
 
   std::vector<Vote> verified_votes;
-
-  blk_hash_t last_pbft_block_hash =
-      pbft_mgr_->getLastPbftBlockHashAtStartOfRound();
-  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
 
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
@@ -190,7 +184,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       // New node join, it doesn't have other nodes info.
       // Wait unit sync PBFT chain with peers, and execute to get states.
       LOG(log_dg_) << "Cannot find the vote account balance. vote hash: "
-                    << v.getHash() << " vote address: " << vote_address;
+                   << v.getHash() << " vote address: " << vote_address;
       continue;
     }
     if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
@@ -205,7 +199,9 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                                         size_t valid_sortition_players,
-                                        bool& sync_peers_pbft_chain) {
+                                        bool& sync_peers_pbft_chain,
+                                        blk_hash_t last_pbft_block_hash,
+                                        size_t sortition_threshold) {
   cleanupVotes(pbft_round);
 
   // Should be sure we always write a value to this pointer...
@@ -219,10 +215,6 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 
   std::vector<Vote> verified_votes;
 
-  blk_hash_t last_pbft_block_hash =
-      pbft_mgr_->getLastPbftBlockHashAtStartOfRound();
-  size_t sortition_threshold = pbft_mgr_->getSortitionThreshold();
-
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
@@ -234,7 +226,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       // New node join, it doesn't have other nodes info.
       // Wait unit sync PBFT chain with peers, and execute to get states.
       LOG(log_dg_) << "Cannot find the vote account balance. vote hash: "
-                    << v.getHash() << " vote address: " << vote_address;
+                   << v.getHash() << " vote address: " << vote_address;
       sync_peers_pbft_chain = true;
       missing_account_balance_count++;
       continue;
@@ -246,24 +238,23 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       // We know that votes in our current round should reference our latest
       // PBFT chain block This is not immune to malacious attack!!!
       LOG(log_dg_) << "Next vote in current round " << pbft_round
-                    << " points to different block hash "
-                    << last_pbft_block_hash << " | vote hash: " << v.getHash()
-                    << " vote address: " << vote_address;
+                   << " points to different block hash " << last_pbft_block_hash
+                   << " | vote hash: " << v.getHash()
+                   << " vote address: " << vote_address;
       sync_peers_pbft_chain = true;
       next_vote_with_different_prev_block_has_count++;
     }
   }
 
   if (missing_account_balance_count > 0) {
-    LOG(log_dg_)
-        << "Get votes found " << missing_account_balance_count
-        << " votes from accounts not present in account balance table";
+    LOG(log_dg_) << "Get votes found " << missing_account_balance_count
+                 << " votes from accounts not present in account balance table";
   }
   if (next_vote_with_different_prev_block_has_count > 0) {
     LOG(log_er_) << "Get votes found "
-                  << next_vote_with_different_prev_block_has_count
-                  << " next votes for round " << pbft_round + 1
-                  << " pointing to different previous pbft chain block hash";
+                 << next_vote_with_different_prev_block_has_count
+                 << " next votes for round " << pbft_round + 1
+                 << " pointing to different previous pbft chain block hash";
   }
 
   return verified_votes;
@@ -315,22 +306,22 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
   for (auto const& v : pbft_block_and_votes.cert_votes) {
     if (v.getType() != cert_vote_type) {
       LOG(log_wr_) << "For PBFT block "
-                    << pbft_block_and_votes.pbft_blk.getBlockHash()
-                    << ", cert vote " << v.getHash() << " has wrong vote type "
-                    << v.getType();
+                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << ", cert vote " << v.getHash() << " has wrong vote type "
+                   << v.getType();
       continue;
     } else if (v.getStep() != 3) {
       LOG(log_wr_) << "For PBFT block "
-                    << pbft_block_and_votes.pbft_blk.getBlockHash()
-                    << ", cert vote " << v.getHash() << " has wrong vote step "
-                    << v.getStep();
+                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << ", cert vote " << v.getHash() << " has wrong vote step "
+                   << v.getStep();
       continue;
     } else if (v.getBlockHash() !=
                pbft_block_and_votes.pbft_blk.getBlockHash()) {
       LOG(log_wr_) << "For PBFT block "
-                    << pbft_block_and_votes.pbft_blk.getBlockHash()
-                    << ", cert vote " << v.getHash()
-                    << " has wrong vote block hash " << v.getBlockHash();
+                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << ", cert vote " << v.getHash()
+                   << " has wrong vote block hash " << v.getBlockHash();
       continue;
     }
     if (voteValidation(pbft_chain_last_block_hash, v, valid_sortition_players,
@@ -338,20 +329,20 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
       valid_votes.emplace_back(v);
     } else {
       LOG(log_wr_) << "For PBFT block "
-                    << pbft_block_and_votes.pbft_blk.getBlockHash()
-                    << ", cert vote " << v.getHash() << " failed validation";
+                   << pbft_block_and_votes.pbft_blk.getBlockHash()
+                   << ", cert vote " << v.getHash() << " failed validation";
     }
   }
   if (valid_votes.size() < pbft_2t_plus_1) {
     LOG(log_er_) << "PBFT block "
-                  << pbft_block_and_votes.pbft_blk.getBlockHash() << " with "
-                  << pbft_block_and_votes.cert_votes.size()
-                  << " cert votes. Has " << valid_votes.size()
-                  << " valid cert votes. 2t+1 is " << pbft_2t_plus_1
-                  << ", Valid sortition players " << valid_sortition_players
-                  << ", sortition threshold is " << sortition_threshold
-                  << ". The last block in pbft chain is "
-                  << pbft_chain_last_block_hash;
+                 << pbft_block_and_votes.pbft_blk.getBlockHash() << " with "
+                 << pbft_block_and_votes.cert_votes.size()
+                 << " cert votes. Has " << valid_votes.size()
+                 << " valid cert votes. 2t+1 is " << pbft_2t_plus_1
+                 << ", Valid sortition players " << valid_sortition_players
+                 << ", sortition threshold is " << sortition_threshold
+                 << ". The last block in pbft chain is "
+                 << pbft_chain_last_block_hash;
   }
   return valid_votes.size() >= pbft_2t_plus_1;
 }

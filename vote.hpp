@@ -140,7 +140,6 @@ class VoteManager {
   }
   ~VoteManager() {}
 
-  void setPbftManager(std::shared_ptr<PbftManager> pbft_manager);
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
                       size_t valid_sortition_players,
                       size_t sortition_threshold) const;
@@ -148,12 +147,14 @@ class VoteManager {
   bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
-  void stop() { pbft_mgr_ = nullptr; };
   uint64_t getUnverifiedVotesSize() const;
-  std::vector<Vote> getVotes(uint64_t pbft_round,
-                             size_t valid_sortiton_players);
   std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
-                             bool& sync_peers_pbft_chain);
+                             blk_hash_t last_pbft_block_hash,
+                             size_t sortition_threshold);
+  std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
+                             bool& sync_peers_pbft_chain,
+                             blk_hash_t last_pbft_block_hash,
+                             size_t sortition_threshold);
   std::string getJsonStr(std::vector<Vote> const& votes);
   std::vector<Vote> getAllVotes();
   bool pbftBlockHasEnoughValidCertVotes(
@@ -173,7 +174,6 @@ class VoteManager {
   mutable boost::shared_mutex access_;
 
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
 
   LOG_OBJECTS_DEFINE;
