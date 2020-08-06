@@ -79,6 +79,7 @@ int VdfSortition::getDifficulty() const {
 }
 
 unsigned long VdfSortition::getLambda() const {
+  // return lambda_bound_;
   uint output_sum = 0;
   // one byte in uint max is 255, 12 bytes max 255 * 12 = 3060
   // Set lambda bound to 1500, kind of half of that
