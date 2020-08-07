@@ -9,7 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include "full_node.hpp"
 #include "transaction_manager.hpp"
 
 namespace taraxa {

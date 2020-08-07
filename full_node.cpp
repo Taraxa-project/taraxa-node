@@ -112,9 +112,6 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
                                          dag_mgr_, blk_mgr_, trx_mgr_, node_pk_,
                                          conf_.test_params.pbft.lambda_ms_min);
   }
-  blk_proposer_->setNetwork(network_);
-  pbft_mgr_->setNetwork(network_);
-  trx_mgr_->setNetwork(network_);
   // ===== Post-initialization tasks =====
   // Reconstruct DAG
   if (!destroy_db) {
@@ -169,6 +166,9 @@ void FullNode::start(bool boot_node) {
   if (i_am_boot_node_) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
+  blk_proposer_->setNetwork(network_);
+  pbft_mgr_->setNetwork(network_);
+  trx_mgr_->setNetwork(network_);
   network_->start(boot_node);
   blk_mgr_->start();
   trx_mgr_->start();
@@ -220,7 +220,6 @@ void FullNode::stop() {
   blk_mgr_->stop();
   trx_mgr_->stop();
   pbft_mgr_->stop();
-  trx_order_mgr_->stop();
 
   for (auto &t : block_workers_) {
     t.join();

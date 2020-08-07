@@ -4,7 +4,6 @@
 #include <libdevcrypto/Common.h>
 #include <libethcore/Common.h>
 
-#include "full_node.hpp"
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
 

@@ -18,7 +18,6 @@
 
 #include "config.hpp"
 #include "dag_block.hpp"
-#include "full_node.hpp"
 #include "taraxa_capability.hpp"
 #include "transaction.hpp"
 #include "util.hpp"

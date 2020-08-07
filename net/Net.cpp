@@ -6,8 +6,8 @@
 #include <libdevcore/CommonJS.h>
 #include <libethcore/Common.h>
 
-#include "full_node.hpp"
 #include "network.hpp"
+#include "full_node.hpp"
 
 using namespace dev;
 using namespace std;

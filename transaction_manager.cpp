@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "dag.hpp"
-#include "full_node.hpp"
 #include "net/WSServer.h"
 #include "network.hpp"
 #include "transaction.hpp"
@@ -143,14 +142,13 @@ void TransactionManager::start() {
 }
 
 void TransactionManager::stop() {
-  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
-    trx_qu_.stop();
-    for (auto &t : verifiers_) {
-      t.join();
-    }
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
   }
-  network_ = nullptr;
-  dag_mgr_ = nullptr;
+  trx_qu_.stop();
+  for (auto &t : verifiers_) {
+    t.join();
+  }
 }
 
 std::unordered_map<trx_hash_t, Transaction>

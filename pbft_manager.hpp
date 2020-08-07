@@ -14,7 +14,9 @@
 #include "taraxa_capability.hpp"
 #include "types.hpp"
 #include "vote.hpp"
+#include "transaction_order_manager.hpp"
 #include "block_proposer.hpp"
+#include "net/WSServer.h"
 
 // total TARAXA COINS (2^53 -1) "1fffffffffffff"
 #define TARAXA_COINS_DECIMAL 9007199254740991

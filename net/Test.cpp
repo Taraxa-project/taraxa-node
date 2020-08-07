@@ -11,6 +11,7 @@
 #include "dag_block.hpp"
 #include "transaction_manager.hpp"
 #include "types.hpp"
+#include "full_node.hpp"
 
 using namespace std;
 using namespace dev;

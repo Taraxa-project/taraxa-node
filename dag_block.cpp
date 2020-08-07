@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "dag.hpp"
-#include "full_node.hpp"
 #include "transaction_manager.hpp"
 
 namespace taraxa {
@@ -220,14 +219,14 @@ void BlockManager::start() {
 }
 
 void BlockManager::stop() {
-  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
-    cond_for_unverified_qu_.notify_all();
-    cond_for_verified_qu_.notify_all();
-    for (auto &t : verifiers_) {
-      t.join();
-    }
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
   }
-  trx_mgr_ = nullptr;
+  cond_for_unverified_qu_.notify_all();
+  cond_for_verified_qu_.notify_all();
+  for (auto &t : verifiers_) {
+    t.join();
+  }
 }
 
 bool BlockManager::isBlockKnown(blk_hash_t const &hash) {

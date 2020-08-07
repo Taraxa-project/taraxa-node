@@ -25,7 +25,6 @@
 #include <string>
 
 #include "dag_block.hpp"
-#include "full_node.hpp"
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"

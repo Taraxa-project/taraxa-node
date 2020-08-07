@@ -8,7 +8,6 @@
 #include <thread>
 
 #include "constants.hpp"
-#include "full_node.hpp"
 #include "types.hpp"
 #include "wait.hpp"
 #include "transaction_manager.hpp"
