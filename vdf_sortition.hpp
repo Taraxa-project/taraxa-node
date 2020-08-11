@@ -44,13 +44,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   VdfSortition() = default;
   explicit VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
                         Message const& msg, uint difficulty_bound = 15,
-                        uint lambda_bound = 1500)
-      : msg_(msg),
-        difficulty_bound_(difficulty_bound),
-        lambda_bound_(lambda_bound),
-        VrfSortitionBase(sk, msg) {
-    LOG_OBJECTS_CREATE("VDF");
-  }
+                        uint lambda_bound = 1500);
   explicit VdfSortition(bytes const& b);
 
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
