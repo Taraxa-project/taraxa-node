@@ -910,7 +910,7 @@ TEST_F(FullNodeTest, destroy_node) {
 }
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
-  std::queue<std::pair<std::string, uint64_t>> anchors;
+  std::deque<std::pair<std::string, uint64_t>> anchors;
   {
     auto tops = createNodesAndVerifyConnection(1, 1, false, 20);
     auto node = tops.second[0];

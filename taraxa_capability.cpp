@@ -71,8 +71,9 @@ std::pair<bool, blk_hash_t> TaraxaCapability::checkDagBlockValidation(
   }
 
   // Verify VDF solution
+  auto anchors = dag_mgr_->getAnchors();
   vdf_sortition::VdfSortition vdf = block.getVdf();
-  if (!vdf.verify(block.getPivot().toString())) {
+  if (!vdf.verifyVdf(anchors, expected_level, block.getPivot().toString())) {
     LOG(log_er_) << "DAG block " << block.getHash()
                  << " failed on VDF verification with pivot hash "
                  << block.getPivot();

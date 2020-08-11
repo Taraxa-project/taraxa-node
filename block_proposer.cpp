@@ -62,10 +62,10 @@ bool SortitionPropose::propose() {
   auto propose_level =
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
-  auto latest_anchor = proposer->getLatestAnchor();
+  auto propose_anchor = proposer->getProposeAnchor();
 
   // get sortition
-  vdf_sortition::Message msg(latest_anchor, propose_level);
+  vdf_sortition::Message msg(propose_anchor, propose_level);
   vdf_sortition::VdfSortition vdf(vrf_sk_, msg, difficulty_bound_,
                                   lambda_bound_);
   vdf.computeVdfSolution(frontier.pivot.toString());
@@ -177,8 +177,15 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
   return true;
 }
 
-blk_hash_t BlockProposer::getLatestAnchor() const {
-  return blk_hash_t(dag_mgr_->getLatestAnchor());
+blk_hash_t BlockProposer::getProposeAnchor() const {
+  auto anchors = dag_mgr_->getAnchors();
+  if (anchors.size() <= 1) {
+    // Only includes DAG genesis
+    return blk_hash_t(anchors.back().first);
+  } else {
+    // return second to last anchor
+    return blk_hash_t((anchors.end() - 2)->first);
+  }
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,

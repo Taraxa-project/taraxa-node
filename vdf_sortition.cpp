@@ -1,10 +1,8 @@
 #include "vdf_sortition.hpp"
-#include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
 #include "libdevcore/CommonData.h"
-#include "util.hpp"
+
 namespace taraxa::vdf_sortition {
-VdfSortition::VdfSortition(bytes const &b) {
+VdfSortition::VdfSortition(bytes const& b) {
   if (b.empty()) {
     return;
   }
@@ -16,7 +14,7 @@ VdfSortition::VdfSortition(bytes const &b) {
   pk = rlp[0].toHash<vrf_pk_t>();
   proof = rlp[1].toHash<vrf_proof_t>();
   msg_.level = rlp[2].toInt<uint64_t>();
-  msg_.last_anchor_hash = rlp[3].toHash<blk_hash_t>();
+  msg_.propose_anchor_hash = rlp[3].toHash<blk_hash_t>();
   vdf_sol_.first = rlp[4].toBytes();
   vdf_sol_.second = rlp[5].toBytes();
   difficulty_bound_ = rlp[6].toInt<uint>();
@@ -29,7 +27,7 @@ bytes VdfSortition::rlp() const {
   s << pk;
   s << proof;
   s << msg_.level;
-  s << msg_.last_anchor_hash;
+  s << msg_.propose_anchor_hash;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
   s << difficulty_bound_;
@@ -37,7 +35,7 @@ bytes VdfSortition::rlp() const {
   return s.out();
 }
 
-void VdfSortition::computeVdfSolution(std::string const &msg) {
+void VdfSortition::computeVdfSolution(std::string const& msg) {
   //  bool verified = verifyVrf();
   //  assert(verified);
   const auto msg_bytes = vrf_wrapper::getRlpBytes(msg);
@@ -50,22 +48,66 @@ void VdfSortition::computeVdfSolution(std::string const &msg) {
   vdf_computation_time_ = t2 - t1;
 }
 
+bool VdfSortition::verifyVdf(
+    std::deque<std::pair<std::string, uint64_t>> const& anchors,
+    level_t propose_block_level, std::string const& vdf_input) {
+  // Verify propose anchor
+  std::string propose_anchor_hash =
+      getVrfMessage().propose_anchor_hash.toString();
+  if (anchors.size() <= 1) {
+    // Only includes DAG genesis
+    if (propose_anchor_hash != anchors.back().first) {
+//      LOG(log_er_) << "Proposed DAG block has wrong propose anchor, proposed "
+//                      "anchor hash "
+//                   << propose_anchor_hash << ", should be "
+//                   << anchors.back().first;
+      return false;
+    }
+  } else {
+    // Slow node relative to proposal node, equal to last anchor;
+    // Same finalization period relative to proposal node, equal to second to
+    // last anchors;
+    // Fast node relative to proposal node, equal to third to last anchors.
+    if (propose_anchor_hash != anchors.back().first &&
+        propose_anchor_hash != (anchors.end() - 2)->first &&
+        propose_anchor_hash != (anchors.end() - 3)->first) {
+//      LOG(log_er_) << "Proposed DAG block has wrong propose anchor, proposed "
+//                   << "anchor hash " << propose_anchor_hash;
+//      for (auto const& anchor : anchors) {
+//        LOG(log_er_) << "anchor hash " << anchor.first << ", level "
+//                     << anchor.second;
+//      }
+      return false;
+    }
+  }
+  // Verify propose level
+  if (getVrfMessage().level != propose_block_level) {
+//    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level
+//                 << ", but in VRF message is " << getVrfMessage().level;
+    return false;
+  }
+
+  if (!verifyVdfSolution(vdf_input)) {
+    return false;
+  }
+
+  return true;
+}
+
 bool VdfSortition::verifyVrf() { return VrfSortitionBase::verify(msg_); }
 
-bool VdfSortition::verifyVdfSolution(std::string const &vdf_input) {
-  // TODO: Nodes propose a valid DAG block, peers may fail on validation since
-  //  message = last anchor hash(not at same time) + proposal level.
-  //  Because nodes don't finalize at the same time, there have a PBFT lambda
-  //  time difference. That will cause some nodes failed validation on a valid
-  //  DAG block. Use proposal block VRF message to verify for now
+bool VdfSortition::verifyVdfSolution(std::string const& vdf_input) {
   // Verify VRF output
   bool verified = verifyVrf();
   assert(verified);
+
   // Verify VDF solution
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_input);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {
-    // std::cout << "Error! Vdf verify failed..." << std::endl;
+//    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input
+//                 << ", lambda " << getLambda() << ", difficulty "
+//                 << getDifficulty();
     // std::cout << *this << std::endl;
     return false;
   }
