@@ -1,7 +1,6 @@
-#include "vdf_sortition.hpp"
 #include "config.hpp"
-
 #include "libdevcore/CommonData.h"
+#include "vdf_sortition.hpp"
 
 namespace taraxa::vdf_sortition {
 
