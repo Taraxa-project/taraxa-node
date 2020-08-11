@@ -27,8 +27,8 @@ struct CryptoTest : core_tests::util::DBUsingTest<> {};
 
 auto node_sk_string =
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
-auto node_sk = dev::Secret(node_sk_string,
-                           dev::Secret::ConstructFromStringType::FromHex);
+auto node_sk =
+    dev::Secret(node_sk_string, dev::Secret::ConstructFromStringType::FromHex);
 auto node_key = dev::KeyPair(node_sk);
 
 TEST_F(CryptoTest, VerifierWesolowski) {

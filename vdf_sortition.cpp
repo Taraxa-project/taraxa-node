@@ -1,5 +1,5 @@
-#include "config.hpp"
 #include "vdf_sortition.hpp"
+#include "config.hpp"
 
 #include "libdevcore/CommonData.h"
 
