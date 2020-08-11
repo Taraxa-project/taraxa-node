@@ -97,10 +97,7 @@ struct BlockProposerConfig {
   uint16_t shard;
   uint16_t transaction_limit;
   uint16_t min_proposal_delay;
-  // Random mode params
-  uint16_t min_freq;
-  uint16_t max_freq;
-  // Sortition mode params
+  // VDF DAG block proposal params
   uint16_t difficulty_bound;
   uint16_t lambda_bound;
 };

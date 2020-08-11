@@ -21,7 +21,9 @@ class TransactionManager;
 class FullNode;
 class BlockProposer;
 class DagBlock;
+
 using vrf_sk_t = vrf_wrapper::vrf_sk_t;
+
 class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
@@ -39,25 +41,6 @@ class ProposeModelFace {
   vrf_sk_t vrf_sk_;
 };
 
-class RandomPropose : public ProposeModelFace {
- public:
-  RandomPropose(int min, int max, addr_t node_addr) : distribution_(min, max) {
-    LOG_OBJECTS_CREATE("PR_MDL");
-    LOG(log_nf_) << "Set random block propose threshold " << min << " ~ " << max
-                 << " milli seconds.";
-  }
-  ~RandomPropose(){};
-  bool propose() override;
-
- private:
-  std::uniform_int_distribution<std::mt19937::result_type> distribution_;
-  static std::mt19937 generator;
-  LOG_OBJECTS_DEFINE;
-};
-
-/**
- * sortition = sign({anchor_blk_hash, level}, secret_key) < threshold
- */
 class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(uint difficulty_bound, uint lambda_bound, addr_t node_addr,
@@ -100,13 +83,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
         node_sk_(node_sk),
         vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
-    if (conf_.mode == "random") {
-      propose_model_ = std::make_unique<RandomPropose>(
-          conf_.min_freq, conf_.max_freq, node_addr);
-    } else if (conf_.mode == "sortition") {
-      propose_model_ = std::make_unique<SortitionPropose>(
-          conf_.difficulty_bound, conf_.lambda_bound, node_addr, dag_mgr);
-    }
+    propose_model_ = std::make_unique<SortitionPropose>(
+        conf_.difficulty_bound, conf_.lambda_bound, node_addr, dag_mgr);
     total_trx_shards_ = std::max((unsigned int)conf_.shard, 1u);
     min_proposal_delay = conf_.min_proposal_delay;
     auto addr =

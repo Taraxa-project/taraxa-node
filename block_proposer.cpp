@@ -8,35 +8,8 @@
 
 namespace taraxa {
 
-std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
-std::mt19937 RandomPropose::generator;
 using namespace vdf_sortition;
-
-bool RandomPropose::propose() {
-  auto proposer = proposer_.lock();
-  if (!proposer) {
-    LOG(log_er_) << "Block proposer not available" << std::endl;
-    return false;
-  }
-  auto delay = distribution_(RandomPropose::generator);
-  thisThreadSleepForMilliSeconds(delay);
-  LOG(log_tr_) << "Add proposer delay " << delay << std::endl;
-
-  vec_trx_t sharded_trxs;
-  DagFrontier frontier;
-  bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
-  if (!ok) {
-    return false;
-  }
-  assert(!frontier.pivot.isZero());
-  auto propose_level =
-      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
-
-  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
-  proposer_.lock()->proposeBlock(blk);
-
-  return true;
-}
+std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
 bool SortitionPropose::propose() {
   auto proposer = proposer_.lock();
