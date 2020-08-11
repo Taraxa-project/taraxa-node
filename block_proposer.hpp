@@ -28,15 +28,17 @@ class ProposeModelFace {
  public:
   virtual ~ProposeModelFace() {}
   virtual bool propose() = 0;
-  void setProposer(std::shared_ptr<BlockProposer> proposer, secret_t const& sk,
-                   vrf_sk_t const& vrf_sk) {
+  void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr,
+                   secret_t const& sk, vrf_sk_t const& vrf_sk) {
     proposer_ = proposer;
+    node_addr_ = node_addr;
     sk_ = sk;
     vrf_sk_ = vrf_sk;
   }
 
  protected:
   std::weak_ptr<BlockProposer> proposer_;
+  addr_t node_addr_;
   secret_t sk_;
   vrf_sk_t vrf_sk_;
 };
@@ -80,6 +82,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
         blk_mgr_(blk_mgr),
         conf_(conf),
         log_time_(log_time),
+        node_addr_(node_addr),
         node_sk_(node_sk),
         vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
@@ -131,6 +134,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::unique_ptr<ProposeModelFace> propose_model_;
   std::shared_ptr<Network> network_;
   dev::Logger log_time_;
+  addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
   LOG_OBJECTS_DEFINE;

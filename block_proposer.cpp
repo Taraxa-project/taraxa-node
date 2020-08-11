@@ -39,7 +39,7 @@ bool SortitionPropose::propose() {
 
   // get sortition
   vdf_sortition::Message msg(propose_anchor, propose_level);
-  vdf_sortition::VdfSortition vdf(vrf_sk_, msg, difficulty_bound_,
+  vdf_sortition::VdfSortition vdf(node_addr_, vrf_sk_, msg, difficulty_bound_,
                                   lambda_bound_);
   vdf.computeVdfSolution(frontier.pivot.toString());
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
@@ -65,7 +65,7 @@ void BlockProposer::start() {
     return;
   }
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
-  propose_model_->setProposer(getShared(), node_sk_, vrf_sk_);
+  propose_model_->setProposer(getShared(), node_addr_, node_sk_, vrf_sk_);
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
   proposer_worker_ = std::make_shared<std::thread>([this]() {

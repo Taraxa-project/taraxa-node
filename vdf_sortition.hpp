@@ -42,18 +42,21 @@ struct Message : public vrf_wrapper::VrfMsgFace {
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
-  explicit VdfSortition(vrf_sk_t const& sk, Message const& msg,
-                        uint difficulty_bound = 15, uint lambda_bound = 1500)
+  explicit VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
+                        Message const& msg, uint difficulty_bound = 15,
+                        uint lambda_bound = 1500)
       : msg_(msg),
         difficulty_bound_(difficulty_bound),
         lambda_bound_(lambda_bound),
-        VrfSortitionBase(sk, msg) { /* LOG_OBJECTS_CREATE("VDF"); */ }
+        VrfSortitionBase(sk, msg) {
+    LOG_OBJECTS_CREATE("VDF");
+  }
   explicit VdfSortition(bytes const& b);
 
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
   bool verifyVdf(std::deque<std::pair<std::string, uint64_t>> const& anchors,
-              level_t propose_block_level, std::string const& vdf_input);
+                 level_t propose_block_level, std::string const& vdf_input);
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
@@ -105,7 +108,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   uint difficulty_bound_ = 15;
   uint lambda_bound_ = 1500;  // lambda upper bound
 
-//  LOG_OBJECTS_DEFINE;
+  LOG_OBJECTS_DEFINE;
 };
 
 }  // namespace taraxa::vdf_sortition
