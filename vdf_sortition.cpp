@@ -3,8 +3,18 @@
 
 #include "libdevcore/CommonData.h"
 
-
 namespace taraxa::vdf_sortition {
+
+VdfSortition::VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
+                           Message const& msg, uint difficulty_bound,
+                           uint lambda_bound)
+    : msg_(msg),
+      difficulty_bound_(difficulty_bound),
+      lambda_bound_(lambda_bound),
+      VrfSortitionBase(sk, msg) {
+  LOG_OBJECTS_CREATE("VDF");
+}
+
 VdfSortition::VdfSortition(bytes const& b) {
   if (b.empty()) {
     return;
@@ -22,16 +32,6 @@ VdfSortition::VdfSortition(bytes const& b) {
   vdf_sol_.second = rlp[5].toBytes();
   difficulty_bound_ = rlp[6].toInt<uint>();
   lambda_bound_ = rlp[7].toInt<uint>();
-}
-
-VdfSortition::VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
-                                    Message const& msg, uint difficulty_bound,
-                                    uint lambda_bound)
-    : msg_(msg),
-      difficulty_bound_(difficulty_bound),
-      lambda_bound_(lambda_bound),
-      VrfSortitionBase(sk, msg) {
-  LOG_OBJECTS_CREATE("VDF");
 }
 
 bytes VdfSortition::rlp() const {
@@ -70,11 +70,10 @@ bool VdfSortition::verifyVdf(
   if (anchors.size() <= 1) {
     // Only includes DAG genesis
     if (propose_anchor_hash != anchors.back().first) {
-      //      LOG(log_er_) << "Proposed DAG block has wrong propose anchor,
-      //      proposed "
-      //                      "anchor hash "
-      //                   << propose_anchor_hash << ", should be "
-      //                   << anchors.back().first;
+      LOG(log_er_) << "Proposed DAG block has wrong propose anchor, proposed "
+                      "anchor hash "
+                   << propose_anchor_hash << ", should be "
+                   << anchors.back().first;
       return false;
     }
   } else {
@@ -85,21 +84,19 @@ bool VdfSortition::verifyVdf(
     if (propose_anchor_hash != anchors.back().first &&
         propose_anchor_hash != (anchors.end() - 2)->first &&
         propose_anchor_hash != (anchors.end() - 3)->first) {
-      //      LOG(log_er_) << "Proposed DAG block has wrong propose anchor,
-      //      proposed "
-      //                   << "anchor hash " << propose_anchor_hash;
-      //      for (auto const& anchor : anchors) {
-      //        LOG(log_er_) << "anchor hash " << anchor.first << ", level "
-      //                     << anchor.second;
-      //      }
+      LOG(log_er_) << "Proposed DAG block has wrong propose anchor, proposed "
+                   << "anchor hash " << propose_anchor_hash;
+      for (auto const& anchor : anchors) {
+        LOG(log_er_) << "anchor hash " << anchor.first << ", level "
+                     << anchor.second;
+      }
       return false;
     }
   }
   // Verify propose level
   if (getVrfMessage().level != propose_block_level) {
-    //    LOG(log_er_) << "The proposal DAG block level is " <<
-    //    propose_block_level
-    //                 << ", but in VRF message is " << getVrfMessage().level;
+    LOG(log_er_) << "The proposal DAG block level is " << propose_block_level
+                 << ", but in VRF message is " << getVrfMessage().level;
     return false;
   }
 
@@ -121,10 +118,9 @@ bool VdfSortition::verifyVdfSolution(std::string const& vdf_input) {
   const auto msg_bytes = vrf_wrapper::getRlpBytes(vdf_input);
   VerifierWesolowski verifier(getLambda(), getDifficulty(), msg_bytes, N);
   if (!verifier(vdf_sol_)) {
-    //    LOG(log_er_) << "VDF solution verification failed. VDF input " <<
-    //    vdf_input
-    //                 << ", lambda " << getLambda() << ", difficulty "
-    //                 << getDifficulty();
+    LOG(log_er_) << "VDF solution verification failed. VDF input " << vdf_input
+                 << ", lambda " << getLambda() << ", difficulty "
+                 << getDifficulty();
     // std::cout << *this << std::endl;
     return false;
   }
