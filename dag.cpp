@@ -9,7 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include "full_node.hpp"
 #include "transaction_manager.hpp"
 
 namespace taraxa {
@@ -438,13 +437,24 @@ void PivotTree::getGhostPath(vertex_hash const &vertex,
   }
 }
 
-DagManager::DagManager(std::string const &genesis, addr_t node_addr) try
+DagManager::DagManager(std::string const &genesis, addr_t node_addr,
+                       std::shared_ptr<TransactionManager> trx_mgr,
+                       std::shared_ptr<PbftChain> pbft_chain) try
     : inserting_index_counter_(0),
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
-      genesis_(genesis) {
+      genesis_(genesis),
+      trx_mgr_(trx_mgr),
+      pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("DAGMGR");
   anchors_.push({genesis, 0});
+  DagBlock blk;
+  string pivot;
+  std::vector<std::string> tips;
+  getLatestPivotAndTips(pivot, tips);
+  DagFrontier frontier;
+  frontier.pivot = blk_hash_t(pivot);
+  if (trx_mgr) trx_mgr->updateNonce(blk, frontier);
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -458,18 +468,9 @@ std::shared_ptr<DagManager> DagManager::getShared() {
   }
 }
 
-void DagManager::setTransactionManager(
-    std::shared_ptr<TransactionManager> trx_mgr) {
-  trx_mgr_ = trx_mgr;
-}
-
 void DagManager::stop() {
   trx_mgr_ = nullptr;
   pbft_chain_ = nullptr;
-}
-
-void DagManager::setPbftChain(std::shared_ptr<PbftChain> pbft_chain) {
-  pbft_chain_ = pbft_chain;
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {

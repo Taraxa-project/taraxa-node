@@ -1,7 +1,5 @@
 #include "transaction_order_manager.hpp"
 
-#include "full_node.hpp"
-
 namespace taraxa {
 
 std::vector<bool> TransactionOrderManager::computeOrderInBlock(
@@ -23,12 +21,6 @@ std::vector<bool> TransactionOrderManager::computeOrderInBlock(
   }
   assert(trxs.size() == res.size());
   return res;
-}
-
-void TransactionOrderManager::stop() {
-  bool b = false; 
-  stopped_.compare_exchange_strong(b, !b);
-  blk_mgr_ = nullptr;
 }
 
 std::shared_ptr<blk_hash_t> TransactionOrderManager::getDagBlockFromTransaction(

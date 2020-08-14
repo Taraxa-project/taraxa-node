@@ -7,7 +7,6 @@
 
 #include <boost/tokenizer.hpp>
 
-#include "full_node.hpp"
 #include "taraxa_capability.hpp"
 
 namespace taraxa {
@@ -121,17 +120,18 @@ void Network::start(bool boot_node) {
 }
 
 void Network::stop() {
-  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
-    host_->stop();
-    if (network_file_ != "") saveNetwork(network_file_);
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
   }
-  db_ = nullptr;
-  pbft_chain_ = nullptr;
-  vote_mgr_ = nullptr;
-  dag_mgr_ = nullptr;
-  blk_mgr_ = nullptr;
+
+  host_->stop();
+  if (network_file_ != "") saveNetwork(network_file_);
   trx_mgr_ = nullptr;
-  taraxa_capability_ = nullptr;
+  blk_mgr_ = nullptr;
+  dag_mgr_ = nullptr;
+  vote_mgr_ = nullptr;
+  pbft_chain_ = nullptr;
+  taraxa_capability_->onStopping();
 }
 
 void Network::sendTest(NodeID const &id) {
@@ -168,22 +168,19 @@ void Network::saveNetwork(std::string fileName) {
 }
 
 void Network::onNewPbftVote(Vote const &vote) {
-  if(stopped_)
-    return;
+  if (stopped_) return;
   LOG(log_dg_) << "Network broadcast PBFT vote: " << vote.getHash();
   taraxa_capability_->onNewPbftVote(vote);
 }
 
 void Network::sendPbftVote(NodeID const &id, Vote const &vote) {
-  if(stopped_)
-    return;
+  if (stopped_) return;
   LOG(log_dg_) << "Network sent PBFT vote: " << vote.getHash() << " to: " << id;
   taraxa_capability_->sendPbftVote(id, vote);
 }
 
 void Network::onNewPbftBlock(const taraxa::PbftBlock &pbft_block) {
-  if(stopped_)
-    return;
+  if (stopped_) return;
   LOG(log_dg_) << "Network broadcast PBFT block: " << pbft_block.getBlockHash();
   taraxa_capability_->onNewPbftBlock(pbft_block);
 }

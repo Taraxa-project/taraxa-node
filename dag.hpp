@@ -25,7 +25,6 @@
 #include <string>
 
 #include "dag_block.hpp"
-#include "full_node.hpp"
 #include "pbft_chain.hpp"
 #include "types.hpp"
 #include "util.hpp"
@@ -176,11 +175,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  explicit DagManager(std::string const &genesis, addr_t node_addr);
+  explicit DagManager(std::string const &genesis, addr_t node_addr,
+                      std::shared_ptr<TransactionManager> trx_mgr,
+                      std::shared_ptr<PbftChain> pbft_chain);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
-  void setTransactionManager(std::shared_ptr<TransactionManager> trx_mgr);
-  void setPbftChain(std::shared_ptr<PbftChain> pbft_chain);
   void stop();
 
   bool dagHasVertex(blk_hash_t const &blk_hash);

@@ -1,11 +1,15 @@
 #ifndef TARAXA_NODE_NET_TEST_H_
 #define TARAXA_NODE_NET_TEST_H_
 
-#include "../full_node.hpp"
 #include "TestFace.h"
+#include <future>
 
 namespace dev::eth {
 class Client;
+}
+
+namespace taraxa {
+class FullNode;
 }
 
 namespace taraxa::net {

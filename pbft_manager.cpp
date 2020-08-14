@@ -14,7 +14,6 @@
 #include <string>
 
 #include "dag.hpp"
-#include "full_node.hpp"
 #include "network.hpp"
 #include "sortition.hpp"
 #include "transaction_manager.hpp"
@@ -153,30 +152,22 @@ void PbftManager::start() {
 }
 
 void PbftManager::stop() {
-  if (bool b = false; stopped_.compare_exchange_strong(b, !b)) {
-    if (RUN_COUNT_VOTES) {
-      monitor_stop_ = true;
-      monitor_votes_->join();
-      LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
-    }
-    {
-      std::unique_lock<std::mutex> lock(stop_mtx_);
-      stop_cv_.notify_all();
-    }
-    daemon_->join();
-
-    LOG(log_dg_) << "PBFT daemon terminated ...";
+  if (bool b = false; !stopped_.compare_exchange_strong(b, !b)) {
+    return;
   }
-  vote_mgr_ = nullptr;
-  pbft_chain_ = nullptr;
-  dag_mgr_ = nullptr;
-  network_ = nullptr;
-  capability_ = nullptr;
-  blk_mgr_ = nullptr;
-  ws_server_ = nullptr;
-  final_chain_ = nullptr;
-  trx_ord_mgr_ = nullptr;
-  trx_mgr_ = nullptr;
+
+  if (RUN_COUNT_VOTES) {
+    monitor_stop_ = true;
+    monitor_votes_->join();
+    LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
+  }
+  {
+    std::unique_lock<std::mutex> lock(stop_mtx_);
+    stop_cv_.notify_all();
+  }
+  daemon_->join();
+
+  LOG(log_dg_) << "PBFT daemon terminated ...";
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -560,8 +551,10 @@ bool PbftManager::stateOperations_() {
 
   // Get votes
   bool sync_peers_pbft_chain = false;
-  votes_ = vote_mgr_->getVotes(round_, valid_sortition_accounts_size_,
-                               sync_peers_pbft_chain);
+
+  votes_ = vote_mgr_->getVotes(
+      round_, valid_sortition_accounts_size_, sync_peers_pbft_chain,
+      getLastPbftBlockHashAtStartOfRound(), getSortitionThreshold());
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round "
                << round_;
 

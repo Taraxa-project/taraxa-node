@@ -35,7 +35,9 @@ TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
   pbft_params.committee_size = 3;
   pbft_params.valid_sortition_coins = 10000;
 
-  PbftManager pbft_manager(pbft_params, GENESIS, addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, addr_t(), secret_t(), vrf_sk_t(), 2000);
+  PbftManager pbft_manager(pbft_params, GENESIS, addr_t(), nullptr, nullptr,
+                           nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                           addr_t(), secret_t(), vrf_sk_t(), 2000);
   EXPECT_EQ(pbft_params.lambda_ms_min, pbft_manager.LAMBDA_ms_MIN);
   EXPECT_EQ(pbft_params.committee_size, pbft_manager.COMMITTEE_SIZE);
   EXPECT_EQ(pbft_params.valid_sortition_coins,
@@ -73,8 +75,8 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
       PbftVoteTypes type = propose_vote_type;
       uint64_t round = i;
       size_t step = j;
-      Vote vote =
-          node->getPbftManager()->generateVote(blockhash, type, round, step, pbft_blockhash);
+      Vote vote = node->getPbftManager()->generateVote(blockhash, type, round,
+                                                       step, pbft_blockhash);
       node->getVoteManager()->addVote(vote);
     }
   }
@@ -88,7 +90,9 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
   std::vector<Vote> votes =
-      vote_mgr->getVotes(pbft_round, valid_sortition_players);
+      vote_mgr->getVotes(pbft_round, valid_sortition_players,
+                         pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+                         pbft_mgr->getSortitionThreshold());
   EXPECT_EQ(votes.size(), 4);
   for (Vote const& v : votes) {
     EXPECT_GT(v.getRound(), 1);
@@ -165,8 +169,8 @@ TEST_F(PbftRpcTest, transfer_vote) {
   uint64_t period = 1;
   size_t step = 1;
 
-  Vote vote =
-      node2->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
+  Vote vote = node2->getPbftManager()->generateVote(blockhash, type, period,
+                                                    step, pbft_blockhash);
 
   node1->getVoteManager()->clearUnverifiedVotesTable();
   node2->getVoteManager()->clearUnverifiedVotesTable();
@@ -179,9 +183,11 @@ TEST_F(PbftRpcTest, transfer_vote) {
   pbft_mgr1->stop();
   pbft_mgr2->stop();
 
-  size_t vote_queue_size_in_node1 = node1->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node1 =
+      node1->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node1, 1);
-  size_t vote_queue_size_in_node2 = node2->getVoteManager()->getUnverifiedVotesSize();
+  size_t vote_queue_size_in_node2 =
+      node2->getVoteManager()->getUnverifiedVotesSize();
   EXPECT_EQ(vote_queue_size_in_node2, 0);
 }
 
@@ -235,8 +241,8 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   PbftVoteTypes type = propose_vote_type;
   uint64_t period = 1;
   size_t step = 1;
-  Vote vote =
-      node1->getPbftManager()->generateVote(blockhash, type, period, step, pbft_blockhash);
+  Vote vote = node1->getPbftManager()->generateVote(blockhash, type, period,
+                                                    step, pbft_blockhash);
 
   node1->getVoteManager()->clearUnverifiedVotesTable();
   node2->getVoteManager()->clearUnverifiedVotesTable();

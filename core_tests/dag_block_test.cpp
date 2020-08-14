@@ -184,7 +184,8 @@ TEST_F(DagBlockTest, sign_verify) {
 
 TEST_F(DagBlockTest, push_and_pop) {
   auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), node->getTimeLogger());
+  BlockManager blk_qu(1024, 2, addr_t(), node->getDB(), nullptr,
+                      node->getTimeLogger());
   blk_qu.start();
   DagBlock blk1(blk_hash_t(1111), level_t(0),
                 {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)}, {},

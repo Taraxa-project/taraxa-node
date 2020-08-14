@@ -12,9 +12,9 @@
 
 #include "config.hpp"
 #include "dag_block.hpp"
-#include "full_node.hpp"
 #include "transaction.hpp"
 #include "util.hpp"
+#include "vote.hpp"
 
 using namespace std;
 using namespace dev;
@@ -168,6 +168,9 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     stopped_ = true;
     if (conf_.network_simulated_delay > 0) io_service_.stop();
     blk_mgr_ = nullptr;
+    vote_mgr_ = nullptr;
+    dag_mgr_ = nullptr;
+    trx_mgr_ = nullptr;
   }
 
   void onConnect(NodeID const &_nodeID, u256 const &) override;

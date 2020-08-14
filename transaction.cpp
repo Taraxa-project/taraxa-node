@@ -3,8 +3,6 @@
 #include <string>
 #include <utility>
 
-#include "full_node.hpp"
-
 namespace taraxa {
 
 Transaction::Transaction(stream &strm) { deserialize(strm); }

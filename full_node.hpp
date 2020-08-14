@@ -74,7 +74,28 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
         return;
       }
       node->stop();
+
+      // Verify that all of the modules are destroyed once fullNode object is
+      // destroyed
+      std::weak_ptr<DbStorage> db = node->getDB();
+      std::weak_ptr<BlockManager> blockManager = node->getBlockManager();
+      std::weak_ptr<DagManager> dagManager = node->getDagManager();
+      std::weak_ptr<Network> network = node->getNetwork();
+      std::weak_ptr<PbftChain> pbftChain = node->getPbftChain();
+      std::weak_ptr<PbftManager> pbftManager = node->getPbftManager();
+      std::weak_ptr<TransactionManager> transactionManager =
+          node->getTransactionManager();
+
       this->reset();
+
+      assert(db.use_count() == 0);
+      assert(blockManager.use_count() == 0);
+      assert(dagManager.use_count() == 0);
+      assert(network.use_count() == 0);
+      assert(pbftChain.use_count() == 0);
+      assert(pbftManager.use_count() == 0);
+      assert(transactionManager.use_count() == 0);
+
       assert(this->use_count() == 0);
     }
   };
@@ -91,7 +112,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   void start(bool boot_node);
   // ** Note can be called only FullNode is fully settled!!!
   std::shared_ptr<FullNode> getShared();
-  
+
   FullNodeConfig const &getConfig() const;
   std::shared_ptr<Network> getNetwork() const;
   std::shared_ptr<TransactionManager> getTransactionManager() const {
@@ -108,9 +129,9 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getSecretKey() const { return node_sk_; }
   auto getVrfSecretKey() const { return vrf_sk_; }
   auto getVrfPublicKey() const { return vrf_pk_; }
-  
+
   std::shared_ptr<DbStorage> getDB() const { return db_; }
-  
+
   // PBFT
   dev::Signature signMessage(std::string message);
   bool verifySignature(dev::Signature const &signature, std::string &message);
@@ -118,14 +139,14 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint64_t getUnverifiedVotesSize() const;
   dev::Logger &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
-  
+
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
 
   // For Debug
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
-  
+
   void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
     ws_server_ = ws_server;
   }
