@@ -157,6 +157,11 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     LOG_OBJECTS_CREATE_SUB("VOTEPRP", vote_prp);
     log_perf_ = taraxa::createTaraxaLogger(dev::Verbosity::VerbosityInfo,
                                            "NETPER", node_addr);
+    for (uint8_t it = 0; it != PacketCount; it++) {
+      packet_count[it] = 0;
+      packet_size[it] = 0;
+      unique_packet_count[it] = 0;
+    }
   }
   virtual ~TaraxaCapability() = default;
   std::string name() const override { return "taraxa"; }
@@ -216,7 +221,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
 
   void doBackgroundWork();
   void sendTransactions();
-  std::string packetToPacketName(byte const &packet);
+  std::string packetToPacketName(byte const &packet) const;
 
   // PBFT
   void onNewPbftVote(taraxa::Vote const &vote);
@@ -279,6 +284,12 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   bool stopped_ = false;
   std::uniform_int_distribution<std::mt19937::result_type> random_dist_;
   uint16_t check_status_interval_ = 0;
+
+  std::map<uint8_t, uint64_t> packet_count;
+  std::map<uint8_t, uint64_t> packet_size;
+  std::map<uint8_t, uint64_t> unique_packet_count;
+  uint64_t received_trx_count = 0;
+  uint64_t unique_received_trx_count = 0;
 
   LOG_OBJECTS_DEFINE;
   LOG_OBJECTS_DEFINE_SUB(pbft_sync);

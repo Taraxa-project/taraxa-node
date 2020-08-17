@@ -63,6 +63,8 @@ struct NetworkConfig {
   uint16_t network_ideal_peer_count;
   uint16_t network_max_peer_count;
   uint16_t network_transaction_interval;
+  uint16_t network_min_dag_block_broadcast;
+  uint16_t network_max_dag_block_broadcast;
   uint16_t network_sync_level_size;
   std::string network_id;
   bool network_encrypted;

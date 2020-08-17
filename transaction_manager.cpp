@@ -68,18 +68,20 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(
   return ret;
 }
 
-void TransactionManager::insertBroadcastedTransactions(
+uint32_t TransactionManager::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
     std::vector<taraxa::bytes> const &transactions) {
   if (stopped_) {
-    return;
+    return 0;
   }
+  uint32_t new_trx_count = 0;
   for (auto const &t : transactions) {
     Transaction trx(t);
-    insertTrx(trx, t, false);
+    if (insertTrx(trx, t, false).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash()
                    << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
+  return new_trx_count;
 }
 
 void TransactionManager::verifyQueuedTrxs() {
@@ -383,6 +385,29 @@ void TransactionManager::packTrxs(vec_trx_t &to_be_packed_trx,
   std::transform(list_trxs.begin(), list_trxs.end(),
                  std::back_inserter(to_be_packed_trx),
                  [](Transaction const &t) { return t.getHash(); });
+<<<<<<< HEAD
+=======
+
+  // Need to update pivot incase a new period is confirmed
+  std::vector<std::string> ghost;
+  if (dag_mgr_) {
+    dag_mgr_->getGhostPath(ghost);
+    vec_blk_t gg;
+    std::transform(ghost.begin(), ghost.end(), std::back_inserter(gg),
+                   [](std::string const &t) { return blk_hash_t(t); });
+    for (auto const &g : gg) {
+      if (g == frontier.pivot) {  // pivot does not change
+        break;
+      }
+      auto iter = std::find(frontier.tips.begin(), frontier.tips.end(), g);
+      if (iter != std::end(frontier.tips)) {
+        std::swap(frontier.pivot, *iter);
+        LOG(log_si_) << " Swap frontier with pivot: " << dag_frontier_.pivot
+                     << " tips: " << frontier.pivot;
+      }
+    }
+  }
+>>>>>>> network stat
 }
 
 bool TransactionManager::verifyBlockTransactions(
