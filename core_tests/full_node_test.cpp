@@ -374,7 +374,7 @@ TEST_F(FullNodeTest, db_test) {
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
-  auto tops = createNodesAndVerifyConnection(5, 2, false, 20);
+  auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
   auto &nodes = tops.second;
 
   class context {
@@ -1292,7 +1292,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   EXPECT_GT(nodes[0]->getNumProposedBlocks(), 0);
 }
 
-TEST_F(FullNodeTest, detect_overlap_transactions) {
+TEST_F(FullNodeTest, DISABLED_detect_overlap_transactions) {
   auto tops = createNodesAndVerifyConnection(5, 4, false, 2);
   auto &nodes = tops.second;
 
