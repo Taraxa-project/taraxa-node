@@ -447,7 +447,7 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr,
       trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("DAGMGR");
-  anchors_.push({genesis, 0});
+  anchors_.push_back({genesis, 0});
   DagBlock blk;
   string pivot;
   std::vector<std::string> tips;
@@ -695,7 +695,7 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
 
   auto ok = total_dag_->computeOrder(true /* finalized */, anchor.toString(),
                                      period, blk_orders);
-  anchors_.push({anchor.toString(), period});
+  anchors_.push_back({anchor.toString(), period});
 
   if (!ok) {
     LOG(log_er_) << " Create epoch " << period << " from " << blk_hash_t(prev)
@@ -730,7 +730,7 @@ void DagManager::deletePeriod(uint64_t period) {
                  << " ) and deleting period ( " << period << " ) not match ";
   }
   assert(anchor.second == period);
-  anchors_.pop();
+  anchors_.pop_front();
   for (auto const &t : deleted_vertices) {
     pivot_tree_->delVertex(t);
   }
@@ -762,7 +762,7 @@ void DagManager::recoverAnchors(uint64_t pbft_chain_size) {
     anchors[period] = dag_block_hash_as_anchor;
   }
   for (auto i = 1; i < anchors.size(); ++i) {
-    anchors_.push({anchors[i].toString(), i});
+    anchors_.push_back({anchors[i].toString(), i});
   }
 }
 

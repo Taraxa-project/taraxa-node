@@ -20,9 +20,9 @@
 
 #include "chain_config.hpp"
 #include "dag_block.hpp"
+#include "log.hpp"
 #include "types.hpp"
 #include "util.hpp"
-#include "log.hpp"
 
 // TODO: Generate configs for the tests
 // TODO: Separate configs for consensus chain params and technical params
@@ -96,12 +96,10 @@ struct BlockProposerConfig {
   std::string mode;
   uint16_t shard;
   uint16_t transaction_limit;
-  // Random mode params
-  uint16_t min_freq;
-  uint16_t max_freq;
-  // Sortition mode params
+  uint16_t min_proposal_delay;
+  // VDF DAG block proposal params
   uint16_t difficulty_bound;
-  uint16_t lambda_bits;
+  uint16_t lambda_bound;
 };
 
 struct PbftConfig {

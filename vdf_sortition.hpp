@@ -1,66 +1,76 @@
-#pragma once
+#ifndef TARAXA_NODE_VDF_SORTITION_H
+#define TARAXA_NODE_VDF_SORTITION_H
+
 #include <algorithm>
+
 #include "ProverWesolowski.h"
 #include "libdevcore/CommonData.h"
 #include "openssl/bn.h"
 #include "types.hpp"
+#include "util.hpp"
 #include "vrf_wrapper.hpp"
 
 namespace taraxa::vdf_sortition {
+
 using namespace vdf;
 using namespace vrf_wrapper;
-struct VdfMsg : public vrf_wrapper::VrfMsgFace {
-  VdfMsg() = default;
-  VdfMsg(blk_hash_t last_pbft_hash, uint64_t level)
-      : last_pbft_hash(last_pbft_hash), level(level) {}
+
+struct Message : public vrf_wrapper::VrfMsgFace {
+  Message() = default;
+  Message(blk_hash_t propose_anchor_hash, uint64_t level)
+      : propose_anchor_hash(propose_anchor_hash), level(level) {}
+
   std::string toString() const override {
-    return last_pbft_hash.toString() + "_" + std::to_string(level);
+    return propose_anchor_hash.toString() + "_" + std::to_string(level);
   }
-  bool operator==(VdfMsg const& other) const {
-    return last_pbft_hash == other.last_pbft_hash && level == other.level;
+  bool operator==(Message const& other) const {
+    return propose_anchor_hash == other.propose_anchor_hash &&
+           level == other.level;
   }
-  friend std::ostream& operator<<(std::ostream& strm, VdfMsg const& vdf_msg) {
+  friend std::ostream& operator<<(std::ostream& strm, Message const& msg) {
     strm << "  [Vdf Msg] " << std::endl;
-    strm << "    last_pbft_hash: " << vdf_msg.last_pbft_hash << std::endl;
-    strm << "    level: " << vdf_msg.level << std::endl;
+    strm << "    propose_anchor_hash: " << msg.propose_anchor_hash << std::endl;
+    strm << "    level: " << msg.level << std::endl;
     return strm;
   }
-  blk_hash_t last_pbft_hash;
+
+  blk_hash_t propose_anchor_hash;  // second to last anchors
   uint64_t level = 0;
 };
+
 // It includes a vrf for difficulty adjustment
 class VdfSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VdfSortition() = default;
-  explicit VdfSortition(vrf_sk_t const& sk, VdfMsg const& vdf_msg,
-                        uint difficulty_bound = 29, uint lambda_bits = 13)
-      : vdf_msg_(vdf_msg),
-        difficulty_bound_(difficulty_bound),
-        lambda_bits_(lambda_bits),
-        VrfSortitionBase(sk, vdf_msg) {}
+  explicit VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
+                        Message const& msg, uint difficulty_bound = 15,
+                        uint lambda_bound = 1500);
   explicit VdfSortition(bytes const& b);
 
   bool verify(std::string const& msg) { return verifyVdfSolution(msg); }
   void computeVdfSolution(std::string const& msg);
+  bool verifyVdf(std::deque<std::pair<std::string, uint64_t>> const& anchors,
+                 level_t propose_block_level, std::string const& vdf_input);
+
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
-    return pk == other.pk && vdf_msg_ == other.vdf_msg_ &&
-           proof == other.proof && output == other.output &&
-           vdf_sol_.first == other.vdf_sol_.first &&
+    return pk == other.pk && msg_ == other.msg_ && proof == other.proof &&
+           output == other.output && vdf_sol_.first == other.vdf_sol_.first &&
            vdf_sol_.second == other.vdf_sol_.second;
   }
   bool operator!=(VdfSortition const& other) const {
     return !operator==(other);
   }
+
   void setDifficultyBound(uint bound) {
     difficulty_bound_ = std::min(100u, std::max(10u, bound));
   }
   void setLambdaBits(uint bits) {
-    lambda_bits_ = std::min(10u, std::max(16u, bits));
+    lambda_bound_ = std::min(10u, std::max(16u, bits));
   }
   virtual std::ostream& print(std::ostream& strm) const override {
     VrfSortitionBase::print(strm);
-    strm << vdf_msg_ << std::endl;
+    strm << msg_ << std::endl;
     strm << " Lambda: " << getLambda() << std::endl;
     strm << " Difficulty: " << getDifficulty() << std::endl;
     strm << " Computation Time: " << vdf_computation_time_ << std::endl;
@@ -71,6 +81,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   friend std::ostream& operator<<(std::ostream& strm, VdfSortition const& vdf) {
     return vdf.print(strm);
   }
+
+  Message getVrfMessage() const { return msg_; }
   auto getComputationTime() const { return vdf_computation_time_; }
   int getDifficulty() const;
   unsigned long getLambda() const;
@@ -81,13 +93,18 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "9aee2a207e5173a7ee8f90ee9ab9b6a745d27c6e850e7ca7332388dfef7e5bbe6267d1f7"
       "9f9330e44715b3f2066f903081836c1c83ca29126f8fdc5f5922bf3f9ddb4540171691ac"
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
-  bool verifyVrf() { return VrfSortitionBase::verify(vdf_msg_); }
-  // use first byte as difficult for now
-  bool verifyVdfSolution(std::string const& msg);
-  VdfMsg vdf_msg_;
+  bool verifyVrf();
+  bool verifyVdfSolution(std::string const& vdf_msg);
+
+  Message msg_;
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
-  uint difficulty_bound_ = 29;
-  uint lambda_bits_ = 13;
+  uint difficulty_bound_ = 15;
+  uint lambda_bound_ = 1500;  // lambda upper bound
+
+  LOG_OBJECTS_DEFINE;
 };
+
 }  // namespace taraxa::vdf_sortition
+
+#endif  // TARAXA_NODE_VDF_SORTITION_H

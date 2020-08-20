@@ -8,14 +8,15 @@
 #include <iostream>
 #include <vector>
 
+#include "block_proposer.hpp"
 #include "core_tests/util.hpp"
 #include "create_samples.hpp"
+#include "dag.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
+#include "transaction_manager.hpp"
 #include "util.hpp"
 #include "util/lazy.hpp"
-#include "transaction_manager.hpp"
-#include "dag.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
@@ -27,6 +28,8 @@ auto g_secret = Lazy([] {
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
 });
+auto node_key = dev::KeyPair(g_secret);
+
 auto g_trx_samples =
     Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples =
@@ -48,15 +51,15 @@ auto g_conf3 = Lazy([] { return FullNodeConfig(conf_file[2]); });
 
 struct NetworkTest : core_tests::util::DBUsingTest<> {};
 
-/*
-Test creates two Network setup and verifies sending block
-between is successfull
-*/
+// Test creates two Network setup and verifies sending block
+// between is successfull
 TEST_F(NetworkTest, transfer_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
 
   nw1->start();
   nw2->start();
@@ -90,9 +93,11 @@ TEST_F(NetworkTest, transfer_block) {
 
 TEST_F(NetworkTest, send_pbft_block) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
 
   nw1->start();
   nw2->start();
@@ -112,15 +117,15 @@ TEST_F(NetworkTest, send_pbft_block) {
   nw1->stop();
 }
 
-/*
-Test creates two Network setup and verifies sending transaction
-between is successfull
-*/
+// Test creates two Network setup and verifies sending transaction
+// between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
   std::shared_ptr<Network> nw1(new taraxa::Network(
-      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
   std::shared_ptr<Network> nw2(new taraxa::Network(
-      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+      g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+      addr_t()));
 
   nw1->start(true);
   nw2->start();
@@ -146,22 +151,20 @@ TEST_F(NetworkTest, transfer_transaction) {
   ASSERT_EQ(3, num_received);
 }
 
-/*
-Test verifies saving network to a file and restoring it from a file
-is successfull. Once restored from the file it is able to reestablish
-connections even with boot nodes down
-*/
+// Test verifies saving network to a file and restoring it from a file
+// is successfull. Once restored from the file it is able to reestablish
+// connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   {
     std::shared_ptr<Network> nw1(new taraxa::Network(
-        g_conf1->network,
-        g_conf1->chain.dag_genesis_block.getHash().toString(), addr_t()));
+        g_conf1->network, g_conf1->chain.dag_genesis_block.getHash().toString(),
+        addr_t()));
     std::shared_ptr<Network> nw2(new taraxa::Network(
-        g_conf2->network,
-        g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t()));
+        g_conf2->network, g_conf2->chain.dag_genesis_block.getHash().toString(),
+        addr_t()));
     std::shared_ptr<Network> nw3(new taraxa::Network(
-        g_conf3->network,
-        g_conf3->chain.dag_genesis_block.getHash().toString(), addr_t()));
+        g_conf3->network, g_conf3->chain.dag_genesis_block.getHash().toString(),
+        addr_t()));
 
     nw1->start(true);
     nw2->start();
@@ -187,10 +190,12 @@ TEST_F(NetworkTest, save_network) {
 
   std::shared_ptr<Network> nw2(new taraxa::Network(
       g_conf2->network, "/tmp/nw2",
-      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
+      nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   std::shared_ptr<Network> nw3(new taraxa::Network(
       g_conf3->network, "/tmp/nw3",
-      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
+      g_conf2->chain.dag_genesis_block.getHash().toString(), addr_t(), nullptr,
+      nullptr, nullptr, nullptr, nullptr, nullptr, public_t(), 2000));
   nw2->start();
   nw3->start();
 
@@ -203,10 +208,8 @@ TEST_F(NetworkTest, save_network) {
   ASSERT_EQ(1, nw3->getPeerCount());
 }
 
-/*
-Test creates one node with testnet network ID and one node with main ID and
-verifies that connection fails
-*/
+// Test creates one node with testnet network ID and one node with main ID and
+// verifies that connection fails
 TEST_F(NetworkTest, node_network_id) {
   {
     FullNodeConfig conf1(conf_file[0]);
@@ -244,11 +247,9 @@ TEST_F(NetworkTest, node_network_id) {
   }
 }
 
-/*
-Test creates a DAG on one node and verifies
-that the second node syncs with it and that the resulting
-DAG on the other end is the same
-*/
+// Test creates a DAG on one node and verifies
+// that the second node syncs with it and that the resulting
+// DAG on the other end is the same
 TEST_F(NetworkTest, node_sync) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
@@ -258,30 +259,67 @@ TEST_F(NetworkTest, node_sync) {
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
   std::vector<DagBlock> blks;
+  // Generate DAG blocks
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  auto difficulty_bound = 15;
+  auto lambda_bound = 1500;
 
-  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {}, {},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk1.sign(g_secret2);
+  auto last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  auto propose_level = 1;
+  vdf_sortition::Message msg1(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf1(node_key.address(), vrf_sk, msg1,
+                                   difficulty_bound, lambda_bound);
+  vdf1.computeVdfSolution(dag_genesis.toString());
+  DagBlock blk1(dag_genesis, propose_level, {}, {}, vdf1);
+  blk1.sign(sk);
 
-  DagBlock blk2(blk1.getHash(), 2, {}, {}, sig_t(0), blk_hash_t(0),
-                addr_t(999));
-  blk2.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 2;
+  vdf_sortition::Message msg2(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf2(node_key.address(), vrf_sk, msg2,
+                                   difficulty_bound, lambda_bound);
+  vdf2.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk2(blk1.getHash(), propose_level, {}, {}, vdf2);
+  blk2.sign(sk);
 
-  DagBlock blk3(blk2.getHash(), 3, {}, {}, sig_t(0), blk_hash_t(0),
-                addr_t(999));
-  blk3.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 3;
+  vdf_sortition::Message msg3(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf3(node_key.address(), vrf_sk, msg3,
+                                   difficulty_bound, lambda_bound);
+  vdf3.computeVdfSolution(blk2.getHash().toString());
+  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3);
+  blk3.sign(sk);
 
-  DagBlock blk4(blk3.getHash(), 4, {}, {}, sig_t(0), blk_hash_t(0),
-                addr_t(999));
-  blk4.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 4;
+  vdf_sortition::Message msg4(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf4(node_key.address(), vrf_sk, msg4,
+                                   difficulty_bound, lambda_bound);
+  vdf4.computeVdfSolution(blk3.getHash().toString());
+  DagBlock blk4(blk3.getHash(), propose_level, {}, {}, vdf4);
+  blk4.sign(sk);
 
-  DagBlock blk5(blk4.getHash(), 5, {}, {}, sig_t(0), blk_hash_t(0),
-                addr_t(999));
-  blk5.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 5;
+  vdf_sortition::Message msg5(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf5(node_key.address(), vrf_sk, msg5,
+                                   difficulty_bound, lambda_bound);
+  vdf5.computeVdfSolution(blk4.getHash().toString());
+  DagBlock blk5(blk4.getHash(), propose_level, {}, {}, vdf5);
+  blk5.sign(sk);
 
-  DagBlock blk6(blk5.getHash(), 6, {blk4.getHash(), blk3.getHash()}, {},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk6.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 6;
+  vdf_sortition::Message msg6(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf6(node_key.address(), vrf_sk, msg6,
+                                   difficulty_bound, lambda_bound);
+  vdf6.computeVdfSolution(blk5.getHash().toString());
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()},
+                {}, vdf6);
+  blk6.sign(sk);
 
   blks.push_back(blk6);
   blks.push_back(blk5);
@@ -294,12 +332,20 @@ TEST_F(NetworkTest, node_sync) {
     node1->getBlockManager()->insertBlock(blks[i]);
   }
 
-  taraxa::thisThreadSleepForMilliSeconds(100);
+  for (int i = 0; i < 200; i++) {
+    taraxa::thisThreadSleepForMilliSeconds(100);
+    if (node1->getDagManager()->getNumVerticesInDag().first == 7 &&
+        node1->getDagManager()->getNumEdgesInDag().first == 8)
+      break;
+  }
+  // node1->drawGraph("dot.txt");
+  EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
+  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
+  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
 
   auto node2 = taraxa::FullNode::make(
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
-
-  node2->start(false);  // boot node
+  node2->start(false);  // non-boot node
 
   std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 200; i++) {
@@ -308,22 +354,14 @@ TEST_F(NetworkTest, node_sync) {
         node2->getDagManager()->getNumEdgesInDag().first == 8)
       break;
   }
-
-  // node1->drawGraph("dot.txt");
-  EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
-  EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
-  EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
-
   EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
 }
 
-/*
-Test creates a PBFT chain on one node and verifies
-that the second node syncs with it and that the resulting
-chain on the other end is the same
-*/
+// Test creates a PBFT chain on one node and verifies
+// that the second node syncs with it and that the resulting
+// chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
   node1->start(true);  // boot node
@@ -538,59 +576,98 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
 }
 
-/*
-Test creates a DAG on one node and verifies
-that the second node syncs with it and that the resulting
-DAG on the other end is the same
-Unlike the previous tests, this DAG contains blocks with transactions
-and verifies that the sync containing transactions is successful
-*/
+// Test creates a DAG on one node and verifies
+// that the second node syncs with it and that the resulting
+// DAG on the other end is the same
+// Unlike the previous tests, this DAG contains blocks with transactions
+// and verifies that the sync containing transactions is successful
 TEST_F(NetworkTest, node_sync_with_transactions) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
   node1->start(true);
-  std::vector<DagBlock> blks;
 
+  std::vector<DagBlock> blks;
+  // Generate DAG blocks
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  auto difficulty_bound = 15;
+  auto lambda_bound = 1500;
+
+  auto last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  auto propose_level = 1;
+  vdf_sortition::Message msg1(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf1(node_key.address(), vrf_sk, msg1,
+                                   difficulty_bound, lambda_bound);
+  vdf1.computeVdfSolution(dag_genesis.toString());
   DagBlock blk1(
-      node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
+      dag_genesis, propose_level, {},
       {g_signed_trx_samples[0].getHash(), g_signed_trx_samples[1].getHash()},
-      sig_t(0), blk_hash_t(0), addr_t(999));
+      vdf1);
+  blk1.sign(sk);
   std::vector<Transaction> tr1(
       {g_signed_trx_samples[0], g_signed_trx_samples[1]});
-  blk1.sign(g_secret2);
 
-  DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk2.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 2;
+  vdf_sortition::Message msg2(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf2(node_key.address(), vrf_sk, msg2,
+                                   difficulty_bound, lambda_bound);
+  vdf2.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk2(blk1.getHash(), propose_level, {},
+                {g_signed_trx_samples[2].getHash()}, vdf2);
+  blk2.sign(sk);
   std::vector<Transaction> tr2({g_signed_trx_samples[2]});
 
-  DagBlock blk3(blk2.getHash(), 3, {}, {}, sig_t(0), blk_hash_t(0),
-                addr_t(999));
-  blk3.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 3;
+  vdf_sortition::Message msg3(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf3(node_key.address(), vrf_sk, msg3,
+                                   difficulty_bound, lambda_bound);
+  vdf3.computeVdfSolution(blk2.getHash().toString());
+  DagBlock blk3(blk2.getHash(), propose_level, {}, {}, vdf3);
+  blk3.sign(sk);
   std::vector<Transaction> tr3;
 
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 4;
+  vdf_sortition::Message msg4(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf4(node_key.address(), vrf_sk, msg4,
+                                   difficulty_bound, lambda_bound);
+  vdf4.computeVdfSolution(blk3.getHash().toString());
   DagBlock blk4(
-      blk3.getHash(), 4, {},
+      blk3.getHash(), propose_level, {},
       {g_signed_trx_samples[3].getHash(), g_signed_trx_samples[4].getHash()},
-      sig_t(0), blk_hash_t(0), addr_t(999));
-  blk4.sign(g_secret2);
+      vdf4);
+  blk4.sign(sk);
   std::vector<Transaction> tr4(
       {g_signed_trx_samples[3], g_signed_trx_samples[4]});
 
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 5;
+  vdf_sortition::Message msg5(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf5(node_key.address(), vrf_sk, msg5,
+                                   difficulty_bound, lambda_bound);
+  vdf5.computeVdfSolution(blk4.getHash().toString());
   DagBlock blk5(
-      blk4.getHash(), 5, {},
+      blk4.getHash(), propose_level, {},
       {g_signed_trx_samples[5].getHash(), g_signed_trx_samples[6].getHash(),
        g_signed_trx_samples[7].getHash(), g_signed_trx_samples[8].getHash()},
-      sig_t(0), blk_hash_t(0), addr_t(999));
-  blk5.sign(g_secret2);
+      vdf5);
+  blk5.sign(sk);
   std::vector<Transaction> tr5(
       {g_signed_trx_samples[5], g_signed_trx_samples[6],
        g_signed_trx_samples[7], g_signed_trx_samples[8]});
 
-  DagBlock blk6(blk5.getHash(), 6, {blk4.getHash(), blk3.getHash()},
-                {g_signed_trx_samples[9].getHash()}, sig_t(0), blk_hash_t(0),
-                addr_t(999));
-  blk6.sign(g_secret2);
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 6;
+  vdf_sortition::Message msg6(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf6(node_key.address(), vrf_sk, msg6,
+                                   difficulty_bound, lambda_bound);
+  vdf6.computeVdfSolution(blk5.getHash().toString());
+  DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()},
+                {g_signed_trx_samples[9].getHash()}, vdf6);
+  blk6.sign(sk);
   std::vector<Transaction> tr6({g_signed_trx_samples[9]});
 
   node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blk6, tr6);
@@ -626,11 +703,9 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
 }
 
-/*
-Test creates a complex DAG on one node and verifies
-that the second node syncs with it and that the resulting
-DAG on the other end is the same
-*/
+// Test creates a complex DAG on one node and verifies
+// that the second node syncs with it and that the resulting
+// DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
@@ -638,78 +713,147 @@ TEST_F(NetworkTest, node_sync2) {
 
   node1->start(true);
   std::vector<DagBlock> blks;
-
-  auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2);
-  DagBlock blk1(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
-                {transactions[0].getHash(), transactions[1].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk1.sign(g_secret2);
+  // Generate DAG blocks
+  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto sk = node1->getSecretKey();
+  auto vrf_sk = node1->getVrfSecretKey();
+  auto difficulty_bound = 15;
+  auto lambda_bound = 1500;
+  auto transactions = samples::createSignedTrxSamples(0, NUM_TRX2, sk);
+  // DAG block1
+  auto last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  auto propose_level = 1;
+  vdf_sortition::Message msg1(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf1(node_key.address(), vrf_sk, msg1,
+                                   difficulty_bound, lambda_bound);
+  vdf1.computeVdfSolution(dag_genesis.toString());
+  DagBlock blk1(dag_genesis, propose_level, {},
+                {transactions[0].getHash(), transactions[1].getHash()}, vdf1);
+  blk1.sign(sk);
   std::vector<Transaction> tr1({transactions[0], transactions[1]});
-
-  DagBlock blk2(node1->getConfig().chain.dag_genesis_block.getHash(), 1, {},
-                {transactions[2].getHash(), transactions[3].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk2.sign(g_secret2);
+  // DAG block2
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 1;
+  vdf_sortition::Message msg2(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf2(node_key.address(), vrf_sk, msg2,
+                                   difficulty_bound, lambda_bound);
+  vdf2.computeVdfSolution(dag_genesis.toString());
+  DagBlock blk2(dag_genesis, propose_level, {},
+                {transactions[2].getHash(), transactions[3].getHash()}, vdf2);
+  blk2.sign(sk);
   std::vector<Transaction> tr2({transactions[2], transactions[3]});
-
-  DagBlock blk3(blk1.getHash(), 2, {},
-                {transactions[4].getHash(), transactions[5].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk3.sign(g_secret2);
+  // DAG block3
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 2;
+  vdf_sortition::Message msg3(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf3(node_key.address(), vrf_sk, msg3,
+                                   difficulty_bound, lambda_bound);
+  vdf3.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk3(blk1.getHash(), propose_level, {},
+                {transactions[4].getHash(), transactions[5].getHash()}, vdf3);
+  blk3.sign(sk);
   std::vector<Transaction> tr3({transactions[4], transactions[5]});
-
-  DagBlock blk4(blk3.getHash(), 3, {},
-                {transactions[6].getHash(), transactions[7].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk4.sign(g_secret2);
+  // DAG block4
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 3;
+  vdf_sortition::Message msg4(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf4(node_key.address(), vrf_sk, msg4,
+                                   difficulty_bound, lambda_bound);
+  vdf4.computeVdfSolution(blk3.getHash().toString());
+  DagBlock blk4(blk3.getHash(), propose_level, {},
+                {transactions[6].getHash(), transactions[7].getHash()}, vdf4);
+  blk4.sign(sk);
   std::vector<Transaction> tr4({transactions[6], transactions[7]});
-
-  DagBlock blk5(blk2.getHash(), 2, {},
-                {transactions[8].getHash(), transactions[9].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk5.sign(g_secret2);
+  // DAG block5
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 2;
+  vdf_sortition::Message msg5(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf5(node_key.address(), vrf_sk, msg5,
+                                   difficulty_bound, lambda_bound);
+  vdf5.computeVdfSolution(blk2.getHash().toString());
+  DagBlock blk5(blk2.getHash(), propose_level, {},
+                {transactions[8].getHash(), transactions[9].getHash()}, vdf5);
+  blk5.sign(sk);
   std::vector<Transaction> tr5({transactions[8], transactions[9]});
-
-  DagBlock blk6(blk1.getHash(), 2, {},
-                {transactions[10].getHash(), transactions[11].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk6.sign(g_secret2);
+  // DAG block6
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 2;
+  vdf_sortition::Message msg6(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf6(node_key.address(), vrf_sk, msg6,
+                                   difficulty_bound, lambda_bound);
+  vdf6.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk6(blk1.getHash(), propose_level, {},
+                {transactions[10].getHash(), transactions[11].getHash()}, vdf6);
+  blk6.sign(sk);
   std::vector<Transaction> tr6({transactions[10], transactions[11]});
-
-  DagBlock blk7(blk6.getHash(), 3, {},
-                {transactions[12].getHash(), transactions[13].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk7.sign(g_secret2);
+  // DAG block7
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 3;
+  vdf_sortition::Message msg7(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf7(node_key.address(), vrf_sk, msg7,
+                                   difficulty_bound, lambda_bound);
+  vdf7.computeVdfSolution(blk6.getHash().toString());
+  DagBlock blk7(blk6.getHash(), propose_level, {},
+                {transactions[12].getHash(), transactions[13].getHash()}, vdf7);
+  blk7.sign(sk);
   std::vector<Transaction> tr7({transactions[12], transactions[13]});
-
-  DagBlock blk8(blk1.getHash(), 4, {blk7.getHash()},
-                {transactions[14].getHash(), transactions[15].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk8.sign(g_secret2);
+  // DAG block8
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 4;
+  vdf_sortition::Message msg8(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf8(node_key.address(), vrf_sk, msg8,
+                                   difficulty_bound, lambda_bound);
+  vdf8.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()},
+                {transactions[14].getHash(), transactions[15].getHash()}, vdf8);
+  blk8.sign(sk);
   std::vector<Transaction> tr8({transactions[14], transactions[15]});
-
-  DagBlock blk9(blk1.getHash(), 2, {},
-                {transactions[16].getHash(), transactions[17].getHash()},
-                sig_t(0), blk_hash_t(0), addr_t(999));
-  blk9.sign(g_secret2);
+  // DAG block9
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 2;
+  vdf_sortition::Message msg9(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf9(node_key.address(), vrf_sk, msg9,
+                                   difficulty_bound, lambda_bound);
+  vdf9.computeVdfSolution(blk1.getHash().toString());
+  DagBlock blk9(blk1.getHash(), propose_level, {},
+                {transactions[16].getHash(), transactions[17].getHash()}, vdf9);
+  blk9.sign(sk);
   std::vector<Transaction> tr9({transactions[16], transactions[17]});
-
-  DagBlock blk10(blk8.getHash(), 5, {},
+  // DAG block10
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 5;
+  vdf_sortition::Message msg10(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf10(node_key.address(), vrf_sk, msg10,
+                                    difficulty_bound, lambda_bound);
+  vdf10.computeVdfSolution(blk8.getHash().toString());
+  DagBlock blk10(blk8.getHash(), propose_level, {},
                  {transactions[18].getHash(), transactions[19].getHash()},
-                 sig_t(0), blk_hash_t(0), addr_t(999));
-  blk10.sign(g_secret2);
+                 vdf10);
+  blk10.sign(sk);
   std::vector<Transaction> tr10({transactions[18], transactions[19]});
-
-  DagBlock blk11(blk3.getHash(), 3, {},
+  // DAG block11
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 3;
+  vdf_sortition::Message msg11(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf11(node_key.address(), vrf_sk, msg11,
+                                    difficulty_bound, lambda_bound);
+  vdf11.computeVdfSolution(blk3.getHash().toString());
+  DagBlock blk11(blk3.getHash(), propose_level, {},
                  {transactions[20].getHash(), transactions[21].getHash()},
-                 sig_t(0), blk_hash_t(0), addr_t(999));
-  blk11.sign(g_secret2);
+                 vdf11);
+  blk11.sign(sk);
   std::vector<Transaction> tr11({transactions[20], transactions[21]});
-
-  DagBlock blk12(blk5.getHash(), 3, {},
+  // DAG block12
+  last_anchor = blk_hash_t(node1->getDagManager()->getLatestAnchor());
+  propose_level = 3;
+  vdf_sortition::Message msg12(last_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf12(node_key.address(), vrf_sk, msg12,
+                                    difficulty_bound, lambda_bound);
+  vdf12.computeVdfSolution(blk5.getHash().toString());
+  DagBlock blk12(blk5.getHash(), propose_level, {},
                  {transactions[22].getHash(), transactions[23].getHash()},
-                 sig_t(0), blk_hash_t(0), addr_t(999));
-  blk12.sign(g_secret2);
+                 vdf12);
+  blk12.sign(sk);
   std::vector<Transaction> tr12({transactions[22], transactions[23]});
 
   blks.push_back(blk1);
@@ -740,7 +884,8 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (auto i = 0; i < blks.size(); ++i) {
-    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i], trxs[i]);
+    node1->getBlockManager()->insertBroadcastedBlockWithTransactions(blks[i],
+                                                                     trxs[i]);
   }
 
   taraxa::thisThreadSleepForMilliSeconds(200);
@@ -768,10 +913,8 @@ TEST_F(NetworkTest, node_sync2) {
   EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 13);
 }
 
-/*
-Test creates new transactions on one node and verifies
-that the second node receives the transactions
-*/
+// Test creates new transactions on one node and verifies
+// that the second node receives the transactions
 TEST_F(NetworkTest, node_transaction_sync) {
   auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
 
@@ -797,87 +940,139 @@ TEST_F(NetworkTest, node_transaction_sync) {
   taraxa::thisThreadSleepForMilliSeconds(2000);
 
   for (auto const& t : *g_signed_trx_samples) {
-    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr);
-    if (node2->getTransactionManager()->getTransaction(t.getHash()) != nullptr) {
-      EXPECT_EQ(t, node2->getTransactionManager()->getTransaction(t.getHash())->first);
+    EXPECT_TRUE(node2->getTransactionManager()->getTransaction(t.getHash()) !=
+                nullptr);
+    if (node2->getTransactionManager()->getTransaction(t.getHash()) !=
+        nullptr) {
+      EXPECT_EQ(
+          t,
+          node2->getTransactionManager()->getTransaction(t.getHash())->first);
     }
   }
 }
 
-/*
-Test creates multiple nodes and creates new transactions in random time
-intervals on randomly selected nodes It verifies that the blocks created from
-these transactions which get created on random nodes are synced and the
-resulting DAG is the same on all nodes
-*/
+// Test creates multiple nodes and creates new transactions in random time
+// intervals on randomly selected nodes It verifies that the blocks created from
+// these transactions which get created on random nodes are synced and the
+// resulting DAG is the same on all nodes
 // fixme: flaky
 TEST_F(NetworkTest, node_full_sync) {
   const int numberOfNodes = 5;
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-  node1->start(true);  // boot node
-
   std::vector<FullNode::Handle> nodes;
-  for (int i = 0; i < numberOfNodes; i++) {
-    FullNodeConfig config(conf_file[1]);
-    config.db_path += std::to_string(i + 1);
-    config.network.network_listen_port += i + 1;
-    config.node_secret = "";
+  // Generate 4 nodes first
+  for (auto i = 0; i < numberOfNodes - 1; i++) {
+    FullNodeConfig config(conf_file[i]);
     nodes.push_back(taraxa::FullNode::make(config, true));
-    nodes[i]->start(false);  // boot node
+    if (i == 0) {
+      nodes[i]->start(true);  // boot node
+    } else {
+      nodes[i]->start(false);  // non-boot node
+    }
     taraxa::thisThreadSleepForMilliSeconds(50);
   }
-
-  taraxa::thisThreadSleepForMilliSeconds(10000);
+  // Check 4 nodes peers connection
+  auto node0_peers = nodes[0]->getNetwork()->getPeerCount();
+  auto node1_peers = nodes[1]->getNetwork()->getPeerCount();
+  auto node2_peers = nodes[2]->getNetwork()->getPeerCount();
+  auto node3_peers = nodes[3]->getNetwork()->getPeerCount();
+  for (auto i = 0; i < 600; i++) {
+    if (node0_peers == 4 && node1_peers == 4 && node2_peers == 4 &&
+        node3_peers == 4) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+    node0_peers = nodes[0]->getNetwork()->getPeerCount();
+    node1_peers = nodes[1]->getNetwork()->getPeerCount();
+    node2_peers = nodes[2]->getNetwork()->getPeerCount();
+    node3_peers = nodes[3]->getNetwork()->getPeerCount();
+  }
+  ASSERT_EQ(node0_peers, 3);
+  ASSERT_EQ(node1_peers, 3);
+  ASSERT_EQ(node2_peers, 3);
+  ASSERT_EQ(node3_peers, 3);
 
   std::random_device dev;
   std::mt19937 rng(dev());
   std::uniform_int_distribution<std::mt19937::result_type> distTransactions(
       1, 200);
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(
-      0, numberOfNodes - 1);  // distribution in range [1, 2000]
+      0, numberOfNodes - 2);  // range [0, 3]
 
   int counter = 0;
   std::vector<Transaction> ts;
-  for (auto i = 0; i < NUM_TRX2; ++i) {
+  // Generate 50 transactions
+  for (auto i = 0; i < 50; ++i) {
     ts.push_back(samples::TX_GEN->getWithRandomUniqueSender());
   }
-  for (auto i = 0; i < NUM_TRX2; ++i) {
+  for (auto i = 0; i < 50; ++i) {
     std::vector<taraxa::bytes> transactions;
     transactions.emplace_back(ts[i].rlp(true));
-    nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions(transactions);
+    nodes[distNodes(rng)]
+        ->getTransactionManager()
+        ->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;
   }
+  ASSERT_EQ(counter, 50);  // 50 transactions
 
   std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
+  // Check 4 nodes DAG syncing
   for (int i = 0; i < 240; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(500);
     bool finished = true;
-    for (int j = 0; j < numberOfNodes; j++) {
+    for (int j = 1; j < numberOfNodes - 1; j++) {
       if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
-          node1->getDagManager()->getNumVerticesInDag().first) {
+          nodes[0]->getDagManager()->getNumVerticesInDag().first) {
         finished = false;
         break;
       }
     }
-    if (finished) break;
+    if (finished) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(500);
+  }
+  for (auto i = 1; i < numberOfNodes - 1; i++) {
+    std::cout << "Node index i " << i << std::endl;
+    ASSERT_EQ(nodes[0]->getDagManager()->getNumVerticesInDag().first,
+              nodes[i]->getDagManager()->getNumVerticesInDag().first);
   }
 
-  FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa2.json"));
-  config.db_path += std::to_string(numberOfNodes + 1);
-  config.network.network_listen_port += numberOfNodes + 1;
-  config.node_secret = "";
+  // Bootstrapping node5 join the network
+  FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa5.json"));
   nodes.push_back(taraxa::FullNode::make(config, true));
-  nodes[numberOfNodes]->start(false);  // boot node
-  taraxa::thisThreadSleepForMilliSeconds(50);
+  nodes[numberOfNodes - 1]->start(false);  // non-boot node
+  // Check 5 nodes peers connections
+  node0_peers = nodes[0]->getNetwork()->getPeerCount();
+  node1_peers = nodes[1]->getNetwork()->getPeerCount();
+  node2_peers = nodes[2]->getNetwork()->getPeerCount();
+  node3_peers = nodes[3]->getNetwork()->getPeerCount();
+  auto node4_peers = nodes[4]->getNetwork()->getPeerCount();
+  for (auto i = 0; i < 600; i++) {
+    if (node0_peers == 4 && node1_peers == 4 && node2_peers == 4 &&
+        node3_peers == 4 && node4_peers == 4) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+    node0_peers = nodes[0]->getNetwork()->getPeerCount();
+    node1_peers = nodes[1]->getNetwork()->getPeerCount();
+    node2_peers = nodes[2]->getNetwork()->getPeerCount();
+    node3_peers = nodes[3]->getNetwork()->getPeerCount();
+    node4_peers = nodes[4]->getNetwork()->getPeerCount();
+  }
+  ASSERT_EQ(node0_peers, 4);
+  ASSERT_EQ(node1_peers, 4);
+  ASSERT_EQ(node2_peers, 4);
+  ASSERT_EQ(node3_peers, 4);
+  ASSERT_EQ(node4_peers, 4);
 
-  std::cout << "Waiting Sync for up to 2 minutes ..." << std::endl;
+  std::cout << "Waiting Sync for up to 4 minutes ..." << std::endl;
+  // Check 5 nodes DAG syncing
   for (int i = 0; i < 240; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(500);
+    taraxa::thisThreadSleepForMilliSeconds(1000);
     bool finished = true;
-    for (int j = 0; j < numberOfNodes + 1; j++) {
+    for (int j = 1; j < numberOfNodes; j++) {
       if (nodes[j]->getDagManager()->getNumVerticesInDag().first !=
-          node1->getDagManager()->getNumVerticesInDag().first) {
+          nodes[0]->getDagManager()->getNumVerticesInDag().first) {
         finished = false;
         break;
       }
@@ -890,25 +1085,26 @@ TEST_F(NetworkTest, node_full_sync) {
     else
       printf("Waiting %d\n", i);
   }
-
-  EXPECT_GT(node1->getDagManager()->getNumVerticesInDag().first, 0);
-  EXPECT_GT(10, node1->getTransactionManager()->getVerifiedTrxSnapShot().size());
-  for (int i = 0; i < numberOfNodes + 1; i++) {
+  EXPECT_GT(nodes[0]->getDagManager()->getNumVerticesInDag().first, 0);
+  EXPECT_GT(10,
+            nodes[0]->getTransactionManager()->getVerifiedTrxSnapShot().size());
+  for (int i = 0; i < numberOfNodes; i++) {
+    std::cout << "Index i " << i << std::endl;
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
-              node1->getDagManager()->getNumVerticesInDag().first);
+              nodes[0]->getDagManager()->getNumVerticesInDag().first);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
               nodes[i]->getDB()->getNumDagBlocks());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first,
-              node1->getDagManager()->getNumEdgesInDag().first);
+              nodes[0]->getDagManager()->getNumEdgesInDag().first);
     EXPECT_TRUE(nodes[i]->getNetwork()->isSynced());
   }
 
   // Write any DAG diff
-  for (int i = 0; i < numberOfNodes + 1; i++) {
+  for (int i = 1; i < numberOfNodes; i++) {
     uint64_t level = 1;
     while (true) {
-      auto blocks1 = node1->getDB()->getDagBlocksAtLevel(level, 1);
+      auto blocks1 = nodes[0]->getDB()->getDagBlocksAtLevel(level, 1);
       auto blocks2 = nodes[i]->getDB()->getDagBlocksAtLevel(level, 1);
       if (blocks1.size() != blocks2.size()) {
         std::cout << "DIFF at level %lu: " << level << std::endl;
@@ -926,7 +1122,7 @@ TEST_F(NetworkTest, node_full_sync) {
   std::map<blk_hash_t, std::set<trx_hash_t>> trxHist;
   uint64_t level = 1;
   while (true) {
-    auto blocks1 = node1->getDB()->getDagBlocksAtLevel(level, 1);
+    auto blocks1 = nodes[0]->getDB()->getDagBlocksAtLevel(level, 1);
     for (auto b : blocks1) {
       for (auto t : trxHist[b->getPivot()]) trxHist[b->getHash()].insert(t);
       for (auto tip : b->getTips()) {
@@ -935,7 +1131,7 @@ TEST_F(NetworkTest, node_full_sync) {
       for (auto t : b->getTrxs()) {
         if (trxHist[b->getHash()].count(t) > 0) {
           printf("FOUND DUPLICATE TRANSACTION %s\n", t.toString().c_str());
-          ASSERT_EQ(1, 2);
+          EXPECT_TRUE(false);
         }
         trxHist[b->getHash()].insert(t);
       }
@@ -956,6 +1152,11 @@ int main(int argc, char** argv) {
   // logOptions.includeChannels.push_back("DAGSYNC");
   // logOptions.includeChannels.push_back("NETWORK");
   // logOptions.includeChannels.push_back("TARCAP");
+  logOptions.includeChannels.push_back("TMSTM");
+  logOptions.includeChannels.push_back("BLKQU");
+  // logOptions.includeChannels.push_back("DAGMGR");
+  logOptions.includeChannels.push_back("DAGPRP");
+  logOptions.includeChannels.push_back("VDF");
   dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
