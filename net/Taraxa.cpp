@@ -5,12 +5,13 @@
 #include <libethcore/CommonJS.h>
 #include <libethereum/TransactionReceipt.h>
 #include <libp2p/Common.h>
-#include "dag_block.hpp"
-#include "transaction_manager.hpp"
-#include "pbft_manager.hpp"
-#include "dag.hpp"
 
 #include <csignal>
+
+#include "dag.hpp"
+#include "dag_block.hpp"
+#include "pbft_manager.hpp"
+#include "transaction_manager.hpp"
 
 using namespace std;
 using namespace jsonrpc;
@@ -19,6 +20,23 @@ using namespace eth;
 using namespace taraxa;
 
 namespace taraxa::net {
+
+Json::Value toJSON(::taraxa::Transaction const& t) {
+  Json::Value res;
+  res["hash"] = dev::toJS(t.getHash());
+  res["sender"] = dev::toJS(t.getSender());
+  res["nonce"] = dev::toJS(t.getNonce());
+  res["value"] = dev::toJS(t.getValue());
+  res["gas_price"] = dev::toJS(t.getGasPrice());
+  res["gas"] = dev::toJS(t.getGas());
+  res["sig"] = dev::toJS((sig_t const&)t.getVRS());
+  res["receiver"] = dev::toJS(t.getReceiver().value_or(dev::ZeroAddress));
+  res["data"] = dev::toJS(t.getData());
+  if (auto v = t.getChainID(); v) {
+    res["chain_id"] = dev::toJS(v);
+  }
+  return res;
+}
 
 Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node)
     : full_node_(_full_node) {}
@@ -60,7 +78,8 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
     auto block = node->getBlockManager()->getDagBlock(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
-      auto period = node->getPbftManager()->getDagBlockPeriod(blk_hash_t(block->getHash()));
+      auto period = node->getPbftManager()->getDagBlockPeriod(
+          blk_hash_t(block->getHash()));
       if (period.first) {
         block_json["period"] = toJS(period.second);
       } else {
@@ -70,7 +89,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : block->getTrxs()) {
           block_json["transactions"].append(
-              node->getTransactionManager()->getTransaction(t)->first.getJson());
+              toJSON(node->getTransactionManager()->getTransaction(t)->first));
         }
       }
       return block_json;
@@ -85,7 +104,8 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(
     std::string const& _period) {
   try {
     auto node = tryGetNode();
-    auto block = node->getPbftManager()->getScheduleBlockByPeriod(std::stoull(_period, 0, 16));
+    auto block = node->getPbftManager()->getScheduleBlockByPeriod(
+        std::stoull(_period, 0, 16));
     Json::Value res;
     Json::Reader reader;
     reader.parse(block, res);
@@ -99,11 +119,13 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
                                               bool _includeTransactions) {
   try {
     auto node = tryGetNode();
-    auto blocks = node->getDB()->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
+    auto blocks =
+        node->getDB()->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
     auto res = Json::Value(Json::arrayValue);
     for (auto const& b : blocks) {
       auto block_json = b->getJson();
-      auto period = node->getPbftManager()->getDagBlockPeriod(blk_hash_t(b->getHash()));
+      auto period =
+          node->getPbftManager()->getDagBlockPeriod(blk_hash_t(b->getHash()));
       if (period.first) {
         block_json["period"] = toJS(period.second);
       } else {
@@ -113,7 +135,7 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : b->getTrxs()) {
           block_json["transactions"].append(
-              node->getTransactionManager()->getTransaction(t)->first.getJson());
+              toJSON(node->getTransactionManager()->getTransaction(t)->first));
         }
       }
       res.append(block_json);

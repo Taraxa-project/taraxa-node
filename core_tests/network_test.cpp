@@ -66,8 +66,8 @@ TEST_F(NetworkTest, transfer_block) {
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
-  transactions.emplace_back(g_signed_trx_samples[0].rlp(true));
-  transactions.emplace_back(g_signed_trx_samples[1].rlp(true));
+  transactions.emplace_back(*g_signed_trx_samples[0].rlp());
+  transactions.emplace_back(*g_signed_trx_samples[1].rlp());
   nw2->onNewTransactions(transactions);
 
   taraxa::thisThreadSleepForSeconds(1);
@@ -125,9 +125,9 @@ TEST_F(NetworkTest, transfer_transaction) {
   nw1->start(true);
   nw2->start();
   std::vector<taraxa::bytes> transactions;
-  transactions.push_back(g_signed_trx_samples[0].rlp(true));
-  transactions.push_back(g_signed_trx_samples[1].rlp(true));
-  transactions.push_back(g_signed_trx_samples[2].rlp(true));
+  transactions.push_back(*g_signed_trx_samples[0].rlp());
+  transactions.push_back(*g_signed_trx_samples[1].rlp());
+  transactions.push_back(*g_signed_trx_samples[2].rlp());
 
   taraxa::thisThreadSleepForSeconds(1);
 
@@ -779,7 +779,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
 
   std::vector<taraxa::bytes> transactions;
   for (auto const& t : *g_signed_trx_samples) {
-    transactions.emplace_back(t.rlp(true));
+    transactions.emplace_back(*t.rlp());
   }
 
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -843,7 +843,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
   for (auto i = 0; i < NUM_TRX2; ++i) {
     std::vector<taraxa::bytes> transactions;
-    transactions.emplace_back(ts[i].rlp(true));
+    transactions.emplace_back(*ts[i].rlp());
     nodes[distNodes(rng)]->getTransactionManager()->insertBroadcastedTransactions(transactions);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
     counter++;

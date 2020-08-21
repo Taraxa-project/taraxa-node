@@ -1587,6 +1587,9 @@ TEST_F(FullNodeTest, DISABLED_mem_usage) {
 
 int main(int argc, char **argv) {
   taraxa::static_init();
+  dev::LoggingOptions logOptions;
+  logOptions.verbosity = dev::VerbosityError;
+  dev::setupLogging(logOptions);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

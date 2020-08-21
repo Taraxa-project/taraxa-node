@@ -1,6 +1,7 @@
+#include "transaction.hpp"
+
 #include <gtest/gtest.h>
 
-#include <memory>
 #include <thread>
 #include <vector>
 
@@ -8,7 +9,6 @@
 #include "create_samples.hpp"
 #include "static_init.hpp"
 #include "transaction_manager.hpp"
-#include "util/lazy.hpp"
 
 namespace taraxa {
 using ::taraxa::util::lazy::Lazy;
@@ -53,42 +53,76 @@ TEST_F(TransactionTest, status_table_lru) {
   EXPECT_LE(status_table.size(), 100);
 }
 
-TEST_F(TransactionTest, serialize_deserialize) {
-  Transaction& trans1 = g_trx_samples[0];
-  std::stringstream ss1, ss2;
-  ss1 << trans1;
-  std::vector<uint8_t> bytes;
-  {
-    vectorstream strm1(bytes);
-    trans1.serialize(strm1);
+TEST_F(TransactionTest, sig) {
+  /* The test data was generated via web3.py v5.12.0 in the following way
+   * in the order of appearance:
+  import web3
+  acc = web3.Account.from_key(
+    "0xb6a431fe9f5a79da0c53702ca5dd619846e21ce5c3b7b77148aa8478240087cd")
+  print(acc.privateKey.hex())
+  print(acc.address)
+  print(acc.sign_transaction(dict(chainId=0, nonce=0, gas=0,
+    gasPrice=0)).rawTransaction.hex())
+  for chain_id in [None, 1, 1 << 32]:
+      print(acc.sign_transaction(dict(
+          nonce=1,
+          value=2,
+          gasPrice=3,
+          gas=4,
+          data='0xabcd',
+          to='0xd3CdA913deB6f67967B99D67aCDFa1712C293601',
+          chainId=chain_id
+      )).hash.hex())
+   */
+  secret_t sk(
+      "0xb6a431fe9f5a79da0c53702ca5dd619846e21ce5c3b7b77148aa8478240087cd");
+  addr_t sender("0x9DeAC03F89e7819a241Ee3856715A1Ab76248023");
+  ASSERT_THROW(Transaction(dev::jsToBytes(
+                   "0xf84980808080808024a01404adc97c8b58fef303b2862d0e72378"
+                   "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
+                   "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
+               Transaction::InvalidChainID);
+  vector<pair<uint64_t, string>> valid_cases{
+      {0, "0xf647d1d47ce927ce2fb9f57e4e2a3c32b037c5e544b44611077f5cc6980b0bc2"},
+      {1, "0x49c1cb845df5d3ed238ca37ad25ca96f417e4f22d7911224cf3c2a725985e7ff"},
+      {uint64_t(1) << uint(32),
+       "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
+  };
+  for (auto& [chain_id, hash_str] : valid_cases) {
+    Transaction t(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk,
+                  addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"),
+                  chain_id);
+    for (auto i : {1, 0}) {
+      ASSERT_EQ(t.getSender(), sender);
+      ASSERT_EQ(t.getChainID(), chain_id);
+      ASSERT_EQ(t.getHash(), h256(hash_str));
+      if (i) {
+        t = Transaction(*t.rlp());
+        continue;
+      }
+      RLPStream with_modified_payload(9);
+      RLPStream with_invalid_signature(9);
+      uint fields_processed = 0;
+      auto rlp = t.rlp();
+      for (auto const& el : RLP(*rlp)) {
+        if (auto el_modified = el.toBytes(); ++fields_processed <= 6) {
+          for (auto& b : el_modified) {
+            b = ~b;
+          }
+          with_modified_payload << el_modified;
+          with_invalid_signature << el.toBytes();
+        } else {
+          for (auto& b : el_modified) {
+            b = 0;
+          }
+          with_modified_payload << el.toBytes();
+          with_invalid_signature << el_modified;
+        }
+      }
+      ASSERT_NE(Transaction(with_modified_payload.out()).getSender(), sender);
+      ASSERT_TRUE(!Transaction(with_invalid_signature.out()).getSender());
+    }
   }
-
-  bufferstream strm2(bytes.data(), bytes.size());
-
-  Transaction trans2(strm2);
-  ss2 << trans2;
-  // Compare transaction content
-  ASSERT_EQ(ss1.str(), ss2.str());
-  // Compare json format
-  ASSERT_EQ(trans1.getJsonStr(), trans2.getJsonStr());
-  // Get data size, check leading and training zeros
-  ASSERT_EQ(trans2.getData().size(), 12);
-  // Construct transaction from json
-  Transaction trans3(trans2.getJsonStr());
-  ASSERT_EQ(trans2.getJsonStr(), trans3.getJsonStr());
-}
-
-TEST_F(TransactionTest, signer_signature_verify) {
-  Transaction trans1 = g_trx_samples[0];
-  Transaction trans2 = g_trx_samples[1];
-  auto pk = dev::toPublic(g_secret);
-  trans1.sign(g_secret);
-  trans2.sign(g_secret);
-  EXPECT_NE(trans1.getSig(), trans2.getSig());
-  EXPECT_NE(trans1.getHash(), trans2.getHash());
-  EXPECT_EQ(trans1.sender(), trans2.sender());
-  EXPECT_TRUE(trans1.verifySig());
-  EXPECT_TRUE(trans2.verifySig());
 }
 
 TEST_F(TransactionTest, verifiers) {
@@ -102,13 +136,13 @@ TEST_F(TransactionTest, verifiers) {
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(false), true);
+      trx_mgr.insertTrx(t, true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTrx(t, t.rlp(false), false);
+    trx_mgr.insertTrx(t, false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -127,13 +161,13 @@ TEST_F(TransactionTest, transaction_limit) {
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(false), true);
+      trx_mgr.insertTrx(t, true);
     }
   });
 
   // insert trx again, should not duplicated
   for (auto const& t : *g_trx_samples) {
-    trx_mgr.insertTrx(t, t.rlp(false), false);
+    trx_mgr.insertTrx(t, false);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
@@ -153,7 +187,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTrx(t, t.rlp(false), false);
+      trx_mgr.insertTrx(t, false);
     }
   });
 

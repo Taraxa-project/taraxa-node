@@ -1123,7 +1123,7 @@ void TaraxaCapability::sendBlock(NodeID const &_id, taraxa::DagBlock block,
     } else {
       assert(test_transactions_.find(trx) != test_transactions_.end());
       transaction = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-          test_transactions_[trx], test_transactions_[trx].rlp(true));
+          test_transactions_[trx], *test_transactions_[trx].rlp());
     }
     assert(transaction != nullptr);  // We should never try to send a block for
                                      // which  we do not have all transactions

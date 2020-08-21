@@ -104,7 +104,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       LOG(log_time) << "Transaction " << trx.getHash()
                     << " received at: " << now;
       node->getTransactionManager()->insertTransaction(trx, true);
-      res = toHex(trx.rlp(true));
+      res = toHex(*trx.rlp());
     }
   } catch (std::exception &e) {
     res["status"] = e.what();

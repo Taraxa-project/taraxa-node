@@ -7,6 +7,7 @@
 #include "transaction.hpp"
 #include "transaction_queue.hpp"
 #include "util/simple_event.hpp"
+#include "transaction_status.hpp"
 
 namespace taraxa {
 
@@ -61,9 +62,7 @@ class TransactionManager
   void stop();
   void setNetwork(std::shared_ptr<Network> network);
   void setWsServer(std::shared_ptr<net::WSServer> ws_server);
-  std::pair<bool, std::string> insertTrx(Transaction const &trx,
-                                         taraxa::bytes const &trx_serialized,
-                                         bool verify);
+  std::pair<bool, std::string> insertTrx(Transaction const &trx, bool verify);
 
   void setPendingBlock(std::shared_ptr<aleth::PendingBlock> pending_block) {
     pending_block_ = pending_block;

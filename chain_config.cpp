@@ -7,7 +7,6 @@ using std::stringstream;
 
 LazyVal<ChainConfig> const ChainConfig::Default([] {
   ChainConfig ret;
-  ret.chain_id = -4;
   ret.dag_genesis_block = DagBlock(string(R"({
       "level": 0,
       "tips": [],
