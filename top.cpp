@@ -94,7 +94,7 @@ Top::Top(int argc, const char* argv[]) {
                           fmt("Transaction is rejected.\n"
                               "RLP: %s\n"
                               "Reason: %s",
-                              dev::toJS(trx.rlp()), result.second)));
+                              dev::toJS(*trx.rlp()), result.second)));
                     }
                   }),
               node_->getTransactionManager()->getFilterAPI(),

@@ -42,7 +42,6 @@ T parse_rlp_file(path const& p) {
 }
 
 TEST_F(StateAPITest, eth_mainnet_smoke) {
-  return;
   static auto const test_data_dir = path(__FILE__).parent_path() /
                                     "submodules" / "taraxa-evm" / "taraxa" /
                                     "data";

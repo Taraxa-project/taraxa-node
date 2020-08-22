@@ -22,13 +22,10 @@ Transaction::Transaction(uint64_t nonce, val_t const &value,
       vrs(dev::sign(sk, hash_for_signature())) {
   if (auto pubkey = dev::toPublic(sk); pubkey) {
     sender_ = dev::toAddress(pubkey);
-  } else {
-    assert(false);
   }
 }
 
 Transaction::Transaction(bytes const &_rlp, bool verify_strict) {
-  verify_strict = false;
   auto strictness =
       verify_strict ? dev::RLP::VeryStrict : dev::RLP::LaissezFaire;
   uint fields_processed = 0;
@@ -114,9 +111,8 @@ shared_ptr<bytes> Transaction::rlp(bool cache) const {
   }
   dev::RLPStream s;
   streamRLP<false>(s);
-  shared_ptr<bytes> ret(new auto(s.out()));
-  return ret;
-  //  return cache ? cached_rlp = move(ret) : ret;
+  shared_ptr<bytes> ret(new auto(s.invalidate()));
+  return cache ? cached_rlp = move(ret) : ret;
 };
 
 trx_hash_t Transaction::hash_for_signature() const {

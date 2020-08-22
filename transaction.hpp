@@ -46,10 +46,10 @@ struct Transaction {
               std::optional<addr_t> const &receiver = std::nullopt,
               uint64_t chain_id = 0);
   explicit Transaction(bytes const &_rlp, bool verify_strict = false);
-  //  explicit Transaction(bytes &&rlp, bool verify_strict = false)
-  //      : Transaction(rlp, verify_strict) {
-  //    cached_rlp.reset(new auto(move(rlp)));
-  //  }
+  explicit Transaction(bytes &&rlp, bool verify_strict = false)
+      : Transaction(rlp, verify_strict) {
+    cached_rlp.reset(new auto(move(rlp)));
+  }
 
   trx_hash_t const &getHash() const;
   addr_t const &getSender() const;
