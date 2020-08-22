@@ -1,15 +1,12 @@
 #ifndef TARAXA_NODE_TRANSACTION_HPP
 #define TARAXA_NODE_TRANSACTION_HPP
 
-#include <libdevcore/RLP.h>
-#include <libdevcore/SHA3.h>
-#include <libdevcrypto/Common.h>
-#include <libethcore/Common.h>
+//#include <rocksdb/db.h>
+//#include <rocksdb/options.h>
+//#include <rocksdb/slice.h>
+//#include <rocksdb/write_batch.h>
 
-#include <optional>
-#include <stdexcept>
-
-#include "util.hpp"
+#include "types.hpp"
 
 namespace taraxa {
 
@@ -49,10 +46,10 @@ struct Transaction {
               std::optional<addr_t> const &receiver = std::nullopt,
               uint64_t chain_id = 0);
   explicit Transaction(bytes const &_rlp, bool verify_strict = false);
-//  explicit Transaction(bytes &&rlp, bool verify_strict = false)
-//      : Transaction(rlp, verify_strict) {
-//    cached_rlp.reset(new auto(move(rlp)));
-//  }
+  //  explicit Transaction(bytes &&rlp, bool verify_strict = false)
+  //      : Transaction(rlp, verify_strict) {
+  //    cached_rlp.reset(new auto(move(rlp)));
+  //  }
 
   trx_hash_t const &getHash() const;
   addr_t const &getSender() const;

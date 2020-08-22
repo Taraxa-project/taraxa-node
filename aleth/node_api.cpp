@@ -2,6 +2,8 @@
 
 #include <optional>
 
+#include "util.hpp"
+
 namespace taraxa::aleth {
 using namespace std;
 using namespace dev;
