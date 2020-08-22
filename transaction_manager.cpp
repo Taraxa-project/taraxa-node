@@ -242,7 +242,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
 
 std::pair<bool, std::string> TransactionManager::insertTrx(
     Transaction const &trx, bool verify) {
-  auto const& hash = trx.getHash();
+  auto hash = trx.getHash();
   db_->saveTransaction(trx);
 
   if (conf_.test_params.max_transaction_queue_warn > 0 ||
