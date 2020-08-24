@@ -140,7 +140,7 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start,
                     4,                                      // gas_price
                     5,                                      // gas
                     str2bytes("00FEDCBA9876543210000000"),  // data
-                    secret_t(),                             // secret
+                    secret_t::random(),                     // secret
                     addr_t(i * 1000)                        // receiver
     );
     trxs.emplace_back(trx);
