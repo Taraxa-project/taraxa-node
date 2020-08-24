@@ -147,9 +147,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   uint64_t getNumReceivedBlocks() const;
   uint64_t getNumProposedBlocks() const;
 
-  void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
-    ws_server_ = ws_server;
-  }
+  void setWSServer(std::shared_ptr<taraxa::net::WSServer> const &ws_server);
   auto getFinalChain() const { return final_chain_; }
   auto getTrxOrderMgr() const { return trx_order_mgr_; }
   auto getWSServer() const { return ws_server_; }
