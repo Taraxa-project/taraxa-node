@@ -23,20 +23,8 @@ struct DatabaseImpl : virtual Database {
     db_->batch_put(batch_, column_, db_slice(k), db_slice(v));
   }
 
-  void kill(Slice k) override {
-    db_->batch_delete(batch_, column_, db_slice(k));
-  }
-
   string lookup(Slice _key) const override {
     return db_->lookup(db_slice(_key), column_);
-  }
-
-  bool exists(Slice _key) const override { return !lookup(_key).empty(); }
-
-  void forEach(function<bool(Slice, Slice)> f) const override {
-    db_->forEach(column_, [&](auto const& k, auto const& v) {
-      return f(aleth_slice(k), aleth_slice(v));
-    });
   }
 };
 
