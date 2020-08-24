@@ -227,7 +227,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::unordered_set<std::string> getUnOrderedDagBlks() const {
     return total_dag_->getUnOrderedDagBlks();
   }
-  std::queue<std::pair<std::string, uint64_t>> getAnchors() const {
+  std::deque<std::pair<std::string, uint64_t>> getAnchors() const {
     return anchors_;
   }
   void recoverAnchors(uint64_t pbft_chain_size);
@@ -246,8 +246,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::queue<std::pair<std::string, uint64_t>>
-      anchors_;  // pivots that define periods
+  std::deque<std::pair<std::string, uint64_t>>
+      anchors_;  // pivots that define periods, <anchor, period>
   std::string genesis_;
   LOG_OBJECTS_DEFINE;
 };

@@ -39,8 +39,7 @@ void TransactionQueue::insert(Transaction const &trx, bool verify) {
     unverified_hash_qu_.emplace_back(std::make_pair(hash, iter));
     cond_for_unverified_qu_.notify_one();
   }
-  LOG(log_nf_) << " Trx: " << hash << " inserted. "
-               << verify << std::endl;
+  LOG(log_nf_) << " Trx: " << hash << " inserted. " << verify << std::endl;
 }
 
 std::pair<trx_hash_t, TransactionQueue::listIter>

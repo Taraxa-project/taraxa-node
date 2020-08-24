@@ -45,8 +45,7 @@ inline vector<vector<const char*>> const conf_input = {
     {"./build/main", "--conf_taraxa", conf_file[1], "--destroy_db"},
     {"./build/main", "--conf_taraxa", conf_file[2], "--destroy_db"},
     {"./build/main", "--conf_taraxa", conf_file[3], "--destroy_db"},
-    {"./build/main", "--conf_taraxa", conf_file[4],
-     "--destroy_db"}};
+    {"./build/main", "--conf_taraxa", conf_file[4], "--destroy_db"}};
 
 inline vector<vector<const char*>> const conf_input_persist_db = {
     {"./build/main", "--conf_taraxa", conf_file[0]},
@@ -107,7 +106,8 @@ createNodesAndVerifyConnection(int count, int min_connections = 1,
         taraxa::thisThreadSleepForMilliSeconds(200);
         allConnected = true;
         for (int j = 0; j < count; j++) {
-          allConnected &= (nodes[j]->getNetwork()->getPeerCount() >= min_connections);
+          allConnected &=
+              (nodes[j]->getNetwork()->getPeerCount() >= min_connections);
         }
         if (allConnected) break;
       }

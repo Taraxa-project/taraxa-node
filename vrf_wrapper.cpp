@@ -1,16 +1,20 @@
 #include "vrf_wrapper.hpp"
+
 namespace taraxa::vrf_wrapper {
+
 std::pair<vrf_pk_t, vrf_sk_t> getVrfKeyPair() {
   vrf_sk_t sk;
   vrf_pk_t pk;
   crypto_vrf_keypair((unsigned char *)pk.data(), (unsigned char *)sk.data());
   return {pk, sk};
 }
+
 vrf_pk_t getVrfPublicKey(vrf_sk_t const &sk) {
   vrf_pk_t pk;
   crypto_vrf_sk_to_pk((unsigned char *)pk.data(), (unsigned char *)sk.data());
   return pk;
 }
+
 bool isValidVrfPublicKey(vrf_pk_t const &pk) {
   return crypto_vrf_is_valid_key((unsigned char *)pk.data()) == 1;
 }

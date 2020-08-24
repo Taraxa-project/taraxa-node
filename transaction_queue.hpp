@@ -1,8 +1,8 @@
 #ifndef TARAXA_NODE_TRANSACTION_QUEUE_HPP
 #define TARAXA_NODE_TRANSACTION_QUEUE_HPP
 
-#include "transaction.hpp"
 #include "config.hpp"
+#include "transaction.hpp"
 
 namespace taraxa {
 
@@ -10,16 +10,11 @@ using std::string;
 class DagBlock;
 class FullNode;
 
-/**
- */
-
 class TransactionQueue {
  public:
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
   using listIter = std::list<Transaction>::iterator;
-  TransactionQueue(addr_t node_addr) {
-    LOG_OBJECTS_CREATE("TRXQU");
-  }
+  TransactionQueue(addr_t node_addr) { LOG_OBJECTS_CREATE("TRXQU"); }
   ~TransactionQueue() { stop(); }
 
   void start();

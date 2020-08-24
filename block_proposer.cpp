@@ -5,50 +5,11 @@
 #include "dag.hpp"
 #include "transaction.hpp"
 #include "transaction_manager.hpp"
-#include "types.hpp"
 
 namespace taraxa {
 
-std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
-std::mt19937 RandomPropose::generator;
 using namespace vdf_sortition;
-
-uint posLog2(val_t val) {
-  if (val <= 0) return 0;
-  int count = 0;
-  while (val) {
-    val >>= 1;
-    count += 1;
-  }
-  return count - 1;
-}
-
-bool RandomPropose::propose() {
-  auto proposer = proposer_.lock();
-  if (!proposer) {
-    LOG(log_er_) << "Block proposer not available" << std::endl;
-    return false;
-  }
-  auto delay = distribution_(RandomPropose::generator);
-  thisThreadSleepForMilliSeconds(delay);
-  LOG(log_tr_) << "Add proposer delay " << delay << std::endl;
-
-  vec_trx_t sharded_trxs;
-  DagFrontier frontier;
-
-  bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
-  if (!ok) {
-    return false;
-  }
-  assert(!frontier.pivot.isZero());
-  auto propose_level =
-      proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
-
-  DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs);
-
-  proposer_.lock()->proposeBlock(blk);
-  return true;
-}
+std::atomic<uint64_t> BlockProposer::num_proposed_blocks = 0;
 
 bool SortitionPropose::propose() {
   auto proposer = proposer_.lock();
@@ -56,7 +17,6 @@ bool SortitionPropose::propose() {
     LOG(log_er_) << "Block proposer not available" << std::endl;
     return false;
   }
-  thisThreadSleepForMilliSeconds(min_propose_delay);
 
   auto dag_height = dag_mgr_->getMaxLevel();
   if (dag_height == last_dag_height_ && last_dag_height_ > 0) {
@@ -67,28 +27,24 @@ bool SortitionPropose::propose() {
 
   vec_trx_t sharded_trxs;
   DagFrontier frontier;
-
   bool ok = proposer->getShardedTrxs(sharded_trxs, frontier);
   if (!ok) {
     return false;
   }
   assert(!frontier.pivot.isZero());
-
   auto propose_level =
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
-  auto latest_anchor = proposer->getLatestAnchor();
+  auto propose_anchor = proposer->getProposeAnchor();
 
   // get sortition
-  vdf_sortition::VdfMsg vdf_msg(latest_anchor, propose_level);
-  vdf_sortition::VdfSortition vdf(vrf_sk_, vdf_msg, difficulty_bound_,
-                                  lambda_bits_);
+  vdf_sortition::Message msg(propose_anchor, propose_level);
+  vdf_sortition::VdfSortition vdf(node_addr_, vrf_sk_, msg, difficulty_bound_,
+                                  lambda_bound_);
   vdf.computeVdfSolution(frontier.pivot.toString());
-  assert(vdf.verify(frontier.pivot.toString()));
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime()
                << " difficulty " << vdf.getDifficulty();
   DagBlock blk(frontier.pivot, propose_level, frontier.tips, sharded_trxs, vdf);
-
   proposer->proposeBlock(blk);
   last_dag_height_ = dag_height;
 
@@ -109,12 +65,13 @@ void BlockProposer::start() {
     return;
   }
   LOG(log_nf_) << "BlockProposer started ..." << std::endl;
-  propose_model_->setProposer(getShared(), node_sk_, vrf_sk_);
+  propose_model_->setProposer(getShared(), node_addr_, node_sk_, vrf_sk_);
   // reset number of proposed blocks
   BlockProposer::num_proposed_blocks = 0;
   proposer_worker_ = std::make_shared<std::thread>([this]() {
     while (!stopped_) {
       propose_model_->propose();
+      thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
   });
 }
@@ -193,8 +150,15 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
   return true;
 }
 
-blk_hash_t BlockProposer::getLatestAnchor() const {
-  return blk_hash_t(dag_mgr_->getLatestAnchor());
+blk_hash_t BlockProposer::getProposeAnchor() const {
+  auto anchors = dag_mgr_->getAnchors();
+  if (anchors.size() <= 1) {
+    // Only includes DAG genesis
+    return blk_hash_t(anchors.back().first);
+  } else {
+    // return second to last anchor
+    return blk_hash_t((anchors.end() - 2)->first);
+  }
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot,

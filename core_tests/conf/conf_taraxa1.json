@@ -28,16 +28,13 @@
     "max_transaction_queue_drop": 0,
     "max_block_queue_warn": 0,
     "block_proposer": {
-      "mode": "random",
+      "mode": "sortition",
       "shard": 1,
       "transaction_limit": 0,
-      "random_params": {
-        "min_freq": 100,
-        "max_freq": 1000
-      },
+      "min_proposal_delay": 100,
       "sortition_params": {
-        "difficulty_bound": 100,
-        "lambda_bits": 1000
+        "difficulty_bound": 15,
+        "lambda_bound": 1500
       }
     },
     "pbft": {

@@ -177,7 +177,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   void syncPeerPbft(NodeID const &_nodeID, unsigned long height_to_sync);
   void restartSyncingPbft(bool force = false);
   void delayedPbftSync(NodeID _nodeID, int counter);
-  std::pair<bool, blk_hash_t> checkTipsandPivot(DagBlock const &block);
+  std::pair<bool, blk_hash_t> checkDagBlockValidation(DagBlock const &block);
   bool interpretCapabilityPacket(NodeID const &_nodeID, unsigned _id,
                                  RLP const &_r) override;
   bool interpretCapabilityPacketImpl(NodeID const &_nodeID, unsigned _id,

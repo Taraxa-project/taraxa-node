@@ -1,4 +1,6 @@
-#pragma once
+#ifndef TARAXA_NODE_VRF_WRAPPER_H
+#define TARAXA_NODE_VRF_WRAPPER_H
+
 #include <libdevcore/RLP.h>
 #include <optional>
 #include "sodium.h"
@@ -58,3 +60,5 @@ struct VrfSortitionBase {
 };
 
 }  // namespace taraxa::vrf_wrapper
+
+#endif  // TARAXA_NODE_VRF_WRAPPER_H

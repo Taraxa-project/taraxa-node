@@ -374,7 +374,7 @@ TEST_F(FullNodeTest, db_test) {
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
-  auto tops = createNodesAndVerifyConnection(5, 2, false, 20);
+  auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
   auto &nodes = tops.second;
 
   class context {
@@ -910,7 +910,7 @@ TEST_F(FullNodeTest, destroy_node) {
 }
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
-  std::queue<std::pair<std::string, uint64_t>> anchors;
+  std::deque<std::pair<std::string, uint64_t>> anchors;
   {
     auto tops = createNodesAndVerifyConnection(1, 1, false, 20);
     auto node = tops.second[0];
@@ -996,7 +996,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes1) {
-  auto tops = createNodesAndVerifyConnection(2);
+  auto tops = createNodesAndVerifyConnection(2, 1, false, 2);
   auto &nodes = tops.second;
 
   // send 1000 trxs
@@ -1037,7 +1037,7 @@ TEST_F(FullNodeTest, persist_counter) {
   unsigned long num_exe_trx1 = 0, num_exe_trx2 = 0, num_exe_blk1 = 0,
                 num_exe_blk2 = 0, num_trx1 = 0, num_trx2 = 0;
   {
-    auto tops = createNodesAndVerifyConnection(2, 1, false, 10);
+    auto tops = createNodesAndVerifyConnection(2, 1, false, 2);
     auto &nodes = tops.second;
 
     // send 1000 trxs
@@ -1292,8 +1292,8 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   EXPECT_GT(nodes[0]->getNumProposedBlocks(), 0);
 }
 
-TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto tops = createNodesAndVerifyConnection(5, 2, false, 5);
+TEST_F(FullNodeTest, DISABLED_detect_overlap_transactions) {
+  auto tops = createNodesAndVerifyConnection(5, 4, false, 2);
   auto &nodes = tops.second;
 
   nodes[0]->getPbftManager()->stop();
@@ -1302,11 +1302,11 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   nodes[3]->getPbftManager()->stop();
   nodes[4]->getPbftManager()->stop();
 
-  ASSERT_GT(nodes[0]->getNetwork()->getPeerCount(), 0);
-  ASSERT_GT(nodes[1]->getNetwork()->getPeerCount(), 0);
-  ASSERT_GT(nodes[2]->getNetwork()->getPeerCount(), 0);
-  ASSERT_GT(nodes[3]->getNetwork()->getPeerCount(), 0);
-  ASSERT_GT(nodes[4]->getNetwork()->getPeerCount(), 0);
+  ASSERT_EQ(nodes[0]->getNetwork()->getPeerCount(), 4);
+  ASSERT_EQ(nodes[1]->getNetwork()->getPeerCount(), 4);
+  ASSERT_EQ(nodes[2]->getNetwork()->getPeerCount(), 4);
+  ASSERT_EQ(nodes[3]->getNetwork()->getPeerCount(), 4);
+  ASSERT_EQ(nodes[4]->getNetwork()->getPeerCount(), 4);
 
   try {
     init_5_nodes_coin();
@@ -1316,7 +1316,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     std::cerr << e.what() << std::endl;
   }
 
-  const int total_trx_count = 2504;
+  int total_trx_count = 2504;
 
   // check dags
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
@@ -1372,7 +1372,6 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
                   << " Dag size: " << num_vertices5 << std::endl;
       }
     }
-
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
@@ -1416,22 +1415,55 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
   auto num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
   auto num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
-
+  for (auto _ = 0; _ < SYNC_TIMEOUT; _++) {
+    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
+        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+    num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
+    num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
+    num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
+    num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
+    num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
+  }
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   EXPECT_EQ(num_vertices4, num_vertices5);
 
+  total_trx_count += 1;  // Dummy transaction
+  std::cout << "Detect dummy transaction receiving... " << std::endl;
+  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
+    auto node0_trx_count =
+        nodes[0]->getTransactionManager()->getTransactionCount();
+    auto node1_trx_count =
+        nodes[1]->getTransactionManager()->getTransactionCount();
+    auto node2_trx_count =
+        nodes[2]->getTransactionManager()->getTransactionCount();
+    auto node3_trx_count =
+        nodes[3]->getTransactionManager()->getTransactionCount();
+    auto node4_trx_count =
+        nodes[4]->getTransactionManager()->getTransactionCount();
+    if (node0_trx_count == total_trx_count &&
+        node1_trx_count == total_trx_count &&
+        node2_trx_count == total_trx_count &&
+        node3_trx_count == total_trx_count &&
+        node4_trx_count == total_trx_count) {
+      break;
+    }
+    taraxa::thisThreadSleepForMilliSeconds(100);
+  }
   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(),
-            total_trx_count + 1);
+            total_trx_count);
   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(),
-            total_trx_count + 1);
+            total_trx_count);
   ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(),
-            total_trx_count + 1);
+            total_trx_count);
   ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(),
-            total_trx_count + 1);
+            total_trx_count);
   ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(),
-            total_trx_count + 1);
+            total_trx_count);
 
   std::cout << "All transactions received ..." << std::endl;
 
@@ -1523,8 +1555,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Total packed (overlapped) trxs: " << all_trxs << std::endl;
-  EXPECT_GT(all_trxs, total_trx_count + 1);
-  ASSERT_EQ(ordered_trxs.size(), total_trx_count + 1)
+  EXPECT_GT(all_trxs, total_trx_count);
+  ASSERT_EQ(ordered_trxs.size(), total_trx_count)
       << "Number of unpacked_trx " << trx_table2.size() << std::endl
       << "Total packed (non-overlapped) trxs " << packed_trxs.size()
       << std::endl;

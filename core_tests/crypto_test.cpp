@@ -25,6 +25,12 @@ using namespace vdf_sortition;
 using std::string;
 struct CryptoTest : core_tests::util::DBUsingTest<> {};
 
+auto node_sk_string =
+    "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
+auto node_sk =
+    dev::Secret(node_sk_string, dev::Secret::ConstructFromStringType::FromHex);
+auto node_key = dev::KeyPair(node_sk);
+
 TEST_F(CryptoTest, VerifierWesolowski) {
   BIGNUM* N_bn = BN_secure_new();
   BN_dec2bn(&N_bn,
@@ -62,6 +68,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
   EXPECT_EQ(pk, pk2);
   EXPECT_TRUE(isValidVrfPublicKey(pk));
   EXPECT_TRUE(isValidVrfPublicKey(pk2));
+
   auto msg = getRlpBytes("helloworld!");
   auto proof = getVrfProof(sk, msg);
   EXPECT_TRUE(proof);
@@ -81,6 +88,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
               << output.value() << endl;
   }
 }
+
 TEST_F(CryptoTest, vrf_valid_Key) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
@@ -94,10 +102,10 @@ TEST_F(CryptoTest, vdf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VdfMsg vdf_msg(blk_hash_t(100), 3);
+  Message msg(blk_hash_t(100), 3);
   blk_hash_t vdf_input = blk_hash_t(200);
-  VdfSortition vdf(sk, vdf_msg, 17, 9);
-  VdfSortition vdf2(sk, vdf_msg, 17, 9);
+  VdfSortition vdf(node_key.address(), sk, msg, 17, 9);
+  VdfSortition vdf2(node_key.address(), sk, msg, 17, 9);
   vdf.computeVdfSolution(vdf_input.toString());
   vdf2.computeVdfSolution(vdf_input.toString());
   auto b = vdf.rlp();
@@ -115,12 +123,12 @@ TEST_F(CryptoTest, vdf_solution) {
   vrf_sk_t sk2(
       "90f59a7ee7a392c811c5d299b557a4e09e610de7d109d6b3fcb19ab8d51c9a0d931f5e7d"
       "b07c9969e438db7e287eabbaaca49ca414f5f3a402ea6997ade40081");
-  VdfMsg vdf_msg(
+  Message msg(
       blk_hash_t(
           "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69"),
       1);
-  VdfSortition vdf(sk, vdf_msg, 19, 8);
-  VdfSortition vdf2(sk2, vdf_msg, 19, 8);
+  VdfSortition vdf(node_key.address(), sk, msg, 19, 8);
+  VdfSortition vdf2(node_key.address(), sk2, msg, 19, 8);
   blk_hash_t vdf_input = blk_hash_t(200);
 
   std::thread th1(
@@ -138,14 +146,87 @@ TEST_F(CryptoTest, vdf_proof_verify) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VdfMsg vdf_msg(blk_hash_t(100), 3);
-  VdfSortition vdf(sk, vdf_msg);
+  Message msg(blk_hash_t(100), 3);
+  VdfSortition vdf(node_key.address(), sk, msg);
   blk_hash_t vdf_input = blk_hash_t(200);
 
   vdf.computeVdfSolution(vdf_input.toString());
   EXPECT_TRUE(vdf.verify(vdf_input.toString()));
-  VdfSortition vdf2(sk, vdf_msg);
+  VdfSortition vdf2(node_key.address(), sk, msg);
   EXPECT_FALSE(vdf2.verify(vdf_input.toString()));
+}
+
+TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
+  // NOTICE: Need modify returning difficulty directly at getDifficulty() in
+  // vdf_sortition.cpp and returning lambda value directly at getLambda()
+  vrf_sk_t sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  blk_hash_t last_anchor_hash = blk_hash_t(
+      "be67f76499af842b5c8e9d22194f19c04711199726b2224854af34365d351124");
+  Message msg(last_anchor_hash, 1);
+  uint lambda_bound = 1500;
+  blk_hash_t proposal_dag_block_pivot_hash1 = blk_hash_t(0);
+  blk_hash_t proposal_dag_block_pivot_hash2 = blk_hash_t(
+      "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69");
+  blk_hash_t proposal_dag_block_pivot_hash3 = blk_hash_t(
+      "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  unsigned long vdf_computation_time;
+  // Fix lambda, vary difficulty
+  for (uint difficulty = 0; difficulty <= 20; difficulty++) {
+    std::cout << "Start at difficulty " << difficulty << " :" << std::endl;
+    VdfSortition vdf(node_key.address(), sk, msg, difficulty, lambda_bound);
+    vdf.computeVdfSolution(proposal_dag_block_pivot_hash1.toString());
+    vdf_computation_time = vdf.getComputationTime();
+    std::cout << "VDF message " << proposal_dag_block_pivot_hash1
+              << ", lambda bits " << vdf.getLambda() << ", difficulty "
+              << vdf.getDifficulty() << ", computation cost time "
+              << vdf_computation_time << "(ms)" << std::endl;
+    vdf.computeVdfSolution(proposal_dag_block_pivot_hash2.toString());
+    vdf_computation_time = vdf.getComputationTime();
+    std::cout << "VDF message " << proposal_dag_block_pivot_hash2
+              << ", lambda bits " << vdf.getLambda() << ", difficulty "
+              << vdf.getDifficulty() << ", computation cost time "
+              << vdf_computation_time << "(ms)" << std::endl;
+    vdf.computeVdfSolution(proposal_dag_block_pivot_hash3.toString());
+    vdf_computation_time = vdf.getComputationTime();
+    std::cout << "VDF message " << proposal_dag_block_pivot_hash3
+              << ", lambda bits " << vdf.getLambda() << ", difficulty "
+              << vdf.getDifficulty() << ", computation cost time "
+              << vdf_computation_time << "(ms)" << std::endl;
+  }
+  // Fix difficulty, vary lambda
+  uint difficulty = 15;
+  for (uint lambda = 100; lambda <= 5000; lambda += 200) {
+    std::cout << "Start at lambda " << lambda << " :" << std::endl;
+    VdfSortition vdf(node_key.address(), sk, msg, difficulty, lambda);
+    vdf.computeVdfSolution(proposal_dag_block_pivot_hash1.toString());
+    vdf_computation_time = vdf.getComputationTime();
+    std::cout << "VDF message " << proposal_dag_block_pivot_hash1
+              << ", lambda bits " << vdf.getLambda() << ", difficulty "
+              << vdf.getDifficulty() << ", computation cost time "
+              << vdf_computation_time << "(ms)" << std::endl;
+    vdf.computeVdfSolution(proposal_dag_block_pivot_hash2.toString());
+    vdf_computation_time = vdf.getComputationTime();
+    std::cout << "VDF message " << proposal_dag_block_pivot_hash2
+              << ", lambda bits " << vdf.getLambda() << ", difficulty "
+              << vdf.getDifficulty() << ", computation cost time "
+              << vdf_computation_time << "(ms)" << std::endl;
+    vdf.computeVdfSolution(proposal_dag_block_pivot_hash3.toString());
+    vdf_computation_time = vdf.getComputationTime();
+    std::cout << "VDF message " << proposal_dag_block_pivot_hash3
+              << ", lambda bits " << vdf.getLambda() << ", difficulty "
+              << vdf.getDifficulty() << ", computation cost time "
+              << vdf_computation_time << "(ms)" << std::endl;
+  }
+
+  VdfSortition vdf(node_key.address(), sk, msg, difficulty, lambda_bound);
+  std::cout << "output " << vdf.output;
+  int i = 0;
+  for (; i < vdf.output.size; i++) {
+    std::cout << uint(vdf.output[i]) << std::endl;
+  }
+  std::cout << "size: " << i << std::endl;
 }
 
 TEST_F(CryptoTest, vrf_sortition) {
