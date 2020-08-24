@@ -19,21 +19,25 @@ struct Transaction {
     InvalidEncodingSize()
         : invalid_argument("transaction rlp must be a list of 9 elements") {}
   };
+  struct InvalidSignature : std::runtime_error {
+    InvalidSignature() : runtime_error("invalid signature") {}
+  };
 
  private:
-  mutable bool sender_cached = false;
-  mutable bool hash_cached = false;
-  mutable trx_hash_t hash_;
-  mutable addr_t sender_;
   uint64_t nonce_ = 0;
   val_t value_ = 0;
   val_t gas_price_;
   uint64_t gas_ = 0;
   bytes data_;
   std::optional<addr_t> receiver_;
-  uint64_t chain_id = 0;
-  dev::SignatureStruct vrs;
-  mutable std::shared_ptr<bytes> cached_rlp;
+  uint64_t chain_id_ = 0;
+  dev::SignatureStruct vrs_;
+  mutable bool hash_initialized_ = false;
+  mutable trx_hash_t hash_;
+  mutable bool sender_initialized_ = false;
+  mutable bool sender_valid_ = false;
+  mutable addr_t sender_;
+  mutable std::shared_ptr<bytes> cached_rlp_;
 
   template <bool for_signature>
   void streamRLP(dev::RLPStream &s) const;
@@ -49,7 +53,7 @@ struct Transaction {
   explicit Transaction(bytes const &_rlp, bool verify_strict = false);
   explicit Transaction(bytes &&rlp, bool verify_strict = false)
       : Transaction(rlp, verify_strict) {
-    cached_rlp.reset(new auto(move(rlp)));
+    cached_rlp_.reset(new auto(move(rlp)));
   }
 
   trx_hash_t const &getHash() const;
@@ -60,8 +64,8 @@ struct Transaction {
   auto getGas() const { return gas_; }
   auto const &getData() const { return data_; }
   auto const &getReceiver() const { return receiver_; }
-  auto getChainID() const { return chain_id; }
-  auto const &getVRS() const { return vrs; }
+  auto getChainID() const { return chain_id_; }
+  auto const &getVRS() const { return vrs_; }
 
   bool operator==(Transaction const &other) const {
     return getHash() == other.getHash();

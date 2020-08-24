@@ -42,7 +42,9 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(
   if (trx.getChainID() != conf_.chain.chain_id) {
     return {false, "chain_id mismatch"};
   }
-  if (!trx.getSender()) {
+  try {
+    trx.getSender();
+  } catch (Transaction::InvalidSignature const &) {
     return {false, "invalid signature"};
   }
   return {true, ""};

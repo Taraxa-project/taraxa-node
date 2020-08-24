@@ -120,7 +120,8 @@ TEST_F(TransactionTest, sig) {
         }
       }
       ASSERT_NE(Transaction(with_modified_payload.out()).getSender(), sender);
-      ASSERT_TRUE(!Transaction(with_invalid_signature.out()).getSender());
+      ASSERT_THROW(Transaction(with_invalid_signature.out()).getSender(),
+                   Transaction::InvalidSignature);
     }
   }
 }
