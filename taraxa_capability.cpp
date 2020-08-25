@@ -192,6 +192,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
   try {
     auto peer = getPeer(_nodeID);
     if (peer) {
+      packet_size[_id] += _r.actualSize();
+      packet_count[_id]++;
       switch (_id) {
         case SyncedPacket: {
           LOG(log_dg_dag_sync_) << "Received synced message from " << _nodeID;
@@ -272,6 +274,16 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
         case NewBlockPacket: {
           DagBlock block(_r[0].data().toBytes());
 
+          if (blk_mgr_ != nullptr) {
+            if (blk_mgr_->isBlockKnown(block.getHash())) {
+              LOG(log_dg_dag_prp_)
+                  << "Received NewBlock " << block.getHash().toString()
+                  << "that is already known";
+              break;
+            }
+          }
+          unique_packet_count[_id]++;
+
           auto transactionsCount = _r.itemCount() - 1;
           LOG(log_dg_dag_prp_)
               << "Received NewBlockPacket " << transactionsCount;
@@ -324,6 +336,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           if (blk_mgr_ != nullptr) {
             if (!blk_mgr_->isBlockKnown(hash) &&
                 block_requestes_set_.count(hash) == 0) {
+              unique_packet_count[_id]++;
               block_requestes_set_.insert(hash);
               requestBlock(_nodeID, hash, true);
             }
@@ -479,6 +492,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           peer->markVoteAsKnown(vote.getHash());
 
           if (vote_mgr_->addVote(vote)) {
+            unique_packet_count[_id]++;
             onNewPbftVote(vote);
           }
 
@@ -515,6 +529,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             // TODO: need to check block validation, like proposed
             // vote(maybe
             //  come later), if get sortition etc
+            unique_packet_count[_id]++;
             pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
             onNewPbftBlock(pbft_block);
           }
@@ -666,8 +681,8 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             // greater pbft chain size and we should continue syncing with
             // them
             restartSyncingPbft(true);
-            // We are pbft synced, send message to other node to start gossiping
-            // new blocks
+            // We are pbft synced, send message to other node to start
+            // gossiping new blocks
             if (!syncing_ && !requesting_pending_dag_blocks_) {
               sendSyncedMessage();
             }
@@ -878,7 +893,9 @@ void TaraxaCapability::onNewTransactions(
     if (blk_mgr_ != nullptr) {
       LOG(log_nf_trx_prp_) << "Storing " << transactions.size()
                            << " transactions";
-      trx_mgr_->insertBroadcastedTransactions(transactions);
+      received_trx_count += transactions.size();
+      unique_received_trx_count +=
+          trx_mgr_->insertBroadcastedTransactions(transactions);
     } else {
       for (auto const &transaction : transactions) {
         Transaction trx(transaction);
@@ -925,21 +942,15 @@ void TaraxaCapability::onNewBlockReceived(
   LOG(log_nf_dag_prp_) << "Receive DagBlock " << block.getHash() << " #Trx"
                        << transactions.size() << std::endl;
   if (blk_mgr_ != nullptr) {
-    if (blk_mgr_->isBlockKnown(block.getHash())) {
-      LOG(log_dg_dag_prp_) << "Received NewBlock " << block.getHash().toString()
-                           << "that is already known";
+    auto status = checkDagBlockValidation(block);
+    if (!status.first) {
+      if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
       return;
-    } else {
-      auto status = checkDagBlockValidation(block);
-      if (!status.first) {
-        if (!syncing_ && !requesting_pending_dag_blocks_) restartSyncingPbft();
-        return;
-      }
-      LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString()
-                           << " with " << transactions.size()
-                           << " transactions";
-      blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
     }
+    LOG(log_nf_dag_prp_) << "Storing block " << block.getHash().toString()
+                         << " with " << transactions.size() << " transactions";
+    blk_mgr_->insertBroadcastedBlockWithTransactions(block, transactions);
+
   } else if (test_blocks_.find(block.getHash()) == test_blocks_.end()) {
     test_blocks_[block.getHash()] = block;
     for (auto tr : transactions) {
@@ -971,13 +982,14 @@ void TaraxaCapability::onNewBlockVerified(DagBlock const &block) {
     std::unique_lock<std::mutex> lck(mtx_for_verified_blocks);
     condition_for_verified_blocks_.notify_all();
   }
-  const int c_minBlockBroadcastPeers = 10;
   auto const peersWithoutBlock = selectPeers([&](TaraxaPeer const &_peer) {
     return !_peer.isBlockKnown(block.getHash());
   });
 
-  auto const peersToSendNumber = std::max<std::size_t>(
-      c_minBlockBroadcastPeers, std::sqrt(getPeersCount()));
+  auto const peersToSendNumber = std::min<std::size_t>(
+      std::max<std::size_t>(conf_.network_min_dag_block_broadcast,
+                            std::sqrt(getPeersCount())),
+      conf_.network_max_dag_block_broadcast);
 
   std::vector<NodeID> peersToSend;
   std::vector<NodeID> peersToAnnounce;
@@ -1368,10 +1380,33 @@ Json::Value TaraxaCapability::getStatus() const {
     peer_status["dag_synced"] = !peer.second->syncing_;
     res["peers"].append(peer_status);
   }
+  Json::Value counters;
+  for (uint8_t it = 0; it != PacketCount; it++) {
+    Json::Value counter;
+    auto total = packet_count.find(it)->second;
+    counter["total"] = Json::UInt64(total);
+    if (total > 0) {
+      counter["avg packet size"] =
+          Json::UInt64(packet_size.find(it)->second / total);
+      auto unique = unique_packet_count.find(it)->second;
+      if (unique > 0) {
+        counter["unique"] = Json::UInt64(unique);
+        counter["unique %"] = Json::UInt64(unique * 100 / total);
+      }
+      counters[packetToPacketName(it)] = counter;
+    }
+  }
+  counters["transaction count"] = Json::UInt64(received_trx_count);
+  counters["unique transaction count"] =
+      Json::UInt64(unique_received_trx_count);
+  if (received_trx_count)
+    counters["unique transaction %"] =
+        Json::UInt64(unique_received_trx_count * 100 / received_trx_count);
+  res["counters"] = counters;
   return res;
 }
 
-std::string TaraxaCapability::packetToPacketName(byte const &packet) {
+std::string TaraxaCapability::packetToPacketName(byte const &packet) const {
   switch (packet) {
     case StatusPacket:
       return "StatusPacket";
@@ -1403,6 +1438,15 @@ std::string TaraxaCapability::packetToPacketName(byte const &packet) {
       return "PbftBlockPacket";
     case PacketCount:
       return "PacketCount";
+    case GetLeavesBlocksPacket:
+      return "GetLeavesBlocksPacket";
+    case LeavesBlocksPacket:
+      return "LeavesBlocksPacket";
+    case SyncedPacket:
+      return "SyncedPacket";
+    case SyncedResponsePacket:
+      return "SyncedResponsePacket";
   }
+
   return std::to_string(packet);
 }

@@ -59,18 +59,20 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(
   return ret;
 }
 
-void TransactionManager::insertBroadcastedTransactions(
+uint32_t TransactionManager::insertBroadcastedTransactions(
     // transactions coming from broadcastin is less critical
     std::vector<taraxa::bytes> const &transactions) {
   if (stopped_) {
-    return;
+    return 0;
   }
+  uint32_t new_trx_count = 0;
   for (auto const &t : transactions) {
     Transaction trx(t);
-    insertTrx(trx, false);
+    if (insertTrx(trx, t).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash()
                    << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
+  return new_trx_count;
 }
 
 void TransactionManager::verifyQueuedTrxs() {

@@ -87,7 +87,7 @@ class TransactionManager
   std::pair<bool, std::string> insertTransaction(Transaction const &trx,
                                                  bool verify);
   // Transactions coming from broadcasting is less critical
-  void insertBroadcastedTransactions(
+  uint32_t insertBroadcastedTransactions(
       std::vector<taraxa::bytes> const &transactions);
 
   std::pair<bool, std::string> verifyTransaction(Transaction const &trx) const;

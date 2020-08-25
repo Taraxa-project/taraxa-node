@@ -39,12 +39,12 @@ std::string getConfigDataAsString(Json::Value &root,
 }
 
 uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
-                             bool optional = false) {
+                             bool optional = false, uint32_t value = 0) {
   try {
     return getConfigData(root, path, optional).asUInt();
   } catch (Json::Exception &e) {
     if (optional) {
-      return 0;
+      return value;
     }
     throw ConfigException(getConfigErr(path) + e.what());
   }
@@ -97,6 +97,10 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_transaction_interval =
       getConfigDataAsUInt(root, {"network_transaction_interval"});
+  network.network_min_dag_block_broadcast =
+      getConfigDataAsUInt(root, {"network_min_dag_block_broadcast"}, true, 5);
+  network.network_max_dag_block_broadcast =
+      getConfigDataAsUInt(root, {"network_max_dag_block_broadcast"}, true, 20);
   network.network_bandwidth = getConfigDataAsUInt(root, {"network_bandwidth"});
   network.network_ideal_peer_count =
       getConfigDataAsUInt(root, {"network_ideal_peer_count"});

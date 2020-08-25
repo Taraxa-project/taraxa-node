@@ -154,6 +154,13 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
 
 std::shared_ptr<FullNode> FullNode::getShared() { return shared_from_this(); }
 
+void FullNode::setWSServer(
+    std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
+  ws_server_ = ws_server;
+  trx_mgr_->setWsServer(ws_server);
+  pbft_mgr_->setWSServer(ws_server);
+}
+
 void FullNode::start(bool boot_node) {
   // This sleep is to avoid some flaky tests failures since in our tests we
   // often start multiple nodes very quickly one after another which sometimes
