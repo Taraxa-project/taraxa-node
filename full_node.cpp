@@ -90,7 +90,8 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       node_addr_, getSecretKey(), getVrfSecretKey(), log_time_);
   final_chain_ =
       NewFinalChain(db_, conf_.chain.final_chain, conf_.opts_final_chain);
-  vote_mgr_ = std::make_shared<VoteManager>(node_addr, final_chain_, pbft_chain_);
+  vote_mgr_ =
+      std::make_shared<VoteManager>(node_addr, final_chain_, pbft_chain_);
   pbft_mgr_ = std::make_shared<PbftManager>(
       conf_.test_params.pbft, genesis_hash.toString(), node_addr, db_,
       pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,
@@ -152,6 +153,13 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
 }
 
 std::shared_ptr<FullNode> FullNode::getShared() { return shared_from_this(); }
+
+void FullNode::setWSServer(
+    std::shared_ptr<taraxa::net::WSServer> const &ws_server) {
+  ws_server_ = ws_server;
+  trx_mgr_->setWsServer(ws_server);
+  pbft_mgr_->setWSServer(ws_server);
+}
 
 void FullNode::start(bool boot_node) {
   // This sleep is to avoid some flaky tests failures since in our tests we
