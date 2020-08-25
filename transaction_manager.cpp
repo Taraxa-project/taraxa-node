@@ -68,7 +68,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(
   uint32_t new_trx_count = 0;
   for (auto const &t : transactions) {
     Transaction trx(t);
-    if (insertTrx(trx, t).first) new_trx_count++;
+    if (insertTrx(trx, false).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash()
                    << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
