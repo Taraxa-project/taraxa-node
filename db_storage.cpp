@@ -137,7 +137,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
 
 void DbStorage::saveTransaction(Transaction const& trx) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()),
-         toSlice(trx.rlp(trx.hasSig())));
+         toSlice(*trx.rlp()));
 }
 
 void DbStorage::saveTransactionToBlock(trx_hash_t const& trx_hash,
@@ -215,7 +215,7 @@ DbStorage::getTransactionExt(trx_hash_t const& hash) {
 void DbStorage::addTransactionToBatch(Transaction const& trx,
                                       BatchPtr const& write_batch) {
   batch_put(write_batch, DbStorage::Columns::transactions,
-            toSlice(trx.getHash().asBytes()), toSlice(trx.rlp(trx.hasSig())));
+            toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp()));
 }
 
 bool DbStorage::transactionInDb(trx_hash_t const& hash) {

@@ -39,31 +39,22 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf,
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(
     Transaction const &trx) const {
-  std::string error_message;
-  try {
-    return std::make_pair(trx.verifySig(), "");
-  } catch (dev::eth::InvalidSignature) {
-    error_message = "InvalidSignature";
-  } catch (dev::eth::InvalidZeroSignatureTransaction) {
-    error_message = "InvalidZeroSignatureTransaction";
-  } catch (dev::eth::OutOfGasIntrinsic) {
-    error_message = "OutOfGasIntrinsic";
-  } catch (dev::eth::BlockGasLimitReached) {
-    error_message = "BlockGasLimitReached";
-  } catch (dev::eth::TransactionIsUnsigned) {
-    error_message = "TransactionIsUnsigned";
-  } catch (...) {
-    error_message = "unknown";
+  if (trx.getChainID() != conf_.chain.chain_id) {
+    return {false, "chain_id mismatch"};
   }
-  return std::make_pair(false, error_message);
+  try {
+    trx.getSender();
+  } catch (Transaction::InvalidSignature const &) {
+    return {false, "invalid signature"};
+  }
+  return {true, ""};
 }
 
 std::pair<bool, std::string> TransactionManager::insertTransaction(
     Transaction const &trx, bool verify) {
-  auto rlp = trx.rlp(true);
-  auto ret = insertTrx(trx, rlp, verify);
+  auto ret = insertTrx(trx, verify);
   if (ret.first && conf_.network.network_transaction_interval == 0) {
-    network_->onNewTransactions({rlp});
+    network_->onNewTransactions({*trx.rlp()});
   }
   return ret;
 }
@@ -77,7 +68,7 @@ uint32_t TransactionManager::insertBroadcastedTransactions(
   uint32_t new_trx_count = 0;
   for (auto const &t : transactions) {
     Transaction trx(t);
-    if (insertTrx(trx, t, false).first) new_trx_count++;
+    if (insertTrx(trx, false).first) new_trx_count++;
     LOG(log_time_) << "Transaction " << trx.getHash()
                    << " brkreceived at: " << getCurrentTimeMilliSeconds();
   }
@@ -171,7 +162,7 @@ TransactionManager::getNewVerifiedTrxSnapShotSerialized() {
   sort(vec_trxs.begin(), vec_trxs.end(), trxComp);
   std::vector<taraxa::bytes> ret;
   for (auto const &t : vec_trxs) {
-    ret.emplace_back(t.rlp(true));
+    ret.emplace_back(*t.rlp());
   }
   return ret;
 }
@@ -186,7 +177,7 @@ TransactionManager::getTransaction(trx_hash_t const &hash) const {
   auto t = trx_qu_.getTransaction(hash);
   if (t) {  // find in queue
     tr = std::make_shared<std::pair<Transaction, taraxa::bytes>>(
-        std::make_pair(*t, t->rlp(true)));
+        std::make_pair(*t, *t->rlp()));
   } else {  // search from db
     tr = db_->getTransactionExt(hash);
   }
@@ -254,7 +245,7 @@ bool TransactionManager::saveBlockTransactionAndDeduplicate(
 }
 
 std::pair<bool, std::string> TransactionManager::insertTrx(
-    Transaction const &trx, taraxa::bytes const &trx_serialized, bool verify) {
+    Transaction const &trx, bool verify) {
   auto hash = trx.getHash();
   db_->saveTransaction(trx);
 

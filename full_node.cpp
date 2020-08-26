@@ -4,7 +4,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <stdexcept>
@@ -16,6 +15,7 @@
 #include "pbft_manager.hpp"
 #include "sortition.hpp"
 #include "transaction_manager.hpp"
+#include "transaction_status.hpp"
 #include "vote.hpp"
 
 namespace taraxa {
@@ -143,7 +143,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       if (status == TransactionStatus::in_queue_unverified ||
           status == TransactionStatus::in_queue_verified) {
         auto trx = db_->getTransaction(h);
-        if (!trx_mgr_->insertTrx(*trx, trx->rlp(true), true).first) {
+        if (!trx_mgr_->insertTrx(*trx, true).first) {
           LOG(log_er_) << "Pending transaction not valid";
         }
       }

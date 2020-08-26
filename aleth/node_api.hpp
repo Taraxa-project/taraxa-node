@@ -9,7 +9,7 @@
 namespace taraxa::aleth {
 
 std::unique_ptr<dev::rpc::Eth::NodeAPI> NewNodeAPI(
-    dev::KeyPair key_pair,
+    uint64_t chain_id, dev::KeyPair key_pair,
     std::function<void(::taraxa::Transaction const&)> send_trx);
 
 }  // namespace taraxa::aleth

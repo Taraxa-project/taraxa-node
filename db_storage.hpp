@@ -13,6 +13,7 @@
 #include "dag_block.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_sortition_account.hpp"
+#include "transaction_status.hpp"
 #include "util.hpp"
 
 namespace taraxa {

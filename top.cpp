@@ -84,19 +84,18 @@ Top::Top(int argc, const char* argv[]) {
           new net::Taraxa(node_),  //
           new net::Net(node_),
           new dev::rpc::Eth(
-              node_config.chain.chain_id,
               aleth::NewNodeAPI(
-                  node_->getSecretKey(),
+                  node_config.chain.chain_id, node_->getSecretKey(),
                   [=](auto const& trx) {
                     auto result =
                         node_->getTransactionManager()->insertTransaction(trx,
                                                                           true);
                     if (!result.first) {
-                      BOOST_THROW_EXCEPTION(
-                          runtime_error(fmt("Transaction is rejected.\n"
-                                            "Payload: %s\n"
-                                            "Reason: %s",
-                                            trx.getJsonStr(), result.second)));
+                      BOOST_THROW_EXCEPTION(runtime_error(
+                          fmt("Transaction is rejected.\n"
+                              "RLP: %s\n"
+                              "Reason: %s",
+                              dev::toJS(*trx.rlp()), result.second)));
                     }
                   }),
               node_->getTransactionManager()->getFilterAPI(),

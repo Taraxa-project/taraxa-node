@@ -217,8 +217,8 @@ TEST_F(P2PTest, capability_send_block) {
       sig_t(7777), blk_hash_t(888), addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
-  transactions.emplace_back(g_signed_trx_samples[0].rlp(true));
-  transactions.emplace_back(g_signed_trx_samples[1].rlp(true));
+  transactions.emplace_back(*g_signed_trx_samples[0].rlp());
+  transactions.emplace_back(*g_signed_trx_samples[1].rlp());
   thc2->onNewTransactions(transactions, true);
   thc2->sendBlock(host1.id(), blk, true);
 
@@ -340,8 +340,8 @@ TEST_F(P2PTest, block_propagate) {
       sig_t(7777), blk_hash_t(0), addr_t(999));
 
   std::vector<taraxa::bytes> transactions;
-  transactions.emplace_back(g_signed_trx_samples[0].rlp(true));
-  transactions.emplace_back(g_signed_trx_samples[1].rlp(true));
+  transactions.emplace_back(*g_signed_trx_samples[0].rlp());
+  transactions.emplace_back(*g_signed_trx_samples[1].rlp());
   thc1->onNewTransactions(transactions, true);
   std::vector<Transaction> transactions2;
   blk.updateHash();

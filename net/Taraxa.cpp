@@ -5,12 +5,13 @@
 #include <libethcore/CommonJS.h>
 #include <libethereum/TransactionReceipt.h>
 #include <libp2p/Common.h>
+
+#include <csignal>
+
 #include "dag.hpp"
 #include "dag_block.hpp"
 #include "pbft_manager.hpp"
 #include "transaction_manager.hpp"
-
-#include <csignal>
 
 using namespace std;
 using namespace jsonrpc;
@@ -19,6 +20,23 @@ using namespace eth;
 using namespace taraxa;
 
 namespace taraxa::net {
+
+Json::Value toJSON(::taraxa::Transaction const& t) {
+  Json::Value res;
+  res["hash"] = dev::toJS(t.getHash());
+  res["sender"] = dev::toJS(t.getSender());
+  res["nonce"] = dev::toJS(t.getNonce());
+  res["value"] = dev::toJS(t.getValue());
+  res["gas_price"] = dev::toJS(t.getGasPrice());
+  res["gas"] = dev::toJS(t.getGas());
+  res["sig"] = dev::toJS((sig_t const&)t.getVRS());
+  res["receiver"] = dev::toJS(t.getReceiver().value_or(dev::ZeroAddress));
+  res["data"] = dev::toJS(t.getData());
+  if (auto v = t.getChainID(); v) {
+    res["chain_id"] = dev::toJS(v);
+  }
+  return res;
+}
 
 Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node)
     : full_node_(_full_node) {}
@@ -70,9 +88,8 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash,
       if (_includeTransactions) {
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : block->getTrxs()) {
-          block_json["transactions"].append(node->getTransactionManager()
-                                                ->getTransaction(t)
-                                                ->first.getJson());
+          block_json["transactions"].append(
+              toJSON(node->getTransactionManager()->getTransaction(t)->first));
         }
       }
       return block_json;
@@ -117,9 +134,8 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
       if (_includeTransactions) {
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : b->getTrxs()) {
-          block_json["transactions"].append(node->getTransactionManager()
-                                                ->getTransaction(t)
-                                                ->first.getJson());
+          block_json["transactions"].append(
+              toJSON(node->getTransactionManager()->getTransaction(t)->first));
         }
       }
       res.append(block_json);

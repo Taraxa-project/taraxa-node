@@ -1604,9 +1604,9 @@ TEST_F(FullNodeTest, DISABLED_mem_usage) {
     std::string sendtrx1 =
         R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
                                       "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 200, 
-                                      "number": 1000000, 
-                                      "nonce": 0, 
+                                      "delay": 200,
+                                      "number": 1000000,
+                                      "nonce": 0,
                                       "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
 
     std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });

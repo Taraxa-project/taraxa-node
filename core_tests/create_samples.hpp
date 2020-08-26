@@ -135,16 +135,14 @@ inline std::vector<Transaction> createMockTrxSamples(unsigned start,
   assert(start + num < std::numeric_limits<unsigned>::max());
   std::vector<Transaction> trxs;
   for (auto i = start; i < num; ++i) {
-    blk_hash_t hash(i);
-    Transaction trx(trx_hash_t(hash),         // hash
-                    Transaction::Type::Call,  // type
-                    i,                        // nonce
-                    3,                        // value
-                    4,                        // gas_price
-                    5,                        // gas
-                    addr_t(i * 1000),         // receiver
-                    sig_t(),                  // sig
-                    str2bytes("00FEDCBA9876543210000000"));
+    Transaction trx(i,                                      // nonce
+                    3,                                      // value
+                    4,                                      // gas_price
+                    5,                                      // gas
+                    str2bytes("00FEDCBA9876543210000000"),  // data
+                    secret_t::random(),                     // secret
+                    addr_t(i * 1000)                        // receiver
+    );
     trxs.emplace_back(trx);
   }
   return trxs;
