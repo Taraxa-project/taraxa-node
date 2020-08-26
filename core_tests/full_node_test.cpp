@@ -441,28 +441,33 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   {
     vector<thread> threads;
-    vector<bool> thread_completed;
-    for (auto i(1); i < nodes.size(); ++i) thread_completed.push_back(false);
+    uint16_t thread_completed = 0;
+    std::mutex m;
+    std::condition_variable cv;
     for (auto i(1); i < nodes.size(); ++i) {
-      threads.emplace_back([i, &context, &nodes, &thread_completed, &init_bal] {
-        context.coin_transfer(0, nodes[i]->getAddress(), init_bal, true);
-        thread_completed[i - 1] = true;
-      });
-    }
-    auto success = wait::Wait(
-        [&thread_completed, &context] {
-          for (auto t : thread_completed) {
-            if (!t) {
-              context.dummy_transaction();
-              return false;
+      threads.emplace_back(
+          [i, &context, &nodes, &thread_completed, &init_bal, &m, &cv] {
+            context.coin_transfer(0, nodes[i]->getAddress(), init_bal, true);
+            {
+              std::unique_lock<std::mutex> lk(m);
+              thread_completed++;
+              if (thread_completed == nodes.size() - 1) {
+                cv.notify_one();
+              }
             }
-          }
-          return true;
-        },
-        {
-            120,
-            std::chrono::nanoseconds(1000 * 1000 * 500),
-        });
+          });
+    }
+
+    std::unique_lock<std::mutex> lk(m);
+    auto node_size = nodes.size();
+    while (!cv.wait_for(lk, 100ms, [&thread_completed, &context, &node_size] {
+      if (thread_completed < node_size - 1) {
+        context.dummy_transaction();
+        return false;
+      }
+      return true;
+    }))
+      ;
     for (auto &t : threads) t.join();
   }
 
