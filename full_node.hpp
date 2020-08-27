@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_FULL_NODE_HPP
 #define TARAXA_NODE_FULL_NODE_HPP
 
-#include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
@@ -137,7 +136,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   bool verifySignature(dev::Signature const &signature, std::string &message);
   std::vector<Vote> getAllVotes();
   uint64_t getUnverifiedVotesSize() const;
-  dev::Logger &getTimeLogger() { return log_time_; }
+  boost::log::sources::severity_channel_logger<> &getTimeLogger() { return log_time_; }
   std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
 
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }

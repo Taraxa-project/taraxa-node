@@ -2,7 +2,6 @@
 #define TARAXA_NODE_DAG_BLOCKS_HPP
 
 #include <libdevcore/CommonJS.h>
-#include <libdevcore/Log.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
@@ -127,7 +126,8 @@ class BlockManager {
   BlockManager(size_t capacity, unsigned verify_threads, addr_t node_addr,
                std::shared_ptr<DbStorage> db,
                std::shared_ptr<TransactionManager> trx_mgr,
-               dev::Logger log_time_, uint32_t queue_limit = 0);
+               boost::log::sources::severity_channel_logger<> log_time_,
+               uint32_t queue_limit = 0);
   ~BlockManager();
   void insertBlock(DagBlock const &blk);
   // Only used in initial syncs when blocks are received with full list of
@@ -162,7 +162,7 @@ class BlockManager {
 
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DbStorage> db_;
-  dev::Logger log_time_;
+  boost::log::sources::severity_channel_logger<> log_time_;
   // seen blks
   BlockStatusTable blk_status_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;

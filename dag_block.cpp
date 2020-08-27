@@ -2,7 +2,6 @@
 
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
-#include <libdevcore/Log.h>
 
 #include <utility>
 
@@ -190,10 +189,11 @@ blk_hash_t DagBlock::sha3(bool include_sig) const {
   return dev::sha3(rlp(include_sig));
 }
 
-BlockManager::BlockManager(size_t capacity, unsigned num_verifiers,
-                           addr_t node_addr, std::shared_ptr<DbStorage> db,
-                           std::shared_ptr<TransactionManager> trx_mgr,
-                           dev::Logger log_time, uint32_t queue_limit)
+BlockManager::BlockManager(
+    size_t capacity, unsigned num_verifiers, addr_t node_addr,
+    std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+    boost::log::sources::severity_channel_logger<> log_time,
+    uint32_t queue_limit)
     : capacity_(capacity),
       num_verifiers_(num_verifiers),
       blk_status_(10000, 100),

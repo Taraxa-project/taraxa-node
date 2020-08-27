@@ -1,6 +1,5 @@
 #include "network.hpp"
 
-#include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>

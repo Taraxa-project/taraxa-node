@@ -1,8 +1,6 @@
 #ifndef TARAXA_NODE_DAG_HPP
 #define TARAXA_NODE_DAG_HPP
 
-#include <libdevcore/Log.h>
-
 #include <atomic>
 #include <bitset>
 #include <boost/function.hpp>

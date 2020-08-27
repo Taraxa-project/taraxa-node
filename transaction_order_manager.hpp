@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <libdevcore/Log.h>
 
 #include <atomic>
 #include <condition_variable>

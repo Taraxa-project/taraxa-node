@@ -10,6 +10,23 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
+#include <boost/log/attributes/clock.hpp>
+#include <boost/log/attributes/function.hpp>
+#include <boost/log/attributes/scoped_attribute.hpp>
+#include <boost/log/detail/sink_init_helpers.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/log/sources/channel_feature.hpp>
+#include <boost/log/sources/channel_logger.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/log/utility/exception_handler.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/file.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
@@ -27,6 +44,20 @@
 #else
 #define TARAXA_PARANOID_CHECK if (false)
 #endif
+
+namespace taraxa {
+#define LOG BOOST_LOG
+
+// this enum must match enum in aleth logs to corectly support aleths library
+// logging
+enum Verbosity {
+  VerbositySilent = -1,
+  VerbosityError = 0,
+  VerbosityWarning = 1,
+  VerbosityInfo = 2,
+  VerbosityDebug = 3,
+  VerbosityTrace = 4,
+};
 
 #define LOG_OBJECTS_DEFINE                                        \
   mutable boost::log::sources::severity_channel_logger<> log_si_; \
@@ -71,8 +102,6 @@
       createTaraxaLogger(dev::Verbosity::VerbosityTrace, channel, node_addr);  \
   log_dg_##group##_ =                                                          \
       createTaraxaLogger(dev::Verbosity::VerbosityDebug, channel, node_addr);
-
-namespace taraxa {
 
 struct ProcessReturn {
   enum class Result {

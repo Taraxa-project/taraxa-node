@@ -38,7 +38,7 @@ class TransactionManager
   enum class VerifyMode : uint8_t { normal, skip_verify_sig };
 
   TransactionManager(FullNodeConfig const &conf, addr_t node_addr,
-                     std::shared_ptr<DbStorage> db, dev::Logger log_time);
+                     std::shared_ptr<DbStorage> db, boost::log::sources::severity_channel_logger<> log_time);
   explicit TransactionManager(std::shared_ptr<DbStorage> db, addr_t node_addr)
       : db_(db),
         accs_nonce_(),
@@ -131,7 +131,7 @@ class TransactionManager
   std::shared_ptr<net::WSServer> ws_server_;
   addr_t node_addr_;
   std::shared_ptr<DagManager> dag_mgr_;
-  dev::Logger log_time_;
+  boost::log::sources::severity_channel_logger<> log_time_;
   std::shared_ptr<aleth::PendingBlock> pending_block_;
   std::shared_ptr<aleth::FilterAPI> filter_api_;
 

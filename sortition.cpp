@@ -25,6 +25,9 @@ string hashSignature(dev::Signature signature) {
   return dev::sha3(signature).hex();
 }
 
+static boost::log::sources::severity_channel_logger<> log_error_{
+    taraxa::createTaraxaLogger(taraxa::Verbosity::VerbosityError, "SORTI", addr_t())};
+
 /*
  * Sortition return true:
  * CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS

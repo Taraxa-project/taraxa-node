@@ -16,11 +16,10 @@
 #include "util.hpp"
 #include "vote.hpp"
 
+namespace taraxa {
 using namespace std;
 using namespace dev;
 using namespace dev::p2p;
-
-namespace taraxa {
 
 enum SubprotocolPacketType : ::byte {
 

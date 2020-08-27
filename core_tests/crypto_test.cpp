@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <libdevcore/FixedHash.h>
-#include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
@@ -8,6 +7,7 @@
 #include <string>
 
 #include "ProverWesolowski.h"
+#include "config.hpp"
 #include "core_tests/util.hpp"
 #include "full_node.hpp"
 #include "openssl/bn.h"
@@ -369,12 +369,14 @@ TEST_F(CryptoTest, sortition_rate) {
 
 }  // namespace taraxa
 
+using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  logOptions.includeChannels.push_back("SORTITION");
-  dev::setupLogging(logOptions);
+  LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityError;
+  logging.channels["SORTITION"] = taraxa::VerbosityError;
+  addr_t node_addr;
+  setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

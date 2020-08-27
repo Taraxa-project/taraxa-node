@@ -1,12 +1,12 @@
 #ifndef TARAXA_NODE_SORTITION_H
 #define TARAXA_NODE_SORTITION_H
 
-#include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
 
 #include <string>
 
 #include "types.hpp"
+#include "log.hpp"
 
 // max signature hash 64 hex
 // "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" change to
@@ -27,9 +27,6 @@ bool sortition(string credential, size_t valid_players, size_t threshold);
 string hexToDecimal(string hex);
 
 string bigNumberMultiplication(string num1, string num2);
-
-static dev::Logger log_error_{
-    dev::createLogger(dev::Verbosity::VerbosityError, "SORTI")};
 
 }  // namespace taraxa
 

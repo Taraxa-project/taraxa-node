@@ -1,6 +1,5 @@
 #ifndef TARAXA_NODE_NETWORK_HPP
 #define TARAXA_NODE_NETWORK_HPP
-#include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>

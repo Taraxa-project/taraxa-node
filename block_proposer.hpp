@@ -1,8 +1,6 @@
 #ifndef TARAXA_NODE_BLOCK_PROPOSER_HPP
 #define TARAXA_NODE_BLOCK_PROPOSER_HPP
 
-#include <libdevcore/Log.h>
-
 #include <atomic>
 #include <random>
 #include <thread>
@@ -76,7 +74,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
                 std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr,
                 std::shared_ptr<BlockManager> blk_mgr, addr_t node_addr,
-                secret_t node_sk, vrf_sk_t vrf_sk, dev::Logger log_time)
+                secret_t node_sk, vrf_sk_t vrf_sk,
+                boost::log::sources::severity_channel_logger<> log_time)
       : dag_mgr_(dag_mgr),
         trx_mgr_(trx_mgr),
         blk_mgr_(blk_mgr),
@@ -133,7 +132,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
   std::shared_ptr<Network> network_;
-  dev::Logger log_time_;
+  boost::log::sources::severity_channel_logger<> log_time_;
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;

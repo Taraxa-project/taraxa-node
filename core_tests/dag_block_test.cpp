@@ -1,7 +1,6 @@
 #include "dag_block.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 
 #include <iostream>
 #include <vector>
@@ -232,11 +231,15 @@ TEST_F(DagBlockTest, overlap) {
 }
 
 }  // namespace taraxa
+
+using namespace taraxa;
 int main(int argc, char** argv) {
-  taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  dev::setupLogging(logOptions);
+  static_init();
+  LoggingConfig logging;
+  addr_t node_addr;
+  logging.verbosity = taraxa::VerbosityError;
+  setupLoggingConfiguration(node_addr, logging);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

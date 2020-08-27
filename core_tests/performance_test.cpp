@@ -2,7 +2,6 @@
 #include <gperftools/profiler.h>
 #include <gtest/gtest.h>
 #include <libdevcore/DBFactory.h>
-#include <libdevcore/Log.h>
 
 #include <atomic>
 #include <boost/thread.hpp>
@@ -117,17 +116,15 @@ TEST_F(PerformanceTest, execute_transactions) {
 }
 }  // namespace taraxa
 
-int main(int argc, char **argv) {
+using namespace taraxa;
+int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("FULLND");
-  // logOptions.includeChannels.push_back("DAGMGR");
-  // logOptions.includeChannels.push_back("EXETOR");
-  // logOptions.includeChannels.push_back("BLK_PP");
-  // logOptions.includeChannels.push_back("PR_MDL");
+  LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityError;
+  logging.channels["FULLND"] = taraxa::VerbosityError;
+  addr_t node_addr;
+  setupLoggingConfiguration(node_addr, logging);
 
-  dev::setupLogging(logOptions);
   dev::db::setDatabaseKind(dev::db::DatabaseKind::RocksDB);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

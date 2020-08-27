@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 #include <libdevcrypto/Common.h>
 #include <libp2p/Capability.h>
 #include <libp2p/CapabilityHost.h>
@@ -378,11 +377,14 @@ TEST_F(P2PTest, block_propagate) {
 }
 }  // namespace taraxa
 
-int main(int argc, char **argv) {
-  taraxa::static_init();
-  LoggingOptions logOptions;
-  logOptions.verbosity = VerbosityError;
-  setupLogging(logOptions);
+using namespace taraxa;
+int main(int argc, char** argv) {
+  static_init();
+  LoggingConfig logging;
+  addr_t node_addr;
+  logging.verbosity = taraxa::VerbosityError;
+  setupLoggingConfiguration(node_addr, logging);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

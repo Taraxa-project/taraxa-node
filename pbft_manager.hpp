@@ -1,8 +1,6 @@
 #ifndef TARAXA_NODE_PBFT_MANAGER_HPP
 #define TARAXA_NODE_PBFT_MANAGER_HPP
 
-#include <libdevcore/Log.h>
-
 #include <atomic>
 #include <string>
 #include <thread>
@@ -274,7 +272,7 @@ class PbftManager {
   unordered_set<addr_t> trx_senders_tmp_;
 
   LOG_OBJECTS_DEFINE;
-  mutable dev::Logger log_nf_test_{
+  mutable boost::log::sources::severity_channel_logger<> log_nf_test_{
       dev::createLogger(dev::Verbosity::VerbosityInfo, "PBFT_TEST")};
 };
 

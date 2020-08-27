@@ -2,7 +2,6 @@
 #include "full_node.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 
 #include <atomic>
 #include <boost/thread.hpp>

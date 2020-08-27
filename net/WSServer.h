@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_NET_WS_SERVER_H_
 #define TARAXA_NODE_NET_WS_SERVER_H_
 
-#include <libdevcore/Log.h>
 #include <libethcore/BlockHeader.h>
 
 #include <algorithm>

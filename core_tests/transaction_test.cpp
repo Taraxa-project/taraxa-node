@@ -215,11 +215,13 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
 }  // namespace taraxa
 
-int main(int argc, char* argv[]) {
-  taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  dev::setupLogging(logOptions);
+using namespace taraxa;
+int main(int argc, char** argv) {
+  static_init();
+  LoggingConfig logging;
+  addr_t node_addr;
+  logging.verbosity = taraxa::VerbosityError;
+  setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

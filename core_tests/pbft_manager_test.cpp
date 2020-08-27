@@ -413,22 +413,20 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
 
 }  // namespace taraxa
 
-int main(int argc, char **argv) {
+using namespace taraxa;
+int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  logOptions.includeChannels.push_back("PBFT_CHAIN");
-  logOptions.includeChannels.push_back("PBFT_MGR");
-  logOptions.includeChannels.push_back("VOTE_MGR");
-  logOptions.includeChannels.push_back("SORTI");
-  logOptions.includeChannels.push_back("EXETOR");
-  logOptions.includeChannels.push_back("BLK_PP");
-  logOptions.includeChannels.push_back("FULLND");
-  logOptions.includeChannels.push_back("TRXMGR");
-  logOptions.includeChannels.push_back("TRXQU");
-  logOptions.includeChannels.push_back("TARCAP");
-  logOptions.includeChannels.push_back("PR_MDL");
-  dev::setupLogging(logOptions);
+  LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityError;
+  logging.channels["PBFT_CHAIN"] = taraxa::VerbosityError;
+  logging.channels["PBFT_MGR"] = taraxa::VerbosityError;
+  logging.channels["VOTE_MGR"] = taraxa::VerbosityError;
+  logging.channels["SORTI"] = taraxa::VerbosityError;
+  logging.channels["EXETOR"] = taraxa::VerbosityError;
+  logging.channels["BLK_PP"] = taraxa::VerbosityError;
+  logging.channels["FULLND"] = taraxa::VerbosityError;
+  addr_t node_addr;
+  setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

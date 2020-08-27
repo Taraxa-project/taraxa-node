@@ -1,7 +1,6 @@
 #ifndef TARAXA_NODE_TOP_HPP
 #define TARAXA_NODE_TOP_HPP
 
-#include <libdevcore/Log.h>
 #include <libdevcore/LoggingProgramOptions.h>
 #include <libweb3jsonrpc/EthFace.h>
 #include <libweb3jsonrpc/ModularServer.h>
