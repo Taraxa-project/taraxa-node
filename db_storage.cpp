@@ -374,7 +374,7 @@ void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash,
 }
 
 vector<blk_hash_t> DbStorage::getOrderedDagBlocks() {
-  uint64_t period = 0;
+  uint64_t period = 1;
   vector<blk_hash_t> res;
   while (true) {
     auto pbft_block_hash = getPeriodPbftBlock(period);
