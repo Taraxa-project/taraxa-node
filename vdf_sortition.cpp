@@ -84,6 +84,7 @@ bool VdfSortition::verifyVdf(
     if (propose_anchor_hash != anchors.back().first &&
         propose_anchor_hash != (anchors.end() - 2)->first &&
         propose_anchor_hash != (anchors.end() - 3)->first) {
+      // Since nodes may get partition, PBFT consensus will sync again
       LOG(log_er_) << "Proposed DAG block has wrong propose anchor, proposed "
                    << "anchor hash " << propose_anchor_hash;
       for (auto const& anchor : anchors) {
