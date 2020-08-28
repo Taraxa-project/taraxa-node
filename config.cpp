@@ -188,7 +188,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
             output.file_name =
-                db_path + getConfigDataAsString(o, {"file_name"});
+                db_path + "/" + getConfigDataAsString(o, {"file_name"});
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
