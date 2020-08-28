@@ -41,7 +41,16 @@ std::string getConfigDataAsString(Json::Value &root,
 uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
                              bool optional = false, uint32_t value = 0) {
   try {
-    return getConfigData(root, path, optional).asUInt();
+    Json::Value ret = getConfigData(root, path, optional);
+    if (ret.isNull()) {
+      if (optional) {
+        return value;
+      } else {
+        throw ConfigException(getConfigErr(path) + e.what());
+      }
+    } else {
+      return ret.asUInt();
+    }
   } catch (Json::Exception &e) {
     if (optional) {
       return value;
