@@ -78,17 +78,22 @@ void setupLoggingConfiguration(addr_t &node, LoggingConfig &logging) {
   uint32_t short_node_id_conf = *(uint32_t *)node.data();
   boost::log::core::get()->add_sink(
       boost::make_shared<log_sink<boost::log::sinks::text_ostream_backend>>());
-  //If there is no output defined, we default to console output
-  if(logging.outputs.empty()) {
+  // If there is no output defined, we default to console output
+  if (logging.outputs.empty()) {
     logging.outputs.push_back(LoggingOutputConfig());
   }
   for (auto &output : logging.outputs) {
     auto filter = [&logging, short_node_id_conf](
                       boost::log::attribute_value_set const &_set) {
-      if (logging.channels.count(*_set[channel]) || logging.channels.size() == 0) {
+      if (logging.channels.count(*_set[channel])) {
         if (short_node_id_conf == _set[short_node_id]) {
           auto channel_name = _set[channel].get();
           if (_set[severity] > logging.channels.at(channel_name)) return false;
+          return true;
+        }
+      } else {
+        if (logging.channels.size() == 0) {
+          if (_set[severity] > logging.verbosity) return false;
           return true;
         }
       }

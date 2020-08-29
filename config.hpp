@@ -77,7 +77,7 @@ struct LoggingOutputConfig {
   std::string file_name;
   uint64_t rotation_size;
   std::string time_based_rotation;
-  std::string format;
+  std::string format = "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
   uint64_t max_size;
 };
 
