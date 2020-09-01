@@ -2,7 +2,6 @@
 #define TARAXA_NODE_NET_RPC_SEERVER_H_
 
 #include <jsonrpccpp/server/abstractserverconnector.h>
-#include <libdevcore/Log.h>
 #include <atomic>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>

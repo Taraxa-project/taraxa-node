@@ -1,7 +1,6 @@
 #include "pbft_chain.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 
 #include <atomic>
 #include <boost/thread.hpp>
@@ -248,15 +247,14 @@ TEST_F(PbftChainTest, block_broadcast) {
 
 }  // namespace taraxa
 
+using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  logOptions.includeChannels.push_back("PBFT_CHAIN");
-  // logOptions.includeChannels.push_back("PBFT_MGR");
-  // logOptions.includeChannels.push_back("NETWORK");
-  // logOptions.includeChannels.push_back("TARCAP");
-  dev::setupLogging(logOptions);
+  LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityError;
+  logging.channels["PBFT_CHAIN"] = taraxa::VerbosityError;
+  addr_t node_addr;
+  setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

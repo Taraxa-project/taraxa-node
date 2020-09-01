@@ -28,7 +28,6 @@
  * */
 
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 
 #include <string>
 
@@ -38,6 +37,7 @@
 #include "prometheus/summary.h"
 #include "static_init.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 using namespace std;
 
@@ -278,9 +278,11 @@ TEST(PrometheusDemo, prometheus_counter_multi_thread) {
 
 int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityWarning;
-  dev::setupLogging(logOptions);
+  
+  taraxa::LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityWarning;
+  setupLoggingConfiguration(addr_t(), logging);
+
   ::testing::InitGoogleTest(&argc, argv);
   if (argc == 4) {
     taraxa::push_gateway_ip = argv[1];

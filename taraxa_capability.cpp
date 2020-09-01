@@ -821,18 +821,18 @@ void TaraxaCapability::sendTestMessage(NodeID const &_id, int _x) {
 
 void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
   RLPStream s;
-  if (_initial) {
-    LOG(log_dg_) << "Sending initial status message to " << _id << " "
-                 << c_protocolVersion << " " << conf_.network_id << " "
-                 << dag_mgr_->getMaxLevel() << " " << genesis_ << " "
-                 << pbft_chain_->getPbftChainSize();
-  }
-  LOG(log_dg_dag_sync_) << "Sending status message to " << _id
-                        << " with dag level:" << dag_mgr_->getMaxLevel();
-  LOG(log_dg_pbft_sync_) << "Sending status message to " << _id
-                         << " with pbft chain size:"
-                         << pbft_chain_->getPbftChainSize();
   if (dag_mgr_) {
+    if (_initial) {
+      LOG(log_dg_) << "Sending initial status message to " << _id << " "
+                   << c_protocolVersion << " " << conf_.network_id << " "
+                   << dag_mgr_->getMaxLevel() << " " << genesis_ << " "
+                   << pbft_chain_->getPbftChainSize();
+    }
+    LOG(log_dg_dag_sync_) << "Sending status message to " << _id
+                          << " with dag level:" << dag_mgr_->getMaxLevel();
+    LOG(log_dg_pbft_sync_) << "Sending status message to " << _id
+                           << " with pbft chain size:"
+                           << pbft_chain_->getPbftChainSize();
     if (_initial)
       host_.capabilityHost()->sealAndSend(
           _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 6)

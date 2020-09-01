@@ -2,7 +2,6 @@
 #define TARAXA_NODE_PBFT_CHAIN_HPP
 
 #include <libdevcore/Common.h>
-#include <libdevcore/Log.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcore/db.h>

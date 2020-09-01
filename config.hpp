@@ -73,18 +73,18 @@ struct NetworkConfig {
 
 struct LoggingOutputConfig {
   LoggingOutputConfig() = default;
-  std::string type;
+  std::string type = "console";
   std::string file_name;
   uint64_t rotation_size;
   std::string time_based_rotation;
-  std::string format;
+  std::string format = "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
   uint64_t max_size;
 };
 
 struct LoggingConfig {
   LoggingConfig() = default;
   std::string name;
-  uint16_t verbosity;
+  Verbosity verbosity;
   std::map<std::string, uint16_t> channels;
   std::vector<LoggingOutputConfig> outputs;
   std::vector<

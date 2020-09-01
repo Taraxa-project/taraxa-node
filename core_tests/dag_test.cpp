@@ -1,7 +1,6 @@
 #include "dag.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 
 #include "core_tests/util.hpp"
 #include "static_init.hpp"
@@ -481,11 +480,14 @@ TEST_F(DagTest, get_latest_pivot_tips) {
 
 }  // namespace taraxa
 
+using namespace taraxa;
 int main(int argc, char** argv) {
-  taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityWarning;
-  dev::setupLogging(logOptions);
+  static_init();
+  LoggingConfig logging;
+  addr_t node_addr;
+  logging.verbosity = taraxa::VerbosityError;
+  setupLoggingConfiguration(node_addr, logging);
+
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 
 #include <boost/thread.hpp>
@@ -265,14 +264,16 @@ TEST_F(PbftRpcTest, vote_broadcast) {
 
 }  // namespace taraxa
 
+using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityWarning;
-  logOptions.includeChannels.push_back("NETWORK");
-  logOptions.includeChannels.push_back("TARCAP");
-  logOptions.includeChannels.push_back("VOTE_MGR");
-  dev::setupLogging(logOptions);
+  LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityError;
+  logging.channels["NETWORK"] = taraxa::VerbosityError;
+  logging.channels["TARCAP"] = taraxa::VerbosityError;
+  logging.channels["VOTE_MGR"] = taraxa::VerbosityError;
+  addr_t node_addr;
+  setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

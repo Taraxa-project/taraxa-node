@@ -1,7 +1,6 @@
 #include "network.hpp"
 
 #include <gtest/gtest.h>
-#include <libdevcore/Log.h>
 
 #include <atomic>
 #include <boost/thread.hpp>
@@ -1143,21 +1142,14 @@ TEST_F(NetworkTest, node_full_sync) {
 
 }  // namespace taraxa
 
+using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  dev::LoggingOptions logOptions;
-  logOptions.verbosity = dev::VerbosityError;
-  // logOptions.includeChannels.push_back("PBFT_CHAIN");
-  // logOptions.includeChannels.push_back("PBFTSYNC");
-  // logOptions.includeChannels.push_back("DAGSYNC");
-  // logOptions.includeChannels.push_back("NETWORK");
-  // logOptions.includeChannels.push_back("TARCAP");
-  logOptions.includeChannels.push_back("TMSTM");
-  logOptions.includeChannels.push_back("BLKQU");
-  // logOptions.includeChannels.push_back("DAGMGR");
-  logOptions.includeChannels.push_back("DAGPRP");
-  logOptions.includeChannels.push_back("VDF");
-  dev::setupLogging(logOptions);
+  LoggingConfig logging;
+  logging.verbosity = taraxa::VerbosityError;
+  logging.channels["VDF"] = taraxa::VerbosityError;
+  addr_t node_addr;
+  setupLoggingConfiguration(node_addr, logging);
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
