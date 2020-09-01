@@ -172,7 +172,7 @@ Json::Value enc_json(FinalChain::Config::StateConfig const& obj) {
   auto& genesis_balances = json["genesis_balances"] =
       Json::Value(Json::objectValue);
   for (auto const& [k, v] : obj.genesis_accounts) {
-    genesis_balances[k.hex()] = dev::toJS(v.Balance);
+    genesis_balances[dev::toJS(k.hex())] = dev::toJS(v.Balance);
   }
   return json;
 }

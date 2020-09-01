@@ -1664,7 +1664,7 @@ TEST_F(FullNodeTest, chain_config_json) {
         }
       },
       "genesis_balances": {
-        "de2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
+        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
       }
     }
   },
