@@ -778,8 +778,8 @@ void TaraxaCapability::restartSyncingPbft(bool force) {
         << max_pbft_chain_size;
     syncing_ = false;
     if (!requesting_pending_dag_blocks_ &&
-        max_node_dag_level > std::max(dag_mgr_->getMaxLevel(),
-                                      blk_mgr_->getMaxDagLevelInQueue())) {
+        (force || max_node_dag_level > std::max(dag_mgr_->getMaxLevel(),
+                                      blk_mgr_->getMaxDagLevelInQueue()))) {
       LOG(log_nf_dag_sync_) << "Request pending " << max_node_dag_level << " "
                             << std::max(dag_mgr_->getMaxLevel(),
                                         blk_mgr_->getMaxDagLevelInQueue())

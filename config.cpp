@@ -41,7 +41,12 @@ std::string getConfigDataAsString(Json::Value &root,
 uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
                              bool optional = false, uint32_t value = 0) {
   try {
-    return getConfigData(root, path, optional).asUInt();
+    Json::Value ret = getConfigData(root, path, optional);
+    if (ret.isNull()) {
+      return value;
+    } else {
+      return ret.asUInt();
+    }
   } catch (Json::Exception &e) {
     if (optional) {
       return value;
@@ -188,7 +193,7 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
           output.format = getConfigDataAsString(o, {"format"});
           if (output.type == "file") {
             output.file_name =
-                db_path + getConfigDataAsString(o, {"file_name"});
+                db_path + "/" + getConfigDataAsString(o, {"file_name"});
             output.format = getConfigDataAsString(o, {"format"});
             output.max_size = getConfigDataAsUInt64(o, {"max_size"});
             output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
