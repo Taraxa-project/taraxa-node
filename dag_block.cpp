@@ -15,22 +15,21 @@ using std::to_string;
 
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
                    vec_trx_t trxs, sig_t sig, blk_hash_t hash,
-                   addr_t sender) try : pivot_(pivot),
-                                        level_(level),
-                                        tips_(tips),
-                                        trxs_(trxs),
-                                        sig_(sig),
-                                        hash_(hash),
-                                        cached_sender_(sender) {
+                   addr_t sender) try
+    : pivot_(pivot),
+      level_(level),
+      tips_(tips),
+      trxs_(trxs),
+      sig_(sig),
+      hash_(hash),
+      cached_sender_(sender) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
 }
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
-                   vec_trx_t trxs) try : pivot_(pivot),
-                                         level_(level),
-                                         tips_(tips),
-                                         trxs_(trxs) {
+                   vec_trx_t trxs) try
+    : pivot_(pivot), level_(level), tips_(tips), trxs_(trxs) {
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
   assert(false);
@@ -66,14 +65,24 @@ DagBlock::DagBlock(string const &json) {
   }
 }
 DagBlock::DagBlock(Json::Value const &doc) {
-  level_ = doc["level"].asUInt64();
+  if (auto const &v = doc["level"]; v.isString()) {
+    level_ = dev::jsToInt(v.asString());
+  } else {
+    // this used to be inconsistent with getJson()
+    level_ = v.asUInt64();
+  }
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
   trxs_ = asVector<trx_hash_t, std::string>(doc, "trxs");
   sig_ = sig_t(doc["sig"].asString());
   hash_ = blk_hash_t(doc["hash"].asString());
   cached_sender_ = addr_t(doc["sender"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
-  timestamp_ = doc["timestamp"].asUInt64();
+  if (auto const &v = doc["timestamp"]; v.isString()) {
+    timestamp_ = dev::jsToInt(v.asString());
+  } else {
+    // this used to be inconsistent with getJson()
+    timestamp_ = v.asUInt64();
+  }
   auto vdf_string = doc["vdf"].asString();
   if (!vdf_string.empty()) {
     vdf_ = VdfSortition(dev::fromHex(vdf_string));

@@ -29,7 +29,7 @@ Json::Value getConfigData(Json::Value root, std::vector<string> const &path,
   return root;
 }
 
-std::string getConfigDataAsString(Json::Value &root,
+std::string getConfigDataAsString(Json::Value const &root,
                                   std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asString();
@@ -38,7 +38,8 @@ std::string getConfigDataAsString(Json::Value &root,
   }
 }
 
-uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
+uint32_t getConfigDataAsUInt(Json::Value const &root,
+                             std::vector<string> const &path,
                              bool optional = false, uint32_t value = 0) {
   try {
     return getConfigData(root, path, optional).asUInt();
@@ -50,7 +51,7 @@ uint32_t getConfigDataAsUInt(Json::Value &root, std::vector<string> const &path,
   }
 }
 
-uint64_t getConfigDataAsUInt64(Json::Value &root,
+uint64_t getConfigDataAsUInt64(Json::Value const &root,
                                std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asUInt64();
@@ -59,7 +60,7 @@ uint64_t getConfigDataAsUInt64(Json::Value &root,
   }
 }
 
-bool getConfigDataAsBoolean(Json::Value &root,
+bool getConfigDataAsBoolean(Json::Value const &root,
                             std::vector<string> const &path) {
   try {
     return getConfigData(root, path).asBool();
@@ -68,21 +69,25 @@ bool getConfigDataAsBoolean(Json::Value &root,
   }
 }
 
-FullNodeConfig::FullNodeConfig(std::string const &json_file)
-    : json_file_name(json_file) {
-  Json::Value root;
-  std::ifstream config_doc(json_file, std::ifstream::binary);
-  if (!config_doc.is_open()) {
-    throw ConfigException(string("Could not open configuration file: ") +
-                          json_file);
+FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
+  Json::Value parsed_from_file;
+  if (string_or_object.isString()) {
+    json_file_name = string_or_object.asString();
+    std::ifstream config_doc(json_file_name, std::ifstream::binary);
+    if (!config_doc.is_open()) {
+      throw ConfigException(string("Could not open configuration file: ") +
+                            json_file_name);
+    }
+    try {
+      config_doc >> parsed_from_file;
+    } catch (Json::Exception &e) {
+      throw ConfigException(
+          string("Could not parse json configuration file: ") + json_file_name +
+          e.what());
+    }
   }
-  try {
-    config_doc >> root;
-  } catch (Json::Exception &e) {
-    throw ConfigException(string("Could not parse json configuration file: ") +
-                          json_file + e.what());
-  }
-
+  auto const &root =
+      string_or_object.isString() ? parsed_from_file : string_or_object;
   node_secret = getConfigDataAsString(root, {"node_secret"});
   vrf_secret = getConfigDataAsString(root, {"vrf_secret"});
   db_path = getConfigDataAsString(root, {"db_path"});
@@ -201,7 +206,13 @@ FullNodeConfig::FullNodeConfig(std::string const &json_file)
       }
     }
   }
-
+  if (auto const &v = root["chain_config"]; v.isString()) {
+    chain = ChainConfig::predefined(v.asString());
+  } else if (v.isObject()) {
+    dec_json(v, chain);
+  } else {
+    chain = ChainConfig::predefined();
+  }
   // TODO configurable
   opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock = 400;
   // TODO constant

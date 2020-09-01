@@ -19,7 +19,7 @@ struct advance_check_opts {
 
 struct FinalChainTest : testing::Test, WithTestDataDir {
   shared_ptr<DbStorage> db = DbStorage::make(data_dir, h256::random(), true);
-  FinalChain::Config cfg = ChainConfig::Default->final_chain;
+  FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;

@@ -28,6 +28,9 @@ struct ReplayProtectionService {
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(
     ReplayProtectionService::Config config, std::shared_ptr<DbStorage> db);
 
+Json::Value enc_json(ReplayProtectionService::Config const& obj);
+void dec_json(Json::Value const& json, ReplayProtectionService::Config& obj);
+
 }  // namespace taraxa
 
 #endif  // TARAXA_NODE_REPLAY_PROTECTION_SERVICE_HPP_

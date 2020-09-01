@@ -154,4 +154,49 @@ unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
       aleth::NewDatabase(db, DbStorage::Columns::aleth_chain_extras), opts));
 }
 
+Json::Value enc_json(FinalChain::Config const& obj) {
+  Json::Value json(Json::objectValue);
+  json["state"] = enc_json(obj.state);
+  json["genesis_block_fields"] = enc_json(obj.genesis_block_fields);
+  return json;
+}
+
+void dec_json(Json::Value const& json, FinalChain::Config& obj) {
+  dec_json(json["state"], obj.state);
+  dec_json(json["genesis_block_fields"], obj.genesis_block_fields);
+}
+
+Json::Value enc_json(FinalChain::Config::StateConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  json["chain_config"] = enc_json(obj.chain_config);
+  auto& genesis_balances = json["genesis_balances"] =
+      Json::Value(Json::objectValue);
+  for (auto const& [k, v] : obj.genesis_accounts) {
+    genesis_balances[k.hex()] = dev::toJS(v.Balance);
+  }
+  return json;
+}
+
+void dec_json(Json::Value const& json, FinalChain::Config::StateConfig& obj) {
+  dec_json(json["chain_config"], obj.chain_config);
+  auto const& genesis_balances = json["genesis_balances"];
+  for (auto const& k : genesis_balances.getMemberNames()) {
+    obj.genesis_accounts[addr_t(k)].Balance =
+        dev::jsToU256(genesis_balances[k].asString());
+  }
+}
+
+Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj) {
+  Json::Value json(Json::objectValue);
+  json["timestamp"] = dev::toJS(obj.timestamp);
+  json["author"] = dev::toJS(obj.author);
+  return json;
+}
+
+void dec_json(Json::Value const& json,
+              FinalChain::Config::GenesisBlockFields& obj) {
+  obj.timestamp = dev::jsToInt(json["timestamp"].asString());
+  obj.author = addr_t(json["author"].asString());
+}
+
 }  // namespace taraxa::final_chain

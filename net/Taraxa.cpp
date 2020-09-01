@@ -146,4 +146,8 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel,
   }
 }
 
+Json::Value Taraxa::taraxa_getConfig() {
+  return enc_json(tryGetNode()->getConfig().chain);
+}
+
 }  // namespace taraxa::net

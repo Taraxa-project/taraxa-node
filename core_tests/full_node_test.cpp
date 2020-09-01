@@ -1626,6 +1626,71 @@ TEST_F(FullNodeTest, DISABLED_mem_usage) {
   }
 }
 
+TEST_F(FullNodeTest, chain_config_json) {
+  string default_chain_config_json_str = R"({
+  "dag_genesis_block": {
+    "hash": "0xc9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
+    "level": "0x0",
+    "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "sender": "0xde2b1203d72d3549ee2f733b00b2789414c7cea5",
+    "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
+    "timestamp": "0x5d422b80",
+    "tips": [],
+    "transactions": [],
+    "vdf": "0xf89ba00000000000000000000000000000000000000000000000000000000000000000b850000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080a0000000000000000000000000000000000000000000000000000000000000000080800f8205dc"
+  },
+  "final_chain": {
+    "genesis_block_fields": {
+      "author": "0x0000000000000000000000000000000000000000",
+      "timestamp": "0x0"
+    },
+    "state": {
+      "chain_config": {
+        "disable_block_rewards": true,
+        "evm_chain_config": {
+          "eth_chain_config": {
+            "byzantium_block": "0x0",
+            "constantinople_block": "0x0",
+            "dao_fork_block": "0xffffffffffffffff",
+            "eip_150_block": "0x0",
+            "eip_158_block": "0x0",
+            "homestead_block": "0x0",
+            "petersburg_block": "0x0"
+          },
+          "execution_options": {
+            "disable_gas_fee": true,
+            "disable_nonce_check": true
+          }
+        }
+      },
+      "genesis_balances": {
+        "de2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
+      }
+    }
+  },
+  "replay_protection_service": {
+    "range": "0xa"
+  }
+})";
+  Json::Value default_chain_config_json;
+  ASSERT_TRUE(Json::Reader().parse(default_chain_config_json_str,
+                                   default_chain_config_json));
+  ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
+  Json::Value test_node_config_json;
+  std::ifstream(path(__FILE__).parent_path() / "conf" / "conf_taraxa1.json",
+                std::ifstream::binary) >>
+      test_node_config_json;
+  test_node_config_json.removeMember("chain_config");
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json).chain),
+            default_chain_config_json);
+  test_node_config_json["chain_config"] = default_chain_config_json;
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json).chain),
+            default_chain_config_json);
+  test_node_config_json["chain_config"] = "test";
+  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json).chain),
+            enc_json(ChainConfig::predefined("test")));
+}
+
 }  // namespace taraxa
 
 int main(int argc, char **argv) {

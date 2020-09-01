@@ -52,33 +52,41 @@ enum DBColumn {
 using DBColumns = array<shared_ptr<ColumnFamilyHandle>, DBColumn::COUNT>;
 
 struct ExecutionOptions {
-  bool DisableNonceCheck = 0;
-  bool DisableGasFee = 0;
+  bool disable_nonce_check = 0;
+  bool disable_gas_fee = 0;
 };
 void enc_rlp(RLPStream&, ExecutionOptions const&);
+Json::Value enc_json(ExecutionOptions const& obj);
+void dec_json(Json::Value const& json, ExecutionOptions& obj);
 
 struct ETHChainConfig {
-  BlockNumber HomesteadBlock = 0;
-  BlockNumber DAOForkBlock = 0;
-  BlockNumber EIP150Block = 0;
-  BlockNumber EIP158Block = 0;
-  BlockNumber ByzantiumBlock = 0;
-  BlockNumber ConstantinopleBlock = 0;
-  BlockNumber PetersburgBlock = 0;
+  BlockNumber homestead_block = 0;
+  BlockNumber dao_fork_block = 0;
+  BlockNumber eip_150_block = 0;
+  BlockNumber eip_158_block = 0;
+  BlockNumber byzantium_block = 0;
+  BlockNumber constantinople_block = 0;
+  BlockNumber petersburg_block = 0;
 };
 void enc_rlp(RLPStream&, ETHChainConfig const&);
+Json::Value enc_json(ETHChainConfig const& obj);
+void dec_json(Json::Value const& json, ETHChainConfig& obj);
 
 struct EVMChainConfig {
   ETHChainConfig eth_chain_config;
   ExecutionOptions execution_options;
 };
 void enc_rlp(RLPStream&, EVMChainConfig const&);
+Json::Value enc_json(EVMChainConfig const& obj);
+void dec_json(Json::Value const& json, EVMChainConfig& obj);
 
 struct ChainConfig {
   EVMChainConfig evm_chain_config;
   bool disable_block_rewards = 0;
 };
 void enc_rlp(RLPStream&, ChainConfig const&);
+Json::Value enc_json(ChainConfig const& obj);
+void dec_json(Json::Value const& json, ChainConfig& obj);
 
 struct EVMBlock {
   addr_t Author;
