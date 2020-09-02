@@ -43,32 +43,19 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips,
   assert(false);
 }
 
-DagBlock::DagBlock(string const &json) {
-  Json::Value doc;
-  Json::Reader reader;
-  bool parsing_successful = reader.parse(json, doc);
-  if (!parsing_successful) {
-    std::cerr << "Parsing Json Transaction failed" << json << std::endl;
-    assert(false);
-  }
-  level_ = level_t(doc["level"].asUInt64());
-  tips_ = asVector<blk_hash_t>(doc["tips"]);
-  trxs_ = asVector<trx_hash_t>(doc["trxs"]);
-  sig_ = sig_t(doc["sig"].asString());
-  hash_ = blk_hash_t(doc["hash"].asString());
-  cached_sender_ = addr_t(doc["sender"].asString());
-  pivot_ = blk_hash_t(doc["pivot"].asString());
-  timestamp_ = doc["timestamp"].asUInt64();
-  auto vdf_string = doc["vdf"].asString();
-  if (!vdf_string.empty()) {
-    vdf_ = VdfSortition(dev::fromHex(vdf_string));
-  }
-}
+DagBlock::DagBlock(string const &json)
+    : DagBlock([&] {
+        Json::Value doc;
+        stringstream(json) >> doc;
+        return doc;
+      }()) {}
+
 DagBlock::DagBlock(Json::Value const &doc) {
   if (auto const &v = doc["level"]; v.isString()) {
     level_ = dev::jsToInt(v.asString());
   } else {
-    // this used to be inconsistent with getJson()
+    // this was inconsistent with getJson()
+    // fixme: eliminate this branch
     level_ = v.asUInt64();
   }
   tips_ = asVector<blk_hash_t, std::string>(doc, "tips");
@@ -80,7 +67,8 @@ DagBlock::DagBlock(Json::Value const &doc) {
   if (auto const &v = doc["timestamp"]; v.isString()) {
     timestamp_ = dev::jsToInt(v.asString());
   } else {
-    // this used to be inconsistent with getJson()
+    // this was inconsistent with getJson()
+    // fixme: eliminate this branch
     timestamp_ = v.asUInt64();
   }
   auto vdf_string = doc["vdf"].asString();
