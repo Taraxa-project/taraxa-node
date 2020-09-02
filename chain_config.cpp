@@ -5,9 +5,31 @@
 namespace taraxa::chain_config {
 using std::stringstream;
 
-LazyVal<ChainConfig> const ChainConfig::Default([] {
-  ChainConfig ret;
-  ret.dag_genesis_block = DagBlock(string(R"({
+Json::Value enc_json(ChainConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  if (obj.chain_id) {
+    json["chain_id"] = dev::toJS(obj.chain_id);
+  }
+  json["dag_genesis_block"] = obj.dag_genesis_block.getJson();
+  json["replay_protection_service"] = enc_json(obj.replay_protection_service);
+  json["final_chain"] = enc_json(obj.final_chain);
+  return json;
+}
+
+void dec_json(Json::Value const& json, ChainConfig& obj) {
+  if (auto const& e = json["chain_id"]; e.isString()) {
+    obj.chain_id = dev::jsToInt(e.asString());
+  }
+  obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
+  dec_json(json["replay_protection_service"], obj.replay_protection_service);
+  dec_json(json["final_chain"], obj.final_chain);
+}
+
+decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
+  decltype(ChainConfig::predefined_)::val_t cfgs;
+  cfgs["default"] = [] {
+    ChainConfig cfg;
+    cfg.dag_genesis_block = DagBlock(string(R"({
       "level": 0,
       "tips": [],
       "trxs": [],
@@ -18,18 +40,30 @@ LazyVal<ChainConfig> const ChainConfig::Default([] {
       "timestamp": 1564617600,
       "vdf": ""
   })"));
-  ret.replay_protection_service.range = 10;
-  ret.final_chain.state.chain_config.disable_block_rewards = true;
-  ret.final_chain.state.chain_config.evm_chain_config.eth_chain_config
-      .DAOForkBlock = state_api::BlockNumberNIL;
-  ret.final_chain.state.chain_config.evm_chain_config.execution_options
-      .DisableNonceCheck = true;
-  ret.final_chain.state.chain_config.evm_chain_config.execution_options
-      .DisableGasFee = true;
-  ret.final_chain.state
-      .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
-      .Balance = 9007199254740991;
-  return ret;
+    cfg.replay_protection_service.range = 10;
+    cfg.final_chain.state.chain_config.disable_block_rewards = true;
+    cfg.final_chain.state.chain_config.evm_chain_config.eth_chain_config
+        .dao_fork_block = state_api::BlockNumberNIL;
+    cfg.final_chain.state.chain_config.evm_chain_config.execution_options
+        .disable_nonce_check = true;
+    cfg.final_chain.state.chain_config.evm_chain_config.execution_options
+        .disable_gas_fee = true;
+    cfg.final_chain.state
+        .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
+        .Balance = 9007199254740991;
+    return cfg;
+  }();
+  cfgs["test"] = [&] {
+    auto cfg = cfgs["default"];
+    cfg.chain_id = 12345;
+    cfg.final_chain.state
+        .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
+        .Balance =
+        u256(7200999050) *
+        10000000000000000;  // https://ethereum.stackexchange.com/a/74832
+    return cfg;
+  }();
+  return cfgs;
 });
 
 }  // namespace taraxa::chain_config

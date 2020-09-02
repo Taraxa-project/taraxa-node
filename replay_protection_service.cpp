@@ -156,4 +156,14 @@ std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(
   return ret;
 }
 
+Json::Value enc_json(ReplayProtectionService::Config const& obj) {
+  Json::Value json(Json::objectValue);
+  json["range"] = dev::toJS(obj.range);
+  return json;
+}
+
+void dec_json(Json::Value const& json, ReplayProtectionService::Config& obj) {
+  obj.range = dev::jsToInt(json["range"].asString());
+}
+
 }  // namespace taraxa

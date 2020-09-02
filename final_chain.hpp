@@ -63,6 +63,14 @@ unique_ptr<FinalChain> NewFinalChain(shared_ptr<DbStorage> db,
                                      FinalChain::Config const& config,
                                      FinalChain::Opts const& opts = {});
 
+Json::Value enc_json(FinalChain::Config const& obj);
+void dec_json(Json::Value const& json, FinalChain::Config& obj);
+Json::Value enc_json(FinalChain::Config::StateConfig const& obj);
+void dec_json(Json::Value const& json, FinalChain::Config::StateConfig& obj);
+Json::Value enc_json(FinalChain::Config::GenesisBlockFields const& obj);
+void dec_json(Json::Value const& json,
+              FinalChain::Config::GenesisBlockFields& obj);
+
 }  // namespace taraxa::final_chain
 
 namespace taraxa {

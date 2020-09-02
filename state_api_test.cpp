@@ -52,13 +52,13 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
 
   ChainConfig chain_config;
   auto& eth_chain_cfg = chain_config.evm_chain_config.eth_chain_config;
-  eth_chain_cfg.HomesteadBlock = 1150000;
-  eth_chain_cfg.DAOForkBlock = 1920000;
-  eth_chain_cfg.EIP150Block = 2463000;
-  eth_chain_cfg.EIP158Block = 2675000;
-  eth_chain_cfg.ByzantiumBlock = 4370000;
-  eth_chain_cfg.ConstantinopleBlock = 7280000;
-  eth_chain_cfg.PetersburgBlock = 7280000;
+  eth_chain_cfg.homestead_block = 1150000;
+  eth_chain_cfg.dao_fork_block = 1920000;
+  eth_chain_cfg.eip_150_block = 2463000;
+  eth_chain_cfg.eip_158_block = 2675000;
+  eth_chain_cfg.byzantium_block = 4370000;
+  eth_chain_cfg.constantinople_block = 7280000;
+  eth_chain_cfg.petersburg_block = 7280000;
 
   CacheOpts cache_opts;
   cache_opts.ExpectedMaxNumTrxPerBlock = 200;

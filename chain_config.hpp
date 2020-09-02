@@ -25,8 +25,20 @@ struct ChainConfig {
   ReplayProtectionService::Config replay_protection_service;
   FinalChain::Config final_chain;
 
-  static LazyVal<ChainConfig> const Default;
+ private:
+  static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;
+
+ public:
+  static auto const& predefined(std::string const& name = "default") {
+    if (auto i = predefined_->find(name); i != predefined_->end()) {
+      return i->second;
+    }
+    throw std::runtime_error("unknown chain config: " + name);
+  }
 };
+
+Json::Value enc_json(ChainConfig const& obj);
+void dec_json(Json::Value const& json, ChainConfig& obj);
 
 }  // namespace taraxa::chain_config
 

@@ -234,13 +234,14 @@ void enc_rlp(RLPStream& rlp, InputAccount const& target) {
 }
 
 void enc_rlp(RLPStream& rlp, ExecutionOptions const& target) {
-  enc_rlp_tuple(rlp, target.DisableNonceCheck, target.DisableGasFee);
+  enc_rlp_tuple(rlp, target.disable_nonce_check, target.disable_gas_fee);
 }
 
 void enc_rlp(RLPStream& rlp, ETHChainConfig const& target) {
-  enc_rlp_tuple(rlp, target.HomesteadBlock, target.DAOForkBlock,
-                target.EIP150Block, target.EIP158Block, target.ByzantiumBlock,
-                target.ConstantinopleBlock, target.PetersburgBlock);
+  enc_rlp_tuple(rlp, target.homestead_block, target.dao_fork_block,
+                target.eip_150_block, target.eip_158_block,
+                target.byzantium_block, target.constantinople_block,
+                target.petersburg_block);
 }
 
 void enc_rlp(RLPStream& rlp, EVMChainConfig const& target) {
@@ -330,6 +331,65 @@ void dec_rlp(RLP const& rlp, EVMBlock& target) {
 void dec_rlp(RLP const& rlp, EVMTransaction& target) {
   dec_rlp_tuple(rlp, target.From, target.GasPrice, target.To, target.Nonce,
                 target.Value, target.Gas, target.Input);
+}
+
+Json::Value enc_json(ExecutionOptions const& obj) {
+  Json::Value json(Json::objectValue);
+  json["disable_nonce_check"] = obj.disable_nonce_check;
+  json["disable_gas_fee"] = obj.disable_gas_fee;
+  return json;
+}
+
+void dec_json(Json::Value const& json, ExecutionOptions& obj) {
+  obj.disable_nonce_check = json["disable_nonce_check"].asBool();
+  obj.disable_gas_fee = json["disable_gas_fee"].asBool();
+}
+
+Json::Value enc_json(ETHChainConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  json["homestead_block"] = dev::toJS(obj.homestead_block);
+  json["dao_fork_block"] = dev::toJS(obj.dao_fork_block);
+  json["eip_150_block"] = dev::toJS(obj.eip_150_block);
+  json["eip_158_block"] = dev::toJS(obj.eip_158_block);
+  json["byzantium_block"] = dev::toJS(obj.byzantium_block);
+  json["constantinople_block"] = dev::toJS(obj.constantinople_block);
+  json["petersburg_block"] = dev::toJS(obj.petersburg_block);
+  return json;
+}
+
+void dec_json(Json::Value const& json, ETHChainConfig& obj) {
+  obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
+  obj.dao_fork_block = dev::jsToInt(json["dao_fork_block"].asString());
+  obj.eip_150_block = dev::jsToInt(json["eip_150_block"].asString());
+  obj.eip_158_block = dev::jsToInt(json["eip_158_block"].asString());
+  obj.byzantium_block = dev::jsToInt(json["byzantium_block"].asString());
+  obj.constantinople_block =
+      dev::jsToInt(json["constantinople_block"].asString());
+  obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
+}
+
+Json::Value enc_json(EVMChainConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  json["eth_chain_config"] = enc_json(obj.eth_chain_config);
+  json["execution_options"] = enc_json(obj.execution_options);
+  return json;
+}
+
+void dec_json(Json::Value const& json, EVMChainConfig& obj) {
+  dec_json(json["eth_chain_config"], obj.eth_chain_config);
+  dec_json(json["execution_options"], obj.execution_options);
+}
+
+Json::Value enc_json(ChainConfig const& obj) {
+  Json::Value json(Json::objectValue);
+  json["evm_chain_config"] = enc_json(obj.evm_chain_config);
+  json["disable_block_rewards"] = obj.disable_block_rewards;
+  return json;
+}
+
+void dec_json(Json::Value const& json, ChainConfig& obj) {
+  dec_json(json["evm_chain_config"], obj.evm_chain_config);
+  obj.disable_block_rewards = json["disable_block_rewards"].asBool();
 }
 
 }  // namespace taraxa::state_api
