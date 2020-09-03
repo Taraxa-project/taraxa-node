@@ -1425,7 +1425,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
   std::cout << "DAG size " << num_vertices0 << std::endl;
-  // Check duplicate transactions in single one DAG block
+
   vector<blk_hash_t> ordered_dag_blocks =
       nodes[0]->getDB()->getOrderedDagBlocks();
   // Compare total DAG vertices with DAG blocks(no DAG genesis) in DB
@@ -1436,6 +1436,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     nodes[0]->getDagManager()->drawGraph("debug_dag");
   }
   EXPECT_GE(nodes.size() - 1, diff_dag_blocks);
+
+  // Check duplicate transactions in single one DAG block
   for (auto const &b : ordered_dag_blocks) {
     std::shared_ptr<DagBlock> block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_TRUE(block);
@@ -1538,7 +1540,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "timestamp": "0x5d422b80",
     "tips": [],
     "transactions": [],
-    "vdf": "0xf89ba00000000000000000000000000000000000000000000000000000000000000000b850000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080a0000000000000000000000000000000000000000000000000000000000000000080800f8205dc"
+    "vdf": "0xf87aa00000000000000000000000000000000000000000000000000000000000000000b85000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008080800f8205dc"
   },
   "final_chain": {
     "genesis_block_fields": {
