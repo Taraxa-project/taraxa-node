@@ -532,6 +532,7 @@ std::string PbftChain::getJsonStr() const {
   json["head_hash"] = head_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
+  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   return json.toStyledString();
 }
 

@@ -72,7 +72,7 @@ DagBlock::DagBlock(Json::Value const &doc) {
   }
   auto vdf_string = doc["vdf"].asString();
   if (!vdf_string.empty()) {
-    vdf_ = VdfSortition(dev::fromHex(vdf_string));
+    vdf_ = VdfSortition(cached_sender_, dev::fromHex(vdf_string));
   }
 }
 DagBlock::DagBlock(bytes const &_rlp) {
@@ -83,7 +83,7 @@ DagBlock::DagBlock(bytes const &_rlp) {
   pivot_ = rlp[0].toHash<blk_hash_t>();
   level_ = rlp[1].toInt<level_t>();
   timestamp_ = rlp[2].toInt<uint64_t>();
-  vdf_ = vdf_sortition::VdfSortition(rlp[3].toBytes());
+  vdf_ = vdf_sortition::VdfSortition(cached_sender_, rlp[3].toBytes());
   uint64_t num_tips = rlp[4].toInt<uint64_t>();
   for (auto i = 0; i < num_tips; ++i) {
     auto tip = rlp[5 + i].toHash<blk_hash_t>();

@@ -1296,15 +1296,9 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   EXPECT_GT(nodes[0]->getNumProposedBlocks(), 0);
 }
 
-TEST_F(FullNodeTest, DISABLED_detect_overlap_transactions) {
+TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto tops = createNodesAndVerifyConnection(5, 4, false, 2);
   auto &nodes = tops.second;
-
-  nodes[0]->getPbftManager()->stop();
-  nodes[1]->getPbftManager()->stop();
-  nodes[2]->getPbftManager()->stop();
-  nodes[3]->getPbftManager()->stop();
-  nodes[4]->getPbftManager()->stop();
 
   ASSERT_EQ(nodes[0]->getNetwork()->getPeerCount(), 4);
   ASSERT_EQ(nodes[1]->getNetwork()->getPeerCount(), 4);
@@ -1312,258 +1306,163 @@ TEST_F(FullNodeTest, DISABLED_detect_overlap_transactions) {
   ASSERT_EQ(nodes[3]->getNetwork()->getPeerCount(), 4);
   ASSERT_EQ(nodes[4]->getNetwork()->getPeerCount(), 4);
 
-  try {
-    init_5_nodes_coin();
-    thisThreadSleepForSeconds(5);
-    send_5_nodes_trxs();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
+  // Even distribute coins from master boot node to other nodes. Since master
+  // boot node owns whole coins, the active players should be only master boot
+  // node at the moment.
+  auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
+  auto gas_price = val_t(2);
+  auto data = bytes();
+  auto nonce = 0;
+  auto trxs_count = 0;
+  for (auto i(1); i < nodes.size(); ++i) {
+    Transaction master_boot_node_send_coins(
+        nonce++, init_bal, gas_price, 100000, data, nodes[0]->getSecretKey(),
+        nodes[i]->getAddress());
+    // broadcast trx and insert
+    nodes[0]->getTransactionManager()->insertTransaction(
+        master_boot_node_send_coins, false);
+    trxs_count++;
   }
 
-  int total_trx_count = 2504;
-
-  // check dags
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
-    auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
-    auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
-    auto num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
-    auto num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
-
-    auto trx_table = nodes[0]->getDB()->getAllTransactionStatus();
-    int packed_trx = 0;
-
-    if (nodes[0]->getTransactionManager()->getTransactionCount() ==
-        total_trx_count) {
-      for (auto const &t : trx_table) {
-        if (t.second == TransactionStatus::in_block) {
-          packed_trx++;
+  std::cout << "Checking all nodes executed transactions at initialization"
+            << std::endl;
+  auto success = wait::Wait(
+      [&nodes, &trxs_count, &nonce] {
+        for (auto i(0); i < nodes.size(); ++i) {
+          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+            std::cout << "node" << i << " executed "
+                      << nodes[i]->getDB()->getNumTransactionExecuted()
+                      << " transactions, expected " << trxs_count << std::endl;
+            Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(),
+                                  nodes[0]->getSecretKey(),
+                                  nodes[0]->getAddress());
+            // broadcast dummy transaction
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                                 false);
+            trxs_count++;
+            return false;
+          }
         }
-      }
-
-      if (packed_trx == total_trx_count && num_vertices1 == num_vertices2 &&
-          num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 &&
-          num_vertices4 == num_vertices5 &&
-          nodes[0]->getTransactionManager()->getTransactionCount() ==
-              total_trx_count &&
-          nodes[1]->getTransactionManager()->getTransactionCount() ==
-              total_trx_count &&
-          nodes[2]->getTransactionManager()->getTransactionCount() ==
-              total_trx_count &&
-          nodes[3]->getTransactionManager()->getTransactionCount() ==
-              total_trx_count &&
-          nodes[4]->getTransactionManager()->getTransactionCount() ==
-              total_trx_count) {
-        break;
-      }
-      if (i % 1 == 0) {
-        std::cout << "Wait for vertices syncing ... packed trx " << packed_trx
-                  << std::endl;
-        std::cout << "Node 1 trx received: "
-                  << nodes[0]->getTransactionManager()->getTransactionCount()
-                  << " Dag size: " << num_vertices1 << std::endl;
-        std::cout << "Node 2 trx received: "
-                  << nodes[1]->getTransactionManager()->getTransactionCount()
-                  << " Dag size: " << num_vertices2 << std::endl;
-        std::cout << "Node 3 trx received: "
-                  << nodes[2]->getTransactionManager()->getTransactionCount()
-                  << " Dag size: " << num_vertices3 << std::endl;
-        std::cout << "Node 4 trx received: "
-                  << nodes[3]->getTransactionManager()->getTransactionCount()
-                  << " Dag size: " << num_vertices4 << std::endl;
-        std::cout << "Node 5 trx received: "
-                  << nodes[4]->getTransactionManager()->getTransactionCount()
-                  << " Dag size: " << num_vertices5 << std::endl;
-      }
+        return true;
+      },
+      {
+          10,                        // send times
+          std::chrono::seconds(15),  // each sending
+      });
+  for (auto i(0); i < nodes.size(); ++i) {
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
+  }
+  // Check account balance for each node
+  for (auto i(0); i < nodes.size(); ++i) {
+    std::cout << "Checking account balances on node " << i << " ..."
+              << std::endl;
+    EXPECT_EQ(
+        nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
+        9007199254740991 - 4 * init_bal);
+    for (auto j(1); j < nodes.size(); ++j) {
+      // For node1 to node4 balances info on each node
+      EXPECT_EQ(
+          nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
+          init_bal);
     }
-    taraxa::thisThreadSleepForMilliSeconds(500);
   }
 
-  EXPECT_GT(nodes[0]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[1]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[2]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[3]->getNumProposedBlocks(), 2);
-  EXPECT_GT(nodes[4]->getNumProposedBlocks(), 2);
-
-  ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-
-  // send dummy trx to make sure all DAG blocks are ordered
-  // NOTE: have to wait longer than block proposer time + transaction
-  // propogation time to ensure
-  //       all transacations have already been packed into other blocks and
-  //       that this new transaction will get packed into a unique block that
-  //       will reference all outstanding tips
-  taraxa::thisThreadSleepForMilliSeconds(200);
-
-  // send dummy trx to make sure all DAGs are ordered
-  std::cout << "Send dummy transaction ... " << std::endl;
-  try {
-    send_dummy_trx();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-
-  taraxa::thisThreadSleepForMilliSeconds(200);
-
-  auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
-  for (auto _ = 0; _ < SYNC_TIMEOUT; _++) {
-    if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 &&
-        num_vertices3 == num_vertices4 && num_vertices4 == num_vertices5) {
-      break;
+  // Sending coins in Robin Cycle
+  auto send_coins = 1;
+  for (auto i(0); i < nodes.size(); ++i) {
+    auto receiver_index = (i + 1) % nodes.size();
+    // Each node sends 500 transactions
+    auto j = 0;
+    for (; j < 500; j++) {
+      Transaction send_coins_in_robin_cycle(
+          nonce++, send_coins, gas_price, 100000, data,
+          nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
+      // broadcast trx and insert
+      nodes[i]->getTransactionManager()->insertTransaction(
+          send_coins_in_robin_cycle, false);
+      trxs_count++;
     }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
-    num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
-    num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
-    num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
-    num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
+    std::cout << "Node" << i << " sends " << j << " transactions to Node"
+              << receiver_index << std::endl;
   }
+  std::cout << "Checking all nodes execute transactions from robin cycle"
+            << std::endl;
+  success = wait::Wait(
+      [&nodes, &trxs_count, &nonce] {
+        for (auto i(0); i < nodes.size(); ++i) {
+          if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+            std::cout << "node" << i << " executed "
+                      << nodes[i]->getDB()->getNumTransactionExecuted()
+                      << " transactions. Expected " << trxs_count << std::endl;
+            Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(),
+                                  nodes[0]->getSecretKey(),
+                                  nodes[0]->getAddress());
+            // broadcast dummy transaction
+            nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
+                                                                 false);
+            trxs_count++;
+            return false;
+          }
+        }
+        return true;
+      },
+      {
+          10,                        // send times
+          std::chrono::seconds(15),  // each sending
+      });
+  for (auto i = 0; i < nodes.size(); i++) {
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
+  }
+
+  // Check DAG
+  auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
+  auto num_vertices1 = nodes[1]->getDagManager()->getNumVerticesInDag();
+  auto num_vertices2 = nodes[2]->getDagManager()->getNumVerticesInDag();
+  auto num_vertices3 = nodes[3]->getDagManager()->getNumVerticesInDag();
+  auto num_vertices4 = nodes[4]->getDagManager()->getNumVerticesInDag();
+  EXPECT_EQ(num_vertices0, num_vertices1);
   EXPECT_EQ(num_vertices1, num_vertices2);
   EXPECT_EQ(num_vertices2, num_vertices3);
   EXPECT_EQ(num_vertices3, num_vertices4);
-  EXPECT_EQ(num_vertices4, num_vertices5);
+  std::cout << "DAG size " << num_vertices0 << std::endl;
 
-  total_trx_count += 1;  // Dummy transaction
-  std::cout << "Detect dummy transaction receiving... " << std::endl;
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    auto node0_trx_count =
-        nodes[0]->getTransactionManager()->getTransactionCount();
-    auto node1_trx_count =
-        nodes[1]->getTransactionManager()->getTransactionCount();
-    auto node2_trx_count =
-        nodes[2]->getTransactionManager()->getTransactionCount();
-    auto node3_trx_count =
-        nodes[3]->getTransactionManager()->getTransactionCount();
-    auto node4_trx_count =
-        nodes[4]->getTransactionManager()->getTransactionCount();
-    if (node0_trx_count == total_trx_count &&
-        node1_trx_count == total_trx_count &&
-        node2_trx_count == total_trx_count &&
-        node3_trx_count == total_trx_count &&
-        node4_trx_count == total_trx_count) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-  ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(),
-            total_trx_count);
-
-  std::cout << "All transactions received ..." << std::endl;
-
-  std::cout << "Compute ordered dag blocks ..." << std::endl;
-  auto block = nodes[0]->getConfig().chain.dag_genesis_block;
-  std::vector<std::string> ghost;
-  nodes[0]->getDagManager()->getGhostPath(block.getHash().toString(), ghost);
-  ASSERT_GT(ghost.size(), 1);
-  uint64_t period = 0, cur_period;
-  std::shared_ptr<vec_blk_t> order;
-  auto anchor = blk_hash_t(ghost.back());
-  std::tie(cur_period, order) =
-      nodes[0]->getDagManager()->getDagBlockOrder(anchor);
-  ASSERT_TRUE(order);
-  EXPECT_GT(order->size(), 5);
-  std::cout << "Ordered dag block chain size: " << order->size() << std::endl;
-
-  auto dag_size = nodes[0]->getDagManager()->getNumVerticesInDag();
-
-  // can have multiple dummy blocks
-  auto vertices_diff = nodes[0]->getDagManager()->getNumVerticesInDag().first -
-                       1 - order->size();
-  if (vertices_diff < 0 || vertices_diff >= 5) {
+  vector<blk_hash_t> ordered_dag_blocks =
+      nodes[0]->getDB()->getOrderedDagBlocks();
+  // Compare total DAG vertices with DAG blocks(no DAG genesis) in DB
+  // The maximum difference value should be not greater than number of nodes
+  // num_vertices0.first - 1 is not include genesis
+  auto diff_dag_blocks = (num_vertices0.first - 1) - ordered_dag_blocks.size();
+  if (diff_dag_blocks > (nodes.size() - 1)) {
     nodes[0]->getDagManager()->drawGraph("debug_dag");
-    for (auto i(0); i < order->size(); ++i) {
-      auto blk = (*order)[i];
-      std::cout
-          << i << " " << blk << " "
-          << " trx: "
-          << nodes[0]->getBlockManager()->getDagBlock(blk)->getTrxs().size()
-          << std::endl;
+  }
+  EXPECT_GE(nodes.size() - 1, diff_dag_blocks);
+
+  // Check duplicate transactions in single one DAG block
+  for (auto const &b : ordered_dag_blocks) {
+    std::shared_ptr<DagBlock> block = nodes[0]->getDB()->getDagBlock(b);
+    EXPECT_TRUE(block);
+    vec_trx_t trxs_hash = block->getTrxs();
+    std::unordered_set<trx_hash_t> unique_trxs;
+    for (auto const &t : trxs_hash) {
+      if (unique_trxs.count(t)) {
+        EXPECT_FALSE(true) << "Duplicate transaction " << t << " in DAG block "
+                           << b << std::endl;
+      }
+      unique_trxs.insert(t);
     }
   }
 
-  // diff should be larger than 0 but smaller than number of nodes
-  // genesis block won't be executed
-  EXPECT_LT(vertices_diff, 5)
-      << " Number of vertices: "
-      << nodes[0]->getDagManager()->getNumVerticesInDag().first
-      << " Number of ordered blks: " << order->size() << std::endl;
-  EXPECT_GE(vertices_diff, 0)
-      << " Number of vertices: "
-      << nodes[0]->getDagManager()->getNumVerticesInDag().first
-      << " Number of ordered blks: " << order->size() << std::endl;
-
-  auto overlap_table =
-      nodes[0]->getTrxOrderMgr()->computeTransactionOverlapTable(order);
-  // check transaction overlapping ...
-  auto trx_table = nodes[0]->getDB()->getAllTransactionStatus();
-  auto trx_table2 = trx_table;
-  std::unordered_set<trx_hash_t> ordered_trxs;
-  std::unordered_set<trx_hash_t> packed_trxs;
-  uint all_trxs = 0;
-  for (auto const &entry : *overlap_table) {
-    auto const &blk = entry.first;
-    auto const &overlap_vec = entry.second;
-    auto dag_blk = nodes[0]->getBlockManager()->getDagBlock(blk);
-    ASSERT_NE(dag_blk, nullptr);
-    auto trxs = dag_blk->getTrxs();
-    ASSERT_TRUE(trxs.size() == overlap_vec.size());
-    all_trxs += overlap_vec.size();
-
-    for (auto i = 0; i < trxs.size(); i++) {
-      auto trx = trxs[i];
-      if (!ordered_trxs.count(trx)) {
-        EXPECT_TRUE(overlap_vec[i]);
-        ordered_trxs.insert(trx);
-        auto trx_status = trx_table[trx];
-        EXPECT_EQ(trx_status, TransactionStatus::in_block)
-            << "Error: " << trx << " status " << asInteger(trx_status)
-            << std::endl;
-
-      } else {
-        EXPECT_FALSE(overlap_vec[i]);
-      }
-      auto it = trx_table2.find(trx);
-      if (it != trx_table2.end()) {
-        trx_table2.erase(it);
-      }
-      packed_trxs.insert(trx);
+  // Check executed duplicate transactions
+  auto trxs_table = nodes[0]->getDB()->getAllTransactionStatus();
+  EXPECT_EQ(trxs_count, trxs_table.size());
+  std::unordered_set<trx_hash_t> unique_trxs;
+  for (auto const &t : trxs_table) {
+    if (unique_trxs.count(t.first)) {
+      EXPECT_FALSE(true) << "Executed duplicate transacton " << t.first
+                         << std::endl;
     }
+    unique_trxs.insert(t.first);
   }
-  for (auto const &t : trx_table2) {
-    auto trx = nodes[0]->getTransactionManager()->getTransaction(t.first);
-    assert(trx);
-    std::cout << "Unpacked trx: " << (*trx).first.getHash()
-              << " sender: " << (*trx).first.getSender()
-              << " nonce: " << (*trx).first.getNonce() << std::endl;
-  }
-
-  std::cout << "Total packed (overlapped) trxs: " << all_trxs << std::endl;
-  EXPECT_GT(all_trxs, total_trx_count);
-  ASSERT_EQ(ordered_trxs.size(), total_trx_count)
-      << "Number of unpacked_trx " << trx_table2.size() << std::endl
-      << "Total packed (non-overlapped) trxs " << packed_trxs.size()
-      << std::endl;
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {
@@ -1641,7 +1540,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "timestamp": "0x5d422b80",
     "tips": [],
     "transactions": [],
-    "vdf": "0xf89ba00000000000000000000000000000000000000000000000000000000000000000b850000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080a0000000000000000000000000000000000000000000000000000000000000000080800f8205dc"
+    "vdf": "0xf87aa00000000000000000000000000000000000000000000000000000000000000000b85000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008080800f8205dc"
   },
   "final_chain": {
     "genesis_block_fields": {
