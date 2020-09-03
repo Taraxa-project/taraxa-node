@@ -1681,8 +1681,9 @@ TEST_F(FullNodeTest, chain_config_json) {
                                    default_chain_config_json));
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;
-  std::ifstream(path(__FILE__).parent_path() / "conf" / "conf_taraxa1.json",
-                std::ifstream::binary) >>
+  std::ifstream(
+      (path(__FILE__).parent_path() / "conf" / "conf_taraxa1.json").string(),
+      std::ifstream::binary) >>
       test_node_config_json;
   test_node_config_json.removeMember("chain_config");
   ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json).chain),
