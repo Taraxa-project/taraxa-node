@@ -35,10 +35,8 @@ bool SortitionPropose::propose() {
   auto propose_level =
       proposer->getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
-  auto propose_anchor = proposer->getProposeAnchor();
-
   // get sortition
-  vdf_sortition::Message msg(propose_anchor, propose_level);
+  vdf_sortition::Message msg(propose_level);
   vdf_sortition::VdfSortition vdf(node_addr_, vrf_sk_, msg, difficulty_bound_,
                                   lambda_bound_);
   vdf.computeVdfSolution(frontier.pivot.toString());

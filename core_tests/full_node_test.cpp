@@ -1323,13 +1323,6 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         master_boot_node_send_coins, false);
     trxs_count++;
   }
-  taraxa::thisThreadSleepForSeconds(2);
-  // Send dummy transaction
-  Transaction dummy_trx1(nonce++, 0, 2, 100000, bytes(),
-                         nodes[0]->getSecretKey(), nodes[0]->getAddress());
-  // broadcast dummy transaction
-  nodes[0]->getTransactionManager()->insertTransaction(dummy_trx1, false);
-  trxs_count++;
 
   std::cout << "Checking all nodes executed transactions at initialization"
             << std::endl;
@@ -1388,18 +1381,10 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       nodes[i]->getTransactionManager()->insertTransaction(
           send_coins_in_robin_cycle, false);
       trxs_count++;
-      taraxa::thisThreadSleepForMilliSeconds(2);
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node"
               << receiver_index << std::endl;
   }
-  taraxa::thisThreadSleepForSeconds(7);
-  // Send dummy transaction
-  Transaction dummy_trx2(nonce++, 0, 2, 100000, bytes(),
-                         nodes[0]->getSecretKey(), nodes[0]->getAddress());
-  // broadcast dummy transaction
-  nodes[0]->getTransactionManager()->insertTransaction(dummy_trx2, false);
-  trxs_count++;
   std::cout << "Checking all nodes execute transactions from robin cycle"
             << std::endl;
   success = wait::Wait(
@@ -1444,10 +1429,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   vector<blk_hash_t> ordered_dag_blocks =
       nodes[0]->getDB()->getOrderedDagBlocks();
   // Compare total DAG vertices with DAG blocks(no DAG genesis) in DB
-  if (num_vertices0.first - 1 != ordered_dag_blocks.size()) {
+  // The maximum difference value should be not greater than number of nodes
+  // num_vertices0.first - 1 is not include genesis
+  auto diff_dag_blocks = (num_vertices0.first - 1) - ordered_dag_blocks.size();
+  if (diff_dag_blocks > (nodes.size() - 1)) {
     nodes[0]->getDagManager()->drawGraph("debug_dag");
   }
-  EXPECT_EQ(num_vertices0.first - 1, ordered_dag_blocks.size());
+  EXPECT_GE(nodes.size() - 1, diff_dag_blocks);
   for (auto const &b : ordered_dag_blocks) {
     std::shared_ptr<DagBlock> block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_TRUE(block);

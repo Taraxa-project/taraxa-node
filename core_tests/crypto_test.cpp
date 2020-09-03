@@ -102,7 +102,7 @@ TEST_F(CryptoTest, vdf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  Message msg(blk_hash_t(100), 3);
+  Message msg(3);
   blk_hash_t vdf_input = blk_hash_t(200);
   VdfSortition vdf(node_key.address(), sk, msg, 17, 9);
   VdfSortition vdf2(node_key.address(), sk, msg, 17, 9);
@@ -123,10 +123,7 @@ TEST_F(CryptoTest, vdf_solution) {
   vrf_sk_t sk2(
       "90f59a7ee7a392c811c5d299b557a4e09e610de7d109d6b3fcb19ab8d51c9a0d931f5e7d"
       "b07c9969e438db7e287eabbaaca49ca414f5f3a402ea6997ade40081");
-  Message msg(
-      blk_hash_t(
-          "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69"),
-      1);
+  Message msg(1);
   VdfSortition vdf(node_key.address(), sk, msg, 19, 8);
   VdfSortition vdf2(node_key.address(), sk2, msg, 19, 8);
   blk_hash_t vdf_input = blk_hash_t(200);
@@ -146,7 +143,7 @@ TEST_F(CryptoTest, vdf_proof_verify) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  Message msg(blk_hash_t(100), 3);
+  Message msg(3);
   VdfSortition vdf(node_key.address(), sk, msg);
   blk_hash_t vdf_input = blk_hash_t(200);
 
@@ -164,7 +161,7 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   blk_hash_t last_anchor_hash = blk_hash_t(
       "be67f76499af842b5c8e9d22194f19c04711199726b2224854af34365d351124");
-  Message msg(last_anchor_hash, 1);
+  Message msg(1);
   uint lambda_bound = 1500;
   blk_hash_t proposal_dag_block_pivot_hash1 = blk_hash_t(0);
   blk_hash_t proposal_dag_block_pivot_hash2 = blk_hash_t(
