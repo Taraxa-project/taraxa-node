@@ -15,7 +15,8 @@ VdfSortition::VdfSortition(addr_t node_addr, vrf_sk_t const& sk,
   LOG_OBJECTS_CREATE("VDF");
 }
 
-VdfSortition::VdfSortition(bytes const& b) {
+VdfSortition::VdfSortition(addr_t node_addr, bytes const& b) {
+  LOG_OBJECTS_CREATE("VDF");
   if (b.empty()) {
     return;
   }

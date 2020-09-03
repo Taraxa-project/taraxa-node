@@ -109,7 +109,7 @@ TEST_F(CryptoTest, vdf_sortition) {
   vdf.computeVdfSolution(vdf_input.toString());
   vdf2.computeVdfSolution(vdf_input.toString());
   auto b = vdf.rlp();
-  VdfSortition vdf3(b);
+  VdfSortition vdf3(node_key.address(), b);
   vdf3.verify(vdf_input.toString());
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
