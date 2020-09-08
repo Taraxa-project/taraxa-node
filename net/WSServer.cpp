@@ -64,33 +64,49 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
       reader.parse((char *)buffer_.data().data(), json);  // parse process
   if (!parsingSuccessful) {
     LOG(log_er_) << "Failed to parse" << reader.getFormattedErrorMessages();
+    closed_ = true;
     return;
   }
 
   auto id = json.get("id", 0);
   Json::Value json_response;
-  auto params = json.get("params", Json::Value(Json::Value(Json::arrayValue)));
-  json_response["id"] = id;
-  json_response["jsonrpc"] = "2.0";
-  subscription_id_++;
-  if (params.size() > 0) {
-    if (params[0].asString() == "newHeads") {
-      new_heads_subscription_ = subscription_id_;
-    } else if (params[0].asString() == "newPendingTransactions") {
-      new_transactions_subscription_ = subscription_id_;
-    } else if (params[0].asString() == "newDagBlocks") {
-      new_dag_blocks_subscription_ = subscription_id_;
-    } else if (params[0].asString() == "newDagBlocksFinalized") {
-      new_dag_block_finalized_subscription_ = subscription_id_;
-    } else if (params[0].asString() == "newPbftBlocks") {
-      new_pbft_block_executed_subscription_ = subscription_id_;
+  auto method = json.get("method", "");
+  std::string response;
+  if (method == "eth_subscribe") {
+    auto params =
+        json.get("params", Json::Value(Json::Value(Json::arrayValue)));
+    json_response["id"] = id;
+    json_response["jsonrpc"] = "2.0";
+    subscription_id_++;
+    if (params.size() > 0) {
+      if (params[0].asString() == "newHeads") {
+        new_heads_subscription_ = subscription_id_;
+      } else if (params[0].asString() == "newPendingTransactions") {
+        new_transactions_subscription_ = subscription_id_;
+      } else if (params[0].asString() == "newDagBlocks") {
+        new_dag_blocks_subscription_ = subscription_id_;
+      } else if (params[0].asString() == "newDagBlocksFinalized") {
+        new_dag_block_finalized_subscription_ = subscription_id_;
+      } else if (params[0].asString() == "newPbftBlocks") {
+        new_pbft_block_executed_subscription_ = subscription_id_;
+      }
+    }
+    json_response["result"] = dev::toJS(subscription_id_);
+    Json::FastWriter fastWriter;
+    response = fastWriter.write(json_response);
+    ws_.text(ws_.got_text());
+    LOG(log_tr_) << "WS WRITE " << response.c_str();
+  } else {
+    auto ws_server = ws_server_.lock();
+    if (ws_server) {
+      auto handler = ws_server->GetHandler();
+      if (handler != NULL) {
+        LOG(log_tr_) << "WS Read: " << (char *)buffer_.data().data();
+        handler->HandleRequest((char *)buffer_.data().data(), response);
+      }
+      LOG(log_tr_) << "WS Write: " << response;
     }
   }
-  json_response["result"] = dev::toJS(subscription_id_);
-  Json::FastWriter fastWriter;
-  std::string response = fastWriter.write(json_response);
-  ws_.text(ws_.got_text());
-  LOG(log_tr_) << "WS WRITE " << response.c_str();
   auto executor = ws_.get_executor();
   if (!executor) {
     LOG(log_tr_) << "Executor missing - WS closed";
@@ -343,8 +359,8 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
       }
     }
     // Create the session and run it
-    sessions.push_back(
-        std::make_shared<WSSession>(std::move(socket), node_addr_));
+    sessions.push_back(std::make_shared<WSSession>(
+        std::move(socket), node_addr_, shared_from_this()));
     sessions.back()->run();
   }
 

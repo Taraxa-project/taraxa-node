@@ -1,6 +1,7 @@
 #ifndef TARAXA_NODE_NET_WS_SERVER_H_
 #define TARAXA_NODE_NET_WS_SERVER_H_
 
+#include <jsonrpccpp/server/abstractserverconnector.h>
 #include <libethcore/BlockHeader.h>
 
 #include <algorithm>
@@ -28,12 +29,15 @@ namespace http = beast::http;            // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 
+class WSServer;
 class WSSession : public std::enable_shared_from_this<WSSession> {
  public:
   // Take ownership of the socket
-  explicit WSSession(tcp::socket&& socket, addr_t node_addr)
+  explicit WSSession(tcp::socket&& socket, addr_t node_addr,
+                     std::shared_ptr<WSServer> ws_server)
       : ws_(std::move(socket)) {
     LOG_OBJECTS_CREATE("RPC");
+    ws_server_ = ws_server;
   }
 
   // Start the asynchronous operation
@@ -66,12 +70,14 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   int new_dag_block_finalized_subscription_ = 0;
   int new_pbft_block_executed_subscription_ = 0;
   std::atomic<bool> closed_ = false;
+  std::weak_ptr<WSServer> ws_server_;
 };
 
 //------------------------------------------------------------------------------
 
 // Accepts incoming connections and launches the sessions
-class WSServer : public std::enable_shared_from_this<WSServer> {
+class WSServer : public std::enable_shared_from_this<WSServer>,
+                 public jsonrpc::AbstractServerConnector {
  public:
   WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint,
            addr_t node_addr);
@@ -84,6 +90,12 @@ class WSServer : public std::enable_shared_from_this<WSServer> {
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newPbftBlockExecuted(PbftBlock const& sche_blk);
   void newPendingTransaction(trx_hash_t const& trx_hash);
+
+  virtual bool StartListening() { return true; };
+  virtual bool StopListening() { return true; };
+  virtual bool SendResponse(const std::string& response, void* addInfo = NULL) {
+    return true;
+  };
 
  private:
   void do_accept();

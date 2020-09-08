@@ -115,6 +115,7 @@ Top::Top(int argc, const char* argv[]) {
           node_->getAddress());
       node_->setWSServer(ws_listener);
       ws_listener->run();
+      rpc->addConnector(ws_listener);
       rpc_init_done->notify_one();
       rpc_io_context_.run();
     } catch (...) {
