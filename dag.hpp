@@ -241,7 +241,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   unsigned getBlockInsertingIndex();  // add to block to different array
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
-  level_t max_level_ = 0;
+  std::atomic<level_t> max_level_ = 0;
   mutable boost::shared_mutex mutex_;
   mutable boost::shared_mutex anchors_access_;
   std::atomic<unsigned> inserting_index_counter_;
