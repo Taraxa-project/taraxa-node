@@ -199,7 +199,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
       boost::vertex_index, graph_);  // from vertex_descriptor to hash
   vertex_period_map_t ep_map = boost::get(boost::vertex_index1, graph_);
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
-  if (recent_added_blks_.find(anchor) == recent_added_blks_.end()) {
+  if (!findDagBlock(anchor)) {
     LOG(log_er_) << "Anchor is not in recent_added_blks " << anchor;
   }
   epfriend[blk_hash_t(index_map[target])] = target;
@@ -207,6 +207,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
 
+  upgradableLock blocks_lock(blocks_access_);
   auto iter = recent_added_blks_.begin();
   while (iter != recent_added_blks_.end()) {
     auto v = graph_.vertex(*iter);
@@ -222,6 +223,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
         ep_map[v] = ith_period;
         // update periods table
         periods_[ith_period].insert(index_map[v]);
+        upgradeLock blocks_locked(blocks_lock);
         iter = recent_added_blks_.erase(iter);
       } else {
         iter++;
@@ -358,6 +360,20 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
     }
   }
   return false;
+}
+
+bool Dag::findDagBlock(vertex_hash const &block_hash) const {
+  sharedLock lock(blocks_access_);
+  return recent_added_blks_.find(block_hash) != recent_added_blks_.end();
+}
+
+std::unordered_set<std::string> Dag::getUnOrderedDagBlks() const {
+  sharedLock lock(blocks_access_);
+  return recent_added_blks_;
+}
+void Dag::addRecentDagBlks(vertex_hash const &hash) {
+  uLock lock(blocks_access_);
+  recent_added_blks_.insert(hash);
 }
 
 /**

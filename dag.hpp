@@ -103,12 +103,11 @@ class Dag {
   // properties
   uint64_t getVertexPeriod(vertex_hash const &vertex) const;
   void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
-  std::unordered_set<std::string> getUnOrderedDagBlks() const {
-    return recent_added_blks_;
-  }
-  void addRecentDagBlks(vertex_hash const &hash) {
-    recent_added_blks_.insert(hash);
-  }
+
+  // Recent Added DAG blocks
+  bool findDagBlock(vertex_hash const &block_hash) const;
+  std::unordered_set<std::string> getUnOrderedDagBlks() const;
+  void addRecentDagBlks(vertex_hash const &hash);
 
  protected:
   // Note: private functions does not lock
@@ -132,6 +131,7 @@ class Dag {
   std::unordered_set<std::string> recent_added_blks_;
 
   mutable boost::shared_mutex mutex_;
+  mutable boost::shared_mutex blocks_access_;
 
  protected:
   LOG_OBJECTS_DEFINE;
