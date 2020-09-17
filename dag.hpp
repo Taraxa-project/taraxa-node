@@ -103,12 +103,11 @@ class Dag {
   // properties
   uint64_t getVertexPeriod(vertex_hash const &vertex) const;
   void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
-  std::unordered_set<std::string> getUnOrderedDagBlks() const {
-    return recent_added_blks_;
-  }
-  void addRecentDagBlks(vertex_hash const &hash) {
-    recent_added_blks_.insert(hash);
-  }
+
+  // Recent Added DAG blocks
+  bool findDagBlock(vertex_hash const &block_hash) const;
+  std::unordered_set<std::string> getUnOrderedDagBlks() const;
+  void addRecentDagBlks(vertex_hash const &hash);
 
  protected:
   // Note: private functions does not lock
@@ -132,6 +131,7 @@ class Dag {
   std::unordered_set<std::string> recent_added_blks_;
 
   mutable boost::shared_mutex mutex_;
+  mutable boost::shared_mutex blocks_access_;
 
  protected:
   LOG_OBJECTS_DEFINE;
@@ -220,14 +220,18 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const { return max_level_; }
-  uint64_t getLatestPeriod() const { return anchors_.back().second; }
-  std::string getLatestAnchor() const { return anchors_.back().first; }
   std::unordered_set<std::string> getUnOrderedDagBlks() const {
     return total_dag_->getUnOrderedDagBlks();
   }
-  std::deque<std::pair<std::string, uint64_t>> getAnchors() const {
-    return anchors_;
-  }
+  // DAG anchors
+  std::string getFirstAnchor() const;
+  uint64_t getFirstPeriod() const;
+  std::string getLatestAnchor() const;
+  uint64_t getLatestPeriod() const;
+  size_t getAnchorsSize() const;
+  std::deque<std::pair<std::string, uint64_t>> getAnchors() const;
+  void anchorsPushBack(std::pair<std::string, uint64_t> const& anchor);
+  void anchorsPopFront();
   void recoverAnchors(uint64_t pbft_chain_size);
 
  private:
@@ -237,8 +241,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   unsigned getBlockInsertingIndex();  // add to block to different array
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
-  level_t max_level_ = 0;
+  std::atomic<level_t> max_level_ = 0;
   mutable boost::shared_mutex mutex_;
+  mutable boost::shared_mutex anchors_access_;
   std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips

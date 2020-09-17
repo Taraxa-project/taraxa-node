@@ -1426,18 +1426,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   EXPECT_EQ(num_vertices3, num_vertices4);
   std::cout << "DAG size " << num_vertices0 << std::endl;
 
+  // Check duplicate transactions in single one DAG block
   vector<blk_hash_t> ordered_dag_blocks =
       nodes[0]->getDB()->getOrderedDagBlocks();
-  // Compare total DAG vertices with DAG blocks(no DAG genesis) in DB
-  // The maximum difference value should be not greater than number of nodes
-  // num_vertices0.first - 1 is not include genesis
-  auto diff_dag_blocks = (num_vertices0.first - 1) - ordered_dag_blocks.size();
-  if (diff_dag_blocks > (nodes.size() - 1)) {
-    nodes[0]->getDagManager()->drawGraph("debug_dag");
-  }
-  EXPECT_GE(nodes.size() - 1, diff_dag_blocks);
-
-  // Check duplicate transactions in single one DAG block
   for (auto const &b : ordered_dag_blocks) {
     std::shared_ptr<DagBlock> block = nodes[0]->getDB()->getDagBlock(b);
     EXPECT_TRUE(block);

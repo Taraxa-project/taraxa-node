@@ -199,7 +199,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
       boost::vertex_index, graph_);  // from vertex_descriptor to hash
   vertex_period_map_t ep_map = boost::get(boost::vertex_index1, graph_);
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
-  if (recent_added_blks_.find(anchor) == recent_added_blks_.end()) {
+  if (!findDagBlock(anchor)) {
     LOG(log_er_) << "Anchor is not in recent_added_blks " << anchor;
   }
   epfriend[blk_hash_t(index_map[target])] = target;
@@ -207,6 +207,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
   // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
 
+  upgradableLock blocks_lock(blocks_access_);
   auto iter = recent_added_blks_.begin();
   while (iter != recent_added_blks_.end()) {
     auto v = graph_.vertex(*iter);
@@ -222,6 +223,7 @@ bool Dag::computeOrder(bool finialized, vertex_hash const &anchor,
         ep_map[v] = ith_period;
         // update periods table
         periods_[ith_period].insert(index_map[v]);
+        upgradeLock blocks_locked(blocks_lock);
         iter = recent_added_blks_.erase(iter);
       } else {
         iter++;
@@ -360,6 +362,20 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
   return false;
 }
 
+bool Dag::findDagBlock(vertex_hash const &block_hash) const {
+  sharedLock lock(blocks_access_);
+  return recent_added_blks_.find(block_hash) != recent_added_blks_.end();
+}
+
+std::unordered_set<std::string> Dag::getUnOrderedDagBlks() const {
+  sharedLock lock(blocks_access_);
+  return recent_added_blks_;
+}
+void Dag::addRecentDagBlks(vertex_hash const &hash) {
+  uLock lock(blocks_access_);
+  recent_added_blks_.insert(hash);
+}
+
 /**
  * Iterative version
  * Steps rounds
@@ -447,14 +463,16 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr,
       trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain) {
   LOG_OBJECTS_CREATE("DAGMGR");
-  anchors_.push_back({genesis, 0});
+  anchorsPushBack({genesis, 0});
   DagBlock blk;
   string pivot;
   std::vector<std::string> tips;
   getLatestPivotAndTips(pivot, tips);
   DagFrontier frontier;
   frontier.pivot = blk_hash_t(pivot);
-  if (trx_mgr) trx_mgr->updateNonce(blk, frontier);
+  if (trx_mgr) {
+    trx_mgr->updateNonce(blk, frontier);
+  }
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -545,7 +563,9 @@ void DagManager::addDagBlock(DagBlock const &blk) {
     tips.push_back(tip);
   }
 
-  max_level_ = std::max(max_level_, blk.getLevel());
+  level_t current_max_level = getMaxLevel();
+  max_level_ = std::max(current_max_level, blk.getLevel());
+
   addToDag(blk_hash_str, pivot_hash.toString(), tips);
 
   auto [p, ts] = getFrontier();
@@ -553,9 +573,11 @@ void DagManager::addDagBlock(DagBlock const &blk) {
   for (auto const &t : ts) {
     frontier.tips.emplace_back(blk_hash_t(t));
   }
-  if (trx_mgr_) trx_mgr_->updateNonce(blk, frontier);
+  if (trx_mgr_) {
+    trx_mgr_->updateNonce(blk, frontier);
+  }
   LOG(log_dg_) << " Update nonce table of blk " << blk.getHash() << "anchor "
-               << anchors_.back().first << " pivot = " << frontier.pivot
+               << getLatestAnchor() << " pivot = " << frontier.pivot
                << " tips: " << frontier.tips;
 }
 
@@ -589,7 +611,7 @@ std::pair<std::string, std::vector<std::string>> DagManager::getFrontier()
   std::vector<std::string> tips;
   std::vector<std::string> pivot_chain;
 
-  auto last_pivot = anchors_.back().first;
+  auto last_pivot = getLatestAnchor();
   pivot_tree_->getGhostPath(last_pivot, pivot_chain);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
@@ -612,7 +634,7 @@ void DagManager::getGhostPath(std::string const &source,
 }
 
 void DagManager::getGhostPath(std::vector<std::string> &ghost) const {
-  auto last_pivot = anchors_.back().first;
+  auto last_pivot = getLatestAnchor();
   ghost.clear();
   pivot_tree_->getGhostPath(last_pivot, ghost);
 }
@@ -654,18 +676,18 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   orders.clear();
 
   std::vector<std::string> blk_orders;
-  assert(anchors_.size());
-  auto prev = anchors_.back().first;
+  assert(getAnchorsSize());
+  auto prev = getLatestAnchor();
 
   // TODO: need to use the same pivot/tips that are stored in nonce map
 
   if (blk_hash_t(prev) == anchor) {
     LOG(log_wr_) << "Query period from " << blk_hash_t(prev) << " to " << anchor
                  << " not ok " << std::endl;
-    return anchors_.back().second;
+    return getLatestPeriod();
   }
 
-  auto new_period = anchors_.back().second + 1;
+  auto new_period = getLatestPeriod() + 1;
 
   auto ok = total_dag_->computeOrder(false /* finalized */, anchor.toString(),
                                      new_period, blk_orders);
@@ -684,18 +706,18 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   return new_period;
 }
 uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
-  if (period != anchors_.back().second + 1) {
+  if (period != getLatestPeriod() + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << anchor
                  << " does not match ..., previous internal period ("
-                 << anchors_.back().second << ") " << anchors_.back().first;
+                 << getLatestPeriod() << ") " << getLatestAnchor();
     return 0;
   }
-  auto prev = anchors_.back().first;
+  auto prev = getLatestAnchor();
   std::vector<std::string> blk_orders;
 
   auto ok = total_dag_->computeOrder(true /* finalized */, anchor.toString(),
                                      period, blk_orders);
-  anchors_.push_back({anchor.toString(), period});
+  anchorsPushBack({anchor.toString(), period});
 
   if (!ok) {
     LOG(log_er_) << " Create epoch " << period << " from " << blk_hash_t(prev)
@@ -724,23 +746,66 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
 void DagManager::deletePeriod(uint64_t period) {
   uLock lock(mutex_);
   auto deleted_vertices = total_dag_->deletePeriod(period);
-  auto anchor = anchors_.front();
-  if (anchor.second != period) {
-    LOG(log_er_) << " Anchor front ( " << anchor.second << " " << anchor.first
-                 << " ) and deleting period ( " << period << " ) not match ";
+  auto first_period = getFirstPeriod();
+  if (first_period != period) {
+    LOG(log_er_) << " Anchor front ( " << first_period << " "
+                 << getFirstAnchor() << " ) and deleting period ( " << period
+                 << " ) not match ";
   }
-  assert(anchor.second == period);
-  anchors_.pop_front();
+  assert(first_period == period);
+  anchorsPopFront();
   for (auto const &t : deleted_vertices) {
     pivot_tree_->delVertex(t);
   }
   assert(pivot_tree_->periods_.size() == 0);
-  if (total_dag_->periods_.size() != anchors_.size()) {
+  auto anchors_size = getAnchorsSize();
+  if (total_dag_->periods_.size() != anchors_size) {
     LOG(log_er_) << " Size of total dag periods ( "
                  << total_dag_->periods_.size() << " ) and anchor size ( "
-                 << anchors_.size() << " ) not match ";
+                 << anchors_size << " ) not match ";
     assert(false);
   }
+}
+
+std::string DagManager::getFirstAnchor() const {
+  sharedLock lock(anchors_access_);
+  return anchors_.front().first;
+}
+
+uint64_t DagManager::getFirstPeriod() const {
+  sharedLock lock(anchors_access_);
+  return anchors_.front().second;
+}
+
+std::string DagManager::getLatestAnchor() const {
+  sharedLock lock(anchors_access_);
+  return anchors_.back().first;
+}
+
+uint64_t DagManager::getLatestPeriod() const {
+  sharedLock lock(anchors_access_);
+  return anchors_.back().second;
+}
+
+size_t DagManager::getAnchorsSize() const {
+  sharedLock lock(anchors_access_);
+  return anchors_.size();
+}
+
+std::deque<std::pair<std::string, uint64_t>> DagManager::getAnchors() const {
+  sharedLock lock(anchors_access_);
+  return anchors_;
+}
+
+void DagManager::anchorsPushBack(
+    std::pair<std::string, uint64_t> const &anchor) {
+  uLock lock(anchors_access_);
+  anchors_.push_back(anchor);
+}
+
+void DagManager::anchorsPopFront() {
+  uLock lock(anchors_access_);
+  anchors_.pop_front();
 }
 
 void DagManager::recoverAnchors(uint64_t pbft_chain_size) {
@@ -761,6 +826,7 @@ void DagManager::recoverAnchors(uint64_t pbft_chain_size) {
     assert(i == period);
     anchors[period] = dag_block_hash_as_anchor;
   }
+  uLock lock(anchors_access_);
   for (auto i = 1; i < anchors.size(); ++i) {
     anchors_.push_back({anchors[i].toString(), i});
   }
