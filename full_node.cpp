@@ -79,7 +79,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   pbft_chain_ =
       std::make_shared<PbftChain>(genesis_hash.toString(), node_addr, db_);
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash.toString(), node_addr,
-                                          trx_mgr_, pbft_chain_);
+                                          trx_mgr_, pbft_chain_, db_);
   blk_mgr_ = std::make_shared<BlockManager>(
       1024 /*capacity*/, 4 /* verifer thread*/, node_addr, db_, trx_mgr_,
       log_time_, conf_.test_params.max_block_queue_warn);

@@ -75,6 +75,7 @@ class Dag {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   friend DagManager;
   explicit Dag(std::string const &genesis, addr_t node_addr);
+  explicit Dag(std::string const &genesis);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
@@ -89,15 +90,14 @@ class Dag {
 
   // Note, the function will not delete recent_added_blks when marking
   // ith_number
-  bool computeOrder(bool finialized, vertex_hash const &anchor,
-                    uint64_t ith_peroid,
+  bool computeOrder(vertex_hash const &anchor,
                     std::vector<vertex_hash> &ordered_period_vertices);
   // warning! slow, iterate through all vertices ...
   void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
                            std::vector<vertex_hash> &epfriend) const;
 
   // deleter
-  std::vector<Dag::vertex_hash> deletePeriod(uint64_t period);
+  void clear();
   void delVertex(std::string const &v);
 
   // properties
@@ -107,7 +107,7 @@ class Dag {
   // Recent Added DAG blocks
   bool findDagBlock(vertex_hash const &block_hash) const;
   std::unordered_set<std::string> getUnOrderedDagBlks() const;
-  void addRecentDagBlks(vertex_hash const &hash);
+  void addNonFinalizedDagBlks(vertex_hash const &hash);
 
  protected:
   // Note: private functions does not lock
@@ -126,9 +126,8 @@ class Dag {
   void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 
   graph_t graph_;
-  std::unordered_map<uint64_t, std::unordered_set<vertex_hash>> periods_;
   vertex_t genesis_;  // root node
-  std::unordered_set<std::string> recent_added_blks_;
+  std::unordered_set<std::string> non_finalized_blks_;
 
   mutable boost::shared_mutex mutex_;
   mutable boost::shared_mutex blocks_access_;
@@ -175,14 +174,16 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   explicit DagManager(std::string const &genesis, addr_t node_addr,
                       std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain);
+                      std::shared_ptr<PbftChain> pbft_chain,
+                      std::shared_ptr<DbStorage> db);
   virtual ~DagManager() = default;
   std::shared_ptr<DagManager> getShared();
   void stop();
 
   bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk);  // insert to buffer if fail
+  void addDagBlock(DagBlock const &blk,
+                   bool finalized = false);  // insert to buffer if fail
 
   // return {period, block order}, for pbft-pivot-blk proposing (does not
   // finialize)
@@ -206,7 +207,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                     std::vector<std::string> &ghost) const;
   void getGhostPath(std::vector<std::string> &ghost)
       const;  // get ghost path from last anchor
-  void deletePeriod(uint64_t period);
   // ----- Total graph
   std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
                                                     std::string const &to);
@@ -224,20 +224,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     return total_dag_->getUnOrderedDagBlks();
   }
   // DAG anchors
-  std::string getFirstAnchor() const;
-  uint64_t getFirstPeriod() const;
-  std::string getLatestAnchor() const;
-  uint64_t getLatestPeriod() const;
-  size_t getAnchorsSize() const;
-  std::deque<std::pair<std::string, uint64_t>> getAnchors() const;
-  void anchorsPushBack(std::pair<std::string, uint64_t> const& anchor);
-  void anchorsPopFront();
+  uint64_t getLatestPeriod() const { return period_; }
+  std::pair<std::string, std::string> getAnchors() const {
+    return std::make_pair(old_anchor_, anchor_);
+  }
   void recoverAnchors(uint64_t pbft_chain_size);
 
  private:
-  size_t num_cached_period_in_dag_ = 2000;
   void addToDag(std::string const &hash, std::string const &pivot,
-                std::vector<std::string> const &tips);
+                std::vector<std::string> const &tips, bool finalized = false);
   unsigned getBlockInsertingIndex();  // add to block to different array
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
@@ -249,27 +244,27 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::deque<std::pair<std::string, uint64_t>>
-      anchors_;  // pivots that define periods, <anchor, period>
+  std::shared_ptr<DbStorage> db_;
+  std::string anchor_;      // anchor of the last period
+  std::string old_anchor_;  // anchor of the cesond to last period
+  uint64_t period_;         // anchor of the last period
   std::string genesis_;
   LOG_OBJECTS_DEFINE;
 };
 
 // for graphviz
-template <class Property1, class Property2>
+template <class Property1>
 class vertex_label_writer {
  public:
-  vertex_label_writer(Property1 name, Property2 period)
-      : name(name), period(period) {}
+  vertex_label_writer(Property1 name) : name(name) {}
   template <class Vertex>
   void operator()(std::ostream &out, const Vertex &v) const {
-    out << "[label=\"" << name[v].substr(0, 8) << " (" << period[v] << ") "
+    out << "[label=\"" << name[v].substr(0, 8) << " "
         << "\"]";
   }
 
  private:
   Property1 name;
-  Property2 period;
 };
 
 template <class Property>

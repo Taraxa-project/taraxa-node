@@ -150,12 +150,12 @@ bool BlockProposer::getShardedTrxs(uint total_shard, DagFrontier& frontier,
 
 blk_hash_t BlockProposer::getProposeAnchor() const {
   auto anchors = dag_mgr_->getAnchors();
-  if (anchors.size() <= 1) {
+  if (anchors.first == "") {
     // Only includes DAG genesis
-    return blk_hash_t(anchors.back().first);
+    return blk_hash_t(anchors.second);
   } else {
     // return second to last anchor
-    return blk_hash_t((anchors.end() - 2)->first);
+    return blk_hash_t(anchors.first);
   }
 }
 
