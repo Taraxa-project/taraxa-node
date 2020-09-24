@@ -75,7 +75,6 @@ class Dag {
   using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
   friend DagManager;
   explicit Dag(std::string const &genesis, addr_t node_addr);
-  explicit Dag(std::string const &genesis);
   virtual ~Dag() = default;
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
@@ -246,8 +245,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<DbStorage> db_;
   std::string anchor_;      // anchor of the last period
-  std::string old_anchor_;  // anchor of the cesond to last period
-  uint64_t period_;         // anchor of the last period
+  std::string old_anchor_;  // anchor of the second to last period
+  uint64_t period_;         // last period
   std::string genesis_;
   LOG_OBJECTS_DEFINE;
 };
