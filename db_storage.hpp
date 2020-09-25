@@ -62,6 +62,7 @@ struct DbStorage {
 
     COLUMN(dag_blocks);
     COLUMN(dag_blocks_index);
+    COLUMN(dag_blocks_state);
     COLUMN(transactions);
     COLUMN(trx_to_blk);
     COLUMN(trx_status);
@@ -125,6 +126,14 @@ struct DbStorage {
   string getBlocksByLevel(level_t level);
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(
       level_t level, int number_of_levels);
+
+  // DAG state
+  void saveDagBlockState(blk_hash_t const& blk_hash, bool finalized);
+  void addDagBlockStateToBatch(BatchPtr const& write_batch,
+                               blk_hash_t const& blk_hash, bool finalized);
+  void removeDagBlockStateToBatch(BatchPtr const& write_batch,
+                                  blk_hash_t const& blk_hash);
+  std::map<trx_hash_t, bool> getAllDagBlockState();
 
   // Transaction
   void saveTransaction(Transaction const& trx);

@@ -103,10 +103,17 @@ class Dag {
   uint64_t getVertexPeriod(vertex_hash const &vertex) const;
   void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
 
-  // Recent Added DAG blocks
-  bool findDagBlock(vertex_hash const &block_hash) const;
-  std::unordered_set<std::string> getUnOrderedDagBlks() const;
+  // Non finalized blocks
+  bool findNonFinalizedDagBlock(vertex_hash const &block_hash) const;
+  std::unordered_set<std::string> getNonFinalizedDagBlks() const;
   void addNonFinalizedDagBlks(vertex_hash const &hash);
+  void removeNonFinalizedDagBlks(vertex_hash const &hash);
+
+  // Finalized blocks
+  bool findFinalizedDagBlock(vertex_hash const &block_hash) const;
+  std::unordered_set<std::string> getFinalizedDagBlks() const;
+  void addFinalizedDagBlks(vertex_hash const &hash);
+  void removeFinalizedDagBlks(vertex_hash const &hash);
 
  protected:
   // Note: private functions does not lock
@@ -127,9 +134,9 @@ class Dag {
   graph_t graph_;
   vertex_t genesis_;  // root node
   std::unordered_set<std::string> non_finalized_blks_;
+  std::unordered_set<std::string> finalized_blks_;
 
   mutable boost::shared_mutex mutex_;
-  mutable boost::shared_mutex blocks_access_;
 
  protected:
   LOG_OBJECTS_DEFINE;
@@ -190,14 +197,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
       blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods and finalized, return size of
   // ordered blocks
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
+  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, std::shared_ptr<vec_blk_t> dag_order);
 
   // use a anchor to create period, return current_period, does not finalize
   uint64_t getDagBlockOrder(blk_hash_t const &anchor, vec_blk_t &orders);
-  // assuming a period is confirmed, will finialize, return size of blocks in
-  // the period
-  uint setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period);
-
+  
   bool getLatestPivotAndTips(std::string &pivot,
                              std::vector<std::string> &tips) const;
   void collectTotalLeaves(std::vector<std::string> &leaves) const;
@@ -219,9 +223,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
   level_t getMaxLevel() const { return max_level_; }
-  std::unordered_set<std::string> getUnOrderedDagBlks() const {
-    return total_dag_->getUnOrderedDagBlks();
-  }
+  
   // DAG anchors
   uint64_t getLatestPeriod() const { return period_; }
   std::pair<std::string, std::string> getAnchors() const {

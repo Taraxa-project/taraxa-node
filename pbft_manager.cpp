@@ -1609,7 +1609,7 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   LOG(log_dg_) << "DB write batch committed already";
 
   // Set DAG blocks period
-  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period);
+  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order);
 
   if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
 

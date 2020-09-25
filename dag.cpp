@@ -197,7 +197,7 @@ bool Dag::computeOrder(vertex_hash const &anchor,
   vertex_index_map_t index_map = boost::get(
       boost::vertex_index, graph_);         // from vertex_descriptor to hash
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
-  if (!findDagBlock(anchor)) {
+  if (!findNonFinalizedDagBlock(anchor)) {
     LOG(log_er_) << "Anchor is not in recent_added_blks " << anchor;
   }
   epfriend[blk_hash_t(index_map[target])] = target;
@@ -205,7 +205,6 @@ bool Dag::computeOrder(vertex_hash const &anchor,
   // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
 
-  upgradableLock blocks_lock(blocks_access_);
   auto iter = non_finalized_blks_.begin();
   while (iter != non_finalized_blks_.end()) {
     auto v = graph_.vertex(*iter);
@@ -286,18 +285,34 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
   return false;
 }
 
-bool Dag::findDagBlock(vertex_hash const &block_hash) const {
-  sharedLock lock(blocks_access_);
+bool Dag::findNonFinalizedDagBlock(vertex_hash const &block_hash) const {
   return non_finalized_blks_.find(block_hash) != non_finalized_blks_.end();
 }
 
-std::unordered_set<std::string> Dag::getUnOrderedDagBlks() const {
-  sharedLock lock(blocks_access_);
+std::unordered_set<std::string> Dag::getNonFinalizedDagBlks() const {
   return non_finalized_blks_;
 }
 void Dag::addNonFinalizedDagBlks(vertex_hash const &hash) {
-  uLock lock(blocks_access_);
   non_finalized_blks_.insert(hash);
+}
+
+void Dag::removeNonFinalizedDagBlks(vertex_hash const &hash) {
+  non_finalized_blks_.erase(hash);
+}
+
+bool Dag::findFinalizedDagBlock(vertex_hash const &block_hash) const {
+  return finalized_blks_.find(block_hash) != finalized_blks_.end();
+}
+
+std::unordered_set<std::string> Dag::getFinalizedDagBlks() const {
+  return finalized_blks_;
+}
+void Dag::addFinalizedDagBlks(vertex_hash const &hash) {
+  finalized_blks_.insert(hash);
+}
+
+void Dag::removeFinalizedDagBlks(vertex_hash const &hash) {
+  finalized_blks_.erase(hash);
 }
 
 /**
@@ -513,7 +528,9 @@ void DagManager::addToDag(std::string const &hash, std::string const &pivot,
                           std::vector<std::string> const &tips,
                           bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
-  if (!finalized) {
+  if (finalized) {
+    total_dag_->addFinalizedDagBlks(hash);
+  } else {
     total_dag_->addNonFinalizedDagBlks(hash);
     pivot_tree_->addVEEs(hash, pivot, {});
   }
@@ -587,13 +604,6 @@ std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(
   auto period = getDagBlockOrder(anchor, orders);
   return {period, std::make_shared<vec_blk_t>(orders)};
 }
-// receive pbft-povit-blk, update periods
-uint DagManager::setDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
-  LOG(log_dg_) << "setDagBlockOrder called with anchor " << anchor
-               << " and period " << period;
-  auto res = setDagBlockPeriod(anchor, period);
-  return res;
-}
 
 uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
                                       vec_blk_t &orders) {
@@ -628,9 +638,14 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
                << std::endl;
   return new_period;
 }
-uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
+
+uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
+                                  std::shared_ptr<vec_blk_t> dag_order) {
+  LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor
+               << " and period " << period;
+
   if (period != period_ + 1) {
-    LOG(log_er_) << " Inserting period (" << period << ") anchor " << anchor
+    LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_
                  << ") " << anchor_;
     return 0;
@@ -640,24 +655,52 @@ uint DagManager::setDagBlockPeriod(blk_hash_t const &anchor, uint64_t period) {
 
   std::vector<std::string> leaves;
   total_dag_->getLeaves(leaves);
+  std::set<std::string> leavesSet(leaves.begin(), leaves.end());
 
   // Total DAG will only include leaves from the last period and non-finalized
   // blocks
+  // Pivot tree will only include anchor from the last period and non-finalized
+  // blocks
+
+  // We need a copy so we can delete from the original structure
+  auto finalized_blocks = total_dag_->getFinalizedDagBlks();
+
+  // First remove all the finalized from previous period
+  for (auto &blk : finalized_blocks) {
+    // Do not remove from total dag if a block is a leaf -- THERE IS A CHANCE
+    // THAT THIS MIGHT NOT BE POSSIBLE SO MAYBE AN ASSERT WOULD BE BETTER
+    if (leavesSet.count(blk) == 0) {
+      total_dag_->delVertex(blk);
+      total_dag_->removeFinalizedDagBlks(blk);
+    }
+  }
+
+  // Remove the old anchor from the pivot tree
+  pivot_tree_->delVertex(anchor_);
+
+  for (auto &block : *dag_order) {
+    // Remove all the non-finalized except the leaves which are now finalized
+    auto blk = block.toString();
+    total_dag_->removeNonFinalizedDagBlks(blk);
+    if (leavesSet.count(blk) == 0) {
+      total_dag_->delVertex(blk);
+    } else {
+      total_dag_->addFinalizedDagBlks(blk);
+    }
+    // Remove all the non-finalized from pivot tree except the anchor
+    if (blk != new_anchor.toString()) {
+      pivot_tree_->delVertex(blk);
+    }
+  }
+
   total_dag_->clear();
   for (auto &leave : leaves)
     addDagBlock(*db_->getDagBlock(blk_hash_t(leave)), true);
 
-  // Pivot tree will only include anchor from the last period and non-finalized
-  // blocks
-  pivot_tree_->clear();
-  pivot_tree_->addVEEs(
-      anchor_, db_->getDagBlock(blk_hash_t(anchor_))->getPivot().toString(),
-      {});
-
   old_anchor_ = anchor_;
-  anchor_ = anchor.toString();
+  anchor_ = new_anchor.toString();
 
-  LOG(log_nf_) << "Set new period " << period << " with anchor " << anchor;
+  LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
 
   return blk_orders.size();
 }

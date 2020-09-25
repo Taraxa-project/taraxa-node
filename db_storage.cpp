@@ -135,6 +135,32 @@ void DbStorage::saveDagBlock(DagBlock const& blk) {
   commitWriteBatch(write_batch);
 }
 
+void DbStorage::saveDagBlockState(blk_hash_t const& blk_hash, bool finalized) {
+  insert(Columns::dag_blocks_state, toSlice(blk_hash.asBytes()),
+         toSlice(finalized));
+}
+
+void DbStorage::addDagBlockStateToBatch(BatchPtr const& write_batch,
+                                            blk_hash_t const& blk_hash, bool finalized) {
+  batch_put(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()),
+         toSlice(finalized));
+}
+
+void DbStorage::removeDagBlockStateToBatch(BatchPtr const& write_batch,
+                                            blk_hash_t const& blk_hash) {
+  batch_delete(write_batch, Columns::dag_blocks_state, toSlice(blk_hash.asBytes()));
+}
+
+std::map<trx_hash_t, bool> DbStorage::getAllDagBlockState() {
+  std::map<blk_hash_t, bool> res;
+  auto i = u_ptr(db_->NewIterator(read_options_, handle(Columns::dag_blocks_state)));
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    res[blk_hash_t(asBytes(i->key().ToString()))] =
+        (bool) * (uint8_t*)(i->value().data());
+  }
+  return res;
+}
+
 void DbStorage::saveTransaction(Transaction const& trx) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()),
          toSlice(*trx.rlp()));
