@@ -232,12 +232,11 @@ std::vector<Vote> VoteManager::getVotes(
       missing_account_balance_count++;
       continue;
     }
-    // Check if the voter account is valid
+    // Check if the voter account is valid, malicious vote
     if (sortition_account_balance_table.find(voter_account_address) ==
         sortition_account_balance_table.end()) {
       LOG(log_dg_) << "Cannot find account " << voter_account_address
                    << " in sortition table. Don't have enough coins to vote";
-      missing_account_balance_count++;
       continue;
     }
     size_t valid_sortition_players = sortition_account_balance_table.size();
