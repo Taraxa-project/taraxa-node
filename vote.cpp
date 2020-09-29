@@ -357,8 +357,4 @@ bool VoteManager::pbftBlockHasEnoughValidCertVotes(
   return valid_votes.size() >= pbft_2t_plus_1;
 }
 
-vote_hash_t VoteManager::hash_(std::string const& str) const {
-  return dev::sha3(str);
-}
-
 }  // namespace taraxa
