@@ -82,8 +82,8 @@ void Vote::voter() const {
 
 bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
                                  taraxa::Vote const& vote,
-                                 size_t valid_sortition_players,
-                                 size_t sortition_threshold) const {
+                                 size_t const valid_sortition_players,
+                                 size_t const sortition_threshold) const {
   if (last_pbft_block_hash != vote.getVrfSortition().pbft_msg.blk) {
     LOG(log_tr_) << "Last pbft block hash does not match "
                  << last_pbft_block_hash;
@@ -94,10 +94,12 @@ bool VoteManager::voteValidation(taraxa::blk_hash_t const& last_pbft_block_hash,
     LOG(log_wr_) << "Invalid vrf proof, vote hash " << vote.getHash();
     return false;
   }
+
   if (!vote.verifyVote()) {
     LOG(log_wr_) << "Invalid vote signature, vote hash " << vote.getHash();
     return false;
   }
+
   if (!vote.verifyCanSpeak(sortition_threshold, valid_sortition_players)) {
     LOG(log_wr_) << "Vote sortition failed, sortition proof "
                  << vote.getSortitionProof();
@@ -164,6 +166,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
 }
 
 // Return all verified votes >= pbft_round
+// For unit test only
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                                         size_t valid_sortition_players,
                                         blk_hash_t last_pbft_block_hash,
@@ -175,7 +178,6 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
-    // TODO: or search in PBFT sortition_account_balance_table?
     addr_t vote_address = dev::toAddress(v.getVoter());
     std::pair<val_t, bool> account_balance =
         final_chain_->getBalance(vote_address);
@@ -196,11 +198,12 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 }
 
 // Return all verified votes >= pbft_round
-std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
-                                        size_t valid_sortition_players,
-                                        bool& sync_peers_pbft_chain,
-                                        blk_hash_t last_pbft_block_hash,
-                                        size_t sortition_threshold) {
+std::vector<Vote> VoteManager::getVotes(
+    bool& sync_peers_pbft_chain, uint64_t const pbft_round,
+    blk_hash_t const& last_pbft_block_hash, size_t const sortition_threshold,
+    std::unordered_map<addr_t, PbftSortitionAccount> const&
+        sortition_account_balance_table) {
+  // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
   // Should be sure we always write a value to this pointer...
@@ -217,19 +220,27 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
   auto votes_to_verify = getAllVotes();
   for (auto const& v : votes_to_verify) {
     // vote verification
-    // TODO: or search in PBFT sortition_account_balance_table?
-    addr_t vote_address = dev::toAddress(v.getVoter());
+    addr_t voter_account_address = dev::toAddress(v.getVoter());
     std::pair<val_t, bool> account_balance =
-        final_chain_->getBalance(vote_address);
+        final_chain_->getBalance(voter_account_address);
     if (!account_balance.second) {
       // New node join, it doesn't have other nodes info.
       // Wait unit sync PBFT chain with peers, and execute to get states.
       LOG(log_dg_) << "Cannot find the vote account balance. vote hash: "
-                   << v.getHash() << " vote address: " << vote_address;
+                   << v.getHash() << " vote address: " << voter_account_address;
       sync_peers_pbft_chain = true;
       missing_account_balance_count++;
       continue;
     }
+    // Check if the voter account is valid
+    if (sortition_account_balance_table.find(voter_account_address) ==
+        sortition_account_balance_table.end()) {
+      LOG(log_dg_) << "Cannot find account " << voter_account_address
+                   << " in sortition table. Don't have enough coins to vote";
+      missing_account_balance_count++;
+      continue;
+    }
+    size_t valid_sortition_players = sortition_account_balance_table.size();
     if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
@@ -239,7 +250,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
       LOG(log_dg_) << "Next vote in current round " << pbft_round
                    << " points to different block hash " << last_pbft_block_hash
                    << " | vote hash: " << v.getHash()
-                   << " vote address: " << vote_address;
+                   << " voter address: " << voter_account_address;
       sync_peers_pbft_chain = true;
       next_vote_with_different_prev_block_has_count++;
     }

@@ -140,20 +140,21 @@ class VoteManager {
   ~VoteManager() {}
 
   bool voteValidation(blk_hash_t const& last_pbft_block_hash, Vote const& vote,
-                      size_t valid_sortition_players,
-                      size_t sortition_threshold) const;
-
+                      size_t const valid_sortition_players,
+                      size_t const sortition_threshold) const;
   bool addVote(taraxa::Vote const& vote);
   void cleanupVotes(uint64_t pbft_round);
   void clearUnverifiedVotesTable();
   uint64_t getUnverifiedVotesSize() const;
+  // for unit test only
   std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
                              blk_hash_t last_pbft_block_hash,
                              size_t sortition_threshold);
-  std::vector<Vote> getVotes(uint64_t pbft_round, size_t valid_sortiton_players,
-                             bool& sync_peers_pbft_chain,
-                             blk_hash_t last_pbft_block_hash,
-                             size_t sortition_threshold);
+  std::vector<Vote> getVotes(
+      bool& sync_peers_pbft_chain, uint64_t const pbft_round,
+      blk_hash_t const& last_pbft_block_hash, size_t const sortition_threshold,
+      std::unordered_map<addr_t, PbftSortitionAccount> const&
+          sortition_account_balance_table);
   std::string getJsonStr(std::vector<Vote> const& votes);
   std::vector<Vote> getAllVotes();
   bool pbftBlockHasEnoughValidCertVotes(

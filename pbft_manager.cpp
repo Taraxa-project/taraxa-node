@@ -551,10 +551,9 @@ bool PbftManager::stateOperations_() {
 
   // Get votes
   bool sync_peers_pbft_chain = false;
-
   votes_ = vote_mgr_->getVotes(
-      round_, valid_sortition_accounts_size_, sync_peers_pbft_chain,
-      getLastPbftBlockHashAtStartOfRound(), getSortitionThreshold());
+      sync_peers_pbft_chain, round_, pbft_chain_last_block_hash_,
+      sortition_threshold_, sortition_account_balance_table);
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round "
                << round_;
 
