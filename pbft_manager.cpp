@@ -1604,13 +1604,15 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
   blk_hash_t pbft_chain_head_hash = pbft_chain_->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain_->getJsonStr();
   db_->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+  
+  // Set DAG blocks period
+  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order, batch);
+
   // Commit DB
   db_->commitWriteBatch(batch);
   LOG(log_dg_) << "DB write batch committed already";
 
-  // Set DAG blocks period
-  dag_mgr_->setDagBlockOrder(dag_block_hash, pbft_period, dag_blocks_hash_order);
-
+  
   if (ws_server_) ws_server_->newDagBlockFinalized(dag_block_hash, pbft_period);
 
   // Reset proposed PBFT block hash to False for next pbft block proposal

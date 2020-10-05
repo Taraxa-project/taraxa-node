@@ -42,6 +42,9 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   }
 
   auto &node_addr = node_addr_;
+  if (destroy_db) {
+    boost::filesystem::remove_all(conf_.db_path);
+  }
   LOG_OBJECTS_CREATE("FULLND");
   log_time_ =
       createTaraxaLogger(dev::Verbosity::VerbosityInfo, "TMSTM", node_addr_);
@@ -60,9 +63,6 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
                << "Node VRF public key: " << EthGreen << vrf_pk_.toString();
   LOG(log_nf_) << "Number of block works: " << num_block_workers_;
   // ===== Create DBs =====
-  if (destroy_db) {
-    boost::filesystem::remove_all(conf_.db_path);
-  }
   auto const &genesis_block = conf_.chain.dag_genesis_block;
   if (!genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
@@ -116,25 +116,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   // ===== Post-initialization tasks =====
   // Reconstruct DAG
   if (!destroy_db) {
-    level_t level = 1;
-    while (true) {
-      string entry = db_->getBlocksByLevel(level);
-      if (entry.empty()) break;
-      vector<string> blocks;
-      boost::split(blocks, entry, boost::is_any_of(","));
-      for (auto const &block : blocks) {
-        auto blk = db_->getDagBlock(blk_hash_t(block));
-        if (blk) {
-          dag_mgr_->addDagBlock(*blk);
-        }
-      }
-      level++;
-    }
-    uint64_t pbft_chain_size = pbft_chain_->getPbftChainSize();
-    if (pbft_chain_size) {
-      // Recover DAG anchors
-      dag_mgr_->recoverAnchors(pbft_chain_size);
-    }
+    dag_mgr_->recoverDag();
   }
   // Check pending transaction and reconstruct queues
   if (!destroy_db) {
@@ -209,9 +191,11 @@ void FullNode::start(bool boot_node) {
           // its pivot and tips processed This should happen in a very rare case
           // where in some race condition older block is verfified faster then
           // new block but should resolve quickly, return block to queue
-          LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash();
-          received_blocks_--;
-          blk_mgr_->pushVerifiedBlock(blk);
+          if(!stopped_) {
+            LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
+            received_blocks_--;
+            blk_mgr_->pushVerifiedBlock(blk);
+          }
         }
       }
     });

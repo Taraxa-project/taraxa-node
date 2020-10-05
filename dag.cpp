@@ -21,22 +21,14 @@ Dag::Dag(std::string const &genesis, addr_t node_addr) {
   addVEEs(genesis, pivot, tips);
 }
 
-uint64_t Dag::getNumVertices() const {
-  sharedLock lock(mutex_);
-  return boost::num_vertices(graph_);
-}
-uint64_t Dag::getNumEdges() const {
-  sharedLock lock(mutex_);
-  return boost::num_edges(graph_);
-}
+uint64_t Dag::getNumVertices() const { return boost::num_vertices(graph_); }
+uint64_t Dag::getNumEdges() const { return boost::num_edges(graph_); }
 
 bool Dag::hasVertex(vertex_hash const &v) const {
-  sharedLock lock(mutex_);
   return graph_.vertex(v) != graph_.null_vertex();
 }
 
 void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
-  sharedLock lock(mutex_);
   vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
   std::vector<vertex_t> leaves;
   collectLeafVertices(leaves);
@@ -46,7 +38,6 @@ void Dag::getLeaves(std::vector<vertex_hash> &tips) const {
 
 bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                   std::vector<vertex_hash> const &tips) {
-  uLock lock(mutex_);
   assert(!new_vertex.empty());
 
   // add vertex
@@ -62,23 +53,27 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
   // *** important
   // Add a new block, edges are pointing from pivot to new_veretx
   if (!pivot.empty()) {
-    std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
-    weight_map[edge] = 1;
-    if (!res) {
-      LOG(log_wr_) << "Creating pivot edge \n"
-                   << pivot << "\n-->\n"
-                   << new_vertex << " \nunsuccessful!" << std::endl;
+    if (hasVertex(pivot)) {
+      std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
+      weight_map[edge] = 1;
+      if (!res) {
+        LOG(log_wr_) << "Creating pivot edge \n"
+                     << pivot << "\n-->\n"
+                     << new_vertex << " \nunsuccessful!" << std::endl;
+      }
     }
   }
   bool res2 = true;
   for (auto const &e : tips) {
-    std::tie(edge, res2) = boost::add_edge_by_label(e, new_vertex, graph_);
-    weight_map[edge] = 0;
+    if (hasVertex(e)) {
+      std::tie(edge, res2) = boost::add_edge_by_label(e, new_vertex, graph_);
+      weight_map[edge] = 0;
 
-    if (!res2) {
-      LOG(log_wr_) << "Creating tip edge \n"
-                   << e << "\n-->\n"
-                   << new_vertex << " \nunsuccessful!" << std::endl;
+      if (!res2) {
+        LOG(log_wr_) << "Creating tip edge \n"
+                     << e << "\n-->\n"
+                     << new_vertex << " \nunsuccessful!" << std::endl;
+      }
     }
   }
   res &= res2;
@@ -86,7 +81,6 @@ bool Dag::addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
 }
 
 void Dag::drawGraph(std::string filename) const {
-  sharedLock lock(mutex_);
   std::ofstream outfile(filename.c_str());
   auto index_map = boost::get(boost::vertex_index, graph_);
   auto weight_map = boost::get(boost::edge_index, graph_);
@@ -96,25 +90,6 @@ void Dag::drawGraph(std::string filename) const {
   std::cout << "Dot file " << filename << " generated!" << std::endl;
   std::cout << "Use \"dot -Tpdf <dot file> -o <pdf file>\" to generate pdf file"
             << std::endl;
-}
-
-Dag::vertex_t Dag::addVertex(vertex_hash const &hash) {
-  vertex_t ret = add_vertex(hash, graph_);
-  vertex_index_map_t index_map = boost::get(boost::vertex_index, graph_);
-  index_map[ret] = hash;
-  return ret;
-}
-
-void Dag::delVertex(vertex_hash const &hash) {
-  upgradableLock lock(mutex_);
-  vertex_t to_be_removed = graph_.vertex(hash);
-  if (to_be_removed == graph_.null_vertex()) {
-    return;
-  }
-
-  upgradeLock ll(lock);
-  clear_vertex_by_label(hash, graph_);
-  remove_vertex(hash, graph_);
 }
 
 void Dag::clear() { graph_ = graph_t(); }
@@ -151,8 +126,6 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
 
 void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
                               std::vector<vertex_hash> &epfriend) const {
-  sharedLock lock(mutex_);
-
   vertex_t source = graph_.vertex(from);
   vertex_t target = graph_.vertex(to);
 
@@ -180,10 +153,10 @@ void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
   }
 }
 // only iterate only through non finalized blocks
-bool Dag::computeOrder(vertex_hash const &anchor,
-                       std::vector<vertex_hash> &ordered_period_vertices) {
-  uLock lock(mutex_);
-
+bool Dag::computeOrder(
+    vertex_hash const &anchor,
+    std::vector<vertex_hash> &ordered_period_vertices,
+    std::map<uint64_t, std::vector<std::string>> const &non_finalized_blks) {
   vertex_t target = graph_.vertex(anchor);
 
   if (target == graph_.null_vertex()) {
@@ -197,25 +170,19 @@ bool Dag::computeOrder(vertex_hash const &anchor,
   vertex_index_map_t index_map = boost::get(
       boost::vertex_index, graph_);         // from vertex_descriptor to hash
   std::map<blk_hash_t, vertex_t> epfriend;  // this is unordered epoch
-  if (!findNonFinalizedDagBlock(anchor)) {
-    LOG(log_er_) << "Anchor is not in recent_added_blks " << anchor;
-  }
   epfriend[blk_hash_t(index_map[target])] = target;
 
   // Step 1: collect all epoch blks that can reach anchor
   // Erase from recent_added_blks after mark epoch number if finialized
 
-  auto iter = non_finalized_blks_.begin();
-  while (iter != non_finalized_blks_.end()) {
-    auto v = graph_.vertex(*iter);
-    if (reachable(v, target)) {
-      iter++;
-      epfriend[blk_hash_t(index_map[v])] = v;
-    } else {
-      iter++;
+  for (auto &l : non_finalized_blks) {
+    for (auto &blk : l.second) {
+      auto v = graph_.vertex(blk);
+      if (reachable(v, target)) {
+        epfriend[blk_hash_t(index_map[v])] = v;
+      }
     }
   }
-
   // Step2: compute topological order of epfriend
   std::unordered_set<vertex_t> visited;
   std::stack<std::pair<vertex_t, bool>> dfs;
@@ -285,36 +252,6 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
   return false;
 }
 
-bool Dag::findNonFinalizedDagBlock(vertex_hash const &block_hash) const {
-  return non_finalized_blks_.find(block_hash) != non_finalized_blks_.end();
-}
-
-std::unordered_set<std::string> Dag::getNonFinalizedDagBlks() const {
-  return non_finalized_blks_;
-}
-void Dag::addNonFinalizedDagBlks(vertex_hash const &hash) {
-  non_finalized_blks_.insert(hash);
-}
-
-void Dag::removeNonFinalizedDagBlks(vertex_hash const &hash) {
-  non_finalized_blks_.erase(hash);
-}
-
-bool Dag::findFinalizedDagBlock(vertex_hash const &block_hash) const {
-  return finalized_blks_.find(block_hash) != finalized_blks_.end();
-}
-
-std::unordered_set<std::string> Dag::getFinalizedDagBlks() const {
-  return finalized_blks_;
-}
-void Dag::addFinalizedDagBlks(vertex_hash const &hash) {
-  finalized_blks_.insert(hash);
-}
-
-void Dag::removeFinalizedDagBlks(vertex_hash const &hash) {
-  finalized_blks_.erase(hash);
-}
-
 /**
  * Iterative version
  * Steps rounds
@@ -325,7 +262,6 @@ void Dag::removeFinalizedDagBlks(vertex_hash const &hash) {
 
 void PivotTree::getGhostPath(vertex_hash const &vertex,
                              std::vector<vertex_hash> &pivot_chain) const {
-  sharedLock lock(mutex_);
   std::vector<vertex_t> post_order;
   vertex_t root = graph_.vertex(vertex);
 
@@ -435,12 +371,12 @@ void DagManager::stop() {
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
   sharedLock lock(mutex_);
-  return {total_dag_->getNumVertices(), pivot_tree_->getNumVertices()};
+  return {db_->getNumDagBlocks(), total_dag_->getNumVertices()};
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
   sharedLock lock(mutex_);
-  return {total_dag_->getNumEdges(), pivot_tree_->getNumEdges()};
+  return {db_->getDagEdgeCount(), total_dag_->getNumEdges()};
 }
 
 void DagManager::drawTotalGraph(std::string const &str) const {
@@ -454,6 +390,7 @@ void DagManager::drawPivotGraph(std::string const &str) const {
 }
 
 bool DagManager::dagHasVertex(blk_hash_t const &blk_hash) {
+  sharedLock lock(mutex_);
   if (total_dag_->hasVertex(blk_hash.toString())) {
     LOG(log_dg_) << "DAG Block " << blk_hash << " is in DAG already! ";
     return true;
@@ -462,19 +399,19 @@ bool DagManager::dagHasVertex(blk_hash_t const &blk_hash) {
 }
 
 bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
+  sharedLock lock(mutex_);
   auto dag_blk_hash = blk.getHash();
   auto dag_blk_pivot = blk.getPivot();
-  uLock lock(mutex_);
 
   if (db_->getDagBlock(dag_blk_pivot) == nullptr) {
-    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot
+    LOG(log_er_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot
                  << " unavailable";
     return false;
   }
 
   for (auto const &t : blk.getTips()) {
     if (db_->getDagBlock(t) == nullptr) {
-      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t
+      LOG(log_er_) << "DAG Block " << dag_blk_hash << " tip " << t
                    << " unavailable";
       return false;
     }
@@ -484,16 +421,11 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 }
 
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
+  uLock lock(mutex_);
   auto blk_hash = blk.getHash();
   auto blk_hash_str = blk_hash.toString();
   auto pivot_hash = blk.getPivot();
   DagFrontier frontier;
-  uLock lock(mutex_);
-
-  if (db_->getDagBlock(blk_hash) != nullptr) {
-    LOG(log_dg_) << "DAG Block " << blk_hash << " is in DAG already! ";
-    return;
-  }
 
   std::vector<std::string> tips;
   for (auto const &t : blk.getTips()) {
@@ -504,7 +436,8 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
   level_t current_max_level = getMaxLevel();
   max_level_ = std::max(current_max_level, blk.getLevel());
 
-  addToDag(blk_hash_str, pivot_hash.toString(), tips, finalized);
+  addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(),
+           finalized);
 
   auto [p, ts] = getFrontier();
   frontier.pivot = blk_hash_t(p);
@@ -520,19 +453,21 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
+  sharedLock lock(mutex_);
   drawPivotGraph("pivot." + dotfile);
   drawTotalGraph("total." + dotfile);
 }
 
 void DagManager::addToDag(std::string const &hash, std::string const &pivot,
-                          std::vector<std::string> const &tips,
+                          std::vector<std::string> const &tips, uint64_t level,
                           bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
+  pivot_tree_->addVEEs(hash, pivot, {});
+  db_->saveDagBlockState(blk_hash_t(hash), finalized);
   if (finalized) {
-    total_dag_->addFinalizedDagBlks(hash);
+    finalized_blks_[level].push_back(hash);
   } else {
-    total_dag_->addNonFinalizedDagBlks(hash);
-    pivot_tree_->addVEEs(hash, pivot, {});
+    non_finalized_blks_[level].push_back(hash);
   }
   LOG(log_dg_) << " Insert block to DAG : " << hash;
 }
@@ -569,14 +504,17 @@ std::pair<std::string, std::vector<std::string>> DagManager::getFrontier()
 }
 
 void DagManager::collectTotalLeaves(std::vector<std::string> &leaves) const {
+  sharedLock lock(mutex_);
   total_dag_->getLeaves(leaves);
 }
 void DagManager::getGhostPath(std::string const &source,
                               std::vector<std::string> &ghost) const {
+  sharedLock lock(mutex_);
   pivot_tree_->getGhostPath(source, ghost);
 }
 
 void DagManager::getGhostPath(std::vector<std::string> &ghost) const {
+  sharedLock lock(mutex_);
   auto last_pivot = anchor_;
   ghost.clear();
   pivot_tree_->getGhostPath(last_pivot, ghost);
@@ -585,12 +523,14 @@ std::vector<std::string> DagManager::getEpFriendBetweenPivots(
     std::string const &from, std::string const &to) {
   std::vector<std::string> epfriend;
 
+  sharedLock lock(mutex_);
   total_dag_->getEpFriendVertices(from, to, epfriend);
   return epfriend;
 }
 
 std::vector<std::string> DagManager::getPivotChain(
     std::string const &vertex) const {
+  sharedLock lock(mutex_);
   std::vector<std::string> ret;
   pivot_tree_->getGhostPath(vertex, ret);
   return ret;
@@ -599,17 +539,10 @@ std::vector<std::string> DagManager::getPivotChain(
 // return {period, block order}, for pbft-pivot-blk proposing
 std::pair<uint64_t, std::shared_ptr<vec_blk_t>> DagManager::getDagBlockOrder(
     blk_hash_t const &anchor) {
-  LOG(log_dg_) << "getDagBlockOrder called with anchor " << anchor;
-  vec_blk_t orders;
-  auto period = getDagBlockOrder(anchor, orders);
-  return {period, std::make_shared<vec_blk_t>(orders)};
-}
-
-uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
-                                      vec_blk_t &orders) {
+  sharedLock lock(mutex_);
   // TODO: need to check if the anchor already processed
   // if the period already processed
-  orders.clear();
+  vec_blk_t orders;
 
   std::vector<std::string> blk_orders;
 
@@ -618,16 +551,17 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   if (blk_hash_t(anchor_) == anchor) {
     LOG(log_wr_) << "Query period from " << blk_hash_t(anchor_) << " to "
                  << anchor << " not ok " << std::endl;
-    return period_;
+    return {0, std::make_shared<vec_blk_t>(orders)};
   }
 
   auto new_period = period_ + 1;
 
-  auto ok = total_dag_->computeOrder(anchor.toString(), blk_orders);
+  auto ok = total_dag_->computeOrder(anchor.toString(), blk_orders,
+                                     non_finalized_blks_);
   if (!ok) {
     LOG(log_er_) << " Create period " << new_period << " anchor: " << anchor
                  << " failed " << std::endl;
-    return 0;
+    return {0, std::make_shared<vec_blk_t>(orders)};
   }
 
   std::transform(blk_orders.begin(), blk_orders.end(),
@@ -636,11 +570,17 @@ uint64_t DagManager::getDagBlockOrder(blk_hash_t const &anchor,
   LOG(log_dg_) << "Get period " << new_period << " from " << blk_hash_t(anchor_)
                << " to " << anchor << " with " << blk_orders.size() << " blks"
                << std::endl;
-  return new_period;
+
+  std::string orderser;
+  for (auto o : orders) orderser += " " + o.toString();
+  return {new_period, std::make_shared<vec_blk_t>(orders)};
 }
 
-uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
-                                  std::shared_ptr<vec_blk_t> dag_order) {
+uint DagManager::setDagBlockOrder(
+    blk_hash_t const &new_anchor, uint64_t period,
+    std::shared_ptr<vec_blk_t> dag_order,
+    const taraxa::DbStorage::BatchPtr &write_batch) {
+  uLock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor
                << " and period " << period;
 
@@ -650,83 +590,129 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
                  << ") " << anchor_;
     return 0;
   }
+
   auto prev = anchor_;
-  std::vector<std::string> blk_orders;
 
   std::vector<std::string> leaves;
   total_dag_->getLeaves(leaves);
   std::set<std::string> leavesSet(leaves.begin(), leaves.end());
 
+  total_dag_->clear();
+  pivot_tree_->clear();
+  auto finalized_blocks = finalized_blks_;
+  auto non_finalized_blocks = non_finalized_blks_;
+  finalized_blks_.clear();
+  non_finalized_blks_.clear();
+
   // Total DAG will only include leaves from the last period and non-finalized
   // blocks
   // Pivot tree will only include anchor from the last period and non-finalized
   // blocks
+  for (auto &v : finalized_blocks) {
+    for (auto &blk : v.second) {
+      auto block = db_->getDagBlock(blk_hash_t(blk));
+      auto pivot_hash = block->getPivot();
+      std::vector<std::string> tips;
+      for (auto const &t : block->getTips()) {
+        std::string tip = t.toString();
+        tips.push_back(tip);
+      }
 
-  // We need a copy so we can delete from the original structure
-  auto finalized_blocks = total_dag_->getFinalizedDagBlks();
-
-  // First remove all the finalized from previous period
-  for (auto &blk : finalized_blocks) {
-    // Do not remove from total dag if a block is a leaf -- THERE IS A CHANCE
-    // THAT THIS MIGHT NOT BE POSSIBLE SO MAYBE AN ASSERT WOULD BE BETTER
-    if (leavesSet.count(blk) == 0) {
-      total_dag_->delVertex(blk);
-      total_dag_->removeFinalizedDagBlks(blk);
+      // Do not remove from total dag if a block is a leaf -- THERE IS A CHANCE
+      // THAT THIS MIGHT NOT BE POSSIBLE SO MAYBE AN ASSERT WOULD BE BETTER
+      if (leavesSet.count(blk) > 0) {
+        addToDag(blk, pivot_hash.toString(), tips, block->getLevel(), true);
+      } else {
+        db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
+      }
     }
   }
 
-  // Remove the old anchor from the pivot tree
-  pivot_tree_->delVertex(anchor_);
-
+  bool new_anchor_found = false;
   for (auto &block : *dag_order) {
-    // Remove all the non-finalized except the leaves which are now finalized
+    // Remove all just finalized except the leaves
     auto blk = block.toString();
-    total_dag_->removeNonFinalizedDagBlks(blk);
-    if (leavesSet.count(blk) == 0) {
-      total_dag_->delVertex(blk);
-    } else {
-      total_dag_->addFinalizedDagBlks(blk);
+    auto dag_block = db_->getDagBlock(block);
+    auto pivot_hash = dag_block->getPivot();
+    std::vector<std::string> tips;
+    for (auto const &t : dag_block->getTips()) {
+      std::string tip = t.toString();
+      tips.push_back(tip);
     }
-    // Remove all the non-finalized from pivot tree except the anchor
-    if (blk != new_anchor.toString()) {
-      pivot_tree_->delVertex(blk);
+    // Verify anchor is included
+    if (blk == new_anchor.toString()) {
+      new_anchor_found = true;
+    }
+
+    if (leavesSet.count(blk) > 0 || blk == new_anchor.toString()) {
+      addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(), true);
+      db_->addDagBlockStateToBatch(write_batch, blk_hash_t(blk), true);
+    } else {
+      db_->removeDagBlockStateToBatch(write_batch, blk_hash_t(blk));
     }
   }
+  assert(new_anchor_found);
 
-  total_dag_->clear();
-  for (auto &leave : leaves)
-    addDagBlock(*db_->getDagBlock(blk_hash_t(leave)), true);
+  // Add remaining blocks that are not finalized
+  std::set<blk_hash_t> dag_order_set(dag_order->begin(), dag_order->end());
+  for (auto &v : non_finalized_blocks) {
+    for (auto &blk : v.second) {
+      if (dag_order_set.count(blk_hash_t(blk)) == 0) {
+        auto dag_block = db_->getDagBlock(blk_hash_t(blk));
+        auto pivot_hash = dag_block->getPivot();
+        std::vector<std::string> tips;
+        for (auto const &t : dag_block->getTips()) {
+          std::string tip = t.toString();
+          tips.push_back(tip);
+        }
+        addToDag(blk, pivot_hash.toString(), tips, dag_block->getLevel(),
+                 false);
+      }
+    }
+  }
 
   old_anchor_ = anchor_;
   anchor_ = new_anchor.toString();
+  period_ = period;
 
   LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
 
-  return blk_orders.size();
+  return dag_order_set.size();
 }
 
-void DagManager::recoverAnchors(uint64_t pbft_chain_size) {
-  /*std::vector<blk_hash_t> anchors;
-  // Use index to save period, so index 0 is empty
-  anchors.resize(pbft_chain_size + 1);
-
+void DagManager::recoverDag() {
   blk_hash_t pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-  blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-  uint64_t period = pbft_block.getPeriod();
-  anchors[period] = dag_block_hash_as_anchor;
-  for (auto i = pbft_chain_size - 1; i > 0; --i) {
-    pbft_block_hash = pbft_block.getPrevBlockHash();
-    pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-    dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-    period = pbft_block.getPeriod();
-    assert(i == period);
-    anchors[period] = dag_block_hash_as_anchor;
-  }
-  uLock lock(anchors_access_);
-  for (auto i = 1; i < anchors.size(); ++i) {
-    anchors_.push_back({anchors[i].toString(), i});
-  }*/
-}
+  if (pbft_block_hash) {
+    PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+    blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+    uint64_t period = pbft_block.getPeriod();
+    anchor_ = dag_block_hash_as_anchor.toString();
 
+    pbft_block_hash = pbft_block.getPrevBlockHash();
+    if (pbft_block_hash) {
+      pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
+      period = pbft_block.getPeriod();
+      old_anchor_ = dag_block_hash_as_anchor.toString();
+    }
+  }
+
+  auto dag_state_map = db_->getAllDagBlockState();
+  std::map<uint64_t, blk_hash_t> finalized, non_finalized;
+  for (auto &it : dag_state_map) {
+    if (it.second) {
+      finalized[db_->getDagBlock(it.first)->getLevel()] = it.first;
+    } else {
+      non_finalized[db_->getDagBlock(it.first)->getLevel()] = it.first;
+    }
+  }
+  for (auto &it : finalized) {
+    auto blk = db_->getDagBlock(it.second);
+    addDagBlock(*blk, true);
+  }
+  for (auto &it : non_finalized) {
+    auto blk = db_->getDagBlock(it.second);
+    addDagBlock(*blk, false);
+  }
+}
 }  // namespace taraxa
