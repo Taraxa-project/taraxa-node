@@ -71,7 +71,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
   auto const &genesis_hash = genesis_block.getHash();
   db_ = DbStorage::make(conf_.db_path, genesis_hash, destroy_db);
   // store genesis blk to db
-  db_->saveDagBlock(genesis_block);
+  if (db_->getNumDagBlocks() == 0) db_->saveDagBlock(genesis_block);
   LOG(log_nf_) << "DB initialized ...";
   // ===== Create services =====
   trx_mgr_ =
@@ -191,8 +191,9 @@ void FullNode::start(bool boot_node) {
           // its pivot and tips processed This should happen in a very rare case
           // where in some race condition older block is verfified faster then
           // new block but should resolve quickly, return block to queue
-          if(!stopped_) {
-            LOG(log_wr_) << "Block could not be added to DAG " << blk.getHash().toString();
+          if (!stopped_) {
+            LOG(log_wr_) << "Block could not be added to DAG "
+                         << blk.getHash().toString();
             received_blocks_--;
             blk_mgr_->pushVerifiedBlock(blk);
           }
