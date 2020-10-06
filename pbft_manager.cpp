@@ -1559,15 +1559,8 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   // Update 2t+1 and threshold
   auto eligible_voter_count = getEligibleVoterCount();
-  if (COMMITTEE_SIZE <= eligible_voter_count) {
-    TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
-    // round up
-    sortition_threshold_ =
-        (eligible_voter_count * COMMITTEE_SIZE - 1) / eligible_voter_count + 1;
-  } else {
-    TWO_T_PLUS_ONE = eligible_voter_count * 2 / 3 + 1;
-    sortition_threshold_ = eligible_voter_count;
-  }
+  sortition_threshold_ = min(COMMITTEE_SIZE, eligible_voter_count);
+  TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE
                << ", valid voting players " << eligible_voter_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
