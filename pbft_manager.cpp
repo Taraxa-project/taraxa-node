@@ -215,23 +215,14 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
 void PbftManager::update_dpos_state_() {
   dpos_period_ = pbft_chain_->getPbftChainSize();
   eligible_voter_count_ = final_chain_->dpos_eligible_count(dpos_period_);
-  cout << "@" << node_addr_.hex()
-       << " update_dpos_state_() -> period_=" << dpos_period_
-       << ", eligible_voter_count_=" << eligible_voter_count_ << endl;
 }
 
 uint64_t PbftManager::getEligibleVoterCount() const {
-  //  cout << "@" << node_addr_.hex() << " getEligibleVoterCount() -> "
-  //       << eligible_voter_count_ << endl;
   return eligible_voter_count_;
 }
 
 bool PbftManager::is_eligible_(addr_t const &addr) {
-  auto ret = final_chain_->dpos_is_eligible(dpos_period_, addr);
-  //  cout << "@" << node_addr_.hex() << " is_eligible_(" << addr.hex() << ") ->
-  //  "
-  //       << ret << endl;
-  return ret;
+  return final_chain_->dpos_is_eligible(dpos_period_, addr);
 }
 
 bool PbftManager::shouldSpeak(PbftVoteTypes type, uint64_t round, size_t step) {
@@ -1568,8 +1559,15 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   // Update 2t+1 and threshold
   auto eligible_voter_count = getEligibleVoterCount();
-  sortition_threshold_ = min(COMMITTEE_SIZE, eligible_voter_count);
-  TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
+  if (COMMITTEE_SIZE <= eligible_voter_count) {
+    TWO_T_PLUS_ONE = COMMITTEE_SIZE * 2 / 3 + 1;
+    // round up
+    sortition_threshold_ =
+        (eligible_voter_count * COMMITTEE_SIZE - 1) / eligible_voter_count + 1;
+  } else {
+    TWO_T_PLUS_ONE = eligible_voter_count * 2 / 3 + 1;
+    sortition_threshold_ = eligible_voter_count;
+  }
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE
                << ", valid voting players " << eligible_voter_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
