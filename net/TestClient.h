@@ -34,16 +34,6 @@ namespace taraxa {
                     else
                         throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
                 }
-                Json::Value get_dag_block_epfriend(const Json::Value& param1) throw (jsonrpc::JsonRpcException)
-                {
-                    Json::Value p;
-                    p.append(param1);
-                    Json::Value result = this->CallMethod("get_dag_block_epfriend",p);
-                    if (result.isObject())
-                        return result;
-                    else
-                        throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-                }
                 Json::Value send_coin_transaction(const Json::Value& param1) throw (jsonrpc::JsonRpcException)
                 {
                     Json::Value p;

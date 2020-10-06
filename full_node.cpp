@@ -169,10 +169,7 @@ void FullNode::start(bool boot_node) {
       while (!stopped_) {
         // will block if no verified block available
         auto blk = blk_mgr_->popVerifiedBlock();
-        if (dag_mgr_->dagHasVertex(blk.getHash())) {
-          continue;
-        }
-
+        
         if (!stopped_) {
           received_blocks_++;
         }

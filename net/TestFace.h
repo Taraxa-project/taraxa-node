@@ -16,7 +16,6 @@ namespace taraxa {
                 {
                     this->bindAndAddMethod(jsonrpc::Procedure("insert_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_OBJECT, NULL), &taraxa::net::TestFace::insert_dag_blockI);
                     this->bindAndAddMethod(jsonrpc::Procedure("get_dag_block", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_OBJECT, NULL), &taraxa::net::TestFace::get_dag_blockI);
-                    this->bindAndAddMethod(jsonrpc::Procedure("get_dag_block_epfriend", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_OBJECT, NULL), &taraxa::net::TestFace::get_dag_block_epfriendI);
                     this->bindAndAddMethod(jsonrpc::Procedure("send_coin_transaction", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_OBJECT, NULL), &taraxa::net::TestFace::send_coin_transactionI);
                     this->bindAndAddMethod(jsonrpc::Procedure("create_test_coin_transactions", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",jsonrpc::JSON_OBJECT, NULL), &taraxa::net::TestFace::create_test_coin_transactionsI);
                     this->bindAndAddMethod(jsonrpc::Procedure("get_num_proposed_blocks", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,  NULL), &taraxa::net::TestFace::get_num_proposed_blocksI);
@@ -47,10 +46,6 @@ namespace taraxa {
                 inline virtual void get_dag_blockI(const Json::Value &request, Json::Value &response)
                 {
                     response = this->get_dag_block(request[0u]);
-                }
-                inline virtual void get_dag_block_epfriendI(const Json::Value &request, Json::Value &response)
-                {
-                    response = this->get_dag_block_epfriend(request[0u]);
                 }
                 inline virtual void send_coin_transactionI(const Json::Value &request, Json::Value &response)
                 {
@@ -146,7 +141,6 @@ namespace taraxa {
                 }
                 virtual Json::Value insert_dag_block(const Json::Value& param1) = 0;
                 virtual Json::Value get_dag_block(const Json::Value& param1) = 0;
-                virtual Json::Value get_dag_block_epfriend(const Json::Value& param1) = 0;
                 virtual Json::Value send_coin_transaction(const Json::Value& param1) = 0;
                 virtual Json::Value create_test_coin_transactions(const Json::Value& param1) = 0;
                 virtual Json::Value get_num_proposed_blocks() = 0;

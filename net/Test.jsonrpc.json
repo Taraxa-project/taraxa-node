@@ -14,13 +14,6 @@
     "returns": {}
   },
   {
-    "name": "get_dag_block_epfriend",
-    "params": [
-      {}
-    ],
-    "returns": {}
-  },
-  {
     "name": "send_coin_transaction",
     "params": [
       {}

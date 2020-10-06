@@ -76,32 +76,18 @@ class Dag {
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
   bool hasVertex(vertex_hash const &v) const;
-  // VEE: new vertex, pivot, tips
-  // Note: *** The function does not check vertex existency
   bool addVEEs(vertex_hash const &new_vertex, vertex_hash const &pivot,
                std::vector<vertex_hash> const &tips);
 
   void getLeaves(std::vector<vertex_hash> &tips) const;
   void drawGraph(vertex_hash filename) const;
 
-  // Note, the function will not delete recent_added_blks when marking
-  // ith_number
   bool computeOrder(
       vertex_hash const &anchor,
       std::vector<vertex_hash> &ordered_period_vertices,
       std::map<uint64_t, std::vector<std::string>> const &non_finalized_blks);
-  // warning! slow, iterate through all vertices ...
-  void getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
-                           std::vector<vertex_hash> &epfriend) const;
 
-  // deleter
   void clear();
-  void delVertex(std::string const &v, vertex_hash const &pivot,
-                 std::vector<vertex_hash> const &tips);
-
-  // properties
-  uint64_t getVertexPeriod(vertex_hash const &vertex) const;
-  void setVertexPeriod(vertex_hash const &vertex, uint64_t period);
 
  protected:
   // Note: private functions does not lock
@@ -141,22 +127,12 @@ class PivotTree : public Dag {
                     std::vector<vertex_hash> &pivot_chain) const;
 };
 class DagBuffer;
-/**
- * Important : The input DagBlocks to DagManger should be de-duplicated!
- * i.e., no same DagBlocks are put to the Dag.
- */
-
-// TODO: probably share property map for total_dag_ and pivot_tree_
-
 class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using stdLock = std::unique_lock<std::mutex>;
   using uLock = boost::unique_lock<boost::shared_mutex>;
   using sharedLock = boost::shared_lock<boost::shared_mutex>;
-  using upgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using upgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   explicit DagManager(std::string const &genesis, addr_t node_addr,
                       std::shared_ptr<TransactionManager> trx_mgr,
@@ -166,13 +142,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<DagManager> getShared();
   void stop();
 
-  bool dagHasVertex(blk_hash_t const &blk_hash);
   bool pivotAndTipsAvailable(DagBlock const &blk);
   void addDagBlock(DagBlock const &blk,
                    bool finalized = false);  // insert to buffer if fail
 
   // return {period, block order}, for pbft-pivot-blk proposing (does not
-  // finialize)
+  // finalize)
   std::pair<uint64_t, std::shared_ptr<vec_blk_t>> getDagBlockOrder(
       blk_hash_t const &anchor);
   // receive pbft-povit-blk, update periods and finalized, return size of
@@ -190,22 +165,27 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void getGhostPath(std::vector<std::string> &ghost)
       const;  // get ghost path from last anchor
   // ----- Total graph
-  std::vector<std::string> getEpFriendBetweenPivots(std::string const &from,
-                                                    std::string const &to);
   void drawTotalGraph(std::string const &str) const;
 
   // ----- Pivot graph
   // can return self as pivot chain
-  std::vector<std::string> getPivotChain(std::string const &vertex) const;
   void drawPivotGraph(std::string const &str) const;
   void drawGraph(std::string const &dotfile) const;
+
   std::pair<uint64_t, uint64_t> getNumVerticesInDag() const;
   std::pair<uint64_t, uint64_t> getNumEdgesInDag() const;
-  level_t getMaxLevel() const { return max_level_; }
+  level_t getMaxLevel() const {
+    sharedLock lock(mutex_);
+    return max_level_;
+  }
 
   // DAG anchors
-  uint64_t getLatestPeriod() const { return period_; }
+  uint64_t getLatestPeriod() const {
+    sharedLock lock(mutex_);
+    return period_;
+  }
   std::pair<std::string, std::string> getAnchors() const {
+    sharedLock lock(mutex_);
     return std::make_pair(old_anchor_, anchor_);
   }
   void recoverDag();
@@ -214,13 +194,10 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void addToDag(std::string const &hash, std::string const &pivot,
                 std::vector<std::string> const &tips, uint64_t level,
                 bool finalized = false);
-  unsigned getBlockInsertingIndex();  // add to block to different array
   std::pair<std::string, std::vector<std::string>> getFrontier()
       const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;
   mutable boost::shared_mutex mutex_;
-  mutable boost::shared_mutex anchors_access_;
-  std::atomic<unsigned> inserting_index_counter_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;

@@ -124,35 +124,7 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
   assert(leaves.size());
 }
 
-void Dag::getEpFriendVertices(vertex_hash const &from, vertex_hash const &to,
-                              std::vector<vertex_hash> &epfriend) const {
-  vertex_t source = graph_.vertex(from);
-  vertex_t target = graph_.vertex(to);
-
-  if (source == graph_.null_vertex()) {
-    LOG(log_wr_) << "Cannot find vertex (from) (getEpFriendVertices) " << from
-                 << "\n";
-    return;
-  }
-  if (target == graph_.null_vertex()) {
-    LOG(log_wr_) << "Cannot find vertex (to) " << to << "\n";
-    return;
-  }
-  epfriend.clear();
-  vertex_iter_t s, e;
-  vertex_index_map_const_t index_map = boost::get(boost::vertex_index, graph_);
-
-  // iterator all vertex
-  for (std::tie(s, e) = boost::vertices(graph_); s != e; ++s) {
-    if (*s == source) {
-      continue;
-    }
-    if (!reachable(*s, source) && reachable(*s, target)) {
-      epfriend.emplace_back(index_map[*s]);
-    }
-  }
-}
-// only iterate only through non finalized blocks
+// only iterate through non finalized blocks
 bool Dag::computeOrder(
     vertex_hash const &anchor,
     std::vector<vertex_hash> &ordered_period_vertices,
@@ -332,8 +304,7 @@ DagManager::DagManager(std::string const &genesis, addr_t node_addr,
                        std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain,
                        std::shared_ptr<DbStorage> db) try
-    : inserting_index_counter_(0),
-      total_dag_(std::make_shared<Dag>(genesis, node_addr)),
+    : total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
       genesis_(genesis),
       trx_mgr_(trx_mgr),
@@ -365,6 +336,7 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 }
 
 void DagManager::stop() {
+  unique_lock lock(mutex_);
   trx_mgr_ = nullptr;
   pbft_chain_ = nullptr;
 }
@@ -389,17 +361,7 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
-bool DagManager::dagHasVertex(blk_hash_t const &blk_hash) {
-  sharedLock lock(mutex_);
-  if (total_dag_->hasVertex(blk_hash.toString())) {
-    LOG(log_dg_) << "DAG Block " << blk_hash << " is in DAG already! ";
-    return true;
-  }
-  return false;
-}
-
 bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
-  sharedLock lock(mutex_);
   auto dag_blk_hash = blk.getHash();
   auto dag_blk_pivot = blk.getPivot();
 
@@ -421,28 +383,30 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
 }
 
 void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
-  uLock lock(mutex_);
-  auto blk_hash = blk.getHash();
-  auto blk_hash_str = blk_hash.toString();
-  auto pivot_hash = blk.getPivot();
   DagFrontier frontier;
+  {
+    uLock lock(mutex_);
+    auto blk_hash = blk.getHash();
+    auto blk_hash_str = blk_hash.toString();
+    auto pivot_hash = blk.getPivot();
+    
+    std::vector<std::string> tips;
+    for (auto const &t : blk.getTips()) {
+      std::string tip = t.toString();
+      tips.push_back(tip);
+    }
 
-  std::vector<std::string> tips;
-  for (auto const &t : blk.getTips()) {
-    std::string tip = t.toString();
-    tips.push_back(tip);
-  }
+    level_t current_max_level = getMaxLevel();
+    max_level_ = std::max(current_max_level, blk.getLevel());
 
-  level_t current_max_level = getMaxLevel();
-  max_level_ = std::max(current_max_level, blk.getLevel());
+    addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(),
+            finalized);
 
-  addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(),
-           finalized);
-
-  auto [p, ts] = getFrontier();
-  frontier.pivot = blk_hash_t(p);
-  for (auto const &t : ts) {
-    frontier.tips.emplace_back(blk_hash_t(t));
+    auto [p, ts] = getFrontier();
+    frontier.pivot = blk_hash_t(p);
+    for (auto const &t : ts) {
+      frontier.tips.emplace_back(blk_hash_t(t));
+    }
   }
   if (trx_mgr_) {
     trx_mgr_->updateNonce(blk, frontier);
@@ -518,22 +482,6 @@ void DagManager::getGhostPath(std::vector<std::string> &ghost) const {
   auto last_pivot = anchor_;
   ghost.clear();
   pivot_tree_->getGhostPath(last_pivot, ghost);
-}
-std::vector<std::string> DagManager::getEpFriendBetweenPivots(
-    std::string const &from, std::string const &to) {
-  std::vector<std::string> epfriend;
-
-  sharedLock lock(mutex_);
-  total_dag_->getEpFriendVertices(from, to, epfriend);
-  return epfriend;
-}
-
-std::vector<std::string> DagManager::getPivotChain(
-    std::string const &vertex) const {
-  sharedLock lock(mutex_);
-  std::vector<std::string> ret;
-  pivot_tree_->getGhostPath(vertex, ret);
-  return ret;
 }
 
 // return {period, block order}, for pbft-pivot-blk proposing
