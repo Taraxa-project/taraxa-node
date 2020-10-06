@@ -107,10 +107,8 @@ struct BlockProposerConfig {
 struct PbftConfig {
   uint32_t lambda_ms_min;
   uint32_t committee_size = 0;
-  uint64_t valid_sortition_coins = 0;
   uint32_t dag_blocks_size = 0;
   uint32_t ghost_path_move_back = 0;
-  uint64_t skip_periods = 0;
   bool run_count_votes = false;
 };
 

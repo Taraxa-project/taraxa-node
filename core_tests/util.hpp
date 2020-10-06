@@ -33,6 +33,8 @@ using std::is_base_of;
 using std::vector;
 using ::taraxa::util::lazy::Lazy;
 
+
+
 inline vector<const char*> const conf_file = {
     "./core_tests/conf/conf_taraxa1.json",
     "./core_tests/conf/conf_taraxa2.json",

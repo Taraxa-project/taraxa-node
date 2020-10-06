@@ -29,6 +29,7 @@ struct WithTestDataDir : virtual WithTestInfo {
                                      current_test_info->test_suite_name() /
                                      current_test_info->test_case_name();
 
+  WithTestDataDir() { boost::filesystem::create_directories(data_dir); }
   ~WithTestDataDir() { boost::filesystem::remove_all(data_dir); }
 };
 

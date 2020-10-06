@@ -29,17 +29,16 @@ auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 struct PbftManagerTest : core_tests::util::DBUsingTest<> {};
 
 pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
-                                                 size_t active_players,
                                                  size_t valid_voting_players) {
   size_t two_t_plus_one;
   size_t threshold;
-  if (committee_size <= active_players) {
+  if (committee_size <= valid_voting_players) {
     two_t_plus_one = committee_size * 2 / 3 + 1;
     // round up
     threshold =
-        (valid_voting_players * committee_size - 1) / active_players + 1;
+        (valid_voting_players * committee_size - 1) / valid_voting_players + 1;
   } else {
-    two_t_plus_one = active_players * 2 / 3 + 1;
+    two_t_plus_one = valid_voting_players * 2 / 3 + 1;
     threshold = valid_voting_players;
   }
   return make_pair(two_t_plus_one, threshold);
@@ -54,15 +53,13 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   for (auto i(0); i < nodes.size(); ++i) {
     pbft_mgr = nodes[i]->getPbftManager();
     pbft_mgr->COMMITTEE_SIZE = committee_size;
-    // Set PBFT skip periods to a large number, in order to count all nodes as
-    // active players (not guarantee)
-    pbft_mgr->SKIP_PERIODS = 100;
   }
 
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
+  auto init_bal =
+      ChainConfig::default_chain_boot_node_initial_balance / nodes.size();
   auto gas_price = val_t(2);
   auto data = bytes();
   auto nonce = 0;
@@ -111,7 +108,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        9007199254740991 - 4 * init_bal);
+        ChainConfig::default_chain_boot_node_initial_balance - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
@@ -119,24 +116,22 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
           init_bal);
     }
   }
-
-  size_t committee, active_players, valid_voting_players, two_t_plus_one,
-      threshold, expected_2tPlus1, expected_threshold;
+  uint64_t valid_voting_players = 0;
+  size_t committee, two_t_plus_one, threshold, expected_2tPlus1,
+      expected_threshold;
   for (auto i(0); i < nodes.size(); ++i) {
     pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->COMMITTEE_SIZE;
-    active_players = pbft_mgr->active_nodes;
-    valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
+    valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee
-              << ", active players " << active_players
               << ", valid voting players " << valid_voting_players << ", 2t+1 "
               << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
-        committee, active_players, valid_voting_players);
+    tie(expected_2tPlus1, expected_threshold) =
+        calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -189,7 +184,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        9007199254740991 - 4 * init_bal);
+        ChainConfig::default_chain_boot_node_initial_balance - 4 * init_bal);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
       EXPECT_EQ(
@@ -201,18 +196,16 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   for (auto i(0); i < nodes.size(); ++i) {
     pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->COMMITTEE_SIZE;
-    active_players = pbft_mgr->active_nodes;
-    valid_voting_players = pbft_mgr->getValidSortitionAccountsSize();
+    valid_voting_players = pbft_mgr->getEligibleVoterCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee
-              << ", active players " << active_players
               << ", valid voting players " << valid_voting_players << ", 2t+1 "
               << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;
     EXPECT_EQ(valid_voting_players, nodes.size());
-    tie(expected_2tPlus1, expected_threshold) = calculate_2tPuls1_threshold(
-        committee, active_players, valid_voting_players);
+    tie(expected_2tPlus1, expected_threshold) =
+        calculate_2tPuls1_threshold(committee, valid_voting_players);
     EXPECT_EQ(two_t_plus_one, expected_2tPlus1);
     EXPECT_EQ(threshold, expected_threshold);
   }
@@ -259,7 +252,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   EXPECT_EQ(node->getFinalChain()
                 ->getBalance(addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5"))
                 .first,
-            9007199254740991 - 100);
+            ChainConfig::default_chain_boot_node_initial_balance - 100);
   EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
 }
 
@@ -313,7 +306,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
-              9007199254740991 - 100);
+              ChainConfig::default_chain_boot_node_initial_balance - 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 0);
   }
@@ -368,7 +361,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
     std::cout << "Checking account balances on node " << i << " ..."
               << std::endl;
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node1_addr).first,
-              9007199254740991 - 1100);
+              ChainConfig::default_chain_boot_node_initial_balance - 1100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node2_addr).first, 100);
     EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(node3_addr).first, 1000);
   }
@@ -414,7 +407,7 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
 }  // namespace taraxa
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   taraxa::static_init();
   LoggingConfig logging;
   logging.verbosity = taraxa::VerbosityError;

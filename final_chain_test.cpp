@@ -27,19 +27,19 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
 
   void init() {
     SUT = NewFinalChain(db, cfg);
-    for (auto const& [addr, acc_expected] : cfg.state.genesis_accounts) {
+    for (auto const& [addr, bal] : cfg.state.genesis_balances) {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
-      ASSERT_EQ(acc_actual->Balance, acc_expected.Balance);
-      ASSERT_EQ(acc_actual->Nonce, acc_expected.Nonce);
-      auto code = SUT->get_code(addr);
-      ASSERT_EQ(code, acc_expected.Code);
-      ASSERT_EQ(acc_actual->code_hash_eth(), sha3(code));
-      ASSERT_EQ(acc_actual->CodeSize, code.size());
-      for (auto const& [k, v_expected] : acc_expected.Storage) {
-        ASSERT_EQ(SUT->get_account_storage(addr, k), v_expected);
+      auto expected_bal = bal;
+      if (cfg.state.dpos) {
+        for (auto& [addr, genesis_deposits] : cfg.state.dpos->genesis_state) {
+          for (auto const& [_, val] : genesis_deposits) {
+            expected_bal -= val;
+          }
+        }
       }
-      expected_balances[addr] = acc_expected.Balance;
+      ASSERT_EQ(acc_actual->Balance, expected_bal);
+      expected_balances[addr] = expected_bal;
     }
   }
 
@@ -133,8 +133,6 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
     EXPECT_EQ(blk_h.logBloom(), expected_block_log_bloom);
     EXPECT_EQ(blk_h.stateRoot(), result.state_transition_result.StateRoot);
     if (assume_only_toplevel_transfers) {
-      EXPECT_EQ(result.state_transition_result.NonContractBalanceChanges,
-                expected_balance_changes);
       for (auto const& addr : all_addrs_w_changed_balance) {
         EXPECT_EQ(SUT->get_account(addr)->Balance, expected_balances[addr]);
       }
@@ -143,30 +141,30 @@ struct FinalChainTest : testing::Test, WithTestDataDir {
   }
 };
 
-TEST_F(FinalChainTest, genesis_accounts) {
-  cfg.state.genesis_accounts = {};
-  cfg.state.genesis_accounts[addr_t::random()].Balance = 0;
-  cfg.state.genesis_accounts[addr_t::random()].Balance = 1000;
-  cfg.state.genesis_accounts[addr_t::random()].Balance = 100000;
-  cfg.state.genesis_accounts[addr_t::random()].Code = {1, 2, 3};
-  cfg.state.genesis_accounts[addr_t::random()].Code = {0};
-  cfg.state.genesis_accounts[addr_t::random()].Nonce = 1;
-  cfg.state.genesis_accounts[addr_t::random()].Nonce = 55;
-  cfg.state.genesis_accounts[addr_t::random()].Storage[16] = 32;
-  cfg.state.genesis_accounts[addr_t::random()].Storage = {
-      {1, 2},
-      {3, 4},
-      {5, 6},
-  };
+TEST_F(FinalChainTest, genesis_balances) {
+  cfg.state.dpos = nullopt;
+  cfg.state.genesis_balances = {};
+  cfg.state.genesis_balances[addr_t::random()] = 0;
+  cfg.state.genesis_balances[addr_t::random()] = 1000;
+  cfg.state.genesis_balances[addr_t::random()] = 100000;
   init();
+}
+
+TEST_F(FinalChainTest, dpos_genesis) {
+  init();
+  ASSERT_EQ(SUT->dpos_eligible_count(0),
+            ChainConfig::default_chain_predefined_nodes->size());
+  for (auto const& addr : *ChainConfig::default_chain_predefined_nodes) {
+    ASSERT_TRUE(SUT->dpos_is_eligible(0, addr));
+  }
 }
 
 TEST_F(FinalChainTest, contract) {
   auto sender_keys = KeyPair::create();
   auto const& addr = sender_keys.address();
   auto const& sk = sender_keys.secret();
-  cfg.state.genesis_accounts = {};
-  cfg.state.genesis_accounts[addr].Balance = 100000;
+  cfg.state.genesis_balances = {};
+  cfg.state.genesis_balances[addr] = 100000;
   init();
   static string const contract_deploy_code =
       // pragma solidity ^0.6.8;
@@ -268,12 +266,12 @@ TEST_F(FinalChainTest, contract) {
 
 TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 500;
-  cfg.state.genesis_accounts = {};
+  cfg.state.genesis_balances = {};
   vector<KeyPair> keys;
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {
     auto const& k = keys.emplace_back(KeyPair::create());
-    cfg.state.genesis_accounts[k.address()].Balance =
+    cfg.state.genesis_balances[k.address()] =
         numeric_limits<u256>::max() / NUM_ACCS;
   }
   init();

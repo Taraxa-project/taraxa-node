@@ -161,14 +161,10 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
         getConfigDataAsUInt(root, {"test_params", "pbft", "lambda_ms_min"});
     test_params.pbft.committee_size =
         getConfigDataAsUInt(root, {"test_params", "pbft", "committee_size"});
-    test_params.pbft.valid_sortition_coins = getConfigDataAsUInt64(
-        root, {"test_params", "pbft", "valid_sortition_coins"});
     test_params.pbft.dag_blocks_size =
         getConfigDataAsUInt(root, {"test_params", "pbft", "dag_blocks_size"});
     test_params.pbft.ghost_path_move_back = getConfigDataAsUInt(
         root, {"test_params", "pbft", "ghost_path_move_back"});
-    test_params.pbft.skip_periods =
-        getConfigDataAsUInt64(root, {"test_params", "pbft", "skip_periods"});
     test_params.pbft.run_count_votes =
         getConfigDataAsUInt(root, {"test_params", "pbft", "run_count_votes"});
   }
@@ -219,11 +215,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
     chain = ChainConfig::predefined();
   }
   // TODO configurable
-  opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock = 400;
-  // TODO constant
-  opts_final_chain.state_api.MainTrieWriterOpts.ExpectedDepth = 64;
-  opts_final_chain.state_api.MainTrieWriterOpts.FullNodeLevelsToCache = 5;
-  opts_final_chain.state_api.AccTrieWriterOpts.ExpectedDepth = 16;
+  opts_final_chain.state_api.ExpectedMaxTrxPerBlock = 1000;
+  opts_final_chain.state_api.MainTrieFullNodeLevelsToCache = 4;
 }
 
 RpcConfig::RpcConfig(std::string const &json_file) : json_file_name(json_file) {

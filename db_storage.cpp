@@ -37,6 +37,7 @@ std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
   checkStatus(DB::Open(options, path.string(), descriptors, &handles, &db));
   auto ret = u_ptr(new DbStorage);
   ret->db_ = s_ptr(db);
+  ret->path_ = path;
   ret->handles_.reserve(handles.size());
   for (auto h : handles) {
     ret->handles_.emplace_back(h);
@@ -280,44 +281,6 @@ void DbStorage::addPbftHeadToBatch(
     const taraxa::DbStorage::BatchPtr& write_batch) {
   batch_put(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()),
             head_str);
-}
-
-string DbStorage::getSortitionAccount(string const& key) {
-  return lookup(key, Columns::sortition_accounts);
-}
-
-PbftSortitionAccount DbStorage::getSortitionAccount(addr_t const& account) {
-  return PbftSortitionAccount(
-      lookup(account.toString(), Columns::sortition_accounts));
-}
-
-bool DbStorage::sortitionAccountInDb(string const& key) {
-  return !lookup(key, Columns::sortition_accounts).empty();
-}
-
-bool DbStorage::sortitionAccountInDb(addr_t const& account) {
-  return !lookup(account.toString(), Columns::sortition_accounts).empty();
-}
-
-void DbStorage::removeSortitionAccount(addr_t const& account) {
-  remove(account.toString(), Columns::sortition_accounts);
-}
-
-void DbStorage::forEachSortitionAccount(OnEntry const& f) {
-  forEach(Columns::sortition_accounts, f);
-}
-
-void DbStorage::addSortitionAccountToBatch(addr_t const& address,
-                                           PbftSortitionAccount& account,
-                                           BatchPtr const& write_batch) {
-  batch_put(write_batch, DbStorage::Columns::sortition_accounts,
-            address.toString(), account.getJsonStr());
-}
-
-void DbStorage::addSortitionAccountToBatch(string const& key,
-                                           string const& value,
-                                           BatchPtr const& write_batch) {
-  batch_put(write_batch, DbStorage::Columns::sortition_accounts, key, value);
 }
 
 bytes DbStorage::getVote(blk_hash_t const& hash) {

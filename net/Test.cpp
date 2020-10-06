@@ -9,9 +9,9 @@
 #include "core_tests/create_samples.hpp"
 #include "dag.hpp"
 #include "dag_block.hpp"
+#include "full_node.hpp"
 #include "transaction_manager.hpp"
 #include "types.hpp"
-#include "full_node.hpp"
 
 using namespace std;
 using namespace dev;
@@ -346,10 +346,10 @@ Json::Value Test::get_votes(const Json::Value &param1) {
       uint64_t pbft_round = param1["period"].asUInt64();
       std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
       std::shared_ptr<VoteManager> vote_mgr = node->getVoteManager();
-      std::vector<Vote> votes = vote_mgr->getVotes(
-          pbft_round, pbft_mgr->sortition_account_balance_table.size(),
-          pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
-          pbft_mgr->getSortitionThreshold());
+      std::vector<Vote> votes =
+          vote_mgr->getVotes(pbft_round, pbft_mgr->getEligibleVoterCount(),
+                             pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+                             pbft_mgr->getSortitionThreshold());
       res = vote_mgr->getJsonStr(votes);
     }
   } catch (std::exception &e) {

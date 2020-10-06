@@ -26,29 +26,11 @@ auto g_sk = Lazy([] {
 });
 struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
 
-TEST_F(PbftRpcTest, pbft_manager_lambda_input_test) {
-  const std::string GENESIS =
-      "0000000000000000000000000000000000000000000000000000000000000000";
-  PbftConfig pbft_params;
-  pbft_params.lambda_ms_min = 1000;
-  pbft_params.committee_size = 3;
-  pbft_params.valid_sortition_coins = 10000;
-
-  PbftManager pbft_manager(pbft_params, GENESIS, addr_t(), nullptr, nullptr,
-                           nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                           addr_t(), secret_t(), vrf_sk_t(), 2000);
-  EXPECT_EQ(pbft_params.lambda_ms_min, pbft_manager.LAMBDA_ms_MIN);
-  EXPECT_EQ(pbft_params.committee_size, pbft_manager.COMMITTEE_SIZE);
-  EXPECT_EQ(pbft_params.valid_sortition_coins,
-            pbft_manager.VALID_SORTITION_COINS);
-}
-
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
   auto node(taraxa::FullNode::make(std::string(conf_file[0])));
   node->start(false);
   auto pbft_mgr = node->getPbftManager();
   EXPECT_EQ(pbft_mgr->LAMBDA_ms_MIN, 2000);
-  EXPECT_EQ(pbft_mgr->VALID_SORTITION_COINS, 1000000000);
 }
 
 // Add votes round 1, 2 and 3 into unverified vote table
@@ -88,10 +70,11 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  std::vector<Vote> votes =
-      vote_mgr->getVotes(pbft_round, valid_sortition_players,
-                         pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
-                         pbft_mgr->getSortitionThreshold());
+  bool dummy = false;
+  std::vector<Vote> votes = vote_mgr->getVotes(
+      dummy, pbft_round, pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+      pbft_mgr->getSortitionThreshold(), valid_sortition_players,
+      [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
   for (Vote const& v : votes) {
     EXPECT_GT(v.getRound(), 1);
@@ -123,17 +106,9 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
 
 // Generate a vote, send the vote from node2 to node1
 TEST_F(PbftRpcTest, transfer_vote) {
-  // set nodes account balance
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;
   for (auto i = 1; i <= 2; ++i) {
     cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
-  }
-  for (auto& cfg : cfgs) {
-    for (auto& cfg_other : cfgs) {
-      cfg.chain.final_chain.state.genesis_accounts[addr(cfg_other.node_secret)]
-          .Balance = new_balance;
-    }
   }
   auto node_count = 0;
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));
@@ -191,17 +166,9 @@ TEST_F(PbftRpcTest, transfer_vote) {
 }
 
 TEST_F(PbftRpcTest, vote_broadcast) {
-  // set nodes account balance
-  val_t new_balance = 9007199254740991;  // Max Taraxa coins 2^53 - 1
   vector<FullNodeConfig> cfgs;
   for (auto i = 1; i <= 3; ++i) {
     cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
-  }
-  for (auto& cfg : cfgs) {
-    for (auto& cfg_other : cfgs) {
-      cfg.chain.final_chain.state.genesis_accounts[addr(cfg_other.node_secret)]
-          .Balance = new_balance;
-    }
   }
   auto node_count = 0;
   auto node1(taraxa::FullNode::make(cfgs[node_count++]));

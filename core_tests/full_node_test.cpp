@@ -50,7 +50,10 @@ auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 auto g_test_account = Lazy([] {
   return samples::createTestAccountTable("core_tests/account_table.txt");
 });
-uint64_t g_init_bal = TARAXA_COINS_DECIMAL / 5;
+auto g_init_bal = Lazy([] {
+  return ChainConfig::default_chain_boot_node_initial_balance /
+         ChainConfig::default_chain_predefined_nodes->size();
+});
 
 void send_2_nodes_trxs() {
   std::string sendtrx1 =
@@ -86,7 +89,7 @@ void init_5_nodes_coin() {
                                         "gas": 100000,
                                         "nonce": 0,
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)",
-      g_init_bal);
+      *g_init_bal);
   std::string node1to3 = fmt(
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
                                       "params": [{
@@ -96,7 +99,7 @@ void init_5_nodes_coin() {
                                         "gas": 100000,
                                         "nonce": 1,
                                         "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7777 > /dev/null)",
-      g_init_bal);
+      *g_init_bal);
 
   std::string node1to4 = fmt(
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
@@ -107,7 +110,7 @@ void init_5_nodes_coin() {
                                         "gas": 100000,
                                         "nonce": 2,
                                         "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"}]}' 0.0.0.0:7777 > /dev/null)",
-      g_init_bal);
+      *g_init_bal);
 
   std::string node1to5 = fmt(
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
@@ -118,7 +121,7 @@ void init_5_nodes_coin() {
                                         "gas": 100000,
                                         "nonce": 3,
                                         "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858"}]}' 0.0.0.0:7777 > /dev/null)",
-      g_init_bal);
+      *g_init_bal);
   std::cout << "Init 5 node coins ..." << std::endl;
 
   std::thread t1([node1to2]() { system(node1to2.data()); });
@@ -343,31 +346,6 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(1, *db.getDagBlockPeriod(blk_hash_t(1)));
   EXPECT_EQ(2, *db.getDagBlockPeriod(blk_hash_t(2)));
-  // sortition_accounts
-  PbftSortitionAccount account1(
-      addr_t("123", addr_t::FromHex, addr_t::AlignLeft), 100, 1,
-      PbftSortitionAccountStatus::new_change);
-  PbftSortitionAccount account2(
-      addr_t("345", addr_t::FromHex, addr_t::AlignLeft), 100, 2,
-      PbftSortitionAccountStatus::new_change);
-  batch = db.createWriteBatch();
-  db.addSortitionAccountToBatch(account1.address, account1, batch);
-  db.addSortitionAccountToBatch(account2.address, account2, batch);
-  db.addSortitionAccountToBatch(std::string("sortition_accounts_size"),
-                                std::to_string(2), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.sortitionAccountInDb(account1.address));
-  EXPECT_TRUE(db.sortitionAccountInDb(account2.address));
-  EXPECT_TRUE(db.sortitionAccountInDb(std::string("sortition_accounts_size")));
-  EXPECT_EQ(account1.getJsonStr(),
-            db.getSortitionAccount(account1.address).getJsonStr());
-  EXPECT_EQ(account2.getJsonStr(),
-            db.getSortitionAccount(account2.address).getJsonStr());
-  EXPECT_EQ("2",
-            db.getSortitionAccount(std::string("sortition_accounts_size")));
-  db.removeSortitionAccount(account1.address);
-  EXPECT_FALSE(db.sortitionAccountInDb(account1.address));
-  EXPECT_TRUE(db.sortitionAccountInDb(account2.address));
 }
 
 // fixme: flaky
@@ -385,10 +363,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      for (auto &[addr, acc] :
-           nodes[0]->getConfig().chain.final_chain.state.genesis_accounts) {
-        expected_balances[addr] = acc.Balance;
-      }
+      expected_balances[ChainConfig::default_chain_boot_node_addr] =
+          ChainConfig::default_chain_boot_node_initial_balance;
       for (auto node : nodes_) {
         trx_clients.emplace_back(node);
       }
@@ -436,7 +412,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   } context(nodes);
 
   // transfer some coins to your friends ...
-  auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
+  auto init_bal =
+      ChainConfig::default_chain_boot_node_initial_balance / nodes.size();
 
   {
     vector<thread> threads;
@@ -1140,21 +1117,6 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
   EXPECT_EQ(vertices1, vertices2);
 }
 
-TEST_F(FullNodeTest, genesis_balance) {
-  addr_t addr1(100);
-  val_t bal1(1000);
-  addr_t addr2(200);
-  FullNodeConfig cfg("./core_tests/conf/conf_taraxa1.json");
-  cfg.chain.final_chain.state.genesis_accounts[addr1].Balance = bal1;
-  auto node(taraxa::FullNode::make(cfg, true));
-  node->start(true);
-  auto res = node->getFinalChain()->getBalance(addr1);
-  EXPECT_TRUE(res.second);
-  EXPECT_EQ(res.first, bal1);
-  res = node->getFinalChain()->getBalance(addr2);
-  EXPECT_FALSE(res.second);
-}
-
 // disabled for now, need to create two trx with nonce 0!
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
   auto tops = createNodesAndVerifyConnection(1, 1, false, 10);
@@ -1309,14 +1271,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto init_bal = TARAXA_COINS_DECIMAL / nodes.size();
   auto gas_price = val_t(2);
   auto data = bytes();
   auto nonce = 0;
   auto trxs_count = 0;
   for (auto i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(
-        nonce++, init_bal, gas_price, 100000, data, nodes[0]->getSecretKey(),
+        nonce++, *g_init_bal, gas_price, 100000, data, nodes[0]->getSecretKey(),
         nodes[i]->getAddress());
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(
@@ -1358,12 +1319,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
               << std::endl;
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
-        9007199254740991 - 4 * init_bal);
+        ChainConfig::default_chain_boot_node_initial_balance -
+            4 * (*g_init_bal));
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
           nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
-          init_bal);
+          *g_init_bal);
     }
   }
 
@@ -1539,26 +1501,36 @@ TEST_F(FullNodeTest, chain_config_json) {
       "timestamp": "0x0"
     },
     "state": {
-      "chain_config": {
-        "disable_block_rewards": true,
-        "evm_chain_config": {
-          "eth_chain_config": {
-            "byzantium_block": "0x0",
-            "constantinople_block": "0x0",
-            "dao_fork_block": "0xffffffffffffffff",
-            "eip_150_block": "0x0",
-            "eip_158_block": "0x0",
-            "homestead_block": "0x0",
-            "petersburg_block": "0x0"
-          },
-          "execution_options": {
-            "disable_gas_fee": true,
-            "disable_nonce_check": true
-          }
-        }
+      "disable_block_rewards": true,
+      "eth_chain_config": {
+        "byzantium_block": "0x0",
+        "constantinople_block": "0x0",
+        "dao_fork_block": "0xffffffffffffffff",
+        "eip_150_block": "0x0",
+        "eip_158_block": "0x0",
+        "homestead_block": "0x0",
+        "petersburg_block": "0x0"
+      },
+      "execution_options": {
+        "disable_gas_fee": true,
+        "disable_nonce_check": true
       },
       "genesis_balances": {
-        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x1fffffffffffff"
+        "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x2000012a05f1ff"
+      },
+      "dpos": {
+        "deposit_delay": "0x0",
+        "eligibility_balance_threshold": "0x3b9aca00",
+        "genesis_state": {
+          "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": {
+            "0x415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0": "0x3b9aca00",
+            "0x4fae949ac2b72960fbe857b56532e2d3c8418d5e": "0x3b9aca00",
+            "0x973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0": "0x3b9aca00",
+            "0xb770f7a99d0b7ad9adf6520be77ca20ee99b0858": "0x3b9aca00",
+            "0xde2b1203d72d3549ee2f733b00b2789414c7cea5": "0x3b9aca00"
+          }
+        },
+        "withdrawal_delay": "0x0"
       }
     }
   },

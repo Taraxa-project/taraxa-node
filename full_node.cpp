@@ -96,7 +96,7 @@ void FullNode::init(bool destroy_db, bool rebuild_network) {
       conf_.test_params.pbft, genesis_hash.toString(), node_addr, db_,
       pbft_chain_, vote_mgr_, dag_mgr_, blk_mgr_, final_chain_, trx_order_mgr_,
       trx_mgr_, master_boot_node_address_, node_sk_, vrf_sk_,
-      conf_.opts_final_chain.state_api.ExpectedMaxNumTrxPerBlock);
+      conf_.opts_final_chain.state_api.ExpectedMaxTrxPerBlock);
   auto final_chain_head_ = final_chain_->get_last_block();
   trx_mgr_->setPendingBlock(
       aleth::NewPendingBlock(final_chain_head_->number(), getAddress(),

@@ -124,9 +124,6 @@ class PbftChain {
  public:
   explicit PbftChain(std::string const& dag_genesis_hash, addr_t node_addr,
                      std::shared_ptr<DbStorage> db);
-  virtual ~PbftChain() = default;
-
-  void setPbftHead(std::string const& pbft_head_str);
 
   void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
 
@@ -181,7 +178,7 @@ class PbftChain {
   mutable boost::shared_mutex unverified_access_;
 
   blk_hash_t head_hash_;  // pbft head hash
-  uint64_t size_;
+  std::atomic<uint64_t> size_;
   blk_hash_t last_pbft_block_hash_;
 
   blk_hash_t dag_genesis_hash_;  // dag genesis at height 1

@@ -25,6 +25,20 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["final_chain"], obj.final_chain);
 }
 
+LazyVal<addr_t> const ChainConfig::default_chain_boot_node_addr([] {
+  return addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5");
+});
+
+LazyVal<vector<addr_t>> const ChainConfig::default_chain_predefined_nodes([] {
+  return vector<addr_t>{
+      default_chain_boot_node_addr,
+      addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"),
+      addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e"),
+      addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"),
+      addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858"),
+  };
+});
+
 decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   decltype(ChainConfig::predefined_)::val_t cfgs;
   cfgs["default"] = [] {
@@ -41,24 +55,28 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "vdf": ""
   })"));
     cfg.replay_protection_service.range = 10;
-    cfg.final_chain.state.chain_config.disable_block_rewards = true;
-    cfg.final_chain.state.chain_config.evm_chain_config.eth_chain_config
-        .dao_fork_block = state_api::BlockNumberNIL;
-    cfg.final_chain.state.chain_config.evm_chain_config.execution_options
-        .disable_nonce_check = true;
-    cfg.final_chain.state.chain_config.evm_chain_config.execution_options
-        .disable_gas_fee = true;
-    cfg.final_chain.state
-        .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
-        .Balance = 9007199254740991;
+    cfg.final_chain.state.disable_block_rewards = true;
+    cfg.final_chain.state.eth_chain_config.dao_fork_block =
+        state_api::BlockNumberNIL;
+    cfg.final_chain.state.execution_options.disable_nonce_check = true;
+    cfg.final_chain.state.execution_options.disable_gas_fee = true;
+    auto& dpos = cfg.final_chain.state.dpos.emplace();
+    dpos.eligibility_balance_threshold = 1000000000;
+    cfg.final_chain.state.genesis_balances[*default_chain_boot_node_addr] =
+        default_chain_boot_node_initial_balance +
+        dpos.eligibility_balance_threshold *
+            default_chain_predefined_nodes->size();
+    for (auto const& addr_str : *default_chain_predefined_nodes) {
+      dpos.genesis_state[*default_chain_boot_node_addr][addr_t(addr_str)] =
+          dpos.eligibility_balance_threshold;
+    }
     return cfg;
   }();
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
     cfg.chain_id = 12345;
     cfg.final_chain.state
-        .genesis_accounts[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")]
-        .Balance =
+        .genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) *
         10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;

@@ -168,7 +168,7 @@ uint64_t VoteManager::getUnverifiedVotesSize() const {
 // Return all verified votes >= pbft_round
 // For unit test only
 std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
-                                        size_t valid_sortition_players,
+                                        size_t eligible_voter_count,
                                         blk_hash_t last_pbft_block_hash,
                                         size_t sortition_threshold) {
   cleanupVotes(pbft_round);
@@ -188,7 +188,7 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
                    << v.getHash() << " vote address: " << vote_address;
       continue;
     }
-    if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
+    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
     }
@@ -201,8 +201,8 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 std::vector<Vote> VoteManager::getVotes(
     bool& sync_peers_pbft_chain, uint64_t const pbft_round,
     blk_hash_t const& last_pbft_block_hash, size_t const sortition_threshold,
-    std::unordered_map<addr_t, PbftSortitionAccount> const&
-        sortition_account_balance_table) {
+    uint64_t eligible_voter_count,
+    std::function<bool(addr_t const&)> const& is_eligible) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
@@ -233,14 +233,12 @@ std::vector<Vote> VoteManager::getVotes(
       continue;
     }
     // Check if the voter account is valid, malicious vote
-    if (sortition_account_balance_table.find(voter_account_address) ==
-        sortition_account_balance_table.end()) {
-      LOG(log_dg_) << "Cannot find account " << voter_account_address
-                   << " in sortition table. Don't have enough coins to vote";
+    if (!is_eligible(voter_account_address)) {
+      LOG(log_dg_) << "Account " << voter_account_address
+                   << " is not eligible to vote";
       continue;
     }
-    size_t valid_sortition_players = sortition_account_balance_table.size();
-    if (voteValidation(last_pbft_block_hash, v, valid_sortition_players,
+    if (voteValidation(last_pbft_block_hash, v, eligible_voter_count,
                        sortition_threshold)) {
       verified_votes.emplace_back(v);
     } else if (v.getRound() == pbft_round && v.getType() == next_vote_type) {

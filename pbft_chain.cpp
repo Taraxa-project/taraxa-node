@@ -319,19 +319,13 @@ PbftChain::PbftChain(std::string const& dag_genesis_hash, addr_t node_addr,
     // Store PBFT HEAD to db
     db_->savePbftHead(head_hash_, getJsonStr());
   } else {
-    // set PBFT HEAD from DB
-    setPbftHead(pbft_head_str);
+    Json::Value doc;
+    Json::Reader reader;
+    reader.parse(pbft_head_str, doc);
+    head_hash_ = blk_hash_t(doc["head_hash"].asString());
+    size_ = doc["size"].asUInt64();
+    last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
   }
-}
-
-void PbftChain::setPbftHead(std::string const& pbft_head_str) {
-  Json::Value doc;
-  Json::Reader reader;
-  reader.parse(pbft_head_str, doc);
-
-  head_hash_ = blk_hash_t(doc["head_hash"].asString());
-  size_ = doc["size"].asUInt64();
-  last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
 }
 
 void PbftChain::cleanupUnverifiedPbftBlocks(
