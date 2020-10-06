@@ -396,7 +396,7 @@ void DagManager::addDagBlock(DagBlock const &blk, bool finalized) {
       tips.push_back(tip);
     }
 
-    level_t current_max_level = getMaxLevel();
+    level_t current_max_level = max_level_;
     max_level_ = std::max(current_max_level, blk.getLevel());
 
     addToDag(blk_hash_str, pivot_hash.toString(), tips, blk.getLevel(),
