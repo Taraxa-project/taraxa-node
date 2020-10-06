@@ -373,8 +373,34 @@ TEST_F(FullNodeTest, db_test) {
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
-  auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
-  auto &nodes = tops.second;
+  auto nodes = [] {
+    while (true) {
+      vector<FullNode::Handle> nodes(5);
+      for (int i = 0; i < nodes.size(); ++i) {
+        auto cfg = all_configs[i];
+        auto addr = dev::KeyPair(dev::Secret(cfg.node_secret)).address();
+        cfg.chain.final_chain.state.genesis_accounts[addr].Balance =
+            TARAXA_COINS_DECIMAL;
+        (nodes[i] = FullNode::make(cfg))->start(i == 0);
+      }
+      for (int _ = 0; _ < 20; ++_) {
+        thisThreadSleepForMilliSeconds(1000);
+        bool ok = true;
+        for (int i = 1; i < nodes.size(); ++i) {
+          if (nodes[i]->getNetwork()->getPeerCount() != 3) {
+            ok = false;
+            cout << "nodes not connected, retrying" << endl;
+            break;
+          }
+        }
+        if (ok) {
+          return nodes;
+        }
+      }
+      cout << "nodes not connected, too many retries, restarting" << endl;
+    }
+  }();
+  cout << "nodes connected, starting test" << endl;
 
   class context {
     decltype(nodes) &nodes_;
@@ -389,8 +415,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
            nodes[0]->getConfig().chain.final_chain.state.genesis_accounts) {
         expected_balances[addr] = acc.Balance;
       }
-      for (auto node : nodes_) {
-        trx_clients.emplace_back(node);
+      for (auto const &node : nodes_) {
+        trx_clients.emplace_back(node->getShared());
       }
     }
 

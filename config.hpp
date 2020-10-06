@@ -124,7 +124,7 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
-  explicit FullNodeConfig() = default;
+  FullNodeConfig() = default;
   // The reason of using Json::Value as a union is that in the tests
   // there are attempts to pass char const* to this constructor, which
   // is ambiguous (char const* may promote to Json::Value)
@@ -132,7 +132,6 @@ struct FullNodeConfig {
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
   explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object);
-  explicit FullNodeConfig(const FullNodeConfig &conf) = default;
   std::string json_file_name;
   std::string node_secret;
   std::string vrf_secret;

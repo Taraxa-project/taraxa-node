@@ -35,6 +35,7 @@ struct FinalChain : virtual ChainDB {
 
   virtual ~FinalChain() {}
 
+  virtual Config const& get_config() const = 0;
   struct AdvanceResult {
     BlockHeader new_header;
     TransactionReceipts const& receipts;

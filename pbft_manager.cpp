@@ -101,22 +101,11 @@ void PbftManager::start() {
 
   if (!db_->sortitionAccountInDb(std::string("sortition_accounts_size"))) {
     // New node
-    // Initialize master boot node account balance
-    std::pair<val_t, bool> master_boot_node_account_balance =
-        final_chain_->getBalance(master_boot_node_addr_);
-    if (!master_boot_node_account_balance.second) {
-      LOG(log_er_) << "Failed initial master boot node account balance."
-                   << " Master boot node balance is not exist.";
-    } else if (master_boot_node_account_balance.first != TARAXA_COINS_DECIMAL) {
-      LOG(log_nf_)
-          << "Initial master boot node account balance. Current balance "
-          << master_boot_node_account_balance.first;
+    for (auto const &[addr, acc] :
+         final_chain_->get_config().state.genesis_accounts) {
+      sortition_account_balance_table_tmp[addr] = {addr, acc.Balance, 0,
+                                                   new_change};
     }
-    PbftSortitionAccount master_boot_node(
-        master_boot_node_addr_, master_boot_node_account_balance.first, 0,
-        new_change);
-    sortition_account_balance_table_tmp[master_boot_node_addr_] =
-        master_boot_node;
     auto batch = db_->createWriteBatch();
     updateSortitionAccountsDB_(batch);
     db_->commitWriteBatch(batch);

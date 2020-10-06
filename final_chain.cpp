@@ -3,6 +3,7 @@
 namespace taraxa::final_chain {
 
 struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
+  Config cfg;
   shared_ptr<aleth::Database> blk_db;
   shared_ptr<aleth::Database> ext_db;
   StateAPI state_api;
@@ -14,6 +15,7 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
                  decltype(ext_db) ext_db,  //
                  FinalChain::Opts const& opts)
       : ChainDBImpl(blk_db, ext_db),
+        cfg(config),
         blk_db(move(blk_db)),
         ext_db(move(ext_db)),
         state_api([&, this, last_block = get_last_block()] {
@@ -38,6 +40,8 @@ struct FinalChainImpl : virtual FinalChain, virtual ChainDBImpl {
     db->commitWriteBatch(batch);
     advance_confirm();
   }
+
+  Config const& get_config() const override { return cfg; }
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {
     if (auto acc = get_account(addr)) {
