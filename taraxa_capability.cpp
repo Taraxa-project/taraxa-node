@@ -1311,9 +1311,7 @@ void TaraxaCapability::onNewPbftBlock(taraxa::PbftBlock const &pbft_block) {
     boost::shared_lock<boost::shared_mutex> lock(peers_mutex_);
     for (auto const &peer : peers_) {
       if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash())) {
-        if (!peer.second->syncing_) {
-          peers_to_send.push_back(peer.first);
-        }
+        peers_to_send.push_back(peer.first);
       }
     }
   }
