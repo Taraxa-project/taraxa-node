@@ -7,10 +7,12 @@ DEBUG = 0
 PERF = 0
 
 OS := $(shell uname)
+CPU_COUNT := $(shell scripts/cpu_count.sh)
 
 CXX := g++
 CXX_STD := c++17
 
+BOOST_DEPS := $(shell cat boost_dependencies.txt)
 BOOST_COMPILE_DEFINITIONS := BOOST_ALL_DYN_LINK BOOST_SPIRIT_THREADSAFE
 # This is not appropriate
 JSONCPP_INCLUDE_DIR := /usr/include/jsoncpp

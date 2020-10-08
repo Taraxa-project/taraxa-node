@@ -151,6 +151,13 @@ submodules/secp256k1/ok:
 
 # ====================================================
 
+submodules/boost/ok:
+	$(SUBMODULE_BUILD_INIT); \
+    LIBS="$(BOOST_DEPS)" ./bootstrap.sh --prefix=$(DEPS_INSTALL_PREFIX); \
+    ./b2 -j$(CPU_COUNT) install; \
+
+# ====================================================
+
 ALETH_ROOT := $(CURDIR)/submodules/taraxa-aleth
 ALETH_BUILD_DIR := $(ALETH_ROOT)/build
 ALETH_OBJ_DIR := $(ALETH_BUILD_DIR)/obj

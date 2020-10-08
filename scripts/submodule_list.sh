@@ -1,6 +1,8 @@
 #!/bin/bash
 
-cd "$(dirname "$0")"
-cd ..
+(
+  cd "$(dirname "$0")"
+  cd ..
 
-grep path .gitmodules | sed 's/.*= //'
+  grep path .gitmodules | sed 's/.*= //'
+)
