@@ -40,8 +40,10 @@ submodules/openssl/ok:
 
 submodules/boost/ok: submodules/openssl/ok
 	$(SUBMODULE_BUILD_INIT); \
-    LIBS="$(BOOST_DEPS)" ./bootstrap.sh --prefix=$(DEPS_INSTALL_PREFIX); \
-    ./b2 -j$(CPU_COUNT) link=shared threading=multi install; \
+    ./bootstrap.sh --prefix=$(DEPS_INSTALL_PREFIX); \
+    ./b2 \
+		--with-thread --with-system --with-log --with-filesystem \
+		-j$(CPU_COUNT) link=shared threading=multi install; \
 
 # ====================================================
 
@@ -123,8 +125,7 @@ submodules/libff/ok: submodules/boost/ok
 		-DBUILD_SHARED_LIBS=OFF \
 		-DWITH_PROCPS=OFF \
 		-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=c++ \
-		-DOPENSSL_ROOT_DIR=$(DEPS_INSTALL_PREFIX) \
-		-DOPENSSL_LIBRARIES=$(DEPS_INSTALL_PREFIX)/lib; \
+		-DOPENSSL_ROOT_DIR=$(DEPS_INSTALL_PREFIX); \
 	$(MAKE); \
 	$(MAKE) install; \
 

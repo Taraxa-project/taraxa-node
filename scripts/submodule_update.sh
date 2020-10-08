@@ -10,16 +10,18 @@
   fi
 
   cpu_count=$(scripts/cpu_count.sh)
+  function upd() {
+    git submodule update --jobs ${cpu_count} --init "$@"
+  }
 
-  git submodule update --init --jobs ${cpu_count}
-
-  git submodule update --init --recursive submodules/taraxa-aleth
+  upd
+  upd --recursive submodules/taraxa-aleth
+  upd --recursive submodules/libff
   boost_libs=$(
     for lib in $(cat boost_dependencies.txt); do
       echo "libs/${lib}"
     done
   )
   cd submodules/boost
-  git submodule update --init --recursive --jobs ${cpu_count} \
-    tools/build tools/boost_install ${boost_libs}
+  upd --recursive tools/build tools/boost_install ${boost_libs}
 )
