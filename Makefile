@@ -31,16 +31,6 @@ endif
 
 LIB_DIRS := $(DEPS_INSTALL_PREFIX)/lib
 
-BOOST_LIBS := \
-	boost_program_options \
-	boost_filesystem \
-	boost_system \
-
-ifeq ($(OS), Darwin)
-	BOOST_LIBS += boost_thread-mt boost_log-mt boost_log_setup-mt
-else
-	BOOST_LIBS += boost_thread boost_log boost_log_setup
-endif
 LIBS := \
 	$(TARAXA_ALETH_LIB) \
 	$(TARAXA_EVM_LIB) \
@@ -55,7 +45,12 @@ LIBS := \
 	gmp \
 	gmpxx \
 	mpfr \
-	$(BOOST_LIBS) \
+	boost_program_options \
+	boost_filesystem \
+	boost_system \
+	boost_thread \
+	boost_log \
+	boost_log_setup \
 	rocksdb \
 	scrypt \
 	jsoncpp \
