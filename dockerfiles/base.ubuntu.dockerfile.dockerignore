@@ -3,3 +3,4 @@
 !Makefile.*
 !.gitmodules
 !submodules
+!boost_dependencies.txt

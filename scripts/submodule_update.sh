@@ -10,10 +10,7 @@
     exit 0
   fi
 
-  for p in $(scripts/submodule_list.sh); do
-    git submodule update --init "${p}"
-  done
-
+  git submodule update --init
   git submodule update --recursive submodules/libff
   git submodule update --recursive submodules/openssl
   git submodule update --recursive submodules/taraxa-aleth
