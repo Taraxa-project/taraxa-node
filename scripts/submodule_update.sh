@@ -17,11 +17,5 @@
   upd
   upd --recursive submodules/taraxa-aleth
   upd --recursive submodules/libff
-  boost_libs=$(
-    for lib in $(cat boost_dependencies.txt); do
-      echo "libs/${lib}"
-    done
-  )
-  cd submodules/boost
-  upd --recursive tools/build tools/boost_install ${boost_libs}
+  upd --recursive submodules/boost
 )

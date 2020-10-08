@@ -42,7 +42,7 @@ submodules/boost/ok: submodules/openssl/ok
 	$(SUBMODULE_BUILD_INIT); \
     ./bootstrap.sh --prefix=$(DEPS_INSTALL_PREFIX); \
     ./b2 \
-		--with-thread --with-system --with-log --with-filesystem \
+		--with-thread --with-system --with-log --with-filesystem --with-program_options \
 		-j$(CPU_COUNT) link=shared threading=multi install; \
 
 # ====================================================
