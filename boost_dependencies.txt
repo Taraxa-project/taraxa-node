@@ -19,3 +19,7 @@ regex
 atomic
 date_time
 chrono
+assert
+predef
+throw_exception
+type_traits
