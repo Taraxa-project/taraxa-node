@@ -21,21 +21,7 @@ RUN ln -s /usr/include/jsoncpp/json /usr/include/json
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 
 # Add multi-stage build for docker layer caching
-FROM builder as boost-layer
-
-ENV BOOST_VERSION="1_71_0"
-RUN cd /tmp \
-    && wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.bz2 \
-    && tar --bzip2 -xf boost_${BOOST_VERSION}.tar.bz2 \
-    && export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python2.7/"
-RUN cd /tmp/boost_${BOOST_VERSION} \
-    && ls -al \
-    && ./bootstrap.sh --prefix=/usr/local
-RUN cd /tmp/boost_${BOOST_VERSION}; ls -al ; ./b2 install
-RUN cd /tmp/boost_${BOOST_VERSION} \
-    && ln -s /usr/local/lib/libboost_thread.so /usr/local/lib/libboost_thread-mt.so
-
-FROM boost-layer as rocksdb-layer
+FROM builder as rocksdb-layer
 ARG rocksdb_version=5.18.3
 ENV ROCKSDB_VERSION="$rocksdb_version"
 RUN wget https://github.com/facebook/rocksdb/archive/v$rocksdb_version.zip \
