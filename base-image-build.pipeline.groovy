@@ -31,7 +31,7 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'git submodule update --init --recursive'
+                sh 'scripts/submodule_update.sh'
                 sh 'docker pull ${GCP_REGISTRY}/${IMAGE}|| echo "Image not found"'
                 sh 'DOCKER_BUILDKIT=1 docker build --progress=plain --pull --cache-from=${GCP_REGISTRY}/${IMAGE} -t ${IMAGE}-${DOCKER_BRANCH_TAG}-${BUILD_NUMBER} -f dockerfiles/base.ubuntu.dockerfile .'
             }
