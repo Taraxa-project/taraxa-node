@@ -42,3 +42,6 @@
 	path = submodules/taraxa-aleth
 	url = https://github.com/Taraxa-project/taraxa-aleth.git
 	ignore = dirty
+[submodule "submodules/boost"]
+	path = submodules/boost
+	url = https://github.com/boostorg/boost.git
