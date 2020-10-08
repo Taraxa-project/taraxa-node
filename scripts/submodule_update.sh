@@ -3,7 +3,6 @@
 (
   cd "$(dirname "$0")"
   cd ..
-
   source scripts/lib/index.sh
 
   if ! is_git_repo; then
@@ -12,20 +11,15 @@
 
   cpu_count=$(scripts/cpu_count.sh)
 
-  git submodule update --init --jobs "${cpu_count}"
+  git submodule update --init --jobs ${cpu_count}
 
-  function submodule_upd() {
-    git submodule update --init --recursive "$1" &
-  }
-
-  submodule_upd submodules/taraxa-aleth
-  #  git submodule update --init --recursive --jobs 12 submodules/boost
-  boost_libs=$(cat boost_dependencies.txt)
+  git submodule update --init --recursive submodules/taraxa-aleth
+  boost_libs=$(
+    for lib in $(cat boost_dependencies.txt); do
+      echo "libs/${lib}"
+    done
+  )
   cd submodules/boost
-  submodule_upd tools/build
-  submodule_upd tools/boost_install
-  for lib in ${boost_libs}; do
-    submodule_upd "libs/${lib}"
-  done
-  wait
+  git submodule update --init --recursive --jobs ${cpu_count} \
+    tools/build tools/boost_install ${boost_libs}
 )
