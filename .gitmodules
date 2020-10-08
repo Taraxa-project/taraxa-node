@@ -45,3 +45,4 @@
 [submodule "submodules/boost"]
 	path = submodules/boost
 	url = https://github.com/boostorg/boost.git
+	ignore = dirty
