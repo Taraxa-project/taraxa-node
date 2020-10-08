@@ -14,10 +14,6 @@
 	path = submodules/libff
 	url = https://github.com/scipr-lab/libff
 	ignore = dirty
-[submodule "submodules/prometheus-cpp"]
-	path = submodules/prometheus-cpp
-	url = https://github.com/jupp0r/prometheus-cpp.git
-	ignore = dirty
 [submodule "submodules/taraxa-evm"]
 	path = submodules/taraxa-evm
 	url = https://github.com/Taraxa-project/taraxa-evm.git
