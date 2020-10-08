@@ -32,9 +32,8 @@ SUBMODULE_BUILD_INIT = \
 submodules/openssl/ok:
 	$(SUBMODULE_BUILD_INIT); \
 	./config --prefix=$(DEPS_INSTALL_PREFIX) \
-		--openssldir=$(DEPS_INSTALL_PREFIX)/ssl; \
-	$(MAKE); \
-	$(MAKE) install; \
+		--openssldir=$(DEPS_INSTALL_PREFIX)/ssl shared no-tests; \
+	$(MAKE) install_runtime_libs; \
 
 
 # ====================================================
