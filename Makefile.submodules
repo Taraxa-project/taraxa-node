@@ -29,21 +29,26 @@ SUBMODULE_BUILD_INIT = \
 
 # ====================================================
 
-submodules/prometheus-cpp/ok:
+submodules/openssl/ok:
 	$(SUBMODULE_BUILD_INIT); \
-	mkdir_cd build; \
-	cmake .. -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) \
-		-DBUILD_TESTING=OFF \
-		-DBUILD_SHARED_LIBS=OFF \
-		-DENABLE_TESTING=OFF; \
+	./config --prefix=$(DEPS_INSTALL_PREFIX) \
+		--openssldir=$(DEPS_INSTALL_PREFIX)/ssl; \
 	$(MAKE); \
 	$(MAKE) install; \
+
+
+# ====================================================
+
+submodules/boost/ok: submodules/openssl/ok
+	$(SUBMODULE_BUILD_INIT); \
+    LIBS="$(BOOST_DEPS)" ./bootstrap.sh --prefix=$(DEPS_INSTALL_PREFIX); \
+    ./b2 -j$(CPU_COUNT) link=shared threading=multi install; \
 
 # ====================================================
 
 # TODO explore more cgo compiler optimization flags
 TARAXA_EVM_LIB := taraxa-evm
-submodules/taraxa-evm/ok:
+submodules/taraxa-evm/ok: submodules/openssl/ok
 	$(SUBMODULE_BUILD_INIT); \
 	cd taraxa/C; \
 	CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' \
@@ -54,16 +59,7 @@ submodules/taraxa-evm/ok:
 
 # ====================================================
 
-submodules/openssl/ok:
-	$(SUBMODULE_BUILD_INIT); \
-	./config --prefix=$(DEPS_INSTALL_PREFIX) \
-		--openssldir=$(DEPS_INSTALL_PREFIX)/ssl; \
-	$(MAKE); \
-	$(MAKE) install; \
-
-# ====================================================
-
-submodules/taraxa-vdf/ok: submodules/openssl/ok
+submodules/taraxa-vdf/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	$(MAKE) OPENSSL_HOME=$(DEPS_INSTALL_PREFIX); \
 	copy . "include/*.*" $(DEPS_INSTALL_PREFIX)/; \
@@ -71,7 +67,7 @@ submodules/taraxa-vdf/ok: submodules/openssl/ok
 
 # ====================================================
 
-submodules/taraxa-vrf/ok:
+submodules/taraxa-vrf/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	autoreconf; \
 	automake; \
@@ -81,7 +77,7 @@ submodules/taraxa-vrf/ok:
 
 # ====================================================
 
-submodules/googletest/ok:
+submodules/googletest/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
 	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) ..; \
@@ -94,7 +90,7 @@ CRYPTOPP_COMPILE_DEFIINITIONS :=
 ifneq ($(OS), Darwin)
 	CRYPTOPP_COMPILE_DEFIINITIONS := CRYPTOPP_DISABLE_ASM
 endif
-submodules/cryptopp/ok:
+submodules/cryptopp/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	if [ $(OS) = 'Darwin' ]; then \
 		$(MAKE); \
@@ -107,7 +103,7 @@ submodules/cryptopp/ok:
 
 # ====================================================
 
-submodules/ethash/ok:
+submodules/ethash/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
 	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) .. \
@@ -120,7 +116,7 @@ submodules/ethash/ok:
 
 # ====================================================
 
-submodules/libff/ok: submodules/openssl/ok
+submodules/libff/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	mkdir_cd build; \
 	cmake -DCMAKE_INSTALL_PREFIX=$(DEPS_INSTALL_PREFIX) .. \
@@ -135,7 +131,7 @@ submodules/libff/ok: submodules/openssl/ok
 
 # ====================================================
 
-submodules/secp256k1/ok:
+submodules/secp256k1/ok: submodules/boost/ok
 	$(SUBMODULE_BUILD_INIT); \
 	./autogen.sh; \
 	./configure --prefix=$(DEPS_INSTALL_PREFIX) \
@@ -148,13 +144,6 @@ submodules/secp256k1/ok:
 		--enable-experimental; \
 	$(MAKE); \
 	$(MAKE) install; \
-
-# ====================================================
-
-submodules/boost/ok:
-	$(SUBMODULE_BUILD_INIT); \
-    LIBS="$(BOOST_DEPS)" ./bootstrap.sh --prefix=$(DEPS_INSTALL_PREFIX); \
-    ./b2 -j$(CPU_COUNT) install; \
 
 # ====================================================
 

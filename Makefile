@@ -58,9 +58,6 @@ LIBS := \
 	$(BOOST_LIBS) \
 	rocksdb \
 	scrypt \
-	prometheus-cpp-core \
-	prometheus-cpp-push \
-	prometheus-cpp-pull \
 	jsoncpp \
 	jsonrpccpp-common \
 	jsonrpccpp-server \
@@ -121,7 +118,7 @@ main: $(BIN_DIR)/main
 test: $(TESTS)
 
 cppcheck_test:
-	cppcheck --enable=warning,style,performance,portability,information --error-exitcode=1 -i submodules -i core_tests -i unused_yet_useful -i prometheus_demo.cpp --suppress=missingInclude .
+	cppcheck --enable=warning,style,performance,portability,information --error-exitcode=1 -i submodules -i core_tests --suppress=missingInclude .
 
 run_test: test
 	GODEBUG=cgocheck=0 scripts/run_commands_long_circuit.sh $(TESTS)
@@ -130,9 +127,6 @@ perf_test: $(BIN_DIR)/core_tests/performance_test
 
 run_perf_test: perf_test
 	$(BIN_DIR)/core_tests/performance_test
-
-pdemo: $(BIN_DIR)/prometheus_demo
-	$< $(PUSHGATEWAY_IP) $(PUSHGATEWAY_PORT) $(PUSHGATEWAY_NAME)
 
 ct:
 	rm -rf $(TESTS) $(TEST_OBJS)

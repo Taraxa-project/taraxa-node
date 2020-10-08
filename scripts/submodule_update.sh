@@ -7,7 +7,6 @@
   source scripts/lib/index.sh
 
   if ! is_git_repo; then
-    echo FF
     exit 0
   fi
 
@@ -17,7 +16,6 @@
 
   git submodule update --recursive submodules/libff
   git submodule update --recursive submodules/openssl
-  git submodule update --recursive submodules/prometheus-cpp
   git submodule update --recursive submodules/taraxa-aleth
   (
     libs_=$(cat boost_dependencies.txt)
