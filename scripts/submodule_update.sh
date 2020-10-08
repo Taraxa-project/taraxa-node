@@ -10,17 +10,22 @@
     exit 0
   fi
 
-  git submodule update --init
-  git submodule update --recursive submodules/libff
-  git submodule update --recursive submodules/openssl
-  git submodule update --recursive submodules/taraxa-aleth
-  (
-    libs_=$(cat boost_dependencies.txt)
-    cd submodules/boost
-    git submodule update --init --recursive tools/build
-    git submodule update --init --recursive tools/boost_install
-    for lib in ${libs_}; do
-      git submodule update --init --recursive "libs/${lib}"
-    done
-  )
+  cpu_count=$(scripts/cpu_count.sh)
+
+  git submodule update --init --jobs "${cpu_count}"
+
+  function submodule_upd() {
+    git submodule update --init --recursive "$1" &
+  }
+
+  submodule_upd submodules/taraxa-aleth
+  #  git submodule update --init --recursive --jobs 12 submodules/boost
+  boost_libs=$(cat boost_dependencies.txt)
+  cd submodules/boost
+  submodule_upd tools/build
+  submodule_upd tools/boost_install
+  for lib in ${boost_libs}; do
+    submodule_upd "libs/${lib}"
+  done
+  wait
 )
