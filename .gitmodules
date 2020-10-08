@@ -1,44 +1,44 @@
 [submodule "submodules/cryptopp"]
 	path = submodules/cryptopp
 	url = https://github.com/weidai11/cryptopp.git
-	ignore = all
+	ignore = dirty
 [submodule "submodules/ethash"]
 	path = submodules/ethash
 	url = https://github.com/chfast/ethash
-	ignore = all
+	ignore = dirty
 [submodule "submodules/secp256k1"]
 	path = submodules/secp256k1
 	url = https://github.com/chfast/secp256k1
-	ignore = all
+	ignore = dirty
 [submodule "submodules/libff"]
 	path = submodules/libff
 	url = https://github.com/scipr-lab/libff
-	ignore = all
+	ignore = dirty
 [submodule "submodules/taraxa-evm"]
 	path = submodules/taraxa-evm
 	url = https://github.com/Taraxa-project/taraxa-evm.git
-	ignore = all
+	ignore = dirty
 [submodule "submodules/taraxa-vdf"]
 	path = submodules/taraxa-vdf
 	url = https://github.com/Taraxa-project/taraxa-vdf.git
-	ignore = all
+	ignore = dirty
 [submodule "submodules/openssl"]
 	path = submodules/openssl
 	url = https://github.com/openssl/openssl.git
-	ignore = all
+	ignore = dirty
 [submodule "submodules/taraxa-vrf"]
 	path = submodules/taraxa-vrf
 	url = https://github.com/Taraxa-project/taraxa-vrf.git
-	ignore = all
+	ignore = dirty
 [submodule "submodules/googletest"]
 	path = submodules/googletest
 	url = https://github.com/google/googletest
-	ignore = all
+	ignore = dirty
 [submodule "submodules/taraxa-aleth"]
 	path = submodules/taraxa-aleth
 	url = https://github.com/Taraxa-project/taraxa-aleth.git
-	ignore = all
+	ignore = dirty
 [submodule "submodules/boost"]
 	path = submodules/boost
 	url = https://github.com/boostorg/boost.git
-	ignore = all
+	ignore = dirty
