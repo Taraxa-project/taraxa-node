@@ -150,6 +150,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
     LOG_OBJECTS_CREATE("TARCAP");
     LOG_OBJECTS_CREATE_SUB("PBFTSYNC", pbft_sync);
     LOG_OBJECTS_CREATE_SUB("DAGSYNC", dag_sync);
+    LOG_OBJECTS_CREATE_SUB("NEXTVOTESSYNC", next_votes_sync);
     LOG_OBJECTS_CREATE_SUB("DAGPRP", dag_prp);
     LOG_OBJECTS_CREATE_SUB("TRXPRP", trx_prp);
     LOG_OBJECTS_CREATE_SUB("PBFTPRP", pbft_prp);
@@ -293,6 +294,7 @@ class TaraxaCapability : public CapabilityFace, public Worker {
   LOG_OBJECTS_DEFINE;
   LOG_OBJECTS_DEFINE_SUB(pbft_sync);
   LOG_OBJECTS_DEFINE_SUB(dag_sync);
+  LOG_OBJECTS_DEFINE_SUB(next_votes_sync);
   LOG_OBJECTS_DEFINE_SUB(dag_prp);
   LOG_OBJECTS_DEFINE_SUB(trx_prp);
   LOG_OBJECTS_DEFINE_SUB(pbft_prp);

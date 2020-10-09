@@ -204,6 +204,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
           bool initial_status = _r.itemCount() == 6;
           uint64_t peer_level;
           uint64_t peer_pbft_chain_size;
+          uint64_t peer_pbft_round;
           auto pbft_chain_size = pbft_chain_->getPbftChainSize();
           if (initial_status) {
             auto const peer_protocol_version = _r[0].toInt<unsigned>();
@@ -212,6 +213,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             auto const genesis_hash = _r[3].toString();
             peer_pbft_chain_size = _r[4].toPositiveInt64();
             peer->syncing_ = _r[5].toInt();
+            peer_pbft_round = _r[6].toPositiveInt64();
             LOG(log_dg_) << "Received initial status message from " << _nodeID
                          << " " << peer_protocol_version << " " << network_id
                          << " " << peer_level << " " << genesis_ << " "
@@ -240,6 +242,7 @@ bool TaraxaCapability::interpretCapabilityPacketImpl(NodeID const &_nodeID,
             peer_level = _r[0].toPositiveInt64();
             peer_pbft_chain_size = _r[1].toPositiveInt64();
             peer->syncing_ = _r[2].toInt();
+            peer_pbft_round = _r[3].toPositiveInt64();
             LOG(log_dg_) << "Received status message from " << _nodeID << " "
                          << peer_level << " " << peer_pbft_chain_size;
           }
@@ -833,17 +836,21 @@ void TaraxaCapability::sendStatus(NodeID const &_id, bool _initial) {
     LOG(log_dg_pbft_sync_) << "Sending status message to " << _id
                            << " with pbft chain size:"
                            << pbft_chain_->getPbftChainSize();
+    LOG(log_dg_next_votes_sync_) << "Sending status message to " << _id
+                                 << " with PBFT round:"
+                                 << pbft_mgr_->getPbftRound();
     if (_initial)
       host_.capabilityHost()->sealAndSend(
-          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 6)
+          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 7)
                    << c_protocolVersion << conf_.network_id
                    << dag_mgr_->getMaxLevel() << genesis_
-                   << pbft_chain_->getPbftChainSize() << syncing_);
+                   << pbft_chain_->getPbftChainSize() << syncing_
+                   << pbft_mgr_->getPbftRound());
     else {
       host_.capabilityHost()->sealAndSend(
-          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 3)
+          _id, host_.capabilityHost()->prep(_id, name(), s, StatusPacket, 4)
                    << dag_mgr_->getMaxLevel() << pbft_chain_->getPbftChainSize()
-                   << syncing_);
+                   << syncing_ << pbft_mgr_->getPbftRound());
     }
   }
 }
