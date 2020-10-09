@@ -742,6 +742,12 @@ void PbftManager::firstFinish_() {
       placeVote_(own_starting_value_for_round_, next_vote_type, round_, step_);
     }
   }
+
+  if (step_ == start_sync_next_votes_ +
+               next_votes_sync_period_ * next_votes_sync_index_) {
+    next_votes_sync_index_++;
+    syncNextVotes_();
+  }
 }
 
 void PbftManager::secondFinish_() {
@@ -841,6 +847,7 @@ uint64_t PbftManager::roundDeterminedFromVotes_() {
         LOG(log_dg_) << "Found sufficient next votes in round "
                      << rs_votes.first.first << ", step "
                      << rs_votes.first.second;
+        updateNextVotesForRound_(next_votes_for_round_step);
         return rs_votes.first.first + 1;
       }
     }
@@ -1229,6 +1236,13 @@ void PbftManager::syncPbftChainFromPeers_() {
   }
 }
 
+void PbftManager::syncNextVotes_() {
+  LOG(log_dg_) << "Suspect missing next votes. Send syncing next votes "
+                  "request at round "
+               << round_ << ", step " << step_;
+//  capability_->syncPbftNextVotes(round_);
+}
+
 bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
     blk_hash_t const &pbft_block_hash) {
   std::pair<PbftBlock, bool> pbft_block =
@@ -1563,12 +1577,22 @@ bool PbftManager::pushPbftBlock_(PbftBlock const &pbft_block,
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   // Update 2t+1 and threshold
   auto eligible_voter_count = getEligibleVoterCount();
-  sortition_threshold_ = min(COMMITTEE_SIZE, eligible_voter_count);
+  sortition_threshold_ = std::min<size_t>(COMMITTEE_SIZE, eligible_voter_count);
   TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE
                << ", valid voting players " << eligible_voter_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold "
                << sortition_threshold_;
+}
+
+void PbftManager::updateNextVotesForRound_(std::vector<Vote> next_votes) {
+  uniqueLock_ lock(next_votes_access_);
+  // Cleanup next votes
+  next_votes_for_last_round_.clear();
+  // Store enough next votes for round and step
+  for (auto const &v : next_votes) {
+    next_votes_for_last_round_[v.getHash()] = v;
+  }
 }
 
 void PbftManager::countVotes_() {
