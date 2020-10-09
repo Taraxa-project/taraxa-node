@@ -370,13 +370,19 @@ TEST_F(FullNodeTest, db_test) {
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
   auto nodes = [] {
+    auto chain_cfg = ChainConfig::predefined();
+    chain_cfg.final_chain.state.genesis_accounts = {};
+    for (int i = 0; i < 5; ++i) {
+      auto cfg = all_configs[i];
+      auto addr = dev::KeyPair(dev::Secret(cfg.node_secret)).address();
+      chain_cfg.final_chain.state.genesis_accounts[addr].Balance =
+          TARAXA_COINS_DECIMAL;
+    }
     while (true) {
       vector<FullNode::Handle> nodes(5);
       for (int i = 0; i < nodes.size(); ++i) {
         auto cfg = all_configs[i];
-        auto addr = dev::KeyPair(dev::Secret(cfg.node_secret)).address();
-        cfg.chain.final_chain.state.genesis_accounts[addr].Balance =
-            TARAXA_COINS_DECIMAL;
+        cfg.chain = chain_cfg;
         (nodes[i] = FullNode::make(cfg))->start(i == 0);
       }
       for (int _ = 0; _ < 20; ++_) {
