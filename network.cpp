@@ -58,16 +58,16 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
   }
   if (networkData.size() > 0) {
     host_ = std::make_shared<dev::p2p::Host>(
-        "TaraxaNode",
-        dev::p2p::NetworkConfig(conf_.network_address,
-                                conf_.network_listen_port, false, true),
+        "TaraxaNode", conf_.network_udp_port,
+        dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port,
+                                false, true),
         dev::bytesConstRef(&networkData), conf_.network_encrypted,
         conf_.network_ideal_peer_count, conf_.network_max_peer_count);
   } else {
     host_ = std::make_shared<dev::p2p::Host>(
-        "TaraxaNode", key,
-        dev::p2p::NetworkConfig(conf_.network_address,
-                                conf_.network_listen_port, false, true),
+        "TaraxaNode", key, conf_.network_udp_port,
+        dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port,
+                                false, true),
         conf_.network_encrypted, conf_.network_ideal_peer_count,
         conf_.network_max_peer_count);
   }
@@ -86,6 +86,29 @@ NetworkConfig Network::getConfig() { return conf_; }
 
 bool Network::isStarted() { return !stopped_; }
 
+std::pair<bool, bi::tcp::endpoint> Network::resolveHost(string const &addr,
+                                                        uint16_t port) {
+  static boost::asio::io_service s_resolverIoService;
+  boost::system::error_code ec;
+  bi::address address = bi::address::from_string(addr, ec);
+  bi::tcp::endpoint ep(bi::address(), port);
+  if (!ec)
+    ep.address(address);
+  else {
+    boost::system::error_code ec;
+    // resolve returns an iterator (host can resolve to multiple addresses)
+    bi::tcp::resolver r(s_resolverIoService);
+    auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+    if (ec) {
+      LOG(log_er_) << "Error resolving host address... " << addr << " : "
+                   << ec.message();
+      return std::make_pair(false, bi::tcp::endpoint());
+    } else
+      ep = *it;
+  }
+  return std::make_pair(true, ep);
+}
+
 void Network::start(bool boot_node) {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
@@ -95,26 +118,33 @@ void Network::start(bool boot_node) {
   for (auto &node : conf_.network_boot_nodes) {
     if (Public(node.id) == node_pk_) continue;
 
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port;
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.tcp_port
+                 << ":" << node.udp_port;
     if (node.ip.empty()) {
-      LOG(log_wr_) << "Boot node ip is empty:" << node.ip << ":" << node.port;
+      LOG(log_wr_) << "Boot node ip is empty:" << node.ip << ":"
+                   << node.tcp_port << ":" << node.udp_port;
       continue;
     }
-    if (node.port == 0 || node.port > 65535) {
-      LOG(log_wr_) << "Boot node port invalid: " << node.port;
+    if (node.tcp_port == 0 || node.tcp_port > 65535) {
+      LOG(log_wr_) << "Boot node port invalid: " << node.tcp_port;
       continue;
     }
-    host_->addBootNode(
-        dev::Public(node.id),
-        dev::p2p::NodeIPEndpoint(bi::address::from_string(node.ip.c_str()),
-                                 node.port, node.port));
+    if (node.udp_port == 0 || node.udp_port > 65535) {
+      LOG(log_wr_) << "Boot node port invalid: " << node.udp_port;
+      continue;
+    }
+    auto ip = resolveHost(node.ip, node.tcp_port);
+    host_->addBootNode(dev::Public(node.id),
+                       dev::p2p::NodeIPEndpoint(ip.second.address(),
+                                                node.udp_port, node.tcp_port));
     boot_node_added++;
   }
   LOG(log_nf_) << " Number of boot node added: " << boot_node_added
                << std::endl;
   host_->start(boot_node);
   LOG(log_nf_) << "Started Network address: " << conf_.network_address << ":"
-               << conf_.network_listen_port << std::endl;
+               << conf_.network_tcp_port << " :" << conf_.network_udp_port
+               << std::endl;
   LOG(log_nf_) << "Started Node id: " << host_->id();
 }
 

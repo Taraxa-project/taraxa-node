@@ -89,6 +89,8 @@ class Network {
   void sendPbftBlock(NodeID const &id, PbftBlock const &pbft_block,
                      uint64_t const &pbft_chain_size);
 
+  std::pair<bool, bi::tcp::endpoint> resolveHost(string const& addr, uint16_t port);
+
  private:
   std::shared_ptr<dev::p2p::Host> host_;
   std::shared_ptr<TaraxaCapability> taraxa_capability_;

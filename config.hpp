@@ -49,14 +49,16 @@ struct RpcConfig {
 struct NodeConfig {
   std::string id;
   std::string ip;
-  uint16_t port;
+  uint16_t tcp_port;
+  uint16_t udp_port;
 };
 
 struct NetworkConfig {
   NetworkConfig() = default;
   std::string json_file_name;
   std::string network_address;
-  uint16_t network_listen_port;
+  uint16_t network_tcp_port;
+  uint16_t network_udp_port;
   std::vector<NodeConfig> network_boot_nodes;
   uint16_t network_simulated_delay;
   uint16_t network_bandwidth;
