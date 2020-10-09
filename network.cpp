@@ -58,19 +58,18 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
   }
   if (networkData.size() > 0) {
     host_ = std::make_shared<dev::p2p::Host>(
-        "TaraxaNode",
+        "TaraxaNode", conf_.network_udp_port,
         dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port,
                                 false, true),
-        dev::bytesConstRef(&networkData), conf_.network_udp_port,
-        conf_.network_encrypted, conf_.network_ideal_peer_count,
-        conf_.network_max_peer_count);
+        dev::bytesConstRef(&networkData), conf_.network_encrypted,
+        conf_.network_ideal_peer_count, conf_.network_max_peer_count);
   } else {
     host_ = std::make_shared<dev::p2p::Host>(
-        "TaraxaNode", key,
+        "TaraxaNode", key, conf_.network_udp_port,
         dev::p2p::NetworkConfig(conf_.network_address, conf_.network_tcp_port,
                                 false, true),
-        conf_.network_udp_port, conf_.network_encrypted,
-        conf_.network_ideal_peer_count, conf_.network_max_peer_count);
+        conf_.network_encrypted, conf_.network_ideal_peer_count,
+        conf_.network_max_peer_count);
   }
   taraxa_capability_ = std::make_shared<TaraxaCapability>(
       *host_.get(), conf_, genesis, conf_.network_performance_log, node_addr,
