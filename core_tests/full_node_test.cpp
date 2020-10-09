@@ -198,11 +198,7 @@ void send_dummy_trx() {
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
 }
-struct FullNodeTest : core_tests::util::DBUsingTest<> {
-  virtual void SetUp() {
-    // boost::log::core::get()->remove_all_sinks();
-  }
-};
+struct FullNodeTest : core_tests::util::DBUsingTest<> {};
 
 TEST_F(FullNodeTest, db_test) {
   auto db_ptr = std::shared_ptr<DbStorage>(
