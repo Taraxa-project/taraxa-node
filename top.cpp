@@ -58,6 +58,8 @@ Top::Top(int argc, const char* argv[]) {
     return;
   }
   taraxa::FullNodeConfig conf(conf_taraxa);
+  if(tests_speed > 10)
+    tests_speed = 10;
   if (tests_speed != 1) {
     conf.test_params.block_proposer.min_proposal_delay /= tests_speed;
     conf.test_params.block_proposer.difficulty_bound = 5;
