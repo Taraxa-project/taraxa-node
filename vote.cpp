@@ -207,6 +207,8 @@ std::vector<Vote> VoteManager::getVotes(
   cleanupVotes(pbft_round);
 
   // Should be sure we always write a value to this pointer...
+  // TODO: Remove pointer being passed as we never write to this anymore
+  //       (See commented out places we used to write to it below)
   sync_peers_pbft_chain = false;
 
   // Track how many errant votes were found
@@ -228,7 +230,7 @@ std::vector<Vote> VoteManager::getVotes(
       // Wait unit sync PBFT chain with peers, and execute to get states.
       LOG(log_dg_) << "Cannot find the vote account balance. vote hash: "
                    << v.getHash() << " vote address: " << voter_account_address;
-      sync_peers_pbft_chain = true;
+      //sync_peers_pbft_chain = true;
       missing_account_balance_count++;
       continue;
     }
@@ -248,7 +250,7 @@ std::vector<Vote> VoteManager::getVotes(
                    << " points to different block hash " << last_pbft_block_hash
                    << " | vote hash: " << v.getHash()
                    << " voter address: " << voter_account_address;
-      sync_peers_pbft_chain = true;
+      //sync_peers_pbft_chain = true;
       next_vote_with_different_prev_block_has_count++;
     }
   }

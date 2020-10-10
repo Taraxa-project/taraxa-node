@@ -49,7 +49,7 @@ TEST_F(P2PTest, p2p_discovery) {
   auto key = dev::KeyPair(secret);
   const int NUMBER_OF_NODES = 10;
   dev::p2p::Host bootHost(
-      "TaraxaNode", key,
+      "TaraxaNode", key, 20001,
       dev::p2p::NetworkConfig("127.0.0.1", 20001, false, true));
   bootHost.start(true);
   printf("Started Node id: %s\n", bootHost.id().hex().c_str());
@@ -57,7 +57,7 @@ TEST_F(P2PTest, p2p_discovery) {
   std::vector<std::shared_ptr<dev::p2p::Host>> nodes;
   for (int i = 0; i < NUMBER_OF_NODES; i++) {
     nodes.push_back(std::make_shared<dev::p2p::Host>(
-        "TaraxaNode", dev::KeyPair::create(),
+        "TaraxaNode", dev::KeyPair::create(), 20002 + i,
         dev::p2p::NetworkConfig("127.0.0.1", 20002 + i, false, true)));
     nodes[i]->start();
     nodes[i]->addNode(
@@ -95,10 +95,10 @@ TEST_F(P2PTest, capability_send_test) {
       "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
-  dev::p2p::NetworkConfig prefs2(localhost, 0, false, true);
-  dev::p2p::Host host1("Test", prefs1);
-  dev::p2p::Host host2("Test", prefs2);
+  dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
+  dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
+  dev::p2p::Host host1("Test", 10002, prefs1);
+  dev::p2p::Host host2("Test", 10003, prefs2);
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
@@ -163,10 +163,10 @@ TEST_F(P2PTest, capability_send_block) {
       "0000000000000000000000000000000000000000000000000000000000000000";
   int const step = 10;
   const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
-  dev::p2p::NetworkConfig prefs2(localhost, 0, false, true);
-  dev::p2p::Host host1("Test", prefs1);
-  dev::p2p::Host host2("Test", prefs2);
+  dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
+  dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
+  dev::p2p::Host host1("Test", 10002, prefs1);
+  dev::p2p::Host host2("Test", 10003, prefs2);
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;
@@ -246,14 +246,14 @@ TEST_F(P2PTest, block_propagate) {
       "0000000000000000000000000000000000000000000000000000000000000000";
   int const nodeCount = 10;
   const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 0, false, true);
+  dev::p2p::NetworkConfig prefs1(localhost, 10002, false, true);
   std::vector<dev::p2p::NetworkConfig> vPrefs;
   for (int i = 0; i < nodeCount; i++)
-    vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 0, false, true));
-  dev::p2p::Host host1("Test", prefs1);
+    vPrefs.push_back(dev::p2p::NetworkConfig(localhost, 10002 + i + 1, false, true));
+  dev::p2p::Host host1("Test", 10002, prefs1);
   std::vector<shared_ptr<Host>> vHosts;
   for (int i = 0; i < nodeCount; i++)
-    vHosts.push_back(make_shared<dev::p2p::Host>("Test", vPrefs[i]));
+    vHosts.push_back(make_shared<dev::p2p::Host>("Test", 10002 + i + 1, vPrefs[i]));
   NetworkConfig network_conf;
   network_conf.network_simulated_delay = 0;
   network_conf.network_bandwidth = 40;

@@ -101,8 +101,10 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
 
   network.network_address = getConfigDataAsString(root, {"network_address"});
   network.network_id = getConfigDataAsString(root, {"network_id"});
-  network.network_listen_port =
-      getConfigDataAsUInt(root, {"network_listen_port"});
+  network.network_tcp_port =
+      getConfigDataAsUInt(root, {"network_tcp_port"});
+  network.network_udp_port =
+      getConfigDataAsUInt(root, {"network_udp_port"});
   network.network_simulated_delay =
       getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_transaction_interval =
@@ -126,7 +128,8 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object) : chain() {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
     node.ip = getConfigDataAsString(item, {"ip"});
-    node.port = getConfigDataAsUInt(item, {"port"});
+    node.udp_port = getConfigDataAsUInt(item, {"udp_port"});
+    node.tcp_port = getConfigDataAsUInt(item, {"tcp_port"});
     network.network_boot_nodes.push_back(node);
   }
   rpc.address = boost::asio::ip::address::from_string(network.network_address);
@@ -236,7 +239,8 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
   strm << "    node_ip: " << conf.ip << std::endl;
-  strm << "    node_port: " << conf.port << std::endl;
+  strm << "    node_udp_port: " << conf.udp_port << std::endl;
+  strm << "    node_tcp_port: " << conf.tcp_port << std::endl;
   return strm;
 }
 
@@ -244,7 +248,8 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
   strm << "  network_address: " << conf.network_address << std::endl;
-  strm << "  network_listen_port: " << conf.network_listen_port << std::endl;
+  strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
+  strm << "  network_udp_port: " << conf.network_udp_port << std::endl;
   strm << "  network_simulated_delay: " << conf.network_simulated_delay
        << std::endl;
   strm << "  network_transaction_interval: "

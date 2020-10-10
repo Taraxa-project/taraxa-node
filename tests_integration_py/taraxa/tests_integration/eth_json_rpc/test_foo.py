@@ -7,7 +7,8 @@ def test_bar():
     config_file, _ = make_node_cfg_file(base_config={
         "dag_processing_threads": 1,
         "network_address": "0.0.0.0",
-        "network_listen_port": 10002,
+        "network_tcp_port": 10002,
+        "network_udp_port": 10002,
         "network_simulated_delay": 0,
         "network_transaction_interval": 100,
         "network_bandwidth": 40,
