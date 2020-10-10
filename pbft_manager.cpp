@@ -183,6 +183,12 @@ void PbftManager::run() {
   // Initialize PBFT status
   initialState_();
 
+
+  if (!capability_->syncing_) {
+    LOG(log_nf_) << "Send sync request on PBFT start...";
+    syncPbftChainFromPeers_();
+  }
+
   while (!stopped_) {
     if (stateOperations_()) {
       continue;
@@ -1324,10 +1330,16 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
       }
     }
   } else {
-    LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period
-                 << " PBFT block schedule DAG blocks size: "
-                 << dag_blocks_hash_in_schedule.size()
-                 << ", DAG blocks size: " << dag_blocks_hash_order->size();
+    // Sync if we see a cert voted block and we weren't able to
+    // participate due to DAG not being synced
+    if (state_ == finish_state && !have_executed_this_round_&& !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+      LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period
+                   << " PBFT block schedule DAG blocks size: "
+                   << dag_blocks_hash_in_schedule.size()
+                   << ", DAG blocks size: " << dag_blocks_hash_order->size()
+                   << " .. Triggering sync request";
+      syncPbftChainFromPeers_();
+    }
     // For debug
     if (dag_blocks_hash_order->size() > dag_blocks_hash_in_schedule.size()) {
       LOG(log_er_) << "Print DAG blocks order:";

@@ -340,8 +340,8 @@ TEST_F(NetworkTest, node_sync) {
       std::string("./core_tests/conf/conf_taraxa2.json"), true);
   node2->start(false);  // non-boot node
 
-  std::cout << "Waiting Sync for max 20000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 200; i++) {
+  std::cout << "Waiting Sync for max 40000 milliseconds ..." << std::endl;
+  for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
     if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
         node2->getDagManager()->getNumEdgesInDag().first == 8)
@@ -530,8 +530,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
-  auto node2 = taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa4.json"), true);
+  auto node2(taraxa::FullNode::make(std::string(conf_file[1]), true));
   node2->start(false);  // boot node
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
@@ -673,7 +672,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   node2->start(false);  // boot node
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < 40; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
     if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
         node2->getDagManager()->getNumEdgesInDag().first == 8)
@@ -870,8 +869,8 @@ TEST_F(NetworkTest, node_sync2) {
 
   node2->start(false);  // boot node
 
-  std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 200; i++) {
+  std::cout << "Waiting Sync for up to 40000 milliseconds ..." << std::endl;
+  for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
     if (node2->getDagManager()->getNumVerticesInDag().first == 13 &&
         node2->getDagManager()->getNumEdgesInDag().first == 13)

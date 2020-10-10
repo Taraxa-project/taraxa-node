@@ -20,7 +20,7 @@
 #define TARAXA_COINS_DECIMAL 9007199254740991
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 50
+#define MAX_STEPS 20
 
 namespace taraxa {
 class FullNode;
