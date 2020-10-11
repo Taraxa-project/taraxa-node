@@ -16,7 +16,7 @@ using boost::filesystem::temp_directory_path;
 using util::dec_rlp;
 using namespace std;
 
-struct StateAPITest : testing::Test, WithTestDataDir {};
+struct StateAPITest : WithTestDataDir {};
 
 struct TestBlock {
   h256 Hash;
@@ -39,7 +39,7 @@ T parse_rlp_file(path const& p) {
   return ret;
 }
 
-TEST_F(StateAPITest, eth_mainnet_smoke) {
+TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
   static auto const test_data_dir = path(__FILE__).parent_path() /
                                     "submodules" / "taraxa-evm" / "taraxa" /
                                     "data";

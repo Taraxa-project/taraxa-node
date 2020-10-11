@@ -4,37 +4,28 @@
 #include <gtest/gtest.h>
 
 #include <atomic>
-#include <boost/thread.hpp>
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <vector>
 
 #include "core_tests/util.hpp"
-#include "core_tests/util/transaction_client.hpp"
-#include "create_samples.hpp"
 #include "dag.hpp"
-#include "net/RpcServer.h"
 #include "net/Taraxa.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "samples.hpp"
 #include "sortition.hpp"
 #include "static_init.hpp"
 #include "string"
-#include "top.hpp"
 #include "transaction_manager.hpp"
 #include "types.hpp"
-#include "util.hpp"
 #include "util/lazy.hpp"
-#include "util/wait.hpp"
 #include "vrf_wrapper.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 using samples::sendTrx;
-using ::taraxa::util::lazy::Lazy;
-using transaction_client::TransactionClient;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
@@ -47,13 +38,6 @@ auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples =
     Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
-auto g_test_account = Lazy([] {
-  return samples::createTestAccountTable("core_tests/account_table.txt");
-});
-auto g_init_bal = Lazy([] {
-  return ChainConfig::default_chain_boot_node_initial_balance /
-         ChainConfig::default_chain_predefined_nodes->size();
-});
 
 void send_2_nodes_trxs() {
   std::string sendtrx1 =
@@ -79,114 +63,6 @@ void send_2_nodes_trxs() {
   std::cout << "All trxs sent..." << std::endl;
 }
 
-void init_5_nodes_coin() {
-  std::string node1to2 = fmt(
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
-                                      "params": [{
-                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                        "value": %s,
-                                        "gas_price": 1,
-                                        "gas": 100000,
-                                        "nonce": 0,
-                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777 > /dev/null)",
-      *g_init_bal);
-  std::string node1to3 = fmt(
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
-                                      "params": [{
-                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                        "value": %s,
-                                        "gas_price": 1,
-                                        "gas": 100000,
-                                        "nonce": 1,
-                                        "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e"}]}' 0.0.0.0:7777 > /dev/null)",
-      *g_init_bal);
-
-  std::string node1to4 = fmt(
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
-                                      "params": [{
-                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                        "value": %s,
-                                        "gas_price": 1,
-                                        "gas": 100000,
-                                        "nonce": 2,
-                                        "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"}]}' 0.0.0.0:7777 > /dev/null)",
-      *g_init_bal);
-
-  std::string node1to5 = fmt(
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
-                                      "params": [{
-                                        "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                        "value": %s,
-                                        "gas_price": 1,
-                                        "gas": 100000,
-                                        "nonce": 3,
-                                        "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858"}]}' 0.0.0.0:7777 > /dev/null)",
-      *g_init_bal);
-  std::cout << "Init 5 node coins ..." << std::endl;
-
-  std::thread t1([node1to2]() { system(node1to2.data()); });
-  std::thread t2([node1to3]() { system(node1to3.data()); });
-  std::thread t3([node1to4]() { system(node1to4.data()); });
-  std::thread t4([node1to5]() { system(node1to5.data()); });
-  t1.join();
-  t2.join();
-  t3.join();
-  t4.join();
-}
-
-void send_5_nodes_trxs() {
-  // Note: after init_5_nodes_coin, boot node nonce start from 4
-  std::string sendtrx1 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 5,
-                                      "number": 500,
-                                      "nonce": 4,
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0" }]}' 0.0.0.0:7777 > /dev/null )";
-  std::string sendtrx2 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "e6af8ca3b4074243f9214e16ac94831f17be38810d09a3edeb56ab55be848a1e",
-                                      "delay": 7, 
-                                      "number": 500,
-                                      "nonce": 0,
-                                      "receiver":"4fae949ac2b72960fbe857b56532e2d3c8418d5e" }]}' 0.0.0.0:7778 > /dev/null)";
-  std::string sendtrx3 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "f1261c9f09b0b483486c3b298f7c1ee001ff37e10023596528af93e34ba13f5f",
-                                      "delay": 3, 
-                                      "number": 500,
-                                      "nonce": 0,
-                                      "receiver":"415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0" }]}' 0.0.0.0:7779 > /dev/null)";
-  std::string sendtrx4 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "7f38ee36812f2e4b1d75c9d21057fd718b9e7903ee9f9d4eb93b690790bb4029",
-                                      "delay": 10, 
-                                      "number": 500,
-                                      "nonce": 0,
-                                      "receiver":"b770f7a99d0b7ad9adf6520be77ca20ee99b0858" }]}' 0.0.0.0:7780 > /dev/null)";
-  std::string sendtrx5 =
-      R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "beb2ed10f80e3feaf971614b2674c7de01cfd3127faa1bd055ed50baa1ce34fe",
-                                      "delay": 2,
-                                      "number": 500,
-                                      "nonce": 0,
-                                      "receiver":"d79b2575d932235d87ea2a08387ae489c31aa2c9" }]}' 0.0.0.0:7781 > /dev/null)";
-  std::cout << "Sending trxs ..." << std::endl;
-  std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-  std::thread t2([sendtrx2]() { system(sendtrx2.c_str()); });
-  std::thread t3([sendtrx3]() { system(sendtrx3.c_str()); });
-  std::thread t4([sendtrx4]() { system(sendtrx4.c_str()); });
-  std::thread t5([sendtrx5]() { system(sendtrx5.c_str()); });
-
-  t1.join();
-  t2.join();
-  t3.join();
-  t4.join();
-  t5.join();
-
-  std::cout << "All trxs sent..." << std::endl;
-}  // namespace taraxa
-
 void send_dummy_trx() {
   std::string dummy_trx =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction",
@@ -201,15 +77,12 @@ void send_dummy_trx() {
   std::cout << "Send dummy transaction ..." << std::endl;
   system(dummy_trx.c_str());
 }
-struct FullNodeTest : core_tests::util::DBUsingTest<> {
-  virtual void SetUp() {
-    // boost::log::core::get()->remove_all_sinks();
-  }
-};
+
+struct FullNodeTest : BaseTest {};
 
 TEST_F(FullNodeTest, db_test) {
-  auto db_ptr = std::shared_ptr<DbStorage>(
-      std::move(DbStorage::make("/tmp/testtaraxadb", blk_hash_t(1), true)));
+  auto db_ptr =
+      std::shared_ptr<DbStorage>(std::move(DbStorage::make(data_dir)));
   auto &db = *db_ptr;
   DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)},
                 sig_t(777), blk_hash_t(0xB1), addr_t(999));
@@ -351,8 +224,9 @@ TEST_F(FullNodeTest, db_test) {
 // fixme: flaky
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
-  auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
-  auto &nodes = tops.second;
+
+  auto const &node_cfgs = make_node_cfgs(5);
+  auto nodes = launch_nodes(node_cfgs);
 
   class context {
     decltype(nodes) &nodes_;
@@ -365,7 +239,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     context(decltype(nodes_) nodes) : nodes_(nodes) {
       expected_balances[ChainConfig::default_chain_boot_node_addr] =
           ChainConfig::default_chain_boot_node_initial_balance;
-      for (auto node : nodes_) {
+      for (auto const &node : nodes_) {
         trx_clients.emplace_back(node);
       }
     }
@@ -466,8 +340,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         thread_completed[i] = true;
       });
     }
-    auto success = wait::Wait(
-        [&thread_completed, &context] {
+    auto success = wait(
+        60s,
+        [&] {
           for (auto t : thread_completed) {
             if (!t) {
               context.dummy_transaction();
@@ -476,10 +351,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
           }
           return true;
         },
-        {
-            120,
-            std::chrono::nanoseconds(1000 * 1000 * 500),
-        });
+        500ms);
     for (auto &t : threads) t.join();
   }
   std::cout << "Issued transatnion count " << context.getIssuedTrxCount();
@@ -731,8 +603,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
-  auto tops = createNodesAndVerifyConnection(1);
-  auto node = tops.second[0];
+  auto node_cfgs = make_node_cfgs(1);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node = nodes[0];
 
   g_mock_dag0 = samples::createMockDag1(
       node->getConfig().chain.dag_genesis_block.getHash().toString());
@@ -814,89 +687,28 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 }
 
 TEST_F(FullNodeTest, destroy_db) {
+  auto node_cfgs = make_node_cfgs(1);
   {
-    auto tops = createNodesAndVerifyConnection(1);
-    auto node = tops.second[0];
+    FullNode::Handle node(node_cfgs[0]);
     auto db = node->getDB();
     db->saveTransaction(g_trx_signed_samples[0]);
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
   {
-    auto tops = createNodesAndVerifyConnection(1, 1, true);
-    auto node = tops.second[0];
-    node->start(false);
+    FullNode::Handle node(node_cfgs[0]);
     auto db = node->getDB();
     // Verify trx saved in db after restart with destroy_db false
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0].getHash()));
   }
-  {
-    auto tops = createNodesAndVerifyConnection(1);
-    auto node = tops.second[0];
-    auto db = node->getDB();
-    // Verify trx not in db after restart with destroy_db true
-    EXPECT_TRUE(!db->getTransaction(g_trx_signed_samples[0].getHash()));
-  }
-}
-
-TEST_F(FullNodeTest, destroy_node) {
-  std::weak_ptr<FullNode> weak_node;
-  std::weak_ptr<Network> weak_network;
-  std::weak_ptr<PbftManager> weak_pbft_manager;
-  std::weak_ptr<PbftChain> weak_pbft_chain;
-  std::weak_ptr<TransactionManager> weak_transaction_manager;
-  std::weak_ptr<VoteManager> weak_vote_manager;
-  std::weak_ptr<DbStorage> weak_db;
-  {
-    auto tops = createNodesAndVerifyConnection(1);
-    auto node = tops.second[0];
-    weak_node = node->getShared();
-    weak_network = node->getNetwork();
-    weak_pbft_manager = node->getPbftManager();
-    weak_pbft_chain = node->getPbftChain();
-    weak_transaction_manager = node->getTransactionManager();
-    weak_vote_manager = node->getVoteManager();
-    weak_db = node->getDB();
-  }
-  // Once node is deleted, verify all objects are deleted
-  ASSERT_EQ(weak_node.lock(), nullptr);
-  ASSERT_EQ(weak_network.lock(), nullptr);
-  ASSERT_EQ(weak_pbft_manager.lock(), nullptr);
-  ASSERT_EQ(weak_pbft_chain.lock(), nullptr);
-  ASSERT_EQ(weak_transaction_manager.lock(), nullptr);
-  ASSERT_EQ(weak_vote_manager.lock(), nullptr);
-  ASSERT_EQ(weak_db.lock(), nullptr);
-
-  {
-    {
-      auto tops = createNodesAndVerifyConnection(1);
-      auto node = tops.second[0];
-      weak_node = node->getShared();
-      weak_network = node->getNetwork();
-      weak_pbft_manager = node->getPbftManager();
-      weak_pbft_chain = node->getPbftChain();
-      weak_transaction_manager = node->getTransactionManager();
-      weak_vote_manager = node->getVoteManager();
-      weak_db = node->getDB();
-    }
-    // Once node is deleted, verify all objects are deleted
-    ASSERT_EQ(weak_node.lock(), nullptr);
-    ASSERT_EQ(weak_network.lock(), nullptr);
-    ASSERT_EQ(weak_pbft_manager.lock(), nullptr);
-    ASSERT_EQ(weak_pbft_chain.lock(), nullptr);
-    ASSERT_EQ(weak_transaction_manager.lock(), nullptr);
-    ASSERT_EQ(weak_vote_manager.lock(), nullptr);
-    ASSERT_EQ(weak_db.lock(), nullptr);
-  }
 }
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
+  auto node_cfgs = make_node_cfgs<20>(1);
   std::deque<std::pair<std::string, uint64_t>> anchors;
   {
-    auto tops = createNodesAndVerifyConnection(1, 1, false, 20);
-    auto node = tops.second[0];
+    FullNode::Handle node(node_cfgs[0], true);
 
-    node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
     TransactionClient trx_client(node);
@@ -910,10 +722,8 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     anchors = node->getDagManager()->getAnchors();
   }
   {
-    auto tops = createNodesAndVerifyConnection(1, 1, true);
-    auto node = tops.second[0];
+    FullNode::Handle node(node_cfgs[0], true);
 
-    node->start(false);
     taraxa::thisThreadSleepForMilliSeconds(500);
 
     EXPECT_GT(anchors.size(), 1);
@@ -924,6 +734,8 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
 }  // namespace taraxa
 
 TEST_F(FullNodeTest, reconstruct_dag) {
+  auto node_cfgs = make_node_cfgs(1);
+
   unsigned long vertices1 = 0;
   unsigned long vertices2 = 0;
   unsigned long vertices3 = 0;
@@ -931,8 +743,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 
   auto num_blks = g_mock_dag0->size();
   {
-    auto tops = createNodesAndVerifyConnection(1);
-    auto node = tops.second[0];
+    FullNode::Handle node(node_cfgs[0], true);
     g_mock_dag0 = samples::createMockDag0(
         node->getConfig().chain.dag_genesis_block.getHash().toString());
 
@@ -947,16 +758,15 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     EXPECT_EQ(vertices1, num_blks);
   }
   {
-    auto tops = createNodesAndVerifyConnection(1, 1, true);
-    auto node = tops.second[0];
+    FullNode::Handle node(node_cfgs[0], true);
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     vertices2 = node->getDagManager()->getNumVerticesInDag().first;
     EXPECT_EQ(vertices2, num_blks);
   }
   {
-    auto tops = createNodesAndVerifyConnection(1);
-    auto node = tops.second[0];
+    fs::remove_all(node_cfgs[0].db_path);
+    FullNode::Handle node(node_cfgs[0], true);
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (int i = 1; i < num_blks; i++) {
@@ -966,8 +776,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;
   }
   {
-    auto tops = createNodesAndVerifyConnection(1, 1, true);
-    auto node = tops.second[0];
+    FullNode::Handle node(node_cfgs[0], true);
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices4 = node->getDagManager()->getNumVerticesInDag().first;
   }
@@ -977,8 +786,8 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes1) {
-  auto tops = createNodesAndVerifyConnection(2, 1, false, 2);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<2, true>(2);
+  auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
   try {
@@ -1015,11 +824,11 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
 }
 
 TEST_F(FullNodeTest, persist_counter) {
+  auto node_cfgs = make_node_cfgs<2, true>(2);
   unsigned long num_exe_trx1 = 0, num_exe_trx2 = 0, num_exe_blk1 = 0,
                 num_exe_blk2 = 0, num_trx1 = 0, num_trx2 = 0;
   {
-    auto tops = createNodesAndVerifyConnection(2, 1, false, 2);
-    auto &nodes = tops.second;
+    auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
     try {
@@ -1075,8 +884,7 @@ TEST_F(FullNodeTest, persist_counter) {
     EXPECT_EQ(num_exe_trx1, num_trx2);
   }
   {
-    auto tops = createNodesAndVerifyConnection(2, 1, true);
-    auto &nodes = tops.second;
+    auto nodes = launch_nodes(node_cfgs);
 
     EXPECT_EQ(num_exe_trx1, nodes[0]->getDB()->getNumTransactionExecuted());
     EXPECT_EQ(num_exe_trx2, nodes[1]->getDB()->getNumTransactionExecuted());
@@ -1090,8 +898,8 @@ TEST_F(FullNodeTest, persist_counter) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes2) {
-  auto tops = createNodesAndVerifyConnection(2);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<1, true>(2);
+  auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
   try {
@@ -1119,8 +927,8 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
 
 // disabled for now, need to create two trx with nonce 0!
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
-  auto tops = createNodesAndVerifyConnection(1, 1, false, 10);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto nodes = launch_nodes(node_cfgs);
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
@@ -1166,8 +974,8 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 }
 
 TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
-  auto tops = createNodesAndVerifyConnection(2, 1, false, 10);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto nodes = launch_nodes(node_cfgs);
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
@@ -1212,18 +1020,11 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 }
 
 TEST_F(FullNodeTest, save_network_to_file) {
+  auto node_cfgs = make_node_cfgs(3);
+  { auto nodes = launch_nodes(node_cfgs); }
   {
-    auto tops = createNodesAndVerifyConnection(3, 2);
-    auto &nodes = tops.second;
-  }
-  {
-    FullNodeConfig conf2(conf_file[1]);
-    auto node2(taraxa::FullNode::make(conf2));
-    FullNodeConfig conf3(conf_file[2]);
-    auto node3(taraxa::FullNode::make(conf3));
-
-    node2->start(false);
-    node3->start(false);
+    FullNode::Handle node2(node_cfgs[1], true);
+    FullNode::Handle node3(node_cfgs[2], true);
 
     for (int i = 0; i < SYNC_TIMEOUT; i++) {
       taraxa::thisThreadSleepForSeconds(1);
@@ -1238,9 +1039,9 @@ TEST_F(FullNodeTest, save_network_to_file) {
 }
 
 TEST_F(FullNodeTest, receive_send_transaction) {
-  auto tops = createNodesAndVerifyConnection(1);
-  auto &nodes = tops.second;
-  nodes[0]->start(true);  // boot node
+  auto node_cfgs = make_node_cfgs<1, true>(1);
+  FullNode::Handle node(node_cfgs[0], true);
+
   try {
     sendTrx(1000, 7777);
   } catch (std::exception &e) {
@@ -1248,25 +1049,19 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   }
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
 
-  auto num_proposed_blk = nodes[0]->getNumProposedBlocks();
+  auto num_proposed_blk = node->getNumProposedBlocks();
   for (auto i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_proposed_blk > 0) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-  EXPECT_GT(nodes[0]->getNumProposedBlocks(), 0);
+  EXPECT_GT(node->getNumProposedBlocks(), 0);
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto tops = createNodesAndVerifyConnection(5, 4, false, 2);
-  auto &nodes = tops.second;
-
-  ASSERT_EQ(nodes[0]->getNetwork()->getPeerCount(), 4);
-  ASSERT_EQ(nodes[1]->getNetwork()->getPeerCount(), 4);
-  ASSERT_EQ(nodes[2]->getNetwork()->getPeerCount(), 4);
-  ASSERT_EQ(nodes[3]->getNetwork()->getPeerCount(), 4);
-  ASSERT_EQ(nodes[4]->getNetwork()->getPeerCount(), 4);
+  auto node_cfgs = make_node_cfgs<2>(5);
+  auto nodes = launch_nodes(node_cfgs);
 
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
@@ -1275,10 +1070,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto data = bytes();
   auto nonce = 0;
   auto trxs_count = 0;
+  auto test_transfer_val =
+      ChainConfig::default_chain_boot_node_initial_balance /
+      ChainConfig::default_chain_predefined_nodes->size();
   for (auto i(1); i < nodes.size(); ++i) {
     Transaction master_boot_node_send_coins(
-        nonce++, *g_init_bal, gas_price, 100000, data, nodes[0]->getSecretKey(),
-        nodes[i]->getAddress());
+        nonce++, test_transfer_val, gas_price, 100000, data,
+        nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(
         master_boot_node_send_coins, false);
@@ -1287,8 +1085,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   std::cout << "Checking all nodes executed transactions at initialization"
             << std::endl;
-  auto success = wait::Wait(
-      [&nodes, &trxs_count, &nonce] {
+  auto success = wait(
+      150s,
+      [&] {
         for (auto i(0); i < nodes.size(); ++i) {
           if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
@@ -1306,10 +1105,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         }
         return true;
       },
-      {
-          10,                        // send times
-          std::chrono::seconds(15),  // each sending
-      });
+      15s);
   for (auto i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -1320,12 +1116,12 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     EXPECT_EQ(
         nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first,
         ChainConfig::default_chain_boot_node_initial_balance -
-            4 * (*g_init_bal));
+            4 * test_transfer_val);
     for (auto j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(
           nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
-          *g_init_bal);
+          test_transfer_val);
     }
   }
 
@@ -1349,7 +1145,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
   std::cout << "Checking all nodes execute transactions from robin cycle"
             << std::endl;
-  success = wait::Wait(
+  success = wait(
+      150s,
       [&nodes, &trxs_count, &nonce] {
         for (auto i(0); i < nodes.size(); ++i) {
           if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
@@ -1368,10 +1165,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         }
         return true;
       },
-      {
-          10,                        // send times
-          std::chrono::seconds(15),  // each sending
-      });
+      15s);
   for (auto i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -1419,8 +1213,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {
-  auto tops = createNodesAndVerifyConnection(3, 1, false, 10);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<10, true>(3);
+  auto nodes = launch_nodes(node_cfgs);
+
   std::cout << "Send first trx ..." << std::endl;
   auto node_addr = nodes[0]->getAddress();
   auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
@@ -1450,36 +1245,6 @@ TEST_F(FullNodeTest, transfer_to_self) {
   auto const bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   EXPECT_TRUE(bal.second);
   EXPECT_EQ(bal.first, initial_bal.first);
-}
-
-TEST_F(FullNodeTest, DISABLED_mem_usage) {
-  auto tops = createNodesAndVerifyConnection(1);
-  auto &nodes = tops.second;
-  // send 1000 trxs
-  try {
-    std::string sendtrx1 =
-        R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "create_test_coin_transactions",
-                                      "params": [{ "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                                      "delay": 200,
-                                      "number": 1000000,
-                                      "nonce": 0,
-                                      "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7777)";
-
-    std::thread t1([sendtrx1]() { system(sendtrx1.c_str()); });
-    t1.join();
-  } catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-  uint64_t last_num_block_proposed = 0;
-  for (auto i = 0; i < SYNC_TIMEOUT; i++) {
-    auto res = getMemUsage("full_node_test");
-    std::cout << "Mem usage (" << i * 5 << ") in sec = " << res << " M"
-              << std::endl;
-    taraxa::thisThreadSleepForMilliSeconds(5000);
-    auto cur_num_block_proposed = nodes[0]->getNumProposedBlocks();
-    if (cur_num_block_proposed == last_num_block_proposed) break;
-    last_num_block_proposed = cur_num_block_proposed;
-  }
 }
 
 TEST_F(FullNodeTest, chain_config_json) {
@@ -1543,9 +1308,8 @@ TEST_F(FullNodeTest, chain_config_json) {
                                    default_chain_config_json));
   ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
   Json::Value test_node_config_json;
-  std::ifstream(
-      (path(__FILE__).parent_path() / "conf" / "conf_taraxa1.json").string(),
-      std::ifstream::binary) >>
+  std::ifstream((DIR_CONF / "conf_taraxa1.json").string(),
+                std::ifstream::binary) >>
       test_node_config_json;
   test_node_config_json.removeMember("chain_config");
   ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json).chain),
@@ -1558,7 +1322,7 @@ TEST_F(FullNodeTest, chain_config_json) {
             enc_json(ChainConfig::predefined("test")));
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 int main(int argc, char **argv) {
   taraxa::static_init();

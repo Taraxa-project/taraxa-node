@@ -38,11 +38,8 @@ struct ConfigException : public std::runtime_error {
 };
 
 struct RpcConfig {
-  RpcConfig() = default;
-  explicit RpcConfig(std::string const &json_file);
-  std::string json_file_name;
-  uint16_t port;
-  uint16_t ws_port;
+  optional<uint16_t> port;
+  optional<uint16_t> ws_port;
   boost::asio::ip::address address;
 };
 
@@ -56,6 +53,7 @@ struct NodeConfig {
 struct NetworkConfig {
   NetworkConfig() = default;
   std::string json_file_name;
+  bool network_is_boot_node = 0;
   std::string network_address;
   uint16_t network_tcp_port;
   uint16_t network_udp_port;
@@ -79,7 +77,8 @@ struct LoggingOutputConfig {
   std::string file_name;
   uint64_t rotation_size;
   std::string time_based_rotation;
-  std::string format = "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
+  std::string format =
+      "%NodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
   uint64_t max_size;
 };
 
@@ -106,25 +105,16 @@ struct BlockProposerConfig {
   uint16_t lambda_bound;
 };
 
-struct PbftConfig {
-  uint32_t lambda_ms_min;
-  uint32_t committee_size = 0;
-  uint32_t dag_blocks_size = 0;
-  uint32_t ghost_path_move_back = 0;
-  bool run_count_votes = false;
-};
-
 // Parameter Tuning purpose
 struct TestParamsConfig {
   BlockProposerConfig block_proposer;  // test_params.block_proposer
-  PbftConfig pbft;                     // test_params.pbft
   uint32_t max_transaction_queue_warn = 0;
   uint32_t max_transaction_queue_drop = 0;
   uint32_t max_block_queue_warn = 0;
 };
 
 struct FullNodeConfig {
-  explicit FullNodeConfig() = default;
+  FullNodeConfig() = default;
   // The reason of using Json::Value as a union is that in the tests
   // there are attempts to pass char const* to this constructor, which
   // is ambiguous (char const* may promote to Json::Value)
@@ -132,11 +122,10 @@ struct FullNodeConfig {
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
   explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object);
-  explicit FullNodeConfig(const FullNodeConfig &conf) = default;
   std::string json_file_name;
   std::string node_secret;
-  std::string vrf_secret;
-  std::string db_path;
+  vrf_wrapper::vrf_sk_t vrf_secret;
+  fs::path db_path;
   uint16_t dag_processing_threads;
   NetworkConfig network;
   RpcConfig rpc;
@@ -144,6 +133,9 @@ struct FullNodeConfig {
   ChainConfig chain = ChainConfig::predefined();
   FinalChain::Opts opts_final_chain;
   std::vector<LoggingConfig> log_configs;
+
+  auto dbstorage_path() { return db_path / "db"; }
+  auto net_file_path() { return db_path / "net"; }
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

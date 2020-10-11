@@ -9,23 +9,22 @@
 #include <vector>
 
 #include "core_tests/util.hpp"
-#include "create_samples.hpp"
 #include "dag.hpp"
 #include "full_node.hpp"
 #include "net/RpcServer.h"
 #include "network.hpp"
 #include "pbft_chain.hpp"
 #include "pbft_manager.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
 #include "string"
 #include "top.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 using samples::sendTrx;
 const unsigned NUM_TRX = 50000;
 
-struct PerformanceTest : core_tests::util::DBUsingTest<> {};
+struct PerformanceTest : DBUsingTest<> {};
 
 TEST_F(PerformanceTest, execute_transactions) {
   val_t initbal(1000000000);  // disable pbft sortition
@@ -45,7 +44,7 @@ TEST_F(PerformanceTest, execute_transactions) {
   EXPECT_TRUE(res.second);
   EXPECT_EQ(res.first, initbal);
 
-  for (auto const &t : transactions) {
+  for (auto const& t : transactions) {
     node->getTransactionManager()->insertTransaction(t, false);
     // taraxa::thisThreadSleepForMilliSeconds(50);
   }
@@ -114,7 +113,7 @@ TEST_F(PerformanceTest, execute_transactions) {
   // from single account requires more thought
   //  EXPECT_EQ(state->balance(acc1), initbal - coin_distributed);
 }
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

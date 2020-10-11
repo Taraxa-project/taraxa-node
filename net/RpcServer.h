@@ -2,10 +2,12 @@
 #define TARAXA_NODE_NET_RPC_SEERVER_H_
 
 #include <jsonrpccpp/server/abstractserverconnector.h>
+
 #include <atomic>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <string>
+
 #include "config.hpp"
 
 namespace taraxa::net {
@@ -16,7 +18,7 @@ class RpcHandler;
 class RpcServer : public std::enable_shared_from_this<RpcServer>,
                   public jsonrpc::AbstractServerConnector {
  public:
-  RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
+  RpcServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep,
             addr_t node_addr);
   virtual ~RpcServer() { RpcServer::StopListening(); }
 
@@ -31,8 +33,8 @@ class RpcServer : public std::enable_shared_from_this<RpcServer>,
 
  private:
   std::atomic<bool> stopped_ = true;
-  RpcConfig conf_;
   boost::asio::io_context &io_context_;
+  boost::asio::ip::tcp::endpoint ep_;
   boost::asio::ip::tcp::acceptor acceptor_;
   LOG_OBJECTS_DEFINE;
 };

@@ -12,16 +12,8 @@ using namespace dev;
 using namespace rocksdb;
 namespace fs = boost::filesystem;
 
-std::unique_ptr<DbStorage> DbStorage::make(fs::path const& base_path,
-                                           h256 const& genesis_hash,
-                                           bool drop_existing) {
-  auto path = base_path;
-  path /= fs::path(toHex(genesis_hash.ref().cropped(0, 4)));
-  if (drop_existing) {
-    fs::remove_all(path);
-  }
+std::unique_ptr<DbStorage> DbStorage::make(fs::path const& path) {
   fs::create_directories(path);
-  DEV_IGNORE_EXCEPTIONS(fs::permissions(path, fs::owner_all));
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;

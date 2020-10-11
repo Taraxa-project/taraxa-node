@@ -6,9 +6,9 @@
 #include "static_init.hpp"
 #include "types.hpp"
 
-namespace taraxa {
+namespace taraxa::core_tests {
 
-struct DagTest : core_tests::util::DBUsingTest<> {};
+struct DagTest : BaseTest {};
 
 TEST_F(DagTest, build_dag) {
   const std::string GENESIS =
@@ -478,7 +478,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
             "0000000000000000000000000000000000000000000000000000000000000006");
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

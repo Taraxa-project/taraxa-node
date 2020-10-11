@@ -1,8 +1,9 @@
 #ifndef TARAXA_NODE_NET_TEST_H_
 #define TARAXA_NODE_NET_TEST_H_
 
-#include "TestFace.h"
 #include <future>
+
+#include "TestFace.h"
 
 namespace dev::eth {
 class Client;
@@ -16,7 +17,7 @@ namespace taraxa::net {
 
 class Test : public TestFace {
  public:
-  explicit Test(std::shared_ptr<taraxa::FullNode>& _full_node);
+  explicit Test(std::shared_ptr<taraxa::FullNode> const& _full_node);
   virtual RPCModules implementedModules() const override {
     return RPCModules{RPCModule{"test", "1.0"}};
   }

@@ -199,22 +199,15 @@ std::vector<Vote> VoteManager::getVotes(uint64_t pbft_round,
 
 // Return all verified votes >= pbft_round
 std::vector<Vote> VoteManager::getVotes(
-    bool& sync_peers_pbft_chain, uint64_t const pbft_round,
-    blk_hash_t const& last_pbft_block_hash, size_t const sortition_threshold,
-    uint64_t eligible_voter_count,
+    uint64_t const pbft_round, blk_hash_t const& last_pbft_block_hash,
+    size_t const sortition_threshold, uint64_t eligible_voter_count,
     std::function<bool(addr_t const&)> const& is_eligible) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
 
-  // Should be sure we always write a value to this pointer...
-  // TODO: Remove pointer being passed as we never write to this anymore
-  //       (See commented out places we used to write to it below)
-  sync_peers_pbft_chain = false;
-
   // Track how many errant votes were found
   // and if sufficient number in the future we will
   // use this to trigger sync...
-  uint64_t missing_account_balance_count = 0;
   uint64_t next_vote_with_different_prev_block_has_count = 0;
 
   std::vector<Vote> verified_votes;
@@ -223,17 +216,6 @@ std::vector<Vote> VoteManager::getVotes(
   for (auto const& v : votes_to_verify) {
     // vote verification
     addr_t voter_account_address = dev::toAddress(v.getVoter());
-    std::pair<val_t, bool> account_balance =
-        final_chain_->getBalance(voter_account_address);
-    if (!account_balance.second) {
-      // New node join, it doesn't have other nodes info.
-      // Wait unit sync PBFT chain with peers, and execute to get states.
-      LOG(log_dg_) << "Cannot find the vote account balance. vote hash: "
-                   << v.getHash() << " vote address: " << voter_account_address;
-      //sync_peers_pbft_chain = true;
-      missing_account_balance_count++;
-      continue;
-    }
     // Check if the voter account is valid, malicious vote
     if (!is_eligible(voter_account_address)) {
       LOG(log_dg_) << "Account " << voter_account_address
@@ -250,15 +232,10 @@ std::vector<Vote> VoteManager::getVotes(
                    << " points to different block hash " << last_pbft_block_hash
                    << " | vote hash: " << v.getHash()
                    << " voter address: " << voter_account_address;
-      //sync_peers_pbft_chain = true;
       next_vote_with_different_prev_block_has_count++;
     }
   }
 
-  if (missing_account_balance_count > 0) {
-    LOG(log_dg_) << "Get votes found " << missing_account_balance_count
-                 << " votes from accounts not present in account balance table";
-  }
   if (next_vote_with_different_prev_block_has_count > 0) {
     LOG(log_er_) << "Get votes found "
                  << next_vote_with_different_prev_block_has_count

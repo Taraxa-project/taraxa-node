@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "pbft_config.hpp"
 #include "types.hpp"
 #include "util.hpp"
 

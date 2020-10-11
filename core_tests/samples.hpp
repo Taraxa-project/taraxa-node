@@ -7,16 +7,10 @@
 
 #include "dag_block.hpp"
 #include "transaction.hpp"
-#include "util/constants.hpp"
+#include "util.hpp"
 #include "util/lazy.hpp"
 
-namespace taraxa::samples {
-using ::taraxa::util::lazy::Lazy;
-
-inline auto const TEST_MAX_TRANSACTIONS_IN_BLOCK =
-    core_tests::util::constants::TEST_MAX_TRANSACTIONS_IN_BLOCK;
-inline auto const TEST_TX_GAS_LIMIT =
-    core_tests::util::constants::TEST_TX_GAS_LIMIT;
+namespace taraxa::core_tests::samples {
 
 class TxGenerator {
  public:
@@ -77,8 +71,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
     )";
   for (auto i = 0; i < count; ++i) {
     auto retcode = system(
-        fmt(pattern, val_t(samples::TEST_TX_GAS_LIMIT), val_t(0),
-            addr_t::random(),
+        fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
             samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
             .c_str());
     if (retcode != 0) {
@@ -567,6 +560,6 @@ inline std::vector<DagBlock> createMockDag1(
   return blks;
 }
 
-}  // namespace taraxa::samples
+}  // namespace taraxa::core_tests::samples
 
 #endif

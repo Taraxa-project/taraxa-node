@@ -8,12 +8,11 @@
 #include "network.hpp"
 #include "pbft_manager.hpp"
 #include "static_init.hpp"
-#include "top.hpp"
 #include "vote.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 using namespace vrf_wrapper;
+
 auto g_vrf_sk = Lazy([] {
   return vrf_sk_t(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
@@ -24,11 +23,13 @@ auto g_sk = Lazy([] {
       "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
       dev::Secret::ConstructFromStringType::FromHex);
 });
-struct PbftRpcTest : core_tests::util::DBUsingTest<> {};
+struct PbftRpcTest : BaseTest {};
 
 TEST_F(PbftRpcTest, full_node_lambda_input_test) {
-  auto node(taraxa::FullNode::make(std::string(conf_file[0])));
-  node->start(false);
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
+
+  node->start();
   auto pbft_mgr = node->getPbftManager();
   EXPECT_EQ(pbft_mgr->LAMBDA_ms_MIN, 2000);
 }
@@ -37,8 +38,8 @@ TEST_F(PbftRpcTest, full_node_lambda_input_test) {
 // Get votes round 2, will remove round 1 in the table, and return round 2 & 3
 // votes
 TEST_F(PbftRpcTest, add_cleanup_get_votes) {
-  auto tops = createNodesAndVerifyConnection(1);
-  auto& node = tops.second[0];
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
 
   // stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr = node->getPbftManager();
@@ -70,13 +71,12 @@ TEST_F(PbftRpcTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  bool dummy = false;
   std::vector<Vote> votes = vote_mgr->getVotes(
-      dummy, pbft_round, pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
+      pbft_round, pbft_mgr->getLastPbftBlockHashAtStartOfRound(),
       pbft_mgr->getSortitionThreshold(), valid_sortition_players,
       [](...) { return true; });
   EXPECT_EQ(votes.size(), 4);
-  for (Vote const& v : votes) {
+  for (Vote const &v : votes) {
     EXPECT_GT(v.getRound(), 1);
   }
 
@@ -106,16 +106,9 @@ TEST_F(PbftRpcTest, reconstruct_votes) {
 
 // Generate a vote, send the vote from node2 to node1
 TEST_F(PbftRpcTest, transfer_vote) {
-  vector<FullNodeConfig> cfgs;
-  for (auto i = 1; i <= 2; ++i) {
-    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
-  }
-  auto node_count = 0;
-  auto node1(taraxa::FullNode::make(cfgs[node_count++]));
-  auto node2(taraxa::FullNode::make(cfgs[node_count++]));
-
-  node1->start(true);  // boot node
-  node2->start(false);
+  auto node_cfgs = make_node_cfgs(2);
+  FullNode::Handle node1(node_cfgs[0]);
+  FullNode::Handle node2(node_cfgs[1]);
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
@@ -166,17 +159,11 @@ TEST_F(PbftRpcTest, transfer_vote) {
 }
 
 TEST_F(PbftRpcTest, vote_broadcast) {
-  vector<FullNodeConfig> cfgs;
-  for (auto i = 1; i <= 3; ++i) {
-    cfgs.emplace_back(fmt("./core_tests/conf/conf_taraxa%s.json", i));
-  }
-  auto node_count = 0;
-  auto node1(taraxa::FullNode::make(cfgs[node_count++]));
-  auto node2(taraxa::FullNode::make(cfgs[node_count++]));
-  auto node3(taraxa::FullNode::make(cfgs[node_count++]));
-  node1->start(true);  // boot node
-  node2->start(false);
-  node3->start(false);
+  auto node_cfgs = make_node_cfgs(3);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
+  auto &node3 = nodes[2];
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
@@ -229,10 +216,10 @@ TEST_F(PbftRpcTest, vote_broadcast) {
   EXPECT_EQ(vote_queue_size3, 1);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   taraxa::static_init();
   LoggingConfig logging;
   logging.verbosity = taraxa::VerbosityError;

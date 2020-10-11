@@ -34,14 +34,15 @@ Network::Network(NetworkConfig const &config, std::string const &network_file,
                  std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<BlockManager> blk_mgr,
                  std::shared_ptr<TransactionManager> trx_mgr, public_t node_pk,
-                 uint32_t lambda_ms_min) try : conf_(config),
-                                               db_(db),
-                                               pbft_chain_(pbft_chain),
-                                               vote_mgr_(vote_mgr),
-                                               dag_mgr_(dag_mgr),
-                                               blk_mgr_(blk_mgr),
-                                               trx_mgr_(trx_mgr),
-                                               node_pk_(node_pk) {
+                 uint32_t lambda_ms_min) try
+    : conf_(config),
+      db_(db),
+      pbft_chain_(pbft_chain),
+      vote_mgr_(vote_mgr),
+      dag_mgr_(dag_mgr),
+      blk_mgr_(blk_mgr),
+      trx_mgr_(trx_mgr),
+      node_pk_(node_pk) {
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
   auto key = dev::KeyPair::create();
@@ -154,12 +155,9 @@ void Network::stop() {
   }
 
   host_->stop();
-  if (network_file_ != "") saveNetwork(network_file_);
-  trx_mgr_ = nullptr;
-  blk_mgr_ = nullptr;
-  dag_mgr_ = nullptr;
-  vote_mgr_ = nullptr;
-  pbft_chain_ = nullptr;
+  if (!network_file_.empty()) {
+    saveNetwork(network_file_);
+  }
   taraxa_capability_->onStopping();
 }
 

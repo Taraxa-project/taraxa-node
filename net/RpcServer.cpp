@@ -9,19 +9,19 @@
 
 namespace taraxa::net {
 
-RpcServer::RpcServer(boost::asio::io_context &io, RpcConfig const &conf_rpc,
-                     addr_t node_addr)
-    : conf_(conf_rpc), io_context_(io), acceptor_(io) {
+RpcServer::RpcServer(boost::asio::io_context &io,
+                     boost::asio::ip::tcp::endpoint ep, addr_t node_addr)
+    : io_context_(io), acceptor_(io), ep_(std::move(ep)) {
   LOG_OBJECTS_CREATE("RPC");
-  LOG(log_si_) << "Taraxa RPC started at port: " << conf_.port;
+  LOG(log_si_) << "Taraxa RPC started at port: " << ep_.port();
 }
+
 std::shared_ptr<RpcServer> RpcServer::getShared() {
   try {
     return shared_from_this();
   } catch (std::bad_weak_ptr &e) {
     std::cerr << "Rpc: " << e.what() << std::endl;
     assert(false);
-    return nullptr;
   }
 }
 
@@ -29,19 +29,18 @@ bool RpcServer::StartListening() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
   }
-  boost::asio::ip::tcp::endpoint ep(conf_.address, conf_.port);
-  acceptor_.open(ep.protocol());
+  acceptor_.open(ep_.protocol());
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 
   boost::system::error_code ec;
-  acceptor_.bind(ep, ec);
+  acceptor_.bind(ep_, ec);
   if (ec) {
     LOG(log_er_) << "RPC cannot bind ... " << ec.message() << "\n";
     throw std::runtime_error(ec.message());
   }
   acceptor_.listen();
 
-  LOG(log_nf_) << "Rpc is listening on port " << conf_.port << std::endl;
+  LOG(log_nf_) << "Rpc is listening on port " << ep_.port() << std::endl;
   waitForAccept();
   return true;
 }

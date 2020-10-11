@@ -400,6 +400,29 @@ class ExpirationCache {
   mutable boost::shared_mutex mtx_;
 };
 
+template <typename T>
+auto slice(std::vector<T> const &v, std::size_t from = -1,
+           std::size_t to = -1) {
+  auto b = v.begin();
+  return std::vector<T>(from == -1 ? b : b + from, to == -1 ? v.end() : b + to);
+}
+
+template <uint from, uint to, typename RandomAccessible>
+auto slice_static(RandomAccessible const &arg) {
+  using value_t =
+      std::remove_const_t<std::remove_reference_t<decltype(arg[0])>>;
+  std::array<value_t, to - from> ret;
+  for (uint i(from); i < to; ++i) {
+    ret[i - from] = arg[i];
+  }
+  return ret;
+}
+
+template <uint to, typename RandomAccessible>
+auto slice_static(RandomAccessible const &arg) {
+  return slice_static<0, to, RandomAccessible>(arg);
+}
+
 template <class Key, class Value>
 class ExpirationCacheMap {
  public:

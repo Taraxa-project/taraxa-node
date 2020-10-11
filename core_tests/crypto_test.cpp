@@ -17,13 +17,12 @@
 #include "vdf_sortition.hpp"
 #include "vrf_wrapper.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 using namespace vdf;
 using namespace vrf_wrapper;
 using namespace vdf_sortition;
-using std::string;
-struct CryptoTest : core_tests::util::DBUsingTest<> {};
+
+struct CryptoTest : BaseTest {};
 
 auto node_sk_string =
     "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
@@ -293,8 +292,8 @@ TEST_F(CryptoTest, sortition_test) {
 }
 
 TEST_F(CryptoTest, sortition_rate) {
-  FullNodeConfig cfg(conf_file[0]);
-  auto node(FullNode::make(cfg, true));
+  auto node_cfgs = make_node_cfgs(1);
+  FullNode::Handle node(node_cfgs[0]);
 
   size_t valid_sortition_players;
   string message = "This is a test message.";
@@ -364,7 +363,7 @@ TEST_F(CryptoTest, sortition_rate) {
   EXPECT_EQ(count, valid_sortition_players * round);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

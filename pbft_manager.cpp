@@ -39,8 +39,8 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
                          std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr,
-                         addr_t master_boot_node_addr, secret_t node_sk,
-                         vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block)
+                         secret_t node_sk, vrf_sk_t vrf_sk,
+                         uint32_t expected_max_trx_per_block)
     : replay_protection_service(new ReplayProtectionServiceDummy),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -57,7 +57,6 @@ PbftManager::PbftManager(PbftConfig const &conf, std::string const &genesis,
       trx_ord_mgr_(trx_ord_mgr),
       trx_mgr_(trx_mgr),
       node_addr_(node_addr),
-      master_boot_node_addr_(master_boot_node_addr),
       node_sk_(node_sk),
       vrf_sk_(vrf_sk) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
@@ -73,7 +72,7 @@ PbftManager::~PbftManager() { stop(); }
 
 void PbftManager::setNetwork(std::shared_ptr<Network> network) {
   network_ = network;
-  capability_ = network->getTaraxaCapability();
+  capability_ = network ? network->getTaraxaCapability() : nullptr;
 }
 
 void PbftManager::setWSServer(std::shared_ptr<net::WSServer> ws_server) {
@@ -133,7 +132,6 @@ void PbftManager::run() {
 
   // Initialize PBFT status
   initialState_();
-
 
   if (!capability_->syncing_) {
     LOG(log_nf_) << "Send sync request on PBFT start...";
@@ -501,20 +499,12 @@ bool PbftManager::stateOperations_() {
   LOG(log_tr_) << "PBFT current step is " << step_;
 
   // Get votes
-  bool sync_peers_pbft_chain = false;
   votes_ = vote_mgr_->getVotes(
-      sync_peers_pbft_chain, round_, pbft_chain_last_block_hash_,
-      sortition_threshold_, getEligibleVoterCount(),
+      round_, pbft_chain_last_block_hash_, sortition_threshold_,
+      getEligibleVoterCount(),
       [this](auto const &addr) { return is_eligible_(addr); });
   LOG(log_tr_) << "There are " << votes_.size() << " total votes in round "
                << round_;
-
-  // Concern can malicious node trigger excessive syncing?
-  if (sync_peers_pbft_chain && pbft_chain_->pbftSyncedQueueEmpty() &&
-      !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
-    LOG(log_nf_) << "Vote validation triggered PBFT chain sync";
-    syncPbftChainFromPeers_();
-  }
 
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
@@ -1278,7 +1268,8 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(
   } else {
     // Sync if we see a cert voted block and we weren't able to
     // participate due to DAG not being synced
-    if (state_ == finish_state && !have_executed_this_round_&& !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
+    if (state_ == finish_state && !have_executed_this_round_ &&
+        !capability_->syncing_ && !syncRequestedAlreadyThisStep_()) {
       LOG(log_nf_) << "DAG blocks have not sync yet. In period: " << last_period
                    << " PBFT block schedule DAG blocks size: "
                    << dag_blocks_hash_in_schedule.size()

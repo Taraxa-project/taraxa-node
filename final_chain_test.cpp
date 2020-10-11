@@ -17,8 +17,8 @@ struct advance_check_opts {
   bool dont_assume_all_trx_success = 0;
 };
 
-struct FinalChainTest : testing::Test, WithTestDataDir {
-  shared_ptr<DbStorage> db = DbStorage::make(data_dir, h256::random(), true);
+struct FinalChainTest : WithTestDataDir {
+  shared_ptr<DbStorage> db = DbStorage::make(data_dir / "db");
   FinalChain::Config cfg = ChainConfig::predefined().final_chain;
   unique_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
@@ -165,6 +165,7 @@ TEST_F(FinalChainTest, contract) {
   auto const& sk = sender_keys.secret();
   cfg.state.genesis_balances = {};
   cfg.state.genesis_balances[addr] = 100000;
+  cfg.state.dpos = nullopt;
   init();
   static string const contract_deploy_code =
       // pragma solidity ^0.6.8;
@@ -267,6 +268,7 @@ TEST_F(FinalChainTest, contract) {
 TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 500;
   cfg.state.genesis_balances = {};
+  cfg.state.dpos = nullopt;
   vector<KeyPair> keys;
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {

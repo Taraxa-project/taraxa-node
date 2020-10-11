@@ -5,13 +5,12 @@
 #include <thread>
 #include <vector>
 
-#include "core_tests/util.hpp"
-#include "create_samples.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
 #include "transaction_manager.hpp"
+#include "util.hpp"
 
-namespace taraxa {
-using ::taraxa::util::lazy::Lazy;
+namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 40;
 const unsigned NUM_BLK = 4;
@@ -32,7 +31,7 @@ auto g_blk_samples = Lazy([] {
                                           BLK_TRX_OVERLAP);
 });
 
-struct TransactionTest : core_tests::util::DBUsingTest<> {};
+struct TransactionTest : BaseTest {};
 
 TEST_F(TransactionTest, status_table_lru) {
   using TestStatus = StatusTable<int, int>;
@@ -129,8 +128,7 @@ TEST_F(TransactionTest, sig) {
 TEST_F(TransactionTest, verifiers) {
   AccountNonceTable accs_table;
 
-  TransactionManager trx_mgr(
-      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true), addr_t());
+  TransactionManager trx_mgr(DbStorage::make(data_dir), addr_t());
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
@@ -154,8 +152,7 @@ TEST_F(TransactionTest, verifiers) {
 TEST_F(TransactionTest, transaction_limit) {
   AccountNonceTable accs_table;
 
-  TransactionManager trx_mgr(
-      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true), addr_t());
+  TransactionManager trx_mgr(DbStorage::make(data_dir), addr_t());
   trx_mgr.setVerifyMode(TransactionManager::VerifyMode::skip_verify_sig);
   trx_mgr.start();
 
@@ -182,8 +179,7 @@ TEST_F(TransactionTest, transaction_limit) {
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
-  TransactionManager trx_mgr(
-      DbStorage::make("/tmp/rocksdb/test", blk_hash_t(), true), addr_t());
+  TransactionManager trx_mgr(DbStorage::make(data_dir), addr_t());
   trx_mgr.start();
 
   std::thread insertTrx([&trx_mgr]() {
@@ -213,7 +209,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
       << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

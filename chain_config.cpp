@@ -70,6 +70,11 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       dpos.genesis_state[*default_chain_boot_node_addr][addr_t(addr_str)] =
           dpos.eligibility_balance_threshold;
     }
+    cfg.pbft.lambda_ms_min = 2000;
+    cfg.pbft.committee_size = 5;
+    cfg.pbft.dag_blocks_size = 100;
+    cfg.pbft.ghost_path_move_back = 1;
+    cfg.pbft.run_count_votes = false;
     return cfg;
   }();
   cfgs["test"] = [&] {

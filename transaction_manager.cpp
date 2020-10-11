@@ -22,10 +22,9 @@ auto trxComp = [](Transaction const &t1, Transaction const &t2) -> bool {
   }
 };
 
-TransactionManager::TransactionManager(FullNodeConfig const &conf,
-                                       addr_t node_addr,
-                                       std::shared_ptr<DbStorage> db,
-                                       boost::log::sources::severity_channel_logger<> log_time)
+TransactionManager::TransactionManager(
+    FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+    boost::log::sources::severity_channel_logger<> log_time)
     : conf_(conf),
       accs_nonce_(),
       trx_qu_(node_addr),

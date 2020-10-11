@@ -13,18 +13,15 @@
 #include <vector>
 
 #include "core_tests/util.hpp"
-#include "create_samples.hpp"
 #include "network.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
 #include "taraxa_capability.hpp"
 #include "util/lazy.hpp"
 
-using namespace std;
+namespace taraxa::core_tests {
 using namespace dev;
 using namespace dev::p2p;
-
-namespace taraxa {
-using ::taraxa::util::lazy::Lazy;
 
 const unsigned NUM_TRX = 9;
 auto g_secret = Lazy([] {
@@ -35,7 +32,7 @@ auto g_secret = Lazy([] {
 auto g_signed_trx_samples =
     Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
-struct P2PTest : core_tests::util::DBUsingTest<> {};
+struct P2PTest : BaseTest {};
 
 /*
 Test creates one boot node and 10 nodes that uses that boot node
@@ -375,10 +372,10 @@ TEST_F(P2PTest, block_propagate) {
   EXPECT_EQ(blocks1.size(), 1);
   if (blocks1.size()) EXPECT_EQ(blk, blocks1.begin()->second);
 }
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   static_init();
   LoggingConfig logging;
   addr_t node_addr;

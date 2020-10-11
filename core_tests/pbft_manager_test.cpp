@@ -2,18 +2,13 @@
 
 #include <gtest/gtest.h>
 
-#include "core_tests/util.hpp"
-#include "create_samples.hpp"
 #include "network.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
-#include "transaction_manager.hpp"
+#include "util.hpp"
 #include "util/lazy.hpp"
-#include "util/wait.hpp"
 
-namespace taraxa {
-using namespace core_tests::util;
-using core_tests::util::constants::TEST_TX_GAS_LIMIT;
-using ::taraxa::util::lazy::Lazy;
+namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 200;
 auto g_secret = Lazy([] {
@@ -26,7 +21,7 @@ auto g_trx_signed_samples =
     Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
-struct PbftManagerTest : core_tests::util::DBUsingTest<> {};
+struct PbftManagerTest : BaseTest {};
 
 pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
                                                  size_t valid_voting_players) {
@@ -46,8 +41,8 @@ pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size,
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
     size_t committee_size) {
-  auto tops = createNodesAndVerifyConnection(5, 4, false, 20);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<20>(5);
+  auto nodes = launch_nodes(node_cfgs);
 
   std::shared_ptr<PbftManager> pbft_mgr;
   for (auto i(0); i < nodes.size(); ++i) {
@@ -76,8 +71,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 
   std::cout << "Checking all nodes executed transactions from master boot node"
             << std::endl;
-  auto success = wait::Wait(
-      [&nodes, &trxs_count, &nonce] {
+  auto success = wait(
+      80s,
+      [&] {
         for (auto i(0); i < nodes.size(); ++i) {
           if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
@@ -95,10 +91,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         }
         return true;
       },
-      {
-          10,                       // send times
-          std::chrono::seconds(8),  // each sending
-      });
+      8s);
   for (auto i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -152,8 +145,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 
   std::cout << "Checking all nodes execute transactions from robin cycle"
             << std::endl;
-  success = wait::Wait(
-      [&nodes, &trxs_count, &nonce] {
+  success = wait(
+      80s,
+      [&] {
         for (auto i(0); i < nodes.size(); ++i) {
           if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
             std::cout << "node" << i << " executed "
@@ -171,10 +165,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
         }
         return true;
       },
-      {
-          10,                       // send times
-          std::chrono::seconds(8),  // each sending
-      });
+      8s);
   for (auto i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
@@ -212,8 +203,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  auto tops = createNodesAndVerifyConnection(1, 0, false, 20);
-  auto node = tops.second[0];
+  auto node_cfgs = make_node_cfgs<20>(1);
+  FullNode::Handle node(node_cfgs[0]);
 
   // create a transaction
   auto coins_value = val_t(100);
@@ -257,12 +248,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  auto tops = createNodesAndVerifyConnection(3, 2, false, 20);
-  auto &nodes = tops.second;
+  auto node_cfgs = make_node_cfgs<20>(3);
+  auto nodes = launch_nodes(node_cfgs);
 
-  auto node1_addr = addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5");
-  auto node2_addr = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
-  auto node3_addr = addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e");
+  auto node1_addr = nodes[0]->getAddress();
+  auto node2_addr = nodes[1]->getAddress();
+  auto node3_addr = nodes[2]->getAddress();
 
   // create a transaction transfer coins from node1 to node2
   auto coins_value2 = val_t(100);
@@ -404,7 +395,7 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char **argv) {

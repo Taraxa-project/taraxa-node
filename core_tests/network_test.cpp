@@ -9,17 +9,15 @@
 
 #include "block_proposer.hpp"
 #include "core_tests/util.hpp"
-#include "create_samples.hpp"
 #include "dag.hpp"
 #include "pbft_manager.hpp"
+#include "samples.hpp"
 #include "static_init.hpp"
 #include "transaction_manager.hpp"
 #include "util.hpp"
 #include "util/lazy.hpp"
 
-namespace taraxa {
-using ::taraxa::util::lazy::Lazy;
-using namespace core_tests::util;
+namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 10;
 auto g_secret = Lazy([] {
@@ -44,11 +42,12 @@ auto g_trx_samples2 =
     Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX2); });
 auto g_signed_trx_samples2 = Lazy(
     [] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
-auto g_conf1 = Lazy([] { return FullNodeConfig(conf_file[0]); });
-auto g_conf2 = Lazy([] { return FullNodeConfig(conf_file[1]); });
-auto g_conf3 = Lazy([] { return FullNodeConfig(conf_file[2]); });
+auto three_default_configs = Lazy([] { return make_node_cfgs(3); });
+auto g_conf1 = Lazy([] { return three_default_configs[0]; });
+auto g_conf2 = Lazy([] { return three_default_configs[1]; });
+auto g_conf3 = Lazy([] { return three_default_configs[2]; });
 
-struct NetworkTest : core_tests::util::DBUsingTest<> {};
+struct NetworkTest : BaseTest {};
 
 // Test creates two Network setup and verifies sending block
 // between is successfull
@@ -210,35 +209,28 @@ TEST_F(NetworkTest, save_network) {
 // Test creates one node with testnet network ID and one node with main ID and
 // verifies that connection fails
 TEST_F(NetworkTest, node_network_id) {
+  auto node_cfgs = make_node_cfgs(2);
   {
-    FullNodeConfig conf1(conf_file[0]);
+    auto conf1 = node_cfgs[0];
     conf1.network.network_id = "main";
-    auto node1(taraxa::FullNode::make(conf1, true));
+    FullNode::Handle node1(conf1, true);
 
-    node1->start(true);
-
-    FullNodeConfig conf2(conf_file[1]);
+    auto conf2 = node_cfgs[1];
     conf2.network.network_id = "main";
-    auto node2 = taraxa::FullNode::make(conf2, true);
-
-    node2->start(false);  // boot node
+    FullNode::Handle node2(conf2, true);
 
     taraxa::thisThreadSleepForMilliSeconds(1000);
     EXPECT_EQ(node1->getNetwork()->getPeerCount(), 1);
     EXPECT_EQ(node2->getNetwork()->getPeerCount(), 1);
   }
   {
-    FullNodeConfig conf1(conf_file[0]);
+    auto conf1 = node_cfgs[0];
     conf1.network.network_id = "main";
-    auto node1(taraxa::FullNode::make(conf1, true));
+    FullNode::Handle node1(conf1, true);
 
-    node1->start(true);
-
-    FullNodeConfig conf2(conf_file[1]);
+    auto conf2 = node_cfgs[1];
     conf2.network.network_id = "testnet";
-    auto node2 = taraxa::FullNode::make(conf2, true);
-
-    node2->start(false);  // boot node
+    FullNode::Handle node2(conf2, true);
 
     taraxa::thisThreadSleepForMilliSeconds(1000);
     EXPECT_EQ(node1->getNetwork()->getPeerCount(), 0);
@@ -250,9 +242,8 @@ TEST_F(NetworkTest, node_network_id) {
 // that the second node syncs with it and that the resulting
 // DAG on the other end is the same
 TEST_F(NetworkTest, node_sync) {
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-
-  node1->start(true);
+  auto node_cfgs = make_node_cfgs(2);
+  FullNode::Handle node1(node_cfgs[0], true);
 
   // Allow node to start up
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -325,28 +316,26 @@ TEST_F(NetworkTest, node_sync) {
     node1->getBlockManager()->insertBlock(blks[i]);
   }
 
-  for (int i = 0; i < 200; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node1->getDagManager()->getNumVerticesInDag().first == 7 &&
-        node1->getDagManager()->getNumEdgesInDag().first == 8)
-      break;
-  }
-  // node1->drawGraph("dot.txt");
+  wait(
+      30s,
+      [&] {
+        return node1->getDagManager()->getNumVerticesInDag().first == 7 &&
+               node1->getDagManager()->getNumEdgesInDag().first == 8;
+      },
+      500ms);
   EXPECT_EQ(node1->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node1->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node1->getDagManager()->getNumEdgesInDag().first, 8);
 
-  auto node2 = taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json"), true);
-  node2->start(false);  // non-boot node
-
-  std::cout << "Waiting Sync for max 40000 milliseconds ..." << std::endl;
-  for (int i = 0; i < 400; i++) {
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    if (node2->getDagManager()->getNumVerticesInDag().first == 7 &&
-        node2->getDagManager()->getNumEdgesInDag().first == 8)
-      break;
-  }
+  FullNode::Handle node2(node_cfgs[1], true);
+  std::cout << "Waiting Sync..." << std::endl;
+  wait(
+      45s,
+      [&] {
+        return node2->getDagManager()->getNumVerticesInDag().first == 7 &&
+               node2->getDagManager()->getNumEdgesInDag().first == 8;
+      },
+      1500ms);
   EXPECT_EQ(node2->getNumReceivedBlocks(), blks.size());
   EXPECT_EQ(node2->getDagManager()->getNumVerticesInDag().first, 7);
   EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, 8);
@@ -356,8 +345,9 @@ TEST_F(NetworkTest, node_sync) {
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-  node1->start(true);  // boot node
+  auto node_cfgs = make_node_cfgs(2);
+  FullNode::Handle node1(node_cfgs[0], true);
+
   node1->getPbftManager()->stop();
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
@@ -425,10 +415,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
-  auto node2 = taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json"), true);
-  node2->start(false);  // boot node
-
+  FullNode::Handle node2(node_cfgs[1], true);
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   const int node_peers = 1;
@@ -468,8 +455,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-  node1->start(true);  // boot node
+  auto node_cfgs = make_node_cfgs(2);
+  FullNode::Handle node1(node_cfgs[0], true);
+
   node1->getPbftManager()->stop();
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
@@ -530,9 +518,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
-  auto node2(taraxa::FullNode::make(std::string(conf_file[1]), true));
-  node2->start(false);  // boot node
-
+  FullNode::Handle node2(node_cfgs[1], true);
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();
   const int node_peers = 1;
@@ -574,9 +560,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 // Unlike the previous tests, this DAG contains blocks with transactions
 // and verifies that the sync containing transactions is successful
 TEST_F(NetworkTest, node_sync_with_transactions) {
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-
-  node1->start(true);
+  auto node_cfgs = make_node_cfgs(2);
+  FullNode::Handle node1(node_cfgs[0], true);
 
   std::vector<DagBlock> blks;
   // Generate DAG blocks
@@ -666,11 +651,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
-  auto node2 = taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json"), true);
-
-  node2->start(false);  // boot node
-
+  FullNode::Handle node2(node_cfgs[1], true);
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
   for (int i = 0; i < 40; i++) {
     taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -693,11 +674,9 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 // that the second node syncs with it and that the resulting
 // DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
-  taraxa::thisThreadSleepForMilliSeconds(2000);
+  auto node_cfgs = make_node_cfgs(2);
+  FullNode::Handle node1(node_cfgs[0], true);
 
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-
-  node1->start(true);
   std::vector<DagBlock> blks;
   // Generate DAG blocks
   auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
@@ -864,11 +843,7 @@ TEST_F(NetworkTest, node_sync2) {
 
   taraxa::thisThreadSleepForMilliSeconds(200);
 
-  auto node2(taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json"), true));
-
-  node2->start(false);  // boot node
-
+  FullNode::Handle node2(node_cfgs[1], true);
   std::cout << "Waiting Sync for up to 40000 milliseconds ..." << std::endl;
   for (int i = 0; i < 400; i++) {
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -890,23 +865,15 @@ TEST_F(NetworkTest, node_sync2) {
 // Test creates new transactions on one node and verifies
 // that the second node receives the transactions
 TEST_F(NetworkTest, node_transaction_sync) {
-  auto node1(taraxa::FullNode::make(std::string(conf_file[0]), true));
-
-  node1->start(true);
+  auto node_cfgs = make_node_cfgs(2);
+  auto nodes = launch_nodes(node_cfgs);
+  auto& node1 = nodes[0];
+  auto& node2 = nodes[1];
 
   std::vector<taraxa::bytes> transactions;
   for (auto const& t : *g_signed_trx_samples) {
     transactions.emplace_back(*t.rlp());
   }
-
-  taraxa::thisThreadSleepForMilliSeconds(1000);
-
-  auto node2 = taraxa::FullNode::make(
-      std::string("./core_tests/conf/conf_taraxa2.json"), true);
-
-  node2->start(false);  // boot node
-
-  taraxa::thisThreadSleepForMilliSeconds(1000);
 
   node1->getTransactionManager()->insertBroadcastedTransactions(transactions);
 
@@ -931,19 +898,9 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // resulting DAG is the same on all nodes
 // fixme: flaky
 TEST_F(NetworkTest, node_full_sync) {
-  const int numberOfNodes = 5;
-  std::vector<FullNode::Handle> nodes;
-  // Generate 4 nodes first
-  for (auto i = 0; i < numberOfNodes - 1; i++) {
-    FullNodeConfig config(conf_file[i]);
-    nodes.push_back(taraxa::FullNode::make(config, true));
-    if (i == 0) {
-      nodes[i]->start(true);  // boot node
-    } else {
-      nodes[i]->start(false);  // non-boot node
-    }
-    taraxa::thisThreadSleepForMilliSeconds(50);
-  }
+  constexpr auto numberOfNodes = 5;
+  auto node_cfgs = make_node_cfgs(numberOfNodes);
+  auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));
   // Check 4 nodes peers connection
   auto node0_peers = nodes[0]->getNetwork()->getPeerCount();
   auto node1_peers = nodes[1]->getNetwork()->getPeerCount();
@@ -1012,9 +969,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   // Bootstrapping node5 join the network
-  FullNodeConfig config(std::string("./core_tests/conf/conf_taraxa5.json"));
-  nodes.push_back(taraxa::FullNode::make(config, true));
-  nodes[numberOfNodes - 1]->start(false);  // non-boot node
+  nodes.emplace_back(FullNode::Handle(node_cfgs[numberOfNodes - 1], true));
   // Check 5 nodes peers connections
   node0_peers = nodes[0]->getNetwork()->getPeerCount();
   node1_peers = nodes[1]->getNetwork()->getPeerCount();
@@ -1115,7 +1070,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::core_tests
 
 using namespace taraxa;
 int main(int argc, char** argv) {

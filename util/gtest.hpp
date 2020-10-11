@@ -17,20 +17,24 @@
     return RUN_ALL_TESTS();                                  \
   }
 
-struct WithTestInfo {
+struct WithTestInfo : virtual testing::Test {
   testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
   testing::TestInfo const* current_test_info =
       current_test->current_test_info();
+
+  virtual ~WithTestInfo() {}
 };
 
 struct WithTestDataDir : virtual WithTestInfo {
   boost::filesystem::path data_dir = boost::filesystem::temp_directory_path() /
-                                     "taraxa_node" /
+                                     "taraxa_node_tests" /
                                      current_test_info->test_suite_name() /
                                      current_test_info->test_case_name();
 
-  WithTestDataDir() { boost::filesystem::create_directories(data_dir); }
-  ~WithTestDataDir() { boost::filesystem::remove_all(data_dir); }
+  WithTestDataDir() : WithTestInfo() {
+    boost::filesystem::create_directories(data_dir);
+  }
+  virtual ~WithTestDataDir() { boost::filesystem::remove_all(data_dir); }
 };
 
 #endif  // TARAXA_NODE_UTIL_GTEST_HPP_

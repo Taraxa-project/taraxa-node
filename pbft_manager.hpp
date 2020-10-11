@@ -32,6 +32,7 @@ enum PbftStates {
   finish_polling_state
 };
 
+
 class PbftManager {
   unique_ptr<ReplayProtectionService> replay_protection_service;
 
@@ -46,9 +47,8 @@ class PbftManager {
               std::shared_ptr<BlockManager> blk_mgr,
               std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<TransactionOrderManager> trx_ord_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr,
-              addr_t master_boot_node_addr, secret_t node_sk, vrf_sk_t vrf_sk,
-              uint32_t expected_max_trx_per_block);
+              std::shared_ptr<TransactionManager> trx_mgr, secret_t node_sk,
+              vrf_sk_t vrf_sk, uint32_t expected_max_trx_per_block);
   ~PbftManager();
 
   void setNetwork(std::shared_ptr<Network> network);
@@ -181,7 +181,6 @@ class PbftManager {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<TransactionOrderManager> trx_ord_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  addr_t master_boot_node_addr_;
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;
