@@ -97,7 +97,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
       },
       {
           10,                       // send times
-          std::chrono::seconds(2),  // each sending
+          std::chrono::seconds(8),  // each sending
       });
   for (auto i(0); i < nodes.size(); ++i) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
@@ -173,7 +173,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
       },
       {
           10,                       // send times
-          std::chrono::seconds(2),  // each sending
+          std::chrono::seconds(8),  // each sending
       });
   for (auto i = 0; i < nodes.size(); i++) {
     EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
