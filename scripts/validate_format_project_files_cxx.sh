@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# TODO elaborate on this idea
+exit 0
+
 PREV_CWD=$(pwd)
 cd "$(dirname "$0")"
 cd ..
