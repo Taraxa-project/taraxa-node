@@ -95,19 +95,16 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-        ctx.fail_log << "node" << i << " executed "
-                     << nodes[i]->getDB()->getNumTransactionExecuted()
-                     << " transactions, expected " << trxs_count << std::endl;
-        if (ctx.fail(); !ctx.is_last_attempt) {
-          Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
-                                nodes[0]->getSecretKey(),
-                                nodes[0]->getAddress());
-          // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx,
-                                                               false);
-          trxs_count++;
-          return;
-        }
+        std::cout << "node" << i << " executed "
+                  << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions, expected " << trxs_count << std::endl;
+        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                              nodes[0]->getSecretKey(), nodes[0]->getAddress());
+        // broadcast dummy transaction
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+        trxs_count++;
+        ctx.fail();
+        return;
       }
     }
   });
@@ -167,21 +164,22 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (auto i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
-        ctx.fail_log << "node" << i << " executed "
-                     << nodes[i]->getDB()->getNumTransactionExecuted()
-                     << " transactions. Expected " << trxs_count << std::endl;
-        if (ctx.fail(); !ctx.is_last_attempt) {
-          Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
-                                nodes[0]->getSecretKey(),
-                                nodes[0]->getAddress());
-          // broadcast dummy transaction
-          nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
-          trxs_count++;
-          return;
-        }
+        std::cout << "node" << i << " executed "
+                  << nodes[i]->getDB()->getNumTransactionExecuted()
+                  << " transactions. Expected " << trxs_count << std::endl;
+        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                              nodes[0]->getSecretKey(), nodes[0]->getAddress());
+        // broadcast dummy transaction
+        nodes[0]->getTransactionManager()->insertTransaction(dummy_trx, false);
+        trxs_count++;
+        ctx.fail();
+        return;
       }
     }
   });
+  for (auto i = 0; i < nodes.size(); i++) {
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
+  }
   // Account balances should not change in robin cycle
   for (auto i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..."

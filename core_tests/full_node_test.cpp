@@ -332,11 +332,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
                     : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
       threads.emplace_back([i, to, &context, &thread_completed] {
         for (auto _(0); _ < 10; ++_) {
-          std::cout << "Send from node " << i << " #" << _ << " value 100"
-                    << std::endl;
           context.coin_transfer(i, to, 100);
-          std::cout << "Sent from node " << i << " #" << _ << " value 100"
-                    << std::endl;
         }
         thread_completed[i] = true;
       });
