@@ -146,33 +146,37 @@ inline auto make_node_cfgs(uint count) {
   return slice(ret, 0, count);
 }
 
+inline auto wait_connect(vector<FullNode::Handle> const& nodes,
+                         optional<uint> min_peers_to_connect = {}) {
+  auto min_peers = min_peers_to_connect.value_or(nodes.size() - 1);
+  return wait({10s, 500ms}, [&](auto& ctx) {
+    for (auto const& node : nodes) {
+      if (ctx.fail_if(node->getNetwork()->getPeerCount() < min_peers)) {
+        return;
+      }
+    }
+  });
+}
+
 inline auto launch_nodes(vector<FullNodeConfig> const& cfgs,
                          optional<uint> min_peers_to_connect = {},
                          optional<uint> retry_cnt = {}) {
   auto node_count = cfgs.size();
-  auto min_peers = min_peers_to_connect.value_or(node_count - 1);
-  vector<FullNode::Handle> result(node_count);
-  for (auto i = retry_cnt.value_or(3); i != 0; --i, result.clear()) {
+  vector<FullNode::Handle> nodes(node_count);
+  for (auto i = retry_cnt.value_or(3); i != 0; --i, nodes.clear()) {
     for (uint j = 0; j < node_count; ++j) {
-      result[j] = FullNode::Handle(cfgs[j], true);
+      nodes[j] = FullNode::Handle(cfgs[j], true);
     }
     if (node_count == 1) {
-      return result;
+      return nodes;
     }
-    auto all_connected = wait({10s, 500ms}, [&](auto& ctx) {
-      for (auto const& node : result) {
-        if (ctx.fail_if(node->getNetwork()->getPeerCount() < min_peers)) {
-          return;
-        }
-      }
-    });
-    if (all_connected) {
+    if (wait_connect(nodes, min_peers_to_connect)) {
       cout << "nodes connected" << endl;
-      return result;
+      return nodes;
     }
   }
   EXPECT_TRUE(false);
-  return result;
+  return nodes;
 }
 
 struct BaseTest : virtual WithDataDir {

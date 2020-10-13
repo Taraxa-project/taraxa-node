@@ -3,7 +3,6 @@
 #include <gtest/gtest.h>
 
 #include <atomic>
-#include <boost/thread.hpp>
 #include <iostream>
 #include <vector>
 
@@ -13,8 +12,6 @@
 #include "pbft_manager.hpp"
 #include "samples.hpp"
 #include "static_init.hpp"
-#include "transaction_manager.hpp"
-#include "util.hpp"
 #include "util/lazy.hpp"
 
 namespace taraxa::core_tests {
@@ -884,26 +881,6 @@ TEST_F(NetworkTest, node_full_sync) {
   constexpr auto numberOfNodes = 5;
   auto node_cfgs = make_node_cfgs(numberOfNodes);
   auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));
-  // Check 4 nodes peers connection
-  auto node0_peers = nodes[0]->getNetwork()->getPeerCount();
-  auto node1_peers = nodes[1]->getNetwork()->getPeerCount();
-  auto node2_peers = nodes[2]->getNetwork()->getPeerCount();
-  auto node3_peers = nodes[3]->getNetwork()->getPeerCount();
-  for (auto i = 0; i < 600; i++) {
-    if (node0_peers == 4 && node1_peers == 4 && node2_peers == 4 &&
-        node3_peers == 4) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    node0_peers = nodes[0]->getNetwork()->getPeerCount();
-    node1_peers = nodes[1]->getNetwork()->getPeerCount();
-    node2_peers = nodes[2]->getNetwork()->getPeerCount();
-    node3_peers = nodes[3]->getNetwork()->getPeerCount();
-  }
-  ASSERT_EQ(node0_peers, 3);
-  ASSERT_EQ(node1_peers, 3);
-  ASSERT_EQ(node2_peers, 3);
-  ASSERT_EQ(node3_peers, 3);
 
   std::random_device dev;
   std::mt19937 rng(dev());
@@ -941,36 +918,12 @@ TEST_F(NetworkTest, node_full_sync) {
 
   // Bootstrapping node5 join the network
   nodes.emplace_back(FullNode::Handle(node_cfgs[numberOfNodes - 1], true));
-  // Check 5 nodes peers connections
-  node0_peers = nodes[0]->getNetwork()->getPeerCount();
-  node1_peers = nodes[1]->getNetwork()->getPeerCount();
-  node2_peers = nodes[2]->getNetwork()->getPeerCount();
-  node3_peers = nodes[3]->getNetwork()->getPeerCount();
-  auto node4_peers = nodes[4]->getNetwork()->getPeerCount();
-  for (auto i = 0; i < 600; i++) {
-    if (node0_peers == 4 && node1_peers == 4 && node2_peers == 4 &&
-        node3_peers == 4 && node4_peers == 4) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-    node0_peers = nodes[0]->getNetwork()->getPeerCount();
-    node1_peers = nodes[1]->getNetwork()->getPeerCount();
-    node2_peers = nodes[2]->getNetwork()->getPeerCount();
-    node3_peers = nodes[3]->getNetwork()->getPeerCount();
-    node4_peers = nodes[4]->getNetwork()->getPeerCount();
-  }
-  ASSERT_EQ(node0_peers, 4);
-  ASSERT_EQ(node1_peers, 4);
-  ASSERT_EQ(node2_peers, 4);
-  ASSERT_EQ(node3_peers, 4);
-  ASSERT_EQ(node4_peers, 4);
+  EXPECT_TRUE(wait_connect(nodes));
 
-  std::cout << "Waiting Sync for up to 4 minutes ..." << std::endl;
-  // Check 5 nodes DAG syncing
-
+  std::cout << "Waiting Sync..." << std::endl;
   wait({240s, 1000ms}, [&](auto& ctx) {
     // Check 4 nodes DAG syncing
-    for (int j = 1; j < numberOfNodes - 1; j++) {
+    for (int j = 1; j < numberOfNodes; j++) {
       WAIT_EXPECT_EQ(ctx,
                      nodes[j]->getDagManager()->getNumVerticesInDag().first,
                      nodes[0]->getDagManager()->getNumVerticesInDag().first);
